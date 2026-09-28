@@ -1,0 +1,246 @@
+package com.gemwallet.android.features.contacts.viewmodels
+
+import android.content.Context
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.data.services.store.queries.ContactQuery
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressInput
+import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorPage
+import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorUIState
+import com.gemwallet.android.features.contacts.viewmodels.models.listItemImage
+import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.name.AddressInputModel
+import com.gemwallet.android.ui.models.navigation.ContactAddressDraft
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.optionalContactAddressDraft
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ContactAddress
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import uniffi.gemstone.GemContactAddressField
+import uniffi.gemstone.GemContactAddressInput
+import uniffi.gemstone.GemContactAddressSession
+import uniffi.gemstone.GemContactAvatar
+import uniffi.gemstone.GemContactAvatarChoice
+import uniffi.gemstone.GemContactEditorServiceInterface
+import uniffi.gemstone.GemContactSession
+import uniffi.gemstone.GemNameServiceInterface
+import javax.inject.Inject
+
+@HiltViewModel
+class ContactEditorViewModel @Inject constructor(
+    private val contactQuery: ContactQuery,
+    @param:ApplicationContext private val context: Context,
+    private val service: GemContactEditorServiceInterface,
+    nameService: GemNameServiceInterface,
+    savedStateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : ViewModel() {
+
+    private sealed interface Mode {
+        data class Add(val draft: ContactAddressDraft?) : Mode
+        data class Edit(val contactId: String) : Mode
+    }
+
+    private data class ContactEditorState(
+        val session: GemContactSession,
+        val isEdit: Boolean,
+        val emojiBackground: Int = 0,
+        val page: ContactEditorPage = ContactEditorPage.Form,
+        val addressSession: GemContactAddressSession? = null,
+        val saved: Boolean = false,
+        val errorText: String? = null,
+    )
+
+    private val mode: Mode = run {
+        val editContactId = savedStateHandle.get<String>(RouteArgument.ContactId.key)
+        if (editContactId != null) Mode.Edit(editContactId) else Mode.Add(savedStateHandle.optionalContactAddressDraft())
+    }
+    private val addressInput = AddressInputModel(nameService, viewModelScope)
+
+    private val state = MutableStateFlow(
+        ContactEditorState(
+            session = service.newSession(null, emptyList()).let { session ->
+                when (val mode = mode) {
+                    is Mode.Edit -> session.copy(id = mode.contactId)
+
+                    is Mode.Add -> mode.draft?.let { draft ->
+                        session.onAddressSaved(GemContactAddressInput(contactId = session.id, chain = draft.chain.string, address = draft.address, memo = draft.memo, replacingId = null))
+                    } ?: session
+                }
+            },
+            isEdit = mode is Mode.Edit,
+        ),
+    )
+    val uiState: StateFlow<ContactEditorUIState> = combine(
+        state,
+        addressInput.text,
+        addressInput.nameResolveState,
+        addressInput.error,
+        addressInput.isValid,
+    ) { current, address, resolve, addressError, isValid ->
+        val session = current.session
+        ContactEditorUIState(
+            isEdit = current.isEdit,
+            name = session.name,
+            description = session.description,
+            avatar = session.avatarImage().listItemImage(current.emojiBackground),
+            hasAvatar = session.avatar !is GemContactAvatarChoice.Empty,
+            addressRows = session.addressRows(),
+            page = current.page,
+            isSaving = session.isSaving,
+            saved = current.saved,
+            errorText = current.errorText,
+            isSaveEnabled = session.canSave(),
+            addressInput = current.addressSession?.let { addressSession ->
+                ContactAddressInput(
+                    chain = addressSession.chain.requireChain(),
+                    memo = addressSession.memo,
+                    address = address,
+                    nameResolveIndicator = resolve.indicator(),
+                    isAddressValid = isValid,
+                    addressError = addressError?.string(context).orEmpty(),
+                    showsMemo = GemContactAddressField.MEMO in addressSession.fields,
+                )
+            },
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ContactEditorUIState(isEdit = mode is Mode.Edit))
+
+    init {
+        when (val mode = mode) {
+            is Mode.Edit -> viewModelScope.launch(ioDispatcher) {
+                val data = contactQuery(mode.contactId) ?: return@launch
+                updateSession { service.newSession(data.contact.toGem(), data.addresses.map { address -> address.toGem() }) }
+            }
+
+            is Mode.Add -> Unit
+        }
+    }
+
+    private fun updateSession(transform: (GemContactSession) -> GemContactSession) = state.update { it.copy(session = transform(it.session)) }
+
+    fun back() {
+        when (state.value.page) {
+            ContactEditorPage.Form -> Unit
+            ContactEditorPage.Address -> cancelAddress()
+            ContactEditorPage.SelectChain -> cancelSelectChain()
+            ContactEditorPage.Avatar -> cancelAvatar()
+        }
+    }
+
+    fun setName(value: String) = updateSession { it.onNameChanged(value) }
+
+    fun setDescription(value: String) = updateSession { it.onDescriptionChanged(value) }
+
+    fun selectAvatar() = state.update { it.copy(page = ContactEditorPage.Avatar) }
+
+    fun cancelAvatar() = state.update { it.copy(page = ContactEditorPage.Form) }
+
+    fun setAvatar(emoji: String, backgroundColor: Int) = state.update {
+        it.copy(
+            session = it.session.onAvatarChanged(GemContactAvatarChoice.Emoji(emoji)),
+            emojiBackground = backgroundColor,
+            page = ContactEditorPage.Form,
+        )
+    }
+
+    fun removeAvatar() = updateSession { it.onAvatarChanged(GemContactAvatarChoice.Empty) }
+
+    fun deleteAddress(address: ContactAddress) = updateSession { it.onAddressDeleted(address.id) }
+
+    fun addAddress() {
+        val addressSession = service.newAddressSession(state.value.session.id, null)
+        addressInput.reset()
+        addressInput.setChain(addressSession.chain.requireChain())
+        state.update { it.copy(page = ContactEditorPage.Address, addressSession = addressSession) }
+    }
+
+    fun editAddress(address: ContactAddress) {
+        val addressSession = service.newAddressSession(state.value.session.id, address.toGem())
+        addressInput.reset()
+        addressInput.setChain(address.chain)
+        addressInput.onTextChange(address.address)
+        state.update { it.copy(page = ContactEditorPage.Address, addressSession = addressSession) }
+    }
+
+    fun cancelAddress() {
+        addressInput.reset()
+        state.update { it.copy(page = ContactEditorPage.Form) }
+    }
+
+    fun setAddress(value: String) = addressInput.onTextChange(value)
+
+    fun setMemo(value: String) = updateAddressSession { it.onMemoChanged(value) }
+
+    fun scanAddress(data: String) = setScannedAddress(data)
+
+    fun pasteAddress(data: String) = setScannedAddress(data)
+
+    private fun setScannedAddress(data: String) {
+        val scan = service.scannedAddress(data)
+        addressInput.setScannedAddress(scan.address)
+        updateAddressSession { it.onScanned(scan) }
+    }
+
+    fun selectChain() = state.update { it.copy(page = ContactEditorPage.SelectChain) }
+
+    fun cancelSelectChain() = state.update { it.copy(page = ContactEditorPage.Address) }
+
+    fun setChain(chain: Chain) {
+        addressInput.setChain(chain)
+        state.update { it.copy(page = ContactEditorPage.Address, addressSession = it.addressSession?.onChainChanged(chain.string)) }
+    }
+
+    private fun updateAddressSession(transform: (GemContactAddressSession) -> GemContactAddressSession) = state.update { current ->
+        val addressSession = current.addressSession ?: return@update current
+        current.copy(addressSession = transform(addressSession))
+    }
+
+    fun confirmAddress() {
+        val addressSession = state.value.addressSession ?: return
+        if (!addressInput.validate()) return
+
+        val input = addressSession.input(addressInput.resolvedAddress)
+        addressInput.reset()
+        state.update { it.copy(session = it.session.onAddressSaved(input), page = ContactEditorPage.Form) }
+    }
+
+    fun save() {
+        val current = state.value
+        if (!current.session.canSave()) return
+        updateSession { it.onSaving(true) }
+
+        viewModelScope.launch(ioDispatcher) {
+            val input = current.session.input(
+                when (val avatar = current.session.avatar) {
+                    GemContactAvatarChoice.Empty -> GemContactAvatar.Empty
+                    is GemContactAvatarChoice.Image -> GemContactAvatar.Image(avatar.imageUrl)
+                    is GemContactAvatarChoice.Emoji -> GemContactAvatar.Rendered(EmojiAvatarRenderer.render(context, avatar.emoji, current.emojiBackground))
+                },
+            )
+            runCatchingCancellable { service.saveContact(input) }
+                .onSuccess { state.update { it.copy(saved = true) } }
+                .onFailure { error ->
+                    state.update { it.copy(session = it.session.onSaving(false), errorText = error.errorText().text(context)) }
+                }
+        }
+    }
+
+    fun clearError() = state.update { it.copy(errorText = null) }
+}

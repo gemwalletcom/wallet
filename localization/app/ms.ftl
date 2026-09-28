@@ -48,7 +48,6 @@ common_learn_more = Ketahui Lebih Lanjut
 common_description = Penerangan
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Simpan
 common_percentage = Peratusan
 common_details = Butiran
 common_info = Info
@@ -58,6 +57,7 @@ common_method = Kaedah
 common_token = Token
 common_expiration = Tamat tempoh
 common_suspicious_address = Alamat yang mencurigakan
+common_suspicious_address_description = Alamat ini dikaitkan dengan aktiviti yang mencurigakan atau berbahaya.
 common_refresh = Segarkan semula
 common_grant_permission = Berikan kebenaran
 common_required_field = %@ diperlukan
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = Dompet ini telah pun diimport.
 # Wallets
 
 wallets_title = Dompet
-wallets_watch = Tonton
 
 # Receive
 
-receive_title = Terima %@
 receive_warning = Ini alamat anda — hantar sahaja %@ pada %@ rangkaian.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = Dayakan Kod Laluan
 settings_security_authentication = Pengesahan
 settings_notifications_title = Pemberitahuan
 settings_language = Bahasa
-settings_help_center = Pusat Bantuan
 settings_support = Sokongan
 settings_price_alerts_title = Makluman Harga
 settings_hide_balance = Sembunyikan Baki
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = Tiada sebut harga tersedia.
 errors_swap_not_supported_asset = Aset tidak disokong.
 errors_connections_no_supported_wallets = Tiada dompet yang disokong tersedia.
 errors_connections_unsupported_chain = Rantaian yang disediakan tidak disokong.
+errors_authentication_unavailable = Pengesahan belum disediakan pada peranti ini. Hidupkan biometrik atau kod laluan dalam tetapan peranti.
+errors_authentication_locked_out = Terlalu banyak percubaan gagal. Sila cuba lagi kemudian.
+errors_authentication_failed = Pengesahan gagal. Sila cuba lagi.
+errors_connections_expired = Pautan sambungan ini telah tamat tempoh. Dapatkan kod QR baharu dan cuba lagi.
+errors_connections_not_found = Sambungan ini tidak lagi wujud.
+errors_connections_relay_unavailable = Tidak dapat mencapai WalletConnect. Semak sambungan internet anda dan cuba lagi.
 errors_swap_amount_too_small = Jumlah terlalu kecil
 errors_scan_transaction_malicious_description = Urus niaga ini tidak dapat diselesaikan — alamat dompet destinasi dipautkan kepada aktiviti yang mencurigakan atau berbahaya.
 errors_scan_transaction_memo_required = %@ alamat dompet destinasi memerlukan teg / memo destinasi
@@ -322,7 +325,6 @@ asset_verification_warning_message = Sesiapa sahaja boleh mencipta satu - termas
 asset_buy_asset = Beli %@
 asset_get_asset = Dapatkan %@
 asset_add_to_wallet = Tambah pada dompet
-asset_hide_from_wallet = Sembunyi dari dompet
 asset_added_to_wallet = Ditambah ke dompet
 asset_hidden_from_wallet = Disembunyikan dari dompet
 asset_resources = Sumber
@@ -349,6 +351,7 @@ charts_price_change = Perubahan
 
 date_today = Hari ini
 date_yesterday = Semalam
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = Biasa
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Tersuai
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Apabila harga meningkat sebanyak
 price_alerts_set_alert_price_decreases_by = Apabila harga menurun sebanyak
 price_alerts_set_alert_set_target_price = Tetapkan harga sasaran
 price_alerts_set_alert_current_price = Harga semasa
-price_alerts_added_for = Tetapkan makluman harga %@
+price_alerts_added_price_over = Makluman ditambah untuk harga melebihi %@
+price_alerts_added_price_under = Makluman ditambah untuk harga di bawah %@
+price_alerts_added_increases_by = Makluman ditambah untuk kenaikan harga sebanyak %@
+price_alerts_added_decreases_by = Makluman ditambah untuk penurunan harga sebanyak %@
 price_alerts_state_empty_title = Makluman anda akan dipaparkan di sini
 price_alerts_state_empty_description = Dayakan mereka dengan menambahkan syiling untuk dijejaki
 price_alerts_auto_footer = Makluman mencetuskan pergerakan harga yang ketara.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = Apl ini tidak mempunyai kebe
 
 # Markets
 
-markets_title = Pasaran
-markets_state_empty_title = Data pasaran anda akan dipaparkan di sini
 markets_daily_volume = Volum 24j
 
 # Search

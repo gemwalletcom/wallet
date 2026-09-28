@@ -1,14 +1,12 @@
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use strum::{AsRefStr, EnumIter, EnumString};
-use typeshare::typeshare;
 
 use crate::Chain;
 
 pub const BITCOINCASH_PREFIX: &str = "bitcoincash:";
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum BitcoinChain {
@@ -16,6 +14,7 @@ pub enum BitcoinChain {
     BitcoinCash,
     Litecoin,
     Doge,
+    Dash,
     Zcash,
 }
 
@@ -29,6 +28,7 @@ impl BitcoinChain {
             BitcoinChain::BitcoinCash => Chain::BitcoinCash,
             BitcoinChain::Litecoin => Chain::Litecoin,
             BitcoinChain::Doge => Chain::Doge,
+            BitcoinChain::Dash => Chain::Dash,
             BitcoinChain::Zcash => Chain::Zcash,
         }
     }
@@ -39,6 +39,7 @@ impl BitcoinChain {
             BitcoinChain::BitcoinCash => 5,
             BitcoinChain::Litecoin => 5,
             BitcoinChain::Doge => 1000,
+            BitcoinChain::Dash => 1,
             BitcoinChain::Zcash => 1,
         }
     }
@@ -49,6 +50,7 @@ impl BitcoinChain {
             BitcoinChain::BitcoinCash => 50,
             BitcoinChain::Litecoin => 50,
             BitcoinChain::Doge => 10_000,
+            BitcoinChain::Dash => 1,
             BitcoinChain::Zcash => 10,
         }
     }
@@ -59,6 +61,7 @@ impl BitcoinChain {
             BitcoinChain::BitcoinCash => BlocksFeePriority { slow: 6, normal: 3, fast: 1 },
             BitcoinChain::Litecoin => BlocksFeePriority { slow: 6, normal: 3, fast: 1 },
             BitcoinChain::Doge => BlocksFeePriority { slow: 8, normal: 4, fast: 2 },
+            BitcoinChain::Dash => BlocksFeePriority { slow: 6, normal: 3, fast: 1 },
             BitcoinChain::Zcash => BlocksFeePriority { slow: 6, normal: 3, fast: 1 },
         }
     }

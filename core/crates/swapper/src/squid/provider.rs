@@ -48,7 +48,7 @@ where
 
     fn get_token_id(asset_id: &AssetId) -> Result<String, SwapperError> {
         if asset_id.is_native() {
-            asset_id.chain.as_denom().map(|d| d.to_string()).ok_or(SwapperError::NotSupportedAsset)
+            asset_id.chain.as_denom().map(ToString::to_string).ok_or(SwapperError::NotSupportedAsset)
         } else {
             asset_id.token_id.clone().ok_or(SwapperError::NotSupportedAsset)
         }
@@ -142,7 +142,7 @@ where
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
-            eta_in_seconds: Some(response.route.estimate.estimated_route_duration),
+            eta_in_seconds: Some(response.route.estimate.estimated_route_duration).filter(|seconds| *seconds > 0),
         })
     }
 
@@ -168,6 +168,7 @@ where
             memo: None,
             approval: None,
             gas_limit: Some(tx.gas_limit),
+            permit2: None,
         })
     }
 

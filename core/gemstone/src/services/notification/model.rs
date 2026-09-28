@@ -1,4 +1,8 @@
+use chrono::{DateTime, Utc};
+use primitives::OptionStringExt;
 use primitives::{AssetId, CoreListItemIcon, InAppNotification, UrlAction};
+
+use crate::services::localization::GemLocalizedText;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemNotificationIcon {
@@ -9,12 +13,14 @@ pub enum GemNotificationIcon {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNotificationRow {
+    pub id: String,
+    pub created_at: DateTime<Utc>,
     pub title: String,
     pub subtitle: Option<String>,
     pub value: Option<String>,
     pub subvalue: Option<String>,
     pub destination: Option<GemNotificationDestination>,
-    pub is_unread: bool,
+    pub tag: Option<GemLocalizedText>,
     pub icon: Option<GemNotificationIcon>,
 }
 
@@ -25,7 +31,7 @@ pub enum GemNotificationDestination {
 }
 
 fn destination(url: Option<&str>) -> Option<GemNotificationDestination> {
-    let url = url.filter(|url| !url.is_empty())?;
+    let url = url.non_empty()?;
     Some(match ::payment::classify_url(url) {
         Some(action) => GemNotificationDestination::InApp { action },
         None => GemNotificationDestination::Web { url: url.to_string() },
@@ -39,12 +45,14 @@ pub fn notification_rows(notifications: Vec<InAppNotification>) -> Vec<GemNotifi
 
 pub fn notification_row(notification: InAppNotification) -> GemNotificationRow {
     GemNotificationRow {
+        id: notification.item.id.clone(),
+        created_at: notification.created_at,
         title: notification.item.title.clone(),
         subtitle: notification.item.subtitle.clone(),
         value: notification.item.value.clone(),
         subvalue: notification.item.subvalue.clone(),
         destination: destination(notification.item.url.as_deref()),
-        is_unread: notification.read_at.is_none(),
+        tag: notification.read_at.is_none().then_some(GemLocalizedText::NewTag),
         icon: notification.item.icon.map(|icon| match icon {
             CoreListItemIcon::Emoji(emoji) => GemNotificationIcon::Emoji { glyph: emoji.glyph().to_string() },
             CoreListItemIcon::Asset(asset_id) => GemNotificationIcon::Asset {
@@ -84,8 +92,8 @@ mod tests {
             ..unread.clone()
         };
 
-        assert!(notification_row(unread.clone()).is_unread);
-        assert!(!notification_row(read).is_unread);
+        assert_eq!(notification_row(unread.clone()).tag, Some(GemLocalizedText::NewTag));
+        assert_eq!(notification_row(read).tag, None);
         let row = notification_row(unread);
         assert_eq!(row.icon, Some(GemNotificationIcon::Emoji { glyph: "\u{1f381}".into() }));
         assert_eq!(row.title, "Reward", "the row carries the text the screen shows");

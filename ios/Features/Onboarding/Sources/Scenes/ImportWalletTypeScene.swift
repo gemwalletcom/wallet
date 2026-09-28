@@ -9,30 +9,31 @@ import Style
 import SwiftUI
 
 struct ImportWalletTypeScene: View {
-    let model: ImportWalletTypeViewModel
+    let model: ImportWalletTypeSceneViewModel
     @State private var searchQuery = ""
 
     init(
-        model: ImportWalletTypeViewModel,
+        model: ImportWalletTypeSceneViewModel,
     ) {
         self.model = model
     }
 
     var body: some View {
-        List {
+        let types = model.types(for: searchQuery)
+        return List {
             Section {
                 NavigationLink(value: ImportWalletType.multicoin) {
-                    ListItemView(model: model.multicoinListItem)
+                    ListItemView(model: model.multicoinListItem(types))
                 }
             }
 
-            if model.items(for: searchQuery).isEmpty {
+            if types.chains.isEmpty {
                 StateEmptyView(title: Localized.Common.noResultsFound)
             } else {
                 Section {
-                    ForEach(model.items(for: searchQuery)) { chain in
-                        NavigationLink(value: ImportWalletType.chain(chain)) {
-                            ListItemView(model: model.listItem(for: chain))
+                    ForEach(types.chains, id: \.chain) { row in
+                        NavigationLink(value: ImportWalletType.chain(Chain(core: row.chain))) {
+                            ChainView(model: row)
                         }
                     }
                 }

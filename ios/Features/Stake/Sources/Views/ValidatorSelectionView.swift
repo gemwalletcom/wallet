@@ -1,37 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Foundation
-import Primitives
+import struct Gemstone.GemValidatorRow
 import Style
 import SwiftUI
 
 struct ValidatorSelectionView: View {
-    private let value: ListItemValue<DelegationValidator>
-    private let validatorModel: ValidatorViewModel
-    private let selection: String?
-    private let action: ((DelegationValidator) -> Void)?
+    private let row: GemValidatorRow
+    private let isSelected: Bool
+    private let action: () -> Void
 
-    init(
-        value: ListItemValue<DelegationValidator>,
-        validatorModel: ValidatorViewModel,
-        selection: String?,
-        action: ((DelegationValidator) -> Void)?,
-    ) {
-        self.value = value
-        self.validatorModel = validatorModel
-        self.selection = selection
+    init(row: GemValidatorRow, isSelected: Bool, action: @escaping () -> Void) {
+        self.row = row
+        self.isSelected = isSelected
         self.action = action
     }
 
     var body: some View {
-        Button {
-            action?(value.value)
-        } label: {
+        Button(action: action) {
             HStack {
-                ValidatorImageView(model: validatorModel)
-                    .assetBadge(value.value.id == selection ? Images.Wallets.selected : nil)
-                ListItemView(model: value.listItem)
+                ValidatorImageView(row: row)
+                    .assetBadge(isSelected ? Images.Wallets.selected : nil)
+                ListItemView(model: row.listItem)
             }
         }
         .contentShape(Rectangle())

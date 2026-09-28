@@ -8,7 +8,6 @@ struct NFTCollectionRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "nft_collections"
 
     enum Columns {
-        static let walletId = Column("walletId")
         static let id = Column("id")
         static let name = Column("name")
         static let description = Column("description")
@@ -55,21 +54,5 @@ extension NFTCollectionRecord: CreateTable {
             $0.column(Columns.previewImageMimeType.name, .text)
                 .notNull()
         }
-    }
-}
-
-extension NFTCollection {
-    func record() -> NFTCollectionRecord {
-        NFTCollectionRecord(
-            id: id,
-            name: name,
-            description: description,
-            chain: chain,
-            contractAddress: contractAddress,
-            status: status,
-            links: links,
-            previewImageUrl: images.preview.url,
-            previewImageMimeType: images.preview.mimeType,
-        )
     }
 }

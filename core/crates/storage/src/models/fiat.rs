@@ -293,7 +293,7 @@ impl FiatProviderCountryRow {
         Self {
             id: format!("{}_{}", provider.0.id(), primitive.alpha2).to_lowercase(),
             provider,
-            alpha2: primitive.alpha2.to_string(),
+            alpha2: primitive.alpha2.clone(),
             is_allowed: primitive.is_allowed,
         }
     }

@@ -1,12 +1,12 @@
 use std::{collections::HashSet, error::Error};
 
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::{AssetBasic, AssetProperties, AssetScore, Chain, asset_id::AssetId, asset_type::AssetType};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Asset {
     pub id: AssetId,
@@ -17,8 +17,8 @@ pub struct Asset {
     pub asset_type: AssetType,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ChainAsset {
     pub asset: Asset,
@@ -45,6 +45,7 @@ impl ChainAsset {
             Chain::Ton => ChainAsset::with_network_name(chain, "TON", "Gram", "GRAM", 9),
             Chain::Tron => ChainAsset::new(chain, "TRON", "TRX", 6),
             Chain::Doge => ChainAsset::new(chain, "Dogecoin", "DOGE", 8),
+            Chain::Dash => ChainAsset::new(chain, "Dash", "DASH", 8),
             Chain::Zcash => ChainAsset::new(chain, "Zcash", "ZEC", 8),
             Chain::Optimism => ChainAsset::with_network_name(chain, "Optimism", "Optimism ETH", "ETH", 18),
             Chain::Aptos => ChainAsset::new(chain, "Aptos", "APT", 8),
@@ -197,7 +198,7 @@ pub trait AssetHashSetExt {
 
 impl AssetHashSetExt for HashSet<AssetId> {
     fn ids(&self) -> Vec<String> {
-        self.iter().map(|x| x.to_string()).collect()
+        self.iter().map(ToString::to_string).collect()
     }
 }
 

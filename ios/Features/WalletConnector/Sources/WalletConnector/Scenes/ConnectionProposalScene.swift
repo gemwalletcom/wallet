@@ -8,11 +8,11 @@ import Style
 import SwiftUI
 
 public struct ConnectionProposalScene: View {
-    @State private var model: ConnectionProposalViewModel
+    @State private var model: ConnectionProposalSceneViewModel
     private let onComplete: () -> Void
 
     public init(
-        model: ConnectionProposalViewModel,
+        model: ConnectionProposalSceneViewModel,
         onComplete: @escaping () -> Void,
     ) {
         _model = State(initialValue: model)
@@ -25,9 +25,9 @@ public struct ConnectionProposalScene: View {
 
             Section {
                 NavigationLink(value: Scenes.SelectWallet()) {
-                    ListItemView(model: model.walletListItem)
+                    GemListRowView(row: model.proposal.walletRow)
                 }
-                ListItemView(model: model.connectionListItem)
+                GemListRowView(row: model.proposal.connectionRow)
                 ListItemImageView(
                     title: Localized.Transaction.status,
                     subtitle: model.statusText,

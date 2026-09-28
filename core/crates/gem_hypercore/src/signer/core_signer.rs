@@ -434,7 +434,7 @@ mod tests {
             sender_address: "0xsender".into(),
             destination_address: "".into(),
             ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake {
-                asset: asset.clone(),
+                asset,
                 stake_type: StakeType::Stake(validator),
             })
         };

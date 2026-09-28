@@ -5,6 +5,7 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use bs58;
 use gem_evm::eip712::hash_typed_data;
 use gem_evm::message::eip191_hash_message;
+use gem_evm::siwe::SiweMessage;
 use gem_solana::{signer::SolanaChainSigner, siws::SiwsMessage};
 use gem_sui::signer as sui_signer;
 use gem_ton::address::base64_to_hex_address;
@@ -17,10 +18,11 @@ use sui_types::PersonalMessage;
 use super::{
     eip712::GemEIP712Message,
     payload::{MessagePayloadFields, MessagePayloadPreview},
-    sign_type::{SignDigestType, SignMessage},
+    sign_type::SignMessage,
 };
-use crate::{GemstoneError, keystore::GemKeystore, siwe::SiweMessage};
+use crate::{GemstoneError, keystore::GemKeystore};
 use gem_tron::signer::tron_hash_message;
+use gem_wallet_connect::SignDigestType;
 use primitives::{BlockExplorerLink, Chain, ChainSigner, SimulationPayloadField};
 use std::sync::Arc;
 use zeroize::Zeroizing;
@@ -35,7 +37,7 @@ fn siwe_or_text_preview(chain: primitives::Chain, data: &[u8]) -> MessagePreview
     }
 }
 
-#[derive(Debug, PartialEq, uniffi::Enum)]
+#[derive(Debug, PartialEq)]
 pub enum MessagePreview {
     Text(String),
     EIP712(GemEIP712Message),
@@ -229,7 +231,7 @@ mod tests {
     use super::*;
     use crate::message::{
         eip712::{GemEIP712Section, GemEIP712Value, GemEIP712ValueType},
-        sign_type::{MessageType, SignDigestType},
+        sign_type::MessageType,
     };
     use crate::services::simulation::GemSimulationPayloadTitle;
     use crate::signer::ChainTransactionSigner;
@@ -397,7 +399,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let decoder = MessageSigner::new(SignMessage {
             chain: Chain::Solana,
             sign_type: SignDigestType::Base58,
-            data: data.clone(),
+            data,
         });
 
         match decoder.preview() {

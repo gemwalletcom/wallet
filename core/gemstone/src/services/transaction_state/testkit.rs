@@ -25,6 +25,7 @@ pub struct MemoryTransactionStateStore {
     pub hash_updates: Mutex<Vec<(TransactionId, TransactionId)>>,
     pub deleted: Mutex<Vec<TransactionId>>,
     pub added: Mutex<Vec<(WalletId, Vec<Transaction>)>>,
+    pub add_failures: Mutex<usize>,
 }
 
 impl MemoryTransactionStateStore {
@@ -47,6 +48,11 @@ impl GemTransactionStateStore for MemoryTransactionStateStore {
     }
 
     async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+        let mut failures = self.add_failures.lock().unwrap();
+        if *failures > 0 {
+            *failures -= 1;
+            return Err(GemServiceError::Platform { msg: "database is locked".into() });
+        }
         self.added.lock().unwrap().push((wallet_id, transactions));
         Ok(())
     }
@@ -95,7 +101,7 @@ pub struct TestTransactionUpdater {
 #[async_trait::async_trait]
 impl GemTransactionUpdater for TestTransactionUpdater {
     async fn update(&self, _wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
-        self.requested.lock().unwrap().push(transaction.id.clone());
+        self.requested.lock().unwrap().push(transaction.id);
         let mut results = self.results.lock().unwrap();
         if results.is_empty() {
             return Ok(None);

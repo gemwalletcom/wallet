@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
-import com.gemwallet.android.data.service.store.database.ConnectionsDao
+import com.gemwallet.android.data.services.store.database.ConnectionsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import dagger.Module
@@ -15,6 +15,7 @@ import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletSessionService
+import uniffi.gemstone.Platform
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -49,6 +50,7 @@ object BridgesModule {
         session = walletSessionService,
         assets = assetsService,
         signMessage = signMessageService,
+        platform = Platform.ANDROID,
     )
 
     @Provides

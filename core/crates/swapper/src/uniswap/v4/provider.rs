@@ -6,10 +6,9 @@ use num_bigint::BigUint;
 use std::{collections::HashSet, fmt, iter, str::FromStr, sync::Arc, vec};
 
 use crate::{
-    FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
-    alien::{RpcClient, RpcProvider},
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    alien::RpcProvider,
     approval::evm::{check_approval_erc20_with_client, check_approval_permit2_with_client},
-    approval::get_swap_gas_limit_with_approval,
     fees::{apply_slippage_in_bp, default_referral_fees},
     uniswap::{
         deadline::get_sig_deadline,
@@ -29,8 +28,8 @@ use gem_evm::{
     },
 };
 use gem_hash::keccak::keccak256;
-use gem_jsonrpc::client::JsonRpcClient;
-use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
+use gem_jsonrpc::alien::create_client;
+use primitives::{AssetId, Chain, EVMChain};
 
 use super::{
     DEFAULT_SWAP_GAS_LIMIT, TEMPO_SWAP_GAS_LIMIT,
@@ -64,12 +63,6 @@ impl UniswapV4 {
         vec![FeeTier::Hundred, FeeTier::FiveHundred, FeeTier::ThreeThousand, FeeTier::TenThousand]
     }
 
-    fn client_for(&self, chain: Chain) -> Result<JsonRpcClient<RpcClient>, SwapperError> {
-        let endpoint = self.rpc_provider.get_endpoint(chain).map_err(SwapperError::from)?;
-        let client = RpcClient::new(endpoint, self.rpc_provider.clone());
-        Ok(JsonRpcClient::new(client))
-    }
-
     fn is_base_pair(token_in: &Address, token_out: &Address, evm_chain: &EVMChain) -> bool {
         let Some(base_pair) = base_pair(*evm_chain, PROTOCOL) else {
             return false;
@@ -89,7 +82,7 @@ impl UniswapV4 {
         let deployment = get_uniswap_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
         let base_pair = base_pair(evm_chain, PROTOCOL).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
-        let client = self.client_for(chain)?;
+        let client = create_client(self.rpc_provider.clone(), chain)?;
         let fee_tiers = self.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, get_intermediaries(&token_in, &token_out, &base_pair));
         let pools = self
@@ -168,7 +161,7 @@ impl Swapper for UniswapV4 {
             .flat_map(|(route_idx, calls)| calls.into_iter().enumerate().map(move |(fee_tier_idx, call)| (QuotePosition { route_idx, fee_tier_idx }, call)))
             .collect::<Vec<_>>();
         let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = quote_calls.into_iter().unzip();
-        let results = self.client_for(from_chain)?.batch_request(calls).await?;
+        let results = create_client(self.rpc_provider.clone(), from_chain)?.batch_request(calls).await?;
         let quote_result = get_best_quote(&results, &positions, super::quoter::decode_quoter_response)?;
 
         let fee_tier_idx = quote_result.fee_tier_idx;
@@ -210,29 +203,6 @@ impl Swapper for UniswapV4 {
         })
     }
 
-    async fn get_permit2_for_quote(&self, quote: &Quote) -> Result<Option<Permit2ApprovalData>, SwapperError> {
-        let from_asset = quote.request.from_asset.asset_id();
-        let (_, input, _, amount_in) = Self::routed_request(&quote.request)?;
-        if input.funding != Funding::Permit2 {
-            return Ok(None);
-        }
-        let deployment = get_uniswap_deployment_by_chain(&from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
-
-        let client = self.client_for(from_asset.chain)?;
-        let permit2_data = check_approval_permit2_with_client(
-            deployment.permit2,
-            quote.request.wallet_address.clone(),
-            input.address.to_string(),
-            deployment.universal_router.to_string(),
-            U256::from(amount_in),
-            &client,
-        )
-        .await?
-        .permit2_data();
-
-        Ok(permit2_data)
-    }
-
     async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let from_asset = request.from_asset.asset_id();
@@ -242,21 +212,35 @@ impl Swapper for UniswapV4 {
         let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let to_amount = u128::from_str(&route_data.min_amount_out).map_err(SwapperError::from)?;
 
-        let client = self.client_for(from_asset.chain)?;
+        let client = create_client(self.rpc_provider.clone(), from_asset.chain)?;
         let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
 
-        let approval: Option<ApprovalData> = if input.funding == Funding::Permit2 {
-            check_approval_erc20_with_client(request.wallet_address.clone(), input.address.to_string(), deployment.permit2.to_string(), U256::from(amount_in), &client)
+        let (approval, permit2) = if input.funding == Funding::Permit2 {
+            let approval = check_approval_erc20_with_client(request.wallet_address.clone(), input.address.to_string(), deployment.permit2.to_string(), U256::from(amount_in), &client)
                 .await?
-                .approval_data()
+                .approval_data();
+            let permit2 = match permit {
+                Some(_) => None,
+                None => check_approval_permit2_with_client(
+                    deployment.permit2,
+                    request.wallet_address.clone(),
+                    input.address.to_string(),
+                    deployment.universal_router.to_string(),
+                    U256::from(amount_in),
+                    &client,
+                )
+                .await?
+                .permit2_data(),
+            };
+            (approval, permit2)
         } else {
-            None
+            (None, None)
         };
         let swap_gas_limit = match from_asset.chain {
             Chain::Tempo => TEMPO_SWAP_GAS_LIMIT,
             _ => DEFAULT_SWAP_GAS_LIMIT,
         };
-        let gas_limit = get_swap_gas_limit_with_approval(&approval, None, swap_gas_limit);
+        let gas_limit = (approval.is_some() || permit2.is_some()).then(|| swap_gas_limit.to_string());
 
         let sig_deadline = get_sig_deadline();
         let base_pair = base_pair(evm_chain, PROTOCOL);
@@ -270,7 +254,10 @@ impl Swapper for UniswapV4 {
             Funding::Permit2 => BigUint::ZERO,
         };
 
-        Ok(SwapperQuoteData::new_contract(deployment.universal_router.into(), value, HexEncode(encoded), approval, gas_limit))
+        Ok(SwapperQuoteData {
+            permit2,
+            ..SwapperQuoteData::new_contract(deployment.universal_router.into(), value, HexEncode(encoded), approval, gas_limit)
+        })
     }
 }
 

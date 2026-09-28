@@ -43,8 +43,4 @@ public enum BiometryAuthenticationError: Error, Equatable {
         case .authenticationFailed: .failed
         }
     }
-
-    public var isAuthenticationCancelled: Bool {
-        promptOutcome.isCancelled()
-    }
 }

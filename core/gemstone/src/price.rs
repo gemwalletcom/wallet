@@ -1,5 +1,3 @@
-use primitives::PriceChangeCalculator as Calculator;
-
 #[derive(Debug, uniffi::Object)]
 pub struct PriceChangeCalculator {}
 
@@ -14,10 +12,6 @@ impl PriceChangeCalculator {
     #[uniffi::constructor]
     pub fn new() -> Self {
         Self {}
-    }
-
-    pub fn pnl_percentage(&self, pnl: f64, margin: f64) -> f64 {
-        Calculator::pnl_percentage(pnl, margin)
     }
 
     pub fn pnl_text(&self, formatted_amount: String, formatted_percentage: Option<String>) -> String {

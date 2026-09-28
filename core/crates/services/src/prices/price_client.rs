@@ -34,7 +34,7 @@ impl PriceClient {
     }
 
     pub async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
-        Ok(self.database.run(|client| client.get_fiat_rates()).await?)
+        Ok(self.database.run(FiatRepository::get_fiat_rates).await?)
     }
 
     pub async fn get_fiat_rate(&self, currency: &Currency) -> Result<FiatRate, Box<dyn Error + Send + Sync>> {
@@ -107,7 +107,7 @@ impl PriceClient {
 
     pub async fn track_observed_assets(&self, asset_ids: &[AssetId]) -> Result<(), Box<dyn Error + Send + Sync>> {
         let key = CacheKey::ObservedAssets;
-        let ids: Vec<String> = asset_ids.iter().map(|id| id.to_string()).collect();
+        let ids: Vec<String> = asset_ids.iter().map(ToString::to_string).collect();
         self.cacher_client.sorted_set_incr_with_expire(&key.key(), &ids, key.ttl() as i64).await
     }
 

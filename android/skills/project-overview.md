@@ -30,7 +30,8 @@ android/
 - `app/` hosts the application entrypoints and Android integration
 - `ui/` contains shared Compose UI, themes, and reusable screens
 - `data/` contains repositories, storage, and service implementations
-- `features/` contains feature-focused modules
+- `features/` contains one module per product area, named as its iOS package, with `presents` and `viewmodels` submodules ([Cross-Platform Awareness rule 7](../../skills/cross-platform-awareness.md))
+- Every library module takes its SDK levels, Java and Kotlin targets and packaging excludes from the root `build.gradle.kts`; its own build file holds only its plugins, namespace, features and dependencies
 - `gemcore/` bridges Android and the Rust core through JNI
 
 ## Build Flavors

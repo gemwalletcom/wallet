@@ -99,7 +99,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
 
         return Some(PrimitivesTransaction {
             contract,
-            ..build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value.clone(), TransactionType::Swap, metadata)
+            ..build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value, TransactionType::Swap, metadata)
         });
     }
 
@@ -143,7 +143,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
 
     Some(PrimitivesTransaction {
         contract,
-        ..build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value.clone(), TransactionType::Swap, metadata)
+        ..build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value, TransactionType::Swap, metadata)
     })
 }
 

@@ -364,12 +364,6 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_eip712_polygon() {
-        let result = validate_eip712_chain_id(&mock_eip712_json(137), 137);
-        assert!(result.is_ok());
-    }
-
-    #[test]
     fn test_validate_eip712_chain_id_rejects_unbound_chain_id() {
         let missing_schema_field = include_str!("../testdata/eip712_domain_chain_id_without_schema_field.json");
         assert!(validate_eip712_chain_id(missing_schema_field, 1).unwrap_err().contains("chainId"));

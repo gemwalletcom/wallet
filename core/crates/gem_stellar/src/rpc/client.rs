@@ -78,6 +78,13 @@ impl<C: Client> StellarClient<C> {
         })
     }
 
+    pub async fn destination_exists(&self, destination: Option<&str>) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        match destination {
+            Some(destination) => self.account_exists(destination).await,
+            None => Ok(false),
+        }
+    }
+
     pub async fn get_account_payments(&self, account_id: String) -> Result<AccountResult<Embedded<Payment>>, Box<dyn Error + Send + Sync>> {
         Ok(self
             .get_or_not_found(HorizonTarget::GetAccountPayments {

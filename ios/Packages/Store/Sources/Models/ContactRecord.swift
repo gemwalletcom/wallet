@@ -4,10 +4,10 @@ import Foundation
 import GRDB
 import Primitives
 
-public struct ContactRecord: Codable, FetchableRecord, PersistableRecord, Sendable, Equatable {
-    public static let databaseTableName: String = "contacts"
+struct ContactRecord: Codable, FetchableRecord, PersistableRecord, Sendable, Equatable {
+    static let databaseTableName: String = "contacts"
 
-    public enum Columns {
+    enum Columns {
         static let id = Column("id")
         static let name = Column("name")
         static let description = Column("description")
@@ -16,12 +16,12 @@ public struct ContactRecord: Codable, FetchableRecord, PersistableRecord, Sendab
         static let updatedAt = Column("updatedAt")
     }
 
-    public var id: String
-    public var name: String
-    public var description: String?
-    public var imageUrl: String?
-    public var createdAt: Date
-    public var updatedAt: Date
+    var id: String
+    var name: String
+    var description: String?
+    var imageUrl: String?
+    var createdAt: Date
+    var updatedAt: Date
 
     static let addresses = hasMany(ContactAddressRecord.self).forKey("addresses")
 }
@@ -40,31 +40,5 @@ extension ContactRecord: CreateTable {
             $0.column(Columns.updatedAt.name, .date)
                 .notNull()
         }
-    }
-}
-
-extension ContactRecord {
-    var contact: Contact {
-        Contact(
-            id: id,
-            name: name,
-            description: description,
-            imageUrl: imageUrl,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-        )
-    }
-}
-
-extension Contact {
-    var record: ContactRecord {
-        ContactRecord(
-            id: id,
-            name: name,
-            description: description,
-            imageUrl: imageUrl,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-        )
     }
 }

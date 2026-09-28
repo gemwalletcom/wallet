@@ -302,7 +302,7 @@ fn print_solana_fee_data(fee_data: &SolanaFeeData, jito_res: &Option<Result<Jito
     let accounts = [("Jupiter", &fee_data.account_fees.jupiter), ("Orca", &fee_data.account_fees.orca), ("USDC", &fee_data.account_fees.usdc)];
     let active_accounts: Vec<&str> = accounts.iter().filter(|(_, data)| data.as_ref().is_some_and(|d| d.count > 0)).map(|(name, _)| *name).collect();
 
-    let jito_available = jito_res.as_ref().is_some_and(|r| r.is_ok());
+    let jito_available = jito_res.as_ref().is_some_and(Result::is_ok);
     let helius_data = helius_res.as_ref().and_then(|r| r.as_ref().ok());
 
     if !active_accounts.is_empty() {

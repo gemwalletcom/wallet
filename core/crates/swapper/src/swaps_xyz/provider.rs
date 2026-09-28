@@ -1,4 +1,5 @@
 use num_traits::ToPrimitive;
+use primitives::OptionStringExt;
 use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
@@ -161,7 +162,7 @@ where
         let action_request = Self::build_action_request(request, source, destination)?;
         let response = self.client.get_action(&action_request).await?;
         Self::validate_response(&response, request, source, destination)?;
-        let eta_in_seconds = if response.estimated_tx_time.is_finite() && response.estimated_tx_time >= 0.0 && response.estimated_tx_time <= u32::MAX as f64 {
+        let eta_in_seconds = if response.estimated_tx_time.is_finite() && response.estimated_tx_time > 0.0 && response.estimated_tx_time <= u32::MAX as f64 {
             Some(response.estimated_tx_time.ceil() as u32)
         } else {
             None
@@ -190,7 +191,7 @@ where
         let source = SwapsXyzChain::from_chain(quote.request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let destination = SwapsXyzChain::from_chain(quote.request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         Self::validate_response(&response, &quote.request, source, destination)?;
-        let data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value.clone(), response.tx.to_extra.filter(|memo| !memo.is_empty()));
+        let data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value.clone(), response.tx.to_extra.non_empty());
         if source.chain != Chain::Sui {
             return Ok(data);
         }
@@ -211,7 +212,7 @@ where
                 from_asset: AssetId::from_chain(status.amount_in.native_chain()?.chain),
                 from_value: status.amount_in.amount.clone(),
                 to_asset: AssetId::from_chain(status.amount_out.native_chain()?.chain),
-                to_value: status.amount_out.amount.clone(),
+                to_value: status.amount_out.amount,
                 provider: Some(SwapperProvider::SwapsXyz.as_ref().to_string()),
             })
         });

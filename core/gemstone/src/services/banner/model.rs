@@ -4,7 +4,7 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::transfer::GemTransferData;
 use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState, Chain, Platform, Wallet, WalletId};
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemBannerContext {
     pub wallet: Option<Wallet>,
     pub asset: Option<Asset>,
@@ -33,19 +33,11 @@ impl GemBannerRow {
     }
 }
 
-#[uniffi::export]
 impl GemBannerContext {
     pub fn visible_banners(&self, stored: Vec<Banner>, platform: Platform) -> Vec<GemBannerRow> {
         super::rules::visible_banners(stored, self).into_iter().map(|banner| GemBannerRow::new(banner, platform)).collect()
     }
-}
 
-#[uniffi::export]
-pub fn wallet_banner_events() -> Vec<BannerEvent> {
-    super::rules::wallet_banner_events()
-}
-
-impl GemBannerContext {
     pub fn asset(wallet: Option<Wallet>, asset: Asset, metadata: &AssetMetaData, balance: &GemAssetBalance) -> Self {
         Self {
             wallet,

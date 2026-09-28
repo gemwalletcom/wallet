@@ -20,9 +20,6 @@ pub use quote::GemFiatQuoteService;
 pub use session::{GemFiatButtonAction, GemFiatOperation, GemFiatQuotePhase, GemFiatQuoteRequest, GemFiatQuotesResult, GemFiatSession};
 pub use store::GemFiatStore;
 
-const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
-const QUOTE_REFRESH_INTERVAL_MILLISECONDS: u64 = 5 * 60 * 1_000;
-
 #[derive(uniffi::Object)]
 pub struct GemFiatService {
     api: Arc<GemDeviceApiClient>,
@@ -39,14 +36,6 @@ impl GemFiatService {
 }
 
 impl GemFiatService {
-    pub fn quote_debounce_milliseconds(&self) -> u64 {
-        QUOTE_DEBOUNCE_MILLISECONDS
-    }
-
-    pub fn quote_refresh_interval_milliseconds(&self) -> u64 {
-        QUOTE_REFRESH_INTERVAL_MILLISECONDS
-    }
-
     pub async fn sync_transactions(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         let transactions = self.api.client.get_fiat_transactions(wallet_id.id()).await.map_err(GemApiError::from)?;
         let asset_ids = transactions.iter().map(|data| data.transaction.asset_id.clone()).collect();

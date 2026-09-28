@@ -278,7 +278,7 @@ mod tests {
             "a fixed amount equal to the whole balance is not treated as max, so the fee on top makes it insufficient"
         );
 
-        let mut insufficient_fee = TransferAmountInput::mock(transfer.clone(), 10_000_000, 100_000_000, 100_000_000);
+        let mut insufficient_fee = TransferAmountInput::mock(transfer, 10_000_000, 100_000_000, 100_000_000);
         insufficient_fee.fee_asset_balance = BigInt::from(1_000);
         assert_eq!(
             insufficient_fee.calculate().unwrap_err(),
@@ -415,7 +415,7 @@ mod tests {
             }
         );
 
-        let mut max = TransferAmountInput::mock(transfer.clone(), 1_000_000_000, 1_000_000_000, 1_000_000_000);
+        let mut max = TransferAmountInput::mock(transfer, 1_000_000_000, 1_000_000_000, 1_000_000_000);
         max.is_max_amount = true;
         let result = max.calculate().unwrap();
         assert_eq!(result.value, BigInt::from(1_000_000_000 - FEE));

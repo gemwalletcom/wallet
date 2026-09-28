@@ -9,11 +9,10 @@ import org.junit.Test
 import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemNumberNotation
 import uniffi.gemstone.GemPercentageStyle
-import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.formattedCurrency
 import uniffi.gemstone.formattedPercentage
-import uniffi.gemstone.formattedSignedCurrency
 
 class WalletTotalHeaderTest {
 
@@ -31,15 +30,9 @@ class WalletTotalHeaderTest {
         assertEquals("+$140.57 (2.84%)", change(140.5699884368446, 2.84).string(context))
     }
 
-    @Test
-    fun `the change takes its tone from the amount`() {
-        assertEquals(GemValueTone.NEGATIVE, amount(-140.57).tone)
-        assertEquals(GemValueTone.POSITIVE, amount(140.57).tone)
-    }
-
     private fun total(value: Double): GemFormattedNumber = formattedCurrency(value, Currency.USD.string, GemCurrencyStyle.FIAT)
 
-    private fun amount(value: Double): GemFormattedNumber = formattedSignedCurrency(value, Currency.USD.string, GemCurrencyStyle.FIAT)
+    private fun amount(value: Double): GemFormattedNumber = total(value).copy(notation = GemNumberNotation.SIGNED)
 
     private fun change(value: Double, percent: Double): GemLocalizedText = GemLocalizedText.Pnl(amount(value), formattedPercentage(percent, GemPercentageStyle.UNSIGNED))
 }

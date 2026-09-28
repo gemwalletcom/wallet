@@ -150,7 +150,7 @@ impl FiatClient {
         self.providers
             .iter()
             .find(|provider| provider.name().id() == provider_name)
-            .map(|provider| provider.as_ref())
+            .map(AsRef::as_ref)
             .ok_or_else(|| format!("Provider {} not found", provider_name).into())
     }
 

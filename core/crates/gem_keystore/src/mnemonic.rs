@@ -9,16 +9,16 @@ pub struct Mnemonic;
 impl Mnemonic {
     pub const MIN_ENTROPY_LEN: usize = 16;
 
-    pub fn generate(word_count: usize) -> Result<Vec<String>, KeystoreError> {
+    pub fn generate(word_count: usize) -> Result<Zeroizing<Vec<String>>, KeystoreError> {
         let entropy_len = entropy_len_for_word_count(word_count)?;
         let entropy = Zeroizing::new(gem_crypto::random::bytes::<32>()?);
         let mnemonic = Bip39Mnemonic::from_entropy_in(Language::English, &entropy[..entropy_len]).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
-        Ok(mnemonic.words().map(|word| word.to_string()).collect())
+        Ok(Zeroizing::new(mnemonic.words().map(ToString::to_string).collect()))
     }
 
     pub fn clean(phrase: &str) -> Result<Zeroizing<String>, KeystoreError> {
         let cleaned = Zeroizing::new(phrase.nfkd().collect::<String>());
-        let cleaned = Zeroizing::new(cleaned.split_whitespace().map(|word| word.to_lowercase()).collect::<Vec<_>>().join(" "));
+        let cleaned = Zeroizing::new(cleaned.split_whitespace().map(str::to_lowercase).collect::<Vec<_>>().join(" "));
         let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &cleaned).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
         Ok(Zeroizing::new(mnemonic.words().collect::<Vec<_>>().join(" ")))
     }
@@ -33,7 +33,7 @@ impl Mnemonic {
     }
 
     pub fn invalid_words(phrase: &str) -> Vec<String> {
-        phrase.split_whitespace().filter(|word| !Self::is_valid_word(word)).map(|word| word.to_string()).collect()
+        phrase.split_whitespace().filter(|word| !Self::is_valid_word(word)).map(ToString::to_string).collect()
     }
 
     pub fn seed(phrase: &str) -> Result<Zeroizing<[u8; 64]>, KeystoreError> {
@@ -54,7 +54,7 @@ impl Mnemonic {
         if prefix.is_empty() {
             return Vec::new();
         }
-        let words = Language::English.words_by_prefix(prefix).iter().map(|word| word.to_string());
+        let words = Language::English.words_by_prefix_iter(prefix).map(str::to_string);
         match limit {
             Some(limit) => words.take(limit).collect(),
             None => words.collect(),

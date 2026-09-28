@@ -19,19 +19,11 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use session::GemChartSession;
 
-pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType, GemChartViewport};
+pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType};
 pub use zoom::GemChartZoom;
 
 pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {
-    GemChartData {
-        value_type: GemChartValueType::Price,
-        base,
-        shows_secondary_value: false,
-        currency: Currency::USD,
-        values: Vec::new(),
-        header: None,
-    }
-    .header_at(value)
+    rules::series_header(GemChartValueType::Price, base, false, &Currency::USD, value, None)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -63,17 +55,18 @@ impl GemChartService {
         Self { api, price, preferences, explorer }
     }
 
-    pub fn sections(&self, asset: Asset, price: Option<f64>, market: Option<AssetMarket>, price_alerts: Vec<PriceAlert>, links: Vec<AssetLink>) -> Vec<GemListSection> {
+    pub async fn sections(&self, asset: Asset, price: Option<f64>, market: Option<AssetMarket>, price_alerts: Vec<PriceAlert>, links: Vec<AssetLink>) -> Result<Vec<GemListSection>, GemServiceError> {
+        let currency = self.preferences.get_currency();
+        let market = match market {
+            Some(market) => self.price.market_in_currency(market, currency.clone()).await?,
+            None => None,
+        };
         let contract_explorer = asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(asset.id.chain, token_id));
-        rules::chart_sections(&asset, self.preferences.get_currency(), price, market.as_ref(), price_alerts, links, contract_explorer)
+        Ok(rules::chart_sections(&asset, currency, price, market.as_ref(), price_alerts, links, contract_explorer))
     }
 
     pub fn new_session(&self) -> GemChartSession {
         GemChartSession::new(self.chart_period(), self.preferences.get_currency())
-    }
-
-    pub fn chart_period(&self) -> ChartPeriod {
-        self.preferences.get_chart_period()
     }
 
     pub fn set_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
@@ -94,5 +87,11 @@ impl GemChartService {
         let base_value = rules::base_value(&values);
         let current = rules::current_value(&values, latest, Utc::now(), period, base_value);
         Ok(GemChart { values, base_value, current })
+    }
+}
+
+impl GemChartService {
+    pub fn chart_period(&self) -> ChartPeriod {
+        self.preferences.get_chart_period()
     }
 }

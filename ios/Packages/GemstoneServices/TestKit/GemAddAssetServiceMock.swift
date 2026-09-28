@@ -30,10 +30,6 @@ public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecke
         GemAddAssetChains(chains: chains.map(\.rawValue), defaultChain: chains.first?.rawValue, showsPicker: chains.count > 1)
     }
 
-    public func matchingChains(chains: [Chain], query _: String) -> [Chain] {
-        chains
-    }
-
     public func sections(session _: GemAddAssetSession) -> [GemListSection] {
         []
     }

@@ -1,10 +1,10 @@
 use crate::ConnectionComponent;
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Model)]
 #[serde(rename_all = "camelCase")]
-#[typeshare(swift = "Equatable, Sendable")]
+#[model(swift = "Equatable, Sendable")]
 pub enum ConnectionStatus {
     Online,
     NoInternet,
@@ -13,7 +13,7 @@ pub enum ConnectionStatus {
 
 impl ConnectionStatus {
     pub fn from_unhealthy_components(components: &[ConnectionComponent]) -> Self {
-        components.iter().map(|component| component.failure_status()).max_by_key(|status| status.severity()).unwrap_or(Self::Online)
+        components.iter().map(ConnectionComponent::failure_status).max_by_key(ConnectionStatus::severity).unwrap_or(Self::Online)
     }
 
     fn severity(&self) -> u8 {

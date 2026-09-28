@@ -1,8 +1,8 @@
 package com.gemwallet.android.application.update.cases
 
-import com.gemwallet.android.model.AppUpdateOffer
 import kotlinx.coroutines.flow.Flow
+import uniffi.gemstone.GemAppUpdateOffer
 
 interface ObserveAppUpdateOffer {
-    fun observeAppUpdateOffer(): Flow<AppUpdateOffer?>
+    fun observeAppUpdateOffer(): Flow<GemAppUpdateOffer?>
 }

@@ -6,14 +6,18 @@ use std::collections::HashMap;
 #[cfg(feature = "nft_integration_tests")]
 use gem_client::{RemoteProviderConfig, ReqwestClient};
 #[cfg(feature = "nft_integration_tests")]
+use primitives::{EVMChain, NFTChain};
+#[cfg(feature = "nft_integration_tests")]
 use settings::testkit::get_test_settings;
 
 #[cfg(feature = "nft_integration_tests")]
-use crate::AlchemyClient;
+use crate::factory::NFTProviderFactory;
 #[cfg(feature = "nft_integration_tests")]
 use crate::providers::magiceden::solana::client::MagicEdenSolanaClient;
 #[cfg(feature = "nft_integration_tests")]
 use crate::providers::opensea::client::OpenSeaClient;
+#[cfg(feature = "nft_integration_tests")]
+use crate::providers::{AlchemyProvider, BlockscoutProvider};
 
 pub const TEST_ETHEREUM_ADDRESS: &str = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
 pub const TEST_ETHEREUM_CONTRACT_ADDRESS: &str = "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D";
@@ -23,6 +27,8 @@ pub const TEST_SOLANA_COLLECTION_POOKS: &str = "pooks";
 pub const TEST_SOLANA_TOKEN_ID: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
 pub const TEST_BSC_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
 pub const TEST_BSC_COLLECTION: &str = "0x6dfbb01ecb7991366cd8acc4d18dcc67bbe345ba";
+pub const TEST_ARC_ADDRESS: &str = "0xC7c471de97fcEa3d0C38e1D2849C78Aaa544529A";
+pub const TEST_ARC_COLLECTION: &str = "0xB856127c2371B396f92993814d8F64c3204911dE";
 
 #[cfg(feature = "nft_integration_tests")]
 fn provider_client_with_header(config: RemoteProviderConfig, header: (&str, String)) -> ReqwestClient {
@@ -50,9 +56,16 @@ pub fn create_magiceden_solana_test_client() -> MagicEdenSolanaClient<ReqwestCli
 }
 
 #[cfg(feature = "nft_integration_tests")]
-pub fn create_alchemy_test_client() -> AlchemyClient<ReqwestClient> {
+pub fn create_alchemy_test_client() -> AlchemyProvider<ReqwestClient> {
     let settings = get_test_settings();
     let config = crate::NFTProviderConfig::from_settings(&settings);
-    let client = config.alchemy.configure_client(ReqwestClient::new(String::new(), gem_client::reqwest_client()));
-    AlchemyClient::new(client)
+    NFTProviderFactory::alchemy_provider(&config.alchemy, &ReqwestClient::new(String::new(), gem_client::reqwest_client()), NFTChain::SmartChain)
+}
+
+#[cfg(feature = "nft_integration_tests")]
+pub fn create_blockscout_test_client() -> BlockscoutProvider<ReqwestClient> {
+    let settings = get_test_settings();
+    let config = crate::NFTProviderConfig::from_settings(&settings);
+    let client = config.blockscout.configure_client(ReqwestClient::new(String::new(), gem_client::reqwest_client()));
+    BlockscoutProvider::new(blockscout::Client::new(client, EVMChain::Arc.chain_id(), config.blockscout.key), NFTChain::Arc)
 }

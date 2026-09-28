@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.localization
 
 import android.content.Context
 import com.gemwallet.android.model.text
-import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.ui.R
 import io.mockk.every
 import io.mockk.mockk
@@ -20,8 +20,8 @@ class GemstoneTextTest {
             every { getString(R.string.fee_rate_satvB) } returns "sat/vB"
             every { getString(R.string.fee_rate_gwei) } returns "gwei"
         }
-        val rate = mockFormattedNumber(value = 2.5, unit = GemNumberUnit.Plain)
-        val sol = mockFormattedNumber(value = 2.5, unit = GemNumberUnit.Symbol(symbol = "SOL"))
+        val rate = mockGemFormattedNumber(value = 2.5, unit = GemNumberUnit.Plain)
+        val sol = mockGemFormattedNumber(value = 2.5, unit = GemNumberUnit.Symbol(symbol = "SOL"))
 
         assertEquals("${rate.text()} sat/vB", GemLocalizedText.FeeRate(rate, FeeUnitType.SAT_VB).string(context))
         assertEquals("${rate.text()} gwei", GemLocalizedText.FeeRate(rate, FeeUnitType.GWEI).string(context))

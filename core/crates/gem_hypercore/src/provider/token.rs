@@ -18,7 +18,7 @@ impl<C: Client> ChainToken for HyperCoreClient<C> {
         let asset_id = token.asset_id(self.chain);
 
         Ok(Asset {
-            id: asset_id.clone(),
+            id: asset_id,
             name: token.name.clone(),
             symbol: token.name.clone(),
             decimals: token.wei_decimals,

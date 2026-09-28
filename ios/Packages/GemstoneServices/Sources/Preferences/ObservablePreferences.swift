@@ -19,11 +19,11 @@ public final class ObservablePreferences: Sendable {
     public var currency: Primitives.Currency {
         get {
             access(keyPath: \.currency)
-            return preferencesService.currency
+            return preferencesService.getCurrency().toPrimitives()
         }
         set {
             withMutation(keyPath: \.currency) {
-                write { try preferencesService.setCurrencyValue(newValue) }
+                write { try preferencesService.setCurrency(currency: newValue.toGem()) }
             }
         }
     }
@@ -98,11 +98,11 @@ public final class ObservablePreferences: Sendable {
     public var appearance: Appearance {
         get {
             access(keyPath: \.appearance)
-            return preferencesService.appearanceValue
+            return preferencesService.getAppearance().toPrimitives()
         }
         set {
             withMutation(keyPath: \.appearance) {
-                write { try preferencesService.setAppearanceValue(newValue) }
+                write { try preferencesService.setAppearance(appearance: newValue.toGem()) }
             }
         }
     }

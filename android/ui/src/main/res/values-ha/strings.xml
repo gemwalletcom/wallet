@@ -48,7 +48,6 @@
   <string name="common_description">Bayani</string>
   <string name="common_emoji">Emoji</string>
   <string name="common_avatar">Avatar</string>
-  <string name="common_save">Ajiye</string>
   <string name="common_percentage">Kashi</string>
   <string name="common_details">Cikakkun bayanai</string>
   <string name="common_info">Bayani</string>
@@ -58,6 +57,7 @@
   <string name="common_token">Alamar Token</string>
   <string name="common_expiration">Ƙarewa</string>
   <string name="common_suspicious_address">Adireshin da ake zargi</string>
+  <string name="common_suspicious_address_description">Wannan adireshin yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.</string>
   <string name="common_refresh">Sabuntawa</string>
   <string name="common_grant_permission">Ba da izini</string>
   <string name="common_required_field">%1$s ana bukata</string>
@@ -103,8 +103,6 @@
   <string name="wallet_portfolio_title">Fayil ɗin Kadari</string>
   <string name="wallet_import_already_imported_message">An riga an shigo da wannan walat ɗin.</string>
   <string name="wallets_title">Wallets</string>
-  <string name="wallets_watch">Kalli</string>
-  <string name="receive_title">Karba %1$s</string>
   <string name="receive_warning">Wannan shine adireshinka — aika kawai %1$s a kan %2$s hanyar sadarwa.</string>
   <string name="buy_title">Saya %1$s</string>
   <string name="buy_providers_title">Masu bayarwa</string>
@@ -165,7 +163,6 @@
   <string name="settings_security_authentication">Tabbatarwa</string>
   <string name="settings_notifications_title">Sanarwa</string>
   <string name="settings_language">Harshe</string>
-  <string name="settings_help_center">Cibiyar Taimako</string>
   <string name="settings_support">Taimako</string>
   <string name="settings_price_alerts_title">Faɗakarwar Farashin</string>
   <string name="settings_hide_balance">Boye Ma\'auni</string>
@@ -211,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">Ba a goyan bayan kadari.</string>
   <string name="errors_connections_no_supported_wallets">Babu goyan bayan walat.</string>
   <string name="errors_connections_unsupported_chain">Ba a tallafawa sarkar da aka bayar.</string>
+  <string name="errors_authentication_unavailable">Ba a saita tabbatarwa a wannan na\'urar ba. Kunna biometrics ko lambar sirri a cikin saitunan na\'urar.</string>
+  <string name="errors_authentication_locked_out">An yi ƙoƙari da yawa da suka gaza. Da fatan za a sake gwadawa daga baya.</string>
+  <string name="errors_authentication_failed">Tabbatarwa ta gaza. Da fatan za a sake gwadawa.</string>
+  <string name="errors_connections_expired">Wannan hanyar haɗin ta ƙare. Samo sabon lambar QR ka sake gwadawa.</string>
+  <string name="errors_connections_not_found">Wannan haɗin ba ya nan kuma.</string>
+  <string name="errors_connections_relay_unavailable">Ba a iya isa WalletConnect ba. Duba haɗin intanet ɗinka ka sake gwadawa.</string>
   <string name="errors_swap_amount_too_small">Adadin yayi ƙanƙanta</string>
   <string name="errors_scan_transaction_malicious_description">Ba za a iya kammala wannan ma\'amala ba - adireshin walat ɗin da ake nufi yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.</string>
   <string name="errors_scan_transaction_memo_required">%1$s Adireshin walat ɗin manufa yana buƙatar alamar manufa / memo</string>
@@ -280,7 +283,6 @@
   <string name="asset_buy_asset">Sayi %1$s</string>
   <string name="asset_get_asset">Sami %1$s</string>
   <string name="asset_add_to_wallet">Ƙara zuwa walat</string>
-  <string name="asset_hide_from_wallet">Boye daga walat</string>
   <string name="asset_added_to_wallet">An ƙara zuwa walat</string>
   <string name="asset_hidden_from_wallet">An ɓoye daga walat</string>
   <string name="asset_resources">Albarkatu</string>
@@ -301,6 +303,7 @@
   <string name="charts_price_change">Sauyi</string>
   <string name="date_today">Yau</string>
   <string name="date_yesterday">Jiya</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">Haɗin kai</string>
   <string name="wallet_connect_disconnect">Cire haɗin</string>
@@ -390,7 +393,6 @@
   <string name="fee_rates_fast">Mai sauri</string>
   <string name="fee_rates_normal">Na al\'ada</string>
   <string name="fee_rate_satvB">sat/vB</string>
-  <string name="fee_rate_satB">%1$s sat/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Na Musamman</string>
   <string name="banner_account_activation_title">Kudin Kunna Asusu</string>
@@ -421,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">Lokacin da farashin ya ragu da</string>
   <string name="price_alerts_set_alert_set_target_price">Saita farashin manufa</string>
   <string name="price_alerts_set_alert_current_price">Farashin yanzu</string>
-  <string name="price_alerts_added_for">Saita faɗakarwar farashi %1$s</string>
+  <string name="price_alerts_added_price_over">An ƙara faɗakarwa don farashi sama da %1$s</string>
+  <string name="price_alerts_added_price_under">An ƙara faɗakarwa don farashi ƙasa da %1$s</string>
+  <string name="price_alerts_added_increases_by">An ƙara faɗakarwa don ƙaruwar farashi da %1$s</string>
+  <string name="price_alerts_added_decreases_by">An ƙara faɗakarwa don raguwar farashi da %1$s</string>
   <string name="price_alerts_state_empty_title">Faɗin farashin ku zai bayyana anan</string>
   <string name="price_alerts_state_empty_description">Kunna su ta ƙara tsabar kudi don waƙa</string>
   <string name="price_alerts_auto_footer">Faɗakarwa yana haifar da ƙaƙƙarfan motsin farashi.</string>
@@ -499,8 +504,6 @@
   <string name="nft_report_report_button_title">Yi korafi</string>
   <string name="permissions_access_denied">An hana shiga</string>
   <string name="permissions_image_photo_access_denied_description">Wannan app ɗin bashi da izinin shiga ɗakin karatu na hoton ku. Da fatan za a ba da damar shiga cikin saitunan na\'urar ku.</string>
-  <string name="markets_title">Kasuwanni</string>
-  <string name="markets_state_empty_title">Bayanan kasuwanninku zai bayyana a nan</string>
   <string name="markets_daily_volume">24h girma</string>
   <string name="search_state_empty_description">Duba harafin ko gwada sabon bincike.</string>
   <string name="networks_state_empty_search_title">Babu cibiyoyin sadarwa da aka samu</string>

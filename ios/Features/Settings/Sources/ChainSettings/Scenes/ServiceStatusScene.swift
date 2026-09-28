@@ -7,14 +7,14 @@ import SwiftUI
 public struct ServiceStatusScene: View {
     @Environment(\.isStreamConnected) private var isStreamConnected
 
-    @State private var model: ServiceStatusViewModel
+    @State private var model: ServiceStatusSceneViewModel
 
-    public init(model: ServiceStatusViewModel) {
+    public init(model: ServiceStatusSceneViewModel) {
         _model = State(initialValue: model)
     }
 
     public var body: some View {
-        ListSectionView(provider: model) { row in
+        ListSectionView(sections: model.sections) { row in
             GemListRowView(row: row)
         }
         .listRowInsets(.assetListRowInsets)

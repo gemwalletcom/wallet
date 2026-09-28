@@ -43,7 +43,9 @@ impl NameResolver for EnsProvider {
     }
 
     async fn resolve(&self, query: &NameQuery, _chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        let name = query.ascii_domain()?;
+        let Ok(name) = query.ascii_domain() else {
+            return Ok(None);
+        };
         let resolver = self.client.get_resolver(&name).await?;
         if resolver.is_zero() {
             return Ok(None);

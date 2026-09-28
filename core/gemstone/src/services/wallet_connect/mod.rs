@@ -12,9 +12,10 @@ use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
 use gem_wallet_connect::{WalletConnectVerifier, validate_sign_message_account};
-use primitives::{Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId};
+use primitives::{Account, ApplicationMetadata, Chain, Platform, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId};
 
 use crate::application;
+use crate::config::docs::DocsUrl;
 use crate::message::sign_type::SignMessage;
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
@@ -23,12 +24,14 @@ use crate::services::error_text::GemErrorText;
 use crate::services::scan::rules::{self as scan_rules, SignMessageVerdict};
 use crate::services::simulation::GemSimulationService;
 use crate::services::wallet_session::GemWalletSessionService;
-use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
+use crate::wallet_connect::WalletConnect;
+use gem_wallet_connect::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
 
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemConnection, GemConnectionDetails, GemConnectionSection, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome,
-    GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
+    GemConnection, GemConnectionDetails, GemConnectionSection, GemConnectionsView, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest,
+    GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction,
+    GemWalletConnectTransactionRequest,
 };
 pub use sign_message::{GemSignMessagePreview, GemSignMessageService};
 pub use signer::GemWalletConnectSigner;
@@ -45,6 +48,7 @@ pub struct GemWalletConnectService {
     session: Arc<GemWalletSessionService>,
     assets: Arc<GemAssetsService>,
     seen_messages: Mutex<Vec<String>>,
+    platform: Platform,
 }
 
 const SEEN_MESSAGES_LIMIT: usize = 512;
@@ -70,6 +74,7 @@ impl GemWalletConnectService {
         session: Arc<GemWalletSessionService>,
         assets: Arc<GemAssetsService>,
         sign_message: Arc<GemSignMessageService>,
+        platform: Platform,
     ) -> Self {
         Self {
             wallet_connect: WalletConnect::new(),
@@ -81,6 +86,7 @@ impl GemWalletConnectService {
             session,
             assets,
             seen_messages: Mutex::new(Vec::new()),
+            platform,
         }
     }
 
@@ -90,11 +96,6 @@ impl GemWalletConnectService {
 
     pub fn should_process_proposal(&self, proposer_public_key: String) -> bool {
         self.should_process_message(rules::proposal_message_id(&proposer_public_key))
-    }
-
-    pub fn should_process_message(&self, message_id: String) -> bool {
-        let mut seen = self.seen_messages.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
     }
 
     pub async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
@@ -156,19 +157,23 @@ impl GemWalletConnectService {
         let wallets = rules::session_wallets(wallets, &required, &optional);
         let default_wallet = rules::default_wallet(&wallets, current_wallet_id).ok_or(GemWalletConnectError::UnsupportedWallets)?;
         Ok(GemSessionProposal {
+            can_choose_wallet: crate::services::wallet_session::rules::can_choose_wallet(&wallets),
             proposal: WalletConnectionSessionProposal { default_wallet, wallets, metadata },
             verification_status,
         })
     }
 
-    pub fn connection_sections(&self, connections: Vec<WalletConnection>) -> Vec<GemConnectionSection> {
-        rules::connection_groups(connections)
-            .into_iter()
-            .map(|(wallet, connections)| GemConnectionSection {
-                title: wallet.name,
-                connections: connections.into_iter().map(|connection| self.gem_connection(connection)).collect(),
-            })
-            .collect()
+    pub fn connections_view(&self, connections: Vec<WalletConnection>) -> GemConnectionsView {
+        GemConnectionsView {
+            sections: rules::connection_groups(connections)
+                .into_iter()
+                .map(|(wallet, connections)| GemConnectionSection {
+                    title: wallet.name,
+                    connections: connections.into_iter().map(|connection| self.gem_connection(connection)).collect(),
+                })
+                .collect(),
+            docs_url: DocsUrl::WalletConnect.url_for(self.platform),
+        }
     }
 
     pub fn connection_details(&self, connection: WalletConnection) -> GemConnectionDetails {
@@ -205,10 +210,6 @@ impl GemWalletConnectService {
         rules::session_rejection(reason)
     }
 
-    pub fn user_rejected_error(&self) -> GemWalletConnectRpcError {
-        rules::user_rejected_error()
-    }
-
     pub async fn request_outcome(&self, request: GemWalletConnectSessionRequest) -> GemWalletConnectOutcome {
         if !self.should_process_message(rules::request_message_id(&request.topic, &request.request_id)) {
             return GemWalletConnectOutcome::ignored();
@@ -238,6 +239,11 @@ impl GemWalletConnectService {
 }
 
 impl GemWalletConnectService {
+    pub fn should_process_message(&self, message_id: String) -> bool {
+        let mut seen = self.seen_messages.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
+    }
+
     fn is_origin_rejected(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> bool {
         rules::is_origin_rejected(&WalletConnectVerifier::validate_origin(metadata_url, origin, validation))
     }
@@ -248,7 +254,7 @@ impl GemWalletConnectService {
         let response = match action {
             WalletConnectAction::SignMessage { chain, sign_type, data } => {
                 let (connection, account) = self.connection_account(&session_id, chain).await?;
-                validate_sign_message_account(&sign_type.clone().into(), &data, &account.address).map_err(|msg| GemServiceError::InvalidInput { msg })?;
+                validate_sign_message_account(&sign_type, &data, &account.address).map_err(|msg| GemServiceError::InvalidInput { msg })?;
                 let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), domain.clone()).await?;
                 let payload = scan_rules::sign_message_payload(chain, &account.address, &simulation, domain);
                 let (assets, scan) = futures::join!(self.assets.ensure_simulation_assets(simulation.asset_ids()), self.scanner.scan(payload.clone()));
@@ -367,11 +373,23 @@ impl GemWalletConnectService {
 mod tests {
     use super::testkit::TestWalletConnectSigner;
     use super::*;
-    use crate::wallet_connect::WalletConnectResponseType;
     use futures::executor::block_on;
+    use gem_wallet_connect::WalletConnectResponseType;
     use num_bigint::BigUint;
     use primitives::ApprovalData;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
+
+    #[test]
+    fn test_the_connections_view_links_the_walletconnect_guide() {
+        block_on(async {
+            let service = GemWalletConnectService::mock(Ok(String::new()), Wallet::mock()).await;
+
+            let view = service.connections_view(vec![]);
+
+            assert!(view.sections.is_empty());
+            assert_eq!(view.docs_url, DocsUrl::WalletConnect.url_for(Platform::IOS));
+        });
+    }
 
     #[test]
     fn test_process_tron_approval_request() {

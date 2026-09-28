@@ -225,7 +225,7 @@ mod tests {
         let expected_transactions_request: Value = serde_json::from_str(include_str!("../../../testdata/fastnear_transactions_request.json")).unwrap();
 
         assert_eq!(
-            transactions.iter().map(|transaction| transaction.hash()).collect::<Vec<_>>(),
+            transactions.iter().map(Transaction::hash).collect::<Vec<_>>(),
             vec!["incoming-transaction", "outgoing-transaction", "attached-deposit-transaction"]
         );
         assert_eq!(

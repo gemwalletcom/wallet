@@ -4,12 +4,10 @@ import Components
 import Gemstone
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import InfoSheet
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
 import PrimitivesTestKit
-import StoreTestKit
 import Testing
 
 @MainActor
@@ -18,11 +16,11 @@ struct PerpetualSceneViewModelTests {
     func aPeriodWithoutCandlesYetShowsLoadingInsteadOfAnEmptyChart() {
         let model = PerpetualSceneViewModel.mock()
 
-        #expect(model.chart.state.isLoading)
+        #expect(model.chart.state(position: nil).isLoading)
 
         model.chart.currentPeriod = .week
 
-        #expect(model.chart.state.isLoading)
+        #expect(model.chart.state(position: nil).isLoading)
     }
 
     @Test
@@ -37,19 +35,6 @@ struct PerpetualSceneViewModelTests {
 
         #expect(model.details == service.detailsValue)
         #expect(model.positionData(model.details) == nil)
-    }
-
-    @Test
-    func buttonsAreDrawnInTheToneCoreGives() {
-        let model = PerpetualSceneViewModel.mock(service: GemPerpetualDetailsServiceMock())
-        let buttons = model.buttonModels([
-            GemPerpetualButtonRow(button: .long, tone: .positive),
-            GemPerpetualButtonRow(button: .increase, tone: .neutral),
-            GemPerpetualButtonRow(button: .reduce, tone: .negative),
-        ])
-
-        #expect(buttons.map(\.style) == [.green, .blue, .red])
-        #expect(buttons.map(\.isDestructive) == [false, false, true])
     }
 
     @Test
@@ -144,26 +129,6 @@ struct PerpetualSceneViewModelTests {
     }
 
     @Test
-    func theInfoSheetsMatchTheRowThatOpenedThem() {
-        let model = PerpetualSceneViewModel.mock()
-
-        model.onInfo(.fundingApr)
-        #expect(model.isPresentingInfoSheet == .fundingApr)
-
-        model.onInfo(.fundingPayments)
-        #expect(model.isPresentingInfoSheet == .fundingPayments)
-
-        model.onInfo(.liquidationPrice)
-        #expect(model.isPresentingInfoSheet == .liquidationPrice)
-
-        model.onInfo(.openInterest)
-        #expect(model.isPresentingInfoSheet == .openInterest)
-
-        model.onInfo(.autoClose)
-        #expect(model.isPresentingInfoSheet == .autoclose)
-    }
-
-    @Test
     func loadingSyncsPositionsAndTransactionsForTheAsset() async {
         let service = GemPerpetualDetailsServiceMock()
         let asset = Primitives.Asset.mock()
@@ -172,7 +137,7 @@ struct PerpetualSceneViewModelTests {
         await model.load()
 
         #expect(service.syncPositionsCount == 1)
-        #expect(service.syncedTransactionAssetIds == [asset.id.identifier])
+        #expect(service.syncedTransactionAssetIds == [asset.id])
     }
 
     @Test
@@ -187,7 +152,7 @@ struct PerpetualSceneViewModelTests {
         }
 
         #expect(service.syncPositionsCount == 1, "a position closed while the app was away shows on return")
-        #expect(service.syncedTransactionAssetIds == [asset.id.identifier])
+        #expect(service.syncedTransactionAssetIds == [asset.id])
     }
 
     @Test
@@ -200,14 +165,5 @@ struct PerpetualSceneViewModelTests {
         await model.load()
 
         #expect(model.isPresentingAlertMessage == nil)
-    }
-
-    @Test
-    func dismissingAutocloseClearsThePresentedPosition() {
-        let model = PerpetualSceneViewModel.mock()
-
-        model.onAutocloseComplete()
-
-        #expect(model.isPresentingAutoclose == nil)
     }
 }

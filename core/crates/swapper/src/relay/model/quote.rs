@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use serde::{Deserialize, Serialize};
 
 use super::{EvmStepData, SolanaStepData, TonStepData, TronStepData};
@@ -200,7 +201,7 @@ impl ProviderErrorResponse for RelayErrorResponse {
         match self.error_code {
             RelayErrorCode::AmountTooLow => Some(SwapperError::InputAmountError { min_amount: None }),
             RelayErrorCode::NoQuotes | RelayErrorCode::NoSwapRoutesFound => Some(SwapperError::NoQuoteAvailable),
-            RelayErrorCode::Unknown => self.message.filter(|message| !message.is_empty()).map(SwapperError::ComputeQuoteError),
+            RelayErrorCode::Unknown => self.message.non_empty().map(SwapperError::ComputeQuoteError),
         }
     }
 }

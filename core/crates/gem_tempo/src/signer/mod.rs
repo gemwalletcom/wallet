@@ -184,7 +184,7 @@ mod tests {
         let native_input = mock_tempo_swap_input(usdc.clone(), AssetId::from_chain(Chain::Tempo), None);
         assert!(get_fee_token(&native_input).is_err());
 
-        let wrong_chain_input = mock_tempo_swap_input(usdc.clone(), AssetId::from_chain(Chain::Ethereum), None);
+        let wrong_chain_input = mock_tempo_swap_input(usdc, AssetId::from_chain(Chain::Ethereum), None);
         assert!(get_fee_token(&wrong_chain_input).is_err());
 
         let ethereum_input = mock_tempo_swap_input(Asset::mock_eth(), AssetId::from_chain(Chain::Ethereum), None);
@@ -204,7 +204,7 @@ mod tests {
             ]
         );
 
-        let input_with_approval = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), Some(ApprovalData::mock()));
+        let input_with_approval = mock_tempo_swap_input(usdc.clone(), usdc.id, Some(ApprovalData::mock()));
         assert_eq!(
             signer.sign_swap(&input_with_approval, &TEST_PRIVATE_KEY).unwrap(),
             vec![

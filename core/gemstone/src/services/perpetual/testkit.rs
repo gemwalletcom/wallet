@@ -93,6 +93,7 @@ pub struct PerpetualTestkit {
     pub session: Arc<GemWalletSessionService>,
     pub provider: Arc<TestAlienProvider>,
     pub store: Arc<MemoryPerpetualStore>,
+    pub recents: Arc<MemoryRecentActivityStore>,
     pub asset_store: Arc<MemoryAssetStore>,
     pub wallets: Arc<MemoryWalletStore>,
     pub balances: Arc<MemoryBalanceStore>,
@@ -150,6 +151,7 @@ impl PerpetualTestkit {
         let balance = Arc::new(GemBalanceService::new(gateway.clone(), balances.clone(), assets.clone(), session.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
         let wallet_preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
         let store = Arc::new(MemoryPerpetualStore::default());
+        let recents = Arc::new(MemoryRecentActivityStore::default());
         let service = GemPerpetualService::new(
             gateway,
             price,
@@ -159,13 +161,14 @@ impl PerpetualTestkit {
             balance,
             wallet_preferences.clone(),
             session.clone(),
-            Arc::new(GemRecentActivityService::new(Arc::new(MemoryRecentActivityStore::default()), session)),
+            Arc::new(GemRecentActivityService::new(recents.clone(), session)),
         );
         Self {
             service,
             session: details_session,
             provider,
             store,
+            recents,
             asset_store,
             wallets,
             balances,
@@ -181,7 +184,7 @@ impl PerpetualTestkit {
             device_api.clone(),
             Arc::new(GemAssetsService::mock(self.provider.clone(), self.asset_store.clone())),
             Arc::new(MemoryTransactionStateStore::default()),
-            Arc::new(GemNameService::new(device_api.clone(), Arc::new(MemoryAddressStore::default()))),
+            Arc::new(GemNameService::new(device_api, Arc::new(MemoryAddressStore::default()))),
             self.wallet_preferences.clone(),
             self.session.clone(),
             Arc::new(RecordingTransactionStatus::default()),

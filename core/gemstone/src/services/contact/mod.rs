@@ -7,16 +7,17 @@ use chrono::Utc;
 use std::sync::Arc;
 use uuid::Uuid;
 
+use primitives::Contact;
 use primitives::contact::ContactAddress;
-use primitives::{Chain, Contact};
 
-use crate::address_formatter::{GemAddressFormatStyle, GemAddressService};
 use crate::models::payment::GemPayment;
 use crate::payment::GemPaymentService;
 use crate::services::file::{GemFileStore, IMAGE_EXTENSION};
 use crate::services::name::GemNameService;
 
-pub use model::{GemContactAddressInput, GemContactAvatar, GemContactAvatarChoice, GemContactAvatarImage, GemContactInput, GemContactRow, GemContactScannedAddress, GemContactSession, contact_initials, contact_row};
+pub use model::{
+    GemContactAddressInput, GemContactAddressSession, GemContactAvatar, GemContactAvatarChoice, GemContactAvatarImage, GemContactInput, GemContactRow, GemContactScannedAddress, GemContactSession, contact_initials, contact_row,
+};
 pub use store::GemContactStore;
 
 #[derive(uniffi::Object)]
@@ -72,10 +73,6 @@ impl GemContactService {
         Ok(contact)
     }
 
-    pub fn default_chain(&self) -> Chain {
-        rules::default_contact_chain()
-    }
-
     async fn add_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
         self.store.save_contact(contact.clone(), addresses.clone()).await?;
         self.save_address_names(&contact, &addresses).await
@@ -97,15 +94,14 @@ impl GemContactService {
 #[derive(uniffi::Object)]
 pub struct GemContactEditorService {
     contacts: Arc<GemContactService>,
-    addresses: Arc<GemAddressService>,
     payments: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
 impl GemContactEditorService {
     #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, payments: Arc<GemPaymentService>) -> Self {
-        Self { contacts, addresses, payments }
+    pub fn new(contacts: Arc<GemContactService>, payments: Arc<GemPaymentService>) -> Self {
+        Self { contacts, payments }
     }
 
     pub fn scanned_address(&self, input: String) -> GemContactScannedAddress {
@@ -116,10 +112,6 @@ impl GemContactEditorService {
         rules::scanned_address(&input, request.as_ref())
     }
 
-    pub fn default_chain(&self) -> Chain {
-        self.contacts.default_chain()
-    }
-
     pub async fn save_contact(&self, input: GemContactInput) -> Result<Contact, GemServiceError> {
         self.contacts.save_contact(input).await
     }
@@ -128,7 +120,7 @@ impl GemContactEditorService {
         rules::new_session(contact, addresses, Uuid::new_v4().to_string())
     }
 
-    pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String {
-        self.addresses.format(address, Some(chain), style)
+    pub fn new_address_session(&self, contact_id: String, existing: Option<ContactAddress>) -> GemContactAddressSession {
+        rules::new_address_session(contact_id, existing)
     }
 }

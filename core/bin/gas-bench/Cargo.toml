@@ -9,7 +9,7 @@ clap = { version = "4.6.1", features = ["derive", "env"] }
 tokio = { workspace = true }
 num-bigint = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-prettytable-rs = "^0.10"
+prettytable = { package = "prettytable-rs", version = "^0.10" }
 
 primitives = { path = "../../crates/primitives" }
 gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }

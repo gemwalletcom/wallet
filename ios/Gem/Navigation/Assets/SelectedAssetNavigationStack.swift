@@ -12,7 +12,6 @@ import Transfer
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.navigationPresenter) private var presenter
 
     @State private var navigationPath = NavigationPath()
     @State private var isPresentingAddressDetails: ChainAddress?
@@ -38,7 +37,6 @@ struct SelectedAssetNavigationStack: View {
                 case let .send(type):
                     RecipientNavigationView(
                         model: viewModelFactory.recipientScene(
-                            wallet: wallet,
                             asset: input.asset,
                             type: type,
                             recipient: input.recipient,
@@ -116,13 +114,12 @@ struct SelectedAssetNavigationStack: View {
                     ),
                 )
             }
-            .navigationDestination(for: DelegationInput.self) { input in
+            .navigationDestination(for: Delegation.self) { delegation in
                 DelegationScene(
                     model: viewModelFactory.delegationScene(
                         wallet: wallet,
-                        delegation: input.delegation,
-                        asset: input.delegation.base.assetId.chain.asset,
-                        validators: input.validators,
+                        delegation: delegation,
+                        asset: delegation.base.assetId.chain.asset,
                         onNavigate: navigate,
                         onSelectAddress: { isPresentingAddressDetails = $0 },
                     ),
@@ -145,10 +142,7 @@ struct SelectedAssetNavigationStack: View {
 
 extension SelectedAssetNavigationStack {
     private func navigate(to route: TransferRoute) {
-        switch route {
-        case let .amount(input): navigationPath.append(input)
-        case let .confirm(data): navigationPath.append(ConfirmTransferInput(data: data))
-        }
+        navigationPath.append(transfer: route)
     }
 
     private func navigate(to route: StakeRoute) {

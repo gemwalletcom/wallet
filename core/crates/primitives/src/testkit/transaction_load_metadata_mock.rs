@@ -83,7 +83,7 @@ impl TransactionLoadMetadata {
             token_program,
             nft: None,
             block_hash: "11111111111111111111111111111111".to_string(),
-            references: references.iter().map(|reference| reference.to_string()).collect(),
+            references: references.iter().map(ToString::to_string).collect(),
         }
     }
 

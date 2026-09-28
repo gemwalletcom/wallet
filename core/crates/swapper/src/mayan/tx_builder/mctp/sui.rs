@@ -14,6 +14,7 @@ use futures::try_join;
 use gem_sui::tx_builder::prepare_transaction_json_replay;
 use gem_sui::{ESTIMATION_GAS_BUDGET, gas_budget::GAS_BUDGET_MULTIPLIER};
 use num_bigint::BigUint;
+use primitives::OptionStringExt;
 use std::{fmt::Debug, fmt::Display, sync::Arc};
 
 pub async fn build_quote_data<C>(client: &MayanClient<C>, quote: &Quote, route: &MayanMctpQuote, rpc_provider: Arc<dyn RpcProvider>, package_id_cache: &Cache<&'static str, String>) -> Result<SwapperQuoteData, SwapperError>
@@ -24,7 +25,7 @@ where
     let sui_client = create_sui_client(rpc_provider)?;
     let destination_address = quote_destination_address(quote);
     let mctp_input_contract = route.mctp_input_contract.as_deref().ok_or(SwapperError::InvalidRoute)?;
-    let referrer_address = wormhole_chain::chain_for_name(&route.to_chain).ok().map(default_referral_address).filter(|address| !address.is_empty());
+    let referrer_address = wormhole_chain::chain_for_name(&route.to_chain).ok().map(default_referral_address).non_empty();
     let prefetched = PrefetchedSuiData::prefetch(&sui_client, sender, route, ESTIMATION_GAS_BUDGET, package_id_cache);
     let swap = async {
         let swap = get_swap_transaction(client, quote, route, mctp_input_contract, referrer_address).await?;

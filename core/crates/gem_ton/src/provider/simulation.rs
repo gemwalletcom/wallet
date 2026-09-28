@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::error::Error;
 
 use async_trait::async_trait;
@@ -17,8 +18,8 @@ impl<C: Client> ChainSimulation for TonClient<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         let request: TonConnectRequest = serde_json::from_str(&input.encoded_transaction)?;
         request.validate_for_emulation()?;
-        let request_sender = request.from.as_deref().filter(|address| !address.is_empty());
-        let input_sender = input.signer_address.as_deref().filter(|address| !address.is_empty());
+        let request_sender = request.from.as_deref().non_empty();
+        let input_sender = input.signer_address.as_deref().non_empty();
         if let Some(input_sender) = input_sender {
             Address::ensure_matches(request_sender, input_sender)?;
         }
@@ -72,7 +73,10 @@ mod tests {
     #[tokio::test]
     async fn test_simulate_transaction_rejects_sender_mismatch() {
         let client = TonClient::new(MockClient::new());
-        let input = SimulationInput::new(include_str!("../../testdata/wallet_connect_dedust_emulation_request.json")).with_signer_address("0:44a14a5a9406979d59b9328898591660b8b1736342b11632efdcc911ab9057cf");
+        let input = SimulationInput {
+            signer_address: Some("0:44a14a5a9406979d59b9328898591660b8b1736342b11632efdcc911ab9057cf".to_string()),
+            ..SimulationInput::new(include_str!("../../testdata/wallet_connect_dedust_emulation_request.json"))
+        };
 
         let error = client.simulate_transaction(input).await.unwrap_err();
 

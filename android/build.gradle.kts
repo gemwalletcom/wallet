@@ -43,6 +43,7 @@ subprojects {
             .withPropertyName("gemstoneHostLibrary")
             .withPathSensitivity(PathSensitivity.NONE)
         systemProperty("jna.library.path", gemstoneHostLibrary.parentFile.absolutePath)
+        jvmArgs("-XX:TieredStopAtLevel=1", "-XX:+UseSerialGC")
         when (providers.gradleProperty("integrationTests").orNull) {
             "skip" -> exclude("**/integration/**")
             "only" -> filter {
@@ -53,6 +54,34 @@ subprojects {
     }
     if (path != ":app" && file("src/androidTest").exists()) {
         throw GradleException("$path has src/androidTest. Put tests that need Android in an integration package under src/test; they run on Robolectric.")
+    }
+    plugins.withId("com.android.library") {
+        extensions.configure<com.android.build.api.dsl.LibraryExtension> {
+            compileSdk = 37
+            defaultConfig {
+                minSdk = 28
+                testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+            }
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+            packaging {
+                resources {
+                    excludes += "META-INF/*"
+                    excludes += "META-INF/DEPENDENCIES"
+                    excludes += "/META-INF/LICENSE-notice.md"
+                    excludes += "/META-INF/LICENSE.md"
+                    excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+                }
+            }
+        }
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+                freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+            }
+        }
     }
     listOf("com.android.library", "com.android.application").forEach { pluginId ->
         plugins.withId(pluginId) {

@@ -53,7 +53,7 @@ struct StreamObserverServiceTests {
         let service = GemStreamServiceMock(
             onEvent: {
                 handled.continuation.yield($0)
-                return $0 == "balances" ? .balances(walletId: "multicoin_0x1", assetIds: []) : .prices(prices: 1, rates: 0)
+                return $0 == "balances" ? .balances(walletId: .multicoin(address: "0x1"), assetIds: []) : .prices(prices: 1, rates: 0)
             },
             onSync: { event in
                 guard case .balances = event else { return }

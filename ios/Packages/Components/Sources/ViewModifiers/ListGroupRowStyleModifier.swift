@@ -3,10 +3,10 @@
 import Style
 import SwiftUI
 
-public struct ListGroupRowStyleModifier: ViewModifier {
+struct ListGroupRowStyleModifier: ViewModifier {
     let color: Color
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content
             .cleanListRow(listRowBackground: color)
     }

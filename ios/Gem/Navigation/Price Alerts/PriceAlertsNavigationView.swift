@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import Localization
 import PriceAlerts
 import Primitives
 import Style
@@ -37,6 +36,8 @@ struct PriceAlertsNavigationView: View {
 
     private func onSelectAsset(asset: Asset) {
         isPresentingAddAsset = false
-        isPresentingToastMessage = .priceAlert(for: asset.name, enabled: true)
+        Task {
+            isPresentingToastMessage = await model.includeAsset(asset)
+        }
     }
 }

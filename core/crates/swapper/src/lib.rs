@@ -5,6 +5,7 @@ pub mod cross_chain;
 mod eth_address;
 mod fee_token;
 pub mod fees;
+mod ranking;
 mod swapper_trait;
 
 #[cfg(any(test, feature = "testkit"))]
@@ -49,7 +50,7 @@ pub use alien::reqwest_provider::NativeProvider;
 pub use alien::{AlienError, HttpMethod, RpcClient, RpcProvider, Target};
 pub use error::SwapperError;
 pub use models::*;
-pub(crate) use swapper_trait::Swapper;
+pub use swapper_trait::Swapper;
 
 pub type SwapperProvider = primitives::SwapProvider;
 pub type SwapperProviderMode = primitives::swap::SwapProviderMode;

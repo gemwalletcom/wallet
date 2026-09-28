@@ -1,18 +1,11 @@
 use chain_primitives::checksum_address;
 use primitives::FeePriority;
 
-use primitives::{BroadcastOptions, FeeRate, GasPriceType, TransactionInputType, TransactionPreloadInput, UTXO};
-
-pub type GemUTXO = UTXO;
+use primitives::{BroadcastOptions, FeeRate, GasPriceType, TransactionInputType, TransactionPreloadInput};
 
 pub type GemBroadcastOptions = BroadcastOptions;
 
-#[uniffi::remote(Record)]
-pub struct BroadcastOptions {
-    pub skip_preflight: bool,
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemFeeRate {
     pub priority: FeePriority,
     pub gas_price_type: GasPriceType,

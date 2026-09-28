@@ -5,4 +5,4 @@ mod target;
 pub mod testkit;
 
 pub use client::Client;
-pub use model::{Token, TokenBalance, TokenTransfer, Transaction};
+pub use model::{NftAttribute, NftInstance, NftItem, NftMetadata, Token, TokenBalance, TokenTransfer, Transaction};

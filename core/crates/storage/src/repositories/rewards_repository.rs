@@ -521,7 +521,7 @@ impl RewardsRepository for DatabaseClient {
     fn get_reward_events_by_wallet_id(&mut self, wallet_id: i32) -> Result<Vec<RewardEvent>, DatabaseError> {
         let username = ensure_wallet_reward_identity(self, wallet_id)?;
         let events = get_events(self, &username.username)?;
-        Ok(events.iter().map(|e| e.as_primitive()).collect())
+        Ok(events.iter().map(RewardEventRow::as_primitive).collect())
     }
 
     fn get_reward_event(&mut self, event_id: i32) -> Result<RewardEvent, DatabaseError> {

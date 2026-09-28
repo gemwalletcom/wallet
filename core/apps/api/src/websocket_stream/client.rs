@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use gem_tracing::info_with_fields;
+use primitives::response::ErrorDetail;
 use primitives::{AssetPrice, StreamEvent, StreamMessage, Version, device_stream_channel};
 use redis::PushInfo;
 use redis::aio::MultiplexedConnection;
@@ -66,7 +67,14 @@ impl StreamObserverClient {
     }
 
     async fn handle_message_payload(&mut self, data: Vec<u8>, redis_connection: &mut MultiplexedConnection, stream: &mut DuplexStream) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let message = serde_json::from_slice::<StreamMessage>(&data)?;
+        let message = match serde_json::from_slice::<StreamMessage>(&data) {
+            Ok(message) => message,
+            Err(error) => {
+                info_with_fields!("websocket rejected unreadable message", device_id = self.device_id.as_str(), error = error.to_string());
+                let detail = ErrorDetail { message: error.to_string(), data: None };
+                return self.send_event(stream, StreamEvent::Error(detail)).await;
+            }
+        };
         if let Some(event) = self.price_handler.handle_stream_message(&message, redis_connection).await? {
             self.send_event(stream, event).await?;
         }

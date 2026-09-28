@@ -12,7 +12,7 @@ public protocol TargetType: Sendable {
     var headers: [String: String] { get }
 }
 
-public enum ContentType: String {
+enum ContentType: String {
     case json = "application/json"
     case plainText = "text/plain"
     case URLEncoded = "application/x-www-form-urlencoded"

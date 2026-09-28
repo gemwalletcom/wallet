@@ -7,15 +7,12 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletType
 
 fun Wallet.getAccount(chain: Chain): Account? = accounts.firstOrNull { it.chain == chain }
 
 fun Wallet.getAccount(assetId: AssetId): Account? = getAccount(assetId.chain)
 
 val Wallet.chainIds: List<String> get() = accounts.map { it.chain.string }
-
-val WalletType.isViewOnly: Boolean get() = this == WalletType.View
 
 val HypercoreUSDC: Asset = requireNotNull(assetConfig.defaultAsset(Chain.HyperCore.string, AssetType.PERPETUAL.toGem())) {
     "Missing perpetual default asset for HyperCore"

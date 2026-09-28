@@ -16,7 +16,7 @@ class NameRecordControllerTest {
 
     private val chain = Chain.Ethereum
 
-    private val complete = GemNameRecordState.Complete(mockNameRecord().toGem())
+    private val complete = GemNameRecordState.Complete(mockNameRecord(name = "vitalik.eth", chain = chain.toGem()))
 
     @Test
     fun plainAddressNeverReachesTheResolver() = runTest {

@@ -48,7 +48,6 @@
   <string name="common_description">描述</string>
   <string name="common_emoji">表情符號</string>
   <string name="common_avatar">頭像</string>
-  <string name="common_save">儲存</string>
   <string name="common_percentage">百分比</string>
   <string name="common_details">詳細</string>
   <string name="common_info">資訊</string>
@@ -58,6 +57,7 @@
   <string name="common_token">代幣</string>
   <string name="common_expiration">有效期限</string>
   <string name="common_suspicious_address">可疑地址</string>
+  <string name="common_suspicious_address_description">此位址與可疑或惡意行為有關。</string>
   <string name="common_refresh">重新整理</string>
   <string name="common_grant_permission">允許</string>
   <string name="common_required_field">%1$s 為必填欄位</string>
@@ -103,8 +103,6 @@
   <string name="wallet_portfolio_title">投資組合</string>
   <string name="wallet_import_already_imported_message">此錢包已匯入。</string>
   <string name="wallets_title">錢包</string>
-  <string name="wallets_watch">觀察</string>
-  <string name="receive_title">接收%1$s</string>
   <string name="receive_warning">請僅向此地址傳送 %2$s 網路上的 %1$s。</string>
   <string name="buy_title">購買%1$s</string>
   <string name="buy_providers_title">服務商</string>
@@ -165,7 +163,6 @@
   <string name="settings_security_authentication">身分驗證</string>
   <string name="settings_notifications_title">通知</string>
   <string name="settings_language">語言</string>
-  <string name="settings_help_center">幫助中心</string>
   <string name="settings_support">支援</string>
   <string name="settings_price_alerts_title">價格提醒</string>
   <string name="settings_hide_balance">隱藏餘額</string>
@@ -211,6 +208,12 @@
   <string name="errors_swap_not_supported_asset">不支援此資產。</string>
   <string name="errors_connections_no_supported_wallets">目前沒有支援的錢包可用。</string>
   <string name="errors_connections_unsupported_chain">不支援指定的區塊鏈。</string>
+  <string name="errors_authentication_unavailable">此裝置未設定身分驗證。請在裝置設定中開啟生物辨識或密碼。</string>
+  <string name="errors_authentication_locked_out">失敗次數過多，請稍後再試。</string>
+  <string name="errors_authentication_failed">身分驗證失敗，請重試。</string>
+  <string name="errors_connections_expired">此連線連結已過期。請取得新的 QR 碼後重試。</string>
+  <string name="errors_connections_not_found">此連線已不存在。</string>
+  <string name="errors_connections_relay_unavailable">無法連線至 WalletConnect。請檢查網路連線後重試。</string>
   <string name="errors_swap_amount_too_small">金額太小，請輸入更大的金額試試</string>
   <string name="errors_scan_transaction_malicious_description">無法完成此交易：收款錢包位址與可疑或惡意行為有關。</string>
   <string name="errors_scan_transaction_memo_required">%1$s目標錢包位址需要目標標籤/備註</string>
@@ -280,7 +283,6 @@
   <string name="asset_buy_asset">購買%1$s</string>
   <string name="asset_get_asset">取得 %1$s</string>
   <string name="asset_add_to_wallet">加入錢包</string>
-  <string name="asset_hide_from_wallet">從錢包中隱藏</string>
   <string name="asset_added_to_wallet">已加入錢包</string>
   <string name="asset_hidden_from_wallet">已從錢包隱藏</string>
   <string name="asset_resources">資源</string>
@@ -301,6 +303,7 @@
   <string name="charts_price_change">漲跌幅</string>
   <string name="date_today">今天</string>
   <string name="date_yesterday">昨天</string>
+  <string name="date_day_time">%1$s, %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">連線</string>
   <string name="wallet_connect_disconnect">中斷連線</string>
@@ -390,7 +393,6 @@
   <string name="fee_rates_fast">快速</string>
   <string name="fee_rates_normal">普通</string>
   <string name="fee_rate_satvB">聰/vB</string>
-  <string name="fee_rate_satB">%1$s 聰/B</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">自訂</string>
   <string name="banner_account_activation_title">帳戶啟動費用</string>
@@ -421,7 +423,10 @@
   <string name="price_alerts_set_alert_price_decreases_by">當價格下跌</string>
   <string name="price_alerts_set_alert_set_target_price">設定目標價格</string>
   <string name="price_alerts_set_alert_current_price">目前價格</string>
-  <string name="price_alerts_added_for">價格提醒已設定：%1$s</string>
+  <string name="price_alerts_added_price_over">已新增價格高於 %1$s 時的提醒</string>
+  <string name="price_alerts_added_price_under">已新增價格低於 %1$s 時的提醒</string>
+  <string name="price_alerts_added_increases_by">已新增價格上漲 %1$s 時的提醒</string>
+  <string name="price_alerts_added_decreases_by">已新增價格下跌 %1$s 時的提醒</string>
   <string name="price_alerts_state_empty_title">價格提醒將顯示在這裡</string>
   <string name="price_alerts_state_empty_description">請添加幣種，即可開始追蹤資產</string>
   <string name="price_alerts_auto_footer">價格大幅變動時會觸發提醒。</string>
@@ -499,8 +504,6 @@
   <string name="nft_report_report_button_title">檢舉</string>
   <string name="permissions_access_denied">存取遭拒</string>
   <string name="permissions_image_photo_access_denied_description">此應用程式無權存取照片圖庫。請在裝置設定中啟用存取權限。</string>
-  <string name="markets_title">市場</string>
-  <string name="markets_state_empty_title">市場資訊將顯示在此處</string>
   <string name="markets_daily_volume">24小時交易量</string>
   <string name="search_state_empty_description">請檢查拼字或嘗試新的搜尋。</string>
   <string name="networks_state_empty_search_title">未找到任何網路</string>
@@ -603,7 +606,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">無限額代幣授權</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">安全警告</string>
-  <string name="rootcheck_jailbreak_body">你的裝置似乎已越獄。這可能使你的錢包和資金面臨風險。</string>
+  <string name="rootcheck_jailbreak_body">裝置似乎已越獄，錢包和資金可能面臨風險。</string>
   <string name="rootcheck_body">此裝置似乎具有 root 存取權限，這會顯著增加安全風險。在已取得 root 權限的裝置上使用此應用程式可能會使資產遭受未經授權的存取並可能造成損失。為了資金安全，我們強烈建議使用未取得 root 權限的裝置。</string>
   <string name="rootcheck_ignore">忽略</string>
   <string name="rootcheck_exit">退出</string>

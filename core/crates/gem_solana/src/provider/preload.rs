@@ -8,7 +8,9 @@ use gem_client::Client;
 use primitives::{Chain, FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
-    METAPLEX_CORE_PROGRAM, get_token_program_id_by_address, metaplex_core,
+    METAPLEX_CORE_PROGRAM, get_token_program_id_by_address,
+    metaplex::metadata::Metadata,
+    metaplex_core,
     rpc::{SolanaClient, SolanaProvider},
 };
 
@@ -115,7 +117,7 @@ impl<C: Client + Clone> SolanaClient<C> {
         }
         let token_program = get_token_program_id_by_address(&account.owner).ok_or_else(|| format!("unsupported Solana NFT owner program: {}", account.owner))?;
         let metadata = self.get_metaplex_metadata(mint).await.ok();
-        let standard = match metadata.filter(|m| m.is_programmable()) {
+        let standard = match metadata.filter(Metadata::is_programmable) {
             Some(metadata) => SolanaNftStandard::ProgrammableNonFungible {
                 rule_set: metadata.rule_set().map(|pubkey| pubkey.to_base58()),
             },

@@ -15,7 +15,7 @@ public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Senda
         self.store = store
     }
 
-    public func getPriceAlerts(assetId: String?) async throws -> [Gemstone.PriceAlert] {
+    public func getPriceAlerts(assetId: AssetId?) async throws -> [Gemstone.PriceAlert] {
         let alerts = try assetId.map { try store.getPriceAlerts(for: $0) } ?? store.getPriceAlerts()
         return alerts.map { $0.toGem() }
     }

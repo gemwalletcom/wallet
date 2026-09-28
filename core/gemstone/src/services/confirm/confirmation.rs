@@ -1,18 +1,22 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
+use std::time::Instant;
 
-use primitives::currency::Currency;
-use primitives::{AddressName, AssetId, ChainAddress, PaymentVerification, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet};
+use primitives::{AddressName, AssetId, ChainAddress, PaymentVerification, PerpetualType, SimulationResult, TransactionInputType, Wallet};
 
 use super::error::GemConfirmErrorInfo;
 use super::header::{self, GemConfirmHeader};
 use super::rules::{asset_pick_needs_reload, preload_simulation};
 use super::{
-    ConfirmState, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmTransferService, GemConfirmViewState, GemFeeRateRows, GemSubmitResult,
-    GemTransferAmountResult, SendInput,
+    ConfirmState, ConfirmSwapQuote, GemConfirmDetails, GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeRow, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmStage,
+    GemConfirmTransferService, GemConfirmViewState, GemNetworkFeeScreen, GemSubmitResult, GemTransferAmountResult, SendInput,
 };
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
+use crate::services::amount::model::GemNumberFormat;
+use crate::services::perpetual::model::perpetual_confirm_details;
+use crate::services::simulation::warning_rows;
+use crate::services::swap::model::swap_quote_details;
 use crate::services::transfer::GemTransferData;
 use crate::services::wallet::GemKeystoreAuthentication;
 
@@ -24,6 +28,7 @@ pub struct GemConfirmation {
     simulation: Option<SimulationResult>,
     state: Mutex<Option<ConfirmState>>,
     latest_load: AtomicU64,
+    created_at: Instant,
 }
 
 impl GemConfirmation {
@@ -35,11 +40,12 @@ impl GemConfirmation {
             simulation,
             state: Mutex::new(None),
             latest_load: AtomicU64::new(0),
+            created_at: Instant::now(),
         }
     }
 
     fn stored(&self) -> MutexGuard<'_, Option<ConfirmState>> {
-        self.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+        self.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
     }
 
     fn store_latest(&self, load: u64, result: Result<ConfirmState, GemConfirmError>) -> Result<GemConfirmLoad, GemConfirmError> {
@@ -49,12 +55,17 @@ impl GemConfirmation {
         }
         let state = result?;
         let loaded = state.load.clone();
+        *self.transfer.lock().unwrap_or_else(std::sync::PoisonError::into_inner) = loaded.transfer.clone();
         *stored = Some(state);
         Ok(loaded)
     }
 
     async fn load_screen(&self, options: &GemConfirmLoadOptions) -> Result<ConfirmState, GemConfirmError> {
-        let input = self.service.confirm_input(self.wallet.clone(), self.transfer())?;
+        let now = Instant::now();
+        let transfer = self.transfer();
+        let held = self.stored().as_ref().and_then(|state| state.swap.clone()).or_else(|| ConfirmSwapQuote::initial(&transfer, self.created_at));
+        let (transfer, swap) = Box::pin(self.service.refreshed_swap(&self.wallet, transfer, held, now)).await?;
+        let input = self.service.confirm_input(self.wallet.clone(), transfer)?;
         let requested = async {
             match &self.simulation {
                 Some(simulation) => Some(self.service.simulation_state(input.transfer.input_type.clone(), simulation.clone()).await),
@@ -62,14 +73,50 @@ impl GemConfirmation {
             }
         };
         let (screen, fee, requested) = futures::join!(Box::pin(self.state()), Box::pin(self.load_fee(&input, options)), Box::pin(requested));
-        let fee = fee?;
+        let (fee, swap) = Box::pin(self.service.fitted_max_swap(&self.wallet, fee?, swap, now)).await?;
         let requested = requested.transpose()?;
-        Ok(screen?.with_fee(fee, requested))
+        let screen = GemConfirmLoad {
+            transfer: fee.confirm_data.input.transfer.clone(),
+            ..screen?
+        };
+        Ok(screen.with_fee(fee, requested, swap))
+    }
+
+    fn authentication(&self) -> GemKeystoreAuthentication {
+        self.service.authentication()
+    }
+
+    fn simulation_warnings(&self, state: Option<&ConfirmState>) -> Vec<GemListRow> {
+        match state {
+            Some(state) => state.load.simulation.warnings.clone(),
+            None => warning_rows(self.simulation.as_ref().map(|simulation| simulation.warnings.as_slice()).unwrap_or_default()),
+        }
+    }
+
+    fn details(&self, transfer: &GemTransferData, load: Option<&GemConfirmLoad>) -> Option<GemConfirmDetails> {
+        match &transfer.input_type {
+            TransactionInputType::Swap { from_asset, to_asset, swap_data } => Some(GemConfirmDetails::Swap {
+                details: swap_quote_details(
+                    swap_data.quote.clone(),
+                    from_asset.clone(),
+                    to_asset.clone(),
+                    load.and_then(|load| load.metadata.asset_price()).map(|price| price.price),
+                    load.and_then(|load| load.metadata.price(to_asset.id.clone())).map(|price| price.price),
+                    self.service.get_currency(),
+                ),
+            }),
+            TransactionInputType::Perpetual {
+                perpetual_type: PerpetualType::Modify { data },
+                ..
+            } => self.service.autoclose_row(data.clone()).map(|row| GemConfirmDetails::PerpetualAutoclose { row }),
+            TransactionInputType::Perpetual { perpetual_type, .. } => perpetual_confirm_details(perpetual_type.clone()).map(|details| GemConfirmDetails::Perpetual { details }),
+            _ => None,
+        }
     }
 
     async fn load_fee(&self, input: &GemConfirmInput, options: &GemConfirmLoadOptions) -> Result<GemConfirmFeeLoad, GemConfirmError> {
         let input_type = &input.transfer.input_type;
-        let fee = match self.service.confirm().load(&self.wallet.id, input, options).await {
+        let fee = match self.service.confirm().load(&self.wallet.id, input, options, self.service.get_currency()).await {
             Ok(fee) => fee,
             Err(error) => return Err(self.service.missing_network_fee(self.wallet.id.clone(), input_type.clone()).await.unwrap_or(error)),
         };
@@ -91,44 +138,49 @@ impl GemConfirmation {
         GemConfirmLoadOptions::initial(&self.transfer())
     }
 
-    pub fn header(&self) -> GemConfirmHeader {
+    pub fn header(&self, screen: GemConfirmScreen) -> GemConfirmHeader {
         let transfer = self.transfer();
         let stored = self.stored();
-        header::header(&transfer, self.simulation.as_ref(), stored.as_ref().map(|state| &state.load), self.service.get_currency())
+        header::header(&transfer, self.simulation.as_ref(), stored.as_ref().map(|state| &state.load), self.service.get_currency(), &screen)
     }
 
-    pub fn view_state(&self, screen: GemConfirmScreen, address_name: Option<AddressName>) -> GemConfirmViewState {
+    pub fn view_state(&self, screen: GemConfirmScreen) -> GemConfirmViewState {
+        let state = self.stored().clone();
+        let load = state.as_ref().map(|state| &state.load);
+        let transfer = self.transfer();
+        let rows = self
+            .row_contents(load.and_then(|load| load.address_name.clone()))
+            .into_iter()
+            .map(|content| match content {
+                GemConfirmRowContent::PaymentAsset { title, symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
+                    title,
+                    selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading,
+                    symbol,
+                    asset_ids,
+                },
+                content => content,
+            })
+            .collect();
+        let load_error = screen.failure.as_ref().filter(|failure| failure.stage == GemConfirmStage::Load).map(|failure| failure.error.clone());
+        let verification = transfer.verification();
+        let details = self.details(&transfer, load);
         GemConfirmViewState {
-            button: screen.button(),
-            fee_row: screen.fee_row(),
-            fee_rates: self.fee_rate_rows(),
-            row_contents: self
-                .row_contents(address_name)
-                .into_iter()
-                .map(|content| match content {
-                    GemConfirmRowContent::PaymentAsset { symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
-                        selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading,
-                        symbol,
-                        asset_ids,
-                    },
-                    content => content,
-                })
-                .collect(),
+            button: screen.button().authenticated(self.authentication()),
+            details,
+            fee_row: GemConfirmFeeRow::new(
+                screen.fee_value(load.cloned()),
+                load.map(|load| load.fee_asset.clone()).unwrap_or_else(|| transfer.fee_asset()),
+                state.as_ref().is_some_and(|state| state.confirm_data.is_some() || state.load.shows_fee_assets()),
+            ),
+            title: transfer.title(),
+            sections: super::rules::confirm_sections(rows, self.simulation_warnings(state.as_ref()), load.and_then(|load| load.simulation.simulation.clone()), verification.is_some(), load_error),
+            verification,
         }
     }
 
-    pub fn fee_rate_rows(&self) -> Option<GemFeeRateRows> {
+    pub fn network_fee_screen(&self, format: GemNumberFormat) -> Option<GemNetworkFeeScreen> {
         let stored = self.stored();
-        let state = stored.as_ref()?;
-        Some(state.confirm_data.as_ref()?.fee_rate_rows(&state.load.fee_asset))
-    }
-
-    pub fn get_currency(&self) -> Currency {
-        self.service.get_currency()
-    }
-
-    pub fn authentication(&self) -> GemKeystoreAuthentication {
-        self.service.authentication()
+        Some(stored.as_ref()?.network_fee_screen(self.service.get_currency(), format))
     }
 
     pub fn row_contents(&self, address_name: Option<AddressName>) -> Vec<GemConfirmRowContent> {
@@ -141,17 +193,14 @@ impl GemConfirmation {
             Some(state) => (state.load.metadata.prices.clone(), state.load.fee_asset.id.clone()),
             None => (Vec::new(), transfer.fee_asset().id),
         };
-        super::error::confirm_error_info(error, prices, self.get_currency(), transfer.input_asset().id, fee_asset_id)
-    }
-
-    pub fn autoclose_row(&self, data: PerpetualModifyConfirmData) -> Option<GemListRow> {
-        self.service.autoclose_row(data)
+        super::error::confirm_error_info(error, prices, self.service.get_currency(), transfer.input_asset().id, fee_asset_id)
     }
 
     pub async fn submit(&self) -> Result<GemSubmitResult, GemConfirmError> {
         let Some(ConfirmState {
             load: GemConfirmLoad { fee: Some(fee), .. },
             confirm_data: Some(confirm_data),
+            swap,
         }) = self.stored().clone()
         else {
             return Err(GemConfirmError::Load {
@@ -168,12 +217,13 @@ impl GemConfirmation {
             confirm: confirm_data,
             value: amount.value,
             network_fee: amount.network_fee,
+            swap_quote: swap.and_then(|swap| swap.quote),
         };
-        self.service.submit(input).await
+        Box::pin(self.service.submit(input)).await
     }
 
     pub fn transfer(&self) -> GemTransferData {
-        self.transfer.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).clone()
+        self.transfer.lock().unwrap_or_else(std::sync::PoisonError::into_inner).clone()
     }
 
     pub async fn state(&self) -> Result<GemConfirmLoad, GemConfirmError> {
@@ -182,7 +232,7 @@ impl GemConfirmation {
         }
         let input = self.service.confirm_input(self.wallet.clone(), self.transfer())?;
         let load = self.service.state(self.wallet.id.clone(), &input, self.simulation.clone()).await?;
-        Ok(self.stored().get_or_insert(ConfirmState { load, confirm_data: None }).load.clone())
+        Ok(self.stored().get_or_insert(ConfirmState { load, confirm_data: None, swap: None }).load.clone())
     }
 
     pub async fn load(&self, options: GemConfirmLoadOptions) -> Result<GemConfirmLoad, GemConfirmError> {
@@ -193,7 +243,7 @@ impl GemConfirmation {
         if self.transfer().verification().is_some() {
             return self.state().await;
         }
-        let result = self.load_screen(&options).await;
+        let result = Box::pin(self.load_screen(&options)).await;
         self.store_latest(load, result)
     }
 }
@@ -214,7 +264,7 @@ impl GemConfirmation {
             GemPaymentLoad::Sign { transfer } => transfer,
             GemPaymentLoad::Verify { invoice, asset_id, url } => self.service.payment().quote_transfer_data(invoice, asset_id, PaymentVerification { url }).await?,
         };
-        *self.transfer.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = transfer;
+        *self.transfer.lock().unwrap_or_else(std::sync::PoisonError::into_inner) = transfer;
         *self.stored() = None;
         Ok(())
     }
@@ -231,8 +281,11 @@ mod tests {
     use primitives::{AddressName, AddressType, VerificationStatus};
 
     use super::super::testkit::ConfirmTestkit;
-    use crate::services::confirm::{ConfirmState, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions};
+    use crate::services::confirm::{ConfirmState, GemConfirmDetails, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmSection, GemConfirmViewState};
+    use crate::services::simulation::warning_rows;
+    use crate::services::swap::model::swap_quote_details;
     use crate::services::transfer::{GemRecipient, GemTransferData};
+    use primitives::currency::Currency;
 
     #[test]
     fn test_request_wallet_balances_ignore_selected_wallet() {
@@ -281,12 +334,106 @@ mod tests {
         let confirmation = testkit.service.confirmation(wallet, transfer, None);
         let screen = confirmation.screen();
 
-        let state = confirmation.view_state(screen.clone(), None);
+        let state = confirmation.view_state(screen.clone());
 
-        assert_eq!(state.button, screen.button());
-        assert_eq!(state.fee_row, screen.fee_row());
-        assert_eq!(state.fee_rates, confirmation.fee_rate_rows());
-        assert_eq!(state.row_contents, confirmation.row_contents(None));
+        assert_eq!(state.button, screen.button().authenticated(confirmation.authentication()));
+        assert_eq!(state.fee_row, super::super::GemConfirmFeeRow::new(screen.fee_value(None), confirmation.transfer().fee_asset(), false));
+        assert_eq!(
+            confirmation.network_fee_screen(crate::services::amount::model::GemNumberFormat { decimal_separator: ".".to_string() }),
+            None,
+            "nothing loaded, no fee screen"
+        );
+        assert_eq!(details(&state), confirmation.row_contents(None));
+        assert_eq!(state.title, confirmation.transfer().title());
+        assert_eq!(state.verification, None);
+    }
+
+    #[test]
+    fn test_view_state_picks_the_details_block_by_input_type() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0xsender")]);
+        let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+        let (from_asset, to_asset) = (Asset::mock_eth(), Asset::from_chain(Chain::SmartChain));
+        let swap_data = primitives::SwapData::mock();
+        let swap = GemTransferData::mock(TransactionInputType::Swap {
+            from_asset: from_asset.clone(),
+            to_asset: to_asset.clone(),
+            swap_data: swap_data.clone(),
+        });
+        let confirmation = testkit.service.clone().confirmation(wallet.clone(), swap, None);
+
+        assert_eq!(
+            confirmation.view_state(confirmation.screen()).details,
+            Some(GemConfirmDetails::Swap {
+                details: swap_quote_details(swap_data.quote, from_asset, to_asset, None, None, Currency::USD),
+            }),
+            "a swap shows its quote before the load prices it"
+        );
+
+        let transfer = testkit.service.confirmation(wallet, GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::mock_eth() }), None);
+        assert_eq!(transfer.view_state(transfer.screen()).details, None);
+    }
+
+    #[test]
+    fn test_view_state_names_the_recipient_from_the_last_stored_load() {
+        block_on(async {
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+            let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+            let transfer = GemTransferData {
+                recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
+                value: 0.into(),
+                ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
+            };
+            let confirmation = testkit.service.confirmation(wallet, transfer, None);
+            let name = AddressName::mock("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV", "Friend", AddressType::Address, VerificationStatus::Verified);
+            let named = GemConfirmLoad {
+                address_name: Some(name.clone()),
+                ..confirmation.state().await.unwrap()
+            };
+            let load = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
+            assert!(confirmation.store_latest(load, Ok(ConfirmState { load: named, confirm_data: None, swap: None })).is_ok());
+
+            assert_eq!(details(&confirmation.view_state(confirmation.screen())), confirmation.row_contents(Some(name.clone())));
+
+            let failed = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
+            assert!(confirmation.store_latest(failed, Err(GemConfirmError::Offline)).is_err());
+            assert_eq!(
+                details(&confirmation.view_state(confirmation.screen())),
+                confirmation.row_contents(Some(name)),
+                "a failed reload keeps the name the screen already shows"
+            );
+        });
+    }
+
+    #[test]
+    fn test_the_request_warnings_show_before_the_load() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+        let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+        let transfer = GemTransferData {
+            recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
+            ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
+        };
+        let warnings = vec![SimulationWarning::validation_error("careful")];
+        let simulation = SimulationResult {
+            warnings: warnings.clone(),
+            ..SimulationResult::default()
+        };
+        let confirmation = testkit.service.confirmation(wallet, transfer, Some(simulation));
+
+        let state = confirmation.view_state(confirmation.screen());
+
+        assert!(!warning_rows(&warnings).is_empty());
+        assert!(state.sections.contains(&GemConfirmSection::Warnings { rows: warning_rows(&warnings) }));
+    }
+
+    fn details(state: &GemConfirmViewState) -> Vec<GemConfirmRowContent> {
+        state
+            .sections
+            .iter()
+            .find_map(|section| match section {
+                GemConfirmSection::Details { rows } => Some(rows.clone()),
+                _ => None,
+            })
+            .unwrap_or_default()
     }
 
     #[test]
@@ -309,7 +456,7 @@ mod tests {
             let older = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
             let newer = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
 
-            let state = |load: GemConfirmLoad| Ok(ConfirmState { load, confirm_data: None });
+            let state = |load: GemConfirmLoad| Ok(ConfirmState { load, confirm_data: None, swap: None });
             assert!(matches!(confirmation.store_latest(older, state(stale.clone())), Err(GemConfirmError::Cancelled)));
             assert!(matches!(confirmation.store_latest(older, Err(GemConfirmError::Offline)), Err(GemConfirmError::Cancelled)));
             assert!(confirmation.state().await.unwrap().address_name.is_none());

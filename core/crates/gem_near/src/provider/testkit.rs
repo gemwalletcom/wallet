@@ -7,8 +7,8 @@ use gem_jsonrpc::client::JsonRpcClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use settings::testkit::get_test_settings;
 
-#[cfg(all(test, feature = "chain_integration_tests"))]
 pub const TEST_ADDRESS: &str = "75b4f90dc729b28ce1a3d44b2c96b3943136f1d7ced0b5df1fc23662439e3e3c";
+pub const TEST_EXTERNALLY_CONTROLLED_ADDRESS: &str = "5510e2b44cae6eb807e3e0e45d579dda058c274abcba15e5cb84636f5d1ee412";
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub const TEST_HISTORY_ADDRESS: &str = "root.near";
 

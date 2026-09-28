@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
@@ -220,8 +221,8 @@ impl Attachment {
         Some(SupportMessageImage {
             id: self.id.to_string(),
             url: self.data_url.clone()?,
-            thumbnail_url: self.thumb_url.clone().filter(|value| !value.is_empty()),
-            file_name: self.fallback_title.clone().filter(|value| !value.is_empty()),
+            thumbnail_url: self.thumb_url.clone().non_empty(),
+            file_name: self.fallback_title.clone().non_empty(),
             file_size: self.file_size,
             width: self.width,
             height: self.height,

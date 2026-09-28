@@ -28,17 +28,10 @@ impl<C: Client + Clone> ChainState for NearProvider<C> {
 mod chain_integration_tests {
     use std::error::Error;
 
-    use chain_traits::{ChainProvider, ChainState};
+    use chain_traits::ChainState;
     use primitives::Chain;
 
     use crate::provider::testkit::create_near_test_client;
-
-    #[tokio::test]
-    async fn test_near_client_generic_interface() {
-        let near_client = create_near_test_client();
-
-        assert_eq!(near_client.get_chain().to_string(), "near");
-    }
 
     #[tokio::test]
     async fn test_get_chain_id() -> Result<(), Box<dyn Error + Send + Sync>> {

@@ -20,7 +20,7 @@ public final class GemstoneWalletStore: GemWalletStore, @unchecked Sendable {
     }
 
     public func getWallet(walletId: Gemstone.WalletId) throws -> Gemstone.Wallet? {
-        try store.getWallet(id: Primitives.WalletId.from(id: walletId)).map { $0.toGem() }
+        try store.getWallet(id: walletId).map { $0.toGem() }
     }
 
     public func addWallet(wallet: Gemstone.Wallet) async throws {
@@ -28,18 +28,18 @@ public final class GemstoneWalletStore: GemWalletStore, @unchecked Sendable {
     }
 
     public func deleteWallet(walletId: Gemstone.WalletId) async throws -> Bool {
-        try store.deleteWallet(for: Primitives.WalletId.from(id: walletId))
+        try store.deleteWallet(for: walletId)
     }
 
     public func setPinned(walletId: Gemstone.WalletId, pinned: Bool) async throws {
-        try store.pinWallet(Primitives.WalletId.from(id: walletId), value: pinned)
+        try store.pinWallet(walletId, value: pinned)
     }
 
     public func setImageUrl(walletId: Gemstone.WalletId, imageUrl: String?) async throws {
-        try store.setWalletAvatar(Primitives.WalletId.from(id: walletId), path: imageUrl)
+        try store.setWalletAvatar(walletId, path: imageUrl)
     }
 
     public func setName(walletId: Gemstone.WalletId, name: String) async throws {
-        try store.renameWallet(Primitives.WalletId.from(id: walletId), name: name)
+        try store.renameWallet(walletId, name: name)
     }
 }

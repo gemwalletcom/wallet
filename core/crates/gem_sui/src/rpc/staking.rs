@@ -122,7 +122,7 @@ impl SuiClient {
     async fn create_delegated_stakes(&self, objects: Vec<proto::Object>) -> Result<Vec<DelegatedStake>, Box<dyn Error + Send + Sync>> {
         let staked_sui = objects
             .into_iter()
-            .map(|object| object.contents.ok_or("missing Sui staked object contents")?.deserialize::<StakedSuiObject>().map_err(|error| error.into()))
+            .map(|object| object.contents.ok_or("missing Sui staked object contents")?.deserialize::<StakedSuiObject>().map_err(Into::into))
             .collect::<Result<Vec<_>, Box<dyn Error + Send + Sync>>>()?;
         if staked_sui.is_empty() {
             return Ok(Vec::new());
@@ -170,7 +170,7 @@ impl SuiClient {
             .zip(response.command_outputs)
             .map(|(id, output)| {
                 let rewards = output.return_values.first().and_then(|value| value.value.as_ref()).ok_or("missing Sui rewards BCS value")?;
-                if rewards.name.as_deref() != Some("u64") || rewards.value.as_ref().map(|value| value.len()) != Some(size_of::<u64>()) {
+                if rewards.name.as_deref() != Some("u64") || rewards.value.as_ref().map(Vec::len) != Some(size_of::<u64>()) {
                     return Err("invalid Sui rewards BCS value".into());
                 }
                 let value = rewards.value.as_ref().ok_or("missing Sui rewards bytes")?;
@@ -204,7 +204,7 @@ impl SuiClient {
             .zip(response.command_outputs)
             .map(|(id, output)| {
                 let address = output.return_values.first().and_then(|value| value.value.as_ref()).ok_or("missing Sui validator address BCS value")?;
-                if address.name.as_deref() != Some("address") || address.value.as_ref().map(|value| value.len()) != Some(Address::LENGTH) {
+                if address.name.as_deref() != Some("address") || address.value.as_ref().map(Vec::len) != Some(Address::LENGTH) {
                     return Err("invalid Sui validator address BCS value".into());
                 }
                 let value = address.value.as_ref().ok_or("missing Sui validator address bytes")?;

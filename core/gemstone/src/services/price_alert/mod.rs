@@ -4,13 +4,16 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
+use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemRowAction};
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
+use crate::services::toast::GemToast;
 use std::sync::Arc;
 
-use primitives::{AssetId, Currency, PriceAlert};
+use primitives::{Asset, AssetId, Currency, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::banner::GemNotificationPermissions;
 use crate::services::preferences::GemPreferencesService;
 use session::GemPriceAlertSession;
@@ -49,8 +52,8 @@ impl GemPriceAlertService {
         self.preferences.set_price_alerts_enabled(enabled)
     }
 
-    pub fn new_alert_session(&self, asset_id: AssetId) -> GemPriceAlertSession {
-        GemPriceAlertSession::new(asset_id, self.get_currency())
+    pub fn new_alert_session(&self, asset_id: AssetId, format: GemNumberFormat) -> GemPriceAlertSession {
+        GemPriceAlertSession::new(asset_id, self.get_currency(), format)
     }
 
     pub fn get_currency(&self) -> Currency {
@@ -62,12 +65,13 @@ impl GemPriceAlertService {
         self.set_enabled(true).await
     }
 
-    pub async fn set_auto_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
-        let alert = PriceAlert::new_auto(asset_id, self.get_currency());
+    pub async fn set_auto_alert(&self, asset: Asset, enabled: bool) -> Result<GemToast, GemServiceError> {
+        let alert = PriceAlert::new_auto(asset.id, self.get_currency());
         match enabled {
-            true => self.enable_price_alert(alert).await,
-            false => self.delete_price_alerts(vec![alert]).await,
+            true => self.enable_price_alert(alert).await?,
+            false => self.delete_price_alerts(vec![alert]).await?,
         }
+        Ok(GemToast::price_alerts(asset.name, enabled))
     }
 
     pub async fn refresh(&self, asset_id: Option<AssetId>, has_alerts: bool) -> GemLoadState {
@@ -75,7 +79,7 @@ impl GemPriceAlertService {
     }
 
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
-        self.store.update_price_alerts(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await?;
+        self.store.update_price_alerts(Vec::new(), alerts.iter().map(PriceAlert::id).collect()).await?;
         match self.api.client.delete_price_alerts(alerts.clone()).await {
             Ok(()) => Ok(()),
             Err(error) => {
@@ -84,6 +88,11 @@ impl GemPriceAlertService {
             }
         }
     }
+}
+
+#[uniffi::export]
+pub fn price_alerts_toggle_row(enabled: bool) -> GemListRow {
+    GemListRow::toggle(GemListRowTitle::EnablePriceAlerts, GemListRowIcon::None, enabled, GemRowAction::PriceAlerts)
 }
 
 impl GemPriceAlertService {
@@ -110,7 +119,7 @@ impl GemPriceAlertService {
         match self.api.client.add_price_alerts(alerts.clone()).await {
             Ok(()) => Ok(()),
             Err(error) => {
-                self.store.update_price_alerts(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await?;
+                self.store.update_price_alerts(Vec::new(), alerts.iter().map(PriceAlert::id).collect()).await?;
                 Err(GemApiError::from(error).into())
             }
         }
@@ -173,7 +182,7 @@ mod tests {
         assert_eq!(changes.delete_ids, vec![local[1].id()]);
         assert_eq!(changes.alerts.iter().map(PriceAlert::id).collect::<Vec<_>>(), vec![remote[1].id()]);
 
-        let unchanged = reconcile(local.clone(), local.clone());
+        let unchanged = reconcile(local.clone(), local);
         assert!(unchanged.delete_ids.is_empty() && unchanged.alerts.is_empty());
 
         let changes = reconcile(Vec::new(), Vec::new());

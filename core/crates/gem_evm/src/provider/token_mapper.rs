@@ -15,11 +15,11 @@ pub fn map_token_data(chain: Chain, token_id: String, name_hex: String, symbol_h
     }
     let name = if name.is_empty() { symbol.clone() } else { name };
 
-    let asset_id = AssetId { chain, token_id: Some(token_id.clone()) };
+    let asset_id = AssetId { chain, token_id: Some(token_id) };
 
     let asset_type = asset_id.chain.default_asset_type().ok_or("Invalid token metadata: chain has no token asset type")?;
 
-    Ok(Asset::new(asset_id.clone(), name, symbol, decimals.into(), asset_type))
+    Ok(Asset::new(asset_id, name, symbol, decimals.into(), asset_type))
 }
 
 pub fn map_is_token_address(token_id: &str) -> bool {
@@ -50,7 +50,7 @@ mod tests {
         let symbol_hex = "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000045553444300000000000000000000000000000000000000000000000000000000".to_string();
         let decimals_hex = "0x0000000000000000000000000000000000000000000000000000000000000006".to_string();
 
-        let result = map_token_data(chain, token_id.clone(), name_hex, symbol_hex, decimals_hex).unwrap();
+        let result = map_token_data(chain, token_id, name_hex, symbol_hex, decimals_hex).unwrap();
 
         assert_eq!(result.name, "USD Coin");
         assert_eq!(result.symbol, "USDC");

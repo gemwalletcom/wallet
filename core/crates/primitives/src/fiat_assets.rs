@@ -1,13 +1,11 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::currency::Currency;
 use crate::{AssetId, FiatProviderName, PaymentType};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct FiatAssets {
     pub version: u32,
@@ -64,7 +62,7 @@ mod tests {
     use super::*;
 
     fn ids(values: &[&str]) -> Vec<String> {
-        values.iter().map(|value| value.to_string()).collect()
+        values.iter().map(ToString::to_string).collect()
     }
 
     #[test]

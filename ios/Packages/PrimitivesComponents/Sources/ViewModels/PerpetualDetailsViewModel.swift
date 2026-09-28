@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemListSection
 import struct Gemstone.GemPerpetualConfirmDetails
 import Localization
 import Style
@@ -30,10 +31,8 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     }
 }
 
-// MARK: - ListSectionProvideable
-
-extension PerpetualDetailsViewModel: ListSectionProvideable {
-    public var sections: [ListSection<GemListSectionRow>] {
-        details.sections.listSections
+public extension PerpetualDetailsViewModel {
+    var sections: [GemListSection] {
+        details.sections
     }
 }

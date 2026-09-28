@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::error::Error;
 
 use crate::{FiatWebhookRequest, error::FiatQuoteError, hmac_signature::verify_hmac_signature_hex};
@@ -26,9 +27,9 @@ impl BanxaClient {
 fn parse_authorization_header(header: &str) -> Option<(&str, &str, &str)> {
     let header = header.strip_prefix(BEARER_PREFIX)?;
     let mut parts = header.splitn(3, ':');
-    let api_key = parts.next().filter(|value| !value.is_empty())?;
-    let signature = parts.next().filter(|value| !value.is_empty())?;
-    let nonce = parts.next().filter(|value| !value.is_empty())?;
+    let api_key = parts.next().non_empty()?;
+    let signature = parts.next().non_empty()?;
+    let nonce = parts.next().non_empty()?;
     Some((api_key, signature, nonce))
 }
 

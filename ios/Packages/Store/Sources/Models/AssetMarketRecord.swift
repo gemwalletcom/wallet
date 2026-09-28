@@ -22,19 +22,6 @@ struct AssetMarketRecord: Codable, FetchableRecord, PersistableRecord {
         static let allTimeLow = Column("allTimeLow")
         static let allTimeLowDate = Column("allTimeLowDate")
         static let allTimeLowChangePercentage = Column("allTimeLowChangePercentage")
-        static let marketCapUsd = Column("marketCapUsd")
-        static let marketCapFdvUsd = Column("marketCapFdvUsd")
-        static let totalVolumeUsd = Column("totalVolumeUsd")
-        static let allTimeHighUsd = Column("allTimeHighUsd")
-        static let allTimeLowUsd = Column("allTimeLowUsd")
-
-        static let usdPairs: [(value: Column, usd: Column)] = [
-            (marketCap, marketCapUsd),
-            (marketCapFdv, marketCapFdvUsd),
-            (totalVolume, totalVolumeUsd),
-            (allTimeHigh, allTimeHighUsd),
-            (allTimeLow, allTimeLowUsd),
-        ]
     }
 
     var assetId: AssetId
@@ -52,11 +39,6 @@ struct AssetMarketRecord: Codable, FetchableRecord, PersistableRecord {
     var allTimeLow: Double?
     var allTimeLowDate: Date?
     var allTimeLowChangePercentage: Double?
-    var marketCapUsd: Double?
-    var marketCapFdvUsd: Double?
-    var totalVolumeUsd: Double?
-    var allTimeHighUsd: Double?
-    var allTimeLowUsd: Double?
 }
 
 extension AssetMarketRecord: CreateTable {
@@ -79,9 +61,6 @@ extension AssetMarketRecord: CreateTable {
             $0.column(Columns.allTimeLow.name, .double)
             $0.column(Columns.allTimeLowDate.name, .date)
             $0.column(Columns.allTimeLowChangePercentage.name, .double)
-            for (_, usd) in Columns.usdPairs {
-                $0.column(usd.name, .double)
-            }
         }
     }
 }
@@ -93,7 +72,7 @@ extension AssetMarketRecord: Identifiable {
 }
 
 extension AssetMarketRecord {
-    init(assetId: AssetId, market: AssetMarket, marketUsd: AssetMarket) {
+    init(assetId: AssetId, market: AssetMarket) {
         self.init(
             assetId: assetId,
             marketCap: market.marketCap,
@@ -109,11 +88,6 @@ extension AssetMarketRecord {
             allTimeLow: market.allTimeLowValue.map { Double($0.value) },
             allTimeLowDate: market.allTimeLowValue?.date,
             allTimeLowChangePercentage: market.allTimeLowValue.map { Double($0.percentage) },
-            marketCapUsd: marketUsd.marketCap,
-            marketCapFdvUsd: marketUsd.marketCapFdv,
-            totalVolumeUsd: marketUsd.totalVolume,
-            allTimeHighUsd: marketUsd.allTimeHighValue.map { Double($0.value) },
-            allTimeLowUsd: marketUsd.allTimeLowValue.map { Double($0.value) },
         )
     }
 

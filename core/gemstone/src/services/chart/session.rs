@@ -1,16 +1,16 @@
 use primitives::{AssetPrice, ChartPeriod, Currency};
 
 use super::GemChart;
-use super::model::{GemChartData, GemChartViewport};
+use super::model::GemChartData;
 use super::rules;
 use super::zoom::GemChartZoom;
 use crate::services::error::GemServiceError;
 
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemChartPhase {
     Loading,
-    Data { data: GemChartData, viewport: GemChartViewport },
+    Data { data: GemChartData },
     NoData,
     Failed { error: GemServiceError },
 }
@@ -51,11 +51,8 @@ impl GemChartSession {
             return GemChartPhase::Loading;
         }
         match (&self.chart, &self.error) {
-            (Some(chart), _) => match rules::price_chart_data(rules::chart_with_price(chart.clone(), price, self.period), self.currency.clone()) {
-                Some(data) => GemChartPhase::Data {
-                    viewport: rules::viewport(&data.values, data.currency.clone(), self.zoom),
-                    data,
-                },
+            (Some(chart), _) => match rules::price_chart_data(rules::chart_with_price(chart.clone(), price, self.period), self.period, self.currency.clone()) {
+                Some(data) => GemChartPhase::Data { data: rules::zoomed(data, self.zoom) },
                 None => GemChartPhase::NoData,
             },
             (None, Some(GemServiceError::Offline)) => GemChartPhase::Failed { error: GemServiceError::Offline },
@@ -199,7 +196,7 @@ mod tests {
             ..newer.clone()
         };
         let header = |price| match loaded.view_state(price).phase {
-            GemChartPhase::Data { data, .. } => data.header.expect("a loaded chart has a header"),
+            GemChartPhase::Data { data } => data.header.expect("a loaded chart has a header"),
             other => panic!("a loaded chart shows data, not {other:?}"),
         };
 

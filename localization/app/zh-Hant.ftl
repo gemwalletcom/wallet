@@ -48,7 +48,6 @@ common_learn_more = 了解更多
 common_description = 描述
 common_emoji = 表情符號
 common_avatar = 頭像
-common_save = 儲存
 common_percentage = 百分比
 common_details = 詳細
 common_info = 資訊
@@ -58,6 +57,7 @@ common_method = 方法
 common_token = 代幣
 common_expiration = 有效期限
 common_suspicious_address = 可疑地址
+common_suspicious_address_description = 此位址與可疑或惡意行為有關。
 common_refresh = 重新整理
 common_grant_permission = 允許
 common_required_field = %@ 為必填欄位
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = 此錢包已匯入。
 # Wallets
 
 wallets_title = 錢包
-wallets_watch = 觀察
 
 # Receive
 
-receive_title = 接收%@
 receive_warning = 請僅向此地址傳送 %2$@ 網路上的 %1$@。
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = 開啟密碼
 settings_security_authentication = 身分驗證
 settings_notifications_title = 通知
 settings_language = 語言
-settings_help_center = 幫助中心
 settings_support = 支援
 settings_price_alerts_title = 價格提醒
 settings_hide_balance = 隱藏餘額
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = 暫無報價
 errors_swap_not_supported_asset = 不支援此資產。
 errors_connections_no_supported_wallets = 目前沒有支援的錢包可用。
 errors_connections_unsupported_chain = 不支援指定的區塊鏈。
+errors_authentication_unavailable = 此裝置未設定身分驗證。請在裝置設定中開啟生物辨識或密碼。
+errors_authentication_locked_out = 失敗次數過多，請稍後再試。
+errors_authentication_failed = 身分驗證失敗，請重試。
+errors_connections_expired = 此連線連結已過期。請取得新的 QR 碼後重試。
+errors_connections_not_found = 此連線已不存在。
+errors_connections_relay_unavailable = 無法連線至 WalletConnect。請檢查網路連線後重試。
 errors_swap_amount_too_small = 金額太小，請輸入更大的金額試試
 errors_scan_transaction_malicious_description = 無法完成此交易：收款錢包位址與可疑或惡意行為有關。
 errors_scan_transaction_memo_required = %@目標錢包位址需要目標標籤/備註
@@ -322,7 +325,6 @@ asset_verification_warning_message = 任何人都可以建立代幣，請謹防�
 asset_buy_asset = 購買%@
 asset_get_asset = 取得 %@
 asset_add_to_wallet = 加入錢包
-asset_hide_from_wallet = 從錢包中隱藏
 asset_added_to_wallet = 已加入錢包
 asset_hidden_from_wallet = 已從錢包隱藏
 asset_resources = 資源
@@ -349,6 +351,7 @@ charts_price_change = 漲跌幅
 
 date_today = 今天
 date_yesterday = 昨天
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = 普通
 # Fee Rate
 
 fee_rate_satvB = 聰/vB
-fee_rate_satB = %@ 聰/B
 fee_rate_gwei = gwei
 fee_rate_custom = 自訂
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = 當價格上漲
 price_alerts_set_alert_price_decreases_by = 當價格下跌
 price_alerts_set_alert_set_target_price = 設定目標價格
 price_alerts_set_alert_current_price = 目前價格
-price_alerts_added_for = 價格提醒已設定：%@
+price_alerts_added_price_over = 已新增價格高於 %@ 時的提醒
+price_alerts_added_price_under = 已新增價格低於 %@ 時的提醒
+price_alerts_added_increases_by = 已新增價格上漲 %@ 時的提醒
+price_alerts_added_decreases_by = 已新增價格下跌 %@ 時的提醒
 price_alerts_state_empty_title = 價格提醒將顯示在這裡
 price_alerts_state_empty_description = 請添加幣種，即可開始追蹤資產
 price_alerts_auto_footer = 價格大幅變動時會觸發提醒。
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = 此應用程式無權存取�
 
 # Markets
 
-markets_title = 市場
-markets_state_empty_title = 市場資訊將顯示在此處
 markets_daily_volume = 24小時交易量
 
 # Search
@@ -772,7 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = 安全警告
-rootcheck_jailbreak_body = 你的裝置似乎已越獄。這可能使你的錢包和資金面臨風險。
+rootcheck_jailbreak_body = 裝置似乎已越獄，錢包和資金可能面臨風險。
 rootcheck_body = 此裝置似乎具有 root 存取權限，這會顯著增加安全風險。在已取得 root 權限的裝置上使用此應用程式可能會使資產遭受未經授權的存取並可能造成損失。為了資金安全，我們強烈建議使用未取得 root 權限的裝置。
 rootcheck_ignore = 忽略
 rootcheck_exit = 退出

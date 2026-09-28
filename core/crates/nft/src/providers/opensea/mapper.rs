@@ -36,7 +36,7 @@ impl Nft {
             description: Some(self.description.clone()),
             resource: NFTResource::from_url(resource_url),
             images: NFTImages { preview: NFTResource::from_url(preview_url) },
-            attributes: traits.iter().flat_map(|x| x.as_attribute()).collect(),
+            attributes: traits.iter().flat_map(Trait::as_attribute).collect(),
         })
     }
 

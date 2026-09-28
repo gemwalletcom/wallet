@@ -1,4 +1,5 @@
 use gem_auth::{AUTHORIZATION_HEADER, BEARER_PREFIX};
+use primitives::OptionStringExt;
 use rocket::Request;
 use rocket::http::Status;
 use rocket::outcome::Outcome::{Error, Success};
@@ -25,10 +26,7 @@ fn api_client_secret<'r>(req: &'r Request<'_>) -> Result<&'r str, Outcome<(), St
         return Err(error_outcome(req, Status::Unauthorized, "Missing Authorization header"));
     };
 
-    auth_value
-        .strip_prefix(BEARER_PREFIX)
-        .filter(|secret| !secret.is_empty())
-        .ok_or_else(|| error_outcome(req, Status::Unauthorized, "Invalid authorization format"))
+    auth_value.strip_prefix(BEARER_PREFIX).non_empty().ok_or_else(|| error_outcome(req, Status::Unauthorized, "Invalid authorization format"))
 }
 
 async fn authorize_api_client(req: &Request<'_>, scope: ApiClientScope) -> Outcome<(), String> {

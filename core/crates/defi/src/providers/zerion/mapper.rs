@@ -1,7 +1,9 @@
 use num_bigint::BigUint;
+use primitives::OptionStringExt;
 use std::error::Error;
 use std::str::FromStr;
 
+use primitives::contract_constants::EVM_NATIVE_TOKEN_ADDRESS;
 use primitives::{AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider};
 
 use super::client::chain_id;
@@ -50,7 +52,7 @@ fn map_protocol(position: &ZerionPosition) -> DefiProtocol {
         .or_else(|| position.attributes.protocol.clone())
         .or_else(|| position.relationships.dapp.as_ref().and_then(|relationship| relationship.data.as_ref()).map(|data| data.id.clone()))
         .unwrap_or_default();
-    let url = metadata.and_then(|metadata| metadata.url.clone()).filter(|url| !url.is_empty());
+    let url = metadata.and_then(|metadata| metadata.url.clone()).non_empty();
 
     DefiProtocol { name, url }
 }
@@ -92,7 +94,7 @@ fn map_asset_id(fungible_info: &ZerionFungibleInfo, chain: Chain) -> Result<Asse
 }
 
 fn is_native_address(address: &str) -> bool {
-    address.eq_ignore_ascii_case("0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+    address.eq_ignore_ascii_case(EVM_NATIVE_TOKEN_ADDRESS)
 }
 
 #[cfg(test)]

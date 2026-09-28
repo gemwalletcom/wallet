@@ -91,7 +91,7 @@ impl FiatAssetsUpdater {
         self.providers
             .iter()
             .find(|p| p.name() == provider_name)
-            .map(|p| p.as_ref())
+            .map(AsRef::as_ref)
             .ok_or_else(|| format!("Provider {} not found", provider_name.id()).into())
     }
 

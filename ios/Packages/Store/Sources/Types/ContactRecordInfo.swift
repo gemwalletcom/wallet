@@ -12,8 +12,8 @@ struct ContactRecordInfo: FetchableRecord, Codable {
 extension ContactRecordInfo {
     var contactData: ContactData {
         ContactData(
-            contact: contact.contact,
-            addresses: addresses.map(\.contactAddress),
+            contact: contact.toContact(),
+            addresses: addresses.map { $0.toContactAddress() },
         )
     }
 }

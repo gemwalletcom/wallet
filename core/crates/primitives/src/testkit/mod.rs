@@ -1,8 +1,10 @@
 pub const ABANDON_PHRASE: &str = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 
 pub mod account_mock;
+pub mod address_details_mock;
 pub mod address_name_mock;
 pub mod application_metadata_mock;
+pub mod asset_data_mock;
 pub mod asset_details_mock;
 pub mod asset_market_mock;
 pub mod asset_metadata_mock;
@@ -38,6 +40,7 @@ pub mod support_mock;
 pub mod swap_mock;
 mod transaction_extended_mock;
 pub mod transaction_fee_mock;
+mod transaction_list_item_mock;
 pub mod transaction_load_input_mock;
 pub mod transaction_load_metadata_mock;
 pub mod transaction_mock;

@@ -7,7 +7,6 @@ default:
 
 install:
     @just core install-rust
-    @just core install-typeshare
     @just ios install
     @just android install
 

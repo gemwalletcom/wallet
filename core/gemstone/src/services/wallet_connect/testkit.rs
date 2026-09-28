@@ -141,6 +141,7 @@ impl GemWalletConnectService {
             wallet_session,
             Arc::new(GemAssetsService::mock(provider, Arc::new(MemoryAssetStore::default()))),
             sign_message,
+            primitives::Platform::IOS,
         )
     }
 }

@@ -1,4 +1,5 @@
 use gem_hash::blake2::blake2b_256;
+use primitives::OptionStringExt;
 
 use crate::cbor::CborEncoder;
 
@@ -29,7 +30,7 @@ pub(crate) struct Transaction {
 
 impl Transaction {
     fn auxiliary_data_bytes(&self) -> Option<Vec<u8>> {
-        self.memo.as_deref().filter(|memo| !memo.is_empty()).map(|memo| {
+        self.memo.as_deref().non_empty().map(|memo| {
             let segments = chunk_memo_segments(memo);
             let mut encoder = CborEncoder::new();
             encoder.tag(AUXILIARY_DATA_TAG);

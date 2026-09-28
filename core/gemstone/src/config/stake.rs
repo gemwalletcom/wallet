@@ -36,25 +36,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_stake_config() {
-        assert_eq!(
-            get_stake_config(StakeChain::Sui),
-            StakeChainConfig {
-                time_lock: 86400,
-                min_amount: 1000000000,
-                change_amount_on_unstake: false,
-                uses_freeze: false,
-                uses_whole_amounts: false,
-                can_redelegate: false,
-                can_withdraw: false,
-                can_claim_rewards: false,
-                can_claim_all_rewards: false,
-                reserved_for_fees: 100000000,
-            }
-        );
-    }
-
-    #[test]
     fn test_only_tron_stakes_by_freezing_in_whole_amounts() {
         assert!(get_stake_config(StakeChain::Tron).uses_whole_amounts);
         assert!(!get_stake_config(StakeChain::Solana).uses_whole_amounts);

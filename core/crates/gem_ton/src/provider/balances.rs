@@ -20,10 +20,6 @@ impl<C: Client> ChainBalances for TonClient<C> {
         Ok(map_balance_tokens(balances, token_ids))
     }
 
-    async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Ok(None)
-    }
-
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
         let jetton_wallets = self.get_jetton_wallets(address).await?;
         Ok(map_balance_assets(jetton_wallets))

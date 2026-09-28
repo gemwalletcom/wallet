@@ -1,6 +1,6 @@
-use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, ChainAsset, Platform, VerificationStatus, Wallet, WalletSource, WalletType};
+use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, ChainAsset, Platform, VerificationStatus, Wallet, WalletSource};
 
-use super::model::{BannerScope, GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerStyle, GemBannerTitle, banner_scope};
+use super::model::{GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerStyle, GemBannerTitle};
 use crate::config::chain::account_activation_fee_url;
 use crate::config::docs::DocsUrl;
 use crate::formatted_number::GemFormattedNumber;
@@ -57,9 +57,9 @@ pub fn wallet_setup_keys(wallet: &Wallet) -> Vec<GemBannerKey> {
 
 fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
     let has_asset = context.asset.is_some();
-    let can_sign = context.wallet.as_ref().is_some_and(|wallet| wallet.wallet_type != WalletType::View);
+    let can_sign = context.wallet.as_ref().is_some_and(|wallet| wallet.wallet_type.can_sign());
     match event {
-        BannerEvent::AccountBlockedMultiSignature => true,
+        BannerEvent::AccountBlockedMultiSignature => can_sign,
         BannerEvent::AccountActivation => can_sign && (!has_asset || !context.has_available_balance),
         BannerEvent::Stake => can_sign && has_asset && !context.has_stake_balance,
         BannerEvent::ActivateAsset => can_sign && has_asset && !context.is_asset_activated,
@@ -154,10 +154,6 @@ fn network_name(chain: Chain) -> String {
     ChainAsset::from_chain(chain).network_name
 }
 
-pub fn wallet_banner_events() -> Vec<BannerEvent> {
-    BannerEvent::all().into_iter().filter(|event| banner_scope(*event) != BannerScope::Asset).collect()
-}
-
 pub(super) fn visible_banners(stored: Vec<Banner>, context: &GemBannerContext) -> Vec<Banner> {
     let asset_id = context.asset_id();
     let mut banners: Vec<GemBannerItem> = Vec::new();
@@ -231,9 +227,10 @@ fn event_priority(event: BannerEvent) -> u8 {
 
 #[cfg(test)]
 mod tests {
+    use super::super::model::{BannerScope, banner_scope};
     use super::*;
     use primitives::known_assets::TRON_USDT;
-    use primitives::{AccountDataType, TransactionInputType};
+    use primitives::{AccountDataType, TransactionInputType, WalletType};
 
     #[test]
     fn test_setup_keys() {
@@ -304,7 +301,7 @@ mod tests {
     }
 
     #[test]
-    fn test_visible_banners_keep_warnings_without_signing_actions_for_view_wallets() {
+    fn test_view_wallets_show_no_signing_banners() {
         let context = GemBannerContext {
             wallet: Some(Wallet {
                 wallet_type: WalletType::View,
@@ -320,8 +317,7 @@ mod tests {
             Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive),
         ];
 
-        assert_eq!(events(&visible_banners(stored, &context)), vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::SuspiciousAsset]);
-        assert_eq!(events(&visible_banners(vec![], &context)), vec![BannerEvent::SuspiciousAsset]);
+        assert_eq!(events(&visible_banners(stored, &context)), vec![BannerEvent::SuspiciousAsset]);
     }
 
     #[test]
@@ -351,11 +347,12 @@ mod tests {
         ];
 
         assert_eq!(events(&visible_banners(stored, &context)), vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding]);
-        assert_eq!(wallet_banner_events(), vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding], "the apps ask their stores for these");
+        let wallet_events: Vec<BannerEvent> = BannerEvent::all().into_iter().filter(|event| banner_scope(*event) != BannerScope::Asset).collect();
+        assert_eq!(wallet_events, crate::constants::WALLET_BANNER_EVENTS, "the apps ask their stores for every banner that is not an asset's");
     }
 
     #[test]
-    fn test_multi_signature_warning_for_every_wallet_type_and_scene() {
+    fn test_externally_controlled_warning_for_every_signing_wallet_type_and_scene() {
         let tron = Asset::from_chain(Chain::Tron);
         let token = TRON_USDT.clone();
         let warning = Banner {
@@ -369,7 +366,8 @@ mod tests {
                     asset,
                     ..GemBannerContext::mock()
                 };
-                assert_eq!(visible_banners(vec![warning.clone()], &context), vec![warning.clone()], "{wallet_type:?}");
+                let expected = if wallet_type == WalletType::View { vec![] } else { vec![warning.clone()] };
+                assert_eq!(visible_banners(vec![warning.clone()], &context), expected, "{wallet_type:?}");
             }
         }
     }

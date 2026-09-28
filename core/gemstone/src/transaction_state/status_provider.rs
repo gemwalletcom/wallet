@@ -90,7 +90,7 @@ impl StatusProvider {
     }
 
     async fn chain_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
-        let provider = self.chain_factory.create(chain).await?;
+        let provider = self.chain_factory.create(chain)?;
         provider.get_transaction_status(request).await.map_err(|e| TransactionStatusError::from(map_network_error(e)))
     }
 

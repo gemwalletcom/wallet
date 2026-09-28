@@ -2,7 +2,9 @@
 
 import Charts
 import Components
-import Primitives
+import struct Gemstone.ChartCandleStick
+import struct Gemstone.GemCandleChart
+import struct Gemstone.GemCandleTooltip
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -18,25 +20,35 @@ private enum ChartKey {
 
 struct CandlestickChartView: View {
     private enum Metrics {
+        static let labelOverlapSpacing: CGFloat = 115
+        static let lineStyle = StrokeStyle(lineWidth: 1, dash: [4, 3])
         static let dateLabelWidth: CGFloat = 60
+        static let candleBodyWidthRatio: Double = 0.6
     }
 
-    private let model: CandlestickChartViewModel
+    private let chart: GemCandleChart
+    private let timeAxis: ChartTimeAxis
+    private let dateFormatter = ChartDateFormatter()
     private let onZoom: @MainActor (Double) -> Void
 
     @Binding private var isPinching: Bool
-    @State private var selectedCandle: ChartCandleStick?
+    @State private var selectedIndex: Int?
 
-    init(model: CandlestickChartViewModel, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double) -> Void) {
-        self.model = model
+    init(chart: GemCandleChart, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double) -> Void) {
+        self.chart = chart
+        timeAxis = ChartTimeAxis(ticks: chart.xTicks, format: chart.xTickFormat)
         _isPinching = isPinching
         self.onZoom = onZoom
+    }
+
+    private var selectedCandle: ChartCandleStick? {
+        selectedIndex.flatMap { chart.candles[safe: $0] }
     }
 
     var body: some View {
         VStack {
             priceHeader
-            chart
+            chartView
                 .padding(.bottom, Spacing.small)
         }
         .sensoryFeedback(.selection, trigger: selectedCandle?.date) { _, date in date != nil }
@@ -44,15 +56,17 @@ struct CandlestickChartView: View {
 
     private var priceHeader: some View {
         VStack {
-            if let header = model.header(for: selectedCandle) {
-                ChartHeaderView(header: header, date: model.dateText(for: selectedCandle))
+            if let selection = selectedIndex.flatMap({ chart.selection(index: UInt32($0)) }) {
+                ChartHeaderView(header: selection.header, date: dateFormatter.string(for: selection.date, style: chart.dateStyle))
+            } else {
+                ChartHeaderView(header: chart.header)
             }
         }
         .padding(.top, Spacing.small)
         .padding(.bottom, Spacing.tiny)
     }
 
-    private var chart: some View {
+    private var chartView: some View {
         Chart {
             currentPriceMark
             candlestickMarks
@@ -65,26 +79,26 @@ struct CandlestickChartView: View {
                     .chartGestures(
                         isPinching: $isPinching,
                         onScrub: { location in
-                            if let candle = findCandle(location: location, proxy: proxy, geometry: geometry) {
-                                selectedCandle = candle
+                            if let index = findCandle(location: location, proxy: proxy, geometry: geometry) {
+                                selectedIndex = index
                             }
                         },
-                        onScrubEnd: { selectedCandle = nil },
+                        onScrubEnd: { selectedIndex = nil },
                         onZoom: onZoom,
                     )
 
-                if let selectedCandle {
-                    tooltipOverlay(for: selectedCandle, proxy: proxy, geometry: geometry)
+                if let selectedCandle, let tooltip = selectedIndex.flatMap({ chart.tooltip(index: UInt32($0)) }) {
+                    tooltipOverlay(tooltip, for: selectedCandle, proxy: proxy, geometry: geometry)
                 }
             }
         }
         .chartXAxis {
-            AxisMarks(position: .bottom, values: model.xAxisTicks) { value in
+            AxisMarks(position: .bottom, values: timeAxis.ticks) { value in
                 AxisGridLine(stroke: ChartGridStyle.strokeStyle)
                     .foregroundStyle(ChartGridStyle.color)
                 AxisValueLabel(horizontalSpacing: -Metrics.dateLabelWidth / 2, verticalSpacing: Spacing.small) {
                     if let date = value.as(Date.self) {
-                        Text(model.xAxisLabel(for: date))
+                        Text(timeAxis.label(for: date))
                             .font(.caption2)
                             .foregroundStyle(Colors.gray)
                             .fixedSize()
@@ -94,40 +108,40 @@ struct CandlestickChartView: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .trailing, values: model.yAxisTicks) { value in
+            AxisMarks(position: .trailing, values: chart.layout.ticks.map(\.value)) { value in
                 AxisGridLine(stroke: ChartGridStyle.strokeStyle)
                     .foregroundStyle(ChartGridStyle.color)
                 AxisTick(stroke: StrokeStyle(lineWidth: ChartGridStyle.lineWidth))
                     .foregroundStyle(ChartGridStyle.color)
                 AxisValueLabel {
-                    Text(model.yAxisTickText(at: value.index))
+                    Text(chart.layout.ticks[safe: value.index]?.text() ?? "")
                         .font(.caption2)
                         .foregroundStyle(Colors.gray)
                         .padding(.horizontal, .extraSmall)
                 }
             }
-            if let currentPrice = model.currentPrice {
-                AxisMarks(position: .trailing, values: [currentPrice]) { _ in
+            if let currentPrice = chart.layout.currentPrice {
+                AxisMarks(position: .trailing, values: [currentPrice.value]) { _ in
                     AxisValueLabel {
-                        Text(model.currentPriceText)
+                        Text(currentPrice.text())
                             .font(.caption2)
                             .foregroundStyle(Colors.whiteSolid)
                             .padding(.horizontal, .extraSmall)
                             .padding(.vertical, .space1)
-                            .background(model.currentPriceColor)
+                            .background(chart.layout.tones.last?.color ?? Colors.gray)
                             .clipShape(RoundedRectangle(cornerRadius: Spacing.tiny))
                     }
                 }
             }
         }
-        .chartXScale(domain: model.xAxisRange)
-        .chartYScale(domain: model.yAxisRange)
+        .chartXScale(domain: xAxisRange)
+        .chartYScale(domain: chart.layout.priceLow ... chart.layout.priceHigh)
     }
 
     @ChartContentBuilder
     private var currentPriceMark: some ChartContent {
-        if let currentPrice = model.currentPrice {
-            RuleMark(y: .value(ChartKey.price, currentPrice))
+        if let currentPrice = chart.layout.currentPrice {
+            RuleMark(y: .value(ChartKey.price, currentPrice.value))
                 .foregroundStyle(Colors.gray.opacity(.semiStrong))
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [2, 3]))
         }
@@ -135,7 +149,8 @@ struct CandlestickChartView: View {
 
     @ChartContentBuilder
     private var candlestickMarks: some ChartContent {
-        ForEach(model.candleMarks, id: \.candle.date) { candle, color in
+        ForEach(Array(zip(chart.candles, chart.layout.tones)), id: \.0.date) { candle, tone in
+            let color = tone.color
             RuleMark(
                 x: .value(ChartKey.date, candle.date),
                 yStart: .value(ChartKey.low, candle.low),
@@ -145,8 +160,8 @@ struct CandlestickChartView: View {
             .foregroundStyle(color)
 
             RectangleMark(
-                xStart: .value(ChartKey.date, model.bodyStart(for: candle)),
-                xEnd: .value(ChartKey.date, model.bodyEnd(for: candle)),
+                xStart: .value(ChartKey.date, candle.date.addingTimeInterval(-bodyHalfWidth)),
+                xEnd: .value(ChartKey.date, candle.date.addingTimeInterval(bodyHalfWidth)),
                 yStart: .value(ChartKey.open, candle.open),
                 yEnd: .value(ChartKey.close, candle.close),
             )
@@ -156,23 +171,23 @@ struct CandlestickChartView: View {
 
     @ChartContentBuilder
     private var linesMarks: some ChartContent {
-        ForEach(model.lines) { line in
-            RuleMark(y: .value(ChartKey.price, line.price))
-                .foregroundStyle(line.color.opacity(.semiStrong))
-                .lineStyle(line.lineStyle)
+        ForEach(chart.layout.lines, id: \.kind) { line in
+            RuleMark(y: .value(ChartKey.price, line.price.value))
+                .foregroundStyle(line.kind.color.opacity(.semiStrong))
+                .lineStyle(Metrics.lineStyle)
         }
 
-        ForEach(Array(model.lines.enumerated()), id: \.element.id) { index, line in
-            RuleMark(y: .value(ChartKey.price, line.price))
+        ForEach(chart.layout.lines, id: \.kind) { line in
+            RuleMark(y: .value(ChartKey.price, line.price.value))
                 .foregroundStyle(.clear)
                 .annotation(position: .overlay, alignment: .leading, spacing: .zero) {
-                    Text(line.label)
+                    Text(line.label.text)
                         .font(.app.caption)
                         .foregroundStyle(Colors.whiteSolid)
                         .padding(.tiny)
-                        .background(line.color)
+                        .background(line.kind.color)
                         .clipShape(RoundedRectangle(cornerRadius: .tiny))
-                        .offset(x: model.lineLabelOffsets[index])
+                        .offset(x: CGFloat(line.overlapLevel) * Metrics.labelOverlapSpacing)
                 }
         }
     }
@@ -198,14 +213,14 @@ struct CandlestickChartView: View {
     }
 
     @ViewBuilder
-    private func tooltipOverlay(for candle: ChartCandleStick, proxy: ChartProxy, geometry: GeometryProxy) -> some View {
+    private func tooltipOverlay(_ tooltip: GemCandleTooltip, for candle: ChartCandleStick, proxy: ChartProxy, geometry: GeometryProxy) -> some View {
         let isRightHalf: Bool = {
             guard let plotFrame = proxy.plotFrame,
                   let xPosition = proxy.position(forX: candle.date) else { return false }
             return xPosition > geometry[plotFrame].size.width / 2
         }()
 
-        CandleTooltipView(model: model.tooltipModel(for: candle))
+        CandleTooltipView(tooltip: tooltip)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: isRightHalf ? .topLeading : .topTrailing)
             .padding(.leading, Spacing.small)
             .padding(.top, Spacing.small)
@@ -215,10 +230,18 @@ struct CandlestickChartView: View {
             .allowsHitTesting(false)
     }
 
-    private func findCandle(location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> ChartCandleStick? {
+    private var xAxisRange: ClosedRange<Date> {
+        chart.start ... chart.end
+    }
+
+    private var bodyHalfWidth: TimeInterval {
+        TimeInterval(chart.intervalSeconds) * Metrics.candleBodyWidthRatio / 2
+    }
+
+    private func findCandle(location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> Int? {
         guard let plotFrame = proxy.plotFrame else { return nil }
         let relativeX = location.x - geometry[plotFrame].origin.x
         guard let date = proxy.value(atX: relativeX) as Date? else { return nil }
-        return model.candle(for: date)
+        return chart.candles.indices.min { abs(chart.candles[$0].date.timeIntervalSince(date)) < abs(chart.candles[$1].date.timeIntervalSince(date)) }
     }
 }

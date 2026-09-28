@@ -5,16 +5,16 @@ import Style
 import SwiftUI
 
 struct SmallCoinView: View {
-    private let model: CoinPriceRowViewModel
+    private let coin: CoinPrice
 
-    init(model: CoinPriceRowViewModel) {
-        self.model = model
+    init(coin: CoinPrice) {
+        self.coin = coin
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: .zero) {
             HStack {
-                AssetImageView(assetImage: model.assetImage, size: .list.assets.widget)
+                AssetImageView(assetImage: coin.assetImage, size: .list.assets.widget)
                 Spacer()
                 Images.Logo.logo
                     .resizable()
@@ -25,14 +25,14 @@ struct SmallCoinView: View {
             Spacer()
                 .frame(height: Spacing.small)
 
-            Text(model.name)
+            Text(coin.name)
                 .font(.app.Widget.body)
                 .foregroundColor(Colors.black)
 
             Spacer()
                 .frame(height: Spacing.tiny)
 
-            Text(model.priceText)
+            Text(coin.priceText)
                 .font(.app.Widget.title)
                 .foregroundColor(Colors.black)
                 .minimumScaleFactor(Constants.priceMinScaleFactor)
@@ -42,12 +42,12 @@ struct SmallCoinView: View {
                 .frame(height: Spacing.tiny)
 
             HStack {
-                Text(model.percentageText)
+                Text(coin.changeText)
                     .font(.app.Widget.headline)
                     .foregroundColor(Colors.black)
                     .padding(.vertical, Spacing.tiny + Spacing.extraSmall)
                     .padding(.horizontal, Spacing.tiny + Spacing.extraSmall)
-                    .background(model.percentageColor)
+                    .background(coin.changeTone.color)
                     .cornerRadius(Constants.percentageCornerRadius)
             }
         }

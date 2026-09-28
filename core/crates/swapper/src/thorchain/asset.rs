@@ -139,6 +139,9 @@ mod tests {
         let zcash = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Zcash.as_ref()).unwrap();
         assert_eq!(zcash.quote_asset_name(), "ZEC.ZEC");
 
+        let dash = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Dash.as_ref()).unwrap();
+        assert_eq!(dash.quote_asset_name(), "DASH.DASH");
+
         let cardano = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Cardano.as_ref()).unwrap();
         assert_eq!(cardano.quote_asset_name(), "ADA.ADA");
 
@@ -185,7 +188,7 @@ mod tests {
         assert_eq!(
             THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, &THORCHAIN_TCY_ASSET_ID.to_string())
                 .unwrap()
-                .swap_memo("THOR.TCY", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
+                .swap_memo("THOR.TCY", destination_address, 0, 1, 0, fee_address.clone(), bps),
             "=:THOR.TCY:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
@@ -201,7 +204,7 @@ mod tests {
                 0,
                 1,
                 0,
-                fee_address.clone(),
+                fee_address,
                 bps
             ),
             "=:aa:addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5:0/1/0:g1:50"
@@ -234,7 +237,7 @@ mod tests {
 
         assert!(asset.is_some(), "TRON USDT asset should be recognized");
 
-        let memo = asset.unwrap().swap_memo("TRON.USDT", tron_destination.clone(), 0, 1, 0, fee_address.clone(), bps);
+        let memo = asset.unwrap().swap_memo("TRON.USDT", tron_destination, 0, 1, 0, fee_address, bps);
 
         assert_eq!(memo, "=:TRON.USDT:TEB39Rt69QkgD1BKhqaRNqGxfQzCarkRCb:0/1/0:g1:50");
     }

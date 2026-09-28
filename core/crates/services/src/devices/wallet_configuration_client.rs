@@ -4,10 +4,10 @@ use std::error::Error;
 use cacher::{CacheKey, CacherClient};
 use chain_providers::ChainProviders;
 use futures::future::join_all;
-use primitives::{AddressStatus, Chain, ChainAddress, WalletConfiguration, WalletConfigurationResult, WalletId};
+use primitives::{AddressStatus, Chain, ChainAddress, WalletConfiguration, WalletConfigurationResult, WalletId, WalletType};
 use storage::{Database, WalletsRepository};
 
-const ADDRESS_STATUS_CHAINS: [Chain; 6] = [Chain::Tron, Chain::Solana, Chain::Xrp, Chain::Stellar, Chain::Algorand, Chain::Aptos];
+const ADDRESS_STATUS_CHAINS: [Chain; 7] = [Chain::Tron, Chain::Solana, Chain::Xrp, Chain::Stellar, Chain::Algorand, Chain::Aptos, Chain::Near];
 
 pub struct WalletConfigurationClient {
     database: Database,
@@ -20,8 +20,11 @@ impl WalletConfigurationClient {
         Self { database, providers, cacher }
     }
 
-    pub async fn get_configuration(&self, device_id: i32, wallet_id: i32, wallet_identifier: WalletId) -> Result<WalletConfigurationResult, Box<dyn Error + Send + Sync>> {
-        let externally_controlled_accounts = self.externally_controlled_accounts(device_id, wallet_id).await?;
+    pub async fn get_configuration(&self, device_id: i32, wallet_id: i32, wallet_identifier: WalletId, wallet_type: WalletType) -> Result<WalletConfigurationResult, Box<dyn Error + Send + Sync>> {
+        let externally_controlled_accounts = match wallet_type.can_sign() {
+            true => self.externally_controlled_accounts(device_id, wallet_id).await?,
+            false => vec![],
+        };
         Ok(WalletConfigurationResult {
             wallet_id: wallet_identifier,
             configuration: WalletConfiguration {

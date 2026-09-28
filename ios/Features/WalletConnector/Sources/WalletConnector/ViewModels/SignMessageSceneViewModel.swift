@@ -2,12 +2,15 @@
 
 import Components
 import Foundation
+import func Gemstone.applicationConnectionRow
+import struct Gemstone.GemConnectionRow
 import enum Gemstone.GemListRow
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemSignMessagePreview
 import protocol Gemstone.GemSignMessageServiceProtocol
 import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemSimulationValue
+import struct Gemstone.GemValueHeader
 import struct Gemstone.GemWalletConnectMessageRequest
 import func Gemstone.signerFailure
 import GemstonePrimitives
@@ -40,8 +43,8 @@ public final class SignMessageSceneViewModel {
         preview = service.preview(request: request)
     }
 
-    private var metadata: ApplicationMetadata {
-        request.session.metadata.toPrimitives()
+    private var connection: GemConnectionRow {
+        applicationConnectionRow(metadata: request.session.metadata)
     }
 
     var viewFullMessageListItem: ListItemModel {
@@ -56,16 +59,12 @@ public final class SignMessageSceneViewModel {
         preview.title.text
     }
 
-    public var buttonTitle: String {
+    var buttonTitle: String {
         Localized.Transfer.confirm
     }
 
-    public var appName: String {
-        metadata.shortName
-    }
-
-    public var appAssetImage: AssetImage {
-        AssetImage(imageURL: metadata.iconURL)
+    var appName: String {
+        connection.title
     }
 
     var rows: [GemListRow] {
@@ -73,18 +72,19 @@ public final class SignMessageSceneViewModel {
     }
 
     public var appPreview: AppPreviewModel {
-        AppPreviewModel(
-            assetImage: appAssetImage,
-            name: appName,
-            subtitleSymbol: metadata.host,
+        let connection = connection
+        return AppPreviewModel(
+            assetImage: AssetImage(imageURL: connection.iconUrl.flatMap(URL.init(string:))),
+            name: connection.title,
+            subtitleSymbol: connection.host,
         )
     }
 
-    public var headerModel: AssetValueHeaderViewModel? {
-        headerData.map { AssetValueHeaderViewModel(data: $0) }
+    var headerModel: GemValueHeader? {
+        headerData?.header
     }
 
-    public var headerData: GemSimulationValue? {
+    var headerData: GemSimulationValue? {
         preview.header
     }
 
@@ -92,22 +92,27 @@ public final class SignMessageSceneViewModel {
         preview.text
     }
 
-    public var simulationWarnings: [GemListRow] {
+    var simulationWarnings: [GemListRow] {
         preview.warnings
     }
 
-    public var payloadModel: SimulationPayloadModel {
-        SimulationPayloadModel(
-            primaryFields: preview.primaryFields,
-            secondaryFields: preview.secondaryFields,
-        )
+    var primaryPayloadFields: [GemSimulationPayloadRow] {
+        preview.primaryFields
+    }
+
+    var secondaryPayloadFields: [GemSimulationPayloadRow] {
+        preview.secondaryFields
+    }
+
+    var hasPayloadFields: Bool {
+        primaryPayloadFields.isNotEmpty || secondaryPayloadFields.isNotEmpty
     }
 
     public var hasWarnings: Bool {
         !simulationWarnings.isEmpty
     }
 
-    public var isButtonDisabled: Bool {
+    var isButtonDisabled: Bool {
         preview.hasCriticalWarning
     }
 
@@ -115,7 +120,7 @@ public final class SignMessageSceneViewModel {
         .primary(isButtonDisabled ? .disabled : .normal)
     }
 
-    public func signMessage() async throws {
+    func signMessage() async throws {
         let signature = try await service.sign(walletId: request.wallet.id, message: request.message)
         confirmTransferDelegate(.success(signature))
     }
@@ -150,7 +155,7 @@ public extension SignMessageSceneViewModel {
     }
 
     func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
-        payloadModel.fieldModels(
+        SimulationPayloadFieldViewModel.models(
             for: fields,
             onSelectAddress: { [weak self] address in
                 guard let self else { return }
@@ -166,7 +171,7 @@ public extension SignMessageSceneViewModel {
 
 private extension SignMessageSceneViewModel {
     func loadPayloadAddressNamesIfNeeded() async {
-        guard !hasLoadedAddressNames, payloadModel.hasFields else { return }
+        guard !hasLoadedAddressNames, hasPayloadFields else { return }
 
         hasLoadedAddressNames = true
         preview = await service.withAddressNames(chain: request.chain, preview: preview)

@@ -39,7 +39,7 @@ Cargo accepts one positional test filter. Run multiple filters as separate comma
 
 ```sh
 just format                     # Format all code (prefer per-file below)
-just lint                       # Run clippy with warnings as errors
+just lint                       # Run clippy with warnings as errors and the extra lints in `clippy_lints`
 just fix                        # Auto-fix clippy issues
 just unused                     # Find unused dependencies with cargo-machete
 ```
@@ -95,7 +95,7 @@ Generated files: `gemstone/generated/kotlin/` → copied to `gemstone/android/ge
 ### When to Regenerate Bindings
 1. After adding/modifying public functions in `gemstone/src/lib.rs`
 2. After changing any UniFFI-exposed types or interfaces
-3. After changing TypeShare models consumed by either app
+3. After changing models that derive `Model`, which either app consumes
 4. When UniFFI schema or configuration changes
 5. When platform build inputs or app-side integration must change with Core
 
@@ -104,6 +104,5 @@ Generated files: `gemstone/generated/kotlin/` → copied to `gemstone/android/ge
 ```sh
 just localize                   # Update English localization files only
 just localize-all               # Update all localization files
-just generate-ts-primitives     # Generate TypeScript types from Rust
 just outdated                   # Check for outdated dependencies
 ```

@@ -174,7 +174,7 @@ impl BlockTransaction {
             },
             transaction: Transaction {
                 message: TransactionMessage {
-                    account_keys: account_keys.iter().map(|key| key.to_string()).collect(),
+                    account_keys: account_keys.iter().map(ToString::to_string).collect(),
                     instructions: vec![],
                 },
                 signatures: vec![],

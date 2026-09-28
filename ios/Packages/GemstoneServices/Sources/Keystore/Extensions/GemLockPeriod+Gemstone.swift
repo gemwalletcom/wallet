@@ -2,7 +2,6 @@
 
 public import enum Gemstone.GemLockPeriod
 import func Gemstone.lockPeriodFromMinutes
-import func Gemstone.lockPeriods
 
 extension GemLockPeriod: @retroactive Identifiable {
     public var id: Self {
@@ -11,10 +10,6 @@ extension GemLockPeriod: @retroactive Identifiable {
 }
 
 public extension GemLockPeriod {
-    static var offered: [GemLockPeriod] {
-        lockPeriods()
-    }
-
     static var `default`: GemLockPeriod {
         lockPeriodFromMinutes(minutes: nil)
     }

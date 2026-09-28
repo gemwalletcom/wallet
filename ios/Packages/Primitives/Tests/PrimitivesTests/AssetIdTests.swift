@@ -7,12 +7,12 @@ import Testing
 final class AssetIdTests {
     @Test
     func testId() throws {
-        #expect((try? AssetId(id: "")) == nil)
-        #expect((try? AssetId(id: "random_chain")) == nil)
-        #expect(try (AssetId(id: "bitcoin") == AssetId(chain: .bitcoin, tokenId: .none)))
-        #expect(try AssetId(id: "ethereum_0x123") == AssetId(chain: .ethereum, tokenId: "0x123"))
-        #expect(try (AssetId(id: "ton_EQAhRC_oZ4B9VgMltfNkENSdLktlMADPE73zIiIcL6es2o7-") == AssetId(chain: .ton, tokenId: "EQAhRC_oZ4B9VgMltfNkENSdLktlMADPE73zIiIcL6es2o7-")))
-        #expect(try (AssetId(id: "ton_EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT") == AssetId(chain: .ton, tokenId: "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT")))
+        #expect((try? AssetId.from(id: "")) == nil)
+        #expect((try? AssetId.from(id: "random_chain")) == nil)
+        #expect(try (AssetId.from(id: "bitcoin") == AssetId(chain: .bitcoin, tokenId: .none)))
+        #expect(try AssetId.from(id: "ethereum_0x123") == AssetId(chain: .ethereum, tokenId: "0x123"))
+        #expect(try (AssetId.from(id: "ton_EQAhRC_oZ4B9VgMltfNkENSdLktlMADPE73zIiIcL6es2o7-") == AssetId(chain: .ton, tokenId: "EQAhRC_oZ4B9VgMltfNkENSdLktlMADPE73zIiIcL6es2o7-")))
+        #expect(try (AssetId.from(id: "ton_EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT") == AssetId(chain: .ton, tokenId: "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT")))
     }
 
     @Test

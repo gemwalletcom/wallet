@@ -75,7 +75,7 @@ impl GemDeviceKeyService {
     }
 
     fn key_pair_from(&self, private_key: Vec<u8>) -> Result<GemDeviceKeyPair, GemServiceError> {
-        let public_key = device_public_key(private_key.clone()).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let public_key = device_public_key(private_key.clone()).map_err(GemServiceError::core)?;
         if self.store.get(DEVICE_PUBLIC_KEY.to_string())?.is_none() {
             self.store.set(DEVICE_PUBLIC_KEY.to_string(), hex::encode(&public_key))?;
         }

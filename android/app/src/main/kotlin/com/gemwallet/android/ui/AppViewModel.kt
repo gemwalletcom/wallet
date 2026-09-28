@@ -7,24 +7,20 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.device.cases.GetPushEnabled
-import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.onboarding.OnboardingRoute
-import com.gemwallet.android.model.AppUpdateChannel
-import com.gemwallet.android.model.AppUpdateOffer
-import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.ui.navigation.OnboardingRoute
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -36,6 +32,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemWalletSessionServiceInterface
 import javax.inject.Inject
 
@@ -43,11 +40,8 @@ import javax.inject.Inject
 class AppViewModel @Inject constructor(
     private val getSession: GetSession,
     private val userConfig: UserConfig,
-    private val getPushEnabled: GetPushEnabled,
-    private val switchPushEnabled: SwitchPushEnabled,
     private val syncAppUpdate: SyncAppUpdate,
     private val skipAppUpdate: SkipAppUpdate,
-    private val notificationsAvailable: NotificationsAvailable,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     private val appStartService: GemAppStartServiceInterface,
     private val walletSessionService: GemWalletSessionServiceInterface,
@@ -63,6 +57,7 @@ class AppViewModel @Inject constructor(
     val uiState = state.asStateFlow()
     private val startDestination = MutableStateFlow<NavKey?>(null)
     val startDestinationState = startDestination.asStateFlow()
+    val session: StateFlow<Session?> = getSession()
     private val walletReadyState = getWalletSummary.getWalletSummary()
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -79,14 +74,6 @@ class AppViewModel @Inject constructor(
 
     val isTermsAccepted = userConfig.isTermsAccepted()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val askNotifications = combine(
-        userConfig.isAskNotifications(),
-        getSession(),
-        getPushEnabled.getPushEnabled(),
-    ) { isAsk, session, pushEnabled ->
-        notificationsAvailable && isAsk && session != null && !pushEnabled
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         viewModelScope.launch(ioDispatcher) {
@@ -118,8 +105,8 @@ class AppViewModel @Inject constructor(
             .onFailure { Log.e(TAG, "skipping update ${update.version} failed", it) }
     }
 
-    fun onCancelUpdate() {
-        if (state.value.update?.canSkip == false) {
+    fun onUpdateOpened() {
+        if (state.value.update?.canSkip() == false) {
             return
         }
         state.update { it.copy(update = null) }
@@ -127,7 +114,7 @@ class AppViewModel @Inject constructor(
 
     private suspend fun offerStoreUpdate() {
         val offer = syncAppUpdate.syncAppUpdate() ?: return
-        if (offer.channel != AppUpdateChannel.Store) {
+        if (offer.apkUrl != null) {
             return
         }
         state.update { it.copy(update = offer) }
@@ -136,12 +123,6 @@ class AppViewModel @Inject constructor(
     fun acceptTerms() {
         viewModelScope.launch(ioDispatcher) {
             userConfig.acceptTerms()
-        }
-    }
-
-    fun onNotificationsEnable() {
-        viewModelScope.launch(ioDispatcher) {
-            switchPushEnabled.switchPushEnabled(true)
         }
     }
 
@@ -176,7 +157,7 @@ class AppViewModel @Inject constructor(
     }
 }
 
-data class AppState(val session: Session? = null, val intent: AppIntent = AppIntent.None, val update: AppUpdateOffer? = null)
+data class AppState(val session: Session? = null, val intent: AppIntent = AppIntent.None, val update: GemAppUpdateOffer? = null)
 
 enum class AppIntent {
     None,

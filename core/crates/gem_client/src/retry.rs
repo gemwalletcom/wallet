@@ -79,7 +79,7 @@ mod tests {
 
     use super::retry;
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn test_retry_respects_predicate_and_limit() {
         for (error, expected_attempts) in [(7, 2), (8, 1)] {
             let attempts = AtomicUsize::new(0);

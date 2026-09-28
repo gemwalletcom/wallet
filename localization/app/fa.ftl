@@ -48,7 +48,6 @@ common_learn_more = بیشتر بدانید
 common_description = توضیحات
 common_emoji = ایموجی
 common_avatar = آواتار
-common_save = ذخیره کنید
 common_percentage = درصد
 common_details = جزئیات
 common_info = اطلاعات
@@ -58,6 +57,7 @@ common_method = روش
 common_token = توکن
 common_expiration = انقضا
 common_suspicious_address = آدرس مشکوک
+common_suspicious_address_description = این آدرس با فعالیت مشکوک یا مضر مرتبط است.
 common_refresh = تازه کردن
 common_grant_permission = اجازه بدهید
 common_required_field = %@ مورد نیاز است.
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = این کیف پول قبلاً وار�
 # Wallets
 
 wallets_title = کیف پول ها
-wallets_watch = تماشا کردن
 
 # Receive
 
-receive_title = دریافت %@
 receive_warning = این آدرس شماست — فقط ارسال %@ روی %@ شبکه.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = فعال کردن رمزعبور
 settings_security_authentication = احراز هویت
 settings_notifications_title = اعلان ها
 settings_language = زبان
-settings_help_center = مرکز راهنمایی
 settings_support = پشتیبانی کنید
 settings_price_alerts_title = هشدارهای قیمت
 settings_hide_balance = مخفی کردن موجودی
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = هیچ قیمتی در دسترس نیست.
 errors_swap_not_supported_asset = دارایی پشتیبانی نمی شود.
 errors_connections_no_supported_wallets = هیچ کیف پول پشتیبانی شده ای در دسترس نیست.
 errors_connections_unsupported_chain = زنجیره ارائه شده پشتیبانی نمی‌شود.
+errors_authentication_unavailable = احراز هویت در این دستگاه تنظیم نشده است. بیومتریک یا رمز عبور را در تنظیمات دستگاه روشن کنید.
+errors_authentication_locked_out = تلاش‌های ناموفق بیش از حد. لطفاً بعداً دوباره امتحان کنید.
+errors_authentication_failed = احراز هویت ناموفق بود. لطفاً دوباره امتحان کنید.
+errors_connections_expired = اعتبار این لینک اتصال به پایان رسیده است. یک کد QR جدید بگیرید و دوباره امتحان کنید.
+errors_connections_not_found = این اتصال دیگر وجود ندارد.
+errors_connections_relay_unavailable = دسترسی به WalletConnect ممکن نشد. اتصال اینترنت خود را بررسی کنید و دوباره امتحان کنید.
 errors_swap_amount_too_small = مقدار خیلی کم
 errors_scan_transaction_malicious_description = این تراکنش قابل انجام نیست — آدرس کیف پول مقصد به فعالیت مشکوک یا مضر مرتبط است.
 errors_scan_transaction_memo_required = %@ آدرس کیف پول مقصد به یک برچسب / یادداشت مقصد نیاز دارد.
@@ -322,7 +325,6 @@ asset_verification_warning_message = هر کسی می تواند یکی را ا�
 asset_buy_asset = خرید %@
 asset_get_asset = دریافت %@
 asset_add_to_wallet = اضافه کردن به کیف پول
-asset_hide_from_wallet = پنهان شدن از کیف پول
 asset_added_to_wallet = به کیف پول اضافه شد
 asset_hidden_from_wallet = از کیف پول پنهان شد
 asset_resources = منابع
@@ -349,6 +351,7 @@ charts_price_change = تغییر
 
 date_today = امروز
 date_yesterday = دیروز
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = عادی
 # Fee Rate
 
 fee_rate_satvB = ساتوشی بر بایت
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = سفارشی
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = وقتی قیمت به میزان م
 price_alerts_set_alert_price_decreases_by = وقتی قیمت به میزان کاهش می‌یابد
 price_alerts_set_alert_set_target_price = تعیین قیمت هدف
 price_alerts_set_alert_current_price = قیمت فعلی
-price_alerts_added_for = تنظیم هشدار قیمت %@
+price_alerts_added_price_over = هشدار برای قیمت بالاتر از %@ اضافه شد
+price_alerts_added_price_under = هشدار برای قیمت پایین‌تر از %@ اضافه شد
+price_alerts_added_increases_by = هشدار برای افزایش قیمت به میزان %@ اضافه شد
+price_alerts_added_decreases_by = هشدار برای کاهش قیمت به میزان %@ اضافه شد
 price_alerts_state_empty_title = هشدارهای شما اینجا نمایش داده می‌شوند
 price_alerts_state_empty_description = با اضافه کردن سکه‌ها برای ردیابی، آنها را فعال کنید
 price_alerts_auto_footer = هشدارها در صورت حرکت قابل توجه قیمت فعال می‌شوند.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = این برنامه اجاز
 
 # Markets
 
-markets_title = بازارها
-markets_state_empty_title = داده‌های بازار شما اینجا نمایش داده می‌شود
 markets_daily_volume = حجم ۲۴ ساعته
 
 # Search

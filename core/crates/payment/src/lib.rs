@@ -12,7 +12,7 @@ pub use decoder::{PaymentDecoderError, PaymentURLDecoder};
 pub use error::PaymentError;
 pub use model::{PaymentLoad, PaymentTransaction, PaymentUpdate};
 pub use service::PaymentService;
-pub use wallet_connect_pay::WalletConnectPayAuth;
+pub use wallet_connect_pay::{VerificationOutcome, WalletConnectPayAuth, verification_outcome};
 
 pub fn classify_url(url: &str) -> Option<UrlAction> {
     PaymentURLDecoder::decode(url).ok().map(|payment| UrlAction::Payment { payment }).or_else(|| UrlAction::from_url(url))

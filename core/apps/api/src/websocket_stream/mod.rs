@@ -21,7 +21,7 @@ pub async fn ws_stream(ws: WebSocket, auth: AuthenticatedDevice, version: Versio
     let price_client = price_client.inner().clone();
     let redis_url = config.redis_url.clone();
     let device_stream = config.device_stream.clone();
-    let device_id = auth.record.device.id.clone();
+    let device_id = auth.record.device.id;
 
     ws.channel(move |ws_stream| {
         Box::pin(async move {

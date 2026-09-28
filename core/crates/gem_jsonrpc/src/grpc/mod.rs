@@ -11,6 +11,28 @@ mod reqwest_transport;
 #[cfg(feature = "reqwest")]
 pub use reqwest_transport::ReqwestGrpcTransport;
 
+const STATUS_NOT_FOUND: &str = "5";
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct GrpcStatusError {
+    pub code: String,
+    pub message: String,
+}
+
+impl GrpcStatusError {
+    pub fn is_not_found(&self) -> bool {
+        self.code == STATUS_NOT_FOUND
+    }
+}
+
+impl fmt::Display for GrpcStatusError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "gRPC error {}: {}", self.code, self.message)
+    }
+}
+
+impl Error for GrpcStatusError {}
+
 #[async_trait]
 pub trait GrpcTransport: Send + Sync + fmt::Debug {
     async fn unary(&self, endpoint: &str, path: &str, body: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>>;

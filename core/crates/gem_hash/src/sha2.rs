@@ -2,7 +2,7 @@ use hmac::digest::InvalidLength;
 use hmac::{Hmac, KeyInit, Mac};
 use ripemd::Ripemd160;
 use sha2::{Digest as Sha2Digest, Sha256, Sha512, Sha512_256};
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 type HmacSha512 = Hmac<Sha512>;
 
@@ -47,11 +47,11 @@ pub fn sha512_half(bytes: &[u8]) -> [u8; 32] {
     hash
 }
 
-pub fn hmac_sha512(key: &[u8], data: &[u8]) -> Result<[u8; 64], InvalidLength> {
+pub fn hmac_sha512(key: &[u8], data: &[u8]) -> Result<Zeroizing<[u8; 64]>, InvalidLength> {
     let mut mac = HmacSha512::new_from_slice(key)?;
     mac.update(data);
     let mut output = mac.finalize().into_bytes();
-    let mut hash = [0u8; 64];
+    let mut hash = Zeroizing::new([0u8; 64]);
     hash.copy_from_slice(&output);
     output.zeroize();
     Ok(hash)
@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn test_hmac_sha512() {
         assert_eq!(
-            hex::encode(hmac_sha512(b"key", b"The quick brown fox jumps over the lazy dog").unwrap()),
+            hex::encode(hmac_sha512(b"key", b"The quick brown fox jumps over the lazy dog").unwrap().as_slice()),
             "b42af09057bac1e2d41708e48a902e09b5ff7f12ab428a4fe86653c73dd248fb82f948a549f7b791a5b41915ee4d1ec3935357e4e2317250d0372afa2ebeeb3a"
         );
     }

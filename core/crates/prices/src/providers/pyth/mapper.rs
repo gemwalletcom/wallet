@@ -65,7 +65,7 @@ pub fn price_feed_id_for_chain(chain: Chain) -> Option<&'static str> {
         Chain::XLayer => "d6f83dfeaff95d596ddec26af2ee32f391c206a183b161b7980821860eeef2f5",
         Chain::Stable => "2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
         Chain::Arc => USDC_FEED_ID,
-        Chain::Mayachain | Chain::Tempo => return None,
+        Chain::Mayachain | Chain::Dash | Chain::Tempo => return None,
     };
     Some(feed_id)
 }

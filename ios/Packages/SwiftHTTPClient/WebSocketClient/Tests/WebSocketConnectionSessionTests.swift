@@ -53,7 +53,7 @@ private final class SessionRecorder: @unchecked Sendable {
 
     var created: Int { lock.withLock { createdCount } }
     var retired: Int { lock.withLock { retiredCount } }
-    var liveDelegates: Int { lock.withLock { delegates.filter { $0.value != nil }.count } }
+    var liveDelegates: Int { lock.withLock { delegates.count(where: { $0.value != nil }) } }
     var firstDelegate: (any URLSessionWebSocketDelegate)? { lock.withLock { first } }
 
     func configuration() -> WebSocketConfiguration {

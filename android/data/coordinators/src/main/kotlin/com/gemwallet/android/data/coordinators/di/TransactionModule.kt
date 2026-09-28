@@ -2,20 +2,13 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
-import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.data.coordinators.transaction.GetPendingTransactionsCountImpl
-import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
+import com.gemwallet.android.data.services.store.queries.TransactionsQuery
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemAddressService
-import uniffi.gemstone.GemAssetConfigService
-import uniffi.gemstone.GemTransactionDetailsService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -23,17 +16,5 @@ import javax.inject.Singleton
 object TransactionModule {
     @Provides
     @Singleton
-    fun provideGetTransactions(getSession: GetSession, getCurrentWalletId: GetCurrentWalletId, transactionStore: GemstoneTransactionStore): GetTransactions = GetTransactionsImpl(getSession, getCurrentWalletId, transactionStore)
-
-    @Provides
-    @Singleton
-    fun provideGetPendingTransactionsCount(getCurrentWalletId: GetCurrentWalletId, transactionStore: GemstoneTransactionStore): GetPendingTransactionsCount = GetPendingTransactionsCountImpl(getCurrentWalletId, transactionStore)
-
-    @Provides
-    @Singleton
-    fun provideGetTransactionDetails(getSession: GetSession, transactionStore: GemstoneTransactionStore, transactionDetailsService: GemTransactionDetailsService): GetTransactionDetails = GetTransactionDetailsImpl(
-        getSession = getSession,
-        transactionStore = transactionStore,
-        transactionDetailsService = transactionDetailsService,
-    )
+    fun provideGetTransactions(getSession: GetSession, getCurrentWalletId: GetCurrentWalletId, transactionsQuery: TransactionsQuery): GetTransactions = GetTransactionsImpl(getSession, getCurrentWalletId, transactionsQuery)
 }

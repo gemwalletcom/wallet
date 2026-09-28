@@ -19,7 +19,7 @@ pub struct GemDeviceRequestSigner {
 impl GemDeviceRequestSigner {
     pub fn new(private_key: Vec<u8>) -> Result<Self, GemServiceError> {
         let private_key = Zeroizing::new(private_key);
-        let public_key = gem_auth::device_public_key(&private_key).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let public_key = gem_auth::device_public_key(&private_key).map_err(GemServiceError::core)?;
         Ok(Self {
             private_key,
             public_key_hex: hex::encode(public_key),
@@ -27,8 +27,8 @@ impl GemDeviceRequestSigner {
     }
 
     pub fn sign(&self, method: String, path: String, wallet_id: String, body: Vec<u8>) -> Result<String, GemServiceError> {
-        let timestamp_ms = unix_milliseconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
-        gem_auth::build_device_auth_header(&self.private_key, &method, &path, &wallet_id, &body, timestamp_ms).map_err(|error| GemServiceError::Core { msg: error.to_string() })
+        let timestamp_ms = unix_milliseconds().map_err(GemServiceError::core)?;
+        gem_auth::build_device_auth_header(&self.private_key, &method, &path, &wallet_id, &body, timestamp_ms).map_err(GemServiceError::core)
     }
 
     pub fn public_key_hex(&self) -> String {

@@ -4,7 +4,7 @@ use primitives::{ChartPeriod, PortfolioChartType, PortfolioData, PortfolioType, 
 use super::rules;
 use crate::models::list::GemListRow;
 use crate::models::state::{GemLoad, GemLoadState};
-use crate::services::chart::{GemChartData, GemChartViewport, GemChartZoom, rules as chart_rules};
+use crate::services::chart::{GemChartData, GemChartZoom, rules as chart_rules};
 use crate::services::error::GemServiceError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -52,11 +52,11 @@ pub struct GemPortfolioResult {
     pub data: Option<PortfolioData>,
 }
 
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemPortfolioPhase {
     Loading,
-    Data { chart: GemChartData, viewport: GemChartViewport },
+    Data { chart: GemChartData },
     NoData,
     Failed { error: GemServiceError },
 }
@@ -232,7 +232,7 @@ impl GemPortfolioSession {
     }
 
     fn chart(&self, data: &PortfolioData) -> Option<GemChartData> {
-        rules::portfolio_chart_data(data.clone(), self.portfolio_type, self.chart_type, self.currency.clone())
+        rules::portfolio_chart_data(data.clone(), self.portfolio_type, self.chart_type, self.period, self.currency.clone())
     }
 
     fn phase(&self, load: &GemPortfolioLoad) -> GemPortfolioPhase {
@@ -240,8 +240,7 @@ impl GemPortfolioSession {
             (GemLoadState::Loading, _) => GemPortfolioPhase::Loading,
             (_, Some(data)) => match self.chart(data) {
                 Some(chart) => GemPortfolioPhase::Data {
-                    viewport: chart_rules::viewport(&chart.values, chart.currency.clone(), self.zoom),
-                    chart,
+                    chart: chart_rules::zoomed(chart, self.zoom),
                 },
                 None => GemPortfolioPhase::NoData,
             },
@@ -304,7 +303,7 @@ mod tests {
             currency: Currency::USD,
         };
 
-        assert_eq!(selected.on_result(loaded(stale.clone(), data(vec![ChartPeriod::Week]))), selected, "the period moved on before the answer arrived");
+        assert_eq!(selected.on_result(loaded(stale, data(vec![ChartPeriod::Week]))), selected, "the period moved on before the answer arrived");
         assert_eq!(
             selected.on_result(failed(
                 GemPortfolioRequest {

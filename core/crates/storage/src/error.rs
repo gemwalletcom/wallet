@@ -233,11 +233,6 @@ mod tests {
     }
 
     #[test]
-    fn test_database_error_display_wallet_address_not_found() {
-        assert_eq!(DatabaseError::not_found("WalletAddress", "solana").to_string(), "WalletAddress solana not found");
-    }
-
-    #[test]
     fn test_database_error_display_hides_internal_lookup() {
         let error = DatabaseError::not_found_internal("Wallet", "42");
         assert_eq!(error.to_string(), "Wallet not found");

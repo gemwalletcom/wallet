@@ -8,7 +8,7 @@ default = []
 testkit = []
 
 [dependencies]
-typeshare = { version = "1.0.5" }
+model_derive = { path = "../model_derive" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }

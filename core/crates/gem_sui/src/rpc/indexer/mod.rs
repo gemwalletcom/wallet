@@ -60,7 +60,7 @@ impl<C: Client> SuiIndexer<C> {
                 return Err(error.message.into());
             }
             let page = response.data.ok_or("missing Sui GraphQL transaction data")?.transactions;
-            transactions.extend(page.nodes.into_iter().rev().map(map_transaction).collect::<Result<Vec<_>, _>>()?);
+            transactions.extend(page.nodes.into_iter().rev().map(map_transaction));
             if !page.page_info.has_previous_page {
                 break;
             }

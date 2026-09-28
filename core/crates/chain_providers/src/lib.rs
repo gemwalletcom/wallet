@@ -169,6 +169,7 @@ impl ProviderFactory {
             Chain::Ton => &settings.chains.ton,
             Chain::Tron => &settings.chains.tron,
             Chain::Doge => &settings.chains.doge,
+            Chain::Dash => &settings.chains.dash,
             Chain::Zcash => &settings.chains.zcash,
             Chain::Optimism => &settings.chains.optimism,
             Chain::Aptos => &settings.chains.aptos,

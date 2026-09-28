@@ -18,7 +18,7 @@ impl SearchRequest {
     pub fn new(query: &str, chains: Option<&str>, tags: Option<&str>, limit: usize, offset: Option<usize>) -> Self {
         let chains = chains.unwrap_or_default().split(',').flat_map(Chain::from_str).map(|x| x.to_string()).collect::<Vec<String>>();
 
-        let tags = tags.unwrap_or_default().split(',').filter(|x| !x.is_empty()).map(|x| x.to_string()).collect::<Vec<String>>();
+        let tags = tags.unwrap_or_default().split(',').filter(|x| !x.is_empty()).map(ToString::to_string).collect::<Vec<String>>();
 
         Self {
             query: query.trim().to_string(),

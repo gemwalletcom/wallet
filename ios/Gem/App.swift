@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AppLock
 import AppService
 import Components
 import GemstoneServices
 import Primitives
+import Settings
 import Store
 import Style
 import SwiftUI
@@ -27,7 +27,7 @@ struct GemApp: App {
                     walletConnectorPresenter: resolver.services.walletConnectorPresenter,
                     onstartService: resolver.services.onstartService,
                     appStartService: resolver.services.appStartService,
-                    pushNotificationEnablerService: resolver.services.pushNotificationEnablerService,
+                    notificationsService: resolver.services.notificationsService,
                     appLifecycleService: resolver.services.appLifecycleService,
                     navigationRouter: resolver.services.navigationRouter,
                     lockWindow: LockWindow(
@@ -39,7 +39,6 @@ struct GemApp: App {
                     appUpdateService: resolver.services.appUpdateService,
                     rateService: resolver.services.rateService,
                     toastPresenter: resolver.services.toastPresenter,
-                    deviceService: resolver.services.deviceService,
                 ),
             )
             .databaseQueue(resolver.storages.db.dbQueue)

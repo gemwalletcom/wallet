@@ -31,7 +31,7 @@ pub fn map_transaction(transaction: AlgoTransaction) -> Option<Transaction> {
             transaction.id.clone(),
             chain.as_asset_id(),
             transaction.sender.clone().unwrap_or_default(),
-            transaction.payment_transaction.clone()?.receiver.clone().unwrap_or_default(),
+            transaction.payment_transaction.clone()?.receiver.unwrap_or_default(),
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,

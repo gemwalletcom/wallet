@@ -45,6 +45,7 @@ public struct ChainImage: Sendable {
         case .ton: Images.Chains.ton
         case .tron: Images.Chains.tron
         case .doge: Images.Chains.doge
+        case .dash: Images.Chains.dash
         case .aptos: Images.Chains.aptos
         case .avalancheC: Images.Chains.avalanchec
         case .sui: Images.Chains.sui

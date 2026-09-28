@@ -4,7 +4,7 @@ import enum Gemstone.GemAssetFilter
 import Store
 
 public extension GemAssetFilter {
-    func map() -> AssetsRequestFilter {
+    func map() -> AssetsQueryFilter {
         switch self {
         case .enabled: .enabled
         case .buyable: .buyable
@@ -12,7 +12,7 @@ public extension GemAssetFilter {
         case .swappable: .swappable
         case .hasBalance: .hasBalance
         case .hasAvailableBalance: .hasAvailableBalance
-        case let .chainsOrAssetIds(chains, assetIds): .chainsOrAssets(chains, assetIds)
+        case let .chainsOrAssetIds(chains, assetIds): .chainsOrAssets(chains, assetIds.map(\.identifier))
         case let .chains(chains): .chains(chains)
         }
     }

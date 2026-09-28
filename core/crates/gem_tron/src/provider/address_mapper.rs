@@ -3,12 +3,15 @@ use primitives::AddressStatus;
 use crate::models::account::TronAccount;
 
 pub fn map_address_status(account: &TronAccount) -> Vec<AddressStatus> {
-    let address = account.address.as_deref().unwrap_or_default();
-    let Some((threshold, keys)) = account.owner_permission.as_ref().and_then(|permission| Some((permission.threshold.unwrap_or(1), permission.keys.as_ref()?))) else {
+    let (Some(address), Some(permission)) = (account.address.as_deref(), account.owner_permission.as_ref()) else {
         return vec![];
     };
+    let keys = permission.keys.as_deref().unwrap_or_default();
+    if keys.is_empty() {
+        return vec![];
+    }
     let own_weight: u64 = keys.iter().filter(|key| key.address == address).map(|key| key.weight).sum();
-    match own_weight < threshold {
+    match own_weight < permission.threshold.unwrap_or(1) {
         true => vec![AddressStatus::ExternallyControlled],
         false => vec![],
     }
@@ -31,12 +34,16 @@ mod tests {
         };
         let co_signed = TronAccount {
             owner_permission: Some(TronAccountOwnerPermission {
-                permission_name: "owner".to_string(),
                 threshold: Some(1),
                 keys: Some(vec![TronAccountPermissionKey::mock(ADDRESS, 1), TronAccountPermissionKey::mock(OTHER_ADDRESS, 1)]),
             }),
             ..TronAccount::mock(ADDRESS)
         };
+        let without_owner_keys = TronAccount {
+            owner_permission: Some(TronAccountOwnerPermission { threshold: Some(1), keys: Some(vec![]) }),
+            ..TronAccount::mock(ADDRESS)
+        };
+        let without_address = TronAccount { address: None, ..TronAccount::mock(ADDRESS) };
         let changed_active_permissions = TronAccount {
             active_permission: Some(vec![
                 TronAccountPermission {
@@ -56,6 +63,8 @@ mod tests {
         assert!(map_address_status(&TronAccount::mock(ADDRESS)).is_empty());
         assert!(map_address_status(&inactive).is_empty());
         assert!(map_address_status(&co_signed).is_empty());
+        assert!(map_address_status(&without_owner_keys).is_empty());
+        assert!(map_address_status(&without_address).is_empty());
         assert!(map_address_status(&changed_active_permissions).is_empty());
     }
 
@@ -63,7 +72,6 @@ mod tests {
     fn test_an_owner_key_below_the_threshold_is_externally_controlled() {
         let replaced = TronAccount {
             owner_permission: Some(TronAccountOwnerPermission {
-                permission_name: "owner".to_string(),
                 threshold: Some(1),
                 keys: Some(vec![TronAccountPermissionKey::mock(OTHER_ADDRESS, 1)]),
             }),
@@ -71,7 +79,6 @@ mod tests {
         };
         let below_threshold = TronAccount {
             owner_permission: Some(TronAccountOwnerPermission {
-                permission_name: "owner".to_string(),
                 threshold: Some(2),
                 keys: Some(vec![TronAccountPermissionKey::mock(ADDRESS, 1), TronAccountPermissionKey::mock(OTHER_ADDRESS, 1)]),
             }),

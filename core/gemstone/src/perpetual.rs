@@ -1,7 +1,7 @@
 use gem_hypercore::{models::websocket::HyperliquidSubscription, perpetual_formatter::PerpetualFormatter};
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::ARBITRUM_USDC;
-use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
+use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
@@ -13,14 +13,12 @@ use primitives::TransactionInputType;
 
 const HYPERLIQUID_NAME: &str = "Hyperliquid";
 
-#[derive(Debug, uniffi::Object)]
+#[derive(Debug)]
 pub struct GemPerpetual {
     provider: PerpetualProvider,
 }
 
-#[uniffi::export]
 impl GemPerpetual {
-    #[uniffi::constructor]
     pub fn new(provider: PerpetualProvider) -> Self {
         Self { provider }
     }
@@ -42,9 +40,7 @@ impl GemPerpetual {
             PerpetualProvider::Hypercore => ARBITRUM_USDC.clone(),
         }
     }
-}
 
-impl GemPerpetual {
     pub fn recipient(&self) -> GemRecipient {
         GemRecipient {
             address: String::new(),
@@ -60,9 +56,7 @@ impl GemPerpetual {
         };
         GemRecipient { address, ..self.recipient() }
     }
-}
 
-impl GemPerpetual {
     pub fn format_size(&self, size: f64, decimals: i32) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
@@ -83,9 +77,7 @@ impl GemPerpetual {
             use_max_amount,
         }
     }
-}
 
-impl GemPerpetual {
     fn name(&self) -> &'static str {
         match self.provider {
             PerpetualProvider::Hypercore => HYPERLIQUID_NAME,
@@ -101,40 +93,18 @@ pub enum AutocloseValidation {
     TriggerMustBeLower,
 }
 
-#[derive(Debug, uniffi::Object)]
-pub struct AutocloseValidator {
-    inner: Validator,
-}
-
-#[uniffi::export]
-impl AutocloseValidator {
-    #[uniffi::constructor]
-    pub fn new(trigger_type: TpslType, direction: PerpetualDirection, market_price: f64) -> Self {
-        Self {
-            inner: Validator::new(trigger_type, direction, market_price),
-        }
-    }
-
-    pub fn validate(&self, price: Option<f64>) -> AutocloseValidation {
-        price.map_or(AutocloseValidation::Valid, |price| self.inner.validate(price))
-    }
-}
-
-#[derive(Debug, uniffi::Object)]
+#[derive(Debug)]
 pub struct GemAutocloseEstimator {
     inner: Estimator,
 }
 
-#[uniffi::export]
 impl GemAutocloseEstimator {
-    #[uniffi::constructor]
     pub fn new(entry_price: f64, position_size: f64, direction: PerpetualDirection, leverage: u8) -> Self {
         Self {
             inner: Estimator::new(entry_price, position_size, direction, leverage),
         }
     }
 
-    #[uniffi::constructor]
     pub fn for_open(market_price: f64, size: f64, leverage: u8, direction: PerpetualDirection) -> Self {
         Self {
             inner: Estimator::for_open(market_price, size, leverage, direction),
@@ -159,9 +129,7 @@ impl GemAutocloseEstimator {
     pub fn target_price_from_roe(&self, roe_percent: i32, trigger_type: TpslType) -> f64 {
         self.inner.target_price_from_roe(roe_percent, trigger_type)
     }
-}
 
-impl GemAutocloseEstimator {
     pub fn roe(&self, price: f64) -> f64 {
         self.inner.roe(price)
     }
@@ -196,13 +164,5 @@ mod tests {
         assert!(!estimator.is_profit(Some(90.0), TpslType::TakeProfit));
         assert!(estimator.is_profit(None, TpslType::TakeProfit));
         assert!(!estimator.is_profit(None, TpslType::StopLoss));
-    }
-
-    #[test]
-    fn test_autoclose_validator_treats_an_unset_price_as_valid() {
-        let validator = AutocloseValidator::new(TpslType::TakeProfit, PerpetualDirection::Long, 100.0);
-
-        assert_eq!(validator.validate(None), AutocloseValidation::Valid);
-        assert_eq!(validator.validate(Some(90.0)), AutocloseValidation::TriggerMustBeHigher);
     }
 }

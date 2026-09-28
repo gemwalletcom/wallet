@@ -42,7 +42,6 @@ pub struct TronAccountPermissionKey {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TronAccountOwnerPermission {
-    pub permission_name: String,
     pub threshold: Option<u64>,
     pub keys: Option<Vec<TronAccountPermissionKey>>,
 }

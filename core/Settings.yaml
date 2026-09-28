@@ -258,6 +258,8 @@ chains:
     url: https://blockbook.ltc.zelcore.io
   doge:
     url: https://blockbook.doge.zelcore.io
+  dash:
+    url: ""
   zcash:
     url: https://blockbook.zec.zelcore.io
   world:
@@ -348,6 +350,10 @@ nft:
   url: "https://assets.gemwallet.com/nft"
   alchemy:
     url: "https://{network}.g.alchemy.com"
+    key:
+      secret: ""
+  blockscout:
+    url: "https://api.blockscout.com"
     key:
       secret: ""
   magiceden:

@@ -33,18 +33,19 @@ public struct RecentActivityStore: Sendable {
         }
     }
 
-    public func getRecent(walletId: WalletId, types: [RecentActivityType], limit: Int, filters: [AssetsRequestFilter] = []) throws -> [RecentAsset] {
+    public func getRecent(walletId: WalletId, types: [RecentActivityType], limit: Int, filters: [AssetsQueryFilter] = []) throws -> [RecentAsset] {
         try db.read { db in
-            try RecentActivityRequest(walletId: walletId, limit: limit, types: types, filters: filters).fetch(db)
+            try RecentActivityQuery(walletId: walletId, limit: limit, types: types, filters: filters).fetch(db)
         }
     }
 
-    public func clear(walletId: WalletId, types: [RecentActivityType]) throws {
+    public func clear(scope: RecentActivityScope, types: [RecentActivityType]) throws {
+        let activities = RecentActivityRecord.filter(types.map(\.rawValue).contains(RecentActivityRecord.Columns.type))
         _ = try db.write { db in
-            try RecentActivityRecord
-                .filter(RecentActivityRecord.Columns.walletId == walletId.id)
-                .filter(types.map(\.rawValue).contains(RecentActivityRecord.Columns.type))
-                .deleteAll(db)
+            switch scope {
+            case let .wallet(walletId): try activities.filter(RecentActivityRecord.Columns.walletId == walletId.id).deleteAll(db)
+            case .allWallets: try activities.deleteAll(db)
+            }
         }
     }
 }

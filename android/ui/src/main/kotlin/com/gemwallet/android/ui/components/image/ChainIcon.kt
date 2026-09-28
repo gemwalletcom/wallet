@@ -1,13 +1,9 @@
 package com.gemwallet.android.ui.components.image
 
 import androidx.annotation.DrawableRes
-import com.gemwallet.android.domains.asset.icon
 import com.gemwallet.android.domains.asset.iconChain
-import com.gemwallet.android.domains.asset.supportIconChain
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ui.R
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetIcon
 import uniffi.gemstone.GemAssetIconImage
@@ -31,6 +27,7 @@ fun Chain.iconResource(): Int? = when (string) {
     "celestia" -> R.drawable.chain_celestia
     "celo" -> R.drawable.chain_celo
     "cosmos" -> R.drawable.chain_cosmos
+    "dash" -> R.drawable.chain_dash
     "doge" -> R.drawable.chain_doge
     "ethereum" -> R.drawable.chain_ethereum
     "fantom" -> R.drawable.chain_fantom
@@ -76,13 +73,16 @@ fun Chain.iconResource(): Int? = when (string) {
 
 @DrawableRes
 fun GemLocalTokenIcon.iconResource(): Int = when (this) {
+    GemLocalTokenIcon.PYUSD -> R.drawable.token_pyusd
+    GemLocalTokenIcon.USD1 -> R.drawable.token_usd1
     GemLocalTokenIcon.USDC -> R.drawable.token_usdc
+    GemLocalTokenIcon.USDE -> R.drawable.token_usde
+    GemLocalTokenIcon.USDG -> R.drawable.token_usdg
+    GemLocalTokenIcon.USDS -> R.drawable.token_usds
     GemLocalTokenIcon.USDT -> R.drawable.token_usdt
 }
 
 fun Chain.iconModel(): Any? = iconChain().iconResource()
-
-fun AssetId.iconModel(): Any? = icon().iconModel()
 
 fun GemAssetIcon.supportIconModel(): Any? = badge?.toChain()?.iconResource()
 
@@ -91,9 +91,3 @@ fun GemAssetIcon.iconModel(): Any? = when (val image = image) {
     is GemAssetIconImage.LocalToken -> image.token.iconResource()
     is GemAssetIconImage.Remote -> image.url
 }
-
-fun AssetId.supportIconModel(): Any? = supportIconChain()?.iconResource()
-
-fun Asset.iconModel(): Any? = id.iconModel()
-
-fun Asset.supportIconModel(): Any? = id.supportIconModel()

@@ -53,7 +53,7 @@ impl NewNftCollectionRow {
             is_verified: collection.status.is_verified(),
             symbol: collection.symbol,
             owner: None,
-            contract_address: collection.contract_address.clone(),
+            contract_address: collection.contract_address,
             is_enabled: true,
         }
     }

@@ -82,7 +82,7 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for JsonRpcResult<T> {
         D: Deserializer<'de>,
     {
         let raw = Value::deserialize(deserializer)?;
-        let id = raw.get("id").and_then(|v| v.as_u64());
+        let id = raw.get("id").and_then(Value::as_u64);
 
         if let Some(error) = raw.get("error") {
             let error: JsonRpcError = serde_json::from_value(error.clone()).map_err(serde::de::Error::custom)?;

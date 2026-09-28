@@ -1,14 +1,14 @@
 use std::fmt;
 
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
-use typeshare::typeshare;
 
 use crate::chain_config::{ChainConfig, NO_NATIVE_ASSET_RANK, get_chain_config};
 use crate::{AssetId, AssetType, ChainType, FeeUnitType};
 
-#[derive(Copy, Clone, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Ord, PartialOrd, Eq, Hash)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable, Hashable")]
+#[derive(Copy, Clone, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Ord, PartialOrd, Eq, Hash, Model)]
+#[model(swift = "Equatable, CaseIterable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum Chain {
@@ -27,6 +27,7 @@ pub enum Chain {
     Ton,
     Tron,
     Doge,
+    Dash,
     Zcash,
     Optimism,
     Aptos,
@@ -178,7 +179,7 @@ impl Chain {
     }
 
     pub fn stakeable() -> Vec<Self> {
-        Self::all().into_iter().filter(|x| x.is_stake_supported()).collect()
+        Self::all().into_iter().filter(Chain::is_stake_supported).collect()
     }
 
     pub fn perpetual_chains() -> Vec<Self> {

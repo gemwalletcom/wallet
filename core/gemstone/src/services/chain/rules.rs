@@ -80,6 +80,7 @@ mod tests {
         assert!(chain_matches_query(Chain::Ethereum, " ETH "));
         assert!(chain_matches_query(Chain::Ethereum, "ethereum"));
         assert!(!chain_matches_query(Chain::Ethereum, "bitcoin"));
+        assert!(!chain_matches_query(Chain::Ethereum, "erc20"), "the token standard is not a chain name");
     }
 
     #[test]

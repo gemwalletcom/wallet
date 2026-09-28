@@ -6,7 +6,6 @@ notification_unstake_title = 🔒 Unstake {$value}
 notification_claim_rewards_title = 🎁 Claim Rewards {$value}
 notification_withdraw_title = 🔓 Withdraw {$value}
 notification_redelegate_title = 🔄 Redelegate {$value}
-notification_redelegate_validator_title = 🔄 Redelegate {$value} to {$validator}
 notification_swap_title = 🔄 التبديل من {$from_symbol} إلى {$to_symbol}
 notification_swap_description = {$from_value} > {$to_value}
 notification_test = Test
@@ -21,9 +20,6 @@ notification_price_alert_all_time_high_description = وصل {$symbol} إلى أ�
 notification_nft_sent_title = 🖼️ تم إرسال NFT: {$value}
 notification_nft_received_title = 🖼️ تم استلام NFT: {$value}
 notification_onboarding_buy_asset_title = 🚀 اشتري {$name}
-notification_onboarding_create_import_wallet_title = 💎 إنشاء أو استيراد المحفظة
-notification_onboarding_create_import_wallet_description = قم بإنشاء محفظة جديدة أو استيراد محفظتك ببضع نقرات فقط.
-notification_onboarding_welcome_description = ابدأ رحلتك مع العملات المشفرة. انقر لإعداد محفظة العملات المشفرة الخاصة بك.
 notification_onboarding_buy_asset_description = اشتري {$name} اليوم بشكل آمن - بسيط وموثوق وفوري.
 support_new_message_title = رسالة جديدة من الدعم
 notification_freeze_title = تجميد {$value}
@@ -39,13 +35,32 @@ rewards_error_referral_rewards_not_enabled = المكافآت غير مفعلة 
 rewards_error_referral_limit_reached = لم نتمكن من التحقق من أهليتك لبرنامج الإحالة. تُمنح مكافآت الإحالة لدعوة الأصدقاء الذين تعرفهم، وتتطلب جهازًا وعنوان محفظة لم يُستخدما للإحالات من قبل.
 rewards_error_referral_referrer_limit_reached = لقد وصل رمز الإحالة إلى الحد الأقصى المسموح به.
 errors_generic = حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى لاحقاً.
+fiat_error_limit_reached = طلبات عروض أسعار كثيرة جدًا. يرجى المحاولة مرة أخرى بعد بضع دقائق.
+fiat_error_quote_unavailable = عرض السعر هذا لم يعد متاحًا. يرجى المحاولة مرة أخرى.
 rewards_error_referral_country_ineligible = خدمة الإحالات غير متاحة حاليًا لبلدك: {$value}.
 notification_rewards_disabled_title = تم تعطيل رمز الإحالة
 notification_rewards_disabled_description = تم تعطيل رمز الإحالة هذا بسبب الانتهاكات المتكررة لشروط برنامج الإحالة الخاص بنا.
-rewards_error_referral_eligibility_expired = يجب تطبيق رموز الإحالة في غضون {$value} أيام من إنشاء اسم المستخدم الخاص بك.
+rewards_error_referral_eligibility_expired = لا يمكن استخدام رموز الإحالة إلا على جهاز ومحفظة تم إعدادهما خلال { $value ->
+     [one] اليوم الماضي
+     [two] اليومين الماضيين
+     [few] آخر {$value} أيام
+     [many] آخر {$value} يومًا
+    *[other] آخر {$value} يوم
+    }.
 notification_reward_pending_title = 💎 إحالة جديدة
-notification_reward_pending_description = تم استخدام رمز الإحالة الخاص بك. جارٍ التحقق.
-rewards_error_username_daily_limit_reached = تم الوصول إلى الحد الأقصى اليومي لإنشاء أسماء المستخدمين. يرجى المحاولة مرة أخرى غداً.
+rewards_error_username_too_short = اسم المستخدم قصير جدًا. الحد الأدنى للطول: {$value}.
+rewards_error_username_too_long = اسم المستخدم طويل جدًا. الحد الأقصى للطول: {$value}.
+rewards_error_username_invalid_characters = يمكن أن يحتوي اسم المستخدم على الأحرف A–Z والأرقام 0–9 فقط.
+rewards_error_username_taken = اسم المستخدم هذا مستخدم بالفعل.
+rewards_error_username_wallet_has_username = هذه المحفظة لديها اسم مستخدم بالفعل.
+rewards_error_username_limit_reached = محاولات كثيرة جدًا لإنشاء اسم مستخدم. يرجى المحاولة مرة أخرى لاحقًا.
+rewards_error_redemption_not_eligible = لا يمكن لهذا الحساب استبدال المكافآت.
+rewards_error_redemption_limit_reached = لقد وصلت إلى حد الاستبدال. يرجى المحاولة مرة أخرى لاحقًا.
+rewards_error_redemption_account_too_new = حسابك جديد جدًا لاستبدال المكافآت. يرجى المحاولة مرة أخرى لاحقًا.
+rewards_error_redemption_cooldown = يتوقف الاستبدال لبعض الوقت بعد نشاط إحالة جديد. يرجى المحاولة مرة أخرى لاحقًا.
+rewards_error_redemption_not_enough_points = ليس لديك نقاط كافية لهذه المكافأة.
+rewards_error_redemption_option_not_available = هذه المكافأة لم تعد متاحة.
+rewards_error_redemption_no_username = أنشئ اسم مستخدم لاستبدال المكافآت.
 notification_price_alert_target_title = 🎯 {$symbol} وصل {$price}
 notification_price_alert_target_description = الآن في {$price} ({$change}).
 notification_stake_rewards_title = 🎁 مكافآت التخزين
@@ -59,5 +74,3 @@ notification_perpetual_open_description = Entered at {$price} 🚀
 notification_perpetual_short_title = 📉 Short {$coin}
 notification_perpetual_close_positive_description = You made {$pnl} 💰
 notification_perpetual_close_negative_description = You lost {$pnl} 😕
-notification_stake_to_description = To {$validator}
-notification_stake_from_description = From {$validator}

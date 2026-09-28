@@ -1,14 +1,10 @@
 import Foundation
 
 public struct Response {
-    public let code: Int
     public let body: Data
-    public let headers: [String: String]
 
-    public init(code: Int, body: Data, headers: [String: String]) {
-        self.code = code
+    public init(body: Data) {
         self.body = body
-        self.headers = headers
     }
 
     public static let standardDecoder = {
@@ -18,25 +14,14 @@ public struct Response {
     }()
 
     public static func make(data: Data, response urlResponse: URLResponse?) throws -> Response {
-        guard
-            let response = urlResponse as? HTTPURLResponse,
-            let headers = response.allHeaderFields as? [String: String]
-        else {
+        guard urlResponse is HTTPURLResponse else {
             throw URLError(.badServerResponse)
         }
-        return Response(code: response.statusCode, body: data, headers: headers)
+        return Response(body: data)
     }
 
     public func map<T: Decodable>(as type: T.Type, _ decoder: JSONDecoder = Self.standardDecoder) throws -> T {
         try decoder.decode(type, from: body)
-    }
-
-    public func mapOrError<T: Decodable>(as type: T.Type, asError: (some Decodable & LocalizedError).Type, _ decoder: JSONDecoder = Self.standardDecoder) throws -> T {
-        do {
-            return try decoder.decode(type, from: body)
-        } catch {
-            throw try decoder.decode(asError, from: body)
-        }
     }
 }
 

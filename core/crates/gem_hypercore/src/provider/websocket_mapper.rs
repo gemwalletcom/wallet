@@ -36,7 +36,7 @@ pub fn parse_websocket_data(data: &[u8], mode: PerpetualAccountMode) -> Result<H
         }),
         RawSocketMessage::OpenOrders(data) => Ok(HyperliquidSocketMessage::OpenOrders { orders: data.orders }),
         RawSocketMessage::Candle(candlestick) => Ok(HyperliquidSocketMessage::Candle { candle: candlestick.into() }),
-        RawSocketMessage::MarketData(data) => Ok(HyperliquidSocketMessage::MarketData { market: map_active_asset_ctx(data)? }),
+        RawSocketMessage::MarketData(data) => Ok(HyperliquidSocketMessage::MarketData { market: map_active_asset_ctx(data) }),
         RawSocketMessage::MarketPrices(data) => Ok(HyperliquidSocketMessage::MarketPrices {
             prices: data.mids.into_iter().filter_map(|(coin, price)| price.parse::<f64>().ok().map(|price| (coin, price))).collect(),
         }),
@@ -48,7 +48,7 @@ pub fn parse_websocket_data(data: &[u8], mode: PerpetualAccountMode) -> Result<H
     }
 }
 
-fn map_active_asset_ctx(data: ActiveAssetCtxData) -> Result<PerpetualMarketData, serde_json::Error> {
+fn map_active_asset_ctx(data: ActiveAssetCtxData) -> PerpetualMarketData {
     let ActiveAssetCtxData { symbol, ctx } = data;
     let mark_price = ctx.mark_px;
     let price = ctx.mid_px.unwrap_or(mark_price);
@@ -58,14 +58,14 @@ fn map_active_asset_ctx(data: ActiveAssetCtxData) -> Result<PerpetualMarketData,
     let volume_24h = ctx.day_ntl_vlm;
     let funding = ctx.funding * 100.0;
 
-    Ok(PerpetualMarketData {
+    PerpetualMarketData {
         coin: symbol,
         price,
         price_percent_change_24h,
         open_interest,
         volume_24h,
         funding,
-    })
+    }
 }
 
 pub fn diff_clearinghouse_positions(new_positions: Vec<PerpetualPosition>, existing_positions: Vec<PerpetualPosition>) -> PositionsDiff {

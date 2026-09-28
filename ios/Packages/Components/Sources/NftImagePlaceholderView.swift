@@ -3,7 +3,7 @@
 import Style
 import SwiftUI
 
-public struct NftImagePlaceholderView: View {
+struct NftImagePlaceholderView: View {
     private enum Layout {
         static let nameVisibilityThreshold: CGFloat = 250
         static let circleSizeRatioWithText: CGFloat = 0.3
@@ -13,11 +13,11 @@ public struct NftImagePlaceholderView: View {
 
     private let name: String?
 
-    public init(name: String? = nil) {
+    init(name: String? = nil) {
         self.name = name
     }
 
-    public var body: some View {
+    var body: some View {
         GeometryReader { geometry in
             let size = min(geometry.size.width, geometry.size.height)
             let showName = size > Layout.nameVisibilityThreshold

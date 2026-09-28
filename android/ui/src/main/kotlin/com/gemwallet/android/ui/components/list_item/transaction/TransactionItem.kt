@@ -11,16 +11,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.icon
-import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.BadgeCircle
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -31,6 +32,9 @@ import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator10
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.statusLabelRes
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.Spacer8
@@ -44,21 +48,24 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionId
-import com.wallet.core.primitives.TransactionState
+import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemTransactionBadge
+import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionRowSubtitle
+import uniffi.gemstone.GemTransactionRowValue
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionTitle
+import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.assetText
+import uniffi.gemstone.formattedAmount
 
 private val badgeStartPadding = 5.dp
 
 @Composable
-fun TransactionItem(data: TransactionDataAggregate, listPosition: ListPosition, onClick: () -> Unit) {
+fun TransactionItem(data: GemTransactionRow, listPosition: ListPosition, onClick: () -> Unit) {
     val context = LocalContext.current
-    val row = remember(data) { data.uiModel(context) }
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         minHeight = ListItemDefaults.iconMinHeight,
@@ -66,19 +73,19 @@ fun TransactionItem(data: TransactionDataAggregate, listPosition: ListPosition, 
         leading = { TransactionIcon(data) },
         title = {
             ListItemTitleText(
-                text = row.title,
-                titleBadge = { TransactionStatusBadge(row) },
+                text = data.title.string(context),
+                titleBadge = { TransactionStatusBadge(data) },
             )
         },
-        subtitle = row.subtitle?.let { { ListItemSupportText(it) } },
+        subtitle = data.subtitle.text(context)?.let { { ListItemSupportText(it) } },
         listPosition = listPosition,
         trailing = {
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(
-                    text = row.value,
-                    color = row.valueTone.color(),
+                    text = data.value.text().orEmpty(),
+                    color = data.valueTone.color(),
                 )
-                row.equivalentValue?.let {
+                data.equivalentValue.text()?.let {
                     ListItemSupportText(it)
                 }
             }
@@ -87,7 +94,7 @@ fun TransactionItem(data: TransactionDataAggregate, listPosition: ListPosition, 
 }
 
 @Composable
-private fun TransactionIcon(data: TransactionDataAggregate) = when (data.badge) {
+private fun TransactionIcon(data: GemTransactionRow) = when (data.badge) {
     GemTransactionBadge.INCOMING,
     GemTransactionBadge.OUTGOING,
     -> DirectionBadgedIcon(data)
@@ -98,7 +105,7 @@ private fun TransactionIcon(data: TransactionDataAggregate) = when (data.badge) 
 private const val BADGE_ICON_SCALE = 0.65f
 
 @Composable
-private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
+private fun DirectionBadgedIcon(data: GemTransactionRow) {
     val size = listItemIconSize
     val icon = when (data.badge) {
         GemTransactionBadge.INCOMING -> AppIcons.ArrowDownward
@@ -109,8 +116,8 @@ private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
         GemTransactionBadge.OUTGOING, GemTransactionBadge.ASSET -> MaterialTheme.colorScheme.primary
     }
     IconWithBadge(
-        icon = data.nftImageUrl ?: data.icon.iconModel(),
-        placeholder = if (data.nftImageUrl != null) "NFT" else data.icon.placeholder,
+        icon = data.icon.iconModel(),
+        placeholder = data.icon.placeholder,
         size = size,
     ) {
         BadgeCircle(size = size, color = color) {
@@ -125,9 +132,10 @@ private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
 }
 
 @Composable
-private fun TransactionStatusBadge(row: TransactionRowUIModel) {
-    val text = row.badgeText ?: return
-    val color = row.badgeTone.color()
+private fun TransactionStatusBadge(row: GemTransactionRow) {
+    if (!row.status.showsBadge) return
+    val text = stringResource(row.state.toPrimitives().statusLabelRes())
+    val color = row.status.tone.color()
     Row(
         Modifier
             .padding(start = badgeStartPadding)
@@ -150,7 +158,7 @@ private fun TransactionStatusBadge(row: TransactionRowUIModel) {
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.labelMedium,
         )
-        if (row.showsProgress) {
+        if (row.status.showsProgress) {
             CircularProgressIndicator10(color = color)
             Spacer8()
         }
@@ -160,28 +168,19 @@ private fun TransactionStatusBadge(row: TransactionRowUIModel) {
 @Composable
 @Preview
 fun PreviewTransactionItem() {
+    val asset = Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE)
     MaterialTheme {
         TransactionItem(
-            data = object : TransactionDataAggregate {
-                override val id = TransactionId(Chain.Bitcoin, "preview-1")
-                override val asset = Asset(
-                    id = AssetId(Chain.Bitcoin),
-                    name = "Bitcoin",
-                    symbol = "BTC",
-                    decimals = 8,
-                    type = AssetType.NATIVE,
-                )
-                override val icon = asset.id.icon()
-                override val value = "-0.9998888999 BTC"
-                override val equivalentValue: String? = null
-                override val title = GemTransactionTitle.Transfer
-                override val status = GemTransactionStatus(tone = GemTransactionStateTone.PENDING, showsBadge = true, showsProgress = true)
-                override val subtitle = GemTransactionRowSubtitle.ToAddress("btc12312sdfksdjfks")
-                override val valueTone = GemValueTone.PLAIN
-                override val badge = GemTransactionBadge.OUTGOING
-                override val state = TransactionState.Pending
-                override val createdAt = System.currentTimeMillis()
-            },
+            data = previewRow(
+                asset = asset,
+                title = GemTransactionTitle.Transfer,
+                status = GemTransactionStatus(tone = GemTransactionStateTone.PENDING, showsBadge = true, showsProgress = true),
+                subtitle = GemTransactionRowSubtitle.ToAddress("btc12312sdfksdjfks"),
+                value = formattedAmount(-0.9998888999, "BTC", GemValueStyle.FULL),
+                equivalentValue = null,
+                valueTone = GemValueTone.PLAIN,
+                badge = GemTransactionBadge.OUTGOING,
+            ),
             listPosition = ListPosition.Single,
             onClick = {},
         )
@@ -191,30 +190,47 @@ fun PreviewTransactionItem() {
 @Composable
 @Preview
 fun PreviewSwapTransactionItem() {
+    val asset = Asset(id = AssetId(Chain.SmartChain), name = "SmartChain", symbol = "BNB", decimals = 18, type = AssetType.NATIVE)
     MaterialTheme {
         TransactionItem(
-            data = object : TransactionDataAggregate {
-                override val id = TransactionId(Chain.SmartChain, "preview-2")
-                override val asset = Asset(
-                    id = AssetId(Chain.SmartChain),
-                    name = "SmartChain",
-                    symbol = "BNB",
-                    decimals = 18,
-                    type = AssetType.NATIVE,
-                )
-                override val icon = asset.id.icon()
-                override val value = "+19 TON"
-                override val equivalentValue = "-0.09 BNB"
-                override val status = GemTransactionStatus(tone = GemTransactionStateTone.SUCCESS, showsBadge = false, showsProgress = false)
-                override val title = GemTransactionTitle.Swap
-                override val subtitle = GemTransactionRowSubtitle.None
-                override val valueTone = GemValueTone.POSITIVE
-                override val badge = GemTransactionBadge.ASSET
-                override val state = TransactionState.Confirmed
-                override val createdAt = System.currentTimeMillis()
-            },
+            data = previewRow(
+                asset = asset,
+                title = GemTransactionTitle.Swap,
+                status = GemTransactionStatus(tone = GemTransactionStateTone.SUCCESS, showsBadge = false, showsProgress = false),
+                subtitle = GemTransactionRowSubtitle.None,
+                value = formattedAmount(19.0, "TON", GemValueStyle.FULL),
+                equivalentValue = formattedAmount(-0.09, "BNB", GemValueStyle.FULL),
+                valueTone = GemValueTone.POSITIVE,
+                badge = GemTransactionBadge.ASSET,
+            ),
             listPosition = ListPosition.Single,
             onClick = {},
         )
     }
 }
+
+private fun previewRow(
+    asset: Asset,
+    title: GemTransactionTitle,
+    status: GemTransactionStatus,
+    subtitle: GemTransactionRowSubtitle,
+    value: GemFormattedNumber,
+    equivalentValue: GemFormattedNumber?,
+    valueTone: GemValueTone,
+    badge: GemTransactionBadge,
+) = GemTransactionRow(
+    id = "${asset.id.chain.string}_preview",
+    asset = asset.toGem(),
+    transactionType = uniffi.gemstone.TransactionType.TRANSFER,
+    direction = uniffi.gemstone.TransactionDirection.OUTGOING,
+    state = uniffi.gemstone.TransactionState.PENDING,
+    createdAt = System.currentTimeMillis(),
+    status = status,
+    title = title,
+    subtitle = subtitle,
+    value = GemTransactionRowValue.Number(value),
+    valueTone = valueTone,
+    equivalentValue = equivalentValue?.let { GemTransactionRowValue.Number(it) } ?: GemTransactionRowValue.None,
+    badge = badge,
+    icon = assetText(asset.toGem()).icon,
+)

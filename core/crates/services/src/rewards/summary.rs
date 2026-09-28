@@ -26,5 +26,6 @@ pub fn rewards_by_wallet_id(client: &mut DatabaseClient, wallet_id: i32, rules: 
         redemption_options,
         disable_reason: record.disable_reason,
         referral_allowance: Default::default(),
+        use_referral_code_until: None,
     })
 }

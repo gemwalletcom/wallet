@@ -50,7 +50,7 @@ impl AppStartTestkit {
             banners.clone(),
             discovery.assets.clone(),
             discovery.balance.clone(),
-            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banners.clone(), discovery.wallet_preferences.clone())),
+            Arc::new(GemWalletConfigurationService::new(device_api.clone(), banners, discovery.wallet_preferences.clone())),
             wallets.service.clone(),
             Arc::new(GemDeviceService::new(
                 device_api.clone(),
@@ -59,14 +59,23 @@ impl AppStartTestkit {
                 Arc::new(MemoryDevicePlatform),
                 preferences,
             )),
-            Arc::new(GemSupportService::new(device_api, support_store.clone(), Arc::new(NoopFileStore), provider.clone())),
+            Arc::new(GemSupportService::new(
+                device_api,
+                support_store.clone(),
+                Arc::new(NoopFileStore),
+                provider.clone(),
+                Arc::new(crate::services::notifications::GemNotificationsService::mock(
+                    provider.clone(),
+                    Arc::new(crate::services::banner::testkit::DeniedNotificationPermissions),
+                )),
+            )),
         );
         Self {
             service,
             support: support_store,
             wallets,
             banners: banner_store,
-            assets: discovery.asset_store.clone(),
+            assets: discovery.asset_store,
             first,
             second,
         }

@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use num_bigint::BigInt;
 use primitives::{RecentActivityType, TransactionInputType, TransactionType, WalletId};
 
-use super::{GemPendingTransactionInput, GemRecentActivity, GemRecentActivityService, GemRecentActivityStore, GemRecipient, GemTransferData};
+use super::{GemPendingTransactionInput, GemRecentActivity, GemRecentActivityScope, GemRecentActivityService, GemRecentActivityStore, GemRecipient, GemTransferData};
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::error::GemServiceError;
 use crate::services::wallet::testkit::MemoryWalletStore;
@@ -63,8 +63,14 @@ impl GemRecentActivityStore for MemoryRecentActivityStore {
         self.added.lock().unwrap().push((activity, wallet_id));
         Ok(())
     }
-    async fn clear(&self, _wallet_id: WalletId, _types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
-        self.added.lock().unwrap().clear();
+    async fn clear(&self, scope: GemRecentActivityScope, types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
+        self.added.lock().unwrap().retain(|(activity, owner)| {
+            !types.contains(&activity.activity_type)
+                || match &scope {
+                    GemRecentActivityScope::Wallet { wallet_id } => wallet_id != owner,
+                    GemRecentActivityScope::AllWallets => false,
+                }
+        });
         Ok(())
     }
 }

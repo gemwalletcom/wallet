@@ -1,6 +1,6 @@
+use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator, IntoStaticStr};
-use typeshare::typeshare;
 
 use crate::{AddressName, AssetId, Chain, ChainAddress, TransactionType, VerificationStatus};
 
@@ -97,13 +97,14 @@ pub struct ScanAddressTarget {
     pub address: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
-#[typeshare(swift = "CaseIterable, Equatable, Sendable")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, Model)]
+#[model(swift = "CaseIterable, Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum AddressType {
     Address,
     Contract,
+    Asset,
     Validator,
     Contact,
     InternalWallet,
@@ -133,20 +134,23 @@ impl ScanAddress {
         self.chain == chain && self.address == address && self.is_verified == Some(true) && self.is_malicious != Some(true)
     }
 
-    pub fn address_name(&self) -> Option<AddressName> {
-        let status = if self.is_malicious == Some(true) {
+    pub fn verification_status(&self) -> VerificationStatus {
+        if self.is_malicious == Some(true) {
             VerificationStatus::Suspicious
         } else if self.is_verified == Some(true) {
             VerificationStatus::Verified
         } else {
             VerificationStatus::Unverified
-        };
+        }
+    }
+
+    pub fn address_name(&self) -> Option<AddressName> {
         Some(AddressName {
             chain: self.chain,
             address: self.address.clone(),
             name: self.name.clone()?,
             address_type: self.address_type.clone()?,
-            status,
+            status: self.verification_status(),
             image_url: None,
         })
     }

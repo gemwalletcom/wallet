@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.services.gemstone
 
-import com.gemwallet.android.data.service.store.LocalStore
+import com.gemwallet.android.data.services.store.LocalStore
 import uniffi.gemstone.GemFileStore
 
 class GemstoneFileStore(private val localStore: LocalStore) : GemFileStore {

@@ -1,5 +1,6 @@
 use gem_encoding::{decode_base64, encode_base64};
 use num_bigint::BigUint;
+use primitives::OptionStringExt;
 use primitives::{AssetId, Chain, SolanaInstruction, TransactionType};
 
 use crate::{
@@ -42,7 +43,7 @@ impl VersionedTransactionExt for VersionedTransaction {
             if program.to_base58() != SOLANA_MEMO_PROGRAM_ID {
                 return None;
             }
-            String::from_utf8(instruction.data.clone()).ok().filter(|memo| !memo.is_empty())
+            String::from_utf8(instruction.data.clone()).ok().non_empty()
         })
     }
 

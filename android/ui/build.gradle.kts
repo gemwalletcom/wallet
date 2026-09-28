@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
@@ -8,50 +5,15 @@ plugins {
 
 android {
     namespace = "com.gemwallet.android.ui"
-    compileSdk = 37
 
-    defaultConfig {
-        minSdk = 28
-
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    tasks.withType<KotlinJvmCompile>().configureEach {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-            freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
-        }
-    }
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-    packaging {
-        resources {
-            excludes += "META-INF/*"
-            excludes += "META-INF/DEPENDENCIES"
-            excludes += "/META-INF/LICENSE-notice.md"
-            excludes += "/META-INF/LICENSE.md"
-            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
-        }
     }
 }
 
@@ -67,9 +29,6 @@ dependencies {
     api(libs.browser)
 
     // QRCode scanner: only for none private data: recipient, memo, amount, etc
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.view)
     // QR Code
     api(libs.zxing.core)
 
@@ -83,6 +42,7 @@ dependencies {
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime)
+    implementation(libs.material)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

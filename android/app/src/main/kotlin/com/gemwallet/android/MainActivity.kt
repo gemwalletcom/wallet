@@ -24,7 +24,8 @@ import com.gemwallet.android.application.notifications.NotificationPermissionReq
 import com.gemwallet.android.application.security.cases.AuthRequester
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
-import com.gemwallet.android.localization.stringRes
+import com.gemwallet.android.ext.GemConstants
+import com.gemwallet.android.features.settings.viewmodels.lock.LockViewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.LocalAddressService
@@ -36,10 +37,12 @@ import com.gemwallet.android.ui.LocalNavigationService
 import com.gemwallet.android.ui.LocalStreamConnected
 import com.gemwallet.android.ui.components.ConnectionBannerState
 import com.gemwallet.android.ui.components.LocalConnectionBannerState
+import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ConnectionComponent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -47,6 +50,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationService
 import javax.inject.Inject
@@ -57,9 +61,12 @@ class MainActivity :
     AuthRequester {
     private val viewModel: MainViewModel by viewModels()
     private val appViewModel: AppViewModel by viewModels()
+    private val lockViewModel: LockViewModel by viewModels()
     private lateinit var systemAuthenticator: SystemAuthenticator
 
     @Inject lateinit var connectionStatusObserver: ConnectionStatusObserver
+
+    @Inject lateinit var connectionService: GemConnectionService
 
     @Inject lateinit var notificationPermissionRequests: NotificationPermissionRequests
 
@@ -88,12 +95,12 @@ class MainActivity :
         splashScreen.setOnExitAnimationListener { it.remove() }
         enableEdgeToEdge()
 
-        systemAuthenticator = SystemAuthenticator(this, viewModel)
+        systemAuthenticator = SystemAuthenticator(this, lockViewModel)
         systemAuthenticator.prepare()
         systemAuthenticator.refreshEnrollment()
 
         viewModel.pendIntent(intent)
-        viewModel.maintain()
+        viewModel.maintain(isUnlocked = lockViewModel.uiState.map { it.isUnlocked })
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -110,6 +117,7 @@ class MainActivity :
 
         setContent {
             val state by viewModel.uiState.collectAsStateWithLifecycle()
+            val lockState by lockViewModel.uiState.collectAsStateWithLifecycle()
             val pendingNavigation by viewModel.pendingNavigation.collectAsStateWithLifecycle()
             val systemAuthEnrollmentMissing by systemAuthenticator.enrollmentMissing.collectAsStateWithLifecycle()
             val connectionStatus by connectionStatusObserver.status.collectAsStateWithLifecycle()
@@ -120,6 +128,8 @@ class MainActivity :
             }
             val connectionBannerState = remember { ConnectionBannerState() }
             LaunchedEffect(connectionStatus) {
+                if (!GemConstants.connectionBannerEnabled) return@LaunchedEffect
+                delay(GemConstants.connectionBannerSettleDelay)
                 connectionBannerState.update(connectionStatus.stringRes()?.let(::getString))
             }
             val appearance by viewModel.appearance.collectAsStateWithLifecycle()
@@ -142,6 +152,7 @@ class MainActivity :
             ) {
                 MainContent(
                     state = state,
+                    lockState = lockState,
                     darkTheme = darkTheme,
                     pendingNavigation = pendingNavigation,
                     systemAuthEnrollmentMissing = systemAuthEnrollmentMissing,
@@ -151,7 +162,6 @@ class MainActivity :
                     onPendingNavigationConsumed = viewModel::consumePendingNavigation,
                     onOpenSystemAuthSettings = systemAuthenticator::openSettings,
                     onWalletConnectPairingToastShown = viewModel::dismissWalletConnectPairingToast,
-                    onScanErrorShown = viewModel::dismissScanError,
                     onWalletConnectError = viewModel::showWalletConnectError,
                     onErrorDismiss = viewModel::resetError,
                 )
@@ -170,12 +180,12 @@ class MainActivity :
     override fun onResume() {
         super.onResume()
         systemAuthenticator.refreshEnrollment()
-        viewModel.onActivityResumed()
+        lockViewModel.onActivityResumed()
     }
 
     override fun onPause() {
         super.onPause()
-        viewModel.onActivityPaused()
+        lockViewModel.onActivityPaused()
     }
 
     override fun onDestroy() {

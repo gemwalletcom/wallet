@@ -1,45 +1,17 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.domains.asset.toGem
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.wallet.core.primitives.AccountDataType
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.StakeType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.PerpetualType
-import uniffi.gemstone.SwapData
 import uniffi.gemstone.TransactionInputType
 
 val GemTransferData.asset: Asset
     get() = inputAsset().toPrimitives()
 
-val TransactionInputType.toAsset: Asset?
-    get() = (this as? TransactionInputType.Swap)?.toAsset?.toPrimitives()
-
 val TransactionInputType.applicationMetadata: ApplicationMetadata?
     get() = (this as? TransactionInputType.Generic)?.metadata?.toPrimitives()
 
-val TransactionInputType.swapData: SwapData?
-    get() = (this as? TransactionInputType.Swap)?.swapData
-
 val TransactionInputType.nftAsset: NFTAsset?
     get() = (this as? TransactionInputType.TransferNft)?.nftAsset?.toPrimitives()
-
-val TransactionInputType.stakeType: StakeType?
-    get() = (this as? TransactionInputType.Stake)?.stakeType?.toPrimitives()
-
-val TransactionInputType.perpetualType: PerpetualType?
-    get() = (this as? TransactionInputType.Perpetual)?.perpetualType
-
-fun TransactionInputType.Companion.transfer(asset: Asset): TransactionInputType = TransactionInputType.Transfer(asset.toGem())
-
-fun TransactionInputType.Companion.deposit(asset: Asset): TransactionInputType = TransactionInputType.Deposit(asset.toGem())
-
-fun TransactionInputType.Companion.transferNft(asset: Asset, nftAsset: NFTAsset): TransactionInputType = TransactionInputType.TransferNft(asset.toGem(), nftAsset.toGem())
-
-fun TransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swapData: SwapData): TransactionInputType = TransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData)
-
-fun TransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): TransactionInputType = TransactionInputType.Account(asset.toGem(), accountType.toGem())

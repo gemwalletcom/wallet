@@ -122,7 +122,7 @@ fn get_transactions_by_device_id(
     let mut query = transactions
         .into_boxed()
         .inner_join(transactions_addresses::table)
-        .filter(chain.eq_any(chains.clone()))
+        .filter(chain.eq_any(chains))
         .filter(transactions_addresses::address.eq_any(addresses))
         .filter(state.ne(TransactionState::InTransit));
 

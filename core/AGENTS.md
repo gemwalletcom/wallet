@@ -48,6 +48,6 @@ Before finishing a task:
 4. **Run clippy**: `cargo clippy -p <crate> --all-features -- -D warnings` (most crates gate modules behind features; without them clippy compiles nothing from those modules, see `skills/development-commands.md`)
 5. **Format**: `just format`
 
-Regenerate bindings and build iOS or Android only when the change affects UniFFI/TypeShare interfaces, generated models, platform build inputs, or app-side integration. Do not run mobile generation or builds for internal Core implementation changes that preserve those contracts.
+Regenerate bindings and build iOS or Android only when the change affects UniFFI interfaces, generated models, platform build inputs, or app-side integration. Do not run mobile generation or builds for internal Core implementation changes that preserve those contracts.
 
 Test rules and testkit conventions live in [Tests](skills/tests.md); read it before writing or changing any test.

@@ -33,6 +33,6 @@ impl NameResolver for SuinsProvider {
 
     async fn resolve(&self, query: &NameQuery, _chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
         let response = self.client.lookup_name(&query.domain).await?;
-        Ok(response.record.and_then(|record| record.target_address))
+        Ok(response.and_then(|response| response.record).and_then(|record| record.target_address))
     }
 }

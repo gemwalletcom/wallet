@@ -72,7 +72,7 @@ impl GemAddAssetSession {
                 text(GemListRowTitle::Decimals, asset.decimals.to_string()),
                 text(GemListRowTitle::Type, asset.asset_type.as_ref().to_string()),
             ]))
-            .chain(explorer.map(|link| section(vec![GemListRow::Explorer { name: link.name, url: link.link }])))
+            .chain(explorer.map(|link| section(vec![GemListRow::explorer(&link)])))
             .collect(),
             None if self.failed => vec![section(vec![GemListRow::Notice {
                 title: GemListRowTitle::Error,
@@ -191,10 +191,6 @@ impl GemAddAssetService {
         }
     }
 
-    pub fn matching_chains(&self, chains: Vec<Chain>, query: String) -> Vec<Chain> {
-        crate::services::chain::rules::matching_chains(chains, &query)
-    }
-
     pub fn sections(&self, session: GemAddAssetSession) -> Vec<GemListSection> {
         let explorer = session.asset.as_ref().and_then(|asset| self.explorer.get_token_url(asset.id.chain, asset.id.token_id.clone()?));
         session.sections(explorer)
@@ -207,7 +203,7 @@ impl GemAddAssetService {
     pub async fn add(&self, wallet: Wallet, asset_id: AssetId) -> Result<(), GemServiceError> {
         required_account(&wallet, asset_id.chain)?;
         let asset = self.assets.ensure_token_asset(asset_id).await?;
-        self.balances.set_assets_enabled(wallet.id, vec![asset.id], true).await
+        self.balances.enable_assets(wallet.id, vec![asset.id]).await
     }
 }
 
@@ -314,7 +310,7 @@ mod tests {
                     text(GemListRowTitle::Type, "NATIVE"),
                 ]),
                 section(vec![GemListRow::Explorer {
-                    name: "Etherscan".to_string(),
+                    title: GemLocalizedText::ViewOn { name: "Etherscan".to_string() },
                     url: "https://etherscan.io/token/0xabc".to_string(),
                 }]),
             ]

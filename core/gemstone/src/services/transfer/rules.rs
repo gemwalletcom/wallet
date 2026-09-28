@@ -1,17 +1,17 @@
 use chrono::Utc;
 use num_bigint::BigInt;
+use primitives::OptionStringExt;
 use primitives::SwapProvider;
 use primitives::swap::{ApprovalData, SwapQuoteDataType};
 use primitives::{
-    AccountDataType, AddressName, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PaymentVerification, PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection,
+    AccountDataType, AddressName, Asset, AssetId, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PaymentVerification, PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection,
     TransactionInputType, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
     TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
 
 use super::model::{GemConfirmDestination, GemConfirmRow, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
-use crate::models::transaction::{GemTransactionLoadInput, transaction_metadata_block_number, transaction_metadata_sequence};
-use crate::services::amount::model::GemAmountError;
+use crate::models::transaction::{transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::assets::rules as asset_rules;
 use crate::services::balance::GemAssetBalance;
 use crate::services::transactions::GemTransactionHeaderKind;
@@ -36,10 +36,6 @@ pub(crate) trait TransferInput {
 
 #[uniffi::export]
 impl GemTransferData {
-    pub fn transaction_type(&self) -> TransactionType {
-        self.input_type.transaction_type()
-    }
-
     pub fn input_asset(&self) -> Asset {
         self.input_type.input_asset()
     }
@@ -61,19 +57,16 @@ impl GemTransferData {
 }
 
 impl GemTransferData {
+    pub fn transaction_type(&self) -> TransactionType {
+        self.input_type.transaction_type()
+    }
+
     pub fn header_kind(&self) -> GemTransactionHeaderKind {
         self.input_type.header_kind()
     }
 
     pub fn default_fee_priority(&self) -> FeePriority {
         self.input_type.default_fee_priority()
-    }
-}
-
-#[uniffi::export]
-impl GemTransactionLoadInput {
-    pub fn chain(&self) -> Chain {
-        self.input_type.transaction_asset().chain()
     }
 }
 
@@ -152,14 +145,7 @@ impl TransferInput for TransactionInputType {
         if let Self::Perpetual { perpetual_type, .. } = self {
             return perpetual_type.base_asset().clone();
         }
-        let asset = self.transaction_asset();
-        let chain = asset.chain();
-        match chain {
-            Chain::Tempo => asset,
-            Chain::HyperCore => asset_rules::default_asset(chain, AssetType::TOKEN).unwrap_or(asset),
-            _ if asset.id.is_token() => Asset::from_chain(chain),
-            _ => asset,
-        }
+        asset_rules::fee_asset(self.transaction_asset())
     }
 
     fn default_fee_priority(&self) -> FeePriority {
@@ -350,6 +336,13 @@ impl GemConfirmDestination {
         }
     }
 
+    pub fn shows_address_beside_name(&self) -> bool {
+        match self {
+            Self::Recipient { .. } | Self::Contract { .. } => true,
+            Self::Validator { .. } | Self::Provider { .. } | Self::Resource { .. } => false,
+        }
+    }
+
     pub fn name(&self) -> Option<String> {
         match self {
             Self::Recipient { name, .. } | Self::Contract { name, .. } => name.clone(),
@@ -359,7 +352,6 @@ impl GemConfirmDestination {
     }
 }
 
-#[uniffi::export]
 impl GemTransferData {
     pub fn destination(&self) -> Option<GemConfirmDestination> {
         let recipient = || {
@@ -403,10 +395,17 @@ impl GemTransferData {
                 };
                 Some(GemConfirmDestination::Provider {
                     name: provider.name.clone(),
-                    address: provider.id.clone(),
+                    address: self.recipient.address.clone(),
                 })
             }
-            TransactionInputType::Swap { .. } | TransactionInputType::Account { .. } | TransactionInputType::Perpetual { .. } => None,
+            TransactionInputType::Swap { swap_data, .. } => match swap_data.data.data_type {
+                SwapQuoteDataType::Contract => Some(GemConfirmDestination::Provider {
+                    name: swap_data.quote.provider_data.name.clone(),
+                    address: swap_data.data.to.clone(),
+                }),
+                SwapQuoteDataType::Transfer => None,
+            },
+            TransactionInputType::Account { .. } | TransactionInputType::Perpetual { .. } => None,
         }
     }
 }
@@ -491,10 +490,9 @@ impl GemTransferData {
         self.input_type.application_short_name()
     }
 
-    #[allow(clippy::result_large_err)]
-    pub(crate) fn available_value(&self, balance: &GemAssetBalance) -> Result<BigInt, GemAmountError> {
+    pub(crate) fn available_value(&self, balance: &GemAssetBalance) -> BigInt {
         let asset = self.input_type.get_asset();
-        Ok(match &self.input_type {
+        match &self.input_type {
             TransactionInputType::Withdrawal { .. } => BigInt::from(balance.withdrawable.clone()),
             TransactionInputType::Stake { stake_type, .. } => match stake_type {
                 StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
@@ -517,7 +515,7 @@ impl GemTransferData {
             | TransactionInputType::TransferNft { .. }
             | TransactionInputType::Account { .. }
             | TransactionInputType::Perpetual { .. } => BigInt::from(balance.available.clone()),
-        })
+        }
     }
 }
 
@@ -544,7 +542,7 @@ impl GemPendingTransactionInput {
                 let value = simulation_header.as_ref().and_then(|header| header.value.clone()).unwrap_or(transfer_value);
                 let memo = match &transfer.input_type {
                     TransactionInputType::Swap { .. } => None,
-                    _ => transfer.recipient.memo.clone().filter(|memo| !memo.is_empty()),
+                    _ => transfer.recipient.memo.clone().non_empty(),
                 };
                 (recipient, value, memo)
             }
@@ -556,7 +554,7 @@ impl GemPendingTransactionInput {
             .unwrap_or_else(|| transfer.input_type.transaction_asset().id);
         let direction = if self.sender == recipient { TransactionDirection::SelfTransfer } else { TransactionDirection::Outgoing };
         let contract = match (&transfer.input_type, &self.transaction_type) {
-            (TransactionInputType::Swap { swap_data, .. }, TransactionType::Swap) if swap_data.data.data_type == SwapQuoteDataType::Contract => Some(swap_data.data.to.clone()).filter(|contract| !contract.is_empty()),
+            (TransactionInputType::Swap { swap_data, .. }, TransactionType::Swap) if swap_data.data.data_type == SwapQuoteDataType::Contract => Some(swap_data.data.to.clone()).non_empty(),
             _ => None,
         };
         let metadata = match transfer.input_type {
@@ -618,7 +616,7 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{
-        Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, Resource, SwapProvider,
+        AssetType, Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, Resource, SwapProvider,
         TransactionType, TransferDataExtra,
         known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapQuote, SwapQuoteData},
@@ -927,7 +925,7 @@ mod tests {
         );
         let sent = GemTransferData::mock(TransactionInputType::Transfer { asset: eth.clone() });
         assert_eq!(sent.destination(), Some(GemConfirmDestination::Recipient { name: None, address: "recipient".into() }));
-        let mut unaddressed = sent.clone();
+        let mut unaddressed = sent;
         unaddressed.recipient.address = String::new();
         assert_eq!(unaddressed.destination(), None);
 
@@ -956,7 +954,7 @@ mod tests {
         assert_eq!(
             GemTransferData::mock(TransactionInputType::Stake {
                 asset: eth.clone(),
-                stake_type: StakeType::Rewards(vec![validator.clone(), validator.clone()]),
+                stake_type: StakeType::Rewards(vec![validator.clone(), validator]),
             })
             .destination(),
             None
@@ -976,6 +974,40 @@ mod tests {
             })
             .destination(),
             Some(GemConfirmDestination::Contract { name: None, address: "recipient".into() })
+        );
+
+        let swap = |swap_data: SwapData| {
+            GemTransferData::mock(TransactionInputType::Swap {
+                from_asset: eth.clone(),
+                to_asset: Asset::mock_erc20(),
+                swap_data,
+            })
+            .destination()
+        };
+        let contract = SwapData::mock();
+        assert_eq!(
+            swap(contract.clone()),
+            Some(GemConfirmDestination::Provider {
+                name: contract.quote.provider_data.name.clone(),
+                address: contract.data.to
+            }),
+            "a contract quote shows the router it calls"
+        );
+        assert_eq!(swap(SwapData::mock_transfer(SwapProvider::NearIntents, "1", "1", "deposit")), None, "a deposit address stays plain");
+
+        let provider = DelegationValidator::mock();
+        let data = ContractCallData {
+            contract_address: "0xvault".to_string(),
+            call_data: "0x".to_string(),
+            approval: None,
+            gas_limit: None,
+        };
+        assert_eq!(
+            earn_transfer_data(eth.clone(), EarnType::Deposit(provider.clone()), data, BigInt::from(1), false).destination(),
+            Some(GemConfirmDestination::Provider {
+                name: provider.name,
+                address: "0xvault".into()
+            })
         );
     }
 
@@ -1066,13 +1098,11 @@ mod tests {
         };
         assert_eq!(unfreeze.metadata().unwrap().unwrap()["resourceType"], "bandwidth");
         assert_eq!(
-            GemTransferData::mock(unfreeze)
-                .available_value(&GemAssetBalance {
-                    frozen: BigUint::from(20u64),
-                    locked: BigUint::from(30u64),
-                    ..GemAssetBalance::mock_with_available(10)
-                })
-                .unwrap(),
+            GemTransferData::mock(unfreeze).available_value(&GemAssetBalance {
+                frozen: BigUint::from(20u64),
+                locked: BigUint::from(30u64),
+                ..GemAssetBalance::mock_with_available(10)
+            }),
             BigInt::from(20)
         );
 
@@ -1080,7 +1110,7 @@ mod tests {
             asset: Asset::from_chain(Chain::Cosmos),
             stake_type: StakeType::Unstake(Delegation::mock_base(DelegationBase::mock_with_balance(700, 5))),
         };
-        assert_eq!(GemTransferData::mock(unstake).available_value(&GemAssetBalance::mock_with_available(10)).unwrap(), BigInt::from(700));
+        assert_eq!(GemTransferData::mock(unstake).available_value(&GemAssetBalance::mock_with_available(10)), BigInt::from(700));
         let rewards = TransactionInputType::Stake {
             asset: Asset::from_chain(Chain::Cosmos),
             stake_type: StakeType::Rewards(vec![]),
@@ -1090,8 +1120,7 @@ mod tests {
                 value: BigInt::from(42),
                 ..GemTransferData::mock(rewards)
             }
-            .available_value(&GemAssetBalance::mock_with_available(10))
-            .unwrap(),
+            .available_value(&GemAssetBalance::mock_with_available(10)),
             BigInt::from(42)
         );
         let tron_stake = TransactionInputType::Stake {
@@ -1099,16 +1128,14 @@ mod tests {
             stake_type: StakeType::Stake(Delegation::mock_base(DelegationBase::mock_with_balance(0, 5)).validator),
         };
         assert_eq!(
-            GemTransferData::mock(tron_stake)
-                .available_value(&GemAssetBalance {
-                    metadata: Some(BalanceMetadata { votes: 2, ..BalanceMetadata::default() }),
-                    ..GemAssetBalance {
-                        frozen: BigUint::from(5000000u64),
-                        locked: BigUint::from(3000000u64),
-                        ..GemAssetBalance::mock_with_available(1)
-                    }
-                })
-                .unwrap(),
+            GemTransferData::mock(tron_stake).available_value(&GemAssetBalance {
+                metadata: Some(BalanceMetadata { votes: 2, ..BalanceMetadata::default() }),
+                ..GemAssetBalance {
+                    frozen: BigUint::from(5000000u64),
+                    locked: BigUint::from(3000000u64),
+                    ..GemAssetBalance::mock_with_available(1)
+                }
+            }),
             BigInt::from(6_000_000)
         );
         let overvoted = TransactionInputType::Stake {
@@ -1116,26 +1143,22 @@ mod tests {
             stake_type: StakeType::Stake(Delegation::mock_base(DelegationBase::mock_with_balance(0, 5)).validator),
         };
         assert_eq!(
-            GemTransferData::mock(overvoted)
-                .available_value(&GemAssetBalance {
-                    metadata: Some(BalanceMetadata { votes: 9, ..BalanceMetadata::default() }),
-                    ..GemAssetBalance {
-                        frozen: BigUint::from(5000000u64),
-                        locked: BigUint::from(3000000u64),
-                        ..GemAssetBalance::mock_with_available(1)
-                    }
-                })
-                .unwrap(),
+            GemTransferData::mock(overvoted).available_value(&GemAssetBalance {
+                metadata: Some(BalanceMetadata { votes: 9, ..BalanceMetadata::default() }),
+                ..GemAssetBalance {
+                    frozen: BigUint::from(5000000u64),
+                    locked: BigUint::from(3000000u64),
+                    ..GemAssetBalance::mock_with_available(1)
+                }
+            }),
             BigInt::from(0)
         );
         let withdrawal = TransactionInputType::Withdrawal { asset: Asset::from_chain(Chain::HyperCore) };
         assert_eq!(
-            GemTransferData::mock(withdrawal)
-                .available_value(&GemAssetBalance {
-                    withdrawable: BigUint::from(9u32),
-                    ..GemAssetBalance::mock_with_available(10)
-                })
-                .unwrap(),
+            GemTransferData::mock(withdrawal).available_value(&GemAssetBalance {
+                withdrawable: BigUint::from(9u32),
+                ..GemAssetBalance::mock_with_available(10)
+            }),
             BigInt::from(9)
         );
     }
@@ -1257,7 +1280,7 @@ mod tests {
                 },
             },
         };
-        assert!(GemPendingTransactionInput::mock(hypercore_swap.clone(), TransactionType::Swap, "0xhash", 0, 2).pending_transaction().unwrap().is_some());
+        assert!(GemPendingTransactionInput::mock(hypercore_swap, TransactionType::Swap, "0xhash", 0, 2).pending_transaction().unwrap().is_some());
         let hypercore_stake = TransactionInputType::Stake {
             asset: Asset::from_chain(Chain::HyperCore),
             stake_type: StakeType::Rewards(vec![]),

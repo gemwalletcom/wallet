@@ -21,7 +21,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemConnectionService
 import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WebSocketConnectionTest {
@@ -37,7 +36,7 @@ class WebSocketConnectionTest {
         val client = mockk<OkHttpClient>()
         val builder = mockk<OkHttpClient.Builder>()
         every { client.newBuilder() } returns builder
-        every { builder.pingInterval(any<Long>(), any<TimeUnit>()) } returns builder
+        every { builder.pingInterval(any<java.time.Duration>()) } returns builder
         every { builder.build() } returns client
         every { client.newWebSocket(any(), capture(listeners)) } answers { sockets[listeners.lastIndex] }
         val connection = WebSocketConnection(
@@ -82,7 +81,7 @@ class WebSocketConnectionTest {
         val client = mockk<OkHttpClient>()
         val builder = mockk<OkHttpClient.Builder>()
         every { client.newBuilder() } returns builder
-        every { builder.pingInterval(any<Long>(), any<TimeUnit>()) } returns builder
+        every { builder.pingInterval(any<java.time.Duration>()) } returns builder
         every { builder.build() } returns client
         every { client.newWebSocket(any(), capture(listeners)) } answers { sockets[listeners.lastIndex] }
         val connection = WebSocketConnection(

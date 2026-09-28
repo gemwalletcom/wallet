@@ -368,7 +368,7 @@ impl Services {
         let database = self.database();
         let cacher = self.cacher().await?;
         let enabled_providers: Vec<PriceProvider> = database
-            .run(|client| client.get_prices_providers())
+            .run(PricesProvidersRepository::get_prices_providers)
             .await?
             .into_iter()
             .filter(|provider| provider.enabled)

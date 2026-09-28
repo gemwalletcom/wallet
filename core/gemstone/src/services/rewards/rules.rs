@@ -1,17 +1,19 @@
 use crate::duration_formatter::countdown_parts;
 use crate::precision::GemValueStyle;
+use crate::services::assets::icon::asset_icon;
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
+use primitives::OptionStringExt;
 use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards, Wallet};
 
-use super::model::{GemIncomingCode, GemRewardsAction, GemRewardsRedemption, GemRewardsState};
+use super::model::{GemIncomingCode, GemRewardsInviteAction, GemRewardsPendingReferral, GemRewardsRedemption, GemRewardsState};
 use crate::config::rewards::get_referral_url;
 use crate::formatted_number::{GemFormattedNumber, GemNumberUnit};
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind};
 use crate::services::localization::GemLocalizedText;
 
 pub fn incoming_code(code: Option<&str>, wallets: &[Wallet]) -> Option<GemIncomingCode> {
-    let code = code.map(str::trim).filter(|code| !code.is_empty())?.to_string();
+    let code = code.map(str::trim).non_empty()?.to_string();
     match wallets {
         [] => None,
         [_] => Some(GemIncomingCode::Activate { code }),
@@ -22,7 +24,7 @@ pub fn incoming_code(code: Option<&str>, wallets: &[Wallet]) -> Option<GemIncomi
 pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let Some(rewards) = rewards else {
         return GemRewardsState {
-            invite_reward_points: points_number(Rewards::default().invite_reward_points),
+            invite_description: invite_description(Rewards::default().invite_reward_points),
             ..GemRewardsState::default()
         };
     };
@@ -31,12 +33,18 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let has_pending_referral = has_used_referral_code && rewards.verify_after.is_some();
     let can_activate_pending_referral = has_pending_referral && rewards.verify_after.is_some_and(|verify_after| now >= verify_after);
     let is_unverified = has_referral_code && rewards.status == RewardStatus::Unverified && !has_pending_referral;
-    let referral_code = rewards.code.clone().filter(|code| !code.is_empty());
+    let referral_code = rewards.code.clone().non_empty();
     let can_invite = has_referral_code && matches!(rewards.status, RewardStatus::Verified | RewardStatus::Trusted | RewardStatus::Attribution);
-    let used_referral_code = rewards.used_referral_code.clone().filter(|code| !code.is_empty());
+    let used_referral_code = rewards.used_referral_code.clone().non_empty();
     let pending_code = (has_pending_referral && !is_unverified).then(|| used_referral_code.clone()).flatten();
+    let can_use_referral_code = !has_referral_code && !has_used_referral_code && rewards.use_referral_code_until.is_none_or(|until| now < until);
     GemRewardsState {
-        actions: actions(has_referral_code, can_invite, !has_referral_code && !has_used_referral_code, pending_code, can_activate_pending_referral),
+        invite_action: invite_action(has_referral_code, can_invite),
+        can_use_referral_code,
+        pending_referral: pending_code.map(|code| GemRewardsPendingReferral {
+            code,
+            is_enabled: can_activate_pending_referral,
+        }),
         error_notice: rewards.disable_reason.clone().map(|reason| GemListRow::Notice {
             title: GemListRowTitle::Error,
             message: Some(GemLocalizedText::Text { text: reason }),
@@ -47,24 +55,26 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
             has_referral_code || has_used_referral_code,
             info_rows(referral_code.as_deref(), rewards.referral_count, rewards.points, rewards.used_referral_code.as_deref()),
         ),
-        invite_reward_points: points_number(rewards.invite_reward_points),
+        invite_description: invite_description(rewards.invite_reward_points),
         referral_code: referral_code.clone(),
         referral_link: referral_code.as_deref().map(get_referral_url),
+        share_text: referral_code.as_deref().map(|code| GemLocalizedText::RewardsShareText { link: get_referral_url(code) }),
         used_referral_code,
         redemptions: redemptions(rewards),
+        ..GemRewardsState::default()
     }
 }
 
-fn actions(has_referral_code: bool, can_invite: bool, can_use_referral_code: bool, pending_code: Option<String>, can_activate_pending: bool) -> Vec<GemRewardsAction> {
-    [
-        (!has_referral_code).then_some(GemRewardsAction::CreateCode),
-        can_invite.then_some(GemRewardsAction::Share),
-        can_use_referral_code.then_some(GemRewardsAction::UseReferralCode),
-        pending_code.map(|code| GemRewardsAction::ActivatePendingReferral { code, is_enabled: can_activate_pending }),
-    ]
-    .into_iter()
-    .flatten()
-    .collect()
+fn invite_description(points: i32) -> GemLocalizedText {
+    GemLocalizedText::RewardsInviteDescription { points: points_number(points) }
+}
+
+fn invite_action(has_referral_code: bool, can_invite: bool) -> Option<GemRewardsInviteAction> {
+    match (has_referral_code, can_invite) {
+        (false, _) => Some(GemRewardsInviteAction::CreateCode),
+        (true, true) => Some(GemRewardsInviteAction::Share),
+        (true, false) => None,
+    }
 }
 
 fn sections(shows_info: bool, info_rows: Vec<GemListRow>) -> Vec<GemListSection> {
@@ -118,11 +128,17 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
             let asset = option.asset.as_ref()?;
             let value = BigNumberFormatter::f64_value(&option.value, asset.decimals as u32);
             let value = GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Short);
+            let points = points_number(option.points);
             Some(GemRewardsRedemption {
                 id: option.id.clone(),
                 asset_id: asset.id.clone(),
+                icon: asset_icon(&asset.id),
                 title: GemLocalizedText::RewardsRedeemAsset { value: value.clone() },
-                points: points_number(option.points),
+                confirmation: GemLocalizedText::RewardsConfirmRedeem {
+                    value: value.clone(),
+                    points: points.clone(),
+                },
+                points,
                 value,
                 can_redeem: can_redeem(rewards, option),
             })
@@ -132,7 +148,7 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
 
 fn info_rows(referral_code: Option<&str>, referral_count: i32, points: i32, used_referral_code: Option<&str>) -> Vec<GemListRow> {
     let text = |title: GemListRowTitle, value: &str| GemListRow::Text { title, value: value.to_string() };
-    let optional = |title: GemListRowTitle, value: Option<&str>| value.filter(|value| !value.is_empty()).map(|value| text(title, value));
+    let optional = |title: GemListRowTitle, value: Option<&str>| value.non_empty().map(|value| text(title, value));
     let amount = |title: GemListRowTitle, amount: GemFormattedNumber| GemListRow::Amount { title, amount, info: None };
     [
         optional(GemListRowTitle::MyReferralCode, referral_code),
@@ -161,10 +177,7 @@ mod tests {
     }
 
     fn pending_activation(state: &GemRewardsState) -> Option<bool> {
-        state.actions.iter().find_map(|action| match action {
-            GemRewardsAction::ActivatePendingReferral { is_enabled, .. } => Some(*is_enabled),
-            _ => None,
-        })
+        state.pending_referral.as_ref().map(|referral| referral.is_enabled)
     }
     #[test]
     fn test_the_info_rows_hold_every_value_the_screen_shows_and_skip_the_absent_ones() {
@@ -219,6 +232,7 @@ mod tests {
         let with_code = super::state(Some(&rewards), Utc::now());
         assert_eq!(with_code.referral_code.as_deref(), Some("abc123"));
         assert_eq!(with_code.referral_link, Some(get_referral_url("abc123")));
+        assert_eq!(with_code.share_text, Some(GemLocalizedText::RewardsShareText { link: get_referral_url("abc123") }), "the invite shares the link");
 
         let without_code = super::state(Some(&Rewards::default()), Utc::now());
         assert_eq!(without_code.referral_code, None);
@@ -307,6 +321,14 @@ mod tests {
             redemptions.iter().all(|redemption| redemption.title == GemLocalizedText::RewardsRedeemAsset { value: redemption.value.clone() }),
             "the row title names the value it pays out"
         );
+        assert!(
+            redemptions.iter().all(|redemption| redemption.confirmation
+                == GemLocalizedText::RewardsConfirmRedeem {
+                    value: redemption.value.clone(),
+                    points: redemption.points.clone(),
+                }),
+            "the confirmation names what it pays out and what it costs"
+        );
     }
 
     #[test]
@@ -316,7 +338,7 @@ mod tests {
         assert_eq!(
             state,
             GemRewardsState {
-                invite_reward_points: points_number(100),
+                invite_description: invite_description(100),
                 ..GemRewardsState::default()
             },
             "a wallet whose rewards failed to load still reads the invite pitch"
@@ -349,7 +371,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![(GemListRowTitle::Referrals, 5.0), (GemListRowTitle::Points, 250.0)]
         );
-        assert_eq!(state.invite_reward_points.value, 150.0);
+        assert_eq!(state.invite_description, GemLocalizedText::RewardsInviteDescription { points: points_number(150) });
         assert_eq!(
             state.error_notice,
             Some(GemListRow::Notice {
@@ -372,21 +394,37 @@ mod tests {
     fn test_state_without_a_code_lets_the_wallet_start_or_use_a_code() {
         let state = state(Some(&Rewards::mock(Some(""), RewardStatus::Unverified)), now());
 
-        assert_eq!(state.actions, vec![GemRewardsAction::CreateCode, GemRewardsAction::UseReferralCode]);
+        assert_eq!((state.invite_action, state.can_use_referral_code), (Some(GemRewardsInviteAction::CreateCode), true));
         assert!(state.sections.is_empty(), "a wallet with nothing to show has no info section");
         assert_eq!(state.status_notice, None);
+    }
+
+    #[test]
+    fn test_state_offers_a_code_only_while_the_device_and_wallet_are_eligible() {
+        let eligible = Rewards {
+            use_referral_code_until: Some(now() + TimeDelta::days(1)),
+            ..Rewards::mock(Some(""), RewardStatus::Unverified)
+        };
+        assert!(state(Some(&eligible), now()).can_use_referral_code);
+
+        let expired = Rewards {
+            use_referral_code_until: Some(now()),
+            ..eligible
+        };
+        let expired = state(Some(&expired), now());
+        assert_eq!((expired.invite_action, expired.can_use_referral_code), (Some(GemRewardsInviteAction::CreateCode), false));
     }
 
     #[test]
     fn test_state_invites_only_from_a_verified_trusted_or_attribution_code() {
         for status in [RewardStatus::Verified, RewardStatus::Trusted, RewardStatus::Attribution] {
             let state = state(Some(&Rewards::mock(Some("gem"), status)), now());
-            assert_eq!(state.actions, vec![GemRewardsAction::Share], "{status:?}");
+            assert_eq!((state.invite_action, state.can_use_referral_code), (Some(GemRewardsInviteAction::Share), false), "{status:?}");
             assert_eq!(state.sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::Info]);
             assert_eq!(state.status_notice, None);
         }
         for status in [RewardStatus::Unverified, RewardStatus::Pending, RewardStatus::Disabled] {
-            assert!(!state(Some(&Rewards::mock(Some("gem"), status)), now()).actions.contains(&GemRewardsAction::Share), "{status:?}");
+            assert_eq!(state(Some(&Rewards::mock(Some("gem"), status)), now()).invite_action, None, "{status:?}");
         }
     }
 
@@ -423,7 +461,7 @@ mod tests {
         let waiting = state(Some(&Rewards::mock_pending(now() + TimeDelta::hours(1))), now());
         assert_eq!(pending_activation(&waiting), Some(false), "the button waits in place while the countdown runs");
         assert_eq!(waiting.sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::Info]);
-        assert!(!waiting.actions.contains(&GemRewardsAction::UseReferralCode));
+        assert!(!waiting.can_use_referral_code);
 
         let ready = state(Some(&Rewards::mock_pending(now())), now());
         assert_eq!(pending_activation(&ready), Some(true));

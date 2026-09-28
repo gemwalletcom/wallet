@@ -33,6 +33,6 @@ impl NameResolver for InjectiveProvider {
     }
 
     async fn resolve(&self, query: &NameQuery, _chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        Ok(Some(self.client.get_record(&query.domain).await?.address))
+        Ok(self.client.get_record(&query.domain).await?.address)
     }
 }

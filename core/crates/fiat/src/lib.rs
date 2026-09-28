@@ -63,7 +63,7 @@ impl FiatProviderFactory {
             settings.fiat.paybis.key.secret.clone(),
         );
         let flashnet = FlashnetClient::new(
-            ReqwestClient::new(settings.fiat.flashnet.url.clone(), request_client.clone()),
+            ReqwestClient::new(settings.fiat.flashnet.url.clone(), request_client),
             settings.fiat.flashnet.key.secret.clone(),
             settings.fiat.flashnet.key.public.clone(),
             settings.fiat.flashnet.webhook.key.secret.clone(),

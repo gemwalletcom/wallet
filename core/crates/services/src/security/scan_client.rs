@@ -204,17 +204,12 @@ impl ScanClient {
                 ScanType::Asset => has_token_assets,
             })
             .collect::<Vec<_>>();
-        let scan_types = format!("|{}|", scan_types.iter().map(|scan_type| scan_type.as_ref()).collect::<Vec<_>>().join("|"));
+        let scan_types = format!("|{}|", scan_types.iter().map(AsRef::as_ref).collect::<Vec<_>>().join("|"));
         let providers = ScanProvider::all()
             .into_iter()
             .filter(|provider| result.checks.iter().any(|check| check.provider == *provider) || result.detections.iter().any(|detection| detection.provider == Some(*provider)))
             .collect::<Vec<_>>();
-        let scan_providers = (result.source == ScanSource::Local)
-            .then_some("internal")
-            .into_iter()
-            .chain(providers.iter().map(|provider| provider.as_ref()))
-            .collect::<Vec<_>>()
-            .join("|");
+        let scan_providers = (result.source == ScanSource::Local).then_some("internal").into_iter().chain(providers.iter().map(AsRef::as_ref)).collect::<Vec<_>>().join("|");
         let scan_providers = format!("|{scan_providers}|");
         let website_host = website_host(payload);
         let target = if payload.target.address.is_empty() {

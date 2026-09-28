@@ -90,7 +90,7 @@ where
             body: None,
         };
 
-        let response = self.provider.request(target).await.map_err(|e| e.into_client_error())?;
+        let response = self.provider.request(target).await.map_err(RpcClientError::into_client_error)?;
         deserialize_response(&response)
     }
 
@@ -104,7 +104,7 @@ where
             headers: None,
             body: None,
         };
-        let response = self.provider.request(target).await.map_err(|e| e.into_client_error())?;
+        let response = self.provider.request(target).await.map_err(RpcClientError::into_client_error)?;
         deserialize_response(&response)
     }
 
@@ -144,7 +144,7 @@ where
             body: Some(data),
         };
 
-        let response = self.provider.request(target).await.map_err(|e| e.into_client_error())?;
+        let response = self.provider.request(target).await.map_err(RpcClientError::into_client_error)?;
         deserialize_response(&response)
     }
 }

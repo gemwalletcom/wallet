@@ -48,7 +48,6 @@ common_learn_more = Jifunze Zaidi
 common_description = Maelezo
 common_emoji = Emoji
 common_avatar = Avatar
-common_save = Hifadhi
 common_percentage = Asilimia
 common_details = Maelezo
 common_info = Habari
@@ -58,6 +57,7 @@ common_method = Mbinu
 common_token = Tokeni
 common_expiration = Muda wa kuisha
 common_suspicious_address = Anwani ya kutiliwa shaka
+common_suspicious_address_description = Anwani hii inahusishwa na shughuli za kutiliwa shaka au hatari.
 common_refresh = Onyesha upya
 common_grant_permission = Toa ruhusa
 common_required_field = %@ inahitajika
@@ -115,11 +115,9 @@ wallet_import_already_imported_message = Pochi hii tayari imeingizwa.
 # Wallets
 
 wallets_title = Pochi
-wallets_watch = Tazama
 
 # Receive
 
-receive_title = Pokea %@
 receive_warning = Hii ni anwani yako — tuma pekee %@ kwenye %@ mtandao.
 
 # Buy
@@ -189,7 +187,6 @@ settings_enable_passcode = Washa Nambari ya siri
 settings_security_authentication = Uthibitishaji
 settings_notifications_title = Arifa
 settings_language = Lugha
-settings_help_center = Kituo cha Usaidizi
 settings_support = Msaada
 settings_price_alerts_title = Tahadhari za Bei
 settings_hide_balance = Ficha Salio
@@ -241,6 +238,12 @@ errors_swap_no_quote_available = Hakuna nukuu inayopatikana.
 errors_swap_not_supported_asset = Kipengee hakitumiki.
 errors_connections_no_supported_wallets = Hakuna pochi zinazotumika zinazopatikana.
 errors_connections_unsupported_chain = Msururu uliotolewa hautumiki.
+errors_authentication_unavailable = Uthibitishaji haujawekwa kwenye kifaa hiki. Washa bayometriki au nambari ya siri kwenye mipangilio ya kifaa.
+errors_authentication_locked_out = Majaribio mengi mno yameshindwa. Tafadhali jaribu tena baadaye.
+errors_authentication_failed = Uthibitishaji umeshindwa. Tafadhali jaribu tena.
+errors_connections_expired = Kiungo hiki cha muunganisho kimeisha muda. Pata msimbo mpya wa QR na ujaribu tena.
+errors_connections_not_found = Muunganisho huu haupo tena.
+errors_connections_relay_unavailable = Imeshindwa kufikia WalletConnect. Angalia muunganisho wako wa intaneti na ujaribu tena.
 errors_swap_amount_too_small = Kiasi kidogo sana
 errors_scan_transaction_malicious_description = Muamala huu hauwezi kukamilika - anwani ya pochi lengwa imeunganishwa na shughuli za kutiliwa shaka au hatari.
 errors_scan_transaction_memo_required = %@ anwani ya mkoba lengwa inahitaji lebo/memo lengwa
@@ -322,7 +325,6 @@ asset_verification_warning_message = Mtu yeyote anaweza kuunda moja - ikiwa ni p
 asset_buy_asset = Nunua %@
 asset_get_asset = Pata %@
 asset_add_to_wallet = Ongeza kwenye mkoba
-asset_hide_from_wallet = Ficha kutoka kwa mkoba
 asset_added_to_wallet = Imeongezwa kwenye mkoba
 asset_hidden_from_wallet = Imefichwa kutoka kwa mkoba
 asset_resources = Rasilimali
@@ -349,6 +351,7 @@ charts_price_change = Mabadiliko
 
 date_today = Leo
 date_yesterday = Jana
+date_day_time = %@, %@
 
 # Wallet Connect
 
@@ -471,7 +474,6 @@ fee_rates_normal = Kawaida
 # Fee Rate
 
 fee_rate_satvB = sat/vB
-fee_rate_satB = %@ sat/B
 fee_rate_gwei = gwei
 fee_rate_custom = Maalum
 
@@ -511,7 +513,10 @@ price_alerts_set_alert_price_increases_by = Wakati bei inaongezeka kwa
 price_alerts_set_alert_price_decreases_by = Wakati bei inapungua kwa
 price_alerts_set_alert_set_target_price = Weka bei inayolengwa
 price_alerts_set_alert_current_price = Bei ya sasa
-price_alerts_added_for = Weka arifa ya bei %@
+price_alerts_added_price_over = Arifa imeongezwa kwa bei iliyo juu ya %@
+price_alerts_added_price_under = Arifa imeongezwa kwa bei iliyo chini ya %@
+price_alerts_added_increases_by = Arifa imeongezwa kwa ongezeko la bei la %@
+price_alerts_added_decreases_by = Arifa imeongezwa kwa kushuka kwa bei kwa %@
 price_alerts_state_empty_title = Arifa zako zitaonekana hapa
 price_alerts_state_empty_description = Wawezeshe kwa kuongeza sarafu ili kufuatilia
 price_alerts_auto_footer = Arifa hutumwa kunapokuwa na mabadiliko makubwa ya bei.
@@ -616,8 +621,6 @@ permissions_image_photo_access_denied_description = Programu hii haina ruhusa ya
 
 # Markets
 
-markets_title = Masoko
-markets_state_empty_title = Data yako ya masoko itaonekana hapa
 markets_daily_volume = Kiasi cha 24h
 
 # Search

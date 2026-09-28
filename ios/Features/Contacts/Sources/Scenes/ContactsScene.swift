@@ -6,16 +6,16 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-public struct ContactsScene: View {
+struct ContactsScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var model: ContactsViewModel
+    @State private var model: ContactsSceneViewModel
 
-    public init(model: ContactsViewModel) {
+    init(model: ContactsSceneViewModel) {
         _model = State(initialValue: model)
     }
 
-    public var body: some View {
+    var body: some View {
         List {
             ForEach(model.items, id: \.contact.id) { contact, listItem in
                 let item = ListItemView(model: listItem)

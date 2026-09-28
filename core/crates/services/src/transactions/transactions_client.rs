@@ -85,7 +85,7 @@ fn transactions_response(client: &mut impl ScanAddressesRepository, transactions
     let transactions = transactions.into_iter().map(|transaction| transaction.finalize(addresses.clone())).collect::<Vec<_>>();
 
     let address_names = client
-        .get_scan_addresses_by_addresses(transactions.iter().flat_map(|transaction| transaction.addresses()).collect())?
+        .get_scan_addresses_by_addresses(transactions.iter().flat_map(Transaction::addresses).collect())?
         .into_iter()
         .filter_map(|scan_address| scan_address.address_name())
         .collect();

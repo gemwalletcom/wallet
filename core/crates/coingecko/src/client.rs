@@ -16,7 +16,7 @@ use crate::target::CoinGeckoTarget;
 
 pub const MAX_MARKETS_PER_PAGE: usize = 250;
 const COINGECKO_API_HEADER_KEY: &str = "x-cg-pro-api-key";
-const USER_AGENT_VALUE: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
+pub const USER_AGENT_VALUE: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 
 #[derive(Debug, Clone)]
 pub struct CoinGeckoClient<C: Client> {
@@ -218,7 +218,7 @@ mod tests {
 
     use super::*;
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn test_get_coin_list_retries_transient_errors() {
         for response in [
             Err(ClientError::Network("connection interrupted".into())),

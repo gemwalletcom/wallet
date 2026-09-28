@@ -1,4 +1,4 @@
-use num_bigint::BigUint;
+use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
 use serde::{Deserialize, Serialize, de};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_u64_from_str};
@@ -13,6 +13,14 @@ where
 {
     let amount = String::deserialize(deserializer)?;
     BigNumberFormatter::value_from_amount_biguint(&amount, XRP_DEFAULT_ASSET_DECIMALS).map_err(de::Error::custom)
+}
+
+fn deserialize_balance<'de, D>(deserializer: D) -> Result<BigInt, D::Error>
+where
+    D: de::Deserializer<'de>,
+{
+    let amount = String::deserialize(deserializer)?;
+    BigNumberFormatter::value_from_amount(&amount, XRP_DEFAULT_ASSET_DECIMALS).map_err(de::Error::custom)?.parse().map_err(de::Error::custom)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,7 +62,8 @@ pub struct AccountObject {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Balance {
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_balance")]
+    pub value: BigInt,
 }
 
 impl AccountObjectLimit {
@@ -215,6 +224,11 @@ pub struct AccountInfo {
 pub struct AccountInfoResult {
     pub account_data: Option<AccountInfo>,
     pub ledger_current_index: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidatedAccountInfoResult {
+    pub account_data: Option<AccountInfo>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

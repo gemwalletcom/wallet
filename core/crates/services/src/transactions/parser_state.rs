@@ -39,6 +39,6 @@ impl Services {
     }
 
     pub async fn parser_chains(&self) -> Result<Vec<Chain>, Box<dyn Error + Send + Sync>> {
-        Ok(self.database().run(|client| client.get_parser_states()).await?.into_iter().map(|state| state.chain).collect())
+        Ok(self.database().run(ParserStateRepository::get_parser_states).await?.into_iter().map(|state| state.chain).collect())
     }
 }

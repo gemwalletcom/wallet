@@ -15,5 +15,3 @@ class Crypto(val atomicValue: BigInteger) {
 
     fun value(decimals: Int): BigDecimal = atomicValue.toBigDecimal().divide(BigDecimal.TEN.pow(decimals), MathContext.DECIMAL128)
 }
-
-class Fiat(val atomicValue: BigDecimal)

@@ -7,6 +7,7 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -31,6 +32,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemConnectionServiceInterface
+import uniffi.gemstone.GemReconnection
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStreamEvent
 import uniffi.gemstone.GemStreamServiceInterface
@@ -92,7 +94,7 @@ class StreamObserverServiceTest {
         observer().start()
         runCurrent()
 
-        sessions.value = mockSession(wallet = mockWallet(id = "wallet-2"))
+        sessions.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
         runCurrent()
 
         assertEquals(1, connection.connectCount)
@@ -155,7 +157,7 @@ class StreamObserverServiceTest {
 
         subject.stop()
         runCurrent()
-        sessions.value = mockSession(wallet = mockWallet(id = "wallet-2"))
+        sessions.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
         runCurrent()
 
         assertEquals(1, connection.connectCount)
@@ -310,7 +312,7 @@ class StreamObserverServiceTest {
     }
 
     private val connectionService = mockk<GemConnectionServiceInterface> {
-        every { reconnectDelayMilliseconds(any()) } returns 1_000uL
+        every { reconnection(any(), any()) } returns GemReconnection(nextAttempt = 1u, delay = Duration.ofSeconds(1))
     }
 
     @Test

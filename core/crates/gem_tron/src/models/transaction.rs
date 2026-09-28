@@ -2,6 +2,7 @@ use crate::address::TronAddress;
 use crate::address::serializer::deserialize as tron_address_deserialize;
 use crate::address::serializer::optional as tron_address_optional;
 use crate::models::TronContractType;
+use primitives::OptionStringExt;
 use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -136,7 +137,7 @@ where
     D: Deserializer<'de>,
 {
     let value = Option::<String>::deserialize(deserializer)?;
-    Ok(value.filter(|token_id| !token_id.is_empty()))
+    Ok(value.non_empty())
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

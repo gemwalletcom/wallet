@@ -1,6 +1,6 @@
 use crate::{
     jsonrpc::NearRpc,
-    models::{Account, AccountAccessKey, Block, BroadcastResult, GasPrice, NodeStatus, ProtocolConfig},
+    models::{Account, AccountAccessKey, AccountAccessKeyList, Block, BroadcastResult, GasPrice, NodeStatus, ProtocolConfig},
 };
 use gem_client::Client;
 use gem_encoding::encode_base64;
@@ -8,6 +8,8 @@ use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
 use primitives::Chain;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::error::Error;
+
+const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = -32000;
 
 #[derive(Deserialize)]
 struct ContractCallResult {
@@ -27,6 +29,14 @@ impl<C: Client + Clone> NearClient<C> {
 
     pub async fn get_account(&self, address: &str) -> Result<Account, JsonRpcError> {
         self.client.request(NearRpc::GetAccount { account_id: address.to_string() }).await
+    }
+
+    pub async fn account_exists(&self, address: &str) -> Result<bool, JsonRpcError> {
+        match self.get_account(address).await {
+            Ok(_) => Ok(true),
+            Err(error) if is_account_missing(&error) => Ok(false),
+            Err(error) => Err(error),
+        }
     }
 
     pub async fn call_function<T: Serialize, R: DeserializeOwned>(&self, contract_id: &str, method_name: &str, args: &T) -> Result<R, Box<dyn Error + Sync + Send>> {
@@ -49,6 +59,10 @@ impl<C: Client + Clone> NearClient<C> {
                 public_key: public_key.to_string(),
             })
             .await
+    }
+
+    pub async fn get_account_access_keys(&self, address: &str) -> Result<AccountAccessKeyList, JsonRpcError> {
+        self.client.request(NearRpc::GetAccountAccessKeys { address: address.to_string() }).await
     }
 
     pub async fn get_latest_block(&self) -> Result<Block, JsonRpcError> {
@@ -83,4 +97,8 @@ impl<C: Client + Clone> NearClient<C> {
             })
             .await
     }
+}
+
+pub(crate) fn is_account_missing(error: &JsonRpcError) -> bool {
+    error.code == ACCOUNT_NOT_FOUND_ERROR_CODE
 }

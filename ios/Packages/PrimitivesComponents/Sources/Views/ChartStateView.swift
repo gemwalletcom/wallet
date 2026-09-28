@@ -6,14 +6,14 @@ import Primitives
 import Style
 import SwiftUI
 
-public struct ChartStateView<Model: ChartListViewable>: View {
+struct ChartStateView<Model: ChartListViewable>: View {
     @Bindable private var model: Model
 
-    public init(model: Model) {
+    init(model: Model) {
         self.model = model
     }
 
-    public var body: some View {
+    var body: some View {
         VStack {
             VStack {
                 switch model.chartState {
@@ -22,7 +22,7 @@ public struct ChartStateView<Model: ChartListViewable>: View {
                 case .loading:
                     LoadingView()
                 case let .data(chart):
-                    ChartView(model: chart, isPinching: $model.isPinching, onZoom: model.onZoom)
+                    ChartView(chart: chart, isPinching: $model.isPinching, onZoom: model.onZoom)
                 case let .error(error):
                     StateEmptyView(
                         title: error.networkOrNoDataDescription,

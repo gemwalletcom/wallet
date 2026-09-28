@@ -11,7 +11,6 @@ import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemSecurityService
 import uniffi.gemstone.GemSecurityServiceInterface
-import uniffi.gemstone.GemSimulationFormatter
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Singleton
 
@@ -34,10 +33,6 @@ object RulesModule {
     @Provides
     @Singleton
     fun provideGemSecurityService(): GemSecurityService = GemSecurityService()
-
-    @Provides
-    @Singleton
-    fun provideGemSimulationFormatter(): GemSimulationFormatter = GemSimulationFormatter()
 
     @Provides
     @Singleton

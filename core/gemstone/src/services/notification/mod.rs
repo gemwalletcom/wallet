@@ -56,7 +56,7 @@ impl GemNotificationService {
     }
 
     async fn sync(&self, wallet_id: WalletId, from_timestamp: u64) -> Result<(), GemServiceError> {
-        let started_at = unix_seconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let started_at = unix_seconds().map_err(GemServiceError::core)?;
         let notifications = self.api.client.get_notifications(from_timestamp).await.map_err(GemApiError::from)?;
         self.store.save_notifications(notifications).await?;
         self.preferences.set_notifications_timestamp(wallet_id, started_at)

@@ -85,28 +85,28 @@ pub fn map_transaction(cosmos_chain: CosmosChain, transaction: TransactionRespon
             to_address = message.to_address;
         }
         Message::MsgDelegate(message) => {
-            asset_id = native_asset_id.clone();
+            asset_id = native_asset_id;
             transaction_type = TransactionType::StakeDelegate;
             value = BigUint::try_from(message.amount?.amount).ok()?;
             from_address = message.delegator_address;
             to_address = message.validator_address;
         }
         Message::MsgUndelegate(message) => {
-            asset_id = native_asset_id.clone();
+            asset_id = native_asset_id;
             transaction_type = TransactionType::StakeUndelegate;
             value = BigUint::try_from(message.amount?.amount).ok()?;
             from_address = message.delegator_address;
             to_address = message.validator_address;
         }
         Message::MsgBeginRedelegate(message) => {
-            asset_id = native_asset_id.clone();
+            asset_id = native_asset_id;
             transaction_type = TransactionType::StakeRedelegate;
             value = BigUint::try_from(message.amount?.amount).ok()?;
             from_address = message.delegator_address;
             to_address = message.validator_dst_address;
         }
         Message::MsgWithdrawDelegatorReward(message) => {
-            asset_id = native_asset_id.clone();
+            asset_id = native_asset_id;
             value = tx_response.get_rewards_value(&default_denom)?;
             transaction_type = TransactionType::StakeRewards;
             from_address = message.delegator_address;

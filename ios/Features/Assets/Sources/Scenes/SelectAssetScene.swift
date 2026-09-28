@@ -1,22 +1,23 @@
 import Components
-import Localization
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
-import Recents
 import Style
 import SwiftUI
 
 public struct SelectAssetScene: View {
-    @State private var model: SelectAssetViewModel
+    @State private var model: SelectAssetSceneViewModel
 
     public init(
-        model: SelectAssetViewModel,
+        model: SelectAssetSceneViewModel,
     ) {
         _model = State(wrappedValue: model)
     }
 
     public var body: some View {
-        list
+        let sections = model.sections
+        let listState = model.listState(sections)
+        return list(sections)
             .searchable(
                 text: $model.searchableQuery,
                 placement: .navigationBarDrawer(displayMode: .always),
@@ -24,38 +25,27 @@ public struct SelectAssetScene: View {
             .if(model.isNetworkSearchEnabled) {
                 $0.debounce(
                     value: $model.searchableQuery.wrappedValue,
-                    interval: model.searchDebounce,
+                    interval: GemConstants.searchDebounce,
                     action: model.search(query:),
                 )
             }
             .overlay {
-                if model.showLoading {
+                if listState == .loading {
                     LoadingView()
-                } else if model.showEmpty {
-                    EmptyContentView(
-                        model: EmptyContentTypeViewModel(
-                            type: EmptyContentType(
-                                .searchAssets,
-                                actions: [.addCustomToken: model.showAddToken ? { model.onSelectAddCustomToken() } : nil],
-                            ),
-                        ),
-                    )
+                } else if listState != .idle {
+                    EmptyContentView(model: model.emptyModel)
                 }
             }
             .bindQuery(model.assetsQuery, model.recentModel.query)
-            .onChange(of: model.filterModel, model.onChangeFilterModel)
             .onChange(of: model.searchableQuery, model.updateRequest)
-            .ifLet(model.copyTypeViewModel) {
-                $0.copyToast(
-                    model: $1,
-                    isPresenting: $model.isPresentingCopyToast,
-                )
-            }
+            .copyToast($model.copyToast)
+            .toast(message: $model.isPresentingToastMessage)
             .navigationBarTitle(model.title)
     }
 
-    var list: some View {
-        List {
+    func list(_ sections: AssetsSections) -> some View {
+        let assetItems = model.assetItems
+        return List {
             if model.showRecents {
                 RecentAssetsSectionView(
                     model: model.recentModel,
@@ -63,32 +53,15 @@ public struct SelectAssetScene: View {
                 )
             }
 
-            if model.showPopularSection {
+            ForEach(sections.sections, id: \.kind) { section in
                 Section {
-                    assetsList(assets: model.sections.popular)
+                    assetsList(assets: section.assets, assetItems: assetItems)
                 } header: {
-                    HStack {
-                        model.popularImage
-                        Text(model.popularTitle)
+                    if let title = section.kind.title {
+                        SectionHeaderView(title: title, image: section.kind.image)
+                    } else {
+                        Text(model.assetsTitle)
                     }
-                }
-                .listRowInsets(.assetListRowInsets)
-            }
-
-            if model.showPinnedSection {
-                Section {
-                    assetsList(assets: model.sections.pinned)
-                } header: {
-                    PinnedSectionHeader()
-                }
-                .listRowInsets(.assetListRowInsets)
-            }
-
-            if model.showAssetsSection {
-                Section {
-                    assetsList(assets: model.sections.assets)
-                } header: {
-                    Text(model.assetsTitle)
                 }
                 .listRowInsets(.assetListRowInsets)
             }
@@ -97,10 +70,10 @@ public struct SelectAssetScene: View {
         .listSectionSpacing(.compact)
     }
 
-    func assetsList(assets: [AssetData]) -> some View {
-        let items = model.assetItems.items(assets.map(model.displayAssetData), action: model.onAssetAction)
-        return ForEach(Array(zip(assets, items)), id: \.0.id) { assetData, item in
-            let itemView = ListAssetItemView(model: item)
+    func assetsList(assets: [AssetData], assetItems: ListAssetItemsViewModel) -> some View {
+        let rows = assetItems.rows(assets.map(model.displayAssetData))
+        return ForEach(Array(zip(assets, rows)), id: \.0.id) { assetData, row in
+            let itemView = ListAssetItemView(row: row) { model.onAssetAction(action: $0, assetData: assetData) }
             switch model.flow.rowAction {
             case .navigate:
                 NavigationCustomLink(with: itemView) {

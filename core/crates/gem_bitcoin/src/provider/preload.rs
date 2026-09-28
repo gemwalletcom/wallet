@@ -18,7 +18,7 @@ impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
     fn transaction_fee_estimate_units(&self, _operation: TransactionFeeOperation) -> Option<u64> {
         match self.chain {
             BitcoinChain::Bitcoin | BitcoinChain::Litecoin => Some(SEGWIT_TRANSACTION_VBYTES),
-            BitcoinChain::BitcoinCash | BitcoinChain::Doge => Some(LEGACY_TRANSACTION_VBYTES),
+            BitcoinChain::BitcoinCash | BitcoinChain::Doge | BitcoinChain::Dash => Some(LEGACY_TRANSACTION_VBYTES),
             BitcoinChain::Zcash => None,
         }
     }
@@ -26,7 +26,7 @@ impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let address = Address::new(&input.sender_address, self.get_chain()).full();
         match self.chain {
-            BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge => {
+            BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge | BitcoinChain::Dash => {
                 let utxos = self.get_utxos(&address).await?;
                 Ok(map_transaction_preload(utxos, input))
             }
@@ -46,7 +46,7 @@ impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
         match self.chain {
-            BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge => {
+            BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge | BitcoinChain::Dash => {
                 let priority = self.chain.get_blocks_fee_priority();
                 let (slow, normal, fast) = futures::try_join!(self.get_fee(priority.slow), self.get_fee(priority.normal), self.get_fee(priority.fast))?;
                 Ok(map_fee_rates(slow, normal, fast, self.chain))

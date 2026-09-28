@@ -3,13 +3,13 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Wallet, WalletId};
+use primitives::{Asset, AssetId, Wallet, WalletId};
 
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemRecentActivityService;
-pub use model::{GemReceiveNetworks, GemReceiveWarning};
+pub use model::{GemReceiveAssetState, GemReceiveNetwork, GemReceiveNetworks, GemReceiveWarning};
 
 #[derive(uniffi::Object)]
 pub struct GemReceiveService {
@@ -25,16 +25,20 @@ impl GemReceiveService {
         Self { balances, assets, recent_activity }
     }
 
-    pub fn warnings(&self, chain: Chain) -> Vec<GemReceiveWarning> {
-        rules::warnings(chain)
+    pub fn asset_state(&self, asset: Asset) -> GemReceiveAssetState {
+        rules::asset_state(&asset)
     }
 
-    pub fn networks(&self, asset_id: AssetId, associations: Vec<AssetId>, wallet: Wallet) -> GemReceiveNetworks {
-        rules::networks(asset_id, associations, &wallet)
+    pub fn networks(&self, asset: Asset, associations: Vec<AssetId>, wallet: Wallet) -> GemReceiveNetworks {
+        rules::networks(&asset, associations, &wallet)
+    }
+
+    pub async fn update_asset(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
+        self.assets.update_asset(asset_id).await
     }
 
     pub async fn enable_asset(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<(), GemServiceError> {
-        self.balances.set_assets_enabled(wallet_id, vec![asset_id.clone()], true).await?;
+        self.balances.enable_assets(wallet_id, vec![asset_id.clone()]).await?;
         if let Ok(asset) = self.asset(asset_id).await {
             let _ = self.recent_activity.add_recent(GemAssetAction::Receive, asset).await;
         }

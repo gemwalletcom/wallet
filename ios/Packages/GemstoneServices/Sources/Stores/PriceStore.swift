@@ -2,10 +2,10 @@
 
 import Foundation
 import typealias Gemstone.AssetId
+import struct Gemstone.AssetMarket
 import struct Gemstone.AssetPrice
 import enum Gemstone.Currency
 import struct Gemstone.FiatRate
-import struct Gemstone.GemMarketUpdate
 import protocol Gemstone.GemPriceStore
 import struct Gemstone.GemPriceUpdate
 import GemstonePrimitives
@@ -32,31 +32,31 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
         try priceStore.getRates().map { Primitives.FiatRate(symbol: $0.symbol, rate: $0.rate).toGem() }
     }
 
-    public func saveRates(rates: [Gemstone.FiatRate], conversion: Gemstone.FiatRate?) async throws {
-        try priceStore.saveRates(rates.map { $0.toPrimitives() }, conversion: conversion?.toPrimitives())
+    public func saveRatesAndPrices(currency _: Gemstone.Currency, rates: [Gemstone.FiatRate], conversion: Gemstone.FiatRate?, prices: [GemPriceUpdate]) async throws {
+        try priceStore.saveRatesAndPrices(rates.map { $0.toPrimitives() }, conversion: conversion?.toPrimitives(), prices: prices.map { try $0.priceUpdate() })
     }
 
     public func savePrices(currency _: Gemstone.Currency, prices: [GemPriceUpdate]) async throws {
-        try priceStore.updatePrices(prices.map { update in
-            try PriceUpdate(
-                assetId: Primitives.AssetId(id: update.assetId),
-                price: update.price,
-                priceUsd: update.priceUsd,
-                priceChangePercentage24h: update.priceChangePercentage24h,
-                updatedAt: update.updatedAt,
-            )
-        })
+        try priceStore.updatePrices(prices.map { try $0.priceUpdate() })
     }
 
     public func convertPrices(currency _: Gemstone.Currency, rate: Double) async throws {
         try priceStore.convertPrices(rate: rate)
     }
 
-    public func saveMarket(market: GemMarketUpdate) async throws {
-        try priceStore.updateMarket(
-            assetId: Primitives.AssetId(id: market.assetId),
-            market: market.market.toPrimitives(),
-            marketUsd: market.marketUsd.toPrimitives(),
+    public func saveMarket(assetId: Gemstone.AssetId, market: Gemstone.AssetMarket) async throws {
+        try priceStore.updateMarket(assetId: assetId, market: market.toPrimitives())
+    }
+}
+
+private extension GemPriceUpdate {
+    func priceUpdate() throws -> PriceUpdate {
+        try PriceUpdate(
+            assetId: assetId,
+            price: price,
+            priceUsd: priceUsd,
+            priceChangePercentage24h: priceChangePercentage24h,
+            updatedAt: updatedAt,
         )
     }
 }

@@ -57,6 +57,6 @@ fn delivery_priority(event: &StreamEvent) -> u8 {
     match event {
         StreamEvent::Transactions(_) => 0,
         StreamEvent::Balances(_) => 1,
-        StreamEvent::Prices(_) | StreamEvent::PriceAlerts(_) | StreamEvent::Nft(_) | StreamEvent::Perpetual(_) | StreamEvent::InAppNotification(_) | StreamEvent::FiatTransaction(_) | StreamEvent::Support(_) => 0,
+        StreamEvent::Prices(_) | StreamEvent::PriceAlerts(_) | StreamEvent::Nft(_) | StreamEvent::Perpetual(_) | StreamEvent::InAppNotification(_) | StreamEvent::FiatTransaction(_) | StreamEvent::Support(_) | StreamEvent::Error(_) => 0,
     }
 }

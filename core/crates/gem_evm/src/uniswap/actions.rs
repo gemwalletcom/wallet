@@ -33,7 +33,7 @@ pub enum V4Action {
 }
 
 pub fn encode_actions(actions: &[V4Action]) -> Vec<u8> {
-    let encoded_actions = actions.iter().map(|x| x.byte()).collect::<Vec<_>>();
+    let encoded_actions = actions.iter().map(V4Action::byte).collect::<Vec<_>>();
     let encoded_data = actions.iter().map(encode_action_data).collect::<Vec<_>>();
     (encoded_actions, encoded_data).abi_encode_sequence()
 }

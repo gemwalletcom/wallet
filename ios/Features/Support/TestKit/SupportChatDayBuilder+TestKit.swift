@@ -5,6 +5,6 @@ import Primitives
 
 extension SupportChatDayBuilder {
     static func mock(messages: [SupportMessage] = []) -> SupportChatDayBuilder {
-        SupportChatDayBuilder(messages: messages, retryAction: { _ in }, imageAction: { _ in })
+        SupportChatDayBuilder(messages: messages)
     }
 }

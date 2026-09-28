@@ -1,0 +1,90 @@
+package com.gemwallet.android.features.settings.viewmodels
+
+import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.SwitchPushEnabled
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
+import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
+import com.gemwallet.android.data.services.store.queries.WalletsQuery
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.model.NotificationsAvailable
+import com.gemwallet.android.ui.localization.text
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemPushResult
+import uniffi.gemstone.GemSettingsServiceInterface
+import uniffi.gemstone.notificationsSections
+import javax.inject.Inject
+
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    private val preferences: ObservablePreferences,
+    private val walletsQuery: WalletsQuery,
+    private val switchPushEnabled: SwitchPushEnabled,
+    private val getPushEnabled: GetPushEnabled,
+    val notificationsAvailable: NotificationsAvailable,
+    private val settingsService: GemSettingsServiceInterface,
+    private val isWalletConnectEnabled: IsWalletConnectEnabled,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
+) : ViewModel() {
+
+    private val wallets = walletsQuery()
+    private val developerEnabled = MutableStateFlow(preferences.developEnabled())
+
+    val sections = combine(wallets, developerEnabled) { wallets, _ ->
+        settingsService.sections(
+            wallets = wallets.map { it.toGem() },
+            notificationsAvailable = notificationsAvailable,
+            walletConnectAvailable = isWalletConnectEnabled.isWalletConnectEnabled(),
+        )
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    private val switchedPush = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
+
+    val pushEnabled = merge(getPushEnabled.getPushEnabled(), switchedPush)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val notificationsSections: StateFlow<List<GemListSection>> = pushEnabled
+        .map(::notificationsSections)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, notificationsSections(pushEnabled.value))
+
+    fun refreshDeveloperMode() {
+        developerEnabled.value = preferences.developEnabled()
+    }
+
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
+
+    fun enableNotifications() = switchNotifications(true)
+
+    fun disableNotifications() = switchNotifications(false)
+
+    fun clearError() = errorState.update { null }
+
+    private fun switchNotifications(enabled: Boolean) {
+        switchedPush.tryEmit(enabled)
+        viewModelScope.launch(ioDispatcher) {
+            val state = switchPushEnabled.switchPushEnabled(enabled)
+            switchedPush.emit(state.isEnabled)
+            errorState.value = (state.result as? GemPushResult.NotRegistered)?.error?.text(context)
+        }
+    }
+}

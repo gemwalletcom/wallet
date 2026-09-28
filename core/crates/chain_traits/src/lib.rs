@@ -115,13 +115,13 @@ pub trait ChainBalances: Send + Sync {
         Err("Chain does not support balance operations".into())
     }
     async fn get_balance_tokens(&self, _address: String, _token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Err("Chain does not support balance operations".into())
+        Ok(vec![])
     }
     async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        Err("Chain does not support balance operations".into())
+        Ok(None)
     }
     async fn get_balance_assets(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Err("Chain does not support balance operations".into())
+        Ok(vec![])
     }
 }
 

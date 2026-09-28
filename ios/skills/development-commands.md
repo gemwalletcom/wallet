@@ -12,7 +12,6 @@ just check-test Primitives             # run one UIKit- and Gemstone-free packag
 just build-package Assets              # build one package or feature scheme
 just build                             # build the app
 just test-package Assets               # build and test one package on the simulator
-just test GemTests                     # app-hosted tests through the Gem scheme
 just test                              # run the whole unit test plan
 just build-for-testing                 # build every test target once
 just test-without-building AssetsTests # re-run tests without building; omit the target for the whole plan

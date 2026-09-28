@@ -11,6 +11,25 @@ pub enum GemFiatAmountCheck {
     Valid,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemFiatAmountError {
+    InvalidAmount,
+    BelowMinimum { minimum: GemFormattedNumber },
+    AboveMaximum { maximum: GemFormattedNumber },
+    InsufficientBalance { title: String },
+}
+
+impl GemFiatAmountCheck {
+    pub fn error(&self) -> Option<GemFiatAmountError> {
+        match self {
+            Self::BelowMinimum { minimum } => Some(GemFiatAmountError::BelowMinimum { minimum: minimum.clone() }),
+            Self::AboveMaximum { maximum } => Some(GemFiatAmountError::AboveMaximum { maximum: maximum.clone() }),
+            Self::InsufficientBalance { title } => Some(GemFiatAmountError::InsufficientBalance { title: title.clone() }),
+            Self::Valid => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatSuggestedAmount {
     pub amount: u32,
@@ -40,7 +59,7 @@ pub enum GemFiatTransactionBadge {
     Failed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GemFiatTransactionStatus {
     pub badge: Option<GemFiatTransactionBadge>,
     pub tone: GemValueTone,
@@ -48,6 +67,8 @@ pub struct GemFiatTransactionStatus {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatTransactionRow {
+    pub id: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
     pub quote_type: FiatQuoteType,
     pub provider: FiatProviderName,
     pub subtitle: String,

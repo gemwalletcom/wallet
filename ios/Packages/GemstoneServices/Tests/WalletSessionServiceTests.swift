@@ -23,11 +23,11 @@ struct WalletSessionServiceTests {
             name: "Second",
             accounts: [.mock(chain: .ethereum, address: "0x2")],
         )
-        let service = try GemWalletSessionService.mock(store: WalletStore.mock(db: .mockWithWallets([first, second])))
+        let service = GemWalletSessionService.mock(store: WalletStore.mock(db: .mock(wallets: [first, second])))
 
-        try service.setCurrent(walletId: second.id)
+        try service.setCurrentWalletId(walletId: second.id)
 
-        let current = await service.currentWallet
+        let current = try await service.getCurrentWallet()?.toPrimitives()
         #expect(current?.id == second.id)
         #expect(current?.name == "Second")
         #expect(current?.accounts == second.accounts)
@@ -36,17 +36,17 @@ struct WalletSessionServiceTests {
     @Test
     func aWalletThatIsGoneReadsAsAnErrorInsteadOfAnEmptyScreen() async throws {
         let wallet = Wallet.mock(id: .mock(address: "0x1"), name: "First")
-        let service = try GemWalletSessionService.mock(store: WalletStore.mock(db: .mockWithWallets([wallet])))
+        let service = GemWalletSessionService.mock(store: WalletStore.mock(db: .mock(wallets: [wallet])))
 
         #expect(try await service.requireWallet(walletId: wallet.id).name == "First")
         await #expect(throws: (any Error).self) {
-            try await service.requireWallet(walletId: .mock(address: "0xmissing"))
+            try await service.requireWallet(walletId: WalletId.mock(address: "0xmissing"))
         }
         await #expect(throws: (any Error).self) {
             try await service.requireCurrentWallet()
         }
 
-        try service.setCurrent(walletId: wallet.id)
-        #expect(try await service.requireCurrentWallet().id == wallet.id.id)
+        try service.setCurrentWalletId(walletId: wallet.id)
+        #expect(try await service.requireCurrentWallet().id == wallet.id)
     }
 }

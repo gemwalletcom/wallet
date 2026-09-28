@@ -35,21 +35,7 @@ pub fn map_transaction(transaction: Digest) -> Option<Transaction> {
         _ => None,
     };
 
-    Some(Transaction::new(
-        hash,
-        asset_id,
-        from,
-        to,
-        contract,
-        transaction_type,
-        state,
-        fee.clone(),
-        chain.as_asset_id(),
-        value,
-        None,
-        metadata,
-        created_at,
-    ))
+    Some(Transaction::new(hash, asset_id, from, to, contract, transaction_type, state, fee, chain.as_asset_id(), value, None, metadata, created_at))
 }
 
 fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance_changes: &[BalanceChange], owner: &Option<String>, fee: &BigUint) -> Option<(AssetId, String, String, TransactionType, BigUint, Option<serde_json::Value>)> {

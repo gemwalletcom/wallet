@@ -34,8 +34,8 @@ public final class GemstoneBannerStore: GemBannerStore, @unchecked Sendable {
     private func newBanner(key: GemBannerKey, state: Primitives.BannerState) throws -> NewBanner {
         try NewBanner(
             id: key.identifier(),
-            walletId: key.walletId,
-            assetId: key.assetId.map { try Primitives.AssetId(id: $0) },
+            walletId: key.walletId?.id,
+            assetId: key.assetId,
             event: key.event.toPrimitives(),
             state: state,
         )

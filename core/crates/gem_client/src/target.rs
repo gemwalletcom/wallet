@@ -22,7 +22,7 @@ impl Target for &str {
 
 impl Target for &String {
     fn path(&self) -> String {
-        self.to_string()
+        (*self).clone()
     }
 }
 

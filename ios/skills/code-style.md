@@ -25,6 +25,10 @@ References: `ios/Gem/App.swift` (app composition), `ios/Gem/ViewModels/MainTabVi
 - `Primitives` and `InfoSheet` never import `Gemstone`; features import it directly and scoped (`import protocol Gemstone.X`), there is no wrapper layer. Rationale in [Architecture](../../docs/ARCHITECTURE.md#5-the-app-maps-it-does-not-decide)
 - App targets link only the package products their own sources import; transitive products link on their own
 
+## Store
+
+- Store reads use GRDB's query interface: record filters, associations (`belongsTo`, `hasOne`, `hasMany`, `through:`), `including`/`joining`, and a `Codable, FetchableRecord` info type for joined rows. Never a raw SQL string
+
 ## Style
 
 - `Spacing` constants from the `Style` package, never hardcoded spacing (`ios/Packages/Style/Sources/Spacing.swift`)
@@ -32,6 +36,6 @@ References: `ios/Gem/App.swift` (app composition), `ios/Gem/ViewModels/MainTabVi
 
 ## TestKit Mocks
 
-Reusable mocks are `static func mock(...)` extensions on the type in the package's `TestKit` target, with defaulted parameters so a test overrides only what it asserts. Reference: `ios/Packages/Primitives/TestKit/Perpetual+PrimitivesTestKit.swift`.
+Reusable mocks are `static func mock(...)` extensions on the type in the package's `TestKit` target, every field a defaulted parameter so a test passes what it asserts. Data mocks follow [Testing § Mocks](testing.md#mocks): generated ones in `TestKit/GeneratedMocks.swift`, the rest in the package's one `TestKit/Mocks.swift`. Reference: `ios/Packages/Primitives/TestKit/GeneratedMocks.swift`.
 
 Shared clean-code principles live in `../../skills/engineering-principles.md`.

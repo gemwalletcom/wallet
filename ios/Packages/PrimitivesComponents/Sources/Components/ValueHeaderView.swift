@@ -3,7 +3,8 @@
 import Components
 import func Gemstone.formattedCurrency
 import func Gemstone.formattedPercentage
-import func Gemstone.formattedSignedCurrency
+import struct Gemstone.GemRowText
+import struct Gemstone.GemValueHeader
 import Localization
 import Primitives
 import Style
@@ -39,38 +40,25 @@ public struct ValueHeaderViewSpacing: Sendable {
         self.subtitleTop = subtitleTop
         self.subtitleBottom = subtitleBottom
     }
-
-    public init(
-        contentBottom: CGFloat,
-        subtitleTop: CGFloat = .zero,
-        subtitleBottom: CGFloat,
-    ) {
-        self.init(
-            assetImageBottom: contentBottom,
-            titleBottom: contentBottom,
-            subtitleTop: subtitleTop,
-            subtitleBottom: subtitleBottom,
-        )
-    }
 }
 
 public struct ValueHeaderView: View {
-    private let model: any ValueHeaderViewModel
+    private let model: ValueHeader
 
     @Binding var isPrivacyEnabled: Bool
 
     private let titleActionType: HeaderTitleActionType
     private let spacing: ValueHeaderViewSpacing
-    private let onHeaderAction: HeaderButtonAction?
+    private let onHeaderAction: HeaderButtonActionHandler?
     private let onSubtitleAction: VoidAction
     private let onInfoAction: VoidAction
 
     public init(
-        model: any ValueHeaderViewModel,
+        header model: ValueHeader,
         isPrivacyEnabled: Binding<Bool>,
         titleActionType: HeaderTitleActionType,
         spacing: ValueHeaderViewSpacing = .standard,
-        onHeaderAction: HeaderButtonAction?,
+        onHeaderAction: HeaderButtonActionHandler?,
         onSubtitleAction: VoidAction = nil,
         onInfoAction: VoidAction,
     ) {
@@ -199,18 +187,21 @@ public struct ValueHeaderView: View {
 // MARK: - Previews
 
 #Preview {
-    let model = WalletHeaderViewModel(
-        total: formattedCurrency(value: 1000, code: Currency.usd.rawValue, style: .fiat),
-        pnl: .pnl(
-            amount: formattedSignedCurrency(value: 50, code: Currency.usd.rawValue, style: .fiat),
-            percent: formattedPercentage(value: 5.26, style: .unsigned),
-        ),
-        pnlTone: .positive,
+    let amount = {
+        var amount = formattedCurrency(value: 50, code: Currency.usd.rawValue, style: .fiat)
+        amount.notation = .signed
+        return amount
+    }()
+    let header = GemValueHeader(
+        icon: nil,
+        title: .number(number: formattedCurrency(value: 1000, code: Currency.usd.rawValue, style: .fiat)),
+        subtitle: GemRowText(text: .pnl(amount: amount, percent: formattedPercentage(value: 5.26, style: .unsigned)), tone: .positive),
+        subtitleIcon: .chart,
         actions: .buttons(buttons: []),
-    )
+    ).valueHeader
 
     ValueHeaderView(
-        model: model,
+        header: header,
         isPrivacyEnabled: .constant(false),
         titleActionType: .privacyToggle,
         onHeaderAction: .none,

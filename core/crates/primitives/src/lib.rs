@@ -1,7 +1,5 @@
 // lib.rs
 
-pub type UInt64 = u64;
-
 mod access_token_cacher;
 pub use self::access_token_cacher::{AccessTokenCacher, AccessTokenFuture};
 
@@ -119,7 +117,7 @@ pub use self::payment::{Payment, PaymentAmount, PaymentInvoice, PaymentLink, Pay
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
-pub use self::contact::{Contact, ContactAddress};
+pub use self::contact::{Contact, ContactAddress, ContactData};
 pub mod device;
 pub use self::device::Device;
 pub mod device_locale;
@@ -136,12 +134,16 @@ pub mod transaction_type;
 pub use self::transaction_type::TransactionType;
 pub mod transaction_extended;
 pub use self::transaction_extended::TransactionExtended;
+pub mod transaction_list_item;
+pub use self::transaction_list_item::TransactionListItem;
 pub mod tag_visibility;
 pub use self::tag_visibility::TagVisibility;
 pub mod time;
 pub use self::time::{unix_milliseconds, unix_seconds, unix_timestamp};
 pub mod transaction_state;
 pub use self::transaction_state::TransactionState;
+pub mod transactions_filter;
+pub use self::transactions_filter::TransactionsFilter;
 pub mod job_configuration;
 pub use self::job_configuration::JobConfiguration;
 pub mod username_status;
@@ -164,6 +166,8 @@ pub mod address_formatter;
 pub use self::address_formatter::{AddressFormatStyle, AddressFormatter};
 pub mod address_name;
 pub use self::address_name::AddressName;
+pub mod address_details;
+pub use self::address_details::{AddressDetails, AddressDetailsBalances};
 pub mod verification_status;
 pub use self::verification_status::VerificationStatus;
 pub mod address_status;
@@ -258,6 +262,8 @@ pub mod support;
 pub use self::support::{SupportAction, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageInput, SupportMessageSender, SupportMessageStatus, SupportStreamEvent, SupportTyping, SupportTypingStatus};
 pub mod asset_balance;
 pub use self::asset_balance::{AddressBalances, AssetBalance, Balance, BalanceMetadata};
+pub mod asset_data;
+pub use self::asset_data::{AssetData, ChainAssetData, RecentAsset};
 pub mod chain_address;
 pub use self::chain_address::ChainAddress;
 pub mod json_rpc;
@@ -322,7 +328,7 @@ pub use self::transaction_input_type::{SignerInput, TransactionInputType, Transa
 pub mod transfer_amount;
 pub use self::transfer_amount::{TransferAmount, TransferAmountError, TransferAmountInput};
 pub mod transfer_data_extra;
-pub use self::swap::{ApprovalData, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
+pub use self::swap::{ApprovalData, Permit2ApprovalData, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
 pub use self::transfer_data_extra::TransferDataExtra;
 pub mod transaction_data_output;
 pub use self::transaction_data_output::{TransferDataOutputAction, TransferDataOutputType};
@@ -337,6 +343,8 @@ pub mod domain;
 
 pub mod date_ext;
 pub use self::date_ext::{DurationExt, NaiveDateTimeExt, now};
+pub mod option_ext;
+pub use self::option_ext::OptionStringExt;
 pub mod number_incrementer;
 pub use self::number_incrementer::NumberIncrementer;
 pub mod chain_signer;
@@ -367,8 +375,6 @@ pub mod connection_component;
 pub use self::connection_component::ConnectionComponent;
 pub mod connection_status;
 pub use self::connection_status::ConnectionStatus;
-pub mod metrics;
-pub use self::metrics::{ConsumerStatus, ParserStatus, ReportedError};
 pub mod version;
 pub use self::version::{Version, is_version_higher};
 pub mod value_access;

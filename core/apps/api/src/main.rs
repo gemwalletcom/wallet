@@ -93,6 +93,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 devices::get_device_transaction_by_id_v2,
                 devices::get_device_transactions_v2,
                 devices::get_device_address_names_v2,
+                devices::get_device_address_details_v2,
                 devices::get_device_nft_assets_v2,
                 devices::get_device_nft_asset_v2,
                 devices::refresh_device_nft_asset_v2,
@@ -195,6 +196,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let devices_client = services.devices();
     let transactions_client = services.transactions();
     let address_names_client = services.address_names();
+    let address_details_client = services.address_details(&user_agent);
     let stream_producer = services.stream_producer("api", services::no_shutdown()).await?;
     let wallets_client = services.wallets(stream_producer.clone());
 
@@ -223,8 +225,9 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let notifications_client = services.notifications();
     let support_client = services.support_api();
     let support_image_upload_config = SupportImageUploadConfig::new(&settings.support.types.images)?;
-    let near_intents_client = services.near_intents(cacher_client.clone());
-    let swaps_xyz_client = services.swaps_xyz(cacher_client.clone());
+    let deposit_addresses = Arc::new(cacher_client);
+    let near_intents_client = services.near_intents(deposit_addresses.clone());
+    let swaps_xyz_client = services.swaps_xyz(deposit_addresses);
     let okx_provider = OkxProviderProxy::new(
         settings.swap.okx.url.clone(),
         OkxClientConfig {
@@ -254,6 +257,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
         .manage(search_client)
         .manage(transactions_client)
         .manage(address_names_client)
+        .manage(address_details_client)
         .manage(wallet_configuration_client)
         .manage(scan_client)
         .manage(swap_client)

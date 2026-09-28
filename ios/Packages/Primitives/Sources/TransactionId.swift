@@ -11,20 +11,11 @@ public struct TransactionId: Equatable, Hashable, Sendable {
         self.hash = hash
     }
 
-    public init(core id: String) {
-        do {
-            try self.init(id: id)
-        } catch {
-            preconditionFailure("failed to decode TransactionId from Core: \(id)")
-        }
-    }
-
-    public init(id: String) throws {
-        if let (chain, hash) = AssetId.getData(id: id), let hash {
-            self.init(chain: chain, hash: hash)
-        } else {
+    public static func from(id: String) throws -> TransactionId {
+        guard let (chain, hash) = AssetId.getData(id: id), let hash else {
             throw AnyError("invalid transaction id: \(id)")
         }
+        return TransactionId(chain: chain, hash: hash)
     }
 
     public var identifier: String {
@@ -32,15 +23,4 @@ public struct TransactionId: Equatable, Hashable, Sendable {
     }
 }
 
-extension TransactionId: Codable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let id = try container.decode(String.self)
-        self = try TransactionId(id: id)
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(identifier)
-    }
-}
+extension TransactionId: IdentifierCodable {}

@@ -1,9 +1,10 @@
+use crate::OptionStringExt;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_option_u64_from_str_or_int;
 use url::Url;
 
 use crate::url_query::query_value;
-use crate::{GEM_URL_SCHEME, HTTPS_URL_SCHEME, UInt64, WALLET_CONNECT_URL_SCHEME};
+use crate::{GEM_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME};
 
 const WALLET_CONNECT_HOST: &str = "wc";
 
@@ -15,7 +16,7 @@ const QUERY_REQUEST_ID: &str = "requestId";
 #[serde(rename_all = "camelCase")]
 pub struct WCEthereumTransaction {
     #[serde(default, deserialize_with = "deserialize_option_u64_from_str_or_int")]
-    pub chain_id: Option<UInt64>,
+    pub chain_id: Option<u64>,
     pub from: String,
     pub to: String,
     pub value: Option<String>,
@@ -57,11 +58,11 @@ impl WalletConnectLink {
     }
 
     fn connect(url: &Url) -> Option<Self> {
-        query_value(url, QUERY_URI).filter(|uri| !uri.is_empty()).map(|uri| WalletConnectLink::Connect { uri })
+        query_value(url, QUERY_URI).non_empty().map(|uri| WalletConnectLink::Connect { uri })
     }
 
     fn session_or_request(url: &Url) -> Option<Self> {
-        if let Some(topic) = query_value(url, QUERY_SESSION_TOPIC).filter(|topic| !topic.is_empty()) {
+        if let Some(topic) = query_value(url, QUERY_SESSION_TOPIC).non_empty() {
             Some(WalletConnectLink::Session { topic })
         } else if query_value(url, QUERY_REQUEST_ID).is_some() {
             Some(WalletConnectLink::Request)

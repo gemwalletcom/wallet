@@ -14,6 +14,7 @@ public actor StreamObserverService: Sendable {
     private var observeTask: Task<Void, Never>?
     private var isActive = false
     private var failedAttempts: UInt32 = 0
+    private var connectedAt: ContinuousClock.Instant?
 
     public init(
         service: any GemStreamServiceProtocol,
@@ -76,10 +77,11 @@ public actor StreamObserverService: Sendable {
         await webSocket.disconnect()
         await service.disconnected()
         if failed {
-            let delay = reconnection.reconnectDelayMilliseconds(attempt: failedAttempts)
-            failedAttempts += 1
-            try? await Task.sleep(for: .milliseconds(Int64(clamping: delay)))
+            let next = reconnection.reconnection(attempt: failedAttempts, connectedFor: connectedAt.map { $0.duration(to: .now) } ?? .zero)
+            failedAttempts = next.nextAttempt
+            try? await Task.sleep(for: next.delay)
         }
+        connectedAt = nil
         observeTask = nil
         if Task.isCancelled || failed {
             startObserving()
@@ -97,7 +99,7 @@ public actor StreamObserverService: Sendable {
             case .connected:
                 debugLog("stream connected")
                 try await service.connected()
-                failedAttempts = 0
+                connectedAt = .now
                 health.report(isHealthy: true)
             case let .message(data):
                 await onMessage(data)

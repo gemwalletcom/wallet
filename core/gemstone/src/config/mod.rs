@@ -35,14 +35,11 @@ mod tests {
 
 use crate::config::chain::ChainConfig;
 use primitives::{Chain, node_config::NodeRegion};
-use std::time::Duration;
 
 use {
     swap_config::{SwapConfig, get_swap_config},
     wallet_connect::{WalletConnectConfig, get_wallet_connect_config},
 };
-
-const SCAN_TIMEOUT: Duration = Duration::from_secs(3);
 
 /// Config
 #[derive(uniffi::Object)]
@@ -56,10 +53,6 @@ impl Config {
 
     fn get_swap_config(&self) -> SwapConfig {
         get_swap_config()
-    }
-
-    fn scan_timeout(&self) -> Duration {
-        SCAN_TIMEOUT
     }
 
     fn get_chain_config(&self, chain: Chain) -> ChainConfig {

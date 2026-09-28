@@ -1,3 +1,4 @@
+use primitives::OptionStringExt;
 use std::str::FromStr;
 pub mod rules;
 pub mod store;
@@ -9,7 +10,7 @@ use std::sync::{Arc, Mutex};
 
 use primitives::ChartPeriod;
 use primitives::currency::Currency;
-use primitives::{Appearance, Chain, ConfigResponse, Device, WalletType};
+use primitives::{Appearance, AssetId, Chain, ConfigResponse, Device, WalletType};
 
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
@@ -31,6 +32,7 @@ const CONFIG: &str = "config";
 const BUY_ASSETS_VERSION: &str = "buy_assets_version";
 const SELL_ASSETS_VERSION: &str = "sell_assets_version";
 const SWAP_ASSETS_VERSION: &str = "swap_assets_version";
+const ASSET_UPDATED_AT: &str = "asset_updated_at";
 const EXPLORER_NAME: &str = "explorer_name";
 const PERPETUAL_MARKETS_UPDATED_AT: &str = "perpetual_markets_updated_at";
 const PERPETUAL_PRICES_UPDATED_AT: &str = "perpetual_prices_updated_at";
@@ -141,18 +143,8 @@ impl GemPreferencesService {
         self.store.set(RATE_APPLICATION_SHOWN.to_string(), "true".to_string())
     }
 
-    pub fn should_ask_notifications(&self) -> bool {
-        let last_asked_at: u64 = self.store.get(NOTIFICATIONS_ASKED_AT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0);
-        rules::should_ask_notifications(self.is_push_notifications_declined(), last_asked_at, unix_seconds().unwrap_or(last_asked_at))
-    }
-
     pub fn notification_prompt(&self, is_granted: bool) -> rules::GemNotificationPrompt {
         rules::notification_prompt(is_granted, !self.should_ask_notifications())
-    }
-
-    pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
-        let now = unix_seconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
-        self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
     }
 
     #[uniffi::constructor]
@@ -170,6 +162,16 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn should_ask_notifications(&self) -> bool {
+        let last_asked_at: u64 = self.store.get(NOTIFICATIONS_ASKED_AT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0);
+        rules::should_ask_notifications(self.is_push_notifications_declined(), last_asked_at, unix_seconds().unwrap_or(last_asked_at))
+    }
+
+    pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
+        let now = unix_seconds().map_err(GemServiceError::core)?;
+        self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
+    }
+
     pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
         crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), wallet_type, &chains)
     }
@@ -197,7 +199,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_leverage(&self, leverage: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_LEVERAGE.to_string(), leverage.to_string())
+        self.set_observed(PERPETUAL_LEVERAGE, leverage.to_string())
     }
 
     pub fn get_perpetual_take_profit_percent(&self) -> u8 {
@@ -205,7 +207,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_take_profit_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_TAKE_PROFIT.to_string(), percent.to_string())
+        self.set_observed(PERPETUAL_TAKE_PROFIT, percent.to_string())
     }
 
     pub fn get_perpetual_stop_loss_percent(&self) -> u8 {
@@ -213,7 +215,7 @@ impl GemPreferencesService {
     }
 
     pub fn set_perpetual_stop_loss_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_STOP_LOSS.to_string(), percent.to_string())
+        self.set_observed(PERPETUAL_STOP_LOSS, percent.to_string())
     }
 
     pub fn get_swap_slippage_bps(&self) -> Option<u32> {
@@ -298,6 +300,14 @@ impl GemPreferencesService {
         self.store.get(CONFIG.to_string()).and_then(|json| serde_json::from_str(&json).ok())
     }
 
+    pub fn get_asset_updated_at(&self, asset_id: &AssetId) -> Result<Option<i64>, GemServiceError> {
+        self.get_timestamp(&asset_updated_at_key(asset_id))
+    }
+
+    pub fn set_asset_updated_at(&self, asset_id: &AssetId, timestamp: i64) -> Result<(), GemServiceError> {
+        self.set_timestamp(&asset_updated_at_key(asset_id), Some(timestamp))
+    }
+
     pub fn get_explorer_name(&self, chain: Chain) -> Option<String> {
         self.store.get(explorer_name_key(chain))
     }
@@ -314,6 +324,10 @@ impl GemPreferencesService {
 
 fn explorer_name_key(chain: Chain) -> String {
     format!("{EXPLORER_NAME}_{}", chain.as_ref())
+}
+
+fn asset_updated_at_key(asset_id: &AssetId) -> String {
+    format!("{ASSET_UPDATED_AT}_{asset_id}")
 }
 
 fn assets_version_key(list: AssetList) -> &'static str {
@@ -365,12 +379,12 @@ impl GemPreferencesService {
     }
 
     pub fn set_pushed_device(&self, device: &Device) -> Result<(), GemServiceError> {
-        let json = serde_json::to_string(device).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+        let json = serde_json::to_string(device).map_err(GemServiceError::core)?;
         self.store.set(PUSHED_DEVICE.to_string(), json)
     }
 
     pub fn get_pushed_subscriptions(&self) -> Option<String> {
-        self.store.get(PUSHED_SUBSCRIPTIONS.to_string()).filter(|signature| !signature.is_empty())
+        self.store.get(PUSHED_SUBSCRIPTIONS.to_string()).non_empty()
     }
 
     pub fn set_pushed_subscriptions(&self, signature: String) -> Result<(), GemServiceError> {

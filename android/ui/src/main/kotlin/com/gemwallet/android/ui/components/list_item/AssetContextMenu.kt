@@ -26,15 +26,11 @@ data class AssetContextActions(val onTogglePin: ((AssetId) -> Unit)? = null, val
 }
 
 @Composable
-fun rememberAssetContextMenuItems(assetId: AssetId, address: String?, isPinned: Boolean, isBalanceEnabled: Boolean, actions: AssetContextActions): List<AssetContextMenuItem> {
+private fun ColumnScope.AssetContextMenuItems(assetId: AssetId, address: String?, isPinned: Boolean, isBalanceEnabled: Boolean, actions: AssetContextActions, onDismiss: () -> Unit) {
     val context = LocalContext.current
-    return remember(assetId, address, isPinned, isBalanceEnabled, actions) {
+    val items = remember(assetId, address, isPinned, isBalanceEnabled, actions) {
         assetContextMenuItems(context, assetId, address, isPinned, isBalanceEnabled, actions)
     }
-}
-
-@Composable
-private fun ColumnScope.AssetContextMenuItems(items: List<AssetContextMenuItem>, onDismiss: () -> Unit) {
     items.forEach { item ->
         DropdownMenuItem(
             text = { Text(stringResource(item.titleRes)) },
@@ -45,23 +41,6 @@ private fun ColumnScope.AssetContextMenuItems(items: List<AssetContextMenuItem>,
             },
         )
     }
-}
-
-@Composable
-private fun AssetMenuRow(items: List<AssetContextMenuItem>, isExpanded: Boolean, onClick: () -> Unit, onLongClick: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier, content: @Composable (Modifier) -> Unit) {
-    if (items.isEmpty()) {
-        content(modifier.clickable(onClick = onClick))
-        return
-    }
-    DropDownContextItem(
-        modifier = modifier,
-        isExpanded = isExpanded,
-        onDismiss = onDismiss,
-        menuItems = { AssetContextMenuItems(items, onDismiss) },
-        content = content,
-        onLongClick = onLongClick,
-        onClick = onClick,
-    )
 }
 
 @Composable
@@ -76,14 +55,18 @@ fun AssetContextMenuRow(
     modifier: Modifier = Modifier,
     content: @Composable (Modifier) -> Unit,
 ) {
-    val items = rememberAssetContextMenuItems(assetId, address, isPinned, isBalanceEnabled, actions)
-    AssetMenuRow(
+    if (actions.isEmpty) {
+        content(modifier.clickable(onClick = onClick))
+        return
+    }
+    val onDismiss = { longPressed.value = null }
+    DropDownContextItem(
         modifier = modifier,
-        items = items,
         isExpanded = longPressed.value == assetId,
-        onClick = onClick,
-        onLongClick = { longPressed.value = assetId },
-        onDismiss = { longPressed.value = null },
+        onDismiss = onDismiss,
+        menuItems = { AssetContextMenuItems(assetId, address, isPinned, isBalanceEnabled, actions, onDismiss) },
         content = content,
+        onLongClick = { longPressed.value = assetId },
+        onClick = onClick,
     )
 }

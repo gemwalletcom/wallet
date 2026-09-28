@@ -5,6 +5,7 @@ use super::{
 use crate::{SwapperError, error::ProviderErrorResponse, fees::default_referral_address};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
+use primitives::OptionStringExt;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::BTreeSet, ops::Deref, str::FromStr};
@@ -283,7 +284,7 @@ impl GetSwapEvmParams {
         Self {
             forwarder_address: MAYAN_FORWARDER,
             slippage_bps: route.slippage_bps,
-            referrer_address: wormhole_chain::chain_for_name(&route.from_chain).ok().map(default_referral_address).filter(|address| !address.is_empty()),
+            referrer_address: wormhole_chain::chain_for_name(&route.from_chain).ok().map(default_referral_address).non_empty(),
             from_token: route.from_token.contract.clone(),
             middle_token,
             chain_name: route.from_chain.clone(),

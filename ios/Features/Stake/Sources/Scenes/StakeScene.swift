@@ -2,6 +2,7 @@
 
 import Components
 import struct Gemstone.GemStakeActionItem
+import enum Gemstone.GemStakeSection
 import struct Gemstone.GemStakeViewState
 import Localization
 import Primitives
@@ -19,9 +20,9 @@ public struct StakeScene: View {
     public var body: some View {
         let state = model.viewState
         List {
-            headerSection
+            ListAssetHeaderView(model: state.asset)
             stakeInfoSection(state)
-            ForEach(model.sectionModels(state)) { section in
+            ForEach(state.sections) { section in
                 Section(section.title) {
                     content(for: section, state: state)
                 }
@@ -37,6 +38,9 @@ public struct StakeScene: View {
             await model.load()
         }
         .navigationTitle(model.title)
+        .ifLet(state.docsUrl?.asURL) { view, url in
+            view.toolbarInfoButton(url: url)
+        }
         .taskOnce {
             Task {
                 await model.load()
@@ -48,13 +52,9 @@ public struct StakeScene: View {
 // MARK: - UI Components
 
 extension StakeScene {
-    private var headerSection: some View {
-        ListAssetHeaderView(model: model.assetModel)
-    }
-
     @ViewBuilder
-    private func content(for section: StakeSectionViewModel, state: GemStakeViewState) -> some View {
-        switch section.section {
+    private func content(for section: GemStakeSection, state: GemStakeViewState) -> some View {
+        switch section {
         case .manage:
             ForEach(state.actions, id: \.action) { item in
                 actionLink(item)
@@ -70,7 +70,7 @@ extension StakeScene {
 
     @ViewBuilder
     private func actionLink(_ item: GemStakeActionItem) -> some View {
-        switch item.tap {
+        switch item.action {
         case .frozenBalanceInfo:
             NavigationCustomLink(with: GemListRowView(row: item.row, onInfo: { _ in model.onStakeFrozenInfo() }), action: model.onStakeFrozenInfo)
         case .disabled:
@@ -94,8 +94,8 @@ extension StakeScene {
                 .id(UUID())
         case let .data(items):
             ForEach(items, id: \.id) { item in
-                NavigationCustomLink(with: DelegationView(delegation: DelegationViewModel(row: item.row))) {
-                    model.onSelect(delegation: item, state: state)
+                NavigationCustomLink(with: ListItemView(model: item.row.listItem)) {
+                    model.onSelect(delegation: item)
                 }
             }
             .listRowInsets(.assetListRowInsets)
