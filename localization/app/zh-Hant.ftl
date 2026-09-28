@@ -775,7 +775,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = 安全警告
-rootcheck_jailbreak_body = 你的裝置似乎已越獄。這可能使你的錢包和資金面臨風險。
+rootcheck_jailbreak_body = 裝置似乎已越獄，錢包和資金可能面臨風險。
 rootcheck_body = 此裝置似乎具有 root 存取權限，這會顯著增加安全風險。在已取得 root 權限的裝置上使用此應用程式可能會使資產遭受未經授權的存取並可能造成損失。為了資金安全，我們強烈建議使用未取得 root 權限的裝置。
 rootcheck_ignore = 忽略
 rootcheck_exit = 退出

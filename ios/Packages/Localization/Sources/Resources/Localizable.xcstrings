@@ -74289,13 +74289,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的设备似乎已越狱。这可能使你的钱包和资金面临风险。"
+            "value": "设备似乎已越狱，钱包和资金可能面临风险。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的裝置似乎已越獄。這可能使你的錢包和資金面臨風險。"
+            "value": "裝置似乎已越獄，錢包和資金可能面臨風險。"
           }
         }
       }
