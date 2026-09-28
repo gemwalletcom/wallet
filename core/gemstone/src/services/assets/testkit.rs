@@ -125,12 +125,16 @@ impl GemAssetStore for MemoryAssetStore {
 
 impl GemAssetsService {
     pub fn mock(provider: Arc<dyn AlienProvider>, store: Arc<dyn GemAssetStore>) -> Self {
+        Self::mock_with_price_store(provider, store, Arc::new(MemoryPriceStore::default()))
+    }
+
+    pub fn mock_with_price_store(provider: Arc<dyn AlienProvider>, store: Arc<dyn GemAssetStore>, price_store: Arc<MemoryPriceStore>) -> Self {
         let preferences = Arc::new(MemoryPreferencesStore::default());
         Self::new(
             Arc::new(GemApiClient::new(provider.clone())),
             Arc::new(GemGateway::new(provider, Arc::new(GemNodeService::mock()), preferences.clone(), Arc::new(EmptyPreferences))),
             store,
-            Arc::new(GemPriceService::mock(Arc::new(MemoryPriceStore::default()))),
+            Arc::new(GemPriceService::mock(price_store)),
             Arc::new(GemPreferencesService::new(preferences)),
             Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default()))),
         )
