@@ -113,8 +113,7 @@ where
     if http_error_status(response).is_some() {
         validate_response(response)?;
     }
-    let data: &[u8] = if response.data.is_empty() { b"null" } else { &response.data };
-    match serde_json::from_slice(data) {
+    match serde_json::from_slice(&response.data) {
         Ok(value) => Ok(value),
         Err(error) => {
             validate_response(response)?;
@@ -250,6 +249,10 @@ mod tests {
         for status in [None, Some(200), Some(201), Some(299), Some(302), Some(399)] {
             assert_eq!(deserialize_response::<bool>(&Response { status, data: b"true".to_vec() }), Ok(true));
         }
-        assert_eq!(deserialize_response::<Option<Value>>(&Response { status: Some(204), data: Vec::new() }), Ok(None));
+    }
+
+    #[test]
+    fn test_deserialize_response_rejects_empty_json_body() {
+        assert!(matches!(deserialize_response::<Option<Value>>(&Response { status: Some(204), data: Vec::new() }), Err(ClientError::Serialization(_))));
     }
 }

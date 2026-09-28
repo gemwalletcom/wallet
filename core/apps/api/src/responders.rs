@@ -1,3 +1,5 @@
+use std::io::Cursor;
+
 use fiat::error::FiatQuoteError;
 use gem_auth::JwtError;
 use gem_client::ClientError;
@@ -55,6 +57,25 @@ pub enum ApiError {
 }
 
 pub const INTERNAL_ERROR_MESSAGE: &str = "Internal server error";
+
+pub struct JsonProxyResponse(gem_client::Response);
+
+impl From<gem_client::Response> for JsonProxyResponse {
+    fn from(response: gem_client::Response) -> Self {
+        Self(response)
+    }
+}
+
+impl<'r> Responder<'r, 'static> for JsonProxyResponse {
+    fn respond_to(self, _request: &'r Request<'_>) -> rocket::response::Result<'static> {
+        let gem_client::Response { status, data } = self.0;
+        let Some(status) = status else {
+            return Err(Status::InternalServerError);
+        };
+        let status = Status::new(status);
+        Response::build().status(status).header(rocket::http::ContentType::JSON).sized_body(data.len(), Cursor::new(data)).ok()
+    }
+}
 
 impl ApiError {
     fn public(self) -> (Status, String, Option<String>) {

@@ -65,6 +65,10 @@ impl ReqwestClient {
         Self::new_with_retry(url, 30, 3)
     }
 
+    pub async fn send(&self, request: RequestBuilder) -> Result<Response, ClientError> {
+        response_data(request.send().await.map_err(Self::map_reqwest_error)?).await
+    }
+
     fn build_request(&self, request: RequestBuilder, headers: HashMap<String, String>) -> RequestBuilder {
         let request = if let Some(ref user_agent) = self.user_agent { request.header(USER_AGENT, user_agent) } else { request };
 
@@ -95,8 +99,7 @@ impl Client for ReqwestClient {
         let url = build_request_url(&self.base_url, path);
         let request = self.build_request(self.client.get(&url), headers);
 
-        let response = request.send().await.map_err(Self::map_reqwest_error)?;
-        json_response(response).await
+        deserialize_response(&self.send(request).await?)
     }
 
     async fn get_url<R>(&self, url: &str) -> Result<R, ClientError>
@@ -104,8 +107,7 @@ impl Client for ReqwestClient {
         R: DeserializeOwned,
     {
         let request = self.build_request(self.client.get(url), HashMap::new());
-        let response = request.send().await.map_err(Self::map_reqwest_error)?;
-        json_response(response).await
+        deserialize_response(&self.send(request).await?)
     }
 
     async fn post_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
@@ -134,17 +136,18 @@ impl ReqwestClient {
         let url = build_request_url(&self.base_url, path);
         let request_body = encode_request_body(&headers, body)?;
         let request = self.build_request(self.client.request(method, &url).body(request_body), headers);
-        let response = request.send().await.map_err(Self::map_reqwest_error)?;
-
-        json_response(response).await
+        deserialize_response(&self.send(request).await?)
     }
 }
 
 pub async fn json_response<T: DeserializeOwned>(response: reqwest::Response) -> Result<T, ClientError> {
+    deserialize_response(&response_data(response).await?)
+}
+
+async fn response_data(response: reqwest::Response) -> Result<Response, ClientError> {
     let status = response.status().as_u16();
     let data = response.bytes().await.map_err(|e| ClientError::Network(format!("Failed to read response body: {}", e.without_url())))?.to_vec();
-    let response = Response { status: Some(status), data };
-    deserialize_response(&response)
+    Ok(Response { status: Some(status), data })
 }
 
 #[cfg(test)]

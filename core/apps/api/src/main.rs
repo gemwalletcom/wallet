@@ -225,8 +225,9 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let notifications_client = services.notifications();
     let support_client = services.support_api();
     let support_image_upload_config = SupportImageUploadConfig::new(&settings.support.types.images)?;
-    let near_intents_client = services.near_intents(cacher_client.clone());
-    let swaps_xyz_client = services.swaps_xyz(cacher_client.clone());
+    let deposit_addresses = Arc::new(cacher_client);
+    let near_intents_client = services.near_intents(deposit_addresses.clone());
+    let swaps_xyz_client = services.swaps_xyz(deposit_addresses);
     let okx_provider = OkxProviderProxy::new(
         settings.swap.okx.url.clone(),
         OkxClientConfig {

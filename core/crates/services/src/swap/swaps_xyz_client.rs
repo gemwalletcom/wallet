@@ -1,29 +1,22 @@
-use std::error::Error;
-use std::slice;
+use std::{error::Error, sync::Arc};
 
-use cacher::{CacheKey, CacherClient};
-use gem_client::build_request_url;
 use primitives::SwapProvider;
-use swapper::swaps_xyz::{ActionRequest, ActionResponse};
+use swapper::swaps_xyz::ActionRequest;
+
+use super::proxy_client::{SwapDepositAddressStore, SwapProxyClient};
 
 pub struct SwapsXyzProxyClient {
-    client: reqwest::Client,
-    url: String,
-    cacher: CacherClient,
+    client: SwapProxyClient,
 }
 
 impl SwapsXyzProxyClient {
-    pub fn new(url: String, cacher: CacherClient) -> Self {
+    pub fn new(url: String, deposit_addresses: Arc<dyn SwapDepositAddressStore>) -> Self {
         Self {
-            client: gem_client::reqwest_client(),
-            url,
-            cacher,
+            client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::SwapsXyz, "/tx/to"),
         }
     }
 
-    pub async fn action(&self, request: &ActionRequest) -> Result<ActionResponse, Box<dyn Error + Send + Sync>> {
-        let response = self.client.get(build_request_url(&self.url, "/getAction")).query(request).send().await?.error_for_status()?.json::<ActionResponse>().await?;
-        let _ = self.cacher.add_to_set_cached(CacheKey::SwapDepositAddresses(SwapProvider::SwapsXyz.as_ref()), slice::from_ref(&response.tx.to)).await;
-        Ok(response)
+    pub async fn action(&self, request: &ActionRequest) -> Result<gem_client::Response, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get("/getAction", request).await?)
     }
 }
