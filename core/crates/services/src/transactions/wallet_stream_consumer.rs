@@ -23,6 +23,7 @@ fn stream_events(wallet_id: WalletId, event: WalletStreamEvent) -> Vec<StreamEve
         WalletStreamEvent::FiatTransaction => vec![StreamEvent::FiatTransaction(StreamWalletUpdate { wallet_id })],
         WalletStreamEvent::Nft => vec![StreamEvent::Nft(StreamWalletUpdate { wallet_id })],
         WalletStreamEvent::Perpetual => vec![StreamEvent::Perpetual(StreamWalletUpdate { wallet_id })],
+        WalletStreamEvent::WalletConfiguration => vec![StreamEvent::WalletConfiguration(StreamWalletUpdate { wallet_id })],
     }
 }
 

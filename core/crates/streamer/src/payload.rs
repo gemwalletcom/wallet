@@ -267,13 +267,23 @@ impl fmt::Display for PricesPayload {
 
 #[cfg(test)]
 mod tests {
-    use super::TransactionsPayload;
+    use super::{TransactionsPayload, WalletStreamEvent, WalletStreamPayload};
     use primitives::Chain;
 
     #[test]
     fn test_transactions_payload_should_notify_devices() {
         assert!(!TransactionsPayload::new(Chain::Ethereum, vec![]).should_notify_devices());
         assert!(TransactionsPayload::new_with_notify(Chain::Ethereum, vec![], vec![]).should_notify_devices());
+    }
+
+    #[test]
+    fn test_wallet_configuration_payload_serialization() {
+        let payload = WalletStreamPayload {
+            wallet_id: 123,
+            event: WalletStreamEvent::WalletConfiguration,
+        };
+
+        assert_eq!(serde_json::to_string(&payload).unwrap(), r#"{"wallet_id":123,"event":"WalletConfiguration"}"#);
     }
 }
 
@@ -366,6 +376,7 @@ pub enum WalletStreamEvent {
     FiatTransaction,
     Nft,
     Perpetual,
+    WalletConfiguration,
 }
 
 impl fmt::Display for WalletStreamEvent {
@@ -377,6 +388,7 @@ impl fmt::Display for WalletStreamEvent {
             WalletStreamEvent::FiatTransaction => write!(f, "fiat_transaction"),
             WalletStreamEvent::Nft => write!(f, "nft"),
             WalletStreamEvent::Perpetual => write!(f, "perpetual"),
+            WalletStreamEvent::WalletConfiguration => write!(f, "wallet_configuration"),
         }
     }
 }

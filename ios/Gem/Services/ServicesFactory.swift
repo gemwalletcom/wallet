@@ -195,6 +195,11 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
             session: walletSessionService,
         )
+        let walletConfigurationService = Gemstone.GemWalletConfigurationService(
+            api: deviceApiClient,
+            banners: bannerService,
+            preferences: walletPreferencesService,
+        )
         let streamService = Gemstone.GemStreamService(
             price: priceService,
             priceAlert: priceAlertService,
@@ -208,6 +213,7 @@ struct ServicesFactory {
             subscriptions: streamSubscriptionService,
             session: walletSessionService,
             device: deviceService,
+            walletConfiguration: walletConfigurationService,
         )
         let streamObserverService = StreamObserverService(
             service: streamService,
@@ -267,11 +273,7 @@ struct ServicesFactory {
             banners: bannerService,
             assets: assetsService,
             balance: balanceService,
-            walletConfiguration: Gemstone.GemWalletConfigurationService(
-                api: deviceApiClient,
-                banners: bannerService,
-                preferences: walletPreferencesService,
-            ),
+            walletConfiguration: walletConfigurationService,
             wallet: walletService,
             device: deviceService,
             support: supportService,
