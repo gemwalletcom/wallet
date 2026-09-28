@@ -53,7 +53,7 @@ const CHART_CURRENT_PRICE_CLEARANCE_FRACTION: f64 = 0.08;
 const CHART_MINIMUM_SPAN_FRACTION: f64 = 0.001;
 const CHART_MINIMUM_SPAN: f64 = 1e-9;
 const CHART_TICK_COUNT: usize = 4;
-const CHART_TRAILING_ROOM_FRACTION: f64 = 0.1;
+const CHART_TRAILING_ROOM_FRACTION: f64 = 0.02;
 const CHART_X_TICK_COUNT: usize = 5;
 const CHART_X_TICK_INSET_FRACTION: f64 = 0.1;
 const CHART_X_TICK_YEAR_DAYS: i64 = 360;
@@ -277,7 +277,7 @@ pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, position:
     let visible_start = zoom.clamped(candles.len()).visible_start(first.date, last.date);
     let drawn = &candles[candles.partition_point(|candle| candle.date <= visible_start - interval).min(candles.len() - 1)..];
     let start = visible_start - interval / 2;
-    let end = last.date + fraction_of(last.date - visible_start, CHART_TRAILING_ROOM_FRACTION).max(interval / 2);
+    let end = last.date + fraction_of(last.date - visible_start, CHART_TRAILING_ROOM_FRACTION).max(interval);
     let inset = start + fraction_of(end - start, CHART_X_TICK_INSET_FRACTION);
     let labelled = &drawn[drawn.partition_point(|candle| candle.date < inset)..];
     let per_tick = candles_per_tick(labelled.len(), interval);
@@ -1333,16 +1333,17 @@ mod tests {
         let chart = |candles: &[ChartCandleStick], scale: f64| candle_chart(candles, ChartPeriod::Hour, None, GemChartZoom { scale }).expect("chart");
         let whole = chart(&candles, 1.0);
         let zoomed = chart(&candles, 2.0);
+        let wide = chart(&(0..600).map(|minute| ChartCandleStick::mock(minute * 60, 100.0)).collect::<Vec<_>>(), 1.0);
         let gapped = chart(&[ChartCandleStick::mock(0, 1.0), ChartCandleStick::mock(60, 1.0), ChartCandleStick::mock(600, 1.0)], 1.0);
 
         assert_eq!(
             (whole.start, whole.end),
-            (DateTime::from_timestamp(-30, 0).unwrap(), DateTime::from_timestamp(1254, 0).unwrap()),
-            "the window covers whole candles and keeps a share of itself empty after the newest"
+            (DateTime::from_timestamp(-30, 0).unwrap(), DateTime::from_timestamp(1200, 0).unwrap()),
+            "the window covers whole candles and keeps one empty candle after the newest"
         );
         assert_eq!(whole.candles, candles);
         assert_eq!(whole.interval_seconds, 60);
-        assert_eq!((zoomed.start, zoomed.end), (DateTime::from_timestamp(540, 0).unwrap(), DateTime::from_timestamp(1197, 0).unwrap()));
+        assert_eq!((zoomed.start, zoomed.end), (DateTime::from_timestamp(540, 0).unwrap(), DateTime::from_timestamp(1200, 0).unwrap()));
         assert_eq!(zoomed.candles, candles[9..], "the candle straddling the left edge stays partially visible");
         assert_eq!(zoomed.layout, chart_layout(&candles[9..], None), "the price axis fits the candles on screen");
         assert_eq!(zoomed.header, whole.header, "the header change is over the whole period");
@@ -1352,6 +1353,7 @@ mod tests {
             "a selection is measured from the first close of the period"
         );
         assert_eq!(gapped.interval_seconds, 60, "a gap in trading does not widen the candles");
+        assert_eq!(wide.end, DateTime::from_timestamp_millis(36_658_800).unwrap(), "a wide window keeps a small share of itself empty, not a tenth of the period");
         assert_eq!(chart(&candles[..1], 1.0).candles, candles[..1], "a lone candle is still drawn");
     }
 
