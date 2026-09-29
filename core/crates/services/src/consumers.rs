@@ -18,7 +18,9 @@ use crate::notifications::{InAppNotificationsConsumer, NotificationsConsumer, No
 use crate::prices::{FetchPricesConsumer, FetchPricesMetadataConsumer, StorePricesConsumer};
 use crate::rewards::{RedemptionRetryConfig, RewardsConsumer, RewardsRedemptionConsumer};
 use crate::support::SupportWebhookConsumer;
-use crate::transactions::{FetchAddressTransactionsConsumer, FetchBlocksConsumer, FetchTransactionConsumer, StorePendingTransactionsConsumer, StoreTransactionsConsumer, SwapVaultAddressClient, WalletStreamConsumer};
+use crate::transactions::{
+    FetchAddressTransactionsConsumer, FetchBlocksConsumer, FetchTransactionConsumer, StorePendingTransactionsConsumer, StoreTransactionsConsumer, StoreTransactionsSwapsConsumer, SwapVaultAddressClient, WalletStreamConsumer,
+};
 
 impl Services {
     pub fn fetch_asset_associations_consumer(&self) -> FetchAssetAssociationsConsumer {
@@ -123,6 +125,10 @@ impl Services {
 
     pub async fn store_pending_transactions_consumer(&self) -> Result<StorePendingTransactionsConsumer, Box<dyn Error + Send + Sync>> {
         Ok(StorePendingTransactionsConsumer::new(self.cacher().await?))
+    }
+
+    pub fn store_transactions_swaps_consumer(&self) -> StoreTransactionsSwapsConsumer {
+        StoreTransactionsSwapsConsumer::new(self.database())
     }
 
     pub async fn notifications_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<NotificationsConsumer, Box<dyn Error + Send + Sync>> {

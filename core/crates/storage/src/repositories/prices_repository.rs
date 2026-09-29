@@ -11,7 +11,7 @@ use crate::error::ResourceName;
 use crate::models::min_max::MinMax;
 use crate::models::{ChartRow, PriceAssetRow, PriceProviderConfigRow, PriceRow, price::NewPriceRow, price::PricesChangeset};
 use crate::repositories::assets_repository::{all_asset_ids, asset_ids_updated_since, asset_rows};
-use crate::repositories::charts_repository::{chart_extremes, insert_chart_rows};
+use crate::repositories::charts_repository::{ChartResult, chart_extremes, chart_price_at, insert_chart_rows};
 use crate::repositories::prices_providers_repository::price_provider_rows;
 use crate::sql_types::PriceProviderRow;
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
@@ -65,6 +65,7 @@ pub trait PricesRepository {
     fn get_primary_price_infos(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
     fn get_price_by_id(&mut self, price_id: &str) -> Result<Price, DatabaseError>;
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceData>, DatabaseError>;
+    fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError>;
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError>;
     fn delete_prices(&mut self, ids: Vec<String>) -> Result<usize, DatabaseError>;
     fn get_assets_markets(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError>;
@@ -230,6 +231,11 @@ impl PricesRepository for DatabaseClient {
 
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceData>, DatabaseError> {
         Ok(prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row.as_price_data()).collect())
+    }
+
+    fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError> {
+        let price_ids = prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row.id.to_string()).collect::<Vec<_>>();
+        Ok(chart_price_at(self, &price_ids, at)?)
     }
 
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError> {

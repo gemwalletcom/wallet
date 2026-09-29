@@ -16,6 +16,7 @@ pub async fn run_consumer_store(settings: Settings, shutdown: ShutdownReceiver, 
         run_store_transactions(services.clone(), shutdown.clone(), reporter.clone()),
         run_store_prices(services.clone(), shutdown.clone(), reporter.clone()),
         run_store_pending_transactions(services.clone(), shutdown.clone(), reporter.clone()),
+        run_store_transactions_swaps(services.clone(), shutdown.clone(), reporter.clone()),
         run_wallet_stream(services.clone(), shutdown.clone(), reporter.clone()),
     )?;
 
@@ -56,5 +57,13 @@ async fn run_store_pending_transactions(services: Services, shutdown: ShutdownRe
     let queue = QueueName::StorePendingTransactions;
     let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown).await?;
     let consumer = services.store_pending_transactions_consumer().await?;
+    run_consumer::<TransactionId, _, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown, reporter).await
+}
+
+async fn run_store_transactions_swaps(services: Services, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let settings = services.settings();
+    let queue = QueueName::StoreTransactionsSwaps;
+    let (name, stream_reader) = reader_for_queue(&settings, &queue, &shutdown).await?;
+    let consumer = services.store_transactions_swaps_consumer();
     run_consumer::<TransactionId, _, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown, reporter).await
 }

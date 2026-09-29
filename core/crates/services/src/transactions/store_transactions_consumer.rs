@@ -6,7 +6,7 @@ use std::{collections::HashMap, error::Error};
 use async_trait::async_trait;
 use primitives::{AssetIdVecExt, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
 use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, NftRepository, TransactionsRepository, WalletsRepository};
-use streamer::{AssetId, NotificationsPayload, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
+use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 
 use super::StoreTransactionsConsumerConfig;
@@ -155,6 +155,12 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
         }
         self.stream_producer.publish_notifications_transactions(notifications).await?;
         self.stream_producer.publish_wallet_stream_events(wallet_events).await?;
+        let swap_transaction_ids = transactions_map
+            .values()
+            .filter(|transaction| transaction.transaction_type == TransactionType::Swap && transaction.swap_metadata().is_some_and(|metadata| metadata.referral_fee.is_some()))
+            .map(|transaction| transaction.id.clone())
+            .collect::<Vec<_>>();
+        self.stream_producer.publish_batch(QueueName::StoreTransactionsSwaps, &swap_transaction_ids).await?;
 
         Ok(transaction_count)
     }

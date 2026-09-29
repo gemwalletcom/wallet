@@ -86,6 +86,14 @@ pub mod sql_types {
     pub struct ScanType;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "swap_provider"))]
+    pub struct SwapProvider;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "swap_status"))]
+    pub struct SwapStatus;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "tag_visibility"))]
     pub struct TagVisibility;
 
@@ -963,6 +971,26 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
+    use super::sql_types::SwapProvider;
+    use super::sql_types::SwapStatus;
+
+    transactions_swaps (transaction_id) {
+        transaction_id -> Int8,
+        provider -> SwapProvider,
+        status -> SwapStatus,
+        from_asset_id -> Varchar,
+        from_amount_usd -> Nullable<Float8>,
+        to_asset_id -> Varchar,
+        to_amount_usd -> Nullable<Float8>,
+        referral_fee_asset_id -> Varchar,
+        referral_fee_amount_usd -> Nullable<Float8>,
+        updated_at -> Timestamp,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
     use super::sql_types::UsernameStatus;
 
     usernames (username) {
@@ -1078,6 +1106,7 @@ diesel::joinable!(support_sessions -> devices (device_id));
 diesel::joinable!(transactions -> chains (chain));
 diesel::joinable!(transactions_addresses -> assets (asset_id));
 diesel::joinable!(transactions_addresses -> transactions (transaction_id));
+diesel::joinable!(transactions_swaps -> transactions (transaction_id));
 diesel::joinable!(usernames -> wallets (wallet_id));
 diesel::joinable!(wallets_subscriptions -> chains (chain));
 diesel::joinable!(wallets_subscriptions -> devices (device_id));
@@ -1133,6 +1162,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     tags,
     transactions,
     transactions_addresses,
+    transactions_swaps,
     usernames,
     wallets,
     wallets_addresses,

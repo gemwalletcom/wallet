@@ -2,6 +2,8 @@ use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
+use crate::swap::SwapStatus;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, AsRefStr, EnumIter, EnumString, Model)]
 #[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "camelCase")]
@@ -16,6 +18,15 @@ pub enum TransactionState {
 }
 
 impl TransactionState {
+    pub fn swap_status(&self) -> SwapStatus {
+        match self {
+            Self::Pending | Self::InTransit => SwapStatus::Pending,
+            Self::Confirmed => SwapStatus::Completed,
+            Self::Failed | Self::Reverted => SwapStatus::Failed,
+            Self::Refunded => SwapStatus::Refunded,
+        }
+    }
+
     pub fn pending() -> Vec<Self> {
         Self::iter().filter(|state| !state.is_completed()).collect()
     }

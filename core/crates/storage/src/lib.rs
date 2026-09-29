@@ -42,6 +42,7 @@ pub use self::repositories::{
     support_sessions_repository::SupportSessionsRepository,
     tag_repository::{AssetTagLink, PerpetualTagLink, Tag, TagRepository},
     transactions_repository::{TransactionFilter, TransactionUpdate, TransactionsRepository},
+    transactions_swaps_repository::{TransactionSwapRecord, TransactionsSwapsRepository},
     wallets_repository::{NewWallet, WalletAddress, WalletRecord, WalletsRepository},
 };
 
