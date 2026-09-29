@@ -89,7 +89,7 @@ fun SelectAssetScreen(
         actions = actions,
     )
 
-    if (showRecents) {
+    if (onSelectRecent != null) {
         RecentsScreen(viewModel = recentsViewModel, onSelect = { onSelectRecent(it.id) })
     }
 }
