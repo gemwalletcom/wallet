@@ -34,7 +34,11 @@ const V1_ROUTER: RouterInfo = router("EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71g
 const NOT_TON_ROUTER: RouterInfo = router("EQDx--jUU9PUtHltPYZX7wdzIi0SPY3KZ8nvOs0iZvQJd6Ql", 2, 2, "EQDwOyDlewGw8MkeXgZ_oOmPTIhJIlaJwhJmf4ffIPKv-294");
 
 #[rustfmt::skip]
-pub(super) const FALLBACK_ROUTERS: &[RouterInfo] = &[PRIMARY_ROUTER, V1_ROUTER];
+const V21_ROUTER: RouterInfo = router("EQCpuYtq55nhkwYDmL4OWjsrdYy83gj5_49nNRQ5CrPOze49", 2, 1, "EQClcxRtn7nhZ3zzwsLk_itGaSe0r1r0Dj8fBLAxonkKNsZh");
+#[rustfmt::skip]
+const SECONDARY_V22_ROUTER: RouterInfo = router("EQADEFMTMnC-gu5v2U0ZY8AYaGhAOk9TcECg1TOquAW3r-IE", 2, 2, "EQACuz151snlY46PKdUOkyiCf0zzcxMsN6XmKQkSKZjkvyFH");
+
+pub(super) const DISCOVERY_ROUTERS: &[RouterInfo] = &[PRIMARY_ROUTER, V1_ROUTER, V21_ROUTER, SECONDARY_V22_ROUTER];
 
 pub(super) const STATIC_POOLS: &[StaticPool] = &[
     StaticPool {
