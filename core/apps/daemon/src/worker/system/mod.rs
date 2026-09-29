@@ -7,13 +7,14 @@ use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
 use crate::worker::jobs::WorkerJob;
 
-pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
-    let services = ctx.services();
+pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
+    let services = context.services();
     let config = services.config();
-    let stream_producer = services.stream_producer("observe_inactive_devices", shutdown_rx.clone()).await?;
+    let stream_producer = services.stream_producer("observe_inactive_devices", shutdown.clone()).await?;
     let system = services.system_jobs(stream_producer).await?;
 
-    ctx.plan_builder(WorkerService::System, &config, shutdown_rx)
+    context
+        .plan_builder(WorkerService::System, &config, shutdown)
         .job(WorkerJob::CleanupProcessedTransactions, {
             let transaction_cleanup = system.transaction_cleanup();
             move |_| {

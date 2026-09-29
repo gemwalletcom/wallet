@@ -3,7 +3,7 @@ use crate::{SUI_COIN_TYPE, SUI_STAKE_EVENT, SUI_UNSTAKE_EVENT, full_coin_type, s
 use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::{TimeZone, Utc};
 use num_bigint::{BigUint, Sign};
-use primitives::{AssetId, SwapProvider, Transaction, TransactionSmartContractMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
+use primitives::{AssetId, SwapProvider, Transaction, TransactionSmartContractMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::SUI_REFERRAL_ADDRESS};
 
 const CHAIN: Chain = Chain::Sui;
 
@@ -76,6 +76,7 @@ fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance
             _ => return None,
         };
         let owner = owner.clone()?;
+        let swap = swap.with_referral_fee(map_referral_fee(balance_changes, &owner));
         let asset_id = swap.from_asset.clone();
         return Some((asset_id, owner.clone(), owner, TransactionType::Swap, swap.from_value.clone(), serde_json::to_value(&swap).ok()));
     }
@@ -168,7 +169,20 @@ pub fn map_swap_from_balance_changes(balance_changes: Vec<BalanceChange>, fee: &
         .collect();
 
     let native_asset_id = Chain::Sui.as_asset_id();
-    SwapMapper::map_swap(&balance_diffs, fee, &native_asset_id, Some(SwapProvider::CetusClmm.id().to_owned()))
+    SwapMapper::map_swap(&balance_diffs, fee, &native_asset_id, Some(SwapProvider::CetusClmm))
+}
+
+fn map_referral_fee(balance_changes: &[BalanceChange], owner: &str) -> Option<TransactionSwapReferralFee> {
+    if owner == SUI_REFERRAL_ADDRESS {
+        return None;
+    }
+    balance_changes
+        .iter()
+        .find(|change| change.owner.get_address_owner().as_deref() == Some(SUI_REFERRAL_ADDRESS) && change.amount.sign() == Sign::Plus)
+        .map(|change| TransactionSwapReferralFee {
+            asset_id: map_asset_id(&change.coin_type),
+            value: change.amount.magnitude().clone(),
+        })
 }
 
 pub fn map_asset_id(coin_type: &str) -> AssetId {
@@ -226,6 +240,26 @@ mod tests {
 
         let metadata: TransactionSmartContractMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.method_name, "timevy_tipping");
+    }
+
+    #[test]
+    fn test_map_swap_referral_fee() {
+        let digest: Digest = serde_json::from_str(include_str!("../../testdata/swap_cetus_referral_fee.json")).unwrap();
+        let transaction = map_transaction(digest).unwrap();
+        let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
+        let usdc = AssetId::from_token(Chain::Sui, "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC");
+
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.from_asset, usdc);
+        assert_eq!(metadata.from_value, BigUint::from(33679241592u64));
+        assert_eq!(metadata.to_value, BigUint::from(1061434029367596u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: usdc,
+                value: BigUint::from(168396207u64),
+            })
+        );
     }
 
     #[test]

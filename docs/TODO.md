@@ -21,7 +21,7 @@ These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171. Waiting on a date or a release: X168, X169, X170, X163, X172.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172.
 
 ## Screen coverage and existing infrastructure
 
@@ -118,13 +118,13 @@ The target for every item below: a model that only renames or regroups a Core re
 ### Shared components, second round
 
 - **VM262** **M** **Screens count their own lists so Core can pick the phase.**
-  - **iOS:** `SelectAssetSceneViewModel` (`GemAssetSectionCounts`), `WalletSearchSceneViewModel` and `AssetsResultsSceneViewModel` (`GemWalletSearchCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
-  - **Android:** `BaseSelectAssetViewModel`, `WalletSearchViewModel`, `AssetsResultsViewModel`, `PerpetualsViewModel` and `loadError(..., candles.isNotEmpty())` in `PerpetualViewModel`.
+  - **iOS:** `SelectAssetSceneViewModel` (`GemAssetSectionCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
+  - **Android:** `BaseSelectAssetViewModel`, `PerpetualsViewModel` and `loadError(..., candles.isNotEmpty())` in `PerpetualViewModel`.
   - **Expected:** the Core call that builds the screen reads the list sizes through the store port it already has and returns sections and phase together; the counting and the `hasRows` arguments go.
-- **VM264** **S** **Search result sections are split in the apps.**
-  - **iOS:** `WalletSearchSections.from` splits pinned and other assets (`AssetsSections.from`) and calls `perpetualMarketSections`; `WalletHomeState` re-assembles the home sections, header and flags.
-  - **Android:** `WalletSearchViewModel` and `WalletViewModel` split the same way; `WalletSummary` re-assembles the home state.
-  - **Expected:** the search and home view states carry finished sections; the splitting types go.
+- **VM264** **S** **Wallet home sections are split in the apps.**
+  - **iOS:** `WalletSceneViewModel` splits pinned and other assets (`AssetsSections.from`); `WalletHomeState` re-assembles the home sections, header and flags.
+  - **Android:** `WalletViewModel` splits the same way; `WalletSummary` re-assembles the home state.
+  - **Expected:** the home view state carries finished sections, as `GemWalletSearchView` does for the wallet search; the splitting types go.
 - **VM267** **S** **Simulation payload fields are mapped twice.**
   - **iOS:** `SimulationPayloadFieldViewModel` (with `SimulationPayloadFieldKind` and `models(for:)`) maps text, address and timestamp values and wires address taps.
   - **Android:** `SimulationPayloadFieldsContent` does the same per value case.
@@ -195,6 +195,7 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 ## Blocked upstream
 
+- **CLN455** **S** **Transaction asset links keep ids the store does not have yet.** iOS drops a swap's asset ids that are not stored yet when linking a transaction to its assets, so asset-filtered history misses the swap; Android keeps them. Decide whether iOS relaxes its foreign key (a migration) or Core stores the asset first; until then this stays open.
 - **X168** **S** `WalletConfiguration.multi_signature_accounts` ([`wallet_configuration.rs`](../core/crates/primitives/src/wallet_configuration.rs)) is the old name of `externally_controlled_accounts`, which also covers Solana accounts assigned to another program. The API fills both because shipped apps read only the old field. Delete the field, its fill in [`wallet_configuration.rs`](../core/crates/services/src/devices/wallet_configuration_client.rs) and the merge in [`externally_controlled_banners`](../core/gemstone/src/services/wallet_configuration/rules.rs) on 2026-12-18, three months after the release that reads `externally_controlled_accounts`.
 - **X169** **S** The legacy singular `GET /devices/transaction/<id>` route (`get_device_transaction_v2` in [`devices/mod.rs`](../core/apps/api/src/devices/mod.rs)) goes on 2026-11-15, with its mount.
 - **X170** **S** Dynode's TON `/api/v2/runGetMethod` cache validation in [`proxy/service.rs`](../core/apps/dynode/src/proxy/service.rs) goes on 2027-01-01, together with the Dynode legacy wallet routes.

@@ -297,7 +297,6 @@ public extension GemTransactionDetailsService {
 }
 
 public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked Sendable {
-    public var networksValue: GemReceiveNetworks?
     var updateError: Error?
     public var warningsValue: [GemReceiveWarning] = []
     public var assetResult: Result<Gemstone.Asset, Error> = .success(Primitives.Asset.mock().toGem())
@@ -323,10 +322,6 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
         if let enableAssetError {
             throw enableAssetError
         }
-    }
-
-    public func networks(asset: Gemstone.Asset, associations _: [Gemstone.AssetId], wallet _: Gemstone.Wallet) -> GemReceiveNetworks {
-        networksValue ?? GemReceiveNetworks(networks: [GemReceiveNetwork(assetId: asset.id, row: .mock())], showsSelector: false)
     }
 
     public func updateAsset(assetId: Gemstone.AssetId) async throws {

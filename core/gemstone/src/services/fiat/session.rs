@@ -373,7 +373,7 @@ mod tests {
     fn test_the_amount_decides_the_phase_and_whether_a_quote_is_requested() {
         let session = GemFiatSession::new(FiatQuoteType::Buy, None);
 
-        assert_eq!(session.on_amount_changed("".to_string()).current().phase, GemFiatQuotePhase::NoInput);
+        assert_eq!(session.on_amount_changed(String::new()).current().phase, GemFiatQuotePhase::NoInput);
         assert_eq!(session.on_amount_changed("0".to_string()).current().phase, GemFiatQuotePhase::NoInput);
         assert_eq!(session.on_amount_changed("abc".to_string()).current().phase, GemFiatQuotePhase::InvalidInput);
         assert_eq!(

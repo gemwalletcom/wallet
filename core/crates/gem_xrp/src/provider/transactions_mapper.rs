@@ -199,10 +199,10 @@ mod tests {
             .unwrap();
         let transactions = map_account_transactions(Chain::Xrp, ledger);
 
-        let tx = transactions.first().unwrap();
-        assert_eq!(tx.transaction_type, TransactionType::Transfer);
-        assert_eq!(tx.value, BigUint::from(30000000u64));
-        assert_eq!(tx.memo.as_deref(), Some("=:b:bc1q3yw4t9xlqq9982qhvp95lgs60xrjdkmjdta0jn:0/1/0:g1:50"));
+        let transaction = transactions.first().unwrap();
+        assert_eq!(transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(transaction.value, BigUint::from(30000000u64));
+        assert_eq!(transaction.memo.as_deref(), Some("=:b:bc1q3yw4t9xlqq9982qhvp95lgs60xrjdkmjdta0jn:0/1/0:g1:50"));
     }
 
     #[test]
@@ -211,9 +211,9 @@ mod tests {
         let transactions = map_transactions_by_block(ledger.ledger);
 
         assert!(!transactions.is_empty());
-        for tx in transactions {
-            assert_eq!(tx.asset_id.chain, Chain::Xrp);
-            assert_eq!(tx.transaction_type, TransactionType::Transfer);
+        for transaction in transactions {
+            assert_eq!(transaction.asset_id.chain, Chain::Xrp);
+            assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         }
     }
 

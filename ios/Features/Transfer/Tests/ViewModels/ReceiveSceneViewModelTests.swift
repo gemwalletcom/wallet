@@ -17,22 +17,17 @@ struct ReceiveSceneViewModelTests {
     private let bitcoin = Primitives.Asset.mock(id: .mock(chain: .bitcoin))
     private let ethereum = Primitives.Asset.mock(id: .mock(chain: .ethereum))
     private let solana = Primitives.Asset.mock(id: .mock(chain: .solana))
+    private let ethereumToken = Primitives.Asset.mock(id: AssetId(chain: .ethereum, tokenId: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"))
 
     @Test
-    func theNetworksComeFromCore() {
-        let service = GemReceiveServiceMock()
-        service.networksValue = GemReceiveNetworks(
-            networks: [
-                GemReceiveNetwork(assetId: bitcoin.id, row: .mock(chain: bitcoin.chain.rawValue)),
-                GemReceiveNetwork(assetId: ethereum.id, row: .mock(chain: ethereum.chain.rawValue, standard: .text(text: "ERC20"))),
-            ],
-            showsSelector: true,
-        )
-        let model = ReceiveSceneViewModel.mock(service: service)
+    func theNetworksComeFromTheStoredAssociations() {
+        let model = ReceiveSceneViewModel.mock()
 
-        #expect(model.networkSelectorModel.items == [bitcoin.id, ethereum.id])
+        model.onChangeAssetData(nil, .mock(asset: bitcoin, associations: [AssetAssociation(assetId: ethereumToken.id, type: .bridged)]))
+
+        #expect(model.networkSelectorModel.items == [bitcoin.id, ethereumToken.id])
         #expect(model.showNetworkSelector)
-        #expect(model.chainModel(for: ethereum.id).listItem.titleExtra == "ERC20")
+        #expect(model.chainModel(for: ethereumToken.id).listItem.titleExtra == "ERC20")
         #expect(model.chainModel(for: bitcoin.id).listItem.titleExtra == nil, "a coin names no token standard")
     }
 
@@ -122,6 +117,20 @@ struct ReceiveSceneViewModelTests {
         #expect(model.asset.chain == .ethereum)
         #expect(model.address == "0xabc")
         #expect(service.enabledAssetIds == [ethereum.id])
+    }
+
+    @Test
+    func theNetworksStayTheOnesTheScreenOpenedWithAfterASwap() async {
+        let service = GemReceiveServiceMock()
+        service.assetResult = .success(ethereumToken.toGem())
+        let model = ReceiveSceneViewModel.mock(service: service)
+        model.onChangeAssetData(nil, .mock(asset: bitcoin, associations: [AssetAssociation(assetId: ethereumToken.id, type: .bridged)]))
+
+        model.onFinishNetworkSelection([ethereumToken.id])
+        await model.selectNetworkTask?.value
+
+        #expect(model.asset.id == ethereumToken.id)
+        #expect(model.networkSelectorModel.items == [bitcoin.id, ethereumToken.id], "the network the screen opened on stays pickable")
     }
 
     @Test

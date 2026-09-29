@@ -55,7 +55,7 @@ pub fn portfolio_currency(portfolio_type: PortfolioType, currency: Currency) -> 
 }
 
 pub fn portfolio_chart_data(data: PortfolioData, portfolio_type: PortfolioType, chart_type: PortfolioChartType, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
-    let chart = data.charts.iter().find(|chart| chart.chart_type == chart_type).or(data.charts.first())?;
+    let chart = data.charts.iter().find(|chart| chart.chart_type == chart_type).or_else(|| data.charts.first())?;
     let shows_value = portfolio_type == PortfolioType::Wallet || chart_type == PortfolioChartType::Value;
     change_chart_data(chart.values.clone(), shows_value, period, portfolio_currency(portfolio_type, currency))
 }

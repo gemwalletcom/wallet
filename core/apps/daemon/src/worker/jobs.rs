@@ -12,11 +12,11 @@ enum JobInterval {
 }
 
 impl JobInterval {
-    async fn resolve(self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
+    async fn duration(self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
         match self {
             JobInterval::Config(key) => {
-                let cfg = config.ok_or_else(|| format!("ConfigCacher required for {:?}", key))?;
-                Ok(cfg.get_duration(key).await?)
+                let config = config.ok_or_else(|| format!("ConfigCacher required for {:?}", key))?;
+                Ok(config.get_duration(key).await?)
             }
         }
     }
@@ -268,8 +268,8 @@ impl JobVariant {
         self.job.worker()
     }
 
-    pub async fn resolve_interval(&self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
-        if let Some(duration) = self.override_interval { Ok(duration) } else { self.job.interval().resolve(config).await }
+    pub async fn interval_duration(&self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
+        if let Some(duration) = self.override_interval { Ok(duration) } else { self.job.interval().duration(config).await }
     }
 }
 

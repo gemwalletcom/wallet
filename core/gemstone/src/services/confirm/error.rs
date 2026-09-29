@@ -303,13 +303,6 @@ impl GemConfirmError {
     }
 }
 
-#[uniffi::export]
-impl GemConfirmErrorDisplay {
-    pub fn has_info_sheet(&self) -> bool {
-        self.sheet().is_some()
-    }
-}
-
 impl GemConfirmErrorDisplay {
     pub(crate) fn sheet(&self) -> Option<GemConfirmErrorSheet> {
         match self {
@@ -469,9 +462,9 @@ mod tests {
         assert!(matches!(dust.display(), GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin }));
         assert!(matches!(signing.display(), GemConfirmErrorDisplay::Message { msg } if msg == "boom"));
 
-        assert!(dust.display().has_info_sheet());
-        assert!(!signing.display().has_info_sheet());
-        assert!(!GemConfirmError::Cancelled.display().has_info_sheet());
+        assert!(dust.display().sheet().is_some());
+        assert!(signing.display().sheet().is_none());
+        assert!(GemConfirmError::Cancelled.display().sheet().is_none());
     }
 
     #[test]

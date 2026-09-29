@@ -240,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_filter_active_dex_skips_empty_names() {
-        let dexs = vec![None, Some(PerpDex { name: "".to_string(), is_active: Some(true) })];
+        let dexs = vec![None, Some(PerpDex { name: String::new(), is_active: Some(true) })];
 
         let enabled_hip3_markets = vec!["dex1".to_string()];
         let entries = filter_active_dex(&dexs, &enabled_hip3_markets);
@@ -493,8 +493,8 @@ mod integration_tests {
         assert!(btc.is_some(), "BTC perpetual should exist");
         assert_eq!(btc.unwrap().perpetual.identifier, "0");
 
-        let builder_assets: Vec<_> = data.iter().filter(|d| d.perpetual.identifier.parse::<u32>().unwrap_or(0) >= 100_000).collect();
-        println!("Builder DEX assets: {}", builder_assets.len());
+        let builder_assets = data.iter().filter(|d| d.perpetual.identifier.parse::<u32>().unwrap_or(0) >= 100_000).count();
+        println!("Builder DEX assets: {}", builder_assets);
 
         Ok(())
     }

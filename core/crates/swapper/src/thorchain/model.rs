@@ -67,9 +67,22 @@ pub struct TransactionCoin {
 }
 
 impl TransactionCoin {
-    pub fn native_value(&self, chain: Chain) -> Option<BigUint> {
-        let decimals = self.decimals.or_else(|| if self.is_native_asset() { Some(Asset::from_chain(chain).decimals) } else { None })?;
+    pub fn native_value(&self, network: THORChainNetwork) -> Option<BigUint> {
+        let decimals = match self.decimals {
+            Some(decimals) => decimals,
+            None => self.asset_decimals(network)?,
+        };
         Some(value_to(&self.amount, decimals).magnitude().clone())
+    }
+
+    fn asset_decimals(&self, network: THORChainNetwork) -> Option<i32> {
+        let asset_id = self.asset_id(network)?;
+        if asset_id.token_id.is_none() {
+            return Some(Asset::from_chain(asset_id.chain).decimals);
+        }
+        let (chain_symbol, _) = self.asset.split_once('.')?;
+        let chain_name = ChainName::from_symbol(network, chain_symbol)?;
+        chain_name.token_assets().into_iter().find(|asset| asset.id == asset_id).map(|asset| asset.decimals)
     }
 
     pub fn asset_id(&self, network: THORChainNetwork) -> Option<AssetId> {
@@ -91,10 +104,6 @@ impl TransactionCoin {
             None if chain == Chain::Tron => chain_name.token_assets().into_iter().find(|asset| asset.symbol == symbol).map(|asset| asset.id),
             None => None,
         }
-    }
-
-    fn is_native_asset(&self) -> bool {
-        !self.asset.contains('-')
     }
 }
 
@@ -130,6 +139,8 @@ struct OutboundDelayStage {
 pub struct TransactionStatusOutTx {
     pub id: String,
     pub chain: String,
+    #[serde(default)]
+    pub to_address: Option<String>,
     pub coins: Vec<TransactionCoin>,
 }
 
@@ -395,28 +406,35 @@ mod tests {
             amount: "160661010".to_string(),
             decimals: None,
         };
-        assert_eq!(native.native_value(Chain::Litecoin), Some(BigUint::from(160661010u64)));
+        assert_eq!(native.native_value(THORChainNetwork::Thorchain), Some(BigUint::from(160661010u64)));
 
         let native_18 = TransactionCoin {
             asset: "ETH.ETH".to_string(),
             amount: "2509674".to_string(),
             decimals: None,
         };
-        assert_eq!(native_18.native_value(Chain::Ethereum), Some(BigUint::from(25096740000000000u64)));
+        assert_eq!(native_18.native_value(THORChainNetwork::Thorchain), Some(BigUint::from(25096740000000000u64)));
 
         let token_with_decimals = TransactionCoin {
             asset: format!("ETH.USDT-{ETHEREUM_USDT_TOKEN_ID}"),
             amount: "380962656200".to_string(),
             decimals: Some(6),
         };
-        assert_eq!(token_with_decimals.native_value(Chain::Ethereum), Some(BigUint::from(3809626562u64)));
+        assert_eq!(token_with_decimals.native_value(THORChainNetwork::Thorchain), Some(BigUint::from(3809626562u64)));
 
         let token_no_decimals = TransactionCoin {
             asset: format!("ETH.USDT-{ETHEREUM_USDT_TOKEN_ID}"),
             amount: "380962656200".to_string(),
             decimals: None,
         };
-        assert_eq!(token_no_decimals.native_value(Chain::Ethereum), None);
+        assert_eq!(token_no_decimals.native_value(THORChainNetwork::Thorchain), Some(BigUint::from(3809626562u64)));
+
+        let unknown_token = TransactionCoin {
+            asset: "ETH.UNKNOWN-0X0000000000000000000000000000000000000001".to_string(),
+            amount: "380962656200".to_string(),
+            decimals: None,
+        };
+        assert_eq!(unknown_token.native_value(THORChainNetwork::Thorchain), None);
     }
 
     #[test]

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemSearchListRow
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
-import NFT
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -15,53 +15,58 @@ import WalletTestKit
 @MainActor
 struct WalletSearchSceneViewModelTests {
     @Test
-    func hasMoreAssetsCountsOnlyTheAssetsThePreviewShows() {
-        let model = WalletSearchSceneViewModel.mock()
-        model.searchQuery.value = .mock(assets: (0 ..< 13).map { _ in AssetData.mock(metadata: .mock(isPinned: true)) })
+    func theViewReceivesEveryObservedRowWithItsPinnedFlag() {
+        let service = GemAssetSelectionServiceMock()
+        let model = WalletSearchSceneViewModel.mock(service: service)
+        let pinned = AssetData.mock(asset: .mock(id: .mock(chain: .ethereum)), metadata: .mock(isPinned: true))
+        let other = AssetData.mock(asset: .mock(id: .mock(chain: .bitcoin)), metadata: .mock(isPinned: false))
+        model.searchQuery.value = .mock(
+            assets: [pinned, other],
+            perpetuals: [.mock()],
+            lists: [AssetList(id: "stocks", name: "Stocks", count: 2)],
+        )
 
-        #expect(model.derived.previewAssets.isEmpty)
-        #expect(model.derived.view.hasMoreAssets == false)
+        _ = model.view
+        let input = service.searchInputs.last
+
+        #expect(input?.assetIds == [pinned.asset.id, other.asset.id])
+        #expect(input?.pinnedAssetIds == [pinned.asset.id])
+        #expect(input?.perpetuals.count == 1)
+        #expect(input?.lists.map(\.id) == ["stocks"])
     }
 
     @Test
-    func listsSection() {
-        let model = WalletSearchSceneViewModel.mock()
-
-        #expect(model.derived.view.state.showsLists == false)
-
-        let list = AssetList(id: "stocks", name: "Stocks", count: 2)
-        model.searchQuery.value = .mock(lists: [list])
-
-        let row = model.derived.sections.lists[0]
-        #expect(model.derived.view.state.showsLists == true)
-        #expect(row.listItem.subtitle == "2")
-        #expect(model.listDestination(for: row) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
-    }
-
-    @Test
-    func nftsSection() {
+    func aTypedQueryReadsAsLoadingUntilTheSearchAnswers() async {
         let service = GemAssetSelectionServiceMock()
         let model = WalletSearchSceneViewModel.mock(service: service)
 
-        #expect(model.derived.view.state.showsNfts == false)
+        model.searchableQuery = "btc"
+        model.onChangeSearchQuery("", "btc")
+        _ = model.view
+        #expect(service.searchInputs.last?.query == "btc")
+        #expect(service.searchInputs.last?.isLoading == true)
 
-        service.nftSearchItems = [
-            .mock(item: .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem()), row: .mock(id: "collection", isVerified: true)),
-            .mock(item: .asset(data: NFTAssetData.mock().toGem()), row: .mock(id: "asset", isVerified: true)),
-        ]
-
-        #expect(model.derived.view.state.showsNfts == true)
-        #expect(model.derived.previewNFTs.count == 2)
+        await model.onSearch(query: "btc")
+        _ = model.view
+        #expect(service.searchInputs.last?.isLoading == false)
     }
 
     @Test
-    func aMatchingListAloneIsNotAnEmptySearch() {
+    func assetIdsResolveToTheirRowsInCoreOrder() {
         let model = WalletSearchSceneViewModel.mock()
-        model.searchQuery.value = .mock(lists: [AssetList(id: "stocks", name: "Stocks", count: 2)])
+        let ethereum = AssetData.mock(asset: .mock(id: .mock(chain: .ethereum)))
+        let bitcoin = AssetData.mock(asset: .mock(id: .mock(chain: .bitcoin)))
+        model.searchQuery.value = .mock(assets: [ethereum, bitcoin])
 
-        if case .results = model.searchState(model.derived) {} else {
-            Issue.record("expected results, got \(model.searchState(model.derived))")
-        }
+        #expect(model.assets([bitcoin.asset.id, ethereum.asset.id]).map(\.asset.id) == [bitcoin.asset.id, ethereum.asset.id])
+    }
+
+    @Test
+    func aListRowOpensItsResults() {
+        let model = WalletSearchSceneViewModel.mock()
+        let row = GemSearchListRow(list: AssetList(id: "stocks", name: "Stocks", count: 2).toGem(), subtitle: "2", imageUrl: "")
+
+        #expect(model.listDestination(for: row) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
     }
 
     @Test

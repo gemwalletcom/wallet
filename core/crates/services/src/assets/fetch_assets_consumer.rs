@@ -29,7 +29,7 @@ impl MessageConsumer<FetchAssetsPayload, usize> for FetchAssetsConsumer {
         }
         let token_id = payload.asset_id.get_token_id()?.clone();
         let asset = self.providers.get_token_data(payload.asset_id.chain, token_id.clone()).await?;
-        let classified = self.classification_rules.apply(asset.as_basic_primitive());
+        let classified = self.classification_rules.classified(asset.as_basic_primitive());
         let added = self.database.run(move |client| client.add_assets(vec![classified])).await?;
         if added > 0 {
             self.stream_producer.publish_fetch_asset_status(payload.asset_id.clone()).await?;

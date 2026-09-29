@@ -57,6 +57,7 @@ fun WalletApp(
         startDestination = start,
         currentTab = currentTab,
         session = viewModel.session,
+        onOpenAction = viewModel::openAction,
     )
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     val isWalletRootActive = navigator.backStack.lastOrNull() == WalletRootRoute

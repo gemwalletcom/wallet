@@ -93,8 +93,8 @@ class NativeProviderTest {
                     ),
                 )
             }
-        } catch (err: CancellationException) {
-            assertEquals("cancelled", err.message)
+        } catch (error: CancellationException) {
+            assertEquals("cancelled", error.message)
             return
         }
         throw AssertionError("Expected cancellation exception")

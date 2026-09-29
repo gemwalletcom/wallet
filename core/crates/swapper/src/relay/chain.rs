@@ -76,8 +76,8 @@ impl RelayChain {
 
     pub fn checksum_address(&self, address: &str) -> String {
         match self {
-            Self::Evm(_) => ethereum_address_checksum(address).unwrap_or(address.to_string()),
-            Self::Ton => TonAddress::try_parse_base64(address).map_or(address.to_string(), |ton_address| ton_address.encode_non_bounceable()),
+            Self::Evm(_) => ethereum_address_checksum(address).unwrap_or_else(|_| address.to_string()),
+            Self::Ton => TonAddress::try_parse_base64(address).map_or_else(|| address.to_string(), |ton_address| ton_address.encode_non_bounceable()),
             Self::Bitcoin | Self::Tron | Self::Solana => address.to_string(),
         }
     }

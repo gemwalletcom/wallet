@@ -5,7 +5,7 @@ use crate::models::custom_types::{GemBigInt, GemBigUint, GemJsonValue};
 use primitives::{
     Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, ApprovalData, Asset, AssetAssociation, AssetAssociationType, AssetBalance, AssetBasic, AssetData, AssetFiatValue,
     AssetFull, AssetLink, AssetList, AssetMarket, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, AssetType, Balance, BalanceMetadata, Banner, BannerEvent, BannerState, BlockExplorerLink, CancelOrderData, Chain,
-    ChainAddress, ChainAsset, ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContactData, ContractCallData, CoreEmoji, CoreListItem,
+    ChainAsset, ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContactData, ContractCallData, CoreEmoji, CoreListItem,
     CoreListItemBadge, CoreListItemIcon, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, DeviceLocale, EarnType, FeePriority, FeeUnitType, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatQuoteUrl,
     FiatRate, FiatTransaction, FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, GasPriceType, InAppNotification, Latency, LatencyType, LinkType, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType, NFTCollection,
     NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, PaymentType,
@@ -1019,12 +1019,6 @@ pub struct BlockExplorerLink {
 pub struct CancelOrderData {
     pub asset_index: i32,
     pub order_id: u64,
-}
-
-#[uniffi::remote(Record)]
-pub struct ChainAddress {
-    pub chain: Chain,
-    pub address: String,
 }
 
 #[uniffi::remote(Record)]

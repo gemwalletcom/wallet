@@ -30,7 +30,7 @@ public struct TransactionNavigationView: View {
         .sheet(item: $model.isPresentingTransactionSheet) { sheetType in
             switch sheetType {
             case .share:
-                ShareSheet(activityItems: [model.explorerURL.absoluteString])
+                ShareSheet(activityItems: [model.explorerLink])
             case .feeDetails:
                 NetworkFeeSheet(model: model.feeDetailsViewModel)
             case let .info(infoType):

@@ -2,12 +2,11 @@ use super::{
     constants::{RouterInfo, STATIC_POOLS, StaticPool},
     model::{Router, SwapSimulation},
 };
-use crate::{SwapperError, SwapperQuoteAsset};
+use crate::{SwapperError, SwapperQuoteAsset, fees::subtract_bps};
 use gem_ton::{address::Address, constants::TON_PROXY_JETTON_ADDRESS};
 use num_bigint::BigUint;
+use primitives::swap::HUNDRED_PERCENT_IN_BPS;
 use std::str::FromStr;
-
-const BPS_DENOMINATOR: u32 = 10_000;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(super) struct DiscoveredPool {
@@ -91,19 +90,14 @@ pub(super) fn compute_amount_out(pool: &PoolData, offer_wallet: &str, amount: &B
         return Err(SwapperError::InvalidRoute);
     };
     let total_fee = pool.lp_fee.checked_add(pool.protocol_fee).ok_or_else(|| SwapperError::ComputeQuoteError("STON.fi fee overflow".into()))?;
-    if total_fee >= BPS_DENOMINATOR {
+    if total_fee >= HUNDRED_PERCENT_IN_BPS {
         return Err(SwapperError::ComputeQuoteError("STON.fi fee exceeds 100%".into()));
     }
-    let amount_after_fee = (amount * BigUint::from(BPS_DENOMINATOR - total_fee)) / BigUint::from(BPS_DENOMINATOR);
+    let amount_after_fee = subtract_bps(amount, total_fee);
     if amount_after_fee == BigUint::from(0u8) {
         return Ok(BigUint::from(0u8));
     }
     Ok((reserve_out * &amount_after_fee) / (reserve_in + amount_after_fee))
-}
-
-pub(super) fn apply_slippage(amount: &BigUint, bps: u32) -> BigUint {
-    let slippage = BPS_DENOMINATOR - bps.min(BPS_DENOMINATOR);
-    (amount * BigUint::from(slippage)) / BigUint::from(BPS_DENOMINATOR)
 }
 
 pub(super) fn scaled_next_min_ask_amount(first: &SwapSimulation, next: &SwapSimulation) -> Result<BigUint, SwapperError> {
@@ -118,7 +112,7 @@ pub(super) fn scaled_next_min_ask_amount(first: &SwapSimulation, next: &SwapSimu
 
 #[cfg(test)]
 mod tests {
-    use super::super::constants::FALLBACK_ROUTERS;
+    use super::super::constants::DISCOVERY_ROUTERS;
     use super::super::testkit::{TEST_PTON_WALLET, TEST_USDT_WALLET};
     use super::*;
     use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
@@ -135,7 +129,7 @@ mod tests {
         let out = compute_amount_out(&PoolData::mock(), TEST_PTON_WALLET, &amount).unwrap();
 
         assert_eq!(out, BigUint::from(2_132_526u64));
-        assert_eq!(apply_slippage(&out, 100), BigUint::from(2_111_200u64));
+        assert_eq!(subtract_bps(&out, 100), BigUint::from(2_111_200u64));
     }
 
     #[test]
@@ -171,7 +165,7 @@ mod tests {
 
     #[test]
     fn test_static_metadata_addresses_parse() {
-        for router in FALLBACK_ROUTERS {
+        for router in DISCOVERY_ROUTERS {
             Address::parse(router.address).unwrap();
             Address::parse(router.pton_wallet).unwrap();
         }

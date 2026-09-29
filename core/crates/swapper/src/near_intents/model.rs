@@ -102,6 +102,8 @@ pub struct ExplorerTransaction {
     pub amount_in: String,
     pub amount_out: String,
     pub origin_chain_tx_hashes: Vec<String>,
+    #[serde(default)]
+    pub app_fees: Vec<AppFee>,
 }
 
 #[derive(Debug, Clone, Serialize)]

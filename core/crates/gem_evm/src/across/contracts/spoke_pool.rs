@@ -93,5 +93,22 @@ sol! {
         ) external payable;
 
         function fillV3Relay(V3RelayData calldata relayData, uint256 repaymentChainId) external;
+
+        struct RelayData {
+            bytes32 depositor;
+            bytes32 recipient;
+            bytes32 exclusiveRelayer;
+            bytes32 inputToken;
+            bytes32 outputToken;
+            uint256 inputAmount;
+            uint256 outputAmount;
+            uint256 originChainId;
+            uint256 depositId;
+            uint32 fillDeadline;
+            uint32 exclusivityDeadline;
+            bytes message;
+        }
+
+        function fillRelay(RelayData calldata relayData, uint256 repaymentChainId, bytes32 repaymentAddress) external;
     }
 }

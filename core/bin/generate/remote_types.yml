@@ -24,7 +24,6 @@ remote:
   - AssetBalance
   - AssetData
   - BannerState
-  - ChainAddress
   - ChartCandleStick
   - ChartCandleUpdate
   - ChartDateValue
@@ -334,6 +333,9 @@ mocks:
   - GemWalletConnectMessageRequest
   - GemWalletConnectTransactionRequest
   - GemWalletRow
+  - GemWalletSearchResultsView
+  - GemWalletSearchState
+  - GemWalletSearchView
   - Latency
   - NameRecord
   - NFTAsset

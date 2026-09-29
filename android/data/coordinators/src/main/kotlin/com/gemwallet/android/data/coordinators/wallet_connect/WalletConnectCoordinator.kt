@@ -21,6 +21,7 @@ import com.gemwallet.android.application.wallet_connect.toConnectionSession
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
@@ -49,7 +50,7 @@ class WalletConnectCoordinator(
     private val walletConnectClient: WalletConnectClient,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val chainService: GemChainServiceInterface,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : IsWalletConnectEnabled,
     PairWalletConnect,
     SyncWalletConnectSessions,
@@ -113,8 +114,8 @@ class WalletConnectCoordinator(
                         onSuccess = { onSuccess() },
                         onError = { onError(clientErrorText(it)) },
                     )
-                } catch (err: Throwable) {
-                    onError(err.errorText())
+                } catch (error: Throwable) {
+                    onError(error.errorText())
                 }
             },
             onError = { onError(clientErrorText(it)) },
@@ -151,7 +152,7 @@ class WalletConnectCoordinator(
             onSuccess = {
                 if (rejection.deletesSession) {
                     scope.launch {
-                        runCatching { walletConnectService.deleteSession(proposal.pairingTopic) }
+                        runCatchingCancellable { walletConnectService.deleteSession(proposal.pairingTopic) }
                             .onFailure { Log.e("WalletConnect", "Delete rejected session failed", it) }
                     }
                 }
@@ -235,7 +236,7 @@ class WalletConnectCoordinator(
 
     private fun persistNewSessions(wallet: Wallet, activeBefore: Set<String>, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         scope.launch(Dispatchers.IO) {
-            runCatching {
+            runCatchingCancellable {
                 addNewSessions(wallet, activeBefore)
             }.onSuccess {
                 onSuccess()

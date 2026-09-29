@@ -9,7 +9,7 @@ fun UriHandler.open(context: Context, uri: String) {
     try {
         val customTabsIntent = CustomTabsIntent.Builder().build()
         customTabsIntent.launchUrl(context, uri.toUri())
-    } catch (err: Throwable) {
+    } catch (_: Throwable) {
         try {
             openUri(uri)
         } catch (_: Throwable) {

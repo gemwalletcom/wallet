@@ -15,11 +15,15 @@ fun <T> List<T>.assetSections(showsPopular: Boolean = false, assetId: (T) -> Ass
         pinnedIds = filter(isPinned).map { assetId(it).toIdentifier() },
         showsPopular = showsPopular,
     )
-    val byId = associateBy { assetId(it).toIdentifier() }
-    val items = { kind: GemAssetSectionKind -> sections.firstOrNull { it.kind == kind }?.assetIds.orEmpty().mapNotNull(byId::get) }
+    val items = { kind: GemAssetSectionKind -> assets(sections.firstOrNull { it.kind == kind }?.assetIds.orEmpty(), assetId) }
     return AssetSections(
         popular = items(GemAssetSectionKind.POPULAR),
         pinned = items(GemAssetSectionKind.PINNED),
         unpinned = items(GemAssetSectionKind.ASSETS),
     )
+}
+
+fun <T> List<T>.assets(ids: List<String>, assetId: (T) -> AssetId): List<T> {
+    val byId = associateBy { assetId(it).toIdentifier() }
+    return ids.mapNotNull(byId::get)
 }

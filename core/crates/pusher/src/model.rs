@@ -98,7 +98,7 @@ mod tests {
             logs: vec![
                 PushErrorLog {
                     token: "token1".to_string(),
-                    error: "".to_string(),
+                    error: String::new(),
                 },
                 PushErrorLog {
                     token: "unmatched".to_string(),

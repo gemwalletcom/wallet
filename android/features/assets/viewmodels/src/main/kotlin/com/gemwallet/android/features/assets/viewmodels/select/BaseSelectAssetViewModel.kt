@@ -34,7 +34,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.RecentActivityType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -44,6 +43,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -67,9 +67,9 @@ import uniffi.gemstone.GemAssetsFilterView
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemPerpetualMarketItem
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
-import uniffi.gemstone.GemToast
 import uniffi.gemstone.addressCopy
 import uniffi.gemstone.emptyState
 
@@ -101,6 +101,7 @@ open class BaseSelectAssetViewModel(
         .distinctUntilChanged()
 
     private val isSearching = MutableStateFlow(false)
+    protected val searching: StateFlow<Boolean> = isSearching.asStateFlow()
 
     val queryState = TextFieldState()
     private val filterSession = MutableStateFlow(flow.filterSession(emptyList()))
@@ -292,9 +293,11 @@ open class BaseSelectAssetViewModel(
         service.searchAssets(query)
     }
 
-    protected suspend fun setPerpetualPinned(perpetualId: PerpetualId, name: String, pinned: Boolean): Result<GemToast> = withContext(ioDispatcher) {
-        runCatchingCancellable { service.setPerpetualPinned(perpetualId.toIdentifier(), name, pinned) }
-            .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
+    fun onTogglePerpetualPin(item: GemPerpetualMarketItem) = viewModelScope.launch(ioDispatcher) {
+        val perpetualId = item.data.perpetual.id
+        runCatchingCancellable { service.setPerpetualPinned(perpetualId, item.row.title, !item.data.metadata.isPinned) }
+            .onSuccess { emitToast(it.message(context)) }
+            .onFailure { Log.e(TAG, "pinning perpetual $perpetualId failed", it) }
     }
 
     fun openRecent(asset: Asset) = updateRecent(asset, GemAssetAction.OPEN)

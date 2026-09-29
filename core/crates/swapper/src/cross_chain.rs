@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use primitives::{ChainType, Transaction};
+use alloy_sol_types::SolCall;
+use gem_evm::across::contracts::V3SpokePoolInterface;
+use primitives::{ChainType, Transaction, decode_hex};
 
 use crate::SwapperProvider;
 use crate::thorchain::memo::ThorchainMemo;
@@ -17,19 +19,39 @@ pub type SendAddressMap = HashMap<String, SwapperProvider>;
 const CHAINFLIP_SWAP_SELECTORS: [&str; 2] = ["0xdd687345", "0x04fc7da0"];
 
 pub fn swap_provider_with_vault_addresses(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> Option<SwapperProvider> {
+    deposit_address_provider(transaction, deposit_addresses).filter(|provider| is_valid_swap_transaction(provider, transaction))
+}
+
+pub fn in_transit_swap_provider(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> Option<SwapperProvider> {
+    transaction
+        .swap_metadata()
+        .and_then(|metadata| metadata.provider?.parse::<SwapperProvider>().ok())
+        .or_else(|| deposit_address_provider(transaction, deposit_addresses))
+}
+
+fn deposit_address_provider(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> Option<SwapperProvider> {
     deposit_addresses
         .get(&transaction.to)
         .copied()
-        .or_else(|| transaction.output_addresses().into_iter().find_map(|addr| deposit_addresses.get(&addr).copied()))
-        .filter(|provider| is_valid_swap_transaction(provider, transaction))
+        .or_else(|| transaction.output_addresses().into_iter().find_map(|address| deposit_addresses.get(&address).copied()))
 }
 
 fn is_valid_swap_transaction(provider: &SwapperProvider, transaction: &Transaction) -> bool {
     match provider {
         SwapperProvider::Thorchain | SwapperProvider::Mayachain => transaction.memo.as_deref().is_some_and(ThorchainMemo::is_swap),
         SwapperProvider::Chainflip => is_valid_chainflip_swap(transaction),
+        SwapperProvider::Across => !is_across_fill(transaction),
         _ => true,
     }
+}
+
+fn is_across_fill(transaction: &Transaction) -> bool {
+    let fill_selectors = [V3SpokePoolInterface::fillRelayCall::SELECTOR, V3SpokePoolInterface::fillV3RelayCall::SELECTOR];
+    transaction
+        .data
+        .as_deref()
+        .and_then(|data| decode_hex(data.get(..10)?).ok())
+        .is_some_and(|selector| fill_selectors.iter().any(|fill| selector == fill))
 }
 
 fn is_valid_chainflip_swap(transaction: &Transaction) -> bool {
@@ -49,13 +71,13 @@ pub fn is_cross_chain_swap(transaction: &Transaction, deposit_addresses: &Deposi
 }
 
 pub fn is_from_vault_address(transaction: &Transaction, send_addresses: &SendAddressMap) -> bool {
-    send_addresses.contains_key(&transaction.from) || transaction.input_addresses().iter().any(|addr| send_addresses.contains_key(addr))
+    send_addresses.contains_key(&transaction.from) || transaction.input_addresses().iter().any(|address| send_addresses.contains_key(address))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain, TransactionUtxoInput};
+    use primitives::{AssetId, Chain, TransactionSwapMetadata, TransactionUtxoInput};
 
     #[test]
     fn test_vault_address_detected() {
@@ -106,6 +128,42 @@ mod tests {
 
         let missing_data = Transaction { to: vault, ..Transaction::mock() };
         assert_eq!(swap_provider_with_vault_addresses(&missing_data, &deposit_addresses), None);
+    }
+
+    #[test]
+    fn test_across_fill_is_not_a_deposit() {
+        let spoke_pool = "0x5c7BCd6E7De5423a257D81B442095A1a6ced35C5".to_string();
+        let deposit_addresses = DepositAddressMap::from([(spoke_pool.clone(), SwapperProvider::Across)]);
+        let fill = Transaction {
+            to: spoke_pool.clone(),
+            data: Some("0xdeff4b2400000000".to_string()),
+            ..Transaction::mock()
+        };
+        let deposit = Transaction {
+            to: spoke_pool,
+            data: Some("0xad5425c600000000".to_string()),
+            ..Transaction::mock()
+        };
+
+        assert_eq!(swap_provider_with_vault_addresses(&fill, &deposit_addresses), None);
+        assert_eq!(swap_provider_with_vault_addresses(&deposit, &deposit_addresses), Some(SwapperProvider::Across));
+    }
+
+    #[test]
+    fn test_in_transit_swap_provider() {
+        let vault = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc".to_string();
+        let deposit_addresses = DepositAddressMap::from([(vault.clone(), SwapperProvider::Chainflip)]);
+        let stored_chainflip_swap = Transaction { to: vault, ..Transaction::mock() };
+        assert_eq!(in_transit_swap_provider(&stored_chainflip_swap, &deposit_addresses), Some(SwapperProvider::Chainflip));
+
+        let metadata = TransactionSwapMetadata::new(AssetId::from_chain(Chain::Polygon), 1u32.into(), AssetId::from_chain(Chain::Base), 1u32.into(), SwapperProvider::Across);
+        let across_deposit = Transaction {
+            metadata: serde_json::to_value(metadata).ok(),
+            ..Transaction::mock()
+        };
+        assert_eq!(in_transit_swap_provider(&across_deposit, &deposit_addresses), Some(SwapperProvider::Across));
+
+        assert_eq!(in_transit_swap_provider(&Transaction::mock(), &deposit_addresses), None);
     }
 
     #[test]

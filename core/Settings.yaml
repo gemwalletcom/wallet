@@ -391,6 +391,10 @@ indexer:
     url: "https://api.blockscout.com"
     key:
       secret: ""
+  etherscan:
+    url: "https://api.etherscan.io"
+    key:
+      secret: ""
   fastnear:
     neardata:
       url: "https://mainnet.neardata.xyz"

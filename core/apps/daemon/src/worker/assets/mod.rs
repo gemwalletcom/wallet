@@ -10,13 +10,14 @@ use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
 use crate::worker::jobs::WorkerJob;
 
-pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
-    let services = ctx.services();
+pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
+    let services = context.services();
     let settings = services.settings();
     let config = services.config();
     let assets = services.assets_jobs().await?;
 
-    ctx.plan_builder(WorkerService::Assets, &config, shutdown_rx)
+    context
+        .plan_builder(WorkerService::Assets, &config, shutdown)
         .job(WorkerJob::UpdateSuspiciousAssetRanks, {
             let assets = assets.clone();
             move |_| {

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use serde_serializers::deserialize_f64_from_str;
+use serde_serializers::{deserialize_f64_from_str, deserialize_option_f64_from_str};
 use strum::{Display, EnumString};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -75,6 +75,8 @@ pub struct UserFill {
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub fee: f64,
     pub fee_token: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_f64_from_str")]
+    pub builder_fee: Option<f64>,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub px: f64,
     pub dir: FillDirection,

@@ -33,25 +33,25 @@ mod tests {
 
     #[test]
     fn test_short() {
-        let addr = Address::new("bitcoincash:qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q", Chain::BitcoinCash);
-        assert_eq!(addr.short(), "qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q");
+        let address = Address::new("bitcoincash:qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q", Chain::BitcoinCash);
+        assert_eq!(address.short(), "qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q");
 
-        let addr = Address::new("qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q", Chain::BitcoinCash);
-        assert_eq!(addr.short(), "qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q");
+        let address = Address::new("qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q", Chain::BitcoinCash);
+        assert_eq!(address.short(), "qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q");
 
-        let addr = Address::new("bc1qinput", Chain::Bitcoin);
-        assert_eq!(addr.short(), "bc1qinput");
+        let address = Address::new("bc1qinput", Chain::Bitcoin);
+        assert_eq!(address.short(), "bc1qinput");
     }
 
     #[test]
     fn test_full() {
-        let addr = Address::new("qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q", Chain::BitcoinCash);
-        assert_eq!(addr.full(), "bitcoincash:qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q");
+        let address = Address::new("qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q", Chain::BitcoinCash);
+        assert_eq!(address.full(), "bitcoincash:qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q");
 
-        let addr = Address::new("bitcoincash:qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q", Chain::BitcoinCash);
-        assert_eq!(addr.full(), "bitcoincash:qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q");
+        let address = Address::new("bitcoincash:qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q", Chain::BitcoinCash);
+        assert_eq!(address.full(), "bitcoincash:qqm3kh5j8ptj2y4ryglk0j83t6jkcjk7x52kgzvh4q");
 
-        let addr = Address::new("bc1qinput", Chain::Bitcoin);
-        assert_eq!(addr.full(), "bc1qinput");
+        let address = Address::new("bc1qinput", Chain::Bitcoin);
+        assert_eq!(address.full(), "bc1qinput");
     }
 }

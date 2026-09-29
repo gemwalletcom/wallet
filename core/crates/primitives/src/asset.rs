@@ -165,7 +165,7 @@ impl AssetVecExt for Vec<Asset> {
     }
 
     fn asset_result(&self, asset_id: AssetId) -> Result<&Asset, Box<dyn Error + Send + Sync>> {
-        self.iter().find(|x| x.id == asset_id).ok_or("Asset not found".into())
+        self.iter().find(|x| x.id == asset_id).ok_or_else(|| "Asset not found".into())
     }
 }
 

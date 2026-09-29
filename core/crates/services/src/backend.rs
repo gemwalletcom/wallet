@@ -89,14 +89,14 @@ impl Services {
         Ok(AuthClient::new(self.cacher().await?))
     }
 
-    pub async fn stream_producer(&self, name: &str, shutdown_rx: ShutdownReceiver) -> Result<StreamProducer, Box<dyn Error + Send + Sync>> {
+    pub async fn stream_producer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<StreamProducer, Box<dyn Error + Send + Sync>> {
         let rabbitmq = &self.settings.rabbitmq;
         let config = StreamProducerConfig::new(rabbitmq.url.clone(), Retry::new(rabbitmq.retry.delay, rabbitmq.retry.timeout), rabbitmq.maxbytes);
-        StreamProducer::new(&config, name, shutdown_rx).await
+        StreamProducer::new(&config, name, shutdown).await
     }
 
-    pub async fn support(&self, shutdown_rx: ShutdownReceiver) -> Result<SupportClient, Box<dyn Error + Send + Sync>> {
-        let stream_producer = self.stream_producer("daemon_support_producer", shutdown_rx).await?;
+    pub async fn support(&self, shutdown: ShutdownReceiver) -> Result<SupportClient, Box<dyn Error + Send + Sync>> {
+        let stream_producer = self.stream_producer("daemon_support_producer", shutdown).await?;
         Ok(SupportClient::new(self.database(), stream_producer, self.cacher().await?))
     }
 

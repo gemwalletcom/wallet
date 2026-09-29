@@ -89,6 +89,7 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionListItem
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
+import com.wallet.core.primitives.TransactionSwapReferralFee
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransactionUtxoInput
 import com.wallet.core.primitives.TransactionsFilter
@@ -842,12 +843,14 @@ fun mockTransactionSwapMetadata(
     toAsset: AssetId = mockAssetId(),
     toValue: String = "0",
     provider: String? = null,
+    referralFee: TransactionSwapReferralFee? = null,
 ) = TransactionSwapMetadata(
     fromAsset = fromAsset,
     fromValue = fromValue,
     toAsset = toAsset,
     toValue = toValue,
     provider = provider,
+    referralFee = referralFee,
 )
 
 fun mockTransactionsFilter(
@@ -1960,6 +1963,64 @@ fun mockGemWalletRow(
     hasAvatar = hasAvatar,
     imageUrl = imageUrl,
     deletePrompt = deletePrompt,
+)
+
+fun mockGemWalletSearchResultsView(
+    state: uniffi.gemstone.GemWalletSearchState = mockGemWalletSearchState(),
+    pinnedAssetIds: List<String> = emptyList(),
+    assetIds: List<String> = emptyList(),
+    perpetuals: List<uniffi.gemstone.GemPerpetualMarketItem> = emptyList(),
+) = uniffi.gemstone.GemWalletSearchResultsView(
+    state = state,
+    pinnedAssetIds = pinnedAssetIds,
+    assetIds = assetIds,
+    perpetuals = perpetuals,
+)
+
+fun mockGemWalletSearchState(
+    phase: uniffi.gemstone.GemSelectAssetState = uniffi.gemstone.GemSelectAssetState.IDLE,
+    showsRecents: Boolean = false,
+    showsPinned: Boolean = false,
+    showsAssets: Boolean = false,
+    showsPinnedPerpetuals: Boolean = false,
+    showsPerpetuals: Boolean = false,
+    showsLists: Boolean = false,
+    showsNfts: Boolean = false,
+) = uniffi.gemstone.GemWalletSearchState(
+    phase = phase,
+    showsRecents = showsRecents,
+    showsPinned = showsPinned,
+    showsAssets = showsAssets,
+    showsPinnedPerpetuals = showsPinnedPerpetuals,
+    showsPerpetuals = showsPerpetuals,
+    showsLists = showsLists,
+    showsNfts = showsNfts,
+)
+
+fun mockGemWalletSearchView(
+    state: uniffi.gemstone.GemWalletSearchState = mockGemWalletSearchState(),
+    pinnedAssetIds: List<String> = emptyList(),
+    assetIds: List<String> = emptyList(),
+    hasMoreAssets: Boolean = false,
+    pinnedPerpetuals: List<uniffi.gemstone.GemPerpetualMarketItem> = emptyList(),
+    perpetuals: List<uniffi.gemstone.GemPerpetualMarketItem> = emptyList(),
+    hasMorePerpetuals: Boolean = false,
+    lists: List<uniffi.gemstone.GemSearchListRow> = emptyList(),
+    nfts: List<uniffi.gemstone.GemNftEntry> = emptyList(),
+    hasMoreNfts: Boolean = false,
+    emptyState: uniffi.gemstone.GemEmptyState = mockGemEmptyState(),
+) = uniffi.gemstone.GemWalletSearchView(
+    state = state,
+    pinnedAssetIds = pinnedAssetIds,
+    assetIds = assetIds,
+    hasMoreAssets = hasMoreAssets,
+    pinnedPerpetuals = pinnedPerpetuals,
+    perpetuals = perpetuals,
+    hasMorePerpetuals = hasMorePerpetuals,
+    lists = lists,
+    nfts = nfts,
+    hasMoreNfts = hasMoreNfts,
+    emptyState = emptyState,
 )
 
 fun mockNameRecord(

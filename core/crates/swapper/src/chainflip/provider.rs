@@ -16,7 +16,7 @@ use super::{
         VaultSwapResponse, VaultSwapSolanaExtras,
     },
     client::{ChainflipClient, SUPPORTED_ASSETS, map_swap_result},
-    price::{apply_slippage, price_to_hex_price},
+    price::{price_after_slippage, price_to_hex_price},
     seed::generate_random_seed,
     tx_builder,
 };
@@ -262,7 +262,7 @@ where
         let route_data: ChainflipRouteData = serde_json::from_str(&route.route_data)?;
         let chain = source_asset.chain.clone();
         let price = route_data.estimated_price;
-        let price_slippage = apply_slippage(price, quote.data.slippage_bps);
+        let price_slippage = price_after_slippage(price, quote.data.slippage_bps);
         let quote_asset_decimals = quote.request.to_asset.decimals;
         let base_asset_decimals = quote.request.from_asset.decimals;
         let min_price = price_to_hex_price(price_slippage, quote_asset_decimals, base_asset_decimals).map_err(SwapperError::TransactionError)?;

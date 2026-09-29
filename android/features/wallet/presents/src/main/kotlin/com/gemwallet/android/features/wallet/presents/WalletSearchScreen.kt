@@ -43,7 +43,7 @@ import uniffi.gemstone.GemSearchListRow
 fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: WalletSearchViewModel = hiltViewModel(), recentsViewModel: RecentsViewModel = hiltViewModel()) {
     val searchEmptyState by viewModel.searchEmptyState.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val pinned by viewModel.pinned.collectAsStateWithLifecycle()
+    val pinned by viewModel.pinnedAssets.collectAsStateWithLifecycle()
     val previewAssets by viewModel.previewAssets.collectAsStateWithLifecycle()
     val hasMoreAssets by viewModel.hasMoreAssets.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
@@ -64,7 +64,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
 
             is WalletSearchAction.AddToWallet -> viewModel.onAddToWallet(action.assetId)
 
-            is WalletSearchAction.TogglePerpetualPin -> viewModel.onTogglePerpetualPin(action.perpetualId)
+            is WalletSearchAction.TogglePerpetualPin -> viewModel.onTogglePerpetualPin(action.item)
 
             WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
 
@@ -97,7 +97,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
                 item = item,
                 listPosition = position,
                 longPressState = longPressedPerpetual,
-                onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(it)) },
+                onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(item)) },
                 onClick = { handleAction(WalletSearchAction.OpenPerpetual(item.data.asset.toPrimitives())) },
             )
         }
@@ -113,7 +113,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
                     item = item,
                     listPosition = position,
                     longPressState = longPressedPerpetual,
-                    onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(it)) },
+                    onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(item)) },
                     onClick = { handleAction(WalletSearchAction.OpenPerpetual(item.data.asset.toPrimitives())) },
                 )
             }
@@ -170,7 +170,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
             )
         },
         query = viewModel.queryState,
-        pinned = pinned,
+        pinned = pinned.toImmutableList(),
         popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
         unpinned = previewAssets.toImmutableList(),
         recent = recent,

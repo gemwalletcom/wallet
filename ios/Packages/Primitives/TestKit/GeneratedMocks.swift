@@ -936,6 +936,7 @@ public extension TransactionSwapMetadata {
         toAsset: AssetId = .mock(),
         toValue: String = "0",
         provider: String? = nil,
+        referralFee: TransactionSwapReferralFee? = nil,
     ) -> TransactionSwapMetadata {
         TransactionSwapMetadata(
             fromAsset: fromAsset,
@@ -943,6 +944,7 @@ public extension TransactionSwapMetadata {
             toAsset: toAsset,
             toValue: toValue,
             provider: provider,
+            referralFee: referralFee,
         )
     }
 }

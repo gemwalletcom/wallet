@@ -139,6 +139,6 @@ mod tests {
         assert!(PushErrorLog::new("test".to_string(), "Devicetokennotfortopic".to_string()).is_device_invalid());
         assert!(PushErrorLog::new("test".to_string(), "Mismatchsenderid".to_string()).is_device_invalid());
 
-        assert!(!PushErrorLog::new("".to_string(), "Good".to_string()).is_device_invalid());
+        assert!(!PushErrorLog::new(String::new(), "Good".to_string()).is_device_invalid());
     }
 }

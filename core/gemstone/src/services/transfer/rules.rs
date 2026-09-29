@@ -244,13 +244,13 @@ impl TransferInput for TransactionInputType {
 
     fn metadata(&self) -> Result<Option<serde_json::Value>, serde_json::Error> {
         let value = match self {
-            Self::Swap { from_asset, to_asset, swap_data } => Some(serde_json::to_value(TransactionSwapMetadata {
-                from_asset: from_asset.id.clone(),
-                from_value: swap_data.quote.from_value.clone(),
-                to_asset: to_asset.id.clone(),
-                to_value: swap_data.quote.to_value.clone(),
-                provider: Some(swap_data.quote.provider_data.provider.as_ref().to_string()),
-            })?),
+            Self::Swap { from_asset, to_asset, swap_data } => Some(serde_json::to_value(TransactionSwapMetadata::new(
+                from_asset.id.clone(),
+                swap_data.quote.from_value.clone(),
+                to_asset.id.clone(),
+                swap_data.quote.to_value.clone(),
+                swap_data.quote.provider_data.provider,
+            ))?),
             Self::TransferNft { nft_asset, .. } => Some(serde_json::to_value(TransactionNFTTransferMetadata::new(nft_asset.id.clone(), Some(nft_asset.name.clone())))?),
             Self::Perpetual { perpetual_type, .. } => match perpetual_type {
                 PerpetualType::Open { data } | PerpetualType::Close { data } | PerpetualType::Increase { data } => Some(serde_json::to_value(TransactionPerpetualMetadata {

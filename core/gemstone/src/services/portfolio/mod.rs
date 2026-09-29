@@ -55,7 +55,7 @@ impl GemPortfolioService {
         match portfolio_type {
             PortfolioType::Wallet => Ok(rules::wallet_portfolio_data(self.sync_wallet_values(wallet.id, period, self.preferences.get_currency()).await?)),
             PortfolioType::Perpetuals => {
-                let account = hyperliquid_account(&wallet.accounts).ok_or(GemServiceError::NotFound {
+                let account = hyperliquid_account(&wallet.accounts).ok_or_else(|| GemServiceError::NotFound {
                     msg: "wallet has no perpetual account".to_string(),
                 })?;
                 Ok(rules::perpetual_portfolio_data(self.perpetual.get_portfolio(Chain::HyperCore, account.address.clone()).await?, period))
@@ -65,7 +65,7 @@ impl GemPortfolioService {
 
     async fn sync_wallet_values(&self, wallet_id: WalletId, period: ChartPeriod, currency: Currency) -> Result<GemPortfolioValues, GemServiceError> {
         let portfolio = self.get_wallet_assets(wallet_id, period).await?;
-        let rate = self.price.rate(currency.clone()).await?.ok_or(GemServiceError::InvalidInput {
+        let rate = self.price.rate(currency.clone()).await?.ok_or_else(|| GemServiceError::InvalidInput {
             msg: format!("unknown currency: {currency}"),
         })?;
         Ok(rules::converted_portfolio(portfolio, rate.rate))

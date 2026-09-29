@@ -1,6 +1,6 @@
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 
-pub use gem_evm::slippage::{BasisPointConvert, apply_slippage_in_bp};
+pub use gem_evm::slippage::{BasisPointConvert, subtract_bps};
 
 const BPS_PER_PERCENT_DECIMALS: i32 = 2;
 

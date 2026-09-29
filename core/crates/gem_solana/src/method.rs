@@ -8,7 +8,6 @@ pub const GET_LATEST_BLOCKHASH: &str = "getLatestBlockhash";
 pub const GET_MULTIPLE_ACCOUNTS: &str = "getMultipleAccounts";
 pub const GET_PROGRAM_ACCOUNTS: &str = "getProgramAccounts";
 pub const GET_RECENT_PRIORITIZATION_FEES: &str = "getRecentPrioritizationFees";
-pub const GET_SIGNATURES_FOR_ADDRESS: &str = "getSignaturesForAddress";
 pub const GET_SLOT: &str = "getSlot";
 pub const GET_SUPPLY: &str = "getSupply";
 pub const GET_TOKEN_ACCOUNTS_BY_OWNER: &str = "getTokenAccountsByOwner";

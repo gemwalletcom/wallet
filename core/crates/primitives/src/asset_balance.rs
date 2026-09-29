@@ -177,7 +177,7 @@ impl Balance {
             staked,
             pending,
             pending_unconfirmed: BigUint::from(0u32),
-            rewards: rewards.unwrap_or(BigUint::from(0u32)),
+            rewards: rewards.unwrap_or_else(|| BigUint::from(0u32)),
             reserved: BigUint::from(0u32),
             earn: BigUint::from(0u32),
             withdrawable: BigUint::from(0u32),

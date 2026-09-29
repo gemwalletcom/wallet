@@ -27,8 +27,8 @@ pub async fn main() {
     let args: Vec<String> = std::env::args().collect();
     let service_arg = args.iter().skip(1).map(String::as_str).collect::<Vec<_>>().join(" ");
 
-    let service = DaemonService::from_str(&service_arg).unwrap_or_else(|e| {
-        panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer transactions fetch_transactions");
+    let service = DaemonService::from_str(&service_arg).unwrap_or_else(|error| {
+        panic!("{error}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer transactions fetch_transactions");
     });
 
     let settings = settings::Settings::new().unwrap().with_postgres_application_name(&service.name().replace(' ', "_")).unwrap();
@@ -71,7 +71,7 @@ async fn run_worker_services(settings: settings::Settings, workers: &[WorkerServ
     }
 
     let settings = Arc::new(settings);
-    let (shutdown_tx, shutdown_rx) = shutdown::channel();
+    let (shutdown_sender, shutdown) = shutdown::channel();
     let shutdown_timeout = settings.daemon.shutdown.timeout;
 
     let services = Services::new(settings.clone())?;
@@ -85,18 +85,18 @@ async fn run_worker_services(settings: settings::Settings, workers: &[WorkerServ
     let composite = Arc::new(metrics::Metrics::new(vec![job_metrics.clone()]));
     let health_state = health::spawn_server(composite);
 
-    let signal_handle = shutdown::spawn_signal_handler(shutdown_tx);
+    let signal_handle = shutdown::spawn_signal_handler(shutdown_sender);
 
     let worker_jobs: Vec<_> = futures::future::join_all(schedules.into_iter().map(|(svc, schedule)| {
         let reporter = Arc::new(JobReporter::new(job_metrics.clone()));
         let runtime = WorkerRuntime::new(reporter, schedule);
         let context = WorkerContext::new(services.clone(), runtime, options.job.clone());
-        let shutdown_rx = shutdown_rx.clone();
+        let shutdown = shutdown.clone();
         async move {
-            match svc.run_jobs(context, shutdown_rx).await {
+            match svc.run_jobs(context, shutdown).await {
                 Ok(handles) => Some((svc, handles)),
-                Err(err) => {
-                    error_with_fields!("worker init failed", &*err, worker = svc.as_ref());
+                Err(error) => {
+                    error_with_fields!("worker init failed", &*error, worker = svc.as_ref());
                     None
                 }
             }
@@ -164,8 +164,8 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
     }
 
     let settings = Arc::new(settings);
-    let (shutdown_tx, shutdown_rx) = shutdown::channel();
-    let signal_handle = shutdown::spawn_signal_handler(shutdown_tx);
+    let (shutdown_sender, shutdown) = shutdown::channel();
+    let signal_handle = shutdown::spawn_signal_handler(shutdown_sender);
 
     let consumer_metrics = Arc::new(metrics::consumer::ConsumerMetrics::new());
     let composite = Arc::new(metrics::Metrics::new(vec![consumer_metrics.clone()]));
@@ -182,29 +182,29 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
             let svc_name = svc.name();
             let settings = settings.clone();
             let reporter = reporter.clone();
-            let shutdown_rx = shutdown_rx.clone();
+            let shutdown = shutdown.clone();
             let failures = failures.clone();
             let options = options.clone();
             let health_state = health_state.clone();
             tokio::spawn(async move {
                 let restart_delay = settings.consumer.error.timeout;
                 loop {
-                    if *shutdown_rx.borrow() {
+                    if *shutdown.borrow() {
                         break;
                     }
-                    match run_consumer((*settings.as_ref()).clone(), svc, shutdown_rx.clone(), reporter.clone(), options.clone()).await {
+                    match run_consumer((*settings.as_ref()).clone(), svc, shutdown.clone(), reporter.clone(), options.clone()).await {
                         Ok(_) => {
                             info_with_fields!("consumer stopped", consumer = svc_name, status = "ok");
                             break;
                         }
-                        Err(err) => {
-                            let message = err.to_string();
-                            error_with_fields!("consumer failed", &*err, consumer = svc_name);
+                        Err(error) => {
+                            let message = error.to_string();
+                            error_with_fields!("consumer failed", &*error, consumer = svc_name);
                             if let Ok(mut list) = failures.lock() {
                                 list.push(format!("{}: {}", svc_name, message));
                             }
                             health_state.set_not_ready();
-                            if shutdown::sleep_or_shutdown(restart_delay, &shutdown_rx).await {
+                            if shutdown::sleep_or_shutdown(restart_delay, &shutdown).await {
                                 break;
                             }
                             info_with_fields!("consumer restarting", consumer = svc_name);
@@ -228,13 +228,13 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
     }
 }
 
-async fn run_consumer(settings: settings::Settings, service: ConsumerService, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>, options: ConsumerOptions) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn run_consumer(settings: settings::Settings, service: ConsumerService, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>, options: ConsumerOptions) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     match service {
-        ConsumerService::Store => consumers::run_consumer_store(settings, shutdown_rx, reporter).await,
-        ConsumerService::Indexer(indexer) => consumers::run_consumer_indexer(settings, indexer, shutdown_rx, reporter, options.indexer).await,
-        ConsumerService::Notifications => consumers::notifications::run(settings, shutdown_rx, reporter).await,
-        ConsumerService::Rewards => consumers::run_consumer_rewards(settings, shutdown_rx, reporter).await,
-        ConsumerService::Support => consumers::run_consumer_support(settings, shutdown_rx, reporter).await,
-        ConsumerService::Fiat => consumers::run_consumer_fiat(settings, shutdown_rx, reporter).await,
+        ConsumerService::Store => consumers::run_consumer_store(settings, shutdown, reporter).await,
+        ConsumerService::Indexer(indexer) => consumers::run_consumer_indexer(settings, indexer, shutdown, reporter, options.indexer).await,
+        ConsumerService::Notifications => consumers::notifications::run(settings, shutdown, reporter).await,
+        ConsumerService::Rewards => consumers::run_consumer_rewards(settings, shutdown, reporter).await,
+        ConsumerService::Support => consumers::run_consumer_support(settings, shutdown, reporter).await,
+        ConsumerService::Fiat => consumers::run_consumer_fiat(settings, shutdown, reporter).await,
     }
 }

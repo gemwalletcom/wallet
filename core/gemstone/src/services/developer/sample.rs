@@ -26,13 +26,13 @@ pub fn sample_transactions() -> Vec<Transaction> {
         .map(|(index, sample)| {
             let asset_id = AssetId::from_chain(sample.chain);
             let metadata = sample.swap.map(|(from_chain, from_value, to_chain, to_value)| {
-                serde_json::to_value(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(from_chain),
-                    from_value: BigUint::from(from_value),
-                    to_asset: AssetId::from_chain(to_chain),
-                    to_value: BigUint::from(to_value),
-                    provider: None,
-                })
+                serde_json::to_value(TransactionSwapMetadata::from_provider_id(
+                    AssetId::from_chain(from_chain),
+                    BigUint::from(from_value),
+                    AssetId::from_chain(to_chain),
+                    BigUint::from(to_value),
+                    None,
+                ))
                 .expect("swap metadata is serializable")
             });
             Transaction {

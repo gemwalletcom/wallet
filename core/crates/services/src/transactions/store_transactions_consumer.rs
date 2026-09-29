@@ -6,7 +6,7 @@ use std::{collections::HashMap, error::Error};
 use async_trait::async_trait;
 use primitives::{AssetIdVecExt, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
 use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, NftRepository, TransactionsRepository, WalletsRepository};
-use streamer::{AssetId, NotificationsPayload, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
+use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 
 use super::StoreTransactionsConsumerConfig;
@@ -44,17 +44,13 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
         let config = StoreTransactionsConsumerConfig::read(&self.config).await?;
         let is_notify_devices = payload.should_notify_devices();
         let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
+        let subscription_addresses: HashSet<_> = subscriptions.iter().map(|s| &s.address).collect();
         let transactions = Self::transactions_for_storage(payload.transactions, &deposit_addresses, &send_addresses)
             .into_iter()
             .filter(|transaction| config.is_transaction_within_asset_transfer_limit(transaction))
-            .collect::<Vec<_>>();
-
-        let min_amount = config.min_amount_usd;
-        let subscription_addresses: HashSet<_> = subscriptions.iter().map(|s| &s.address).collect();
-        let transactions = transactions
-            .into_iter()
             .filter(|transaction| transaction.addresses().iter().any(|address| subscription_addresses.contains(address)))
             .collect::<Vec<_>>();
+        let min_amount = config.min_amount_usd;
         if transactions.is_empty() {
             return Ok(0);
         }
@@ -159,6 +155,12 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
         }
         self.stream_producer.publish_notifications_transactions(notifications).await?;
         self.stream_producer.publish_wallet_stream_events(wallet_events).await?;
+        let swap_transaction_ids = transactions_map
+            .values()
+            .filter(|transaction| transaction.transaction_type == TransactionType::Swap && transaction.swap_metadata().is_some_and(|metadata| metadata.referral_fee.is_some()))
+            .map(|transaction| transaction.id.clone())
+            .collect::<Vec<_>>();
+        self.stream_producer.publish_batch(QueueName::StoreTransactionsSwaps, &swap_transaction_ids).await?;
 
         Ok(transaction_count)
     }
@@ -364,13 +366,13 @@ mod tests {
             transaction_type: TransactionType::Swap,
             to: near_vault.clone(),
             metadata: Some(
-                serde_json::to_value(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::Solana),
-                    from_value: BigUint::from(5000000u64),
-                    to_asset: AssetId::from_chain(Chain::Ton),
-                    to_value: BigUint::from(2508437099u64),
-                    provider: Some(SwapProvider::NearIntents.as_ref().to_string()),
-                })
+                serde_json::to_value(TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::Solana),
+                    BigUint::from(5000000u64),
+                    AssetId::from_chain(Chain::Ton),
+                    BigUint::from(2508437099u64),
+                    SwapProvider::NearIntents,
+                ))
                 .unwrap(),
             ),
             ..Transaction::mock()

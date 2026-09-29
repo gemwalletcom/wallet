@@ -13,7 +13,6 @@ use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 pub enum TransactionFilter {
     States(Vec<PrimitiveTransactionState>),
-    Kinds(Vec<PrimitiveTransactionType>),
 }
 
 #[derive(Debug, Clone)]
@@ -172,9 +171,6 @@ pub(crate) fn transactions_by_wallet_since(client: &mut DatabaseClient, wallet_i
             TransactionFilter::States(states) => {
                 query = query.filter(tx_dsl::state.eq_any(transaction_states(states)));
             }
-            TransactionFilter::Kinds(kinds) => {
-                query = query.filter(tx_dsl::kind.eq_any(transaction_kinds(kinds)));
-            }
         }
     }
 
@@ -301,6 +297,7 @@ impl TransactionsRepository for DatabaseClient {
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, DatabaseError> {
         use crate::schema::transactions::dsl::*;
         use crate::schema::transactions_addresses::dsl as addr;
+        use crate::schema::transactions_swaps::dsl as swaps;
 
         if candidate_ids.is_empty() {
             return Ok(0);
@@ -310,6 +307,8 @@ impl TransactionsRepository for DatabaseClient {
             .filter(id.eq_any(&candidate_ids))
             .left_outer_join(addr::transactions_addresses.on(id.eq(addr::transaction_id)))
             .filter(addr::transaction_id.is_null())
+            .left_outer_join(swaps::transactions_swaps.on(id.eq(swaps::transaction_id)))
+            .filter(swaps::transaction_id.is_null())
             .select(id)
             .load(&mut self.connection)?;
 
@@ -332,9 +331,6 @@ impl TransactionsRepository for DatabaseClient {
             match filter {
                 TransactionFilter::States(states) => {
                     query = query.filter(dsl::state.eq_any(transaction_states(states)));
-                }
-                TransactionFilter::Kinds(kinds) => {
-                    query = query.filter(dsl::kind.eq_any(transaction_kinds(kinds)));
                 }
             }
         }

@@ -1272,16 +1272,6 @@ fun com.wallet.core.primitives.BlockExplorerLink.toGem(): uniffi.gemstone.BlockE
     link = link,
 )
 
-fun uniffi.gemstone.ChainAddress.toPrimitives(): com.wallet.core.primitives.ChainAddress = com.wallet.core.primitives.ChainAddress(
-    chain = chain.toChain(),
-    address = address,
-)
-
-fun com.wallet.core.primitives.ChainAddress.toGem(): uniffi.gemstone.ChainAddress = uniffi.gemstone.ChainAddress(
-    chain = chain.toGem(),
-    address = address,
-)
-
 fun uniffi.gemstone.ChainAsset.toPrimitives(): com.wallet.core.primitives.ChainAsset = com.wallet.core.primitives.ChainAsset(
     asset = asset.toPrimitives(),
     networkName = networkName,

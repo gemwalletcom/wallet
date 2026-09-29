@@ -8,8 +8,8 @@ use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
 use crate::worker::jobs::WorkerJob;
 
-pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
-    let services = ctx.services();
+pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
+    let services = context.services();
     let settings = services.settings();
     let config = services.config();
     let fiat = services.fiat_jobs().await?;
@@ -18,7 +18,8 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
         coinmarketcap: settings.coinmarketcap.remote_provider_config(),
     });
 
-    ctx.plan_builder(WorkerService::Fiat, &config, shutdown_rx)
+    context
+        .plan_builder(WorkerService::Fiat, &config, shutdown)
         .jobs(WorkerJob::UpdateFiatRates, providers.keys().copied(), |provider, _| {
             let provider = providers[&provider].clone();
             let fiat = fiat.clone();

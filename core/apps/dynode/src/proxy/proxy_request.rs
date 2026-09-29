@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_request_creation() {
-        let ctx = ProxyRequest::new(
+        let request = ProxyRequest::new(
             Method::GET,
             HeaderMap::new(),
             vec![],
@@ -149,20 +149,20 @@ mod tests {
             Chain::Ethereum,
         );
 
-        assert_eq!(ctx.method, Method::GET);
-        assert_eq!(ctx.path, "/test");
-        assert_eq!(ctx.host, "example.com");
-        assert_eq!(ctx.user_agent, "test-agent");
-        assert_eq!(ctx.chain, Chain::Ethereum);
+        assert_eq!(request.method, Method::GET);
+        assert_eq!(request.path, "/test");
+        assert_eq!(request.host, "example.com");
+        assert_eq!(request.user_agent, "test-agent");
+        assert_eq!(request.chain, Chain::Ethereum);
     }
 
     #[test]
     fn test_elapsed_time() {
-        let ctx = ProxyRequest::mock(Chain::Ethereum, Method::GET, "/test", &[]);
+        let request = ProxyRequest::mock(Chain::Ethereum, Method::GET, "/test", &[]);
 
         thread::sleep(Duration::from_millis(1));
 
-        let elapsed = ctx.elapsed();
+        let elapsed = request.elapsed();
         assert!(elapsed.as_millis() > 0);
     }
 

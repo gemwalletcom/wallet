@@ -30,7 +30,7 @@ impl<C: Client> EverstakeClient<C> {
 }
 
 pub async fn account_state<C: Client + Clone>(client: &EthereumClient<C>, address: &str) -> Result<AccountState, Box<dyn Error + Sync + Send>> {
-    let account = Address::from_str(address).map_err(|e| Box::new(e) as Box<dyn Error + Sync + Send>)?;
+    let account = Address::from_str(address).map_err(|error| Box::new(error) as Box<dyn Error + Sync + Send>)?;
 
     let calls = vec![
         create_call3(EVERSTAKE_ACCOUNTING_ADDRESS, IAccounting::depositedBalanceOfCall { account }),

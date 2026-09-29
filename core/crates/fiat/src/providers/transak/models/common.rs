@@ -28,8 +28,8 @@ pub struct TransakErrorDetail {
 }
 
 impl<T> From<TransakResponse<T>> for Result<T, Box<dyn std::error::Error + Send + Sync>> {
-    fn from(resp: TransakResponse<T>) -> Self {
-        match resp {
+    fn from(response: TransakResponse<T>) -> Self {
+        match response {
             TransakResponse::Success(data) => Ok(data.response),
             TransakResponse::Error(error) => Err(error.error.message.into()),
         }

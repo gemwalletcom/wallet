@@ -18,8 +18,8 @@ pub struct MercuryoError {
 }
 
 impl<T> From<MercuryoResponse<T>> for Result<T, Box<dyn std::error::Error + Send + Sync>> {
-    fn from(resp: MercuryoResponse<T>) -> Self {
-        match resp {
+    fn from(response: MercuryoResponse<T>) -> Self {
+        match response {
             MercuryoResponse::Success(data) => Ok(data.data),
             MercuryoResponse::Error(error) => Err(error.message.into()),
         }

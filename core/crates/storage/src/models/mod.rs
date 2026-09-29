@@ -29,6 +29,7 @@ pub(crate) mod support_session;
 pub(crate) mod tag;
 pub(crate) mod transaction;
 pub(crate) mod transaction_addresses;
+pub(crate) mod transaction_swap;
 pub(crate) mod username;
 pub(crate) mod wallet;
 
@@ -64,5 +65,6 @@ pub(crate) use self::support_session::{NewSupportSessionRow, SupportSessionRow};
 pub(crate) use self::tag::{AssetTagRow, NewListTagRow, PerpetualTagRow, TagRow};
 pub(crate) use self::transaction::{NewTransactionRow, TransactionRow};
 pub(crate) use self::transaction_addresses::{AddressChainIdResultRow, NewTransactionAddressesRow};
+pub(crate) use self::transaction_swap::NewTransactionSwapRow;
 pub(crate) use self::username::{NewUsernameRow, UsernameRow};
 pub(crate) use self::wallet::{NewWalletAddressRow, NewWalletRow, NewWalletSubscriptionRow, WalletAddressRow, WalletRow, WalletSubscriptionRow};

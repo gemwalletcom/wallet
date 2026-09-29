@@ -120,6 +120,7 @@ class WalletNavigator(
     private val navigationService: GemNavigationServiceInterface,
     private val session: StateFlow<Session?>,
     private val scope: CoroutineScope,
+    private val onOpenAction: (UrlAction) -> Unit,
 ) {
     private val routeMessages = mutableStateMapOf<NavKey, RouteMessage>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
@@ -243,7 +244,11 @@ class WalletNavigator(
     }
 
     fun openUrlAction(action: UrlAction): Boolean {
-        val deeplink = (action as? UrlAction.Deeplink)?.deeplink ?: return false
+        if (action !is UrlAction.Deeplink) {
+            onOpenAction(action)
+            return true
+        }
+        val deeplink = action.deeplink
         val origin = backStack.lastOrNull()
         scope.launch {
             runCatchingCancellable { withContext(Dispatchers.IO) { navigationService.openDeeplink(deeplink) } }

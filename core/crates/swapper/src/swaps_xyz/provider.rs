@@ -7,7 +7,7 @@ use gem_sui::{build_transfer_message_bytes, rpc::SuiClient};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, Chain, OptionStringExt, TransactionSwapMetadata,
+    AssetId, Chain, OptionStringExt, TransactionSwapMetadata, TransactionSwapReferralFee,
     contract_constants::EVM_ZERO_ADDRESS,
     swap::{HUNDRED_PERCENT_IN_BPS, SwapStatus},
 };
@@ -207,13 +207,22 @@ where
             return Ok(SwapResult::pending());
         };
         let metadata = response.action_response.and_then(|status| {
-            Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_chain(status.amount_in.native_chain()?.chain),
-                from_value: status.amount_in.amount.clone(),
-                to_asset: AssetId::from_chain(status.amount_out.native_chain()?.chain),
-                to_value: status.amount_out.amount,
-                provider: Some(SwapperProvider::SwapsXyz.as_ref().to_string()),
-            })
+            let referral_fee = status.application_fee.as_ref().and_then(|fee| {
+                Some(TransactionSwapReferralFee {
+                    asset_id: AssetId::from_chain(fee.native_chain()?.chain),
+                    value: fee.amount.clone(),
+                })
+            });
+            Some(
+                TransactionSwapMetadata::new(
+                    AssetId::from_chain(status.amount_in.native_chain()?.chain),
+                    status.amount_in.amount.clone(),
+                    AssetId::from_chain(status.amount_out.native_chain()?.chain),
+                    status.amount_out.amount,
+                    SwapperProvider::SwapsXyz,
+                )
+                .with_referral_fee(referral_fee),
+            )
         });
         Ok(SwapResult {
             status: Self::map_status(&response.status),

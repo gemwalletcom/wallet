@@ -151,8 +151,8 @@ class ConfirmTransferViewModel @Inject constructor(
                 if (screen.value.presentsSheet()) isErrorSheetVisible.value = true
             } catch (error: CancellationException) {
                 throw error
-            } catch (err: Throwable) {
-                showError(err)
+            } catch (error: Throwable) {
+                showError(error)
             }
         }
         .flowOn(ioDispatcher)
@@ -329,8 +329,8 @@ class ConfirmTransferViewModel @Inject constructor(
             throw error
         } catch (_: GemConfirmException.Cancelled) {
             screen.update { it.onExecuteCancelled() }
-        } catch (err: Throwable) {
-            screen.update { it.onExecuteFailed(err.toConfirmError()) }
+        } catch (error: Throwable) {
+            screen.update { it.onExecuteFailed(error.toConfirmError()) }
         }
     }
 }

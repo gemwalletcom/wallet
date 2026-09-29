@@ -39,7 +39,7 @@ mod tests {
     fn can_receive_push_notification() {
         assert!(Device::mock().can_receive_push_notification());
         assert!(!Device::mock_with(false, "token".to_string(), Some(true)).can_receive_push_notification());
-        assert!(!Device::mock_with(true, "".to_string(), Some(true)).can_receive_push_notification());
+        assert!(!Device::mock_with(true, String::new(), Some(true)).can_receive_push_notification());
     }
 
     #[test]
@@ -48,6 +48,6 @@ mod tests {
         assert!(!Device::mock_with(true, "token".to_string(), Some(false)).can_receive_price_alerts());
         assert!(!Device::mock_with(true, "token".to_string(), None).can_receive_price_alerts());
         assert!(!Device::mock_with(false, "token".to_string(), Some(true)).can_receive_price_alerts());
-        assert!(!Device::mock_with(true, "".to_string(), Some(true)).can_receive_price_alerts());
+        assert!(!Device::mock_with(true, String::new(), Some(true)).can_receive_price_alerts());
     }
 }

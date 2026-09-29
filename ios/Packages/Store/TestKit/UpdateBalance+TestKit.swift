@@ -23,6 +23,7 @@ public extension UpdateBalance {
         reserved: Double = 0,
         withdrawable: Double = 0,
         pendingUnconfirmed: Double = 0,
+        metadata: BalanceMetadata? = nil,
         updatedAt: Date = .now,
         isActive: Bool = true,
     ) -> Self {
@@ -32,6 +33,7 @@ public extension UpdateBalance {
             pendingUnconfirmed: .mock(amount: pendingUnconfirmed),
             reserved: .mock(amount: reserved),
             withdrawable: .mock(amount: withdrawable),
+            metadata: metadata,
             updatedAt: updatedAt,
             isActive: isActive,
         )

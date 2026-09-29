@@ -8,8 +8,8 @@ pub enum PaybisResponse<T> {
 }
 
 impl<T> From<PaybisResponse<T>> for Result<T, Box<dyn std::error::Error + Send + Sync>> {
-    fn from(resp: PaybisResponse<T>) -> Self {
-        match resp {
+    fn from(response: PaybisResponse<T>) -> Self {
+        match response {
             PaybisResponse::Success(data) => Ok(data),
             PaybisResponse::Error(error) => Err(error.into_error()),
         }

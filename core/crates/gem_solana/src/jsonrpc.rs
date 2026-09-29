@@ -64,7 +64,6 @@ pub enum SolanaRpc {
     GetMultipleAccounts(Vec<String>),
     GetProgramAccounts(String, Vec<SolanaProgramAccountsFilter>),
     GetRecentPrioritizationFees(Vec<String>),
-    GetSignaturesForAddress { address: String, limit: usize },
     GetSlot(SolanaRpcConfig),
     GetSupply,
     GetTokenAccountsByOwner(String, SolanaTokenAccountsFilter),
@@ -87,7 +86,6 @@ impl ToJsonRpcRequest for SolanaRpc {
             Self::GetMultipleAccounts(_) => method::GET_MULTIPLE_ACCOUNTS,
             Self::GetProgramAccounts(_, _) => method::GET_PROGRAM_ACCOUNTS,
             Self::GetRecentPrioritizationFees(_) => method::GET_RECENT_PRIORITIZATION_FEES,
-            Self::GetSignaturesForAddress { .. } => method::GET_SIGNATURES_FOR_ADDRESS,
             Self::GetSlot(_) => method::GET_SLOT,
             Self::GetSupply => method::GET_SUPPLY,
             Self::GetTokenAccountsByOwner(_, _) => method::GET_TOKEN_ACCOUNTS_BY_OWNER,
@@ -128,12 +126,6 @@ impl ToJsonRpcRequest for SolanaRpc {
                     json!([addresses])
                 }
             }
-            Self::GetSignaturesForAddress { address, limit } => json!([
-                address,
-                confirmed_config(json!({
-                    "limit": limit,
-                }))
-            ]),
             Self::GetSupply => json!([confirmed_config(json!({
                 "excludeNonCirculatingAccountsList": true,
             }))]),
