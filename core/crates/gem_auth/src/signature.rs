@@ -45,6 +45,7 @@ fn recover_address_from_hash(hash: &[u8; 32], signature: &str) -> Option<String>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloy_primitives::{Signature, U256};
     use primitives::{
         AuthNonce, Chain,
         hex::encode_with_0x,
@@ -66,6 +67,25 @@ mod tests {
         let hash = create_auth_hash(&auth_message).hash;
         let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &hash, &TEST_PRIVATE_KEY).unwrap();
         assert!(verify_auth_signature(&auth_message, &encode_with_0x(&signature)));
+    }
+
+    #[test]
+    fn test_verify_auth_signature_rejects_high_s_encoding() {
+        let auth_message = AuthMessage {
+            chain: Chain::Ethereum,
+            address: TEST_PRIVATE_KEY_ETHEREUM_ADDRESS.to_string(),
+            auth_nonce: AuthNonce {
+                nonce: "test-nonce-123".to_string(),
+                timestamp: 1734100000,
+            },
+        };
+        let hash = create_auth_hash(&auth_message).hash;
+        let signature = Signature::try_from(Signer::sign_digest(SignatureScheme::Secp256k1, &hash, &TEST_PRIVATE_KEY).unwrap().as_slice()).unwrap();
+        let order = U256::from_be_slice(&hex::decode("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141").unwrap());
+        let forged = Signature::new(signature.r(), order - signature.s(), !signature.v());
+
+        assert!(verify_auth_signature(&auth_message, &encode_with_0x(&signature.as_bytes())));
+        assert!(!verify_auth_signature(&auth_message, &encode_with_0x(&forged.as_bytes())));
     }
 
     #[test]
