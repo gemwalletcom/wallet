@@ -1,0 +1,32 @@
+{
+  "operations": [
+    {
+      "pool_tx_hash": "bfb528af9a22285cda4d134d9b5cdc2a6f779ba551aa9b1da2c44e0b7a7bf21e",
+      "wallet_tx_hash": "33613031343965316361613236333835323036643337396161366137326465316466656663613236313839303166653934393362303965353939353639323634",
+      "wallet_address": "EQCJUPtCT3O174zzq3lN6PVZfgx6FRCFliRJyBPy1cVrukmG",
+      "destination_wallet_address": "EQCJUPtCT3O174zzq3lN6PVZfgx6FRCFliRJyBPy1cVrukmG",
+      "success": true,
+      "asset0_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+      "asset0_amount": "1980000",
+      "asset1_address": "EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S",
+      "asset1_amount": "-1219582736",
+      "fee_asset_address": "EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S",
+      "referral_fee_amount": "6130405",
+      "pool_tx_timestamp": "2026-09-28 19:32:01"
+    },
+    {
+      "pool_tx_hash": "407202dc76646658d214c320b7866a7236d0675e1d586fd8592b7c78bea7cd42",
+      "wallet_tx_hash": "39623665613834393462346364306338346133646433356461653862663635326266393165643730303866663030656232633831353634666562393138316461",
+      "wallet_address": "EQBi7vNm2YE98Do8JuOx6t2Bxwo7g_kiRhGhvsNE3rD6XrN0",
+      "destination_wallet_address": "EQBi7vNm2YE98Do8JuOx6t2Bxwo7g_kiRhGhvsNE3rD6XrN0",
+      "success": true,
+      "asset0_address": "EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S",
+      "asset0_amount": "500000000",
+      "asset1_address": "EQA3AshPEVly8wQ6mZincrKC_CkJSKXqqjyg0VMsVjF_CATS",
+      "asset1_amount": "-4270903568601535",
+      "fee_asset_address": "EQA3AshPEVly8wQ6mZincrKC_CkJSKXqqjyg0VMsVjF_CATS",
+      "referral_fee_amount": "21483418353127",
+      "pool_tx_timestamp": "2026-05-15 22:53:20"
+    }
+  ]
+}
