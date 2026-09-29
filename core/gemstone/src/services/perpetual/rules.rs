@@ -5,7 +5,7 @@ use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::PriceChangeCalculator;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::currency::Currency;
-use primitives::known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC};
+use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualMarketData, PerpetualPrice};
 use primitives::{
     Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType,
@@ -421,12 +421,10 @@ pub fn balance_total(balance: Option<&PerpetualBalance>) -> GemFormattedNumber {
 
 pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType, mode: PerpetualAccountMode) -> GemValueHeader {
     let (available, withdrawable) = balance.as_ref().map_or((0.0, 0.0), |balance| (balance.available, balance.withdrawable));
-    let bridge_asset = GemPerpetual::new(PerpetualProvider::Hypercore).bridge_asset();
+    let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
     let deposit = match mode {
-        PerpetualAccountMode::Standard => GemHeaderButtonAction::SelectDepositAsset {
-            asset_ids: vec![bridge_asset.id, HYPERCORE_SPOT_USDC.id.clone()],
-        },
-        PerpetualAccountMode::Unified => GemHeaderButtonAction::Deposit { asset: bridge_asset },
+        PerpetualAccountMode::Standard => GemHeaderButtonAction::SelectDepositAsset { asset_ids: perpetual.deposit_asset_ids() },
+        PerpetualAccountMode::Unified => GemHeaderButtonAction::Deposit { asset: perpetual.bridge_asset() },
     };
     let actions = match wallet_type {
         WalletType::View => GemHeaderActions::WatchOnly,
@@ -905,7 +903,7 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::PerpetualTriggerOrder;
     use primitives::TransactionInputType;
-    use primitives::known_assets::ARBITRUM_USDC;
+    use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
 
     #[test]
     fn test_the_balance_header_names_the_asset_each_button_moves() {

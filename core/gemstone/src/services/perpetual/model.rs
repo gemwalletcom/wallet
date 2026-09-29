@@ -336,6 +336,7 @@ pub enum GemPerpetualEnablementTrigger {
 pub enum GemPerpetualRefreshStep {
     Positions,
     Markets,
+    DepositBalances,
     Transactions,
 }
 

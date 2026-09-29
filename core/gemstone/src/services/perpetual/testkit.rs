@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use num_bigint::BigInt;
-use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
+use primitives::known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC};
 use primitives::perpetual::{Perpetual, PerpetualData};
 use primitives::{
     Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AutocloseValidation, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualPrice, PerpetualProvider, TpslType, Wallet, WalletId,
@@ -89,6 +89,8 @@ impl GemPerpetualStore for MemoryPerpetualStore {
     }
 }
 
+const EMPTY_CLEARINGHOUSE_STATE: &str = r#"{"assetPositions":[],"marginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMarginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMaintenanceMarginUsed":"0","withdrawable":"0"}"#;
+
 pub struct PerpetualTestkit {
     pub service: GemPerpetualService,
     pub session: Arc<GemWalletSessionService>,
@@ -111,10 +113,7 @@ impl PerpetualTestkit {
     pub async fn with_unified_balance() -> Self {
         let testkit = Self::with_provider(TestAlienProvider::with_json_by_request_type(&[
             ("userAbstraction", r#""unifiedAccount""#),
-            (
-                "clearinghouseState",
-                r#"{"assetPositions":[],"marginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMarginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMaintenanceMarginUsed":"0","withdrawable":"0"}"#,
-            ),
+            ("clearinghouseState", EMPTY_CLEARINGHOUSE_STATE),
             (
                 "spotClearinghouseState",
                 r#"{"balances":[{"coin":"USDC","token":0,"total":"12.093224","hold":"0","entryNtl":"0"}],"tokenToAvailableAfterMaintenance":[[0,"12.093224"]]}"#,
@@ -123,6 +122,21 @@ impl PerpetualTestkit {
         testkit
             .asset_store
             .save_assets(vec![AssetBasic::new(HYPERCORE_PERPETUAL_USDC.clone(), AssetProperties::default(HYPERCORE_PERPETUAL_USDC.id.clone()), AssetScore::new(0))])
+            .await
+            .unwrap();
+        testkit
+    }
+
+    pub async fn with_standard_spot_balance() -> Self {
+        let testkit = Self::with_provider(TestAlienProvider::with_json_by_request_type(&[
+            ("userAbstraction", r#""default""#),
+            ("clearinghouseState", EMPTY_CLEARINGHOUSE_STATE),
+            ("spotClearinghouseState", r#"{"balances":[{"coin":"USDC","token":0,"total":"3.073935","hold":"0","entryNtl":"0"}]}"#),
+            ("spotMeta", include_str!("../../../../crates/gem_hypercore/testdata/spot_meta_spot_swap.json")),
+        ]));
+        testkit
+            .asset_store
+            .save_assets(vec![AssetBasic::new(HYPERCORE_SPOT_USDC.clone(), AssetProperties::default(HYPERCORE_SPOT_USDC.id.clone()), AssetScore::new(0))])
             .await
             .unwrap();
         testkit

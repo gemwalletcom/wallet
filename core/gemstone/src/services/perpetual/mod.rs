@@ -38,6 +38,7 @@ pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
 use crate::models::perpetual::GemChartCandleStick;
+use crate::perpetual::GemPerpetual;
 use crate::services::assets::model::GemValueHeader;
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
@@ -94,10 +95,12 @@ impl GemPerpetualService {
     }
 
     pub async fn refresh(&self, trigger: GemMarketsRefreshTrigger) -> Vec<GemPerpetualRefreshFailure> {
-        let (positions, markets) = futures::join!(self.sync_current_positions(), async { self.sync_markets_if_needed(Chain::HyperCore, trigger).await.map(|_| ()) });
+        let account = async { (self.sync_current_positions().await, self.update_deposit_balances().await) };
+        let ((positions, deposit_balances), markets) = futures::join!(account, async { self.sync_markets_if_needed(Chain::HyperCore, trigger).await.map(|_| ()) });
         let mut failures = Vec::new();
         record(&mut failures, GemPerpetualRefreshStep::Positions, async { positions }).await;
         record(&mut failures, GemPerpetualRefreshStep::Markets, async { markets }).await;
+        record(&mut failures, GemPerpetualRefreshStep::DepositBalances, async { deposit_balances }).await;
         failures
     }
 
@@ -145,6 +148,14 @@ impl GemPerpetualService {
         }
         self.sync_markets(chain).await?;
         Ok(true)
+    }
+
+    async fn update_deposit_balances(&self) -> Result<(), GemServiceError> {
+        let wallet = self.session.require_current_wallet().await?;
+        match self.wallet_preferences.get_perpetual_account_mode(wallet.id.clone()) {
+            PerpetualAccountMode::Standard => self.balance.update(wallet.id, GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset_ids()).await,
+            PerpetualAccountMode::Unified => Ok(()),
+        }
     }
 
     pub async fn sync_current_positions(&self) -> Result<(), GemServiceError> {
@@ -299,6 +310,7 @@ mod tests {
     use super::*;
     use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
     use primitives::AssetType;
+    use primitives::known_assets::HYPERCORE_SPOT_USDC;
 
     const ALL_MIDS: &str = r#"{"channel":"allMids","data":{"mids":{"BTC":"104633.0","ETH":"3321.1"}}}"#;
     const OPEN_ORDERS: &str = r#"{"channel":"openOrders","data":{"user":"0xc64c","orders":[{"coin":"BTC","oid":1,"triggerPx":"110000.0","limitPx":"110000.0","isPositionTpsl":true,"orderType":"Take Profit Market"}]}}"#;
@@ -587,6 +599,23 @@ mod tests {
                 assert_eq!(stored[&wallet.id][0].withdrawable.to_string(), "12093224");
                 assert_eq!(testkit.wallet_preferences.get_perpetual_account_mode(wallet.id), PerpetualAccountMode::Unified);
             }
+        });
+    }
+
+    #[test]
+    fn test_refresh_updates_the_balances_a_standard_account_deposits_from() {
+        block_on(async {
+            let testkit = PerpetualTestkit::with_standard_spot_balance().await;
+            let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
+            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
+            testkit.service.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            testkit.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp())).unwrap();
+
+            assert_eq!(testkit.service.refresh(GemMarketsRefreshTrigger::Scheduled).await, vec![]);
+
+            let stored = testkit.balances.balances.lock().unwrap();
+            let spot = stored[&wallet.id].iter().find(|balance| balance.asset_id == HYPERCORE_SPOT_USDC.id).map(|balance| balance.available.to_string());
+            assert_eq!(spot, Some("307393500".to_string()), "the deposit picker lists spot USDC even when the wallet never enabled it");
         });
     }
 

@@ -1,7 +1,7 @@
 use gem_hypercore::{models::websocket::HyperliquidSubscription, perpetual_formatter::PerpetualFormatter};
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
-use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
+use primitives::{Asset, AssetId, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
@@ -55,6 +55,10 @@ impl GemPerpetual {
             memo: None,
             references: vec![],
         }
+    }
+
+    pub fn deposit_asset_ids(&self) -> Vec<AssetId> {
+        vec![self.bridge_asset().id, HYPERCORE_SPOT_USDC.id.clone()]
     }
 
     pub fn deposit_recipient(&self, asset: &Asset, owner: GemRecipient) -> Result<GemRecipient, GemServiceError> {
