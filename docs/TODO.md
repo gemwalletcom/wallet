@@ -206,7 +206,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-29
 
 ### Android
 
-- **CLN440** **S** **Unit tests read the store through production queries.** `AssetsDao.getBalance` exists only for `Migration_71_72Test`; the test reads the balance through the query the app uses and the DAO method goes.
 
 ## Blocked upstream
 

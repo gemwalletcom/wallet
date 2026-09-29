@@ -495,9 +495,6 @@ interface AssetsDao {
         limit = limit,
     )
 
-    @Query("SELECT * FROM balances WHERE wallet_id = :walletId AND asset_id = :assetId")
-    suspend fun getBalance(walletId: String, assetId: String): DbBalance?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addRecentActivity(record: DbRecentActivity)
 
