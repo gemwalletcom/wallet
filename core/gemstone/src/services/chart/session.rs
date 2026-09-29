@@ -23,6 +23,12 @@ pub struct GemChartViewState {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemChartRequest {
+    pub period: ChartPeriod,
+    pub currency: Currency,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChartSession {
     pub period: ChartPeriod,
     pub currency: Currency,
@@ -80,6 +86,13 @@ impl GemChartSession {
             return self.clone();
         }
         Self::new(self.period, currency)
+    }
+
+    pub fn request(&self) -> Option<GemChartRequest> {
+        (self.is_loading || self.is_refreshing).then(|| GemChartRequest {
+            period: self.period,
+            currency: self.currency.clone(),
+        })
     }
 
     pub fn view_state(&self, price: Option<AssetPrice>) -> GemChartViewState {
@@ -224,6 +237,23 @@ mod tests {
         assert_eq!(GemChartSession::new(ChartPeriod::Day, Currency::USD).on_zoom(4.0, 1.0).zoom, GemChartZoom::default(), "nothing loaded, nothing to zoom");
         assert_eq!(zoomed.on_refresh().on_loaded(GemChart::mock(values), ChartPeriod::Day).zoom, zoomed.zoom, "a refresh keeps the zoom");
         assert_eq!(zoomed.on_select_period(ChartPeriod::Week).zoom, GemChartZoom::default(), "a new period starts unzoomed");
+    }
+
+    #[test]
+    fn test_request() {
+        let session = GemChartSession::new(ChartPeriod::Day, Currency::USD);
+        let loaded = session.on_loaded(GemChart::mock(ChartDateValue::mock_series(140)), ChartPeriod::Day);
+
+        assert_eq!(
+            session.request(),
+            Some(GemChartRequest {
+                period: ChartPeriod::Day,
+                currency: Currency::USD
+            })
+        );
+        assert_eq!(loaded.request(), None, "a shown chart is not asked for again");
+        assert_eq!(loaded.on_refresh().request(), session.request(), "a refresh asks again");
+        assert_eq!(loaded.on_refresh().on_zoom(4.0, 1.0).request(), session.request(), "a pinch keeps the request that is in flight");
     }
 
     #[test]
