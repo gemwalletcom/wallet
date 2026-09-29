@@ -137,7 +137,6 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 admin::assets::add_asset_associations,
                 admin::transactions::get_transactions_by_hash,
                 admin::transactions::add_transaction,
-                admin::transactions::update_swap_transaction,
                 admin::addresses::refresh_addresses,
                 admin::prices::add_price,
                 admin::lists::add_list,

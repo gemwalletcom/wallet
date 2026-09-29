@@ -99,7 +99,7 @@ impl Services {
     }
 
     pub async fn fetch_transaction_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchTransactionConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchTransactionConsumer::new(self.chain_providers_for(chain, user_agent), stream_producer, self.cacher().await?))
+        Ok(FetchTransactionConsumer::new(self.chain_providers_for(chain, user_agent), self.swapper(), stream_producer, self.cacher().await?))
     }
 
     pub async fn store_transactions_consumer(&self, stream_producer: StreamProducer) -> Result<StoreTransactionsConsumer, Box<dyn Error + Send + Sync>> {

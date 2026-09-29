@@ -33,7 +33,7 @@ pub use store_transactions_consumer::StoreTransactionsConsumer;
 pub use store_transactions_consumer_config::StoreTransactionsConsumerConfig;
 pub use store_transactions_perpetuals_consumer::StoreTransactionsPerpetualsConsumer;
 pub use store_transactions_swaps_consumer::StoreTransactionsSwapsConsumer;
-pub use swap_state::{swap_result_metadata, swap_state_updates};
+pub use swap_state::{swap_result_metadata, swap_state_updates, transaction_with_swap_result};
 pub use transactions_client::TransactionsClient;
 pub use vault_address::SwapVaultAddressClient;
 pub use vault_addresses_updater::VaultAddressesUpdater;

@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use cacher::CacherClient;
-use chain_providers::{ChainProviders, ProviderFactory};
+use chain_providers::ChainProviders;
 use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
@@ -12,7 +12,6 @@ use search_index::SearchIndexClient;
 use settings::{Settings, service_user_agent};
 use storage::{Database, PricesProvidersRepository};
 use streamer::StreamProducer;
-use swapper::NativeProvider;
 use swapper::swapper::GemSwapper;
 
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
@@ -434,7 +433,7 @@ impl Services {
         };
         let pending_config = PendingTransactionsUpdaterConfig::from_config(&config).await?;
         let providers = Arc::new(self.chain_providers(&service_user_agent("daemon", Some("transactions"))));
-        let swapper = Arc::new(GemSwapper::new(Arc::new(NativeProvider::new_with_endpoints(ProviderFactory::get_chain_endpoints(&self.settings())))));
+        let swapper = self.swapper();
         let in_transit_updater = InTransitUpdater::new(database.clone(), in_transit_config, swapper.clone(), stream_producer.clone(), SwapVaultAddressClient::new(cacher.clone()));
         let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer, database, pending_config);
         Ok(TransactionJobs {

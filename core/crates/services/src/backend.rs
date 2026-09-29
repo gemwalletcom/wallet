@@ -22,6 +22,8 @@ use security::TransactionScanProviders;
 use settings::Settings;
 use storage::{Database, DatabaseError};
 use streamer::{Retry, ShutdownReceiver, StreamProducer, StreamProducerConfig};
+use swapper::NativeProvider;
+use swapper::swapper::GemSwapper;
 use tokio::sync::OnceCell;
 
 use crate::access::AccessClient;
@@ -194,6 +196,10 @@ impl Services {
 
     pub fn chain_providers_for(&self, chain: Chain, user_agent: &str) -> ChainProviders {
         ChainProviders::for_chain(chain, &self.settings, user_agent)
+    }
+
+    pub fn swapper(&self) -> Arc<GemSwapper> {
+        Arc::new(GemSwapper::new(Arc::new(NativeProvider::new_with_endpoints(ProviderFactory::get_chain_endpoints(&self.settings)))))
     }
 
     pub fn assets(&self) -> AssetsClient {
