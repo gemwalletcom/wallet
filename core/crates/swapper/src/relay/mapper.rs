@@ -94,8 +94,11 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
     }
 }
 
+const BPS_DIVISOR: f64 = 10_000.0;
+
 pub fn map_partner_transaction(request: &RelayPartnerRequest) -> Option<SwapPartnerTransaction> {
     let metadata = request.data.metadata.as_ref()?;
+    let from_amount_usd = map_amount_usd(&metadata.currency_in.amount_usd);
     Some(SwapPartnerTransaction {
         provider: SwapProvider::Relay,
         provider_transaction_id: request.id.clone(),
@@ -104,17 +107,17 @@ pub fn map_partner_transaction(request: &RelayPartnerRequest) -> Option<SwapPart
         to_address: request.recipient.clone(),
         from_asset_id: map_currency_asset_id(&metadata.currency_in.currency)?,
         from_value: metadata.currency_in.amount.clone(),
-        from_amount_usd: map_amount_usd(&metadata.currency_in.amount_usd),
+        from_amount_usd,
         to_asset_id: map_currency_asset_id(&metadata.currency_out.currency)?,
         to_value: metadata.currency_out.amount.clone(),
         to_amount_usd: map_amount_usd(&metadata.currency_out.amount_usd),
-        referral_fee: map_referral_fee(&request.data.paid_app_fees, request.data.app_fee_currency_object.as_ref()),
+        referral_fee: map_referral_fee(&request.data.paid_app_fees, request.data.app_fee_currency_object.as_ref(), from_amount_usd),
         from_transaction_hash: request.data.in_txs.first().and_then(|transaction| transaction.hash.clone()),
         to_transaction_hash: request.data.out_txs.first().and_then(|transaction| transaction.hash.clone()),
     })
 }
 
-fn map_referral_fee(fees: &[RelayPartnerAmount], currency: Option<&RelayCurrency>) -> Option<SwapReferralFee> {
+fn map_referral_fee(fees: &[RelayPartnerAmount], currency: Option<&RelayCurrency>, from_amount_usd: Option<f64>) -> Option<SwapReferralFee> {
     if fees.is_empty() {
         return None;
     }
@@ -122,7 +125,7 @@ fn map_referral_fee(fees: &[RelayPartnerAmount], currency: Option<&RelayCurrency
     Some(SwapReferralFee {
         asset_id: map_currency_asset_id(currency?)?,
         value: value.to_string(),
-        amount_usd: fees.iter().map(|fee| map_amount_usd(&fee.amount_usd)).sum(),
+        amount_usd: from_amount_usd.zip(fees.iter().map(|fee| fee.bps.parse::<f64>().ok()).sum::<Option<f64>>()).map(|(amount, bps)| amount * bps / BPS_DIVISOR),
     })
 }
 
@@ -257,7 +260,7 @@ mod tests {
                 referral_fee: Some(SwapReferralFee {
                     asset_id: AssetId::from_chain(Chain::Robinhood),
                     value: "26500000000000".to_string(),
-                    amount_usd: Some(0.071205),
+                    amount_usd: Some(0.07038357),
                 }),
                 from_transaction_hash: Some("0x548625209be0fab98ee2d91ed39f3bc74093aa715a091233b1064b61d36b6485".to_string()),
                 to_transaction_hash: Some("0x874661d3cfdfe986d93188f71a452d5e3b583077983b92438d9fc026f2946d8f".to_string()),

@@ -51,7 +51,7 @@ pub struct RelayPartnerCurrencyAmount {
 #[serde(rename_all = "camelCase")]
 pub struct RelayPartnerAmount {
     pub amount: String,
-    pub amount_usd: Option<String>,
+    pub bps: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
