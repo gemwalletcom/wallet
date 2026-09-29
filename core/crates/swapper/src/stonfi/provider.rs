@@ -2,12 +2,12 @@ use super::{
     client::StonfiClient,
     constants::{FALLBACK_ROUTERS, RouterInfo},
     model::{QuotePath, SwapSimulation},
-    quote::{DiscoveredPool, PoolData, apply_slippage, compute_amount_out, router_model, scaled_next_min_ask_amount, static_candidates, token_address},
+    quote::{DiscoveredPool, PoolData, compute_amount_out, router_model, scaled_next_min_ask_amount, static_candidates, token_address},
     tx_builder::{self, NextSwapParams, ReferralParams, SwapTransactionParams, build_swap_transaction},
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
-    fees::{ReferralFee, default_referral_fees, reserved_transaction_fees},
+    fees::{ReferralFee, default_referral_fees, reserved_transaction_fees, subtract_bps},
     route_cache::DiscoveryCache,
 };
 use async_trait::async_trait;
@@ -270,7 +270,7 @@ where
         if ask_units == BigUint::from(0u8) {
             return Err(SwapperError::NoQuoteAvailable);
         }
-        let min_ask_units = apply_slippage(&ask_units, slippage_bps);
+        let min_ask_units = subtract_bps(&ask_units, slippage_bps);
         let simulation = SwapSimulation {
             offer_jetton_wallet: offer_wallet.to_string(),
             ask_jetton_wallet: ask_wallet.to_string(),

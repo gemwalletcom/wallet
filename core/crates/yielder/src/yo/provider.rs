@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use alloy_primitives::{Address, U256};
 use async_trait::async_trait;
-use gem_evm::slippage::apply_slippage_in_bp;
+use gem_evm::slippage::subtract_bps;
 use gem_evm::u256::biguint_to_u256;
 use gem_jsonrpc::alien::RpcProvider;
 use primitives::{AssetBalance, AssetId, Chain, ContractCallData, DelegationBase, DelegationValidator, EarnType, YieldProvider};
@@ -82,7 +82,7 @@ impl EarnProvider for YoEarnProvider {
             EarnType::Deposit(_) => {
                 let approval = client.check_token_allowance(asset.asset_token, wallet, amount).await?;
                 let expected_shares = client.get_quote_shares(asset.yo_token, amount).await?;
-                let min_shares_out = apply_slippage_in_bp(&expected_shares, SLIPPAGE_BPS);
+                let min_shares_out = subtract_bps(&expected_shares, SLIPPAGE_BPS);
                 let transaction = client.build_deposit_transaction(wallet, asset.yo_token, amount, min_shares_out, wallet, YO_PARTNER_ID_GEM);
                 (approval, transaction)
             }
@@ -95,7 +95,7 @@ impl EarnProvider for YoEarnProvider {
                     computed_shares.min(total_shares)
                 };
                 let approval = client.check_token_allowance(asset.yo_token, wallet, redeem_shares).await?;
-                let min_assets_out = apply_slippage_in_bp(&amount, SLIPPAGE_BPS);
+                let min_assets_out = subtract_bps(&amount, SLIPPAGE_BPS);
                 let transaction = client.build_redeem_transaction(wallet, asset.yo_token, redeem_shares, min_assets_out, wallet, YO_PARTNER_ID_GEM);
                 (approval, transaction)
             }

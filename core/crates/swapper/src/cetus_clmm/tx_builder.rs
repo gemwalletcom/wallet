@@ -5,7 +5,7 @@ use super::{
     },
     model::{FeeSide, Hop, PoolRoute},
 };
-use crate::{Quote, SwapperError, SwapperQuoteData, fees::ReferralFee, fees::apply_slippage_in_bp};
+use crate::{Quote, SwapperError, SwapperQuoteData, fees::ReferralFee, fees::subtract_bps};
 use gem_sui::{
     EMPTY_ADDRESS, ESTIMATION_GAS_BUDGET, SuiClient,
     address::SuiAddress,
@@ -248,7 +248,7 @@ fn build_transaction(resolver: &ObjectResolver, quote: &Quote, route: &PoolRoute
         transfer_coin(&mut txb, fee_coin, recipient);
     }
 
-    let min_out = apply_slippage_in_bp(&route.net_amount_out(), quote.request.options.slippage.bps);
+    let min_out = subtract_bps(&route.net_amount_out(), quote.request.options.slippage.bps);
     let min_out_arg = txb.pure(&min_out);
     let split_off = txb.split_coins(output_coin, vec![min_out_arg]).pop().ok_or_else(|| SwapperError::TransactionError("Cetus CLMM min-out split failed".into()))?;
     txb.merge_coins(output_coin, vec![split_off]);

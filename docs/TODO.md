@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-29
 
 ### Core
 
-- **CLN428** **M** **Slippage is taken off in one place.** Stonfi keeps its own `apply_slippage` for `BigUint` beside `gem_evm::slippage::apply_slippage_in_bp`, which has the same formula; the shared helper takes `BigUint` too, is named `subtract_bps`, and Stonfi's copy goes. Chainflip's and Hyperliquid's price versions become `price_after_slippage` and `limit_price_with_slippage`.
 - **CLN429** **S** **The Stonfi router version check is written once.** `is_supported_v2` is repeated on the fallback router and the API router; both read one function.
 - **CLN430** **S** **One staleness rule.** `assets::rules::asset_outdated`, `perpetual::rules::prices_outdated` and the markets refresh check repeat `updated_at.is_none_or(|updated_at| now - updated_at >= interval)`; one rule in `clock.rs` serves them.
 - **CLN431** **M** **Chain crates and Gemstone name errors in full.** Closure and match bindings named `e` or `err` become `error` where no other `error` is in scope.

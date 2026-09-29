@@ -25,7 +25,7 @@ use crate::{
 };
 
 use super::{
-    math::{SpotSide, apply_slippage, format_decimal, format_decimal_with_scale, format_order_size, round_size_down, scale_units, spot_asset_index},
+    math::{SpotSide, format_decimal, format_decimal_with_scale, format_order_size, limit_price_with_slippage, round_size_down, scale_units, spot_asset_index},
     simulator::{simulate_buy, simulate_sell},
 };
 
@@ -180,7 +180,7 @@ impl Swapper for HyperCoreSpot {
         let to_value = scaled_units;
 
         let price_decimals = 8u32.saturating_sub(base_token.sz_decimals);
-        let limit_price = apply_slippage(&base_limit_price, side, request.options.slippage.bps, price_decimals)?;
+        let limit_price = limit_price_with_slippage(&base_limit_price, side, request.options.slippage.bps, price_decimals)?;
         let limit_price = format_decimal_with_scale(&limit_price, price_decimals);
 
         let order_size = format_order_size(&size_rounded, base_token.sz_decimals);

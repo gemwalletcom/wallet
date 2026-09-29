@@ -62,7 +62,7 @@ pub fn scale_units(value: BigUint, from_decimals: u32, to_decimals: u32) -> Resu
     }
 }
 
-pub(super) fn apply_slippage(limit_price: &BigDecimal, side: SpotSide, slippage_bps: u32, price_decimals: u32) -> Result<BigDecimal, SwapperError> {
+pub(super) fn limit_price_with_slippage(limit_price: &BigDecimal, side: SpotSide, slippage_bps: u32, price_decimals: u32) -> Result<BigDecimal, SwapperError> {
     if limit_price <= &BigDecimal::zero() {
         return Err(SwapperError::ComputeQuoteError("invalid limit price".into()));
     }
@@ -147,30 +147,30 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_slippage_buy_increases_price() {
+    fn test_limit_price_with_slippage_buy_increases_price() {
         let price = BigDecimal::from_str("100").unwrap();
-        let adjusted = apply_slippage(&price, SpotSide::Buy, 1000, 2).unwrap();
+        let adjusted = limit_price_with_slippage(&price, SpotSide::Buy, 1000, 2).unwrap();
         assert_eq!(BigNumberFormatter::decimal_to_string(&adjusted, 2), "110");
     }
 
     #[test]
-    fn test_apply_slippage_sell_decreases_price() {
+    fn test_limit_price_with_slippage_sell_decreases_price() {
         let price = BigDecimal::from_str("100").unwrap();
-        let adjusted = apply_slippage(&price, SpotSide::Sell, 500, 2).unwrap();
+        let adjusted = limit_price_with_slippage(&price, SpotSide::Sell, 500, 2).unwrap();
         assert_eq!(BigNumberFormatter::decimal_to_string(&adjusted, 2), "95");
     }
 
     #[test]
-    fn test_apply_slippage_zero_returns_same_price() {
+    fn test_limit_price_with_slippage_zero_returns_same_price() {
         let price = BigDecimal::from_str("42.123456").unwrap();
-        let adjusted = apply_slippage(&price, SpotSide::Sell, 0, 4).unwrap();
+        let adjusted = limit_price_with_slippage(&price, SpotSide::Sell, 0, 4).unwrap();
         assert_eq!(BigNumberFormatter::decimal_to_string(&adjusted, 4), "42.123");
     }
 
     #[test]
-    fn test_apply_slippage_invalid_when_multiplier_non_positive() {
+    fn test_limit_price_with_slippage_invalid_when_multiplier_non_positive() {
         let price = BigDecimal::from_str("10").unwrap();
-        assert!(apply_slippage(&price, SpotSide::Sell, 10001, 2).is_err());
+        assert!(limit_price_with_slippage(&price, SpotSide::Sell, 10001, 2).is_err());
     }
 
     #[test]
