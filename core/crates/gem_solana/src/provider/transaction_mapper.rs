@@ -267,10 +267,10 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         ));
     }
 
-    if let Some((provider, program_id)) = get_swap_provider(account_keys) {
-        let sender = account_keys.first()?.clone();
-        let swap = map_swap_metadata(transaction, &sender, provider)?;
-
+    let sender = account_keys.first()?.clone();
+    if let Some((provider, program_id)) = get_swap_provider(account_keys)
+        && let Some(swap) = map_swap_metadata(transaction, &sender, provider)
+    {
         let transaction = Transaction::new(
             hash,
             swap.from_asset.clone(),
@@ -296,7 +296,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         .iter()
         .map(|ix| &account_keys[ix.program_id_index])
         .find(|key| !SYSTEM_PROGRAMS.contains(&key.as_str()))?;
-    let sender = account_keys.first()?.clone();
     let value = transaction.get_balance_change(&sender);
 
     Some(Transaction::new(
@@ -332,6 +331,15 @@ mod tests {
     const PNFT_MINT: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
     const CORE_ASSET: &str = "JATWmjADckr2M7TX5xMfo1HNfYS66DKot15fJ4hVLrVE";
     const CORE_COLLECTION: &str = "5pQfZttNUtaj8sySRY9RsdtB81aEAQDh2vnacpxiwTpT";
+
+    #[test]
+    fn test_map_swap_program_without_swap_output() {
+        let transaction = map_single_transaction(include_str!("../../testdata/mayan_deposit_jupiter_route.json"));
+
+        assert_eq!(transaction.hash(), "vXUaBxa3MtnodHE7by5sXpExWHoMdcp7qiMKk1UoM8CnYBGD84KpzbErWLVf7RfjAmsrhJxjJ3Df7hqJ4Qh4umb");
+        assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(transaction.state, TransactionState::Confirmed);
+    }
 
     fn map_single_transaction(payload: &str) -> primitives::Transaction {
         let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(payload).unwrap();
