@@ -91,6 +91,7 @@ pub enum ConfigKey {
     TransactionsMinAmountUsd,
     TransactionsOutdatedBlockCount,
     TransactionsOutdatedMinTimeout,
+    TransactionsStoreBatchSize,
 
     AlerterPriceAlertsTimer,
     AlerterPriceAlertsCooldown,
@@ -290,6 +291,7 @@ impl ConfigKey {
             Self::TransactionsMinAmountUsd => "0.05",
             Self::TransactionsOutdatedBlockCount => "12",
             Self::TransactionsOutdatedMinTimeout => "15m",
+            Self::TransactionsStoreBatchSize => "100",
             Self::AlerterPriceAlertsTimer => "60s",
             Self::AlerterPriceAlertsCooldown => "24h",
             Self::AlerterPriceAlertsThreshold => "5.0",

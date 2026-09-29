@@ -17,17 +17,19 @@ pub struct StoreTransactionsConsumerConfig {
     pub max_asset_transfer_count: usize,
     pub min_amount_usd: f64,
     pub primary_price_max_age: Duration,
+    pub batch_size: usize,
 }
 
 impl StoreTransactionsConsumerConfig {
     pub async fn read(config: &ConfigCacher) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let (swap_outdated_timeout, outdated_block_count, outdated_min_timeout, max_asset_transfer_count, min_amount_usd, primary_price_max_age) = tokio::try_join!(
+        let (swap_outdated_timeout, outdated_block_count, outdated_min_timeout, max_asset_transfer_count, min_amount_usd, primary_price_max_age, batch_size) = tokio::try_join!(
             config.get_duration(ConfigKey::TransactionSwapOutdatedTimeout),
             config.get_i64(ConfigKey::TransactionsOutdatedBlockCount),
             config.get_duration(ConfigKey::TransactionsOutdatedMinTimeout),
             config.get_usize(ConfigKey::TransactionsMaxAssetTransferCount),
             config.get_f64(ConfigKey::TransactionsMinAmountUsd),
             config.get_duration(ConfigKey::PricePrimaryMaxAge),
+            config.get_usize(ConfigKey::TransactionsStoreBatchSize),
         )?;
         Ok(Self {
             swap_outdated_timeout,
@@ -36,6 +38,7 @@ impl StoreTransactionsConsumerConfig {
             max_asset_transfer_count,
             min_amount_usd,
             primary_price_max_age,
+            batch_size: batch_size.max(1),
         })
     }
 
