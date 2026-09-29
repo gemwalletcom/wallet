@@ -8,12 +8,13 @@ use primitives::currency::Currency as PrimitiveCurrency;
 use primitives::nft::NFTType as PrimitiveNFTType;
 use primitives::rewards::{RedemptionStatus as PrimitiveRedemptionStatus, RewardEventType as PrimitiveRewardEventType, RewardRedemptionType as PrimitiveRewardRedemptionType, RewardStatus as PrimitiveRewardStatus};
 use primitives::scan::AddressType as PrimitiveAddressType;
+use primitives::swap::SwapStatus as PrimitiveSwapStatus;
 use primitives::{
     AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, DeviceLocale as PrimitiveDeviceLocale, FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType,
     FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId, NotificationType as PrimitiveNotificationType,
     PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection, PriceId as PrimitivePriceId,
-    PriceProvider as PrimitivePriceProvider, ScanProvider as PrimitiveScanProvider, ScanType as PrimitiveScanType, TagVisibility as PrimitiveTagVisibility, TransactionState as PrimitiveTransactionState,
-    TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
+    PriceProvider as PrimitivePriceProvider, ScanProvider as PrimitiveScanProvider, ScanType as PrimitiveScanType, SwapProvider as PrimitiveSwapProvider, TagVisibility as PrimitiveTagVisibility,
+    TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -25,8 +26,8 @@ use crate::schema::sql_types::{
     AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, Currency as CurrencySql, DeviceLocale as DeviceLocaleSql, FiatRateProvider as FiatRateProviderSql,
     FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql,
     Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql,
-    ScanProvider as ScanProviderSql, ScanType as ScanTypeSql, TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql,
-    WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
+    ScanProvider as ScanProviderSql, ScanType as ScanTypeSql, SwapProvider as SwapProviderSql, SwapStatus as SwapStatusSql, TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql,
+    UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
 };
 
 macro_rules! diesel_enum {
@@ -136,6 +137,8 @@ diesel_enum!(Platform, PrimitivePlatform, PlatformSql, [IOS, Android]);
 
 diesel_enum!(Currency, PrimitiveCurrency, CurrencySql);
 diesel_enum!(FiatRateProviderRow, PrimitiveFiatRateProvider, FiatRateProviderSql);
+diesel_enum!(SwapProviderRow, PrimitiveSwapProvider, SwapProviderSql);
+diesel_enum!(SwapStatusRow, PrimitiveSwapStatus, SwapStatusSql);
 
 diesel_enum!(
     DeviceLocale,

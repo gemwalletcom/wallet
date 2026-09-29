@@ -2,6 +2,7 @@ use crate::model::WorkerService;
 use config_keys::{ConfigKey, ConfigParamKey};
 use primitives::{Chain, FiatProviderName, FiatRateProvider, ListProviderName, OptionStringExt, PlatformStore, PriceProvider};
 use services::ConfigCacher;
+use services::transactions::SwapPartnerTransactionsUpdater;
 use std::error::Error;
 use std::time::Duration;
 use strum::AsRefStr;
@@ -83,6 +84,12 @@ impl JobLabel for primitives::SwapProvider {
     }
 }
 
+impl JobLabel for SwapPartnerTransactionsUpdater {
+    fn job_label(&self) -> String {
+        self.provider().job_label()
+    }
+}
+
 impl JobLabel for PriceProvider {
     fn job_label(&self) -> String {
         self.id().to_string()
@@ -155,6 +162,7 @@ pub enum WorkerJob {
     PublishMissingPrices,
     UpdateInTransitTransactions,
     UpdatePendingTransactions,
+    UpdateSwapPartnerTransactions,
     UpdateSwapVaultAddresses,
     AlertStakeRewards,
     ClassifyPerpetualAddresses,
@@ -212,6 +220,7 @@ impl WorkerJob {
             PublishMissingPrices => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceMissingPublishInterval)),
             UpdateInTransitTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerInTransitUpdate)),
             UpdatePendingTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerPendingUpdate)),
+            UpdateSwapPartnerTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerSwapPartnerTransactions)),
             UpdateSwapVaultAddresses => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerSwapVaultAddresses)),
             AlertStakeRewards => JobSpec::new(WorkerService::Alerter, JobInterval::Config(ConfigKey::AlerterStakeRewardsTimer)),
             ClassifyPerpetualAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualClassifierInterval)),

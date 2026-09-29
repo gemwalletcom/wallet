@@ -105,6 +105,10 @@ swap:
       secret: ""
     passphrase: ""
     project: ""
+  relay:
+    url: "https://api.relay.link"
+    key:
+      secret: ""
   swapsxyz:
     url: "https://api-v2.swaps.xyz/api"
 

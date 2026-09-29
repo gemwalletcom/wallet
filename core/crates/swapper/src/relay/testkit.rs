@@ -31,7 +31,7 @@ impl EvmStepData {
 
 impl RelayRequest {
     pub fn mock_with_status(status: RelayStatus) -> Self {
-        Self { status, data: None }
+        Self { id: "0x1".to_string(), status, data: None }
     }
 }
 
