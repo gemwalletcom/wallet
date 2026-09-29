@@ -86,7 +86,7 @@ class TransactionQueryTest {
 
     @Test
     fun aStateChangeIsReadBack() = runBlocking(Dispatchers.IO) {
-        database.transactionsDao().updateTransactionState(send.id, wallet.id, TransactionState.Confirmed, fee = "21000", blockNumber = "19000000", metadata = null, confirmationEtaSeconds = null)
+        database.transactionsDao().updateTransactionState(send.id, wallet.id, TransactionState.Confirmed, fee = "21000", value = null, blockNumber = "19000000", metadata = null, confirmationEtaSeconds = null)
 
         assertEquals(send.stored().copy(state = TransactionState.Confirmed, fee = "21000", blockNumber = "19000000"), query(wallet.id, send.id).first()?.transaction)
     }

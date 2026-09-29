@@ -57,6 +57,7 @@ pub fn state_update(state: TransactionState, changes: &[TransactionChange], tran
     for change in changes {
         match change {
             TransactionChange::NetworkFee(fee) => update.fee = Some(fee.clone()),
+            TransactionChange::Value(value) => update.value = Some(value.clone()),
             TransactionChange::BlockNumber(number) => update.block_number = Some(number.clone()),
             TransactionChange::Metadata(metadata) => update.metadata = Some(metadata_json(metadata)?),
             TransactionChange::ConfirmationEtaSeconds(seconds) => update.confirmation_eta_seconds = Some(*seconds),
@@ -132,6 +133,14 @@ mod tests {
             None,
             "an update that leaves the metadata alone moves no assets between rows"
         );
+    }
+
+    #[test]
+    fn test_the_state_update_carries_a_confirmed_value() {
+        let update = state_update(TransactionState::Confirmed, &[TransactionChange::Value(499_590_000u64.into())], &Transaction::mock()).unwrap();
+
+        assert_eq!(update.value, Some(499_590_000u64.into()));
+        assert!(update.has_field_changes());
     }
 
     #[test]

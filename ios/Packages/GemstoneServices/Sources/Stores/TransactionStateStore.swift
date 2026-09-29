@@ -56,6 +56,7 @@ public final class GemstoneTransactionStateStore: GemTransactionStateStore, @unc
             transactionId: transactionId,
             state: update.state.toPrimitives(),
             fee: update.fee?.description,
+            value: update.value?.description,
             blockNumber: update.blockNumber.flatMap { Int($0) },
             metadata: update.metadata,
             confirmationEtaSeconds: update.confirmationEtaSeconds,

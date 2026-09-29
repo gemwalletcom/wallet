@@ -41,6 +41,7 @@ flowchart LR
 | The user edits Auto Close on an open position | Confirm turns on as soon as the take profit or stop loss changes; what is wrong shows after tapping it | |
 | The user sets Auto Close while opening a position | Confirm turns on only when the change can be placed | |
 | An order is placed | it is priced `2%` against the trader | it must fill while the price moves |
+| An opened position appears in Activity | its size (margin × leverage) while it fills, then the filled size in dollars | the row must read the same before and after Hyperliquid reports it; the filled size can differ by cents because size is rounded to the market's step and the fill price moves |
 | The user taps Close on a position | straight to confirmation, with the expected PnL | |
 | The user withdraws | the amount is what arrives on Arbitrum, the Network Fee shows Hyperliquid's `1 USDC`, and Max leaves the fee out | Hyperliquid takes the fee out of every withdrawal, so the screen shows what actually arrives |
 | The wallet's currency is not dollars | every perpetual value is still in dollars | the collateral is USDC |

@@ -28,7 +28,7 @@ fn perpetual_fill_type_and_direction(dir: &FillDirection) -> Option<(Transaction
     }
 }
 
-pub fn prepare_perpetual_fill(matching_fills: &[&UserFill], last_fill: &UserFill) -> Option<(TransactionType, TransactionPerpetualMetadata)> {
+pub fn prepare_perpetual_fill(matching_fills: &[&UserFill], last_fill: &UserFill) -> Option<(TransactionType, TransactionPerpetualMetadata, f64)> {
     let (transaction_type, direction) = perpetual_fill_type_and_direction(&last_fill.dir)?;
     let pnl: f64 = matching_fills.iter().map(|fill| fill.closed_pnl).sum();
     let is_liquidation = matching_fills.iter().any(|fill| fill.liquidation.is_some());
@@ -48,6 +48,7 @@ pub fn prepare_perpetual_fill(matching_fills: &[&UserFill], last_fill: &UserFill
             provider: Some(PerpetualProvider::Hypercore),
             referral_fee,
         },
+        notional,
     ))
 }
 
@@ -204,10 +205,14 @@ fn transaction_update_from_hash(hash: Option<String>, request_id: String) -> Tra
 }
 
 fn perpetual_fill_changes(matching_fills: &[&UserFill], last_fill: &UserFill) -> Option<Vec<TransactionChange>> {
-    let (_, metadata) = prepare_perpetual_fill(matching_fills, last_fill)?;
+    let (_, metadata, notional) = prepare_perpetual_fill(matching_fills, last_fill)?;
     let fee: f64 = matching_fills.iter().map(|fill| fill.fee).sum();
 
-    Some(vec![TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)), TransactionChange::NetworkFee(usdc_value(fee).into())])
+    Some(vec![
+        TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)),
+        TransactionChange::Value(usdc_value(notional)),
+        TransactionChange::NetworkFee(usdc_value(fee).into()),
+    ])
 }
 
 #[cfg(test)]
@@ -222,10 +227,14 @@ mod tests {
         let oid = 187530505765u64;
         let request_id = oid.to_string();
 
-        let update = map_transaction_state_order(fills, oid, request_id.clone());
+        let update = map_transaction_state_order(fills.clone(), oid, request_id.clone());
 
         assert_eq!(update.state, TransactionState::Confirmed);
-        assert_eq!(update.changes.len(), 3);
+        assert_eq!(update.changes.len(), 4);
+
+        let value_change = update.changes.iter().find_map(|change| if let TransactionChange::Value(value) = change { Some(value) } else { None });
+        let indexed = crate::provider::transactions_mapper::map_user_fills("0x", fills.into_iter().filter(|fill| fill.oid == oid).collect(), None);
+        assert_eq!(value_change, Some(&indexed[0].value), "a confirmed order carries the value the indexer stores for its fills");
 
         let metadata_change = update
             .changes
@@ -532,7 +541,7 @@ mod tests {
         let matching: Vec<_> = fills.iter().filter(|fill| fill.oid == oid).collect();
         let last_fill = matching.last().copied().unwrap();
 
-        let (transaction_type, metadata) = prepare_perpetual_fill(&matching, last_fill).unwrap();
+        let (transaction_type, metadata, _) = prepare_perpetual_fill(&matching, last_fill).unwrap();
         assert_eq!(transaction_type, TransactionType::PerpetualOpenPosition);
         assert_eq!(metadata.direction, PerpetualDirection::Long);
         assert_eq!(metadata.is_liquidation, Some(false));
@@ -580,7 +589,7 @@ mod tests {
         let matching: Vec<_> = fills.iter().collect();
         let last_fill = matching.last().copied().unwrap();
 
-        let (_, metadata) = prepare_perpetual_fill(&matching, last_fill).unwrap();
+        let (_, metadata, _) = prepare_perpetual_fill(&matching, last_fill).unwrap();
         assert_eq!(metadata.is_liquidation, Some(true));
     }
 }

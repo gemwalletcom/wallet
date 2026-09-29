@@ -56,6 +56,7 @@ class GemstoneTransactionStateStore(private val transactionsDao: TransactionsDao
                 walletId = wallet,
                 state = update.state.toPrimitives(),
                 fee = update.fee?.toString(),
+                value = update.value?.toString(),
                 blockNumber = update.blockNumber,
                 metadata = update.metadata,
                 confirmationEtaSeconds = update.confirmationEtaSeconds?.toLong(),

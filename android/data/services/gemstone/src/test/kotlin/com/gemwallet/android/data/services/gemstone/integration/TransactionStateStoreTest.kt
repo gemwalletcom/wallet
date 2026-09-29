@@ -26,6 +26,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import uniffi.gemstone.GemTransactionStateUpdate
+import java.math.BigInteger
 
 @RunWith(AndroidJUnit4::class)
 class TransactionStateStoreTest {
@@ -87,9 +88,10 @@ class TransactionStateStoreTest {
             store.addTransactions(wallet.id.id, listOf(pending.toGem()))
             val assetIds = listOf(mockAssetId().toIdentifier(), mockAssetId(chain = Chain.Ethereum).toIdentifier())
 
-            store.updateTransaction(wallet.id.id, pending.id.identifier, GemTransactionStateUpdate(TransactionState.Confirmed.toGem(), null, null, null, null, assetIds))
+            store.updateTransaction(wallet.id.id, pending.id.identifier, GemTransactionStateUpdate(TransactionState.Confirmed.toGem(), null, BigInteger("499590000"), null, null, null, assetIds))
 
             assertEquals(mapOf(pending.id.identifier to assetIds.sorted()), database.transactionAssets(pending.id))
+            assertEquals("499590000", database.transactionsDao().getTransaction(pending.id, wallet.id)?.value)
         } finally {
             database.close()
         }

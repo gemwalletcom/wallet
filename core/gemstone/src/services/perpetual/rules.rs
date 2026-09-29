@@ -501,7 +501,7 @@ fn position_for(perpetual: &Perpetual, position: Option<PerpetualPosition>) -> R
 }
 
 pub(crate) fn margin_amount_value(position: &PerpetualPosition) -> BigUint {
-    BigUint::from((position.margin_amount * 10f64.powi(HYPERCORE_PERPETUAL_USDC.decimals)).max(0.0) as u64)
+    gem_hypercore::perpetual_formatter::usdc_value(position.margin_amount)
 }
 
 pub fn position_action(perpetual: &Perpetual, asset: &Asset, position: Option<PerpetualPosition>, kind: GemPerpetualPositionKind) -> Result<GemPerpetualPositionAction, GemServiceError> {

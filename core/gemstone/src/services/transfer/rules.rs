@@ -1,4 +1,5 @@
 use chrono::Utc;
+use gem_hypercore::perpetual_formatter::usdc_value;
 use num_bigint::BigInt;
 use primitives::swap::{ApprovalData, SwapQuoteDataType};
 use primitives::{
@@ -540,7 +541,10 @@ impl GemPendingTransactionInput {
             TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => self.simulation.and_then(|simulation| simulation.header),
             _ => None,
         };
-        let transfer_value = self.value.to_biguint().ok_or_else(|| "negative transfer value".to_string())?;
+        let transfer_value = match transfer.input_type.get_perpetual_type().ok().and_then(PerpetualType::fiat_value) {
+            Some(fiat_value) => usdc_value(fiat_value),
+            None => self.value.to_biguint().ok_or_else(|| "negative transfer value".to_string())?,
+        };
         let (recipient, value, memo) = match &approval {
             Some(approval) => (approval.spender.clone(), approval.value.clone(), None),
             None => {
@@ -686,6 +690,30 @@ mod tests {
             .header_kind(),
             GemTransactionHeaderKind::Symbol
         );
+    }
+
+    #[test]
+    fn test_a_pending_perpetual_order_is_worth_its_size_not_its_margin() {
+        let market = Asset {
+            id: AssetId::from_token(Chain::HyperCore, "perpetual::SOL"),
+            ..Asset::from_chain(Chain::HyperCore)
+        };
+        let data = PerpetualConfirmData {
+            fiat_value: 250.0,
+            margin_amount: 25.0,
+            leverage: 10,
+            ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)
+        };
+        let open = TransactionInputType::Perpetual {
+            asset: market,
+            perpetual_type: PerpetualType::Open { data },
+        };
+        let mut input = GemPendingTransactionInput::mock(open, TransactionType::PerpetualOpenPosition, "order:1", 0, 1);
+        input.value = BigInt::from(25_000_000);
+
+        let transaction = input.pending_transaction().unwrap().unwrap();
+
+        assert_eq!(transaction.value, BigUint::from(250_000_000u64), "the row shows the position size, as the indexed fill does, not the margin");
     }
 
     #[test]

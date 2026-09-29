@@ -48,9 +48,8 @@ fn map_fill_group(address: &str, fills: Vec<UserFill>, spot_meta: Option<&SpotMe
 
 fn map_perpetual_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &UserFill) -> Option<Transaction> {
     let fill_refs = fills.iter().collect::<Vec<_>>();
-    let (transaction_type, metadata) = prepare_perpetual_fill(&fill_refs, last_fill)?;
+    let (transaction_type, metadata, value) = prepare_perpetual_fill(&fill_refs, last_fill)?;
     let fee: f64 = fills.iter().map(|fill| fill.fee).sum();
-    let value = fills.iter().try_fold(0.0, |sum, fill| Some(sum + fill.px * fill.sz.parse::<f64>().ok()?))?;
     let metadata = serde_json::to_value(metadata).ok()?;
 
     build_fill_transaction(
