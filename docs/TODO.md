@@ -203,7 +203,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-29
 
 ### iOS
 
-- **CLN436** **S** **One ISO-8601 JSON decoder.** `SwiftHTTPClient`'s `Response` repeats the formatters and date strategy of `Primitives`' `JSONDateDecoder`; the widget passes `JSONDateDecoder.standard`, the copy goes, and its date tests move with the decoder.
 
 ### Android
 
