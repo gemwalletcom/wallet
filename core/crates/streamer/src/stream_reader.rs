@@ -125,8 +125,8 @@ impl StreamReader {
                             Ok(_) => self.ack(delivery_tag).await?,
                             Err(_) => self.nack(delivery_tag, true).await?,
                         },
-                        Err(e) => {
-                            error_with_fields!("deserialization error", &e, payload = String::from_utf8_lossy(&delivery.data).to_string());
+                        Err(error) => {
+                            error_with_fields!("deserialization error", &error, payload = String::from_utf8_lossy(&delivery.data).to_string());
                             let _ = self.nack(delivery_tag, false).await;
                         }
                     }
@@ -138,13 +138,13 @@ impl StreamReader {
     }
 
     async fn ack(&self, delivery_tag: u64) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.channel.basic_ack(delivery_tag, BasicAckOptions { multiple: false }).await.map_err(|e| Box::new(e) as Box<dyn Error + Send + Sync>)
+        self.channel.basic_ack(delivery_tag, BasicAckOptions { multiple: false }).await.map_err(|error| Box::new(error) as Box<dyn Error + Send + Sync>)
     }
 
     async fn nack(&self, delivery_tag: u64, requeue: bool) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.channel
             .basic_nack(delivery_tag, BasicNackOptions { multiple: false, requeue })
             .await
-            .map_err(|e| Box::new(e) as Box<dyn Error + Send + Sync>)
+            .map_err(|error| Box::new(error) as Box<dyn Error + Send + Sync>)
     }
 }

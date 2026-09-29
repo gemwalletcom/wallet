@@ -149,10 +149,10 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
             if !entry.iter().any(|d| d.source_name == "Gemstone") {
                 entry.push(process_fee_data("Gemstone", &data));
             }
-        } else if let Err(e) = gemstone_res
+        } else if let Err(error) = gemstone_res
             && args.debug
         {
-            eprintln!("gas-bench: Error fetching Gemstone data: {e:?}");
+            eprintln!("gas-bench: Error fetching Gemstone data: {error:?}");
         }
 
         if let Ok(data) = etherscan_res {
@@ -161,10 +161,10 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
             if !entry.iter().any(|d| d.source_name == "Etherscan") {
                 entry.push(process_fee_data("Etherscan", &fee_data));
             }
-        } else if let Err(e) = etherscan_res
+        } else if let Err(error) = etherscan_res
             && args.debug
         {
-            eprintln!("Error fetching Etherscan data: {e:?}");
+            eprintln!("Error fetching Etherscan data: {error:?}");
         }
 
         if let Ok(data) = gasflow_res {
@@ -173,10 +173,10 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
             if !entry.iter().any(|d| d.source_name == "Gasflow") {
                 entry.push(process_fee_data("Gasflow", &fee_data));
             }
-        } else if let Err(e) = gasflow_res
+        } else if let Err(error) = gasflow_res
             && args.debug
         {
-            eprintln!("Error fetching Gasflow data: {e:?}");
+            eprintln!("Error fetching Gasflow data: {error:?}");
         }
 
         if args.debug {
@@ -287,9 +287,9 @@ async fn run_solana(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
                 print_solana_fee_data(&fee_data, &jito_res, &helius_res, args.compute_units);
                 last_printed_slot = Some(fee_data.slot);
             }
-            Err(e) => {
+            Err(error) => {
                 if args.debug {
-                    eprintln!("gas-bench: Error fetching Solana data: {e:?}");
+                    eprintln!("gas-bench: Error fetching Solana data: {error:?}");
                 }
             }
         }
@@ -372,8 +372,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         eprintln!("gas-bench: debug mode enabled by CLI flag.");
     }
 
-    if let Err(e) = run(args).await {
-        eprintln!("gas-bench: run error: {e}");
+    if let Err(error) = run(args).await {
+        eprintln!("gas-bench: run error: {error}");
         std::process::exit(1);
     }
 

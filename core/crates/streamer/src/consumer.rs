@@ -75,10 +75,10 @@ where
     let result = match consumer.should_consume(&payload).await {
         Ok(true) => match consumer.consume(payload).await {
             Ok(r) => ConsumeResult::Consumed(r),
-            Err(e) => ConsumeResult::Error(e),
+            Err(error) => ConsumeResult::Error(error),
         },
         Ok(false) => ConsumeResult::Skipped,
-        Err(e) => ConsumeResult::Error(e),
+        Err(error) => ConsumeResult::Error(error),
     };
 
     match result {

@@ -53,7 +53,7 @@ macro_rules! diesel_enum {
         impl FromSql<$sql_type, Pg> for $wrapper {
             fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
                 let s = std::str::from_utf8(bytes.as_bytes())?;
-                Ok(Self(<$inner>::from_str(s).map_err(|e| format!("Invalid {}: {}", stringify!($wrapper), e))?))
+                Ok(Self(<$inner>::from_str(s).map_err(|error| format!("Invalid {}: {}", stringify!($wrapper), error))?))
             }
         }
 
@@ -202,7 +202,7 @@ macro_rules! diesel_varchar {
         impl FromSql<diesel::sql_types::Varchar, Pg> for $wrapper {
             fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
                 let s = std::str::from_utf8(bytes.as_bytes())?;
-                Ok(Self(<$inner>::from_str(s).map_err(|e| format!("Invalid {}: {}", stringify!($wrapper), e))?))
+                Ok(Self(<$inner>::from_str(s).map_err(|error| format!("Invalid {}: {}", stringify!($wrapper), error))?))
             }
         }
 
@@ -307,7 +307,7 @@ macro_rules! diesel_varchar_display {
         impl FromSql<diesel::sql_types::Varchar, Pg> for $wrapper {
             fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
                 let s = std::str::from_utf8(bytes.as_bytes())?;
-                Ok(Self(<$inner>::from_str(s).map_err(|e| format!("Invalid {}: {}", stringify!($wrapper), e))?))
+                Ok(Self(<$inner>::from_str(s).map_err(|error| format!("Invalid {}: {}", stringify!($wrapper), error))?))
             }
         }
 

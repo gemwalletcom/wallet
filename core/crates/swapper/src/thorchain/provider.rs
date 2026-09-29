@@ -148,7 +148,7 @@ where
             .client
             .get_quote(from_asset.clone(), to_asset.clone(), value.to_string(), QUOTE_INTERVAL, QUOTE_QUANTITY, fee.address, fee.bps.into())
             .await
-            .map_err(|e| self.map_quote_error(e, from_asset.decimals as i32))?;
+            .map_err(|error| self.map_quote_error(error, from_asset.decimals as i32))?;
 
         if quote.recommended_min_amount_in > value {
             return Err(SwapperError::InputAmountError {

@@ -108,8 +108,8 @@ impl Parser {
                     duration = DurationMs(start.elapsed())
                 );
             }
-            Err(err) => {
-                error_with_fields!("parser parse_block", &*err, chain = self.chain.as_ref(), blocks = blocks_desc);
+            Err(error) => {
+                error_with_fields!("parser parse_block", &*error, chain = self.chain.as_ref(), blocks = blocks_desc);
                 self.sleep_or_shutdown(timeout).await;
                 return Ok(false);
             }
@@ -162,8 +162,8 @@ impl Parser {
 
             let latest_block = match self.get_latest_block(&state).await {
                 Ok(block) => block,
-                Err(err) => {
-                    error_with_fields!("parser latest_block", &*err, chain = self.chain.as_ref());
+                Err(error) => {
+                    error_with_fields!("parser latest_block", &*error, chain = self.chain.as_ref());
                     self.sleep_or_shutdown(self.options.error_interval).await;
                     continue;
                 }
@@ -272,8 +272,8 @@ async fn run_parser(state_service: ParserStateService, parser_metrics: Arc<Parse
             break;
         }
 
-        if let Err(e) = parser.start().await {
-            error_with_fields!("parser error", &*e, chain = chain.as_ref());
+        if let Err(error) = parser.start().await {
+            error_with_fields!("parser error", &*error, chain = chain.as_ref());
 
             if shutdown::sleep_or_shutdown(timeout, &shutdown_rx).await {
                 break;

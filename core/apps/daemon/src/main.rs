@@ -27,8 +27,8 @@ pub async fn main() {
     let args: Vec<String> = std::env::args().collect();
     let service_arg = args.iter().skip(1).map(String::as_str).collect::<Vec<_>>().join(" ");
 
-    let service = DaemonService::from_str(&service_arg).unwrap_or_else(|e| {
-        panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer transactions fetch_transactions");
+    let service = DaemonService::from_str(&service_arg).unwrap_or_else(|error| {
+        panic!("{error}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer transactions fetch_transactions");
     });
 
     let settings = settings::Settings::new().unwrap().with_postgres_application_name(&service.name().replace(' ', "_")).unwrap();
@@ -95,8 +95,8 @@ async fn run_worker_services(settings: settings::Settings, workers: &[WorkerServ
         async move {
             match svc.run_jobs(context, shutdown_rx).await {
                 Ok(handles) => Some((svc, handles)),
-                Err(err) => {
-                    error_with_fields!("worker init failed", &*err, worker = svc.as_ref());
+                Err(error) => {
+                    error_with_fields!("worker init failed", &*error, worker = svc.as_ref());
                     None
                 }
             }
@@ -197,9 +197,9 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
                             info_with_fields!("consumer stopped", consumer = svc_name, status = "ok");
                             break;
                         }
-                        Err(err) => {
-                            let message = err.to_string();
-                            error_with_fields!("consumer failed", &*err, consumer = svc_name);
+                        Err(error) => {
+                            let message = error.to_string();
+                            error_with_fields!("consumer failed", &*error, consumer = svc_name);
                             if let Ok(mut list) = failures.lock() {
                                 list.push(format!("{}: {}", svc_name, message));
                             }

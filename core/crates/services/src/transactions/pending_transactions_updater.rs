@@ -105,10 +105,10 @@ impl PendingTransactionsUpdater {
                 info_with_fields!("pending transaction not loaded", chain = chain.as_ref(), identifier = identifier, elapsed = elapsed, latency = DurationMs(start.elapsed()));
                 Ok(false)
             }
-            Err(err) => {
+            Err(error) => {
                 error_with_fields!(
                     "pending transaction load failed",
-                    &*err,
+                    &*error,
                     chain = chain.as_ref(),
                     identifier = identifier,
                     elapsed = elapsed,

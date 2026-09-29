@@ -143,16 +143,16 @@ impl NodeService {
                     last_error = Some(retry_reason);
                     last_error_data = upstream_data;
                 }
-                Err(e) => {
+                Err(error) => {
                     self.report_active_node_outcome(index, request.chain, url, true);
                     if !retry_enabled {
-                        return Err(e);
+                        return Err(error);
                     }
 
                     let request_id = request.id.as_str();
                     let chain = request.chain.as_ref();
                     let latency = DurationMs(request.elapsed());
-                    let retry_reason = FailureReason::from_error(e.as_ref()).to_string();
+                    let retry_reason = FailureReason::from_error(error.as_ref()).to_string();
                     info_with_fields!("Upstream error", id = request_id, chain = chain, remote_host = remote_host.as_str(), error = retry_reason.as_str(), latency = latency,);
                     if index + 1 < max_attempts {
                         self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), &retry_reason);

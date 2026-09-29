@@ -47,7 +47,7 @@ mod tests {
     #[tokio::test]
     async fn test_solana_json_rpc() -> Result<(), String> {
         let rpc_client = create_client_with_chain(Arc::new(NativeProvider::default()), Chain::Solana).unwrap();
-        let response: SolanaBlockhashResult = rpc_client.request(SolanaRpc::GetLatestBlockhash(SolanaRpcConfig::Default)).await.map_err(|e| e.to_string())?;
+        let response: SolanaBlockhashResult = rpc_client.request(SolanaRpc::GetLatestBlockhash(SolanaRpcConfig::Default)).await.map_err(|error| error.to_string())?;
         let recent_blockhash = response.value.blockhash;
 
         println!("recent_blockhash: {}", recent_blockhash);

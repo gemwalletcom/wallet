@@ -175,7 +175,7 @@ impl Swapper for HyperCoreSpot {
             .try_into()
             .map_err(|_| SwapperError::ComputeQuoteError(format!("{} precision: {}", INVALID_AMOUNT, to_token.wei_decimals)))?;
 
-        let token_units = BigNumberFormatter::value_from_amount_biguint(&format_decimal(&output_amount), token_decimals).map_err(|err| SwapperError::ComputeQuoteError(format!("{}: {err}", INVALID_AMOUNT)))?;
+        let token_units = BigNumberFormatter::value_from_amount_biguint(&format_decimal(&output_amount), token_decimals).map_err(|error| SwapperError::ComputeQuoteError(format!("{}: {error}", INVALID_AMOUNT)))?;
         let scaled_units = scale_units(token_units, token_decimals, request.to_asset.decimals)?;
         let to_value = scaled_units;
 

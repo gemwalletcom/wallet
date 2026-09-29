@@ -49,8 +49,8 @@ impl StakingRewardsNotifier {
             match self.notify_address(chain, address).await {
                 Ok(true) => notified += 1,
                 Ok(false) => {}
-                Err(e) => {
-                    gem_tracing::error("staking rewards notifier", e.as_ref());
+                Err(error) => {
+                    gem_tracing::error("staking rewards notifier", error.as_ref());
                 }
             }
         }

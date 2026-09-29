@@ -53,7 +53,7 @@ impl GemstoneClient {
         let priorities = vec![FeePriority::Normal, FeePriority::Fast];
         let calculated_priority_fees = service
             .calculate_priority_fees(&fee_history_data, &priorities, BigInt::from(min_priority_fee))
-            .map_err(|e| format!("Failed to calculate priority fees: {}", e))?;
+            .map_err(|error| format!("Failed to calculate priority fees: {}", error))?;
 
         let gas_used_ratio = fee_history_data.gas_used_ratio.last().map(|val_ref| format!("{:.1}%", *val_ref * 100.0));
 

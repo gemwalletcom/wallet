@@ -176,8 +176,8 @@ impl GemSwapper {
         let quotes_futures = providers.into_iter().map(|x| {
             let provider_id = x.provider().id.id().to_string();
             async move {
-                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|e| (provider_id.clone(), e))?;
-                x.get_quote(&request).await.map_err(|e| (provider_id, e))
+                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|error| (provider_id.clone(), error))?;
+                x.get_quote(&request).await.map_err(|error| (provider_id, error))
             }
         });
 

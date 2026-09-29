@@ -73,11 +73,11 @@ impl ChainConsumerRunner {
                 loop {
                     match f(runner.clone(), chain).await {
                         Ok(()) => return Ok(()),
-                        Err(err) => {
+                        Err(error) => {
                             failures += 1;
-                            error_with_fields!("consumer chain error", &*err, consumer = queue.as_str(), chain = chain.as_ref(), attempt = failures);
+                            error_with_fields!("consumer chain error", &*error, consumer = queue.as_str(), chain = chain.as_ref(), attempt = failures);
                             if failures >= retries {
-                                return Err(err);
+                                return Err(error);
                             }
                             if crate::shutdown::sleep_or_shutdown(restart_delay, &runner.shutdown_rx).await {
                                 return Ok(());

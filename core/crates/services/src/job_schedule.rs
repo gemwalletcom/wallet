@@ -46,7 +46,7 @@ impl JobSchedule for CacherJobTracker {
     }
 
     async fn mark_success(&self, job_name: &str, timestamp: SystemTime) -> Result<(), JobError> {
-        let seconds = timestamp.duration_since(UNIX_EPOCH).map_err(|err| Box::new(err) as JobError)?.as_secs();
+        let seconds = timestamp.duration_since(UNIX_EPOCH).map_err(|error| Box::new(error) as JobError)?.as_secs();
         let key = self.job_key(job_name);
         let cache_key = CacheKey::JobStatus(&key);
         self.cacher.set_cached(cache_key, &seconds).await

@@ -198,7 +198,7 @@ where
 
         let message_bytes = build_transfer_message_bytes(&self.sui_client, wallet_address, deposit_address, amount, from_asset.asset_id().token_id.as_deref())
             .await
-            .map_err(|err| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {err}")))?;
+            .map_err(|error| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {error}")))?;
 
         Ok(DepositData {
             to: deposit_address.to_string(),

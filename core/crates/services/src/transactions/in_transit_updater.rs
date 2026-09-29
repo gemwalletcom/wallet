@@ -106,8 +106,8 @@ impl InTransitUpdater {
         let result = match provider {
             Some(provider) => match self.swapper.get_swap_result(chain, provider, hash).await {
                 Ok(r) => r,
-                Err(err) => {
-                    error_with_fields!("in_transit check failed", &err as &dyn Error, chain = chain.as_ref(), hash = hash, provider = provider_name, elapsed = elapsed);
+                Err(error) => {
+                    error_with_fields!("in_transit check failed", &error as &dyn Error, chain = chain.as_ref(), hash = hash, provider = provider_name, elapsed = elapsed);
                     if transaction.created_at < cutoff {
                         info_with_fields!("in_transit timed out", chain = chain.as_ref(), hash = hash, provider = provider_name, elapsed = elapsed);
                         self.check_schedules().remove(&transaction.id);

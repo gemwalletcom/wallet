@@ -53,8 +53,8 @@ where
                 continue;
             }
             Ok(RunDecision::Wait(_)) => continue,
-            Err(err) => {
-                error_with_fields!("job schedule evaluation failed", &*err, job = job_name.as_str());
+            Err(error) => {
+                error_with_fields!("job schedule evaluation failed", &*error, job = job_name.as_str());
                 continue;
             }
         };
@@ -69,13 +69,13 @@ where
         match result {
             Ok(value) => {
                 info_with_fields!("job complete", job = job_name.as_str(), duration = duration_display.as_str(), result = format!("{:?}", value));
-                if let Err(err) = schedule.mark_success(job_name.as_str(), SystemTime::now()).await {
-                    error_with_fields!("job schedule update failed", &*err, job = job_name.as_str());
+                if let Err(error) = schedule.mark_success(job_name.as_str(), SystemTime::now()).await {
+                    error_with_fields!("job schedule update failed", &*error, job = job_name.as_str());
                 }
                 reporter.report(&job_name, interval_duration.as_secs(), duration_ms, true).await;
             }
-            Err(err) => {
-                error_with_fields!("job failed", &*err, job = job_name.as_str(), duration = duration_display.as_str());
+            Err(error) => {
+                error_with_fields!("job failed", &*error, job = job_name.as_str(), duration = duration_display.as_str());
                 reporter.report(&job_name, interval_duration.as_secs(), duration_ms, false).await;
             }
         }

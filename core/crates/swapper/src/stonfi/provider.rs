@@ -232,7 +232,7 @@ where
         for quote in quotes {
             let quote = match quote {
                 Ok(quote) => quote,
-                Err(err) if is_retryable_get_method_error(&err) => return Err(err),
+                Err(error) if is_retryable_get_method_error(&error) => return Err(error),
                 Err(_) => continue,
             };
             let quote_amount = BigUint::from_str(&quote.1.ask_units)?;
@@ -298,7 +298,7 @@ where
     }
 
     fn select_best_quote_path(paths: impl IntoIterator<Item = Result<QuotePath, SwapperError>>) -> Result<QuotePath, SwapperError> {
-        let mut error = None;
+        let mut first_error = None;
         let mut best = None;
         for result in paths {
             match result {
@@ -312,16 +312,14 @@ where
                         best = Some((amount, path));
                     }
                 }
-                Err(err) => {
-                    if error.is_none() {
-                        error = Some(err);
-                    }
+                Err(error) => {
+                    first_error.get_or_insert(error);
                 }
             }
         }
         match best {
             Some((_, path)) => Ok(path),
-            None => match error {
+            None => match first_error {
                 Some(error) => Err(error),
                 None => Err(SwapperError::NoQuoteAvailable),
             },
@@ -461,7 +459,7 @@ fn is_retryable_get_method_error(err: &SwapperError) -> bool {
 
 fn retryable_path_error<'a>(paths: impl IntoIterator<Item = &'a Result<QuotePath, SwapperError>>) -> Option<SwapperError> {
     paths.into_iter().find_map(|path| match path {
-        Err(err) if is_retryable_get_method_error(err) => Some(err.clone()),
+        Err(error) if is_retryable_get_method_error(error) => Some(error.clone()),
         Ok(_) | Err(_) => None,
     })
 }
