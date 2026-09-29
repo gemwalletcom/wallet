@@ -7821,6 +7821,7 @@ dependencies = [
 name = "services"
 version = "2.114.53"
 dependencies = [
+ "alchemy",
  "async-trait",
  "cacher",
  "chain_primitives",

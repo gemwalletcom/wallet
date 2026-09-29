@@ -37,11 +37,11 @@ pub struct EvmPartnerProvider<C: Client + Clone> {
 }
 
 impl<C: Client + Clone + 'static> EvmPartnerProvider<C> {
-    pub fn new(chain: EVMChain, alchemy: JsonRpcClient<C>, node: JsonRpcClient<C>) -> Self {
+    pub fn new(chain: EVMChain, client: JsonRpcClient<C>) -> Self {
         Self {
             chain: chain.to_chain(),
-            alchemy: AlchemyClient::new(alchemy),
-            provider: EthereumProvider::new_rpc_only(EthereumClient::new(node, chain)),
+            alchemy: AlchemyClient::new(client.clone()),
+            provider: EthereumProvider::new_rpc_only(EthereumClient::new(client, chain)),
             fee_address: default_referral_fees().evm.address,
         }
     }

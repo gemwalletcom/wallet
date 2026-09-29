@@ -104,8 +104,7 @@ swap:
     sdk:
       url: "https://chainflip-swap.chainflip.io"
   mayachain:
-    midgard:
-      url: "https://midgard.mayachain.info"
+    url: "https://midgard.mayachain.info"
   mayan:
     url: "https://explorer-api.mayan.finance"
   nearintents:
@@ -130,8 +129,7 @@ swap:
     key:
       secret: ""
   thorchain:
-    midgard:
-      url: "https://gateway.liquify.com"
+    url: "https://gateway.liquify.com"
 
 prices:
   coingecko:
