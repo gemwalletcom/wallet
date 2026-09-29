@@ -3,8 +3,6 @@
     {
       "id": "0x9964ad132c45a2a41af330929971f34b429de671f485404d95e2a4718aa3ff4b",
       "status": "success",
-      "user": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
-      "recipient": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
       "requestType": "Crosschain Swap",
       "data": {
         "route": {

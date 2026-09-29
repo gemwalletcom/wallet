@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use gem_client::{Client, ClientExt};
 
-use super::model::{RelayChainsResponse, RelayErrorResponse, RelayPartnerRequestsQuery, RelayQuoteRequest, RelayQuoteResponse, RelayRequestsResponse};
+use super::model::{RelayChainsResponse, RelayErrorResponse, RelayPartnerRequestsQuery, RelayPartnerRequestsResponse, RelayQuoteRequest, RelayQuoteResponse, RelayRequestsResponse};
 use super::target::RelayTarget;
 use crate::SwapperError;
 
@@ -35,7 +35,7 @@ where
         self.client.get(target).await.map_err(SwapperError::from)
     }
 
-    pub async fn get_partner_requests(&self, query: RelayPartnerRequestsQuery) -> Result<RelayRequestsResponse, SwapperError> {
+    pub async fn get_partner_requests(&self, query: RelayPartnerRequestsQuery) -> Result<RelayPartnerRequestsResponse, SwapperError> {
         self.client.get(RelayTarget::PartnerRequests(query)).await.map_err(SwapperError::from)
     }
 

@@ -1,5 +1,5 @@
 use primitives::{decode_hex, swap::SwapStatus};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -33,16 +33,12 @@ impl RelayStatus {
 #[serde(rename_all = "camelCase")]
 pub struct RelayRequestsResponse {
     pub requests: Vec<RelayRequest>,
-    pub continuation: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RelayRequest {
-    pub id: String,
     pub status: RelayStatus,
-    pub user: String,
-    pub recipient: String,
     pub data: Option<RelayRequestData>,
 }
 
@@ -58,11 +54,8 @@ impl RelayRequest {
 #[serde(rename_all = "camelCase")]
 pub struct RelayRequestData {
     pub route: Option<RelayRoute>,
-    pub app_fees: Option<RelayAppFees>,
     #[serde(default)]
     pub in_txs: Vec<RelayRequestTransaction>,
-    #[serde(default)]
-    pub out_txs: Vec<RelayRequestTransaction>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -75,7 +68,6 @@ pub struct RelayRequestTransaction {
 #[serde(rename_all = "camelCase")]
 pub struct RelayRoute {
     pub actual: Option<RelayRouteActual>,
-    pub quoted: Option<RelayRouteActual>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -108,7 +100,6 @@ pub struct RelayRouteSide {
 pub struct RelayCurrencyDetail {
     pub currency: RelayCurrency,
     pub amount: Option<String>,
-    pub amount_usd: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -116,45 +107,6 @@ pub struct RelayCurrencyDetail {
 pub struct RelayCurrency {
     pub chain_id: u64,
     pub address: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RelayAppFees {
-    pub currency: Option<RelayCurrency>,
-    #[serde(default)]
-    pub actual: Vec<RelayAppFeeAmount>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RelayAppFeeAmount {
-    pub amount: Option<String>,
-    pub amount_usd: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RelayPartnerCursor {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_timestamp: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub continuation: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RelayPartnerRequestsQuery {
-    pub api_key: String,
-    pub referrer: String,
-    pub sort_by: &'static str,
-    pub sort_direction: &'static str,
-    pub limit: u32,
-    pub include_authenticated_data: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_timestamp: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub continuation: Option<String>,
 }
 
 #[cfg(test)]
@@ -176,10 +128,7 @@ mod tests {
     #[test]
     fn test_relay_status_refund_maps_to_refunded() {
         let request: RelayRequest = serde_json::from_value(serde_json::json!({
-            "id": "0x1",
             "status": "refund",
-            "user": "0x0000000000000000000000000000000000000001",
-            "recipient": "0x0000000000000000000000000000000000000001",
             "data": null
         }))
         .unwrap();

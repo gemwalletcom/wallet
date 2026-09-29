@@ -470,7 +470,7 @@ pub struct RewardsWallet {
 pub struct Swap {
     pub nearintents: URL,
     pub okx: Okx,
-    pub relay: ProviderSettings,
+    pub relay: URL,
     pub swapsxyz: URL,
 }
 

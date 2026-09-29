@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Duration;
 
 use cacher::{CacheKey, CacherClient};
 use primitives::SwapProvider;
@@ -15,11 +16,18 @@ pub struct SwapPartnerTransactionsUpdater {
     database: Database,
     cacher: CacherClient,
     stream_producer: StreamProducer,
+    page_delay: Duration,
 }
 
 impl SwapPartnerTransactionsUpdater {
-    pub fn new(provider: Arc<dyn SwapPartnerProvider>, database: Database, cacher: CacherClient, stream_producer: StreamProducer) -> Self {
-        Self { provider, database, cacher, stream_producer }
+    pub fn new(provider: Arc<dyn SwapPartnerProvider>, database: Database, cacher: CacherClient, stream_producer: StreamProducer, page_delay: Duration) -> Self {
+        Self {
+            provider,
+            database,
+            cacher,
+            stream_producer,
+            page_delay,
+        }
     }
 
     pub fn provider(&self) -> SwapProvider {
@@ -35,7 +43,10 @@ impl SwapPartnerTransactionsUpdater {
             count += self.store_transactions(page.transactions).await?;
             self.cacher.set_cached(CacheKey::SwapPartnerCursor(provider.as_ref()), &page.cursor.value()).await?;
             match page.cursor {
-                SwapPartnerCursor::Next(next) => cursor = Some(next),
+                SwapPartnerCursor::Next(next) => {
+                    tokio::time::sleep(self.page_delay).await;
+                    cursor = Some(next);
+                }
                 SwapPartnerCursor::Latest(_) => return Ok(count),
             }
         }
