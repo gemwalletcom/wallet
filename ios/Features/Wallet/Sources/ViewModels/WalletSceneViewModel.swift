@@ -177,7 +177,7 @@ public extension WalletSceneViewModel {
         case .send: isPresentingSheet = .selectAsset(.send(.none), chains: [])
         case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
         case .swap: isPresentingSheet = .swap
-        case .deposit, .withdraw, .sendCollectible, .collectibleMenu: break
+        case .deposit, .selectDepositAsset, .withdraw, .sendCollectible, .collectibleMenu: break
         }
     }
 

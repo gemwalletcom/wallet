@@ -4,6 +4,7 @@ import BigInt
 import class Gemstone.GemAmountService
 import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemTransferData
+import class Gemstone.GemWalletSessionService
 import GemstonePrimitives
 import GemstoneServicesTestKit
 import Primitives
@@ -58,7 +59,9 @@ struct AmountSceneRequestTests {
     @Test
     func theRequestBuildsTheTransferItNames() async throws {
         let send = try await transferData(AmountSceneViewModel.mock(), value: 100, useMaxAmount: false)
-        let deposit = try await transferData(AmountSceneViewModel.mock(type: .deposit), value: 200, useMaxAmount: true)
+        let arbitrumUSDC = AssetData.mock(asset: .mock(id: AssetId(chain: .arbitrum, tokenId: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"), symbol: "USDC", decimals: 6, type: .erc20))
+        let session = try GemWalletSessionService.mock(wallet: .mock(accounts: [.mock(chain: .arbitrum)]))
+        let deposit = try await transferData(AmountSceneViewModel.mock(type: .deposit, assetData: arbitrumUSDC), value: 200, useMaxAmount: true, session: session)
 
         guard case .transfer = send.inputType else {
             Issue.record("expected a transfer, got \(send.inputType)")
@@ -73,8 +76,8 @@ struct AmountSceneRequestTests {
         #expect(deposit.useMaxAmount)
     }
 
-    private func transferData(_ model: AmountSceneViewModel, value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
-        try await GemAmountService.mock().transferData(asset: model.asset.toGem(), request: model.request, value: value, useMaxAmount: useMaxAmount)
+    private func transferData(_ model: AmountSceneViewModel, value: BigInt, useMaxAmount: Bool, session: GemWalletSessionService = .mock()) async throws -> GemTransferData {
+        try await GemAmountService.mock(session: session).transferData(asset: model.asset.toGem(), request: model.request, value: value, useMaxAmount: useMaxAmount)
     }
 }
 

@@ -12,7 +12,6 @@ import struct Gemstone.GemPerpetualMarketSession
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemValueHeader
-import func Gemstone.perpetualBalanceHeader
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -44,7 +43,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     var balanceHeader: GemValueHeader {
-        perpetualBalanceHeader(balance: walletBalanceQuery.value?.balance.toGem(), walletType: wallet.type.toGem())
+        service.balanceHeader(walletId: wallet.id, walletType: wallet.type.toGem(), balance: walletBalanceQuery.value?.balance.toGem())
     }
 
     var isSearchPresented: Bool = false
@@ -61,6 +60,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     let onSelectAmount: ((AmountInput) -> Void)?
+    let onSelectAssetType: ((SelectAssetType) -> Void)?
     let onSelectAsset: ((Asset) -> Void)?
     let onSelectPortfolio: VoidAction
 
@@ -70,6 +70,7 @@ public final class PerpetualsSceneViewModel {
         observerService: any PerpetualObservable,
         recentAssetsService: any GemRecentActivityServiceProtocol,
         onSelectAmount: ((AmountInput) -> Void)? = nil,
+        onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
         onSelectPortfolio: (() -> Void)? = nil,
     ) {
@@ -77,6 +78,7 @@ public final class PerpetualsSceneViewModel {
         self.service = service
         self.observerService = observerService
         self.onSelectAmount = onSelectAmount
+        self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsQuery(walletId: wallet.id, searchQuery: ""), initialValue: [])
@@ -147,6 +149,8 @@ extension PerpetualsSceneViewModel {
         switch action {
         case let .deposit(asset):
             onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
+        case let .selectDepositAsset(assetIds):
+            onSelectAssetType?(.deposit(assetIds))
         case let .withdraw(asset):
             onSelectAmount?(AmountInput(type: .withdraw, asset: asset.toPrimitives()))
         case .send, .receive, .buy, .swap, .sendCollectible, .collectibleMenu:

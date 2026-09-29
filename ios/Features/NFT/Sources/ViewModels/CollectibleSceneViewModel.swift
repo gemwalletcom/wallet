@@ -118,7 +118,7 @@ extension CollectibleSceneViewModel {
                 type: .send(.nft(nftAsset: assetData.asset.toGem())),
                 assetData: .with(asset: account.chain.asset, account: account),
             )
-        case .send, .receive, .buy, .swap, .deposit, .withdraw, .collectibleMenu:
+        case .send, .receive, .buy, .swap, .deposit, .selectDepositAsset, .withdraw, .collectibleMenu:
             break
         }
     }

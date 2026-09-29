@@ -144,6 +144,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public func setPinned(perpetualId _: PerpetualId, pinned _: Bool) async throws {}
 
     public func addRecent(action _: Gemstone.GemAssetAction, asset _: Gemstone.Asset) async throws {}
+
+    public func balanceHeader(walletId _: WalletId, walletType _: Gemstone.WalletType, balance _: Gemstone.PerpetualBalance?) -> Gemstone.GemValueHeader {
+        .mock()
+    }
 }
 
 public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServiceProtocol, @unchecked Sendable {
