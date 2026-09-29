@@ -29,31 +29,30 @@ impl StoreTransactionsSwapsConsumer {
             return Ok(None);
         };
         let at = transaction.created_at.naive_utc();
+        let (from_amount, from_amount_usd) = self.amount(&metadata.from_asset, &metadata.from_value, at).await?;
+        let (to_amount, to_amount_usd) = self.amount(&metadata.to_asset, &metadata.to_value, at).await?;
+        let (_, referral_fee_amount_usd) = self.amount(&referral_fee.asset_id, &referral_fee.value, at).await?;
         Ok(Some(TransactionSwapRecord {
             provider,
             status,
-            from_amount_usd: self.amount_usd(&metadata.from_asset, &metadata.from_value, at).await?,
             from_asset_id: metadata.from_asset,
-            to_amount_usd: self.amount_usd(&metadata.to_asset, &metadata.to_value, at).await?,
+            from_amount,
+            from_amount_usd,
             to_asset_id: metadata.to_asset,
-            referral_fee_amount_usd: self.amount_usd(&referral_fee.asset_id, &referral_fee.value, at).await?,
+            to_amount,
+            to_amount_usd,
             referral_fee_asset_id: referral_fee.asset_id,
+            referral_fee_amount_usd,
         }))
     }
 
-    async fn amount_usd(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<Option<f64>, Box<dyn Error + Send + Sync>> {
+    async fn amount(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<(f64, Option<f64>), Box<dyn Error + Send + Sync>> {
         let asset_id = asset_id.clone();
-        let (assets, price) = self
-            .database
-            .run(move |client| Ok::<_, DatabaseError>((client.get_assets(vec![asset_id.clone()])?, client.get_price_at(&asset_id, at)?)))
-            .await?;
-        let (Some(asset), Some((price_at, price))) = (assets.first(), price) else {
-            return Ok(None);
-        };
-        if at - price_at > Duration::from_std(DAY)? {
-            return Ok(None);
-        }
-        Ok(Some(BigNumberFormatter::value_as_f64(&value.to_string(), asset.decimals as u32)? * price))
+        let (asset, price) = self.database.run(move |client| Ok::<_, DatabaseError>((client.get_asset(&asset_id)?, client.get_price_at(&asset_id, at)?))).await?;
+        let amount = BigNumberFormatter::value_as_f64(&value.to_string(), asset.decimals as u32)?;
+        let max_age = Duration::from_std(DAY)?;
+        let amount_usd = price.filter(|(price_at, _)| at - *price_at <= max_age).map(|(_, price)| amount * price);
+        Ok((amount, amount_usd))
     }
 }
 
