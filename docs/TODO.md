@@ -20,6 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
+2. **Parity, bugs and small speedups:** CLN441 to CLN455 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171. Waiting on a date or a release: X168, X169, X170, X163, X172.
 
@@ -192,6 +193,37 @@ A feature module is one product area, and both apps give it the same name. iOS g
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
+
+## 11. Parity, bugs and small speedups
+
+Found on 2026-09-29 by comparing the two apps' store adapters, lint passes and hot paths: places where the apps answer the same Core call differently, crash on data they could reject, or redo work they could keep. Each item keeps the user-facing behaviour except where it names the bug it fixes. Signer, keystore, device-auth and transaction-construction code keeps its text ([security](../skills/security.md)).
+
+### Core
+
+- **CLN441** **M** **Fallback values are built lazily.** About 45 `ok_or`, `unwrap_or`, `or`, `map_or` and `and` calls build an error or default (often a `format!`) even on the success path; they take the `_else` form, and `just lint` adds `clippy::or_fun_call`.
+- **CLN442** **S** **Needless collects go.** Twelve iterator chains collect into a `Vec` only to count, check or iterate it again; they iterate directly, and `just lint` adds `clippy::needless_collect`.
+- **CLN443** **S** **Empty strings are `String::new()`.** Fifteen `"".to_string()` and `String::from("")` become `String::new()`, and `just lint` adds `clippy::manual_string_new`.
+
+### iOS
+
+- **CLN444** **S** **Date formatters are built once.** `TransactionDateFormatter` builds a new `DateFormatter` on every call, including once per chart point while scrubbing, and `DurationFormatters` a new `DateComponentsFormatter`; both reuse cached formatters per locale, time zone and style.
+- **CLN445** **S** **Building a URL never crashes.** `BlockExplorerLink.url` and `TargetRequestBuilder` force-unwrap `URL(string:)`; an explorer link or request path that is not a URL crashes the app, where Android opens nothing. The explorer URL is optional and the request builder throws `URLError(.badURL)`.
+- **CLN446** **S** **The confirm error info is decided once.** iOS asks `hasInfoSheet()` and then `errorInfo(error:)`; Android uses whether `errorInfo` returns a value. iOS does the same and Core stops exporting `has_info_sheet`.
+- **CLN447** **S** **A balance update without metadata clears it, as on Android.** `GemstoneBalanceStore.updateBalances` keeps the stored metadata when Core writes none, so iOS can never clear it; Core already merges before writing.
+- **CLN448** **S** **Recent activity keeps one row per asset, wallet and type.** The iOS table has no key and appends a row per open, so it grows without bound; Android replaces on `(asset_id, wallet_id, type)`. iOS deletes the previous row for the key before inserting.
+- **CLN449** **S** **Nodes and perpetual positions come back in the Android order.** iOS returns nodes in insertion order (Android: `priority DESC, url ASC`) and sorts positions in Swift after fetching (Android: in SQL); iOS orders both in SQL the same way.
+
+### Android
+
+- **CLN450** **M** **Wallet assets are scoped to the wallet's chains.** `AssetsDao.getAssetsInfo` behind `GemAssetStore.get_wallet_assets` joins the wallet on the parameter, so without balance filters it returns assets on chains the wallet has no account for, and orders only by value and rank; a payment link for such a chain can open a transfer instead of saying it is unsupported. It filters by the wallet's accounts and orders pinned, enabled, value and rank like iOS.
+- **CLN451** **S** **App-lifetime coroutine scopes survive a failed child.** Ten services and coordinators build `CoroutineScope(Dispatchers.IO)` without a `SupervisorJob`, so one uncaught failure cancels the scope and every later launch silently does nothing; they use `SupervisorJob() + Dispatchers.IO` like `DevicePushSettings`.
+- **CLN452** **S** **The perpetual chart remembers its date formatter.** `PerpetualChartSection` builds a `SectionDateFormatter` (and a Core day-boundaries call) on every recomposition while scrubbing; it remembers it like `ChartSection`.
+- **CLN453** **M** **In-app links open payments and WalletConnect like iOS.** `WalletNavigator.openUrlAction` handles only deep links and returns false for payment and WalletConnect actions from in-app notifications and settings links, while iOS routes every action through `openAction`; Android routes them through the same code-outcome handling `PendingNavigationCoordinator` uses.
+
+### Shared
+
+- **CLN454** **S** **The unused lock footer string goes.** `lock_footer` is in every Fluent file and the Android strings but no screen or Core rule reads it.
+- **CLN455** **S** **Transaction asset links keep ids the store does not have yet.** iOS drops a swap's asset ids that are not stored yet when linking a transaction to its assets, so asset-filtered history misses the swap; Android keeps them. Decide whether iOS relaxes its foreign key (a migration) or Core stores the asset first; until then this stays open.
 
 ## Blocked upstream
 
