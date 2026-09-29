@@ -81,6 +81,7 @@ import uniffi.gemstone.GemInfoDescription
 import uniffi.gemstone.GemInfoTitle
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemLockPeriod
@@ -736,6 +737,12 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.RESOURCES -> R.string.asset_resources
     GemListSectionTitle.SOCIAL_LINKS -> R.string.social_links
     GemListSectionTitle.PROPERTIES -> R.string.nft_properties
+}
+
+@StringRes
+fun GemListSectionFooter.textRes(): Int? = when (this) {
+    GemListSectionFooter.NONE -> null
+    GemListSectionFooter.AUTHENTICATION -> R.string.lock_footer
 }
 
 @StringRes

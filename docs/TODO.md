@@ -209,7 +209,6 @@ Found on 2026-09-29 by comparing the two apps' store adapters, lint passes and h
 
 ### Shared
 
-- **CLN454** **S** **The unused lock footer string goes.** `lock_footer` is in every Fluent file and the Android strings but no screen or Core rule reads it.
 - **CLN455** **S** **Transaction asset links keep ids the store does not have yet.** iOS drops a swap's asset ids that are not stored yet when linking a transaction to its assets, so asset-filtered history misses the swap; Android keeps them. Decide whether iOS relaxes its foreign key (a migration) or Core stores the asset first; until then this stays open.
 
 ## Blocked upstream

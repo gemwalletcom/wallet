@@ -24,6 +24,7 @@ import com.gemwallet.android.features.settings.viewmodels.security.models.securi
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
+import com.gemwallet.android.ui.components.list_item.gemListSectionFooter
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -42,7 +43,7 @@ fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, lockPeriod
         onClose = onCancel,
     ) {
         LazyColumn {
-            sections.forEach { section ->
+            sections.forEachIndexed { index, section ->
                 itemsPositioned(section.rows) { position, row ->
                     GemListRowView(
                         row = row,
@@ -84,6 +85,7 @@ fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, lockPeriod
                         },
                     )
                 }
+                gemListSectionFooter(section, key = "footer:$index")
             }
         }
     }
