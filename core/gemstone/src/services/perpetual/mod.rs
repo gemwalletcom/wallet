@@ -10,6 +10,7 @@ pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use crate::services::failures::record;
+use futures::lock::Mutex;
 use model::{GemPerpetualConnection, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
 use std::sync::Arc;
 
@@ -55,6 +56,7 @@ pub struct GemPerpetualService {
     wallet_preferences: Arc<GemWalletPreferencesService>,
     session: Arc<GemWalletSessionService>,
     recent_activity: Arc<GemRecentActivityService>,
+    writes: Mutex<()>,
 }
 
 #[uniffi::export]
@@ -81,6 +83,7 @@ impl GemPerpetualService {
             wallet_preferences,
             session,
             recent_activity,
+            writes: Mutex::new(()),
         }
     }
 
@@ -157,6 +160,7 @@ impl GemPerpetualService {
 
     pub async fn save_markets(&self, data: Vec<PerpetualData>) -> Result<(), GemServiceError> {
         self.assets.save_assets(rules::perpetual_asset_basics(&data)).await?;
+        let _writes = self.writes.lock().await;
         let stored = self.store.get_perpetuals(data.iter().map(|data| data.perpetual.name.clone()).collect()).await?;
         let changed = rules::changed_perpetuals(data, &stored);
         if changed.is_empty() {
@@ -193,6 +197,7 @@ impl GemPerpetualService {
             }
             HyperliquidSocketMessage::Candle { candle } => Ok(GemPerpetualSocketUpdate::Candle { candle }),
             HyperliquidSocketMessage::MarketData { market } => {
+                let _writes = self.writes.lock().await;
                 let stored = self.store.get_perpetuals(vec![market.coin.clone()]).await?;
                 if rules::market_changed(&market, &stored) {
                     self.store.update_market(market).await?;
@@ -259,6 +264,7 @@ impl GemPerpetualService {
     }
 
     pub async fn update_prices(&self, prices: HashMap<String, f64>) -> Result<(), GemServiceError> {
+        let _writes = self.writes.lock().await;
         let now = Utc::now().timestamp();
         if !is_outdated(self.preferences.get_perpetual_prices_updated_at()?, now, PRICES_UPDATE_INTERVAL_SECONDS) {
             return Ok(());
