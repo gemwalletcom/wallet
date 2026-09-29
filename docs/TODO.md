@@ -206,7 +206,6 @@ Found on 2026-09-29 by comparing the two apps' store adapters, lint passes and h
 
 ### Android
 
-- **CLN450** **M** **Wallet assets are scoped to the wallet's chains.** `AssetsDao.getAssetsInfo` behind `GemAssetStore.get_wallet_assets` joins the wallet on the parameter, so without balance filters it returns assets on chains the wallet has no account for, and orders only by value and rank; a payment link for such a chain can open a transfer instead of saying it is unsupported. It filters by the wallet's accounts and orders pinned, enabled, value and rank like iOS.
 - **CLN451** **S** **App-lifetime coroutine scopes survive a failed child.** Ten services and coordinators build `CoroutineScope(Dispatchers.IO)` without a `SupervisorJob`, so one uncaught failure cancels the scope and every later launch silently does nothing; they use `SupervisorJob() + Dispatchers.IO` like `DevicePushSettings`.
 - **CLN452** **S** **The perpetual chart remembers its date formatter.** `PerpetualChartSection` builds a `SectionDateFormatter` (and a Core day-boundaries call) on every recomposition while scrubbing; it remembers it like `ChartSection`.
 - **CLN453** **M** **In-app links open payments and WalletConnect like iOS.** `WalletNavigator.openUrlAction` handles only deep links and returns false for payment and WalletConnect actions from in-app notifications and settings links, while iOS routes every action through `openAction`; Android routes them through the same code-outcome handling `PendingNavigationCoordinator` uses.
