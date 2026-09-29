@@ -81,16 +81,27 @@ struct AmountPerpetualViewModelTests {
     }
 
     @Test
-    func makeAutocloseData() {
+    func autocloseSessionKeepsTheEnteredTriggers() {
         let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 3)))
-        model.updateAutoclose(takeProfit: "100", stopLoss: "50")
+        model.updateAutoclose(takeProfit: "110", stopLoss: "90")
 
-        let data = model.makeAutocloseData(size: 1000)
+        let viewState = model.autocloseSession(size: 1000).viewState()
 
-        #expect(data.direction == .long)
-        #expect(data.takeProfit == "100")
-        #expect(data.stopLoss == "50")
-        #expect(data.size == 1000)
+        #expect(viewState.takeProfit.text == "110")
+        #expect(viewState.stopLoss.text == "90")
+        #expect(viewState.takeProfit.estimate != nil)
+        #expect(viewState.confirmEnabled)
+    }
+
+    @Test
+    func openPositionRow() {
+        let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .short, price: 100, leverage: 3)))
+
+        let sized = model.openPositionRow(size: 250)
+
+        #expect(sized.subtitle?.tone == .negative)
+        #expect(sized.trailing != .none)
+        #expect(model.openPositionRow(size: 0).trailing == .none)
     }
 
     @Test

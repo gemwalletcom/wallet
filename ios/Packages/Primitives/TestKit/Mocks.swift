@@ -67,29 +67,3 @@ public extension AssetAddress {
         )
     }
 }
-
-public extension AutocloseOpenData {
-    static func mock(
-        assetId: AssetId = .mock(),
-        symbol: String = "",
-        direction: PerpetualDirection = .short,
-        marketPrice: Double = 0,
-        leverage: UInt8 = 0,
-        size: Double = 0,
-        assetDecimals: Int32 = 0,
-        takeProfit: String? = nil,
-        stopLoss: String? = nil,
-    ) -> AutocloseOpenData {
-        AutocloseOpenData(
-            assetId: assetId,
-            symbol: symbol,
-            direction: direction,
-            marketPrice: marketPrice,
-            leverage: leverage,
-            size: size,
-            assetDecimals: assetDecimals,
-            takeProfit: takeProfit,
-            stopLoss: stopLoss,
-        )
-    }
-}
