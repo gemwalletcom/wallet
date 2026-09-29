@@ -1,7 +1,12 @@
-use chrono::{DateTime, Utc};
+use std::collections::BTreeMap;
+use std::ops::{Range, RangeInclusive};
+
+use chrono::{DateTime, TimeDelta, Utc};
 use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
 
 use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHeader, GemChartValueType};
+use super::points::reduced_points;
+use super::zoom::GemChartZoom;
 use super::{GemChart, GemChartCurrent};
 use crate::config::social::social_links;
 use crate::formatted_number::GemFormattedNumber;
@@ -22,9 +27,11 @@ pub fn date_style(period: ChartPeriod) -> GemChartDateStyle {
 
 const MARKET_CAP_RANK_BADGE_LIMIT: i32 = 1000;
 const MIN_CHART_POINTS: usize = 2;
+const RENDER_POINTS: usize = 120;
 const RANGE_PADDING: f64 = 0.05;
 const FLAT_LINE_PADDING: f64 = 0.01;
 const FLAT_LINE_MIN_PADDING: f64 = 0.01;
+pub const RIGHT_PADDING: f64 = 0.02;
 
 pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValue> {
     let mut values: Vec<ChartDateValue> = prices
@@ -43,7 +50,7 @@ pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now:
     let latest = latest?;
     let is_newer = values.last().is_none_or(|last| latest.updated_at > last.date);
     is_newer.then(|| GemChartCurrent {
-        date: now,
+        date: now.max(latest.updated_at),
         value: latest.price,
         change_percentage: change_percentage(period, base_value, &latest),
     })
@@ -190,6 +197,60 @@ fn chart_bounds(values: &[ChartDateValue], currency: Currency) -> GemChartBounds
     }
 }
 
+pub fn fraction_of(span: TimeDelta, fraction: f64) -> TimeDelta {
+    TimeDelta::milliseconds((span.num_milliseconds() as f64 * fraction) as i64)
+}
+
+pub fn nearest_index(dates: impl Iterator<Item = DateTime<Utc>>, window: RangeInclusive<DateTime<Utc>>, fraction: f64) -> Option<u32> {
+    let date = *window.start() + fraction_of(*window.end() - *window.start(), fraction.clamp(0.0, 1.0));
+    dates
+        .enumerate()
+        .filter(|(_, candidate)| window.contains(candidate))
+        .min_by_key(|(_, candidate)| (*candidate - date).abs())
+        .map(|(index, _)| index as u32)
+}
+
+pub fn zoomed_chart(data: GemChartData, zoom: GemChartZoom) -> GemChartData {
+    let zoom = zoom.clamped(data.values.len());
+    let (start, end) = zoom.window(data.start, data.end).into_inner();
+    let window = start..=(end + fraction_of(end - start, RIGHT_PADDING));
+    let visible = &data.values[visible_range(&data.values, &window)];
+    let visible_bounds = chart_bounds(visible, data.currency.clone());
+    let points = reduced_points(&data.values, render_points(zoom));
+    let points_range = visible_range(&points, &window);
+    let values: Vec<ChartDateValue> = points[points_range.start.saturating_sub(1)..(points_range.end + 1).min(points.len())]
+        .iter()
+        .chain([visible_bounds.lower_index, visible_bounds.upper_index].into_iter().filter_map(|index| visible.get(index as usize)))
+        .map(|value| (value.date, value.clone()))
+        .collect::<BTreeMap<_, _>>()
+        .into_values()
+        .collect();
+    let values_range = match visible_range(&values, &window) {
+        range if range.is_empty() => 0..values.len(),
+        range => range,
+    };
+    let bounds = chart_bounds(&values[values_range.clone()], data.currency.clone());
+    GemChartData {
+        bounds: GemChartBounds {
+            lower_index: bounds.lower_index + values_range.start as u32,
+            upper_index: bounds.upper_index + values_range.start as u32,
+            ..bounds
+        },
+        values,
+        start: *window.start(),
+        end: *window.end(),
+        ..data
+    }
+}
+
+fn visible_range(values: &[ChartDateValue], window: &RangeInclusive<DateTime<Utc>>) -> Range<usize> {
+    values.partition_point(|value| value.date < *window.start())..values.partition_point(|value| value.date <= *window.end())
+}
+
+fn render_points(zoom: GemChartZoom) -> usize {
+    RENDER_POINTS << zoom.scale.log2().floor() as usize
+}
+
 pub fn price_chart_data(chart: GemChart, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
     let base = chart.base_value;
     let current = chart.current;
@@ -204,6 +265,8 @@ pub fn price_chart_data(chart: GemChart, period: ChartPeriod, currency: Currency
         shows_secondary_value: false,
         bounds: chart_bounds(&values, currency.clone()),
         currency,
+        start: values[0].date,
+        end: values[values.len() - 1].date,
         values,
         header: None,
         date_style: date_style(period),
@@ -227,6 +290,8 @@ pub fn change_chart_data(values: Vec<ChartDateValue>, shows_secondary_value: boo
         shows_secondary_value,
         bounds: chart_bounds(&values, currency.clone()),
         currency,
+        start: values[0].date,
+        end: values[values.len() - 1].date,
         values,
         header: None,
         date_style: date_style(period),
@@ -303,6 +368,48 @@ mod tests {
         assert_eq!(date_style(ChartPeriod::Month), GemChartDateStyle::DayTime);
         assert_eq!(date_style(ChartPeriod::Year), GemChartDateStyle::Day, "a year of points needs no clock");
         assert_eq!(date_style(ChartPeriod::All), GemChartDateStyle::Day);
+    }
+
+    #[test]
+    fn test_nearest_index() {
+        let at = |seconds: i64| DateTime::from_timestamp(seconds, 0).unwrap();
+        let dates = [at(0), at(60), at(120)];
+
+        assert_eq!(nearest_index(dates.into_iter(), at(0)..=at(120), 0.4), Some(1));
+        assert_eq!(nearest_index(dates.into_iter(), at(0)..=at(120), 4.0), Some(2), "a finger past the edge picks the edge point");
+        assert_eq!(nearest_index(dates.into_iter(), at(30)..=at(120), 0.0), Some(1), "a point outside the window is never picked");
+    }
+
+    #[test]
+    fn test_zoomed_chart() {
+        let at = |milliseconds: i64| DateTime::from_timestamp_millis(milliseconds).unwrap();
+        let data = price_chart_data(GemChart::mock(ChartDateValue::mock_series(600)), ChartPeriod::Day, Currency::USD).unwrap();
+        let whole = zoomed_chart(data.clone(), GemChartZoom::default());
+        let zoomed = zoomed_chart(data, GemChartZoom { scale: 3.0, offset: 0.25 });
+        let last = zoomed.values.len() as u32 - 1;
+        let gapped: Vec<ChartDateValue> = (0..300).map(|second| ChartDateValue::mock(second, 100.0)).chain((0..300).map(|second| ChartDateValue::mock(100_000 + second, 200.0))).collect();
+        let gap = zoomed_chart(price_chart_data(GemChart::mock(gapped), ChartPeriod::Day, Currency::USD).unwrap(), GemChartZoom { scale: 40.0, offset: 0.5 });
+
+        assert_eq!((whole.start, whole.end), (at(0), at(610_980)), "the whole period plus room after the newest point");
+        assert_eq!((zoomed.start, zoomed.end), (at(249_584), at(453_243)));
+        assert_eq!(
+            (zoomed.values[zoomed.bounds.lower_index as usize].value, zoomed.values[zoomed.bounds.upper_index as usize].value),
+            (250.0, 453.0),
+            "the range fits the points inside the window"
+        );
+        assert_eq!((zoomed.selection(0), zoomed.selection(last)), (None, None), "the points drawn past either edge cannot be selected");
+        assert_eq!(zoomed.index_at(1.2), Some(last - 1));
+        assert_eq!(
+            (gap.values[gap.bounds.lower_index as usize].value, gap.values[gap.bounds.upper_index as usize].value),
+            (100.0, 200.0),
+            "a window inside a gap fits the line crossing it"
+        );
+    }
+
+    #[test]
+    fn test_render_points() {
+        assert_eq!(render_points(GemChartZoom { scale: 1.9, offset: 0.0 }), 120, "detail changes only at whole doublings, so points stay put while pinching");
+        assert_eq!(render_points(GemChartZoom { scale: 4.0, offset: 0.0 }), 480);
     }
 
     #[test]
@@ -431,8 +538,13 @@ mod tests {
         assert_eq!(current.date, now);
         assert_eq!(current.change_percentage, 4.2);
         assert_eq!(current_value(&points, Some(newer.clone()), now, ChartPeriod::Week, 3.0).unwrap().change_percentage, 200.0);
-        assert_eq!(current_value(&points, Some(newer), now, ChartPeriod::Week, 0.0).unwrap().change_percentage, 0.0);
+        assert_eq!(current_value(&points, Some(newer.clone()), now, ChartPeriod::Week, 0.0).unwrap().change_percentage, 0.0);
 
+        assert_eq!(
+            current_value(&points, Some(newer.clone()), DateTime::from_timestamp(15, 0).unwrap(), ChartPeriod::Day, 1.0).unwrap().date,
+            newer.updated_at,
+            "a device clock behind the server still places the live price after the last chart point"
+        );
         assert_eq!(current_value(&points, Some(same_age.clone()), now, ChartPeriod::Day, 1.0), None);
         assert_eq!(current_value(&points, None, now, ChartPeriod::Day, 1.0), None);
         assert!(current_value(&[], Some(same_age), now, ChartPeriod::Day, 0.0).is_some());

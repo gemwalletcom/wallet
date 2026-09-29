@@ -1186,6 +1186,8 @@ fun mockGemChartData(
     header: uniffi.gemstone.GemChartHeader? = null,
     bounds: uniffi.gemstone.GemChartBounds = mockGemChartBounds(),
     dateStyle: uniffi.gemstone.GemChartDateStyle = uniffi.gemstone.GemChartDateStyle.RELATIVE,
+    start: Long = 0L,
+    end: Long = 0L,
 ) = uniffi.gemstone.GemChartData(
     valueType = valueType,
     base = base,
@@ -1195,6 +1197,8 @@ fun mockGemChartData(
     header = header,
     bounds = bounds,
     dateStyle = dateStyle,
+    start = start,
+    end = end,
 )
 
 fun mockGemConfirmFee(

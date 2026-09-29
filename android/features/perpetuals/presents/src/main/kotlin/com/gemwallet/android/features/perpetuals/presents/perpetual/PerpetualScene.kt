@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualActions
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualModifyBottomSheet
@@ -27,17 +26,8 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.PerpetualMarginType
-import com.wallet.core.primitives.PerpetualOrderType
-import com.wallet.core.primitives.PerpetualPosition
-import com.wallet.core.primitives.PerpetualProvider
-import com.wallet.core.primitives.PerpetualTriggerOrder
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
@@ -51,7 +41,6 @@ import uniffi.gemstone.GemPerpetualPositionDetailRow
 import uniffi.gemstone.GemPerpetualSection
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.candleSession
 
 @Composable
 internal fun PerpetualScene(
@@ -93,6 +82,8 @@ internal fun PerpetualScene(
                         state = chart,
                         period = period,
                         onPeriodSelect = { onAction(PerpetualAction.SelectChartPeriod(it)) },
+                        onZoom = { magnification, anchor -> onAction(PerpetualAction.ZoomChart(magnification, anchor)) },
+                        onPan = { onAction(PerpetualAction.PanChart(it)) },
                     )
                 }
                 details?.sections.orEmpty().forEach { section ->
@@ -134,39 +125,6 @@ internal fun PerpetualScene(
 @Preview
 @Composable
 private fun PerpetualScenePreview() {
-    val samplePosition = PerpetualPosition(
-        id = "position",
-        perpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC"),
-        assetId = AssetId(Chain.Bitcoin),
-        size = 0.5,
-        sizeValue = 47250.00,
-        leverage = 10u,
-        entryPrice = 94500.00,
-        liquidationPrice = 85050.00,
-        marginType = PerpetualMarginType.Cross,
-        direction = PerpetualDirection.Long,
-        marginAmount = 4771.03,
-        takeProfit = PerpetualTriggerOrder(95000.00, PerpetualOrderType.Limit, "tp"),
-        stopLoss = PerpetualTriggerOrder(90050.00, PerpetualOrderType.Limit, "sl"),
-        pnl = 460.25,
-    )
-
-    val now = System.currentTimeMillis()
-    val hourInMillis = 60 * 60 * 1000L
-
-    val chartData = List(24) { index ->
-        val basePrice = 95000.0
-        val variance = (index % 3 - 1) * 500.0
-        ChartCandleStick(
-            date = now - (23 - index) * hourInMillis,
-            open = basePrice + variance,
-            high = basePrice + variance + 300.0,
-            low = basePrice + variance - 200.0,
-            close = basePrice + variance + 100.0,
-            volume = 500000000.0 + (index * 10000000.0),
-        )
-    }
-
     WalletTheme {
         PerpetualScene(
             details = GemPerpetualDetails(
@@ -201,7 +159,7 @@ private fun PerpetualScenePreview() {
                 positionRow = null,
             ),
             transactions = emptyList(),
-            chart = candleSession(ChartPeriod.Day.toGem()).onCandles(chartData.map { it.toGem() }).chart(samplePosition.toGem())?.let { StateViewType.Data(it) } ?: StateViewType.NoData,
+            chart = StateViewType.Loading,
             period = ChartPeriod.Day,
             isRefreshing = false,
             onAction = {},

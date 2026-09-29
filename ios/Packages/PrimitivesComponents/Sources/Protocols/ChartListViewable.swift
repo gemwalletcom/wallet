@@ -11,6 +11,8 @@ public protocol ChartListViewable: AnyObject, Observable {
     var selectedPeriod: ChartPeriod { get set }
     var periods: [ChartPeriod] { get }
     func load() async
+    func onZoom(_ magnification: Double, anchor: Double)
+    func onPan(_ fraction: Double)
 }
 
 public extension ChartListViewable {

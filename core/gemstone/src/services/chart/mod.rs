@@ -1,8 +1,10 @@
 pub mod model;
+mod points;
 pub mod rules;
 pub mod session;
 #[cfg(test)]
 pub(crate) mod testkit;
+pub mod zoom;
 
 use std::sync::Arc;
 
@@ -19,6 +21,7 @@ use crate::services::price::GemPriceService;
 use session::GemChartSession;
 
 pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType};
+pub use zoom::GemChartZoom;
 
 pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {
     rules::series_header(GemChartValueType::Price, base, false, &Currency::USD, value, None)

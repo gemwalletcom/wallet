@@ -30,12 +30,12 @@ import java.util.Locale
 private val TooltipRightSafeArea = 96.dp
 
 @Composable
-internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period: ChartPeriod, onPeriodSelect: (ChartPeriod) -> Unit, modifier: Modifier = Modifier) {
+internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period: ChartPeriod, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, modifier: Modifier = Modifier) {
     val chart = state.dataOrNull
     val data = chart?.candles.orEmpty()
     var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
     val safeSelectedIndex = selectedIndex?.takeIf { it in data.indices }
-    val isSelectedRightHalf = safeSelectedIndex?.let { it.toFloat() / data.size.toFloat() > 0.5f } ?: false
+    val isSelectedRightHalf = chart != null && safeSelectedIndex != null && (data[safeSelectedIndex].date - chart.start) * 2 > chart.end - chart.start
 
     val selection = remember(chart, safeSelectedIndex) { safeSelectedIndex?.let { chart?.selection(it.toUInt()) } }
     val context = LocalContext.current
@@ -56,6 +56,8 @@ internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period:
                 chart = chart,
                 selectedIndex = safeSelectedIndex,
                 onSelectionChanged = { selectedIndex = it },
+                onZoom = onZoom,
+                onPan = onPan,
             )
             TooltipOverlay(
                 visible = tooltip != null,

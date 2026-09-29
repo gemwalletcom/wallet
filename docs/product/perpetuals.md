@@ -32,6 +32,8 @@ flowchart LR
 | A market's price moves while the list is open | its 24h change moves with it | the change next to the price must agree with it and with Hyperliquid |
 | The user long-presses a market | it is pinned | |
 | The user searches | positions and markets are filtered | |
+| The user pinches the chart | it zooms toward the newest candle while that candle is on screen, and around the point between the fingers once panned back, down to 14 candles on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period; a market with fewer than 14 candles draws them at that width, newest on the right | the live candle is what the user watches; wider bodies than 14 stop reading as a trend `test_magnified` `test_candle_chart` |
+| The chart shows its time labels | at most four, on round times of the user's own clock (quarter hours, six hours, whole days, calendar months); a pan slides them with their candles and only a pinch changes the step | a label that jumps or re-spaces while the user drags cannot be read `test_x_ticks` |
 | The market has a position | the position shows, with Modify and Close in place of Long and Short | |
 | Long or Short opens | the leverage starts at the default from Settings | |
 | The user changes the leverage | an untouched default take profit or stop loss is refreshed; an edited price is kept | |

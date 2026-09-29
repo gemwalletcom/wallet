@@ -38,6 +38,7 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartSession
+import uniffi.gemstone.GemChartZoom
 import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -58,7 +59,7 @@ class ChartValuesViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { chartService.newSession() } answers {
-            GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false)
+            GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false, zoom = GemChartZoom(scale = 1.0, offset = 0.0))
         }
     }
 
@@ -224,6 +225,36 @@ class ChartValuesViewModelTest {
 
         assertEquals(false, viewModel.isRefreshing.value)
         coVerify(exactly = 2) { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) }
+    }
+
+    @Test
+    fun `a pinch during a refresh keeps the load that is in flight`() = runTest(testDispatcher) {
+        val chart = mockGemChart(values = (1..40).map { mockChartDateValue(date = it * 60_000L, value = it.toDouble()).toGem() })
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
+
+        val viewModel = createViewModel()
+        viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        backgroundScope.launch { viewModel.isRefreshing.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val inFlight = CompletableDeferred<Unit>()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } coAnswers {
+            inFlight.await()
+            chart
+        }
+        viewModel.refresh()
+        testDispatcher.scheduler.advanceUntilIdle()
+        repeat(3) {
+            viewModel.onZoom(1.5f, 1f)
+            testDispatcher.scheduler.advanceUntilIdle()
+        }
+        inFlight.complete(Unit)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 2) { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) }
+        assertEquals(false, viewModel.isRefreshing.value)
+        assertEquals(true, viewModel.chartUIState.value.chart.dataOrNull!!.start > chart.values.first().date)
     }
 
     @Test

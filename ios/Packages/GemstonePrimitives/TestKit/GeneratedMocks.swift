@@ -324,6 +324,8 @@ public extension Gemstone.GemChartData {
         header: Gemstone.GemChartHeader? = nil,
         bounds: Gemstone.GemChartBounds = .mock(),
         dateStyle: Gemstone.GemChartDateStyle = .relative,
+        start: Date = Date(timeIntervalSince1970: 0),
+        end: Date = Date(timeIntervalSince1970: 0),
     ) -> Gemstone.GemChartData {
         Gemstone.GemChartData(
             valueType: valueType,
@@ -334,6 +336,8 @@ public extension Gemstone.GemChartData {
             header: header,
             bounds: bounds,
             dateStyle: dateStyle,
+            start: start,
+            end: end,
         )
     }
 }

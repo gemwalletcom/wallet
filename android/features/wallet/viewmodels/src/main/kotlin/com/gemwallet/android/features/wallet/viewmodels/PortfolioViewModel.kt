@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -60,6 +61,7 @@ class PortfolioViewModel internal constructor(
 
     private val viewState: StateFlow<GemPortfolioViewState> = session
         .map { it.viewState() }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState())
 
     val selectedType: StateFlow<PortfolioType> = viewState
@@ -123,6 +125,10 @@ class PortfolioViewModel internal constructor(
     fun refresh() {
         session.update { it.onRefresh() }
     }
+
+    fun onZoom(magnification: Float, anchor: Float) = session.update { it.onZoom(magnification.toDouble(), anchor.toDouble()) }
+
+    fun onPan(fraction: Float) = session.update { it.onPan(fraction.toDouble()) }
 
     private suspend fun load() {
         val current = wallet.value ?: return

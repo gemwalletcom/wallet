@@ -13,5 +13,7 @@ internal sealed interface PerpetualAction {
     data object Autoclose : PerpetualAction
     data class OpenPosition(val direction: PerpetualDirection) : PerpetualAction
     data class SelectChartPeriod(val period: ChartPeriod) : PerpetualAction
+    data class ZoomChart(val magnification: Float, val anchor: Float) : PerpetualAction
+    data class PanChart(val fraction: Float) : PerpetualAction
     data class OpenTransaction(val transactionId: TransactionId) : PerpetualAction
 }
