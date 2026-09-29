@@ -114,8 +114,8 @@ class WalletConnectCoordinator(
                         onSuccess = { onSuccess() },
                         onError = { onError(clientErrorText(it)) },
                     )
-                } catch (err: Throwable) {
-                    onError(err.errorText())
+                } catch (error: Throwable) {
+                    onError(error.errorText())
                 }
             },
             onError = { onError(clientErrorText(it)) },

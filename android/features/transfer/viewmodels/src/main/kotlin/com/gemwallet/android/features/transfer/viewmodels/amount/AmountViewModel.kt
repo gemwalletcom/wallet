@@ -271,10 +271,10 @@ class AmountViewModel @Inject constructor(
                 val current = assetInfo.filterNotNull().first()
                 val request = request.filterNotNull().first()
                 onConfirm(ConfirmTransferInput(service.transferData(current.asset.toGem(), request, value, entry.isMax)))
-            } catch (err: CancellationException) {
-                throw err
-            } catch (err: Throwable) {
-                amountError.value = err
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                amountError.value = error
             }
         }
     }

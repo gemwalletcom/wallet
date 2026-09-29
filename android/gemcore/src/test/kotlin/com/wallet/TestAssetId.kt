@@ -63,8 +63,8 @@ class TestAssetId {
                 """.trimIndent(),
             )
             assertTrue(false)
-        } catch (err: Throwable) {
-            assertTrue(err is IOException)
+        } catch (error: Throwable) {
+            assertTrue(error is IOException)
         }
         assertEquals("\"ethereum\"", jsonEncoder.encodeToString(AssetId(Chain.Ethereum)))
         assertEquals("\"ethereum_SomeTOken\"", jsonEncoder.encodeToString(AssetId(Chain.Ethereum, "SomeTOken")))
