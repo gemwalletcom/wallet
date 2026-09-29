@@ -278,7 +278,7 @@ pub mod graphql;
 pub mod perpetual;
 pub use self::perpetual::{
     AccountDataType, CancelOrderData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData,
-    PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualReduceData, PerpetualSearchData, PerpetualType, TPSLOrderData,
+    PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualPrice, PerpetualReduceData, PerpetualSearchData, PerpetualType, TPSLOrderData,
 };
 pub mod search;
 pub use self::search::{AssetList, SearchResponse};

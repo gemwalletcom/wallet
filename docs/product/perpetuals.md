@@ -9,7 +9,7 @@ flowchart LR
 ```
 
 1. The user switches Perpetuals on in Settings or from the "Trade Perpetuals on Hyperliquid" banner; the wallet screen gains a Perpetuals section and the Portfolio a Perpetuals view.
-2. The Perpetuals list shows the balance with Deposit and Withdraw, then Positions, Pinned and Markets; prices move live.
+2. The Perpetuals list shows the balance with Deposit and Withdraw, then Positions, Pinned and Markets; prices and their 24h change move live.
 3. A market shows a candlestick chart with a period picker, Long and Short, Volume, Open Interest and Funding APR, and its activity.
 4. Long or Short takes the USDC margin, a leverage from `1x` to the market's cap, and an Auto Close prefilled from the default take profit and stop loss.
 5. Confirm shows the position ("Long 5x"), the size, the price with `2%` slippage, and the take profit and stop loss prices.
@@ -29,6 +29,7 @@ flowchart LR
 |---|---|---|
 | The wallet is not Multi-Coin or has no Hyperliquid account, or the user has not switched Perpetuals on | Perpetuals are not offered | |
 | The user switches Perpetuals off | the markets, positions and every wallet's perpetual recents are removed | search must not offer a market the app no longer has |
+| A market's price moves while the list is open | its 24h change moves with it | the change next to the price must agree with it and with Hyperliquid |
 | The user long-presses a market | it is pinned | |
 | The user searches | positions and markets are filtered | |
 | The market has a position | the position shows, with Modify and Close in place of Long and Short | |

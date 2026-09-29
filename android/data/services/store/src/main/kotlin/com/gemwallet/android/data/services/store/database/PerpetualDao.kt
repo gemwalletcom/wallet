@@ -10,6 +10,7 @@ import com.gemwallet.android.data.services.store.database.entities.DbPerpetual
 import com.gemwallet.android.data.services.store.database.entities.DbPerpetualData
 import com.gemwallet.android.data.services.store.database.entities.DbPerpetualUpdate
 import com.gemwallet.android.data.services.store.database.entities.toUpdate
+import com.wallet.core.primitives.PerpetualPrice
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -73,11 +74,11 @@ interface PerpetualDao {
     )
     suspend fun updateMarket(coin: String, price: Double, pricePercentChange24h: Double, openInterest: Double, volume24h: Double, funding: Double)
 
-    @Query("UPDATE perpetuals SET price = :price WHERE name = :name")
-    suspend fun updatePrice(name: String, price: Double)
+    @Query("UPDATE perpetuals SET price = :price, pricePercentChange24h = :pricePercentChange24h WHERE name = :coin")
+    suspend fun updatePrice(coin: String, price: Double, pricePercentChange24h: Double)
 
     @Transaction
-    suspend fun updatePrices(prices: Map<String, Double>) {
-        prices.forEach { (name, price) -> updatePrice(name, price) }
+    suspend fun updatePrices(prices: List<PerpetualPrice>) {
+        prices.forEach { updatePrice(it.coin, it.price, it.pricePercentChange24h) }
     }
 }

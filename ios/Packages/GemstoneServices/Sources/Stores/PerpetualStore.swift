@@ -7,6 +7,7 @@ import struct Gemstone.Perpetual
 import struct Gemstone.PerpetualData
 import struct Gemstone.PerpetualMarketData
 import struct Gemstone.PerpetualPosition
+import struct Gemstone.PerpetualPrice
 import enum Gemstone.PerpetualProvider
 import GemstonePrimitives
 import Primitives
@@ -50,8 +51,8 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         )
     }
 
-    public func updatePrices(prices: [String: Double]) async throws {
-        try store.updatePrices(prices)
+    public func updatePrices(prices: [Gemstone.PerpetualPrice]) async throws {
+        try store.updatePrices(prices.map { $0.toPrimitives() })
     }
 
     public func getPositionIds(walletId: WalletId, provider: Gemstone.PerpetualProvider) async throws -> [String] {

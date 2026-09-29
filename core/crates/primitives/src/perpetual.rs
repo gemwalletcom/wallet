@@ -35,6 +35,15 @@ pub struct PerpetualMarketData {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
 #[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
+pub struct PerpetualPrice {
+    pub coin: String,
+    pub price: f64,
+    pub price_percent_change_24h: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
+#[serde(rename_all = "camelCase")]
 pub struct PerpetualBasic {
     pub asset_id: AssetId,
     pub perpetual_id: PerpetualId,
