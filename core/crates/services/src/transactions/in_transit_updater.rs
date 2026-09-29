@@ -6,13 +6,13 @@ use std::time::Duration;
 use chrono::{DateTime, Utc};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::swap::{SwapResult, SwapStatus};
-use primitives::{Chain, JobConfiguration, Transaction, TransactionId, TransactionState, TransactionSwapMetadata, TransactionType};
-use storage::{Database, TransactionFilter, TransactionUpdate, TransactionsRepository};
+use primitives::{Chain, JobConfiguration, Transaction, TransactionId, TransactionState, TransactionSwapMetadata};
+use storage::{Database, TransactionFilter, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
 use swapper::cross_chain::{self, DepositAddressMap};
 use swapper::swapper::GemSwapper;
 
-use crate::transactions::SwapVaultAddressClient;
+use crate::transactions::{SwapVaultAddressClient, swap_result_metadata, swap_state_updates};
 
 #[derive(Clone, Copy)]
 pub struct InTransitConfig {
@@ -133,12 +133,7 @@ impl InTransitUpdater {
         info_with_fields!("in_transit confirmed", chain = chain.as_ref(), hash = hash, state = state.as_ref(), elapsed = elapsed);
 
         self.check_schedules().remove(&transaction.id);
-        let referral_fee = transaction.swap_metadata().and_then(|metadata| metadata.referral_fee);
-        let metadata = metadata.map(|metadata| match metadata.referral_fee {
-            Some(_) => metadata,
-            None => metadata.with_referral_fee(referral_fee),
-        });
-        let metadata = metadata.and_then(|m| serde_json::to_value(m).ok());
+        let metadata = swap_result_metadata(transaction, metadata);
         self.save_and_publish(chain, transaction, state, metadata).await?;
         Ok(true)
     }
@@ -166,10 +161,7 @@ impl InTransitUpdater {
     }
 
     async fn save_and_publish(&self, chain: Chain, transaction: &Transaction, state: TransactionState, metadata: Option<serde_json::Value>) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let updates = match metadata {
-            Some(ref json) => vec![TransactionUpdate::State(state), TransactionUpdate::Kind(TransactionType::Swap), TransactionUpdate::Metadata(json.clone())],
-            None => vec![TransactionUpdate::State(state), TransactionUpdate::Kind(TransactionType::Swap)],
-        };
+        let updates = swap_state_updates(state, metadata.as_ref());
         let hash = transaction.id.hash.clone();
         self.database.run(move |client| client.update_transaction(chain.as_ref(), &hash, updates)).await?;
 

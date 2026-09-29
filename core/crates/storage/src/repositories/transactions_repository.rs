@@ -69,13 +69,17 @@ fn upsert_transaction(connection: &mut PgConnection, transaction: &Transaction) 
         .get_result(connection)
         .optional()?;
 
-    match inserted {
-        Some(transaction) => Ok((transaction, true)),
-        None => diesel::update(
-            transactions_dsl::transactions
-                .filter(transactions_dsl::chain.eq(&new_transaction.chain))
-                .filter(transactions_dsl::hash.eq(&new_transaction.hash)),
-        )
+    if let Some(transaction) = inserted {
+        return Ok((transaction, true));
+    }
+    let target = transactions_dsl::transactions
+        .filter(transactions_dsl::chain.eq(&new_transaction.chain))
+        .filter(transactions_dsl::hash.eq(&new_transaction.hash));
+    let existing = target.select(TransactionRow::as_select()).first(connection)?;
+    if *existing.kind == PrimitiveTransactionType::Swap && transaction.transaction_type != PrimitiveTransactionType::Swap {
+        return Ok((existing, false));
+    }
+    diesel::update(target)
         .set((
             transactions_dsl::from_address.eq(&new_transaction.from_address),
             transactions_dsl::to_address.eq(&new_transaction.to_address),
@@ -91,8 +95,7 @@ fn upsert_transaction(connection: &mut PgConnection, transaction: &Transaction) 
         ))
         .returning(TransactionRow::as_returning())
         .get_result(connection)
-        .map(|transaction| (transaction, false)),
-    }
+        .map(|transaction| (transaction, false))
 }
 
 fn get_transaction_by_id(client: &mut DatabaseClient, chain: &str, hash: &str) -> Result<TransactionRow, diesel::result::Error> {

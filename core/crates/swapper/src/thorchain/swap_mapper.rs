@@ -36,15 +36,17 @@ pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) 
 }
 
 fn map_referral_fee(response: &TransactionStatus, memo: &str, network: THORChainNetwork) -> Option<TransactionSwapReferralFee> {
-    if ThorchainMemo::parse(memo)?.affiliate.as_deref() != Some(THORCHAIN_REFERRAL_ADDRESS) {
+    let memo = ThorchainMemo::parse(memo)?;
+    if memo.affiliate.as_deref() != Some(THORCHAIN_REFERRAL_ADDRESS) {
         return None;
     }
     let coin = response
         .out_txs
         .as_ref()?
         .iter()
-        .filter(|transaction| transaction.to_address.as_deref() == Some(network.affiliate_collector_address()))
-        .find_map(|transaction| transaction.coins.first())?;
+        .filter(|transaction| transaction.to_address.as_deref().is_some_and(|address| address != memo.address))
+        .filter_map(|transaction| transaction.coins.first())
+        .find(|coin| coin.asset == network.native_asset())?;
     Some(TransactionSwapReferralFee {
         asset_id: network.chain().as_asset_id(),
         value: coin.amount.parse().ok()?,
@@ -255,6 +257,20 @@ mod tests {
                 metadata: None,
                 eta_in_seconds: None,
             }
+        );
+    }
+
+    #[test]
+    fn test_map_swap_result_direct_affiliate_payout() {
+        let response = status(include_str!("testdata/tx_status_bnb_to_avax_direct_affiliate.json"));
+        let metadata = map_swap_result(&response, THORChainNetwork::Thorchain).metadata.unwrap();
+
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::Thorchain.as_asset_id(),
+                value: BigUint::from(683105u64),
+            })
         );
     }
 

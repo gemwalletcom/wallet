@@ -979,15 +979,15 @@ diesel::table! {
         provider -> SwapProvider,
         status -> SwapStatus,
         from_asset_id -> Varchar,
-        from_amount -> Float8,
         from_amount_usd -> Nullable<Float8>,
         to_asset_id -> Varchar,
-        to_amount -> Float8,
         to_amount_usd -> Nullable<Float8>,
         referral_fee_asset_id -> Varchar,
         referral_fee_amount_usd -> Nullable<Float8>,
         updated_at -> Timestamp,
         created_at -> Timestamp,
+        from_amount -> Float8,
+        to_amount -> Float8,
     }
 }
 

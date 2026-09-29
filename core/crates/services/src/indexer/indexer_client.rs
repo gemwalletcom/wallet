@@ -1,9 +1,11 @@
 use std::error::Error;
 
 use cacher::{CacheKey, CacherClient};
-use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionId};
-use storage::{AssetsRepository, Database};
-use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducer, StreamProducerQueue};
+use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionId, TransactionState, swap::SwapResult};
+use storage::{AssetsRepository, Database, TransactionsRepository};
+use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, QueueName, StreamProducer, StreamProducerQueue};
+
+use crate::transactions::{swap_result_metadata, swap_state_updates};
 
 pub struct IndexerClient {
     database: Database,
@@ -58,6 +60,20 @@ impl IndexerClient {
     pub async fn refresh_nft_asset(&self, asset_id: NFTAssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.cacher.delete(&CacheKey::FetchNftAsset(&asset_id.to_string()).key()).await?;
         self.fetch_nft_asset(asset_id).await
+    }
+
+    pub async fn update_swap_transaction(&self, transaction_id: TransactionId, result: SwapResult) -> Result<Option<TransactionState>, Box<dyn Error + Send + Sync>> {
+        let Some(state) = result.status.transaction_state() else {
+            return Ok(None);
+        };
+        let lookup_id = transaction_id.clone();
+        let transaction = self.database.run(move |client| client.get_transaction_by_id(&lookup_id, vec![])).await?;
+        let metadata = swap_result_metadata(&transaction, result.metadata);
+        let updates = swap_state_updates(state, metadata.as_ref());
+        let (chain, hash) = (transaction_id.chain, transaction_id.hash.clone());
+        self.database.run(move |client| client.update_transaction(chain.as_ref(), &hash, updates)).await?;
+        self.stream_producer.publish(QueueName::StoreTransactionsSwaps, &transaction_id).await?;
+        Ok(Some(state))
     }
 
     pub async fn refresh_transaction(&self, transaction_id: TransactionId) -> Result<(), Box<dyn Error + Send + Sync>> {
