@@ -96,6 +96,18 @@ fiat:
       key:
         secret: ""
 swap:
+  chainflip:
+    broker:
+      url: "https://chainflip-broker.io"
+      key:
+        secret: ""
+    sdk:
+      url: "https://chainflip-swap.chainflip.io"
+  mayachain:
+    midgard:
+      url: "https://midgard.mayachain.info"
+  mayan:
+    url: "https://explorer-api.mayan.finance/v3"
   nearintents:
     url: "https://1click.chaindefuser.com"
     explorer:
@@ -111,8 +123,15 @@ swap:
     project: ""
   relay:
     url: "https://api.relay.link"
+  stonfi:
+    url: "https://api.ston.fi"
   swapsxyz:
     url: "https://api-v2.swaps.xyz/api"
+    key:
+      secret: ""
+  thorchain:
+    midgard:
+      url: "https://gateway.liquify.com/chain/thorchain_midgard"
 
 prices:
   coingecko:

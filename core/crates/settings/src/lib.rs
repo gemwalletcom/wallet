@@ -469,10 +469,26 @@ pub struct RewardsWallet {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Swap {
+    pub chainflip: Chainflip,
+    pub mayachain: Midgard,
+    pub mayan: URL,
     pub nearintents: NearIntents,
     pub okx: Okx,
     pub relay: URL,
-    pub swapsxyz: URL,
+    pub stonfi: URL,
+    pub swapsxyz: ProviderSettings,
+    pub thorchain: Midgard,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Chainflip {
+    pub broker: ProviderSettings,
+    pub sdk: URL,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Midgard {
+    pub midgard: URL,
 }
 
 #[derive(Debug, Deserialize, Clone)]
