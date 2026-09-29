@@ -101,7 +101,7 @@ impl InTransitUpdater {
             Err(_) => DurationMs(Duration::default()),
         };
 
-        let provider = cross_chain::swap_provider_with_vault_addresses(transaction, vault_addresses);
+        let provider = cross_chain::in_transit_swap_provider(transaction, vault_addresses);
         let provider_name = provider.as_ref().map(|provider| provider.as_ref().to_string()).unwrap_or_default();
         let result = match provider {
             Some(provider) => match self.swapper.get_swap_result(chain, provider, hash).await {
