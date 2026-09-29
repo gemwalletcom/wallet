@@ -44,20 +44,14 @@ pub struct Indexer {
     pub alchemy: ProviderSettings,
     pub algorand: ProviderSettings,
     pub ankr: ProviderSettings,
-    pub aptos: AptosIndexer,
     pub blockscout: ProviderSettings,
+    pub etherscan: ProviderSettings,
     pub fastnear: FastNearIndexer,
     pub helius: ProviderSettings,
     pub subscan: ProviderSettings,
     pub sui: ProviderSettings,
     pub ton: ProviderSettings,
     pub trongrid: ProviderSettings,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct AptosIndexer {
-    pub graphql: ProviderSettings,
-    pub archive: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -476,13 +470,13 @@ pub struct RewardsWallet {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Swap {
+    pub across: URL,
     pub chainflip: Chainflip,
     pub mayachain: URL,
     pub mayan: URL,
     pub nearintents: NearIntents,
     pub okx: Okx,
     pub relay: URL,
-    pub stonfi: URL,
     pub swapsxyz: ProviderSettings,
     pub thorchain: URL,
 }

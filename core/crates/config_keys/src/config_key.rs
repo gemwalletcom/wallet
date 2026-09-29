@@ -361,7 +361,7 @@ impl ConfigKey {
             Self::TransactionTimerInTransitUpdate => "60s",
             Self::TransactionTimerPendingUpdate => "30s",
             Self::TransactionTimerSwapPartnerTransactions => "5m",
-            Self::TransactionSwapPartnerPageDelay => "1s",
+            Self::TransactionSwapPartnerPageDelay => "3s",
             Self::TransactionTimerSwapVaultAddresses => "5m",
             Self::TransactionInTransitTimeout => "12h",
             Self::TransactionInTransitQueryLimit => "100",

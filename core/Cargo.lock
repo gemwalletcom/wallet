@@ -7821,7 +7821,6 @@ dependencies = [
 name = "services"
 version = "2.114.53"
 dependencies = [
- "alchemy",
  "async-trait",
  "cacher",
  "chain_primitives",
@@ -8360,7 +8359,6 @@ dependencies = [
 name = "swapper"
 version = "2.114.53"
 dependencies = [
- "alchemy",
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",
@@ -8381,7 +8379,6 @@ dependencies = [
  "gem_sui",
  "gem_ton",
  "gem_tron",
- "helius",
  "hex",
  "hmac 0.13.0",
  "num-bigint 0.5.1",

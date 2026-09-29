@@ -102,8 +102,8 @@ fn map_next_cursor(cursor: PartnerCursor, response: &TransactionsResponse) -> Re
 
 #[async_trait]
 impl<C: Client> SwapPartnerProvider for SwapsXyzPartnerProvider<C> {
-    fn name(&self) -> &'static str {
-        "swaps_xyz"
+    fn name(&self) -> &str {
+        SwapProvider::SwapsXyz.id()
     }
 
     async fn get_transactions(&self, cursor: Option<String>) -> Result<SwapPartnerTransactionsPage, SwapperError> {

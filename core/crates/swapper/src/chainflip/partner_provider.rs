@@ -5,6 +5,7 @@ use chrono::{Duration, Utc};
 use gem_client::Client;
 use primitives::{
     SwapProvider,
+    known_assets::ETHEREUM_USDC,
     swap::{SwapPartnerTransaction, SwapReferralFee},
 };
 use serde::{Deserialize, Serialize};
@@ -53,10 +54,12 @@ fn map_asset_id(chain: &str, asset: &str) -> Option<primitives::AssetId> {
 pub fn map_partner_transaction(swap_id: &str, status: &SwapTxResponse) -> Option<SwapPartnerTransaction> {
     let deposit = status.deposit.as_ref()?;
     let referral_fee = status.fees.iter().find(|fee| fee.fee_type == BROKER_FEE).and_then(|fee| {
+        let asset_id = map_asset_id(&fee.chain, &fee.asset)?;
+        let amount_usd = (asset_id == ETHEREUM_USDC.id).then(|| fee.amount.parse::<f64>().ok().map(|amount| amount / 10f64.powi(ETHEREUM_USDC.decimals))).flatten();
         Some(SwapReferralFee {
-            asset_id: map_asset_id(&fee.chain, &fee.asset)?,
+            asset_id,
             value: fee.amount.clone(),
-            amount_usd: None,
+            amount_usd,
         })
     });
     Some(SwapPartnerTransaction {
@@ -94,8 +97,8 @@ fn map_next_cursor(cursor: ChainflipPartnerCursor, swaps: &[BrokerSwap], pending
 
 #[async_trait]
 impl<C: Client + Clone + Debug> SwapPartnerProvider for ChainflipPartnerProvider<C> {
-    fn name(&self) -> &'static str {
-        "chainflip"
+    fn name(&self) -> &str {
+        SwapProvider::Chainflip.id()
     }
 
     async fn get_transactions(&self, cursor: Option<String>) -> Result<SwapPartnerTransactionsPage, SwapperError> {

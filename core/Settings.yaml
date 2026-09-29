@@ -96,6 +96,8 @@ fiat:
       key:
         secret: ""
 swap:
+  across:
+    url: "https://indexer.api.across.to"
   chainflip:
     broker:
       url: "https://chainflip-broker.io"
@@ -122,8 +124,6 @@ swap:
     project: ""
   relay:
     url: "https://api.relay.link"
-  stonfi:
-    url: "https://api.ston.fi"
   swapsxyz:
     url: "https://api-v2.swaps.xyz/api"
     key:
@@ -410,17 +410,12 @@ indexer:
     url: "https://rpc.ankr.com/multichain"
     key:
       secret: ""
-  aptos:
-    graphql:
-      url: "https://api.mainnet.aptoslabs.com"
-      key:
-        secret: ""
-    archive:
-      url: "https://archive.mainnet.aptoslabs.com"
-      key:
-        secret: ""
   blockscout:
     url: "https://api.blockscout.com"
+    key:
+      secret: ""
+  etherscan:
+    url: "https://api.etherscan.io"
     key:
       secret: ""
   fastnear:

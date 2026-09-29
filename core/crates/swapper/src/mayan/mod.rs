@@ -12,6 +12,5 @@ mod testkit;
 mod tx_builder;
 mod wormhole_chain;
 
-pub(crate) use constants::SUI_MCTP_PACKAGE_ID;
 pub use partner_provider::MayanPartnerProvider;
 pub use provider::Mayan;

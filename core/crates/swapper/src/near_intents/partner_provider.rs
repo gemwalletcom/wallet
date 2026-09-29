@@ -87,8 +87,8 @@ fn map_next_cursor(cursor: ExplorerPartnerCursor, transactions: &[ExplorerPartne
 
 #[async_trait]
 impl<C: Client + Send + Sync + Debug> SwapPartnerProvider for NearIntentsPartnerProvider<C> {
-    fn name(&self) -> &'static str {
-        "near_intents"
+    fn name(&self) -> &str {
+        SwapProvider::NearIntents.id()
     }
 
     async fn get_transactions(&self, cursor: Option<String>) -> Result<SwapPartnerTransactionsPage, SwapperError> {

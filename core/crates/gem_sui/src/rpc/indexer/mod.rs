@@ -29,19 +29,8 @@ struct TransactionConnection {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct PageInfo {
-    #[serde(default)]
     has_previous_page: bool,
     start_cursor: Option<String>,
-    #[serde(default)]
-    has_next_page: bool,
-    end_cursor: Option<String>,
-}
-
-#[derive(Debug)]
-pub struct SuiTransactionsPage {
-    pub transactions: Vec<Digest>,
-    pub cursor: Option<String>,
-    pub has_next_page: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -54,28 +43,23 @@ impl<C: Client> SuiIndexer<C> {
         Self { client }
     }
 
-    async fn get_transactions(&self, target: SuiIndexerTarget) -> Result<TransactionConnection, Box<dyn Error + Send + Sync>> {
-        let body = target.body();
-        let response: GraphqlData<TransactionsData> = self.client.post(target, &body).await?;
-        if let Some(error) = response.errors.and_then(|errors| errors.into_iter().next()) {
-            return Err(error.message.into());
-        }
-        Ok(response.data.ok_or("missing Sui GraphQL transaction data")?.transactions)
-    }
-
     pub(crate) async fn get_transaction_digests_by_address(&self, address: &str, limit: usize) -> Result<Vec<Digest>, Box<dyn Error + Send + Sync>> {
         let mut transactions = Vec::with_capacity(limit);
         let mut before = None;
 
         while transactions.len() < limit {
             let page_size = (limit - transactions.len()).min(TRANSACTIONS_PAGE_SIZE);
-            let page = self
-                .get_transactions(SuiIndexerTarget::Transactions {
-                    address: address.to_string(),
-                    limit: page_size,
-                    before: before.clone(),
-                })
-                .await?;
+            let target = SuiIndexerTarget::Transactions {
+                address: address.to_string(),
+                limit: page_size,
+                before: before.clone(),
+            };
+            let body = target.body();
+            let response: GraphqlData<TransactionsData> = self.client.post(target, &body).await?;
+            if let Some(error) = response.errors.and_then(|errors| errors.into_iter().next()) {
+                return Err(error.message.into());
+            }
+            let page = response.data.ok_or("missing Sui GraphQL transaction data")?.transactions;
             transactions.extend(page.nodes.into_iter().rev().map(map_transaction));
             if !page.page_info.has_previous_page {
                 break;
@@ -84,15 +68,6 @@ impl<C: Client> SuiIndexer<C> {
         }
 
         Ok(transactions)
-    }
-
-    pub async fn get_transactions_after(&self, address: &str, after: Option<String>, limit: usize) -> Result<SuiTransactionsPage, Box<dyn Error + Send + Sync>> {
-        let page = self.get_transactions(SuiIndexerTarget::TransactionsAfter { address: address.to_string(), limit, after }).await?;
-        Ok(SuiTransactionsPage {
-            transactions: page.nodes.into_iter().map(map_transaction).collect(),
-            cursor: page.page_info.end_cursor,
-            has_next_page: page.page_info.has_next_page,
-        })
     }
 }
 

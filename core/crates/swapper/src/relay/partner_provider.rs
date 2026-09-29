@@ -10,7 +10,7 @@ use super::{
     model::{RelayPartnerCursor, RelayPartnerRequestsQuery, RelayPartnerRequestsResponse},
 };
 use crate::{
-    SwapperError,
+    SwapperError, SwapperProvider,
     fees::DEFAULT_REFERRER,
     partner::{SwapPartnerCursor, SwapPartnerProvider, SwapPartnerTransactionsPage},
 };
@@ -53,8 +53,8 @@ impl<C> SwapPartnerProvider for RelayPartnerProvider<C>
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
-    fn name(&self) -> &'static str {
-        "relay"
+    fn name(&self) -> &str {
+        SwapperProvider::Relay.id()
     }
 
     async fn get_transactions(&self, cursor: Option<String>) -> Result<SwapPartnerTransactionsPage, SwapperError> {

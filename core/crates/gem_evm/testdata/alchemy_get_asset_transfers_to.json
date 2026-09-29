@@ -2,23 +2,11 @@
     "transfers": [
         {
             "blockNum": "0x3",
-            "hash": "0xin",
-            "from": "0x123",
-            "category": "external",
-            "rawContract": {
-                "value": "0x1",
-                "address": null
-            }
+            "hash": "0xin"
         },
         {
             "blockNum": "0x1",
-            "hash": "0xduplicate",
-            "from": "0x123",
-            "category": "external",
-            "rawContract": {
-                "value": "0x1",
-                "address": null
-            }
+            "hash": "0xduplicate"
         }
     ]
 }

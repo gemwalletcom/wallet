@@ -91,8 +91,8 @@ pub fn map_partner_transaction(swap: &MayanTransactionResult, referrers: &[Strin
 
 #[async_trait]
 impl<C: Client + Clone + Send + Sync + Debug + 'static> SwapPartnerProvider for MayanPartnerProvider<C> {
-    fn name(&self) -> &'static str {
-        "mayan"
+    fn name(&self) -> &str {
+        SwapProvider::Mayan.id()
     }
 
     async fn get_transactions(&self, cursor: Option<String>) -> Result<SwapPartnerTransactionsPage, SwapperError> {

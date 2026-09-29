@@ -5,7 +5,10 @@ use chrono::{Duration, Utc};
 use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
-use primitives::swap::{SwapPartnerTransaction, SwapReferralFee, SwapStatus};
+use primitives::{
+    SwapProvider,
+    swap::{SwapPartnerTransaction, SwapReferralFee, SwapStatus},
+};
 
 use super::{
     THORChainNetwork,
@@ -128,10 +131,10 @@ fn map_next_cursor(cursor: MidgardPartnerCursor, response: &MidgardActionsRespon
 
 #[async_trait]
 impl<C: Client> SwapPartnerProvider for ThorchainPartnerProvider<C> {
-    fn name(&self) -> &'static str {
+    fn name(&self) -> &str {
         match self.network {
-            THORChainNetwork::Thorchain => "thorchain",
-            THORChainNetwork::Mayachain => "mayachain",
+            THORChainNetwork::Thorchain => SwapProvider::Thorchain.id(),
+            THORChainNetwork::Mayachain => SwapProvider::Mayachain.id(),
         }
     }
 

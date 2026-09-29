@@ -3,27 +3,25 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use alchemy::{AlchemyApi, alchemy_url};
 use cacher::CacherClient;
 use chain_providers::{ChainProviders, ProviderFactory};
 use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
 use gem_client::ReqwestClient;
-use gem_jsonrpc::client::JsonRpcClient;
 use prices::{FiatRatesProvider, PriceAssetsProvider, PriceProvider};
-use primitives::{AccessTokenCacher, Chain, ChartTimeframe, EVMChain, JobConfiguration};
+use primitives::{AccessTokenCacher, Chain, ChartTimeframe, JobConfiguration};
 use search_index::SearchIndexClient;
 use settings::{Settings, service_user_agent};
 use storage::{Database, PricesProvidersRepository};
 use streamer::StreamProducer;
 use swapper::NativeProvider;
+use swapper::across::AcrossPartnerProvider;
 use swapper::chainflip::ChainflipPartnerProvider;
 use swapper::mayan::MayanPartnerProvider;
 use swapper::near_intents::NearIntentsPartnerProvider;
-use swapper::partner::{AptosPartnerProvider, EvmPartnerProvider, SolanaPartnerProvider, SuiPartnerProvider, SwapPartnerProvider};
+use swapper::partner::SwapPartnerProvider;
 use swapper::relay::RelayPartnerProvider;
-use swapper::stonfi::StonfiPartnerProvider;
 use swapper::swapper::GemSwapper;
 use swapper::swaps_xyz::SwapsXyzPartnerProvider;
 use swapper::thorchain::{THORChainNetwork, ThorchainPartnerProvider};
@@ -329,60 +327,28 @@ impl TransactionJobs {
     }
 }
 
-const SWAP_PARTNER_EVM_CHAINS: [EVMChain; 19] = [
-    EVMChain::Ethereum,
-    EVMChain::SmartChain,
-    EVMChain::Polygon,
-    EVMChain::Arbitrum,
-    EVMChain::Optimism,
-    EVMChain::Base,
-    EVMChain::AvalancheC,
-    EVMChain::Gnosis,
-    EVMChain::Blast,
-    EVMChain::ZkSync,
-    EVMChain::Linea,
-    EVMChain::Celo,
-    EVMChain::World,
-    EVMChain::Abstract,
-    EVMChain::Berachain,
-    EVMChain::Ink,
-    EVMChain::Unichain,
-    EVMChain::Hyperliquid,
-    EVMChain::Monad,
-];
-
 impl Services {
     fn swap_partner_providers(&self) -> Result<Vec<Arc<dyn SwapPartnerProvider>>, Box<dyn Error + Send + Sync>> {
         let settings = self.settings();
         let user_agent = service_user_agent("daemon", Some("swap_partner_transactions"));
         let client = |url: &str| ReqwestClient::new_with_user_agent(url.to_string(), gem_client::reqwest_client(), user_agent.clone());
-        let helius = &settings.indexer.helius;
         let explorer = &settings.swap.nearintents.explorer;
         let chainflip = &settings.swap.chainflip;
         let swapsxyz = &settings.swap.swapsxyz;
         let near_intents_client = ReqwestClient::new_with_user_agent(explorer.url.clone(), gem_client::builder().timeout(NEAR_INTENTS_EXPLORER_TIMEOUT).build()?, user_agent.clone())
             .with_default_headers(HashMap::from([("Authorization".to_string(), format!("Bearer {}", explorer.key.secret))]));
-        let alchemy = &settings.indexer.alchemy;
-        let evm_providers = SWAP_PARTNER_EVM_CHAINS.into_iter().map(|chain| -> Arc<dyn SwapPartnerProvider> {
-            let url = alchemy_url(chain.to_chain(), &alchemy.url, AlchemyApi::JsonRpc, &alchemy.key.secret);
-            Arc::new(EvmPartnerProvider::new(chain, JsonRpcClient::new(client(&url))))
-        });
-        let providers: Vec<Arc<dyn SwapPartnerProvider>> = vec![
+        Ok(vec![
             Arc::new(RelayPartnerProvider::new(client(&settings.swap.relay.url))),
-            Arc::new(SolanaPartnerProvider::new(client(&helius.url).with_default_headers(HashMap::from([("X-Api-Key".to_string(), helius.key.secret.clone())])))),
-            Arc::new(SuiPartnerProvider::new(client(&settings.indexer.sui.url))),
-            Arc::new(AptosPartnerProvider::new(client(&settings.indexer.aptos.graphql.url), client(&settings.indexer.aptos.archive.url))),
             Arc::new(NearIntentsPartnerProvider::new(near_intents_client)),
             Arc::new(ChainflipPartnerProvider::new(client(&chainflip.broker.url), client(&chainflip.sdk.url), chainflip.broker.key.secret.clone())),
             Arc::new(ThorchainPartnerProvider::new(client(&settings.swap.thorchain.url), THORChainNetwork::Thorchain)),
             Arc::new(ThorchainPartnerProvider::new(client(&settings.swap.mayachain.url), THORChainNetwork::Mayachain)),
             Arc::new(MayanPartnerProvider::new(client(&settings.swap.mayan.url))),
-            Arc::new(StonfiPartnerProvider::new(client(&settings.swap.stonfi.url))),
+            Arc::new(AcrossPartnerProvider::new(client(&settings.swap.across.url))),
             Arc::new(SwapsXyzPartnerProvider::new(
                 client(&swapsxyz.url).with_default_headers(HashMap::from([("x-api-key".to_string(), swapsxyz.key.secret.clone())])),
             )),
-        ];
-        Ok(providers.into_iter().chain(evm_providers).collect())
+        ])
     }
 
     pub async fn alerter_jobs(&self, stream_producer: StreamProducer) -> Result<AlerterJobs, Box<dyn Error + Send + Sync>> {
