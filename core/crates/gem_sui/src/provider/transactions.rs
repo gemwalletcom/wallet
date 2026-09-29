@@ -22,8 +22,18 @@ impl ChainBlockTransactions for SuiProvider {
 #[async_trait]
 impl ChainTransaction for SuiProvider {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn std::error::Error + Sync + Send>> {
-        let hash = request.hash;
-        Ok(map_transaction(self.get_transaction(hash).await?))
+        match self.get_transaction(request.hash.clone()).await {
+            Ok(transaction) => Ok(map_transaction(transaction)),
+            Err(_) => self.indexer.get_transaction_by_hash(request).await,
+        }
+    }
+}
+
+#[cfg(feature = "rpc")]
+#[async_trait]
+impl<C: Client> ChainTransaction for SuiIndexer<C> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn std::error::Error + Sync + Send>> {
+        Ok(self.get_transaction(&request.hash).await?.and_then(map_transaction))
     }
 }
 
