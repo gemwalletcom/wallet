@@ -203,7 +203,6 @@ Found on 2026-09-29 by comparing the two apps' store adapters, lint passes and h
 
 ### iOS
 
-- **CLN446** **S** **The confirm error info is decided once.** iOS asks `hasInfoSheet()` and then `errorInfo(error:)`; Android uses whether `errorInfo` returns a value. iOS does the same and Core stops exporting `has_info_sheet`.
 - **CLN447** **S** **A balance update without metadata clears it, as on Android.** `GemstoneBalanceStore.updateBalances` keeps the stored metadata when Core writes none, so iOS can never clear it; Core already merges before writing.
 - **CLN448** **S** **Recent activity keeps one row per asset, wallet and type.** The iOS table has no key and appends a row per open, so it grows without bound; Android replaces on `(asset_id, wallet_id, type)`. iOS deletes the previous row for the key before inserting.
 - **CLN449** **S** **Nodes and perpetual positions come back in the Android order.** iOS returns nodes in insertion order (Android: `priority DESC, url ASC`) and sorts positions in Swift after fetching (Android: in SQL); iOS orders both in SQL the same way.
