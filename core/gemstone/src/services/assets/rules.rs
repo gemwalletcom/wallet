@@ -178,7 +178,7 @@ pub fn stakeable_asset_ids() -> Vec<AssetId> {
 }
 
 pub fn default_token_chain(chains: &[Chain]) -> Option<Chain> {
-    chains.iter().find(|chain| **chain == Chain::Ethereum).or(chains.first()).copied()
+    chains.iter().find(|chain| **chain == Chain::Ethereum).or_else(|| chains.first()).copied()
 }
 
 pub fn token_chains(wallet: &Wallet) -> Vec<Chain> {

@@ -82,7 +82,7 @@ impl WalletConnectCAIP2 {
         if Self::parse_chain_id_parts(&chain_id).is_none() {
             return Err("Invalid chain ID format".to_string());
         }
-        Self::parse_chain_id(chain_id).ok_or("Unsupported chain".to_string())
+        Self::parse_chain_id(chain_id).ok_or_else(|| "Unsupported chain".to_string())
     }
 
     fn parse_chain_id_parts(chain_id: &str) -> Option<(&str, &str)> {

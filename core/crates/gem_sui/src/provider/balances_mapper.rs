@@ -23,7 +23,7 @@ pub fn map_balance_staking(delegations: Vec<SuiStakeDelegation>) -> AssetBalance
     let staked = delegations
         .iter()
         .flat_map(|delegation| &delegation.stakes)
-        .map(|stake| &stake.principal + stake.estimated_reward.as_ref().unwrap_or(&BigUint::from(0u32)))
+        .map(|stake| &stake.principal + stake.estimated_reward.as_ref().unwrap_or(&BigUint::ZERO))
         .sum::<BigUint>();
 
     AssetBalance::new_balance(Chain::Sui.as_asset_id(), Balance::stake_balance(staked, BigUint::from(0u32), None))

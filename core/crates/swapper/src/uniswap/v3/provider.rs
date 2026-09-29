@@ -126,7 +126,7 @@ impl Swapper for UniswapV3 {
         let client = create_client(self.rpc_provider.clone(), from_chain)?;
 
         let fee_tiers = self.provider.get_tiers();
-        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
 
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;

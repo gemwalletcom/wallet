@@ -93,7 +93,7 @@ impl FiatClient {
 
         let (kind, transaction_id) = match &webhook {
             FiatWebhook::OrderId(order_id) => ("order_id", Some(order_id.clone())),
-            FiatWebhook::Transaction(transaction) => ("transaction", transaction.provider_transaction_id.clone().or(Some(transaction.transaction_id.clone()))),
+            FiatWebhook::Transaction(transaction) => ("transaction", transaction.provider_transaction_id.clone().or_else(|| Some(transaction.transaction_id.clone()))),
             FiatWebhook::None => ("none", None),
         };
         let transaction_id = transaction_id.unwrap_or_default();

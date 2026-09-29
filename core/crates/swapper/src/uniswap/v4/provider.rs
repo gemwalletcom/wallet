@@ -137,7 +137,7 @@ impl Swapper for UniswapV4 {
         let (evm_chain, input, output, from_value) = Self::routed_request(request)?;
         let (token_in, token_out) = (input.address, output.address);
         let fee_tiers = self.get_tiers();
-        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;
         let quote_amount_in = if fee_token_is_input && fee_bps > 0 { subtract_bps(&from_value, fee_bps) } else { from_value };

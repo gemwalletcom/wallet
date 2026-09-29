@@ -26,7 +26,7 @@ pub(super) fn simulate_sell(amount: &BigDecimal, bids: &[OrderbookLevel]) -> Res
         let trade_size = remaining.clone().min(level_size);
         quote_total += &trade_size * &price;
         remaining -= &trade_size;
-        min_price = Some(min_price.map_or(price.clone(), |p| p.min(price.clone())));
+        min_price = Some(min_price.map_or_else(|| price.clone(), |p| p.min(price.clone())));
 
         if remaining <= BigDecimal::zero() {
             return Ok(SimulationResult {
@@ -55,10 +55,10 @@ pub(super) fn simulate_buy(amount: &BigDecimal, asks: &[OrderbookLevel]) -> Resu
         if remaining_quote > level_quote {
             base_total += &level_size;
             remaining_quote -= level_quote;
-            max_price = Some(max_price.map_or(price.clone(), |p| p.max(price.clone())));
+            max_price = Some(max_price.map_or_else(|| price.clone(), |p| p.max(price.clone())));
         } else {
             base_total += &remaining_quote / &price;
-            max_price = Some(max_price.map_or(price.clone(), |p| p.max(price.clone())));
+            max_price = Some(max_price.map_or_else(|| price.clone(), |p| p.max(price.clone())));
             remaining_quote = BigDecimal::zero();
             break;
         }

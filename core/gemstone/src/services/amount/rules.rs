@@ -237,7 +237,7 @@ pub fn transfer_input(transfer: &GemAmountTransfer, asset: &Asset, balance: &Gem
     });
     GemAmountInput {
         icon: asset_icon(&transfer_display_asset(transfer, asset.clone()).id),
-        prefill: prefill.or(input.prefill.clone()),
+        prefill: prefill.or_else(|| input.prefill.clone()),
         ..input
     }
 }

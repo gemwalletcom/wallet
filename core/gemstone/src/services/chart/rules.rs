@@ -36,7 +36,7 @@ pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValu
 }
 
 pub fn base_value(values: &[ChartDateValue]) -> f64 {
-    values.iter().find(|value| value.value != 0.0).or(values.first()).map_or(0.0, |value| value.value)
+    values.iter().find(|value| value.value != 0.0).or_else(|| values.first()).map_or(0.0, |value| value.value)
 }
 
 pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now: DateTime<Utc>, period: ChartPeriod, base_value: f64) -> Option<GemChartCurrent> {

@@ -28,7 +28,7 @@ pub fn networks(asset: &Asset, associations: Vec<AssetId>, wallet: &Wallet) -> G
         .map(|asset_id| {
             let standard = match asset_id == asset.id {
                 true => standard(&asset.asset_type),
-                false => asset_id.token_id.as_ref().and(asset_id.chain.default_asset_type()).as_ref().and_then(standard),
+                false => asset_id.token_id.as_ref().and_then(|_| asset_id.chain.default_asset_type()).as_ref().and_then(standard),
             };
             GemReceiveNetwork {
                 row: crate::services::chain::chain_row_with_standard(asset_id.chain, standard),

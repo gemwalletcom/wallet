@@ -27,7 +27,7 @@ impl<C: Client + 'static> NFTProvider for OpenSeaClient<C> {
     }
 
     async fn get_asset(&self, asset_id: NFTAssetId) -> Result<NFTAsset, Box<dyn Error + Send + Sync>> {
-        map_asset(self.get_asset_id(asset_id.chain, &asset_id.contract_address, &asset_id.token_id).await?, asset_id).ok_or("Asset not found".into())
+        map_asset(self.get_asset_id(asset_id.chain, &asset_id.contract_address, &asset_id.token_id).await?, asset_id).ok_or_else(|| "Asset not found".into())
     }
 }
 

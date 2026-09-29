@@ -32,7 +32,7 @@ pub fn map_delegations(delegations: Vec<SuiStakeDelegation>, system_state: SuiSy
                     state: map_stake_state(&stake.status),
                     balance: stake.principal,
                     shares: BigUint::from(0u32),
-                    rewards: stake.estimated_reward.unwrap_or(BigUint::from(0u32)),
+                    rewards: stake.estimated_reward.unwrap_or_else(|| BigUint::from(0u32)),
                     completion_date,
                     delegation_id: stake.staked_sui_id.clone(),
                     validator_id: validator_address.clone(),

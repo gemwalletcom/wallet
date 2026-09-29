@@ -43,7 +43,7 @@ pub struct DelegationBalance {
 
 impl DelegationBalance {
     pub fn validator_address(&self) -> String {
-        ethereum_address_checksum(&self.validator).unwrap_or(self.validator.clone())
+        ethereum_address_checksum(&self.validator).unwrap_or_else(|_| self.validator.clone())
     }
 }
 
@@ -60,7 +60,7 @@ pub struct Validator {
 
 impl Validator {
     pub fn validator_address(&self) -> String {
-        ethereum_address_checksum(&self.validator).unwrap_or(self.validator.clone())
+        ethereum_address_checksum(&self.validator).unwrap_or_else(|_| self.validator.clone())
     }
 }
 

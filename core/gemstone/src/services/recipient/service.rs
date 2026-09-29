@@ -34,7 +34,7 @@ impl GemRecipientService {
             Ok(GemPayment::Request { request }) => asset_step(&request, &asset),
             Ok(GemPayment::Link { .. }) | Err(_) => None,
         };
-        let step = step.ok_or(GemRecipientError::InvalidAddress { chain: asset.chain() })?;
+        let step = step.ok_or_else(|| GemRecipientError::InvalidAddress { chain: asset.chain() })?;
         Ok(scan_route(step, &recipient_type))
     }
 

@@ -172,7 +172,7 @@ impl Amount {
         match self {
             Amount::Null => None,
             Amount::Str(_) => None,
-            Amount::Amount(amount) => amount.issuer.clone().or(amount.mpt_issuance_id.clone()),
+            Amount::Amount(amount) => amount.issuer.clone().or_else(|| amount.mpt_issuance_id.clone()),
         }
     }
 }

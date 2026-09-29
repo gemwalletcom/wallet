@@ -77,7 +77,7 @@ impl GemChartService {
         if let Some(market) = charts.market {
             self.price.update_market(asset_id.clone(), market).await?;
         }
-        let rate = self.price.rate(currency.clone()).await?.ok_or(GemServiceError::InvalidInput {
+        let rate = self.price.rate(currency.clone()).await?.ok_or_else(|| GemServiceError::InvalidInput {
             msg: format!("unknown currency: {currency}"),
         })?;
         let latest = self.price.prices(vec![asset_id]).await?.into_iter().next();

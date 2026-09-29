@@ -356,7 +356,7 @@ fn acquire_options(flow: GemAcquireAssetFlow) -> Vec<GemAcquireOption> {
 
 pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], currency: Currency, input_asset_id: &AssetId, fee_asset_id: &AssetId) -> Option<GemConfirmErrorInfo> {
     let info = |sheet: GemConfirmErrorSheet, asset: Option<&Asset>, title: String, requirement: Option<&GemConfirmRequirement>, required: Option<&GemFormattedNumber>| {
-        let required = required.or(requirement.map(|requirement| &requirement.required)).cloned();
+        let required = required.or_else(|| requirement.map(|requirement| &requirement.required)).cloned();
         let price = asset.and_then(|asset| prices.iter().find(|price| price.asset_id == asset.id)).map(|price| price.price);
         let buy_amount = matches!(sheet, GemConfirmErrorSheet::NetworkFeeRequired | GemConfirmErrorSheet::NetworkFeeMissing).then(|| get_fiat_config().insufficient_network_fee_buy_amount);
         GemConfirmErrorInfo {
