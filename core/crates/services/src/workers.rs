@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Duration;
 
 use cacher::CacherClient;
 use chain_providers::{ChainProviders, ProviderFactory};
@@ -15,6 +16,7 @@ use settings::{Settings, service_user_agent};
 use storage::{Database, PricesProvidersRepository};
 use streamer::StreamProducer;
 use swapper::NativeProvider;
+use swapper::near_intents::NearIntentsPartnerProvider;
 use swapper::partner::{SolanaPartnerProvider, SwapPartnerProvider};
 use swapper::relay::RelayPartnerProvider;
 use swapper::swapper::GemSwapper;
@@ -32,6 +34,8 @@ use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
 use crate::transactions::{InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapPartnerTransactionsUpdater, SwapVaultAddressClient, VaultAddressesUpdater};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
+
+const NEAR_INTENTS_EXPLORER_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Clone)]
 pub struct AlerterJobs {
@@ -449,10 +453,17 @@ impl Services {
         let settings = self.settings();
         let user_agent = service_user_agent("daemon", Some("swap_partner_transactions"));
         let relay_client = ReqwestClient::new_with_user_agent(settings.swap.relay.url.clone(), gem_client::reqwest_client(), user_agent.clone());
-        let helius_client =
-            ReqwestClient::new_with_user_agent(settings.indexer.helius.url.clone(), gem_client::reqwest_client(), user_agent).with_default_headers(HashMap::from([("X-Api-Key".to_string(), settings.indexer.helius.key.secret.clone())]));
+        let helius_client = ReqwestClient::new_with_user_agent(settings.indexer.helius.url.clone(), gem_client::reqwest_client(), user_agent.clone())
+            .with_default_headers(HashMap::from([("X-Api-Key".to_string(), settings.indexer.helius.key.secret.clone())]));
+        let explorer = &settings.swap.nearintents.explorer;
+        let near_intents_client = ReqwestClient::new_with_user_agent(explorer.url.clone(), gem_client::builder().timeout(NEAR_INTENTS_EXPLORER_TIMEOUT).build()?, user_agent)
+            .with_default_headers(HashMap::from([("Authorization".to_string(), format!("Bearer {}", explorer.key.secret))]));
         let page_delay = config.get_duration(ConfigKey::TransactionSwapPartnerPageDelay).await?;
-        let partner_providers: Vec<Arc<dyn SwapPartnerProvider>> = vec![Arc::new(RelayPartnerProvider::new(relay_client)), Arc::new(SolanaPartnerProvider::new(helius_client))];
+        let partner_providers: Vec<Arc<dyn SwapPartnerProvider>> = vec![
+            Arc::new(RelayPartnerProvider::new(relay_client)),
+            Arc::new(SolanaPartnerProvider::new(helius_client)),
+            Arc::new(NearIntentsPartnerProvider::new(near_intents_client)),
+        ];
         let swap_partner_updaters = partner_providers
             .into_iter()
             .map(|provider| SwapPartnerTransactionsUpdater::new(provider, database.clone(), cacher.clone(), stream_producer.clone(), page_delay))

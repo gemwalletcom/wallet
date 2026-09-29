@@ -27,6 +27,7 @@ pub const NEAR_INTENTS_ETH_LINK: &str = "nep141:eth-0x514910771af9ca656af840dff8
 pub const NEAR_INTENTS_ETH_UNI: &str = "nep141:eth-0x1f9840a85d5af5bf1d1762f925bdaddc4201f984.omft.near";
 pub const NEAR_INTENTS_ETH_AAVE: &str = "nep141:eth-0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9.omft.near";
 pub const NEAR_INTENTS_BTC_NATIVE: &str = "1cs_v1:btc:native:coin";
+const NEAR_INTENTS_LEGACY_ASSETS: [(&str, Chain); 2] = [("nep141:btc.omft.near", Chain::Bitcoin), ("nep245:v2_1.omni.hot.tg:9745_11111111111111111111", Chain::Plasma)];
 pub const NEAR_INTENTS_SOL_NATIVE: &str = "nep141:sol.omft.near";
 pub const NEAR_INTENTS_SOL_USDC: &str = "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near";
 pub const NEAR_INTENTS_SOL_USDT: &str = "nep141:sol-c800a4bd850783ccb82c2b2c7e84175443606352.omft.near";
@@ -280,7 +281,12 @@ pub fn get_near_asset_id(asset: &SwapperQuoteAsset) -> Result<String, SwapperErr
 }
 
 pub fn get_asset_id_from_near_asset(near_asset_id: &str) -> Option<AssetId> {
-    NEAR_INTENTS_ASSETS.values().flat_map(|assets| assets.iter()).find(|(_, v)| **v == near_asset_id).map(|(k, _)| k.clone())
+    NEAR_INTENTS_ASSETS
+        .values()
+        .flat_map(|assets| assets.iter())
+        .find(|(_, v)| **v == near_asset_id)
+        .map(|(k, _)| k.clone())
+        .or_else(|| NEAR_INTENTS_LEGACY_ASSETS.iter().find(|(id, _)| *id == near_asset_id).map(|(_, chain)| chain.as_asset_id()))
 }
 
 pub fn supported_assets() -> Vec<SwapperChainAsset> {

@@ -469,10 +469,16 @@ pub struct RewardsWallet {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Swap {
-    pub nearintents: URL,
+    pub nearintents: NearIntents,
     pub okx: Okx,
     pub relay: URL,
     pub swapsxyz: URL,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct NearIntents {
+    pub url: String,
+    pub explorer: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]

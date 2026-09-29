@@ -98,6 +98,10 @@ fiat:
 swap:
   nearintents:
     url: "https://1click.chaindefuser.com"
+    explorer:
+      url: "https://explorer.near-intents.org"
+      key:
+        secret: ""
   okx:
     url: "https://web3.okx.com"
     key:
