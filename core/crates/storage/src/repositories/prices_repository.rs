@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
-use chrono::{NaiveDateTime, TimeDelta, Utc};
+use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
 use diesel::sql_types::{Nullable, SingleValue, SqlType};
 use diesel::upsert::excluded;
@@ -64,7 +64,7 @@ pub trait PricesRepository {
     fn get_primary_price_infos(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
     fn get_price_by_id(&mut self, price_id: &str) -> Result<Price, DatabaseError>;
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceData>, DatabaseError>;
-    fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime, max_age: TimeDelta) -> Result<Option<ChartResult>, DatabaseError>;
+    fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError>;
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError>;
     fn delete_prices(&mut self, ids: Vec<String>) -> Result<usize, DatabaseError>;
     fn get_assets_markets(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError>;
@@ -231,17 +231,13 @@ impl PricesRepository for DatabaseClient {
         Ok(prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row.as_price_data()).collect())
     }
 
-    fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime, max_age: TimeDelta) -> Result<Option<ChartResult>, DatabaseError> {
+    fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError> {
         let providers = price_provider_rows(self)?;
-        let rows = prices_for_asset_ids(self, &[asset_id.to_string()])?;
-        for provider in providers.iter().filter(|provider| provider.enabled) {
-            for (_, row) in rows.iter().filter(|(_, row)| row.provider.0 == provider.id.0) {
-                if let Some(point) = chart_price_at(self, &row.id.to_string(), at)?.filter(|(created_at, _)| at - *created_at <= max_age) {
-                    return Ok(Some(point));
-                }
-            }
-        }
-        Ok(None)
+        let rows = prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row).collect::<Vec<_>>();
+        let Some(row) = ranked_prices(&providers, &rows).into_iter().next() else {
+            return Ok(None);
+        };
+        Ok(chart_price_at(self, &row.id.to_string(), at)?)
     }
 
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError> {
@@ -367,16 +363,15 @@ impl PricesRepository for DatabaseClient {
     }
 }
 
+fn ranked_prices<'a>(providers: &[PriceProviderConfigRow], rows: &'a [PriceRow]) -> Vec<&'a PriceRow> {
+    let mut candidates: Vec<(&PriceProviderConfigRow, &PriceRow)> = providers.iter().filter(|p| p.enabled).filter_map(|p| rows.iter().find(|row| row.provider.0 == p.id.0).map(|row| (p, row))).collect();
+    candidates.sort_by_key(|(p, _)| p.priority);
+    candidates.into_iter().map(|(_, row)| row).collect()
+}
+
 fn primary_price<'a>(providers: &[PriceProviderConfigRow], rows: &'a [PriceRow], max_age: Duration) -> Option<&'a PriceRow> {
     let cutoff = (Utc::now() - chrono::Duration::from_std(max_age).ok()?).naive_utc();
-    let mut candidates: Vec<(&PriceProviderConfigRow, &PriceRow)> = providers
-        .iter()
-        .filter(|p| p.enabled)
-        .filter_map(|p| rows.iter().find(|row| row.provider.0 == p.id.0).map(|row| (p, row)))
-        .filter(|(_, row)| row.last_updated_at >= cutoff)
-        .collect();
-    candidates.sort_by_key(|(p, _)| p.priority);
-    candidates.first().map(|(_, row)| *row)
+    ranked_prices(providers, rows).into_iter().find(|row| row.last_updated_at >= cutoff)
 }
 
 #[cfg(test)]

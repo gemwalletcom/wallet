@@ -49,10 +49,10 @@ impl StoreTransactionsSwapsConsumer {
 
     async fn amount(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<(f64, Option<f64>), Box<dyn Error + Send + Sync>> {
         let asset_id = asset_id.clone();
-        let max_age = Duration::from_std(DAY)?;
-        let (asset, price) = self.database.run(move |client| Ok::<_, DatabaseError>((client.get_asset(&asset_id)?, client.get_price_at(&asset_id, at, max_age)?))).await?;
+        let (asset, price) = self.database.run(move |client| Ok::<_, DatabaseError>((client.get_asset(&asset_id)?, client.get_price_at(&asset_id, at)?))).await?;
         let amount = BigNumberFormatter::value_as_f64(&value.to_string(), asset.decimals as u32)?;
-        let amount_usd = price.map(|(_, price)| amount * price);
+        let max_age = Duration::from_std(DAY)?;
+        let amount_usd = price.filter(|(price_at, _)| at - *price_at <= max_age).map(|(_, price)| amount * price);
         Ok((amount, amount_usd))
     }
 }
