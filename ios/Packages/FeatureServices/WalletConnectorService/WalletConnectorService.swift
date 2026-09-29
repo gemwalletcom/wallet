@@ -40,31 +40,9 @@ public final class WalletConnectorService {
 // MARK: - WalletConnectorService
 
 extension WalletConnectorService: WalletConnectorServiceable {
-    public func configure() throws {
-        let config = WalletConnectConfig.config()
-        Networking.configure(
-            groupIdentifier: Constants.appGroupIdentifier,
-            projectId: config.projectId,
-            socketFactory: DefaultSocketFactory(),
-        )
-
-        try WalletKit.configure(
-            metadata: AppMetadata(
-                name: config.appName,
-                description: config.appDescription,
-                url: config.appUrl,
-                icons: config.appIcons,
-                redirect: AppMetadata.Redirect(
-                    native: "gem://",
-                    universal: .none,
-                ),
-            ),
-            crypto: DefaultCryptoProvider(),
-        )
-    }
-
-    public func setup() async {
-        await setupState.start {
+    public func setup() async throws {
+        try await setupState.start {
+            try self.configure()
             Events.instance.setTelemetryEnabled(false)
             let sessionsStream = UncheckedSendable(value: self.interactor.sessionsStream)
             let sessionProposalStream = UncheckedSendable(value: self.interactor.sessionProposalStream)
@@ -87,20 +65,20 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func pair(uri: String) async throws {
-        await setup()
+        try await setup()
         let uri = try WalletConnectURI(uriString: uri)
         try await Pair.instance.pair(uri: uri)
     }
 
     public func disconnect(sessionId: String) async throws {
+        try await setup()
         try await service.deleteSession(sessionId: sessionId)
         try await WalletKit.instance.disconnect(topic: sessionId)
     }
 
-    public func updateSessions() {
-        Task {
-            await updateSessions(interactor.sessions)
-        }
+    public func updateSessions() async throws {
+        try await setup()
+        await updateSessions(interactor.sessions)
     }
 
     public func hasSessions() async throws -> Bool {
@@ -111,6 +89,29 @@ extension WalletConnectorService: WalletConnectorServiceable {
 // MARK: - Private
 
 extension WalletConnectorService {
+    private func configure() throws {
+        let config = WalletConnectConfig.config()
+        Networking.configure(
+            groupIdentifier: Constants.appGroupIdentifier,
+            projectId: config.projectId,
+            socketFactory: DefaultSocketFactory(),
+        )
+
+        try WalletKit.configure(
+            metadata: AppMetadata(
+                name: config.appName,
+                description: config.appDescription,
+                url: config.appUrl,
+                icons: config.appIcons,
+                redirect: AppMetadata.Redirect(
+                    native: "gem://",
+                    universal: .none,
+                ),
+            ),
+            crypto: DefaultCryptoProvider(),
+        )
+    }
+
     private func observeSessions(_ stream: AsyncStream<[Session]>) async {
         for await sessions in stream {
             await updateSessions(sessions)

@@ -35,6 +35,5 @@ public actor WalletConnectorServiceMock: WalletConnectorServiceable {
         storedSessions
     }
 
-    public nonisolated func configure() throws {}
-    public nonisolated func updateSessions() {}
+    public func updateSessions() async throws {}
 }

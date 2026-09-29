@@ -37,4 +37,25 @@ struct SetupStateTests {
         #expect(result.starts == 1)
         #expect(result.readyCallers == callerCount)
     }
+
+    @Test
+    func failedStartRunsAgainOnNextCall() async throws {
+        let state = SetupState()
+        let starts = OSAllocatedUnfairLock(initialState: 0)
+
+        await #expect(throws: CancellationError.self) {
+            try await state.start {
+                starts.withLock { $0 += 1 }
+                throw CancellationError()
+            }
+        }
+        try await state.start {
+            starts.withLock { $0 += 1 }
+        }
+        try await state.start {
+            starts.withLock { $0 += 1 }
+        }
+
+        #expect(starts.withLock { $0 } == 2)
+    }
 }

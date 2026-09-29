@@ -78,8 +78,13 @@ public final class ConnectionsSceneViewModel {
         try await connector.disconnect(sessionId: connection.session.sessionId)
     }
 
-    func load() {
-        connector.updateSessions()
+    func load() async {
+        do {
+            try await connector.updateSessions()
+        } catch {
+            isPresentingAlertMessage = AlertMessage(message: walletConnectErrorText(message: error.localizedDescription).text)
+            debugLog("load sessions error: \(error)")
+        }
     }
 
     func hideConnectionBar() {
