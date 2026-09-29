@@ -183,7 +183,7 @@ impl AssetIdVecExt for Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID};
+    use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID, STABLE_USDT0_ASSET_ID};
 
     #[test]
     fn test_new_asset_id_with_coin() {
@@ -226,6 +226,7 @@ mod tests {
 
         assert_eq!(ARC_USDC_ASSET_ID.clone().mirror_to_native(value.clone()), (AssetId::from_chain(Chain::Arc), BigUint::from(5_000_000_000_000_000_000u64)));
         assert_eq!(ARC_EURC_ASSET_ID.clone().mirror_to_native(value.clone()), (ARC_EURC_ASSET_ID.clone(), value.clone()));
+        assert_eq!(STABLE_USDT0_ASSET_ID.clone().mirror_to_native(value.clone()), (AssetId::from_chain(Chain::Stable), BigUint::from(5_000_000_000_000_000_000u64)));
         assert_eq!(AssetId::from_chain(Chain::Arc).mirror_to_native(value.clone()), (AssetId::from_chain(Chain::Arc), value));
     }
 

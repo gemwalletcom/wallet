@@ -272,6 +272,9 @@ pub static ARC_EURC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from
 pub const ARC_CIRBTC_TOKEN_ID: &str = "0x171A4217b86A807A64eB94757Db6849fb4bDbAA0";
 pub static ARC_CIRBTC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arc, ARC_CIRBTC_TOKEN_ID));
 
+pub const STABLE_TOKEN_ID: &str = "0x0000000000000000000000000000000000001003";
+pub static STABLE_USDT0_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Stable, USDT0_OFT_TOKEN_ID));
+
 pub const ROBINHOOD_WETH_TOKEN_ID: &str = "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73";
 pub static ROBINHOOD_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Robinhood, ROBINHOOD_WETH_TOKEN_ID));
 

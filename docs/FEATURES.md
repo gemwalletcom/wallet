@@ -73,7 +73,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Monad | EVM | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | X Layer | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Robinhood Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
-| Stable | EVM | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Stable | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Tempo | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Arc | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 
@@ -285,7 +285,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [MayaChain](../core/crates/swapper/src/thorchain/provider.rs) | Cross-chain | 7/57 | THORChain, Bitcoin, Ethereum, Arbitrum, Zcash, Cardano, Dash | ➖ | <sub>[code](../core/crates/swapper/src/thorchain/chain.rs) · [live chains API](https://mayanode.mayachain.info/mayachain/inbound_addresses)</sub> |
 | [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | 6/57 | Bitcoin (destination only), Polkadot, Ethereum, Solana, Tron, Arbitrum | Missing: Polkadot USDC and USDT (Gem has no Polkadot tokens) | <sub>[asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [route support](../core/crates/swapper/src/chainflip/provider.rs) · [Broker quotes and assets](https://docs.chainflip.io/brokers/javascript-sdk/functions) · [supported chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> |
 | [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | 10/57 | Algorand, Stellar, Cardano, TON, Cosmos, Osmosis, Aptos, Sui, XRP, Tron | Native assets only | <sub>[code](../core/crates/swapper/src/swaps_xyz/provider.rs) · [API introduction](https://docs.swaps.xyz/)</sub> |
-| [Bridgers](../core/crates/swapper/src/bridgers/provider.rs) | Cross-chain | 19/57 | BNB Chain, Polygon, Arbitrum, Avalanche C-Chain, Optimism, Base, opBNB, Mantle, Linea, Celo, X Layer, Sonic, Robinhood Chain, Hyperliquid, Ethereum (destination only), Solana (destination only), Bitcoin (destination only), Litecoin (destination only), Dogecoin (destination only) | Missing: Ethereum as source, Unichain (routers unverified), ZKsync (gas limits unverified), TON, XRP Ledger, Tron, Sui, Aptos, Bitcoin Cash, Stable | <sub>[code](../core/crates/swapper/src/bridgers/asset.rs) · [live token API](https://api.bridgers.xyz/api/exchangeRecord/getToken)</sub> |
+| [Bridgers](../core/crates/swapper/src/bridgers/provider.rs) | Cross-chain | 20/57 | BNB Chain, Polygon, Arbitrum, Avalanche C-Chain, Optimism, Base, opBNB, Mantle, Linea, Celo, X Layer, Sonic, Robinhood Chain, Hyperliquid, Stable, Ethereum (destination only), Solana (destination only), Bitcoin (destination only), Litecoin (destination only), Dogecoin (destination only) | Missing: Ethereum as source, Unichain (routers unverified), ZKsync (gas limits unverified), TON, XRP Ledger, Tron, Sui, Aptos, Bitcoin Cash | <sub>[code](../core/crates/swapper/src/bridgers/asset.rs) · [live token API](https://api.bridgers.xyz/api/exchangeRecord/getToken)</sub> |
 | [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | 2/57 | HyperCore, Hyperliquid | ➖ | <sub>[code](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) · [Core ↔ EVM transfers](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/hyperevm/hypercore-less-than-greater-than-hyperevm-transfers)</sub> |
 
 ### Provider behavior

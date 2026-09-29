@@ -138,7 +138,7 @@ mod swap_integration_tests {
     use super::*;
     use crate::{
         alien::reqwest_provider::NativeProvider,
-        bridgers::testkit::{mock_base_usdc_to_bsc_usdt_request, mock_opbnb_to_bsc_usdt_request},
+        bridgers::testkit::{mock_base_usdc_to_bsc_usdt_request, mock_opbnb_to_bsc_usdt_request, mock_stable_to_bsc_usdt_request},
     };
     use primitives::{Chain, TransactionSwapMetadata, asset_constants::ARBITRUM_USDC_ASSET_ID};
 
@@ -147,7 +147,7 @@ mod swap_integration_tests {
         let rpc_provider = Arc::new(NativeProvider::default());
         let provider = Bridgers::new(rpc_provider);
 
-        for request in [mock_opbnb_to_bsc_usdt_request(), mock_base_usdc_to_bsc_usdt_request()] {
+        for request in [mock_opbnb_to_bsc_usdt_request(), mock_base_usdc_to_bsc_usdt_request(), mock_stable_to_bsc_usdt_request()] {
             let quote = provider.get_quote(&request).await?;
             let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
             let network = Network::from_chain(request.from_asset.chain())?;

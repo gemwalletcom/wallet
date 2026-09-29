@@ -242,7 +242,7 @@ mod tests {
 
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ARC_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID},
+        asset_constants::{ARC_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, STABLE_USDT0_ASSET_ID},
     };
 
     use super::*;
@@ -356,6 +356,7 @@ mod tests {
 
         assert!(GemSwapper::is_native_mirror_pair(&arc, &ARC_USDC_ASSET_ID));
         assert!(GemSwapper::is_native_mirror_pair(&ARC_USDC_ASSET_ID, &arc));
+        assert!(GemSwapper::is_native_mirror_pair(&AssetId::from_chain(Chain::Stable), &STABLE_USDT0_ASSET_ID));
         assert!(!GemSwapper::is_native_mirror_pair(&ARC_USDC_ASSET_ID, &ETHEREUM_USDC_ASSET_ID));
         assert!(!GemSwapper::is_native_mirror_pair(&ARC_USDC_ASSET_ID, &AssetId::from_chain(Chain::Ethereum)));
     }

@@ -115,8 +115,7 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::SeiEvm => SEIEVM_USDC_TOKEN_ID,
         EVMChain::XLayer => XLAYER_USDC_E_TOKEN_ID,
         EVMChain::Robinhood => ROBINHOOD_USDG_TOKEN_ID,
-        EVMChain::OpBNB | EVMChain::Plasma | EVMChain::Arc => "",
-        EVMChain::Stable => "0x8a2b28364102bea189d99a475c494330ef2bdd0b",
+        EVMChain::OpBNB | EVMChain::Plasma | EVMChain::Arc | EVMChain::Stable => "",
         EVMChain::Tempo => TEMPO_BRIDGED_USDC_TOKEN_ID,
         _ => panic!("USDC is not configured for this chain"),
     };
@@ -144,8 +143,7 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::Monad => MONAD_USDT_TOKEN_ID,
         EVMChain::SeiEvm => SEIEVM_USDT_TOKEN_ID,
         EVMChain::XLayer => XLAYER_USDT_TOKEN_ID,
-        EVMChain::Stable => USDT0_OFT_TOKEN_ID,
-        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo | EVMChain::Arc => "",
+        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo | EVMChain::Arc | EVMChain::Stable => "",
         _ => panic!("USDT is not configured for this chain"),
     };
 

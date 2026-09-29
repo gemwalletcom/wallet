@@ -32,6 +32,7 @@ pub static RESERVED_NATIVE_FEES: LazyLock<HashMap<Chain, &'static str>> = LazyLo
         (Chain::Sonic, "50000000000000000"),      // 0.05 S
         (Chain::Robinhood, "100000000000000"),    // 0.0001 ETH
         (Chain::Hyperliquid, "1000000000000000"), // 0.001 HYPE
+        (Chain::Stable, "10000000000000000"),     // 0.01 USDT0
     ])
 });
 

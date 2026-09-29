@@ -257,7 +257,7 @@ mod swap_integration_tests {
     use num_traits::ToPrimitive;
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_TOKEN_ID, ETHEREUM_USDC_ASSET_ID, ROBINHOOD_USDG_TOKEN_ID},
+        asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_TOKEN_ID, ETHEREUM_USDC_ASSET_ID, ROBINHOOD_USDG_TOKEN_ID, STABLE_TOKEN_ID},
     };
     use std::sync::Arc;
 
@@ -299,6 +299,37 @@ mod swap_integration_tests {
         let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert_eq!(quote_data.value, BigUint::from(1_000_000_000_000_000_000u64));
         assert!(quote_data.approval.is_none());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_stable_native_usdt0_to_stable_quote() -> Result<(), SwapperError> {
+        let network_provider = Arc::new(NativeProvider::default());
+        let swap_provider = uniswap::default::boxed_uniswap_v3(network_provider);
+        let request = QuoteRequest {
+            from_asset: AssetId::from_chain(Chain::Stable).into(),
+            to_asset: AssetId::from(Chain::Stable, Some(STABLE_TOKEN_ID.to_string())).into(),
+            wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
+            value: BigUint::from(1_000_000_000_000_000_000u64),
+            options: Options { slippage: 100.into(), use_max_amount: false },
+        };
+        let quote = swap_provider.get_quote(&request).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+
+        assert!(quote.to_value > BigUint::from(10u64.pow(18)));
+        assert_eq!(quote_data.value, BigUint::from(1_000_000_000_000_000_000u64));
+        assert!(quote_data.approval.is_none());
+
+        let reverse = QuoteRequest {
+            from_asset: request.to_asset.clone(),
+            to_asset: request.from_asset.clone(),
+            value: BigUint::from(100_000_000_000_000_000_000u128),
+            ..request
+        };
+        let quote = swap_provider.get_quote(&reverse).await?;
+
+        assert!(quote.to_value > BigUint::from(10u64.pow(18)) && quote.to_value < BigUint::from(10u64.pow(19)));
         Ok(())
     }
 
