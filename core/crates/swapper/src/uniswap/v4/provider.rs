@@ -155,12 +155,11 @@ impl Swapper for UniswapV4 {
             Vec::new()
         };
         let direct_calls = pool_keys.iter().map(|pool_key| build_quote_exact_single_request(&token_in, deployment.quoter, quote_amount_in, &pool_key.1)).collect();
-        let quote_calls = iter::once(direct_calls)
+        let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = iter::once(direct_calls)
             .chain(build_quote_exact_requests(deployment.quoter, &quote_exact_params))
             .enumerate()
             .flat_map(|(route_idx, calls)| calls.into_iter().enumerate().map(move |(fee_tier_idx, call)| (QuotePosition { route_idx, fee_tier_idx }, call)))
-            .collect::<Vec<_>>();
-        let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = quote_calls.into_iter().unzip();
+            .unzip();
         let results = create_client(self.rpc_provider.clone(), from_chain)?.batch_request(calls).await?;
         let quote_result = get_best_quote(&results, &positions, super::quoter::decode_quoter_response)?;
 

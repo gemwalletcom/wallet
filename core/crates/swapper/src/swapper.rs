@@ -171,9 +171,7 @@ impl GemSwapper {
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<SwapQuotes, SwapperError> {
         let provider_ids: BTreeSet<_> = self.get_providers_for_request(request)?.into_iter().map(|p| p.id).collect();
-        let providers = self.swappers.iter().filter(|x| provider_ids.contains(&x.provider().id)).collect::<Vec<_>>();
-
-        let quotes_futures = providers.into_iter().map(|x| {
+        let quotes_futures = self.swappers.iter().filter(|x| provider_ids.contains(&x.provider().id)).map(|x| {
             let provider_id = x.provider().id.id().to_string();
             async move {
                 let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|error| (provider_id.clone(), error))?;

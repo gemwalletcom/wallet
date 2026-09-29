@@ -200,7 +200,6 @@ Found on 2026-09-29 by comparing the two apps' store adapters, lint passes and h
 
 ### Core
 
-- **CLN442** **S** **Needless collects go.** Twelve iterator chains collect into a `Vec` only to count, check or iterate it again; they iterate directly, and `just lint` adds `clippy::needless_collect`.
 - **CLN443** **S** **Empty strings are `String::new()`.** Fifteen `"".to_string()` and `String::from("")` become `String::new()`, and `just lint` adds `clippy::manual_string_new`.
 
 ### iOS

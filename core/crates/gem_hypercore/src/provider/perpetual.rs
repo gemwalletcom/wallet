@@ -493,8 +493,8 @@ mod integration_tests {
         assert!(btc.is_some(), "BTC perpetual should exist");
         assert_eq!(btc.unwrap().perpetual.identifier, "0");
 
-        let builder_assets: Vec<_> = data.iter().filter(|d| d.perpetual.identifier.parse::<u32>().unwrap_or(0) >= 100_000).collect();
-        println!("Builder DEX assets: {}", builder_assets.len());
+        let builder_assets = data.iter().filter(|d| d.perpetual.identifier.parse::<u32>().unwrap_or(0) >= 100_000).count();
+        println!("Builder DEX assets: {}", builder_assets);
 
         Ok(())
     }

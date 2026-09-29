@@ -44,17 +44,13 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
         let config = StoreTransactionsConsumerConfig::read(&self.config).await?;
         let is_notify_devices = payload.should_notify_devices();
         let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
+        let subscription_addresses: HashSet<_> = subscriptions.iter().map(|s| &s.address).collect();
         let transactions = Self::transactions_for_storage(payload.transactions, &deposit_addresses, &send_addresses)
             .into_iter()
             .filter(|transaction| config.is_transaction_within_asset_transfer_limit(transaction))
-            .collect::<Vec<_>>();
-
-        let min_amount = config.min_amount_usd;
-        let subscription_addresses: HashSet<_> = subscriptions.iter().map(|s| &s.address).collect();
-        let transactions = transactions
-            .into_iter()
             .filter(|transaction| transaction.addresses().iter().any(|address| subscription_addresses.contains(address)))
             .collect::<Vec<_>>();
+        let min_amount = config.min_amount_usd;
         if transactions.is_empty() {
             return Ok(0);
         }

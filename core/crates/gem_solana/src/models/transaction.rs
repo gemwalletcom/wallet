@@ -141,9 +141,9 @@ impl BlockTransaction {
     }
 
     pub fn get_balance_changes_by_owner(&self, owner: &str) -> TokenBalanceChange {
-        let account_indices: Vec<usize> = self.transaction.message.account_keys.iter().enumerate().filter_map(|(i, k)| if k == owner { Some(i) } else { None }).collect();
+        let account_indices = self.transaction.message.account_keys.iter().enumerate().filter_map(|(i, k)| if k == owner { Some(i) } else { None });
 
-        let (total_pre, total_post) = account_indices.into_iter().fold((0u64, 0u64), |(pre_acc, post_acc), idx| {
+        let (total_pre, total_post) = account_indices.fold((0u64, 0u64), |(pre_acc, post_acc), idx| {
             let pre = *self.meta.pre_balances.get(idx).unwrap_or(&0);
             let post = *self.meta.post_balances.get(idx).unwrap_or(&0);
             (pre_acc.wrapping_add(pre), post_acc.wrapping_add(post))
