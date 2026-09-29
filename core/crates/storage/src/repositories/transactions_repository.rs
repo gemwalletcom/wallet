@@ -13,7 +13,6 @@ use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 pub enum TransactionFilter {
     States(Vec<PrimitiveTransactionState>),
-    Kinds(Vec<PrimitiveTransactionType>),
 }
 
 #[derive(Debug, Clone)]
@@ -171,9 +170,6 @@ pub(crate) fn transactions_by_wallet_since(client: &mut DatabaseClient, wallet_i
         match filter {
             TransactionFilter::States(states) => {
                 query = query.filter(tx_dsl::state.eq_any(transaction_states(states)));
-            }
-            TransactionFilter::Kinds(kinds) => {
-                query = query.filter(tx_dsl::kind.eq_any(transaction_kinds(kinds)));
             }
         }
     }
@@ -335,9 +331,6 @@ impl TransactionsRepository for DatabaseClient {
             match filter {
                 TransactionFilter::States(states) => {
                     query = query.filter(dsl::state.eq_any(transaction_states(states)));
-                }
-                TransactionFilter::Kinds(kinds) => {
-                    query = query.filter(dsl::kind.eq_any(transaction_kinds(kinds)));
                 }
             }
         }

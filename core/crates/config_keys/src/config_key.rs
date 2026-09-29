@@ -20,7 +20,6 @@ pub enum ConfigKey {
     RedemptionRetryDelay,
     RedemptionRetryErrors,
 
-    ReferralIpConfidenceScoreThreshold,
     ReferralBlockedIpTypes,
     ReferralBlockedIpTypePenalty,
     ReferralMaxAbuseScore,
@@ -225,7 +224,6 @@ impl ConfigKey {
             Self::RedemptionRetryMaxRetries => "1",
             Self::RedemptionRetryDelay => "15s",
             Self::RedemptionRetryErrors => r#"["transaction gas price below minimum"]"#,
-            Self::ReferralIpConfidenceScoreThreshold => "10",
             Self::ReferralBlockedIpTypes => r#"["dataCenter", "hosting"]"#,
             Self::ReferralBlockedIpTypePenalty => "100",
             Self::ReferralMaxAbuseScore => "60",

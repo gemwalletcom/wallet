@@ -30,7 +30,6 @@ pub enum AssetsWithPricesFilter {
 pub enum PriceFilter {
     Provider(PriceProvider),
     UpdatedBefore(NaiveDateTime),
-    UpdatedAfter(NaiveDateTime),
     Ids(Vec<String>),
 }
 
@@ -117,7 +116,6 @@ fn prices_by_filter(client: &mut DatabaseClient, filters: Vec<PriceFilter>) -> R
     let query = filters.into_iter().fold(prices.into_boxed(), |q, filter| match filter {
         PriceFilter::Provider(p) => q.filter(provider.eq(PriceProviderRow::from(p))),
         PriceFilter::UpdatedBefore(time) => q.filter(last_updated_at.lt(time).or(last_updated_at.is_null())),
-        PriceFilter::UpdatedAfter(time) => q.filter(last_updated_at.ge(time)),
         PriceFilter::Ids(ids) => q.filter(id.eq_any(ids)),
     });
     query.order(market_cap_rank.asc().nulls_last()).select(PriceRow::as_select()).load(&mut client.connection)

@@ -501,7 +501,7 @@ pub fn asset_sections(ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular
     })
 }
 
-pub fn wallet_search_state(counts: &WalletSearchCounts, is_loading: bool) -> GemWalletSearchState {
+fn wallet_search_state(counts: &WalletSearchCounts, is_loading: bool) -> GemWalletSearchState {
     let shown = counts.recents + counts.pinned_assets + counts.assets + counts.pinned_perpetuals + counts.perpetuals + counts.lists + counts.nfts;
     GemWalletSearchState {
         phase: match (shown > 0, is_loading) {

@@ -9,7 +9,6 @@ use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 #[derive(Debug, Clone)]
 pub enum DeviceFieldUpdate {
     IsPushEnabled(bool),
-    IsPriceAlertsEnabled(bool),
 }
 
 #[derive(Debug, Clone)]
@@ -111,7 +110,6 @@ impl DevicesRepository for DatabaseClient {
             let target = devices.filter(device_id.eq_any(&device_ids));
             let updated = match update {
                 DeviceFieldUpdate::IsPushEnabled(value) => diesel::update(target).set(is_push_enabled.eq(value)).execute(&mut self.connection)?,
-                DeviceFieldUpdate::IsPriceAlertsEnabled(value) => diesel::update(target).set(is_price_alerts_enabled.eq(value)).execute(&mut self.connection)?,
             };
             total_updated += updated;
         }
