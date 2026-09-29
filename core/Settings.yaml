@@ -131,7 +131,7 @@ swap:
       secret: ""
   thorchain:
     midgard:
-      url: "https://gateway.liquify.com/chain/thorchain_midgard"
+      url: "https://gateway.liquify.com"
 
 prices:
   coingecko:

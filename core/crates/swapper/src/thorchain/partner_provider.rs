@@ -148,7 +148,7 @@ impl<C: Client> SwapPartnerProvider for ThorchainPartnerProvider<C> {
             from_timestamp: cursor.from_timestamp,
             next_page_token: cursor.next_page_token.clone(),
         };
-        let response: MidgardActionsResponse = self.client.get(MidgardTarget::Actions { query }).await.map_err(SwapperError::from)?;
+        let response: MidgardActionsResponse = self.client.get(MidgardTarget::Actions { network: self.network, query }).await.map_err(SwapperError::from)?;
         Ok(SwapPartnerTransactionsPage {
             transactions: map_partner_transactions(&response.actions, self.network),
             cursor: map_next_cursor(cursor, &response)?,

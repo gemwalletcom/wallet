@@ -26,13 +26,35 @@ impl Target for ThorChainTarget {
 
 #[derive(Clone, Debug)]
 pub enum MidgardTarget {
-    Actions { query: MidgardActionsQuery },
+    Actions { network: THORChainNetwork, query: MidgardActionsQuery },
 }
 
 impl Target for MidgardTarget {
     fn path(&self) -> String {
         match self {
-            Self::Actions { query } => build_path_with_query("/v2/actions", query),
+            Self::Actions { network, query } => build_path_with_query(&format!("{}/actions", network.midgard_path()), query),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_midgard_actions_path() {
+        let target = |network| MidgardTarget::Actions {
+            network,
+            query: MidgardActionsQuery {
+                affiliate: "g1".to_string(),
+                action_type: "swap",
+                limit: 50,
+                from_timestamp: None,
+                next_page_token: None,
+            },
+        };
+
+        assert_eq!(target(THORChainNetwork::Thorchain).path(), "/chain/thorchain_midgard/v2/actions?affiliate=g1&type=swap&limit=50");
+        assert_eq!(target(THORChainNetwork::Mayachain).path(), "/v2/actions?affiliate=g1&type=swap&limit=50");
     }
 }

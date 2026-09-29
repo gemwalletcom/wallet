@@ -48,6 +48,13 @@ impl THORChainNetwork {
         }
     }
 
+    pub fn midgard_path(&self) -> &'static str {
+        match self {
+            Self::Thorchain => "/chain/thorchain_midgard/v2",
+            Self::Mayachain => "/v2",
+        }
+    }
+
     pub fn router_addresses(&self) -> &'static [&'static str] {
         match self {
             Self::Thorchain => &[
