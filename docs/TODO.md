@@ -203,7 +203,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-29
 
 ### iOS
 
-- **CLN435** **S** **The confirmation dialog falls back to the shared alert.** `View+ConfirmationDialog` rebuilds the presence binding and the alert with its cancel button that `View+Alert` already provides; the iPad branch calls `alert(_:presenting:)` and the binding is built once.
 - **CLN436** **S** **One ISO-8601 JSON decoder.** `SwiftHTTPClient`'s `Response` repeats the formatters and date strategy of `Primitives`' `JSONDateDecoder`; the widget passes `JSONDateDecoder.standard`, the copy goes, and its date tests move with the decoder.
 
 ### Android
