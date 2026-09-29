@@ -20,6 +20,10 @@ impl SwapPartnerTransactionsRepository for DatabaseClient {
         let rows = values.into_iter().map(NewSwapPartnerTransactionRow::from_primitive).collect::<Vec<_>>();
         let insert = diesel::insert_into(swap_partner_transactions).values(&rows).on_conflict((provider, provider_transaction_id)).do_update().set((
             status.eq(excluded(status)),
+            from_address.eq(excluded(from_address)),
+            to_address.eq(excluded(to_address)),
+            from_asset_id.eq(excluded(from_asset_id)),
+            to_asset_id.eq(excluded(to_asset_id)),
             from_value.eq(excluded(from_value)),
             from_amount_usd.eq(excluded(from_amount_usd)),
             to_value.eq(excluded(to_value)),
@@ -35,6 +39,10 @@ impl SwapPartnerTransactionsRepository for DatabaseClient {
             .filter(
                 status
                     .ne(excluded(status))
+                    .or(from_address.ne(excluded(from_address)))
+                    .or(to_address.ne(excluded(to_address)))
+                    .or(from_asset_id.ne(excluded(from_asset_id)))
+                    .or(to_asset_id.ne(excluded(to_asset_id)))
                     .or(from_value.ne(excluded(from_value)))
                     .or(from_amount_usd.is_distinct_from(excluded(from_amount_usd)))
                     .or(to_value.ne(excluded(to_value)))
@@ -86,11 +94,15 @@ mod database_integration_tests {
                     client.add_swap_partner_transactions(vec![transaction(SwapStatus::Pending, None)])?,
                     client.add_swap_partner_transactions(vec![transaction(SwapStatus::Pending, None)])?,
                     client.add_swap_partner_transactions(vec![transaction(SwapStatus::Completed, Some("output"))])?,
+                    client.add_swap_partner_transactions(vec![SwapPartnerTransaction {
+                        from_asset_id: AssetId::from_chain(Chain::Bitcoin),
+                        ..transaction(SwapStatus::Completed, Some("output"))
+                    }])?,
                 ))
             })
             .await
             .unwrap();
 
-        assert_eq!(counts, (1, 0, 1));
+        assert_eq!(counts, (1, 0, 1, 1));
     }
 }
