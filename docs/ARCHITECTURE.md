@@ -1853,7 +1853,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualsViewModel` (+ `RecentActivityQuery`, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioViewModel` |
 | `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `SetPriceAlertSceneViewModel` | `PriceAlertsViewModel`, `SetPriceAlertViewModel` |
-| `GemReceiveService` | — | `ReceiveSceneViewModel` | `ReceiveViewModel` |
+| `GemReceiveService` | `GemReceiveSession` (the network list stays anchored to the asset the screen opened on) | `ReceiveSceneViewModel` | `ReceiveViewModel` |
 | `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsViewModel` vended by `SelectAssetSceneViewModel` and `PerpetualsSceneViewModel` | `RecentsViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
 | `GemRewardsService` | — | `RewardsSceneViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `RewardsViewModel` |

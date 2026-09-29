@@ -7,6 +7,8 @@ import struct Gemstone.GemCopy
 import struct Gemstone.GemReceiveAssetState
 import struct Gemstone.GemReceiveNetworks
 import protocol Gemstone.GemReceiveServiceProtocol
+import struct Gemstone.GemReceiveSession
+import func Gemstone.newReceiveSession
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -23,6 +25,7 @@ public final class ReceiveSceneViewModel: Sendable {
 
     private(set) var assetState: GemReceiveAssetState
     private(set) var address: String
+    private var session: GemReceiveSession
 
     var presentation: ReceivePresentationType?
     var renderedImage: UIImage?
@@ -41,6 +44,7 @@ public final class ReceiveSceneViewModel: Sendable {
         service: any GemReceiveServiceProtocol,
     ) {
         assetState = service.assetState(asset: assetData.asset.toGem())
+        session = newReceiveSession(asset: assetData.asset.toGem()).onAssociations(associations: assetData.associations.map(\.assetId))
         self.wallet = wallet
         self.address = address
         self.service = service
@@ -66,11 +70,7 @@ public final class ReceiveSceneViewModel: Sendable {
     }
 
     var networks: GemReceiveNetworks {
-        service.networks(
-            asset: asset.toGem(),
-            associations: (assetQuery.value?.associations ?? []).map(\.assetId),
-            wallet: wallet.toGem(),
-        )
+        session.networks(wallet: wallet.toGem())
     }
 
     func updateAsset() async {
@@ -176,6 +176,11 @@ public final class ReceiveSceneViewModel: Sendable {
 // MARK: - Actions
 
 extension ReceiveSceneViewModel {
+    func onChangeAssetData(_: AssetData?, _ assetData: AssetData?) {
+        guard let assetData else { return }
+        session = session.onAssociations(associations: assetData.associations.map(\.assetId))
+    }
+
     func onChangeAsset() async {
         do {
             try await service.enableAsset(walletId: wallet.id, assetId: asset.id)

@@ -64,6 +64,7 @@ fn network_asset_ids(asset_id: AssetId, associations: Vec<AssetId>, wallet: &Wal
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::receive::model::new_receive_session;
     use primitives::Account;
 
     fn token(id: AssetId, asset_type: AssetType) -> Asset {
@@ -87,6 +88,20 @@ mod tests {
         assert_eq!(asset_ids(several), vec![ethereum_usdc.clone(), base_usdc]);
         assert!(!single.shows_selector);
         assert_eq!(asset_ids(single), vec![ethereum_usdc]);
+    }
+
+    #[test]
+    fn test_the_session_lists_the_networks_of_the_asset_the_screen_opened_on() {
+        let ethereum_usdc = AssetId::from_token(Chain::Ethereum, "0xusdc");
+        let base_usdc = AssetId::from_token(Chain::Base, "0xusdc");
+        let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum, Chain::Base], "address"));
+        let asset_ids = |networks: GemReceiveNetworks| networks.networks.into_iter().map(|network| network.asset_id).collect::<Vec<_>>();
+
+        let opened = new_receive_session(token(ethereum_usdc.clone(), AssetType::ERC20));
+        assert_eq!(asset_ids(opened.networks(wallet.clone())), vec![ethereum_usdc.clone()], "before the associations arrive");
+
+        let synced = opened.on_associations(vec![base_usdc.clone()]);
+        assert_eq!(asset_ids(synced.networks(wallet)), vec![ethereum_usdc, base_usdc], "the stored associations leave out the asset itself");
     }
 
     #[test]
