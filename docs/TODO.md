@@ -206,7 +206,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-29
 
 ### Android
 
-- **CLN437** **S** **Search records are built by one mapper.** The three `toSearchRecord` extensions in `DbSearch.kt` have no caller while `GemstoneSearchStore` builds the same records inline three times; one mapper serves the store.
 - **CLN438** **S** **Coroutines catch through `runCatchingCancellable`.** `AppUpdateCoordinator`, `WalletConnectCoordinator`, `DeviceObserverService` and `DevicePushSettings` wrap suspend calls in `runCatching`, which also catches cancellation.
 - **CLN439** **S** **Kotlin names errors in full.** `err` in catch clauses and lambdas becomes `error`, and `vm` in tests `viewModel`; frozen migrations keep their text.
 - **CLN440** **S** **Unit tests read the store through production queries.** `AssetsDao.getBalance` exists only for `Migration_71_72Test`; the test reads the balance through the query the app uses and the DAO method goes.
