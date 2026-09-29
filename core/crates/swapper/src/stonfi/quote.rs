@@ -112,7 +112,7 @@ pub(super) fn scaled_next_min_ask_amount(first: &SwapSimulation, next: &SwapSimu
 
 #[cfg(test)]
 mod tests {
-    use super::super::constants::FALLBACK_ROUTERS;
+    use super::super::constants::DISCOVERY_ROUTERS;
     use super::super::testkit::{TEST_PTON_WALLET, TEST_USDT_WALLET};
     use super::*;
     use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn test_static_metadata_addresses_parse() {
-        for router in FALLBACK_ROUTERS {
+        for router in DISCOVERY_ROUTERS {
             Address::parse(router.address).unwrap();
             Address::parse(router.pton_wallet).unwrap();
         }
