@@ -240,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_filter_active_dex_skips_empty_names() {
-        let dexs = vec![None, Some(PerpDex { name: "".to_string(), is_active: Some(true) })];
+        let dexs = vec![None, Some(PerpDex { name: String::new(), is_active: Some(true) })];
 
         let enabled_hip3_markets = vec!["dex1".to_string()];
         let entries = filter_active_dex(&dexs, &enabled_hip3_markets);

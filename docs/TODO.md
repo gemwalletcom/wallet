@@ -200,7 +200,6 @@ Found on 2026-09-29 by comparing the two apps' store adapters, lint passes and h
 
 ### Core
 
-- **CLN443** **S** **Empty strings are `String::new()`.** Fifteen `"".to_string()` and `String::from("")` become `String::new()`, and `just lint` adds `clippy::manual_string_new`.
 
 ### iOS
 

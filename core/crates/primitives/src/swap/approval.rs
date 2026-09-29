@@ -79,7 +79,7 @@ impl SwapQuoteData {
             to,
             data_type: SwapQuoteDataType::Transfer,
             value,
-            data: "".to_string(),
+            data: String::new(),
             memo,
             approval: None,
             gas_limit: None,

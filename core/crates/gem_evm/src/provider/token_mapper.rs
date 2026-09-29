@@ -68,11 +68,11 @@ mod tests {
         let symbol_hex = "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000045553444300000000000000000000000000000000000000000000000000000000".to_string();
         let decimals_hex = "0x0000000000000000000000000000000000000000000000000000000000000006".to_string();
 
-        let result = map_token_data(Chain::Ethereum, token_id.clone(), "".to_string(), symbol_hex, decimals_hex.clone()).unwrap();
+        let result = map_token_data(Chain::Ethereum, token_id.clone(), String::new(), symbol_hex, decimals_hex.clone()).unwrap();
 
         assert_eq!(result.name, "USDC");
         assert_eq!(result.symbol, "USDC");
-        assert!(map_token_data(Chain::Ethereum, token_id.clone(), name_hex, "".to_string(), decimals_hex.clone()).is_err());
-        assert!(map_token_data(Chain::Ethereum, token_id, "".to_string(), "".to_string(), decimals_hex).is_err());
+        assert!(map_token_data(Chain::Ethereum, token_id.clone(), name_hex, String::new(), decimals_hex.clone()).is_err());
+        assert!(map_token_data(Chain::Ethereum, token_id, String::new(), String::new(), decimals_hex).is_err());
     }
 }

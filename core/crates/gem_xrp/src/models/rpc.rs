@@ -286,7 +286,7 @@ mod tests {
     fn test_account_object_symbol_rlusd() {
         let account_object = AccountObjectLimit {
             currency: "524C555344000000000000000000000000000000".to_string(),
-            issuer: "".to_string(),
+            issuer: String::new(),
         };
         assert_eq!(account_object.symbol(), Some("RLUSD".to_string()));
     }

@@ -146,7 +146,7 @@ mod tests {
             tx_response: Some(TransactionResult {
                 txhash: "ABC123".to_string(),
                 code: 0,
-                raw_log: "".to_string(),
+                raw_log: String::new(),
             }),
             code: None,
             message: None,

@@ -71,7 +71,7 @@ pub fn map_staking_delegations(active_delegations: Vec<Delegation>, unbonding_de
             shares: BigUint::from(0u32),
             rewards: parse_to_biguint(&rewards),
             completion_date: None,
-            delegation_id: "".to_string(),
+            delegation_id: String::new(),
             validator_id: delegation.delegation.validator_address,
         })
     });

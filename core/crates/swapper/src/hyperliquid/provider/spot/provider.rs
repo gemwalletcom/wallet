@@ -225,7 +225,7 @@ impl Swapper for HyperCoreSpot {
         let order: PlaceOrder = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let order_json = serde_json::to_string(&order).map_err(SwapperError::transaction_error)?;
 
-        Ok(SwapperQuoteData::new_contract("".to_string(), quote.from_value.clone(), order_json, None, None))
+        Ok(SwapperQuoteData::new_contract(String::new(), quote.from_value.clone(), order_json, None, None))
     }
 }
 

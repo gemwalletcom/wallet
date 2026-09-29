@@ -161,7 +161,7 @@ mod tests {
     fn test_jsonrpc_error_display_with_client_error_code() {
         let error = JsonRpcError {
             code: ERROR_CLIENT_ERROR,
-            message: "".into(),
+            message: String::new(),
             cause: None,
         };
 
