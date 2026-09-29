@@ -1,7 +1,12 @@
 use num_bigint::BigUint;
-use primitives::TransactionSwapMetadata;
+use primitives::{
+    AssetId, TransactionSwapMetadata, TransactionSwapReferralFee,
+    swap::{EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS, SOLANA_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS},
+};
 
 use crate::{SwapResult, SwapperProvider};
+
+const MAYAN_SWIFT_V1_SERVICE: &str = "SWIFT_SWAP";
 
 use super::{
     asset::asset_id_for_token,
@@ -30,7 +35,24 @@ impl MayanTransactionResult {
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
         let to_value = self.to_amount64.as_deref()?.parse::<BigUint>().ok()?;
 
-        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Mayan))
+        let referral_fee = self.referral_fee(&from_asset, &from_value, &to_asset, &to_value);
+        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Mayan).with_referral_fee(referral_fee))
+    }
+
+    fn referral_fee(&self, from_asset: &AssetId, from_value: &BigUint, to_asset: &AssetId, to_value: &BigUint) -> Option<TransactionSwapReferralFee> {
+        let referrer = self.referrer_address.as_deref()?;
+        if ![EVM_REFERRAL_ADDRESS, SOLANA_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS].iter().any(|address| address.eq_ignore_ascii_case(referrer)) {
+            return None;
+        }
+        let referrer_bps = self.referrer_bps.filter(|bps| *bps > 0)?;
+        let (asset_id, value) = match self.service.as_deref() {
+            Some(MAYAN_SWIFT_V1_SERVICE) => {
+                let net_bps = HUNDRED_PERCENT_IN_BPS.checked_sub(referrer_bps + self.mayan_bps.unwrap_or_default())?;
+                (to_asset.clone(), to_value * referrer_bps / net_bps)
+            }
+            _ => (from_asset.clone(), from_value * referrer_bps / HUNDRED_PERCENT_IN_BPS),
+        };
+        Some(TransactionSwapReferralFee { asset_id, value })
     }
 }
 
@@ -49,13 +71,14 @@ mod tests {
 
     #[test]
     fn test_map_completed_swap_metadata() {
-        for (json, from_asset, from_value, to_asset, to_value) in [
+        for (json, from_asset, from_value, to_asset, to_value, referral_fee) in [
             (
                 include_str!("test/pol_to_bnb_swift.json"),
                 AssetId::from_chain(Chain::Polygon),
                 "212000000000000000000",
                 AssetId::from_chain(Chain::SmartChain),
                 "33060513057817862",
+                Some((AssetId::from_chain(Chain::Polygon), "1060000000000000000")),
             ),
             (
                 include_str!("test/bnb_to_mon_swift.json"),
@@ -63,14 +86,31 @@ mod tests {
                 "120000000000000000",
                 AssetId::from_chain(Chain::Monad),
                 "3306576785321161654272",
+                Some((AssetId::from_chain(Chain::SmartChain), "600000000000000")),
             ),
-            (include_str!("test/sol_to_eth_swift.json"), AssetId::from_chain(Chain::Solana), "16195149", AssetId::from_chain(Chain::Base), "599671067569648"),
+            (
+                include_str!("test/bnb_to_base_swift_v1.json"),
+                AssetId::from_chain(Chain::SmartChain),
+                "13000000000000000",
+                AssetId::from_chain(Chain::Base),
+                "3834692054613521",
+                Some((AssetId::from_chain(Chain::Base), "19367131588957")),
+            ),
+            (
+                include_str!("test/sol_to_eth_swift.json"),
+                AssetId::from_chain(Chain::Solana),
+                "16195149",
+                AssetId::from_chain(Chain::Base),
+                "599671067569648",
+                None,
+            ),
             (
                 include_str!("test/usdc_to_brla_fast_mctp.json"),
                 BASE_USDC_ASSET_ID.clone(),
                 "21667710",
                 AssetId::from_token(Chain::Polygon, "0xE6A537a407488807F0bbeb0038B79004f19DDDFb"),
                 "111502625917703364196",
+                None,
             ),
             (
                 include_str!("test/usdt_to_owb_swift.json"),
@@ -78,13 +118,15 @@ mod tests {
                 "35243141",
                 AssetId::from_token(Chain::Base, "0xEF5997c2cf2f6c138196f8A6203afc335206b3c1"),
                 "398724622644505839482",
+                None,
             ),
         ] {
+            let referral_fee = referral_fee.map(|(asset_id, value)| TransactionSwapReferralFee { asset_id, value: value.parse().unwrap() });
             assert_eq!(
                 map_swap_result(&result(json)),
                 SwapResult {
                     status: SwapStatus::Completed,
-                    metadata: Some(TransactionSwapMetadata::new(from_asset, from_value.parse().unwrap(), to_asset, to_value.parse().unwrap(), SwapperProvider::Mayan)),
+                    metadata: Some(TransactionSwapMetadata::new(from_asset, from_value.parse().unwrap(), to_asset, to_value.parse().unwrap(), SwapperProvider::Mayan).with_referral_fee(referral_fee)),
                     eta_in_seconds: None,
                 }
             );

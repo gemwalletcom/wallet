@@ -111,6 +111,7 @@ pub struct StatusResponse {
 pub struct StatusActionResponse {
     pub amount_in: TokenAmount,
     pub amount_out: TokenAmount,
+    pub application_fee: Option<TokenAmount>,
 }
 
 #[derive(Debug, Clone, Serialize)]

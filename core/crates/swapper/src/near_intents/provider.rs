@@ -21,7 +21,10 @@ use gem_sui::{SuiClient, build_transfer_message_bytes};
 use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::Zero;
-use primitives::{Chain, OptionStringExt, TransactionSwapMetadata, swap::SwapStatus};
+use primitives::{
+    AssetId, Chain, OptionStringExt, TransactionSwapMetadata, TransactionSwapReferralFee,
+    swap::{HUNDRED_PERCENT_IN_BPS, NEAR_REFERRAL_ADDRESS, SwapStatus},
+};
 use std::str::FromStr;
 use std::{fmt::Debug, sync::Arc};
 
@@ -154,14 +157,18 @@ where
 
     fn build_swap_metadata(transaction: &ExplorerTransaction) -> Option<TransactionSwapMetadata> {
         let from_asset = get_asset_id_from_near_asset(&transaction.origin_asset)?;
+        let from_value = BigUint::from_str(&transaction.amount_in).ok()?;
         let to_asset = get_asset_id_from_near_asset(&transaction.destination_asset)?;
-        Some(TransactionSwapMetadata::new(
-            from_asset,
-            BigUint::from_str(&transaction.amount_in).ok()?,
-            to_asset,
-            BigUint::from_str(&transaction.amount_out).ok()?,
-            SwapperProvider::NearIntents,
-        ))
+        let referral_fee = Self::referral_fee(transaction, &from_asset, &from_value);
+        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, BigUint::from_str(&transaction.amount_out).ok()?, SwapperProvider::NearIntents).with_referral_fee(referral_fee))
+    }
+
+    fn referral_fee(transaction: &ExplorerTransaction, from_asset: &AssetId, from_value: &BigUint) -> Option<TransactionSwapReferralFee> {
+        let app_fee = transaction.app_fees.iter().find(|app_fee| app_fee.recipient.eq_ignore_ascii_case(NEAR_REFERRAL_ADDRESS) && app_fee.fee > 0)?;
+        Some(TransactionSwapReferralFee {
+            asset_id: from_asset.clone(),
+            value: from_value * app_fee.fee / HUNDRED_PERCENT_IN_BPS,
+        })
     }
 
     fn deposit_mode(asset: &SwapperQuoteAsset) -> DepositMode {
@@ -376,7 +383,10 @@ where
 mod tests {
     use super::*;
     use crate::{SwapperError, SwapperQuoteAsset};
-    use primitives::{AssetId, Chain, asset_constants::TON_USDT_ASSET_ID};
+    use primitives::{
+        AssetId, Chain,
+        asset_constants::{POLYGON_USDC_ASSET_ID, TON_USDT_ASSET_ID},
+    };
     use serde_json::json;
 
     fn status(json: &str) -> SwapResult {
@@ -432,6 +442,23 @@ mod tests {
                 )),
                 eta_in_seconds: None,
             }
+        );
+    }
+
+    #[test]
+    fn swap_result_referral_fee() {
+        let metadata = status(include_str!("testdata/tx_status_polygon_usdc_to_litecoin.json")).metadata.unwrap();
+
+        assert_eq!(metadata.from_asset, POLYGON_USDC_ASSET_ID.clone());
+        assert_eq!(metadata.from_value, BigUint::from(70000000u64));
+        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Litecoin));
+        assert_eq!(metadata.to_value, BigUint::from(101438912u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: POLYGON_USDC_ASSET_ID.clone(),
+                value: BigUint::from(175000u64),
+            })
         );
     }
 

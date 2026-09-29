@@ -105,7 +105,6 @@ impl TransactionCoin {
             None => None,
         }
     }
-
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -140,6 +139,8 @@ struct OutboundDelayStage {
 pub struct TransactionStatusOutTx {
     pub id: String,
     pub chain: String,
+    #[serde(default)]
+    pub to_address: Option<String>,
     pub coins: Vec<TransactionCoin>,
 }
 

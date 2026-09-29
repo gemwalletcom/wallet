@@ -25,11 +25,13 @@ use crate::{
         path::decode_path,
     },
 };
-use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, decode_hex, swap::EVM_REFERRAL_ADDRESS};
+use primitives::{
+    AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, decode_hex,
+    swap::{EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS},
+};
 
 use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_from_transfers};
 
-const BASIS_POINTS: u64 = 10_000;
 const WITHDRAWAL_TOPIC: &str = "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65";
 
 pub struct UniversalRouterParser;
@@ -164,7 +166,7 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: Swap
             let native_gross = router_abi.router.and_then(|router| native_v4_value_from_receipt(router, from, &actions, receipt));
             let native_output = match native_referral_bips {
                 Some(bips) => native_gross.map(|gross| {
-                    let fee = gross * bips / U256::from(BASIS_POINTS);
+                    let fee = gross * bips / U256::from(HUNDRED_PERCENT_IN_BPS);
                     native_referral_value = Some(fee);
                     gross - fee
                 }),

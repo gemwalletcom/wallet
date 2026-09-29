@@ -6,11 +6,13 @@ use std::sync::LazyLock;
 
 use num_traits::ToPrimitive;
 use primitives::swap::SwapStatus;
-use primitives::{AssetId, Chain, TransactionSwapMetadata, known_assets::*};
+use primitives::{AssetId, Chain, TransactionSwapMetadata, TransactionSwapReferralFee, known_assets::*, swap::CHAINFLIP_REFERRAL_ADDRESS};
 use serde::{Deserialize, Serialize};
 
 use crate::chainflip::{broker::ChainflipAsset, chain::ChainflipChain};
 use crate::{SwapResult, SwapperChainAsset, SwapperError, SwapperProvider};
+
+const BROKER_FEE_TYPE: &str = "BROKER";
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -24,6 +26,10 @@ pub struct SwapTxResponse {
     pub swap: Option<SwapDetail>,
     pub refund_egress: Option<serde_json::Value>,
     estimated_durations_seconds: Option<EstimatedDurations>,
+    #[serde(default)]
+    brokers: Vec<SwapBroker>,
+    #[serde(default)]
+    fees: Vec<SwapFee>,
 }
 
 impl SwapTxResponse {
@@ -34,6 +40,17 @@ impl SwapTxResponse {
             "FAILED" => SwapStatus::Failed,
             _ => SwapStatus::Pending,
         }
+    }
+
+    fn referral_fee(&self) -> Option<TransactionSwapReferralFee> {
+        let broker = self.brokers.iter().find(|broker| broker.account == CHAINFLIP_REFERRAL_ADDRESS && broker.commission_bps > 0)?;
+        let total_bps: u32 = self.brokers.iter().map(|broker| broker.commission_bps).sum();
+        let fee = self.fees.iter().find(|fee| fee.fee_type == BROKER_FEE_TYPE)?;
+        let chain = fee.chain.parse::<ChainflipChain>().ok()?.to_chain();
+        Some(TransactionSwapReferralFee {
+            asset_id: chainflip_asset_to_asset_id(chain, &fee.asset)?,
+            value: &fee.amount * broker.commission_bps / total_bps,
+        })
     }
 
     fn eta_in_seconds(&self) -> Option<u32> {
@@ -60,6 +77,24 @@ impl SwapTxResponse {
             .to_u32()
             .filter(|seconds| *seconds > 0)
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SwapBroker {
+    account: String,
+    commission_bps: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SwapFee {
+    chain: String,
+    asset: String,
+    #[serde(rename = "type")]
+    fee_type: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    amount: BigUint,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -144,7 +179,7 @@ pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
             let to_asset = chainflip_asset_to_asset_id(tc, &response.dest_asset)?;
             let from_value = response.deposit.as_ref()?.amount.clone();
             let to_value = response.swap.as_ref().map(|swap| BigUint::from_str(&swap.swapped_output_amount)).transpose().ok()?.unwrap_or_default();
-            Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Chainflip))
+            Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Chainflip).with_referral_fee(response.referral_fee()))
         })
     } else {
         None
@@ -180,6 +215,23 @@ pub mod test {
                 )),
                 eta_in_seconds: None,
             }
+        );
+    }
+
+    #[test]
+    fn test_map_swap_result_broker_referral_fee() {
+        let metadata = map_swap_result(&swap_response(include_str!("./test/swap_sol_to_btc_broker_fee.json"))).metadata.unwrap();
+
+        assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Solana));
+        assert_eq!(metadata.from_value, BigUint::from(150000000u64));
+        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Bitcoin));
+        assert_eq!(metadata.to_value, BigUint::from(17567u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: ETHEREUM_USDC_ASSET_ID.clone(),
+                value: BigUint::from(50873u64),
+            })
         );
     }
 

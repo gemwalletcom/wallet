@@ -35,7 +35,8 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for AcrossParser
         let to_asset = AcrossDeployment::supported_asset_for_token(destination_chain, Address::from_word(relay_data.output_token))?;
         let from_value = u256_to_biguint(&(relay_data.input_amount * AcrossAsset::from_asset(&from_asset)?.scale));
         let to_value = u256_to_biguint(&(relay_data.output_amount * AcrossAsset::from_asset(&to_asset)?.scale));
-        let metadata = TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapProvider::Across);
+        let referral_fee = relay_data.referral_fee(&to_asset);
+        let metadata = TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapProvider::Across).with_referral_fee(referral_fee);
         let depositor = Address::from_word(relay_data.depositor).to_checksum(None);
         let recipient = Address::from_word(relay_data.recipient).to_checksum(None);
 
@@ -53,7 +54,7 @@ mod tests {
         parsers::ProtocolParsers,
     };
     use primitives::{
-        Chain, SwapProvider, TransactionSwapMetadata, TransactionType,
+        Chain, SwapProvider, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType,
         asset_constants::{BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, POLYGON_USDC_ASSET_ID},
         testkit::json_rpc::load_json_rpc_result,
     };
@@ -73,6 +74,7 @@ mod tests {
         assert_eq!(metadata.to_asset, BASE_USDC_ASSET_ID.clone());
         assert_eq!(metadata.to_value, BigUint::from(10500000u64));
         assert_eq!(metadata.provider, Some(SwapProvider::Across.id().to_string()));
+        assert_eq!(metadata.referral_fee, None);
     }
 
     #[test]
@@ -86,5 +88,12 @@ mod tests {
         assert_eq!(metadata.from_value, BigUint::from(5_000_000_000_000_000_000u64));
         assert_eq!(metadata.to_asset, ETHEREUM_USDC_ASSET_ID.clone());
         assert_eq!(metadata.to_value, BigUint::from(4_984_358u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: ETHEREUM_USDC_ASSET_ID.clone(),
+                value: BigUint::from(24921u64),
+            })
+        );
     }
 }

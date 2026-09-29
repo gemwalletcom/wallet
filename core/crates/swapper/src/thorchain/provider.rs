@@ -68,13 +68,15 @@ where
 
 impl ThorChain<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
-        let endpoint = rpc_provider.get_endpoint(Chain::Thorchain).ok()?;
-        Some(Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Thorchain))
+        let network = THORChainNetwork::Thorchain;
+        let endpoint = rpc_provider.get_endpoint(network.chain()).ok()?;
+        Some(Self::with_endpoint(endpoint, rpc_provider, network))
     }
 
     pub fn new_mayachain(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
-        let endpoint = rpc_provider.get_endpoint(Chain::Mayachain).ok()?;
-        Some(Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Mayachain))
+        let network = THORChainNetwork::Mayachain;
+        let endpoint = rpc_provider.get_endpoint(network.chain()).ok()?;
+        Some(Self::with_endpoint(endpoint, rpc_provider, network))
     }
 
     fn with_endpoint(endpoint: String, rpc_provider: Arc<dyn RpcProvider>, network: THORChainNetwork) -> Self {

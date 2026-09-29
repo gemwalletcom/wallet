@@ -8,3 +8,4 @@ pub const NEAR_REFERRAL_ADDRESS: &str = "0x0d9dab1a248f63b0a48965ba8435e4de7497a
 pub const APTOS_REFERRAL_ADDRESS: &str = "0xc09d385527743bb03ed7847bb9180b5ff2263d38d5a93f1c9b3068f8505f6488";
 pub const COSMOS_REFERRAL_ADDRESS: &str = "cosmos1knwywgnzs3a2p39k7337klt6daqrhyvnh8vz27";
 pub const INJECTIVE_REFERRAL_ADDRESS: &str = "inj1pkw6kx3y3a3mpfyfvkaggd0yme6f0g7uylvm5y";
+pub const CHAINFLIP_REFERRAL_ADDRESS: &str = "cFNDSNTJMRwL773EzoCLn3n2kFSvBHMhEoHDKaHdkDWUa6XVD";
