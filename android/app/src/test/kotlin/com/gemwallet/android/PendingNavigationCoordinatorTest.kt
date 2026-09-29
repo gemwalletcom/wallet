@@ -69,6 +69,19 @@ class PendingNavigationCoordinatorTest {
     }
 
     @Test
+    fun buildRoutes_inAppWalletConnectAction_opensThroughCoreAndInvokesTheHandler() = runTest {
+        val handler = RecordingWalletConnect()
+        val action = UrlAction.WalletConnect(WalletConnectLink.Request)
+        coEvery { navigationService.openAction(action) } returns GemCodeOutcome.WalletConnect(WalletConnectLink.Request)
+        coordinator.pendAction(action)
+
+        coordinator.buildRoutes(handler)
+
+        assertEquals(listOf("request"), handler.events)
+        assertNull(coordinator.pendingNavigation.value)
+    }
+
+    @Test
     fun buildRoutes_webDeepLink_storesRoute() = runTest {
         val uri = "https://gemwallet.com/join/gemcoder"
         coEvery { navigationService.openCode(uri) } returns GemCodeOutcome.Open(GemNavigationTarget.Rewards("gemcoder"))

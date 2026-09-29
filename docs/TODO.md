@@ -206,7 +206,6 @@ Found on 2026-09-29 by comparing the two apps' store adapters, lint passes and h
 
 ### Android
 
-- **CLN453** **M** **In-app links open payments and WalletConnect like iOS.** `WalletNavigator.openUrlAction` handles only deep links and returns false for payment and WalletConnect actions from in-app notifications and settings links, while iOS routes every action through `openAction`; Android routes them through the same code-outcome handling `PendingNavigationCoordinator` uses.
 
 ### Shared
 

@@ -74,6 +74,8 @@ import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
+import uniffi.gemstone.UrlAction
+import uniffi.gemstone.WalletConnectLink
 
 class WalletNavigatorTest {
     @Before
@@ -106,6 +108,18 @@ class WalletNavigatorTest {
         navigator.clearRouteMessage(SupportRoute)
 
         assertNull(navigator.routeMessage(SupportRoute))
+    }
+
+    @Test
+    fun openUrlAction_handsPaymentAndWalletConnectActionsToThePendingNavigation() {
+        val opened = mutableListOf<UrlAction>()
+        val navigator = navigatorWith(WalletRootRoute, SupportRoute, onOpenAction = { opened.add(it) })
+        val walletConnect = UrlAction.WalletConnect(WalletConnectLink.Request)
+
+        assertTrue(navigator.openUrlAction(walletConnect))
+
+        assertEquals(listOf<UrlAction>(walletConnect), opened)
+        assertEquals(listOf(WalletRootRoute, SupportRoute), navigator.backStack.toList())
     }
 
     @Test
@@ -536,6 +550,7 @@ class WalletNavigatorTest {
         navigationService: GemNavigationServiceInterface = mockk(relaxed = true),
         session: StateFlow<Session?> = MutableStateFlow(null),
         scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
+        onOpenAction: (UrlAction) -> Unit = {},
     ): WalletNavigator = WalletNavigator(
         backStack = NavBackStack(*routes),
         currentTab = mutableStateOf(WalletRoute),
@@ -544,5 +559,6 @@ class WalletNavigatorTest {
         navigationService = navigationService,
         session = session,
         scope = scope,
+        onOpenAction = onOpenAction,
     )
 }
