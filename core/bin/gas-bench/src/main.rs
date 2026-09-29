@@ -6,7 +6,6 @@ mod jito;
 mod solana_client;
 
 use clap::{Parser, ValueEnum};
-use prettytable::{Cell, Row, Table, format};
 use std::error::Error;
 use std::{collections::HashMap, sync::Arc, time::Duration};
 use tokio::time::interval;
@@ -214,26 +213,20 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
                 && details_for_block.len() >= 2
             {
                 println!("\n--- Block: {current_block_to_print} ---");
-                let mut table = Table::new();
-                table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
-                table.add_row(Row::new(vec![
-                    Cell::new("Source"),
-                    Cell::new("Base Fee (Gwei)"),
-                    Cell::new("Used Gas (%)"),
-                    Cell::new("Normal (Gwei)"),
-                    Cell::new("Fast (Gwei)"),
-                ]));
-
-                for detail in details_for_block {
-                    table.add_row(Row::new(vec![
-                        Cell::new(&detail.source_name),
-                        Cell::new(&detail.base_fee),
-                        Cell::new(&detail.gas_used_ratio.clone().unwrap_or_else(|| "N/A".to_string())),
-                        Cell::new(&detail.normal_fee),
-                        Cell::new(&detail.fast_fee),
-                    ]));
-                }
-                table.printstd();
+                let headers = ["Source", "Base Fee (Gwei)", "Used Gas (%)", "Normal (Gwei)", "Fast (Gwei)"];
+                let rows = details_for_block
+                    .iter()
+                    .map(|detail| {
+                        vec![
+                            detail.source_name.as_str(),
+                            detail.base_fee.as_str(),
+                            detail.gas_used_ratio.as_deref().unwrap_or("N/A"),
+                            detail.normal_fee.as_str(),
+                            detail.fast_fee.as_str(),
+                        ]
+                    })
+                    .collect::<Vec<_>>();
+                print_aligned_table(&headers, &rows);
                 last_printed_block_opt = Some(current_block_to_print);
             }
         }
@@ -313,19 +306,16 @@ fn print_solana_fee_data(fee_data: &SolanaFeeData, jito_res: &Option<Result<Jito
     }
     println!();
 
-    let mut table = Table::new();
-    table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
-
-    let mut header = vec![Cell::new("Level"), Cell::new("Priority (70%)"), Cell::new("Jito Tip (30%)"), Cell::new("Total")];
+    let mut headers = vec!["Level", "Priority (70%)", "Jito Tip (30%)", "Total"];
     if jito_available {
-        header.push(Cell::new("Jito Floor"));
+        headers.push("Jito Floor");
     }
-    table.add_row(Row::new(header));
 
     let levels = [("Normal", fee_data.priority_fees.normal, fee_data.jito_tips.normal), ("Fast", fee_data.priority_fees.fast, fee_data.jito_tips.fast)];
 
     let jito_data = jito_res.as_ref().and_then(|r| r.as_ref().ok());
 
+    let mut rows = Vec::new();
     for (level, priority_fee, jito_tip) in levels.iter() {
         let priority_lamports = priority_fee_to_lamports(*priority_fee, compute_units);
         let total_lamports = priority_lamports + jito_tip;
@@ -333,7 +323,7 @@ fn print_solana_fee_data(fee_data: &SolanaFeeData, jito_res: &Option<Result<Jito
         let jito_tip_display = lamports_to_sol(*jito_tip);
         let total_display = lamports_to_sol(total_lamports);
 
-        let mut row = vec![Cell::new(level), Cell::new(&priority_display), Cell::new(&jito_tip_display), Cell::new(&total_display)];
+        let mut row = vec![level.to_string(), priority_display, jito_tip_display, total_display];
 
         if let Some(jito) = jito_data {
             let jito_floor = match *level {
@@ -341,14 +331,13 @@ fn print_solana_fee_data(fee_data: &SolanaFeeData, jito_res: &Option<Result<Jito
                 "Fast" => jito.p75_lamports,
                 _ => 0,
             };
-            let jito_floor_display = lamports_to_sol(jito_floor);
-            row.push(Cell::new(&jito_floor_display));
+            row.push(lamports_to_sol(jito_floor));
         }
 
-        table.add_row(Row::new(row));
+        rows.push(row);
     }
 
-    table.printstd();
+    print_aligned_table(&headers, &rows);
 
     if let Some(Err(e)) = jito_res {
         println!("  (Jito API error: {})", e);
@@ -356,6 +345,29 @@ fn print_solana_fee_data(fee_data: &SolanaFeeData, jito_res: &Option<Result<Jito
     if let Some(Err(e)) = helius_res {
         println!("  (Helius API error: {})", e);
     }
+}
+
+fn print_aligned_table<T: AsRef<str>>(headers: &[&str], rows: &[Vec<T>]) {
+    for line in aligned_table_lines(headers, rows) {
+        println!("{line}");
+    }
+}
+
+fn aligned_table_lines<T: AsRef<str>>(headers: &[&str], rows: &[Vec<T>]) -> Vec<String> {
+    let mut widths = headers.iter().map(|header| header.chars().count()).collect::<Vec<_>>();
+    for row in rows {
+        for (width, cell) in widths.iter_mut().zip(row) {
+            *width = (*width).max(cell.as_ref().chars().count());
+        }
+    }
+
+    std::iter::once(format_table_row(headers.iter().copied(), &widths))
+        .chain(rows.iter().map(|row| format_table_row(row.iter().map(AsRef::as_ref), &widths)))
+        .collect()
+}
+
+fn format_table_row<'a>(cells: impl Iterator<Item = &'a str>, widths: &[usize]) -> String {
+    cells.zip(widths).map(|(cell, width)| format!("{cell:<width$}")).collect::<Vec<_>>().join("  ").trim_end().to_string()
 }
 
 async fn run(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -378,4 +390,17 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::aligned_table_lines;
+
+    #[test]
+    fn test_aligned_table_lines() {
+        let headers = ["Level", "Priority"];
+        let rows = vec![vec!["Normal", "12 µL/CU"], vec!["Fast", "100 µL/CU"]];
+
+        assert_eq!(aligned_table_lines(&headers, &rows), vec!["Level   Priority", "Normal  12 µL/CU", "Fast    100 µL/CU"]);
+    }
 }
