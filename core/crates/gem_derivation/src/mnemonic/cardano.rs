@@ -29,7 +29,7 @@ impl Drop for CardanoNode {
 }
 
 pub(super) fn derive_private_key(entropy: &[u8]) -> Result<Zeroizing<Vec<u8>>, AccountDerivationError> {
-    if entropy.len() < Mnemonic::MIN_ENTROPY_LEN {
+    if !Mnemonic::is_valid_entropy_len(entropy.len()) {
         return Err(AccountDerivationError::invalid_input("invalid Cardano mnemonic entropy length"));
     }
     let root = root_from_entropy(entropy)?;
@@ -147,10 +147,11 @@ mod tests {
 
     #[test]
     fn test_cardano_private_key_entropy_bounds() {
-        assert_eq!(derive_private_key(&[0u8; Mnemonic::MIN_ENTROPY_LEN]).unwrap().len(), PRIVATE_KEY_LEN);
-        assert_eq!(
-            derive_private_key(&[0u8; Mnemonic::MIN_ENTROPY_LEN - 1]).unwrap_err(),
-            AccountDerivationError::invalid_input("invalid Cardano mnemonic entropy length")
-        );
+        for len in [16, 20, 24, 28, 32] {
+            assert_eq!(derive_private_key(&vec![0u8; len]).unwrap().len(), PRIVATE_KEY_LEN);
+        }
+        for len in [0, 15, 17, 33] {
+            assert_eq!(derive_private_key(&vec![0u8; len]).unwrap_err(), AccountDerivationError::invalid_input("invalid Cardano mnemonic entropy length"));
+        }
     }
 }
