@@ -133,6 +133,11 @@ impl InTransitUpdater {
         info_with_fields!("in_transit confirmed", chain = chain.as_ref(), hash = hash, state = state.as_ref(), elapsed = elapsed);
 
         self.check_schedules().remove(&transaction.id);
+        let referral_fee = transaction.swap_metadata().and_then(|metadata| metadata.referral_fee);
+        let metadata = metadata.map(|metadata| match metadata.referral_fee {
+            Some(_) => metadata,
+            None => metadata.with_referral_fee(referral_fee),
+        });
         let metadata = metadata.and_then(|m| serde_json::to_value(m).ok());
         self.save_and_publish(chain, transaction, state, metadata).await?;
         Ok(true)

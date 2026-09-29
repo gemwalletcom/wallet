@@ -43,6 +43,10 @@ impl TransactionSwapMetadata {
         Self::from_provider_id(from_asset, from_value, to_asset, to_value, Some(provider.id().to_string()))
     }
 
+    pub fn with_referral_fee(self, referral_fee: Option<TransactionSwapReferralFee>) -> Self {
+        Self { referral_fee, ..self }
+    }
+
     pub fn from_provider_id(from_asset: AssetId, from_value: BigUint, to_asset: AssetId, to_value: BigUint, provider: Option<String>) -> Self {
         Self {
             from_asset,

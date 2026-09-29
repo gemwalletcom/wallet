@@ -283,7 +283,10 @@ impl Transaction {
             | TransactionType::PerpetualModifyPosition
             | TransactionType::EarnDeposit
             | TransactionType::EarnWithdraw => vec![self.asset_id.clone()],
-            TransactionType::Swap => self.swap_metadata().map(|metadata| vec![metadata.from_asset, metadata.to_asset]).unwrap_or_default(),
+            TransactionType::Swap => self
+                .swap_metadata()
+                .map(|metadata| [Some(metadata.from_asset), Some(metadata.to_asset), metadata.referral_fee.map(|fee| fee.asset_id)].into_iter().flatten().collect())
+                .unwrap_or_default(),
         };
         if let Some(metadata) = self.asset_transfers_metadata() {
             asset_ids.extend(metadata.asset_transfers.into_iter().map(|transfer| transfer.asset_id));

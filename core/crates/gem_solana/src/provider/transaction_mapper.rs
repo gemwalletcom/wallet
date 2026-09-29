@@ -2,7 +2,7 @@ use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
 
 use crate::{
-    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
+    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022, WSOL_TOKEN_ADDRESS,
     models::{BlockTransaction, BlockTransactions, Instruction},
 };
 use primitives::{
@@ -140,10 +140,7 @@ fn map_swap_metadata(transaction: &BlockTransaction, owner: &str, provider: Swap
         _ => return None,
     };
 
-    Some(TransactionSwapMetadata {
-        referral_fee: map_referral_fee(transaction, owner),
-        ..TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, provider)
-    })
+    Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, provider).with_referral_fee(map_referral_fee(transaction, owner)))
 }
 
 fn map_referral_fee(transaction: &BlockTransaction, owner: &str) -> Option<TransactionSwapReferralFee> {
@@ -153,7 +150,10 @@ fn map_referral_fee(transaction: &BlockTransaction, owner: &str) -> Option<Trans
     let token_changes = transaction.meta.get_token_balance_changes_by_owner(SOLANA_REFERRAL_ADDRESS);
     let native_change = transaction.get_balance_changes_by_owner(SOLANA_REFERRAL_ADDRESS);
     token_changes.into_iter().chain([native_change]).find(|change| change.amount.sign() == Sign::Plus).map(|change| TransactionSwapReferralFee {
-        asset_id: change.asset_id,
+        asset_id: match change.asset_id.token_id.as_deref() {
+            Some(WSOL_TOKEN_ADDRESS) => CHAIN.as_asset_id(),
+            _ => change.asset_id,
+        },
         value: change.amount.magnitude().clone(),
     })
 }

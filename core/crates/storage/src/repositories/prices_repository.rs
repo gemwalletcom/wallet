@@ -235,7 +235,11 @@ impl PricesRepository for DatabaseClient {
 
     fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError> {
         let price_ids = prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row.id.to_string()).collect::<Vec<_>>();
-        Ok(chart_price_at(self, &price_ids, at)?)
+        let mut points = Vec::with_capacity(price_ids.len());
+        for price_id in price_ids {
+            points.extend(chart_price_at(self, &price_id, at)?);
+        }
+        Ok(points.into_iter().max_by_key(|(created_at, _)| *created_at))
     }
 
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError> {

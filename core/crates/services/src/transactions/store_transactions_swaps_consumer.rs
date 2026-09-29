@@ -1,11 +1,11 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
+use chrono::{Duration, NaiveDateTime};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{AssetId, DAY, SwapProvider, Transaction, TransactionId, TransactionType, swap::SwapStatus};
-use storage::{AssetsRepository, Database, PricesRepository, TransactionSwapRecord, TransactionsRepository, TransactionsSwapsRepository};
+use storage::{AssetsRepository, Database, DatabaseError, PricesRepository, TransactionSwapRecord, TransactionsRepository, TransactionsSwapsRepository};
 use streamer::consumer::MessageConsumer;
 
 pub struct StoreTransactionsSwapsConsumer {
@@ -45,12 +45,12 @@ impl StoreTransactionsSwapsConsumer {
         let asset_id = asset_id.clone();
         let (assets, price) = self
             .database
-            .run(move |client| Ok::<_, storage::DatabaseError>((client.get_assets(vec![asset_id.clone()])?, client.get_price_at(&asset_id, at)?)))
+            .run(move |client| Ok::<_, DatabaseError>((client.get_assets(vec![asset_id.clone()])?, client.get_price_at(&asset_id, at)?)))
             .await?;
         let (Some(asset), Some((price_at, price))) = (assets.first(), price) else {
             return Ok(None);
         };
-        if at - price_at > chrono::Duration::from_std(DAY)? {
+        if at - price_at > Duration::from_std(DAY)? {
             return Ok(None);
         }
         Ok(Some(BigNumberFormatter::value_as_f64(&value.to_string(), asset.decimals as u32)? * price))

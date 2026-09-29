@@ -5,6 +5,7 @@ use crate::sql_types::{AssetId, SwapProviderRow, SwapStatusRow};
 #[derive(Debug, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::transactions_swaps)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
+#[diesel(treat_none_as_null = true)]
 pub(crate) struct NewTransactionSwapRow {
     pub transaction_id: i64,
     pub provider: SwapProviderRow,

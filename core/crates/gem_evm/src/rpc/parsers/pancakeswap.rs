@@ -10,7 +10,7 @@ use crate::{
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, universal_router::decode_execute_swap};
+use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_from_transfers, universal_router::decode_execute_swap};
 
 pub struct PancakeSwapParser;
 
@@ -24,7 +24,10 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for PancakeSwapP
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        let metadata = Self::try_map_transfer_swap(context).or_else(|| Self::try_map_command_swap(context))?;
+        let metadata = match Self::try_map_transfer_swap(context) {
+            Some(metadata) => metadata.with_referral_fee(referral_fee_from_transfers(*context.metadata.chain, context.metadata.receipt)),
+            None => Self::try_map_command_swap(context)?,
+        };
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }

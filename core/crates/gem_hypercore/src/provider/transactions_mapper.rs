@@ -4,8 +4,9 @@ use std::error::Error;
 
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
-use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionType, asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID};
+use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID};
 
+use crate::config::HypercoreConfig;
 use crate::models::action::ExchangeRequest;
 use crate::models::order::{FillDirection, UserFill};
 use crate::models::response::TransactionBroadcastResponse;
@@ -15,6 +16,9 @@ use crate::models::transaction_id::{HyperCoreActionId, HyperCoreTransactionId};
 use crate::perpetual_formatter::usdc_value;
 use crate::provider::perpetual_mapper::create_perpetual_asset_id;
 use crate::provider::transaction_state_mapper::prepare_perpetual_fill;
+
+const BUILDER_FEE_DENOMINATOR: f64 = 100_000.0;
+const BUILDER_FEE_RATE_TOLERANCE: f64 = 0.01;
 
 pub fn map_transaction_broadcast(request: &[u8], response: serde_json::Value) -> Result<String, Box<dyn Error + Sync + Send>> {
     let response = serde_json::from_value::<TransactionBroadcastResponse>(response)?;
@@ -84,9 +88,22 @@ fn map_spot_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &UserFill
     let to_asset = to_token.asset_id(Chain::HyperCore);
     let to_value = amount_to_value(to_amount, to_token.wei_decimals)?;
 
-    let metadata = serde_json::to_value(TransactionSwapMetadata::new(from_asset.clone(), from_value.clone(), to_asset, to_value, SwapProvider::Hyperliquid)).ok()?;
+    let referral_fee = map_referral_fee(&fills, quote_token, quote_amount);
+    let metadata = serde_json::to_value(TransactionSwapMetadata::new(from_asset.clone(), from_value.clone(), to_asset, to_value, SwapProvider::Hyperliquid).with_referral_fee(referral_fee)).ok()?;
 
     build_fill_transaction(address, last_fill, from_asset, TransactionType::Swap, fee, fee_asset_id, from_value, metadata)
+}
+
+fn map_referral_fee(fills: &[UserFill], quote_token: &SpotToken, quote_amount: f64) -> Option<TransactionSwapReferralFee> {
+    let builder_fee: f64 = fills.iter().filter_map(|fill| fill.builder_fee).sum();
+    let builder_rate = f64::from(HypercoreConfig::default().max_builder_fee_bps) / BUILDER_FEE_DENOMINATOR;
+    if builder_fee <= 0.0 || (builder_fee / quote_amount - builder_rate).abs() > builder_rate * BUILDER_FEE_RATE_TOLERANCE {
+        return None;
+    }
+    Some(TransactionSwapReferralFee {
+        asset_id: quote_token.asset_id(Chain::HyperCore),
+        value: amount_to_value(builder_fee, quote_token.wei_decimals)?,
+    })
 }
 
 fn map_spot_fee(fills: &[UserFill], base_token: &SpotToken, quote_token: &SpotToken) -> Option<(BigUint, primitives::AssetId)> {
@@ -232,6 +249,7 @@ mod tests {
             closed_pnl: 0.0,
             fee: 0.1,
             fee_token: None,
+            builder_fee: None,
             px: 42.0,
             dir: FillDirection::Other("Unknown".to_string()),
             time: 1,
@@ -288,6 +306,13 @@ mod tests {
         assert_eq!(metadata.to_asset, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
         assert_eq!(metadata.to_value, BigUint::from(1182450000u64));
         assert_eq!(metadata.provider.as_deref(), Some("hyperliquid"));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
+                value: BigUint::from(532102u64),
+            })
+        );
     }
 
     #[test]
@@ -310,5 +335,6 @@ mod tests {
         assert_eq!(metadata.to_asset, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
         assert_eq!(metadata.to_value, BigUint::from(30000000u64));
         assert_eq!(metadata.provider.as_deref(), Some("hyperliquid"));
+        assert_eq!(metadata.referral_fee, None);
     }
 }

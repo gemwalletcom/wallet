@@ -4,17 +4,18 @@ use std::str::FromStr;
 
 use crate::{
     address::ethereum_address_from_topic,
+    contracts::{IOkxDexRouter, OkxCommission},
     ethereum_address_checksum,
     rpc::{mapper::TRANSFER_TOPIC, model::Log},
+    u256::u256_to_biguint,
 };
-use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, contract_constants::EVM_NATIVE_TOKEN_ADDRESS};
+use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, contract_constants::EVM_NATIVE_TOKEN_ADDRESS, swap::EVM_REFERRAL_ADDRESS};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data};
+use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_for_token, referral_fee_from_transfers};
 
 pub(crate) const FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID: &str = "0xf2c42696";
 pub(crate) const FUNCTION_OKX_UNISWAP_V3_SWAP_TO: &str = "0x0d5f0e3b";
 pub(crate) const FUNCTION_OKX_UNXSWAP_BY_ORDER_ID: &str = "0x9871efa4";
-const OKX_SWAP_EVENT_TOPIC: &str = "0x1bb43f2da90e35f7b0cf38521ca95a49e68eb42fac49924930a5bd73cdf7576c";
 pub struct OkxParser;
 
 struct ReceiptTransfer {
@@ -24,21 +25,14 @@ struct ReceiptTransfer {
     value: String,
 }
 
-struct OkxSwapEvent {
-    from_token: String,
-    to_token: String,
-    user: String,
-    from_amount: BigUint,
-    to_amount: BigUint,
-}
-
 impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for OkxParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
         Self::matches_selector(&context.transaction.input)
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        let metadata = Self::try_map_receipt_swap(context)?;
+        let referral_fee = Self::referral_fee_from_commissions(context).or_else(|| referral_fee_from_transfers(*context.metadata.chain, context.metadata.receipt));
+        let metadata = Self::try_map_receipt_swap(context)?.with_referral_fee(referral_fee);
 
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
@@ -54,25 +48,29 @@ impl OkxParser {
     }
 
     fn try_map_receipt_event(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
-        let event = context
-            .metadata
-            .receipt
-            .logs
-            .iter()
-            .find(|log| log.topics.len() == 1 && log.topics.first().is_some_and(|topic| topic == OKX_SWAP_EVENT_TOPIC))
-            .and_then(|log| OkxSwapEvent::decode(&log.data))?;
-        let from = ethereum_address_checksum(&context.transaction.from).ok()?;
-        if event.user != from {
+        let event = context.metadata.receipt.logs.iter().find_map(Log::decode_event::<IOkxDexRouter::OrderRecord>)?;
+        if event.sender != Address::from_str(&context.transaction.from).ok()? {
             return None;
         }
 
-        let from_asset = Self::asset_id_from_token(context, &event.from_token)?;
-        let to_asset = Self::asset_id_from_token(context, &event.to_token)?;
+        let from_asset = Self::asset_id_from_token(context, &event.fromToken.to_checksum(None))?;
+        let to_asset = Self::asset_id_from_token(context, &event.toToken.to_checksum(None))?;
         if from_asset == to_asset {
             return None;
         }
 
-        Some(TransactionSwapMetadata::new(from_asset, event.from_amount.clone(), to_asset, event.to_amount, SwapProvider::Okx))
+        Some(TransactionSwapMetadata::new(from_asset, u256_to_biguint(&event.fromAmount), to_asset, u256_to_biguint(&event.returnAmount), SwapProvider::Okx))
+    }
+
+    fn referral_fee_from_commissions(context: &ParseContext<'_>) -> Option<TransactionSwapReferralFee> {
+        let referral = Address::from_str(EVM_REFERRAL_ADDRESS).ok()?;
+        context.metadata.receipt.logs.iter().find_map(|log| {
+            let commission = log
+                .decode_event::<IOkxDexRouter::CommissionFromTokenRecord>()
+                .map(OkxCommission::from)
+                .or_else(|| log.decode_event::<IOkxDexRouter::CommissionToTokenRecord>().map(OkxCommission::from))?;
+            (commission.referrer == referral).then(|| referral_fee_for_token(*context.metadata.chain, &commission.token.to_checksum(None), u256_to_biguint(&commission.amount)))?
+        })
     }
 
     fn try_map_transfer_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
@@ -125,36 +123,13 @@ impl ReceiptTransfer {
     }
 }
 
-impl OkxSwapEvent {
-    fn decode(data: &str) -> Option<Self> {
-        let data = data.trim_start_matches("0x");
-        let words = (0..data.len()).step_by(EVENT_WORD_SIZE).map(|start| data.get(start..start + EVENT_WORD_SIZE)).collect::<Option<Vec<_>>>()?;
-        let [from_token, to_token, user, from_amount, to_amount] = words.as_slice() else {
-            return None;
-        };
-
-        let from_token = ethereum_address_from_topic(&format!("0x{from_token}"))?;
-        let to_token = ethereum_address_from_topic(&format!("0x{to_token}"))?;
-        let user = ethereum_address_from_topic(&format!("0x{user}"))?;
-        let from_amount = ethereum_value_from_log_data(from_amount, 0, EVENT_WORD_SIZE)?;
-        let to_amount = ethereum_value_from_log_data(to_amount, 0, EVENT_WORD_SIZE)?;
-
-        Some(Self {
-            from_token,
-            to_token,
-            user,
-            from_amount,
-            to_amount,
-        })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::ethereum_address_checksum;
     use crate::rpc::model::{Log, Transaction, TransactionReceipt};
     use crate::rpc::parsers::ProtocolParsers;
+    use alloy_sol_types::SolEvent;
     use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{Chain, SwapProvider, TransactionState, asset_constants::BASE_USDC_TOKEN_ID, testkit::json_rpc::load_json_rpc_result};
@@ -243,7 +218,7 @@ mod tests {
             effective_gas_price: BigUint::from(230068341u32),
             logs: vec![Log {
                 address: "0x5e1f62dac767b0491e3ce72469c217365d5b48cc".to_string(),
-                topics: vec![OKX_SWAP_EVENT_TOPIC.to_string()],
+                topics: vec![IOkxDexRouter::OrderRecord::SIGNATURE_HASH.to_string()],
                 data: "0x00000000000000000000000052498f8d9791736f1d6398fe95ba3bd868114d10000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee000000000000000000000000adaf6f9b702718e3cec12f944be7df8b34e59e2f00000000000000000000000000000000000000000000043c33c1937564800000000000000000000000000000000000000000000000000000003798ea0b0a14fd".to_string(),
                 transaction_hash: None,
             }],
@@ -276,7 +251,7 @@ mod tests {
             effective_gas_price: BigUint::from(221977999u32),
             logs: vec![Log {
                 address: "0x5e1f62dac767b0491e3ce72469c217365d5b48cc".to_string(),
-                topics: vec![OKX_SWAP_EVENT_TOPIC.to_string()],
+                topics: vec![IOkxDexRouter::OrderRecord::SIGNATURE_HASH.to_string()],
                 data: "0x000000000000000000000000249e38ea4102d0cf8264d3701f1a0e39c4f2dc3b000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee000000000000000000000000adaf6f9b702718e3cec12f944be7df8b34e59e2f000000000000000000000000000000000000000001c47e5d3263f59c9d062a020000000000000000000000000000000000000000000000000020595fca29f3dc".to_string(),
                 transaction_hash: None,
             }],

@@ -3,12 +3,13 @@ use crate::{APTOS_NATIVE_COIN, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_
 use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::DateTime;
 use num_bigint::{BigInt, BigUint};
-use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionType};
+use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionSwapReferralFee, TransactionType, swap::APTOS_REFERRAL_ADDRESS};
 use std::error::Error;
 
 const PANORA_SWAP_EVENT: &str = "panora_swap";
 const PANORA_SWAP_EVENT_ADDRESS: &str = "0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c";
 const PANORA_SWAP_SUMMARY_EVENT: &str = "PanoraSwapSummaryEvent";
+const PANORA_FEE_INTEGRATOR_EVENT: &str = "FeeEventIntegrator";
 const APTOS_NATIVE_METADATA_ADDRESS: &str = "0xa";
 
 #[derive(serde::Deserialize)]
@@ -19,6 +20,29 @@ struct PanoraSwapSummaryEventData {
     output_token_address: String,
     #[serde(deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
     output_token_amount: BigUint,
+}
+
+#[derive(serde::Deserialize)]
+struct PanoraFeeIntegratorEventData {
+    integrator_address: String,
+    token_address: String,
+    #[serde(deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    token_amount: BigUint,
+}
+
+fn map_referral_fee(events: &[Event], chain: Chain, sender: &str) -> Option<TransactionSwapReferralFee> {
+    if sender == APTOS_REFERRAL_ADDRESS {
+        return None;
+    }
+    events
+        .iter()
+        .filter(|event| event.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) && event.event_type.contains(PANORA_FEE_INTEGRATOR_EVENT))
+        .filter_map(|event| serde_json::from_value::<PanoraFeeIntegratorEventData>(event.data.clone()?).ok())
+        .find(|data| data.integrator_address == APTOS_REFERRAL_ADDRESS)
+        .map(|data| TransactionSwapReferralFee {
+            asset_id: map_token_address_to_asset_id(chain, &data.token_address),
+            value: data.token_amount,
+        })
 }
 
 fn map_token_address_to_asset_id(chain: Chain, token_address: &str) -> AssetId {
@@ -71,6 +95,7 @@ fn called_contract(transaction: &Transaction) -> Option<String> {
 fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Chain) -> Option<PrimitivesTransaction> {
     let meta = extract_meta(&transaction)?;
     let contract = called_contract(&transaction);
+    let referral_fee = map_referral_fee(&events, chain, &meta.sender);
 
     if let Some(summary) = events
         .iter()
@@ -92,7 +117,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
             },
         ];
 
-        let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), Some(SwapProvider::Panora))?;
+        let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), Some(SwapProvider::Panora))?.with_referral_fee(referral_fee);
         let asset_id = swap.from_asset.clone();
         let metadata = serde_json::to_value(&swap).ok();
         let to = meta.sender.clone();
@@ -136,7 +161,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         .find(|event| event.event_type.contains(PANORA_SWAP_EVENT))
         .and_then(|event| if event.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) { Some(SwapProvider::Panora) } else { None });
 
-    let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), provider)?;
+    let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), provider)?.with_referral_fee(referral_fee);
     let asset_id = swap.from_asset.clone();
     let metadata = serde_json::to_value(&swap).ok();
     let to = meta.sender.clone();
@@ -276,6 +301,27 @@ mod tests {
         assert_eq!(metadata.to_asset, Chain::Aptos.as_asset_id());
         assert_eq!(metadata.to_value, BigUint::from(120590251u64));
         assert_eq!(metadata.provider.unwrap(), "panora");
+        assert_eq!(metadata.referral_fee, None);
+    }
+
+    #[test]
+    fn test_map_transaction_swap_panora_referral_fee() {
+        let transaction: Transaction = serde_json::from_str(include_str!("../../testdata/transaction_swap_panora_referral_fee.json")).unwrap();
+
+        let mapped = map_transaction(transaction).unwrap();
+        let metadata: primitives::TransactionSwapMetadata = serde_json::from_value(mapped.metadata.unwrap()).unwrap();
+
+        assert_eq!(mapped.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.from_asset, Chain::Aptos.as_asset_id());
+        assert_eq!(metadata.from_value, BigUint::from(500000000u64));
+        assert_eq!(metadata.to_value, BigUint::from(3782787u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::Aptos.as_asset_id(),
+                value: BigUint::from(1249510u64),
+            })
+        );
     }
 
     #[test]

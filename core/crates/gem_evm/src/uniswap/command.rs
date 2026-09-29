@@ -182,6 +182,11 @@ impl Transfer {
         let data = (self.token, self.recipient, self.value);
         TransferType::abi_encode_sequence(&data)
     }
+
+    pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
+        let (token, recipient, value) = TransferType::abi_decode_sequence(data)?;
+        Ok(Self { token, recipient, value })
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -195,6 +200,11 @@ impl PayPortion {
     pub fn abi_encode(&self) -> Vec<u8> {
         let data = (self.token, self.recipient, self.bips);
         PayPortionType::abi_encode_sequence(&data)
+    }
+
+    pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
+        let (token, recipient, bips) = PayPortionType::abi_decode_sequence(data)?;
+        Ok(Self { token, recipient, bips })
     }
 }
 
