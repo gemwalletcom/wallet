@@ -92,10 +92,7 @@ impl GemCandleSession {
     }
 
     pub fn on_candle_update(&self, update: ChartCandleUpdate) -> Self {
-        let Some(symbol) = &self.symbol else {
-            return self.clone();
-        };
-        match rules::merged_candles(self.candles.clone(), update, symbol, &self.period) {
+        match self.symbol.as_ref().and_then(|symbol| rules::merged_candles(&self.candles, update, symbol, &self.period)) {
             Some(candles) => Self {
                 state: GemLoadState::Data,
                 candles,

@@ -31,7 +31,6 @@ use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTrig
 use crate::services::transfer::GemTransferData;
 use num_bigint::BigUint;
 use primitives::{PerpetualConfirmData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, PerpetualType};
-use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 
 use crate::models::asset::wallet_default_assets;
@@ -707,26 +706,17 @@ pub fn symbol(perpetual: &Perpetual) -> String {
     perpetual.name.clone()
 }
 
-pub fn merged_candles(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, symbol: &str, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
+pub fn merged_candles(candles: &[ChartCandleStick], update: ChartCandleUpdate, symbol: &str, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
     (!candles.is_empty() && update.coin == symbol && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
 }
 
-fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) -> Vec<ChartCandleStick> {
-    let Some(last_date) = candles.last().map(|last| last.date) else {
-        return candles;
-    };
-    let mut merged = candles;
-    match candle.date.cmp(&last_date) {
-        Ordering::Less => return merged,
-        Ordering::Equal => {
-            merged.pop();
-        }
-        Ordering::Greater => {
-            merged.remove(0);
-        }
+fn merge_candle(candles: &[ChartCandleStick], candle: ChartCandleStick) -> Vec<ChartCandleStick> {
+    match candles {
+        [] => Vec::new(),
+        [.., last] if candle.date < last.date => candles.to_vec(),
+        [kept @ .., last] if candle.date == last.date => kept.iter().cloned().chain([candle]).collect(),
+        [_, kept @ ..] => kept.iter().cloned().chain([candle]).collect(),
     }
-    merged.push(candle);
-    merged
 }
 
 pub const MARKETS_LIMIT: u32 = 100;
@@ -2122,18 +2112,18 @@ mod tests {
     fn test_merge_candle() {
         let candles = vec![ChartCandleStick::mock(1000, 100.0), ChartCandleStick::mock(2000, 100.0)];
 
-        let replaced = merge_candle(candles.clone(), ChartCandleStick::mock(2000, 105.0));
+        let replaced = merge_candle(&candles, ChartCandleStick::mock(2000, 105.0));
         assert_eq!(replaced.len(), 2);
         assert_eq!(replaced[0].date, candles[0].date);
         assert_eq!(replaced[1].close, 105.0);
 
-        let appended = merge_candle(candles.clone(), ChartCandleStick::mock(3000, 110.0));
+        let appended = merge_candle(&candles, ChartCandleStick::mock(3000, 110.0));
         assert_eq!(appended.len(), 2);
         assert_eq!(appended[0].date, candles[1].date);
         assert_eq!(appended[1].close, 110.0);
 
-        assert_eq!(merge_candle(candles.clone(), ChartCandleStick::mock(500, 90.0)), candles);
-        assert_eq!(merge_candle(Vec::new(), ChartCandleStick::mock(500, 90.0)), Vec::new());
+        assert_eq!(merge_candle(&candles, ChartCandleStick::mock(500, 90.0)), candles);
+        assert_eq!(merge_candle(&[], ChartCandleStick::mock(500, 90.0)), Vec::new());
 
         let coin = symbol(&Perpetual::mock());
         let update = ChartCandleUpdate {
@@ -2141,10 +2131,10 @@ mod tests {
             interval: "30m".to_string(),
             candle: ChartCandleStick::mock(3000, 110.0),
         };
-        assert_eq!(merged_candles(candles.clone(), update.clone(), &coin, &ChartPeriod::Day), Some(appended));
+        assert_eq!(merged_candles(&candles, update.clone(), &coin, &ChartPeriod::Day), Some(appended));
         assert_eq!(
             merged_candles(
-                candles.clone(),
+                &candles,
                 ChartCandleUpdate {
                     interval: "1m".to_string(),
                     ..update.clone()
@@ -2155,8 +2145,8 @@ mod tests {
             None,
             "a candle for another interval is not this chart's"
         );
-        assert_eq!(merged_candles(candles, ChartCandleUpdate { coin: "OTHER".to_string(), ..update.clone() }, &coin, &ChartPeriod::Day), None);
-        assert_eq!(merged_candles(Vec::new(), update, &coin, &ChartPeriod::Day), None, "a streamed candle before the first load is not an empty chart");
+        assert_eq!(merged_candles(&candles, ChartCandleUpdate { coin: "OTHER".to_string(), ..update.clone() }, &coin, &ChartPeriod::Day), None);
+        assert_eq!(merged_candles(&[], update, &coin, &ChartPeriod::Day), None, "a streamed candle before the first load is not an empty chart");
     }
 
     #[test]
