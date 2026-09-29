@@ -7,18 +7,14 @@ on:
       - "core/**"
       - "rust-toolchain.toml"
       - ".github/actions/**"
-      - ".github/docker-bake.hcl"
       - ".github/workflows/core-ci.yml"
-      - ".github/workflows/publish-containers.yml"
   pull_request:
     branches: ["main"]
     paths:
       - "core/**"
       - "rust-toolchain.toml"
       - ".github/actions/**"
-      - ".github/docker-bake.hcl"
       - ".github/workflows/core-ci.yml"
-      - ".github/workflows/publish-containers.yml"
 
 env:
   CARGO_TERM_COLOR: always
@@ -26,10 +22,8 @@ env:
   RUSTC_WRAPPER: "sccache"
 
 jobs:
-  checks:
+  lint:
     runs-on: ubuntu-latest
-    outputs:
-      publish_containers: ${{ steps.container_changes.outputs.publish }}
     defaults:
       run:
         working-directory: core
@@ -37,35 +31,38 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Detect container changes
-        id: container_changes
-        if: ${{ github.event_name == 'push' }}
-        shell: bash
-        working-directory: .
-        env:
-          BEFORE_SHA: ${{ github.event.before }}
-        run: |
-          git fetch --no-tags --depth=1 --filter=blob:none origin "$BEFORE_SHA"
-          if git diff --quiet "$BEFORE_SHA" "$GITHUB_SHA" -- \
-            .github/docker-bake.hcl \
-            .github/workflows/publish-containers.yml \
-            core \
-            ':(exclude)core/**/*.md' \
-            ':(exclude)core/**/tests/**' \
-            ':(exclude)core/**/benches/**'; then
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Setup Rust
         uses: ./.github/actions/setup-rust-ci
 
       - name: Run Lint
         run: just lint
 
+  unit_test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust-ci
+
       - name: Run tests
         run: just test
+
+  integration_build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust-ci
 
       - name: Build all integration tests only
         run: just build-integration-tests
@@ -120,11 +117,3 @@ jobs:
         run: just test-database
         env:
           DATABASE_URL: "postgres://postgres:postgres@localhost/postgres"
-
-  publish_containers:
-    if: ${{ github.event_name == 'push' && needs.checks.outputs.publish_containers == 'true' }}
-    needs: [checks, check_schema]
-    permissions:
-      contents: read
-      packages: write
-    uses: ./.github/workflows/publish-containers.yml

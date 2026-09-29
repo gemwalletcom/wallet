@@ -1,7 +1,12 @@
 name: Publish Containers CI
 
 on:
-  workflow_call:
+  push:
+    branches: ["main"]
+    paths:
+      - "core/**"
+      - ".github/workflows/publish-containers.yml"
+      - ".github/docker-bake.hcl"
   workflow_dispatch:
 
 permissions:
@@ -13,7 +18,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
-  group: publish-containers-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   build:

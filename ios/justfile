@@ -148,11 +148,8 @@ test-integration-without-building: reset-simulator (_test-integration "test-with
 test-upgrade COMMIT:
     @bash ./scripts/upgrade-test.sh {{COMMIT}}
 
-start-simulator:
+boot-simulator:
     @xcrun simctl boot "{{SIMULATOR_NAME}}" 2>/dev/null || true
-
-boot-simulator: start-simulator
-    @xcrun simctl bootstatus "{{SIMULATOR_NAME}}" -b
 
 wait-simulator:
     #!/usr/bin/env bash
