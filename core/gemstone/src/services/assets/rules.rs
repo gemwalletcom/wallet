@@ -10,8 +10,8 @@ use primitives::{
 use super::model::{
     AssetList, GemAssetAction, GemAssetBalanceScope, GemAssetDetailRow, GemAssetDetailSection, GemAssetDetailsState, GemAssetFilter, GemAssetItemRow, GemAssetItemTrailing, GemAssetMenuAction, GemAssetMenuIcon, GemAssetMenuInput,
     GemAssetMenuRow, GemAssetNetworkDestination, GemAssetOption, GemAssetRowStyle, GemAssetRowText, GemAssetSectionIds, GemAssetSubtitleStyle, GemAssetText, GemAssetTitleStyle, GemAssetTrailingStyle, GemFeeAmount, GemHeaderActions,
-    GemHeaderButton, GemHeaderButtonAction, GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle, GemSelectAssetType,
-    GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchState, GemWalletSearchView,
+    GemHeaderButton, GemHeaderButtonAction, GemNetworkAssetIds, GemNetworkAssetSections, GemPriceRow, GemRowText, GemSearchListRow, GemSelectAssetFlow, GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetState, GemSelectAssetTitle,
+    GemSelectAssetType, GemSelectRowAction, GemWalletSearchInput, GemWalletSearchLimits, GemWalletSearchResultsInput, GemWalletSearchResultsView, GemWalletSearchState, GemWalletSearchView, WalletSearchCounts,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT};
 use crate::config::stake::EARN_OFFERED;
@@ -29,7 +29,8 @@ use crate::services::balance::rules::{balance_amount, balance_resource_rows};
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow, GemBalanceRow, GemBalanceRowValue};
 use crate::services::empty_state::{GemEmptyState, GemEmptyStateAction, GemEmptyStateKind, screen_empty_state};
 use crate::services::localization::GemLocalizedText;
-use crate::services::nft::rules::nft_chains;
+use crate::services::nft::rules::{self as nft_rules, nft_chains};
+use crate::services::perpetual::model::{perpetual_market_items, perpetual_market_sections};
 use crate::services::price::rules::has_price;
 use crate::services::price_alert::rules::{displayed_price_alert_ids, price_alert_toggle};
 use crate::services::swap::GemSwapPairSuggestion;
@@ -500,7 +501,7 @@ pub fn asset_sections(ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular
     })
 }
 
-pub fn wallet_search_state(counts: &GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchState {
+pub fn wallet_search_state(counts: &WalletSearchCounts, is_loading: bool) -> GemWalletSearchState {
     let shown = counts.recents + counts.pinned_assets + counts.assets + counts.pinned_perpetuals + counts.perpetuals + counts.lists + counts.nfts;
     GemWalletSearchState {
         phase: match (shown > 0, is_loading) {
@@ -518,22 +519,58 @@ pub fn wallet_search_state(counts: &GemWalletSearchCounts, is_loading: bool) -> 
     }
 }
 
-pub fn wallet_search_view(counts: &GemWalletSearchCounts, query: &str, is_loading: bool, shows_recents: bool, shows_perpetuals: bool, shows_add_token: bool) -> GemWalletSearchView {
-    let counts = GemWalletSearchCounts {
-        recents: if shows_recents { counts.recents } else { 0 },
-        pinned_perpetuals: if shows_perpetuals { counts.pinned_perpetuals } else { 0 },
-        perpetuals: if shows_perpetuals { counts.perpetuals } else { 0 },
-        ..*counts
+pub fn wallet_search_view(input: GemWalletSearchInput, shows_recents: bool, shows_perpetuals: bool, shows_add_token: bool) -> GemWalletSearchView {
+    let assets = asset_sections(input.asset_ids, input.pinned_asset_ids, false, Vec::new());
+    let perpetuals = perpetual_market_sections(if shows_perpetuals { input.perpetuals } else { Vec::new() });
+    let lists: Vec<GemSearchListRow> = input.lists.into_iter().map(GemSearchListRow::new).collect();
+    let nfts = nft_rules::entries(nft_rules::search_collections(input.collections, &input.query));
+    let counts = WalletSearchCounts {
+        recents: if shows_recents { input.recents } else { 0 },
+        pinned_assets: assets.pinned.len() as u32,
+        assets: assets.assets.len() as u32,
+        pinned_perpetuals: perpetuals.pinned.len() as u32,
+        perpetuals: perpetuals.markets.len() as u32,
+        lists: lists.len() as u32,
+        nfts: nfts.len() as u32,
     };
-    let limits = wallet_search_limits(query);
+    let assets_limit = assets_preview_limit(&input.query);
     GemWalletSearchView {
-        state: wallet_search_state(&counts, is_loading),
-        has_more_assets: limits.has_more_assets(counts.assets),
-        has_more_perpetuals: limits.has_more_perpetuals(counts.perpetuals),
-        has_more_nfts: limits.has_more_nfts(counts.nfts),
+        state: wallet_search_state(&counts, input.is_loading),
+        pinned_asset_ids: assets.pinned,
+        asset_ids: preview(assets.assets, assets_limit),
+        has_more_assets: counts.assets > assets_limit,
+        pinned_perpetuals: perpetuals.pinned,
+        perpetuals: preview(perpetuals.markets, PERPETUALS_PREVIEW_LIMIT),
+        has_more_perpetuals: counts.perpetuals > PERPETUALS_PREVIEW_LIMIT,
+        lists,
+        nfts: preview(nfts, NFTS_PREVIEW_LIMIT),
+        has_more_nfts: counts.nfts > NFTS_PREVIEW_LIMIT,
         empty_state: search_assets_empty_state(shows_add_token),
-        limits,
     }
+}
+
+pub fn wallet_search_results_view(input: GemWalletSearchResultsInput, shows_perpetuals: bool) -> GemWalletSearchResultsView {
+    let assets = asset_sections(input.asset_ids, input.pinned_asset_ids, false, Vec::new());
+    let perpetuals = match shows_perpetuals && input.scope.includes_perpetuals() {
+        true => preview(perpetual_market_items(input.perpetuals), ASSET_RESULTS_LIMIT as u32),
+        false => Vec::new(),
+    };
+    let counts = WalletSearchCounts {
+        pinned_assets: assets.pinned.len() as u32,
+        assets: assets.assets.len() as u32,
+        perpetuals: perpetuals.len() as u32,
+        ..Default::default()
+    };
+    GemWalletSearchResultsView {
+        state: wallet_search_state(&counts, input.is_loading),
+        pinned_asset_ids: assets.pinned,
+        asset_ids: assets.assets,
+        perpetuals,
+    }
+}
+
+fn preview<T>(items: Vec<T>, limit: u32) -> Vec<T> {
+    items.into_iter().take(limit as usize).collect()
 }
 
 pub fn search_assets_empty_state(shows_add_token: bool) -> GemEmptyState {
@@ -541,16 +578,16 @@ pub fn search_assets_empty_state(shows_add_token: bool) -> GemEmptyState {
 }
 
 pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
-    let assets = match query.trim().is_empty() {
+    GemWalletSearchLimits {
+        fetch: assets_preview_limit(query) + 1,
+        results: ASSET_RESULTS_LIMIT as u32,
+    }
+}
+
+fn assets_preview_limit(query: &str) -> u32 {
+    match query.trim().is_empty() {
         true => ASSETS_INITIAL_LIMIT,
         false => ASSETS_SEARCH_LIMIT,
-    };
-    GemWalletSearchLimits {
-        assets,
-        fetch: assets + 1,
-        perpetuals: PERPETUALS_PREVIEW_LIMIT,
-        nfts: NFTS_PREVIEW_LIMIT,
-        results: ASSET_RESULTS_LIMIT as u32,
     }
 }
 
@@ -1001,6 +1038,7 @@ mod tests {
     use super::*;
     use crate::services::assets::model::GemHeaderButtonKind;
     use crate::services::price_alert::rules::GemPriceAlertToggle;
+    use crate::services::search::GemSearchScope;
 
     #[test]
     fn test_each_select_flow_decides_its_row_action_and_recent_activity() {
@@ -1230,7 +1268,7 @@ mod tests {
 
     #[test]
     fn test_the_search_screen_shows_results_whenever_any_section_has_something() {
-        let empty = GemWalletSearchCounts {
+        let empty = WalletSearchCounts {
             recents: 0,
             pinned_assets: 0,
             assets: 0,
@@ -1243,17 +1281,17 @@ mod tests {
         assert_eq!(wallet_search_state(&empty, false).phase, GemSelectAssetState::Empty);
         assert_eq!(wallet_search_state(&empty, true).phase, GemSelectAssetState::Loading);
         assert_eq!(
-            wallet_search_state(&GemWalletSearchCounts { nfts: 1, ..empty }, true).phase,
+            wallet_search_state(&WalletSearchCounts { nfts: 1, ..empty }, true).phase,
             GemSelectAssetState::Idle,
             "a section with results is not a loading screen"
         );
-        assert_eq!(wallet_search_state(&GemWalletSearchCounts { recents: 2, ..empty }, false).phase, GemSelectAssetState::Idle);
+        assert_eq!(wallet_search_state(&WalletSearchCounts { recents: 2, ..empty }, false).phase, GemSelectAssetState::Idle);
         for counts in [
-            GemWalletSearchCounts { lists: 1, ..empty },
-            GemWalletSearchCounts { assets: 1, ..empty },
-            GemWalletSearchCounts { pinned_assets: 1, ..empty },
-            GemWalletSearchCounts { pinned_perpetuals: 1, ..empty },
-            GemWalletSearchCounts { perpetuals: 1, ..empty },
+            WalletSearchCounts { lists: 1, ..empty },
+            WalletSearchCounts { assets: 1, ..empty },
+            WalletSearchCounts { pinned_assets: 1, ..empty },
+            WalletSearchCounts { pinned_perpetuals: 1, ..empty },
+            WalletSearchCounts { perpetuals: 1, ..empty },
         ] {
             assert_eq!(wallet_search_state(&counts, false).phase, GemSelectAssetState::Idle, "every section keeps the empty state away");
         }
@@ -1261,7 +1299,7 @@ mod tests {
 
     #[test]
     fn test_a_section_shows_exactly_when_it_counted_something() {
-        let counts = GemWalletSearchCounts {
+        let counts = WalletSearchCounts {
             recents: 0,
             pinned_assets: 0,
             assets: 3,
@@ -1277,39 +1315,184 @@ mod tests {
         assert!(!state.shows_recents && !state.shows_perpetuals && !state.shows_nfts);
     }
 
+    fn search_input(query: &str) -> GemWalletSearchInput {
+        GemWalletSearchInput {
+            wallet: Wallet::mock(),
+            query: query.to_string(),
+            is_loading: false,
+            recents: 0,
+            asset_ids: Vec::new(),
+            pinned_asset_ids: Vec::new(),
+            perpetuals: Vec::new(),
+            lists: Vec::new(),
+            collections: Vec::new(),
+        }
+    }
+
+    fn token_ids(count: usize) -> Vec<AssetId> {
+        (0..count).map(|index| AssetId::from_token(Chain::Ethereum, &format!("0x{index}"))).collect()
+    }
+
+    fn perpetual(name: &str, is_pinned: bool) -> primitives::perpetual::PerpetualData {
+        primitives::perpetual::PerpetualData {
+            perpetual: primitives::Perpetual {
+                id: primitives::PerpetualId::new(primitives::PerpetualProvider::Hypercore, name),
+                name: name.to_string(),
+                ..primitives::Perpetual::mock()
+            },
+            asset: Asset::mock(),
+            metadata: primitives::PerpetualMetadata { is_pinned },
+        }
+    }
+
+    fn perpetual_names(items: &[crate::services::perpetual::model::GemPerpetualMarketItem]) -> Vec<&str> {
+        items.iter().map(|item| item.data.perpetual.name.as_str()).collect()
+    }
+
     #[test]
-    fn test_the_wallet_search_view_hides_what_the_wallet_cannot_show() {
-        let counts = GemWalletSearchCounts {
+    fn test_the_wallet_search_lists_pinned_assets_in_full_and_previews_the_rest() {
+        let ids = token_ids(14);
+        let view = wallet_search_view(
+            GemWalletSearchInput {
+                asset_ids: ids.clone(),
+                pinned_asset_ids: vec![ids[5].clone()],
+                ..search_input("")
+            },
+            false,
+            false,
+            false,
+        );
+
+        assert_eq!(view.pinned_asset_ids, vec![ids[5].clone()]);
+        assert_eq!(view.asset_ids.len(), 12, "the preview shows the initial limit");
+        assert!(!view.asset_ids.contains(&ids[5]), "a pinned asset is not repeated in the preview");
+        assert!(view.has_more_assets, "13 unpinned assets are more than the preview shows");
+        assert!(view.state.shows_pinned && view.state.shows_assets);
+
+        let pinned_only = wallet_search_view(
+            GemWalletSearchInput {
+                asset_ids: ids.clone(),
+                pinned_asset_ids: ids,
+                ..search_input("")
+            },
+            false,
+            false,
+            false,
+        );
+        assert!(pinned_only.asset_ids.is_empty() && !pinned_only.has_more_assets, "pinned assets never count towards more");
+    }
+
+    #[test]
+    fn test_the_wallet_search_hides_what_the_wallet_cannot_show() {
+        let input = GemWalletSearchInput {
             recents: 2,
-            pinned_assets: 0,
-            assets: 30,
-            pinned_perpetuals: 1,
-            perpetuals: 1,
-            lists: 0,
-            nfts: 0,
+            perpetuals: vec![perpetual("BTC", true), perpetual("ETH", false)],
+            ..search_input("")
         };
 
-        let view = wallet_search_view(&counts, "", false, false, false, true);
-        assert!(!view.state.shows_recents);
-        assert!(!view.state.shows_perpetuals && !view.state.shows_pinned_perpetuals);
-        assert!(view.state.shows_assets);
-        assert!(view.has_more_assets, "more assets than the preview shows");
-        assert_eq!(view.empty_state.actions, vec![GemEmptyStateAction::AddCustomToken]);
+        let hidden = wallet_search_view(input.clone(), false, false, true);
+        assert!(!hidden.state.shows_recents && !hidden.state.shows_perpetuals && !hidden.state.shows_pinned);
+        assert!(hidden.pinned_perpetuals.is_empty() && hidden.perpetuals.is_empty());
+        assert_eq!(hidden.state.phase, GemSelectAssetState::Empty);
+        assert_eq!(hidden.empty_state.actions, vec![GemEmptyStateAction::AddCustomToken]);
 
-        let shown = wallet_search_view(&counts, "", false, true, true, false);
-        assert!(shown.state.shows_recents && shown.state.shows_perpetuals);
+        let shown = wallet_search_view(input, true, true, false);
+        assert!(shown.state.shows_recents && shown.state.shows_perpetuals && shown.state.shows_pinned_perpetuals);
+        assert_eq!(perpetual_names(&shown.pinned_perpetuals), vec!["BTC"]);
+        assert_eq!(perpetual_names(&shown.perpetuals), vec!["ETH"]);
         assert!(shown.empty_state.actions.is_empty(), "a wallet that cannot add a token is not offered one");
     }
 
     #[test]
-    fn test_wallet_search_limits_widen_while_searching_and_fetch_one_more_than_shown() {
-        let initial = wallet_search_limits("  ");
-        let searching = wallet_search_limits("btc");
+    fn test_the_wallet_search_previews_perpetuals_and_collections() {
+        let perpetuals = ["A", "B", "C", "D"].map(|name| perpetual(name, false)).to_vec();
+        let collections = ["Punks", "Punk Apes", "Punk Cats", "Punk Dogs"]
+            .map(|name| primitives::NFTData::mock_with(name, primitives::VerificationStatus::Verified, 2))
+            .to_vec();
+        let input = GemWalletSearchInput {
+            perpetuals,
+            collections,
+            ..search_input("punk")
+        };
 
-        assert_eq!((initial.assets, initial.fetch), (12, 13));
-        assert_eq!((searching.assets, searching.fetch), (25, 26));
-        assert_eq!((initial.perpetuals, initial.nfts, initial.results), (3, 3, 100));
-        assert_eq!((searching.perpetuals, searching.nfts, searching.results), (3, 3, 100));
+        let view = wallet_search_view(input.clone(), false, true, false);
+        assert_eq!(perpetual_names(&view.perpetuals), vec!["A", "B", "C"]);
+        assert!(view.has_more_perpetuals);
+        assert_eq!(view.nfts.len(), 3);
+        assert!(view.has_more_nfts);
+
+        let browsing = wallet_search_view(GemWalletSearchInput { query: " ".to_string(), ..input }, false, true, false);
+        assert!(browsing.nfts.is_empty() && !browsing.state.shows_nfts, "collections are searched only for a typed query");
+    }
+
+    #[test]
+    fn test_a_matching_list_alone_is_a_result() {
+        let list = primitives::AssetList {
+            id: "stocks".to_string(),
+            name: "Stocks".to_string(),
+            count: 2,
+        };
+        let view = wallet_search_view(
+            GemWalletSearchInput {
+                lists: vec![list.clone()],
+                ..search_input("")
+            },
+            false,
+            false,
+            false,
+        );
+
+        assert_eq!(view.lists, vec![GemSearchListRow::new(list)]);
+        assert!(view.state.shows_lists);
+        assert_eq!(view.state.phase, GemSelectAssetState::Idle);
+    }
+
+    #[test]
+    fn test_search_results_list_perpetuals_only_for_a_list_the_wallet_can_trade() {
+        let list = GemSearchScope::List { id: "trending".to_string() };
+        let input = |scope: GemSearchScope| GemWalletSearchResultsInput {
+            wallet: Wallet::mock(),
+            scope,
+            is_loading: false,
+            asset_ids: Vec::new(),
+            pinned_asset_ids: Vec::new(),
+            perpetuals: vec![perpetual("BTC", true), perpetual("ETH", false)],
+        };
+
+        let listed = wallet_search_results_view(input(list.clone()), true);
+        assert_eq!(perpetual_names(&listed.perpetuals), vec!["BTC", "ETH"], "a pinned perpetual stays in the list result");
+        assert!(listed.state.shows_perpetuals && !listed.state.shows_pinned);
+
+        assert!(wallet_search_results_view(input(list), false).perpetuals.is_empty());
+        let typed = wallet_search_results_view(input(GemSearchScope::All), true);
+        assert!(typed.perpetuals.is_empty() && !typed.state.shows_perpetuals);
+        assert_eq!(typed.state.phase, GemSelectAssetState::Empty);
+    }
+
+    #[test]
+    fn test_search_results_split_pinned_assets_and_show_them_all() {
+        let ids = token_ids(30);
+        let view = wallet_search_results_view(
+            GemWalletSearchResultsInput {
+                wallet: Wallet::mock(),
+                scope: GemSearchScope::All,
+                is_loading: true,
+                asset_ids: ids.clone(),
+                pinned_asset_ids: vec![ids[0].clone()],
+                perpetuals: Vec::new(),
+            },
+            true,
+        );
+
+        assert_eq!(view.pinned_asset_ids, vec![ids[0].clone()]);
+        assert_eq!(view.asset_ids.len(), 29);
+        assert_eq!(view.state.phase, GemSelectAssetState::Idle, "rows already shown are not replaced by a loading screen");
+    }
+
+    #[test]
+    fn test_wallet_search_limits_widen_while_searching_and_fetch_one_more_than_shown() {
+        assert_eq!(wallet_search_limits("  "), GemWalletSearchLimits { fetch: 13, results: 100 });
+        assert_eq!(wallet_search_limits("btc"), GemWalletSearchLimits { fetch: 26, results: 100 });
     }
 
     #[test]

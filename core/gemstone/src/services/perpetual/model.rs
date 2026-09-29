@@ -190,9 +190,14 @@ impl PerpetualMarketLine {
     }
 }
 
-#[uniffi::export]
-pub fn perpetual_market_rows(markets: Vec<PerpetualData>) -> Vec<GemAssetItemRow> {
-    markets.iter().map(|data| rules::market_row(&data.perpetual, &data.asset).item_row()).collect()
+pub fn perpetual_market_items(markets: Vec<PerpetualData>) -> Vec<GemPerpetualMarketItem> {
+    markets
+        .into_iter()
+        .map(|data| GemPerpetualMarketItem {
+            row: rules::market_row(&data.perpetual, &data.asset).item_row(),
+            data,
+        })
+        .collect()
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -209,13 +214,7 @@ pub struct GemPerpetualMarketSections {
 
 #[uniffi::export]
 pub fn perpetual_market_sections(markets: Vec<PerpetualData>) -> GemPerpetualMarketSections {
-    let (pinned, markets): (Vec<_>, Vec<_>) = markets
-        .into_iter()
-        .map(|data| GemPerpetualMarketItem {
-            row: rules::market_row(&data.perpetual, &data.asset).item_row(),
-            data,
-        })
-        .partition(|item| item.data.metadata.is_pinned);
+    let (pinned, markets): (Vec<_>, Vec<_>) = perpetual_market_items(markets).into_iter().partition(|item| item.data.metadata.is_pinned);
     GemPerpetualMarketSections { pinned, markets }
 }
 

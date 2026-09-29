@@ -11,6 +11,7 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
+import com.gemwallet.android.domains.asset.assets
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -103,8 +104,8 @@ class NetworkAssetsViewModel @Inject constructor(
             pinned = active.filter { it.metadata.isPinned }.map { it.asset.id.toIdentifier() },
             hidden = hidden.map { it.asset.id.toIdentifier() },
         )
-        val byId = (active + hidden).associateBy { it.asset.id.toIdentifier() }
-        val assets = { assetIds: List<String> -> assetIds.mapNotNull(byId::get).toAssetInfoDataAggregates(currency) }
+        val rows = active + hidden
+        val assets = { assetIds: List<String> -> rows.assets(assetIds) { it.asset.id }.toAssetInfoDataAggregates(currency) }
         return NetworkAssetGroups(
             pinned = assets(ids.pinned),
             unpinned = assets(ids.unpinned),

@@ -11,10 +11,10 @@ import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.search.toGem
 import com.gemwallet.android.domains.search.walletSearchTagOf
-import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -23,13 +23,13 @@ import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelect
 import com.gemwallet.android.features.assets.viewmodels.select.models.ListSelectSearch
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectSearch
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -42,10 +42,9 @@ import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemPerpetualMarketItem
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
-import uniffi.gemstone.GemWalletSearchCounts
+import uniffi.gemstone.GemWalletSearchResultsInput
+import uniffi.gemstone.GemWalletSearchResultsView
 import uniffi.gemstone.perpetualMarketQuery
-import uniffi.gemstone.perpetualMarketRows
-import uniffi.gemstone.walletSearchState
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -79,50 +78,36 @@ class AssetsResultsViewModel @Inject constructor(
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
-    val previewPerpetuals: StateFlow<List<GemPerpetualMarketItem>> = when (scope) {
-        is WalletSearchTag.List ->
-            combine(
-                perpetualMarketQuery(searchKey).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) }.map { markets ->
-                    markets.map { it.toGem() }.let { data -> data.zip(perpetualMarketRows(data), ::GemPerpetualMarketItem) }
-                },
-                getSession().map { session -> session?.wallet?.let { service.showPerpetuals(it.type.toGem(), it.chainIds) } ?: false },
-            ) { items, show ->
-                if (show) items.take(resultsLimit()) else emptyList()
-            }
-                .flowOn(ioDispatcher)
-                .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val perpetuals: Flow<List<PerpetualData>> = perpetualMarketQuery(searchKey).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) }
 
-        WalletSearchTag.All ->
-            MutableStateFlow(emptyList<GemPerpetualMarketItem>())
+    private val content: StateFlow<SearchContent<GemWalletSearchResultsView>?> = combine(getSession(), isSearching, pinned, unpinned, perpetuals) { session, searching, pinned, unpinned, perpetuals ->
+        session?.wallet?.let { wallet ->
+            val assets = pinned + unpinned
+            val input = GemWalletSearchResultsInput(
+                wallet = wallet.toGem(),
+                scope = scope.toGem(),
+                isLoading = searching,
+                assetIds = assets.map { it.asset.id.toIdentifier() },
+                pinnedAssetIds = pinned.map { it.asset.id.toIdentifier() },
+                perpetuals = perpetuals.map { it.toGem() },
+            )
+            SearchContent(service.walletSearchResultsView(input), assets)
+        }
     }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val state: StateFlow<GemSelectAssetState> = combine(
-        pinned,
-        unpinned,
-        previewPerpetuals,
-        isSearching,
-    ) { pinned, assets, perpetuals, searching ->
-        val counts = GemWalletSearchCounts(
-            recents = 0u,
-            pinnedAssets = pinned.size.toUInt(),
-            assets = assets.size.toUInt(),
-            pinnedPerpetuals = 0u,
-            perpetuals = perpetuals.size.toUInt(),
-            lists = 0u,
-            nfts = 0u,
-        )
-        walletSearchState(counts, searching).phase
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GemSelectAssetState.LOADING)
+    val state: StateFlow<GemSelectAssetState> = content.select(viewModelScope, GemSelectAssetState.LOADING) { it.view.state.phase }
+    val pinnedAssets: StateFlow<List<AssetInfoDataAggregate>> = content.select(viewModelScope, emptyList()) { it.assets(it.view.pinnedAssetIds) }
+    val assets: StateFlow<List<AssetInfoDataAggregate>> = content.select(viewModelScope, emptyList()) { it.assets(it.view.assetIds) }
+    val perpetualItems: StateFlow<List<GemPerpetualMarketItem>> = content.select(viewModelScope, emptyList()) { it.view.perpetuals }
 
     init {
         queryState.setTextAndPlaceCursorAtEnd(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty())
         search(pull = false)
     }
 
-    override fun assetsSearchLimit(query: String): Int = resultsLimit(query)
-
-    private fun resultsLimit(query: String = queryState.text.toString()): Int = service.walletSearchLimits(query).results.toInt()
+    override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).results.toInt()
 
     fun refresh() = search(pull = true)
 
@@ -140,10 +125,6 @@ class AssetsResultsViewModel @Inject constructor(
         }
     }
 
-    fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
-        val item = previewPerpetuals.value.firstOrNull { it.data.perpetual.id == perpetualId.toIdentifier() } ?: return@launch
-        setPerpetualPinned(perpetualId, item.row.title, !item.data.metadata.isPinned).onSuccess { emitToast(it.message(context)) }
-    }
 }
 
 private fun searchKeyOf(savedStateHandle: SavedStateHandle, service: GemAssetSelectionServiceInterface): String {

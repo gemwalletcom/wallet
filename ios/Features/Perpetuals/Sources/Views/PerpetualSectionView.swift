@@ -2,7 +2,6 @@
 
 import struct Gemstone.GemAssetItemRow
 import struct Gemstone.GemPerpetualMarketItem
-import func Gemstone.perpetualMarketRows
 import GemstonePrimitives
 import Primitives
 import SwiftUI
@@ -11,16 +10,6 @@ public struct PerpetualSectionView: View {
     private let items: [(data: PerpetualData, row: GemAssetItemRow)]
     private let onPin: (PerpetualData) -> Void
     private let onSelect: (Asset) -> Void
-
-    public init(
-        perpetuals: [PerpetualData],
-        onPin: @escaping (PerpetualData) -> Void,
-        onSelect: @escaping (Asset) -> Void,
-    ) {
-        items = Array(zip(perpetuals, perpetualMarketRows(markets: perpetuals.map { $0.toGem() })))
-        self.onPin = onPin
-        self.onSelect = onSelect
-    }
 
     public init(
         items: [GemPerpetualMarketItem],

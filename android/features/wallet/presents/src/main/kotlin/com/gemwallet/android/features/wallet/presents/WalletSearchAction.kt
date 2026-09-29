@@ -3,7 +3,7 @@ package com.gemwallet.android.features.wallet.presents
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAssetId
-import com.wallet.core.primitives.PerpetualId
+import uniffi.gemstone.GemPerpetualMarketItem
 
 sealed interface WalletSearchAction {
     data object AddAsset : WalletSearchAction
@@ -20,5 +20,5 @@ sealed interface WalletSearchAction {
     data class OpenList(val listId: String, val title: String) : WalletSearchAction
     data class PinAsset(val assetId: AssetId) : WalletSearchAction
     data class AddToWallet(val assetId: AssetId) : WalletSearchAction
-    data class TogglePerpetualPin(val perpetualId: PerpetualId) : WalletSearchAction
+    data class TogglePerpetualPin(val item: GemPerpetualMarketItem) : WalletSearchAction
 }

@@ -118,13 +118,13 @@ The target for every item below: a model that only renames or regroups a Core re
 ### Shared components, second round
 
 - **VM262** **M** **Screens count their own lists so Core can pick the phase.**
-  - **iOS:** `SelectAssetSceneViewModel` (`GemAssetSectionCounts`), `WalletSearchSceneViewModel` and `AssetsResultsSceneViewModel` (`GemWalletSearchCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
-  - **Android:** `BaseSelectAssetViewModel`, `WalletSearchViewModel`, `AssetsResultsViewModel`, `PerpetualsViewModel` and `loadError(..., candles.isNotEmpty())` in `PerpetualViewModel`.
+  - **iOS:** `SelectAssetSceneViewModel` (`GemAssetSectionCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
+  - **Android:** `BaseSelectAssetViewModel`, `PerpetualsViewModel` and `loadError(..., candles.isNotEmpty())` in `PerpetualViewModel`.
   - **Expected:** the Core call that builds the screen reads the list sizes through the store port it already has and returns sections and phase together; the counting and the `hasRows` arguments go.
-- **VM264** **S** **Search result sections are split in the apps.**
-  - **iOS:** `WalletSearchSections.from` splits pinned and other assets (`AssetsSections.from`) and calls `perpetualMarketSections`; `WalletHomeState` re-assembles the home sections, header and flags.
-  - **Android:** `WalletSearchViewModel` and `WalletViewModel` split the same way; `WalletSummary` re-assembles the home state.
-  - **Expected:** the search and home view states carry finished sections; the splitting types go.
+- **VM264** **S** **Wallet home sections are split in the apps.**
+  - **iOS:** `WalletSceneViewModel` splits pinned and other assets (`AssetsSections.from`); `WalletHomeState` re-assembles the home sections, header and flags.
+  - **Android:** `WalletViewModel` splits the same way; `WalletSummary` re-assembles the home state.
+  - **Expected:** the home view state carries finished sections, as `GemWalletSearchView` does for the wallet search; the splitting types go.
 - **VM267** **S** **Simulation payload fields are mapped twice.**
   - **iOS:** `SimulationPayloadFieldViewModel` (with `SimulationPayloadFieldKind` and `models(for:)`) maps text, address and timestamp values and wires address taps.
   - **Android:** `SimulationPayloadFieldsContent` does the same per value case.
