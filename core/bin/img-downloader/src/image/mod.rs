@@ -1,8 +1,13 @@
 mod decoder;
 mod encoder;
 
-use std::error::Error;
+use std::{
+    error::Error,
+    fs,
+    path::{Path, PathBuf},
+};
 
+use ::image::GenericImageView;
 use primitives::ImageType;
 use reqwest::{
     Client,
@@ -11,6 +16,21 @@ use reqwest::{
 use tokio::time::{Duration, sleep};
 
 use crate::error::ImageDownloadError;
+
+pub fn invalid_image_paths(paths: &[PathBuf], supported_types: &[ImageType]) -> Vec<PathBuf> {
+    paths.iter().filter(|path| !is_valid_asset_image(path, supported_types)).cloned().collect()
+}
+
+fn is_valid_asset_image(path: &Path, supported_types: &[ImageType]) -> bool {
+    let Ok(bytes) = fs::read(path) else {
+        return false;
+    };
+    let Ok(image) = decoder::decode_bytes(&bytes, supported_types) else {
+        return false;
+    };
+    let (width, height) = image.dimensions();
+    width > 0 && width == height
+}
 
 pub async fn download_image(client: &Client, url: &str, image_size: u32, retries: usize, supported_types: &[ImageType]) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
     decoder::ensure_url_supported(url, supported_types)?;
@@ -45,7 +65,24 @@ async fn download_and_convert(client: &Client, url: &str, image_size: u32, suppo
 #[cfg(test)]
 mod tests {
     use super::*;
+    use image::{DynamicImage, ImageFormat};
     use reqwest::Error as RequestError;
+    use std::io::Cursor;
+
+    #[test]
+    fn test_is_valid_asset_image() {
+        let valid_path = std::env::temp_dir().join(format!("img-downloader-valid-{}.png", std::process::id()));
+        let invalid_path = std::env::temp_dir().join(format!("img-downloader-invalid-{}.png", std::process::id()));
+        fs::write(&valid_path, encoder::encode_png(DynamicImage::new_rgba8(400, 200), 256).unwrap()).unwrap();
+        let mut invalid_bytes = Cursor::new(Vec::new());
+        DynamicImage::new_rgba8(400, 200).write_to(&mut invalid_bytes, ImageFormat::Png).unwrap();
+        fs::write(&invalid_path, invalid_bytes.into_inner()).unwrap();
+
+        assert_eq!(invalid_image_paths(&[valid_path.clone(), invalid_path.clone()], &[ImageType::Png]), vec![invalid_path.clone()]);
+
+        fs::remove_file(valid_path).unwrap();
+        fs::remove_file(invalid_path).unwrap();
+    }
 
     #[tokio::test]
     async fn test_download_image_preserves_request_error() {
