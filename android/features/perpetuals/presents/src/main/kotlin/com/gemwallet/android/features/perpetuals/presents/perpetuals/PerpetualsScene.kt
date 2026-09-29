@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
 import com.gemwallet.android.features.perpetuals.presents.components.previewPerpetual
@@ -60,15 +60,18 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemHeaderActions
+import uniffi.gemstone.GemHeaderButton
 import uniffi.gemstone.GemHeaderButtonAction
+import uniffi.gemstone.GemHeaderButtonKind
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPerpetualMarketItem
 import uniffi.gemstone.GemPerpetualMarketSection
+import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemValueHeader
-import uniffi.gemstone.PerpetualBalance
-import uniffi.gemstone.perpetualBalanceHeader
+import uniffi.gemstone.GemValueTone
 
 @Composable
 internal fun PerpetualsScene(
@@ -130,6 +133,8 @@ internal fun PerpetualsScene(
                                     AssetHeadActions(balanceHeader.actions ?: return@ValueListHead) { action ->
                                         when (action) {
                                             is GemHeaderButtonAction.Deposit -> onAction(PerpetualsAction.Deposit(action.asset.toPrimitives().id))
+
+                                            is GemHeaderButtonAction.SelectDepositAsset -> onAction(PerpetualsAction.SelectDepositAsset(action.assetIds.mapNotNull { it.toAssetId() }))
 
                                             is GemHeaderButtonAction.Withdraw -> onAction(PerpetualsAction.Withdraw(action.asset.toPrimitives().id))
 
@@ -245,9 +250,14 @@ fun PreviewPerpetualsScene() {
             query = androidx.compose.foundation.text.input.TextFieldState(),
             sections = emptyList(),
             isSearching = false,
-            balanceHeader = perpetualBalanceHeader(
-                PerpetualBalance(available = 45_000.0, reserved = 92_000.0, withdrawable = 42_000.0),
-                WalletType.Multicoin.toGem(),
+            balanceHeader = GemValueHeader(
+                icon = null,
+                title = GemLocalizedText.Text("$137,000.00"),
+                subtitle = GemRowText(GemLocalizedText.Text("Available: $45,000.00"), GemValueTone.NEUTRAL),
+                subtitleIcon = null,
+                actions = GemHeaderActions.Buttons(
+                    listOf(GemHeaderButton(GemHeaderButtonKind.DEPOSIT, GemHeaderButtonAction.SelectDepositAsset(emptyList()), isEnabled = true)),
+                ),
             ),
             positions = emptyList(),
             unpinnedPerpetuals = listOf(

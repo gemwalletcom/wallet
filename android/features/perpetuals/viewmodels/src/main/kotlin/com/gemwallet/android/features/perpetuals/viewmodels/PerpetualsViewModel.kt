@@ -50,7 +50,6 @@ import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.PerpetualProvider
-import uniffi.gemstone.perpetualBalanceHeader
 import uniffi.gemstone.perpetualMarketQuery
 import uniffi.gemstone.perpetualMarketSections
 import uniffi.gemstone.perpetualPositionRows
@@ -114,8 +113,8 @@ class PerpetualsViewModel @Inject constructor(
             .flatMapLatest { perpetualWalletBalanceQuery(it.wallet.id, HypercoreUSDC.id) }
             .map { it?.balance }
             .distinctUntilChanged(),
-        getSession().filterNotNull().map { it.wallet.type }.distinctUntilChanged(),
-    ) { balance, walletType -> perpetualBalanceHeader(balance?.toGem(), walletType.toGem()) }
+        getSession().filterNotNull().map { it.wallet }.distinctUntilChanged(),
+    ) { balance, wallet -> service.balanceHeader(wallet.id.id, wallet.type.toGem(), balance?.toGem()) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val recent: StateFlow<List<Asset>> = getSession()
