@@ -107,7 +107,7 @@ swap:
     midgard:
       url: "https://midgard.mayachain.info"
   mayan:
-    url: "https://explorer-api.mayan.finance/v3"
+    url: "https://explorer-api.mayan.finance"
   nearintents:
     url: "https://1click.chaindefuser.com"
     explorer:
@@ -414,7 +414,7 @@ indexer:
       secret: ""
   aptos:
     graphql:
-      url: "https://api.mainnet.aptoslabs.com/v1/graphql"
+      url: "https://api.mainnet.aptoslabs.com"
       key:
         secret: ""
     archive:

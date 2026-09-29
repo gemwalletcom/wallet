@@ -1,1 +1,89 @@
-{"state":"COMPLETED","swapId":"948784","srcAsset":"USDC","srcChain":"Ethereum","destAsset":"BTC","destChain":"Bitcoin","destAddress":"bc1qpgh96l6v2ny87ka6hfkhx8kq02v9z6yffmegz2","srcChainRequiredBlockConfirmations":5,"estimatedDurationsSeconds":{"swap":12,"deposit":60,"egress":390},"estimatedDurationSeconds":462,"brokers":[{"account":"cFJZVRaybb2PBwxTiAiRLiQfHY4KPB3RpJK22Q7Fhqk979aCH","commissionBps":5},{"account":"cFNDSNTJMRwL773EzoCLn3n2kFSvBHMhEoHDKaHdkDWUa6XVD","commissionBps":45}],"fees":[{"chain":"Ethereum","asset":"USDC","type":"NETWORK","amount":"500000"},{"chain":"Ethereum","asset":"USDC","type":"BROKER","amount":"497500"},{"chain":"Ethereum","asset":"USDC","type":"INGRESS","amount":"0"},{"chain":"Bitcoin","asset":"BTC","type":"EGRESS","amount":"528"}],"deposit":{"amount":"100000000","txRef":"0x8e5b889acd7c4f27c967e06fc7c62e893cc1009f0b0f484d68c6e20123724d2d","witnessedAt":1761318066000,"witnessedBlockIndex":"10177616-1310"},"swap":{"originalInputAmount":"100000000","remainingInputAmount":"997500","swappedInputAmount":"99002500","swappedIntermediateAmount":"0","swappedOutputAmount":"89715","livePriceExecutionDeltaPercentage":-1.08,"regular":{"inputAmount":"99002500","outputAmount":"89715","scheduledAt":1761318066000,"scheduledBlockIndex":"10177616-1309","executedAt":1761318078000,"executedBlockIndex":"10177618-1909","retryCount":0}},"swapEgress":{"amount":"89187","scheduledAt":1761318078000,"scheduledBlockIndex":"10177618-1910","witnessedAt":1761319206000,"witnessedBlockIndex":"10177805-1831","txRef":"c1b2bc233cd9e81aaf6a5b49bc375c8a7f0d2b918d42c63c6a5b051c97adfcf7"},"fillOrKillParams":{"refundAddress":"0x0f01e8306cd0b63f4bdb9b3e2ce2dd62c459bc01","minPrice":"0.0000089551990000000009","retryDurationBlocks":150},"lastStatechainUpdateAt":1790655687930}
+{
+  "state": "COMPLETED",
+  "swapId": "948784",
+  "srcAsset": "USDC",
+  "srcChain": "Ethereum",
+  "destAsset": "BTC",
+  "destChain": "Bitcoin",
+  "destAddress": "bc1qpgh96l6v2ny87ka6hfkhx8kq02v9z6yffmegz2",
+  "srcChainRequiredBlockConfirmations": 5,
+  "estimatedDurationsSeconds": {
+    "swap": 12,
+    "deposit": 60,
+    "egress": 390
+  },
+  "estimatedDurationSeconds": 462,
+  "brokers": [
+    {
+      "account": "cFJZVRaybb2PBwxTiAiRLiQfHY4KPB3RpJK22Q7Fhqk979aCH",
+      "commissionBps": 5
+    },
+    {
+      "account": "cFNDSNTJMRwL773EzoCLn3n2kFSvBHMhEoHDKaHdkDWUa6XVD",
+      "commissionBps": 45
+    }
+  ],
+  "fees": [
+    {
+      "chain": "Ethereum",
+      "asset": "USDC",
+      "type": "NETWORK",
+      "amount": "500000"
+    },
+    {
+      "chain": "Ethereum",
+      "asset": "USDC",
+      "type": "BROKER",
+      "amount": "497500"
+    },
+    {
+      "chain": "Ethereum",
+      "asset": "USDC",
+      "type": "INGRESS",
+      "amount": "0"
+    },
+    {
+      "chain": "Bitcoin",
+      "asset": "BTC",
+      "type": "EGRESS",
+      "amount": "528"
+    }
+  ],
+  "deposit": {
+    "amount": "100000000",
+    "txRef": "0x8e5b889acd7c4f27c967e06fc7c62e893cc1009f0b0f484d68c6e20123724d2d",
+    "witnessedAt": 1761318066000,
+    "witnessedBlockIndex": "10177616-1310"
+  },
+  "swap": {
+    "originalInputAmount": "100000000",
+    "remainingInputAmount": "997500",
+    "swappedInputAmount": "99002500",
+    "swappedIntermediateAmount": "0",
+    "swappedOutputAmount": "89715",
+    "livePriceExecutionDeltaPercentage": -1.08,
+    "regular": {
+      "inputAmount": "99002500",
+      "outputAmount": "89715",
+      "scheduledAt": 1761318066000,
+      "scheduledBlockIndex": "10177616-1309",
+      "executedAt": 1761318078000,
+      "executedBlockIndex": "10177618-1909",
+      "retryCount": 0
+    }
+  },
+  "swapEgress": {
+    "amount": "89187",
+    "scheduledAt": 1761318078000,
+    "scheduledBlockIndex": "10177618-1910",
+    "witnessedAt": 1761319206000,
+    "witnessedBlockIndex": "10177805-1831",
+    "txRef": "c1b2bc233cd9e81aaf6a5b49bc375c8a7f0d2b918d42c63c6a5b051c97adfcf7"
+  },
+  "fillOrKillParams": {
+    "refundAddress": "0x0f01e8306cd0b63f4bdb9b3e2ce2dd62c459bc01",
+    "minPrice": "0.0000089551990000000009",
+    "retryDurationBlocks": 150
+  },
+  "lastStatechainUpdateAt": 1790655687930
+}

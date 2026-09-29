@@ -37,7 +37,7 @@ mod tests {
         const TRANSACTION_HASH: &str = "0x8867073b70abb2d5700e6ff4bea1e4e196786ca99f72737d080ae13f40bf59f1";
 
         let client = MockClient::new().with_get(|path| {
-            assert_eq!(path, format!("/swap/trx/{TRANSACTION_HASH}"));
+            assert_eq!(path, format!("/v3/swap/trx/{TRANSACTION_HASH}"));
             Ok(include_bytes!("../test/bnb_to_mon_swift.json").to_vec())
         });
 
