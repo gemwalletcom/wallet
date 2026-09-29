@@ -1,11 +1,12 @@
 use gem_hypercore::{models::websocket::HyperliquidSubscription, perpetual_formatter::PerpetualFormatter};
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
-use primitives::known_assets::ARBITRUM_USDC;
+use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
 use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
+use crate::services::error::GemServiceError;
 use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
@@ -35,9 +36,15 @@ impl GemPerpetual {
         }
     }
 
-    pub fn deposit_asset(&self) -> Asset {
+    pub fn bridge_asset(&self) -> Asset {
         match self.provider {
             PerpetualProvider::Hypercore => ARBITRUM_USDC.clone(),
+        }
+    }
+
+    pub fn deposit_value(&self, asset: &Asset, value: GemBigInt) -> GemBigInt {
+        match self.provider {
+            PerpetualProvider::Hypercore => PerpetualFormatter::truncate_usdc_value(value, asset.decimals),
         }
     }
 
@@ -50,11 +57,19 @@ impl GemPerpetual {
         }
     }
 
-    pub fn deposit_recipient(&self) -> GemRecipient {
-        let address = match self.provider {
-            PerpetualProvider::Hypercore => HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS.to_string(),
-        };
-        GemRecipient { address, ..self.recipient() }
+    pub fn deposit_recipient(&self, asset: &Asset, owner: GemRecipient) -> Result<GemRecipient, GemServiceError> {
+        if asset.id == self.bridge_asset().id {
+            Ok(GemRecipient {
+                address: HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS.to_string(),
+                ..self.recipient()
+            })
+        } else if asset.id == HYPERCORE_SPOT_USDC.id {
+            Ok(owner)
+        } else {
+            Err(GemServiceError::Unsupported {
+                msg: format!("perpetual deposit from {}", asset.id),
+            })
+        }
     }
 
     pub fn format_size(&self, size: f64, decimals: i32) -> String {

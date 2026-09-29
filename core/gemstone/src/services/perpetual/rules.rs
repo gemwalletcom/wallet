@@ -5,7 +5,7 @@ use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::PriceChangeCalculator;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::currency::Currency;
-use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
+use primitives::known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC};
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualMarketData, PerpetualPrice};
 use primitives::{
     Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType,
@@ -419,15 +419,21 @@ pub fn balance_total(balance: Option<&PerpetualBalance>) -> GemFormattedNumber {
     GemFormattedNumber::usd(balance.map_or(0.0, |balance| balance.available + balance.reserved))
 }
 
-pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemValueHeader {
+pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType, mode: PerpetualAccountMode) -> GemValueHeader {
     let (available, withdrawable) = balance.as_ref().map_or((0.0, 0.0), |balance| (balance.available, balance.withdrawable));
-    let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
+    let bridge_asset = GemPerpetual::new(PerpetualProvider::Hypercore).bridge_asset();
+    let deposit = match mode {
+        PerpetualAccountMode::Standard => GemHeaderButtonAction::SelectDepositAsset {
+            asset_ids: vec![bridge_asset.id, HYPERCORE_SPOT_USDC.id.clone()],
+        },
+        PerpetualAccountMode::Unified => GemHeaderButtonAction::Deposit { asset: bridge_asset },
+    };
     let actions = match wallet_type {
         WalletType::View => GemHeaderActions::WatchOnly,
         WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => GemHeaderActions::Buttons {
             buttons: vec![
                 GemHeaderButton::new(GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() }, withdrawable > 0.0),
-                GemHeaderButton::new(GemHeaderButtonAction::Deposit { asset: perpetual.deposit_asset() }, true),
+                GemHeaderButton::new(deposit, true),
             ],
         },
     };
@@ -899,22 +905,26 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::PerpetualTriggerOrder;
     use primitives::TransactionInputType;
+    use primitives::known_assets::ARBITRUM_USDC;
 
     #[test]
     fn test_the_balance_header_names_the_asset_each_button_moves() {
-        let Some(GemHeaderActions::Buttons { buttons }) = balance_header(None, WalletType::Multicoin).actions else {
-            panic!("a funded wallet shows the buttons")
+        let actions = |mode: PerpetualAccountMode| match balance_header(None, WalletType::Multicoin, mode).actions {
+            Some(GemHeaderActions::Buttons { buttons }) => buttons.into_iter().map(|button| button.action).collect(),
+            Some(GemHeaderActions::WatchOnly) | None => vec![],
         };
+        let withdraw = GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() };
 
+        assert_eq!(actions(PerpetualAccountMode::Unified), vec![withdraw.clone(), GemHeaderButtonAction::Deposit { asset: ARBITRUM_USDC.clone() }]);
         assert_eq!(
-            buttons.into_iter().map(|button| button.action).collect::<Vec<_>>(),
+            actions(PerpetualAccountMode::Standard),
             vec![
-                GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() },
-                GemHeaderButtonAction::Deposit {
-                    asset: GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()
-                },
+                withdraw,
+                GemHeaderButtonAction::SelectDepositAsset {
+                    asset_ids: vec![ARBITRUM_USDC.id.clone(), HYPERCORE_SPOT_USDC.id.clone()]
+                }
             ],
-            "a withdrawal leaves the perpetual account, not the chain"
+            "a standard account keeps spot and perpetual USDC apart, so it can also deposit from spot"
         );
     }
 
@@ -2071,6 +2081,7 @@ mod tests {
                 withdrawable: 50.0,
             }),
             WalletType::Multicoin,
+            PerpetualAccountMode::Standard,
         );
 
         let enabled = |header: GemValueHeader| match header.actions {
@@ -2081,13 +2092,13 @@ mod tests {
         assert_eq!(header.subtitle, Some(GemRowText::neutral(GemLocalizedText::AvailableBalance { amount: GemFormattedNumber::usd(50.0) })));
         assert_eq!(enabled(header), vec![(GemHeaderButtonKind::Withdraw, true), (GemHeaderButtonKind::Deposit, true)]);
 
-        let empty = balance_header(None, WalletType::Multicoin);
+        let empty = balance_header(None, WalletType::Multicoin, PerpetualAccountMode::Standard);
         assert_eq!(empty.title, GemLocalizedText::Number { number: GemFormattedNumber::usd(0.0) });
         assert_eq!(enabled(empty), vec![(GemHeaderButtonKind::Withdraw, false), (GemHeaderButtonKind::Deposit, true)], "an empty balance has nothing to withdraw");
-        assert_eq!(balance_header(None, WalletType::View).actions, Some(GemHeaderActions::WatchOnly));
+        assert_eq!(balance_header(None, WalletType::View, PerpetualAccountMode::Standard).actions, Some(GemHeaderActions::WatchOnly));
 
         let withdraw = |balance: PerpetualBalance| {
-            enabled(balance_header(Some(balance), WalletType::Multicoin))
+            enabled(balance_header(Some(balance), WalletType::Multicoin, PerpetualAccountMode::Standard))
                 .into_iter()
                 .find(|(kind, _)| *kind == GemHeaderButtonKind::Withdraw)
                 .map(|(_, is_enabled)| is_enabled)

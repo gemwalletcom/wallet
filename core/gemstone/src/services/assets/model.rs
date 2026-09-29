@@ -52,7 +52,7 @@ pub enum GemSelectAssetType {
     Payment { asset_ids: Vec<AssetId> },
     Manage,
     PriceAlert,
-    Deposit,
+    Deposit { asset_ids: Vec<AssetId> },
     Withdraw,
     WalletSearch,
     WalletSearchResults,
@@ -391,7 +391,7 @@ mod tests {
         assert_eq!(network.search_step("   ".to_string()), GemAssetSearchStep::Idle);
         assert_eq!(network.search_step(String::new()), GemAssetSearchStep::Idle);
 
-        let local = GemSelectAssetType::Deposit.flow();
+        let local = GemSelectAssetType::Deposit { asset_ids: vec![] }.flow();
         assert!(!local.network_search);
         assert_eq!(local.search_step("btc".to_string()), GemAssetSearchStep::Idle);
     }
@@ -698,6 +698,7 @@ pub enum GemHeaderButtonAction {
     Buy { asset_id: Option<AssetId> },
     Swap { pay_asset_id: Option<AssetId>, receive_asset_id: Option<AssetId> },
     Deposit { asset: Asset },
+    SelectDepositAsset { asset_ids: Vec<AssetId> },
     Withdraw { asset: Asset },
     SendCollectible,
     CollectibleMenu,
@@ -710,7 +711,7 @@ impl GemHeaderButtonAction {
             Self::Receive { .. } => GemHeaderButtonKind::Receive,
             Self::Buy { .. } => GemHeaderButtonKind::Buy,
             Self::Swap { .. } => GemHeaderButtonKind::Swap,
-            Self::Deposit { .. } => GemHeaderButtonKind::Deposit,
+            Self::Deposit { .. } | Self::SelectDepositAsset { .. } => GemHeaderButtonKind::Deposit,
             Self::Withdraw { .. } => GemHeaderButtonKind::Withdraw,
             Self::CollectibleMenu => GemHeaderButtonKind::More,
         }

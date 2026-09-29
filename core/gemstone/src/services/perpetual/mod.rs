@@ -20,7 +20,7 @@ use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::perpetual::{PerpetualAccountPositions, PerpetualBalance, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
-use primitives::{Asset, AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualId, PerpetualProvider, RecentActivityType, Wallet, WalletId};
+use primitives::{Asset, AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualId, PerpetualProvider, RecentActivityType, Wallet, WalletId, WalletType};
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
@@ -38,6 +38,7 @@ pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
 use crate::models::perpetual::GemChartCandleStick;
+use crate::services::assets::model::GemValueHeader;
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::price::GemPriceService;
@@ -109,6 +110,10 @@ impl GemPerpetualService {
             self.sync_markets_if_needed(Chain::HyperCore, GemMarketsRefreshTrigger::Scheduled).await?;
         }
         Ok(self.should_connect_perpetuals(wallet))
+    }
+
+    pub fn balance_header(&self, wallet_id: WalletId, wallet_type: WalletType, balance: Option<PerpetualBalance>) -> GemValueHeader {
+        rules::balance_header(balance, wallet_type, self.wallet_preferences.get_perpetual_account_mode(wallet_id))
     }
 
     pub async fn set_pinned(&self, perpetual_id: PerpetualId, pinned: bool) -> Result<(), GemServiceError> {
@@ -609,6 +614,22 @@ mod tests {
 
         assert!(!testkit.service.should_connect_perpetuals(None));
         assert!(testkit.service.should_connect_perpetuals(Some(hypercore)));
+    }
+
+    #[test]
+    fn test_balance_header() {
+        let testkit = PerpetualTestkit::new();
+        let header = |testkit: &PerpetualTestkit| testkit.service.balance_header(testkit.wallet_id.clone(), WalletType::Multicoin, None);
+
+        assert_eq!(
+            header(&testkit),
+            rules::balance_header(None, WalletType::Multicoin, PerpetualAccountMode::Standard),
+            "an account whose mode was never read is treated as standard"
+        );
+
+        testkit.wallet_preferences.set_perpetual_account_mode(testkit.wallet_id.clone(), PerpetualAccountMode::Unified).unwrap();
+
+        assert_eq!(header(&testkit), rules::balance_header(None, WalletType::Multicoin, PerpetualAccountMode::Unified));
     }
 
     #[test]

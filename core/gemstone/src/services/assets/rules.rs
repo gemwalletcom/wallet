@@ -324,7 +324,7 @@ fn select_asset_title(select_type: &GemSelectAssetType) -> GemSelectAssetTitle {
         GemSelectAssetType::Payment { .. } => GemSelectAssetTitle::PayWith,
         GemSelectAssetType::Manage => GemSelectAssetTitle::ManageTokenList,
         GemSelectAssetType::PriceAlert => GemSelectAssetTitle::SelectAsset,
-        GemSelectAssetType::Deposit => GemSelectAssetTitle::Deposit,
+        GemSelectAssetType::Deposit { .. } => GemSelectAssetTitle::Deposit,
         GemSelectAssetType::Withdraw => GemSelectAssetTitle::Withdraw,
         GemSelectAssetType::WalletSearch | GemSelectAssetType::WalletSearchResults => GemSelectAssetTitle::Search,
     }
@@ -341,7 +341,7 @@ fn select_asset_section(select_type: &GemSelectAssetType) -> GemSelectAssetSecti
         | GemSelectAssetType::Payment { .. }
         | GemSelectAssetType::Manage
         | GemSelectAssetType::PriceAlert
-        | GemSelectAssetType::Deposit
+        | GemSelectAssetType::Deposit { .. }
         | GemSelectAssetType::Withdraw
         | GemSelectAssetType::WalletSearch
         | GemSelectAssetType::WalletSearchResults => GemSelectAssetSection::Assets,
@@ -442,13 +442,10 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
             },
             Some(GemAssetFilter::Enabled),
         ),
-        GemSelectAssetType::Deposit => with_filter(
-            flow(GemSelectRowAction::Navigate, None),
-            Some(GemAssetFilter::asset_ids(vec![GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset().id])),
-        ),
+        GemSelectAssetType::Deposit { asset_ids } => with_filter(flow(GemSelectRowAction::Navigate, None), Some(GemAssetFilter::asset_ids(asset_ids))),
         GemSelectAssetType::Withdraw => with_filter(
             GemSelectAssetFlow {
-                display_asset: Some(GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()),
+                display_asset: Some(GemPerpetual::new(PerpetualProvider::Hypercore).bridge_asset()),
                 ..flow(GemSelectRowAction::Navigate, None)
             },
             Some(GemAssetFilter::asset_ids(vec![HYPERCORE_PERPETUAL_USDC.id.clone()])),
@@ -1048,6 +1045,7 @@ mod tests {
     use crate::services::assets::model::GemHeaderButtonKind;
     use crate::services::price_alert::rules::GemPriceAlertToggle;
     use crate::services::search::GemSearchScope;
+    use primitives::known_assets::ARBITRUM_USDC;
 
     #[test]
     fn test_each_select_flow_decides_its_row_action_and_recent_activity() {
@@ -1061,7 +1059,7 @@ mod tests {
         assert_eq!(row(GemSelectAssetType::Payment { asset_ids: vec![] }), (GemSelectRowAction::Select, None));
         assert_eq!(row(GemSelectAssetType::Manage), (GemSelectRowAction::Toggle, None));
         assert_eq!(row(GemSelectAssetType::PriceAlert), (GemSelectRowAction::Select, None));
-        assert_eq!(row(GemSelectAssetType::Deposit), (GemSelectRowAction::Navigate, None));
+        assert_eq!(row(GemSelectAssetType::Deposit { asset_ids: vec![] }), (GemSelectRowAction::Navigate, None));
         assert_eq!(row(GemSelectAssetType::Withdraw), (GemSelectRowAction::Navigate, None));
         assert_eq!(row(GemSelectAssetType::WalletSearch), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
         assert_eq!(row(GemSelectAssetType::WalletSearchResults), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
@@ -1087,7 +1085,7 @@ mod tests {
             GemSelectAssetType::Buy,
             GemSelectAssetType::SwapPay,
             GemSelectAssetType::SwapReceive { pay_asset_id: None },
-            GemSelectAssetType::Deposit,
+            GemSelectAssetType::Deposit { asset_ids: vec![] },
             GemSelectAssetType::Withdraw,
         ] {
             assert_eq!(row(select_type), balance);
@@ -1127,7 +1125,7 @@ mod tests {
         assert!(enabled(GemSelectAssetType::Payment { asset_ids: vec![] }).is_empty());
         assert_eq!(enabled(GemSelectAssetType::Manage), ["network_search", "chain_filter", "balance_filter", "add_custom_token"]);
         assert_eq!(enabled(GemSelectAssetType::PriceAlert), ["network_search", "chain_filter", "popular_section"]);
-        assert!(enabled(GemSelectAssetType::Deposit).is_empty());
+        assert!(enabled(GemSelectAssetType::Deposit { asset_ids: vec![] }).is_empty());
         assert_eq!(enabled(GemSelectAssetType::Withdraw), ["display_asset"]);
         assert_eq!(enabled(GemSelectAssetType::WalletSearch), ["network_search", "recents", "add_custom_token"]);
         assert!(enabled(GemSelectAssetType::WalletSearchResults).is_empty());
@@ -1163,12 +1161,12 @@ mod tests {
         assert_eq!(rows(GemSelectAssetType::Manage), (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled]));
         assert_eq!(rows(GemSelectAssetType::PriceAlert), (GemSelectAssetScope::AllAssets, vec![GemAssetFilter::Enabled]));
         assert_eq!(
-            rows(GemSelectAssetType::Deposit),
+            rows(GemSelectAssetType::Deposit { asset_ids: vec![ARBITRUM_USDC.id.clone()] }),
             (
                 GemSelectAssetScope::Wallet,
                 vec![GemAssetFilter::ChainsOrAssetIds {
                     chains: Vec::new(),
-                    asset_ids: vec![AssetId::from_token(Chain::Arbitrum, "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")]
+                    asset_ids: vec![ARBITRUM_USDC.id.clone()]
                 }]
             )
         );
