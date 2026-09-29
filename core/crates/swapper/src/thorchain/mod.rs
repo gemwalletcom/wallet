@@ -5,6 +5,7 @@ mod constants;
 mod contracts;
 pub mod memo;
 pub mod model;
+mod partner_provider;
 mod provider;
 mod quote_data_mapper;
 mod quote_mapper;
@@ -13,6 +14,7 @@ mod target;
 #[cfg(test)]
 mod testkit;
 
+pub use partner_provider::ThorchainPartnerProvider;
 pub use provider::ThorChain;
 
 use strum::Display;

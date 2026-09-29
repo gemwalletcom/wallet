@@ -1,6 +1,9 @@
 use gem_client::{Target, build_path_with_query};
 
-use super::{THORChainNetwork, model::QuoteSwapRequest};
+use super::{
+    THORChainNetwork,
+    model::{MidgardActionsQuery, QuoteSwapRequest},
+};
 
 #[derive(Clone, Debug)]
 pub enum ThorChainTarget {
@@ -17,6 +20,19 @@ impl Target for ThorChainTarget {
             Self::InboundAddresses { network } => format!("/{network}/inbound_addresses"),
             Self::AsgardVaults { network } => format!("/{network}/vaults/asgard"),
             Self::TransactionStatus { network, hash } => format!("/{network}/tx/status/{hash}"),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum MidgardTarget {
+    Actions { query: MidgardActionsQuery },
+}
+
+impl Target for MidgardTarget {
+    fn path(&self) -> String {
+        match self {
+            Self::Actions { query } => build_path_with_query("/v2/actions", query),
         }
     }
 }

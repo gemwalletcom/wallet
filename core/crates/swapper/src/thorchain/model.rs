@@ -67,9 +67,22 @@ pub struct TransactionCoin {
 }
 
 impl TransactionCoin {
-    pub fn native_value(&self, chain: Chain) -> Option<BigUint> {
-        let decimals = self.decimals.or_else(|| if self.is_native_asset() { Some(Asset::from_chain(chain).decimals) } else { None })?;
+    pub fn native_value(&self, network: THORChainNetwork) -> Option<BigUint> {
+        let decimals = match self.decimals {
+            Some(decimals) => decimals,
+            None => self.asset_decimals(network)?,
+        };
         Some(value_to(&self.amount, decimals).magnitude().clone())
+    }
+
+    fn asset_decimals(&self, network: THORChainNetwork) -> Option<i32> {
+        let asset_id = self.asset_id(network)?;
+        if asset_id.token_id.is_none() {
+            return Some(Asset::from_chain(asset_id.chain).decimals);
+        }
+        let (chain_symbol, _) = self.asset.split_once('.')?;
+        let chain_name = ChainName::from_symbol(network, chain_symbol)?;
+        chain_name.token_assets().into_iter().find(|asset| asset.id == asset_id).map(|asset| asset.decimals)
     }
 
     pub fn asset_id(&self, network: THORChainNetwork) -> Option<AssetId> {
@@ -92,10 +105,80 @@ impl TransactionCoin {
             None => None,
         }
     }
+}
 
-    fn is_native_asset(&self) -> bool {
-        !self.asset.contains('-')
-    }
+#[derive(Debug, Clone, Deserialize)]
+pub struct MidgardActionsResponse {
+    pub actions: Vec<MidgardAction>,
+    pub meta: MidgardMeta,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MidgardMeta {
+    pub next_page_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct MidgardAction {
+    pub status: String,
+    #[serde(rename = "type")]
+    pub action_type: String,
+    #[serde(rename = "in")]
+    pub inputs: Vec<MidgardTransaction>,
+    #[serde(rename = "out")]
+    pub outputs: Vec<MidgardTransaction>,
+    #[serde(default)]
+    pub metadata: MidgardMetadata,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct MidgardTransaction {
+    pub address: String,
+    pub coins: Vec<TransactionCoin>,
+    #[serde(rename = "txID")]
+    pub tx_id: String,
+    #[serde(default)]
+    pub affiliate: bool,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct MidgardMetadata {
+    pub swap: Option<MidgardSwapMetadata>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MidgardSwapMetadata {
+    pub affiliate_fee: Option<String>,
+    #[serde(rename = "inPriceUSD")]
+    pub in_price_usd: Option<String>,
+    #[serde(rename = "outPriceUSD")]
+    pub out_price_usd: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MidgardActionsQuery {
+    pub affiliate: String,
+    #[serde(rename = "type")]
+    pub action_type: &'static str,
+    pub limit: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub from_timestamp: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_page_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MidgardPartnerCursor {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub from_timestamp: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub walk_started_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_page_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -395,28 +478,35 @@ mod tests {
             amount: "160661010".to_string(),
             decimals: None,
         };
-        assert_eq!(native.native_value(Chain::Litecoin), Some(BigUint::from(160661010u64)));
+        assert_eq!(native.native_value(THORChainNetwork::Thorchain), Some(BigUint::from(160661010u64)));
 
         let native_18 = TransactionCoin {
             asset: "ETH.ETH".to_string(),
             amount: "2509674".to_string(),
             decimals: None,
         };
-        assert_eq!(native_18.native_value(Chain::Ethereum), Some(BigUint::from(25096740000000000u64)));
+        assert_eq!(native_18.native_value(THORChainNetwork::Thorchain), Some(BigUint::from(25096740000000000u64)));
 
         let token_with_decimals = TransactionCoin {
             asset: format!("ETH.USDT-{ETHEREUM_USDT_TOKEN_ID}"),
             amount: "380962656200".to_string(),
             decimals: Some(6),
         };
-        assert_eq!(token_with_decimals.native_value(Chain::Ethereum), Some(BigUint::from(3809626562u64)));
+        assert_eq!(token_with_decimals.native_value(THORChainNetwork::Thorchain), Some(BigUint::from(3809626562u64)));
 
         let token_no_decimals = TransactionCoin {
             asset: format!("ETH.USDT-{ETHEREUM_USDT_TOKEN_ID}"),
             amount: "380962656200".to_string(),
             decimals: None,
         };
-        assert_eq!(token_no_decimals.native_value(Chain::Ethereum), None);
+        assert_eq!(token_no_decimals.native_value(THORChainNetwork::Thorchain), Some(BigUint::from(3809626562u64)));
+
+        let unknown_token = TransactionCoin {
+            asset: "ETH.UNKNOWN-0X0000000000000000000000000000000000000001".to_string(),
+            amount: "380962656200".to_string(),
+            decimals: None,
+        };
+        assert_eq!(unknown_token.native_value(THORChainNetwork::Thorchain), None);
     }
 
     #[test]
