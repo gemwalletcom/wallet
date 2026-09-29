@@ -35,8 +35,8 @@ where
 impl Mayan<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
         Self::with_clients(
-            MayanClient::new(RpcClient::new(get_swap_proxy_url("mayan/price"), rpc_provider.clone())),
-            MayanClient::new(RpcClient::new(get_swap_proxy_url("mayan/explorer"), rpc_provider.clone())),
+            MayanClient::new(RpcClient::new(get_swap_proxy_url("mayan/price/v3"), rpc_provider.clone())),
+            MayanClient::new(RpcClient::new(get_swap_proxy_url("mayan/explorer/v3"), rpc_provider.clone())),
             rpc_provider,
         )
     }
@@ -257,7 +257,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_vault_addresses() {
         let price_client = MockClient::new().with_get(|path| {
-            assert_eq!(path, "/v3/chains");
+            assert_eq!(path, "/chains");
             Ok(br#"[
                     {"mayanAddress":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
                     {"mayanAddress":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
@@ -280,7 +280,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_quote_rescales_mayan_base_units_to_destination_asset_decimals() {
         let price_client = MockClient::new().with_get(|path| {
-            assert!(path.starts_with("/v3/quote?"));
+            assert!(path.starts_with("/quote?"));
             Ok(include_bytes!("test/quote_response_swift_hypercore.json").to_vec())
         });
         let provider = Mayan::with_clients(MayanClient::new(price_client), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));

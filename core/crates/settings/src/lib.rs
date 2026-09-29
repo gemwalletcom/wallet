@@ -45,9 +45,7 @@ pub struct Indexer {
     pub algorand: ProviderSettings,
     pub ankr: ProviderSettings,
     pub blockscout: ProviderSettings,
-    pub etherscan: ProviderSettings,
     pub fastnear: FastNearIndexer,
-    pub helius: ProviderSettings,
     pub subscan: ProviderSettings,
     pub sui: ProviderSettings,
     pub ton: ProviderSettings,
@@ -470,27 +468,9 @@ pub struct RewardsWallet {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Swap {
-    pub across: URL,
-    pub chainflip: Chainflip,
-    pub mayachain: URL,
-    pub mayan: URL,
-    pub nearintents: NearIntents,
+    pub nearintents: URL,
     pub okx: Okx,
-    pub relay: URL,
-    pub swapsxyz: ProviderSettings,
-    pub thorchain: URL,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Chainflip {
-    pub broker: ProviderSettings,
-    pub sdk: URL,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct NearIntents {
-    pub url: String,
-    pub explorer: ProviderSettings,
+    pub swapsxyz: URL,
 }
 
 #[derive(Debug, Deserialize, Clone)]

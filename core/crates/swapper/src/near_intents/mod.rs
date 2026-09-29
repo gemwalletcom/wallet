@@ -2,13 +2,11 @@ mod assets;
 mod client;
 mod config;
 mod model;
-mod partner_provider;
 mod provider;
 mod target;
 
 pub use client::base_url;
 pub use model::{QuoteResponse, QuoteResponseError, QuoteResponseResult};
-pub use partner_provider::NearIntentsPartnerProvider;
 pub use provider::NearIntents;
 
 pub(crate) use assets::{get_asset_id_from_near_asset, get_near_asset_id, supported_assets};

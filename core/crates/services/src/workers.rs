@@ -1,14 +1,11 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
-use std::time::Duration;
 
 use cacher::CacherClient;
 use chain_providers::{ChainProviders, ProviderFactory};
 use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
-use gem_client::ReqwestClient;
 use prices::{FiatRatesProvider, PriceAssetsProvider, PriceProvider};
 use primitives::{AccessTokenCacher, Chain, ChartTimeframe, JobConfiguration};
 use search_index::SearchIndexClient;
@@ -16,15 +13,7 @@ use settings::{Settings, service_user_agent};
 use storage::{Database, PricesProvidersRepository};
 use streamer::StreamProducer;
 use swapper::NativeProvider;
-use swapper::across::AcrossPartnerProvider;
-use swapper::chainflip::ChainflipPartnerProvider;
-use swapper::mayan::MayanPartnerProvider;
-use swapper::near_intents::NearIntentsPartnerProvider;
-use swapper::partner::SwapPartnerProvider;
-use swapper::relay::RelayPartnerProvider;
 use swapper::swapper::GemSwapper;
-use swapper::swaps_xyz::SwapsXyzPartnerProvider;
-use swapper::thorchain::{THORChainNetwork, ThorchainPartnerProvider};
 
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
 use crate::fiat::{FiatAssetsUpdater, FiatRatesUpdater};
@@ -37,10 +26,8 @@ use crate::prices::{
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
 use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater};
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
-use crate::transactions::{InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapPartnerTransactionsUpdater, SwapVaultAddressClient, VaultAddressesUpdater};
+use crate::transactions::{InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, VaultAddressesUpdater};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
-
-const NEAR_INTENTS_EXPLORER_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Clone)]
 pub struct AlerterJobs {
@@ -306,7 +293,6 @@ pub struct TransactionJobs {
     pending_updater: Arc<PendingTransactionsUpdater>,
     swapper: Arc<GemSwapper>,
     cacher: CacherClient,
-    swap_partner_updaters: Vec<SwapPartnerTransactionsUpdater>,
 }
 
 impl TransactionJobs {
@@ -321,36 +307,9 @@ impl TransactionJobs {
     pub fn vault_addresses_updater(&self) -> VaultAddressesUpdater {
         VaultAddressesUpdater::new(self.swapper.clone(), self.cacher.clone())
     }
-
-    pub fn swap_partner_updaters(&self) -> Vec<SwapPartnerTransactionsUpdater> {
-        self.swap_partner_updaters.clone()
-    }
 }
 
 impl Services {
-    fn swap_partner_providers(&self) -> Result<Vec<Arc<dyn SwapPartnerProvider>>, Box<dyn Error + Send + Sync>> {
-        let settings = self.settings();
-        let user_agent = service_user_agent("daemon", Some("swap_partner_transactions"));
-        let client = |url: &str| ReqwestClient::new_with_user_agent(url.to_string(), gem_client::reqwest_client(), user_agent.clone());
-        let explorer = &settings.swap.nearintents.explorer;
-        let chainflip = &settings.swap.chainflip;
-        let swapsxyz = &settings.swap.swapsxyz;
-        let near_intents_client = ReqwestClient::new_with_user_agent(explorer.url.clone(), gem_client::builder().timeout(NEAR_INTENTS_EXPLORER_TIMEOUT).build()?, user_agent.clone())
-            .with_default_headers(HashMap::from([("Authorization".to_string(), format!("Bearer {}", explorer.key.secret))]));
-        Ok(vec![
-            Arc::new(RelayPartnerProvider::new(client(&settings.swap.relay.url))),
-            Arc::new(NearIntentsPartnerProvider::new(near_intents_client)),
-            Arc::new(ChainflipPartnerProvider::new(client(&chainflip.broker.url), client(&chainflip.sdk.url), chainflip.broker.key.secret.clone())),
-            Arc::new(ThorchainPartnerProvider::new(client(&settings.swap.thorchain.url), THORChainNetwork::Thorchain)),
-            Arc::new(ThorchainPartnerProvider::new(client(&settings.swap.mayachain.url), THORChainNetwork::Mayachain)),
-            Arc::new(MayanPartnerProvider::new(client(&settings.swap.mayan.url))),
-            Arc::new(AcrossPartnerProvider::new(client(&settings.swap.across.url))),
-            Arc::new(SwapsXyzPartnerProvider::new(
-                client(&swapsxyz.url).with_default_headers(HashMap::from([("x-api-key".to_string(), swapsxyz.key.secret.clone())])),
-            )),
-        ])
-    }
-
     pub async fn alerter_jobs(&self, stream_producer: StreamProducer) -> Result<AlerterJobs, Box<dyn Error + Send + Sync>> {
         let config = self.config();
         Ok(AlerterJobs {
@@ -477,19 +436,12 @@ impl Services {
         let providers = Arc::new(self.chain_providers(&service_user_agent("daemon", Some("transactions"))));
         let swapper = Arc::new(GemSwapper::new(Arc::new(NativeProvider::new_with_endpoints(ProviderFactory::get_chain_endpoints(&self.settings())))));
         let in_transit_updater = InTransitUpdater::new(database.clone(), in_transit_config, swapper.clone(), stream_producer.clone(), SwapVaultAddressClient::new(cacher.clone()));
-        let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer.clone(), database.clone(), pending_config);
-        let page_delay = config.get_duration(ConfigKey::TransactionSwapPartnerPageDelay).await?;
-        let swap_partner_updaters = self
-            .swap_partner_providers()?
-            .into_iter()
-            .map(|provider| SwapPartnerTransactionsUpdater::new(provider, database.clone(), cacher.clone(), stream_producer.clone(), page_delay))
-            .collect();
+        let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer, database, pending_config);
         Ok(TransactionJobs {
             in_transit_updater: Arc::new(in_transit_updater),
             pending_updater: Arc::new(pending_updater),
             swapper,
             cacher,
-            swap_partner_updaters,
         })
     }
 }

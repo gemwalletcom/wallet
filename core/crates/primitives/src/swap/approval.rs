@@ -120,9 +120,8 @@ pub struct SwapProviderData {
     pub protocol_name: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, strum::AsRefStr, strum::EnumString)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
 pub enum SwapStatus {
     Pending,
     Completed,

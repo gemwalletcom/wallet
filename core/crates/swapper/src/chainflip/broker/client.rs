@@ -1,7 +1,7 @@
 use super::{
     AssetsResponse, QuoteRequest, QuoteResponse, VaultSwapExtras, VaultSwapResponse,
     jsonrpc::RequestSwapParameterEncoding,
-    model::{BrokerSwap, ChainflipAsset, DcaParameters},
+    model::{ChainflipAsset, DcaParameters},
     target::BrokerTarget,
 };
 use crate::SwapperError;
@@ -27,10 +27,6 @@ where
 
     pub async fn get_assets(&self) -> Result<AssetsResponse, SwapperError> {
         self.client.get(BrokerTarget::Assets).await.map_err(SwapperError::from)
-    }
-
-    pub async fn get_swaps(&self, api_key: &str, offset: u64) -> Result<Vec<BrokerSwap>, SwapperError> {
-        self.client.get(BrokerTarget::Swaps { api_key: api_key.to_string(), offset }).await.map_err(SwapperError::from)
     }
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<Vec<QuoteResponse>, SwapperError> {

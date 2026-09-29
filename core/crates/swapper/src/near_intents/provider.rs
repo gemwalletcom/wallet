@@ -14,16 +14,6 @@ use crate::{
     near_intents::client::{base_url, explorer_url},
 };
 use async_trait::async_trait;
-pub(super) fn map_transaction_status(status: &str) -> SwapStatus {
-    match status {
-        "SWAP_COMPLETED" | "SWAP_COMPLETED_TX" | "SUCCESS" => SwapStatus::Completed,
-        "REFUNDED" | "SWAP_REFUNDED" => SwapStatus::Refunded,
-        "SWAP_FAILED" | "FAILED" | "SWAP_LIQUIDITY_TIMEOUT" | "SWAP_RISK_FAILED" => SwapStatus::Failed,
-        "KNOWN_DEPOSIT_TX" | "PENDING_DEPOSIT" | "INCOMPLETE_DEPOSIT" | "PROCESSING" => SwapStatus::Pending,
-        _ => SwapStatus::Pending,
-    }
-}
-
 #[cfg(test)]
 use chrono::DateTime;
 use chrono::{Duration, Utc};
@@ -150,6 +140,16 @@ where
             dry,
             deposit_mode,
         })
+    }
+
+    fn map_transaction_status(status: &str) -> SwapStatus {
+        match status {
+            "SWAP_COMPLETED" | "SWAP_COMPLETED_TX" | "SUCCESS" => SwapStatus::Completed,
+            "REFUNDED" | "SWAP_REFUNDED" => SwapStatus::Refunded,
+            "SWAP_FAILED" | "FAILED" | "SWAP_LIQUIDITY_TIMEOUT" | "SWAP_RISK_FAILED" => SwapStatus::Failed,
+            "KNOWN_DEPOSIT_TX" | "PENDING_DEPOSIT" | "INCOMPLETE_DEPOSIT" | "PROCESSING" => SwapStatus::Pending,
+            _ => SwapStatus::Pending,
+        }
     }
 
     fn build_swap_metadata(transaction: &ExplorerTransaction) -> Option<TransactionSwapMetadata> {
@@ -358,7 +358,7 @@ where
             return Ok(SwapResult::pending());
         };
 
-        let status = map_transaction_status(&transaction.status);
+        let status = Self::map_transaction_status(&transaction.status);
         let metadata = Self::build_swap_metadata(&transaction);
 
         Ok(SwapResult { status, metadata, eta_in_seconds: None })
@@ -382,7 +382,7 @@ mod tests {
     fn status(json: &str) -> SwapResult {
         let transactions: Vec<ExplorerTransaction> = serde_json::from_str(json).unwrap();
         let transaction = &transactions[0];
-        let status = map_transaction_status(&transaction.status);
+        let status = NearIntents::<RpcClient>::map_transaction_status(&transaction.status);
         let metadata = NearIntents::<RpcClient>::build_swap_metadata(transaction);
         SwapResult { status, metadata, eta_in_seconds: None }
     }
@@ -477,7 +477,7 @@ mod tests {
 
     #[test]
     fn map_transaction_status_values() {
-        let map = map_transaction_status;
+        let map = NearIntents::<RpcClient>::map_transaction_status;
 
         assert_eq!(map("SUCCESS"), SwapStatus::Completed);
         assert_eq!(map("SWAP_COMPLETED"), SwapStatus::Completed);

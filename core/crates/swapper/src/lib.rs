@@ -24,7 +24,6 @@ pub mod models;
 pub mod near_intents;
 pub mod okx;
 pub mod panora;
-pub mod partner;
 pub mod permit2_data;
 pub mod relay;
 mod route_cache;

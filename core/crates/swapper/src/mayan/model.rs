@@ -513,36 +513,6 @@ pub struct MayanTransactionResult {
     pub from_amount64: Option<String>,
     pub to_amount64: Option<String>,
     pub client_status: MayanClientStatus,
-    pub trader: Option<String>,
-    pub dest_address: Option<String>,
-    pub source_tx_hash: Option<String>,
-    pub fulfill_tx_hash: Option<String>,
-    pub redeem_tx_hash: Option<String>,
-    pub to_amount: Option<String>,
-    pub to_token_price: Option<f64>,
-    pub referrer_address: Option<String>,
-    pub referrer_bps: Option<u32>,
-    pub referrer_fee_usd: Option<f64>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct MayanSwapsResponse {
-    pub data: Vec<MayanSwapSummary>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MayanSwapSummary {
-    pub source_tx_hash: String,
-    pub status_updated_at: Option<chrono::DateTime<chrono::Utc>>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MayanSwapsQuery {
-    pub referrer_address: String,
-    pub limit: usize,
-    pub offset: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

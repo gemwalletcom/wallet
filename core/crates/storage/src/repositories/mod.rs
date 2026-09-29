@@ -23,7 +23,6 @@ pub mod risk_signals_repository;
 pub mod scan_addresses_repository;
 pub mod scan_detections_repository;
 pub mod support_sessions_repository;
-pub mod swap_partner_transactions_repository;
 pub mod tag_repository;
 pub mod transactions_repository;
 pub mod wallets_repository;

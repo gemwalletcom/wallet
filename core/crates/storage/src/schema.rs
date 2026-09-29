@@ -86,14 +86,6 @@ pub mod sql_types {
     pub struct ScanType;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "swap_provider"))]
-    pub struct SwapProvider;
-
-    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "swap_status"))]
-    pub struct SwapStatus;
-
-    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "tag_visibility"))]
     pub struct TagVisibility;
 
@@ -911,45 +903,6 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
-    use super::sql_types::SwapProvider;
-    use super::sql_types::SwapStatus;
-
-    swap_partner_transactions (id) {
-        id -> Int4,
-        provider -> SwapProvider,
-        #[max_length = 256]
-        provider_transaction_id -> Varchar,
-        status -> SwapStatus,
-        #[max_length = 256]
-        from_address -> Varchar,
-        #[max_length = 256]
-        to_address -> Varchar,
-        #[max_length = 128]
-        from_asset_id -> Varchar,
-        #[max_length = 256]
-        from_value -> Varchar,
-        from_amount_usd -> Nullable<Float8>,
-        #[max_length = 128]
-        to_asset_id -> Varchar,
-        #[max_length = 256]
-        to_value -> Varchar,
-        to_amount_usd -> Nullable<Float8>,
-        #[max_length = 128]
-        referral_fee_asset_id -> Nullable<Varchar>,
-        #[max_length = 256]
-        referral_fee_value -> Nullable<Varchar>,
-        referral_fee_amount_usd -> Nullable<Float8>,
-        #[max_length = 256]
-        from_transaction_hash -> Nullable<Varchar>,
-        #[max_length = 256]
-        to_transaction_hash -> Nullable<Varchar>,
-        updated_at -> Timestamp,
-        created_at -> Timestamp,
-    }
-}
-
-diesel::table! {
-    use diesel::sql_types::*;
     use super::sql_types::TagVisibility;
 
     tags (id) {
@@ -1177,7 +1130,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     scan_detections,
     subscriptions_addresses_exclude,
     support_sessions,
-    swap_partner_transactions,
     tags,
     transactions,
     transactions_addresses,

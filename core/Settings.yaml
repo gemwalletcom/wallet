@@ -96,25 +96,8 @@ fiat:
       key:
         secret: ""
 swap:
-  across:
-    url: "https://indexer.api.across.to"
-  chainflip:
-    broker:
-      url: "https://chainflip-broker.io"
-      key:
-        secret: ""
-    sdk:
-      url: "https://chainflip-swap.chainflip.io"
-  mayachain:
-    url: "https://midgard.mayachain.info"
-  mayan:
-    url: "https://explorer-api.mayan.finance"
   nearintents:
     url: "https://1click.chaindefuser.com"
-    explorer:
-      url: "https://explorer.near-intents.org"
-      key:
-        secret: ""
   okx:
     url: "https://web3.okx.com"
     key:
@@ -122,14 +105,8 @@ swap:
       secret: ""
     passphrase: ""
     project: ""
-  relay:
-    url: "https://api.relay.link"
   swapsxyz:
     url: "https://api-v2.swaps.xyz/api"
-    key:
-      secret: ""
-  thorchain:
-    url: "https://gateway.liquify.com"
 
 prices:
   coingecko:
@@ -414,10 +391,6 @@ indexer:
     url: "https://api.blockscout.com"
     key:
       secret: ""
-  etherscan:
-    url: "https://api.etherscan.io"
-    key:
-      secret: ""
   fastnear:
     neardata:
       url: "https://mainnet.neardata.xyz"
@@ -431,10 +404,6 @@ indexer:
       url: "https://tx.main.fastnear.com"
       key:
         secret: ""
-  helius:
-    url: "https://api.helius.xyz"
-    key:
-      secret: ""
   subscan:
     url: "https://assethub-polkadot.api.subscan.io"
     key:

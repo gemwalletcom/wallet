@@ -282,35 +282,31 @@ These tables compare implemented coverage with provider-advertised support acros
 
 ### Provider behavior
 
-| Provider | Type | Amount | Slippage | Status tracking | Vault discovery | Partner history |
-| --- | --- | --- | --- | :---: | :---: | :---: |
-| [Uniswap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [Uniswap v4](../core/crates/swapper/src/uniswap/v4/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [PancakeSwap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [OKX DEX](../core/crates/swapper/src/okx/provider.rs) | On-chain | Flexible | Auto | ➖ | ➖ | ➖ |
-| [Oku](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [Wagmi](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [Aerodrome](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [Jupiter](../core/crates/swapper/src/jupiter/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [Panora](../core/crates/swapper/src/panora/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [STON.fi v2](../core/crates/swapper/src/stonfi/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [Cetus CLMM](../core/crates/swapper/src/cetus_clmm/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ | ➖ |
-| [NEAR Intents](../core/crates/swapper/src/near_intents/provider.rs) | Omnichain | Flexible | Exact | ✅ | ✅ | ✅ |
-| [Relay](../core/crates/swapper/src/relay/provider.rs) | Omnichain | Flexible from Bitcoin; fixed otherwise | Auto | ✅ | ✅ | ✅ |
-| [Across](../core/crates/swapper/src/across/provider.rs) | Bridge | Fixed | Exact | ✅ | ✅ | ✅ |
-| [THORChain](../core/crates/swapper/src/thorchain/provider.rs) | Omnichain | Fixed from EVM; flexible otherwise | Exact | ✅ | ✅ | ✅ |
-| [Mayan](../core/crates/swapper/src/mayan/provider.rs) | Cross-chain | Fixed | Auto | ✅ | ✅ | ✅ (recent swaps) |
-| [Squid](../core/crates/swapper/src/squid/provider.rs) | Cross-chain | Fixed | Auto | ✅ | ✅ | ➖ |
-| [MayaChain](../core/crates/swapper/src/thorchain/provider.rs) | Cross-chain | Fixed from EVM; flexible otherwise | Exact | ✅ | ✅ | ✅ |
-| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | Fixed | Exact | ✅ | ✅ | ✅ |
-| [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ (quoted address) | ✅ |
-| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | Flexible | Exact | ➖ (assumed complete) | ➖ | ➖ |
+| Provider | Type | Amount | Slippage | Status tracking | Vault discovery |
+| --- | --- | --- | --- | :---: | :---: |
+| [Uniswap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [Uniswap v4](../core/crates/swapper/src/uniswap/v4/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [PancakeSwap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [OKX DEX](../core/crates/swapper/src/okx/provider.rs) | On-chain | Flexible | Auto | ➖ | ➖ |
+| [Oku](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [Wagmi](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [Aerodrome](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [Jupiter](../core/crates/swapper/src/jupiter/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [Panora](../core/crates/swapper/src/panora/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [STON.fi v2](../core/crates/swapper/src/stonfi/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [Cetus CLMM](../core/crates/swapper/src/cetus_clmm/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [NEAR Intents](../core/crates/swapper/src/near_intents/provider.rs) | Omnichain | Flexible | Exact | ✅ | ✅ |
+| [Relay](../core/crates/swapper/src/relay/provider.rs) | Omnichain | Flexible from Bitcoin; fixed otherwise | Auto | ✅ | ✅ |
+| [Across](../core/crates/swapper/src/across/provider.rs) | Bridge | Fixed | Exact | ✅ | ✅ |
+| [THORChain](../core/crates/swapper/src/thorchain/provider.rs) | Omnichain | Fixed from EVM; flexible otherwise | Exact | ✅ | ✅ |
+| [Mayan](../core/crates/swapper/src/mayan/provider.rs) | Cross-chain | Fixed | Auto | ✅ | ✅ |
+| [Squid](../core/crates/swapper/src/squid/provider.rs) | Cross-chain | Fixed | Auto | ✅ | ✅ |
+| [MayaChain](../core/crates/swapper/src/thorchain/provider.rs) | Cross-chain | Fixed from EVM; flexible otherwise | Exact | ✅ | ✅ |
+| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | Fixed | Exact | ✅ | ✅ |
+| [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ (quoted address) |
+| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | Flexible | Exact | ➖ (assumed complete) | ➖ |
 
 <sub>Sources: [provider modes and slippage](../core/crates/swapper/src/models.rs), [amount-mode implementations](../core/crates/swapper/src), and [active provider registry](../core/crates/swapper/src/swapper.rs).</sub>
-
-Partner history collects Gem-referred swaps with their referral fee in USD into `swap_partner_transactions`, from each provider's API. Only providers whose API reports the referral fee in USD are included; Chainflip's broker fee is paid in USDC. Mayan's swaps list covers only the last seven days, and Across's deposits API returns the newest 1,000 deposits per handler.
-
-<sub>Sources: [partner sources](../core/crates/services/src/workers.rs) and [partner trait](../core/crates/swapper/src/partner.rs).</sub>
 
 On-chain swaps use normal transaction tracking; cross-chain providers may also track route completion.
 

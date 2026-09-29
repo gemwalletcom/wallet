@@ -31,13 +31,6 @@ pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<
                 async move { updater.update().await }
             }
         })
-        .jobs(WorkerJob::UpdateSwapPartnerTransactions, transactions.swap_partner_updaters(), |updater, _| {
-            let updater = Arc::new(updater);
-            move |_| {
-                let updater = updater.clone();
-                async move { updater.update().await }
-            }
-        })
         .jobs_with_config(WorkerJob::UpdateSwapVaultAddresses, SwapProvider::cross_chain_providers(), ConfigParamKey::SwapperVaultAddresses, |provider, _| {
             let updater = Arc::new(transactions.vault_addresses_updater());
             move |context| {

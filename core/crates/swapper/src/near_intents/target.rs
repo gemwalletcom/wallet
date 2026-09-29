@@ -1,6 +1,6 @@
 use gem_client::{Target, build_path_with_query};
 
-use super::model::{ExplorerPartnerTransactionsQuery, ExplorerTransactionsQuery};
+use super::model::ExplorerTransactionsQuery;
 
 #[derive(Clone, Debug)]
 pub enum NearIntentsTarget {
@@ -18,14 +18,12 @@ impl Target for NearIntentsTarget {
 #[derive(Clone, Debug)]
 pub enum NearIntentsExplorerTarget {
     Transactions { query: ExplorerTransactionsQuery },
-    PartnerTransactions { query: ExplorerPartnerTransactionsQuery },
 }
 
 impl Target for NearIntentsExplorerTarget {
     fn path(&self) -> String {
         match self {
             Self::Transactions { query } => build_path_with_query("/api/v0/transactions", query),
-            Self::PartnerTransactions { query } => build_path_with_query("/api/v0/transactions", query),
         }
     }
 }

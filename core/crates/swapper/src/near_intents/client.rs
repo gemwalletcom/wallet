@@ -2,7 +2,7 @@ use crate::{SwapperError, config::get_swap_proxy_url};
 use gem_client::{Client, ClientExt};
 use std::{collections::HashMap, fmt::Debug};
 
-use super::model::{ExplorerPartnerTransaction, ExplorerPartnerTransactionsQuery, ExplorerTransaction, ExplorerTransactionsQuery, QuoteRequest, QuoteResponseResult};
+use super::model::{ExplorerTransaction, ExplorerTransactionsQuery, QuoteRequest, QuoteResponseResult};
 use super::target::{NearIntentsExplorerTarget, NearIntentsTarget};
 
 const TRANSACTIONS_SEARCH_LIMIT: usize = 10;
@@ -63,9 +63,5 @@ impl<C: Client + Send + Sync + Debug> NearIntentsExplorer<C> {
             .await
             .map_err(SwapperError::from)?;
         Ok(transactions.into_iter().find(|transaction| transaction.origin_chain_tx_hashes.iter().any(|h| h.eq_ignore_ascii_case(hash))))
-    }
-
-    pub async fn get_partner_transactions(&self, query: ExplorerPartnerTransactionsQuery) -> Result<Vec<ExplorerPartnerTransaction>, SwapperError> {
-        self.client.get(NearIntentsExplorerTarget::PartnerTransactions { query }).await.map_err(SwapperError::from)
     }
 }

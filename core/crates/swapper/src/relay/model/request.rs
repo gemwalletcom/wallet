@@ -23,8 +23,7 @@ impl RelayStatus {
         match self {
             RelayStatus::Pending | RelayStatus::Waiting | RelayStatus::Depositing | RelayStatus::Submitted | RelayStatus::Unknown => SwapStatus::Pending,
             RelayStatus::Success | RelayStatus::Completed => SwapStatus::Completed,
-            RelayStatus::Failed | RelayStatus::Failure => SwapStatus::Failed,
-            RelayStatus::Refund | RelayStatus::Refunded => SwapStatus::Refunded,
+            RelayStatus::Failed | RelayStatus::Failure | RelayStatus::Refund | RelayStatus::Refunded => SwapStatus::Failed,
         }
     }
 }
@@ -126,13 +125,13 @@ mod tests {
     }
 
     #[test]
-    fn test_relay_status_refund_maps_to_refunded() {
+    fn test_relay_status_refund_maps_to_failed() {
         let request: RelayRequest = serde_json::from_value(serde_json::json!({
             "status": "refund",
             "data": null
         }))
         .unwrap();
 
-        assert_eq!(request.status.into_swap_status(), SwapStatus::Refunded);
+        assert_eq!(request.status.into_swap_status(), SwapStatus::Failed);
     }
 }

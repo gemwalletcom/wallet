@@ -13,17 +13,17 @@ pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) 
         return SwapResult { status, metadata: None, eta_in_seconds };
     };
 
-    if ChainName::from_symbol(network, &transaction.chain).is_none() {
+    let Some(chain) = ChainName::from_symbol(network, &transaction.chain).map(|n| n.chain()) else {
         return SwapResult { status, metadata: None, eta_in_seconds };
-    }
+    };
 
     let from_coin = transaction.coins.first();
     let from_asset = from_coin.and_then(|c| c.asset_id(network));
-    let from_value = from_coin.and_then(|c| c.native_value(network));
+    let from_value = from_coin.and_then(|c| c.native_value(chain));
 
     let out_coin = response.destination_coin();
     let to_asset = out_coin.and_then(|c| c.asset_id(network));
-    let to_value = out_coin.and_then(|c| c.native_value(network));
+    let to_value = out_coin.and_then(|c| to_asset.as_ref().and_then(|a| c.native_value(a.chain)));
 
     let metadata = match (from_asset, from_value, to_asset, to_value) {
         (Some(from_asset), Some(from_value), Some(to_asset), Some(to_value)) => Some(TransactionSwapMetadata {
