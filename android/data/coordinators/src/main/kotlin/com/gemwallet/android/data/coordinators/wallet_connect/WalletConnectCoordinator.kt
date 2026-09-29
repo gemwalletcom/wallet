@@ -50,7 +50,7 @@ class WalletConnectCoordinator(
     private val walletConnectClient: WalletConnectClient,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val chainService: GemChainServiceInterface,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : IsWalletConnectEnabled,
     PairWalletConnect,
     SyncWalletConnectSessions,

@@ -7,6 +7,7 @@ import com.gemwallet.android.ext.toGem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -17,7 +18,7 @@ import uniffi.gemstone.GemWalletSection
 import uniffi.gemstone.walletSections
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GetAllWalletsImpl(private val getSession: GetSession, private val walletsQuery: WalletsQuery, scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) : GetAllWallets {
+class GetAllWalletsImpl(private val getSession: GetSession, private val walletsQuery: WalletsQuery, scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)) : GetAllWallets {
 
     private val sections: StateFlow<List<GemWalletSection>> = getSession()
         .flatMapLatest { session ->
