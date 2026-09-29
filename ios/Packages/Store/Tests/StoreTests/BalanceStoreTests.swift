@@ -36,6 +36,19 @@ struct BalanceStoreTests {
     }
 
     @Test
+    func anUpdateWithoutMetadataClearsTheStoredMetadata() throws {
+        let store = try store()
+        try store.addBalance(assetIds: [ethereum], isEnabled: true, for: wallet)
+        let metadata = BalanceMetadata(votes: 1, energyAvailable: 2, energyTotal: 3, bandwidthAvailable: 4, bandwidthTotal: 5)
+
+        try store.updateBalances([.mock(assetId: ethereum, metadata: metadata)], for: wallet)
+        #expect(try store.getBalanceRecord(walletId: wallet, assetId: ethereum)?.metadata == metadata)
+
+        try store.updateBalances([.mock(assetId: ethereum)], for: wallet)
+        #expect(try store.getBalanceRecord(walletId: wallet, assetId: ethereum)?.metadata == nil, "Core merges the stored metadata before writing, so none means none")
+    }
+
+    @Test
     func updatingABalanceThatHasNoRowWritesNothing() throws {
         let store = try store()
 

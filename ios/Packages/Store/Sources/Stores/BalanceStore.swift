@@ -40,7 +40,8 @@ public struct BalanceStore: Sendable {
     ) throws {
         try db.write { (db: Database) in
             for balance in balances {
-                var assignments: [ColumnAssignment] = [
+                let metadata = try balance.metadata.map { try JSONEncoder().encode($0).encodeString() }
+                let assignments: [ColumnAssignment] = [
                     BalanceRecord.Columns.available.set(to: balance.available.value),
                     BalanceRecord.Columns.availableAmount.set(to: balance.available.amount),
                     BalanceRecord.Columns.frozen.set(to: balance.frozen.value),
@@ -63,10 +64,8 @@ public struct BalanceStore: Sendable {
                     BalanceRecord.Columns.earnAmount.set(to: balance.earn.amount),
                     BalanceRecord.Columns.updatedAt.set(to: balance.updatedAt),
                     BalanceRecord.Columns.isActive.set(to: balance.isActive),
+                    BalanceRecord.Columns.metadata.set(to: metadata),
                 ]
-                if let metadata = balance.metadata {
-                    try assignments.append(BalanceRecord.Columns.metadata.set(to: JSONEncoder().encode(metadata).encodeString()))
-                }
                 try BalanceRecord
                     .filter(BalanceRecord.Columns.walletId == walletId.id)
                     .filter(BalanceRecord.Columns.assetId == balance.assetId.identifier)
