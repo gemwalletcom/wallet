@@ -20,6 +20,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
+2. **Consistency sweeps:** CLN424 to CLN440 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171. Waiting on a date or a release: X168, X169, X170, X163, X172.
 
@@ -192,6 +193,36 @@ A feature module is one product area, and both apps give it the same name. iOS g
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
+
+## 11. Consistency sweeps
+
+Code that works but departs from the repository's own rules, found on 2026-09-29: generic verbs the naming rule bans, abbreviations where the rule asks for the full word, helpers written twice beside the owner that already has them, and code the formatter or the coroutine rules flag. Each item changes names, structure or ownership only; no request, stored value, signature or screen changes. Signer, keystore, device-auth and transaction-construction code keeps its text ([security](../skills/security.md)). Each item verifies the modules it touches and says in the commit what moved.
+
+### Core
+
+- **CLN424** **S** **Dynode names its URL lookups.** `ChainConfig::resolve_url` returns the override URL for a request and `NodeService::resolve_request_urls` the ordered upstream URLs; they become `url_for_request` and `request_urls`, with their tests.
+- **CLN425** **S** **The daemon names its interval and parser steps.** `JobInterval::resolve`, `JobVariant::resolve_interval` and `Parser::process_blocks` become `duration`, `interval_duration` and `parse_blocks`; the `cfg` local becomes `config`.
+- **CLN426** **S** **Service updaters name their steps.** `process_transaction` and `resolve_status` in the in-transit updater, `process_identifier` in the pending updater, `process_address` in the staking rewards notifier, `AssetClassificationRules::apply` and the redemption consumer's `process_with_retry` take the action they perform. The rewards transfer providers keep their names.
+- **CLN427** **S** **Adjustment helpers say what they return.** Tron's `apply_buffer`, the swapper's `apply_gas_limit_multiplier` and the number formatter's `apply_thousands_separator` become `with_buffer`, `gas_limit_with_multiplier` and `with_thousands_separator`.
+- **CLN428** **M** **Slippage is taken off in one place.** Stonfi keeps its own `apply_slippage` for `BigUint` beside `gem_evm::slippage::apply_slippage_in_bp`, which has the same formula; the shared helper takes `BigUint` too, is named `subtract_bps`, and Stonfi's copy goes. Chainflip's and Hyperliquid's price versions become `price_after_slippage` and `limit_price_with_slippage`.
+- **CLN429** **S** **The Stonfi router version check is written once.** `is_supported_v2` is repeated on the fallback router and the API router; both read one function.
+- **CLN430** **S** **One staleness rule.** `assets::rules::asset_outdated`, `perpetual::rules::prices_outdated` and the markets refresh check repeat `updated_at.is_none_or(|updated_at| now - updated_at >= interval)`; one rule in `clock.rs` serves them.
+- **CLN431** **M** **Chain crates and Gemstone name errors in full.** Closure and match bindings named `e` or `err` become `error` where no other `error` is in scope.
+- **CLN432** **M** **Swapper, backend and tools name errors in full.** The same for `swapper`, `services`, `streamer`, `storage`, `rewards`, the apps and `bin`.
+- **CLN433** **S** **Rust spells the last abbreviations in full.** The remaining `tx` locals take a name that does not shadow `transaction`, channel pairs become `(sender, receiver)`, the daemon's `ctx` becomes `context`, the fiat `resp` parameters `response` and the `addr` closures `address`. Serde fields, URLs and protocol names keep their text.
+
+### iOS
+
+- **CLN434** **S** **Swift source passes the formatter.** `swiftformat --lint` flags 12 files: redundant `public` on members of internal types, redundant memberwise initializers in `ListView`, redundant `return` in `GemstoneStakeStore` and unsorted imports in `Error+LocalizedError`.
+- **CLN435** **S** **The confirmation dialog falls back to the shared alert.** `View+ConfirmationDialog` rebuilds the presence binding and the alert with its cancel button that `View+Alert` already provides; the iPad branch calls `alert(_:presenting:)` and the binding is built once.
+- **CLN436** **S** **One ISO-8601 JSON decoder.** `SwiftHTTPClient`'s `Response` repeats the formatters and date strategy of `Primitives`' `JSONDateDecoder`; the widget passes `JSONDateDecoder.standard`, the copy goes, and its date tests move with the decoder.
+
+### Android
+
+- **CLN437** **S** **Search records are built by one mapper.** The three `toSearchRecord` extensions in `DbSearch.kt` have no caller while `GemstoneSearchStore` builds the same records inline three times; one mapper serves the store.
+- **CLN438** **S** **Coroutines catch through `runCatchingCancellable`.** `AppUpdateCoordinator`, `WalletConnectCoordinator`, `DeviceObserverService` and `DevicePushSettings` wrap suspend calls in `runCatching`, which also catches cancellation.
+- **CLN439** **S** **Kotlin names errors in full.** `err` in catch clauses and lambdas becomes `error`, and `vm` in tests `viewModel`; frozen migrations keep their text.
+- **CLN440** **S** **Unit tests read the store through production queries.** `AssetsDao.getBalance` exists only for `Migration_71_72Test`; the test reads the balance through the query the app uses and the DAO method goes.
 
 ## Blocked upstream
 
