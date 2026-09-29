@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-29
 
 ### Core
 
-- **CLN424** **S** **Dynode names its URL lookups.** `ChainConfig::resolve_url` returns the override URL for a request and `NodeService::resolve_request_urls` the ordered upstream URLs; they become `url_for_request` and `request_urls`, with their tests.
 - **CLN425** **S** **The daemon names its interval and parser steps.** `JobInterval::resolve`, `JobVariant::resolve_interval` and `Parser::process_blocks` become `duration`, `interval_duration` and `parse_blocks`; the `cfg` local becomes `config`.
 - **CLN426** **S** **Service updaters name their steps.** `process_transaction` and `resolve_status` in the in-transit updater, `process_identifier` in the pending updater, `process_address` in the staking rewards notifier, `AssetClassificationRules::apply` and the redemption consumer's `process_with_retry` take the action they perform. The rewards transfer providers keep their names.
 - **CLN427** **S** **Adjustment helpers say what they return.** Tron's `apply_buffer`, the swapper's `apply_gas_limit_multiplier` and the number formatter's `apply_thousands_separator` become `with_buffer`, `gas_limit_with_multiplier` and `with_thousands_separator`.

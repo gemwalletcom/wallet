@@ -97,7 +97,7 @@ impl NodeService {
         if !self.chain_types.allows(chain_config, request.request_type()) {
             return Self::request_not_allowed_response(request);
         }
-        let Some(urls) = self.resolve_request_urls(chain_config, request).await else {
+        let Some(urls) = self.request_urls(chain_config, request).await else {
             return self.node_not_found_response(request);
         };
         if urls.len() == 1 {
@@ -215,7 +215,7 @@ impl NodeService {
         self.chains.get(&request.chain).ok_or(NodeServiceError::ChainNotConfigured(request.chain))
     }
 
-    async fn resolve_request_urls(&self, chain_config: &ChainConfig, request: &ProxyRequest) -> Option<Vec<Url>> {
+    async fn request_urls(&self, chain_config: &ChainConfig, request: &ProxyRequest) -> Option<Vec<Url>> {
         if chain_config.urls.is_empty() {
             return None;
         }
