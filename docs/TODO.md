@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-29
 
 ### Core
 
-- **CLN429** **S** **The Stonfi router version check is written once.** `is_supported_v2` is repeated on the fallback router and the API router; both read one function.
 - **CLN430** **S** **One staleness rule.** `assets::rules::asset_outdated`, `perpetual::rules::prices_outdated` and the markets refresh check repeat `updated_at.is_none_or(|updated_at| now - updated_at >= interval)`; one rule in `clock.rs` serves them.
 - **CLN431** **M** **Chain crates and Gemstone name errors in full.** Closure and match bindings named `e` or `err` become `error` where no other `error` is in scope.
 - **CLN432** **M** **Swapper, backend and tools name errors in full.** The same for `swapper`, `services`, `streamer`, `storage`, `rewards`, the apps and `bin`.

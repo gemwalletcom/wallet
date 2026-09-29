@@ -9,9 +9,13 @@ pub(super) struct RouterInfo {
     pub pton_wallet: &'static str,
 }
 
+pub(super) fn is_supported_v2(major_version: u8, minor_version: u8) -> bool {
+    major_version == 2 && matches!(minor_version, 1 | 2)
+}
+
 impl RouterInfo {
     pub(super) fn is_supported_v2(&self) -> bool {
-        self.major_version == 2 && (self.minor_version == 1 || self.minor_version == 2)
+        is_supported_v2(self.major_version, self.minor_version)
     }
 }
 
