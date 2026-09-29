@@ -19,9 +19,6 @@ use crate::constants::ASSET_RESULTS_LIMIT;
 
 pub const ASSET_UPDATE_INTERVAL_SECONDS: u32 = 3_600;
 
-pub fn asset_outdated(updated_at: Option<i64>, now: i64, interval_seconds: u32) -> bool {
-    updated_at.is_none_or(|updated_at| now - updated_at >= i64::from(interval_seconds))
-}
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle, GemRowAction};
@@ -776,13 +773,6 @@ fn allows_actions(banner_events: &[BannerEvent]) -> bool {
 
 #[cfg(test)]
 mod tests {
-
-    #[test]
-    fn test_an_asset_is_outdated_when_never_updated_or_past_the_interval() {
-        assert!(asset_outdated(None, 1_000_000, 3_600), "an asset that was never fully updated cannot tell an empty association list from an unknown one");
-        assert!(!asset_outdated(Some(1_000_000 - 3_599), 1_000_000, 3_600));
-        assert!(asset_outdated(Some(1_000_000 - 3_600), 1_000_000, 3_600));
-    }
 
     #[test]
     fn test_a_token_pays_fees_in_its_chain_coin_except_where_the_chain_charges_in_a_token() {

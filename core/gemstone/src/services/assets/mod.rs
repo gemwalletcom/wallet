@@ -27,6 +27,7 @@ pub use store::GemAssetStore;
 
 use crate::api::{GemApiClient, GemApiError};
 use crate::gateway::GemGateway;
+use crate::services::clock::is_outdated;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -124,7 +125,7 @@ impl GemAssetsService {
     }
 
     pub async fn update_asset(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
-        if !rules::asset_outdated(self.preferences.get_asset_updated_at(&asset_id)?, Utc::now().timestamp(), rules::ASSET_UPDATE_INTERVAL_SECONDS) {
+        if !is_outdated(self.preferences.get_asset_updated_at(&asset_id)?, Utc::now().timestamp(), rules::ASSET_UPDATE_INTERVAL_SECONDS) {
             return Ok(());
         }
         let asset = self.sync_asset(asset_id.clone()).await?;

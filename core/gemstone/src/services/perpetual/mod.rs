@@ -22,6 +22,7 @@ use primitives::{Asset, AssetId, Chain, ChartPeriod, PerpetualAccountMode, Perpe
 use std::collections::HashMap;
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
+use crate::services::clock::is_outdated;
 use crate::services::preferences::GemPreferencesService;
 
 pub use autoclose::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify};
@@ -259,7 +260,7 @@ impl GemPerpetualService {
 
     pub async fn update_prices(&self, prices: HashMap<String, f64>) -> Result<(), GemServiceError> {
         let now = Utc::now().timestamp();
-        if !rules::prices_outdated(self.preferences.get_perpetual_prices_updated_at()?, now, PRICES_UPDATE_INTERVAL_SECONDS) {
+        if !is_outdated(self.preferences.get_perpetual_prices_updated_at()?, now, PRICES_UPDATE_INTERVAL_SECONDS) {
             return Ok(());
         }
         let stored = self.store.get_perpetuals(prices.keys().cloned().collect()).await?;

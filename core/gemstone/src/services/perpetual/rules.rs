@@ -26,6 +26,7 @@ use crate::perpetual::GemPerpetual;
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemRowText, GemValueHeader};
 use crate::services::chart::candlestick_header;
 use crate::services::chart::rules::date_style;
+use crate::services::clock::is_outdated;
 use crate::services::error::GemServiceError;
 use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTriggerOrder};
 use crate::services::transfer::GemTransferData;
@@ -40,7 +41,7 @@ use crate::services::collections::stale;
 
 pub use gem_hypercore::provider::perpetual::candle_interval;
 
-const MARKETS_REFRESH_INTERVAL_SECONDS: i64 = 60 * 60;
+const MARKETS_REFRESH_INTERVAL_SECONDS: u32 = 60 * 60;
 
 const DEFAULT_SLIPPAGE_PERCENT: f64 = 2.0;
 const HOURS_PER_YEAR: f64 = 24.0 * 365.0;
@@ -391,15 +392,11 @@ pub fn supports_perpetuals(wallet_type: WalletType, chains: &[Chain]) -> bool {
     wallet_type == WalletType::Multicoin && chains.iter().any(|chain| crate::services::stream::rules::is_hyperliquid_chain(*chain))
 }
 
-fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {
-    updated_at.is_none_or(|updated_at| now - updated_at >= MARKETS_REFRESH_INTERVAL_SECONDS)
-}
-
 impl GemMarketsRefreshTrigger {
     pub(super) fn should_sync_markets(self, updated_at: Option<i64>, now: i64) -> bool {
         match self {
             Self::UserRequested => true,
-            Self::Scheduled => is_markets_stale(updated_at, now),
+            Self::Scheduled => is_outdated(updated_at, now, MARKETS_REFRESH_INTERVAL_SECONDS),
         }
     }
 }
@@ -423,10 +420,6 @@ pub fn provider(chain: Chain) -> Option<PerpetualProvider> {
         Chain::HyperCore | Chain::Hyperliquid => Some(PerpetualProvider::Hypercore),
         _ => None,
     }
-}
-
-pub fn prices_outdated(updated_at: Option<i64>, now: i64, interval_seconds: u32) -> bool {
-    updated_at.is_none_or(|updated_at| now - updated_at >= i64::from(interval_seconds))
 }
 
 pub fn stale_position_ids(existing_ids: Vec<String>, positions: &[PerpetualPosition]) -> Vec<String> {
@@ -1312,9 +1305,10 @@ mod tests {
 
     #[test]
     fn test_markets_stale_after_an_hour_or_when_never_synced() {
-        assert!(is_markets_stale(None, 10_000));
-        assert!(!is_markets_stale(Some(10_000 - 3_599), 10_000));
-        assert!(is_markets_stale(Some(10_000 - 3_600), 10_000));
+        let scheduled = GemMarketsRefreshTrigger::Scheduled;
+        assert!(scheduled.should_sync_markets(None, 10_000));
+        assert!(!scheduled.should_sync_markets(Some(10_000 - 3_599), 10_000));
+        assert!(scheduled.should_sync_markets(Some(10_000 - 3_600), 10_000));
     }
 
     #[test]
@@ -1694,13 +1688,6 @@ mod tests {
 
         assert_eq!(price.asset_id.chain, Chain::HyperCore);
         assert_eq!(price.price, 1.0);
-    }
-
-    #[test]
-    fn test_prices_outdated() {
-        assert!(prices_outdated(None, 100, 5));
-        assert!(prices_outdated(Some(95), 100, 5));
-        assert!(!prices_outdated(Some(97), 100, 5));
     }
 
     #[test]
