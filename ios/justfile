@@ -151,6 +151,17 @@ test-upgrade COMMIT:
 boot-simulator:
     @xcrun simctl boot "{{SIMULATOR_NAME}}" 2>/dev/null || true
 
+wait-simulator:
+    #!/usr/bin/env bash
+    for _ in $(seq 1 12); do
+        xcrun simctl list runtimes > /dev/null
+        xcrun simctl list devices available | grep -qF "{{SIMULATOR_NAME}} (" && exit 0
+        sleep 10
+    done
+    xcrun simctl list runtimes
+    echo "{{SIMULATOR_NAME}} simulator is not available"
+    exit 1
+
 reset-simulator NAME=SIMULATOR_NAME:
     @echo "==> Resetting {{NAME}} simulator to clean state"
     @xcrun simctl shutdown "{{NAME}}" 2>/dev/null || true
