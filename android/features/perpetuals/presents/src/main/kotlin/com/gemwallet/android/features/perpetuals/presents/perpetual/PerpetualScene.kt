@@ -98,7 +98,8 @@ internal fun PerpetualScene(
                         state = chart,
                         period = period,
                         onPeriodSelect = { onAction(PerpetualAction.SelectChartPeriod(it)) },
-                        onZoom = { onAction(PerpetualAction.ZoomChart(it)) },
+                        onZoom = { magnification, anchor -> onAction(PerpetualAction.ZoomChart(magnification, anchor)) },
+                        onPan = { onAction(PerpetualAction.PanChart(it)) },
                     )
                 }
                 details?.sections.orEmpty().forEach { section ->
@@ -174,7 +175,7 @@ private fun PerpetualScenePreview() {
     }
     val market = previewPerpetual(Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE), "BTC", 95000.0, 0.0, "$15.0B").data.perpetual
     val session = candleSession(ChartPeriod.Day.toGem()).onSelectMarket(market)
-    val previewChart = session.request()?.let { request -> session.onResult(GemCandleResult(request, GemLoadState.Data, chartData.map { it.toGem() })).chart(samplePosition.toGem()) }
+    val previewChart = session.request()?.let { request -> session.onResult(GemCandleResult(request, GemLoadState.Data, chartData.map { it.toGem() })).chart(samplePosition.toGem(), 0) }
 
     WalletTheme {
         PerpetualScene(

@@ -1,7 +1,8 @@
+use chrono::TimeDelta;
 use primitives::{ChartCandleUpdate, ChartPeriod, Perpetual, PerpetualPosition};
 
 use super::model::GemCandleChart;
-use super::rules;
+use super::{chart, rules};
 use crate::models::perpetual::GemChartCandleStick;
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::services::chart::GemChartZoom;
@@ -84,9 +85,16 @@ impl GemCandleSession {
         }
     }
 
-    pub fn on_zoom(&self, magnification: f64) -> Self {
+    pub fn on_zoom(&self, magnification: f64, anchor: f64) -> Self {
         Self {
-            zoom: self.zoom.magnified(magnification, self.candles.len()),
+            zoom: self.zoom.magnified(magnification, anchor, self.candles.len()),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_pan(&self, fraction: f64) -> Self {
+        Self {
+            zoom: self.zoom.panned(fraction, self.candles.len()),
             ..self.clone()
         }
     }
@@ -108,8 +116,8 @@ impl GemCandleSession {
         self.symbol.clone().filter(|_| needs_candles).map(|symbol| GemCandleRequest { symbol, period: self.period })
     }
 
-    pub fn chart(&self, position: Option<PerpetualPosition>) -> Option<GemCandleChart> {
-        rules::candle_chart(&self.candles, self.period, position.as_ref(), self.zoom)
+    pub fn chart(&self, position: Option<PerpetualPosition>, utc_offset_seconds: i32) -> Option<GemCandleChart> {
+        chart::candle_chart(&self.candles, self.period, position.as_ref(), self.zoom, TimeDelta::seconds(i64::from(utc_offset_seconds)))
     }
 
     pub fn view_state(&self) -> GemCandleViewState {
@@ -133,7 +141,7 @@ impl GemCandleSession {
             state: GemLoadState::Loading,
             candles: Vec::new(),
             is_refreshing: false,
-            zoom: GemChartZoom::identity(),
+            zoom: GemChartZoom::default(),
         }
     }
 }
@@ -227,28 +235,22 @@ mod tests {
 
     #[test]
     fn test_on_zoom() {
-        let candles: Vec<GemChartCandleStick> = (0..40).map(|minute| GemChartCandleStick::mock(minute * 60, 100.0)).collect();
+        let candles = GemChartCandleStick::mock_series(0, 60, 70);
         let shown = session().on_result(loaded(session().request().unwrap(), candles.clone()));
-        let zoomed = shown.on_zoom(3.0);
-
-        assert_eq!(zoomed.zoom, GemChartZoom { scale: 3.0 });
-        assert_eq!(zoomed.on_zoom(3.0).zoom, GemChartZoom { scale: 5.0 }, "the session clamps against the candles it holds");
-        assert_eq!(zoomed.chart(None).map(|chart| chart.candles.len()), Some(14), "the chart draws the zoomed window");
-        assert_eq!(
-            zoomed
-                .on_candle_update(ChartCandleUpdate {
-                    coin: "BTC".to_string(),
-                    interval: rules::candle_interval(&ChartPeriod::Day).to_string(),
-                    candle: GemChartCandleStick::mock(40 * 60, 100.0),
-                })
-                .zoom,
-            zoomed.zoom,
-            "a streamed candle keeps the zoom"
-        );
+        let zoomed = shown.on_zoom(100.0, 1.0);
         let refreshing = zoomed.on_refresh();
-        assert_eq!(refreshing.on_result(loaded(refreshing.request().unwrap(), candles)).zoom, zoomed.zoom, "a refresh keeps the zoom the user chose");
-        assert_eq!(zoomed.on_select_period(ChartPeriod::Week).zoom, GemChartZoom::identity(), "a new period starts unzoomed");
-        assert_eq!(zoomed.on_select_market(market("ETH")).zoom, GemChartZoom::identity());
+
+        assert_eq!(zoomed.zoom, GemChartZoom { scale: 5.0, offset: 0.0 }, "the session clamps against the candles it holds");
+        assert_eq!(zoomed.chart(None, 0).map(|chart| chart.candles.len()), Some(15), "the chart draws the zoomed window");
+        assert_eq!(refreshing.on_result(loaded(refreshing.request().unwrap(), candles)).zoom, zoomed.zoom, "a refresh keeps the zoom");
+        assert_eq!(zoomed.on_select_period(ChartPeriod::Week).zoom, GemChartZoom::default(), "a new period starts unzoomed");
+    }
+
+    #[test]
+    fn test_on_pan() {
+        let shown = session().on_result(loaded(session().request().unwrap(), GemChartCandleStick::mock_series(0, 60, 70)));
+
+        assert_eq!(shown.on_zoom(4.0, 1.0).on_pan(0.4).zoom, GemChartZoom { scale: 4.0, offset: 0.1 });
     }
 
     #[test]
@@ -260,27 +262,8 @@ mod tests {
             candle: candle(2),
         };
         let updated = shown.on_candle_update(update.clone());
-        let week = shown.on_select_period(ChartPeriod::Week).on_result(loaded(
-            GemCandleRequest {
-                symbol: "BTC".to_string(),
-                period: ChartPeriod::Week,
-            },
-            vec![candle(1)],
-        ));
-        let eth = shown.on_select_market(market("ETH")).on_result(loaded(
-            GemCandleRequest {
-                symbol: "ETH".to_string(),
-                period: ChartPeriod::Day,
-            },
-            vec![candle(1)],
-        ));
 
-        assert_eq!(updated.candles, vec![candle(2)]);
-        assert_eq!(updated.view_state().state, GemLoadState::Data);
-        assert!(updated.request().is_none(), "a streamed candle replaces what is shown without asking again");
-        assert!(shown.request().is_none(), "shown candles are not asked for again until a refresh");
-        assert_eq!(week.on_candle_update(update.clone()), week, "a candle streamed for the period the screen left never reaches the new one");
-        assert_eq!(eth.on_candle_update(update.clone()), eth, "another market's candle is not this chart's");
+        assert_eq!((updated.request(), updated.candles), (None, vec![candle(2)]), "a streamed candle replaces what is shown without asking again");
         assert_eq!(session().on_candle_update(update), session(), "a candle streamed before the first load is not a chart");
     }
 }

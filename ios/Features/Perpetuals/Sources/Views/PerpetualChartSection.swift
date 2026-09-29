@@ -1,10 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import struct Gemstone.PerpetualPosition
 import Primitives
 import PrimitivesComponents
-import Style
 import SwiftUI
 
 struct PerpetualChartSection: View {
@@ -13,26 +11,8 @@ struct PerpetualChartSection: View {
     let onPeriodChange: @MainActor (ChartPeriod, ChartPeriod) -> Void
 
     var body: some View {
-        VStack {
-            VStack {
-                switch chart.state(position: position) {
-                case .noData:
-                    StateEmptyView(title: chart.emptyTitle, image: chart.emptyImage)
-                case .loading:
-                    LoadingView()
-                case let .data(data):
-                    CandlestickChartView(chart: data, isPinching: $chart.isPinching, onZoom: chart.onZoom)
-                case let .error(error):
-                    StateEmptyView(
-                        title: error.networkOrNoDataDescription,
-                        image: Images.ErrorContent.error,
-                    )
-                }
-            }
-            .frame(height: Sizing.chart.height)
-
-            PeriodSelectorView(selectedPeriod: $chart.currentPeriod)
-                .padding(.horizontal, Spacing.medium)
+        ChartStateView(state: chart.state(position: position), selectedPeriod: $chart.currentPeriod) { data in
+            CandlestickChartView(chart: data, isPinching: $chart.isPinching, onZoom: chart.onZoom, onPan: chart.onPan)
         }
         .onChange(of: chart.currentPeriod, onPeriodChange)
     }

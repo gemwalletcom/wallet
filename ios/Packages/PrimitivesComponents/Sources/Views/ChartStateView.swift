@@ -6,23 +6,35 @@ import Primitives
 import Style
 import SwiftUI
 
-struct ChartStateView<Model: ChartListViewable>: View {
-    @Bindable private var model: Model
+public struct ChartStateView<Chart: Sendable, Content: View>: View {
+    private let state: StateViewType<Chart>
+    private let periods: [ChartPeriod]
+    private let content: (Chart) -> Content
 
-    init(model: Model) {
-        self.model = model
+    @Binding private var selectedPeriod: ChartPeriod
+
+    public init(
+        state: StateViewType<Chart>,
+        selectedPeriod: Binding<ChartPeriod>,
+        periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all],
+        @ViewBuilder content: @escaping (Chart) -> Content,
+    ) {
+        self.state = state
+        _selectedPeriod = selectedPeriod
+        self.periods = periods
+        self.content = content
     }
 
-    var body: some View {
+    public var body: some View {
         VStack {
             VStack {
-                switch model.chartState {
+                switch state {
                 case .noData:
                     StateEmptyView(title: Localized.Common.notAvailable, image: Images.EmptyContent.activity)
                 case .loading:
                     LoadingView()
                 case let .data(chart):
-                    ChartView(chart: chart, isPinching: $model.isPinching, onZoom: model.onZoom)
+                    content(chart)
                 case let .error(error):
                     StateEmptyView(
                         title: error.networkOrNoDataDescription,
@@ -32,7 +44,7 @@ struct ChartStateView<Model: ChartListViewable>: View {
             }
             .frame(height: Sizing.chart.height)
 
-            PeriodSelectorView(selectedPeriod: $model.selectedPeriod, periods: model.periods)
+            PeriodSelectorView(selectedPeriod: $selectedPeriod, periods: periods)
                 .padding(.horizontal, Spacing.medium)
         }
     }

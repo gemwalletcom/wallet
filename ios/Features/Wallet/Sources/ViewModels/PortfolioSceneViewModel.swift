@@ -53,8 +53,6 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         set { update(session.onSelectPeriod(period: newValue.toGem())) }
     }
 
-    public var isPinching = false
-
     public var periods: [ChartPeriod] {
         state.periods.map { $0.toPrimitives() }
     }
@@ -103,12 +101,24 @@ extension PortfolioSceneViewModel {
         await load()
     }
 
-    public func onZoom(_ magnification: Double) {
-        update(session.onZoom(magnification: magnification))
-    }
-
     private func update(_ session: GemPortfolioSession) {
         self.session = session
         state = session.viewState()
+    }
+}
+
+// MARK: - Actions
+
+public extension PortfolioSceneViewModel {
+    func onZoom(_ magnification: Double, anchor: Double) {
+        let zoomed = session.onZoom(magnification: magnification, anchor: anchor)
+        guard zoomed.zoom != session.zoom else { return }
+        update(zoomed)
+    }
+
+    func onPan(_ fraction: Double) {
+        let panned = session.onPan(fraction: fraction)
+        guard panned.zoom != session.zoom else { return }
+        update(panned)
     }
 }

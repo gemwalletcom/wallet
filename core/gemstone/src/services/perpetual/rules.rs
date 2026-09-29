@@ -1,6 +1,6 @@
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
-use chrono::{TimeDelta, Utc};
+use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::PriceChangeCalculator;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
@@ -13,10 +13,10 @@ use primitives::{
 use strum::IntoEnumIterator;
 
 use super::model::{
-    GemCandleChart, GemCandleTickFormat, GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine,
-    GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection,
-    GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData,
-    PerpetualMarketLine, PerpetualOpenLine, PerpetualPositionLine,
+    GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput,
+    GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualOrderAction, GemPerpetualOrderInput,
+    GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData, PerpetualMarketLine, PerpetualOpenLine,
+    PerpetualPositionLine,
 };
 use crate::formatted_number::{GemFormattedNumber, GemValueTone, value_tone};
 use crate::models::custom_types::GemBigInt;
@@ -24,8 +24,6 @@ use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle, GemListSect
 use crate::models::placeholder::EMPTY_VALUE;
 use crate::perpetual::GemPerpetual;
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemRowText, GemValueHeader};
-use crate::services::chart::rules::date_style;
-use crate::services::chart::{GemChartZoom, candlestick_header};
 use crate::services::error::GemServiceError;
 use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTriggerOrder};
 use crate::services::transfer::GemTransferData;
@@ -51,11 +49,7 @@ const CHART_LABEL_OVERLAP_FRACTION: f64 = 0.06;
 const CHART_CURRENT_PRICE_CLEARANCE_FRACTION: f64 = 0.08;
 const CHART_MINIMUM_SPAN_FRACTION: f64 = 0.001;
 const CHART_MINIMUM_SPAN: f64 = 1e-9;
-const CHART_TICK_COUNT: usize = 4;
-const CHART_TRAILING_ROOM_FRACTION: f64 = 0.02;
-const CHART_X_TICK_COUNT: usize = 5;
-const CHART_X_TICK_INSET_FRACTION: f64 = 0.1;
-const CHART_X_TICK_YEAR_DAYS: i64 = 360;
+const CHART_LEVEL_COUNT: usize = 4;
 
 pub fn perpetual_asset_basics(data: &[PerpetualData]) -> Vec<AssetBasic> {
     data.iter()
@@ -264,72 +258,7 @@ pub fn autoclose_row(data: &PerpetualModifyConfirmData) -> Option<GemListRow> {
     })
 }
 
-pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, position: Option<&PerpetualPosition>, zoom: GemChartZoom) -> Option<GemCandleChart> {
-    let (first, last) = (candles.first()?, candles.last()?);
-    let interval = candles
-        .iter()
-        .zip(&candles[1..])
-        .map(|(previous, next)| next.date - previous.date)
-        .filter(|gap| *gap > TimeDelta::zero())
-        .min()
-        .unwrap_or_default();
-    let visible_start = zoom.clamped(candles.len()).visible_start(first.date, last.date);
-    let drawn = &candles[candles.partition_point(|candle| candle.date <= visible_start - interval).min(candles.len() - 1)..];
-    let start = visible_start - interval / 2;
-    let end = last.date + fraction_of(last.date - visible_start, CHART_TRAILING_ROOM_FRACTION).max(interval);
-    let inset = start + fraction_of(end - start, CHART_X_TICK_INSET_FRACTION);
-    let labelled = &drawn[drawn.partition_point(|candle| candle.date < inset)..];
-    let per_tick = candles_per_tick(labelled.len(), interval);
-    Some(GemCandleChart {
-        candles: drawn.to_vec(),
-        layout: chart_layout(drawn, position),
-        header: candlestick_header(first.close, last.close),
-        date_style: date_style(period),
-        base: first.close,
-        start,
-        end,
-        interval_seconds: interval.num_seconds(),
-        x_ticks: labelled.iter().rev().step_by(per_tick).rev().map(|candle| candle.date).collect(),
-        x_tick_format: x_tick_format(end - start, interval * per_tick as i32, last.date - drawn[0].date),
-    })
-}
-
-fn fraction_of(span: TimeDelta, fraction: f64) -> TimeDelta {
-    TimeDelta::milliseconds((span.num_milliseconds() as f64 * fraction) as i64)
-}
-
-fn candles_per_tick(count: usize, interval: TimeDelta) -> usize {
-    let gaps = count.saturating_sub(1) as f64;
-    let rough = gaps / (CHART_X_TICK_COUNT - 1) as f64;
-    let fitting = rough.floor().max(1.0);
-    let candles = match gaps / fitting < CHART_X_TICK_COUNT as f64 {
-        true => fitting,
-        false => rough.ceil(),
-    } as usize;
-    let day = TimeDelta::days(1);
-    match interval > TimeDelta::zero() && interval < day && interval * candles as i32 >= day {
-        true => {
-            let per_day = (day.num_seconds() as f64 / interval.num_seconds() as f64).round() as usize;
-            candles.div_ceil(per_day) * per_day
-        }
-        false => candles,
-    }
-}
-
-fn x_tick_format(span: TimeDelta, step: TimeDelta, covered: TimeDelta) -> GemCandleTickFormat {
-    let day = TimeDelta::days(1);
-    if span >= TimeDelta::days(CHART_X_TICK_YEAR_DAYS) {
-        GemCandleTickFormat::MonthYear
-    } else if step >= day {
-        GemCandleTickFormat::Day
-    } else if covered <= day {
-        GemCandleTickFormat::Time
-    } else {
-        GemCandleTickFormat::TimeOrDay
-    }
-}
-
-fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPosition>) -> GemPerpetualChartLayout {
+pub fn chart_layout(candles: &[ChartCandleStick], current: &ChartCandleStick, position: Option<&PerpetualPosition>) -> GemPerpetualChartLayout {
     let candle_low = candles.iter().map(|candle| candle.low).reduce(f64::min).unwrap_or(0.0);
     let candle_high = candles.iter().map(|candle| candle.high).reduce(f64::max).unwrap_or(1.0);
     let buffer = (candle_high - candle_low) * CHART_LINE_VISIBILITY_BUFFER_FRACTION;
@@ -347,7 +276,6 @@ fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPositio
     let price_low = if lowest > 0.0 { (lowest - padding).max(lowest * CHART_RANGE_FLOOR_FRACTION) } else { lowest - padding };
     let price_high = highest + padding;
     let overlap_threshold = (price_high - price_low) * CHART_LABEL_OVERLAP_FRACTION;
-    let current_price_clearance = (price_high - price_low) * CHART_CURRENT_PRICE_CLEARANCE_FRACTION;
     let mut previous: Option<(f64, u32)> = None;
     let lines = lines
         .into_iter()
@@ -369,23 +297,23 @@ fn chart_layout(candles: &[ChartCandleStick], position: Option<&PerpetualPositio
     GemPerpetualChartLayout {
         price_low,
         price_high,
-        ticks: chart_ticks(candle_low, candle_high)
-            .into_iter()
-            .filter(|tick| candles.last().is_none_or(|candle| (tick - candle.close).abs() >= current_price_clearance))
-            .map(|tick| GemFormattedNumber::adaptive(tick, None))
-            .collect(),
         lines,
-        current_price: candles.last().map(|candle| GemFormattedNumber::adaptive(candle.close, None)),
+        current_price: GemFormattedNumber::adaptive(current.close, None),
+        current_tone: value_tone(current.close - current.open),
         tones: candles.iter().map(|candle| value_tone(candle.close - candle.open)).collect(),
+        volume_high: candles.iter().map(|candle| candle.volume).fold(0.0, f64::max),
     }
 }
 
-fn chart_ticks(candle_low: f64, candle_high: f64) -> Vec<f64> {
-    if candle_high <= candle_low {
-        return vec![candle_low];
-    }
-    let step = (candle_high - candle_low) / (CHART_TICK_COUNT - 1) as f64;
-    (0..CHART_TICK_COUNT).map(|index| candle_low + step * index as f64).collect()
+pub fn chart_levels(price_low: f64, price_high: f64, current_price: f64) -> Vec<GemFormattedNumber> {
+    let span = price_high - price_low;
+    let padding = span * CHART_RANGE_PADDING_FRACTION / (1.0 + 2.0 * CHART_RANGE_PADDING_FRACTION);
+    let clearance = span * CHART_CURRENT_PRICE_CLEARANCE_FRACTION;
+    (0..CHART_LEVEL_COUNT)
+        .map(|index| price_low + padding + (span - 2.0 * padding) * index as f64 / (CHART_LEVEL_COUNT - 1) as f64)
+        .filter(|level| (level - current_price).abs() >= clearance)
+        .map(|level| GemFormattedNumber::adaptive(level, None))
+        .collect()
 }
 
 fn chart_lines(position: &PerpetualPosition) -> Vec<(GemPerpetualChartLineKind, f64)> {
@@ -962,9 +890,7 @@ mod tests {
     use super::*;
     use crate::services::amount::{GemAmountPerpetualPosition, GemAmountType, rules::perpetual_amount_type};
     use crate::services::assets::model::GemHeaderButtonKind;
-    use crate::services::chart::model::GemChartDateStyle;
     use crate::services::perpetual::model::GemPerpetualMarketSession;
-    use chrono::DateTime;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::PerpetualTriggerOrder;
@@ -1243,21 +1169,42 @@ mod tests {
     }
 
     #[test]
-    fn test_chart_layout_pads_the_candle_range_and_keeps_its_ticks_clear_of_the_current_price() {
-        let layout = chart_layout(&[ChartCandleStick::mock_range(9.0, 12.0), ChartCandleStick::mock_range(10.0, 13.0)], None);
-        let between = chart_layout(&[ChartCandleStick::mock_range(9.0, 13.0), ChartCandleStick::mock_range(10.0, 12.3)], None);
+    fn test_chart_layout_pads_the_candle_range() {
+        let candles = [ChartCandleStick::mock_range(9.0, 12.0), ChartCandleStick::mock_range(10.0, 13.0)];
+        let layout = chart_layout(&candles, &candles[1], None);
 
         assert!(layout.price_low < 9.0 && layout.price_low >= 9.0 * CHART_RANGE_FLOOR_FRACTION);
         assert!(layout.price_high > 13.0);
-        assert_eq!(layout.ticks.len(), 3, "the top level sits on the last close of 13");
-        assert_eq!(layout.ticks[0].value, 9.0);
-        assert_eq!(between.ticks.len(), 4, "a close between the levels keeps all four");
-        assert_eq!(
-            chart_layout(&[ChartCandleStick::mock_range(9.0, 13.0), ChartCandleStick::mock_range(10.0, 12.7)], None).ticks.len(),
-            3,
-            "a level within the current price label's height of the close is left out"
-        );
         assert!(layout.lines.is_empty());
+    }
+
+    #[test]
+    fn test_chart_levels() {
+        let values = |levels: Vec<GemFormattedNumber>| levels.iter().map(|level| (level.value * 1e6).round() / 1e6).collect::<Vec<_>>();
+
+        assert_eq!(values(chart_levels(0.0, 33.0, 40.0)), vec![1.5, 11.5, 21.5, 31.5], "the candles' low and high and the thirds between, inside the padding");
+        assert_eq!(values(chart_levels(0.0, 33.0, 31.0)), vec![1.5, 11.5, 21.5], "a level within the current price label's height is left out");
+        assert_eq!(values(chart_levels(0.0, 33.0, 12.0)), vec![1.5, 21.5, 31.5]);
+        let candles = [ChartCandleStick::mock_range(10.0, 20.0)];
+        let layout = chart_layout(&candles, &candles[0], None);
+        assert_eq!(
+            values(chart_levels(layout.price_low, layout.price_high, 30.0)),
+            vec![10.0, 13.333333, 16.666667, 20.0],
+            "settled, the levels land on the candle range the way the axis always has"
+        );
+    }
+
+    #[test]
+    fn test_chart_layout() {
+        let quiet = ChartCandleStick {
+            volume: 3.0,
+            ..ChartCandleStick::mock_range(9.0, 12.0)
+        };
+        let busy = ChartCandleStick { volume: 12.0, ..quiet.clone() };
+        let silent = [ChartCandleStick { volume: 0.0, ..quiet.clone() }];
+
+        assert_eq!(chart_layout(&[quiet.clone(), busy, quiet.clone()], &quiet, None).volume_high, 12.0, "the volume axis reaches the busiest candle");
+        assert_eq!(chart_layout(&silent, &silent[0], None).volume_high, 0.0, "no volume, no bars");
     }
 
     #[test]
@@ -1266,7 +1213,8 @@ mod tests {
         let falling = ChartCandleStick { open: 12.0, close: 9.0, ..rising };
         let flat = ChartCandleStick { open: 10.0, close: 10.0, ..rising };
 
-        let layout = chart_layout(&[rising, falling, flat], None);
+        let candles = [rising, falling, flat];
+        let layout = chart_layout(&candles, &candles[2], None);
 
         assert_eq!(layout.tones, vec![GemValueTone::Positive, GemValueTone::Negative, GemValueTone::Neutral]);
     }
@@ -1279,129 +1227,12 @@ mod tests {
         open.take_profit = Some(PerpetualTriggerOrder::mock(100.0));
         open.liquidation_price = Some(1.0);
 
-        let layout = chart_layout(&[ChartCandleStick::mock_range(9.0, 13.0)], Some(&open));
+        let candles = [ChartCandleStick::mock_range(9.0, 13.0)];
+        let layout = chart_layout(&candles, &candles[0], Some(&open));
         let lines: Vec<(GemPerpetualChartLineKind, f64)> = layout.lines.iter().map(|line| (line.kind, line.price.value)).collect();
 
         assert_eq!(lines, vec![(GemPerpetualChartLineKind::StopLoss, 8.0), (GemPerpetualChartLineKind::Entry, 14.0)]);
         assert!(layout.price_low <= 8.0 && layout.price_high >= 14.0);
-    }
-
-    #[test]
-    fn test_candle_chart_labels_each_line_and_answers_the_selection_against_the_first_close() {
-        let mut open = PerpetualPosition::mock();
-        open.entry_price = 11.0;
-        let candles = [
-            ChartCandleStick::mock_range(9.0, 12.0),
-            ChartCandleStick {
-                date: DateTime::from_timestamp(60, 0).unwrap(),
-                ..ChartCandleStick::mock_range(10.0, 13.0)
-            },
-        ];
-
-        let chart = candle_chart(&candles, ChartPeriod::Year, Some(&open), GemChartZoom::identity()).expect("chart");
-        let entry = chart.layout.lines.first().expect("entry line");
-
-        assert_eq!(
-            entry.label,
-            GemLocalizedText::ChartLine {
-                kind: GemPerpetualChartLineKind::Entry,
-                price: entry.price.clone()
-            }
-        );
-        assert_eq!(chart.date_style, GemChartDateStyle::Day);
-        assert_eq!(chart.header, candlestick_header(candles[0].close, candles[1].close));
-        assert_eq!(chart.selection(0).map(|selection| selection.header), Some(candlestick_header(candles[0].close, candles[0].close)));
-        assert_eq!(chart.selection(2), None);
-        assert_eq!(chart.tooltip(1), Some(candle_tooltip(&candles[1])));
-        assert_eq!(chart.tooltip(2), None);
-        assert_eq!(candle_chart(&[], ChartPeriod::Day, None, GemChartZoom::identity()), None, "no candles, no chart");
-    }
-
-    #[test]
-    fn test_candle_chart_viewport() {
-        let candles: Vec<ChartCandleStick> = (0..20).map(|minute| ChartCandleStick::mock(minute * 60, 100.0 + minute as f64)).collect();
-        let chart = |candles: &[ChartCandleStick], scale: f64| candle_chart(candles, ChartPeriod::Hour, None, GemChartZoom { scale }).expect("chart");
-        let whole = chart(&candles, 1.0);
-        let zoomed = chart(&candles, 2.0);
-        let wide = chart(&(0..600).map(|minute| ChartCandleStick::mock(minute * 60, 100.0)).collect::<Vec<_>>(), 1.0);
-        let gapped = chart(&[ChartCandleStick::mock(0, 1.0), ChartCandleStick::mock(60, 1.0), ChartCandleStick::mock(600, 1.0)], 1.0);
-
-        assert_eq!(
-            (whole.start, whole.end),
-            (DateTime::from_timestamp(-30, 0).unwrap(), DateTime::from_timestamp(1200, 0).unwrap()),
-            "the window covers whole candles and keeps one empty candle after the newest"
-        );
-        assert_eq!(whole.candles, candles);
-        assert_eq!(whole.interval_seconds, 60);
-        assert_eq!((zoomed.start, zoomed.end), (DateTime::from_timestamp(540, 0).unwrap(), DateTime::from_timestamp(1200, 0).unwrap()));
-        assert_eq!(zoomed.candles, candles[9..], "the candle straddling the left edge stays partially visible");
-        assert_eq!(zoomed.layout, chart_layout(&candles[9..], None), "the price axis fits the candles on screen");
-        assert_eq!(zoomed.header, whole.header, "the header change is over the whole period");
-        assert_eq!(
-            zoomed.selection(10).map(|selection| selection.header),
-            Some(candlestick_header(candles[0].close, candles[19].close)),
-            "a selection is measured from the first close of the period"
-        );
-        assert_eq!(gapped.interval_seconds, 60, "a gap in trading does not widen the candles");
-        assert_eq!(wide.end, DateTime::from_timestamp_millis(36_658_800).unwrap(), "a wide window keeps a small share of itself empty, not a tenth of the period");
-        assert_eq!(chart(&candles[..1], 1.0).candles, candles[..1], "a lone candle is still drawn");
-    }
-
-    #[test]
-    fn test_candle_chart_x_ticks() {
-        let series = |from: &str, seconds: i64, count: i64| -> Vec<ChartCandleStick> {
-            let first = DateTime::parse_from_rfc3339(from).unwrap().timestamp();
-            (0..count).map(|index| ChartCandleStick::mock(first + index * seconds, 1.0)).collect()
-        };
-        let at = |dates: &[&str]| -> Vec<DateTime<Utc>> { dates.iter().map(|date| DateTime::parse_from_rfc3339(date).unwrap().to_utc()).collect() };
-        let axis = |candles: Vec<ChartCandleStick>| {
-            let chart = candle_chart(&candles, ChartPeriod::Day, None, GemChartZoom::identity()).expect("chart");
-            (chart.x_ticks, chart.x_tick_format)
-        };
-        let monthly: Vec<ChartCandleStick> = (0..14)
-            .map(|month| ChartCandleStick::mock(DateTime::parse_from_rfc3339("2025-08-07T00:00:00Z").unwrap().checked_add_months(chrono::Months::new(month)).unwrap().timestamp(), 1.0))
-            .collect();
-
-        assert_eq!(
-            axis(series("2026-09-23T15:08:00Z", 60, 61)),
-            (
-                at(&["2026-09-23T15:16:00Z", "2026-09-23T15:29:00Z", "2026-09-23T15:42:00Z", "2026-09-23T15:55:00Z", "2026-09-23T16:08:00Z"]),
-                GemCandleTickFormat::Time
-            ),
-            "an hour is labelled on its candles counted back from the newest"
-        );
-        assert_eq!(
-            axis(series("2026-09-22T16:30:00Z", 1800, 48)),
-            (
-                at(&["2026-09-22T20:00:00Z", "2026-09-23T01:00:00Z", "2026-09-23T06:00:00Z", "2026-09-23T11:00:00Z", "2026-09-23T16:00:00Z"]),
-                GemCandleTickFormat::Time
-            ),
-            "candles that fit in a day are labelled with times only"
-        );
-        assert_eq!(
-            axis(series("2026-09-22T04:00:00Z", 4 * 3600, 9)),
-            (at(&["2026-09-22T12:00:00Z", "2026-09-22T20:00:00Z", "2026-09-23T04:00:00Z", "2026-09-23T12:00:00Z"]), GemCandleTickFormat::TimeOrDay)
-        );
-        assert_eq!(
-            axis(series("2026-09-16T16:00:00Z", 4 * 3600, 43)),
-            (at(&["2026-09-17T16:00:00Z", "2026-09-19T16:00:00Z", "2026-09-21T16:00:00Z", "2026-09-23T16:00:00Z"]), GemCandleTickFormat::Day),
-            "a step of a day or more lands on whole days of candles"
-        );
-        assert_eq!(
-            axis(monthly),
-            (
-                at(&["2025-09-07T00:00:00Z", "2025-12-07T00:00:00Z", "2026-03-07T00:00:00Z", "2026-06-07T00:00:00Z", "2026-09-07T00:00:00Z"]),
-                GemCandleTickFormat::MonthYear
-            ),
-            "a chart over a year names the month and year"
-        );
-        for (seconds, count) in [(60, 1), (60, 60), (1800, 48), (4 * 3600, 42), (12 * 3600, 60), (7 * 86400, 52), (30 * 86400, 40)] {
-            let candles = series("2026-01-05T00:00:00Z", seconds, count);
-            let (ticks, _) = axis(candles.clone());
-            assert!(ticks.iter().all(|tick| candles.iter().any(|candle| candle.date == *tick)), "{count} candles of {seconds} s");
-            assert_eq!(ticks.last(), candles.last().map(|candle| &candle.date), "{count} candles of {seconds} s");
-            assert!(ticks.len() <= CHART_X_TICK_COUNT, "{count} candles of {seconds} s");
-        }
     }
 
     #[test]
@@ -1411,7 +1242,8 @@ mod tests {
         open.take_profit = Some(PerpetualTriggerOrder::mock(180.0));
         open.liquidation_price = Some(120.0);
 
-        let layout = chart_layout(&[ChartCandleStick::mock_range(100.0, 200.0)], Some(&open));
+        let candles = [ChartCandleStick::mock_range(100.0, 200.0)];
+        let layout = chart_layout(&candles, &candles[0], Some(&open));
         let levels: Vec<(GemPerpetualChartLineKind, u32)> = layout.lines.iter().map(|line| (line.kind, line.overlap_level)).collect();
 
         assert_eq!(levels, vec![(GemPerpetualChartLineKind::Liquidation, 0), (GemPerpetualChartLineKind::Entry, 1), (GemPerpetualChartLineKind::TakeProfit, 0)]);
@@ -1419,11 +1251,12 @@ mod tests {
 
     #[test]
     fn test_chart_layout_keeps_a_measurable_range_for_flat_and_negative_series() {
-        let flat = chart_layout(&[ChartCandleStick::mock_range(100.0, 100.0)], None);
+        let flat = [ChartCandleStick::mock_range(100.0, 100.0)];
+        let flat = chart_layout(&flat, &flat[0], None);
         assert!(flat.price_low < flat.price_high);
-        assert_eq!(flat.ticks.len(), 0, "the only level of a flat series is the current price itself");
 
-        let negative = chart_layout(&[ChartCandleStick::mock_range(-10.0, -5.0)], None);
+        let negative = [ChartCandleStick::mock_range(-10.0, -5.0)];
+        let negative = chart_layout(&negative, &negative[0], None);
         assert!(negative.price_low < -10.0);
     }
 

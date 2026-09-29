@@ -9,10 +9,10 @@ import Primitives
 public protocol ChartListViewable: AnyObject, Observable {
     var chartState: StateViewType<GemChartData> { get }
     var selectedPeriod: ChartPeriod { get set }
-    var isPinching: Bool { get set }
     var periods: [ChartPeriod] { get }
     func load() async
-    func onZoom(_ magnification: Double)
+    func onZoom(_ magnification: Double, anchor: Double)
+    func onPan(_ fraction: Double)
 }
 
 public extension ChartListViewable {

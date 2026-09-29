@@ -118,8 +118,12 @@ class ChartValuesViewModel internal constructor(
         session.update { it.onRefresh() }
     }
 
-    fun onZoom(magnification: Float) {
-        session.update { it.onZoom(magnification.toDouble()) }
+    fun onZoom(magnification: Float, anchor: Float) {
+        session.update { it.onZoom(magnification.toDouble(), anchor.toDouble()) }
+    }
+
+    fun onPan(fraction: Float) {
+        session.update { it.onPan(fraction.toDouble()) }
     }
 
     private suspend fun load() {

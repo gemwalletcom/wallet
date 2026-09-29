@@ -9,6 +9,10 @@ impl ChartDateValue {
             value,
         }
     }
+
+    pub fn mock_series(count: i64) -> Vec<Self> {
+        (0..count).map(|second| Self::mock(second, second as f64)).collect()
+    }
 }
 
 impl ChartCandleStick {
@@ -21,6 +25,10 @@ impl ChartCandleStick {
             close,
             volume: 1000.0,
         }
+    }
+
+    pub fn mock_series(from_seconds: i64, interval_seconds: i64, count: i64) -> Vec<Self> {
+        (0..count).map(|index| Self::mock(from_seconds + index * interval_seconds, 100.0)).collect()
     }
 
     pub fn mock_range(low: f64, high: f64) -> Self {

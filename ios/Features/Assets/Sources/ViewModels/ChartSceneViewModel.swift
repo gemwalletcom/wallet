@@ -29,7 +29,6 @@ public final class ChartSceneViewModel: ChartListViewable {
     let asset: Asset
 
     private var session: GemChartSession
-    public var isPinching = false
     public var selectedPeriod: ChartPeriod {
         get { session.period.toPrimitives() }
         set {
@@ -127,8 +126,16 @@ public extension ChartSceneViewModel {
         }
     }
 
-    func onZoom(_ magnification: Double) {
-        session = session.onZoom(magnification: magnification)
+    func onZoom(_ magnification: Double, anchor: Double) {
+        let zoomed = session.onZoom(magnification: magnification, anchor: anchor)
+        guard zoomed.zoom != session.zoom else { return }
+        session = zoomed
+    }
+
+    func onPan(_ fraction: Double) {
+        let panned = session.onPan(fraction: fraction)
+        guard panned.zoom != session.zoom else { return }
+        session = panned
     }
 
     var currency: Primitives.Currency {

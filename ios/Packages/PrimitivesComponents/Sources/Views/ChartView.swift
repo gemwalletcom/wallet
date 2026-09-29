@@ -20,22 +20,25 @@ public struct ChartView: View {
         static let lineWidth: CGFloat = 2.5
         static let selectionDotSize: CGFloat = 12
         static let labelWidth: CGFloat = 88
-        static let trailingSpace: Double = 0.02
     }
 
     private let chart: GemChartData
     private let lineColor: Color
     private let dateFormatter = ChartDateFormatter()
-    private let onZoom: @MainActor (Double) -> Void
+    private let onZoom: @MainActor (Double, Double) -> Void
+    private let onPan: @MainActor (Double) -> Void
 
     @Binding private var isPinching: Bool
     @State private var selectedIndex: Int?
+    @State private var valueRange: ClosedRange<Double>
 
-    init(chart: GemChartData, lineColor: Color = Colors.blue, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double) -> Void) {
+    init(chart: GemChartData, lineColor: Color = Colors.blue, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double, Double) -> Void, onPan: @escaping @MainActor (Double) -> Void) {
         self.chart = chart
         self.lineColor = lineColor
         _isPinching = isPinching
         self.onZoom = onZoom
+        self.onPan = onPan
+        _valueRange = State(initialValue: chart.bounds.yMin ... chart.bounds.yMax)
     }
 
     public var body: some View {
@@ -64,14 +67,6 @@ extension ChartView {
 
     private var selectedElement: ChartDateValue? {
         selectedIndex.flatMap { chart.values[safe: $0] }
-    }
-
-    private var yScale: [Double] {
-        [chart.bounds.yMin, chart.bounds.yMax]
-    }
-
-    private var xScale: [Date] {
-        [chart.start, chart.end.addingTimeInterval(chart.end.timeIntervalSince(chart.start) * Metrics.trailingSpace)]
     }
 
     private var chartView: some View {
@@ -118,15 +113,20 @@ extension ChartView {
         }
         .chartOverlay { proxy in
             GeometryReader { geometry in
-                Color.clear
-                    .chartGestures(
-                        isPinching: $isPinching,
-                        onScrub: { onScrub(location: $0, proxy: proxy, geometry: geometry) },
-                        onScrubEnd: { selectedIndex = nil },
-                        onZoom: onZoom,
-                    )
+                if let plotFrame = proxy.plotFrame {
+                    Color.clear
+                        .chartGestures(
+                            in: geometry[plotFrame],
+                            isPinching: $isPinching,
+                            onScrub: { selectedIndex = chart.indexAt(fraction: $0).map(Int.init) },
+                            onScrubEnd: { selectedIndex = nil },
+                            onZoom: onZoom,
+                            onPan: onPan,
+                        )
+                }
 
                 if let lastPoint = chart.values.last,
+                   lastPoint.date <= chart.end,
                    let plotFrame = proxy.plotFrame,
                    let xPos = proxy.position(forX: lastPoint.date),
                    let yPos = proxy.position(forY: lastPoint.value)
@@ -142,8 +142,9 @@ extension ChartView {
         .padding(.vertical, Spacing.large)
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
-        .chartYScale(domain: yScale)
-        .chartXScale(domain: xScale)
+        .chartYScale(domain: valueRange)
+        .chartRange($valueRange, fitting: chart.bounds.yMin ... chart.bounds.yMax)
+        .chartXScale(domain: chart.start ... chart.end)
         .chartPlotStyle { plotArea in
             plotArea.clipped()
         }
@@ -193,22 +194,5 @@ extension ChartView {
         let minLeading: CGFloat = Spacing.small
         let maxLeading = max(minLeading, geoWidth - Metrics.labelWidth - Spacing.small)
         return min(maxLeading, max(minLeading, x - half))
-    }
-}
-
-// MARK: - Actions
-
-extension ChartView {
-    private func onScrub(location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) {
-        guard let plotFrame = proxy.plotFrame else { return }
-
-        let relativeX = location.x - geometry[plotFrame].origin.x
-        guard let targetDate = proxy.value(atX: relativeX) as Date?,
-              let index = chart.values.indices.filter({ chart.values[$0].date >= chart.start }).min(by: { abs(chart.values[$0].date.distance(to: targetDate)) < abs(chart.values[$1].date.distance(to: targetDate)) })
-        else {
-            return
-        }
-
-        selectedIndex = index
     }
 }

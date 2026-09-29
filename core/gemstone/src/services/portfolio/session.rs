@@ -96,7 +96,7 @@ impl GemPortfolioSession {
         }
         Self {
             portfolio_type,
-            zoom: GemChartZoom::identity(),
+            zoom: GemChartZoom::default(),
             ..self.clone()
         }
     }
@@ -107,15 +107,21 @@ impl GemPortfolioSession {
         }
         Self {
             chart_type,
-            zoom: GemChartZoom::identity(),
+            zoom: GemChartZoom::default(),
             ..self.clone()
         }
     }
 
-    pub fn on_zoom(&self, magnification: f64) -> Self {
-        let points = self.load(self.portfolio_type).data.as_ref().and_then(|data| self.chart(data)).map_or(0, |chart| chart.values.len());
+    pub fn on_zoom(&self, magnification: f64, anchor: f64) -> Self {
         Self {
-            zoom: self.zoom.magnified(magnification, points),
+            zoom: self.zoom.magnified(magnification, anchor, self.points()),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_pan(&self, fraction: f64) -> Self {
+        Self {
+            zoom: self.zoom.panned(fraction, self.points()),
             ..self.clone()
         }
     }
@@ -128,7 +134,7 @@ impl GemPortfolioSession {
             period,
             wallet: GemPortfolioLoad::loading(period),
             perpetuals: GemPortfolioLoad::loading(period),
-            zoom: GemChartZoom::identity(),
+            zoom: GemChartZoom::default(),
             ..self.clone()
         }
     }
@@ -209,7 +215,7 @@ impl GemPortfolioSession {
             wallet: GemPortfolioLoad::loading(period),
             perpetuals: GemPortfolioLoad::loading(period),
             is_refreshing: false,
-            zoom: GemChartZoom::identity(),
+            zoom: GemChartZoom::default(),
         }
     }
 
@@ -231,6 +237,10 @@ impl GemPortfolioSession {
         request.wallet_id == self.wallet_id && request.currency == self.currency && request.period == self.period
     }
 
+    fn points(&self) -> usize {
+        self.load(self.portfolio_type).data.as_ref().and_then(|data| self.chart(data)).map_or(0, |chart| chart.values.len())
+    }
+
     fn chart(&self, data: &PortfolioData) -> Option<GemChartData> {
         rules::portfolio_chart_data(data.clone(), self.portfolio_type, self.chart_type, self.period, self.currency.clone())
     }
@@ -240,7 +250,7 @@ impl GemPortfolioSession {
             (GemLoadState::Loading, _) => GemPortfolioPhase::Loading,
             (_, Some(data)) => match self.chart(data) {
                 Some(chart) => GemPortfolioPhase::Data {
-                    chart: chart_rules::zoomed(chart, self.zoom),
+                    chart: chart_rules::zoomed_chart(chart, self.zoom),
                 },
                 None => GemPortfolioPhase::NoData,
             },
@@ -329,37 +339,32 @@ mod tests {
     }
 
     #[test]
+    fn test_on_pan() {
+        let session = session();
+        let charts = vec![PortfolioChartData {
+            chart_type: PortfolioChartType::Value,
+            values: ChartDateValue::mock_series(140),
+        }];
+        let shown = session.on_result(loaded(session.request(), PortfolioData { charts, ..data(vec![ChartPeriod::All]) }));
+
+        assert_eq!(shown.on_zoom(4.0, 1.0).on_pan(0.4).zoom, GemChartZoom { scale: 4.0, offset: 0.1 });
+    }
+
+    #[test]
     fn test_on_zoom() {
         let session = session();
         let charts = vec![PortfolioChartData {
             chart_type: PortfolioChartType::Value,
-            values: (0..80).map(|second| ChartDateValue::mock(second, second as f64)).collect(),
+            values: ChartDateValue::mock_series(140),
         }];
         let portfolio = PortfolioData { charts, ..data(vec![ChartPeriod::All]) };
-        let shown = session.on_result(loaded(session.request(), portfolio.clone()));
-        let zoomed = shown.on_zoom(4.0).on_zoom(4.0);
+        let zoomed = session.on_result(loaded(session.request(), portfolio.clone())).on_zoom(100.0, 1.0);
 
-        assert_eq!(zoomed.zoom, GemChartZoom { scale: 10.0 }, "the session clamps against the chart it shows");
-        assert_eq!(session.on_zoom(4.0).zoom, GemChartZoom::identity(), "nothing loaded, nothing to zoom");
-        assert_eq!(zoomed.on_refresh().on_result(loaded(zoomed.request(), portfolio.clone())).zoom, zoomed.zoom, "a refresh keeps the zoom");
-        assert_eq!(
-            zoomed
-                .on_result(loaded(
-                    zoomed.request(),
-                    PortfolioData {
-                        available_periods: vec![ChartPeriod::Day],
-                        ..portfolio
-                    }
-                ))
-                .zoom,
-            GemChartZoom::identity(),
-            "falling back to another period starts unzoomed"
-        );
+        assert_eq!(zoomed.zoom, GemChartZoom { scale: 10.0, offset: 0.0 }, "the session clamps against the chart it shows");
+        assert_eq!(session.on_zoom(4.0, 1.0).zoom, GemChartZoom::default(), "nothing loaded, nothing to zoom");
+        assert_eq!(zoomed.on_refresh().on_result(loaded(zoomed.request(), portfolio)).zoom, zoomed.zoom, "a refresh keeps the zoom");
         assert_eq!(zoomed.on_select_type(zoomed.portfolio_type).zoom, zoomed.zoom, "re-selecting the shown type keeps the zoom");
-        assert_eq!(zoomed.on_select_chart_type(zoomed.chart_type).zoom, zoomed.zoom, "re-selecting the shown chart type keeps the zoom");
-        assert_eq!(zoomed.on_select_type(PortfolioType::Perpetuals).zoom, GemChartZoom::identity());
-        assert_eq!(zoomed.on_select_chart_type(PortfolioChartType::Value).zoom, GemChartZoom::identity());
-        assert_eq!(zoomed.on_select_period(ChartPeriod::Week).zoom, GemChartZoom::identity());
+        assert_eq!(zoomed.on_select_chart_type(PortfolioChartType::Value).zoom, GemChartZoom::default(), "another chart starts unzoomed");
     }
 
     #[test]

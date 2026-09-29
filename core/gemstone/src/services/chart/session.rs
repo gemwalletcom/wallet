@@ -42,8 +42,12 @@ impl GemChartSession {
             error: None,
             is_loading: true,
             is_refreshing: false,
-            zoom: GemChartZoom::identity(),
+            zoom: GemChartZoom::default(),
         }
+    }
+
+    fn points(&self) -> usize {
+        self.chart.as_ref().map_or(0, |chart| chart.values.len())
     }
 
     fn phase(&self, price: Option<AssetPrice>) -> GemChartPhase {
@@ -52,7 +56,7 @@ impl GemChartSession {
         }
         match (&self.chart, &self.error) {
             (Some(chart), _) => match rules::price_chart_data(rules::chart_with_price(chart.clone(), price, self.period), self.period, self.currency.clone()) {
-                Some(data) => GemChartPhase::Data { data: rules::zoomed(data, self.zoom) },
+                Some(data) => GemChartPhase::Data { data: rules::zoomed_chart(data, self.zoom) },
                 None => GemChartPhase::NoData,
             },
             (None, Some(GemServiceError::Offline)) => GemChartPhase::Failed { error: GemServiceError::Offline },
@@ -86,10 +90,16 @@ impl GemChartSession {
         }
     }
 
-    pub fn on_zoom(&self, magnification: f64) -> Self {
-        let points = self.chart.as_ref().map_or(0, |chart| chart.values.len());
+    pub fn on_zoom(&self, magnification: f64, anchor: f64) -> Self {
         Self {
-            zoom: self.zoom.magnified(magnification, points),
+            zoom: self.zoom.magnified(magnification, anchor, self.points()),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_pan(&self, fraction: f64) -> Self {
+        Self {
+            zoom: self.zoom.panned(fraction, self.points()),
             ..self.clone()
         }
     }
@@ -207,16 +217,22 @@ mod tests {
 
     #[test]
     fn test_on_zoom() {
-        let values: Vec<ChartDateValue> = (0..80).map(|second| ChartDateValue::mock(second, second as f64)).collect();
-        let loaded = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(values.clone()), ChartPeriod::Day);
-        let zoomed = loaded.on_zoom(4.0);
+        let values = ChartDateValue::mock_series(140);
+        let zoomed = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(values.clone()), ChartPeriod::Day).on_zoom(100.0, 1.0);
 
-        assert_eq!(zoomed.zoom, GemChartZoom { scale: 4.0 });
-        assert_eq!(zoomed.on_zoom(4.0).zoom, GemChartZoom { scale: 10.0 }, "the session clamps against the points it holds");
-        assert_eq!(GemChartSession::new(ChartPeriod::Day, Currency::USD).on_zoom(4.0).zoom, GemChartZoom::identity(), "nothing loaded, nothing to zoom");
+        assert_eq!(zoomed.zoom, GemChartZoom { scale: 10.0, offset: 0.0 }, "the session clamps against the points it holds");
+        assert_eq!(GemChartSession::new(ChartPeriod::Day, Currency::USD).on_zoom(4.0, 1.0).zoom, GemChartZoom::default(), "nothing loaded, nothing to zoom");
         assert_eq!(zoomed.on_refresh().on_loaded(GemChart::mock(values), ChartPeriod::Day).zoom, zoomed.zoom, "a refresh keeps the zoom");
-        assert_eq!(zoomed.on_select_period(ChartPeriod::Day).zoom, zoomed.zoom);
-        assert_eq!(zoomed.on_select_period(ChartPeriod::Week).zoom, GemChartZoom::identity(), "a new period starts unzoomed");
+        assert_eq!(zoomed.on_select_period(ChartPeriod::Week).zoom, GemChartZoom::default(), "a new period starts unzoomed");
+    }
+
+    #[test]
+    fn test_on_pan() {
+        let zoomed = GemChartSession::new(ChartPeriod::Day, Currency::USD)
+            .on_loaded(GemChart::mock(ChartDateValue::mock_series(140)), ChartPeriod::Day)
+            .on_zoom(4.0, 1.0);
+
+        assert_eq!(zoomed.on_pan(0.4).zoom, GemChartZoom { scale: 4.0, offset: 0.1 });
     }
 
     #[test]

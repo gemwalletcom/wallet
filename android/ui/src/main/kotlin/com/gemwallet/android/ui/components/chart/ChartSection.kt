@@ -18,7 +18,7 @@ import java.time.ZoneId
 import java.util.Locale
 
 @Composable
-fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
+fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
     key(state.period) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
         val context = LocalContext.current
@@ -37,17 +37,17 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
             periods = periods,
         ) { model ->
             val points = remember(model) { model.linePoints() }
-            val selectableFrom = remember(model) { model.selectableFrom() }
-            val minLabel = remember(model) { model.boundLabel(model.bounds.lowerIndex, model.bounds.low.text()) }
-            val maxLabel = remember(model) { model.boundLabel(model.bounds.upperIndex, model.bounds.high.text()) }
+            val minLabel = remember(model) { model.bounds.low.text() }
+            val maxLabel = remember(model) { model.bounds.high.text() }
             GemLineChart(
                 points = points,
                 bounds = model.bounds,
                 lineColor = MaterialTheme.colorScheme.primary,
-                selectableFrom = selectableFrom,
+                indexAt = { fraction -> model.indexAt(fraction.toDouble())?.toInt() },
                 selectedIndex = selectedIndex,
                 onSelectionChanged = { selectedIndex = it },
                 onZoom = onZoom,
+                onPan = onPan,
                 minLabel = minLabel,
                 maxLabel = maxLabel,
             )
@@ -55,10 +55,4 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
     }
 }
 
-internal fun GemChartData.linePoints(): List<ChartPoint> = values.map { value -> ChartPoint(x = fraction(value.date), y = value.value.toFloat()) }
-
-internal fun GemChartData.selectableFrom(): Int = values.indexOfFirst { it.date >= start }.coerceAtLeast(0)
-
-internal fun GemChartData.boundLabel(index: UInt, text: String): ChartBoundLabel? = values.getOrNull(index.toInt())?.let { ChartBoundLabel(x = fraction(it.date), text = text) }
-
-private fun GemChartData.fraction(date: Long): Float = (date - start) / (end - start).coerceAtLeast(1L).toFloat()
+internal fun GemChartData.linePoints(): List<ChartPoint> = values.map { value -> ChartPoint(x = (value.date - start) / (end - start).coerceAtLeast(1L).toFloat(), y = value.value.toFloat()) }

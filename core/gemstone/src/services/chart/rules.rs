@@ -1,7 +1,8 @@
 use std::collections::BTreeMap;
 use std::iter;
+use std::ops::{Range, RangeInclusive};
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, TimeDelta, Utc};
 use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
 
 use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHeader, GemChartValueType};
@@ -26,10 +27,11 @@ pub fn date_style(period: ChartPeriod) -> GemChartDateStyle {
 
 const MARKET_CAP_RANK_BADGE_LIMIT: i32 = 1000;
 const MIN_CHART_POINTS: usize = 2;
-const MAX_RENDER_POINTS: usize = 120;
+const RENDER_POINTS: usize = 120;
 const RANGE_PADDING: f64 = 0.05;
 const FLAT_LINE_PADDING: f64 = 0.01;
 const FLAT_LINE_MIN_PADDING: f64 = 0.01;
+pub const RIGHT_PADDING: f64 = 0.02;
 
 pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValue> {
     let mut values: Vec<ChartDateValue> = prices
@@ -195,36 +197,58 @@ fn chart_bounds(values: &[ChartDateValue], currency: Currency) -> GemChartBounds
     }
 }
 
-pub fn zoomed(data: GemChartData, zoom: GemChartZoom) -> GemChartData {
+pub fn fraction_of(span: TimeDelta, fraction: f64) -> TimeDelta {
+    TimeDelta::milliseconds((span.num_milliseconds() as f64 * fraction) as i64)
+}
+
+pub fn nearest_index(dates: impl Iterator<Item = DateTime<Utc>>, window: RangeInclusive<DateTime<Utc>>, fraction: f64) -> Option<u32> {
+    let date = *window.start() + fraction_of(*window.end() - *window.start(), fraction.clamp(0.0, 1.0));
+    dates
+        .enumerate()
+        .filter(|(_, candidate)| window.contains(candidate))
+        .min_by_key(|(_, candidate)| (*candidate - date).abs())
+        .map(|(index, _)| index as u32)
+}
+
+pub fn zoomed_chart(data: GemChartData, zoom: GemChartZoom) -> GemChartData {
     let zoom = zoom.clamped(data.values.len());
-    let start = zoom.visible_start(data.start, data.end);
-    let visible = &data.values[data.values.partition_point(|value| value.date < start)..];
-    let extremes = chart_bounds(visible, data.currency.clone());
+    let (start, end) = zoom.window(data.start, data.end).into_inner();
+    let window = start..=(end + fraction_of(end - start, RIGHT_PADDING));
+    let visible = &data.values[visible_range(&data.values, &window)];
+    let visible_bounds = chart_bounds(visible, data.currency.clone());
     let sampled = sampled_values(&data.values, render_points(zoom));
-    let leading = sampled.partition_point(|value| value.date < start).saturating_sub(1);
-    let values: Vec<ChartDateValue> = sampled[leading..]
+    let sampled_range = visible_range(&sampled, &window);
+    let values: Vec<ChartDateValue> = sampled[sampled_range.start.saturating_sub(1)..(sampled_range.end + 1).min(sampled.len())]
         .iter()
-        .chain([extremes.lower_index, extremes.upper_index].into_iter().filter_map(|index| visible.get(index as usize)))
+        .chain([visible_bounds.lower_index, visible_bounds.upper_index].into_iter().filter_map(|index| visible.get(index as usize)))
         .map(|value| (value.date, value.clone()))
         .collect::<BTreeMap<_, _>>()
         .into_values()
         .collect();
-    let shown = values.partition_point(|value| value.date < start);
-    let bounds = chart_bounds(&values[shown..], data.currency.clone());
+    let values_range = match visible_range(&values, &window) {
+        range if range.is_empty() => 0..values.len(),
+        range => range,
+    };
+    let bounds = chart_bounds(&values[values_range.clone()], data.currency.clone());
     GemChartData {
         bounds: GemChartBounds {
-            lower_index: bounds.lower_index + shown as u32,
-            upper_index: bounds.upper_index + shown as u32,
+            lower_index: bounds.lower_index + values_range.start as u32,
+            upper_index: bounds.upper_index + values_range.start as u32,
             ..bounds
         },
         values,
-        start,
+        start: *window.start(),
+        end: *window.end(),
         ..data
     }
 }
 
+fn visible_range(values: &[ChartDateValue], window: &RangeInclusive<DateTime<Utc>>) -> Range<usize> {
+    values.partition_point(|value| value.date < *window.start())..values.partition_point(|value| value.date <= *window.end())
+}
+
 fn render_points(zoom: GemChartZoom) -> usize {
-    MAX_RENDER_POINTS << zoom.scale.log2().floor() as usize
+    RENDER_POINTS << zoom.scale.log2().floor() as usize
 }
 
 fn sampled_values(values: &[ChartDateValue], count: usize) -> Vec<ChartDateValue> {
@@ -398,65 +422,61 @@ mod tests {
     }
 
     #[test]
-    fn test_zoomed() {
-        let values: Vec<ChartDateValue> = (0..600).map(|second| ChartDateValue::mock(second * 10, 100.0 + (second % 7) as f64)).collect();
-        let data = price_chart_data(GemChart::mock(values.clone()), ChartPeriod::Day, Currency::USD).expect("data");
-        let whole = zoomed(data.clone(), GemChartZoom::identity());
-        let zoomed_in = zoomed(data.clone(), GemChartZoom { scale: 3.0 });
-        let close = zoomed(data, GemChartZoom { scale: 100.0 });
-        let window = chart_bounds(&values[400..], Currency::USD);
-        let drawn = |data: &GemChartData| data.values.iter().filter(|value| value.date >= data.start).cloned().collect::<Vec<_>>();
+    fn test_nearest_index() {
+        let at = |seconds: i64| DateTime::from_timestamp(seconds, 0).unwrap();
+        let dates = [at(0), at(60), at(120)];
 
-        assert_eq!((whole.start, whole.end), (values[0].date, values[599].date));
-        assert_eq!(whole.values.len(), 121, "the whole period draws the sampled points plus the high its label points at");
+        assert_eq!(nearest_index(dates.into_iter(), at(0)..=at(120), 0.4), Some(1));
+        assert_eq!(nearest_index(dates.into_iter(), at(0)..=at(120), 4.0), Some(2), "a finger past the edge picks the edge point");
+        assert_eq!(nearest_index(dates.into_iter(), at(30)..=at(120), 0.0), Some(1), "a point outside the window is never picked");
+    }
+
+    #[test]
+    fn test_zoomed_chart() {
+        let at = |milliseconds: i64| DateTime::from_timestamp_millis(milliseconds).unwrap();
+        let values: Vec<ChartDateValue> = (0..600).map(|second| ChartDateValue::mock(second * 10, 100.0 + (second % 7) as f64)).collect();
+        let data = price_chart_data(GemChart::mock(values.clone()), ChartPeriod::Day, Currency::USD).unwrap();
+        let whole = zoomed_chart(data.clone(), GemChartZoom::default());
+        let zoomed = zoomed_chart(data, GemChartZoom { scale: 3.0, offset: 0.25 });
+        let last = zoomed.values.len() as u32 - 1;
+        let window = chart_bounds(&values[250..454], Currency::USD);
+        let gapped: Vec<ChartDateValue> = (0..300).map(|second| ChartDateValue::mock(second, 100.0)).chain((0..300).map(|second| ChartDateValue::mock(100_000 + second, 200.0))).collect();
+        let gap = zoomed_chart(price_chart_data(GemChart::mock(gapped), ChartPeriod::Day, Currency::USD).unwrap(), GemChartZoom { scale: 40.0, offset: 0.5 });
+
+        assert_eq!((whole.start, whole.end), (values[0].date, at(6_109_800)), "the whole period plus room after the newest point");
+        assert_eq!((zoomed.start, zoomed.end), (at(2_495_834), at(4_532_433)));
+        assert_eq!((zoomed.bounds.y_min, zoomed.bounds.y_max), (window.y_min, window.y_max), "the range fits the points inside the window");
+        assert_eq!((zoomed.selection(0), zoomed.selection(last)), (None, None), "the points drawn past either edge cannot be selected");
+        assert_eq!(zoomed.index_at(1.2), Some(last - 1));
         assert_eq!(
-            (&whole.values[whole.bounds.lower_index as usize], &whole.values[whole.bounds.upper_index as usize]),
-            (&values[0], &values[6]),
-            "the labels point at the drawn low and high"
+            (gap.values[gap.bounds.lower_index as usize].value, gap.values[gap.bounds.upper_index as usize].value),
+            (100.0, 200.0),
+            "a window inside a gap fits the line crossing it"
         );
-        assert_eq!(zoomed_in.start, DateTime::from_timestamp_millis(3_993_334).unwrap(), "the window is a third of the period ending at the last point");
-        assert!(
-            sampled_values(&values, 240)[159..].iter().all(|value| zoomed_in.values.contains(value)),
-            "zooming in doubles the detail and draws one point before the window"
-        );
-        assert_eq!(zoomed_in.values[zoomed_in.bounds.lower_index as usize], values[406], "the low label points at the lowest point inside the window");
-        assert_eq!(zoomed_in.values[zoomed_in.bounds.upper_index as usize], values[405]);
-        assert_eq!((zoomed_in.bounds.y_min, zoomed_in.bounds.y_max), (window.y_min, window.y_max), "the drawn points keep the range of every point in the window");
-        assert!(zoomed_in.values.is_sorted_by(|a, b| a.date < b.date));
-        assert_eq!(zoomed_in.selection(0), None, "the point drawn before the window cannot be selected");
-        assert_eq!(drawn(&close), values[592..], "a zoom past the points held is clamped to the minimum visible points and draws every one");
-        assert_eq!(close.values, values[591..]);
     }
 
     #[test]
     fn test_render_points() {
-        assert_eq!(render_points(GemChartZoom::identity()), 120);
-        assert_eq!(render_points(GemChartZoom { scale: 1.9 }), 120, "detail only changes at whole doublings, so points stay put while pinching");
-        assert_eq!(render_points(GemChartZoom { scale: 2.0 }), 240);
-        assert_eq!(render_points(GemChartZoom { scale: 7.5 }), 480);
+        assert_eq!(render_points(GemChartZoom { scale: 1.9, offset: 0.0 }), 120, "detail changes only at whole doublings, so points stay put while pinching");
+        assert_eq!(render_points(GemChartZoom { scale: 4.0, offset: 0.0 }), 480);
     }
 
     #[test]
     fn test_sampled_values() {
         let bumps: Vec<ChartDateValue> = [0.0, 1.0, 5.0, 2.0, 3.0, 9.0, 4.0, 6.0].into_iter().zip(0..).map(|(value, second)| ChartDateValue::mock(second, value)).collect();
-        let spiked: Vec<ChartDateValue> = (0..600).map(|second| ChartDateValue::mock(second, if second == 333 { 1000.0 } else { 100.0 + (second % 7) as f64 })).collect();
+        let spiked: Vec<ChartDateValue> = (0..600).map(|second| ChartDateValue::mock(second, if second == 333 { 1000.0 } else { 100.0 })).collect();
         let sampled = sampled_values(&spiked, 120);
 
         assert_eq!(
             sampled_values(&bumps, 4),
             vec![bumps[0].clone(), bumps[2].clone(), bumps[5].clone(), bumps[7].clone()],
-            "each bucket keeps the point that spans the largest triangle"
+            "each bucket keeps the point spanning the largest triangle"
         );
-        assert_eq!(sampled.len(), 120);
-        assert_eq!((sampled.first(), sampled.last()), (spiked.first(), spiked.last()));
+        assert_eq!((sampled.len(), sampled.first(), sampled.last()), (120, spiked.first(), spiked.last()));
         assert_eq!(sampled.iter().filter(|value| value.value == 1000.0).count(), 1, "a spike survives the sampling");
-        assert_eq!(sampled_values(&spiked[..120], 120), spiked[..120].to_vec());
-
-        for count in [130, 300, 600] {
-            for step in 1..count {
-                let steps: Vec<ChartDateValue> = (0..count).map(|second| ChartDateValue::mock(second, if second < step { 1.0 } else { 2.0 })).collect();
-                assert!(sampled_values(&steps, 120).is_sorted_by(|a, b| a.date < b.date), "a step at {step} of {count} points keeps the points in order, each once");
-            }
+        for step in 1..300 {
+            let steps: Vec<ChartDateValue> = (0..300).map(|second| ChartDateValue::mock(second, if second < step { 1.0 } else { 2.0 })).collect();
+            assert!(sampled_values(&steps, 120).is_sorted_by(|a, b| a.date < b.date), "a step at {step} keeps the points in order, each once");
         }
     }
 

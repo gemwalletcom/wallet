@@ -44,6 +44,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The price chart cannot load | it shows that there is no data; only being offline shows an error | server text is not written for users |
+| The user pinches the chart | it zooms toward the newest point while that point is on screen, and around the fingers once panned back, down to 14 points on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period | fewer points are too few to read a trend `test_magnified` `test_on_pan` |
 
 ## Manage tokens
 

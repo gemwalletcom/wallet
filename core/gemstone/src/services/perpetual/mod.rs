@@ -1,5 +1,6 @@
 pub mod autoclose;
 pub mod candles;
+pub mod chart;
 pub mod details;
 pub mod model;
 pub mod rules;

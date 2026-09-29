@@ -185,7 +185,7 @@ class PerpetualViewModelTest {
         model.refresh()
         advanceUntilIdle()
         repeat(3) {
-            model.onZoom(1.5f)
+            model.onZoom(1.5f, 1f)
             advanceUntilIdle()
         }
         inFlight.complete(Unit)

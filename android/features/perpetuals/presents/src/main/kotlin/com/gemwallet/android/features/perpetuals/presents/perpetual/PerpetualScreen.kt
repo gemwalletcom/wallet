@@ -66,7 +66,8 @@ fun PerpetualScreen(
                 PerpetualAction.Autoclose -> showAutoclose = true
                 is PerpetualAction.OpenPosition -> viewModel.openPosition(action.direction, amountAction)
                 is PerpetualAction.SelectChartPeriod -> viewModel.period(action.period)
-                is PerpetualAction.ZoomChart -> viewModel.onZoom(action.magnification)
+                is PerpetualAction.ZoomChart -> viewModel.onZoom(action.magnification, action.anchor)
+                is PerpetualAction.PanChart -> viewModel.onPan(action.fraction)
                 is PerpetualAction.OpenTransaction -> onTransaction(action.transactionId)
             }
         },

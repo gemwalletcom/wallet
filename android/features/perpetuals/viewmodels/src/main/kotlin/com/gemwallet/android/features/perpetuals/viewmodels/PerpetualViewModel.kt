@@ -63,6 +63,8 @@ import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.candleSession
 import uniffi.gemstone.loadError
+import java.time.Instant
+import java.time.ZoneId
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -146,7 +148,7 @@ class PerpetualViewModel @Inject constructor(
             null -> when (state.state) {
                 GemLoadState.Loading -> StateViewType.Loading
                 GemLoadState.NoData -> StateViewType.NoData
-                else -> session.chart(position?.toGem())?.let { StateViewType.Data(it) } ?: StateViewType.NoData
+                else -> session.chart(position?.toGem(), ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds)?.let { StateViewType.Data(it) } ?: StateViewType.NoData
             }
 
             else -> StateViewType.Error(error.errorText().text(context))
@@ -217,8 +219,12 @@ class PerpetualViewModel @Inject constructor(
         candles.update { it.onSelectPeriod(period.toGem()) }
     }
 
-    fun onZoom(magnification: Float) {
-        candles.update { it.onZoom(magnification.toDouble()) }
+    fun onZoom(magnification: Float, anchor: Float) {
+        candles.update { it.onZoom(magnification.toDouble(), anchor.toDouble()) }
+    }
+
+    fun onPan(fraction: Float) {
+        candles.update { it.onPan(fraction.toDouble()) }
     }
 
     private val errorState = MutableStateFlow<String?>(null)

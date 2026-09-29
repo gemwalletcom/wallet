@@ -11,5 +11,5 @@ import com.gemwallet.android.ui.components.chart.ChartSection
 fun Chart(viewModel: ChartValuesViewModel = hiltViewModel()) {
     val state by viewModel.chartUIState.collectAsStateWithLifecycle()
 
-    ChartSection(state = state, onPeriodSelect = viewModel::setPeriod, onZoom = viewModel::onZoom)
+    ChartSection(state = state, onPeriodSelect = viewModel::setPeriod, onZoom = viewModel::onZoom, onPan = viewModel::onPan)
 }

@@ -59,7 +59,7 @@ class ChartValuesViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { chartService.newSession() } answers {
-            GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false, zoom = GemChartZoom(1.0))
+            GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false, zoom = GemChartZoom(scale = 1.0, offset = 0.0))
         }
     }
 
@@ -246,7 +246,7 @@ class ChartValuesViewModelTest {
         viewModel.refresh()
         testDispatcher.scheduler.advanceUntilIdle()
         repeat(3) {
-            viewModel.onZoom(1.5f)
+            viewModel.onZoom(1.5f, 1f)
             testDispatcher.scheduler.advanceUntilIdle()
         }
         inFlight.complete(Unit)

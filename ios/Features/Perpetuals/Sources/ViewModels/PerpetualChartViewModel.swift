@@ -10,9 +10,7 @@ import enum Gemstone.GemPerpetualSubscription
 import struct Gemstone.PerpetualPosition
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Primitives
-import Style
 import SwiftUI
 
 @Observable
@@ -46,11 +44,8 @@ public final class PerpetualChartViewModel {
     }
 
     public func state(position: PerpetualPosition?) -> StateViewType<GemCandleChart> {
-        session.viewState().state.stateViewType(session.chart(position: position))
+        session.viewState().state.stateViewType(session.chart(position: position, utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT())))
     }
-
-    public var emptyTitle: String { Localized.Common.notAvailable }
-    public var emptyImage: Image { Images.EmptyContent.activity }
 }
 
 // MARK: - Actions
@@ -81,8 +76,16 @@ public extension PerpetualChartViewModel {
         await updateCandlesticks(perpetual: perpetual)
     }
 
-    func onZoom(_ magnification: Double) {
-        session = session.onZoom(magnification: magnification)
+    func onZoom(_ magnification: Double, anchor: Double) {
+        let zoomed = session.onZoom(magnification: magnification, anchor: anchor)
+        guard zoomed.zoom != session.zoom else { return }
+        session = zoomed
+    }
+
+    func onPan(_ fraction: Double) {
+        let panned = session.onPan(fraction: fraction)
+        guard panned.zoom != session.zoom else { return }
+        session = panned
     }
 }
 
