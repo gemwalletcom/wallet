@@ -657,6 +657,7 @@ pub struct DetailsSectionsInput<'a> {
     pub currency: Currency,
     pub price_alerts: &'a [PriceAlert],
     pub fee_balance_metadata: Option<BalanceMetadata>,
+    pub banner_events: &'a [BannerEvent],
 }
 
 pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSection> {
@@ -670,8 +671,10 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         currency,
         price_alerts,
         fee_balance_metadata,
+        banner_events,
     } = input;
     let chain = asset.chain();
+    let allows_actions = allows_actions(banner_events);
     let displayed_alerts = displayed_price_alert_ids(price_alerts.to_vec()).len();
     let quoted = price_row(price, price_change_percentage_24h, currency, GemCurrencyStyle::Currency);
     let row = |row: GemListRow, action: Option<GemRowAction>| GemAssetDetailRow::Row { row, action };
@@ -684,7 +687,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         true => link(GemListRowTitle::Unpin, None, GemListRowIcon::Unpin, GemRowAction::Pin),
         false => link(GemListRowTitle::Pin, None, GemListRowIcon::Pin, GemRowAction::Pin),
     };
-    let shows_earn = EARN_OFFERED && metadata.is_earn_enabled && wallet_type != WalletType::View && balance.earn == GemBigUint::ZERO;
+    let shows_earn = EARN_OFFERED && metadata.is_earn_enabled && wallet_type != WalletType::View && allows_actions && balance.earn == GemBigUint::ZERO;
     let shows_resources = StakeChain::from_str(chain.as_ref()).is_ok_and(|stake_chain| stake_chain.get_uses_freeze());
     [
         section(
@@ -721,7 +724,13 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         ),
         section(
             GemListSectionTitle::Balances,
-            balance_rows(asset, metadata, balance).into_iter().map(|row| GemAssetDetailRow::Balance { action: balance_action(&row.row), row }).collect(),
+            balance_rows(asset, metadata, balance)
+                .into_iter()
+                .map(|row| GemAssetDetailRow::Balance {
+                    action: balance_action(&row.row, allows_actions),
+                    row,
+                })
+                .collect(),
         ),
         section(
             GemListSectionTitle::None,
@@ -754,10 +763,10 @@ pub fn asset_options(address_link: Option<BlockExplorerLink>, token_link: Option
     .collect()
 }
 
-fn balance_action(row: &GemBalanceRow) -> Option<GemRowAction> {
+fn balance_action(row: &GemBalanceRow, allows_actions: bool) -> Option<GemRowAction> {
     match row {
-        GemBalanceRow::Staked { .. } => Some(GemRowAction::Stake),
-        GemBalanceRow::Earn { .. } => Some(GemRowAction::Earn),
+        GemBalanceRow::Staked { .. } => allows_actions.then_some(GemRowAction::Stake),
+        GemBalanceRow::Earn { .. } => allows_actions.then_some(GemRowAction::Earn),
         GemBalanceRow::Reserved { url: Some(url), .. } => Some(GemRowAction::Explorer { url: url.clone() }),
         GemBalanceRow::Available { .. } | GemBalanceRow::PendingUnconfirmed { .. } | GemBalanceRow::Reserved { url: None, .. } => None,
     }
@@ -1677,6 +1686,7 @@ mod tests {
             currency: Currency::USD,
             price_alerts,
             fee_balance_metadata: None,
+            banner_events: &[],
         })
     }
 
@@ -1887,6 +1897,7 @@ mod tests {
                 currency: Currency::USD,
                 price_alerts: &[],
                 fee_balance_metadata,
+                banner_events: &[],
             });
             section(&sections, GemListSectionTitle::Resources)
         };
@@ -1986,6 +1997,52 @@ mod tests {
     }
 
     #[test]
+    fn test_details_sections_open_no_stake_behind_an_activation_or_multi_signature_banner() {
+        let tron = Asset::from_chain(Chain::Tron);
+        let stakeable = AssetMetaData {
+            is_stake_enabled: true,
+            ..AssetMetaData::mock()
+        };
+        let stake_action = |banner_events: &[BannerEvent]| {
+            details_sections(DetailsSectionsInput {
+                wallet_type: WalletType::Multicoin,
+                asset: &tron,
+                metadata: &stakeable,
+                balance: &GemAssetBalance::mock_with_available(100),
+                price: Some(1.0),
+                price_change_percentage_24h: None,
+                currency: Currency::USD,
+                price_alerts: &[],
+                fee_balance_metadata: None,
+                banner_events,
+            })
+            .into_iter()
+            .flat_map(|section| section.rows)
+            .find_map(|row| match row {
+                GemAssetDetailRow::Balance { row, action } if matches!(row.row, GemBalanceRow::Staked { .. }) => Some(action),
+                _ => None,
+            })
+            .expect("a stakeable asset lists its stake balance")
+        };
+
+        for event in [BannerEvent::ActivateAsset, BannerEvent::AccountBlockedMultiSignature] {
+            assert_eq!(stake_action(&[BannerEvent::Stake, event]), None, "{event:?} locks the stake row like the header");
+        }
+        assert_eq!(stake_action(&[BannerEvent::Stake]), Some(GemRowAction::Stake));
+        assert_eq!(
+            balance_action(
+                &GemBalanceRow::Reserved {
+                    value: GemBigUint::ZERO,
+                    url: Some("https://explorer/reserve".to_string())
+                },
+                false
+            ),
+            Some(GemRowAction::Explorer { url: "https://explorer/reserve".to_string() }),
+            "the reserve page is information, not an action on the account"
+        );
+    }
+
+    #[test]
     fn test_a_balance_row_opens_stake_earn_or_the_reserve_on_the_explorer() {
         let staked = GemBalanceRow::Staked { value: GemBigUint::ZERO };
         let reserved = |url: Option<&str>| GemBalanceRow::Reserved {
@@ -1993,11 +2050,11 @@ mod tests {
             url: url.map(str::to_string),
         };
 
-        assert_eq!(balance_action(&staked), Some(GemRowAction::Stake));
-        assert_eq!(balance_action(&GemBalanceRow::Earn { value: GemBigUint::ZERO }), Some(GemRowAction::Earn));
-        assert_eq!(balance_action(&reserved(Some("https://explorer/reserve"))), Some(GemRowAction::Explorer { url: "https://explorer/reserve".to_string() }));
-        assert_eq!(balance_action(&reserved(None)), None, "a reserve without a page is not tappable");
-        assert_eq!(balance_action(&GemBalanceRow::Available { value: GemBigUint::ZERO }), None);
+        assert_eq!(balance_action(&staked, true), Some(GemRowAction::Stake));
+        assert_eq!(balance_action(&GemBalanceRow::Earn { value: GemBigUint::ZERO }, true), Some(GemRowAction::Earn));
+        assert_eq!(balance_action(&reserved(Some("https://explorer/reserve")), true), Some(GemRowAction::Explorer { url: "https://explorer/reserve".to_string() }));
+        assert_eq!(balance_action(&reserved(None), true), None, "a reserve without a page is not tappable");
+        assert_eq!(balance_action(&GemBalanceRow::Available { value: GemBigUint::ZERO }, true), None);
     }
 
     #[test]

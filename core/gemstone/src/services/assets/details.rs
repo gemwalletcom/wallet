@@ -188,6 +188,7 @@ impl GemAssetDetailsService {
                 currency,
                 price_alerts: &price_alerts,
                 fee_balance_metadata,
+                banner_events: &banner_events,
             }),
             options: rules::asset_options(
                 owner_address.map(|address| self.explorer.get_address_url(chain, address)),
