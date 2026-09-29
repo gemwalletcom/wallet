@@ -41,6 +41,10 @@ pub trait ChainSigner: Send + Sync {
         Err(SignerError::SigningError("sign_withdrawal not implemented".to_string()))
     }
 
+    fn sign_deposit(&self, _input: &SignerInput, _private_key: &[u8]) -> Result<String, SignerError> {
+        Err(SignerError::SigningError("sign_deposit not implemented".to_string()))
+    }
+
     fn sign_data(&self, _input: &SignerInput, _private_key: &[u8]) -> Result<String, SignerError> {
         Err(SignerError::SigningError("sign_data not implemented".to_string()))
     }

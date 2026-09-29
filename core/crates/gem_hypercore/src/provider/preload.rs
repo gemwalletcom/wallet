@@ -55,7 +55,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         match &input.input_type {
-            TransactionInputType::Transfer { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Stake { .. } => Ok(TransactionLoadData {
+            TransactionInputType::Transfer { .. } | TransactionInputType::Deposit { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Stake { .. } => Ok(TransactionLoadData {
                 fee: TransactionFee::new_from_fee(BigInt::from(0), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
                 metadata: TransactionLoadMetadata::Hyperliquid { order: None },
             }),
