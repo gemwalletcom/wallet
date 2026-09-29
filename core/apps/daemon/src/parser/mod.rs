@@ -125,7 +125,7 @@ impl Parser {
         Ok(true)
     }
 
-    async fn process_blocks(&self, timeout: Duration) -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn parse_blocks(&self, timeout: Duration) -> Result<(), Box<dyn Error + Send + Sync>> {
         loop {
             if self.is_shutdown() {
                 break;
@@ -182,7 +182,7 @@ impl Parser {
                 continue;
             }
 
-            self.process_blocks(timeout).await?;
+            self.parse_blocks(timeout).await?;
         }
 
         info_with_fields!("parser stopped", chain = self.chain.as_ref());
