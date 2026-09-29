@@ -300,13 +300,18 @@ mod tests {
     #[test]
     fn test_a_price_message_writes_once_and_then_waits_out_the_interval() {
         let testkit = PerpetualTestkit::new();
+        *testkit.store.stored.lock().unwrap() = vec![primitives::perpetual::Perpetual {
+            name: "BTC".to_string(),
+            price: 100_000.0,
+            ..primitives::perpetual::Perpetual::mock()
+        }];
 
         assert_eq!(message(&testkit, ALL_MIDS), GemPerpetualSocketUpdate::Applied);
         assert_eq!(message(&testkit, ALL_MIDS), GemPerpetualSocketUpdate::Applied);
 
         let writes = testkit.store.price_writes.lock().unwrap();
         assert_eq!(writes.len(), 1, "a second message inside the interval is dropped, not written again");
-        assert_eq!(writes[0].get("BTC"), Some(&104_633.0));
+        assert_eq!(writes[0].iter().map(|price| (price.coin.as_str(), price.price)).collect::<Vec<_>>(), vec![("BTC", 104_633.0)]);
         assert!(testkit.preferences.get_perpetual_prices_updated_at().unwrap().is_some());
     }
 
@@ -334,16 +339,23 @@ mod tests {
     #[test]
     fn test_a_price_tick_writes_only_the_prices_that_moved() {
         let testkit = PerpetualTestkit::new();
-        *testkit.store.stored.lock().unwrap() = vec![primitives::perpetual::Perpetual {
-            name: "BTC".to_string(),
-            price: 104_633.0,
-            ..primitives::perpetual::Perpetual::mock()
-        }];
+        *testkit.store.stored.lock().unwrap() = vec![
+            primitives::perpetual::Perpetual {
+                name: "BTC".to_string(),
+                price: 104_633.0,
+                ..primitives::perpetual::Perpetual::mock()
+            },
+            primitives::perpetual::Perpetual {
+                name: "ETH".to_string(),
+                price: 3_000.0,
+                ..primitives::perpetual::Perpetual::mock()
+            },
+        ];
 
         message(&testkit, ALL_MIDS);
 
         let writes = testkit.store.price_writes.lock().unwrap();
-        assert_eq!(writes[0].keys().collect::<Vec<_>>(), vec!["ETH"]);
+        assert_eq!(writes[0].iter().map(|price| price.coin.as_str()).collect::<Vec<_>>(), vec!["ETH"]);
     }
 
     #[test]

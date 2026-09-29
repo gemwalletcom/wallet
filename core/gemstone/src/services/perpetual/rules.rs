@@ -6,7 +6,7 @@ use primitives::PriceChangeCalculator;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::currency::Currency;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
-use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualMarketData};
+use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualMarketData, PerpetualPrice};
 use primitives::{
     Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType,
 };
@@ -898,8 +898,19 @@ pub fn market_changed(market: &PerpetualMarketData, stored: &[Perpetual]) -> boo
     })
 }
 
-pub fn changed_perpetual_prices(prices: HashMap<String, f64>, stored: &[Perpetual]) -> HashMap<String, f64> {
-    prices.into_iter().filter(|(name, price)| !stored.iter().any(|perpetual| perpetual.name == *name && perpetual.price == *price)).collect()
+pub fn changed_perpetual_prices(prices: HashMap<String, f64>, stored: &[Perpetual]) -> Vec<PerpetualPrice> {
+    stored
+        .iter()
+        .filter_map(|perpetual| {
+            let price = *prices.get(&perpetual.name).filter(|price| **price != perpetual.price)?;
+            let prev_day_price = perpetual.price - PriceChangeCalculator::amount(perpetual.price_percent_change_24h, perpetual.price);
+            Some(PerpetualPrice {
+                coin: perpetual.name.clone(),
+                price,
+                price_percent_change_24h: PriceChangeCalculator::percentage(prev_day_price, price),
+            })
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -1688,6 +1699,45 @@ mod tests {
 
         assert_eq!(price.asset_id.chain, Chain::HyperCore);
         assert_eq!(price.price, 1.0);
+    }
+
+    #[test]
+    fn test_changed_perpetual_prices() {
+        let rising = Perpetual {
+            name: "BTC".to_string(),
+            price: 110.0,
+            price_percent_change_24h: 10.0,
+            ..Perpetual::mock()
+        };
+        let falling = Perpetual {
+            name: "ETH".to_string(),
+            price: 90.0,
+            price_percent_change_24h: -10.0,
+            ..Perpetual::mock()
+        };
+        let unchanged = Perpetual {
+            name: "SOL".to_string(),
+            price: 20.0,
+            ..Perpetual::mock()
+        };
+        let prices = HashMap::from([("BTC".to_string(), 150.0), ("ETH".to_string(), 75.0), ("SOL".to_string(), 20.0), ("DOGE".to_string(), 1.0)]);
+
+        assert_eq!(
+            changed_perpetual_prices(prices, &[rising, falling, unchanged]),
+            vec![
+                PerpetualPrice {
+                    coin: "BTC".to_string(),
+                    price: 150.0,
+                    price_percent_change_24h: 50.0,
+                },
+                PerpetualPrice {
+                    coin: "ETH".to_string(),
+                    price: 75.0,
+                    price_percent_change_24h: -25.0,
+                },
+            ],
+            "the 24h change moves with the live price, measured from the same previous-day price of 100"
+        );
     }
 
     #[test]
