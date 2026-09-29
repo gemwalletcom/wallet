@@ -19,6 +19,7 @@ use crate::provider::transaction_state_mapper::prepare_perpetual_fill;
 
 const BUILDER_FEE_DENOMINATOR: f64 = 100_000.0;
 const BUILDER_FEE_RATE_TOLERANCE: f64 = 0.01;
+const PREVIOUS_BUILDER_FEE_BPS: [u32; 2] = [43, 50];
 
 pub fn map_transaction_broadcast(request: &[u8], response: serde_json::Value) -> Result<String, Box<dyn Error + Sync + Send>> {
     let response = serde_json::from_value::<TransactionBroadcastResponse>(response)?;
@@ -103,11 +104,12 @@ fn map_referral_fee(fills: &[UserFill], quote_token: &SpotToken, quote_amount: f
 
 pub(crate) fn builder_fee_amount<'a>(fills: impl IntoIterator<Item = &'a UserFill>, quote_amount: f64) -> Option<f64> {
     let builder_fee: f64 = fills.into_iter().filter_map(|fill| fill.builder_fee).sum();
-    let builder_rate = f64::from(HypercoreConfig::default().max_builder_fee_bps) / BUILDER_FEE_DENOMINATOR;
-    if builder_fee <= 0.0 || (builder_fee / quote_amount - builder_rate).abs() > builder_rate * BUILDER_FEE_RATE_TOLERANCE {
-        return None;
-    }
-    Some(builder_fee)
+    let fee_rate = builder_fee / quote_amount;
+    let is_builder_rate = PREVIOUS_BUILDER_FEE_BPS.into_iter().chain([HypercoreConfig::default().max_builder_fee_bps]).any(|bps| {
+        let builder_rate = f64::from(bps) / BUILDER_FEE_DENOMINATOR;
+        (fee_rate - builder_rate).abs() <= builder_rate * BUILDER_FEE_RATE_TOLERANCE
+    });
+    (builder_fee > 0.0 && is_builder_rate).then_some(builder_fee)
 }
 
 fn map_spot_fee(fills: &[UserFill], base_token: &SpotToken, quote_token: &SpotToken) -> Option<(BigUint, primitives::AssetId)> {
@@ -241,6 +243,31 @@ mod tests {
         let metadata: TransactionPerpetualMetadata = serde_json::from_value(transaction.metadata.clone().unwrap()).unwrap();
         assert_eq!(metadata.direction, PerpetualDirection::Long);
         assert_eq!(metadata.is_liquidation, Some(false));
+    }
+
+    #[test]
+    fn test_builder_fee_amount_rates() {
+        let fill = |builder_fee: f64| UserFill {
+            coin: "HYPE".to_string(),
+            hash: "0xhash".to_string(),
+            oid: 1,
+            tid: 1,
+            sz: "1".to_string(),
+            closed_pnl: 0.0,
+            fee: 0.0,
+            fee_token: None,
+            builder_fee: Some(builder_fee),
+            px: 10_000.0,
+            dir: FillDirection::OpenLong,
+            time: 1,
+            liquidation: None,
+        };
+
+        assert_eq!(builder_fee_amount(&[fill(4.5)], 10_000.0), Some(4.5));
+        assert_eq!(builder_fee_amount(&[fill(4.3)], 10_000.0), Some(4.3));
+        assert_eq!(builder_fee_amount(&[fill(5.0)], 10_000.0), Some(5.0));
+        assert_eq!(builder_fee_amount(&[fill(2.0)], 10_000.0), None);
+        assert_eq!(builder_fee_amount(&[fill(0.0)], 10_000.0), None);
     }
 
     #[test]
