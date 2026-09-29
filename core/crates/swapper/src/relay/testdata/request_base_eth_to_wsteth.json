@@ -3,8 +3,6 @@
     {
       "id": "0xa6839f78e09d3536890fc43bbac2c43c746ca7c9268e521506d6876644ce770f",
       "status": "success",
-      "user": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
-      "recipient": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
       "requestType": "Same-chain Swap",
       "data": {
         "route": {

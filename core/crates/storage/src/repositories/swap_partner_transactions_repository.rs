@@ -80,8 +80,8 @@ mod database_integration_tests {
         let database = Database::mock();
         let counts = database
             .run(|client| -> Result<_, DatabaseError> {
-                client.add_chains(vec![Chain::Ethereum, Chain::Bitcoin])?;
-                client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive(), Asset::from_chain(Chain::Bitcoin).as_basic_primitive()])?;
+                client.add_chains(vec![Chain::Bitcoin, Chain::Ethereum])?;
+                client.add_assets(vec![Asset::from_chain(Chain::Bitcoin).as_basic_primitive(), Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
                 Ok((
                     client.add_swap_partner_transactions(vec![transaction(SwapStatus::Pending, None)])?,
                     client.add_swap_partner_transactions(vec![transaction(SwapStatus::Pending, None)])?,

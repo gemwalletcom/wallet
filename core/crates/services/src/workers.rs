@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
@@ -446,13 +445,13 @@ impl Services {
         let in_transit_updater = InTransitUpdater::new(database.clone(), in_transit_config, swapper.clone(), stream_producer.clone(), SwapVaultAddressClient::new(cacher.clone()));
         let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer.clone(), database.clone(), pending_config);
         let relay = &self.settings().swap.relay;
-        let relay_client = ReqwestClient::new_with_user_agent(relay.url.clone(), gem_client::reqwest_client(), service_user_agent("daemon", Some("swap_partner_transactions")))
-            .with_default_headers(HashMap::from([("x-api-key".to_string(), relay.key.secret.clone())]));
+        let relay_client = ReqwestClient::new_with_user_agent(relay.url.clone(), gem_client::reqwest_client(), service_user_agent("daemon", Some("swap_partner_transactions")));
         let swap_partner_updaters = vec![SwapPartnerTransactionsUpdater::new(
-            Arc::new(RelayPartnerProvider::new(relay_client, relay.key.secret.clone())),
+            Arc::new(RelayPartnerProvider::new(relay_client)),
             database,
             cacher.clone(),
             stream_producer,
+            config.get_duration(ConfigKey::TransactionSwapPartnerPageDelay).await?,
         )];
         Ok(TransactionJobs {
             in_transit_updater: Arc::new(in_transit_updater),

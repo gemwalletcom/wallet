@@ -10,7 +10,7 @@ use primitives::{
 use super::{
     asset::map_currency_to_asset_id,
     chain::RelayChain,
-    model::{RelayAppFees, RelayCurrency, RelayCurrencyDetail, RelayQuoteResponse, RelayRequest},
+    model::{RelayCurrency, RelayPartnerAmount, RelayPartnerRequest, RelayQuoteResponse, RelayRequest},
 };
 use crate::{
     SwapResult, SwapperError, SwapperProvider, SwapperQuoteData,
@@ -94,39 +94,35 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
     }
 }
 
-pub fn map_partner_transaction(request: &RelayRequest) -> Option<SwapPartnerTransaction> {
-    let data = request.data.as_ref()?;
-    let route = data.route.as_ref()?;
-    let currency_in = route.actual.as_ref().and_then(|actual| actual.currency_in()).or_else(|| route.quoted.as_ref()?.currency_in())?;
-    let currency_out = route.actual.as_ref().and_then(|actual| actual.currency_out()).or_else(|| route.quoted.as_ref()?.currency_out())?;
+pub fn map_partner_transaction(request: &RelayPartnerRequest) -> Option<SwapPartnerTransaction> {
+    let metadata = request.data.metadata.as_ref()?;
     Some(SwapPartnerTransaction {
         provider: SwapProvider::Relay,
         provider_transaction_id: request.id.clone(),
         status: request.status.clone().into_swap_status(),
         from_address: request.user.clone(),
         to_address: request.recipient.clone(),
-        from_asset_id: map_currency_asset_id(&currency_in.currency)?,
-        from_value: currency_in.amount.clone()?,
-        from_amount_usd: map_amount_usd(currency_in),
-        to_asset_id: map_currency_asset_id(&currency_out.currency)?,
-        to_value: currency_out.amount.clone()?,
-        to_amount_usd: map_amount_usd(currency_out),
-        referral_fee: data.app_fees.as_ref().and_then(map_referral_fee),
-        from_transaction_hash: data.in_txs.first().and_then(|transaction| transaction.tx_hash.clone()),
-        to_transaction_hash: data.out_txs.first().and_then(|transaction| transaction.tx_hash.clone()),
+        from_asset_id: map_currency_asset_id(&metadata.currency_in.currency)?,
+        from_value: metadata.currency_in.amount.clone(),
+        from_amount_usd: map_amount_usd(&metadata.currency_in.amount_usd),
+        to_asset_id: map_currency_asset_id(&metadata.currency_out.currency)?,
+        to_value: metadata.currency_out.amount.clone(),
+        to_amount_usd: map_amount_usd(&metadata.currency_out.amount_usd),
+        referral_fee: map_referral_fee(&request.data.paid_app_fees, request.data.app_fee_currency_object.as_ref()),
+        from_transaction_hash: request.data.in_txs.first().and_then(|transaction| transaction.hash.clone()),
+        to_transaction_hash: request.data.out_txs.first().and_then(|transaction| transaction.hash.clone()),
     })
 }
 
-fn map_referral_fee(app_fees: &RelayAppFees) -> Option<SwapReferralFee> {
-    if app_fees.actual.is_empty() {
+fn map_referral_fee(fees: &[RelayPartnerAmount], currency: Option<&RelayCurrency>) -> Option<SwapReferralFee> {
+    if fees.is_empty() {
         return None;
     }
-    let value = app_fees.actual.iter().map(|fee| BigUint::from_str(fee.amount.as_deref()?).ok()).sum::<Option<BigUint>>()?;
-    let amount_usd = app_fees.actual.iter().map(|fee| fee.amount_usd.as_deref()?.parse::<f64>().ok()).sum::<Option<f64>>();
+    let value = fees.iter().map(|fee| BigUint::from_str(&fee.amount).ok()).sum::<Option<BigUint>>()?;
     Some(SwapReferralFee {
-        asset_id: map_currency_asset_id(app_fees.currency.as_ref()?)?,
+        asset_id: map_currency_asset_id(currency?)?,
         value: value.to_string(),
-        amount_usd,
+        amount_usd: fees.iter().map(|fee| map_amount_usd(&fee.amount_usd)).sum(),
     })
 }
 
@@ -135,14 +131,14 @@ fn map_currency_asset_id(currency: &RelayCurrency) -> Option<AssetId> {
     Some(map_currency_to_asset_id(chain, &currency.address))
 }
 
-fn map_amount_usd(detail: &RelayCurrencyDetail) -> Option<f64> {
-    detail.amount_usd.as_deref()?.parse().ok()
+fn map_amount_usd(amount_usd: &Option<String>) -> Option<f64> {
+    amount_usd.as_deref()?.parse().ok()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::relay::model::{RelayQuoteResponse, RelayRequest, RelayRequestsResponse, RelayStatus, Step};
+    use crate::relay::model::{RelayPartnerRequestsResponse, RelayQuoteResponse, RelayRequest, RelayRequestsResponse, RelayStatus, Step};
     use primitives::{AssetId, Chain, asset_constants::BASE_USDC_ASSET_ID, swap::SwapStatus};
 
     #[test]
@@ -241,40 +237,38 @@ mod tests {
 
     #[test]
     fn test_map_partner_transaction() {
-        let response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/partner_requests.json")).unwrap();
+        let response: RelayPartnerRequestsResponse = serde_json::from_str(include_str!("testdata/partner_requests.json")).unwrap();
         let transactions: Vec<SwapPartnerTransaction> = response.requests.iter().filter_map(map_partner_transaction).collect();
 
         assert_eq!(
             transactions[0],
             SwapPartnerTransaction {
                 provider: SwapProvider::Relay,
-                provider_transaction_id: "0x5b1b1f8f5a0a2bd6c2e0e6f8a1f3a3c4c1d9e3f2b6a7c8d9e0f1a2b3c4d5e6f7".to_string(),
+                provider_transaction_id: "0x17906479322b57d2f4d58df3a311a009c77d66a2ae21b7c9b395095a26fa06db".to_string(),
                 status: SwapStatus::Completed,
-                from_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-                to_address: "bc1q4vxn43l44h30nkluqfxd9eckf45vr2awz38lwa".to_string(),
-                from_asset_id: BASE_USDC_ASSET_ID.clone(),
-                from_value: "109077539".to_string(),
-                from_amount_usd: Some(109.07),
-                to_asset_id: AssetId::from_chain(Chain::Bitcoin),
-                to_value: "137291".to_string(),
-                to_amount_usd: Some(108.79),
+                from_address: "0xadaf6f9b702718e3cec12f944be7df8b34e59e2f".to_string(),
+                to_address: "0xAdaF6F9b702718e3ceC12f944BE7dF8b34E59E2f".to_string(),
+                from_asset_id: AssetId::from_chain(Chain::Robinhood),
+                from_value: "5300000000000000".to_string(),
+                from_amount_usd: Some(14.076714),
+                to_asset_id: AssetId::from_chain(Chain::Polygon),
+                to_value: "122054136429845409213".to_string(),
+                to_amount_usd: Some(13.858149),
                 referral_fee: Some(SwapReferralFee {
-                    asset_id: BASE_USDC_ASSET_ID.clone(),
-                    value: "545387".to_string(),
-                    amount_usd: Some(0.545),
+                    asset_id: AssetId::from_chain(Chain::Robinhood),
+                    value: "26500000000000".to_string(),
+                    amount_usd: Some(0.071205),
                 }),
-                from_transaction_hash: Some("0x2d0f7d6e4b5c3a291807f6e5d4c3b2a19087f6e5d4c3b2a19087f6e5d4c3b2a1".to_string()),
-                to_transaction_hash: Some("5f3c1b0a9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b".to_string()),
+                from_transaction_hash: Some("0x548625209be0fab98ee2d91ed39f3bc74093aa715a091233b1064b61d36b6485".to_string()),
+                to_transaction_hash: Some("0x874661d3cfdfe986d93188f71a452d5e3b583077983b92438d9fc026f2946d8f".to_string()),
             }
         );
 
-        assert_eq!(transactions[1].status, SwapStatus::Pending);
-        assert_eq!(transactions[1].to_asset_id, AssetId::from_token(Chain::Base, "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452"));
-        assert_eq!(transactions[1].to_value, "1101293561931134");
+        assert_eq!(transactions[1].status, SwapStatus::Refunded);
         assert_eq!(transactions[1].referral_fee, None);
 
-        assert_eq!(transactions[2].status, SwapStatus::Refunded);
-        assert_eq!(transactions[2].from_transaction_hash.as_deref(), Some("0x4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b"));
+        assert_eq!(transactions[2].status, SwapStatus::Failed);
+        assert_eq!(transactions[2].from_asset_id, AssetId::from_token(Chain::Solana, "KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS"));
         assert_eq!(transactions[2].to_transaction_hash, None);
     }
 

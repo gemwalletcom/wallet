@@ -17,7 +17,7 @@ impl Target for RelayTarget {
             Self::Quote => "/quote/v2".to_string(),
             Self::Request { term } => format!("/requests/v3?term={term}"),
             Self::Requests { user, origin_chain_id } => format!("/requests/v3?user={user}&originChainId={origin_chain_id}"),
-            Self::PartnerRequests(query) => build_path_with_query("/requests/v3", query),
+            Self::PartnerRequests(query) => build_path_with_query("/requests/v2", query),
             Self::Chains => "/chains".to_string(),
         }
     }
@@ -30,19 +30,17 @@ mod tests {
     #[test]
     fn test_partner_requests_path() {
         let query = RelayPartnerRequestsQuery {
-            api_key: "key".to_string(),
             referrer: "gemwallet".to_string(),
-            sort_by: "updatedAt",
+            sort_by: "createdAt",
             sort_direction: "asc",
-            limit: 100,
-            include_authenticated_data: true,
+            limit: 50,
             start_timestamp: Some(1790592300),
             continuation: None,
         };
 
         assert_eq!(
             RelayTarget::PartnerRequests(query).path(),
-            "/requests/v3?apiKey=key&referrer=gemwallet&sortBy=updatedAt&sortDirection=asc&limit=100&includeAuthenticatedData=true&startTimestamp=1790592300"
+            "/requests/v2?referrer=gemwallet&sortBy=createdAt&sortDirection=asc&limit=50&startTimestamp=1790592300"
         );
     }
 }
