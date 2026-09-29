@@ -32,7 +32,9 @@ struct TargetRequestBuilder {
             httpBody = try encoder.encode(value)
             string = path
         }
-        let url = URL(string: baseUrl.absoluteString + string)!
+        guard let url = URL(string: baseUrl.absoluteString + string) else {
+            throw URLError(.badURL)
+        }
         var request = URLRequest(url: url)
         request.httpBody = httpBody
         request.httpMethod = method.rawValue

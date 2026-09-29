@@ -21,14 +21,17 @@ public actor QRCodeGenerator {
             return nil
         }
 
-        return logo != nil ? addLogo(
+        guard let logo else {
+            return qrCodeImage
+        }
+        return addLogo(
             to: qrCodeImage,
-            logo: logo!,
+            logo: logo,
             logoQRScale: logoQRScale,
             logoBackgroundScale: logoBackgroundScale,
             backgroundColor: backgroundColor,
             cornerRadius: cornerRadius,
-        ) : qrCodeImage
+        )
     }
 
     private func createQRCode(from string: String, size: CGSize) -> UIImage? {

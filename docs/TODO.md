@@ -203,7 +203,6 @@ Found on 2026-09-29 by comparing the two apps' store adapters, lint passes and h
 
 ### iOS
 
-- **CLN445** **S** **Building a URL never crashes.** `BlockExplorerLink.url` and `TargetRequestBuilder` force-unwrap `URL(string:)`; an explorer link or request path that is not a URL crashes the app, where Android opens nothing. The explorer URL is optional and the request builder throws `URLError(.badURL)`.
 - **CLN446** **S** **The confirm error info is decided once.** iOS asks `hasInfoSheet()` and then `errorInfo(error:)`; Android uses whether `errorInfo` returns a value. iOS does the same and Core stops exporting `has_info_sheet`.
 - **CLN447** **S** **A balance update without metadata clears it, as on Android.** `GemstoneBalanceStore.updateBalances` keeps the stored metadata when Core writes none, so iOS can never clear it; Core already merges before writing.
 - **CLN448** **S** **Recent activity keeps one row per asset, wallet and type.** The iOS table has no key and appends a row per open, so it grows without bound; Android replaces on `(asset_id, wallet_id, type)`. iOS deletes the previous row for the key before inserting.
