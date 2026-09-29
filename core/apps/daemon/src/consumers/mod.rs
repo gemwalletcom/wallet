@@ -35,9 +35,9 @@ pub(crate) fn reader_config(rabbitmq: &settings::RabbitMQ, name: String) -> Stre
     StreamReaderConfig::new(rabbitmq.url.clone(), name, rabbitmq.prefetch, retry)
 }
 
-pub(crate) async fn reader_for_queue(settings: &Settings, queue: &QueueName, shutdown_rx: &ShutdownReceiver) -> Result<(String, StreamReader), Box<dyn Error + Send + Sync>> {
+pub(crate) async fn reader_for_queue(settings: &Settings, queue: &QueueName, shutdown: &ShutdownReceiver) -> Result<(String, StreamReader), Box<dyn Error + Send + Sync>> {
     let name = queue.to_string();
     let config = reader_config(&settings.rabbitmq, name.clone());
-    let reader = StreamReader::new(config, shutdown_rx).await?.ok_or("shutdown during connect")?;
+    let reader = StreamReader::new(config, shutdown).await?.ok_or("shutdown during connect")?;
     Ok((name, reader))
 }

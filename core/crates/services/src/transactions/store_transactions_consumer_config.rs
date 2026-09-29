@@ -178,11 +178,11 @@ mod tests {
     fn test_should_notify_transaction_in_transit() {
         let config = StoreTransactionsConsumerConfig::mock();
         let empty = SendAddressMap::new();
-        let tx = Transaction {
+        let transaction = Transaction {
             state: TransactionState::InTransit,
             ..Transaction::mock()
         };
-        assert!(!config.should_notify_transaction(&tx, true, &empty));
+        assert!(!config.should_notify_transaction(&transaction, true, &empty));
     }
 
     #[test]
@@ -195,8 +195,8 @@ mod tests {
     #[test]
     fn test_should_notify_transaction_from_vault() {
         let config = StoreTransactionsConsumerConfig::mock();
-        let tx = Transaction::mock();
-        let vault_addresses = SendAddressMap::from([(tx.from.clone(), primitives::SwapProvider::Thorchain)]);
-        assert!(!config.should_notify_transaction(&tx, true, &vault_addresses));
+        let transaction = Transaction::mock();
+        let vault_addresses = SendAddressMap::from([(transaction.from.clone(), primitives::SwapProvider::Thorchain)]);
+        assert!(!config.should_notify_transaction(&transaction, true, &vault_addresses));
     }
 }

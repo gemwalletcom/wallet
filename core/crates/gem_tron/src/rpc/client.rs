@@ -149,7 +149,7 @@ impl<C: Client> TronClient<C> {
         let request = TronAccountRequest { address: address.to_string(), visible: true };
 
         let account: TronEmptyAccount = self.client.post(TronTarget::GetAccount, &request).await?;
-        Ok(account.address.is_none_or(|addr| addr.is_empty()))
+        Ok(account.address.is_none_or(|address| address.is_empty()))
     }
 
     pub async fn broadcast_transaction(&self, data: String) -> Result<TronTransactionBroadcast, Box<dyn Error + Send + Sync>> {

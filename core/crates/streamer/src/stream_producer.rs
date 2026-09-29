@@ -37,13 +37,13 @@ pub struct StreamProducer {
     connection_name: String,
     retry: Retry,
     max_queue_bytes: i64,
-    shutdown_rx: ShutdownReceiver,
+    shutdown: ShutdownReceiver,
     channel: Arc<Mutex<Channel>>,
 }
 
 impl StreamProducer {
-    pub async fn new(config: &StreamProducerConfig, connection_name: &str, shutdown_rx: ShutdownReceiver) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let channel = with_retry(&config.retry, connection_name, &shutdown_rx, || Self::try_connect(&config.url, connection_name))
+    pub async fn new(config: &StreamProducerConfig, connection_name: &str, shutdown: ShutdownReceiver) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let channel = with_retry(&config.retry, connection_name, &shutdown, || Self::try_connect(&config.url, connection_name))
             .await?
             .ok_or("shutdown during connect")?;
         Ok(Self {
@@ -51,12 +51,12 @@ impl StreamProducer {
             connection_name: connection_name.to_string(),
             retry: config.retry.clone(),
             max_queue_bytes: config.maxbytes,
-            shutdown_rx,
+            shutdown,
             channel: Arc::new(Mutex::new(channel)),
         })
     }
 
-    pub async fn from_connection(connection: &StreamConnection, max_queue_bytes: i64, shutdown_rx: ShutdownReceiver) -> Result<Self, Box<dyn Error + Send + Sync>> {
+    pub async fn from_connection(connection: &StreamConnection, max_queue_bytes: i64, shutdown: ShutdownReceiver) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let channel = Self::configure_channel(connection.create_channel().await?).await?;
         let retry = Retry::new(Duration::from_secs(1), Duration::from_secs(30));
         Ok(Self {
@@ -64,7 +64,7 @@ impl StreamProducer {
             connection_name: connection.name().to_string(),
             retry,
             max_queue_bytes,
-            shutdown_rx,
+            shutdown,
             channel: Arc::new(Mutex::new(channel)),
         })
     }
@@ -86,7 +86,7 @@ impl StreamProducer {
             return Ok(channel.clone());
         }
 
-        *channel = with_retry(&self.retry, &self.connection_name, &self.shutdown_rx, || Self::try_connect(&self.url, &self.connection_name))
+        *channel = with_retry(&self.retry, &self.connection_name, &self.shutdown, || Self::try_connect(&self.url, &self.connection_name))
             .await?
             .ok_or("shutdown during reconnect")?;
         Ok(channel.clone())
@@ -109,7 +109,7 @@ impl StreamProducer {
         let mut attempt = 0;
 
         loop {
-            if *self.shutdown_rx.borrow() {
+            if *self.shutdown.borrow() {
                 return Err("shutdown during operation".into());
             }
 
@@ -126,10 +126,10 @@ impl StreamProducer {
                         error = error.to_string()
                     );
                     let _ = self.reconnect().await;
-                    let mut shutdown_rx = self.shutdown_rx.clone();
+                    let mut shutdown = self.shutdown.clone();
                     tokio::select! {
                         _ = tokio::time::sleep(delay) => {}
-                        _ = shutdown_rx.changed() => return Err("shutdown during operation".into()),
+                        _ = shutdown.changed() => return Err("shutdown during operation".into()),
                     }
                     delay = next_delay(delay, &self.retry);
                 }

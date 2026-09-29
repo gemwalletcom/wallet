@@ -20,7 +20,7 @@ pub fn swap_provider_with_vault_addresses(transaction: &Transaction, deposit_add
     deposit_addresses
         .get(&transaction.to)
         .copied()
-        .or_else(|| transaction.output_addresses().into_iter().find_map(|addr| deposit_addresses.get(&addr).copied()))
+        .or_else(|| transaction.output_addresses().into_iter().find_map(|address| deposit_addresses.get(&address).copied()))
         .filter(|provider| is_valid_swap_transaction(provider, transaction))
 }
 
@@ -49,7 +49,7 @@ pub fn is_cross_chain_swap(transaction: &Transaction, deposit_addresses: &Deposi
 }
 
 pub fn is_from_vault_address(transaction: &Transaction, send_addresses: &SendAddressMap) -> bool {
-    send_addresses.contains_key(&transaction.from) || transaction.input_addresses().iter().any(|addr| send_addresses.contains_key(addr))
+    send_addresses.contains_key(&transaction.from) || transaction.input_addresses().iter().any(|address| send_addresses.contains_key(address))
 }
 
 #[cfg(test)]

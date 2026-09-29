@@ -33,8 +33,8 @@ pub struct StreamMessage<T> {
 }
 
 impl StreamReader {
-    pub async fn new(config: StreamReaderConfig, shutdown_rx: &ShutdownReceiver) -> Result<Option<Self>, Box<dyn Error + Send + Sync>> {
-        let channel = with_retry(&config.retry, &config.name, shutdown_rx, || Self::try_connect(&config)).await?;
+    pub async fn new(config: StreamReaderConfig, shutdown: &ShutdownReceiver) -> Result<Option<Self>, Box<dyn Error + Send + Sync>> {
+        let channel = with_retry(&config.retry, &config.name, shutdown, || Self::try_connect(&config)).await?;
         Ok(channel.map(|channel| Self { config, channel }))
     }
 
@@ -69,7 +69,7 @@ impl StreamReader {
         Ok((channel, consumer))
     }
 
-    pub async fn read<T, F, Fut>(&mut self, queue: QueueName, routing_key: Option<&str>, mut callback: F, shutdown_rx: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>>
+    pub async fn read<T, F, Fut>(&mut self, queue: QueueName, routing_key: Option<&str>, mut callback: F, shutdown: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned,
         F: FnMut(StreamMessage<T>) -> Fut,
@@ -81,18 +81,18 @@ impl StreamReader {
         };
 
         loop {
-            if *shutdown_rx.borrow() {
+            if *shutdown.borrow() {
                 break;
             }
 
-            let attached = with_retry(&self.config.retry, &self.config.name, &shutdown_rx, || Self::try_consume(&self.config, queue_name.as_str(), consumer_tag.as_str())).await?;
+            let attached = with_retry(&self.config.retry, &self.config.name, &shutdown, || Self::try_consume(&self.config, queue_name.as_str(), consumer_tag.as_str())).await?;
 
             let Some((channel, mut consumer)) = attached else {
                 break;
             };
             self.channel = channel;
 
-            let result = self.consume::<T, _, _>(&mut consumer, &mut callback, shutdown_rx.clone()).await;
+            let result = self.consume::<T, _, _>(&mut consumer, &mut callback, shutdown.clone()).await;
             if let Ok(true) = result {
                 break;
             }
@@ -103,7 +103,7 @@ impl StreamReader {
         Ok(())
     }
 
-    async fn consume<T, F, Fut>(&mut self, consumer: &mut lapin::Consumer, callback: &mut F, mut shutdown_rx: ShutdownReceiver) -> Result<bool, Box<dyn Error + Send + Sync>>
+    async fn consume<T, F, Fut>(&mut self, consumer: &mut lapin::Consumer, callback: &mut F, mut shutdown: ShutdownReceiver) -> Result<bool, Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned,
         F: FnMut(StreamMessage<T>) -> Fut,
@@ -112,7 +112,7 @@ impl StreamReader {
         loop {
             let delivery = tokio::select! {
                 d = consumer.next() => d,
-                _ = shutdown_rx.changed() => return Ok(true),
+                _ = shutdown.changed() => return Ok(true),
             };
 
             match delivery {

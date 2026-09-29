@@ -152,14 +152,14 @@ where
         }
     }
 
-    fn build_swap_metadata(tx: &ExplorerTransaction) -> Option<TransactionSwapMetadata> {
-        let from_asset = get_asset_id_from_near_asset(&tx.origin_asset)?;
-        let to_asset = get_asset_id_from_near_asset(&tx.destination_asset)?;
+    fn build_swap_metadata(transaction: &ExplorerTransaction) -> Option<TransactionSwapMetadata> {
+        let from_asset = get_asset_id_from_near_asset(&transaction.origin_asset)?;
+        let to_asset = get_asset_id_from_near_asset(&transaction.destination_asset)?;
         Some(TransactionSwapMetadata {
             from_asset,
-            from_value: BigUint::from_str(&tx.amount_in).ok()?,
+            from_value: BigUint::from_str(&transaction.amount_in).ok()?,
             to_asset,
-            to_value: BigUint::from_str(&tx.amount_out).ok()?,
+            to_value: BigUint::from_str(&transaction.amount_out).ok()?,
             provider: Some(SwapperProvider::NearIntents.as_ref().to_string()),
         })
     }
@@ -354,12 +354,12 @@ where
     }
 
     async fn get_swap_result(&self, _chain: Chain, hash: &str) -> Result<SwapResult, SwapperError> {
-        let Some(tx) = self.explorer.search_transaction(hash).await? else {
+        let Some(transaction) = self.explorer.search_transaction(hash).await? else {
             return Ok(SwapResult::pending());
         };
 
-        let status = Self::map_transaction_status(&tx.status);
-        let metadata = Self::build_swap_metadata(&tx);
+        let status = Self::map_transaction_status(&transaction.status);
+        let metadata = Self::build_swap_metadata(&transaction);
 
         Ok(SwapResult { status, metadata, eta_in_seconds: None })
     }
@@ -381,9 +381,9 @@ mod tests {
 
     fn status(json: &str) -> SwapResult {
         let transactions: Vec<ExplorerTransaction> = serde_json::from_str(json).unwrap();
-        let tx = &transactions[0];
-        let status = NearIntents::<RpcClient>::map_transaction_status(&tx.status);
-        let metadata = NearIntents::<RpcClient>::build_swap_metadata(tx);
+        let transaction = &transactions[0];
+        let status = NearIntents::<RpcClient>::map_transaction_status(&transaction.status);
+        let metadata = NearIntents::<RpcClient>::build_swap_metadata(transaction);
         SwapResult { status, metadata, eta_in_seconds: None }
     }
 

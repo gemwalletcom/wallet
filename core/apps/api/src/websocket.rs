@@ -23,8 +23,8 @@ pub fn is_disconnect_error(error: &WsError) -> bool {
 
 pub async fn setup_ws_resources(redis_url: &str, stream: DuplexStream) -> Result<(DuplexStream, MultiplexedConnection, UnboundedReceiver<PushInfo>), Box<dyn Error + Send + Sync>> {
     let client = redis::Client::open(redis_url)?;
-    let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
-    let config = redis::AsyncConnectionConfig::new().set_push_sender(tx);
+    let (sender, receiver) = tokio::sync::mpsc::unbounded_channel();
+    let config = redis::AsyncConnectionConfig::new().set_push_sender(sender);
     let redis_connection = client.get_multiplexed_async_connection_with_config(&config).await?;
-    Ok((stream, redis_connection, rx))
+    Ok((stream, redis_connection, receiver))
 }

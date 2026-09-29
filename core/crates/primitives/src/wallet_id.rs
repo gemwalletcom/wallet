@@ -100,10 +100,10 @@ mod tests {
 
     #[test]
     fn test_wallet_identifier_from_id() {
-        assert!(matches!(WalletId::from_id("multicoin_0x123"), Some(WalletId::Multicoin(addr)) if addr == "0x123"));
-        assert!(matches!(WalletId::from_id("single_ethereum_0x456"), Some(WalletId::Single(Chain::Ethereum, addr)) if addr == "0x456"));
-        assert!(matches!(WalletId::from_id("privateKey_bitcoin_bc1"), Some(WalletId::PrivateKey(Chain::Bitcoin, addr)) if addr == "bc1"));
-        assert!(matches!(WalletId::from_id("view_ethereum_0x789"), Some(WalletId::View(Chain::Ethereum, addr)) if addr == "0x789"));
+        assert!(matches!(WalletId::from_id("multicoin_0x123"), Some(WalletId::Multicoin(address)) if address == "0x123"));
+        assert!(matches!(WalletId::from_id("single_ethereum_0x456"), Some(WalletId::Single(Chain::Ethereum, address)) if address == "0x456"));
+        assert!(matches!(WalletId::from_id("privateKey_bitcoin_bc1"), Some(WalletId::PrivateKey(Chain::Bitcoin, address)) if address == "bc1"));
+        assert!(matches!(WalletId::from_id("view_ethereum_0x789"), Some(WalletId::View(Chain::Ethereum, address)) if address == "0x789"));
         assert!(WalletId::from_id("invalid").is_none());
     }
 

@@ -39,7 +39,7 @@ pub async fn run_consumer<P, C, R>(
     routing_key: Option<&str>,
     consumer: C,
     config: ConsumerConfig,
-    shutdown_rx: ShutdownReceiver,
+    shutdown: ShutdownReceiver,
     reporter: Arc<dyn ConsumerStatusReporter>,
 ) -> Result<(), Box<dyn Error + Send + Sync>>
 where
@@ -51,9 +51,7 @@ where
     if routing_key.is_none() {
         info_with_fields!("running consumer", consumer = queue_name.to_string());
     }
-    stream_reader
-        .read::<P, _, _>(queue_name, routing_key, |message| consume_message(name, &consumer, &config, &reporter, message), shutdown_rx)
-        .await
+    stream_reader.read::<P, _, _>(queue_name, routing_key, |message| consume_message(name, &consumer, &config, &reporter, message), shutdown).await
 }
 
 async fn consume_message<P, C, R>(name: &str, consumer: &C, config: &ConsumerConfig, reporter: &Arc<dyn ConsumerStatusReporter>, message: StreamMessage<P>) -> Result<(), Box<dyn Error + Send + Sync>>

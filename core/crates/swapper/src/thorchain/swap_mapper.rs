@@ -9,15 +9,15 @@ pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) 
     let status = response.swap_status();
     let eta_in_seconds = response.eta_in_seconds();
 
-    let Some(ref tx) = response.tx else {
+    let Some(ref transaction) = response.tx else {
         return SwapResult { status, metadata: None, eta_in_seconds };
     };
 
-    let Some(chain) = ChainName::from_symbol(network, &tx.chain).map(|n| n.chain()) else {
+    let Some(chain) = ChainName::from_symbol(network, &transaction.chain).map(|n| n.chain()) else {
         return SwapResult { status, metadata: None, eta_in_seconds };
     };
 
-    let from_coin = tx.coins.first();
+    let from_coin = transaction.coins.first();
     let from_asset = from_coin.and_then(|c| c.asset_id(network));
     let from_value = from_coin.and_then(|c| c.native_value(chain));
 

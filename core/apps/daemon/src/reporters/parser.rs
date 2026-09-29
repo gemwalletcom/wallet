@@ -21,11 +21,11 @@ impl ParserReporter {
 
     pub fn record_transactions(&self, transactions: &[Transaction]) {
         let mut counts: HashMap<String, u64> = HashMap::new();
-        for tx in transactions {
-            let transaction_type = if tx.transaction_type == TransactionType::Transfer && !tx.asset_id.is_native() {
+        for transaction in transactions {
+            let transaction_type = if transaction.transaction_type == TransactionType::Transfer && !transaction.asset_id.is_native() {
                 "token_transfer"
             } else {
-                tx.transaction_type.as_ref()
+                transaction.transaction_type.as_ref()
             };
             *counts.entry(transaction_type.to_string()).or_default() += 1;
         }

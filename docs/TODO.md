@@ -200,7 +200,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-29
 
 ### Core
 
-- **CLN433** **S** **Rust spells the last abbreviations in full.** The remaining `tx` locals take a name that does not shadow `transaction`, channel pairs become `(sender, receiver)`, the daemon's `ctx` becomes `context`, the fiat `resp` parameters `response` and the `addr` closures `address`. Serde fields, URLs and protocol names keep their text.
 
 ### iOS
 

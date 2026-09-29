@@ -24,10 +24,10 @@ mod tests {
     #[test]
     fn test_chainflip_scan() {
         let chainflip_scan = ChainflipScan::boxed();
-        let tx = "54qsbkVUPoQUbwfuQeDXmNyodPWVX8VcK6sSSFyfezkg8t5XbduthFisKBcGxGjSab8QsKaPoEWEnzsK9xsFXrMF";
+        let hash = "54qsbkVUPoQUbwfuQeDXmNyodPWVX8VcK6sSSFyfezkg8t5XbduthFisKBcGxGjSab8QsKaPoEWEnzsK9xsFXrMF";
         assert_eq!(chainflip_scan.name(), "Chainflip");
         assert_eq!(
-            chainflip_scan.get_tx_url(tx),
+            chainflip_scan.get_tx_url(hash),
             "https://scan.chainflip.io/tx/54qsbkVUPoQUbwfuQeDXmNyodPWVX8VcK6sSSFyfezkg8t5XbduthFisKBcGxGjSab8QsKaPoEWEnzsK9xsFXrMF"
         );
     }
