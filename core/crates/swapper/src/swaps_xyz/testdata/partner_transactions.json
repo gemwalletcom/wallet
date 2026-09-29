@@ -1,0 +1,79 @@
+{
+  "txs": [
+    {
+      "txId": "0x70923cc59d4d6a023982b702f9c0824fa75361353f77730d55cb0ddf7aa029db",
+      "status": "success",
+      "sender": "37FSXICWN3SYMKWTCYP4XPKKLK3657JBEHVSZJAYHJ4VWP6PQDRBE5ZY3U",
+      "srcTx": {
+        "paymentToken": {
+          "chainId": 999000419,
+          "isNative": true,
+          "tokenAddress": null,
+          "amount": "316899014",
+          "usdAmount": 42.99052
+        },
+        "toAddress": "5KTJ7BORRJOPRCRGDFVV3BSI3LKNU22LB7HAXCGJJVU3UIXWKV4CYG7UMQ",
+        "txHash": "YRDNGWW4GGDVW4HP2BAXVF6VWMBJOYO5RDIXXKA55ICCUGRY57RQ"
+      },
+      "dstTx": {
+        "paymentToken": {
+          "chainId": 999000346,
+          "isNative": true,
+          "tokenAddress": null,
+          "amount": "27854042",
+          "usdAmount": 42.338144
+        },
+        "toAddress": "rD8TMhN9Ke4diTB7XKuAWVD57harKdNG7G",
+        "txHash": "CF56FD782293D318DB9D635F9CE655D5779723F193377A1527040C28D9664871"
+      },
+      "actionRequest": {
+        "appFees": [
+          {
+            "bps": 50,
+            "flatFee": "0",
+            "receiverAddress": "0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC"
+          }
+        ]
+      }
+    },
+    {
+      "txId": "0x7a38f157f07e3137d6859af210cc9d45db6add717a5588a3a0981fde45169c77",
+      "status": "success",
+      "sender": "rKfbbDLNeKzcSBEevT43Jqav7BVqnJLiEf",
+      "srcTx": {
+        "paymentToken": {
+          "chainId": 999000346,
+          "isNative": true,
+          "tokenAddress": null,
+          "amount": "14500000",
+          "usdAmount": 22.04
+        },
+        "toAddress": "r9m6MwViR4GnUNqoGXGa8eroBrZ9FAPHFS",
+        "txHash": "388E3397F64A4B9A3AB885B1F7902346F36E2931816938303931BC1DA0FB0D52"
+      },
+      "dstTx": {
+        "paymentToken": {
+          "chainId": 999000338,
+          "isNative": true,
+          "tokenAddress": null,
+          "amount": "1008480681",
+          "usdAmount": 21.688386
+        },
+        "toAddress": "GBJKOR6CTYY57MBRJCGWEJYKCOMHPJFVQO5LY6XES62M426F23MQIVY3",
+        "txHash": "fc7f2c417e94bfe6c1df1aea1d04f998426cfb0021d9098ae0cae65f603468fa"
+      },
+      "actionRequest": {
+        "appFees": [
+          {
+            "bps": 50,
+            "flatFee": "0",
+            "receiverAddress": "0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC"
+          }
+        ]
+      }
+    }
+  ],
+  "cursor": {
+    "next": "NmFiODYxYzIwMjUzNzg0MTkxNDhlMzU2XzE3OTA0Njg0NzM"
+  }
+}
