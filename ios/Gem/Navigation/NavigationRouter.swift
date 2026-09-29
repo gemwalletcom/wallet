@@ -233,7 +233,7 @@ extension NavigationRouter {
             case .request:
                 break
             case .session:
-                walletConnector.updateSessions()
+                try await walletConnector.updateSessions()
             }
         } catch {
             debugLog("NavigationRouter walletConnect error: \(error)")

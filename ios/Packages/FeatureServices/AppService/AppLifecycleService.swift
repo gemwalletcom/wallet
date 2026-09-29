@@ -87,9 +87,8 @@ public actor AppLifecycleService: Sendable {
 extension AppLifecycleService {
     private func setupWalletConnect() async {
         do {
-            try walletConnector.configure()
             if try await walletConnector.hasSessions() {
-                await walletConnector.setup()
+                try await walletConnector.setup()
             }
         } catch {
             debugLog("AppLifecycleService setupWalletConnect error: \(error)")
