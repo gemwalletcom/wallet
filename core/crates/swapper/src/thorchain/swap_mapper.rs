@@ -1,4 +1,8 @@
-use primitives::{TransactionSwapMetadata, TransactionSwapReferralFee, swap::THORCHAIN_REFERRAL_ADDRESS};
+use num_bigint::BigUint;
+use primitives::{
+    AssetId, TransactionSwapMetadata, TransactionSwapReferralFee,
+    swap::{HUNDRED_PERCENT_IN_BPS, SwapStatus, THORCHAIN_REFERRAL_ADDRESS},
+};
 
 use super::THORChainNetwork;
 use super::chain::ChainName;
@@ -26,41 +30,48 @@ pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) 
     let to_asset = out_coin.and_then(|c| c.asset_id(network));
     let to_value = out_coin.and_then(|c| c.native_value(network));
 
-    let referral_fee = map_referral_fee(response, &transaction.memo, network);
     let metadata = match (from_asset, from_value, to_asset, to_value) {
-        (Some(from_asset), Some(from_value), Some(to_asset), Some(to_value)) => Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, network.provider()).with_referral_fee(referral_fee)),
+        (Some(from_asset), Some(from_value), Some(to_asset), Some(to_value)) => {
+            let referral_fee = map_referral_fee(response, &transaction.memo, network, &from_asset, &from_value);
+            Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, network.provider()).with_referral_fee(referral_fee))
+        }
         _ => None,
     };
 
     SwapResult { status, metadata, eta_in_seconds }
 }
 
-fn map_referral_fee(response: &TransactionStatus, memo: &str, network: THORChainNetwork) -> Option<TransactionSwapReferralFee> {
+fn map_referral_fee(response: &TransactionStatus, memo: &str, network: THORChainNetwork, from_asset: &AssetId, from_value: &BigUint) -> Option<TransactionSwapReferralFee> {
     let memo = ThorchainMemo::parse(memo)?;
     if memo.affiliate.as_deref() != Some(THORCHAIN_REFERRAL_ADDRESS) {
         return None;
     }
-    let coin = response
+    let payout = response
         .out_txs
-        .as_ref()?
         .iter()
+        .flatten()
         .filter(|transaction| transaction.to_address.as_deref().is_some_and(|address| address != memo.address))
         .filter_map(|transaction| transaction.coins.first())
-        .find(|coin| coin.asset == network.native_asset())?;
-    Some(TransactionSwapReferralFee {
-        asset_id: network.chain().as_asset_id(),
-        value: coin.amount.parse().ok()?,
-    })
+        .find(|coin| coin.asset == network.native_asset());
+    match payout {
+        Some(coin) => Some(TransactionSwapReferralFee {
+            asset_id: network.chain().as_asset_id(),
+            value: coin.amount.parse().ok()?,
+        }),
+        None if response.swap_status() == SwapStatus::Completed => Some(TransactionSwapReferralFee {
+            asset_id: from_asset.clone(),
+            value: from_value * memo.affiliate_bps.filter(|bps| *bps > 0)? / HUNDRED_PERCENT_IN_BPS,
+        }),
+        None => None,
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::BigUint;
     use primitives::{
         Chain, SwapProvider,
         asset_constants::{ARBITRUM_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, THORCHAIN_TCY_ASSET_ID, TRON_USDT_ASSET_ID},
-        swap::SwapStatus,
     };
 
     fn status(json: &str) -> TransactionStatus {
@@ -214,13 +225,19 @@ mod tests {
             map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata::new(
-                    ETHEREUM_USDT_ASSET_ID.clone(),
-                    BigUint::from(8366000000u64),
-                    Chain::Thorchain.as_asset_id(),
-                    BigUint::from(2096315169517u64),
-                    SwapProvider::Thorchain
-                )),
+                metadata: Some(
+                    TransactionSwapMetadata::new(
+                        ETHEREUM_USDT_ASSET_ID.clone(),
+                        BigUint::from(8366000000u64),
+                        Chain::Thorchain.as_asset_id(),
+                        BigUint::from(2096315169517u64),
+                        SwapProvider::Thorchain
+                    )
+                    .with_referral_fee(Some(TransactionSwapReferralFee {
+                        asset_id: ETHEREUM_USDT_ASSET_ID.clone(),
+                        value: BigUint::from(41830000u64),
+                    }))
+                ),
                 eta_in_seconds: None,
             }
         );
@@ -270,6 +287,21 @@ mod tests {
             Some(TransactionSwapReferralFee {
                 asset_id: Chain::Thorchain.as_asset_id(),
                 value: BigUint::from(683105u64),
+            })
+        );
+    }
+
+    #[test]
+    fn test_map_swap_result_memo_affiliate_without_payout() {
+        let response = status(include_str!("testdata/tx_status_bnb_to_rune_memo_affiliate.json"));
+        let metadata = map_swap_result(&response, THORChainNetwork::Thorchain).metadata.unwrap();
+
+        assert_eq!(metadata.from_value, BigUint::from(10000000000000000u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::SmartChain.as_asset_id(),
+                value: BigUint::from(50000000000000u64),
             })
         );
     }
