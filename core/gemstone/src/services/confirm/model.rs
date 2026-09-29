@@ -260,7 +260,7 @@ pub struct GemConfirmSimulationState {
     pub simulation: Option<GemConfirmSimulation>,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransferAmountResult {
     Amount { amount: GemTransferAmount },
     Error { error: GemConfirmError },

@@ -141,10 +141,11 @@ impl TransferInput for TransactionInputType {
     }
 
     fn fee_asset(&self) -> Asset {
-        if let Self::Perpetual { perpetual_type, .. } = self {
-            return perpetual_type.base_asset().clone();
+        match self {
+            Self::Perpetual { perpetual_type, .. } => perpetual_type.base_asset().clone(),
+            Self::Withdrawal { asset } => asset.clone(),
+            _ => asset_rules::fee_asset(self.transaction_asset()),
         }
-        asset_rules::fee_asset(self.transaction_asset())
     }
 
     fn default_fee_priority(&self) -> FeePriority {
@@ -489,6 +490,13 @@ impl GemTransferData {
 
     pub fn application_short_name(&self) -> Option<String> {
         self.input_type.application_short_name()
+    }
+
+    pub(crate) fn fee_available_value(&self, balance: &GemAssetBalance) -> BigInt {
+        match &self.input_type {
+            TransactionInputType::Withdrawal { .. } => self.available_value(balance),
+            _ => BigInt::from(balance.available.clone()),
+        }
     }
 
     pub(crate) fn available_value(&self, balance: &GemAssetBalance) -> BigInt {
@@ -882,6 +890,8 @@ mod tests {
             other_collateral.id,
             "the fee asset is the collateral the transaction itself carries, not a chain-wide default, so it can never disagree with the balance the load reads"
         );
+        let withdrawal = TransactionInputType::Withdrawal { asset: HYPERCORE_PERPETUAL_USDC.clone() };
+        assert_eq!(withdrawal.fee_asset().id, HYPERCORE_PERPETUAL_USDC.id, "the withdrawal fee comes out of the balance being withdrawn");
         let nft = TransactionInputType::TransferNft { asset: token, nft_asset: NFTAsset::mock() };
         assert_eq!(nft.fee_asset().id, AssetId::from_chain(Chain::Ethereum));
         let spl = TransactionInputType::Transfer { asset: Asset::mock_spl_token() };
