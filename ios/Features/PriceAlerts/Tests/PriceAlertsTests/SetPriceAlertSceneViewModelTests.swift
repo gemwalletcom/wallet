@@ -17,7 +17,7 @@ struct SetPriceAlertSceneViewModelTests {
 
         viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
         let prices = viewModel.suggestions(viewModel.viewState)
-        viewModel.type = .percentage
+        viewModel.type = .pricePercentChange
         let percentages = viewModel.suggestions(viewModel.viewState)
 
         #expect(percentages.isNotEmpty)
@@ -79,7 +79,7 @@ struct SetPriceAlertSceneViewModelTests {
         viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
 
         viewModel.amount = "2500"
-        viewModel.type = .percentage
+        viewModel.type = .pricePercentChange
         #expect(viewModel.amount.isEmpty)
         #expect(viewModel.confirmButtonState(viewModel.viewState) == .disabled, "the percentage alert has no amount yet")
 

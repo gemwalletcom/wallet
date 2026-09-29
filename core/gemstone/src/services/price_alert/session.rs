@@ -49,8 +49,7 @@ pub struct GemPriceAlertViewState {
     pub direction: Option<PriceAlertDirection>,
     pub can_confirm: bool,
     pub is_saving: bool,
-    pub percentage_suggestions: Vec<GemPriceSuggestion>,
-    pub price_suggestions: Vec<GemPriceSuggestion>,
+    pub suggestions: Vec<GemPriceSuggestion>,
     pub saved_message: Option<GemLocalizedText>,
     pub current_price: Option<GemFormattedNumber>,
     pub current_price_text: Option<GemLocalizedText>,
@@ -127,18 +126,7 @@ impl GemPriceAlertSession {
             direction: self.direction(),
             can_confirm: !self.is_saving && self.direction().is_some(),
             is_saving: self.is_saving,
-            percentage_suggestions: price
-                .map(price_suggestion::percentage_suggestions)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|value| self.suggestion(GemFormattedNumber::percentage(value as f64, GemPercentageStyle::UnsignedCompact)))
-                .collect(),
-            price_suggestions: price
-                .map(|price| price_suggestion::price_rounded_values(price, SUGGESTION_OFFSET_PERCENT))
-                .unwrap_or_default()
-                .into_iter()
-                .map(|value| self.suggestion(self.price_number(value)))
-                .collect(),
+            suggestions: price.map(|price| self.suggestions(price)).unwrap_or_default(),
             saved_message: self.saved_message(),
             current_price: price.map(|price| self.price_number(price)),
             current_price_text: price.map(|price| GemLocalizedText::CurrentPrice { price: self.price_number(price) }),
@@ -163,6 +151,19 @@ impl GemPriceAlertSession {
                 placement: GemAmountSymbolPlacement::Leading,
                 direction_button: None,
             },
+        }
+    }
+
+    fn suggestions(&self, price: f64) -> Vec<GemPriceSuggestion> {
+        match self.notification_type {
+            PriceAlertNotificationType::PricePercentChange => price_suggestion::percentage_suggestions(price)
+                .into_iter()
+                .map(|value| self.suggestion(GemFormattedNumber::percentage(value as f64, GemPercentageStyle::UnsignedCompact)))
+                .collect(),
+            PriceAlertNotificationType::Price | PriceAlertNotificationType::Auto => price_suggestion::price_rounded_values(price, SUGGESTION_OFFSET_PERCENT)
+                .into_iter()
+                .map(|value| self.suggestion(self.price_number(value)))
+                .collect(),
         }
     }
 
@@ -321,19 +322,29 @@ mod tests {
             })
         );
         assert_eq!(GemPriceAlertSession::mock().view_state().saved_message, None, "nothing typed names no message");
+    }
+
+    #[test]
+    fn test_suggestions_follow_the_alert_type() {
+        let price = GemPriceAlertSession::mock();
+        let percent = price.on_type(PriceAlertNotificationType::PricePercentChange);
+
+        assert!(!percent.view_state().suggestions.is_empty());
         assert!(
-            price.view_state().percentage_suggestions.iter().all(|suggestion| suggestion.label.unit == GemNumberUnit::Percent),
+            percent.view_state().suggestions.iter().all(|suggestion| suggestion.label.unit == GemNumberUnit::Percent),
             "a percentage suggestion carries its unit instead of a pasted %"
         );
+        assert!(!price.view_state().suggestions.is_empty());
+        assert!(price.view_state().suggestions.iter().all(|suggestion| suggestion.label.unit != GemNumberUnit::Percent));
     }
 
     #[test]
     fn test_suggestions_need_a_price_to_offset_from() {
         let without_price = GemPriceAlertSession::new(AssetId::from_chain(primitives::Chain::Ethereum), Currency::USD, GemNumberFormat { decimal_separator: ".".to_string() });
 
-        assert!(without_price.view_state().price_suggestions.is_empty());
-        assert!(without_price.on_price(Some(0.0), None).view_state().percentage_suggestions.is_empty());
-        assert!(!GemPriceAlertSession::mock().view_state().price_suggestions.is_empty());
+        assert!(without_price.view_state().suggestions.is_empty());
+        assert!(without_price.on_type(PriceAlertNotificationType::PricePercentChange).on_price(Some(0.0), None).view_state().suggestions.is_empty());
+        assert!(!GemPriceAlertSession::mock().view_state().suggestions.is_empty());
     }
 
     #[test]
@@ -343,7 +354,7 @@ mod tests {
             ..GemPriceAlertSession::mock()
         }
         .on_price(Some(2.5), None);
-        let suggestion = &session.view_state().price_suggestions[0];
+        let suggestion = &session.view_state().suggestions[0];
 
         assert_eq!(suggestion.input_text, session.format.value_text(suggestion.label.value));
         assert!(suggestion.input_text.contains(',') || !suggestion.input_text.contains('.'), "{}", suggestion.input_text);
