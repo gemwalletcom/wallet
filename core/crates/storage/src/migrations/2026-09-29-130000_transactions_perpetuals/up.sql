@@ -1,5 +1,3 @@
-CREATE TYPE perpetual_provider AS ENUM ('hypercore');
-
 CREATE TYPE perpetual_direction AS ENUM ('long', 'short');
 
 CREATE TABLE transactions_perpetuals (

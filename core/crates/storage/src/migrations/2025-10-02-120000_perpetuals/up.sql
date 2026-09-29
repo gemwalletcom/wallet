@@ -1,7 +1,9 @@
+CREATE TYPE perpetual_provider AS ENUM ('hypercore');
+
 CREATE TABLE perpetuals (
     id VARCHAR(128) PRIMARY KEY,
     name VARCHAR(128) NOT NULL,
-    provider VARCHAR(32) NOT NULL,
+    provider perpetual_provider NOT NULL,
     asset_id VARCHAR(256) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
     identifier VARCHAR(128) NOT NULL,
     price DOUBLE PRECISION NOT NULL,

@@ -129,7 +129,7 @@ diesel_enum!(ScanTypeRow, PrimitiveScanType, ScanTypeSql);
 
 diesel_enum!(PerpetualDirectionRow, PrimitivePerpetualDirection, PerpetualDirectionSql);
 
-diesel_enum!(TransactionPerpetualProviderRow, PrimitivePerpetualProvider, PerpetualProviderSql);
+diesel_enum!(PerpetualProviderRow, PrimitivePerpetualProvider, PerpetualProviderSql);
 
 diesel_enum!(SwapProviderRow, PrimitiveSwapProvider, SwapProviderSql);
 
@@ -223,7 +223,6 @@ macro_rules! diesel_varchar {
 
 diesel_varchar!(ChainRow, Chain);
 diesel_varchar!(PriceAlertDirectionRow, PrimitivePriceAlertDirection);
-diesel_varchar!(PerpetualProviderRow, PrimitivePerpetualProvider);
 diesel_varchar!(PriceProviderRow, PrimitivePriceProvider);
 diesel_varchar!(FiatProviderNameRow, PrimitiveFiatProviderName);
 

@@ -575,13 +575,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::PerpetualProvider;
+
     perpetuals (id) {
         #[max_length = 128]
         id -> Varchar,
         #[max_length = 128]
         name -> Varchar,
-        #[max_length = 32]
-        provider -> Varchar,
+        provider -> PerpetualProvider,
         #[max_length = 256]
         asset_id -> Varchar,
         #[max_length = 128]
