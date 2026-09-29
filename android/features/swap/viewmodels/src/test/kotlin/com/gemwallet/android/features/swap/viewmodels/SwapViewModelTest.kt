@@ -607,7 +607,7 @@ class SwapViewModelTest {
     }
 
     @Test
-    fun `an automatic quote refresh shows quote loading`() = runTest(testDispatcher) {
+    fun `an automatic quote refresh shows quote loading without the old amount`() = runTest(testDispatcher) {
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
         viewModel.setRefreshEnabled(true)
@@ -620,7 +620,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.viewState.value.isQuoteLoading)
-        assertEquals("2.5", viewModel.receiveValue.text.toString())
+        assertEquals("", viewModel.receiveValue.text.toString())
     }
 
     @Test

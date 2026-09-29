@@ -88,7 +88,6 @@ public struct SwapScene: View {
                 focusedField = false
             }
         }
-        .onChange(of: model.selectedSwapQuote, model.onChangeSwapQuote)
         .onTimer(every: GemConstants.swapQuoteRefreshInterval.timeInterval, id: model.loadTrigger) {
             await model.load()
         }
@@ -125,7 +124,7 @@ extension SwapScene {
         Section {
             SwapTokenView(
                 side: model.side(type: .receive(payAssetId: nil)),
-                text: $model.toValue,
+                text: .constant(model.toValue),
                 showLoading: model.isReceiveFieldLoading,
                 onBalanceAction: {},
                 onSelectAssetAction: model.onSelectAssetReceive,
