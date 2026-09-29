@@ -4,9 +4,6 @@ description: Configure Rust, just, sccache, Xcode, and the iOS Simulator for iOS
 runs:
   using: composite
   steps:
-    - name: Setup Rust
-      uses: ./.github/actions/setup-rust-ci
-
     - name: Select Xcode
       shell: bash
       run: sudo xcode-select -s /Applications/Xcode.app
@@ -15,3 +12,11 @@ runs:
       shell: bash
       working-directory: ios
       run: just wait-simulator
+
+    - name: Start iOS Simulator
+      shell: bash
+      working-directory: ios
+      run: just start-simulator
+
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust-ci

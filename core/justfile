@@ -32,7 +32,8 @@ install-postgres:
 
 install-diesel:
     @echo Install Diesel
-    cargo install diesel_cli --no-default-features --features postgres --version 2.3.3 --force
+    @if ! command -v diesel >/dev/null || ! diesel --version | grep -Fq "Version: 2.3.3"; then cargo install diesel_cli --no-default-features --features postgres --version 2.3.3; fi
+    @diesel --version
 
 [positional-arguments]
 test CRATE="" FILTER="":
