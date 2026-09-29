@@ -5,7 +5,7 @@ use chrono::{DateTime, TimeDelta, Utc};
 use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
 
 use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHeader, GemChartValueType};
-use super::sampling::sampled_values;
+use super::points::reduced_points;
 use super::zoom::GemChartZoom;
 use super::{GemChart, GemChartCurrent};
 use crate::config::social::social_links;
@@ -216,9 +216,9 @@ pub fn zoomed_chart(data: GemChartData, zoom: GemChartZoom) -> GemChartData {
     let window = start..=(end + fraction_of(end - start, RIGHT_PADDING));
     let visible = &data.values[visible_range(&data.values, &window)];
     let visible_bounds = chart_bounds(visible, data.currency.clone());
-    let sampled = sampled_values(&data.values, render_points(zoom));
-    let sampled_range = visible_range(&sampled, &window);
-    let values: Vec<ChartDateValue> = sampled[sampled_range.start.saturating_sub(1)..(sampled_range.end + 1).min(sampled.len())]
+    let points = reduced_points(&data.values, render_points(zoom));
+    let points_range = visible_range(&points, &window);
+    let values: Vec<ChartDateValue> = points[points_range.start.saturating_sub(1)..(points_range.end + 1).min(points.len())]
         .iter()
         .chain([visible_bounds.lower_index, visible_bounds.upper_index].into_iter().filter_map(|index| visible.get(index as usize)))
         .map(|value| (value.date, value.clone()))

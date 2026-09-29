@@ -1,6 +1,6 @@
 pub mod model;
+mod points;
 pub mod rules;
-mod sampling;
 pub mod session;
 #[cfg(test)]
 pub(crate) mod testkit;
