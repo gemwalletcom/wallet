@@ -1790,6 +1790,18 @@ fun com.wallet.core.primitives.PerpetualPositionData.toGem(): uniffi.gemstone.Pe
     position = position.toGem(),
 )
 
+fun uniffi.gemstone.PerpetualPrice.toPrimitives(): com.wallet.core.primitives.PerpetualPrice = com.wallet.core.primitives.PerpetualPrice(
+    coin = coin,
+    price = price,
+    pricePercentChange24h = pricePercentChange24h,
+)
+
+fun com.wallet.core.primitives.PerpetualPrice.toGem(): uniffi.gemstone.PerpetualPrice = uniffi.gemstone.PerpetualPrice(
+    coin = coin,
+    price = price,
+    pricePercentChange24h = pricePercentChange24h,
+)
+
 fun uniffi.gemstone.PerpetualSearchData.toPrimitives(): com.wallet.core.primitives.PerpetualSearchData = com.wallet.core.primitives.PerpetualSearchData(
     perpetual = perpetual.toPrimitives(),
     asset = asset.toPrimitives(),

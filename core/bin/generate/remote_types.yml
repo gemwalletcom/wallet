@@ -84,6 +84,7 @@ remote:
   - PerpetualOrderType
   - PerpetualPosition
   - PerpetualPositionData
+  - PerpetualPrice
   - PerpetualProvider
   - PerpetualTriggerOrder
   - PerpetualConfirmData

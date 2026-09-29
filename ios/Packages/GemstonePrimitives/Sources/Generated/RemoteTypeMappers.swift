@@ -2656,6 +2656,26 @@ public extension Primitives.PerpetualPositionData {
     }
 }
 
+public extension Gemstone.PerpetualPrice {
+    func toPrimitives() -> Primitives.PerpetualPrice {
+        Primitives.PerpetualPrice(
+            coin: coin,
+            price: price,
+            pricePercentChange24h: pricePercentChange24h,
+        )
+    }
+}
+
+public extension Primitives.PerpetualPrice {
+    func toGem() -> Gemstone.PerpetualPrice {
+        Gemstone.PerpetualPrice(
+            coin: coin,
+            price: price,
+            pricePercentChange24h: pricePercentChange24h,
+        )
+    }
+}
+
 public extension Gemstone.PerpetualSearchData {
     func toPrimitives() -> Primitives.PerpetualSearchData {
         Primitives.PerpetualSearchData(
