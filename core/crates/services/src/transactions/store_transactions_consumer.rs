@@ -34,9 +34,9 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
 
     async fn consume(&self, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let config = StoreTransactionsConsumerConfig::read(&self.config).await?;
-        let swap_transactions = payload.transactions.iter().filter(|transaction| is_referral_swap(transaction)).cloned().collect();
+        let referral_transactions = payload.transactions.iter().filter(|transaction| referral_queue(transaction).is_some()).cloned().collect();
         let count = self.store_subscribed_transactions(&config, payload).await?;
-        self.store_swap_transactions(&config, swap_transactions).await?;
+        self.store_referral_transactions(&config, referral_transactions).await?;
         Ok(count)
     }
 }
@@ -82,7 +82,7 @@ impl StoreTransactionsConsumer {
         Ok(transaction_count)
     }
 
-    async fn store_swap_transactions(&self, config: &StoreTransactionsConsumerConfig, transactions: Vec<Transaction>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn store_referral_transactions(&self, config: &StoreTransactionsConsumerConfig, transactions: Vec<Transaction>) -> Result<(), Box<dyn Error + Send + Sync>> {
         if transactions.is_empty() {
             return Ok(());
         }
@@ -94,9 +94,11 @@ impl StoreTransactionsConsumer {
         self.stream_producer.publish_fetch_assets(asset_ids.into_iter().filter(|id| !existing_ids.contains(id)).collect()).await?;
 
         let transactions = transactions.into_iter().filter(|transaction| transaction.asset_ids().iter().all(|id| existing_ids.contains(id))).collect::<Vec<_>>();
-        let transaction_ids = transactions.iter().map(|transaction| transaction.id.clone()).collect::<Vec<_>>();
+        let referrals = transactions.iter().filter_map(|transaction| Some((referral_queue(transaction)?, transaction.id.clone()))).collect::<Vec<_>>();
         self.upsert_transactions(transactions, config.batch_size).await?;
-        self.stream_producer.publish_batch(QueueName::StoreTransactionsSwaps, &transaction_ids).await?;
+        for (queue, transaction_id) in referrals {
+            self.stream_producer.publish(queue, &transaction_id).await?;
+        }
         Ok(())
     }
 
@@ -313,8 +315,26 @@ impl StoreTransactionsConsumer {
     }
 }
 
-fn is_referral_swap(transaction: &Transaction) -> bool {
-    transaction.transaction_type == TransactionType::Swap && transaction.swap_metadata().is_some_and(|metadata| metadata.referral_fee.is_some())
+fn referral_queue(transaction: &Transaction) -> Option<QueueName> {
+    match transaction.transaction_type {
+        TransactionType::Swap => transaction.swap_metadata()?.referral_fee.map(|_| QueueName::StoreTransactionsSwaps),
+        TransactionType::PerpetualOpenPosition | TransactionType::PerpetualClosePosition => transaction.perpetual_metadata()?.referral_fee.map(|_| QueueName::StoreTransactionsPerpetuals),
+        TransactionType::Transfer
+        | TransactionType::TransferNFT
+        | TransactionType::TokenApproval
+        | TransactionType::StakeDelegate
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRewards
+        | TransactionType::StakeRedelegate
+        | TransactionType::StakeWithdraw
+        | TransactionType::StakeFreeze
+        | TransactionType::StakeUnfreeze
+        | TransactionType::AssetActivation
+        | TransactionType::SmartContractCall
+        | TransactionType::PerpetualModifyPosition
+        | TransactionType::EarnDeposit
+        | TransactionType::EarnWithdraw => None,
+    }
 }
 
 fn should_publish_transaction(notification_type: &TransactionNotificationType, is_inserted: bool) -> bool {
@@ -332,7 +352,10 @@ mod tests {
         provider::transaction_mapper::map_transaction,
     };
     use num_bigint::BigUint;
-    use primitives::{AssetId, Device, JsonRpcResult, SwapProvider, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId, asset_constants::SOLANA_USDC_ASSET_ID, contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID};
+    use primitives::{
+        AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId, asset_constants::SOLANA_USDC_ASSET_ID,
+        contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID,
+    };
 
     #[test]
     fn test_relay_lookup_table_deposit_enters_cross_chain_processing() {
@@ -371,22 +394,43 @@ mod tests {
     }
 
     #[test]
-    fn test_is_referral_swap() {
+    fn test_referral_queue() {
         let referral_fee = TransactionSwapReferralFee {
             asset_id: AssetId::from_chain(Chain::Ethereum),
             value: BigUint::from(1u32),
         };
         let referral_swap = Transaction {
-            metadata: serde_json::to_value(TransactionSwapMetadata::mock().with_referral_fee(Some(referral_fee))).ok(),
+            metadata: serde_json::to_value(TransactionSwapMetadata::mock().with_referral_fee(Some(referral_fee.clone()))).ok(),
             ..Transaction::mock_swap()
         };
+        let referral_perpetual = Transaction {
+            transaction_type: TransactionType::PerpetualOpenPosition,
+            metadata: serde_json::to_value(TransactionPerpetualMetadata {
+                referral_fee: Some(referral_fee),
+                ..TransactionPerpetualMetadata::mock()
+            })
+            .ok(),
+            ..Transaction::mock()
+        };
 
-        assert!(is_referral_swap(&referral_swap));
-        assert!(!is_referral_swap(&Transaction::mock_swap()));
-        assert!(!is_referral_swap(&Transaction {
-            transaction_type: TransactionType::Transfer,
-            ..referral_swap
-        }));
+        assert_eq!(referral_queue(&referral_swap), Some(QueueName::StoreTransactionsSwaps));
+        assert_eq!(referral_queue(&referral_perpetual), Some(QueueName::StoreTransactionsPerpetuals));
+        assert_eq!(referral_queue(&Transaction::mock_swap()), None);
+        assert_eq!(
+            referral_queue(&Transaction {
+                transaction_type: TransactionType::PerpetualOpenPosition,
+                metadata: serde_json::to_value(TransactionPerpetualMetadata::mock()).ok(),
+                ..Transaction::mock()
+            }),
+            None
+        );
+        assert_eq!(
+            referral_queue(&Transaction {
+                transaction_type: TransactionType::Transfer,
+                ..referral_swap
+            }),
+            None
+        );
     }
 
     #[test]

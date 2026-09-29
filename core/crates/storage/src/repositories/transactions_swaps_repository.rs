@@ -3,6 +3,7 @@ use diesel::prelude::*;
 use primitives::{AssetId, SwapProvider, TransactionId, swap::SwapStatus};
 
 use crate::models::NewTransactionSwapRow;
+use crate::repositories::transactions_repository::transaction_row_id;
 use crate::{DatabaseClient, DatabaseError};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -43,9 +44,4 @@ impl TransactionsSwapsRepository for DatabaseClient {
         };
         Ok(diesel::insert_into(transactions_swaps).values(&row).on_conflict(transaction_id).do_update().set(&row).execute(&mut self.connection)?)
     }
-}
-
-fn transaction_row_id(client: &mut DatabaseClient, transaction_id: &TransactionId) -> Result<i64, DatabaseError> {
-    use crate::schema::transactions::dsl::*;
-    Ok(transactions.filter(chain.eq(transaction_id.chain.as_ref())).filter(hash.eq(&transaction_id.hash)).select(id).first(&mut client.connection)?)
 }

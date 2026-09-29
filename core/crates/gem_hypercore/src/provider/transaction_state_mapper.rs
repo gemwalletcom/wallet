@@ -1,7 +1,10 @@
 use std::time::Duration;
 
 use number_formatter::BigNumberFormatter;
-use primitives::{PerpetualDirection, PerpetualProvider, TransactionChange, TransactionMetadata, TransactionPerpetualMetadata, TransactionState, TransactionType, TransactionUpdate, known_assets::HYPERCORE_HYPE};
+use primitives::{
+    PerpetualDirection, PerpetualProvider, TransactionChange, TransactionMetadata, TransactionPerpetualMetadata, TransactionState, TransactionSwapReferralFee, TransactionType, TransactionUpdate,
+    asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID, known_assets::HYPERCORE_HYPE,
+};
 
 use crate::models::{
     order::{FillDirection, UserFill},
@@ -9,6 +12,7 @@ use crate::models::{
     user::{DelegatorHistoryDelta, DelegatorHistoryUpdate, LedgerDelta, LedgerUpdate},
 };
 use crate::perpetual_formatter::usdc_value;
+use crate::provider::transactions_mapper::builder_fee_amount;
 
 pub const ACTION_HISTORY_QUERY_LOOKBACK_MS: u64 = 5_000;
 const ACTION_HISTORY_MATCH_WINDOW_MS: u64 = 5 * 60 * 1_000;
@@ -28,6 +32,11 @@ pub fn prepare_perpetual_fill(matching_fills: &[&UserFill], last_fill: &UserFill
     let (transaction_type, direction) = perpetual_fill_type_and_direction(&last_fill.dir)?;
     let pnl: f64 = matching_fills.iter().map(|fill| fill.closed_pnl).sum();
     let is_liquidation = matching_fills.iter().any(|fill| fill.liquidation.is_some());
+    let notional = matching_fills.iter().try_fold(0.0, |sum, fill| Some(sum + fill.px * fill.sz.parse::<f64>().ok()?))?;
+    let referral_fee = builder_fee_amount(matching_fills.iter().copied(), notional).map(|fee| TransactionSwapReferralFee {
+        asset_id: HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
+        value: usdc_value(fee),
+    });
 
     Some((
         transaction_type,
@@ -37,6 +46,7 @@ pub fn prepare_perpetual_fill(matching_fills: &[&UserFill], last_fill: &UserFill
             direction,
             is_liquidation: Some(is_liquidation),
             provider: Some(PerpetualProvider::Hypercore),
+            referral_fee,
         },
     ))
 }
@@ -204,7 +214,7 @@ fn perpetual_fill_changes(matching_fills: &[&UserFill], last_fill: &UserFill) ->
 mod tests {
     use super::*;
     use crate::models::order::{FillDirection, UserFill};
-    use num_bigint::BigInt;
+    use num_bigint::{BigInt, BigUint};
 
     #[test]
     fn test_map_transaction_state_order() {
@@ -526,6 +536,13 @@ mod tests {
         assert_eq!(transaction_type, TransactionType::PerpetualOpenPosition);
         assert_eq!(metadata.direction, PerpetualDirection::Long);
         assert_eq!(metadata.is_liquidation, Some(false));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
+                value: BigUint::from(225_266u64),
+            })
+        );
     }
 
     #[test]

@@ -21,6 +21,8 @@ pub struct TransactionPerpetualMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_liquidation: Option<bool>,
     pub provider: Option<PerpetualProvider>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referral_fee: Option<TransactionSwapReferralFee>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]

@@ -300,6 +300,7 @@ impl TransactionsRepository for DatabaseClient {
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, DatabaseError> {
         use crate::schema::transactions::dsl::*;
         use crate::schema::transactions_addresses::dsl as addr;
+        use crate::schema::transactions_perpetuals::dsl as perpetuals;
         use crate::schema::transactions_swaps::dsl as swaps;
 
         if candidate_ids.is_empty() {
@@ -312,6 +313,8 @@ impl TransactionsRepository for DatabaseClient {
             .filter(addr::transaction_id.is_null())
             .left_outer_join(swaps::transactions_swaps.on(id.eq(swaps::transaction_id)))
             .filter(swaps::transaction_id.is_null())
+            .left_outer_join(perpetuals::transactions_perpetuals.on(id.eq(perpetuals::transaction_id)))
+            .filter(perpetuals::transaction_id.is_null())
             .select(id)
             .load(&mut self.connection)?;
 
@@ -414,4 +417,9 @@ mod database_integration_tests {
         assert_eq!(by_hash[0].from, "0xfrom");
         assert_eq!(by_hash[0].to, "0xto");
     }
+}
+
+pub(crate) fn transaction_row_id(client: &mut DatabaseClient, transaction_id: &TransactionId) -> Result<i64, DatabaseError> {
+    use crate::schema::transactions::dsl::*;
+    Ok(transactions.filter(chain.eq(transaction_id.chain.as_ref())).filter(hash.eq(&transaction_id.hash)).select(id).first(&mut client.connection)?)
 }

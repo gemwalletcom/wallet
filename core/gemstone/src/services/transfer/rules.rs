@@ -259,6 +259,7 @@ impl TransferInput for TransactionInputType {
                     direction: data.direction.clone(),
                     is_liquidation: None,
                     provider: None,
+                    referral_fee: None,
                 })?),
                 PerpetualType::Reduce { data } => Some(serde_json::to_value(TransactionPerpetualMetadata {
                     pnl: 0.0,
@@ -266,6 +267,7 @@ impl TransferInput for TransactionInputType {
                     direction: data.position_direction.clone(),
                     is_liquidation: None,
                     provider: None,
+                    referral_fee: None,
                 })?),
                 PerpetualType::Modify { .. } => None,
             },

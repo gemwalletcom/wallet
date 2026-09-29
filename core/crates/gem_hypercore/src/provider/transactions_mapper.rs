@@ -95,15 +95,20 @@ fn map_spot_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &UserFill
 }
 
 fn map_referral_fee(fills: &[UserFill], quote_token: &SpotToken, quote_amount: f64) -> Option<TransactionSwapReferralFee> {
-    let builder_fee: f64 = fills.iter().filter_map(|fill| fill.builder_fee).sum();
-    let builder_rate = f64::from(HypercoreConfig::default().max_builder_fee_bps) / BUILDER_FEE_DENOMINATOR;
-    if builder_fee <= 0.0 || (builder_fee / quote_amount - builder_rate).abs() > builder_rate * BUILDER_FEE_RATE_TOLERANCE {
-        return None;
-    }
+    let builder_fee = builder_fee_amount(fills, quote_amount)?;
     Some(TransactionSwapReferralFee {
         asset_id: quote_token.asset_id(Chain::HyperCore),
         value: amount_to_value(builder_fee, quote_token.wei_decimals)?,
     })
+}
+
+pub(crate) fn builder_fee_amount<'a>(fills: impl IntoIterator<Item = &'a UserFill>, quote_amount: f64) -> Option<f64> {
+    let builder_fee: f64 = fills.into_iter().filter_map(|fill| fill.builder_fee).sum();
+    let builder_rate = f64::from(HypercoreConfig::default().max_builder_fee_bps) / BUILDER_FEE_DENOMINATOR;
+    if builder_fee <= 0.0 || (builder_fee / quote_amount - builder_rate).abs() > builder_rate * BUILDER_FEE_RATE_TOLERANCE {
+        return None;
+    }
+    Some(builder_fee)
 }
 
 fn map_spot_fee(fills: &[UserFill], base_token: &SpotToken, quote_token: &SpotToken) -> Option<(BigUint, primitives::AssetId)> {
