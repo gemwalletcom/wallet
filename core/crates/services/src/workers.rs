@@ -19,7 +19,7 @@ use swapper::NativeProvider;
 use swapper::chainflip::ChainflipPartnerProvider;
 use swapper::mayan::MayanPartnerProvider;
 use swapper::near_intents::NearIntentsPartnerProvider;
-use swapper::partner::{SolanaPartnerProvider, SwapPartnerProvider};
+use swapper::partner::{AptosPartnerProvider, SolanaPartnerProvider, SuiPartnerProvider, SwapPartnerProvider};
 use swapper::relay::RelayPartnerProvider;
 use swapper::stonfi::StonfiPartnerProvider;
 use swapper::swapper::GemSwapper;
@@ -341,6 +341,8 @@ impl Services {
         Ok(vec![
             Arc::new(RelayPartnerProvider::new(client(&settings.swap.relay.url))),
             Arc::new(SolanaPartnerProvider::new(client(&helius.url).with_default_headers(HashMap::from([("X-Api-Key".to_string(), helius.key.secret.clone())])))),
+            Arc::new(SuiPartnerProvider::new(client(&settings.indexer.sui.url))),
+            Arc::new(AptosPartnerProvider::new(client(&settings.indexer.aptos.graphql.url), client(&settings.indexer.aptos.archive.url))),
             Arc::new(NearIntentsPartnerProvider::new(near_intents_client)),
             Arc::new(ChainflipPartnerProvider::new(client(&chainflip.broker.url), client(&chainflip.sdk.url), chainflip.broker.key.secret.clone())),
             Arc::new(ThorchainPartnerProvider::new(client(&settings.swap.thorchain.midgard.url), THORChainNetwork::Thorchain)),

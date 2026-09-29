@@ -8359,6 +8359,7 @@ dependencies = [
 name = "swapper"
 version = "2.114.53"
 dependencies = [
+ "alchemy",
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",

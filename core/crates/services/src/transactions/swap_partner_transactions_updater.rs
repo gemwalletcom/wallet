@@ -31,7 +31,7 @@ impl SwapPartnerTransactionsUpdater {
         }
     }
 
-    pub fn name(&self) -> &'static str {
+    pub fn name(&self) -> &str {
         self.provider.name()
     }
 

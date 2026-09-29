@@ -412,6 +412,15 @@ indexer:
     url: "https://rpc.ankr.com/multichain"
     key:
       secret: ""
+  aptos:
+    graphql:
+      url: "https://api.mainnet.aptoslabs.com/v1/graphql"
+      key:
+        secret: ""
+    archive:
+      url: "https://archive.mainnet.aptoslabs.com"
+      key:
+        secret: ""
   blockscout:
     url: "https://api.blockscout.com"
     key:

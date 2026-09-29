@@ -1,11 +1,17 @@
+mod aptos;
+mod evm;
 mod solana;
+mod sui;
 
 use async_trait::async_trait;
 use primitives::swap::SwapPartnerTransaction;
 
 use crate::SwapperError;
 
+pub use aptos::AptosPartnerProvider;
+pub use evm::EvmPartnerProvider;
 pub use solana::SolanaPartnerProvider;
+pub use sui::SuiPartnerProvider;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SwapPartnerCursor {
@@ -29,6 +35,6 @@ pub struct SwapPartnerTransactionsPage {
 
 #[async_trait]
 pub trait SwapPartnerProvider: Send + Sync {
-    fn name(&self) -> &'static str;
+    fn name(&self) -> &str;
     async fn get_transactions(&self, cursor: Option<String>) -> Result<SwapPartnerTransactionsPage, SwapperError>;
 }

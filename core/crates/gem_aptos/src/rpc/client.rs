@@ -80,6 +80,10 @@ impl<C: Client> AptosClient<C> {
         Ok(self.client.get(AptosTarget::GetTransaction { hash: hash.to_string() }).await?)
     }
 
+    pub async fn get_transaction_by_version(&self, version: u64) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get(AptosTarget::GetTransactionByVersion { version }).await?)
+    }
+
     pub async fn get_gas_price(&self) -> Result<GasFee, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get(AptosTarget::GetGasPrice).await?)
     }

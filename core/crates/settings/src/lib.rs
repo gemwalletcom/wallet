@@ -44,6 +44,7 @@ pub struct Indexer {
     pub alchemy: ProviderSettings,
     pub algorand: ProviderSettings,
     pub ankr: ProviderSettings,
+    pub aptos: AptosIndexer,
     pub blockscout: ProviderSettings,
     pub fastnear: FastNearIndexer,
     pub helius: ProviderSettings,
@@ -51,6 +52,12 @@ pub struct Indexer {
     pub sui: ProviderSettings,
     pub ton: ProviderSettings,
     pub trongrid: ProviderSettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct AptosIndexer {
+    pub graphql: ProviderSettings,
+    pub archive: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]
