@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
@@ -14,6 +15,7 @@ use settings::{Settings, service_user_agent};
 use storage::{Database, PricesProvidersRepository};
 use streamer::StreamProducer;
 use swapper::NativeProvider;
+use swapper::partner::{SolanaPartnerProvider, SwapPartnerProvider};
 use swapper::relay::RelayPartnerProvider;
 use swapper::swapper::GemSwapper;
 
@@ -444,15 +446,17 @@ impl Services {
         let swapper = Arc::new(GemSwapper::new(Arc::new(NativeProvider::new_with_endpoints(ProviderFactory::get_chain_endpoints(&self.settings())))));
         let in_transit_updater = InTransitUpdater::new(database.clone(), in_transit_config, swapper.clone(), stream_producer.clone(), SwapVaultAddressClient::new(cacher.clone()));
         let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer.clone(), database.clone(), pending_config);
-        let relay = &self.settings().swap.relay;
-        let relay_client = ReqwestClient::new_with_user_agent(relay.url.clone(), gem_client::reqwest_client(), service_user_agent("daemon", Some("swap_partner_transactions")));
-        let swap_partner_updaters = vec![SwapPartnerTransactionsUpdater::new(
-            Arc::new(RelayPartnerProvider::new(relay_client)),
-            database,
-            cacher.clone(),
-            stream_producer,
-            config.get_duration(ConfigKey::TransactionSwapPartnerPageDelay).await?,
-        )];
+        let settings = self.settings();
+        let user_agent = service_user_agent("daemon", Some("swap_partner_transactions"));
+        let relay_client = ReqwestClient::new_with_user_agent(settings.swap.relay.url.clone(), gem_client::reqwest_client(), user_agent.clone());
+        let helius_client =
+            ReqwestClient::new_with_user_agent(settings.indexer.helius.url.clone(), gem_client::reqwest_client(), user_agent).with_default_headers(HashMap::from([("X-Api-Key".to_string(), settings.indexer.helius.key.secret.clone())]));
+        let page_delay = config.get_duration(ConfigKey::TransactionSwapPartnerPageDelay).await?;
+        let partner_providers: Vec<Arc<dyn SwapPartnerProvider>> = vec![Arc::new(RelayPartnerProvider::new(relay_client)), Arc::new(SolanaPartnerProvider::new(helius_client))];
+        let swap_partner_updaters = partner_providers
+            .into_iter()
+            .map(|provider| SwapPartnerTransactionsUpdater::new(provider, database.clone(), cacher.clone(), stream_producer.clone(), page_delay))
+            .collect();
         Ok(TransactionJobs {
             in_transit_updater: Arc::new(in_transit_updater),
             pending_updater: Arc::new(pending_updater),

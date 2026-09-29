@@ -3,7 +3,6 @@ use std::fmt::Debug;
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
 use gem_client::Client;
-use primitives::SwapProvider;
 
 use super::{
     client::RelayClient,
@@ -54,8 +53,8 @@ impl<C> SwapPartnerProvider for RelayPartnerProvider<C>
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
-    fn provider(&self) -> SwapProvider {
-        SwapProvider::Relay
+    fn name(&self) -> &'static str {
+        "relay"
     }
 
     async fn get_transactions(&self, cursor: Option<String>) -> Result<SwapPartnerTransactionsPage, SwapperError> {

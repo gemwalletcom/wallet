@@ -62,7 +62,7 @@ impl ReqwestClient {
     }
 
     pub fn new_test_client(url: String) -> Self {
-        Self::new_with_retry(url, 30, 3)
+        Self::new_with_retry(url, 30, crate::DEFAULT_MAX_RETRIES)
     }
 
     pub async fn send(&self, request: RequestBuilder) -> Result<Response, ClientError> {

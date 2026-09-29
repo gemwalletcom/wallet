@@ -46,6 +46,7 @@ pub struct Indexer {
     pub ankr: ProviderSettings,
     pub blockscout: ProviderSettings,
     pub fastnear: FastNearIndexer,
+    pub helius: ProviderSettings,
     pub subscan: ProviderSettings,
     pub sui: ProviderSettings,
     pub ton: ProviderSettings,

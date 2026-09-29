@@ -86,7 +86,7 @@ impl JobLabel for primitives::SwapProvider {
 
 impl JobLabel for SwapPartnerTransactionsUpdater {
     fn job_label(&self) -> String {
-        self.provider().job_label()
+        self.name().to_string()
     }
 }
 

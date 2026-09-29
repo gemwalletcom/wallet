@@ -45,6 +45,7 @@ members = [
     "crates/alchemy",
     "crates/ankr",
     "crates/blockscout",
+    "crates/helius",
     "crates/everstake",
     "crates/gem_*",
     "crates/signer",

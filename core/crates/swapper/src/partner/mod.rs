@@ -1,7 +1,11 @@
+mod solana;
+
 use async_trait::async_trait;
-use primitives::{SwapProvider, swap::SwapPartnerTransaction};
+use primitives::swap::SwapPartnerTransaction;
 
 use crate::SwapperError;
+
+pub use solana::SolanaPartnerProvider;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SwapPartnerCursor {
@@ -25,6 +29,6 @@ pub struct SwapPartnerTransactionsPage {
 
 #[async_trait]
 pub trait SwapPartnerProvider: Send + Sync {
-    fn provider(&self) -> SwapProvider;
+    fn name(&self) -> &'static str;
     async fn get_transactions(&self, cursor: Option<String>) -> Result<SwapPartnerTransactionsPage, SwapperError>;
 }

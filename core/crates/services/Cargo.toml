@@ -15,6 +15,7 @@ defi = { path = "../defi" }
 fiat = { path = "../fiat" }
 futures = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
+chain_primitives = { path = "../chain_primitives" }
 gem_evm = { path = "../gem_evm", features = ["rpc", "reqwest"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client", "reqwest"] }
 gem_tracing = { path = "../gem_tracing" }

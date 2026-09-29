@@ -4,7 +4,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use cacher::{CacheKey, CacherClient};
-use primitives::SwapProvider;
+use chain_primitives::checksum_address;
+use gem_client::{DEFAULT_MAX_RETRIES, default_should_retry, retry};
 use primitives::swap::SwapPartnerTransaction;
 use storage::{AssetsRepository, Database, SwapPartnerTransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue};
@@ -30,18 +31,18 @@ impl SwapPartnerTransactionsUpdater {
         }
     }
 
-    pub fn provider(&self) -> SwapProvider {
-        self.provider.provider()
+    pub fn name(&self) -> &'static str {
+        self.provider.name()
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let provider = self.provider();
-        let mut cursor = self.cacher.get_cached_optional::<String>(CacheKey::SwapPartnerCursor(provider.as_ref())).await?;
+        let name = self.name();
+        let mut cursor = self.cacher.get_cached_optional::<String>(CacheKey::SwapPartnerCursor(name)).await?;
         let mut count = 0;
         loop {
-            let page = self.provider.get_transactions(cursor).await?;
+            let page = retry(|| self.provider.get_transactions(cursor.clone()), DEFAULT_MAX_RETRIES, default_should_retry).await?;
             count += self.store_transactions(page.transactions).await?;
-            self.cacher.set_cached(CacheKey::SwapPartnerCursor(provider.as_ref()), &page.cursor.value()).await?;
+            self.cacher.set_cached(CacheKey::SwapPartnerCursor(name), &page.cursor.value()).await?;
             match page.cursor {
                 SwapPartnerCursor::Next(next) => {
                     tokio::time::sleep(self.page_delay).await;
@@ -70,7 +71,16 @@ impl SwapPartnerTransactionsUpdater {
         let transactions = transactions
             .into_iter()
             .filter(|transaction| transaction.asset_ids().iter().all(|asset_id| existing_ids.contains(asset_id)))
+            .map(normalize_addresses)
             .collect::<Vec<_>>();
         Ok(self.database.run(move |client| client.add_swap_partner_transactions(transactions)).await?)
+    }
+}
+
+fn normalize_addresses(transaction: SwapPartnerTransaction) -> SwapPartnerTransaction {
+    SwapPartnerTransaction {
+        from_address: checksum_address(&transaction.from_address, transaction.from_asset_id.chain),
+        to_address: checksum_address(&transaction.to_address, transaction.to_asset_id.chain),
+        ..transaction
     }
 }

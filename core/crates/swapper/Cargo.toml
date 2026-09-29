@@ -23,6 +23,7 @@ gem_tron = { path = "../gem_tron", default-features = false, features = ["rpc"] 
 gem_hash = { path = "../gem_hash" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_client = { path = "../gem_client" }
+helius = { path = "../helius" }
 gem_hypercore = { path = "../gem_hypercore" }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 number_formatter = { path = "../number_formatter" }

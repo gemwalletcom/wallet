@@ -406,6 +406,10 @@ indexer:
       url: "https://tx.main.fastnear.com"
       key:
         secret: ""
+  helius:
+    url: "https://api.helius.xyz"
+    key:
+      secret: ""
   subscan:
     url: "https://assethub-polkadot.api.subscan.io"
     key:
