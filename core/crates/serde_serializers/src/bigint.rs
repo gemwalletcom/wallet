@@ -14,7 +14,7 @@ fn parse_bigint_hex(value: &str) -> Result<BigInt, String> {
 fn parse_bigint_str(value: &str) -> Result<BigInt, String> {
     match value.strip_prefix("0x") {
         Some(_) => parse_bigint_hex(value),
-        None => value.parse::<BigInt>().map_err(|err| err.to_string()),
+        None => value.parse::<BigInt>().map_err(|error| error.to_string()),
     }
 }
 

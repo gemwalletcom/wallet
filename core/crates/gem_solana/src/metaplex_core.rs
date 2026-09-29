@@ -39,8 +39,8 @@ impl AssetV1 {
 }
 
 pub fn decode_asset(base64_data: &str) -> Result<AssetV1, Box<dyn std::error::Error + Send + Sync>> {
-    let data = decode_base64(base64_data).map_err(|e| format!("decode core asset base64: {e}"))?;
-    let asset = AssetV1::deserialize(&mut data.as_slice()).map_err(|e| format!("decode core asset: {e}"))?;
+    let data = decode_base64(base64_data).map_err(|error| format!("decode core asset base64: {error}"))?;
+    let asset = AssetV1::deserialize(&mut data.as_slice()).map_err(|error| format!("decode core asset: {error}"))?;
     if asset.key != Key::AssetV1 {
         return Err(format!("unexpected Metaplex Core asset key: {:?}", asset.key).into());
     }

@@ -29,7 +29,7 @@ pub struct BigNumberFormatter {}
 
 impl BigNumberFormatter {
     pub fn big_decimal_value(value: &str, decimals: u32) -> Result<BigDecimal, NumberFormatterError> {
-        let mut decimal = BigDecimal::from_str(value).map_err(|e| NumberFormatterError::InvalidNumber(e.to_string()))?;
+        let mut decimal = BigDecimal::from_str(value).map_err(|error| NumberFormatterError::InvalidNumber(error.to_string()))?;
         let exp = BigInt::from(10).pow(decimals);
         decimal = decimal / BigDecimal::from(exp);
         Ok(decimal)

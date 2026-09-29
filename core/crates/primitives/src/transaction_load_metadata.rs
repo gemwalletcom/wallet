@@ -231,7 +231,7 @@ impl TransactionLoadMetadata {
     }
 
     pub fn get_chain_id_u64(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-        self.get_chain_id()?.parse::<u64>().map_err(|e| e.to_string().into())
+        self.get_chain_id()?.parse::<u64>().map_err(|error| error.to_string().into())
     }
 
     pub fn get_contract_call(&self) -> Result<&ContractCallData, Box<dyn std::error::Error + Send + Sync>> {

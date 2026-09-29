@@ -74,8 +74,8 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
 
     if let Some(summary) = events
         .iter()
-        .find(|e| e.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) && e.event_type.contains(PANORA_SWAP_SUMMARY_EVENT))
-        .and_then(|e| e.data.clone())
+        .find(|event| event.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) && event.event_type.contains(PANORA_SWAP_SUMMARY_EVENT))
+        .and_then(|event| event.data.clone())
         .and_then(|data| serde_json::from_value::<PanoraSwapSummaryEventData>(data).ok())
     {
         let from_asset = map_token_address_to_asset_id(chain, &summary.input_token_address);
@@ -103,8 +103,8 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         });
     }
 
-    let withdraw_event = events.iter().find(|e| e.event_type == FUNGIBLE_ASSET_WITHDRAW_EVENT)?;
-    let deposit_event = events.iter().find(|e| e.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT)?;
+    let withdraw_event = events.iter().find(|event| event.event_type == FUNGIBLE_ASSET_WITHDRAW_EVENT)?;
+    let deposit_event = events.iter().find(|event| event.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT)?;
     let withdraw_amount = withdraw_event.get_amount()?;
     let deposit_amount = deposit_event.get_amount()?;
 
@@ -133,8 +133,8 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
 
     let provider = events
         .iter()
-        .find(|e| e.event_type.contains(PANORA_SWAP_EVENT))
-        .and_then(|e| if e.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) { Some(SwapProvider::Panora.id().to_owned()) } else { None });
+        .find(|event| event.event_type.contains(PANORA_SWAP_EVENT))
+        .and_then(|event| if event.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) { Some(SwapProvider::Panora.id().to_owned()) } else { None });
 
     let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), provider)?;
     let asset_id = swap.from_asset.clone();
@@ -157,7 +157,7 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
     let meta = extract_meta(&transaction)?;
     let asset_id = chain.as_asset_id();
 
-    if events.iter().any(|e| e.event_type.contains("Swap")) {
+    if events.iter().any(|event| event.event_type.contains("Swap")) {
         return map_swap_transaction(transaction, events, chain);
     }
 

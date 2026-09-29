@@ -80,7 +80,7 @@ impl GemGateway {
     }
 
     pub async fn get_earn_positions(&self, address: String, asset_id: AssetId) -> Result<Vec<GemDelegationBase>, GatewayError> {
-        self.yielder.get_positions(&address, &asset_id).await.map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
+        self.yielder.get_positions(&address, &asset_id).await.map_err(|error| GatewayError::NetworkError { msg: error.to_string() })
     }
 }
 
@@ -110,7 +110,7 @@ impl GemGateway {
     }
 
     pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GatewayError> {
-        self.yielder.get_data(&asset_id, &address, &value, &earn_type).await.map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
+        self.yielder.get_data(&asset_id, &address, &value, &earn_type).await.map_err(|error| GatewayError::NetworkError { msg: error.to_string() })
     }
 }
 

@@ -54,7 +54,7 @@ impl FromStr for TransactionId {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (chain_str, hash_str) = s.split_once(CHAIN_SEPARATOR).ok_or_else(|| format!("Invalid TransactionId format: expected chain{CHAIN_SEPARATOR}hash, got {s}"))?;
-        let chain = Chain::from_str(chain_str).map_err(|e| format!("Invalid chain identifier '{chain_str}': {e}"))?;
+        let chain = Chain::from_str(chain_str).map_err(|error| format!("Invalid chain identifier '{chain_str}': {error}"))?;
         Ok(TransactionId::new(chain, hash_str.to_string()))
     }
 }

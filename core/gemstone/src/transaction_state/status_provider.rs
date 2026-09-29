@@ -91,11 +91,11 @@ impl StatusProvider {
 
     async fn chain_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let provider = self.chain_factory.create(chain)?;
-        provider.get_transaction_status(request).await.map_err(|e| TransactionStatusError::from(map_network_error(e)))
+        provider.get_transaction_status(request).await.map_err(|error| TransactionStatusError::from(map_network_error(error)))
     }
 
     async fn swap_provider_status(&self, chain: Chain, provider: SwapperProvider, transaction_hash: &str) -> Result<TransactionUpdate, TransactionStatusError> {
-        let result = self.swapper.get_swap_result(chain, provider, transaction_hash).await.map_err(|e| TransactionStatusError::NetworkError(e.to_string()))?;
+        let result = self.swapper.get_swap_result(chain, provider, transaction_hash).await.map_err(|error| TransactionStatusError::NetworkError(error.to_string()))?;
         Ok(in_transit_swap_update(result))
     }
 }
@@ -152,7 +152,7 @@ fn get_transaction_update(chain: Chain, destination_chain: Option<Chain>, create
         }),
         err @ Err(TransactionStatusError::Offline | TransactionStatusError::NetworkError(_)) => err,
         Err(_) if pending_expired => Ok(TransactionUpdate::new_state(TransactionState::Failed)),
-        Err(err) => Err(err),
+        Err(error) => Err(error),
     }
 }
 

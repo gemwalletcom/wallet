@@ -162,7 +162,7 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn estimate_trc20_transfer_gas(&self, sender_address: String, contract_address: String, recipient_address: String, value: String) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        let value_bigint = BigUint::from_str(&value).map_err(|e| format!("Failed to parse value as decimal: {}", e))?;
+        let value_bigint = BigUint::from_str(&value).map_err(|error| format!("Failed to parse value as decimal: {}", error))?;
         let value_hex = format!("{:0>64}", hex::encode(value_bigint.to_bytes_be()));
         let parameter = format!("{}{}", recipient_address, value_hex);
 

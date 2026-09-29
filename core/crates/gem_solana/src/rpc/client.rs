@@ -84,7 +84,7 @@ impl<C: Client + Clone> SolanaClient<C> {
                 let data = account.data.first().ok_or_else(|| -> Box<dyn Error + Send + Sync> { "Missing Solana account data".into() })?;
                 let bytes = decode_base64(data)?;
                 let address = Pubkey::from_str(&addresses[index])?;
-                AddressLookupTableAccount::from_account_data(address, &bytes).map_err(|err| -> Box<dyn Error + Send + Sync> { format!("Invalid Solana address lookup table: {err}").into() })
+                AddressLookupTableAccount::from_account_data(address, &bytes).map_err(|error| -> Box<dyn Error + Send + Sync> { format!("Invalid Solana address lookup table: {error}").into() })
             })
             .collect()
     }
