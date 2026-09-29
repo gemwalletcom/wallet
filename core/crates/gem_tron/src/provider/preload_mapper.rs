@@ -76,7 +76,7 @@ pub struct TokenTransferFee {
 }
 
 fn calculate_token_transfer_fee_for_bandwidth(account_usage: &TronAccountUsage, estimated_energy: u64, energy_price: u64, bandwidth_price: u64, bandwidth_bytes: u64, memo_fee: u64, buffer_percent: u64) -> TokenTransferFee {
-    let energy_with_buffer = apply_buffer(estimated_energy, buffer_percent);
+    let energy_with_buffer = with_buffer(estimated_energy, buffer_percent);
     let chargeable_energy = account_usage.missing_energy(energy_with_buffer);
 
     let energy_fee = chargeable_energy * energy_price;
@@ -93,7 +93,7 @@ fn bandwidth_fee(account_usage: &TronAccountUsage, required: u64, price: u64) ->
     if account_usage.available_bandwidth() >= required { 0 } else { required * price }
 }
 
-fn apply_buffer(value: u64, percent: u64) -> u64 {
+fn with_buffer(value: u64, percent: u64) -> u64 {
     value * (100 + percent) / 100
 }
 
@@ -192,10 +192,10 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_buffer() {
-        assert_eq!(apply_buffer(100, 20), 120);
-        assert_eq!(apply_buffer(64285, 20), 77142);
-        assert_eq!(apply_buffer(1000, 0), 1000);
+    fn test_with_buffer() {
+        assert_eq!(with_buffer(100, 20), 120);
+        assert_eq!(with_buffer(64285, 20), 77142);
+        assert_eq!(with_buffer(1000, 0), 1000);
     }
 
     #[test]

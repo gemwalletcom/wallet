@@ -47,7 +47,7 @@ impl GemSwapper {
         self.swappers.iter().find(|x| x.provider().id == *provider).map(|v| &**v).ok_or(SwapperError::NoAvailableProvider)
     }
 
-    fn apply_gas_limit_multiplier(chain: &Chain, gas_limit: String) -> String {
+    fn gas_limit_with_multiplier(chain: &Chain, gas_limit: String) -> String {
         if let Some(evm_chain) = EVMChain::from_chain(*chain) {
             let multiplier = if evm_chain.is_zkstack() { 2.0 } else { 1.0 };
             if let Ok(gas_limit_value) = gas_limit.parse::<f64>() {
@@ -234,7 +234,7 @@ impl GemSwapper {
         let provider = self.get_swapper_by_provider(&quote.data.provider.id)?;
         let mut quote_data = provider.get_quote_data(quote, data).await?;
         if let Some(gas_limit) = quote_data.gas_limit.take() {
-            quote_data.gas_limit = Some(Self::apply_gas_limit_multiplier(&quote.request.from_asset.chain(), gas_limit));
+            quote_data.gas_limit = Some(Self::gas_limit_with_multiplier(&quote.request.from_asset.chain(), gas_limit));
         }
         Ok(quote_data)
     }
