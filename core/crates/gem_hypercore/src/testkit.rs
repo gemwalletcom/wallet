@@ -178,7 +178,7 @@ impl HyperCoreClient<MockClient> {
         }))
     }
 
-    fn mock_with_client(client: MockClient) -> Self {
+    pub fn mock_with_client(client: MockClient) -> Self {
         Self::new_with_preferences(client, Arc::new(InMemoryPreferences::new()), Arc::new(InMemoryPreferences::new()))
     }
 }

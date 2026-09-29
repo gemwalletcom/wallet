@@ -249,6 +249,7 @@ mod tests {
             coin: "HYPE".to_string(),
             hash: "0xhash".to_string(),
             oid: 1,
+            tid: 1,
             sz: "1".to_string(),
             closed_pnl: 0.0,
             fee: 0.1,

@@ -69,6 +69,7 @@ pub struct UserFill {
     pub coin: String,
     pub hash: String,
     pub oid: u64,
+    pub tid: u64,
     pub sz: String,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub closed_pnl: f64,
