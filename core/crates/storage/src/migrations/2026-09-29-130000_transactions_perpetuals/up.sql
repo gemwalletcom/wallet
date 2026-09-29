@@ -4,6 +4,7 @@ CREATE TABLE transactions_perpetuals (
     transaction_id BIGINT PRIMARY KEY REFERENCES transactions (id) ON DELETE CASCADE,
     provider perpetual_provider NOT NULL,
     asset_id VARCHAR NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
+    kind transaction_type NOT NULL,
     direction perpetual_direction NOT NULL,
     size_usd float NOT NULL,
     referral_fee_amount_usd float NOT NULL,

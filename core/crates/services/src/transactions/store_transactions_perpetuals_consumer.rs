@@ -30,6 +30,7 @@ impl StoreTransactionsPerpetualsConsumer {
         Ok(Some(TransactionPerpetualRecord {
             provider,
             asset_id: transaction.asset_id.clone(),
+            kind: transaction.transaction_type.clone(),
             direction: metadata.direction,
             size_usd: BigNumberFormatter::value_as_f64(&transaction.value.to_string(), decimals)?,
             referral_fee_amount_usd: BigNumberFormatter::value_as_f64(&referral_fee.value.to_string(), decimals)?,

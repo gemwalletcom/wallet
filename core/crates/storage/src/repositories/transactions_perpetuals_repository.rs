@@ -1,6 +1,6 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use primitives::{AssetId, PerpetualDirection, PerpetualProvider, TransactionId};
+use primitives::{AssetId, PerpetualDirection, PerpetualProvider, TransactionId, TransactionType};
 
 use crate::models::NewTransactionPerpetualRow;
 use crate::repositories::transactions_repository::transaction_row_id;
@@ -10,6 +10,7 @@ use crate::{DatabaseClient, DatabaseError};
 pub struct TransactionPerpetualRecord {
     pub provider: PerpetualProvider,
     pub asset_id: AssetId,
+    pub kind: TransactionType,
     pub direction: PerpetualDirection,
     pub size_usd: f64,
     pub referral_fee_amount_usd: f64,
@@ -27,6 +28,7 @@ impl TransactionsPerpetualsRepository for DatabaseClient {
             transaction_id: transaction_row_id(self, id)?,
             provider: record.provider.into(),
             asset_id: record.asset_id.into(),
+            kind: record.kind.into(),
             direction: record.direction.into(),
             size_usd: record.size_usd,
             referral_fee_amount_usd: record.referral_fee_amount_usd,

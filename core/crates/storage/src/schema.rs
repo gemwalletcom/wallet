@@ -982,12 +982,14 @@ diesel::table! {
 diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::PerpetualProvider;
+    use super::sql_types::TransactionType;
     use super::sql_types::PerpetualDirection;
 
     transactions_perpetuals (transaction_id) {
         transaction_id -> Int8,
         provider -> PerpetualProvider,
         asset_id -> Varchar,
+        kind -> TransactionType,
         direction -> PerpetualDirection,
         size_usd -> Float8,
         referral_fee_amount_usd -> Float8,
