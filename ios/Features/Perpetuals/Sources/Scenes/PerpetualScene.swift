@@ -33,7 +33,7 @@ public struct PerpetualScene: View {
             }
             .fullWidthSection()
 
-            ForEach(details.sections, id: \.self) { section in
+            ForEach(details.sections, id: \.title) { section in
                 switch section {
                 case let .position(rows):
                     if let positionRow = details.positionRow {
