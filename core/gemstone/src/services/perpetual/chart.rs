@@ -151,7 +151,7 @@ mod tests {
     #[test]
     fn test_candle_chart() {
         let at = |seconds: i64| DateTime::from_timestamp(seconds, 0).unwrap();
-        let candles: Vec<ChartCandleStick> = (0..40).map(|minute| ChartCandleStick::mock(minute * 60, 100.0 + minute as f64)).collect();
+        let candles = ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 40);
         let chart = |candles: &[ChartCandleStick], scale: f64, offset: f64| candle_chart(candles, ChartPeriod::Hour, None, GemChartZoom { scale, offset }, TimeDelta::zero()).unwrap();
         let whole = chart(&candles, 1.0, 0.0);
         let zoomed = chart(&candles, 2.0, 0.0);
@@ -186,31 +186,38 @@ mod tests {
         let whole = GemChartZoom::default();
 
         assert_eq!(
-            axis(&ChartCandleStick::mock_series(at("2026-09-23T15:08:00Z").timestamp(), 60, 61), whole, TimeDelta::zero()),
+            axis(&ChartCandleStick::mock_series(at("2026-09-23T15:08:00Z"), TimeDelta::minutes(1), 61), whole, TimeDelta::zero()),
             vec![(at("2026-09-23T15:15:00Z"), Time), (at("2026-09-23T15:30:00Z"), Time), (at("2026-09-23T15:45:00Z"), Time), (at("2026-09-23T16:00:00Z"), Time)]
         );
         assert_eq!(
-            axis(&ChartCandleStick::mock_series(at("2026-09-22T16:30:00Z").timestamp(), 1800, 48), whole, TimeDelta::hours(3)),
+            axis(&ChartCandleStick::mock_series(at("2026-09-22T16:30:00Z"), TimeDelta::minutes(30), 48), whole, TimeDelta::hours(3)),
             vec![(at("2026-09-22T21:00:00Z"), Time), (at("2026-09-23T03:00:00Z"), Time), (at("2026-09-23T09:00:00Z"), Time), (at("2026-09-23T15:00:00Z"), Time)],
             "the marks are on the user's own clock"
         );
         assert_eq!(
-            axis(&ChartCandleStick::mock_series(at("2026-09-22T04:00:00Z").timestamp(), 7200, 17), whole, TimeDelta::zero()),
+            axis(&ChartCandleStick::mock_series(at("2026-09-22T04:00:00Z"), TimeDelta::hours(2), 17), whole, TimeDelta::zero()),
             vec![(at("2026-09-22T08:00:00Z"), Day), (at("2026-09-22T16:00:00Z"), Time), (at("2026-09-23T00:00:00Z"), Day), (at("2026-09-23T08:00:00Z"), Time)],
             "the first label of an earlier day and a label at midnight name the day"
         );
         assert_eq!(axis(&monthly, whole, TimeDelta::zero()), vec![(at("2026-01-07T00:00:00Z"), MonthYear), (at("2026-07-07T00:00:00Z"), MonthYear)]);
         assert!(
             [0.25, 0.26, 0.27, 0.28].into_iter().all(
-                |offset| axis(&ChartCandleStick::mock_series(at("2026-09-23T15:00:00Z").timestamp(), 60, 40), GemChartZoom { scale: 2.0, offset }, TimeDelta::zero())
+                |offset| axis(&ChartCandleStick::mock_series(at("2026-09-23T15:00:00Z"), TimeDelta::minutes(1), 40), GemChartZoom { scale: 2.0, offset }, TimeDelta::zero())
                     .iter()
                     .all(|(date, _)| date.timestamp() % 300 == 0)
             ),
             "a pan keeps the step, so the labels slide with their candles"
         );
-        for (seconds, count) in [(60, 60), (1800, 48), (4 * 3600, 42), (12 * 3600, 60), (7 * 86400, 260), (30 * 86400, 130)] {
-            let labels = axis(&ChartCandleStick::mock_series(at("2026-01-05T00:00:00Z").timestamp(), seconds, count), whole, TimeDelta::zero()).len();
-            assert!((2..=X_TICK_COUNT).contains(&labels), "{count} candles of {seconds} s have {labels} labels");
+        for (interval, count) in [
+            (TimeDelta::minutes(1), 60),
+            (TimeDelta::minutes(30), 48),
+            (TimeDelta::hours(4), 42),
+            (TimeDelta::hours(12), 60),
+            (TimeDelta::weeks(1), 260),
+            (TimeDelta::days(30), 130),
+        ] {
+            let labels = axis(&ChartCandleStick::mock_series(at("2026-01-05T00:00:00Z"), interval, count), whole, TimeDelta::zero()).len();
+            assert!((2..=X_TICK_COUNT).contains(&labels), "{count} candles of {interval} have {labels} labels");
         }
     }
 }

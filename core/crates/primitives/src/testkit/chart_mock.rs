@@ -1,4 +1,4 @@
-use chrono::DateTime;
+use chrono::{DateTime, TimeDelta, Utc};
 
 use crate::{ChartCandleStick, ChartDateValue};
 
@@ -27,8 +27,13 @@ impl ChartCandleStick {
         }
     }
 
-    pub fn mock_series(from_seconds: i64, interval_seconds: i64, count: i64) -> Vec<Self> {
-        (0..count).map(|index| Self::mock(from_seconds + index * interval_seconds, 100.0)).collect()
+    pub fn mock_series(from: DateTime<Utc>, interval: TimeDelta, count: i32) -> Vec<Self> {
+        (0..count)
+            .map(|index| Self {
+                date: from + interval * index,
+                ..Self::mock(0, 100.0 + f64::from(index))
+            })
+            .collect()
     }
 
     pub fn mock_range(low: f64, high: f64) -> Self {

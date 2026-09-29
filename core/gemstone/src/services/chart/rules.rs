@@ -383,18 +383,20 @@ mod tests {
     #[test]
     fn test_zoomed_chart() {
         let at = |milliseconds: i64| DateTime::from_timestamp_millis(milliseconds).unwrap();
-        let values: Vec<ChartDateValue> = (0..600).map(|second| ChartDateValue::mock(second * 10, 100.0 + (second % 7) as f64)).collect();
-        let data = price_chart_data(GemChart::mock(values.clone()), ChartPeriod::Day, Currency::USD).unwrap();
+        let data = price_chart_data(GemChart::mock(ChartDateValue::mock_series(600)), ChartPeriod::Day, Currency::USD).unwrap();
         let whole = zoomed_chart(data.clone(), GemChartZoom::default());
         let zoomed = zoomed_chart(data, GemChartZoom { scale: 3.0, offset: 0.25 });
         let last = zoomed.values.len() as u32 - 1;
-        let window = chart_bounds(&values[250..454], Currency::USD);
         let gapped: Vec<ChartDateValue> = (0..300).map(|second| ChartDateValue::mock(second, 100.0)).chain((0..300).map(|second| ChartDateValue::mock(100_000 + second, 200.0))).collect();
         let gap = zoomed_chart(price_chart_data(GemChart::mock(gapped), ChartPeriod::Day, Currency::USD).unwrap(), GemChartZoom { scale: 40.0, offset: 0.5 });
 
-        assert_eq!((whole.start, whole.end), (values[0].date, at(6_109_800)), "the whole period plus room after the newest point");
-        assert_eq!((zoomed.start, zoomed.end), (at(2_495_834), at(4_532_433)));
-        assert_eq!((zoomed.bounds.y_min, zoomed.bounds.y_max), (window.y_min, window.y_max), "the range fits the points inside the window");
+        assert_eq!((whole.start, whole.end), (at(0), at(610_980)), "the whole period plus room after the newest point");
+        assert_eq!((zoomed.start, zoomed.end), (at(249_584), at(453_243)));
+        assert_eq!(
+            (zoomed.values[zoomed.bounds.lower_index as usize].value, zoomed.values[zoomed.bounds.upper_index as usize].value),
+            (250.0, 453.0),
+            "the range fits the points inside the window"
+        );
         assert_eq!((zoomed.selection(0), zoomed.selection(last)), (None, None), "the points drawn past either edge cannot be selected");
         assert_eq!(zoomed.index_at(1.2), Some(last - 1));
         assert_eq!(

@@ -235,7 +235,7 @@ mod tests {
 
     #[test]
     fn test_on_zoom() {
-        let candles = GemChartCandleStick::mock_series(0, 60, 70);
+        let candles = GemChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70);
         let shown = session().on_result(loaded(session().request().unwrap(), candles.clone()));
         let zoomed = shown.on_zoom(100.0, 1.0);
         let refreshing = zoomed.on_refresh();
@@ -248,7 +248,7 @@ mod tests {
 
     #[test]
     fn test_on_pan() {
-        let shown = session().on_result(loaded(session().request().unwrap(), GemChartCandleStick::mock_series(0, 60, 70)));
+        let shown = session().on_result(loaded(session().request().unwrap(), GemChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70)));
 
         assert_eq!(shown.on_zoom(4.0, 1.0).on_pan(0.4).zoom, GemChartZoom { scale: 4.0, offset: 0.1 });
     }
