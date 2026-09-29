@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use primitives::{ChainType, Transaction};
+use alloy_sol_types::SolCall;
+use gem_evm::across::contracts::V3SpokePoolInterface;
+use primitives::{ChainType, Transaction, decode_hex};
 
 use crate::SwapperProvider;
 use crate::thorchain::memo::ThorchainMemo;
@@ -38,8 +40,18 @@ fn is_valid_swap_transaction(provider: &SwapperProvider, transaction: &Transacti
     match provider {
         SwapperProvider::Thorchain | SwapperProvider::Mayachain => transaction.memo.as_deref().is_some_and(ThorchainMemo::is_swap),
         SwapperProvider::Chainflip => is_valid_chainflip_swap(transaction),
+        SwapperProvider::Across => !is_across_fill(transaction),
         _ => true,
     }
+}
+
+fn is_across_fill(transaction: &Transaction) -> bool {
+    let fill_selectors = [V3SpokePoolInterface::fillRelayCall::SELECTOR, V3SpokePoolInterface::fillV3RelayCall::SELECTOR];
+    transaction
+        .data
+        .as_deref()
+        .and_then(|data| decode_hex(data.get(..10)?).ok())
+        .is_some_and(|selector| fill_selectors.iter().any(|fill| selector == fill))
 }
 
 fn is_valid_chainflip_swap(transaction: &Transaction) -> bool {
@@ -116,6 +128,25 @@ mod tests {
 
         let missing_data = Transaction { to: vault, ..Transaction::mock() };
         assert_eq!(swap_provider_with_vault_addresses(&missing_data, &deposit_addresses), None);
+    }
+
+    #[test]
+    fn test_across_fill_is_not_a_deposit() {
+        let spoke_pool = "0x5c7BCd6E7De5423a257D81B442095A1a6ced35C5".to_string();
+        let deposit_addresses = DepositAddressMap::from([(spoke_pool.clone(), SwapperProvider::Across)]);
+        let fill = Transaction {
+            to: spoke_pool.clone(),
+            data: Some("0xdeff4b2400000000".to_string()),
+            ..Transaction::mock()
+        };
+        let deposit = Transaction {
+            to: spoke_pool,
+            data: Some("0xad5425c600000000".to_string()),
+            ..Transaction::mock()
+        };
+
+        assert_eq!(swap_provider_with_vault_addresses(&fill, &deposit_addresses), None);
+        assert_eq!(swap_provider_with_vault_addresses(&deposit, &deposit_addresses), Some(SwapperProvider::Across));
     }
 
     #[test]
