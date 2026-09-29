@@ -14,7 +14,7 @@ use crate::services::error_text::GemErrorText;
 use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedAction};
 use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
-use primitives::{AddressName, BlockExplorerLink, PaymentVerification, PerpetualType};
+use primitives::{AddressName, AssetType, BlockExplorerLink, PaymentVerification, PerpetualType};
 use primitives::{
     Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
@@ -367,7 +367,7 @@ pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], curre
             required,
             available: requirement.map(|requirement| requirement.available.clone()),
             shortfall: requirement.map(|requirement| requirement.shortfall.clone()),
-            acquire: asset.map(|asset| GemAcquireAsset {
+            acquire: asset.filter(|asset| asset.asset_type != AssetType::PERPETUAL).map(|asset| GemAcquireAsset {
                 flow: acquire_asset_flow(asset.chain()),
                 options: acquire_options(acquire_asset_flow(asset.chain())),
                 buy_amount,
@@ -1309,6 +1309,17 @@ mod tests {
             error_info(&balance, &prices, Currency::USD, &token, &asset.id).unwrap().acquire.unwrap().buy_amount,
             None,
             "a balance sheet leaves the amount to the user"
+        );
+
+        let usdc = HYPERCORE_PERPETUAL_USDC.clone();
+        let perpetual_balance = GemConfirmErrorDisplay::BalanceRequired {
+            requirement: GemConfirmRequirement::new(&requirement, &usdc),
+            asset: usdc.clone(),
+        };
+        assert_eq!(
+            error_info(&perpetual_balance, &prices, Currency::USD, &usdc.id, &usdc.id).unwrap().acquire,
+            None,
+            "a perpetual balance is funded by a deposit, never bought"
         );
 
         let without_price = error_info(&display, &[], Currency::USD, &token, &asset.id).unwrap();
