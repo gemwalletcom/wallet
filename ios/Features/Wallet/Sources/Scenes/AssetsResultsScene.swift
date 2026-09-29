@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemWalletSearchState
 import Perpetuals
 import Primitives
 import PrimitivesComponents
@@ -17,12 +16,12 @@ public struct AssetsResultsScene: View {
     }
 
     public var body: some View {
-        let state = model.state
-        let sections = model.sections
+        let view = model.view
+        let state = view.state
         return List {
             if state.showsPinned {
                 Section(
-                    content: { assetItems(for: sections.pinnedAssets) },
+                    content: { assetItems(for: model.assets(view.pinnedAssetIds)) },
                     header: { PinnedSectionHeader() },
                 )
                 .listRowInsets(.assetListRowInsets)
@@ -30,7 +29,7 @@ public struct AssetsResultsScene: View {
 
             if state.showsAssets {
                 Section {
-                    assetItems(for: sections.assets)
+                    assetItems(for: model.assets(view.assetIds))
                 }
                 .listRowInsets(.assetListRowInsets)
             }
@@ -39,7 +38,7 @@ public struct AssetsResultsScene: View {
                 Section(
                     content: {
                         PerpetualSectionView(
-                            perpetuals: model.perpetuals,
+                            items: view.perpetuals,
                             onPin: model.onSelectPinPerpetual,
                             onSelect: { model.onSelectAsset($0) },
                         )

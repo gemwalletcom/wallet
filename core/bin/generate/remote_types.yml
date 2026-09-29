@@ -334,6 +334,9 @@ mocks:
   - GemWalletConnectMessageRequest
   - GemWalletConnectTransactionRequest
   - GemWalletRow
+  - GemWalletSearchResultsView
+  - GemWalletSearchState
+  - GemWalletSearchView
   - Latency
   - NameRecord
   - NFTAsset

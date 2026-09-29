@@ -14,9 +14,10 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
-import com.gemwallet.android.ui.components.screen.message
+import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.NFTData
-import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -31,21 +32,16 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemNftEntry
 import uniffi.gemstone.GemPerpetualMarketItem
-import uniffi.gemstone.GemPerpetualMarketSections
 import uniffi.gemstone.GemSearchListRow
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
-import uniffi.gemstone.GemWalletSearchCounts
 import uniffi.gemstone.GemWalletSearchInput
 import uniffi.gemstone.GemWalletSearchView
 import uniffi.gemstone.perpetualMarketQuery
-import uniffi.gemstone.perpetualMarketSections
-import uniffi.gemstone.searchListRows
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -74,104 +70,59 @@ class WalletSearchViewModel @Inject constructor(
         service.search(query, GemSearchScope.All)
     }
 
-    private val perpetualSections: StateFlow<GemPerpetualMarketSections> = currentQuery
+    private val perpetuals: Flow<List<PerpetualData>> = currentQuery
         .flatMapLatest { query -> perpetualMarketQuery(query).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) } }
-        .map { markets -> perpetualMarketSections(markets.map { it.toGem() }) }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GemPerpetualMarketSections(emptyList(), emptyList()))
 
-    private val nftData: Flow<List<NFTData>> = getSession()
+    private val collections: Flow<List<NFTData>> = getSession()
         .filterNotNull()
         .distinctUntilChangedBy { it.wallet.id }
         .flatMapLatest { nftQuery(it.wallet.id.id) }
-        .map { data -> data.filter { it.assets.isNotEmpty() } }
-        .flowOn(ioDispatcher)
 
-    private val nfts: StateFlow<List<GemNftEntry>> = combine(
-        nftData,
-        currentQuery,
-    ) { data, query ->
-        if (query.isEmpty()) emptyList() else searchNfts(data, query)
-    }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val lists: StateFlow<List<GemSearchListRow>> = currentQuery
+    private val searchLists: Flow<List<AssetList>> = currentQuery
         .flatMapLatest { query -> walletSearchQuery.lists(query) }
-        .map { lists -> searchListRows(lists.map { it.toGem() }) }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val assetCounts: Flow<Pair<Int, Int>> = combine(pinned, unpinned) { pinnedAssets, assets -> pinnedAssets.size to assets.size }
+    private val rows: Flow<WalletSearchRows> = combine(pinned, unpinned, perpetuals, searchLists, collections, ::WalletSearchRows)
 
-    private val searchCounts: Flow<GemWalletSearchCounts> = combine(
-        recent,
-        assetCounts,
-        perpetualSections,
-        lists,
-        nfts,
-    ) { recents, assets, perpetuals, lists, nfts ->
-        GemWalletSearchCounts(
-            recents = recents.size.toUInt(),
-            pinnedAssets = assets.first.toUInt(),
-            assets = assets.second.toUInt(),
-            pinnedPerpetuals = perpetuals.pinned.size.toUInt(),
-            perpetuals = perpetuals.markets.size.toUInt(),
-            lists = lists.size.toUInt(),
-            nfts = nfts.size.toUInt(),
-        )
-    }
-
-    private val view: StateFlow<GemWalletSearchView?> = combine(getSession(), currentQuery, uiState, searchCounts) { session, query, base, counts ->
+    private val content: StateFlow<SearchContent<GemWalletSearchView>?> = combine(getSession(), currentQuery, searching, recent, rows) { session, query, searching, recents, rows ->
         session?.wallet?.let { wallet ->
-            service.walletSearchView(GemWalletSearchInput(wallet.toGem(), query, base == GemSelectAssetState.LOADING, counts))
+            SearchContent(service.walletSearchView(rows.input(wallet, query, searching, recents.size)), rows.assets)
         }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val state: StateFlow<GemSelectAssetState> = view
-        .map { it?.state?.phase ?: GemSelectAssetState.IDLE }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, GemSelectAssetState.IDLE)
-
-    val previewAssets: StateFlow<List<AssetInfoDataAggregate>> = combine(unpinned, view) { items, view ->
-        items.take(view?.limits?.assets?.toInt() ?: 0)
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val hasMoreAssets: StateFlow<Boolean> = view
-        .map { it?.hasMoreAssets == true }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val pinnedPerpetuals: StateFlow<List<GemPerpetualMarketItem>> = combine(perpetualSections, view) { sections, view ->
-        if (view?.state?.showsPinnedPerpetuals == true) sections.pinned else emptyList()
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val previewPerpetuals: StateFlow<List<GemPerpetualMarketItem>> = combine(perpetualSections, view) { sections, view ->
-        if (view?.state?.showsPerpetuals == true) sections.markets.take(view.limits.perpetuals.toInt()) else emptyList()
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val hasMorePerpetuals: StateFlow<Boolean> = view
-        .map { it?.hasMorePerpetuals == true }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val previewNfts: StateFlow<List<GemNftEntry>> = combine(nfts, view) { items, view ->
-        items.take(view?.limits?.nfts?.toInt() ?: 0)
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val hasMoreNfts: StateFlow<Boolean> = view
-        .map { it?.hasMoreNfts == true }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    private fun searchNfts(data: List<NFTData>, query: String): List<GemNftEntry> = service.searchCollections(data.map { it.toGem() }, query)
+    val state: StateFlow<GemSelectAssetState> = content.select(viewModelScope, GemSelectAssetState.IDLE) { it.view.state.phase }
+    val pinnedAssets: StateFlow<List<AssetInfoDataAggregate>> = content.select(viewModelScope, emptyList()) { it.assets(it.view.pinnedAssetIds) }
+    val previewAssets: StateFlow<List<AssetInfoDataAggregate>> = content.select(viewModelScope, emptyList()) { it.assets(it.view.assetIds) }
+    val hasMoreAssets: StateFlow<Boolean> = content.select(viewModelScope, false) { it.view.hasMoreAssets }
+    val pinnedPerpetuals: StateFlow<List<GemPerpetualMarketItem>> = content.select(viewModelScope, emptyList()) { it.view.pinnedPerpetuals }
+    val previewPerpetuals: StateFlow<List<GemPerpetualMarketItem>> = content.select(viewModelScope, emptyList()) { it.view.perpetuals }
+    val hasMorePerpetuals: StateFlow<Boolean> = content.select(viewModelScope, false) { it.view.hasMorePerpetuals }
+    val lists: StateFlow<List<GemSearchListRow>> = content.select(viewModelScope, emptyList()) { it.view.lists }
+    val previewNfts: StateFlow<List<GemNftEntry>> = content.select(viewModelScope, emptyList()) { it.view.nfts }
+    val hasMoreNfts: StateFlow<Boolean> = content.select(viewModelScope, false) { it.view.hasMoreNfts }
 
     override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).fetch.toInt()
+}
 
-    fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
-        val item = perpetualSections.value.let { it.pinned + it.markets }.firstOrNull { it.data.perpetual.id == perpetualId.toIdentifier() } ?: return@launch
-        setPerpetualPinned(perpetualId, item.row.title, !item.data.metadata.isPinned).onSuccess { emitToast(it.message(context)) }
-    }
+private class WalletSearchRows(
+    val pinned: List<AssetInfoDataAggregate>,
+    unpinned: List<AssetInfoDataAggregate>,
+    val perpetuals: List<PerpetualData>,
+    val lists: List<AssetList>,
+    val collections: List<NFTData>,
+) {
+    val assets: List<AssetInfoDataAggregate> = pinned + unpinned
+
+    fun input(wallet: Wallet, query: String, isLoading: Boolean, recents: Int) = GemWalletSearchInput(
+        wallet = wallet.toGem(),
+        query = query,
+        isLoading = isLoading,
+        recents = recents.toUInt(),
+        assetIds = assets.map { it.asset.id.toIdentifier() },
+        pinnedAssetIds = pinned.map { it.asset.id.toIdentifier() },
+        perpetuals = perpetuals.map { it.toGem() },
+        lists = lists.map { it.toGem() },
+        collections = collections.map { it.toGem() },
+    )
 }

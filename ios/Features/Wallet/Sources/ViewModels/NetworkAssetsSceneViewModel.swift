@@ -66,9 +66,8 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
             pinned: active.filter(\.metadata.isPinned).map(\.asset.id),
             hidden: hiddenQuery.value.map(\.asset.id),
         )
-        let byId = Dictionary((active + hiddenQuery.value).map { ($0.asset.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let assets = { (assetIds: [AssetId]) in assetIds.compactMap { byId[$0] } }
-        return NetworkAssetGroups(pinned: assets(ids.pinned), unpinned: assets(ids.unpinned), hidden: assets(ids.hidden), sections: ids.sections)
+        let rows = active + hiddenQuery.value
+        return NetworkAssetGroups(pinned: rows.assets(ids: ids.pinned), unpinned: rows.assets(ids: ids.unpinned), hidden: rows.assets(ids: ids.hidden), sections: ids.sections)
     }
 
     var emptyModel: EmptyStateViewModel {

@@ -30,9 +30,9 @@ import uniffi.gemstone.GemAssetSectionKind
 
 @Composable
 fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: AssetsResultsViewModel = hiltViewModel()) {
-    val pinned by viewModel.pinned.collectAsStateWithLifecycle()
-    val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
-    val previewPerpetuals by viewModel.previewPerpetuals.collectAsStateWithLifecycle()
+    val pinned by viewModel.pinnedAssets.collectAsStateWithLifecycle()
+    val assets by viewModel.assets.collectAsStateWithLifecycle()
+    val perpetuals by viewModel.perpetualItems.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.refreshing.collectAsStateWithLifecycle()
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
@@ -75,19 +75,19 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                     )
                 }
                 assetRows(
-                    items = unpinned,
+                    items = assets,
                     onSelect = onAssetClick,
                     longPressedAsset = longPressedAsset,
                     contextActions = contextActions,
                 )
-                if (previewPerpetuals.isNotEmpty()) {
+                if (perpetuals.isNotEmpty()) {
                     item { SubheaderItem(R.string.perpetuals_title) }
-                    itemsPositioned(previewPerpetuals) { position, item ->
+                    itemsPositioned(perpetuals) { position, item ->
                         PerpetualListItem(
                             item = item,
                             listPosition = position,
                             longPressState = longPressedPerpetual,
-                            onTogglePin = viewModel::onTogglePerpetualPin,
+                            onTogglePin = { viewModel.onTogglePerpetualPin(item) },
                             onClick = { onPerpetualClick(item.data.asset.toPrimitives()) },
                         )
                     }

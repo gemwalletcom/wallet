@@ -4,7 +4,6 @@ import Assets
 import Components
 import struct Gemstone.GemPerpetualMarketItem
 import struct Gemstone.GemSearchListRow
-import struct Gemstone.GemWalletSearchState
 import struct Gemstone.GemWalletSearchView
 import GemstonePrimitives
 import GemstoneServices
@@ -24,13 +23,13 @@ public struct WalletSearchScene: View {
     }
 
     public var body: some View {
-        let search = model.derived
+        let view = model.view
         return SearchableWrapper(
-            content: { content(search) },
+            content: { content(view) },
             isSearching: $model.isSearching,
             dismissSearch: $model.dismissSearch,
         )
-        .searchStateOverlay(model.searchState(search), background: Colors.sheetInsetGroupedListStyle)
+        .searchStateOverlay(model.searchState(view), background: Colors.sheetInsetGroupedListStyle)
         .bindQuery(model.searchQuery, model.recentModel.query)
         .searchable(
             text: $model.searchableQuery,
@@ -55,8 +54,8 @@ public struct WalletSearchScene: View {
         .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)
     }
 
-    private func content(_ search: WalletSearchDerived) -> some View {
-        let state = search.view.state
+    private func content(_ view: GemWalletSearchView) -> some View {
+        let state = view.state
         return List {
             if state.showsRecents {
                 RecentAssetsSectionView(
@@ -68,10 +67,8 @@ public struct WalletSearchScene: View {
             if state.showsPinned {
                 Section(
                     content: {
-                        if state.showsPinnedPerpetuals {
-                            perpetualItems(for: search.sections.pinnedPerpetuals)
-                        }
-                        assetItems(for: search.sections.pinnedAssets)
+                        perpetualItems(for: view.pinnedPerpetuals)
+                        assetItems(for: model.assets(view.pinnedAssetIds))
                     },
                     header: { PinnedSectionHeader() },
                 )
@@ -80,7 +77,7 @@ public struct WalletSearchScene: View {
 
             if state.showsLists {
                 Section(
-                    content: { listItems(for: search.sections.lists) },
+                    content: { listItems(for: view.lists) },
                     header: { SectionHeaderView(title: model.listsTitle) },
                 )
                 .listRowInsets(.assetListRowInsets)
@@ -88,9 +85,9 @@ public struct WalletSearchScene: View {
 
             if state.showsPerpetuals {
                 Section(
-                    content: { perpetualItems(for: search.previewPerpetuals) },
+                    content: { perpetualItems(for: view.perpetuals) },
                     header: {
-                        if search.view.hasMorePerpetuals {
+                        if view.hasMorePerpetuals {
                             HeaderNavigationLinkView(title: model.perpetualsTitle, destination: Scenes.Perpetuals())
                         } else {
                             SectionHeaderView(title: model.perpetualsTitle)
@@ -102,9 +99,9 @@ public struct WalletSearchScene: View {
 
             if state.showsNfts {
                 Section(
-                    content: { CollectionsPreviewView(entries: search.previewNFTs) },
+                    content: { CollectionsPreviewView(entries: view.nfts) },
                     header: {
-                        if search.view.hasMoreNfts {
+                        if view.hasMoreNfts {
                             HeaderNavigationLinkView(title: model.collectionsTitle, destination: Scenes.Collections())
                         } else {
                             SectionHeaderView(title: model.collectionsTitle)
@@ -116,9 +113,9 @@ public struct WalletSearchScene: View {
 
             if state.showsAssets {
                 Section(
-                    content: { assetItems(for: search.previewAssets) },
+                    content: { assetItems(for: model.assets(view.assetIds)) },
                     header: {
-                        if search.view.hasMoreAssets {
+                        if view.hasMoreAssets {
                             HeaderNavigationLinkView(
                                 title: model.assetsTitle,
                                 destination: model.assetsResultsDestination,
