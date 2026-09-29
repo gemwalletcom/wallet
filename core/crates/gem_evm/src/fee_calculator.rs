@@ -116,10 +116,7 @@ mod tests {
     fn test_calculate_priority_fees_sorts_and_relabels() {
         let calculator = FeeCalculator::new();
         let fee_history = EthereumFeeHistory {
-            reward: vec![vec![
-                "0xb2d05e00".to_string(), // 3 Gwei
-                "0x3b9aca00".to_string(), // 1 Gwei
-            ]],
+            reward: vec![vec!["0xb2d05e00".to_string(), "0x3b9aca00".to_string()]],
             base_fee_per_gas: vec![BigInt::from(100_000_000_000u64)],
             gas_used_ratio: vec![0.5],
             oldest_block: 0,

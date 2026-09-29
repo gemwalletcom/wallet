@@ -84,6 +84,17 @@ class NotificationNavigationTest {
     }
 
     @Test
+    fun `a payload Core cannot parse navigates nowhere`() = runBlocking {
+        assertEquals(emptyList<Any>(), navigation(GemNavigationTarget.Support).prepareNavigation("transaction", "{}").routes)
+        assertEquals(emptyList<Any>(), navigation(GemNavigationTarget.Support).prepareNavigation("unknown", null).routes)
+    }
+
+    @Test
+    fun `a payload Core parses is prepared`() = runBlocking {
+        assertEquals(listOf(SupportRoute), navigation(GemNavigationTarget.Support).prepareNavigation("support", null).routes)
+    }
+
+    @Test
     fun `a target Core could not prepare navigates nowhere`() = runBlocking {
         assertEquals(emptyList<Any>(), navigation(GemNavigationTarget.None).prepareNavigation(GemPushNotification.Test).routes)
     }

@@ -51,7 +51,7 @@ public struct TransactionsQuery: DatabaseQueryable {
             .map { $0.mapToTransactionListItem() }
     }
 
-    static func fetchExtended(_ db: Database, request: QueryInterfaceRequest<TransactionRecord>) throws -> [TransactionExtended] {
+    static func extendedTransactions(_ db: Database, request: QueryInterfaceRequest<TransactionRecord>) throws -> [TransactionExtended] {
         try request
             .including(required: TransactionRecord.asset)
             .including(required: TransactionRecord.feeAsset)

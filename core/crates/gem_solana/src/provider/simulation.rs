@@ -1,4 +1,3 @@
-use primitives::OptionStringExt;
 use std::{collections::HashSet, error::Error};
 
 use async_trait::async_trait;
@@ -6,7 +5,7 @@ use chain_traits::{ChainSimulation, ChainToken};
 use futures::future::join_all;
 use gem_client::Client;
 use gem_encoding::decode_base64;
-use primitives::{Asset, SimulationBalanceChange, SimulationInput, SimulationResult};
+use primitives::{Asset, OptionStringExt, SimulationBalanceChange, SimulationInput, SimulationResult};
 
 use crate::{VersionedTransaction, provider::simulation_mapper::map_simulation_result, rpc::SolanaProvider};
 

@@ -59,7 +59,7 @@ public struct HeaderButtonsView: View {
                             title: button.kind.title,
                             image: button.kind.image,
                             isEnabled: button.isEnabled,
-                            action: {}, // action empty, handled by menu
+                            action: {},
                         )
                     },
                 )

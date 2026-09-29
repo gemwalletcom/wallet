@@ -60,13 +60,11 @@ public enum AnyCodableValue: Codable, Equatable, Hashable, Sendable {
 
 public extension AnyCodableValue {
     func decode<T: Decodable>(_: T.Type) -> T? {
-        // Try direct decode first
         if let data = try? JSONEncoder().encode(self),
            let result = try? JSONDecoder().decode(T.self, from: data)
         {
             return result
         }
-        // If value is a string containing JSON, try to parse it
         if case let .string(jsonString) = self,
            let data = jsonString.data(using: .utf8)
         {

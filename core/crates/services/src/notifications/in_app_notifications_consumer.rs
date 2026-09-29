@@ -31,11 +31,11 @@ impl InAppNotificationsConsumer {
 
 #[async_trait]
 impl MessageConsumer<InAppNotificationPayload, usize> for InAppNotificationsConsumer {
-    async fn should_process(&self, _payload: &InAppNotificationPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &InAppNotificationPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: InAppNotificationPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: InAppNotificationPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let redeem: Option<NotificationRewardsRedeemMetadata> = payload.metadata.decode();
         let redeem_asset = match (&redeem, payload.asset_id.clone()) {
             (Some(_), Some(asset_id)) => self.database.run(move |client| client.get_asset(&asset_id)).await.ok(),

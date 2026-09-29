@@ -74,7 +74,7 @@ impl Parser {
         Ok(latest_block)
     }
 
-    async fn execute_plan(&self, plan: BlockPlan, state: &ParserState, timeout: Duration) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn run_block_plan(&self, plan: BlockPlan, state: &ParserState, timeout: Duration) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let start = Instant::now();
         let blocks_desc = format!("{:?}", plan.range.blocks);
 
@@ -137,7 +137,7 @@ impl Parser {
                 break;
             };
 
-            if !self.execute_plan(plan, &state, timeout).await? {
+            if !self.run_block_plan(plan, &state, timeout).await? {
                 break;
             }
         }

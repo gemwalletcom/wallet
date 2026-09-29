@@ -52,9 +52,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_algorand_get_balance_tokens() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_algorand_test_client();
-        let token_ids = vec![
-            "31566704".to_string(), // USDC
-        ];
+        let token_ids = vec!["31566704".to_string()];
         let balances = client.get_balance_tokens(TEST_ADDRESS.to_string(), token_ids).await?;
 
         assert_eq!(balances.len(), 1);

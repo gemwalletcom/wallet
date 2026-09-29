@@ -132,6 +132,17 @@ impl SimulationBalanceChange {
             ..self
         }
     }
+
+    pub fn with_assets(changes: Vec<Self>, assets: Vec<Option<Asset>>) -> Vec<Self> {
+        changes
+            .into_iter()
+            .zip(assets)
+            .map(|(change, asset)| match asset {
+                Some(asset) => change.with_asset(asset),
+                None => change,
+            })
+            .collect()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

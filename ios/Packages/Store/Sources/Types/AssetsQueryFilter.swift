@@ -10,7 +10,6 @@ public enum AssetsQueryFilter {
     case disabledBalance
     case hasBalance
     case hasAvailableBalance
-    // include all assets of these chains
     case chains([String])
     case chainsOrAssets([String], [String])
 }

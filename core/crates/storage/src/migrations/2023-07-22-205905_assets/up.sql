@@ -24,9 +24,6 @@ CREATE TABLE assets (
     earn_apr float,
     has_image boolean NOT NULL default false,
     has_price boolean NOT NULL default false,
-    circulating_supply float,
-    total_supply float,
-    max_supply float,
 
     UNIQUE(id)
 );

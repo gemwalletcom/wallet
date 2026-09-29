@@ -278,14 +278,13 @@ mod tests {
             to_asset: AssetId::from_chain(Chain::SmartChain).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: BigUint::from(40000000000000000u64), // 0.04 Cake
+            value: BigUint::from(40000000000000000u64),
             options: Options::default(),
         };
 
         let (evm_chain, input, output, _) = UniswapV4::routed_request(&request).unwrap();
 
         assert!(UniswapV4::is_base_pair(&input.address, &output.address, &evm_chain));
-        // Ensure provider field is used to avoid warnings
         assert_eq!(swapper.provider.id, SwapperProvider::UniswapV4);
     }
 
@@ -364,7 +363,7 @@ mod swap_integration_tests {
             to_asset: AssetId::from(Chain::Unichain, Some("0x078D782b760474a361dDA0AF3839290b0EF57AD6".to_string())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: BigUint::from(10000000000000000u64), // 0.01 ETH
+            value: BigUint::from(10000000000000000u64),
             options,
         };
 
@@ -388,7 +387,7 @@ mod swap_integration_tests {
             to_asset: AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())).into(),
             wallet_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
             destination_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
-            value: BigUint::from(100000000000000u64), // 0.0001 ETH
+            value: BigUint::from(100000000000000u64),
             options,
         };
 

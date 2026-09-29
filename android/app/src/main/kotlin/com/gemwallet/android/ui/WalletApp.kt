@@ -202,7 +202,6 @@ private fun openUpdateDestination(context: Context, isPlayStoreInstall: Boolean)
 
 @Suppress("DEPRECATION")
 private fun fromGooglePlay(context: Context): Boolean {
-    // A list with valid installers package name
     val validInstallers = listOf("com.android.vending", "com.google.android.feedback")
 
     val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

@@ -127,7 +127,6 @@ pub struct InternalTransaction {
 pub struct InternalTransactionCallValue {
     #[serde(default, rename = "callValue")]
     pub call_value: u64,
-    /// TRC10 token id; `None` is native TRX.
     #[serde(default, rename = "tokenId", deserialize_with = "deserialize_token_id_optional")]
     pub token_id: Option<String>,
 }

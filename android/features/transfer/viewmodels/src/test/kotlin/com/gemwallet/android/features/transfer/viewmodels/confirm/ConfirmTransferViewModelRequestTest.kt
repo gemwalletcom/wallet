@@ -137,7 +137,7 @@ class ConfirmTransferViewModelRequestTest {
 
         viewModel.init(transfer)
         advanceUntilIdle()
-        viewModel.fetch()
+        viewModel.load()
         advanceUntilIdle()
 
         assertEquals(GemConfirmFeeSelection.Priority(FeePriority.Fast.toGem()), options.last().feeSelection)

@@ -14,12 +14,11 @@ use crate::services::error_text::GemErrorText;
 use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedAction};
 use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
-use primitives::OptionStringExt;
-use primitives::currency::Currency;
 use primitives::{AddressName, BlockExplorerLink, PaymentVerification, PerpetualType};
 use primitives::{
     Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
+use primitives::{OptionStringExt, currency::Currency};
 
 use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet, GemConfirmRequirement};
 use super::model::{
@@ -163,7 +162,6 @@ pub(super) fn is_signature_only(input_type: &TransactionInputType) -> bool {
     }
 }
 
-/// A pick reloads when it names a different asset, or when the transfer still owes a verification the pick has to re-run.
 pub(super) fn asset_pick_needs_reload(current: &AssetId, picked: &AssetId, verification: Option<&PaymentVerification>) -> bool {
     current != picked || verification.is_some()
 }
@@ -674,8 +672,6 @@ pub fn submit_message(input_type: &TransactionInputType, warning: Option<GemErro
     })
 }
 
-/// The confirm screen's blocks in order: a notice replaces the load error, and a payment to verify
-/// shows its verification instead of the network fee.
 pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, warnings: Vec<GemListRow>, simulation: Option<GemConfirmSimulation>, verifies: bool, load_error: Option<GemConfirmError>) -> Vec<GemConfirmSection> {
     let notice = load_error.as_ref().and_then(GemConfirmError::notice);
     let (primary, secondary, changes) = simulation.map(|simulation| (simulation.primary_fields, simulation.secondary_fields, simulation.balance_changes)).unwrap_or_default();

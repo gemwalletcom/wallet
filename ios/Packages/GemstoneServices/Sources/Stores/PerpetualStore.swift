@@ -27,8 +27,8 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         try store.upsertPerpetuals(data.map { $0.toPrimitives().perpetual })
     }
 
-    public func setPinned(perpetualIds: [String], pinned: Bool) async throws {
-        try store.setPinned(for: perpetualIds, value: pinned)
+    public func setPinned(perpetualIds: [PerpetualId], pinned: Bool) async throws {
+        try store.setPinned(for: perpetualIds.map(\.identifier), value: pinned)
     }
 
     public func clearPerpetuals(collateralAssetIds: [Gemstone.AssetId]) async throws {

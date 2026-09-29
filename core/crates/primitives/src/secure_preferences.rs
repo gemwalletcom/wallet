@@ -2,8 +2,9 @@ use std::{
     collections::HashMap,
     error::Error,
     sync::{Mutex, MutexGuard},
-    time::{SystemTime, UNIX_EPOCH},
 };
+
+use crate::unix_seconds;
 
 pub trait Preferences: Send + Sync {
     fn get(&self, key: String) -> Result<Option<String>, Box<dyn Error + Send + Sync>>;
@@ -79,7 +80,7 @@ impl<T: Preferences + ?Sized> PreferencesExt for T {
 
         if let (Some(value), Some(timestamp)) = (self.get(key.to_string())?, self.get(timestamp_key)?) {
             let cached_time: u64 = timestamp.parse()?;
-            let current_time = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+            let current_time = unix_seconds()?;
 
             if current_time - cached_time < ttl_seconds {
                 return Ok(Some(value.parse()?));
@@ -91,7 +92,7 @@ impl<T: Preferences + ?Sized> PreferencesExt for T {
 
     fn set_i64_with_ttl(&self, key: &str, value: i64, _ttl_seconds: u64) -> Result<(), Box<dyn Error + Send + Sync>> {
         let timestamp_key = format!("{}_timestamp", key);
-        let current_time = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let current_time = unix_seconds()?;
 
         self.set(key.to_string(), value.to_string())?;
         self.set(timestamp_key, current_time.to_string())?;

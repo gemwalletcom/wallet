@@ -55,13 +55,10 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         match &input.input_type {
-            TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Stake { .. } => {
-                // Only signature is required
-                Ok(TransactionLoadData {
-                    fee: TransactionFee::new_from_fee(BigInt::from(0), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
-                    metadata: TransactionLoadMetadata::Hyperliquid { order: None },
-                })
-            }
+            TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Stake { .. } => Ok(TransactionLoadData {
+                fee: TransactionFee::new_from_fee(BigInt::from(0), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
+                metadata: TransactionLoadMetadata::Hyperliquid { order: None },
+            }),
             TransactionInputType::Swap { from_asset, to_asset, .. } => {
                 let (fee_amount, order) = if is_spot_swap(from_asset.chain(), to_asset.chain()) {
                     let (order, fee_rates) = self.get_order(&input.sender_address).await?;

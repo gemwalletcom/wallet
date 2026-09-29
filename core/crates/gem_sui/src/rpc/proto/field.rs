@@ -1,8 +1,5 @@
 use gem_encoding::protobuf::proto_encode;
 
-// Field numbers mirror sui-rpc v0.3.1 google.protobuf.FieldMask schema:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/google/protobuf/field_mask.proto
-
 #[derive(Clone, Debug, Default)]
 pub struct FieldMask {
     pub paths: Vec<String>,

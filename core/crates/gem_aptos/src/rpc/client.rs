@@ -1,6 +1,6 @@
+use primitives::unix_timestamp;
 use std::error::Error;
 use std::str::FromStr;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
@@ -123,7 +123,7 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn simulate_transaction(&self, sender: &str, sequence: u64, payload: TransactionPayload, gas_price: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        let expiration = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs() + 1_000_000;
+        let expiration = unix_timestamp() + 1_000_000;
         let query = SimulateTransactionQuery {
             estimate_max_gas_amount: false,
             estimate_gas_unit_price: false,

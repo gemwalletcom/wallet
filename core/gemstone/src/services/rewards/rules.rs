@@ -3,8 +3,7 @@ use crate::precision::GemValueStyle;
 use crate::services::assets::icon::asset_icon;
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
-use primitives::OptionStringExt;
-use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards, Wallet};
+use primitives::{CoreEmoji, OptionStringExt, RewardRedemptionOption, RewardStatus, Rewards, Wallet};
 
 use super::model::{GemIncomingCode, GemRewardsInviteAction, GemRewardsPendingReferral, GemRewardsRedemption, GemRewardsState};
 use crate::config::rewards::get_referral_url;

@@ -99,10 +99,10 @@ impl Services {
         Ok(FetchTransactionConsumer::new(self.chain_providers_for(chain, user_agent), stream_producer, self.cacher().await?))
     }
 
-    pub async fn store_transactions_consumer(&self, name: &str, shutdown_rx: ShutdownReceiver) -> Result<StoreTransactionsConsumer, Box<dyn Error + Send + Sync>> {
+    pub async fn store_transactions_consumer(&self, stream_producer: StreamProducer) -> Result<StoreTransactionsConsumer, Box<dyn Error + Send + Sync>> {
         Ok(StoreTransactionsConsumer {
             database: self.database(),
-            stream_producer: self.stream_producer(name, shutdown_rx).await?,
+            stream_producer,
             pusher: Pusher::new(self.database()),
             config: self.config(),
             vault_client: SwapVaultAddressClient::new(self.cacher().await?),

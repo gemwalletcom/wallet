@@ -12,13 +12,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
+import com.gemwallet.android.ui.components.keyboardFollowsFocus
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -37,15 +36,12 @@ fun ColumnScope.AddressChainField(
     onQrScanner: (() -> Unit)? = null,
     onSubmit: (() -> Unit)? = null,
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
     val clipboardManager = LocalContext.current.clipboardManager()
 
     GemTextField(
         modifier = Modifier
             .fillMaxWidth()
-            .onFocusChanged {
-                if (it.hasFocus) keyboardController?.show() else keyboardController?.hide()
-            },
+            .keyboardFollowsFocus(),
         value = value,
         singleLine = true,
         readOnly = !editable,

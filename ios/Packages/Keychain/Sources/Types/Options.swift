@@ -6,21 +6,16 @@ struct Options: @unchecked Sendable {
     var service: String = ""
     var accessibility: Accessibility = .afterFirstUnlock
     var authenticationPolicy: AuthenticationPolicy?
-    var synchronizable: Bool = false
     var authenticationContext: AnyObject?
     var attributes = [String: Any]()
 }
 
 extension Options {
-    func query(ignoringAttributeSynchronizable: Bool = true) -> [String: Any] {
+    func query() -> [String: Any] {
         var query = [String: Any]()
 
         query[Class] = String(kSecClassGenericPassword)
-        if ignoringAttributeSynchronizable {
-            query[AttributeSynchronizable] = SynchronizableAny
-        } else {
-            query[AttributeSynchronizable] = synchronizable ? kCFBooleanTrue : kCFBooleanFalse
-        }
+        query[AttributeSynchronizable] = SynchronizableAny
 
         query[AttributeService] = service
 
@@ -67,7 +62,7 @@ extension Options {
             attributes[AttributeAccessible] = accessibility.rawValue
         }
 
-        attributes[AttributeSynchronizable] = synchronizable ? kCFBooleanTrue : kCFBooleanFalse
+        attributes[AttributeSynchronizable] = kCFBooleanFalse
 
         return (attributes, nil)
     }

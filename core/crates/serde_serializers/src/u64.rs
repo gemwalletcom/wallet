@@ -2,6 +2,7 @@ use std::fmt;
 
 use serde::{Deserialize, Deserializer, de};
 
+use crate::option::deserialize_option_with;
 use crate::visitors::{StringOrNumberFromValue, StringOrNumberVisitor};
 
 fn parse_u64_string(value: &str) -> Result<u64, String> {
@@ -75,11 +76,7 @@ pub fn deserialize_option_u64_from_str<'de, D>(deserializer: D) -> Result<Option
 where
     D: Deserializer<'de>,
 {
-    let s: Option<String> = Option::deserialize(deserializer)?;
-    match s {
-        Some(str_val) => parse_u64_string(&str_val).map(Some).map_err(de::Error::custom),
-        None => Ok(None),
-    }
+    deserialize_option_with(deserializer, parse_u64_string)
 }
 
 #[cfg(test)]

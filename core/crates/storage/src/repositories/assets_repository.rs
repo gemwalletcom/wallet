@@ -23,17 +23,6 @@ pub enum AssetUpdate {
     StakingApr(Option<f64>),
     HasImage(bool),
     HasPrice(bool),
-    Supply { circulating_supply: Option<f64>, total_supply: Option<f64>, max_supply: Option<f64> },
-}
-
-impl AssetUpdate {
-    pub fn supply(circulating: Option<f64>, total: Option<f64>, max: Option<f64>) -> Option<Self> {
-        (circulating.is_some() || total.is_some() || max.is_some()).then_some(Self::Supply {
-            circulating_supply: circulating,
-            total_supply: total,
-            max_supply: max,
-        })
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -50,13 +39,6 @@ pub enum AssetFilter {
     RankGt(i32),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct AssetSupply {
-    pub circulating: Option<f64>,
-    pub total: Option<f64>,
-    pub max: Option<f64>,
-}
-
 pub trait AssetsRepository {
     fn add_assets(&mut self, values: Vec<AssetBasic>) -> Result<usize, DatabaseError>;
     fn update_assets(&mut self, asset_ids: Vec<AssetId>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError>;
@@ -67,7 +49,6 @@ pub trait AssetsRepository {
     fn upsert_asset_associations(&mut self, id: &str, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError>;
     fn get_asset_full(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<AssetFull, DatabaseError>;
     fn get_assets(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
-    fn get_assets_supply(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<(AssetId, AssetSupply)>, DatabaseError>;
     fn get_assets_basic(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, DatabaseError>;
     fn get_assets_with_prices(&mut self, filters: Vec<AssetFilter>, max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError>;
     fn get_swap_assets(&mut self) -> Result<Vec<String>, DatabaseError>;
@@ -184,11 +165,6 @@ impl AssetsRepository for DatabaseClient {
                 AssetUpdate::StakingApr(value) => diesel::update(target).set(staking_apr.eq(value)).execute(&mut self.connection)?,
                 AssetUpdate::HasImage(value) => diesel::update(target).set(has_image.eq(value)).execute(&mut self.connection)?,
                 AssetUpdate::HasPrice(value) => diesel::update(target).set(has_price.eq(value)).execute(&mut self.connection)?,
-                AssetUpdate::Supply {
-                    circulating_supply: c,
-                    total_supply: t,
-                    max_supply: m,
-                } => diesel::update(target).set((circulating_supply.eq(c), total_supply.eq(t), max_supply.eq(m))).execute(&mut self.connection)?,
             };
             Ok::<_, diesel::result::Error>(total + updated)
         })?)
@@ -235,7 +211,7 @@ impl AssetsRepository for DatabaseClient {
         let id = asset_id.to_string();
         let asset = asset_row(self, &id).or_not_found(id.clone())?;
         let price_row = primary_price_rows(self, slice::from_ref(asset_id), max_age)?.into_iter().next().map(|(_, row)| row);
-        let market = price_row.as_ref().map(|x| x.as_market_primitive(&asset));
+        let market = price_row.as_ref().map(PriceRow::as_market_primitive);
         let price = price_row.as_ref().map(PriceRow::as_primitive);
         let links = self.get_asset_links(asset_id)?;
         let associations = asset_associations(self, &id)?.into_iter().map(AssetAssociationRow::into_primitive).collect();
@@ -258,20 +234,6 @@ impl AssetsRepository for DatabaseClient {
 
     fn get_assets(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError> {
         Ok(asset_rows(self, asset_ids.ids())?.into_iter().map(|x| x.as_primitive()).collect())
-    }
-
-    fn get_assets_supply(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<(AssetId, AssetSupply)>, DatabaseError> {
-        Ok(asset_rows(self, asset_ids.ids())?
-            .into_iter()
-            .map(|asset| {
-                let supply = AssetSupply {
-                    circulating: asset.circulating_supply,
-                    total: asset.total_supply,
-                    max: asset.max_supply,
-                };
-                (asset.as_asset_id(), supply)
-            })
-            .collect())
     }
 
     fn get_assets_basic(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, DatabaseError> {

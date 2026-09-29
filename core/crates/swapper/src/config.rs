@@ -46,8 +46,8 @@ pub fn get_swap_config() -> Config {
             bps: DEFAULT_SLIPPAGE_BPS,
             mode: SwapperSlippageMode::Exact,
         },
-        permit2_expiration: 2_592_000, // 30 days
-        permit2_sig_deadline: 1800,    // 30 minutes
+        permit2_expiration: 2_592_000,
+        permit2_sig_deadline: 1800,
         high_price_impact_percent: 10,
         high_slippage_warning_bps: 300,
         min_slippage_bps: MIN_SLIPPAGE_BPS,

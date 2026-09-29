@@ -47,7 +47,7 @@ class ServiceStatusViewModelTest {
         }
         val viewModel = ServiceStatusViewModel(service).also(viewModels::add)
 
-        viewModel.fetch()
+        viewModel.load()
         advanceUntilIdle()
 
         assertEquals(

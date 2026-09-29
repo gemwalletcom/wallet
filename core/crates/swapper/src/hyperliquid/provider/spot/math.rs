@@ -112,7 +112,6 @@ mod tests {
 
     #[test]
     fn test_format_order_size_rounds_down() {
-        // Rounds down, not to nearest
         let value = BigDecimal::from_str("0.131").unwrap();
         assert_eq!(format_order_size(&value, 2), "0.13");
 
@@ -136,7 +135,6 @@ mod tests {
         let rounded = round_size_down(&value, 2);
         assert_eq!(rounded, BigDecimal::from_str("10.12").unwrap());
 
-        // Zero decimals
         let value = BigDecimal::from_str("123.999").unwrap();
         let rounded = round_size_down(&value, 0);
         assert_eq!(rounded, BigDecimal::from_str("123").unwrap());

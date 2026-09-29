@@ -15,11 +15,11 @@ pub struct FetchAssetAssociationsConsumer {
 
 #[async_trait]
 impl MessageConsumer<FetchAssetAssociationsPayload, usize> for FetchAssetAssociationsConsumer {
-    async fn should_process(&self, _payload: &FetchAssetAssociationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &FetchAssetAssociationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: FetchAssetAssociationsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: FetchAssetAssociationsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let price_id = &payload.price_id;
         let provider = self.providers.get(&price_id.provider).ok_or_else(|| format!("Unsupported asset association price provider: {}", price_id.provider))?;
         let mappings = provider.get_mappings_for_price_id(&price_id.provider_price_id).await?;

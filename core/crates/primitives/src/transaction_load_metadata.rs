@@ -157,7 +157,6 @@ impl TransactionLoadMetadata {
         let TransactionLoadMetadata::Zcash { branch_id, .. } = self else {
             return None;
         };
-        // Zcash branch id is big-endian hex from the rpc node.
         let bytes: [u8; 4] = crate::decode_hex(branch_id).ok()?.try_into().ok()?;
         Some(u32::from_be_bytes(bytes))
     }

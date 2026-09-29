@@ -70,7 +70,6 @@ impl THORChainAsset {
         })
     }
 
-    // https://dev.thorchain.org/concepts/memos.html#swap
     pub fn swap_memo(&self, asset_name: &str, destination_address: String, minimum: i64, interval: i64, quantity: i64, fee_address: String, bps: u32) -> String {
         let address = match self.chain.chain() {
             Chain::BitcoinCash => destination_address.strip_prefix(BITCOINCASH_PREFIX).unwrap_or(&destination_address),

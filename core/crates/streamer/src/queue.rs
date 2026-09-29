@@ -3,55 +3,32 @@ use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Debug, Clone, PartialEq, EnumIter)]
 pub enum QueueName {
-    // Process transactions, store and send notifications. Push assets to address_assets table and fetch new assets
     StoreTransactions,
-    // Notifications for price alerts
     NotificationsPriceAlerts,
-    // Notifications for transactions
     NotificationsTransactions,
-    // Notifications for observers
     NotificationsObservers,
-    // Notifications for support messages
     NotificationsSupport,
-    // Notifications for rewards events
     NotificationsRewards,
-    // Failed notifications to handle device disabling
     NotificationsFailed,
-    // fetch new assets and store to db
     FetchAssets,
     FetchAssetStatus,
     FetchAssetAssociations,
-    // fetch prices for an asset or provider price id and store to db
     FetchPrices,
     FetchPricesMetadata,
-    // fetch provider list and store tag memberships
     FetchLists,
-    // fetch new blocks and store to db
     FetchBlocks,
-    // Fetch and store nft collection
     FetchNFTCollection,
-    // Fetch and store nft collection assets
     FetchNFTCollectionAssets,
-    // Fetch address token balances from providers and store to db
     FetchTokenAssociations,
-    // Fetch address coin balances from providers and store to db
     FetchCoinAssociations,
-    // Fetch address nft assets from providers and store to db
     FetchNftAssociations,
-    // Fetch address transactions from providers and store to db
     FetchAddressTransactions,
     FetchTransactions,
-    // Process fiat order webhooks
     FiatOrderWebhooks,
-    // Process support webhooks
     SupportWebhooks,
-    // Store pending transaction identifiers
     StorePendingTransactions,
-    // Store prices to database
     StorePrices,
-    // Rewards events (create username, invite, etc.)
     RewardsEvents,
-    // Rewards redemptions
     RewardsRedemptions,
     NotificationsFiatPurchase,
     NotificationsInApp,
@@ -65,6 +42,7 @@ impl QueueName {
 
     pub fn chain_queues() -> Vec<QueueName> {
         vec![
+            QueueName::StoreTransactions,
             QueueName::FetchBlocks,
             QueueName::FetchTokenAssociations,
             QueueName::FetchCoinAssociations,

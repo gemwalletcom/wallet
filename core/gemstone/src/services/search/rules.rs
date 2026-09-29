@@ -1,7 +1,7 @@
 use crate::services::chain::rules::chain_matches_query;
 
 use primitives::perpetual::{PerpetualData, PerpetualMetadata, PerpetualSearchData};
-use primitives::{Asset, AssetBasic, AssetId, AssetPrice, Chain, Wallet, WalletType};
+use primitives::{Asset, AssetBasic, AssetId, AssetPrice, Chain, PerpetualId, Wallet, WalletType};
 
 use super::model::GemSearchScope;
 
@@ -70,8 +70,8 @@ pub fn perpetual_data(perpetuals: &[PerpetualSearchData]) -> Vec<PerpetualData> 
         .collect()
 }
 
-pub fn perpetual_ids(perpetuals: &[PerpetualSearchData]) -> Vec<String> {
-    perpetuals.iter().map(|item| item.perpetual.id.to_string()).collect()
+pub fn perpetual_ids(perpetuals: &[PerpetualSearchData]) -> Vec<PerpetualId> {
+    perpetuals.iter().map(|item| item.perpetual.id.clone()).collect()
 }
 
 pub fn wallet_chains(wallet: &Wallet) -> Vec<Chain> {

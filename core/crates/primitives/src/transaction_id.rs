@@ -84,8 +84,8 @@ mod tests {
     #[test]
     fn test_display_trait_to_string() {
         let tx_id = TransactionId::new(Chain::Ethereum, "0x123".to_string());
-        assert_eq!(tx_id.to_string(), "ethereum_0x123"); // This now uses Display::to_string()
-        assert_eq!(format!("{tx_id}"), "ethereum_0x123"); // Also test format!()
+        assert_eq!(tx_id.to_string(), "ethereum_0x123");
+        assert_eq!(format!("{tx_id}"), "ethereum_0x123");
     }
 
     #[test]

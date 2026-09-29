@@ -6,12 +6,10 @@ import Primitives
 import struct WalletConnectUtils.Blockchain
 
 extension Primitives.Chain {
-    /// CAIP-2 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
     func namespace(chainService: GemChainService) -> String? {
         chainService.caip2Namespace(chain: rawValue)
     }
 
-    /// CAIP-20 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-20.md
     func reference(chainService: GemChainService) -> String? {
         chainService.caip2Reference(chain: rawValue)
     }

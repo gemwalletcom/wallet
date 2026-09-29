@@ -1,7 +1,6 @@
-use primitives::OptionStringExt;
 use std::sync::Arc;
 
-use primitives::{Account, ApplicationMetadata, Asset, Chain, Wallet, WalletId};
+use primitives::{Account, ApplicationMetadata, Asset, Chain, OptionStringExt, Wallet, WalletId};
 
 use crate::application;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};

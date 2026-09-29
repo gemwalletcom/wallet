@@ -1,5 +1,4 @@
 use num_traits::ToPrimitive;
-use primitives::OptionStringExt;
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -10,8 +9,8 @@ use num_bigint::BigInt;
 use gem_client::Client;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    Asset, AssetId, AssetSubtype, Chain, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransferDataOutputAction,
-    TronStakeData, decode_hex,
+    Asset, AssetId, AssetSubtype, Chain, FeePriority, FeeRate, GasPriceType, OptionStringExt, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
+    TransferDataOutputAction, TronStakeData, decode_hex,
     swap::{ApprovalData, SwapData, SwapQuoteData, SwapQuoteDataType},
 };
 

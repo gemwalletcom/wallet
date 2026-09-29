@@ -21,13 +21,21 @@ pub struct StoreTransactionsConsumerConfig {
 
 impl StoreTransactionsConsumerConfig {
     pub async fn read(config: &ConfigCacher) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let (swap_outdated_timeout, outdated_block_count, outdated_min_timeout, max_asset_transfer_count, min_amount_usd, primary_price_max_age) = tokio::try_join!(
+            config.get_duration(ConfigKey::TransactionSwapOutdatedTimeout),
+            config.get_i64(ConfigKey::TransactionsOutdatedBlockCount),
+            config.get_duration(ConfigKey::TransactionsOutdatedMinTimeout),
+            config.get_usize(ConfigKey::TransactionsMaxAssetTransferCount),
+            config.get_f64(ConfigKey::TransactionsMinAmountUsd),
+            config.get_duration(ConfigKey::PricePrimaryMaxAge),
+        )?;
         Ok(Self {
-            swap_outdated_timeout: config.get_duration(ConfigKey::TransactionSwapOutdatedTimeout).await?,
-            outdated_block_count: config.get_i64(ConfigKey::TransactionsOutdatedBlockCount).await? as u64,
-            outdated_min_timeout: config.get_duration(ConfigKey::TransactionsOutdatedMinTimeout).await?,
-            max_asset_transfer_count: config.get_usize(ConfigKey::TransactionsMaxAssetTransferCount).await?,
-            min_amount_usd: config.get_f64(ConfigKey::TransactionsMinAmountUsd).await?,
-            primary_price_max_age: config.get_duration(ConfigKey::PricePrimaryMaxAge).await?,
+            swap_outdated_timeout,
+            outdated_block_count: outdated_block_count as u64,
+            outdated_min_timeout,
+            max_asset_transfer_count,
+            min_amount_usd,
+            primary_price_max_age,
         })
     }
 

@@ -1,5 +1,6 @@
 pub mod connection;
 pub mod consumer;
+pub mod consumer_status;
 pub mod exchange;
 pub mod payload;
 pub mod queue;
@@ -68,8 +69,8 @@ where
 
 pub use connection::StreamConnection;
 pub use consumer::ConsumerConfig;
-pub use consumer::ConsumerStatusReporter;
 pub use consumer::run_consumer;
+pub use consumer_status::{ConsumerStatus, ConsumerStatusReporter};
 pub use exchange::ExchangeName;
 pub use lapin::ExchangeKind;
 pub use payload::*;
@@ -78,4 +79,4 @@ pub use push_notification::{FailedNotification, GorushNotification, GorushNotifi
 pub use queue::QueueName;
 pub use steam_producer_queue::StreamProducerQueue;
 pub use stream_producer::{StreamProducer, StreamProducerConfig};
-pub use stream_reader::{StreamReader, StreamReaderConfig};
+pub use stream_reader::{StreamMessage, StreamReader, StreamReaderConfig};

@@ -20,7 +20,6 @@ public extension View {
                 data.wrappedValue = nil
             },
         )
-        // confirmation dialog works good only for iPhone, for different devices use an alert
         let iPhone = UIDevice.current.userInterfaceIdiom == .phone
 
         return ifElse(iPhone) {

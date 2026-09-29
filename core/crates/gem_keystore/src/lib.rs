@@ -16,6 +16,6 @@ pub use error::KeystoreError;
 #[cfg(feature = "storage")]
 pub use id::KeystoreId;
 #[cfg(feature = "mnemonic")]
-pub use mnemonic::Mnemonic;
+pub use mnemonic::{Mnemonic, MnemonicSeed};
 #[cfg(feature = "storage")]
 pub use storage::{FileKeystore, Keystore, KeystoreEntryError, SecretKind, StoredSecretMeta};

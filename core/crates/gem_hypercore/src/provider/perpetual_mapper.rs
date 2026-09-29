@@ -456,7 +456,7 @@ mod tests {
 
         let candlesticks = vec![
             Candlestick {
-                t: 1640995200000u64, // 2022-01-01 00:00:00 UTC
+                t: 1640995200000u64,
                 s: "BTC".to_string(),
                 i: "1h".to_string(),
                 o: "50000.0".to_string(),
@@ -466,7 +466,7 @@ mod tests {
                 v: "100.5".to_string(),
             },
             Candlestick {
-                t: 1640998800000u64, // 2022-01-01 01:00:00 UTC
+                t: 1640998800000u64,
                 s: "BTC".to_string(),
                 i: "1h".to_string(),
                 o: "50500.0".to_string(),
@@ -590,7 +590,7 @@ mod tests {
     fn test_map_position_funding_sign_reversal() {
         let position = Position {
             coin: "BTC".to_string(),
-            szi: "3.0".to_string(), // Long position
+            szi: "3.0".to_string(),
             leverage: Leverage {
                 leverage_type: LeverageType::Cross,
                 value: 10,
@@ -609,11 +609,11 @@ mod tests {
         };
 
         let perpetual_position = map_position(position, "user123".to_string(), &[]);
-        assert_eq!(perpetual_position.funding, Some(-1.5)); // Long position reverses sign
+        assert_eq!(perpetual_position.funding, Some(-1.5));
 
         let short_position = Position {
             coin: "ETH".to_string(),
-            szi: "-5.0".to_string(), // Short position
+            szi: "-5.0".to_string(),
             leverage: Leverage {
                 leverage_type: LeverageType::Cross,
                 value: 10,
@@ -632,8 +632,8 @@ mod tests {
         };
 
         let short_perpetual = map_position(short_position, "user123".to_string(), &[]);
-        assert_eq!(short_perpetual.size, 5.0); // Size is always positive (absolute value)
-        assert_eq!(short_perpetual.funding, Some(1.5)); // Short position with negative funding
+        assert_eq!(short_perpetual.size, 5.0);
+        assert_eq!(short_perpetual.funding, Some(1.5));
     }
 
     #[test]

@@ -27,7 +27,6 @@ pub enum GemNavigationTarget {
     None,
 }
 
-/// What opening a link or a scanned code does: a payment link shows loading while it is prepared.
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemCodeOutcome {

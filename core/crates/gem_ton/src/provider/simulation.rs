@@ -1,10 +1,9 @@
-use primitives::OptionStringExt;
 use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::ChainSimulation;
 use gem_client::Client;
-use primitives::{SimulationInput, SimulationResult};
+use primitives::{OptionStringExt, SimulationInput, SimulationResult};
 
 use crate::{
     Address,

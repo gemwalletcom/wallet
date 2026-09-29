@@ -1,13 +1,12 @@
 #![cfg(feature = "rpc")]
 
-use primitives::OptionStringExt;
 use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainSimulation, ChainToken};
 use futures::future::join_all;
 use gem_client::Client;
-use primitives::{Asset, SimulationBalanceChange, SimulationInput, SimulationResult};
+use primitives::{Asset, OptionStringExt, SimulationBalanceChange, SimulationInput, SimulationResult};
 
 use crate::jsonrpc::TransactionObject;
 use crate::provider::simulation_mapper::map_simulation_result;
@@ -23,14 +22,7 @@ impl<C: Client + Clone> ChainSimulation for EthereumProvider<C> {
         let SimulationResult { warnings, balance_changes, payload, header } = map_simulation_result(self.get_chain(), signer, &trace);
 
         let assets = self.get_balance_change_assets(&balance_changes).await;
-        let balance_changes = balance_changes
-            .into_iter()
-            .zip(assets)
-            .map(|(change, asset)| match asset {
-                Some(asset) => change.with_asset(asset),
-                None => change,
-            })
-            .collect();
+        let balance_changes = SimulationBalanceChange::with_assets(balance_changes, assets);
 
         Ok(SimulationResult { warnings, balance_changes, payload, header })
     }

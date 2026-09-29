@@ -2,11 +2,11 @@ use crate::config::HypercoreConfig;
 use crate::models::referral::Referral;
 use crate::models::user::{AgentApproval, AgentSession, UserFee};
 use crate::rpc::client::agent_owner_cache_key;
+use primitives::unix_seconds;
 use primitives::{Preferences, PreferencesExt};
 use std::error::Error;
 use std::future::Future;
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) struct UserFeeRates {
     pub(crate) perpetual_cross: f64,
@@ -38,7 +38,7 @@ impl HyperCoreCache {
     }
 
     fn current_time() -> Result<i64, Box<dyn Error + Send + Sync>> {
-        Ok(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() as i64)
+        Ok(unix_seconds()? as i64)
     }
 
     fn agent_name(agent_address: &str) -> String {

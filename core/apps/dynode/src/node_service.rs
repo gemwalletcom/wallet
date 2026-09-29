@@ -74,11 +74,11 @@ impl NodeService {
         self.node_monitor.start();
     }
 
-    pub async fn handle_request(&self, request: &ProxyRequest) -> Result<ProxyResponse, BoxError> {
+    pub async fn proxy_request(&self, request: &ProxyRequest) -> Result<ProxyResponse, BoxError> {
         let chain = request.chain;
         let _inflight = self.metrics.track_node_inflight(chain);
         let mut remote_host = None;
-        let result = self.handle_request_inner(request, &mut remote_host).await;
+        let result = self.proxy_request_to_node(request, &mut remote_host).await;
         if request.is_broadcast(&self.broadcast_providers) {
             self.metrics.record_transaction_broadcast(request, &result, &self.broadcast_providers, remote_host.as_deref().unwrap_or("unknown"));
         }
@@ -90,7 +90,7 @@ impl NodeService {
         result
     }
 
-    async fn handle_request_inner(&self, request: &ProxyRequest, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
+    async fn proxy_request_to_node(&self, request: &ProxyRequest, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
         Self::log_incoming_request(request);
 
         let chain_config = self.get_chain_config(request)?;
@@ -101,7 +101,7 @@ impl NodeService {
             return self.node_not_found_response(request);
         };
         if urls.len() == 1 {
-            return self.proxy.handle_request(request, &urls[0], chain_config, broadcast_host).await;
+            return self.proxy.forward_request(request, &urls[0], chain_config, broadcast_host).await;
         }
 
         let retry_enabled = self.retry_config.enabled;
@@ -121,7 +121,7 @@ impl NodeService {
                     reason = last_error.as_deref().unwrap_or(""),
                 );
             }
-            match self.proxy.handle_request(request, url, chain_config, broadcast_host).await {
+            match self.proxy.forward_request(request, url, chain_config, broadcast_host).await {
                 Ok(response) => {
                     let retry_error = self.matches_response_error_signal(request, &response, &self.retry_config.errors);
                     if !response.is_from_cache() {
@@ -346,8 +346,8 @@ mod tests {
         assert_eq!(initial.len(), 2);
         assert!(initial.iter().all(|line| line.ends_with(" 0")));
 
-        service.handle_request(&ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_chainId")).await.unwrap();
-        service.handle_request(&ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_sendRawTransaction")).await.unwrap();
+        service.proxy_request(&ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_chainId")).await.unwrap();
+        service.proxy_request(&ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_sendRawTransaction")).await.unwrap();
         let encoded = service.metrics.get_metrics();
         assert_eq!(
             encoded.lines().filter(|line| line.starts_with(prefix) && !line.ends_with(" 0")).collect::<Vec<_>>(),
@@ -380,7 +380,7 @@ mod tests {
             };
             let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_sendRawTransaction");
             let mut remote_host = None;
-            let _ = service.handle_request_inner(&request, &mut remote_host).await;
+            let _ = service.proxy_request_to_node(&request, &mut remote_host).await;
             assert_eq!(remote_host.as_deref(), expected);
         }
     }
@@ -432,14 +432,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_handle_request_denies_disallowed_jsonrpc_method() {
+    async fn test_proxy_request_denies_disallowed_jsonrpc_method() {
         let service = NodeService {
             chain_types: ChainTypesConfig::mock(),
             ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
         };
         let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "unsupported_method");
 
-        let response = service.handle_request(&request).await.unwrap();
+        let response = service.proxy_request(&request).await.unwrap();
 
         assert_eq!(response.status, StatusCode::FORBIDDEN.as_u16());
         assert_eq!(
@@ -451,7 +451,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_handle_request_allowed_jsonrpc_reaches_proxy_path() {
+    async fn test_proxy_request_allowed_jsonrpc_reaches_proxy_path() {
         let service = NodeService {
             chain_types: ChainTypesConfig::mock(),
             ..NodeService::mock(ChainConfig {
@@ -461,13 +461,13 @@ mod tests {
         };
         let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_chainId");
 
-        let result = service.handle_request(&request).await;
+        let result = service.proxy_request(&request).await;
 
         assert!(result.is_err());
     }
 
     #[tokio::test]
-    async fn test_handle_request_hides_upstream_url_on_retry_failure() {
+    async fn test_proxy_request_hides_upstream_url_on_retry_failure() {
         let service = NodeService {
             retry_config: RetryConfig::mock_with_errors(vec![500], vec![]),
             ..NodeService::mock(ChainConfig {
@@ -477,7 +477,7 @@ mod tests {
         };
         let request = ProxyRequest::mock_jsonrpc(Chain::Solana, "getSlot");
 
-        let response = service.handle_request(&request).await.unwrap();
+        let response = service.proxy_request(&request).await.unwrap();
         let body = serde_json::from_slice::<JsonRpcErrorResponse>(&response.body).unwrap();
 
         assert_eq!(response.status, StatusCode::INTERNAL_SERVER_ERROR.as_u16());

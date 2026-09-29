@@ -10,7 +10,6 @@ pub struct BalanceDiff {
 pub struct SwapMapper;
 
 impl SwapMapper {
-    /// Maps a set of balance changes to swap metadata if they represent a swap transaction
     pub fn map_swap(balance_diffs: &[BalanceDiff], fee: &BigUint, native_asset_id: &AssetId, provider: Option<String>) -> Option<TransactionSwapMetadata> {
         let non_zero_diffs: Vec<&BalanceDiff> = balance_diffs.iter().filter(|diff| diff.diff != BigInt::from(0)).collect();
 
@@ -21,7 +20,6 @@ impl SwapMapper {
         let first = non_zero_diffs.first()?;
         let second = non_zero_diffs.last()?;
 
-        // One should be positive (received), one negative (sent)
         if (first.diff > BigInt::from(0)) == (second.diff > BigInt::from(0)) {
             return None;
         }
@@ -31,7 +29,6 @@ impl SwapMapper {
         let from_value = Self::calculate_actual_value(&sent_diff.diff, &sent_diff.asset_id, fee, native_asset_id);
         let to_value = Self::calculate_actual_value(&received_diff.diff, &received_diff.asset_id, fee, native_asset_id);
 
-        // Ignore Mint txs
         if from_value == BigUint::from(0u8) {
             return None;
         }
@@ -45,8 +42,6 @@ impl SwapMapper {
         })
     }
 
-    /// Calculates the actual value of a balance change, accounting for transaction fees
-    /// For native tokens, we need to subtract the fee from the amount since the balance change includes both the swap amount and the fee payment.
     fn calculate_actual_value(amount: &BigInt, asset_id: &AssetId, fee: &BigUint, native_asset_id: &AssetId) -> BigUint {
         let magnitude = amount.magnitude();
         if asset_id == native_asset_id && magnitude >= fee { magnitude - fee } else { magnitude.clone() }

@@ -46,7 +46,6 @@ mod chain_integration_tests {
 
         let latest_block = tron_client.get_block_latest_number().await.unwrap();
 
-        // Latest block should be a positive number
         assert!(latest_block > 0);
     }
 

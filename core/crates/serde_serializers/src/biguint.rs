@@ -1,5 +1,7 @@
 use num_bigint::BigUint;
-use serde::{Deserialize, de};
+use serde::de;
+
+use crate::option::deserialize_option_with;
 
 fn parse_biguint_hex(value: &str) -> Result<BigUint, String> {
     let hex_value = value.strip_prefix("0x").unwrap_or(value);
@@ -45,11 +47,7 @@ pub fn deserialize_option_biguint_from_str<'de, D>(deserializer: D) -> Result<Op
 where
     D: de::Deserializer<'de>,
 {
-    let s: Option<String> = Option::deserialize(deserializer)?;
-    match s {
-        Some(value) => value.parse::<BigUint>().map(Some).map_err(de::Error::custom),
-        None => Ok(None),
-    }
+    deserialize_option_with(deserializer, str::parse::<BigUint>)
 }
 
 pub mod string {
@@ -68,11 +66,7 @@ pub fn deserialize_biguint_from_option_hex_str<'de, D>(deserializer: D) -> Resul
 where
     D: de::Deserializer<'de>,
 {
-    let opt: Option<String> = Option::deserialize(deserializer)?;
-    match opt {
-        Some(s) => parse_biguint_hex(&s).map(Some).map_err(de::Error::custom),
-        None => Ok(None),
-    }
+    deserialize_option_with(deserializer, parse_biguint_hex)
 }
 
 pub fn biguint_from_hex_str(hex_value: &str) -> Result<BigUint, Box<dyn std::error::Error + Send + Sync>> {

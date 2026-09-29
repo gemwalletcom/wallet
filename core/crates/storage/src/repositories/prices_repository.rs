@@ -154,8 +154,13 @@ fn upsert_prices(client: &mut DatabaseClient, values: Vec<PriceRow>) -> Result<u
         .set((
             price.eq(excluded(price)),
             price_change_percentage_24h.eq(coalesce(excluded(price_change_percentage_24h), price_change_percentage_24h)),
+            market_cap.eq(excluded(market_cap)),
+            market_cap_fdv.eq(excluded(market_cap_fdv)),
             market_cap_rank.eq(excluded(market_cap_rank)),
             total_volume.eq(excluded(total_volume)),
+            circulating_supply.eq(excluded(circulating_supply)),
+            total_supply.eq(excluded(total_supply)),
+            max_supply.eq(excluded(max_supply)),
             last_updated_at.eq(excluded(last_updated_at)),
         ))
         .execute(&mut client.connection)
@@ -216,14 +221,7 @@ impl PricesRepository for DatabaseClient {
         if primary_prices.is_empty() {
             return Ok(vec![]);
         }
-        let assets_by_id: HashMap<String, _> = asset_rows(self, primary_prices.iter().map(|(asset_id, _)| asset_id.to_string()).collect())?
-            .into_iter()
-            .map(|asset| (asset.id.clone(), asset))
-            .collect();
-        Ok(primary_prices
-            .into_iter()
-            .filter_map(|(asset_id, price)| assets_by_id.get(&asset_id.to_string()).map(|asset| price.as_price_asset_info(asset)))
-            .collect())
+        Ok(primary_prices.into_iter().map(|(asset_id, price)| price.as_price_asset_info(asset_id)).collect())
     }
 
     fn get_price_by_id(&mut self, price_id: &str) -> Result<Price, DatabaseError> {
@@ -350,7 +348,7 @@ impl PricesRepository for DatabaseClient {
             .into_iter()
             .map(|asset| {
                 let rows = prices_by_asset.remove(&asset.id).unwrap_or_default();
-                let market = primary_price(&providers, &rows, max_age).map(|price| price.as_market_primitive(&asset));
+                let market = primary_price(&providers, &rows, max_age).map(PriceRow::as_market_primitive);
                 AssetWithMarket { asset: asset.as_basic_primitive(), market }
             })
             .collect())
@@ -378,18 +376,32 @@ mod tests {
     fn test_primary_price() {
         let providers = vec![
             PriceProviderConfigRow::new(PriceProvider::Coingecko, true),
-            PriceProviderConfigRow::new(PriceProvider::Pyth, true),
-            PriceProviderConfigRow::new(PriceProvider::Jupiter, false),
+            PriceProviderConfigRow::new(PriceProvider::Jupiter, true),
+            PriceProviderConfigRow::new(PriceProvider::Pyth, false),
         ];
         let max_age = HOUR;
 
-        let fresh = vec![PriceRow::mock_with_age(PriceProvider::Coingecko, 60), PriceRow::mock_with_age(PriceProvider::Pyth, 60)];
-        assert_eq!(primary_price(&providers, &fresh, max_age).unwrap().provider.0, PriceProvider::Coingecko);
+        let fresh = vec![
+            PriceRow {
+                market_cap: Some(600.0),
+                circulating_supply: Some(300.0),
+                ..PriceRow::mock_with_age(PriceProvider::Coingecko, 60)
+            },
+            PriceRow {
+                market_cap: Some(3_000.0),
+                circulating_supply: Some(1_000.0),
+                ..PriceRow::mock_with_age(PriceProvider::Jupiter, 60)
+            },
+        ];
+        let primary = primary_price(&providers, &fresh, max_age).unwrap();
+        assert_eq!(primary.provider.0, PriceProvider::Coingecko);
+        assert_eq!(primary.as_market_primitive().market_cap, Some(600.0));
+        assert_eq!(primary.as_market_primitive().circulating_supply, Some(300.0));
 
-        let stale_primary = vec![PriceRow::mock_with_age(PriceProvider::Coingecko, 7200), PriceRow::mock_with_age(PriceProvider::Pyth, 60)];
-        assert_eq!(primary_price(&providers, &stale_primary, max_age).unwrap().provider.0, PriceProvider::Pyth);
+        let stale_primary = vec![PriceRow::mock_with_age(PriceProvider::Coingecko, 7200), PriceRow::mock_with_age(PriceProvider::Jupiter, 60)];
+        assert_eq!(primary_price(&providers, &stale_primary, max_age).unwrap().provider.0, PriceProvider::Jupiter);
 
-        let only_disabled = vec![PriceRow::mock_with_age(PriceProvider::Jupiter, 60)];
+        let only_disabled = vec![PriceRow::mock_with_age(PriceProvider::Pyth, 60)];
         assert!(primary_price(&providers, &only_disabled, max_age).is_none());
 
         assert!(primary_price(&providers, &[], max_age).is_none());
@@ -409,12 +421,25 @@ mod database_integration_tests {
     async fn test_get_primary_price_infos() {
         let database = Database::mock();
         let asset_id = AssetId::from_token(Chain::Ethereum, "0xpricetest");
-        let price_id = PriceId::new(PriceProvider::Coingecko, "price-test".to_string());
-        let price = PriceData {
-            id: price_id.clone(),
-            provider_price_id: price_id.provider_price_id.clone(),
+        let coingecko_id = PriceId::new(PriceProvider::Coingecko, "price-test".to_string());
+        let coingecko = PriceData {
+            id: coingecko_id.clone(),
+            provider_price_id: coingecko_id.provider_price_id.clone(),
             price: 42.0,
             price_change_percentage_24h: 5.0,
+            market_cap: Some(12_600.0),
+            circulating_supply: Some(300.0),
+            last_updated_at: Utc::now(),
+            ..PriceData::mock()
+        };
+        let jupiter_id = PriceId::new(PriceProvider::Jupiter, "price-test".to_string());
+        let jupiter = PriceData {
+            id: jupiter_id.clone(),
+            provider: PriceProvider::Jupiter,
+            provider_price_id: jupiter_id.provider_price_id.clone(),
+            price: 41.0,
+            market_cap: Some(41_000.0),
+            circulating_supply: Some(1_000.0),
             last_updated_at: Utc::now(),
             ..PriceData::mock()
         };
@@ -423,9 +448,18 @@ mod database_integration_tests {
             .run(move |client| -> Result<_, DatabaseError> {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::new(requested.clone(), "Price Test".to_string(), "PT".to_string(), 18, AssetType::ERC20).as_basic_primitive()])?;
-                client.add_prices_providers(vec![PriceProvider::Coingecko])?;
-                client.add_prices(vec![price])?;
-                client.set_prices_assets(vec![PriceAsset { asset_id: requested.clone(), price_id }])?;
+                client.add_prices_providers(vec![PriceProvider::Coingecko, PriceProvider::Jupiter])?;
+                client.add_prices(vec![coingecko, jupiter])?;
+                client.set_prices_assets(vec![
+                    PriceAsset {
+                        asset_id: requested.clone(),
+                        price_id: coingecko_id,
+                    },
+                    PriceAsset {
+                        asset_id: requested.clone(),
+                        price_id: jupiter_id,
+                    },
+                ])?;
                 client.get_primary_price_infos(&[requested], Duration::from_secs(3600))
             })
             .await
@@ -435,5 +469,8 @@ mod database_integration_tests {
         assert_eq!(infos[0].asset_id, asset_id);
         assert_eq!(infos[0].price.price, 42.0);
         assert_eq!(infos[0].price.price_change_percentage_24h, 5.0);
+        assert_eq!(infos[0].price.provider, PriceProvider::Coingecko);
+        assert_eq!(infos[0].market.market_cap, Some(12_600.0));
+        assert_eq!(infos[0].market.circulating_supply, Some(300.0));
     }
 }

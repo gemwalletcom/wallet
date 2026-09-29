@@ -30,7 +30,7 @@ extension AssetLinkRecord: CreateTable {
     static func create(db: Database) throws {
         try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.assetId.name, .text)
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesAsset()
 
             $0.column(Columns.name.name, .text)
             $0.column(Columns.url.name, .text)

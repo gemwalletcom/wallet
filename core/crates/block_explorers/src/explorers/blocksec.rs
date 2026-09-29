@@ -47,7 +47,6 @@ impl BlockExplorer for Blocksec {
         format!("https://app.blocksec.com/explorer/tx/{}/{}", self.tx_suffix.unwrap_or_else(|| self.chain.as_ref()), hash)
     }
     fn get_address_url(&self, _address: &str) -> String {
-        // delegate to etherscan
         EtherScan::boxed(self.chain).get_address_url(_address)
     }
 }

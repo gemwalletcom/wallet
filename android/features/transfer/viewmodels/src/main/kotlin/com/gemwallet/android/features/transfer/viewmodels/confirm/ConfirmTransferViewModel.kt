@@ -248,7 +248,7 @@ class ConfirmTransferViewModel @Inject constructor(
 
     private fun onPaymentVerified() {
         isVerificationVisible.value = false
-        fetch()
+        load()
     }
 
     private fun onPaymentVerificationFailed() {
@@ -299,7 +299,7 @@ class ConfirmTransferViewModel @Inject constructor(
 
     fun changeFeeAsset(assetId: AssetId) = loadOptions.update { it?.onFeeAsset(assetId.toIdentifier(), load.value?.feeAsset?.id) }
 
-    fun fetch() {
+    fun load() {
         screen.update { it.onLoadStarted() }
         reload.tryEmit(Unit)
     }
@@ -309,7 +309,7 @@ class ConfirmTransferViewModel @Inject constructor(
     fun send(finishAction: FinishConfirmAction) = viewModelScope.launch {
         when (screen.value.action()) {
             GemConfirmAction.LOAD -> {
-                fetch()
+                load()
                 return@launch
             }
 

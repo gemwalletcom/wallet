@@ -75,7 +75,7 @@ class AssetsResultsViewModel @Inject constructor(
     val title: String = savedStateHandle.get<String?>(RouteArgument.Title.key)
         ?: context.getString(R.string.assets_title)
 
-    private val isFetching = MutableStateFlow(true)
+    private val isSearching = MutableStateFlow(true)
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
@@ -100,8 +100,8 @@ class AssetsResultsViewModel @Inject constructor(
         pinned,
         unpinned,
         previewPerpetuals,
-        isFetching,
-    ) { pinned, assets, perpetuals, fetching ->
+        isSearching,
+    ) { pinned, assets, perpetuals, searching ->
         val counts = GemWalletSearchCounts(
             recents = 0u,
             pinnedAssets = pinned.size.toUInt(),
@@ -111,30 +111,30 @@ class AssetsResultsViewModel @Inject constructor(
             lists = 0u,
             nfts = 0u,
         )
-        walletSearchState(counts, fetching).phase
+        walletSearchState(counts, searching).phase
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemSelectAssetState.LOADING)
 
     init {
         queryState.setTextAndPlaceCursorAtEnd(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty())
-        fetch(pull = false)
+        search(pull = false)
     }
 
     override fun assetsSearchLimit(query: String): Int = resultsLimit(query)
 
     private fun resultsLimit(query: String = queryState.text.toString()): Int = service.walletSearchLimits(query).results.toInt()
 
-    fun refresh() = fetch(pull = true)
+    fun refresh() = search(pull = true)
 
-    private fun fetch(pull: Boolean) {
+    private fun search(pull: Boolean) {
         viewModelScope.launch(ioDispatcher) {
-            isFetching.value = true
+            isSearching.value = true
             if (pull) isPullRefreshing.value = true
             try {
                 runCatchingCancellable { service.search(queryState.text.toString(), scope.toGem()) }
                     .onFailure { Log.e("AssetsResults", "search failed", it) }
             } finally {
-                isFetching.value = false
+                isSearching.value = false
                 isPullRefreshing.value = false
             }
         }

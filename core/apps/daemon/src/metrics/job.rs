@@ -1,3 +1,4 @@
+use primitives::unix_timestamp;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -42,7 +43,7 @@ impl JobMetrics {
         state.duration = duration;
 
         if success {
-            let timestamp = super::now_unix();
+            let timestamp = unix_timestamp();
             state.last_success = Some(timestamp);
         }
     }

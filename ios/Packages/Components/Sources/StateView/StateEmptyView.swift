@@ -18,7 +18,6 @@ public struct StateEmptyView<Content: View>: View {
         image: Image? = nil,
         @ViewBuilder buttons: (() -> Content) = { EmptyView() },
     ) {
-        // set regular font if we have only title
         let titleStyle = (image == nil && description == nil) ? TextStyle(font: .body, color: titleTextStyle.color) : titleTextStyle
         let titleValue = TextValue(text: title, style: titleStyle)
         let descriptionValue = description.map { TextValue(text: $0, style: descriptionTextStyle) }

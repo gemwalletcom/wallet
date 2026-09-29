@@ -62,7 +62,7 @@ class ReownWalletConnectClient @Inject constructor(@param:ApplicationContext pri
                 description = config.appDescription,
                 url = config.appUrl,
                 icons = config.appIcons,
-                redirect = "gem://wc/",
+                redirect = "https://gemwallet.com/wc/",
             ),
             connectionType = ConnectionType.AUTOMATIC,
             telemetryEnabled = false,

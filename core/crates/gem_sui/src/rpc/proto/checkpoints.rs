@@ -1,12 +1,6 @@
 use super::{FieldMask, Timestamp};
 use gem_encoding::protobuf::{proto_decode, proto_encode};
 
-// Field numbers mirror sui-rpc v0.3.1 ledger/checkpoint schemas:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/ledger_service.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/checkpoint.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/checkpoint_summary.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/checkpoint_contents.proto
-
 #[derive(Clone, Debug, Default)]
 pub struct GetCheckpointRequest {
     pub sequence_number: Option<u64>,

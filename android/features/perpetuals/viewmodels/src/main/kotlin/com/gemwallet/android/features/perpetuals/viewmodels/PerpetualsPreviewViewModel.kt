@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.perpetuals.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
@@ -8,15 +7,11 @@ import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
-import com.gemwallet.android.domains.balance.hiddenWhen
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualPositionRowUIModel
-import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualTradeRowUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,7 +35,6 @@ class PerpetualsPreviewViewModel @Inject constructor(
     perpetualPositionsQuery: PerpetualPositionsQuery,
     perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,
     @param:IoDispatcher ioDispatcher: CoroutineDispatcher,
-    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val balance = getSession()
@@ -55,13 +49,10 @@ class PerpetualsPreviewViewModel @Inject constructor(
         .flatMapLatest { perpetualPositionsQuery(it.wallet.id) }
         .flowOn(ioDispatcher)
 
-    val tradeListItem = combine(balance, preferences.isHideBalances()) { balance, hideBalance ->
-        ListItemModel(
-            title = context.getString(R.string.perpetuals_trade),
-            subtitle = perpetualBalanceTotal(balance?.toGem()).text().hiddenWhen(hideBalance),
-        )
+    val tradeRow = combine(balance, preferences.isHideBalances()) { balance, hideBalance ->
+        PerpetualTradeRowUIModel(perpetualBalanceTotal(balance?.toGem()), hideBalance)
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.perpetuals_trade)))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val positions = combine(positionData, preferences.isHideBalances()) { positions, hideBalance ->
         positions.zip(perpetualPositionRows(positions.map { it.toGem() })) { data, row -> PerpetualPositionRowUIModel(data.asset, row.row, hideBalance) }

@@ -15,7 +15,6 @@ pub enum GemAppUpdateAction {
     Update,
 }
 
-/// The update prompt: what it says and which buttons it offers.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAppUpdateOffer {
     pub version: String,

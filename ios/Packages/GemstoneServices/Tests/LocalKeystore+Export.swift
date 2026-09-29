@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Gemstone
 @testable import GemstoneServices
 import Primitives
 
@@ -18,4 +19,14 @@ extension LocalKeystore {
             try gemKeystore.exportRecoveryPhrase(keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id), password: password)
         }
     }
+}
+
+private func withV4Password<T>(
+    keystore: GemKeystore,
+    _ password: String,
+    _ operation: (Data) throws -> T,
+) throws -> T {
+    var passwordBytes = keystore.decodePassword(password: password)
+    defer { passwordBytes.zeroize() }
+    return try operation(passwordBytes)
 }

@@ -54,7 +54,6 @@ public final class SwapSceneViewModel {
         toAssetQuery.value
     }
 
-    // UI states
     var isPresentingPriceImpactConfirmation: String?
     var pairSelectorModel: SwapPairSelectorViewModel
 
@@ -204,7 +203,7 @@ extension SwapSceneViewModel {
 
     func load() async {
         guard session.refreshesQuotes(isScreenActive: true), let input = session.input else { return }
-        await fetchQuotes(input: input)
+        await loadQuotes(input: input)
     }
 
     func onAppear() {
@@ -400,7 +399,7 @@ extension SwapSceneViewModel {
         }
     }
 
-    private func fetchQuotes(input: GemSwapQuoteInput) async {
+    private func loadQuotes(input: GemSwapQuoteInput) async {
         guard
             !isTransferDataLoading,
             let fromAsset, fromAsset.asset.id == input.request.payAssetId,

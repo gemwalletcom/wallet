@@ -3,9 +3,6 @@ use serde_json::{Map, Number, Value};
 use super::MessageResult;
 use gem_encoding::protobuf::{MessageDecode, proto_decode};
 
-// Field numbers mirror google.protobuf.Value, Struct, and ListValue:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/google/protobuf/struct.proto
-
 pub(super) fn decode_json_value(data: &[u8]) -> MessageResult<Value> {
     Ok(JsonValue::decode(data)?.into_value())
 }

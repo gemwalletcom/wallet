@@ -39,8 +39,6 @@ impl GemNotificationsService {
         self.permissions.is_available() && self.preferences.is_push_notifications_enabled()
     }
 
-    /// Opening support and adding a wallet ask to turn notifications on, under one rule: never after
-    /// the user turned them off, and no sooner than 30 days after the last ask.
     pub async fn ask_to_enable(&self) -> Option<GemPushState> {
         if !self.permissions.is_available() || self.preferences.is_push_notifications_enabled() || !self.preferences.should_ask_notifications() {
             return None;

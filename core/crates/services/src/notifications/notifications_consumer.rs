@@ -18,11 +18,11 @@ impl NotificationsConsumer {
 
 #[async_trait]
 impl MessageConsumer<NotificationsPayload, usize> for NotificationsConsumer {
-    async fn should_process(&self, _payload: &NotificationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &NotificationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: NotificationsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: NotificationsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         for notification in &payload.notifications {
             info_with_fields!(
                 "send push notification",

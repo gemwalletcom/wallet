@@ -261,7 +261,7 @@ mod tests {
             SolanaPrioritizationFee { prioritization_fee: 175_000 },
             SolanaPrioritizationFee { prioritization_fee: 125_000 },
             SolanaPrioritizationFee { prioritization_fee: 225_000 },
-            SolanaPrioritizationFee { prioritization_fee: 100_000 }, // Should be truncated (6th fee)
+            SolanaPrioritizationFee { prioritization_fee: 100_000 },
         ];
         let input_type = TransactionInputType::Transfer {
             asset: Asset {

@@ -21,6 +21,7 @@ pub enum StreamEvent {
     Perpetual(StreamWalletUpdate),
     InAppNotification(StreamNotificationUpdate),
     FiatTransaction(StreamWalletUpdate),
+    WalletConfiguration(StreamWalletUpdate),
     Support(SupportStreamEvent),
     Error(ErrorDetail),
 }
@@ -105,5 +106,14 @@ mod tests {
         });
 
         assert_eq!(serde_json::to_string(&event).unwrap(), r#"{"event":"error","data":{"message":"unknown variant `dash`"}}"#);
+    }
+
+    #[test]
+    fn test_wallet_configuration_event() {
+        let event = StreamEvent::WalletConfiguration(StreamWalletUpdate {
+            wallet_id: WalletId::Multicoin("0x1".into()),
+        });
+
+        assert_eq!(serde_json::to_string(&event).unwrap(), r#"{"event":"walletConfiguration","data":{"walletId":"multicoin_0x1"}}"#);
     }
 }

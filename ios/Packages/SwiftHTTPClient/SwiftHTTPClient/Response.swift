@@ -25,8 +25,6 @@ public struct Response {
     }
 }
 
-// same code lives in primitives, allow to inject json / date formatter on init
-
 private extension Formatter {
     nonisolated(unsafe) static let customISO8601DateFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()

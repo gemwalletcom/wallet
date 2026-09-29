@@ -8,7 +8,6 @@ pub mod simulation;
 pub mod token;
 pub mod transaction;
 
-// Re-export commonly used types for backward compatibility
 pub use block::*;
 pub use rpc::*;
 pub use simulation::*;

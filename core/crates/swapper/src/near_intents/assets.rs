@@ -96,7 +96,6 @@ type AssetsMap = HashMap<AssetId, &'static str>;
 pub static NEAR_INTENTS_ASSETS: LazyLock<HashMap<Chain, AssetsMap>> = LazyLock::new(|| {
     let mut map: HashMap<Chain, AssetsMap> = HashMap::new();
 
-    // Assets are declared here; same-chain routing is enabled only for chains in the Near Intents `OmniChain` allowlist in `ProviderType::mode`.
     map.insert(
         Chain::Near,
         HashMap::from([

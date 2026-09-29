@@ -9,7 +9,6 @@ pub const MINUTE: Duration = Duration::from_secs(SECONDS_PER_MINUTE);
 pub const HOUR: Duration = Duration::from_secs(SECONDS_PER_HOUR);
 pub const DAY: Duration = Duration::from_secs(SECONDS_PER_DAY);
 pub const WEEK: Duration = Duration::from_secs(SECONDS_PER_WEEK);
-/// Fixed 30-day duration. Use calendar date arithmetic for calendar months.
 pub const MONTH: Duration = DAY.saturating_mul(30);
 
 pub fn parse_duration(raw: &str) -> Option<Duration> {

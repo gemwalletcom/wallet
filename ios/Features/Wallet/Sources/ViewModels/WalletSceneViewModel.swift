@@ -37,7 +37,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         walletQuery.value
     }
 
-    // db queries
     public let walletQuery: ObservableQuery<WalletQuery>
     public let fiatValuesQuery: ObservableQuery<AssetFiatValuesQuery>
     public let perpetualBalanceQuery: ObservableQuery<PerpetualWalletBalanceQuery>

@@ -1,8 +1,7 @@
 use crate::services::collections::stale_by;
 use chrono::{DateTime, Utc};
-use primitives::OptionStringExt;
-use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact, PaymentRequest, VerificationStatus};
+use primitives::{OptionStringExt, contact::ContactAddress};
 
 use super::model::{GemContactAddressField, GemContactAddressSession, GemContactAvatarChoice, GemContactScannedAddress, GemContactSession};
 use crate::config::chain::is_memo_supported;

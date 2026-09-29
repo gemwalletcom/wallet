@@ -124,7 +124,7 @@ pub fn map_status(status: &str) -> FiatTransactionStatus {
     }
 }
 
-pub fn map_process_webhook(data: serde_json::Value) -> Result<FiatWebhook, serde_json::Error> {
+pub fn map_webhook(data: serde_json::Value) -> Result<FiatWebhook, serde_json::Error> {
     let webhook = serde_json::from_value::<PaybisWebhook<serde_json::Value>>(data)?;
     if webhook.event != "TRANSACTION_STATUS_CHANGED" {
         return Ok(FiatWebhook::None);
@@ -292,10 +292,10 @@ mod tests {
     }
 
     #[test]
-    fn test_map_process_webhook() {
+    fn test_map_webhook() {
         let webhook_json: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_started.json")).unwrap();
 
-        let result = map_process_webhook(webhook_json).unwrap();
+        let result = map_webhook(webhook_json).unwrap();
         let FiatWebhook::Transaction(transaction) = result else {
             panic!("Expected FiatWebhook::Transaction variant");
         };
@@ -314,10 +314,10 @@ mod tests {
     }
 
     #[test]
-    fn test_map_process_webhook_no_payment() {
+    fn test_map_webhook_no_payment() {
         let webhook_json: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_started_no_payment.json")).unwrap();
 
-        let result = map_process_webhook(webhook_json).unwrap();
+        let result = map_webhook(webhook_json).unwrap();
         let FiatWebhook::Transaction(transaction) = result else {
             panic!("Expected FiatWebhook::Transaction variant");
         };
@@ -374,10 +374,10 @@ mod tests {
     }
 
     #[test]
-    fn test_map_process_webhook_completed_with_transaction_hash() {
+    fn test_map_webhook_completed_with_transaction_hash() {
         let data: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_completed.json")).unwrap();
 
-        let result = map_process_webhook(data).unwrap();
+        let result = map_webhook(data).unwrap();
         let FiatWebhook::Transaction(transaction) = result else {
             panic!("Expected FiatWebhook::Transaction variant");
         };
@@ -399,7 +399,7 @@ mod tests {
     fn test_verification_webhook_maps_to_none() {
         let data: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_no_changes.json")).unwrap();
 
-        let result = map_process_webhook(data).unwrap();
+        let result = map_webhook(data).unwrap();
         assert!(matches!(result, FiatWebhook::None), "Verification webhooks should map to FiatWebhook::None");
     }
 
@@ -412,7 +412,7 @@ mod tests {
             }
         });
 
-        assert!(map_process_webhook(data).is_err());
+        assert!(map_webhook(data).is_err());
     }
 
     #[test]

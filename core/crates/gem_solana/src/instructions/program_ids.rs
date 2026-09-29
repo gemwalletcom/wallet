@@ -15,4 +15,3 @@ program_id!(token_2022_program, "06ddf6e1ee758fde18425dbce46ccddab61afc4d83b90d2
 program_id!(associated_token_program, "8c97258f4e2489f1bb3d1029148e0d830b5a1399daff1084048e7bd8dbe9f859");
 program_id!(memo_program, "054a535a992921064d24e87160da387c7c35b5ddbc92bb81e41fa8404105448d");
 program_id!(compute_budget_program, "0306466fe5211732ffecadba72c39be7bc8ce5bbc5f7126b2c439b3a40000000");
-program_id!(rent_sysvar, "06a7d517192c5c51218cc94c3d4af17f58daee089ba1fd44e3dbd98a00000000");

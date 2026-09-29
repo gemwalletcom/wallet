@@ -8,8 +8,6 @@ import GemstonePrimitives
 import GemstoneServices
 import Primitives
 
-/// OnstartService runs services before the app starts.
-/// See OnstartAsyncService for any background tasks to run after start
 public struct OnstartService: Sendable {
     private let appStartService: any GemAppStartServiceProtocol
     private let preferencesService: any GemPreferencesServiceProtocol
@@ -78,8 +76,8 @@ public struct OnstartService: Sendable {
 
 extension OnstartService {
     private func configureURLCache() {
-        URLCache.shared.memoryCapacity = 256_000_000 // ~256 MB memory space
-        URLCache.shared.diskCapacity = 1_000_000_000 // ~1GB disk cache space
+        URLCache.shared.memoryCapacity = 256_000_000
+        URLCache.shared.diskCapacity = 1_000_000_000
     }
 
     private func excludeDirectoriesFromBackup() throws {

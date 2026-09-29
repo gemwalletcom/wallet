@@ -48,10 +48,9 @@ impl PusherClient {
         Ok(!has_invalid_token)
     }
 
-    //Remove in the future
     fn get_topic(&self, platform: i32) -> Option<String> {
         match platform {
-            1 => Some(self.topic.clone()), // ios
+            1 => Some(self.topic.clone()),
             2 => None,
             _ => None,
         }

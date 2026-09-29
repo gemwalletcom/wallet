@@ -37,7 +37,7 @@ impl PriceHandler {
         self.assets.iter().map(price_channel).collect()
     }
 
-    pub fn handle_price_message(&mut self, value: &[u8]) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub fn record_price_message(&mut self, value: &[u8]) -> Result<(), Box<dyn Error + Send + Sync>> {
         let info = serde_json::from_slice::<AssetPriceInfo>(value)?;
         if !self.assets.contains(&info.asset_id) {
             return Ok(());
@@ -47,7 +47,7 @@ impl PriceHandler {
         Ok(())
     }
 
-    pub async fn handle_stream_message(&mut self, message: &StreamMessage, redis_connection: &mut MultiplexedConnection) -> Result<Option<StreamEvent>, Box<dyn Error + Send + Sync>> {
+    pub async fn respond_to_stream_message(&mut self, message: &StreamMessage, redis_connection: &mut MultiplexedConnection) -> Result<Option<StreamEvent>, Box<dyn Error + Send + Sync>> {
         match message {
             StreamMessage::GetPrices(msg) => Ok(Some(self.get_prices(msg).await?)),
             StreamMessage::SubscribePrices(msg) => Ok(Some(self.subscribe_prices(msg, redis_connection).await?)),

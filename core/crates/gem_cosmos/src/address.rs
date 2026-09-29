@@ -72,7 +72,6 @@ mod tests {
 
     #[test]
     fn test_invalid_cosmos_address() {
-        // invalid checksum
         let cosmos_address = "cosmos1h3laqcrmul79zwtw6j63ncsl0adfj07wgu";
 
         let result = CosmosAddress::convert(cosmos_address, "osmosis");

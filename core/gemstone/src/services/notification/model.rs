@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::OptionStringExt;
-use primitives::{AssetId, CoreListItemIcon, InAppNotification, UrlAction};
+use primitives::{AssetId, CoreListItemIcon, InAppNotification, OptionStringExt, UrlAction};
 
 use crate::services::localization::GemLocalizedText;
 

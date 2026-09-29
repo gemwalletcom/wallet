@@ -33,7 +33,6 @@ pub fn calculate_transfer_fee_rate(chain_parameters: &[ChainParameter], account_
         let activation_fee = get_chain_parameter_value(chain_parameters, GET_CREATE_NEW_ACCOUNT_FEE_IN_SYSTEM_CONTRACT)?;
         let new_account_bandwidth_fee = get_chain_parameter_value(chain_parameters, GET_CREATE_ACCOUNT_FEE)?;
 
-        // Account activation only waives this fixed bandwidth fee when the sender has staked/delegated bandwidth.
         if account_usage.available_staked_bandwidth() >= DEFAULT_BANDWIDTH_BYTES {
             activation_fee
         } else {
@@ -210,7 +209,7 @@ mod tests {
             energy_limit: 0,
         };
 
-        assert_eq!(usage.available_bandwidth(), 1200); // (1000-100) + (500-200)
+        assert_eq!(usage.available_bandwidth(), 1200);
         assert_eq!(usage.available_staked_bandwidth(), 300);
     }
 
@@ -236,10 +235,6 @@ mod tests {
 
         let fee = calculate_token_transfer_fee(&usage, 64285, 420, 1000);
 
-        // energy_with_buffer = 64285 * 1.2 = 77142
-        // chargeable_energy = 77142 (no staked energy)
-        // energy_fee = 77142 * 420 = 32,399,640
-        // bandwidth_fee = 345 * 1000 = 345,000
         assert_eq!(fee.fee, 77142 * 420 + DEFAULT_BANDWIDTH_BYTES * 1000);
         assert_eq!(fee.fee_limit, 77142 * 420);
         assert_eq!(fee.energy_price, 420);
@@ -252,7 +247,6 @@ mod tests {
 
         let fee = calculate_token_fee_rate_with_data(&params, &usage, 64285, 0, false, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT).unwrap();
 
-        // energy_with_buffer = 64285 * 1.3 = 83570
         assert_eq!(fee.fee, 83570 * 420 + DEFAULT_BANDWIDTH_BYTES * 1000);
         assert_eq!(fee.fee_limit, 83570 * 420);
         assert_eq!(fee.energy_price, 420);
@@ -264,10 +258,6 @@ mod tests {
 
         let fee = calculate_token_transfer_fee(&usage, 64285, 420, 1000);
 
-        // energy_with_buffer = 77142
-        // chargeable_energy = 77142 - 60000 = 17142
-        // energy_fee = 17142 * 420 = 7,199,640
-        // bandwidth_fee = 0 (has enough)
         assert_eq!(fee.fee, 17142 * 420);
         assert_eq!(fee.fee_limit, 77142 * 420);
     }
@@ -278,7 +268,6 @@ mod tests {
 
         let fee = calculate_token_transfer_fee(&usage, 64285, 420, 1000);
 
-        // User has more than enough staked energy
         assert_eq!(fee.fee, 0);
         assert_eq!(fee.fee_limit, 77142 * 420);
     }
@@ -301,10 +290,7 @@ mod tests {
 
         let with_bandwidth = TronAccountUsage::mock(DEFAULT_BANDWIDTH_BYTES, 0, 0);
         assert_eq!(calculate_transfer_fee_rate(&params, &with_bandwidth, false, false).unwrap(), BigInt::from(0));
-        assert_eq!(
-            calculate_transfer_fee_rate(&params, &with_bandwidth, false, true).unwrap(),
-            BigInt::from(1_000_000), // memo fee only
-        );
+        assert_eq!(calculate_transfer_fee_rate(&params, &with_bandwidth, false, true).unwrap(), BigInt::from(1_000_000),);
 
         let without_bandwidth = TronAccountUsage::mock(100, 0, 0);
         let burn_bandwidth = DEFAULT_BANDWIDTH_BYTES * 1000;
@@ -322,26 +308,14 @@ mod tests {
         ];
 
         let without_bandwidth = TronAccountUsage::mock(0, 0, 0);
-        assert_eq!(
-            calculate_transfer_fee_rate(&params, &without_bandwidth, true, false).unwrap(),
-            BigInt::from(1_100_000), // activation + bandwidth
-        );
-        assert_eq!(
-            calculate_transfer_fee_rate(&params, &without_bandwidth, true, true).unwrap(),
-            BigInt::from(2_100_000), // activation + bandwidth + memo
-        );
+        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, true, false).unwrap(), BigInt::from(1_100_000),);
+        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, true, true).unwrap(), BigInt::from(2_100_000),);
 
         let with_free_bandwidth = TronAccountUsage::mock(DEFAULT_BANDWIDTH_BYTES, 0, 0);
-        assert_eq!(
-            calculate_transfer_fee_rate(&params, &with_free_bandwidth, true, false).unwrap(),
-            BigInt::from(1_100_000), // activation + fixed account creation bandwidth fee
-        );
+        assert_eq!(calculate_transfer_fee_rate(&params, &with_free_bandwidth, true, false).unwrap(), BigInt::from(1_100_000),);
 
         let with_staked_bandwidth = TronAccountUsage::mock(0, DEFAULT_BANDWIDTH_BYTES, 0);
-        assert_eq!(
-            calculate_transfer_fee_rate(&params, &with_staked_bandwidth, true, false).unwrap(),
-            BigInt::from(1_000_000), // only activation
-        );
+        assert_eq!(calculate_transfer_fee_rate(&params, &with_staked_bandwidth, true, false).unwrap(), BigInt::from(1_000_000),);
     }
 
     #[test]

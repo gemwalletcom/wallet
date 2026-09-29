@@ -56,7 +56,6 @@ pub struct GemSwapPriceImpactRow {
 }
 
 impl GemSwapQuoteSummary {
-    /// Every detail row but the provider and the rate, which each app renders richly.
     pub fn detail_rows(&self, has_selected_slippage: bool) -> Vec<GemListRow> {
         let receive_asset = &self.to_asset;
         let price_impact = self.price_impact.filter(|impact| impact.shows_in_summary);

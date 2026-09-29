@@ -26,7 +26,7 @@ val ColorScheme.secondaryFaded: Color
 
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF2D5BE6),
-    secondary = Color(0xFF808d99), // Color(0xFF818181),
+    secondary = Color(0xFF808d99),
     tertiary = Color(0xFF1B9A6C),
     background = Color(0xFF24262A),
     surface = Color(0xFF1A191A),
@@ -38,25 +38,22 @@ private val DarkColorScheme = darkColorScheme(
     error = Color(0xFFF84E4E),
     outline = Color(0xFF767A81),
     outlineVariant = Color(0xFF3A3A3C),
-    scrim = Color(0xff34373d), // Header button actions color
+    scrim = Color(0xff34373d),
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF2D5BE6),
-    secondary = Color(0xFF999999), // Color(0xFF818181),
+    secondary = Color(0xFF999999),
     tertiary = Color(0xFF1B9A6C),
     background = Color(0xFFFFFFFF),
     surface = Color(0xFFF0F0F5),
     surfaceContainerHighest = Color(0xFFE5E5EA),
-//    onPrimary = Color.White,
-//    onSecondary = Color.White,
-//    onTertiary = Color.White,
     onBackground = Color(0xFF1A191A),
     onSurface = Color(0xFF1C1B1F),
     error = Color(0xFFF84E4E),
     outline = Color(0xFF767A81),
     outlineVariant = Color(0xFFD1D1D6),
-    scrim = Color(0xffededed), // from #f2f2f2
+    scrim = Color(0xffededed),
 )
 
 enum class WindowDimension {
@@ -80,12 +77,7 @@ fun isCompactDimension(dimension: WindowDimension): Boolean {
 }
 
 @Composable
-fun WalletTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false,
-    content: @Composable () -> Unit,
-) {
+fun WalletTheme(darkTheme: Boolean = isSystemInDarkTheme(), dynamicColor: Boolean = false, content: @Composable () -> Unit) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

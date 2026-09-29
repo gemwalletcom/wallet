@@ -77,7 +77,6 @@ async fn build_evm_approval(from_asset: &QuoteAsset, transaction_data: &Transact
     let Some(token) = from_asset.asset_id().token_id else {
         return Ok(None);
     };
-    // Fall back to the transaction target when signature_data omits the approve contract.
     let Some(spender) = get_spender(transaction_data.signature_data.as_deref()).or_else(|| {
         let to = transaction_data.to.clone();
         (!to.is_empty()).then_some(to)

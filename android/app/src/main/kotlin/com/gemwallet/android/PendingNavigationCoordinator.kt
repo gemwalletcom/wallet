@@ -1,7 +1,6 @@
 package com.gemwallet.android
 
 import android.content.Intent
-import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,11 +20,13 @@ internal sealed interface PendingNavigation {
         val code: String?
     }
 
-    data class FromIntent(val intent: Intent) : Input {
-        override val code: String? = intent.dataString
-    }
+    data class FromLink(override val code: String) : Input
 
     data class FromScan(override val code: String) : Input
+
+    data class FromNotification(val type: String, val data: String?) : Input {
+        override val code: String? = null
+    }
 
     data class Routes(val routes: List<NavKey>, val tab: GemNavigationTab? = null) : PendingNavigation
 
@@ -39,9 +40,12 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
     internal val pendingNavigation: StateFlow<PendingNavigation?> = _pendingNavigation.asStateFlow()
 
     fun pendIntent(intent: Intent) {
-        if (intent.hasNotificationPayload() || intent.dataString != null) {
-            _pendingNavigation.update { PendingNavigation.FromIntent(Intent(intent)) }
-        }
+        val code = intent.dataString ?: return
+        _pendingNavigation.update { PendingNavigation.FromLink(code) }
+    }
+
+    fun pendNotification(type: String, data: String?) {
+        _pendingNavigation.update { PendingNavigation.FromNotification(type, data) }
     }
 
     fun pendScan(code: String) {
@@ -56,7 +60,7 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
         val pending = _pendingNavigation.value as? PendingNavigation.Input ?: return null
         val code = pending.code
         if (code == null) {
-            val destination = (pending as? PendingNavigation.FromIntent)?.let { notificationNavigation.prepareNavigation(it.intent) }
+            val destination = (pending as? PendingNavigation.FromNotification)?.let { notificationNavigation.prepareNavigation(it.type, it.data) }
             replace(pending, destination?.takeIf { it.routes.isNotEmpty() })
             return null
         }
@@ -92,11 +96,6 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
 
     private fun replace(pending: PendingNavigation, replacement: PendingNavigation?) {
         _pendingNavigation.update { current -> if (current === pending) replacement else current }
-    }
-
-    @VisibleForTesting
-    internal fun setIntent(intent: Intent) {
-        _pendingNavigation.update { PendingNavigation.FromIntent(intent) }
     }
 
     interface WalletConnectHandler {

@@ -1,7 +1,5 @@
 use localizer::LanguageLocalizer;
 
-/// Test that the expected languages and fallback language are
-/// available.
 #[test]
 fn test_specific_language() {
     let localizer = LanguageLocalizer::new_with_language("es");

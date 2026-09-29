@@ -93,7 +93,7 @@ impl StreamProducerQueue for StreamProducer {
         if count == 0 {
             return Ok(0);
         }
-        self.publish(QueueName::StoreTransactions, &payload).await?;
+        self.publish_with_routing_key(QueueName::StoreTransactions, payload.chain.as_ref(), &payload).await?;
         Ok(count)
     }
 

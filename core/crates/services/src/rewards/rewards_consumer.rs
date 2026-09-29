@@ -12,11 +12,11 @@ pub struct RewardsConsumer {
 
 #[async_trait]
 impl MessageConsumer<RewardsNotificationPayload, usize> for RewardsConsumer {
-    async fn should_process(&self, _payload: &RewardsNotificationPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &RewardsNotificationPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: RewardsNotificationPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: RewardsNotificationPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let event_id = payload.event_id;
         let notifications = self
             .database

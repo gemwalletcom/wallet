@@ -1,4 +1,3 @@
-// Taken from https://github.com/metaplex-foundation/mpl-core/blob/main/programs/mpl-core/src/state/asset.rs
 use crate::Pubkey;
 use borsh::{BorshDeserialize, BorshSerialize};
 use gem_encoding::decode_base64;

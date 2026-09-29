@@ -276,7 +276,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func fetchAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
+    func loadAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
         let kinds: [GemFeeRateKind] = [.priority(priority: .normal), .priority(priority: .fast)]
         let warning: GemListRow = .notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)
         let model = ConfirmTransferSceneViewModel.mock(confirmation: GemConfirmationMock(
@@ -353,7 +353,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func fetchIgnoresErrorAfterCancellation() async {
+    func loadIgnoresErrorAfterCancellation() async {
         let model = ConfirmTransferSceneViewModel.mock(
             load: .failure(AnyError("network")),
         )

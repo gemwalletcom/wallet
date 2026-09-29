@@ -17,7 +17,6 @@ impl GemInfoTopic {
 
 #[uniffi::export]
 impl GemInfoSheet {
-    /// The button the sheet shows: a docs link always opens, any other action only when the screen handles it.
     pub fn button(&self, handles_actions: bool) -> Option<GemInfoAction> {
         self.action.clone().filter(|action| matches!(action, GemInfoAction::LearnMore { .. }) || handles_actions)
     }

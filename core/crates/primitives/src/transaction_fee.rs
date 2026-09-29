@@ -103,19 +103,17 @@ mod tests {
 
         let fee = TransactionFee::calculate(gas_limit, &gas_price_type, Asset::mock_eth().id);
 
-        assert_eq!(fee.fee, BigInt::from(100000u64)); // 100 * 1000
+        assert_eq!(fee.fee, BigInt::from(100000u64));
         assert_eq!(fee.gas_price_type.gas_price(), BigInt::from(100u64));
         assert_eq!(fee.gas_limit, BigInt::from(1000u64));
     }
 
     #[test]
     fn test_new_gas_price_type() {
-        // Without options
         let fee = TransactionFee::new_gas_price_type(GasPriceType::regular(BigInt::from(200)), BigInt::from(50000), BigInt::from(500), HashMap::new(), Asset::mock_eth().id);
         assert_eq!(fee.fee, BigInt::from(50000));
         assert_eq!(fee.gas_limit, BigInt::from(500));
 
-        // With options
         let fee = TransactionFee::new_gas_price_type(
             GasPriceType::regular(BigInt::from(150)),
             BigInt::from(30000),
@@ -123,9 +121,8 @@ mod tests {
             HashMap::from([(FeeOption::TokenAccountCreation, BigInt::from(5000))]),
             Asset::mock_eth().id,
         );
-        assert_eq!(fee.fee, BigInt::from(35000)); // 30000 + 5000
+        assert_eq!(fee.fee, BigInt::from(35000));
 
-        // With EIP-1559
         let fee = TransactionFee::new_gas_price_type(GasPriceType::eip1559(BigInt::from(300), BigInt::from(10)), BigInt::from(60000), BigInt::from(200), HashMap::new(), Asset::mock_eth().id);
         assert_eq!(fee.gas_price_type.priority_fee(), BigInt::from(10));
     }
@@ -137,7 +134,7 @@ mod tests {
 
         let fee = TransactionFee::new_from_fee_with_option(base_fee.clone(), FeeOption::TokenAccountCreation, option_value.clone(), Asset::mock_eth().id);
 
-        assert_eq!(fee.fee, BigInt::from(12500)); // 10000 + 2500
+        assert_eq!(fee.fee, BigInt::from(12500));
         assert_eq!(fee.gas_price_type.gas_price(), base_fee);
         assert_eq!(fee.gas_limit, BigInt::from(0));
         assert_eq!(fee.options.get(&FeeOption::TokenAccountCreation), Some(&option_value));

@@ -21,7 +21,6 @@ fn resource_type_metadata(resource: Option<&str>) -> Option<Value> {
 }
 
 fn tron_swap_metadata(chain: Chain, owner: &TronAddress, call_value: Option<u64>, logs: &[TronLog], internal_transactions: &[InternalTransaction]) -> Option<TransactionSwapMetadata> {
-    // Native TRX keys as `None` so its call_value and internal transfer legs merge into a single diff.
     let mut deltas: HashMap<Option<String>, BigInt> = HashMap::new();
 
     for (token, delta) in token_balance_deltas(logs, owner) {

@@ -17,7 +17,6 @@ impl RuneScan {
     }
 }
 
-// Custom implementation needed for hash trimming
 struct RuneScanExplorer;
 
 impl BlockExplorer for RuneScanExplorer {

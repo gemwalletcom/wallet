@@ -18,7 +18,7 @@ pub use self::repositories::{
     api_clients_repository::ApiClientsRepository,
     assets_addresses_repository::AssetsAddressesRepository,
     assets_links_repository::AssetsLinksRepository,
-    assets_repository::{AssetFilter, AssetSupply, AssetUpdate, AssetsRepository},
+    assets_repository::{AssetFilter, AssetUpdate, AssetsRepository},
     assets_usage_ranks_repository::AssetsUsageRanksRepository,
     chains_repository::ChainsRepository,
     charts_repository::{ChartFilter, ChartPoint, ChartsRepository},

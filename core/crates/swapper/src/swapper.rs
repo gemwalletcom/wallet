@@ -20,7 +20,6 @@ pub struct GemSwapper {
 }
 
 impl GemSwapper {
-    // filter provider types that does not support cross chain / bridge swaps
     fn filter_by_provider_mode(mode: &SwapperProviderMode, from_chain: Chain, to_chain: Chain) -> bool {
         match mode {
             SwapperProviderMode::OnChain => from_chain == to_chain,
@@ -286,7 +285,6 @@ mod tests {
                 .collect::<Vec<_>>()
         };
 
-        // Cross-chain providers are eligible across different chains.
         assert_eq!(filter(Chain::Ethereum, Chain::Optimism), vec![SwapperProvider::Thorchain, SwapperProvider::NearIntents, SwapperProvider::Chainflip]);
 
         assert_eq!(

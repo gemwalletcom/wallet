@@ -2,7 +2,6 @@ use sui_types::Address as SdkAddress;
 
 use gem_encoding::protobuf::{proto_decode, proto_encode};
 
-// Mirrors https://github.com/MystenLabs/sui-apis/blob/main/proto/sui/rpc/v2/move_package_service.proto
 #[derive(Clone, Debug, Default)]
 pub struct GetFunctionRequest {
     pub package_id: Option<String>,

@@ -1,5 +1,3 @@
-// https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=YourApiKeyToken
-
 use crate::client::GemstoneFeeData;
 use gem_client::{ClientExt, ReqwestClient, Target, build_path_with_query};
 use num_bigint::BigInt;
@@ -24,7 +22,6 @@ pub struct EtherscanResult {
 }
 
 impl EtherscanResult {
-    /// Converts the raw Etherscan gas oracle data into the common `GemstoneFeeData` format.
     pub fn fee_data(&self) -> GemstoneFeeData {
         let base_fee: f64 = self.suggest_base_fee.parse().unwrap();
         let propose_fee: f64 = self.propose_gas_price.parse().unwrap();
@@ -83,7 +80,7 @@ impl EtherscanClient {
         }
     }
 
-    pub async fn fetch_gas_oracle(&self) -> Result<EtherscanResponse, Box<dyn Error + Send + Sync>> {
+    pub async fn get_gas_oracle(&self) -> Result<EtherscanResponse, Box<dyn Error + Send + Sync>> {
         let response: EtherscanResponse = self.client.get(EtherscanTarget::GasOracle).query(&[("apikey", self.api_key.as_str())]).await?;
         if response.status != "1" {
             return Err(format!("Etherscan API error: {}", response.message).into());

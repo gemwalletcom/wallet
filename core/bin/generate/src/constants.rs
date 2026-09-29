@@ -13,7 +13,6 @@ pub const SWIFT_PATH: &str = "GemstonePrimitives/Sources/Generated/GemConstants.
 pub const KOTLIN_PATH: &str = "../../gemwallet/android/ext/GemConstants.kt";
 const PRIMITIVES_ROOT: &str = "crates/primitives/src";
 
-/// `constants.rs`: the plain values Core reads and both apps receive as generated constants instead of FFI calls.
 pub struct Constants {
     items: Vec<Constant>,
     enums: BTreeMap<String, Enumeration>,
@@ -134,7 +133,6 @@ impl Constants {
         }
     }
 
-    /// An app model enum reaches the app as the app's own type; a UniFFI enum keeps its binding type.
     fn enum_name(&self, name: &str, language: Language) -> String {
         let enumeration = self.enumeration(name);
         match (language, enumeration.app_model) {

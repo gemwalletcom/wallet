@@ -53,7 +53,7 @@ impl SolanaGasClient {
         Self { native_provider }
     }
 
-    pub async fn fetch_fee_data(&self) -> Result<SolanaFeeData, Box<dyn Error + Send + Sync>> {
+    pub async fn get_fee_data(&self) -> Result<SolanaFeeData, Box<dyn Error + Send + Sync>> {
         let endpoint = self.native_provider.get_endpoint(Chain::Solana)?;
         let alien_client = new_alien_client(endpoint, self.native_provider.clone());
         let client: JsonRpcClient<_> = JsonRpcClient::new(alien_client);

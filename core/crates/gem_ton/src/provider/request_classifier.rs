@@ -5,7 +5,6 @@ use crate::provider::BroadcastProvider;
 
 impl ChainRequestClassifier for BroadcastProvider {
     fn classify_request(&self, request: ChainRequest<'_>) -> ChainRequestType {
-        // TODO(2027-01-01): Remove v2 classification with Dynode legacy wallet routes.
         if request.is_http_post_path("/api/v3/message") || request.is_http_post_path("/api/v2/sendBocReturnHash") {
             ChainRequestType::Broadcast
         } else {

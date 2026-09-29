@@ -39,7 +39,6 @@ pub fn build_quote_exact_request(v4_quoter: &str, params: &IV4Quoter::QuoteExact
     }
 }
 
-// Returns (amountOut, gasEstimate)
 pub fn decode_quoter_response(response: &JsonRpcResponse<String>) -> Result<(U256, U256), SwapperError> {
     let decoded = HexDecode(&response.result).map_err(SwapperError::compute_quote_error)?;
     let quoter_return = IV4Quoter::quoteExactInputSingleCall::abi_decode_returns(&decoded).map_err(SwapperError::from)?;
@@ -89,8 +88,8 @@ mod tests {
 
     #[test]
     fn test_build_quote_exact_request() {
-        let token_in = address!("0x6fd9d7AD17242c41f7131d257212c54A0e816691"); // UNI
-        let token_out = address!("0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6"); // LINK
+        let token_in = address!("0x6fd9d7AD17242c41f7131d257212c54A0e816691");
+        let token_out = address!("0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6");
         let fee_tiers = vec![FeeTier::ThreeThousand, FeeTier::FiveHundred, FeeTier::Hundred];
         let base_pair = base_pair(EVMChain::Optimism, Protocol::V4).unwrap();
 
@@ -100,9 +99,8 @@ mod tests {
         let quote_params = build_quote_exact_params(amount_in, &token_in, &token_out, &fee_tiers, &base_pair.path_building_array());
         let rpc_calls = build_quote_exact_requests(v4_quoter, &quote_params);
 
-        assert_eq!(rpc_calls.len(), 3); // 3 intermediaries (ETH, USDC, USDT)
+        assert_eq!(rpc_calls.len(), 3);
 
-        // 3 fee tiers
         rpc_calls.iter().for_each(|call_array| assert_eq!(call_array.len(), 3));
     }
 }

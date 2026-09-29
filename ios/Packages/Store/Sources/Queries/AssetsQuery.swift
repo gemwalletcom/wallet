@@ -169,9 +169,6 @@ extension AssetsQuery {
     }
 }
 
-/// Specific case for the price alerts scene:
-/// This is necessary because watch-only wallets do not create accounts for other networks.
-/// On the price alerts screen, we fetch all assets and fill them with empty data.
 extension AssetsQuery {
     private func allAssetRecords(
         _ db: Database,

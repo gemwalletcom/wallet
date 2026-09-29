@@ -20,11 +20,11 @@ impl FetchTransactionConsumer {
 
 #[async_trait]
 impl MessageConsumer<TransactionIdRequest, usize> for FetchTransactionConsumer {
-    async fn should_process(&self, payload: &TransactionIdRequest) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, payload: &TransactionIdRequest) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.cacher.can_process_cached(CacheKey::FetchTransaction(payload.chain.as_ref(), &payload.hash)).await
     }
 
-    async fn process(&self, payload: TransactionIdRequest) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: TransactionIdRequest) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let chain = payload.chain;
         let Some(transaction) = self.providers.get_transaction_by_hash(payload).await? else {
             return Ok(0);

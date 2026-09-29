@@ -250,9 +250,7 @@ pub fn first_supported_receive_asset(asset_ids: Vec<AssetId>, pay_asset_id: &Ass
     asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id && supported.contains(asset_id))
 }
 
-/// One wallet page is read for a swap side; a wallet is never loaded whole to pick a default.
 pub const CANDIDATES_LIMIT: u32 = 50;
-/// The swap history a default pair is chosen from.
 pub const RECENTS_LIMIT: u32 = 20;
 
 pub fn pay_candidate_filters() -> Vec<GemAssetFilter> {

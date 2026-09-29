@@ -54,6 +54,17 @@ class BalancesDaoTest {
     private fun balance(assetId: String, walletId: String = wallet, visible: Boolean = true) = DbBalance(assetId = assetId, walletId = walletId, isVisible = visible, updatedAt = 0)
 
     @Test
+    fun addingAnAssetAgainKeepsItsBalances() = runBlocking(Dispatchers.IO) {
+        database.balancesDao().insertIgnore(balance("ethereum"))
+        val ethereum = DbAsset(id = "ethereum", chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18, type = AssetType.NATIVE)
+
+        database.assetsDao().insert(ethereum)
+        database.assetsDao().insert(listOf(ethereum))
+
+        assertEquals(1, database.balancesDao().getByAssets(wallet, listOf("ethereum")).size)
+    }
+
+    @Test
     fun addingABalanceTwiceKeepsTheStoredOne() = runBlocking(Dispatchers.IO) {
         database.balancesDao().insertIgnore(balance("ethereum"))
         database.balancesDao().insert(

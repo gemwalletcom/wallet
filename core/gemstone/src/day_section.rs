@@ -20,7 +20,6 @@ pub enum GemDayLabel {
     Date,
 }
 
-/// The items that fall on one local day; positions index the list the app passed, in its order.
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemDaySection {
     pub day: GemDay,

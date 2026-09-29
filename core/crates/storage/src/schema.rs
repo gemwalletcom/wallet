@@ -167,9 +167,6 @@ diesel::table! {
         earn_apr -> Nullable<Float8>,
         has_image -> Bool,
         has_price -> Bool,
-        circulating_supply -> Nullable<Float8>,
-        total_supply -> Nullable<Float8>,
-        max_supply -> Nullable<Float8>,
     }
 }
 
@@ -647,6 +644,11 @@ diesel::table! {
         all_time_high -> Float8,
         all_time_low -> Float8,
         total_volume -> Nullable<Float8>,
+        market_cap -> Nullable<Float8>,
+        market_cap_fdv -> Nullable<Float8>,
+        circulating_supply -> Nullable<Float8>,
+        total_supply -> Nullable<Float8>,
+        max_supply -> Nullable<Float8>,
     }
 }
 

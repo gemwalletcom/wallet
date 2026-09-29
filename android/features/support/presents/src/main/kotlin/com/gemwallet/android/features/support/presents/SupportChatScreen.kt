@@ -68,7 +68,7 @@ fun SupportChatScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCanc
     }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        viewModel.fetch()
+        viewModel.load()
     }
 
     Scene(

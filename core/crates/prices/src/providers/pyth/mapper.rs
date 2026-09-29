@@ -21,8 +21,6 @@ pub(crate) fn price_feed_id_for_asset_id(asset_id: &AssetId) -> Option<&'static 
     }
 }
 
-// https://www.pyth.network/price-feeds
-// Hermes API feed IDs for each chain's native asset
 pub fn price_feed_id_for_chain(chain: Chain) -> Option<&'static str> {
     let feed_id = match chain {
         Chain::Bitcoin => "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",

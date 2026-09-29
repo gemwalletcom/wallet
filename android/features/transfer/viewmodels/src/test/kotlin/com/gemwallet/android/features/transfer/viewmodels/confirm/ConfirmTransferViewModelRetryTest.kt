@@ -120,7 +120,7 @@ class ConfirmTransferViewModelRetryTest {
 
         viewModel.changeFeePriority(FeePriority.Fast)
         advanceUntilIdle()
-        viewModel.fetch()
+        viewModel.load()
         advanceUntilIdle()
         coVerify(exactly = 4) { confirmation.load(any()) }
         coVerify(exactly = 2) { confirmation.load(match { it.feeSelection == GemConfirmFeeSelection.Priority(FeePriority.Fast.toGem()) }) }

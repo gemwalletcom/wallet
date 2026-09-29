@@ -18,12 +18,12 @@ import javax.inject.Inject
 class ServiceStatusViewModel @Inject constructor(private val service: GemServiceStatusInterface) : ViewModel() {
     private val session = MutableStateFlow(service.newSession())
     val sections = session.map { it.sections() }.stateIn(viewModelScope, SharingStarted.Eagerly, session.value.sections())
-    private var fetchJob: Job? = null
+    private var loadJob: Job? = null
 
-    fun fetch() {
-        fetchJob?.cancel()
+    fun load() {
+        loadJob?.cancel()
         session.value = service.newSession()
-        fetchJob = viewModelScope.launch {
+        loadJob = viewModelScope.launch {
             session.value.targets().forEach { target ->
                 launch {
                     val status = service.status(target)

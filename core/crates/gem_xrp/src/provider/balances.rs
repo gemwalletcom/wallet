@@ -106,9 +106,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_xrp_get_balance_tokens() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_xrp_test_client();
-        let token_ids = vec![
-            "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De".to_string(), // RLUSD
-        ];
+        let token_ids = vec!["rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De".to_string()];
         let balances = client.get_balance_tokens(TEST_ADDRESS.to_string(), token_ids).await?;
 
         assert_eq!(balances.len(), 1);
@@ -122,9 +120,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_xrp_get_balance_tokens_empty_account() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_xrp_test_client();
-        let token_ids = vec![
-            "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De".to_string(), // RLUSD
-        ];
+        let token_ids = vec!["rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De".to_string()];
         let balances = client.get_balance_tokens(TEST_ADDRESS_EMPTY.to_string(), token_ids).await?;
 
         assert_eq!(balances.len(), 1);

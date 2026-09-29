@@ -47,9 +47,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_sui_get_balance_tokens() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
-        let token_ids = vec![
-            "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN".to_string(), // USDC
-        ];
+        let token_ids = vec!["0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN".to_string()];
         let balances = client.get_balance_tokens(TEST_ADDRESS.to_string(), token_ids).await?;
 
         for balance in &balances {
@@ -63,7 +61,6 @@ mod chain_integration_tests {
     async fn test_sui_get_balance_staking() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
 
-        // First check raw RPC response to see if there are any delegations
         let delegations = client.get_stake_delegations(TEST_ADDRESS.to_string()).await?;
         println!("Found {} delegations for address {}", delegations.len(), TEST_ADDRESS);
 

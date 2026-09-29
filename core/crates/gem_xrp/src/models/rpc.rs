@@ -236,7 +236,7 @@ pub struct Fee {
     #[serde(deserialize_with = "deserialize_u64_from_str")]
     pub minimum_fee: u64,
     #[serde(deserialize_with = "deserialize_u64_from_str")]
-    pub median_fee: u64,
+    pub open_ledger_fee: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -15,7 +15,6 @@ pub use object_id::ObjectId;
 pub use staking::*;
 pub use transaction::*;
 
-// RPC models with explicit imports to avoid conflicts
 #[cfg(feature = "rpc")]
 pub use account::{GasObject, Owner, OwnerObject};
 #[cfg(feature = "rpc")]

@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::models::list::GemAddressRow;
 use crate::services::localization::GemLocalizedText;
-use primitives::{Chain, NameRecord, Wallet, WalletSource};
+use primitives::{Chain, NameRecord, Wallet, WalletId, WalletSource};
 
 use super::rules;
 
@@ -132,8 +132,6 @@ pub enum GemSecretWarning {
     SaveSafely,
 }
 
-/// What the secret screen shows around the secret, never the secret itself: the words stay in the app and
-/// fill `rows` by index, so this record is built from the kind and the word count alone.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSecretScreen {
     pub title: GemLocalizedText,
@@ -190,8 +188,8 @@ pub struct GemWalletSection {
 }
 
 #[uniffi::export]
-pub fn wallet_sections(wallets: Vec<Wallet>, current_wallet_id: Option<String>) -> Vec<GemWalletSection> {
-    rules::sections(wallets, current_wallet_id.as_deref())
+pub fn wallet_sections(wallets: Vec<Wallet>, current_wallet_id: Option<WalletId>) -> Vec<GemWalletSection> {
+    rules::sections(wallets, current_wallet_id.as_ref())
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

@@ -36,7 +36,6 @@ mod tests {
             total_fee: 5.0,
         };
 
-        // (100 + 5) * 0.0005 = 0.0525
         assert_eq!(quote.sell_crypto_amount(100.0), 0.0525);
     }
 }

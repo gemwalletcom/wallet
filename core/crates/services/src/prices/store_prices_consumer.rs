@@ -22,11 +22,11 @@ impl StorePricesConsumer {
 
 #[async_trait]
 impl MessageConsumer<PricesPayload, usize> for StorePricesConsumer {
-    async fn should_process(&self, _payload: &PricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &PricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: PricesPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: PricesPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let prices = payload.prices;
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let ttl_seconds = self.config.get_duration(ConfigKey::PriceOutdated).await?.as_secs() as i64;

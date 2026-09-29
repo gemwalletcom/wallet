@@ -1,4 +1,5 @@
 use gem_crypto::hash::hmac_sha512;
+use gem_keystore::MnemonicSeed;
 use zeroize::Zeroizing;
 
 use crate::AccountDerivationError;
@@ -8,7 +9,7 @@ use super::path::{HARDENED_OFFSET, parse_derivation_path};
 
 const ED25519_DOMAIN: &[u8] = b"ed25519 seed";
 
-pub(super) fn derive_ed25519_private_key(seed: &[u8], path: &str) -> Result<Zeroizing<Vec<u8>>, AccountDerivationError> {
+pub(super) fn derive_ed25519_private_key(seed: &MnemonicSeed, path: &str) -> Result<Zeroizing<Vec<u8>>, AccountDerivationError> {
     let components = parse_derivation_path(path).ok_or_else(|| AccountDerivationError::invalid_input(format!("invalid derivation path: {path}")))?;
     let output = hmac_sha512(ED25519_DOMAIN, seed)?;
     let mut private_key = Zeroizing::new(split_left_key(&output));

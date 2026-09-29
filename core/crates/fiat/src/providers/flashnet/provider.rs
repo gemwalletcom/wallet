@@ -38,7 +38,7 @@ impl FiatProvider for FlashnetClient {
         }])
     }
 
-    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn Error + Send + Sync>> {
+    async fn parse_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn Error + Send + Sync>> {
         self.verify_webhook(&request)?;
         let payload = serde_json::from_value::<FlashnetWebhookPayload>(request.data).map_err(|_| FiatQuoteError::InvalidWebhook)?;
         map_webhook(payload).map_err(|_| FiatQuoteError::InvalidWebhook.into())
@@ -88,9 +88,9 @@ mod tests {
     use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
 
     #[tokio::test]
-    async fn test_process_webhook_accepts_signed_order() {
+    async fn test_parse_webhook_accepts_signed_order() {
         let request = FiatWebhookRequest::mock_flashnet_signed(include_str!("../../../testdata/flashnet/webhook_completed.json"));
-        let result = FlashnetClient::mock().process_webhook(request).await.unwrap();
+        let result = FlashnetClient::mock().parse_webhook(request).await.unwrap();
 
         match result {
             FiatWebhook::Transaction(transaction) => assert_eq!(
@@ -109,10 +109,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_process_webhook_rejects_missing_signature() {
+    async fn test_parse_webhook_rejects_missing_signature() {
         let request = FiatWebhookRequest::mock(include_str!("../../../testdata/flashnet/webhook_completed.json"));
 
-        assert!(FlashnetClient::mock().process_webhook(request).await.is_err());
+        assert!(FlashnetClient::mock().parse_webhook(request).await.is_err());
     }
 
     #[test]

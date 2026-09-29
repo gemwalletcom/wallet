@@ -57,7 +57,6 @@ struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableReco
     var createdAt: Date
     var updatedAt: Date
 
-    // delete asset / price properties as they could be fetched from assets / prices
     static let asset = belongsTo(AssetRecord.self, key: "asset", using: ForeignKey(["assetId"], to: ["id"]))
     static let feeAsset = belongsTo(AssetRecord.self, key: "feeAsset", using: ForeignKey(["feeAssetId"], to: ["id"]))
 
@@ -84,7 +83,7 @@ extension TransactionRecord: CreateTable {
                 .indexed()
             $0.column(Columns.walletId.name, .text)
                 .notNull()
-                .references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesWallet()
             $0.column(Columns.transactionId.name, .text)
                 .notNull()
                 .indexed()
@@ -103,7 +102,7 @@ extension TransactionRecord: CreateTable {
             $0.column(Columns.assetId.name, .text)
                 .notNull()
                 .indexed()
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesAsset()
             $0.column(Columns.blockNumber.name, .numeric)
                 .notNull()
             $0.column(Columns.value.name, .text)
@@ -112,7 +111,7 @@ extension TransactionRecord: CreateTable {
                 .notNull()
             $0.column(Columns.feeAssetId.name, .text)
                 .notNull()
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesAsset()
             $0.column(Columns.sequence.name, .numeric)
                 .notNull()
             $0.column(Columns.date.name, .date)

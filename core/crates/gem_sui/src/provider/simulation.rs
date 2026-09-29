@@ -27,14 +27,7 @@ impl ChainSimulation for SuiProvider {
 
         let changes = std::mem::take(&mut result.balance_changes);
         let assets = self.get_balance_change_assets(&changes).await;
-        result.balance_changes = changes
-            .into_iter()
-            .zip(assets)
-            .map(|(change, asset)| match asset {
-                Some(asset) => change.with_asset(asset),
-                None => change,
-            })
-            .collect();
+        result.balance_changes = SimulationBalanceChange::with_assets(changes, assets);
 
         Ok(result)
     }

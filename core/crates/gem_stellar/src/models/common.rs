@@ -17,7 +17,6 @@ pub struct StellarAsset {
     pub contract_id: Option<String>,
 }
 
-// RPC models
 #[cfg(feature = "rpc")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Embedded<T> {

@@ -62,6 +62,6 @@ impl<C: Client + Send + Sync + Debug> NearIntentsExplorer<C> {
             })
             .await
             .map_err(SwapperError::from)?;
-        Ok(transactions.into_iter().find(|tx| tx.origin_chain_tx_hashes.iter().any(|h| h.eq_ignore_ascii_case(hash))))
+        Ok(transactions.into_iter().find(|transaction| transaction.origin_chain_tx_hashes.iter().any(|h| h.eq_ignore_ascii_case(hash))))
     }
 }

@@ -9,7 +9,7 @@ use std::error::Error;
 use super::models::country::country_status;
 use super::{
     client::PaybisClient,
-    mapper::{map_assets, map_process_webhook, supported_payment_methods},
+    mapper::{map_assets, map_webhook, supported_payment_methods},
 };
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook, PaymentType};
 
@@ -44,9 +44,9 @@ impl FiatProvider for PaybisClient {
         Ok(countries)
     }
 
-    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+    async fn parse_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
-        map_process_webhook(request.data).map_err(|_| FiatQuoteError::InvalidWebhook.into())
+        map_webhook(request.data).map_err(|_| FiatQuoteError::InvalidWebhook.into())
     }
 
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {

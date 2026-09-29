@@ -99,7 +99,6 @@ mod tests {
             assert!(result.balance_changes.is_empty());
         }
 
-        // zero amounts stay skipped even without a coin type, and malformed changes of other addresses stay ignored
         let transaction = ExecutedTransaction {
             effects: Some(TransactionEffects::mock(true, None)),
             balance_changes: vec![

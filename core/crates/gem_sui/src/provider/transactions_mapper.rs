@@ -41,7 +41,6 @@ pub fn map_transaction(transaction: Digest) -> Option<Transaction> {
 fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance_changes: &[BalanceChange], owner: &Option<String>, fee: &BigUint) -> Option<(AssetId, String, String, TransactionType, BigUint, Option<serde_json::Value>)> {
     let chain = CHAIN;
 
-    // system & token transfer
     if events.is_empty() && (balance_changes.len() == 2 || balance_changes.len() == 3) {
         let (from_change, to_change) = map_transfer_balance_changes(balance_changes, fee)?;
 
@@ -60,14 +59,12 @@ fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance
         ));
     }
 
-    // stake
     if let Some(event) = single_event(events, SUI_STAKE_EVENT) {
         let event_json = event.parsed_json.clone()?;
         let stake = serde_json::from_value::<EventStake>(event_json).ok()?;
         return Some((chain.as_asset_id(), stake.staker_address, stake.validator_address, TransactionType::StakeDelegate, stake.amount, None));
     }
 
-    // swap
     if events.iter().any(|x| x.event_type.contains("Swap")) {
         let owner_balance_changes: Vec<_> = balance_changes.iter().filter(|x| x.owner.get_address_owner() == *owner).cloned().collect();
         let swap = match owner_balance_changes.len() {
@@ -83,14 +80,12 @@ fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance
         return Some((asset_id, owner.clone(), owner, TransactionType::Swap, swap.from_value.clone(), serde_json::to_value(&swap).ok()));
     }
 
-    // unstake
     if let Some(event) = single_event(events, SUI_UNSTAKE_EVENT) {
         let event_json = event.parsed_json.clone()?;
         let stake = serde_json::from_value::<EventUnstake>(event_json).ok()?;
         return Some((chain.as_asset_id(), stake.staker_address, stake.validator_address, TransactionType::StakeUndelegate, stake.principal_amount, None));
     }
 
-    // smart contract call
     if !events.is_empty() {
         let method_name = events.first()?.event_type.rsplit("::").nth(1)?.to_string();
         let metadata = TransactionSmartContractMetadata { method_name };

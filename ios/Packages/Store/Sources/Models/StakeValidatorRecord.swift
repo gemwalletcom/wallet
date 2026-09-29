@@ -36,7 +36,7 @@ extension StakeValidatorRecord: CreateTable {
                 .indexed()
             $0.column(Columns.assetId.name, .text)
                 .notNull()
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesAsset()
             $0.column(Columns.validatorId.name, .text)
                 .notNull()
             $0.column(Columns.name.name, .text)

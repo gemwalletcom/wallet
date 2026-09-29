@@ -39,7 +39,6 @@ pub fn map_token_balances(account: &Account, token_ids: Vec<String>, chain: Chai
                     AssetBalance::new_with_active(AssetId::from_token(chain, &token_id), Balance::coin_balance(BigUint::from(0u32)), false)
                 }
             } else {
-                // Invalid format - only support issuer::symbol
                 AssetBalance::new_with_active(AssetId::from_token(chain, &token_id), Balance::coin_balance(BigUint::from(0u32)), false)
             }
         })
@@ -52,14 +51,12 @@ pub fn map_all_balances(chain: Chain, account: Account) -> Vec<AssetBalance> {
     for balance in account.balances {
         match balance.asset_type.as_str() {
             "native" => {
-                // Native XLM balance
                 if let Ok(value) = BigNumberFormatter::value_from_amount_biguint(&balance.balance, STELLAR_DECIMALS) {
                     let balance_obj = Balance::coin_balance(value);
                     balances.push(AssetBalance::new_with_active(chain.as_asset_id(), balance_obj, true));
                 }
             }
             "credit_alphanum4" | "credit_alphanum12" => {
-                // Token balances
                 if let (Some(asset_issuer), Some(asset_code)) = (&balance.asset_issuer, &balance.asset_code) {
                     let token_id = AssetId::sub_token_id(&[asset_issuer.clone(), asset_code.clone()]);
                     let asset_id = AssetId::from_token(chain, &token_id);
@@ -69,9 +66,7 @@ pub fn map_all_balances(chain: Chain, account: Account) -> Vec<AssetBalance> {
                     }
                 }
             }
-            _ => {
-                // Ignore other asset types
-            }
+            _ => {}
         }
     }
 

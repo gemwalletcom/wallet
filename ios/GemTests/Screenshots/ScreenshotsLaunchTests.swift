@@ -10,7 +10,6 @@ final class ScreenshotsLaunchTests: XCTestCase {
     }
 
     @MainActor func testScreenshots() throws {
-        // Take a screenshot of an app's first window.
         let locale = Locale.current.identifier
         do {
             try runScreenshots()
@@ -136,13 +135,11 @@ struct Snapshoter {
 
         let fileURL = URL(fileURLWithPath: "\(directoryPath)/\(UIDevice.current.model.lowercased())_\(name).png")
 
-        // Create the directory if it doesn't exist
         let fileManager = FileManager.default
         if !fileManager.fileExists(atPath: directoryPath) {
             try fileManager.createDirectory(atPath: directoryPath, withIntermediateDirectories: true, attributes: nil)
         }
 
-        // Save the screenshot
         try screenshotData.write(to: fileURL)
 
         print("fileURL.path \(fileURL.path)")

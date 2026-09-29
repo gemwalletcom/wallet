@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use chain_traits::ChainSimulation;
 use futures::future::join_all;
 use gem_client::Client;
-use primitives::{Asset, AssetId, Chain, SimulationHeader, SimulationInput, SimulationResult};
+use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationResult};
 
 use crate::address::TronAddress;
 use crate::decode_wallet_connect_approval;
@@ -43,14 +43,7 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
             }
         }))
         .await;
-        let balance_changes = balance_changes
-            .into_iter()
-            .zip(assets)
-            .map(|(change, asset)| match asset {
-                Some(asset) => change.with_asset(asset),
-                None => change,
-            })
-            .collect();
+        let balance_changes = SimulationBalanceChange::with_assets(balance_changes, assets);
 
         Ok(SimulationResult {
             warnings,
@@ -71,7 +64,7 @@ mod tests {
     use crate::rpc::TronClient;
     use gem_client::testkit::MockClient;
     use num_bigint::BigInt;
-    use primitives::{Address as _, SimulationBalanceChange};
+    use primitives::Address as _;
 
     #[tokio::test]
     async fn test_simulate_transaction_decodes_approval() {

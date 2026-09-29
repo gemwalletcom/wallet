@@ -28,7 +28,7 @@ extension PriceRecord: CreateTable {
         try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.assetId.name, .text)
                 .primaryKey()
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesAsset()
             $0.column(Columns.price.name, .numeric)
                 .notNull()
                 .defaults(to: 0)

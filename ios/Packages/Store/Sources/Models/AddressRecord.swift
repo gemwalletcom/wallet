@@ -29,7 +29,7 @@ extension AddressRecord: CreateTable {
         try db.create(table: databaseTableName) {
             $0.column(Columns.chain.name, .text)
                 .notNull()
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
+                .referencesAsset()
             $0.column(Columns.address.name, .text)
                 .notNull()
             $0.column(Columns.name.name, .text)

@@ -55,7 +55,7 @@ struct PerpetualQueryTests {
     }
 
     @Test
-    func fetchAfterUpdatingExistingPerpetualIdentityFields() throws {
+    func queryAfterUpdatingExistingPerpetualIdentityFields() throws {
         let oldAssetId = AssetId(chain: .ethereum)
         let newAssetId = AssetId(chain: .hyperCore, tokenId: "perpetual::ETH")
         let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: oldAssetId.chain), .mock(chain: newAssetId.chain)])], assets: [

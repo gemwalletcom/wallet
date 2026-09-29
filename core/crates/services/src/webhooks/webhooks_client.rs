@@ -38,7 +38,7 @@ impl WebhooksClient {
         }
     }
 
-    pub async fn process_support_webhook(&self, raw_body: &str, headers: &HashMap<String, String>) -> Result<(), SupportWebhookError> {
+    pub async fn publish_support_webhook(&self, raw_body: &str, headers: &HashMap<String, String>) -> Result<(), SupportWebhookError> {
         self.chatwoot_webhook_verifier.verify(headers, raw_body).map_err(|error| SupportWebhookError::Rejected(error.to_string()))?;
         let webhook_data = serde_json::from_str(raw_body).map_err(|_| SupportWebhookError::Rejected("Invalid webhook JSON".to_string()))?;
         self.stream_producer
@@ -48,7 +48,7 @@ impl WebhooksClient {
         Ok(())
     }
 
-    pub async fn process_broadcast_webhook(&self, payload: TransactionId) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub async fn publish_broadcast_webhook(&self, payload: TransactionId) -> Result<(), Box<dyn Error + Send + Sync>> {
         let transaction_id = payload.to_string();
         info_with_fields!("received broadcast webhook", transaction_id = transaction_id.as_str());
         self.stream_producer.publish(QueueName::StorePendingTransactions, &payload).await?;

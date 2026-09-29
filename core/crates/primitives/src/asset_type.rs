@@ -8,17 +8,17 @@ use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 #[strum(serialize_all = "UPPERCASE")]
 pub enum AssetType {
     NATIVE,
-    ERC20,   // EVM
-    BEP20,   // BNB
-    SPL,     // Solana
-    SPL2022, // Solana Token 2022
-    TRC20,   // Tron
-    TIP20,   // Tempo
-    TOKEN,   // Sui, Aptos
-    IBC,     // COSMOS
-    JETTON,  // Ton
-    SYNTH,   // Thorchain
-    ASA,     // Algorand
+    ERC20,
+    BEP20,
+    SPL,
+    SPL2022,
+    TRC20,
+    TIP20,
+    TOKEN,
+    IBC,
+    JETTON,
+    SYNTH,
+    ASA,
     PERPETUAL,
     SPOT,
 }

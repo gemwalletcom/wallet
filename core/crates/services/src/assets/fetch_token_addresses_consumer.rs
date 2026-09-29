@@ -23,11 +23,11 @@ impl FetchTokenAddressesConsumer {
 
 #[async_trait]
 impl MessageConsumer<ChainAddressPayload, usize> for FetchTokenAddressesConsumer {
-    async fn should_process(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.cacher.can_process_cached(CacheKey::FetchTokenAddresses(payload.value.chain.as_ref(), &payload.value.address)).await
     }
 
-    async fn process(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let chain_address = payload.value;
         let balances = self.provider.get_balance_assets(chain_address.chain, chain_address.address.clone()).await?;
         let update = self.database.run(move |client| update_token_addresses(client, chain_address, balances)).await?;
