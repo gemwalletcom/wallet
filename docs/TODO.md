@@ -203,7 +203,6 @@ Found on 2026-09-29 by comparing the two apps' store adapters, lint passes and h
 
 ### iOS
 
-- **CLN444** **S** **Date formatters are built once.** `TransactionDateFormatter` builds a new `DateFormatter` on every call, including once per chart point while scrubbing, and `DurationFormatters` a new `DateComponentsFormatter`; both reuse cached formatters per locale, time zone and style.
 - **CLN445** **S** **Building a URL never crashes.** `BlockExplorerLink.url` and `TargetRequestBuilder` force-unwrap `URL(string:)`; an explorer link or request path that is not a URL crashes the app, where Android opens nothing. The explorer URL is optional and the request builder throws `URLError(.badURL)`.
 - **CLN446** **S** **The confirm error info is decided once.** iOS asks `hasInfoSheet()` and then `errorInfo(error:)`; Android uses whether `errorInfo` returns a value. iOS does the same and Core stops exporting `has_info_sheet`.
 - **CLN447** **S** **A balance update without metadata clears it, as on Android.** `GemstoneBalanceStore.updateBalances` keeps the stored metadata when Core writes none, so iOS can never clear it; Core already merges before writing.

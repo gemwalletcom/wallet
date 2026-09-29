@@ -5,6 +5,7 @@ import func Gemstone.estimatedDurationParts
 import func Gemstone.estimatedDurationText
 import struct Gemstone.GemDurationPart
 import enum Gemstone.GemDurationUnit
+import Primitives
 
 public struct EstimatedConfirmationFormatter {
     private let calendar: Calendar
@@ -45,11 +46,16 @@ private extension Calendar {
 private extension [GemDurationPart] {
     func string(style: DateComponentsFormatter.UnitsStyle, calendar: Calendar) -> String? {
         guard isEmpty == false else { return nil }
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = NSCalendar.Unit(map(\.unit.calendarUnit))
-        formatter.zeroFormattingBehavior = .dropAll
-        formatter.unitsStyle = style
-        formatter.calendar = calendar
+        let units = NSCalendar.Unit(map(\.unit.calendarUnit))
+        let key = "\(units.rawValue)|\(style.rawValue)|\(calendar.identifier)|\(calendar.locale?.identifier ?? "")|\(calendar.timeZone.identifier)"
+        let formatter: DateComponentsFormatter = FormatterCache.formatter(key: key) {
+            let formatter = DateComponentsFormatter()
+            formatter.allowedUnits = units
+            formatter.zeroFormattingBehavior = .dropAll
+            formatter.unitsStyle = style
+            formatter.calendar = calendar
+            return formatter
+        }
         return formatter.string(from: components)
     }
 
