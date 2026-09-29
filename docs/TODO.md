@@ -20,7 +20,6 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Consistency sweeps:** CLN424 to CLN440 in section 11, one item per change, in any order.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171. Waiting on a date or a release: X168, X169, X170, X163, X172.
 
@@ -193,19 +192,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 **The standard, for every item below.** Names and packages follow [Cross-Platform Awareness rule 7](../skills/cross-platform-awareness.md); on Android that means no `views`, `navigation` or `details` package roots and no singular `viewmodel`. A move renames the Gradle path in `settings.gradle.kts`, every `project(":features:…")` dependency and the imports, and changes no behaviour. One module per change. Verify with `cd android && ./gradlew assembleGoogleDebug test` for an Android move, `cd ios && just build` and `just test-package <Package>` for an iOS rename.
 
 **Names, for every item below.** Each item renames one feature's types to [ARCHITECTURE § Names](ARCHITECTURE.md#names): the base name follows iOS, each app keeps its own form (Android `XScreen` binds the view model and `XScene` is stateless, iOS screen view models are `XSceneViewModel`), a file is named after its main type, and tests, TestKit mocks, routes and factory methods follow the type they name. Renames only, no behaviour change; verify both apps (`just test` on iOS, `./gradlew testDebugUnitTest assembleGoogleDebug` on Android) and `just check-docs`. Each list was checked against the code on 2026-09-26; re-check a name before renaming it.
-
-## 11. Consistency sweeps
-
-Code that works but departs from the repository's own rules, found on 2026-09-29: generic verbs the naming rule bans, abbreviations where the rule asks for the full word, helpers written twice beside the owner that already has them, and code the formatter or the coroutine rules flag. Each item changes names, structure or ownership only; no request, stored value, signature or screen changes. Signer, keystore, device-auth and transaction-construction code keeps its text ([security](../skills/security.md)). Each item verifies the modules it touches and says in the commit what moved.
-
-### Core
-
-
-### iOS
-
-
-### Android
-
 
 ## Blocked upstream
 
