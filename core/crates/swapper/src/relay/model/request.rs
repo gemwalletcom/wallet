@@ -41,6 +41,8 @@ pub struct RelayRequestsResponse {
 pub struct RelayRequest {
     pub id: String,
     pub status: RelayStatus,
+    pub user: String,
+    pub recipient: String,
     pub data: Option<RelayRequestData>,
 }
 
@@ -176,6 +178,8 @@ mod tests {
         let request: RelayRequest = serde_json::from_value(serde_json::json!({
             "id": "0x1",
             "status": "refund",
+            "user": "0x0000000000000000000000000000000000000001",
+            "recipient": "0x0000000000000000000000000000000000000001",
             "data": null
         }))
         .unwrap();

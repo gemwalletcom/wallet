@@ -9,6 +9,8 @@ CREATE TABLE swap_partner_transactions (
     provider swap_provider NOT NULL,
     provider_transaction_id VARCHAR(256) NOT NULL,
     status swap_status NOT NULL,
+    from_address VARCHAR(256) NOT NULL,
+    to_address VARCHAR(256) NOT NULL,
     from_asset_id VARCHAR(128) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
     from_value VARCHAR(256) NOT NULL,
     from_amount_usd float,

@@ -3,6 +3,8 @@
     {
       "id": "0x3f6c1d2e4b5a69788a9b0c1d2e3f405162738495a6b7c8d9e0f1a2b3c4d5e6f7",
       "status": "success",
+      "user": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
+      "recipient": "bc1q4vxn43l44h30nkluqfxd9eckf45vr2awz38lwa",
       "data": {
         "route": {
           "actual": {

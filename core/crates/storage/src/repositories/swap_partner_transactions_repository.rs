@@ -61,6 +61,8 @@ mod database_integration_tests {
             provider: SwapProvider::Relay,
             provider_transaction_id: "0x1".to_string(),
             status,
+            from_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            to_address: "bc1q4vxn43l44h30nkluqfxd9eckf45vr2awz38lwa".to_string(),
             from_asset_id: AssetId::from_chain(Chain::Ethereum),
             from_value: "1000".to_string(),
             from_amount_usd: Some(1.0),

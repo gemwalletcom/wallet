@@ -920,6 +920,10 @@ diesel::table! {
         #[max_length = 256]
         provider_transaction_id -> Varchar,
         status -> SwapStatus,
+        #[max_length = 256]
+        from_address -> Varchar,
+        #[max_length = 256]
+        to_address -> Varchar,
         #[max_length = 128]
         from_asset_id -> Varchar,
         #[max_length = 256]

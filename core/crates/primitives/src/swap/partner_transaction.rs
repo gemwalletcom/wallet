@@ -7,6 +7,8 @@ pub struct SwapPartnerTransaction {
     pub provider: SwapProvider,
     pub provider_transaction_id: String,
     pub status: SwapStatus,
+    pub from_address: String,
+    pub to_address: String,
     pub from_asset_id: AssetId,
     pub from_value: String,
     pub from_amount_usd: Option<f64>,

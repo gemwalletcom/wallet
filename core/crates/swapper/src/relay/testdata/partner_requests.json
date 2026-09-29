@@ -3,6 +3,8 @@
     {
       "id": "0x5b1b1f8f5a0a2bd6c2e0e6f8a1f3a3c4c1d9e3f2b6a7c8d9e0f1a2b3c4d5e6f7",
       "status": "success",
+      "user": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
+      "recipient": "bc1q4vxn43l44h30nkluqfxd9eckf45vr2awz38lwa",
       "requestType": "Crosschain Swap",
       "data": {
         "route": {
@@ -51,6 +53,8 @@
     {
       "id": "0x7c2e9a4b1d3f5e6a8b0c2d4e6f8a0b1c3d5e7f9a1b2c4d6e8f0a2b3c5d7e9f1a",
       "status": "pending",
+      "user": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
+      "recipient": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
       "requestType": "Same-chain Swap",
       "data": {
         "route": {
@@ -81,6 +85,8 @@
     {
       "id": "0x9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d",
       "status": "refund",
+      "user": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
+      "recipient": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
       "requestType": "Crosschain Swap",
       "data": {
         "route": {
