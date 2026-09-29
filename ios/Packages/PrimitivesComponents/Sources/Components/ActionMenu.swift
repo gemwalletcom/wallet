@@ -15,7 +15,7 @@ struct ActionMenu<Label: View>: View {
     private let items: [ActionMenuItemType]
     private let label: Label
 
-    public init(
+    init(
         items: [ActionMenuItemType],
         @ViewBuilder label: () -> Label,
     ) {
@@ -23,14 +23,14 @@ struct ActionMenu<Label: View>: View {
         self.label = label()
     }
 
-    public init(
+    init(
         @ActionMenuBuilder items: () -> [ActionMenuItemType],
         @ViewBuilder label: () -> Label,
     ) {
         self.init(items: items(), label: label)
     }
 
-    public var body: some View {
+    var body: some View {
         Menu {
             ForEach(items) { ActionMenuItemView(item: $0) }
         } label: {

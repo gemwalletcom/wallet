@@ -4,12 +4,7 @@ import SwiftUI
 
 struct ListView<Item: Identifiable, Content: View>: View {
     let items: [Item]
-    let content: (Item) -> Content
-
-    init(items: [Item], @ViewBuilder content: @escaping (Item) -> Content) {
-        self.items = items
-        self.content = content
-    }
+    @ViewBuilder let content: (Item) -> Content
 
     var body: some View {
         List(items) { item in

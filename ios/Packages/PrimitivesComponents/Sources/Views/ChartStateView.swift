@@ -23,7 +23,7 @@ struct ChartStateView: View {
         self.periods = periods
     }
 
-    public var body: some View {
+    var body: some View {
         VStack {
             VStack {
                 switch state {

@@ -203,7 +203,6 @@ Code that works but departs from the repository's own rules, found on 2026-09-29
 
 ### iOS
 
-- **CLN434** **S** **Swift source passes the formatter.** `swiftformat --lint` flags 12 files: redundant `public` on members of internal types, redundant memberwise initializers in `ListView`, redundant `return` in `GemstoneStakeStore` and unsorted imports in `Error+LocalizedError`.
 - **CLN435** **S** **The confirmation dialog falls back to the shared alert.** `View+ConfirmationDialog` rebuilds the presence binding and the alert with its cancel button that `View+Alert` already provides; the iPad branch calls `alert(_:presenting:)` and the binding is built once.
 - **CLN436** **S** **One ISO-8601 JSON decoder.** `SwiftHTTPClient`'s `Response` repeats the formatters and date strategy of `Primitives`' `JSONDateDecoder`; the widget passes `JSONDateDecoder.standard`, the copy goes, and its date tests move with the decoder.
 

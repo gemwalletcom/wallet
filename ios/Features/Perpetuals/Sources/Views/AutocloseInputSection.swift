@@ -26,7 +26,7 @@ struct AutocloseInputSection<Field: Hashable>: View {
         self.focusedField = focusedField
     }
 
-    public var body: some View {
+    var body: some View {
         Section {
             FloatTextField(Localized.Asset.price, text: $text, allowClean: true)
                 .keyboardType(.decimalPad)
