@@ -207,13 +207,13 @@ where
             return Ok(SwapResult::pending());
         };
         let metadata = response.action_response.and_then(|status| {
-            Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_chain(status.amount_in.native_chain()?.chain),
-                from_value: status.amount_in.amount.clone(),
-                to_asset: AssetId::from_chain(status.amount_out.native_chain()?.chain),
-                to_value: status.amount_out.amount,
-                provider: Some(SwapperProvider::SwapsXyz.as_ref().to_string()),
-            })
+            Some(TransactionSwapMetadata::new(
+                AssetId::from_chain(status.amount_in.native_chain()?.chain),
+                status.amount_in.amount.clone(),
+                AssetId::from_chain(status.amount_out.native_chain()?.chain),
+                status.amount_out.amount,
+                SwapperProvider::SwapsXyz,
+            ))
         });
         Ok(SwapResult {
             status: Self::map_status(&response.status),

@@ -30,13 +30,7 @@ impl MayanTransactionResult {
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
         let to_value = self.to_amount64.as_deref()?.parse::<BigUint>().ok()?;
 
-        Some(TransactionSwapMetadata {
-            from_asset,
-            from_value,
-            to_asset,
-            to_value,
-            provider: Some(SwapperProvider::Mayan.as_ref().to_string()),
-        })
+        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Mayan))
     }
 }
 
@@ -90,13 +84,7 @@ mod tests {
                 map_swap_result(&result(json)),
                 SwapResult {
                     status: SwapStatus::Completed,
-                    metadata: Some(TransactionSwapMetadata {
-                        from_asset,
-                        from_value: from_value.parse().unwrap(),
-                        to_asset,
-                        to_value: to_value.parse().unwrap(),
-                        provider: Some("mayan".to_string()),
-                    }),
+                    metadata: Some(TransactionSwapMetadata::new(from_asset, from_value.parse().unwrap(), to_asset, to_value.parse().unwrap(), SwapperProvider::Mayan)),
                     eta_in_seconds: None,
                 }
             );

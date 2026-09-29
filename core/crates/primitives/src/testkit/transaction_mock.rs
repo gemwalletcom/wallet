@@ -1,5 +1,5 @@
 use crate::transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata};
-use crate::{AssetId, Chain, PerpetualDirection, Transaction, TransactionDirection, TransactionId, TransactionPerpetualMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionUtxoInput};
+use crate::{AssetId, Chain, PerpetualDirection, SwapProvider, Transaction, TransactionDirection, TransactionId, TransactionPerpetualMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionUtxoInput};
 use chrono::Utc;
 use num_bigint::BigUint;
 
@@ -121,13 +121,13 @@ impl Transaction {
 
 impl TransactionSwapMetadata {
     pub fn mock() -> Self {
-        Self {
-            from_asset: AssetId::from_chain(Chain::Ethereum),
-            from_value: BigUint::from(1_000_000_000_000_000_000u64),
-            to_asset: AssetId::from_chain(Chain::Bitcoin),
-            to_value: BigUint::from(10_000_000_000_000_000_000u128),
-            provider: Some("thorchain".to_string()),
-        }
+        Self::new(
+            AssetId::from_chain(Chain::Ethereum),
+            BigUint::from(1_000_000_000_000_000_000u64),
+            AssetId::from_chain(Chain::Bitcoin),
+            BigUint::from(10_000_000_000_000_000_000u128),
+            SwapProvider::Thorchain,
+        )
     }
 }
 

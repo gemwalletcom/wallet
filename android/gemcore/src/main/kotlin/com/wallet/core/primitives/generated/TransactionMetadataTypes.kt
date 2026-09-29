@@ -6,11 +6,18 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
+data class TransactionSwapReferralFee (
+	val assetId: AssetId,
+	val value: String
+)
+
+@Serializable
 data class TransactionSwapMetadata (
 	val fromAsset: AssetId,
 	val fromValue: String,
 	val toAsset: AssetId,
 	val toValue: String,
-	val provider: String? = null
+	val provider: String? = null,
+	val referralFee: TransactionSwapReferralFee? = null
 )
 

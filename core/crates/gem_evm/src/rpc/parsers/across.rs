@@ -33,13 +33,9 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for AcrossParser
         let destination_chain = Chain::from_chain_id(deposit.destination_chain_id)?;
         let from_asset = AcrossDeployment::supported_asset_for_token(*context.metadata.chain, Address::from_word(relay_data.input_token))?;
         let to_asset = AcrossDeployment::supported_asset_for_token(destination_chain, Address::from_word(relay_data.output_token))?;
-        let metadata = TransactionSwapMetadata {
-            from_value: u256_to_biguint(&(relay_data.input_amount * AcrossAsset::from_asset(&from_asset)?.scale)),
-            to_value: u256_to_biguint(&(relay_data.output_amount * AcrossAsset::from_asset(&to_asset)?.scale)),
-            from_asset,
-            to_asset,
-            provider: Some(SwapProvider::Across.id().to_string()),
-        };
+        let from_value = u256_to_biguint(&(relay_data.input_amount * AcrossAsset::from_asset(&from_asset)?.scale));
+        let to_value = u256_to_biguint(&(relay_data.output_amount * AcrossAsset::from_asset(&to_asset)?.scale));
+        let metadata = TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapProvider::Across);
         let depositor = Address::from_word(relay_data.depositor).to_checksum(None);
         let recipient = Address::from_word(relay_data.recipient).to_checksum(None);
 

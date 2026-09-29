@@ -144,13 +144,7 @@ pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
             let to_asset = chainflip_asset_to_asset_id(tc, &response.dest_asset)?;
             let from_value = response.deposit.as_ref()?.amount.clone();
             let to_value = response.swap.as_ref().map(|swap| BigUint::from_str(&swap.swapped_output_amount)).transpose().ok()?.unwrap_or_default();
-            Some(TransactionSwapMetadata {
-                from_asset,
-                from_value,
-                to_asset,
-                to_value,
-                provider: Some(SwapperProvider::Chainflip.as_ref().to_string()),
-            })
+            Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Chainflip))
         })
     } else {
         None
@@ -177,13 +171,13 @@ pub mod test {
             map_swap_result(&swap_response(include_str!("./test/swap_eth_to_btc.json"))),
             SwapResult {
                 status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::Ethereum),
-                    from_value: BigUint::from(140000000000000000u64),
-                    to_asset: AssetId::from_chain(Chain::Bitcoin),
-                    to_value: BigUint::from(405772u64),
-                    provider: Some("chainflip".to_string()),
-                }),
+                metadata: Some(TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::Ethereum),
+                    BigUint::from(140000000000000000u64),
+                    AssetId::from_chain(Chain::Bitcoin),
+                    BigUint::from(405772u64),
+                    SwapperProvider::Chainflip
+                )),
                 eta_in_seconds: None,
             }
         );
@@ -195,13 +189,13 @@ pub mod test {
             map_swap_result(&swap_response(include_str!("./test/swap_usdc_to_sol.json"))),
             SwapResult {
                 status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: ETHEREUM_USDC_ASSET_ID.clone(),
-                    from_value: BigUint::from(100000000u64),
-                    to_asset: AssetId::from_chain(Chain::Solana),
-                    to_value: BigUint::from(1143469990u64),
-                    provider: Some("chainflip".to_string()),
-                }),
+                metadata: Some(TransactionSwapMetadata::new(
+                    ETHEREUM_USDC_ASSET_ID.clone(),
+                    BigUint::from(100000000u64),
+                    AssetId::from_chain(Chain::Solana),
+                    BigUint::from(1143469990u64),
+                    SwapperProvider::Chainflip
+                )),
                 eta_in_seconds: None,
             }
         );
@@ -213,13 +207,13 @@ pub mod test {
             map_swap_result(&swap_response(include_str!("./test/swap_sol_to_btc.json"))),
             SwapResult {
                 status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::Solana),
-                    from_value: BigUint::from(150000000u64),
-                    to_asset: AssetId::from_chain(Chain::Bitcoin),
-                    to_value: BigUint::from(17567u64),
-                    provider: Some("chainflip".to_string()),
-                }),
+                metadata: Some(TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::Solana),
+                    BigUint::from(150000000u64),
+                    AssetId::from_chain(Chain::Bitcoin),
+                    BigUint::from(17567u64),
+                    SwapperProvider::Chainflip
+                )),
                 eta_in_seconds: None,
             }
         );
@@ -286,13 +280,13 @@ pub mod test {
             map_swap_result(&swap_response(include_str!("./test/swap_btc_to_usdt_refunded.json"))),
             SwapResult {
                 status: SwapStatus::Refunded,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::Bitcoin),
-                    from_value: BigUint::from(1508475u64),
-                    to_asset: ETHEREUM_USDT_ASSET_ID.clone(),
-                    to_value: BigUint::from(0u64),
-                    provider: Some("chainflip".to_string()),
-                }),
+                metadata: Some(TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::Bitcoin),
+                    BigUint::from(1508475u64),
+                    ETHEREUM_USDT_ASSET_ID.clone(),
+                    BigUint::from(0u64),
+                    SwapperProvider::Chainflip
+                )),
                 eta_in_seconds: None,
             }
         );

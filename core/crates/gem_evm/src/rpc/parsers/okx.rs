@@ -49,10 +49,6 @@ impl OkxParser {
         input.starts_with(FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID) || input.starts_with(FUNCTION_OKX_UNISWAP_V3_SWAP_TO) || input.starts_with(FUNCTION_OKX_UNXSWAP_BY_ORDER_ID)
     }
 
-    fn provider() -> String {
-        SwapProvider::Okx.id().to_string()
-    }
-
     fn try_map_receipt_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
         Self::try_map_receipt_event(context).or_else(|| Self::try_map_transfer_swap(context))
     }
@@ -76,13 +72,7 @@ impl OkxParser {
             return None;
         }
 
-        Some(TransactionSwapMetadata {
-            from_asset,
-            from_value: event.from_amount.clone(),
-            to_asset,
-            to_value: event.to_amount,
-            provider: Some(Self::provider()),
-        })
+        Some(TransactionSwapMetadata::new(from_asset, event.from_amount.clone(), to_asset, event.to_amount, SwapProvider::Okx))
     }
 
     fn try_map_transfer_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
@@ -92,20 +82,20 @@ impl OkxParser {
         let incoming: Vec<&ReceiptTransfer> = transfers.iter().filter(|transfer| transfer.to == from && transfer.value != "0").collect();
 
         match (context.transaction.value > BigUint::from(0u8), outgoing.as_slice(), incoming.as_slice()) {
-            (_, [sent], [received]) if sent.token != received.token => Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_token(*context.metadata.chain, &sent.token),
-                from_value: BigUint::from_str(&sent.value).ok()?,
-                to_asset: AssetId::from_token(*context.metadata.chain, &received.token),
-                to_value: BigUint::from_str(&received.value).ok()?,
-                provider: Some(Self::provider()),
-            }),
-            (true, [], [received]) => Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_chain(*context.metadata.chain),
-                from_value: context.transaction.value.clone(),
-                to_asset: AssetId::from_token(*context.metadata.chain, &received.token),
-                to_value: BigUint::from_str(&received.value).ok()?,
-                provider: Some(Self::provider()),
-            }),
+            (_, [sent], [received]) if sent.token != received.token => Some(TransactionSwapMetadata::new(
+                AssetId::from_token(*context.metadata.chain, &sent.token),
+                BigUint::from_str(&sent.value).ok()?,
+                AssetId::from_token(*context.metadata.chain, &received.token),
+                BigUint::from_str(&received.value).ok()?,
+                SwapProvider::Okx,
+            )),
+            (true, [], [received]) => Some(TransactionSwapMetadata::new(
+                AssetId::from_chain(*context.metadata.chain),
+                context.transaction.value.clone(),
+                AssetId::from_token(*context.metadata.chain, &received.token),
+                BigUint::from_str(&received.value).ok()?,
+                SwapProvider::Okx,
+            )),
             _ => None,
         }
     }

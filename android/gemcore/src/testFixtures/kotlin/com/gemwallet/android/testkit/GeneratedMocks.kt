@@ -89,6 +89,7 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionListItem
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
+import com.wallet.core.primitives.TransactionSwapReferralFee
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransactionUtxoInput
 import com.wallet.core.primitives.TransactionsFilter
@@ -842,12 +843,14 @@ fun mockTransactionSwapMetadata(
     toAsset: AssetId = mockAssetId(),
     toValue: String = "0",
     provider: String? = null,
+    referralFee: TransactionSwapReferralFee? = null,
 ) = TransactionSwapMetadata(
     fromAsset = fromAsset,
     fromValue = fromValue,
     toAsset = toAsset,
     toValue = toValue,
     provider = provider,
+    referralFee = referralFee,
 )
 
 fun mockTransactionsFilter(

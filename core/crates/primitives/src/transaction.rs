@@ -364,7 +364,7 @@ impl Transaction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Asset, Chain, TransactionUtxoInput, transaction_metadata_types::TransactionAssetTransfer};
+    use crate::{Asset, Chain, SwapProvider, TransactionUtxoInput, transaction_metadata_types::TransactionAssetTransfer};
 
     #[test]
     fn test_asset_ids_transfer() {
@@ -381,16 +381,7 @@ mod tests {
     fn test_asset_ids_swap() {
         let transaction = Transaction {
             transaction_type: TransactionType::Swap,
-            metadata: Some(
-                serde_json::to_value(TransactionSwapMetadata {
-                    from_asset: Asset::mock_eth().id,
-                    from_value: BigUint::from(1u64),
-                    to_asset: Asset::mock_eth().id,
-                    to_value: BigUint::from(1u64),
-                    provider: None,
-                })
-                .unwrap(),
-            ),
+            metadata: Some(serde_json::to_value(TransactionSwapMetadata::new(Asset::mock_eth().id, BigUint::from(1u64), Asset::mock_eth().id, BigUint::from(1u64), SwapProvider::UniswapV3)).unwrap()),
             ..Transaction::mock()
         };
         assert_eq!(transaction.asset_ids().len(), 1);
@@ -398,13 +389,13 @@ mod tests {
         let transaction = Transaction {
             transaction_type: TransactionType::Swap,
             metadata: Some(
-                serde_json::to_value(TransactionSwapMetadata {
-                    from_asset: Asset::mock_ethereum_usdc().id,
-                    from_value: BigUint::from(1u64),
-                    to_asset: Asset::mock_erc20().id,
-                    to_value: BigUint::from(1u64),
-                    provider: None,
-                })
+                serde_json::to_value(TransactionSwapMetadata::new(
+                    Asset::mock_ethereum_usdc().id,
+                    BigUint::from(1u64),
+                    Asset::mock_erc20().id,
+                    BigUint::from(1u64),
+                    SwapProvider::UniswapV3,
+                ))
                 .unwrap(),
             ),
             ..Transaction::mock()
@@ -455,13 +446,13 @@ mod tests {
             from: "0xsame".to_string(),
             to: "0xsame".to_string(),
             metadata: Some(
-                serde_json::to_value(TransactionSwapMetadata {
-                    from_asset: Asset::mock_ethereum_usdc().id,
-                    from_value: BigUint::from(1u64),
-                    to_asset: Asset::mock_erc20().id,
-                    to_value: BigUint::from(1u64),
-                    provider: None,
-                })
+                serde_json::to_value(TransactionSwapMetadata::new(
+                    Asset::mock_ethereum_usdc().id,
+                    BigUint::from(1u64),
+                    Asset::mock_erc20().id,
+                    BigUint::from(1u64),
+                    SwapProvider::UniswapV3,
+                ))
                 .unwrap(),
             ),
             ..Transaction::mock()

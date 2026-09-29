@@ -84,14 +84,7 @@ fn map_spot_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &UserFill
     let to_asset = to_token.asset_id(Chain::HyperCore);
     let to_value = amount_to_value(to_amount, to_token.wei_decimals)?;
 
-    let metadata = serde_json::to_value(TransactionSwapMetadata {
-        from_asset: from_asset.clone(),
-        from_value: from_value.clone(),
-        to_asset,
-        to_value,
-        provider: Some(SwapProvider::Hyperliquid.id().to_string()),
-    })
-    .ok()?;
+    let metadata = serde_json::to_value(TransactionSwapMetadata::new(from_asset.clone(), from_value.clone(), to_asset, to_value, SwapProvider::Hyperliquid)).ok()?;
 
     build_fill_transaction(address, last_fill, from_asset, TransactionType::Swap, fee, fee_asset_id, from_value, metadata)
 }

@@ -187,7 +187,7 @@ fn final_swap_state(result: &SwapResult, created_at: DateTime<Utc>, cutoff: Date
 mod tests {
     use super::*;
     use num_bigint::BigUint;
-    use primitives::{HOUR, MINUTE};
+    use primitives::{HOUR, MINUTE, SwapProvider};
 
     #[test]
     fn test_scan_limit_covers_check_interval_window() {
@@ -266,13 +266,7 @@ mod tests {
         let now = Utc::now();
         let result = SwapResult {
             status: SwapStatus::Completed,
-            metadata: Some(TransactionSwapMetadata {
-                from_asset: "bitcoin".into(),
-                from_value: BigUint::from(50_000u64),
-                to_asset: "ethereum".into(),
-                to_value: BigUint::from(2_500u64),
-                provider: Some("thorchain".to_string()),
-            }),
+            metadata: Some(TransactionSwapMetadata::new("bitcoin".into(), BigUint::from(50_000u64), "ethereum".into(), BigUint::from(2_500u64), SwapProvider::Thorchain)),
             ..SwapResult::pending()
         };
         let Some((_, Some(resolved))) = final_swap_state(&result, now, now) else {

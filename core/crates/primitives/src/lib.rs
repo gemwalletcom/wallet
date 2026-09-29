@@ -180,7 +180,8 @@ pub mod hex;
 pub use self::hex::{HexError, decode_hex, decode_hex_array};
 pub mod transaction_metadata_types;
 pub use self::transaction_metadata_types::{
-    TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata, TransactionWalletConnectMetadata,
+    TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata, TransactionSwapReferralFee,
+    TransactionWalletConnectMetadata,
 };
 pub mod wallet_connect_namespace;
 pub use self::wallet_connect_namespace::{WalletConnectCAIP2, WalletConnectCAIP19};

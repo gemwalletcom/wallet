@@ -58,13 +58,13 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for UniversalRou
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
         let execute_call = IUniversalRouter::executeCall::abi_decode(&input_bytes).ok()?;
         let router_abi = RouterAbi::from_chain_contract(context.metadata.chain, to);
-        let metadata = decode_execute_swap_call(context.metadata.chain, router_abi, &provider, &context.transaction.from, &execute_call, context.metadata.receipt)?;
+        let metadata = decode_execute_swap_call(context.metadata.chain, router_abi, provider, &context.transaction.from, &execute_call, context.metadata.receipt)?;
 
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }
 
-pub(crate) fn decode_execute_swap(chain: &Chain, universal_router_abi: UniversalRouterAbi, provider: &str, from: &str, input_bytes: &[u8], receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
+pub(crate) fn decode_execute_swap(chain: &Chain, universal_router_abi: UniversalRouterAbi, provider: SwapProvider, from: &str, input_bytes: &[u8], receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
     let execute_call = IUniversalRouter::executeCall::abi_decode(input_bytes).ok()?;
     decode_execute_swap_call(
         chain,
@@ -80,7 +80,7 @@ pub(crate) fn decode_execute_swap(chain: &Chain, universal_router_abi: Universal
     )
 }
 
-fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: &str, from: &str, execute_call: &IUniversalRouter::executeCall, receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
+fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: SwapProvider, from: &str, execute_call: &IUniversalRouter::executeCall, receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
     let commands = &execute_call.commands;
     let inputs = &execute_call.inputs;
     let mut swap_input: Option<(AssetId, U256)> = None;
@@ -168,7 +168,7 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: &str
                     Some(_) => {}
                 }
                 swap_output = Some((leg_to_asset, leg_to_value));
-                swap_provider = SwapProvider::UniswapV4.id();
+                swap_provider = SwapProvider::UniswapV4;
             }
         }
     }
@@ -177,13 +177,7 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: &str
     let (to_asset, to_value) = swap_output?;
     let (from_asset, from_value) = from_asset.mirror_to_native(u256_to_biguint(&from_value));
     let (to_asset, to_value) = to_asset.mirror_to_native(u256_to_biguint(&U256::from_str(&to_value).ok()?));
-    Some(TransactionSwapMetadata {
-        from_asset,
-        to_asset,
-        from_value,
-        to_value,
-        provider: Some(swap_provider.to_string()),
-    })
+    Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, swap_provider))
 }
 
 fn native_v4_value_from_receipt(router: Address, from: &str, actions: &[V4Action], receipt: &TransactionReceipt) -> Option<U256> {

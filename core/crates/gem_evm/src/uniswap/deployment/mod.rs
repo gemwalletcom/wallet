@@ -36,12 +36,12 @@ pub fn get_uniswap_permit2_by_chain(chain: &Chain) -> Option<&'static str> {
     }
 }
 
-pub fn get_provider_by_chain_contract(chain: &Chain, contract: &str) -> Option<String> {
+pub fn get_provider_by_chain_contract(chain: &Chain, contract: &str) -> Option<SwapProvider> {
     if v3::is_uniswap_router_contract_by_chain(chain, contract) {
-        return Some(SwapProvider::UniswapV3.id().to_string());
+        return Some(SwapProvider::UniswapV3);
     }
     if v4::is_uniswap_router_contract_by_chain(chain, contract) {
-        return Some(SwapProvider::UniswapV4.id().to_string());
+        return Some(SwapProvider::UniswapV4);
     }
     [
         (v3::get_pancakeswap_router_deployment_by_chain(chain).map(|deployment| deployment.universal_router), SwapProvider::PancakeswapV3),
@@ -50,5 +50,5 @@ pub fn get_provider_by_chain_contract(chain: &Chain, contract: &str) -> Option<S
         (v3::get_aerodrome_router_deployment_by_chain(chain).map(|deployment| deployment.universal_router), SwapProvider::Aerodrome),
     ]
     .into_iter()
-    .find_map(|(router, provider)| router.filter(|router| router.eq_ignore_ascii_case(contract)).map(|_| provider.id().to_string()))
+    .find_map(|(router, provider)| router.filter(|router| router.eq_ignore_ascii_case(contract)).map(|_| provider))
 }

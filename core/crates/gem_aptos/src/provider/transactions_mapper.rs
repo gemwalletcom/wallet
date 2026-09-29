@@ -92,7 +92,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
             },
         ];
 
-        let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), Some(SwapProvider::Panora.id().to_owned()))?;
+        let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), Some(SwapProvider::Panora))?;
         let asset_id = swap.from_asset.clone();
         let metadata = serde_json::to_value(&swap).ok();
         let to = meta.sender.clone();
@@ -134,7 +134,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
     let provider = events
         .iter()
         .find(|event| event.event_type.contains(PANORA_SWAP_EVENT))
-        .and_then(|event| if event.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) { Some(SwapProvider::Panora.id().to_owned()) } else { None });
+        .and_then(|event| if event.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) { Some(SwapProvider::Panora) } else { None });
 
     let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), provider)?;
     let asset_id = swap.from_asset.clone();

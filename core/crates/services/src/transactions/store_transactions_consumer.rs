@@ -360,13 +360,13 @@ mod tests {
             transaction_type: TransactionType::Swap,
             to: near_vault.clone(),
             metadata: Some(
-                serde_json::to_value(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::Solana),
-                    from_value: BigUint::from(5000000u64),
-                    to_asset: AssetId::from_chain(Chain::Ton),
-                    to_value: BigUint::from(2508437099u64),
-                    provider: Some(SwapProvider::NearIntents.as_ref().to_string()),
-                })
+                serde_json::to_value(TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::Solana),
+                    BigUint::from(5000000u64),
+                    AssetId::from_chain(Chain::Ton),
+                    BigUint::from(2508437099u64),
+                    SwapProvider::NearIntents,
+                ))
                 .unwrap(),
             ),
             ..Transaction::mock()

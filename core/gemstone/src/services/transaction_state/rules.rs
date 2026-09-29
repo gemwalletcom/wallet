@@ -91,7 +91,7 @@ pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{PaymentMerchant, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
+    use primitives::{PaymentMerchant, SwapProvider, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
 
     #[test]
     fn test_payment_link_only_while_the_record_carries_the_payment_id() {
@@ -120,13 +120,7 @@ mod tests {
         let mut transaction = Transaction::mock();
         transaction.transaction_type = TransactionType::Swap;
         transaction.asset_id = AssetId::from_chain(Chain::Ethereum);
-        let swap = TransactionSwapMetadata {
-            from_asset: AssetId::from_chain(Chain::Ethereum),
-            from_value: 100u32.into(),
-            to_asset: AssetId::from_chain(Chain::Solana),
-            to_value: 200u32.into(),
-            provider: None,
-        };
+        let swap = TransactionSwapMetadata::new(AssetId::from_chain(Chain::Ethereum), 100u32.into(), AssetId::from_chain(Chain::Solana), 200u32.into(), SwapProvider::NearIntents);
 
         let update = state_update(TransactionState::Confirmed, &[TransactionChange::Metadata(TransactionMetadata::Swap(swap))], &transaction).unwrap();
 

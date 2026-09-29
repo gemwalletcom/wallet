@@ -128,13 +128,9 @@ pub(in crate::across) fn swap_metadata(deposit: &Deposit) -> Option<TransactionS
     let from_asset = supported_asset_for_token(origin_chain, &word_address(relay_data.input_token))?;
     let to_chain = Chain::from_chain_id(deposit.destination_chain_id)?;
     let to_asset = supported_asset_for_token(to_chain, &word_address(relay_data.output_token))?;
-    Some(TransactionSwapMetadata {
-        from_value: u256_to_biguint(&(relay_data.input_amount * AcrossAsset::from_asset(&from_asset)?.scale)),
-        to_value: u256_to_biguint(&(relay_data.output_amount * AcrossAsset::from_asset(&to_asset)?.scale)),
-        from_asset,
-        to_asset,
-        provider: Some(SwapperProvider::Across.as_ref().to_string()),
-    })
+    let from_value = u256_to_biguint(&(relay_data.input_amount * AcrossAsset::from_asset(&from_asset)?.scale));
+    let to_value = u256_to_biguint(&(relay_data.output_amount * AcrossAsset::from_asset(&to_asset)?.scale));
+    Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Across))
 }
 
 fn word_address(word: B256) -> String {

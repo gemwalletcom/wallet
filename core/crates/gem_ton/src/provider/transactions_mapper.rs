@@ -175,13 +175,7 @@ fn jetton_swap_metadata(actions: &[TraceAction]) -> Option<(String, TransactionS
     let (Some(from_asset), Some(to_asset)) = (ton_asset_id(swap.asset_in.as_deref()), ton_asset_id(swap.asset_out.as_deref())) else {
         return None;
     };
-    let metadata = TransactionSwapMetadata {
-        from_asset,
-        from_value: swap.dex_incoming_transfer.amount.clone(),
-        to_asset,
-        to_value: swap.dex_outgoing_transfer.amount.clone(),
-        provider: swap.dex,
-    };
+    let metadata = TransactionSwapMetadata::from_provider_id(from_asset, swap.dex_incoming_transfer.amount.clone(), to_asset, swap.dex_outgoing_transfer.amount.clone(), swap.dex);
     Some((sender, metadata))
 }
 
@@ -298,13 +292,7 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(2263786603u64));
         assert_eq!(
             serde_json::from_value::<TransactionSwapMetadata>(transaction.metadata.clone().unwrap()).unwrap(),
-            TransactionSwapMetadata {
-                from_asset: dust,
-                from_value: BigUint::from(2263786603u64),
-                to_asset: Chain::Ton.as_asset_id(),
-                to_value: BigUint::from(726191509u64),
-                provider: Some("stonfi".to_string()),
-            }
+            TransactionSwapMetadata::from_provider_id(dust, BigUint::from(2263786603u64), Chain::Ton.as_asset_id(), BigUint::from(726191509u64), Some("stonfi".to_string()))
         );
     }
 
@@ -323,13 +311,13 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(1000000000u64));
         assert_eq!(
             serde_json::from_value::<TransactionSwapMetadata>(transaction.metadata.clone().unwrap()).unwrap(),
-            TransactionSwapMetadata {
-                from_asset: Chain::Ton.as_asset_id(),
-                from_value: BigUint::from(1000000000u64),
-                to_asset: AssetId::from_token(Chain::Ton, "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"),
-                to_value: BigUint::from(2436222u64),
-                provider: Some("stonfi".to_string()),
-            }
+            TransactionSwapMetadata::from_provider_id(
+                Chain::Ton.as_asset_id(),
+                BigUint::from(1000000000u64),
+                AssetId::from_token(Chain::Ton, "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"),
+                BigUint::from(2436222u64),
+                Some("stonfi".to_string())
+            )
         );
     }
 
