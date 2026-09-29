@@ -1,0 +1,28 @@
+[
+  {
+    "id": 47351,
+    "platform": "chainflip",
+    "status": {
+      "state": "completed",
+      "swapId": "948784",
+      "lastStateChainUpdateAt": 1761318078000
+    }
+  },
+  {
+    "id": 25386,
+    "platform": "chainflip",
+    "status": {
+      "state": "waiting",
+      "lastStateChainUpdateAt": 1746173435024
+    }
+  },
+  {
+    "id": 47414,
+    "platform": "chainflip",
+    "status": {
+      "state": "failed",
+      "swapId": "1533612",
+      "lastStateChainUpdateAt": 1779069588001
+    }
+  }
+]

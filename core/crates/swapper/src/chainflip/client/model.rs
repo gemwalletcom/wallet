@@ -23,6 +23,11 @@ pub struct SwapTxResponse {
     pub deposit: Option<SwapDeposit>,
     pub swap: Option<SwapDetail>,
     pub refund_egress: Option<serde_json::Value>,
+    pub dest_address: Option<String>,
+    #[serde(default)]
+    pub fees: Vec<SwapFee>,
+    pub swap_egress: Option<SwapEgress>,
+    pub fill_or_kill_params: Option<FillOrKillParams>,
     estimated_durations_seconds: Option<EstimatedDurations>,
 }
 
@@ -75,6 +80,29 @@ struct EstimatedDurations {
 pub struct SwapDeposit {
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub amount: BigUint,
+    pub tx_ref: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SwapFee {
+    pub chain: String,
+    pub asset: String,
+    #[serde(rename = "type")]
+    pub fee_type: String,
+    pub amount: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SwapEgress {
+    pub amount: String,
+    pub tx_ref: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FillOrKillParams {
+    pub refund_address: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -127,7 +155,7 @@ pub static SUPPORTED_ASSETS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
     chains.into_iter().map(|(chain, tokens)| SwapperChainAsset::Assets(chain, tokens)).collect()
 });
 
-fn chainflip_asset_to_asset_id(chain: Chain, asset: &str) -> Option<AssetId> {
+pub(crate) fn chainflip_asset_to_asset_id(chain: Chain, asset: &str) -> Option<AssetId> {
     ASSETS.iter().find(|(symbol, id)| id.chain == chain && *symbol == asset).map(|(_, id)| id.clone())
 }
 

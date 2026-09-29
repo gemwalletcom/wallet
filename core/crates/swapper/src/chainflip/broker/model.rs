@@ -127,3 +127,17 @@ mod tests {
         assert_eq!(response.to, "0x1111111111111111111111111111111111111111");
     }
 }
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct BrokerSwap {
+    pub id: u64,
+    pub status: BrokerSwapStatus,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BrokerSwapStatus {
+    pub state: String,
+    pub swap_id: Option<String>,
+    pub last_state_chain_update_at: Option<i64>,
+}
