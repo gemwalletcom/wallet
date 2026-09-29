@@ -7,7 +7,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     private let keystoreURL: URL
     private let keystorePassword: KeystorePassword
     private let queue = DispatchQueue(label: "com.gemwallet.keystore", qos: .userInitiated)
-    private let passwordLock = NSLock()
 
     public init(
         directory: String = "keystore",
@@ -31,18 +30,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     }
 
     public func keystorePassword(createIfMissing: Bool) throws -> String {
-        try passwordLock.withLock {
-            let password = try keystorePassword.getPassword()
-            if password.isNotEmpty {
-                return password
-            }
-            guard createIfMissing else {
-                throw KeystoreError.missingPassword
-            }
-            let newPassword = try SecureRandom.generateKey(length: 32).hex
-            try keystorePassword.setPassword(newPassword, authentication: .none)
-            return newPassword
-        }
+        try keystorePassword.getPassword(createIfMissing: createIfMissing)
     }
 
     public func migrateV3Keystores(for wallets: [Primitives.Wallet]) async throws -> [KeystoreMigrationFailure] {
@@ -50,8 +38,10 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         guard pendingWallets.isNotEmpty else {
             return []
         }
-        let password = try await getPassword()
-        guard !password.isEmpty else {
+        let password: String
+        do {
+            password = try await getPassword()
+        } catch KeystoreError.missingPassword {
             return pendingWallets.map {
                 KeystoreMigrationFailure(walletId: $0.wallet.id, error: AnyError("keystore password is missing"))
             }
@@ -144,19 +134,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
         return nil
     }
-}
-
-func withV4Password<T>(
-    keystore: Gemstone.GemKeystore,
-    _ password: String,
-    _ operation: (Data) throws -> T,
-) throws -> T {
-    guard password.isNotEmpty else {
-        throw KeystoreError.missingPassword
-    }
-    var passwordBytes = keystore.decodePassword(password: password)
-    defer { passwordBytes.zeroize() }
-    return try operation(passwordBytes)
 }
 
 extension Primitives.Wallet {

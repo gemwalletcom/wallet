@@ -6,8 +6,7 @@ import LocalAuthentication
 import Primitives
 
 public protocol KeystorePassword: Sendable {
-    func setPassword(_ password: String, authentication: KeystoreAuthentication) throws
-    func getPassword() throws -> String
+    func getPassword(createIfMissing: Bool) throws -> String
     func getAuthentication() throws -> KeystoreAuthentication
     func getAvailableAuthentication() -> KeystoreAuthentication
     func enableAuthentication(_ enable: Bool, context: LAContext) throws
@@ -18,4 +17,10 @@ public protocol KeystorePassword: Sendable {
 
     func getAuthenticationLockPeriod() throws -> GemLockPeriod?
     func setAuthenticationLockPeriod(period: GemLockPeriod) throws
+}
+
+public extension KeystorePassword {
+    func getPassword() throws -> String {
+        try getPassword(createIfMissing: false)
+    }
 }
