@@ -15,7 +15,7 @@ public struct ReceiveScene: View {
 
     public var body: some View {
         content
-            .bindQuery(model.assetQuery)
+            .onChangeBindQuery(model.assetQuery, action: model.onChangeAssetData)
             .task { await model.updateAsset() }
     }
 
