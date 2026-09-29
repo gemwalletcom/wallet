@@ -43,6 +43,7 @@ impl StoreTransactionsSwapsConsumer {
             to_amount_usd,
             referral_fee_asset_id: referral_fee.asset_id,
             referral_fee_amount_usd,
+            created_at: at,
         }))
     }
 
