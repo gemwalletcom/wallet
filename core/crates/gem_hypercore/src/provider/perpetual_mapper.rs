@@ -69,16 +69,7 @@ pub fn map_position(position: Position, address: String, orders: &[OpenOrder]) -
     let direction = if size >= 0.0 { PerpetualDirection::Long } else { PerpetualDirection::Short };
 
     let raw_funding = position.cum_funding.since_open.parse::<f32>().unwrap_or(0.0);
-    let funding_value = match direction {
-        PerpetualDirection::Long => Some(-raw_funding),
-        PerpetualDirection::Short => {
-            if raw_funding < 0.0 {
-                Some(-raw_funding)
-            } else {
-                Some(raw_funding)
-            }
-        }
-    };
+    let funding_value = Some(-raw_funding);
     let perpetual_id = create_perpetual_id(&position.coin);
     let asset_id = create_perpetual_asset_id(&position.coin);
 
@@ -607,9 +598,17 @@ mod tests {
                 since_open: "1.5".to_string(),
             },
         };
+        let received_long_position = Position {
+            cum_funding: CumulativeFunding {
+                all_time: "-1.5".to_string(),
+                since_open: "-1.5".to_string(),
+            },
+            ..position.clone()
+        };
 
         let perpetual_position = map_position(position, "user123".to_string(), &[]);
         assert_eq!(perpetual_position.funding, Some(-1.5));
+        assert_eq!(map_position(received_long_position, "user123".to_string(), &[]).funding, Some(1.5));
 
         let short_position = Position {
             coin: "ETH".to_string(),
@@ -631,9 +630,18 @@ mod tests {
             },
         };
 
+        let paid_short_position = Position {
+            cum_funding: CumulativeFunding {
+                all_time: "1.5".to_string(),
+                since_open: "1.5".to_string(),
+            },
+            ..short_position.clone()
+        };
+
         let short_perpetual = map_position(short_position, "user123".to_string(), &[]);
         assert_eq!(short_perpetual.size, 5.0);
         assert_eq!(short_perpetual.funding, Some(1.5));
+        assert_eq!(map_position(paid_short_position, "user123".to_string(), &[]).funding, Some(-1.5), "funding a short paid is a cost, the same as for a long");
     }
 
     #[test]

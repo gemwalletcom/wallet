@@ -39,6 +39,7 @@ flowchart LR
 | The user sets Auto Close while opening a position | Confirm turns on only when the change can be placed | |
 | An order is placed | it is priced `2%` against the trader | it must fill while the price moves |
 | The user taps Close on a position | straight to confirmation, with the expected PnL | |
+| A position has paid funding | Funding Payments shows it as a negative cost, for a long and a short alike | a short must see when funding costs money, the same as on Hyperliquid |
 | The wallet's currency is not dollars | every perpetual value is still in dollars | the collateral is USDC |
 | A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen | one rule decides which screen an asset opens, for both apps |
 
