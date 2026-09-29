@@ -23,7 +23,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The asset screen opens | chart, history and market data load at the same time; the header is usable while they arrive | |
-| The asset still needs activation, or its account is blocked by multisig | the header actions are disabled and the empty history offers no Buy or Swap | the asset cannot receive yet, or this wallet cannot sign for the account; a purchase or swap would fail `test_details_state_offers_no_empty_state_action_behind_an_activation_or_multi_signature_banner` |
+| The asset still needs activation, or its account is blocked by multisig | the header actions are disabled, the empty history offers no Buy or Swap, and the Stake balance row opens nothing | the asset cannot receive yet, or this wallet cannot sign for the account; a purchase, swap or stake would fail `test_details_state_offers_no_empty_state_action_behind_an_activation_or_multi_signature_banner`, `test_details_sections_open_no_stake_behind_an_activation_or_multi_signature_banner` |
 | Receive opens for an asset that was never refreshed, or not in the last hour | the asset is refreshed, so the network selector lists every network the wallet holds it on | the networks are known only once the asset has been fetched |
 
 ## Market
