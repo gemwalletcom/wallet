@@ -4,7 +4,6 @@ import Foundation
 import struct Gemstone.GemDayBoundaries
 import GemstonePrimitives
 import Localization
-import Primitives
 
 public struct TransactionDateFormatter: Sendable {
     private let date: Date?
@@ -61,13 +60,11 @@ public struct TransactionDateFormatter: Sendable {
     }
 
     private func formatter(dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style) -> DateFormatter {
-        FormatterCache.formatter(key: "\(locale.identifier)|\(timeZone.identifier)|\(dateStyle.rawValue)|\(timeStyle.rawValue)") {
-            let formatter = DateFormatter()
-            formatter.locale = locale
-            formatter.timeZone = timeZone
-            formatter.dateStyle = dateStyle
-            formatter.timeStyle = timeStyle
-            return formatter
-        }
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.timeZone = timeZone
+        formatter.dateStyle = dateStyle
+        formatter.timeStyle = timeStyle
+        return formatter
     }
 }
