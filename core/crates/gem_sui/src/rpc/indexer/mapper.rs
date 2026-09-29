@@ -10,6 +10,7 @@ use crate::models::{BalanceChange, Digest, Effect, Event, GasObject, GasUsed, Ow
 #[derive(Debug, Deserialize)]
 pub(super) struct GraphqlTransaction {
     digest: String,
+    sender: Option<GraphqlAddress>,
     effects: GraphqlEffects,
 }
 
@@ -33,7 +34,7 @@ enum GraphqlExecutionStatus {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct GraphqlGasEffects {
-    gas_object: GraphqlGasObject,
+    gas_object: Option<GraphqlGasObject>,
     gas_summary: GraphqlGasSummary,
 }
 
@@ -144,7 +145,14 @@ pub(super) fn map_transaction(transaction: GraphqlTransaction) -> Digest {
             },
             status: Status { status: status.to_string() },
             gas_object: GasObject {
-                owner: address_owner(transaction.effects.gas_effects.gas_object.owner.address.address),
+                owner: Owner::OwnerObject(OwnerObject {
+                    address_owner: transaction
+                        .effects
+                        .gas_effects
+                        .gas_object
+                        .map(|gas_object| gas_object.owner.address.address)
+                        .or(transaction.sender.map(|sender| sender.address)),
+                }),
             },
         },
         move_call_packages: Vec::new(),
