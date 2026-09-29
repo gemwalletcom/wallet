@@ -52,7 +52,7 @@ impl WalletConnectLink {
         match parsed.scheme() {
             WALLET_CONNECT_URL_SCHEME => Some(Self::session_or_request(&parsed).unwrap_or_else(|| WalletConnectLink::Connect { uri: url.to_string() })),
             GEM_URL_SCHEME if parsed.host_str() == Some(WALLET_CONNECT_HOST) => Self::connect(&parsed).or_else(|| Self::session_or_request(&parsed)),
-            HTTPS_URL_SCHEME if parsed.host_str() == Some("gemwallet.com") && matches!(parsed.path(), "/wc" | "/wc/") => Self::connect(&parsed),
+            HTTPS_URL_SCHEME if parsed.host_str() == Some("gemwallet.com") && matches!(parsed.path(), "/wc" | "/wc/") => Self::connect(&parsed).or_else(|| Self::session_or_request(&parsed)),
             _ => None,
         }
     }
@@ -108,6 +108,8 @@ mod tests {
                 })
             );
         }
+        assert_eq!(WalletConnectLink::from_url("https://gemwallet.com/wc/?requestId=1"), Some(WalletConnectLink::Request));
+        assert_eq!(WalletConnectLink::from_url("https://gemwallet.com/wc?sessionTopic=abc123"), Some(WalletConnectLink::Session { topic: "abc123".to_string() }));
         for url in [
             "http://gemwallet.com/wc?uri=wc:topic@2",
             "https://gemwallet.com.evil.example/wc?uri=wc:topic@2",
