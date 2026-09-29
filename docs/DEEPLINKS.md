@@ -1,6 +1,6 @@
 # Deep links
 
-A deep link opens a screen inside the app. Core parses the same paths under two schemes: `gem://` is handled only by the app, while `https://gemwallet.com/` reaches an installed app only when that path is included in the platform's verified-link configuration. Another app can also register the `gem` scheme, so links that open Gem from outside the app, including the WalletConnect redirect, use `https://gemwallet.com/`.
+A deep link opens a screen inside the app. Core parses the same paths under two schemes: `gem://` is handled only by the app, while `https://gemwallet.com/` reaches an installed app only when that path is included in the platform's verified-link configuration. Android does not register the `gem` scheme, so another app cannot intercept a Gem link there; links that open Gem from outside the app, including the WalletConnect redirect, use `https://gemwallet.com/`.
 
 ## Supported links
 
