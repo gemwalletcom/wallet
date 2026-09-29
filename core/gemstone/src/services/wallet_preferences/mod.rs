@@ -44,15 +44,14 @@ impl GemWalletPreferencesService {
 
 impl GemWalletPreferencesService {
     pub fn includes_perpetual_collateral(&self, wallet_id: WalletId) -> bool {
-        let mode = self.get_perpetual_account_mode(wallet_id).unwrap_or(PerpetualAccountMode::Standard);
-        crate::services::perpetual::rules::includes_perpetual_collateral(mode)
+        crate::services::perpetual::rules::includes_perpetual_collateral(self.get_perpetual_account_mode(wallet_id))
     }
 
-    pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> Result<PerpetualAccountMode, GemServiceError> {
-        Ok(match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string()).as_deref() {
+    pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> PerpetualAccountMode {
+        match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string()).as_deref() {
             Some("unified") => PerpetualAccountMode::Unified,
             _ => PerpetualAccountMode::Standard,
-        })
+        }
     }
 
     pub fn get_assets_timestamp(&self, wallet_id: WalletId) -> u64 {
@@ -191,8 +190,8 @@ mod tests {
         assert!(!service.is_wallet_configuration_completed(other.clone()).unwrap());
 
         service.set_perpetual_account_mode(wallet.clone(), PerpetualAccountMode::Unified).unwrap();
-        assert_eq!(service.get_perpetual_account_mode(wallet.clone()).unwrap(), PerpetualAccountMode::Unified);
-        assert_eq!(service.get_perpetual_account_mode(other).unwrap(), PerpetualAccountMode::Standard);
+        assert_eq!(service.get_perpetual_account_mode(wallet.clone()), PerpetualAccountMode::Unified);
+        assert_eq!(service.get_perpetual_account_mode(other), PerpetualAccountMode::Standard);
 
         service.delete_preferences(wallet.clone()).unwrap();
         assert_eq!(service.get_transactions_timestamp(wallet.clone(), None), 0);

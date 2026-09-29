@@ -233,7 +233,7 @@ impl GemPerpetualService {
                 self.wallet_preferences.set_perpetual_account_mode(wallet_id, mode)?;
                 Ok(mode)
             }
-            Err(_) => self.wallet_preferences.get_perpetual_account_mode(wallet_id),
+            Err(_) => Ok(self.wallet_preferences.get_perpetual_account_mode(wallet_id)),
         }
     }
 }
@@ -580,7 +580,7 @@ mod tests {
                 let stored = testkit.balances.balances.lock().unwrap();
                 assert_eq!(stored[&wallet.id][0].available.to_string(), "12093224");
                 assert_eq!(stored[&wallet.id][0].withdrawable.to_string(), "12093224");
-                assert_eq!(testkit.wallet_preferences.get_perpetual_account_mode(wallet.id).unwrap(), PerpetualAccountMode::Unified);
+                assert_eq!(testkit.wallet_preferences.get_perpetual_account_mode(wallet.id), PerpetualAccountMode::Unified);
             }
         });
     }
