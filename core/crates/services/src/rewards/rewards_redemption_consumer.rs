@@ -33,7 +33,7 @@ impl<S: RedemptionService> RewardsRedemptionConsumer<S> {
         }
     }
 
-    async fn process_with_retry(&self, request: RedemptionRequest) -> Result<String, Box<dyn Error + Send + Sync>> {
+    async fn redeem_with_retry(&self, request: RedemptionRequest) -> Result<String, Box<dyn Error + Send + Sync>> {
         let mut attempt = 0;
         loop {
             match self.redemption_service.process_redemption(request.clone()).await {
@@ -82,7 +82,7 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionS
 
         let request = RedemptionRequest { recipient_address, asset };
 
-        match self.process_with_retry(request).await {
+        match self.redeem_with_retry(request).await {
             Ok(transaction_id) => {
                 let updates = vec![RedemptionUpdate::TransactionId(transaction_id.clone()), RedemptionUpdate::Status(RedemptionStatus::Completed)];
                 self.database.run(move |client| client.update_redemption(redemption_id, updates)).await?;

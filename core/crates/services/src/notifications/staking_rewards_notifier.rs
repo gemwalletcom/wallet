@@ -46,7 +46,7 @@ impl StakingRewardsNotifier {
 
         let mut notified = 0;
         for address in &addresses {
-            match self.process_address(chain, address).await {
+            match self.notify_address(chain, address).await {
                 Ok(true) => notified += 1,
                 Ok(false) => {}
                 Err(e) => {
@@ -59,7 +59,7 @@ impl StakingRewardsNotifier {
         Ok(notified)
     }
 
-    async fn process_address(&self, chain: Chain, address: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn notify_address(&self, chain: Chain, address: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let addresses = vec![address.to_string()];
         let subscriptions = self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?;
         if subscriptions.is_empty() {

@@ -71,7 +71,7 @@ impl PendingTransactionsUpdater {
         let mut count = 0;
 
         for (identifier, expires_at) in identifiers {
-            if self.process_identifier(chain, &identifier, expires_at, now).await? {
+            if self.update_pending_transaction(chain, &identifier, expires_at, now).await? {
                 count += self.remove_pending_transaction(chain, &identifier).await?;
             }
         }
@@ -79,7 +79,7 @@ impl PendingTransactionsUpdater {
         Ok(count)
     }
 
-    async fn process_identifier(&self, chain: Chain, identifier: &str, expires_at: f64, now: f64) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn update_pending_transaction(&self, chain: Chain, identifier: &str, expires_at: f64, now: f64) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let elapsed_duration = pending_transaction_elapsed(chain, expires_at, now);
         let elapsed = DurationMs(elapsed_duration);
         let transaction_id = TransactionId::new(chain, identifier.to_string());
