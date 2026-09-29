@@ -108,6 +108,9 @@ pub enum LedgerDelta {
         amount: String,
         is_deposit: bool,
     },
+    AccountClassTransfer {
+        to_perp: bool,
+    },
     #[serde(other)]
     Other,
 }

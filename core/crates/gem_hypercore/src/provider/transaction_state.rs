@@ -57,9 +57,9 @@ impl<C: Client> HyperCoreClient<C> {
                 let updates = self.get_delegator_history(&request.sender_address).await?;
                 Ok(transaction_state_mapper::map_transaction_state_staking_action(updates, action_id, request.id.clone()))
             }
-            HyperCoreActionId::Nonce(nonce) => {
+            HyperCoreActionId::Nonce(_) | HyperCoreActionId::UsdClassTransfer { .. } => {
                 let updates = self
-                    .get_ledger_updates(&request.sender_address, nonce.saturating_sub(transaction_state_mapper::ACTION_HISTORY_QUERY_LOOKBACK_MS) as i64)
+                    .get_ledger_updates(&request.sender_address, action_id.nonce().saturating_sub(transaction_state_mapper::ACTION_HISTORY_QUERY_LOOKBACK_MS) as i64)
                     .await?;
                 Ok(transaction_state_mapper::map_transaction_state_action(updates, action_id, request.id.clone()))
             }

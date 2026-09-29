@@ -23,6 +23,9 @@ pub enum ExchangeAction {
         wei: u64,
         is_undelegate: bool,
     },
+    UsdClassTransfer {
+        to_perp: bool,
+    },
     #[serde(other)]
     Other,
 }
