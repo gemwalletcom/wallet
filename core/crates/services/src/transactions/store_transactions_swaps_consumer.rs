@@ -8,6 +8,8 @@ use primitives::{AssetId, DAY, SwapProvider, Transaction, TransactionId, Transac
 use storage::{AssetsRepository, Database, DatabaseError, PricesRepository, TransactionSwapRecord, TransactionsRepository, TransactionsSwapsRepository};
 use streamer::consumer::MessageConsumer;
 
+const MAX_OUTPUT_TO_INPUT_VALUE: f64 = 2.0;
+
 pub struct StoreTransactionsSwapsConsumer {
     database: Database,
 }
@@ -32,6 +34,8 @@ impl StoreTransactionsSwapsConsumer {
         let (from_amount, from_amount_usd) = self.amount(&metadata.from_asset, &metadata.from_value, at).await?;
         let (to_amount, to_amount_usd) = self.amount(&metadata.to_asset, &metadata.to_value, at).await?;
         let (_, referral_fee_amount_usd) = self.amount(&referral_fee.asset_id, &referral_fee.value, at).await?;
+        let to_amount_usd = value_within(to_amount_usd, from_amount_usd, MAX_OUTPUT_TO_INPUT_VALUE);
+        let referral_fee_amount_usd = value_within(referral_fee_amount_usd, from_amount_usd.or(to_amount_usd), 1.0);
         Ok(Some(TransactionSwapRecord {
             provider,
             status,
@@ -70,5 +74,24 @@ impl MessageConsumer<TransactionId, usize> for StoreTransactionsSwapsConsumer {
             return Ok(0);
         };
         Ok(self.database.run(move |client| client.upsert_transaction_swap(&payload, record)).await?)
+    }
+}
+
+fn value_within(value: Option<f64>, reference: Option<f64>, max_ratio: f64) -> Option<f64> {
+    value.filter(|value| reference.is_none_or(|reference| *value <= reference * max_ratio))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_value_within() {
+        assert_eq!(value_within(Some(1.5), Some(100.0), 1.0), Some(1.5));
+        assert_eq!(value_within(Some(1.24e16), Some(12.3), 1.0), None);
+        assert_eq!(value_within(Some(2.46e18), Some(12.3), MAX_OUTPUT_TO_INPUT_VALUE), None);
+        assert_eq!(value_within(Some(99.0), Some(100.0), MAX_OUTPUT_TO_INPUT_VALUE), Some(99.0));
+        assert_eq!(value_within(Some(5.0), None, 1.0), Some(5.0));
+        assert_eq!(value_within(None, Some(100.0), 1.0), None);
     }
 }
