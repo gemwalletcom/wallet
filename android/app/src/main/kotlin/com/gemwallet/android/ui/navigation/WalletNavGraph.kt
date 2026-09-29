@@ -21,6 +21,7 @@ import com.gemwallet.android.features.assets.presents.select.assetsManageScreen
 import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetAction
 import com.gemwallet.android.features.contacts.presents.ContactsAction
 import com.gemwallet.android.features.main.views.MainScreen
+import com.gemwallet.android.features.onboarding.presents.authentication.enableAuthenticationScreen
 import com.gemwallet.android.features.onboarding.presents.create_wallet.createWalletScreen
 import com.gemwallet.android.features.onboarding.presents.import_wallet.importWalletScreen
 import com.gemwallet.android.features.onboarding.presents.terms.acceptTermsScreen
@@ -64,6 +65,8 @@ fun WalletNavGraph(
     navigator: WalletNavigator,
     onboard: @Composable () -> Unit,
     onAcceptTerms: () -> Unit,
+    shouldOfferAuthentication: () -> Boolean,
+    onAuthenticationOffered: (Boolean) -> Unit,
     onPayment: (String) -> Unit,
     onWalletContentReady: () -> Unit = {},
     walletConnectorRequest: @Composable (String) -> Unit = {},
@@ -71,6 +74,15 @@ fun WalletNavGraph(
     val onCancel: () -> Unit = navigator::pop
     val currentOnWalletContentReady by rememberUpdatedState(onWalletContentReady)
     val currentOnPayment by rememberUpdatedState(onPayment)
+    val currentShouldOfferAuthentication by rememberUpdatedState(shouldOfferAuthentication)
+    val currentOnAuthenticationOffered by rememberUpdatedState(onAuthenticationOffered)
+    val onWalletReady: () -> Unit = {
+        if (currentShouldOfferAuthentication()) {
+            navigator.openEnableAuthentication()
+        } else {
+            navigator.resetToWallet()
+        }
+    }
 
     val entryProvider = remember(navigator, onboard, onAcceptTerms, walletConnectorRequest) {
         entryProvider<NavKey> {
@@ -292,13 +304,24 @@ fun WalletNavGraph(
             createWalletScreen(
                 onCreateWallet = navigator::openCreateWallet,
                 onCancel = onCancel,
-                onCreated = navigator::resetToWallet,
+                onCreated = onWalletReady,
             )
 
             importWalletScreen(
                 onCancel = onCancel,
-                onImported = navigator::resetToWallet,
+                onImported = onWalletReady,
                 onSelectType = navigator::openImportWallet,
+            )
+
+            enableAuthenticationScreen(
+                onEnable = {
+                    currentOnAuthenticationOffered(true)
+                    navigator.resetToWallet()
+                },
+                onSkip = {
+                    currentOnAuthenticationOffered(false)
+                    navigator.resetToWallet()
+                },
             )
 
             perpetualsScreen(

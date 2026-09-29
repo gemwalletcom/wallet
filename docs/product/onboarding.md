@@ -41,6 +41,24 @@ flowchart LR
 | An address is typed as a name | the resolved name becomes the wallet name | |
 | The wallet already exists | it is simply opened | |
 
+## App lock offer
+
+```mermaid
+flowchart LR
+    A[Wallet created or imported] --> B{Offered before, already on, or unavailable?}
+    B -- no --> C[Enable Face ID or Passcode, or Skip] --> D[Wallet screen]
+    B -- yes --> D
+```
+
+| When | Expected | Why |
+|---|---|---|
+| A wallet is created or imported, the device has biometrics or a passcode, and app authentication is off | before the wallet screen, the app offers to turn it on with Enable and Skip | a new wallet should not stay open to anyone holding the unlocked phone |
+| The user taps Enable | the device asks for authentication, then app authentication is on as if turned on in Settings → Security | |
+| The authentication prompt is cancelled or fails | the offer stays open | |
+| The user taps Skip or goes back | the wallet screen opens | Settings → Security still turns it on |
+| The offer was shown once on this install | it is not shown again, whatever was chosen | |
+| App authentication is already on, or the device has no biometrics or passcode | no offer | |
+
 ## After create and import
 
 ```mermaid

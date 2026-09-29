@@ -44,13 +44,14 @@ public extension ViewModelFactory {
 
     @MainActor
     func createWalletScene(onComplete: VoidAction) -> CreateWalletViewModel {
-        CreateWalletViewModel(service: walletService, preferences: observablePreferences, onComplete: onComplete)
+        CreateWalletViewModel(service: walletService, biometryService: biometryService, preferences: observablePreferences, onComplete: onComplete)
     }
 
     @MainActor
     func importWalletScene(onComplete: VoidAction) -> ImportWalletViewModel {
         ImportWalletViewModel(
             service: walletService,
+            biometryService: biometryService,
             preferences: observablePreferences,
             nameService: nameService,
             onComplete: onComplete,

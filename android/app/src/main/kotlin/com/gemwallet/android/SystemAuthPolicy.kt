@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import android.content.Context
 import android.os.Build
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
@@ -49,4 +50,6 @@ internal object SystemAuthPolicy {
     }
 
     fun isEnrollmentMissing(canAuthenticateResult: Int): Boolean = canAuthenticateResult == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED
+
+    fun isAvailable(context: Context): Boolean = BiometricManager.from(context).canAuthenticate(allowedAuthenticators) == BiometricManager.BIOMETRIC_SUCCESS
 }

@@ -4,4 +4,5 @@ import Foundation
 
 enum ImportWalletRoute {
     case importWalletType
+    case enableAuthentication
 }

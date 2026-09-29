@@ -6,4 +6,5 @@ enum CreateWalletRoute {
     case securityReminder
     case createWallet
     case verifyPhrase
+    case enableAuthentication
 }

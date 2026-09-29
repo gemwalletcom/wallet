@@ -126,6 +126,17 @@ class AppViewModel @Inject constructor(
         }
     }
 
+    fun shouldOfferAuthentication(isAvailable: Boolean): Boolean = userConfig.shouldOfferAuthentication(isAvailable)
+
+    fun onAuthenticationOffered(enabled: Boolean) {
+        viewModelScope.launch(ioDispatcher) {
+            if (enabled) {
+                userConfig.setAuthRequired(true)
+            }
+            userConfig.setAuthenticationOffered()
+        }
+    }
+
     private fun rateAs() {
         userConfig.increaseLaunchNumber()
         if (!userConfig.shouldRequestReview()) {

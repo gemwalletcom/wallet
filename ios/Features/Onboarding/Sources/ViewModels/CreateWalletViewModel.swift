@@ -13,6 +13,7 @@ import SwiftUI
 @MainActor
 public final class CreateWalletViewModel {
     private let service: any GemWalletServiceProtocol
+    private let biometryService: any BiometryAuthenticatable
 
     func verifyPhraseModel(onComplete: @escaping ([String]) async throws -> Void) -> VerifyPhraseSceneViewModel {
         VerifyPhraseSceneViewModel(
@@ -30,16 +31,26 @@ public final class CreateWalletViewModel {
 
     public init(
         service: any GemWalletServiceProtocol,
+        biometryService: any BiometryAuthenticatable,
         preferences: ObservablePreferences,
         onComplete: VoidAction,
     ) {
         self.service = service
+        self.biometryService = biometryService
         self.preferences = preferences
         self.onComplete = onComplete
     }
 
     public var isAcceptTermsCompleted: Bool {
         preferences.isAcceptTermsCompleted
+    }
+
+    var shouldOfferAuthentication: Bool {
+        preferences.shouldOfferAuthentication(service: biometryService)
+    }
+
+    func enableAuthenticationModel() -> EnableAuthenticationSceneViewModel {
+        EnableAuthenticationSceneViewModel(service: biometryService, preferences: preferences, onComplete: onComplete)
     }
 
     func dismiss() {

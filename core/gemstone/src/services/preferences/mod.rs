@@ -43,6 +43,7 @@ const IS_PERPETUAL_ENABLED: &str = "is_perpetual_enabled";
 const IS_HIDE_BALANCE_ENABLED: &str = "is_hide_balance_enabled";
 const IS_DEVELOPER_ENABLED: &str = "is_developer_enabled";
 const IS_ACCEPT_TERMS_COMPLETED: &str = "is_accept_terms_completed";
+const IS_AUTHENTICATION_OFFERED: &str = "is_authentication_offered";
 const APPEARANCE: &str = "appearance";
 const IS_DEVICE_REGISTERED: &str = "is_device_registered";
 const SUBSCRIPTIONS_VERSION: &str = "subscriptions_version";
@@ -117,6 +118,14 @@ impl GemPreferencesService {
 
     pub fn set_accept_terms_completed(&self) -> Result<(), GemServiceError> {
         self.set_observed(IS_ACCEPT_TERMS_COMPLETED, true.to_string())
+    }
+
+    pub fn should_offer_authentication(&self, is_available: bool, is_enabled: bool) -> bool {
+        rules::should_offer_authentication(is_available, is_enabled, rules::flag(self.store.get(IS_AUTHENTICATION_OFFERED.to_string())))
+    }
+
+    pub fn set_authentication_offered(&self) -> Result<(), GemServiceError> {
+        self.store.set(IS_AUTHENTICATION_OFFERED.to_string(), true.to_string())
     }
 
     pub fn get_appearance(&self) -> Appearance {
@@ -448,5 +457,14 @@ mod tests {
 
         assert!(!service.is_developer_enabled());
         assert!(!service.is_accept_terms_completed());
+    }
+
+    #[test]
+    fn test_should_offer_authentication() {
+        let service = GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()));
+        assert!(service.should_offer_authentication(true, false));
+
+        service.set_authentication_offered().unwrap();
+        assert!(!service.should_offer_authentication(true, false));
     }
 }

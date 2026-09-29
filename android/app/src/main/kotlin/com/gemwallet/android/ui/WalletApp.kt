@@ -22,6 +22,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
+import com.gemwallet.android.SystemAuthPolicy
 import com.gemwallet.android.WalletConnectorRequestContent
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.features.onboarding.presents.OnboardingScene
@@ -50,6 +51,7 @@ fun WalletApp(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val startDestination by viewModel.startDestinationState.collectAsStateWithLifecycle()
     val isTermsAccepted by viewModel.isTermsAccepted.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val start = startDestination ?: return
     val currentTab = rememberSaveable { mutableStateOf(WalletRoute) }
@@ -91,6 +93,8 @@ fun WalletApp(
         navigator = navigator,
         onWalletContentReady = onContentReady,
         onAcceptTerms = viewModel::acceptTerms,
+        shouldOfferAuthentication = { viewModel.shouldOfferAuthentication(SystemAuthPolicy.isAvailable(context)) },
+        onAuthenticationOffered = viewModel::onAuthenticationOffered,
         onPayment = viewModel::openPayment,
         walletConnectorRequest = walletConnectorRequestContent,
         onboard = {

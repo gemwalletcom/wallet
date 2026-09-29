@@ -19,10 +19,13 @@ public struct ImportWalletNavigationStack: View {
                 .toolbarDismissItem(type: .close, placement: .topBarLeading)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: ImportWalletType.self) { type in
-                    ImportWalletScene(model: model.importWalletModel(type: type))
+                    ImportWalletScene(model: model.importWalletModel(type: type, onComplete: onImportComplete))
                 }
                 .navigationDestination(for: Scenes.ImportWalletType.self) { _ in
                     importWalletTypeScene
+                }
+                .navigationDestination(for: Scenes.EnableAuthentication.self) { _ in
+                    EnableAuthenticationScene(model: model.enableAuthenticationModel())
                 }
         }
     }
@@ -47,6 +50,15 @@ extension ImportWalletNavigationStack {
     func navigate(to route: ImportWalletRoute) {
         switch route {
         case .importWalletType: navigationPath.append(Scenes.ImportWalletType())
+        case .enableAuthentication: navigationPath.append(Scenes.EnableAuthentication())
+        }
+    }
+
+    func onImportComplete() {
+        if model.shouldOfferAuthentication {
+            navigate(to: .enableAuthentication)
+        } else {
+            model.onComplete?()
         }
     }
 }
