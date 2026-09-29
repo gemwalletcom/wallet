@@ -98,7 +98,7 @@ pub fn map_partner_transaction(accrual: &FeeAccrual) -> Option<SwapPartnerTransa
         from_address: accrual.wallet_address.clone(),
         to_address: accrual.destination_wallet_address.clone(),
         from_asset_id: map_asset_id(from_address),
-        from_value: from_amount.to_string(),
+        from_value: (*from_amount).clone(),
         from_amount_usd: None,
         to_asset_id: map_asset_id(to_address),
         to_value: to_amount.trim_start_matches('-').to_string(),
