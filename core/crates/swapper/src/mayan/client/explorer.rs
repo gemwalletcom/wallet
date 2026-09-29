@@ -2,7 +2,7 @@ use super::MayanClient;
 use crate::{
     SwapperError,
     mayan::{
-        model::{MayanChain, MayanTransactionResult},
+        model::{MayanChain, MayanSwapsQuery, MayanSwapsResponse, MayanTransactionResult},
         target::MayanTarget,
     },
 };
@@ -19,6 +19,10 @@ where
 
     pub async fn get_transaction_status(&self, hash: &str) -> Result<MayanTransactionResult, SwapperError> {
         self.client.get(MayanTarget::TransactionStatus { hash: hash.to_string() }).await.map_err(SwapperError::from)
+    }
+
+    pub async fn get_swaps(&self, query: MayanSwapsQuery) -> Result<MayanSwapsResponse, SwapperError> {
+        self.client.get(MayanTarget::Swaps { query }).await.map_err(SwapperError::from)
     }
 }
 

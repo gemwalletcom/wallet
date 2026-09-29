@@ -1,6 +1,6 @@
 use gem_client::{Target, build_path_with_query};
 
-use super::model::{GetSwapEvmParams, GetSwapSolanaParams, QuoteQuery};
+use super::model::{GetSwapEvmParams, GetSwapSolanaParams, MayanSwapsQuery, QuoteQuery};
 
 #[derive(Clone, Debug)]
 pub enum MayanTarget {
@@ -10,6 +10,7 @@ pub enum MayanTarget {
     SwapEvm { params: GetSwapEvmParams },
     SwapSolana { params: GetSwapSolanaParams },
     SwapSui,
+    Swaps { query: MayanSwapsQuery },
 }
 
 impl Target for MayanTarget {
@@ -21,6 +22,7 @@ impl Target for MayanTarget {
             Self::SwapEvm { params } => build_path_with_query("/get-swap/evm", params),
             Self::SwapSolana { params } => build_path_with_query("/get-swap/solana", params),
             Self::SwapSui => "/get-swap/sui".to_string(),
+            Self::Swaps { query } => build_path_with_query("/swaps", query),
         }
     }
 }
