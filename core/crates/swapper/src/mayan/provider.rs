@@ -49,7 +49,7 @@ where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     async fn output_token_decimals(&self, result: &MayanTransactionResult) -> Option<u32> {
-        if result.to_amount64.is_some() || result.to_token_address == EVM_ZERO_ADDRESS {
+        if result.to_token_address == EVM_ZERO_ADDRESS {
             return None;
         }
         let chain = result.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
