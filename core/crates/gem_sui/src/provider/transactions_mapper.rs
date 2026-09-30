@@ -65,17 +65,10 @@ fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance
         return Some((chain.as_asset_id(), stake.staker_address, stake.validator_address, TransactionType::StakeDelegate, stake.amount, None));
     }
 
-    if events.iter().any(|x| x.event_type.contains("Swap")) {
-        let owner_balance_changes: Vec<_> = balance_changes.iter().filter(|x| x.owner.get_address_owner() == *owner).cloned().collect();
-        let swap = match owner_balance_changes.len() {
-            2 => map_swap_from_balance_changes(owner_balance_changes, fee)?,
-            3 => {
-                let filtered: Vec<_> = owner_balance_changes.into_iter().filter(|x| !is_native_sui(&x.coin_type)).collect();
-                map_swap_from_balance_changes(filtered, fee)?
-            }
-            _ => return None,
-        };
-        let owner = owner.clone()?;
+    if events.iter().any(|x| x.event_type.contains("Swap"))
+        && let Some(owner) = owner.clone()
+        && let Some(swap) = map_owner_swap(balance_changes, &owner, fee)
+    {
         let swap = swap.with_referral_fee(map_referral_fee(balance_changes, &owner));
         let asset_id = swap.from_asset.clone();
         return Some((asset_id, owner.clone(), owner, TransactionType::Swap, swap.from_value.clone(), serde_json::to_value(&swap).ok()));
@@ -103,6 +96,15 @@ fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance
     }
 
     None
+}
+
+fn map_owner_swap(balance_changes: &[BalanceChange], owner: &str, fee: &BigUint) -> Option<TransactionSwapMetadata> {
+    let owner_balance_changes: Vec<_> = balance_changes.iter().filter(|x| x.owner.get_address_owner().as_deref() == Some(owner)).cloned().collect();
+    match owner_balance_changes.len() {
+        2 => map_swap_from_balance_changes(owner_balance_changes, fee),
+        3 => map_swap_from_balance_changes(owner_balance_changes.into_iter().filter(|x| !is_native_sui(&x.coin_type)).collect(), fee),
+        _ => None,
+    }
 }
 
 fn called_contract(events: &[Event], move_call_packages: &[String]) -> Option<String> {

@@ -116,6 +116,16 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_get_transaction_swap_events_without_swap_output() {
+        let client = MockClient::new().with_post(|_, _| Ok(include_str!("../../../testdata/transaction_by_digest_mayan_deposit.json").as_bytes().to_vec()));
+
+        let transaction = SuiIndexer::new(client).get_transaction("G923qmxFaS7YUyZ3maYVpJBeW3yLCcMCxDyNJ8kJWfUz").await.unwrap().unwrap();
+        let transaction = crate::provider::transactions_mapper::map_transaction(transaction).unwrap();
+
+        assert_eq!(transaction.transaction_type, primitives::TransactionType::SmartContractCall);
+    }
+
+    #[tokio::test]
     async fn test_get_transactions_by_address() {
         let responses = Arc::new(Mutex::new(VecDeque::from([
             include_str!("../../../testdata/transactions_by_address_page_1.json").as_bytes().to_vec(),
