@@ -12,6 +12,12 @@ use streamer::consumer::MessageConsumer;
 use crate::ConfigCacher;
 use crate::transactions::StoreTransactionsSwapsConsumerConfig;
 
+struct AssetValue {
+    amount: f64,
+    amount_usd: Option<f64>,
+    is_enabled: bool,
+}
+
 pub struct StoreTransactionsSwapsConsumer {
     database: Database,
     config: Arc<ConfigCacher>,
@@ -34,19 +40,22 @@ impl StoreTransactionsSwapsConsumer {
             return Ok(None);
         };
         let at = transaction.created_at.naive_utc();
-        let (from_amount, from_amount_usd) = self.amount(&metadata.from_asset, &metadata.from_value, at).await?;
-        let (to_amount, to_amount_usd) = self.amount(&metadata.to_asset, &metadata.to_value, at).await?;
-        let (_, referral_fee_amount_usd) = self.amount(&referral_fee.asset_id, &referral_fee.value, at).await?;
-        let to_amount_usd = to_amount_usd.filter(|value| is_output_within_input_value(*value, from_amount_usd, config.max_output_to_input_value));
-        let referral_fee_amount_usd = referral_fee_amount_usd.filter(|value| is_fee_within_swap_value(*value, from_amount_usd.or(to_amount_usd)));
+        let fee = self.asset_value(&referral_fee.asset_id, &referral_fee.value, at).await?;
+        if !fee.is_enabled {
+            return Ok(None);
+        }
+        let from = self.asset_value(&metadata.from_asset, &metadata.from_value, at).await?;
+        let to = self.asset_value(&metadata.to_asset, &metadata.to_value, at).await?;
+        let to_amount_usd = to.amount_usd.filter(|value| is_output_within_input_value(*value, from.amount_usd, config.max_output_to_input_value));
+        let referral_fee_amount_usd = fee.amount_usd.filter(|value| is_fee_within_swap_value(*value, from.amount_usd.or(to_amount_usd)));
         Ok(Some(TransactionSwapRecord {
             provider,
             status,
             from_asset_id: metadata.from_asset,
-            from_amount,
-            from_amount_usd,
+            from_amount: from.amount,
+            from_amount_usd: from.amount_usd,
             to_asset_id: metadata.to_asset,
-            to_amount,
+            to_amount: to.amount,
             to_amount_usd,
             referral_fee_asset_id: referral_fee.asset_id,
             referral_fee_amount_usd,
@@ -54,16 +63,18 @@ impl StoreTransactionsSwapsConsumer {
         }))
     }
 
-    async fn amount(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<(f64, Option<f64>), Box<dyn Error + Send + Sync>> {
-        let asset_id = asset_id.clone();
-        let (asset, price, prices) = self
+    async fn asset_value(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<AssetValue, Box<dyn Error + Send + Sync>> {
+        let lookup_id = asset_id.clone();
+        let (assets, price, prices) = self
             .database
-            .run(move |client| Ok::<_, DatabaseError>((client.get_asset(&asset_id)?, client.get_price_at(&asset_id, at)?, client.get_prices_for_asset(&asset_id)?)))
+            .run(move |client| Ok::<_, DatabaseError>((client.get_assets_basic(vec![lookup_id.clone()])?, client.get_price_at(&lookup_id, at)?, client.get_prices_for_asset(&lookup_id)?)))
             .await?;
-        let amount = BigNumberFormatter::value_as_f64(&value.to_string(), asset.decimals as u32)?;
+        let asset = assets.into_iter().next().ok_or_else(|| format!("asset {asset_id} not found"))?;
+        let amount = BigNumberFormatter::value_as_f64(&value.to_string(), asset.asset.decimals as u32)?;
         let max_age = Duration::from_std(DAY)?;
-        let amount_usd = price.filter(|(price_at, _)| at - *price_at <= max_age && is_within_supply(amount, &prices)).map(|(_, price)| amount * price);
-        Ok((amount, amount_usd))
+        let is_enabled = asset.properties.is_enabled;
+        let amount_usd = price.filter(|(price_at, _)| is_enabled && at - *price_at <= max_age && is_within_supply(amount, &prices)).map(|(_, price)| amount * price);
+        Ok(AssetValue { amount, amount_usd, is_enabled })
     }
 }
 
