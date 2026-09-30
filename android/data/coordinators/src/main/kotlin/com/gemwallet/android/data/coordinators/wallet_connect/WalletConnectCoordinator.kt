@@ -32,8 +32,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -62,13 +64,14 @@ class WalletConnectCoordinator(
     private val pendingEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 16)
     private val isWalletConnectInit = MutableStateFlow(false)
     private val approvingWallet = MutableStateFlow<Wallet?>(null)
-    val bridgeEvents = isWalletConnectInit.flatMapLatest {
+    private val events = isWalletConnectInit.flatMapLatest {
         if (it) {
             merge(walletConnectClient.events, pendingEvents)
         } else {
             emptyFlow()
         }
     }
+    val bridgeEvents = events.filter(::isFirstDelivery).flowOn(Dispatchers.IO)
 
     init {
         scope.launch(Dispatchers.IO) {
@@ -80,7 +83,7 @@ class WalletConnectCoordinator(
             }
         }
         scope.launch(Dispatchers.IO) {
-            bridgeEvents.collect { event ->
+            events.collect { event ->
                 when (event) {
                     is WalletConnectEvent.SessionDeleted -> walletConnectService.deleteSession(event.topic)
                     is WalletConnectEvent.SessionSettled -> storeSettledSession(event.session)
@@ -187,6 +190,11 @@ class WalletConnectCoordinator(
     override fun authMessage(payloadParams: WalletConnectAuthPayloadParams, issuer: String): String = walletConnectClient.formatAuthMessage(payloadParams, issuer)
 
     override fun authObject(payloadParams: WalletConnectAuthPayloadParams, issuer: String, signature: String): WalletConnectAuthObject = walletConnectClient.generateAuthObject(payloadParams, issuer, signature)
+
+    private fun isFirstDelivery(event: WalletConnectEvent): Boolean = when (event) {
+        is WalletConnectEvent.SessionProposal -> walletConnectService.shouldProcessProposal(event.proposal.proposerPublicKey)
+        else -> true
+    }
 
     private fun initWalletConnect(onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         if (isWalletConnectInit.value) {
