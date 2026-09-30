@@ -28,13 +28,13 @@ class NativeProvider(private val httpClient: OkHttpClient = OkHttpClient()) : Al
             httpClient.newCall(requestBuilder.build()).execute().use { response ->
                 AlienResponse(response.code.toUShort(), response.body.bytes())
             }
-        } catch (err: IOException) {
-            if (err.isNetworkUnavailable()) {
+        } catch (error: IOException) {
+            if (error.isNetworkUnavailable()) {
                 throw AlienException.Offline()
             }
-            throw AlienException.RequestException(err.toGatewayNetworkMessage())
-        } catch (err: CancellationException) {
-            throw err
+            throw AlienException.RequestException(error.toGatewayNetworkMessage())
+        } catch (error: CancellationException) {
+            throw error
         } catch (_: Exception) {
             AlienResponse(500.toUShort(), byteArrayOf())
         }

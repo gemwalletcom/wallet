@@ -1874,24 +1874,6 @@ public extension Primitives.BlockExplorerLink {
     }
 }
 
-public extension Gemstone.ChainAddress {
-    func toPrimitives() -> Primitives.ChainAddress {
-        Primitives.ChainAddress(
-            chain: Primitives.Chain(core: chain),
-            address: address,
-        )
-    }
-}
-
-public extension Primitives.ChainAddress {
-    func toGem() -> Gemstone.ChainAddress {
-        Gemstone.ChainAddress(
-            chain: chain.rawValue,
-            address: address,
-        )
-    }
-}
-
 public extension Gemstone.ChainAsset {
     func toPrimitives() -> Primitives.ChainAsset {
         Primitives.ChainAsset(
@@ -2670,6 +2652,26 @@ public extension Primitives.PerpetualPositionData {
             perpetual: perpetual.toGem(),
             asset: asset.toGem(),
             position: position.toGem(),
+        )
+    }
+}
+
+public extension Gemstone.PerpetualPrice {
+    func toPrimitives() -> Primitives.PerpetualPrice {
+        Primitives.PerpetualPrice(
+            coin: coin,
+            price: price,
+            pricePercentChange24h: pricePercentChange24h,
+        )
+    }
+}
+
+public extension Primitives.PerpetualPrice {
+    func toGem() -> Gemstone.PerpetualPrice {
+        Gemstone.PerpetualPrice(
+            coin: coin,
+            price: price,
+            pricePercentChange24h: pricePercentChange24h,
         )
     }
 }

@@ -27,9 +27,9 @@ public final class GemSecureStoreMock: GemSecureStore, @unchecked Sendable {
 }
 
 final class GemNodeStoreMock: GemNodeStore, @unchecked Sendable {
-    public init() {}
+    init() {}
 
-    public func getNodes(chain _: Gemstone.Chain) async throws -> [Gemstone.Node] {
+    func getNodes(chain _: Gemstone.Chain) async throws -> [Gemstone.Node] {
         []
     }
 
@@ -68,7 +68,7 @@ public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Send
 }
 
 final class StubAlienProvider: AlienProvider, @unchecked Sendable {
-    public init() {}
+    init() {}
 
     func request(target _: AlienTarget) async throws -> AlienResponse {
         throw AnyError("StubAlienProvider does not perform requests")

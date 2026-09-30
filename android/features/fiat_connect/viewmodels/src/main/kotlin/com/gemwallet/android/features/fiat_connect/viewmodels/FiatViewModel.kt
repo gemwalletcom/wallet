@@ -168,9 +168,9 @@ class FiatViewModel @Inject constructor(
         session.update { it.onFetchStarted(request) }
         val results = try {
             GemFiatQuotesResult(request, withContext(ioDispatcher) { service.quotes(request.quoteType, assetId.toIdentifier(), request.amount) }, null)
-        } catch (err: GemServiceException) {
-            Log.e(TAG, "fiat quotes request failed", err)
-            GemFiatQuotesResult(request, emptyList(), err)
+        } catch (error: GemServiceException) {
+            Log.e(TAG, "fiat quotes request failed", error)
+            GemFiatQuotesResult(request, emptyList(), error)
         }
         session.update { it.onQuoteResults(results) }
     }

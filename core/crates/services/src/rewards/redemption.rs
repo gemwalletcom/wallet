@@ -35,11 +35,11 @@ mod tests {
         let option = RewardRedemptionOption::mock(None);
 
         assert!(redemption_rejection(option.points, &option).is_none());
-        assert!(matches!(redemption_rejection(option.points - 1, &option), Some(RewardsRedemptionError::NotEnoughPoints)));
-        assert!(matches!(
+        assert_eq!(redemption_rejection(option.points - 1, &option), Some(RewardsRedemptionError::NotEnoughPoints));
+        assert_eq!(
             redemption_rejection(option.points, &RewardRedemptionOption { remaining: Some(0), ..option.clone() }),
             Some(RewardsRedemptionError::OptionNotAvailable)
-        ));
+        );
         assert!(redemption_rejection(option.points, &RewardRedemptionOption { remaining: None, ..option }).is_none());
     }
 }

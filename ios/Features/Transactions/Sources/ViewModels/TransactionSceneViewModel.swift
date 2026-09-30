@@ -56,8 +56,8 @@ public final class TransactionSceneViewModel {
         rows.title.title
     }
 
-    var explorerURL: URL {
-        rows.explorer.toPrimitives().url
+    var explorerLink: String {
+        rows.explorer.link
     }
 
     var onTransactionHeaderTap: TransactionHeaderActionHandler? {

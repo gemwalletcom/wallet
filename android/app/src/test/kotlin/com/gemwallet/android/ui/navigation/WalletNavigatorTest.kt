@@ -67,13 +67,15 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationServiceInterface
+import uniffi.gemstone.GemNavigationTarget
 import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
+import uniffi.gemstone.UrlAction
+import uniffi.gemstone.WalletConnectLink
 
 class WalletNavigatorTest {
     @Before
@@ -109,12 +111,24 @@ class WalletNavigatorTest {
     }
 
     @Test
+    fun openUrlAction_handsPaymentAndWalletConnectActionsToThePendingNavigation() {
+        val opened = mutableListOf<UrlAction>()
+        val navigator = navigatorWith(WalletRootRoute, SupportRoute, onOpenAction = { opened.add(it) })
+        val walletConnect = UrlAction.WalletConnect(WalletConnectLink.Request)
+
+        assertTrue(navigator.openUrlAction(walletConnect))
+
+        assertEquals(listOf<UrlAction>(walletConnect), opened)
+        assertEquals(listOf(WalletRootRoute, SupportRoute), navigator.backStack.toList())
+    }
+
+    @Test
     fun openAsset_leavesTheStackAloneWhenCoreFailsToOpenIt() = runTest {
         val assetId = mockAssetId(Chain.Tron)
-        val assetsService = mockk<GemAssetsServiceInterface> {
+        val navigationService = mockk<GemNavigationServiceInterface> {
             coEvery { openAsset(assetId.toIdentifier()) } throws GemServiceException.Api("offline")
         }
-        val navigator = navigatorWith(WalletRootRoute, assetsService = assetsService, scope = this)
+        val navigator = navigatorWith(WalletRootRoute, navigationService = navigationService, scope = this)
 
         navigator.openAsset(assetId).join()
 
@@ -126,17 +140,17 @@ class WalletNavigatorTest {
         val blocked = mockAssetId(Chain.Tempo)
         val opened = mockAssetId(Chain.Tron)
         val callingThreads = mutableListOf<String>()
-        val assetsService = mockk<GemAssetsServiceInterface> {
+        val navigationService = mockk<GemNavigationServiceInterface> {
             coEvery { openAsset(blocked.toIdentifier()) } answers {
                 callingThreads += Thread.currentThread().name
-                null
+                GemNavigationTarget.None
             }
             coEvery { openAsset(opened.toIdentifier()) } answers {
                 callingThreads += Thread.currentThread().name
-                mockAsset(id = mockAssetId(chain = Chain.Tron)).toGem()
+                GemNavigationTarget.Asset(mockAsset(id = mockAssetId(chain = Chain.Tron)).toGem(), walletId = null, isPerpetual = false)
             }
         }
-        val navigator = navigatorWith(WalletRootRoute, assetsService = assetsService, scope = this)
+        val navigator = navigatorWith(WalletRootRoute, navigationService = navigationService, scope = this)
 
         navigator.openAsset(blocked).join()
         navigator.openAsset(opened).join()
@@ -532,17 +546,17 @@ class WalletNavigatorTest {
 
     private fun navigatorWith(
         vararg routes: NavKey,
-        assetsService: GemAssetsServiceInterface = mockk(),
         navigationService: GemNavigationServiceInterface = mockk(relaxed = true),
         session: StateFlow<Session?> = MutableStateFlow(null),
         scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
+        onOpenAction: (UrlAction) -> Unit = {},
     ): WalletNavigator = WalletNavigator(
         backStack = NavBackStack(*routes),
         currentTab = mutableStateOf(WalletRoute),
         deeplinkService = GemDeeplinkService(),
-        assetsService = assetsService,
         navigationService = navigationService,
         session = session,
         scope = scope,
+        onOpenAction = onOpenAction,
     )
 }

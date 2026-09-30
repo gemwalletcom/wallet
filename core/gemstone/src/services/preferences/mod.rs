@@ -269,7 +269,7 @@ impl GemPreferencesService {
         self.store.set(SKIPPED_APP_VERSION.to_string(), version)
     }
 
-    pub fn get_perpetual_markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
+    pub fn get_perpetual_markets_updated_at(&self) -> Option<i64> {
         self.get_timestamp(PERPETUAL_MARKETS_UPDATED_AT)
     }
 
@@ -277,7 +277,7 @@ impl GemPreferencesService {
         self.set_timestamp(PERPETUAL_MARKETS_UPDATED_AT, timestamp)
     }
 
-    pub fn get_perpetual_prices_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
+    pub fn get_perpetual_prices_updated_at(&self) -> Option<i64> {
         self.get_timestamp(PERPETUAL_PRICES_UPDATED_AT)
     }
 
@@ -285,8 +285,8 @@ impl GemPreferencesService {
         self.set_timestamp(PERPETUAL_PRICES_UPDATED_AT, timestamp)
     }
 
-    fn get_timestamp(&self, key: &str) -> Result<Option<i64>, GemServiceError> {
-        Ok(crate::services::clock::parse_timestamp(self.store.get(key.to_string())))
+    fn get_timestamp(&self, key: &str) -> Option<i64> {
+        crate::services::clock::parse_timestamp(self.store.get(key.to_string()))
     }
 
     fn set_timestamp(&self, key: &str, timestamp: Option<i64>) -> Result<(), GemServiceError> {
@@ -308,7 +308,7 @@ impl GemPreferencesService {
         self.store.get(CONFIG.to_string()).and_then(|json| serde_json::from_str(&json).ok())
     }
 
-    pub fn get_asset_updated_at(&self, asset_id: &AssetId) -> Result<Option<i64>, GemServiceError> {
+    pub fn get_asset_updated_at(&self, asset_id: &AssetId) -> Option<i64> {
         self.get_timestamp(&asset_updated_at_key(asset_id))
     }
 

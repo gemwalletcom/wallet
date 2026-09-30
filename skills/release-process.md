@@ -22,7 +22,7 @@ The repo follows a GitFlow-like release model:
   just bump major
   just bump 3.1.2
   ```
-- `just bump` commits the version, creates a signed tag, and pushes commit and tag atomically. Tag creation is restricted to repository admins by a tag ruleset, so a non-admin's push is rejected as a whole. Hand the bump commit to an admin to push the tag (or create the GitHub release at that commit); `release_on_tag.yml` creates the GitHub release once the tag lands
+- `just bump` commits the version, creates a signed tag, and pushes both atomically. A tag ruleset restricts this to repository admins, so a non-admin's push is rejected as a whole. Hand the bump commit to an admin to push the tag or create the GitHub release at that commit; `release_on_tag.yml` creates the release once the tag lands
 - Unrelated staged, unstaged, and untracked changes are preserved and excluded from the bump commit. The four version files (`ios/Gem.xcodeproj/project.pbxproj`, `android/app/build.gradle.kts`, `core/Cargo.toml`, and `core/Cargo.lock`) must be clean before bumping.
 
 ## Commits
@@ -36,15 +36,16 @@ The repo follows a GitFlow-like release model:
 
 ## Release Builds
 
-- The release tag is the input to everything downstream. `release_on_tag.yml` creates the GitHub release with generated notes on any tag push, and store builds check out the tag, so the tag must exist on the remote before a build is started.
+- Store builds check out the release tag, so confirm it exists remotely before starting a build. `release_on_tag.yml` creates the GitHub release with generated notes when the tag is pushed.
 - Android: `just android release` builds the Play AAB and `just android release-apk` the universal APK; channel variants come from `-Pchannel` (see `android/skills/release-and-verification.md`). The F-Droid build is reproduced from `android/reproducible/fdroid/`.
 - iOS: `just generate-stone` builds the Rust static libraries and UniFFI sources the archive links, then the `Gem` scheme is archived in the Release configuration from `ios/Gem.xcodeproj`.
 - When two releases with near-identical source differ in binary size or behavior, suspect the build machine's Rust toolchain and cargo cache state before source: archive both tags locally on one machine and compare.
 
 ## Publication Boundaries
 
-- Treat commit, rebase, push, force-push, PR creation, issue creation, review replies, and thread resolution as separate actions. Perform only the actions the user requested.
-- Follow the requested branch name and commit shape. Do not rename the branch, squash, or split commits unless requested or required by repository policy.
+- Treat branch creation or switching, commit, rebase, push, force-push, PR creation, issue creation, review replies, and thread resolution as separate actions; perform only what the user requested.
+- `Commit` or `push` applies to the current branch unless the user names another target; branching conventions do not authorize changing it. If no upstream exists or the remote rejects the push, report it and ask instead of inventing a target.
+- Follow the requested commit shape. Do not squash or split commits unless requested or required by repository policy.
 - Before rebasing, fetch the intended upstream and verify the current branch, worktree, local changes, and target base. Rerun focused verification after resolving conflicts.
 - A rebase or amended commit does not authorize a push. When rewritten history must be published, verify the remote branch and use `git push --force-with-lease` rather than an unconditional force push.
 - Do not continuously rebase merely because upstream moved. Rebase for a real conflict, an explicit request, or a stated release requirement.

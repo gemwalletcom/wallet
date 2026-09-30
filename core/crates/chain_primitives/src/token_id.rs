@@ -39,10 +39,10 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
         Chain::Solana | Chain::Ton | Chain::Near => Some(token_id),
         Chain::Tron => (token_id.len() == 34 && token_id.starts_with('T')).then_some(token_id),
         Chain::Xrp => {
-            if let Some((_, addr)) = token_id.split_once('.')
-                && addr.starts_with('r')
+            if let Some((_, address)) = token_id.split_once('.')
+                && address.starts_with('r')
             {
-                return Some(addr.to_string());
+                return Some(address.to_string());
             }
             token_id.starts_with('r').then_some(token_id)
         }

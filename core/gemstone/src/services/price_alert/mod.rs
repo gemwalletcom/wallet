@@ -96,6 +96,10 @@ pub fn price_alerts_toggle_row(enabled: bool) -> GemListRow {
 }
 
 impl GemPriceAlertService {
+    pub fn is_available(&self) -> bool {
+        self.permissions.is_available()
+    }
+
     pub async fn price_alerts(&self, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, GemServiceError> {
         self.store.get_price_alerts(asset_id).await
     }

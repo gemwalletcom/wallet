@@ -2,19 +2,16 @@ use std::error::Error;
 use std::sync::Arc;
 
 use cacher::CacherClient;
-use chain_providers::{ChainProviders, ProviderFactory};
+use chain_providers::ChainProviders;
 use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
-use gem_client::ReqwestClient;
 use prices::{FiatRatesProvider, PriceAssetsProvider, PriceProvider};
 use primitives::{AccessTokenCacher, Chain, ChartTimeframe, JobConfiguration};
 use search_index::SearchIndexClient;
 use settings::{Settings, service_user_agent};
 use storage::{Database, PricesProvidersRepository};
 use streamer::StreamProducer;
-use swapper::NativeProvider;
-use swapper::relay::RelayPartnerProvider;
 use swapper::swapper::GemSwapper;
 
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
@@ -28,7 +25,7 @@ use crate::prices::{
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
 use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater};
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
-use crate::transactions::{InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapPartnerTransactionsUpdater, SwapVaultAddressClient, VaultAddressesUpdater};
+use crate::transactions::{InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, VaultAddressesUpdater};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
 
 #[derive(Clone)]
@@ -295,7 +292,6 @@ pub struct TransactionJobs {
     pending_updater: Arc<PendingTransactionsUpdater>,
     swapper: Arc<GemSwapper>,
     cacher: CacherClient,
-    swap_partner_updaters: Vec<SwapPartnerTransactionsUpdater>,
 }
 
 impl TransactionJobs {
@@ -309,10 +305,6 @@ impl TransactionJobs {
 
     pub fn vault_addresses_updater(&self) -> VaultAddressesUpdater {
         VaultAddressesUpdater::new(self.swapper.clone(), self.cacher.clone())
-    }
-
-    pub fn swap_partner_updaters(&self) -> Vec<SwapPartnerTransactionsUpdater> {
-        self.swap_partner_updaters.clone()
     }
 }
 
@@ -441,24 +433,14 @@ impl Services {
         };
         let pending_config = PendingTransactionsUpdaterConfig::from_config(&config).await?;
         let providers = Arc::new(self.chain_providers(&service_user_agent("daemon", Some("transactions"))));
-        let swapper = Arc::new(GemSwapper::new(Arc::new(NativeProvider::new_with_endpoints(ProviderFactory::get_chain_endpoints(&self.settings())))));
+        let swapper = self.swapper();
         let in_transit_updater = InTransitUpdater::new(database.clone(), in_transit_config, swapper.clone(), stream_producer.clone(), SwapVaultAddressClient::new(cacher.clone()));
-        let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer.clone(), database.clone(), pending_config);
-        let relay = &self.settings().swap.relay;
-        let relay_client = ReqwestClient::new_with_user_agent(relay.url.clone(), gem_client::reqwest_client(), service_user_agent("daemon", Some("swap_partner_transactions")));
-        let swap_partner_updaters = vec![SwapPartnerTransactionsUpdater::new(
-            Arc::new(RelayPartnerProvider::new(relay_client)),
-            database,
-            cacher.clone(),
-            stream_producer,
-            config.get_duration(ConfigKey::TransactionSwapPartnerPageDelay).await?,
-        )];
+        let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer, database, pending_config);
         Ok(TransactionJobs {
             in_transit_updater: Arc::new(in_transit_updater),
             pending_updater: Arc::new(pending_updater),
             swapper,
             cacher,
-            swap_partner_updaters,
         })
     }
 }

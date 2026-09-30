@@ -1,5 +1,7 @@
+use num_bigint::BigUint;
 use primitives::{decode_hex, swap::SwapStatus};
 use serde::Deserialize;
+use serde_serializers::deserialize_biguint_from_str;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -56,6 +58,23 @@ pub struct RelayRequestData {
     pub route: Option<RelayRoute>,
     #[serde(default)]
     pub in_txs: Vec<RelayRequestTransaction>,
+    pub app_fees: Option<RelayRequestAppFees>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelayRequestAppFees {
+    #[serde(default)]
+    pub actual: Vec<RelayRequestAppFee>,
+    pub currency: Option<RelayCurrency>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelayRequestAppFee {
+    pub recipient: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub amount: BigUint,
 }
 
 #[derive(Debug, Clone, Deserialize)]

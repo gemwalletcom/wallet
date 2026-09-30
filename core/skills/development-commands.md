@@ -29,9 +29,9 @@ cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Man
 
 `just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `img-downloader`, run `cargo test --locked -p img-downloader --bins --all-features` instead.
 
-The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs retain `--all-features` and skip `integration_tests`; workspace runs retain `--features unit_tests`. Check the test count so an unmatched filter is not mistaken for coverage.
+The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs pass `--all-features` and skip `integration_tests`; workspace runs rely on feature unification across members. Check the test count so an unmatched filter is not mistaken for coverage.
 
-`just build-integration-tests` compiles workspace library tests once with the union of the chain, swapper, fiat, NFT, and price integration features. Swap integration tests belong to the `swapper` crate. It does not run live tests; `just test-integration` runs each suite separately with serial test execution.
+`just build-integration-tests` compiles workspace library tests once with the union of the chain, swapper, fiat, NFT, price, security, and database integration features. Swap integration tests belong to the `swapper` crate. It does not run live tests; `just test-integration` runs each suite separately with serial test execution.
 
 Cargo accepts one positional test filter. Run multiple filters as separate commands. Confirm the active worktree and run commands from the directory assumed by the path arguments. If parallel Cargo commands contend on workspace locks or do not return a clear final status, rerun the closing checks individually.
 
@@ -50,7 +50,7 @@ just format
 cargo clippy -p <crate> -- -D warnings
 ```
 
-Most chain crates declare `default = []` and gate whole modules behind features: `gem_bitcoin` keeps `signer/` behind `signer` (enabled by `unit_tests`), `gem_keystore` keeps v3 migration behind `v3`, `swapper` keeps live clients behind `reqwest_provider`. `just test <CRATE>` passes `--all-features`, but bare `cargo test -p <crate>` and `cargo clippy -p <crate>` compile only the default set and finish in seconds with nothing from the gated modules, which reads as a pass. Lint and test with the feature that compiles the changed path, for example `cargo clippy -p gem_bitcoin --features unit_tests --all-targets -- -D warnings`, or pass `--all-features`.
+Most chain crates declare `default = []` and gate whole modules behind features: `gem_bitcoin` keeps `signer/` behind `signer`, `gem_keystore` keeps v3 migration behind `v3`, `swapper` keeps live clients behind `reqwest_provider`. `just test <CRATE>` passes `--all-features`, but bare `cargo test -p <crate>` and `cargo clippy -p <crate>` compile only the default set and finish in seconds with nothing from the gated modules, which reads as a pass. Lint and test with the feature that compiles the changed path, for example `cargo clippy -p gem_bitcoin --features signer --all-targets -- -D warnings`, or pass `--all-features`.
 
 ## Cargo.lock Conflicts
 

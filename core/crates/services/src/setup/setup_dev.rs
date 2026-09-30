@@ -146,7 +146,7 @@ fn setup_dev_devices(client: &mut DatabaseClient, username_rules: &UsernameRules
         let result: Result<_, Box<dyn Error + Send + Sync>> = create_username(client, wallet.id, DEV_USERNAME, username_rules).map_err(Into::into).and_then(|outcome| outcome.map_err(Into::into));
         match result {
             Ok((rewards, _)) => info_with_fields!("setup_dev", step = "rewards added", code = rewards.code.unwrap_or_default(), points = rewards.points),
-            Err(e) => info_with_fields!("setup_dev", step = "rewards skipped (may already exist)", error = e.to_string()),
+            Err(error) => info_with_fields!("setup_dev", step = "rewards skipped (may already exist)", error = error.to_string()),
         }
     }
 

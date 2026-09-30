@@ -3,7 +3,7 @@ use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 
-use crate::{AssetId, NFTAssetId, PaymentLink, PaymentMerchant, PerpetualDirection, PerpetualProvider, TransferDataOutputAction, stake_type::Resource};
+use crate::{AssetId, NFTAssetId, PaymentLink, PaymentMerchant, PerpetualDirection, PerpetualProvider, SwapProvider, TransferDataOutputAction, stake_type::Resource};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -21,6 +21,8 @@ pub struct TransactionPerpetualMetadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_liquidation: Option<bool>,
     pub provider: Option<PerpetualProvider>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referral_fee: Option<TransactionSwapReferralFee>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
@@ -34,6 +36,38 @@ pub struct TransactionSwapMetadata {
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
     pub to_value: BigUint,
     pub provider: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referral_fee: Option<TransactionSwapReferralFee>,
+}
+
+impl TransactionSwapMetadata {
+    pub fn new(from_asset: AssetId, from_value: BigUint, to_asset: AssetId, to_value: BigUint, provider: SwapProvider) -> Self {
+        Self::from_provider_id(from_asset, from_value, to_asset, to_value, Some(provider.id().to_string()))
+    }
+
+    pub fn with_referral_fee(self, referral_fee: Option<TransactionSwapReferralFee>) -> Self {
+        Self { referral_fee, ..self }
+    }
+
+    pub fn from_provider_id(from_asset: AssetId, from_value: BigUint, to_asset: AssetId, to_value: BigUint, provider: Option<String>) -> Self {
+        Self {
+            from_asset,
+            from_value,
+            to_asset,
+            to_value,
+            provider,
+            referral_fee: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
+#[model(swift = "Equatable, Hashable, Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionSwapReferralFee {
+    pub asset_id: AssetId,
+    #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -51,6 +51,7 @@ flowchart LR
 |---|---|---|---|
 | The user opens Security | also offers Privacy Lock | does not | Intentional |
 | The user opens Developer | includes a deep link URL tool | includes a platform store setting | Intentional (developer-only) |
+| The build cannot push (F-Droid, Huawei) | not applicable | Settings does not list Notifications, so neither the push switch nor Price Alerts is reachable | Intentional: the build has no push service |
 
 ## Rules
 

@@ -158,11 +158,21 @@ interface TransactionsDao {
     }
 
     @Query(
-        "UPDATE transactions SET state = :state, fee = COALESCE(:fee, fee), blockNumber = COALESCE(:blockNumber, blockNumber), " +
+        "UPDATE transactions SET state = :state, fee = COALESCE(:fee, fee), value = COALESCE(:value, value), blockNumber = COALESCE(:blockNumber, blockNumber), " +
             "metadata = COALESCE(:metadata, metadata), estimatedConfirmationInSeconds = COALESCE(:confirmationEtaSeconds, estimatedConfirmationInSeconds), " +
             "updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId",
     )
-    fun updateTransactionState(id: TransactionId, walletId: WalletId, state: TransactionState, fee: String?, blockNumber: String?, metadata: String?, confirmationEtaSeconds: Long?, updatedAt: Long = System.currentTimeMillis()): Int
+    fun updateTransactionState(
+        id: TransactionId,
+        walletId: WalletId,
+        state: TransactionState,
+        fee: String?,
+        value: String?,
+        blockNumber: String?,
+        metadata: String?,
+        confirmationEtaSeconds: Long?,
+        updatedAt: Long = System.currentTimeMillis(),
+    ): Int
 
     @Transaction
     fun replaceTransactionAssets(assets: Map<String, List<String>>) {

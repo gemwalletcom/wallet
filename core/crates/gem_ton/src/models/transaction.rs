@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use num_bigint::BigUint;
-use primitives::TransactionState;
+use primitives::{SwapProvider, TransactionState};
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str};
 
@@ -113,6 +113,7 @@ impl Trace {
 pub const TRACE_ACTION_JETTON_SWAP: &str = "jetton_swap";
 pub const TRACE_ACTION_JETTON_TRANSFER: &str = "jetton_transfer";
 pub const TRACE_ACTION_NFT_TRANSFER: &str = "nft_transfer";
+const TRACE_DEX_STONFI: &str = "stonfi";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TraceAction {
@@ -130,6 +131,15 @@ pub struct JettonSwapDetails {
     pub asset_out: Option<String>,
     pub dex_incoming_transfer: SwapTransfer,
     pub dex_outgoing_transfer: SwapTransfer,
+}
+
+impl JettonSwapDetails {
+    pub fn provider(&self) -> Option<String> {
+        match self.dex.as_deref() {
+            Some(TRACE_DEX_STONFI) => Some(SwapProvider::StonfiV2.id().to_string()),
+            _ => self.dex.clone(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

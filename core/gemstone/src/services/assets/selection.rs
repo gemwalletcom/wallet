@@ -1,13 +1,11 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, PerpetualId, Wallet, WalletType};
+use primitives::{Asset, AssetBasic, AssetId, PerpetualId, Wallet, WalletType};
 
-use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchInput, GemWalletSearchLimits, GemWalletSearchView};
+use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchInput, GemWalletSearchLimits, GemWalletSearchResultsInput, GemWalletSearchResultsView, GemWalletSearchView};
 use super::rules;
 use crate::services::chain::rules as chain_rules;
-use crate::services::nft::model::GemNftEntry;
-use crate::services::nft::rules as nft_rules;
 
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
@@ -66,10 +64,15 @@ impl GemAssetSelectionService {
     }
 
     pub fn wallet_search_view(&self, input: GemWalletSearchInput) -> GemWalletSearchView {
-        let shows_recents = self.flow(GemSelectAssetType::WalletSearch).shows_recents(!input.query.is_empty(), input.counts.recents > 0);
-        let shows_perpetuals = self.show_perpetuals(input.wallet.wallet_type, input.wallet.chains());
-        let shows_add_token = self.wallet_flow(GemSelectAssetType::WalletSearch, input.wallet).shows_add_token;
-        rules::wallet_search_view(&input.counts, &input.query, input.is_loading, shows_recents, shows_perpetuals, shows_add_token)
+        let shows_recents = self.flow(GemSelectAssetType::WalletSearch).shows_recents(!input.query.is_empty(), input.recents > 0);
+        let shows_perpetuals = self.shows_perpetuals(&input.wallet);
+        let shows_add_token = self.wallet_flow(GemSelectAssetType::WalletSearch, input.wallet.clone()).shows_add_token;
+        rules::wallet_search_view(input, shows_recents, shows_perpetuals, shows_add_token)
+    }
+
+    pub fn wallet_search_results_view(&self, input: GemWalletSearchResultsInput) -> GemWalletSearchResultsView {
+        let shows_perpetuals = self.shows_perpetuals(&input.wallet);
+        rules::wallet_search_results_view(input, shows_perpetuals)
     }
 
     pub fn get_currency(&self) -> Currency {
@@ -88,14 +91,6 @@ impl GemAssetSelectionService {
             chains,
             flow,
         }
-    }
-
-    pub fn search_collections(&self, data: Vec<NFTData>, query: String) -> Vec<GemNftEntry> {
-        nft_rules::entries(nft_rules::search_collections(data, &query))
-    }
-
-    pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
-        self.preferences.show_perpetuals(wallet_type, chains)
     }
 
     pub async fn search_assets(&self, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
@@ -126,5 +121,11 @@ impl GemAssetSelectionService {
 
     pub async fn add_recent(&self, action: GemAssetAction, asset: Asset) -> Result<(), GemServiceError> {
         self.recent_activity.add_recent(action, asset).await
+    }
+}
+
+impl GemAssetSelectionService {
+    fn shows_perpetuals(&self, wallet: &Wallet) -> bool {
+        self.preferences.show_perpetuals(wallet.wallet_type, wallet.chains())
     }
 }

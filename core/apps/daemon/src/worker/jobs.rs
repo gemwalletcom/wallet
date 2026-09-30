@@ -2,7 +2,6 @@ use crate::model::WorkerService;
 use config_keys::{ConfigKey, ConfigParamKey};
 use primitives::{Chain, FiatProviderName, FiatRateProvider, ListProviderName, OptionStringExt, PlatformStore, PriceProvider};
 use services::ConfigCacher;
-use services::transactions::SwapPartnerTransactionsUpdater;
 use std::error::Error;
 use std::time::Duration;
 use strum::AsRefStr;
@@ -13,11 +12,11 @@ enum JobInterval {
 }
 
 impl JobInterval {
-    async fn resolve(self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
+    async fn duration(self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
         match self {
             JobInterval::Config(key) => {
-                let cfg = config.ok_or_else(|| format!("ConfigCacher required for {:?}", key))?;
-                Ok(cfg.get_duration(key).await?)
+                let config = config.ok_or_else(|| format!("ConfigCacher required for {:?}", key))?;
+                Ok(config.get_duration(key).await?)
             }
         }
     }
@@ -81,12 +80,6 @@ impl JobLabel for PlatformStore {
 impl JobLabel for primitives::SwapProvider {
     fn job_label(&self) -> String {
         self.as_ref().to_string()
-    }
-}
-
-impl JobLabel for SwapPartnerTransactionsUpdater {
-    fn job_label(&self) -> String {
-        self.provider().job_label()
     }
 }
 
@@ -162,7 +155,6 @@ pub enum WorkerJob {
     PublishMissingPrices,
     UpdateInTransitTransactions,
     UpdatePendingTransactions,
-    UpdateSwapPartnerTransactions,
     UpdateSwapVaultAddresses,
     AlertStakeRewards,
     ClassifyPerpetualAddresses,
@@ -220,7 +212,6 @@ impl WorkerJob {
             PublishMissingPrices => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceMissingPublishInterval)),
             UpdateInTransitTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerInTransitUpdate)),
             UpdatePendingTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerPendingUpdate)),
-            UpdateSwapPartnerTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerSwapPartnerTransactions)),
             UpdateSwapVaultAddresses => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerSwapVaultAddresses)),
             AlertStakeRewards => JobSpec::new(WorkerService::Alerter, JobInterval::Config(ConfigKey::AlerterStakeRewardsTimer)),
             ClassifyPerpetualAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualClassifierInterval)),
@@ -277,8 +268,8 @@ impl JobVariant {
         self.job.worker()
     }
 
-    pub async fn resolve_interval(&self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
-        if let Some(duration) = self.override_interval { Ok(duration) } else { self.job.interval().resolve(config).await }
+    pub async fn interval_duration(&self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
+        if let Some(duration) = self.override_interval { Ok(duration) } else { self.job.interval().duration(config).await }
     }
 }
 

@@ -9,7 +9,6 @@ default = []
 rpc = ["dep:chain_traits", "dep:gem_client", "signer"]
 signer = ["dep:bech32", "dep:bitcoin", "dep:bitcoincash-addr", "dep:bs58", "dep:gem_hash", "dep:hex"]
 reqwest = ["gem_client/reqwest"]
-unit_tests = ["signer"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 
 [dependencies]

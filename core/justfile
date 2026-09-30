@@ -32,7 +32,8 @@ install-postgres:
 
 install-diesel:
     @echo Install Diesel
-    cargo install diesel_cli --no-default-features --features postgres --version 2.3.3 --force
+    cargo install diesel_cli --no-default-features --features postgres --version 2.3.3
+    @diesel --version
 
 [positional-arguments]
 test CRATE="" FILTER="":
@@ -40,7 +41,7 @@ test CRATE="" FILTER="":
     @if [ -n "{{ CRATE }}" ]; then \
         cargo test --package "{{ CRATE }}" --lib --bins --all-features "{{ FILTER }}" -- --skip integration_tests; \
     else \
-        cargo test --lib --bins --workspace --features unit_tests "{{ FILTER }}"; \
+        cargo test --lib --bins --workspace "{{ FILTER }}"; \
     fi
 
 test-integration:
@@ -53,7 +54,7 @@ test-integration:
 
 build-integration-tests:
     @echo "Building all integration tests..."
-    cargo test --no-run --lib --workspace --features chain_integration_tests,swapper/swap_integration_tests,fiat/fiat_integration_tests,nft/nft_integration_tests,prices/price_integration_tests,storage/database_integration_tests
+    cargo test --no-run --lib --workspace --features chain_integration_tests,swapper/swap_integration_tests,fiat/fiat_integration_tests,nft/nft_integration_tests,prices/price_integration_tests,security/security_integration_tests,storage/database_integration_tests
 
 test-database:
     cargo test --lib -p storage --features database_integration_tests -- database_integration_tests

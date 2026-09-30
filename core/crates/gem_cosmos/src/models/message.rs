@@ -23,6 +23,8 @@ pub enum Message<CoinType = Coin> {
     MsgWithdrawDelegatorReward(MsgWithdrawDelegatorReward),
     #[serde(rename = "/cosmos.staking.v1beta1.MsgDelegate")]
     MsgDelegate(MsgDelegate<CoinType>),
+    #[serde(rename = "/types.MsgDeposit")]
+    MsgDeposit(MsgDeposit),
     #[serde(other)]
     Unknown,
 }
@@ -32,6 +34,18 @@ pub struct MsgSend<CoinType = Coin> {
     pub from_address: String,
     pub to_address: String,
     pub amount: Vec<CoinType>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MsgDeposit {
+    pub coins: Vec<DepositCoin>,
+    pub signer: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DepositCoin {
+    pub asset: String,
+    pub amount: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

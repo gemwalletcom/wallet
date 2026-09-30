@@ -1,26 +1,28 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemChartData
 import Localization
 import Primitives
 import Style
 import SwiftUI
 
-struct ChartStateView: View {
-    private let state: StateViewType<GemChartData>
+public struct ChartStateView<Chart: Sendable, Content: View>: View {
+    private let state: StateViewType<Chart>
     private let periods: [ChartPeriod]
+    private let content: (Chart) -> Content
 
     @Binding private var selectedPeriod: ChartPeriod
 
-    init(
-        state: StateViewType<GemChartData>,
+    public init(
+        state: StateViewType<Chart>,
         selectedPeriod: Binding<ChartPeriod>,
         periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all],
+        @ViewBuilder content: @escaping (Chart) -> Content,
     ) {
         self.state = state
         _selectedPeriod = selectedPeriod
         self.periods = periods
+        self.content = content
     }
 
     public var body: some View {
@@ -32,7 +34,7 @@ struct ChartStateView: View {
                 case .loading:
                     LoadingView()
                 case let .data(chart):
-                    ChartView(chart: chart)
+                    content(chart)
                 case let .error(error):
                     StateEmptyView(
                         title: error.networkOrNoDataDescription,

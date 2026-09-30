@@ -188,7 +188,7 @@ public extension Gemstone.GemAssetDetailsState {
     static func mock(
         isViewOnly: Bool = false,
         showsBanners: Bool = false,
-        priceAlert: Gemstone.GemPriceAlertToggle = .enabled,
+        priceAlert: Gemstone.GemPriceAlertToggle? = nil,
         emptyState: Gemstone.GemEmptyState = .mock(),
     ) -> Gemstone.GemAssetDetailsState {
         Gemstone.GemAssetDetailsState(
@@ -324,6 +324,8 @@ public extension Gemstone.GemChartData {
         header: Gemstone.GemChartHeader? = nil,
         bounds: Gemstone.GemChartBounds = .mock(),
         dateStyle: Gemstone.GemChartDateStyle = .relative,
+        start: Date = Date(timeIntervalSince1970: 0),
+        end: Date = Date(timeIntervalSince1970: 0),
     ) -> Gemstone.GemChartData {
         Gemstone.GemChartData(
             valueType: valueType,
@@ -334,6 +336,8 @@ public extension Gemstone.GemChartData {
             header: header,
             bounds: bounds,
             dateStyle: dateStyle,
+            start: start,
+            end: end,
         )
     }
 }
@@ -1366,6 +1370,76 @@ public extension Gemstone.GemWalletRow {
             hasAvatar: hasAvatar,
             imageUrl: imageUrl,
             deletePrompt: deletePrompt,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletSearchResultsView {
+    static func mock(
+        state: Gemstone.GemWalletSearchState = .mock(),
+        pinnedAssetIds: [Primitives.AssetId] = [],
+        assetIds: [Primitives.AssetId] = [],
+        perpetuals: [Gemstone.GemPerpetualMarketItem] = [],
+    ) -> Gemstone.GemWalletSearchResultsView {
+        Gemstone.GemWalletSearchResultsView(
+            state: state,
+            pinnedAssetIds: pinnedAssetIds,
+            assetIds: assetIds,
+            perpetuals: perpetuals,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletSearchState {
+    static func mock(
+        phase: Gemstone.GemSelectAssetState = .idle,
+        showsRecents: Bool = false,
+        showsPinned: Bool = false,
+        showsAssets: Bool = false,
+        showsPinnedPerpetuals: Bool = false,
+        showsPerpetuals: Bool = false,
+        showsLists: Bool = false,
+        showsNfts: Bool = false,
+    ) -> Gemstone.GemWalletSearchState {
+        Gemstone.GemWalletSearchState(
+            phase: phase,
+            showsRecents: showsRecents,
+            showsPinned: showsPinned,
+            showsAssets: showsAssets,
+            showsPinnedPerpetuals: showsPinnedPerpetuals,
+            showsPerpetuals: showsPerpetuals,
+            showsLists: showsLists,
+            showsNfts: showsNfts,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletSearchView {
+    static func mock(
+        state: Gemstone.GemWalletSearchState = .mock(),
+        pinnedAssetIds: [Primitives.AssetId] = [],
+        assetIds: [Primitives.AssetId] = [],
+        hasMoreAssets: Bool = false,
+        pinnedPerpetuals: [Gemstone.GemPerpetualMarketItem] = [],
+        perpetuals: [Gemstone.GemPerpetualMarketItem] = [],
+        hasMorePerpetuals: Bool = false,
+        lists: [Gemstone.GemSearchListRow] = [],
+        nfts: [Gemstone.GemNftEntry] = [],
+        hasMoreNfts: Bool = false,
+        emptyState: Gemstone.GemEmptyState = .mock(),
+    ) -> Gemstone.GemWalletSearchView {
+        Gemstone.GemWalletSearchView(
+            state: state,
+            pinnedAssetIds: pinnedAssetIds,
+            assetIds: assetIds,
+            hasMoreAssets: hasMoreAssets,
+            pinnedPerpetuals: pinnedPerpetuals,
+            perpetuals: perpetuals,
+            hasMorePerpetuals: hasMorePerpetuals,
+            lists: lists,
+            nfts: nfts,
+            hasMoreNfts: hasMoreNfts,
+            emptyState: emptyState,
         )
     }
 }

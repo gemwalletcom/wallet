@@ -26,6 +26,7 @@ flowchart LR
 |---|---|---|
 | The dapp fails verification | the proposal shows it before the user connects | |
 | The user rejects a request | a refusal goes back to the dapp | |
+| The same connection code is opened again while its proposal is on screen | the proposal stays; approving or rejecting it closes it | the SDK delivers a pending proposal again when its code is paired twice |
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
 | A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
 | A permit to sign names a flagged spender | a critical warning on the review | |

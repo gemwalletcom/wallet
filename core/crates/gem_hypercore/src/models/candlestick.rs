@@ -17,7 +17,7 @@ pub struct Candlestick {
 impl From<&Candlestick> for ChartCandleStick {
     fn from(c: &Candlestick) -> Self {
         ChartCandleStick {
-            date: DateTime::from_timestamp(c.t as i64 / 1000, 0).unwrap_or(Utc::now()),
+            date: DateTime::from_timestamp(c.t as i64 / 1000, 0).unwrap_or_else(Utc::now),
             open: c.o.parse().unwrap_or(0.0),
             high: c.h.parse().unwrap_or(0.0),
             low: c.l.parse().unwrap_or(0.0),

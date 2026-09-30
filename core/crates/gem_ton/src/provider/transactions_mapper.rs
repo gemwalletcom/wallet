@@ -6,7 +6,7 @@ use crate::models::{
 use chrono::DateTime;
 use gem_encoding::decode_base64;
 use num_bigint::BigUint;
-use primitives::{AssetId, NFTAssetId, OptionStringExt, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
+use primitives::{AssetId, NFTAssetId, OptionStringExt, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::TON_REFERRAL_ADDRESS};
 use std::error::Error;
 
 pub fn map_transaction_broadcast(broadcast_result: BroadcastTransaction) -> Result<String, Box<dyn Error + Sync + Send>> {
@@ -175,14 +175,25 @@ fn jetton_swap_metadata(actions: &[TraceAction]) -> Option<(String, TransactionS
     let (Some(from_asset), Some(to_asset)) = (ton_asset_id(swap.asset_in.as_deref()), ton_asset_id(swap.asset_out.as_deref())) else {
         return None;
     };
-    let metadata = TransactionSwapMetadata {
-        from_asset,
-        from_value: swap.dex_incoming_transfer.amount.clone(),
-        to_asset,
-        to_value: swap.dex_outgoing_transfer.amount.clone(),
-        provider: swap.dex,
-    };
+    let metadata = TransactionSwapMetadata::from_provider_id(from_asset, swap.dex_incoming_transfer.amount.clone(), to_asset, swap.dex_outgoing_transfer.amount.clone(), swap.provider()).with_referral_fee(map_referral_fee(actions, &sender));
     Some((sender, metadata))
+}
+
+fn map_referral_fee(actions: &[TraceAction], sender: &str) -> Option<TransactionSwapReferralFee> {
+    if sender == TON_REFERRAL_ADDRESS {
+        return None;
+    }
+    actions
+        .iter()
+        .filter(|action| action.action_type.as_deref() == Some(TRACE_ACTION_JETTON_TRANSFER))
+        .filter_map(|action| serde_json::from_value::<JettonTransferDetails>(action.details.clone()?).ok())
+        .find(|details| parse_address(&details.receiver).as_deref() == Some(TON_REFERRAL_ADDRESS))
+        .and_then(|details| {
+            Some(TransactionSwapReferralFee {
+                asset_id: ton_asset_id(Some(&details.asset))?,
+                value: details.amount,
+            })
+        })
 }
 
 fn ton_asset_id(raw_address: Option<&str>) -> Option<AssetId> {
@@ -298,13 +309,10 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(2263786603u64));
         assert_eq!(
             serde_json::from_value::<TransactionSwapMetadata>(transaction.metadata.clone().unwrap()).unwrap(),
-            TransactionSwapMetadata {
-                from_asset: dust,
-                from_value: BigUint::from(2263786603u64),
-                to_asset: Chain::Ton.as_asset_id(),
-                to_value: BigUint::from(726191509u64),
-                provider: Some("stonfi".to_string()),
-            }
+            TransactionSwapMetadata::from_provider_id(dust, BigUint::from(2263786603u64), Chain::Ton.as_asset_id(), BigUint::from(726191509u64), Some("stonfi_v2".to_string())).with_referral_fee(Some(TransactionSwapReferralFee {
+                asset_id: Chain::Ton.as_asset_id(),
+                value: BigUint::from(727647u64),
+            }))
         );
     }
 
@@ -323,13 +331,13 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(1000000000u64));
         assert_eq!(
             serde_json::from_value::<TransactionSwapMetadata>(transaction.metadata.clone().unwrap()).unwrap(),
-            TransactionSwapMetadata {
-                from_asset: Chain::Ton.as_asset_id(),
-                from_value: BigUint::from(1000000000u64),
-                to_asset: AssetId::from_token(Chain::Ton, "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"),
-                to_value: BigUint::from(2436222u64),
-                provider: Some("stonfi".to_string()),
-            }
+            TransactionSwapMetadata::from_provider_id(
+                Chain::Ton.as_asset_id(),
+                BigUint::from(1000000000u64),
+                AssetId::from_token(Chain::Ton, "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"),
+                BigUint::from(2436222u64),
+                Some("stonfi_v2".to_string())
+            )
         );
     }
 

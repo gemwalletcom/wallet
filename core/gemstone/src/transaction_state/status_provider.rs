@@ -91,11 +91,11 @@ impl StatusProvider {
 
     async fn chain_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let provider = self.chain_factory.create(chain)?;
-        provider.get_transaction_status(request).await.map_err(|e| TransactionStatusError::from(map_network_error(e)))
+        provider.get_transaction_status(request).await.map_err(|error| TransactionStatusError::from(map_network_error(error)))
     }
 
     async fn swap_provider_status(&self, chain: Chain, provider: SwapperProvider, transaction_hash: &str) -> Result<TransactionUpdate, TransactionStatusError> {
-        let result = self.swapper.get_swap_result(chain, provider, transaction_hash).await.map_err(|e| TransactionStatusError::NetworkError(e.to_string()))?;
+        let result = self.swapper.get_swap_result(chain, provider, transaction_hash).await.map_err(|error| TransactionStatusError::NetworkError(error.to_string()))?;
         Ok(in_transit_swap_update(result))
     }
 }
@@ -152,7 +152,7 @@ fn get_transaction_update(chain: Chain, destination_chain: Option<Chain>, create
         }),
         err @ Err(TransactionStatusError::Offline | TransactionStatusError::NetworkError(_)) => err,
         Err(_) if pending_expired => Ok(TransactionUpdate::new_state(TransactionState::Failed)),
-        Err(err) => Err(err),
+        Err(error) => Err(error),
     }
 }
 
@@ -161,7 +161,7 @@ mod tests {
     use super::*;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
-    use primitives::{TransactionSwapMetadata, swap::SwapStatus};
+    use primitives::{SwapProvider, TransactionSwapMetadata, swap::SwapStatus};
 
     #[test]
     fn test_get_transaction_update() {
@@ -231,13 +231,7 @@ mod tests {
 
     #[test]
     fn test_in_transit_swap_update() {
-        let metadata = TransactionSwapMetadata {
-            from_asset: Chain::Ton.as_asset_id(),
-            from_value: BigUint::from(1000000u64),
-            to_asset: Chain::Solana.as_asset_id(),
-            to_value: BigUint::from(966847u64),
-            provider: Some("near_intents".into()),
-        };
+        let metadata = TransactionSwapMetadata::new(Chain::Ton.as_asset_id(), BigUint::from(1000000u64), Chain::Solana.as_asset_id(), BigUint::from(966847u64), SwapProvider::NearIntents);
         let completed = in_transit_swap_update(SwapResult {
             status: SwapStatus::Completed,
             metadata: Some(metadata.clone()),
@@ -293,13 +287,7 @@ mod swap_route_tests {
             .is_none()
         );
 
-        let metadata = TransactionSwapMetadata {
-            from_asset: AssetId::from_chain(Chain::Ethereum),
-            from_value: BigUint::from(1u64),
-            to_asset: AssetId::from_chain(Chain::Solana),
-            to_value: BigUint::from(2u64),
-            provider: Some(SwapProvider::Thorchain.as_ref().to_string()),
-        };
+        let metadata = TransactionSwapMetadata::new(AssetId::from_chain(Chain::Ethereum), BigUint::from(1u64), AssetId::from_chain(Chain::Solana), BigUint::from(2u64), SwapProvider::Thorchain);
         let route = swap_route(&Transaction {
             metadata: Some(serde_json::to_value(metadata).unwrap()),
             ..Transaction::mock()

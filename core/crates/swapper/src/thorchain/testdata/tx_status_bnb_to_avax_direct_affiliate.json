@@ -1,0 +1,107 @@
+{
+  "tx": {
+    "id": "0973C144787DECB443263C61D52FC507ADE7A036B162C89E4CFA432F2D6D76D8",
+    "chain": "BSC",
+    "from_address": "0xba4d1d35bce0e8f28e5a3403e7a0b996c5d50ac4",
+    "to_address": "0x7161645febe39561ad2fe8bad2979d44e00b63c4",
+    "coins": [
+      {
+        "asset": "BSC.BNB",
+        "amount": "5000000"
+      }
+    ],
+    "gas": [
+      {
+        "asset": "BSC.BNB",
+        "amount": "2198"
+      }
+    ],
+    "memo": "=:AVAX.AVAX:0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4::g1:50"
+  },
+  "planned_out_txs": [
+    {
+      "chain": "AVAX",
+      "to_address": "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4",
+      "coin": {
+        "asset": "AVAX.AVAX",
+        "amount": "106083736"
+      },
+      "refund": false
+    },
+    {
+      "chain": "THOR",
+      "to_address": "thor1sx9hzstends66y6anyu07j8v7y3uzayj0m5gj5",
+      "coin": {
+        "asset": "THOR.RUNE",
+        "amount": "683105"
+      },
+      "refund": false
+    }
+  ],
+  "out_txs": [
+    {
+      "id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "chain": "THOR",
+      "from_address": "thor1g98cy3n9mmjrpn0sxmn63lztelera37n8n67c0",
+      "to_address": "thor1sx9hzstends66y6anyu07j8v7y3uzayj0m5gj5",
+      "coins": [
+        {
+          "asset": "THOR.RUNE",
+          "amount": "683105"
+        }
+      ],
+      "gas": [
+        {
+          "asset": "THOR.RUNE",
+          "amount": "2000000"
+        }
+      ],
+      "memo": "OUT:0973C144787DECB443263C61D52FC507ADE7A036B162C89E4CFA432F2D6D76D8"
+    },
+    {
+      "id": "219EF5993AEB91E01A81BFBBC87FEF127A7797E859D2F187CBBD087A483A4B40",
+      "chain": "AVAX",
+      "from_address": "0x26c1c15e039a0c06c024004e17da25914f153210",
+      "to_address": "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4",
+      "coins": [
+        {
+          "asset": "AVAX.AVAX",
+          "amount": "106083736"
+        }
+      ],
+      "gas": [
+        {
+          "asset": "AVAX.AVAX",
+          "amount": "212900"
+        }
+      ],
+      "memo": "OUT:0973C144787DECB443263C61D52FC507ADE7A036B162C89E4CFA432F2D6D76D8"
+    }
+  ],
+  "stages": {
+    "inbound_observed": {
+      "pre_confirmation_count": 115,
+      "final_count": 116,
+      "completed": true
+    },
+    "inbound_confirmation_counted": {
+      "remaining_confirmation_seconds": 0,
+      "completed": true
+    },
+    "inbound_finalised": {
+      "completed": true
+    },
+    "swap_status": {
+      "pending": false
+    },
+    "swap_finalised": {
+      "completed": true
+    },
+    "outbound_delay": {
+      "completed": true
+    },
+    "outbound_signed": {
+      "completed": true
+    }
+  }
+}

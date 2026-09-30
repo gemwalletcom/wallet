@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.device
 
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
+import com.gemwallet.android.ext.runCatchingCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,7 +19,7 @@ class DeviceObserverService(private val walletsQuery: WalletsQuery, private val 
 
         observeJob = scope.launch {
             walletsQuery().collectLatest {
-                runCatching { deviceService.synchronizeIfNeeded() }
+                runCatchingCancellable { deviceService.synchronizeIfNeeded() }
             }
         }
     }

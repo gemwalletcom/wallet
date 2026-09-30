@@ -4,8 +4,9 @@ use std::error::Error;
 
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
-use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionType, asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID};
+use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID};
 
+use crate::config::HypercoreConfig;
 use crate::models::action::ExchangeRequest;
 use crate::models::order::{FillDirection, UserFill};
 use crate::models::response::TransactionBroadcastResponse;
@@ -13,8 +14,12 @@ use crate::models::spot::SpotMeta;
 use crate::models::token::SpotToken;
 use crate::models::transaction_id::{HyperCoreActionId, HyperCoreTransactionId};
 use crate::perpetual_formatter::usdc_value;
+use crate::provider::fee_calculator::builder_fee_rate;
 use crate::provider::perpetual_mapper::create_perpetual_asset_id;
 use crate::provider::transaction_state_mapper::prepare_perpetual_fill;
+
+const BUILDER_FEE_RATE_TOLERANCE: f64 = 0.01;
+const PREVIOUS_BUILDER_FEE_BPS: [u32; 2] = [43, 50];
 
 pub fn map_transaction_broadcast(request: &[u8], response: serde_json::Value) -> Result<String, Box<dyn Error + Sync + Send>> {
     let response = serde_json::from_value::<TransactionBroadcastResponse>(response)?;
@@ -38,15 +43,16 @@ fn map_fill_group(address: &str, fills: Vec<UserFill>, spot_meta: Option<&SpotMe
 
     match &last_fill.dir {
         FillDirection::Buy | FillDirection::Sell => map_spot_fill_group(address, fills, &last_fill, spot_meta),
-        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort | FillDirection::Other(_) => map_perpetual_fill_group(address, fills, &last_fill),
+        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort | FillDirection::LongToShort | FillDirection::ShortToLong | FillDirection::Other(_) => {
+            map_perpetual_fill_group(address, fills, &last_fill)
+        }
     }
 }
 
 fn map_perpetual_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &UserFill) -> Option<Transaction> {
     let fill_refs = fills.iter().collect::<Vec<_>>();
-    let (transaction_type, metadata) = prepare_perpetual_fill(&fill_refs, last_fill)?;
+    let (transaction_type, metadata, value) = prepare_perpetual_fill(&fill_refs, last_fill)?;
     let fee: f64 = fills.iter().map(|fill| fill.fee).sum();
-    let value = fills.iter().try_fold(0.0, |sum, fill| Some(sum + fill.px * fill.sz.parse::<f64>().ok()?))?;
     let metadata = serde_json::to_value(metadata).ok()?;
 
     build_fill_transaction(
@@ -84,16 +90,28 @@ fn map_spot_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &UserFill
     let to_asset = to_token.asset_id(Chain::HyperCore);
     let to_value = amount_to_value(to_amount, to_token.wei_decimals)?;
 
-    let metadata = serde_json::to_value(TransactionSwapMetadata {
-        from_asset: from_asset.clone(),
-        from_value: from_value.clone(),
-        to_asset,
-        to_value,
-        provider: Some(SwapProvider::Hyperliquid.id().to_string()),
-    })
-    .ok()?;
+    let referral_fee = map_referral_fee(&fills, quote_token, quote_amount);
+    let metadata = serde_json::to_value(TransactionSwapMetadata::new(from_asset.clone(), from_value.clone(), to_asset, to_value, SwapProvider::Hyperliquid).with_referral_fee(referral_fee)).ok()?;
 
     build_fill_transaction(address, last_fill, from_asset, TransactionType::Swap, fee, fee_asset_id, from_value, metadata)
+}
+
+fn map_referral_fee(fills: &[UserFill], quote_token: &SpotToken, quote_amount: f64) -> Option<TransactionSwapReferralFee> {
+    let builder_fee = builder_fee_amount(fills, quote_amount)?;
+    Some(TransactionSwapReferralFee {
+        asset_id: quote_token.asset_id(Chain::HyperCore),
+        value: amount_to_value(builder_fee, quote_token.wei_decimals)?,
+    })
+}
+
+pub(crate) fn builder_fee_amount<'a>(fills: impl IntoIterator<Item = &'a UserFill>, quote_amount: f64) -> Option<f64> {
+    let builder_fee: f64 = fills.into_iter().filter_map(|fill| fill.builder_fee).sum();
+    let fee_rate = builder_fee / quote_amount;
+    let is_builder_rate = PREVIOUS_BUILDER_FEE_BPS.into_iter().chain([HypercoreConfig::default().max_builder_fee_bps]).any(|bps| {
+        let builder_rate = builder_fee_rate(bps);
+        (fee_rate - builder_rate).abs() <= builder_rate * BUILDER_FEE_RATE_TOLERANCE
+    });
+    (builder_fee > 0.0 && is_builder_rate).then_some(builder_fee)
 }
 
 fn map_spot_fee(fills: &[UserFill], base_token: &SpotToken, quote_token: &SpotToken) -> Option<(BigUint, primitives::AssetId)> {
@@ -230,15 +248,42 @@ mod tests {
     }
 
     #[test]
+    fn test_builder_fee_amount_rates() {
+        let fill = |builder_fee: f64| UserFill {
+            coin: "HYPE".to_string(),
+            hash: "0xhash".to_string(),
+            oid: 1,
+            tid: 1,
+            sz: "1".to_string(),
+            closed_pnl: 0.0,
+            fee: 0.0,
+            fee_token: None,
+            builder_fee: Some(builder_fee),
+            px: 10_000.0,
+            dir: FillDirection::OpenLong,
+            time: 1,
+            liquidation: None,
+        };
+
+        assert_eq!(builder_fee_amount(&[fill(4.5)], 10_000.0), Some(4.5));
+        assert_eq!(builder_fee_amount(&[fill(4.3)], 10_000.0), Some(4.3));
+        assert_eq!(builder_fee_amount(&[fill(5.0)], 10_000.0), Some(5.0));
+        assert_eq!(builder_fee_amount(&[fill(2.0)], 10_000.0), None);
+        assert_eq!(builder_fee_amount(&[fill(0.0)], 10_000.0), None);
+    }
+
+    #[test]
     fn test_map_perpetual_fills_ignores_unknown_direction() {
         let fills = vec![UserFill {
             coin: "HYPE".to_string(),
             hash: "0xhash".to_string(),
             oid: 1,
+            tid: 1,
             sz: "1".to_string(),
             closed_pnl: 0.0,
             fee: 0.1,
             fee_token: None,
+            builder_fee: None,
             px: 42.0,
             dir: FillDirection::Other("Unknown".to_string()),
             time: 1,
@@ -246,6 +291,21 @@ mod tests {
         }];
 
         assert!(map_user_fills("0xabc", fills, Some(&spot_meta())).is_empty());
+    }
+
+    #[test]
+    fn test_map_perpetual_fills_maps_position_flip_to_open() {
+        let fill: UserFill = serde_json::from_value(serde_json::json!({
+            "coin": "BTC", "hash": "0xflip", "oid": 7, "tid": 7, "sz": "0.1", "closedPnl": "12.5", "fee": "1.0",
+            "builderFee": "4.5", "px": "100000", "dir": "Long > Short", "time": 1
+        }))
+        .unwrap();
+        let transactions = map_user_fills("0xabc", vec![fill], Some(&spot_meta()));
+        let metadata = transactions[0].perpetual_metadata().unwrap();
+
+        assert_eq!(transactions[0].transaction_type, TransactionType::PerpetualOpenPosition);
+        assert_eq!(metadata.direction, PerpetualDirection::Short);
+        assert!(metadata.referral_fee.is_some());
     }
 
     #[test]
@@ -295,6 +355,13 @@ mod tests {
         assert_eq!(metadata.to_asset, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
         assert_eq!(metadata.to_value, BigUint::from(1182450000u64));
         assert_eq!(metadata.provider.as_deref(), Some("hyperliquid"));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
+                value: BigUint::from(532102u64),
+            })
+        );
     }
 
     #[test]
@@ -317,5 +384,6 @@ mod tests {
         assert_eq!(metadata.to_asset, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
         assert_eq!(metadata.to_value, BigUint::from(30000000u64));
         assert_eq!(metadata.provider.as_deref(), Some("hyperliquid"));
+        assert_eq!(metadata.referral_fee, None);
     }
 }

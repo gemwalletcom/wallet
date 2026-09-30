@@ -33,7 +33,7 @@ impl CacherJobTracker {
 impl JobSchedule for CacherJobTracker {
     async fn evaluate(&self, job_name: &str, interval: Duration, now: SystemTime) -> Result<RunDecision, JobError> {
         let last_success_at = self.get_last_success(job_name).await;
-        let ctx = JobContext { last_success_at };
+        let context = JobContext { last_success_at };
 
         if let Some(last_success) = last_success_at {
             let last_success_time = UNIX_EPOCH + Duration::from_secs(last_success);
@@ -42,11 +42,11 @@ impl JobSchedule for CacherJobTracker {
                 return Ok(RunDecision::Wait(interval - elapsed));
             }
         }
-        Ok(RunDecision::Run(ctx))
+        Ok(RunDecision::Run(context))
     }
 
     async fn mark_success(&self, job_name: &str, timestamp: SystemTime) -> Result<(), JobError> {
-        let seconds = timestamp.duration_since(UNIX_EPOCH).map_err(|err| Box::new(err) as JobError)?.as_secs();
+        let seconds = timestamp.duration_since(UNIX_EPOCH).map_err(|error| Box::new(error) as JobError)?.as_secs();
         let key = self.job_key(job_name);
         let cache_key = CacheKey::JobStatus(&key);
         self.cacher.set_cached(cache_key, &seconds).await

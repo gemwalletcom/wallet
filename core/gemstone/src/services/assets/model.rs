@@ -1,4 +1,5 @@
-use primitives::{Asset, AssetData, AssetId, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, RecentActivityType, VerificationStatus, Wallet};
+use primitives::perpetual::PerpetualData;
+use primitives::{Asset, AssetData, AssetId, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, NFTData, RecentActivityType, VerificationStatus, Wallet};
 
 use crate::config::image::GemImage;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
@@ -8,7 +9,10 @@ use crate::services::balance::GemAssetBalanceRow;
 use crate::services::banner::GemBannerRow;
 use crate::services::empty_state::GemEmptyState;
 use crate::services::localization::GemLocalizedText;
+use crate::services::nft::model::GemNftEntry;
+use crate::services::perpetual::model::GemPerpetualMarketItem;
 use crate::services::price_alert::rules::GemPriceAlertToggle;
+use crate::services::search::GemSearchScope;
 use crate::services::swap::GemSwapPairSuggestion;
 use strum::IntoEnumIterator;
 use swapper::AssetList as SwapAssetList;
@@ -362,7 +366,7 @@ impl GemAssetAction {
 
 #[cfg(test)]
 mod tests {
-    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemAssetSectionCounts, GemImage, GemSelectAssetState, GemSelectAssetType, RecentActivityType, search_list_rows};
+    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemAssetSectionCounts, GemImage, GemSearchListRow, GemSelectAssetState, GemSelectAssetType, RecentActivityType};
     use primitives::Chain;
 
     #[test]
@@ -372,7 +376,7 @@ mod tests {
             name: "Trending".to_string(),
             count: 12,
         };
-        let row = search_list_rows(vec![list.clone()]).remove(0);
+        let row = GemSearchListRow::new(list.clone());
 
         assert_eq!(row.list, list);
         assert_eq!(row.subtitle, "12");
@@ -451,25 +455,8 @@ mod tests {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletSearchLimits {
-    pub assets: u32,
     pub fetch: u32,
-    pub perpetuals: u32,
-    pub nfts: u32,
     pub results: u32,
-}
-
-impl GemWalletSearchLimits {
-    pub fn has_more_assets(&self, count: u32) -> bool {
-        count > self.assets
-    }
-
-    pub fn has_more_perpetuals(&self, count: u32) -> bool {
-        count > self.perpetuals
-    }
-
-    pub fn has_more_nfts(&self, count: u32) -> bool {
-        count > self.nfts
-    }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -581,8 +568,8 @@ pub enum GemHeaderButtonKind {
     More,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
-pub struct GemWalletSearchCounts {
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct WalletSearchCounts {
     pub recents: u32,
     pub pinned_assets: u32,
     pub assets: u32,
@@ -609,17 +596,45 @@ pub struct GemWalletSearchInput {
     pub wallet: Wallet,
     pub query: String,
     pub is_loading: bool,
-    pub counts: GemWalletSearchCounts,
+    pub recents: u32,
+    pub asset_ids: Vec<AssetId>,
+    pub pinned_asset_ids: Vec<AssetId>,
+    pub perpetuals: Vec<PerpetualData>,
+    pub lists: Vec<primitives::AssetList>,
+    pub collections: Vec<NFTData>,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletSearchView {
     pub state: GemWalletSearchState,
-    pub limits: GemWalletSearchLimits,
+    pub pinned_asset_ids: Vec<AssetId>,
+    pub asset_ids: Vec<AssetId>,
     pub has_more_assets: bool,
+    pub pinned_perpetuals: Vec<GemPerpetualMarketItem>,
+    pub perpetuals: Vec<GemPerpetualMarketItem>,
     pub has_more_perpetuals: bool,
+    pub lists: Vec<GemSearchListRow>,
+    pub nfts: Vec<GemNftEntry>,
     pub has_more_nfts: bool,
     pub empty_state: GemEmptyState,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemWalletSearchResultsInput {
+    pub wallet: Wallet,
+    pub scope: GemSearchScope,
+    pub is_loading: bool,
+    pub asset_ids: Vec<AssetId>,
+    pub pinned_asset_ids: Vec<AssetId>,
+    pub perpetuals: Vec<PerpetualData>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemWalletSearchResultsView {
+    pub state: GemWalletSearchState,
+    pub pinned_asset_ids: Vec<AssetId>,
+    pub asset_ids: Vec<AssetId>,
+    pub perpetuals: Vec<GemPerpetualMarketItem>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -629,21 +644,14 @@ pub struct GemSearchListRow {
     pub image_url: String,
 }
 
-#[uniffi::export]
-pub fn search_list_rows(lists: Vec<primitives::AssetList>) -> Vec<GemSearchListRow> {
-    lists
-        .into_iter()
-        .map(|list| GemSearchListRow {
+impl GemSearchListRow {
+    pub fn new(list: primitives::AssetList) -> Self {
+        Self {
             subtitle: list.count.to_string(),
             image_url: GemImage::AssetList { list_id: list.id.clone() }.url(),
             list,
-        })
-        .collect()
-}
-
-#[uniffi::export]
-pub fn wallet_search_state(counts: GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchState {
-    super::rules::wallet_search_state(&counts, is_loading)
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
@@ -764,7 +772,7 @@ impl GemValueHeader {
 pub struct GemAssetDetailsState {
     pub is_view_only: bool,
     pub shows_banners: bool,
-    pub price_alert: GemPriceAlertToggle,
+    pub price_alert: Option<GemPriceAlertToggle>,
     pub empty_state: GemEmptyState,
 }
 

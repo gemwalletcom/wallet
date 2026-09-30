@@ -151,7 +151,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public var chartPeriodValue: Gemstone.ChartPeriod = Primitives.ChartPeriod.day.toGem()
     public var candlesticksValue: [Gemstone.ChartCandleStick] = []
     public var candlesticksError: GemServiceError?
-    public var mergedCandlesValue: [Gemstone.ChartCandleStick]?
     public var closeTransferResult: Result<Gemstone.GemTransferData, Error> = .success(.mock())
     public var positionActionResult: Result<GemPerpetualPositionAction, Error> = .success(.open(data: .mock(direction: .long, price: 100, leverage: 3)))
     public var syncPositionsError: Error?
@@ -187,15 +186,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         .marketData(symbol: perpetual.name)
     }
 
-    public func mergedCandles(
-        candles _: [Gemstone.ChartCandleStick],
-        update _: Gemstone.ChartCandleUpdate,
-        perpetual _: Gemstone.Perpetual,
-        period _: Gemstone.ChartPeriod,
-    ) -> [Gemstone.ChartCandleStick]? {
-        mergedCandlesValue
-    }
-
     public func positionAction(
         perpetual _: Gemstone.Perpetual,
         asset _: Gemstone.Asset,
@@ -223,4 +213,26 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
             syncTransactionsError.map { GemPerpetualRefreshFailure(step: .transactions, message: $0.localizedDescription) },
         ].compactMap(\.self)
     }
+}
+
+public final class GemPerpetualStreamServiceMock: GemPerpetualStreamServiceProtocol, @unchecked Sendable {
+    private let lock = NSLock()
+    private var connectedAddresses: [String] = []
+
+    public init() {}
+
+    public var addresses: [String] { lock.withLock { connectedAddresses } }
+
+    public func connected(address: String, mode _: Gemstone.PerpetualAccountMode) async throws {
+        lock.withLock { connectedAddresses.append(address) }
+    }
+
+    public func disconnected() async {}
+
+    public func candleUpdate(walletId _: Gemstone.WalletId, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.ChartCandleUpdate? {
+        nil
+    }
+
+    public func subscribe(subscription _: Gemstone.GemPerpetualSubscription) async throws {}
+    public func unsubscribe(subscription _: Gemstone.GemPerpetualSubscription) async throws {}
 }

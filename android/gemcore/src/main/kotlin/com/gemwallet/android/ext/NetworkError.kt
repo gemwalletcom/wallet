@@ -19,23 +19,23 @@ fun IOException.isNetworkUnavailable(): Boolean = this is UnknownHostException |
     hasCause<EOFException>()
 
 private inline fun <reified T : Throwable> Throwable.hasCause(): Boolean {
-    var err: Throwable? = this
-    while (err != null) {
-        if (err is T) {
+    var current: Throwable? = this
+    while (current != null) {
+        if (current is T) {
             return true
         }
-        err = err.cause
+        current = current.cause
     }
     return false
 }
 
 private fun Throwable.certPathValidationMessage(): String? {
-    var err: Throwable? = this
-    while (err != null) {
-        if (err is CertPathValidatorException) {
-            return err.message ?: err.toString()
+    var current: Throwable? = this
+    while (current != null) {
+        if (current is CertPathValidatorException) {
+            return current.message ?: current.toString()
         }
-        err = err.cause
+        current = current.cause
     }
     return null
 }

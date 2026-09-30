@@ -10,4 +10,4 @@ pub use constants::*;
 #[cfg(feature = "rpc")]
 pub use indexer::SolanaIndexer;
 #[cfg(feature = "rpc")]
-pub use provider::SolanaProvider;
+pub use provider::{SolanaProvider, SolanaTransactionsIndexer};

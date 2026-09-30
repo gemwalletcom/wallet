@@ -28,7 +28,7 @@ impl FiatRateRow {
     pub fn from_primitive(rate: FiatRate, provider: FiatRateProvider) -> Self {
         FiatRateRow {
             id: rate.symbol.into(),
-            name: "".to_string(),
+            name: String::new(),
             rate: rate.rate,
             provider: provider.into(),
             is_enabled: false,

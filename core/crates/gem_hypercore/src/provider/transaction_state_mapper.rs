@@ -1,7 +1,10 @@
 use std::time::Duration;
 
 use number_formatter::BigNumberFormatter;
-use primitives::{PerpetualDirection, PerpetualProvider, TransactionChange, TransactionMetadata, TransactionPerpetualMetadata, TransactionState, TransactionType, TransactionUpdate, known_assets::HYPERCORE_HYPE};
+use primitives::{
+    PerpetualDirection, PerpetualProvider, TransactionChange, TransactionMetadata, TransactionPerpetualMetadata, TransactionState, TransactionSwapReferralFee, TransactionType, TransactionUpdate,
+    asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID, known_assets::HYPERCORE_HYPE,
+};
 
 use crate::models::{
     order::{FillDirection, UserFill},
@@ -9,6 +12,7 @@ use crate::models::{
     user::{DelegatorHistoryDelta, DelegatorHistoryUpdate, LedgerDelta, LedgerUpdate},
 };
 use crate::perpetual_formatter::usdc_value;
+use crate::provider::transactions_mapper::builder_fee_amount;
 
 pub const ACTION_HISTORY_QUERY_LOOKBACK_MS: u64 = 5_000;
 const ACTION_HISTORY_MATCH_WINDOW_MS: u64 = 5 * 60 * 1_000;
@@ -20,14 +24,21 @@ fn perpetual_fill_type_and_direction(dir: &FillDirection) -> Option<(Transaction
         FillDirection::OpenShort => Some((TransactionType::PerpetualOpenPosition, PerpetualDirection::Short)),
         FillDirection::CloseLong => Some((TransactionType::PerpetualClosePosition, PerpetualDirection::Long)),
         FillDirection::CloseShort => Some((TransactionType::PerpetualClosePosition, PerpetualDirection::Short)),
+        FillDirection::LongToShort => Some((TransactionType::PerpetualOpenPosition, PerpetualDirection::Short)),
+        FillDirection::ShortToLong => Some((TransactionType::PerpetualOpenPosition, PerpetualDirection::Long)),
         FillDirection::Buy | FillDirection::Sell | FillDirection::Other(_) => None,
     }
 }
 
-pub fn prepare_perpetual_fill(matching_fills: &[&UserFill], last_fill: &UserFill) -> Option<(TransactionType, TransactionPerpetualMetadata)> {
+pub fn prepare_perpetual_fill(matching_fills: &[&UserFill], last_fill: &UserFill) -> Option<(TransactionType, TransactionPerpetualMetadata, f64)> {
     let (transaction_type, direction) = perpetual_fill_type_and_direction(&last_fill.dir)?;
     let pnl: f64 = matching_fills.iter().map(|fill| fill.closed_pnl).sum();
     let is_liquidation = matching_fills.iter().any(|fill| fill.liquidation.is_some());
+    let notional = matching_fills.iter().try_fold(0.0, |sum, fill| Some(sum + fill.px * fill.sz.parse::<f64>().ok()?))?;
+    let referral_fee = builder_fee_amount(matching_fills.iter().copied(), notional).map(|fee| TransactionSwapReferralFee {
+        asset_id: HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
+        value: usdc_value(fee),
+    });
 
     Some((
         transaction_type,
@@ -37,7 +48,9 @@ pub fn prepare_perpetual_fill(matching_fills: &[&UserFill], last_fill: &UserFill
             direction,
             is_liquidation: Some(is_liquidation),
             provider: Some(PerpetualProvider::Hypercore),
+            referral_fee,
         },
+        notional,
     ))
 }
 
@@ -53,7 +66,7 @@ pub fn map_transaction_state_order(fills: Vec<UserFill>, oid: u64, request_id: S
 
     match &last_fill.dir {
         FillDirection::Buy | FillDirection::Sell => {}
-        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort => {
+        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort | FillDirection::LongToShort | FillDirection::ShortToLong => {
             if let Some(changes) = perpetual_fill_changes(&matching_fills, last_fill) {
                 update.changes.extend(changes);
             }
@@ -194,17 +207,21 @@ fn transaction_update_from_hash(hash: Option<String>, request_id: String) -> Tra
 }
 
 fn perpetual_fill_changes(matching_fills: &[&UserFill], last_fill: &UserFill) -> Option<Vec<TransactionChange>> {
-    let (_, metadata) = prepare_perpetual_fill(matching_fills, last_fill)?;
+    let (_, metadata, notional) = prepare_perpetual_fill(matching_fills, last_fill)?;
     let fee: f64 = matching_fills.iter().map(|fill| fill.fee).sum();
 
-    Some(vec![TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)), TransactionChange::NetworkFee(usdc_value(fee).into())])
+    Some(vec![
+        TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)),
+        TransactionChange::Value(usdc_value(notional)),
+        TransactionChange::NetworkFee(usdc_value(fee).into()),
+    ])
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::models::order::{FillDirection, UserFill};
-    use num_bigint::BigInt;
+    use num_bigint::{BigInt, BigUint};
 
     #[test]
     fn test_map_transaction_state_order() {
@@ -212,10 +229,14 @@ mod tests {
         let oid = 187530505765u64;
         let request_id = oid.to_string();
 
-        let update = map_transaction_state_order(fills, oid, request_id.clone());
+        let update = map_transaction_state_order(fills.clone(), oid, request_id.clone());
 
         assert_eq!(update.state, TransactionState::Confirmed);
-        assert_eq!(update.changes.len(), 3);
+        assert_eq!(update.changes.len(), 4);
+
+        let value_change = update.changes.iter().find_map(|change| if let TransactionChange::Value(value) = change { Some(value) } else { None });
+        let indexed = crate::provider::transactions_mapper::map_user_fills("0x", fills.into_iter().filter(|fill| fill.oid == oid).collect(), None);
+        assert_eq!(value_change, Some(&indexed[0].value), "a confirmed order carries the value the indexer stores for its fills");
 
         let metadata_change = update
             .changes
@@ -252,10 +273,12 @@ mod tests {
             coin: "HYPE".to_string(),
             hash: String::new(),
             oid: 123,
+            tid: 123,
             sz: "1".to_string(),
             closed_pnl: 0.0,
             fee: 0.0,
             fee_token: None,
+            builder_fee: None,
             px: 42.0,
             dir: FillDirection::Other(String::new()),
             time: 0,
@@ -521,10 +544,17 @@ mod tests {
         let matching: Vec<_> = fills.iter().filter(|fill| fill.oid == oid).collect();
         let last_fill = matching.last().copied().unwrap();
 
-        let (transaction_type, metadata) = prepare_perpetual_fill(&matching, last_fill).unwrap();
+        let (transaction_type, metadata, _) = prepare_perpetual_fill(&matching, last_fill).unwrap();
         assert_eq!(transaction_type, TransactionType::PerpetualOpenPosition);
         assert_eq!(metadata.direction, PerpetualDirection::Long);
         assert_eq!(metadata.is_liquidation, Some(false));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
+                value: BigUint::from(225_266u64),
+            })
+        );
     }
 
     #[test]
@@ -533,10 +563,12 @@ mod tests {
             coin: "HYPE".to_string(),
             hash: String::new(),
             oid: 123,
+            tid: 123,
             sz: "1".to_string(),
             closed_pnl: 0.0,
             fee: 0.0,
             fee_token: None,
+            builder_fee: None,
             px: 42.0,
             dir: FillDirection::Other("Unsupported".to_string()),
             time: 0,
@@ -561,7 +593,7 @@ mod tests {
         let matching: Vec<_> = fills.iter().collect();
         let last_fill = matching.last().copied().unwrap();
 
-        let (_, metadata) = prepare_perpetual_fill(&matching, last_fill).unwrap();
+        let (_, metadata, _) = prepare_perpetual_fill(&matching, last_fill).unwrap();
         assert_eq!(metadata.is_liquidation, Some(true));
     }
 }

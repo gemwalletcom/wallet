@@ -18,9 +18,9 @@ use tokio::sync::watch;
 pub type ShutdownReceiver = watch::Receiver<bool>;
 
 pub fn no_shutdown() -> ShutdownReceiver {
-    let (tx, rx) = watch::channel(false);
-    std::mem::forget(tx);
-    rx
+    let (sender, receiver) = watch::channel(false);
+    std::mem::forget(sender);
+    receiver
 }
 
 #[derive(Clone)]
@@ -35,7 +35,7 @@ impl Retry {
     }
 }
 
-pub async fn with_retry<F, Fut, T>(retry: &Retry, name: &str, shutdown_rx: &ShutdownReceiver, mut f: F) -> Result<Option<T>, Box<dyn Error + Send + Sync>>
+pub async fn with_retry<F, Fut, T>(retry: &Retry, name: &str, shutdown: &ShutdownReceiver, mut f: F) -> Result<Option<T>, Box<dyn Error + Send + Sync>>
 where
     F: FnMut() -> Fut,
     Fut: Future<Output = Result<T, Box<dyn Error + Send + Sync>>>,
@@ -43,7 +43,7 @@ where
     let mut delay = retry.delay;
     let mut attempt: u32 = 0;
     loop {
-        if *shutdown_rx.borrow() {
+        if *shutdown.borrow() {
             return Ok(None);
         }
         attempt += 1;
@@ -54,12 +54,12 @@ where
                 }
                 return Ok(Some(result));
             }
-            Err(err) => {
-                info_with_fields!("rabbitmq reconnect retry", connection = name, attempt = attempt, delay_secs = delay.as_secs(), error = err.to_string());
-                let mut rx = shutdown_rx.clone();
+            Err(error) => {
+                info_with_fields!("rabbitmq reconnect retry", connection = name, attempt = attempt, delay_secs = delay.as_secs(), error = error.to_string());
+                let mut receiver = shutdown.clone();
                 tokio::select! {
                     _ = tokio::time::sleep(delay) => {}
-                    _ = rx.changed() => return Ok(None),
+                    _ = receiver.changed() => return Ok(None),
                 }
                 delay = (delay * 2).min(retry.timeout);
             }

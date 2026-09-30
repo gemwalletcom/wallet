@@ -8,6 +8,7 @@ import com.wallet.core.primitives.ConnectionStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +23,7 @@ import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemRefreshKind
 
-class ConnectionStatusObserver(private val monitors: List<ConnectionComponentMonitor>, private val connectionService: GemConnectionServiceInterface, private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) :
+class ConnectionStatusObserver(private val monitors: List<ConnectionComponentMonitor>, private val connectionService: GemConnectionServiceInterface, private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)) :
     ObserveRefreshInterval {
     private val state = MutableStateFlow<Map<ConnectionComponent, Boolean>>(emptyMap())
 

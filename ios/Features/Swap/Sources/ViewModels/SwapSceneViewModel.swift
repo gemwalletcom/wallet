@@ -19,7 +19,6 @@ import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapSideState
 import struct Gemstone.GemSwapViewState
 import enum Gemstone.SwapperError
-import struct Gemstone.SwapperQuote
 import enum Gemstone.SwapProvider
 import struct Gemstone.SwapQuote
 import GemstonePrimitives
@@ -68,12 +67,7 @@ public final class SwapSceneViewModel {
         return state
     }
 
-    var selectedSwapQuote: SwapperQuote? {
-        viewState.quote
-    }
-
     var amountInputModel = InputValidationViewModel()
-    var toValue: String = ""
     var loadTrigger: SwapLoadTrigger?
 
     var selectedSlippage: GemSlippageSelection = .auto
@@ -169,6 +163,10 @@ public final class SwapSceneViewModel {
         viewState.isReceiveLoading
     }
 
+    var toValue: String {
+        viewState.receiveAmount?.text() ?? ""
+    }
+
     var assetIds: Set<AssetId> {
         Set([fromAsset?.asset.id, toAsset?.asset.id].compactMap(\.self))
     }
@@ -215,11 +213,6 @@ extension SwapSceneViewModel {
         toAssetQuery.request.assetId = newModel.toAssetId
     }
 
-    func onChangeSwapQuote(_ _: SwapperQuote?, _ newQuote: SwapperQuote?) {
-        guard !isTransferDataLoading, newQuote != nil else { return }
-        setToValue()
-    }
-
     func onChangeFromValue(_: String, _: String) {
         updateSessionInput()
         if loadTrigger?.input == session.input {
@@ -231,7 +224,7 @@ extension SwapSceneViewModel {
     func onChangeFromAsset(old: AssetData?, new: AssetData?) {
         guard old?.asset.id != new?.asset.id else { return }
 
-        resetValues()
+        amountInputModel.text = .empty
         updateSessionInput(amount: "")
         setLoadTrigger(isImmediate: true)
     }
@@ -239,7 +232,6 @@ extension SwapSceneViewModel {
     func onChangeToAsset(old: AssetData?, new: AssetData?) {
         guard old?.asset.id != new?.asset.id else { return }
 
-        resetToValue()
         updateSessionInput()
         setLoadTrigger(isImmediate: true)
     }
@@ -337,19 +329,6 @@ extension SwapSceneViewModel {
         )
     }
 
-    private func resetValues() {
-        resetToValue()
-        amountInputModel.text = .empty
-    }
-
-    private func resetToValue() {
-        toValue = ""
-    }
-
-    private func setToValue() {
-        toValue = viewState.receiveAmount?.text() ?? ""
-    }
-
     private func setFromValue(percent: Int, assetData: AssetData) {
         let value = service.amountForPercent(available: assetData.balance.available, percent: UInt32(percent))
         guard let text = NumberInput.format().inputText(value: value.description, decimals: UInt32(assetData.asset.decimals)) else { return }
@@ -365,12 +344,10 @@ extension SwapSceneViewModel {
 
     private func setLoadTrigger(isImmediate: Bool) {
         guard let input = session.input else {
-            resetToValue()
             loadTrigger = nil
             return
         }
         guard !isTransferDataLoading else { return }
-        resetToValue()
         loadTrigger = SwapLoadTrigger(input: input, isImmediate: isImmediate)
     }
 
@@ -416,11 +393,9 @@ extension SwapSceneViewModel {
             )
             try Task.checkCancellation()
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
-            setToValue()
         } catch let error as SwapperError {
             guard !Task.isCancelled else { return }
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: error))
-            setToValue()
             debugLog("SwapScene get quotes error: \(error)")
         } catch {
             debugLog("SwapScene get quotes error: \(error)")

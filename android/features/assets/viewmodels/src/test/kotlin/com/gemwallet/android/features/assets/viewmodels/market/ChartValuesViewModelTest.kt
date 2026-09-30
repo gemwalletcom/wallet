@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockChartDateValue
@@ -21,7 +22,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -29,21 +29,25 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartSession
+import uniffi.gemstone.GemChartZoom
 import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChartValuesViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
     private val currencyFlow = MutableStateFlow(Currency.USD)
     private val viewModels = mutableListOf<ViewModel>()
@@ -56,9 +60,8 @@ class ChartValuesViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         every { chartService.newSession() } answers {
-            GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false)
+            GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false, zoom = GemChartZoom(scale = 1.0, offset = 0.0))
         }
     }
 
@@ -72,7 +75,6 @@ class ChartValuesViewModelTest {
             }
         }
         viewModels.clear()
-        Dispatchers.resetMain()
     }
 
     @Test
@@ -224,6 +226,36 @@ class ChartValuesViewModelTest {
 
         assertEquals(false, viewModel.isRefreshing.value)
         coVerify(exactly = 2) { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) }
+    }
+
+    @Test
+    fun `a pinch during a refresh keeps the load that is in flight`() = runTest(testDispatcher) {
+        val chart = mockGemChart(values = (1..40).map { mockChartDateValue(date = it * 60_000L, value = it.toDouble()).toGem() })
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
+
+        val viewModel = createViewModel()
+        viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        backgroundScope.launch { viewModel.isRefreshing.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val inFlight = CompletableDeferred<Unit>()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } coAnswers {
+            inFlight.await()
+            chart
+        }
+        viewModel.refresh()
+        testDispatcher.scheduler.advanceUntilIdle()
+        repeat(3) {
+            viewModel.onZoom(1.5f, 1f)
+            testDispatcher.scheduler.advanceUntilIdle()
+        }
+        inFlight.complete(Unit)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        coVerify(exactly = 2) { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) }
+        assertEquals(false, viewModel.isRefreshing.value)
+        assertEquals(true, viewModel.chartUIState.value.chart.dataOrNull!!.start > chart.values.first().date)
     }
 
     @Test

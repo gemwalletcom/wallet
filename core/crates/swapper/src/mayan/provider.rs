@@ -3,11 +3,12 @@ use super::{
     client::MayanClient,
     constants::{MAYAN_DEPOSIT_CONTRACTS, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_SEND_CONTRACTS},
     mapper::map_swap_result,
-    model::{MayanChain, MayanQuote, QuoteParams, SwiftVersion},
+    model::{MayanChain, MayanQuote, MayanTransactionResult, QuoteParams, SwiftVersion},
     tx_builder::{fast_mctp, mctp, mono_chain, swift},
     wormhole_chain,
 };
 use crate::amount_to_value;
+use crate::client_factory::create_eth_client;
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
@@ -17,7 +18,8 @@ use crate::{
 };
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{Chain, ChainType, HOUR};
+use gem_evm::rpc::client::FUNCTION_ERC20_DECIMALS;
+use primitives::{Chain, ChainType, HOUR, contract_constants::EVM_ZERO_ADDRESS, decode_hex};
 use std::{collections::BTreeSet, fmt::Debug, sync::Arc};
 
 #[derive(Debug)]
@@ -46,6 +48,18 @@ impl<C> Mayan<C>
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
+    async fn output_token_decimals(&self, result: &MayanTransactionResult) -> Option<u32> {
+        if result.to_token_address == EVM_ZERO_ADDRESS {
+            return None;
+        }
+        let chain = result.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
+        if chain.chain_type() != ChainType::Ethereum {
+            return None;
+        }
+        let [decimals] = create_eth_client(self.rpc_provider.clone(), chain).ok()?.batch_eth_call(&result.to_token_address, [FUNCTION_ERC20_DECIMALS]).await.ok()?;
+        decode_hex(&decimals).ok()?.last().map(|decimals| u32::from(*decimals))
+    }
+
     pub fn with_clients(price_client: MayanClient<C>, explorer_client: MayanClient<C>, rpc_provider: Arc<dyn RpcProvider>) -> Self {
         Self {
             provider: ProviderType::new(SwapperProvider::Mayan),
@@ -175,7 +189,8 @@ where
 
     async fn get_swap_result(&self, _chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
         let result = self.explorer_client.get_transaction_status(transaction_hash).await?;
-        Ok(map_swap_result(&result))
+        let output_decimals = self.output_token_decimals(&result).await;
+        Ok(map_swap_result(&result, output_decimals))
     }
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {

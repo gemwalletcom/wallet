@@ -88,6 +88,18 @@ public struct PerpetualPositionData: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
+public struct PerpetualPrice: Codable, Equatable, Hashable, Sendable {
+	public let coin: String
+	public let price: Double
+	public let pricePercentChange24h: Double
+
+	public init(coin: String, price: Double, pricePercentChange24h: Double) {
+		self.coin = coin
+		self.price = price
+		self.pricePercentChange24h = pricePercentChange24h
+	}
+}
+
 public struct PerpetualSearchData: Codable, Sendable {
 	public let perpetual: Perpetual
 	public let asset: Asset

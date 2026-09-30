@@ -15,32 +15,6 @@ struct GemstoneAssetStoreTests {
     private let cosmos = AssetId.mock(chain: .cosmos)
 
     @Test
-    func addBalancesCarriesTheEnabledFlagCoreDecided() async throws {
-        let db = DB.mock(wallets: [wallet])
-        let adapter = GemstoneAssetStore.mock(db: db)
-        let balanceStore = BalanceStore.mock(db: db)
-
-        try await adapter.addBalances(walletId: wallet.id, assetIds: [ethereum], enabled: true)
-        try await adapter.addBalances(walletId: wallet.id, assetIds: [cosmos], enabled: false)
-
-        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: ethereum)?.isEnabled == true)
-        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: cosmos)?.isEnabled == false)
-    }
-
-    @Test
-    func addMissingBalancesNeverEnablesAndNeverOverwrites() async throws {
-        let db = DB.mock(wallets: [wallet])
-        let adapter = GemstoneAssetStore.mock(db: db)
-        let balanceStore = BalanceStore.mock(db: db)
-        try await adapter.addBalances(walletId: wallet.id, assetIds: [ethereum], enabled: true)
-
-        try await adapter.addMissingBalances(walletId: wallet.id, assetIds: [ethereum, cosmos])
-
-        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: ethereum)?.isEnabled == true)
-        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: cosmos)?.isEnabled == false)
-    }
-
-    @Test
     func walletAssetsKeepOnlyWhatTheFiltersAllow() async throws {
         let db = DB.mock(wallets: [wallet])
         let adapter = GemstoneAssetStore.mock(db: db)

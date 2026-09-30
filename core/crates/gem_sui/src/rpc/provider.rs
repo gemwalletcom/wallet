@@ -1,18 +1,22 @@
 use std::{error::Error, ops::Deref};
 
 use async_trait::async_trait;
-use chain_traits::{ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransaction, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 
 use super::SuiClient;
 
+pub trait SuiTransactionsIndexer: ChainTransactions + ChainTransaction {}
+
+impl<T: ChainTransactions + ChainTransaction> SuiTransactionsIndexer for T {}
+
 pub struct SuiProvider {
     client: SuiClient,
-    transactions_by_address_provider: Box<dyn ChainTransactions>,
+    pub(crate) indexer: Box<dyn SuiTransactionsIndexer>,
 }
 
 impl SuiProvider {
-    pub fn new(client: SuiClient, transactions_by_address_provider: Box<dyn ChainTransactions>) -> Self {
-        Self { client, transactions_by_address_provider }
+    pub fn new(client: SuiClient, indexer: Box<dyn SuiTransactionsIndexer>) -> Self {
+        Self { client, indexer }
     }
 
     pub fn new_rpc_only(client: SuiClient) -> Self {
@@ -31,7 +35,7 @@ impl Deref for SuiProvider {
 #[async_trait]
 impl ChainTransactions for SuiProvider {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        self.transactions_by_address_provider.get_transactions_by_address(request).await
+        self.indexer.get_transactions_by_address(request).await
     }
 }
 

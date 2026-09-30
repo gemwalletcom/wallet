@@ -24,7 +24,7 @@ struct ContactAddressEditorScene: View {
         _model = State(initialValue: model)
     }
 
-    public var body: some View {
+    var body: some View {
         List {
             ForEach(model.fields, id: \.self) { field in
                 section(for: field)

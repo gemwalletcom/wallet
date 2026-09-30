@@ -25,8 +25,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -41,6 +39,7 @@ import uniffi.gemstone.GemReceiveNetworks
 import uniffi.gemstone.GemReceiveServiceInterface
 import uniffi.gemstone.addressCopy
 import uniffi.gemstone.chainRow
+import uniffi.gemstone.newReceiveSession
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel(assistedFactory = ReceiveViewModel.Factory::class)
@@ -78,16 +77,15 @@ class ReceiveViewModel @AssistedInject constructor(
         }
     }
 
-    val networks = combine(
-        asset.filterNotNull().filter { it.asset.id == sourceAssetId },
-        session.filterNotNull(),
-    ) { assetInfo, session ->
-        service.networks(
-            assetInfo.asset.toGem(),
-            assetInfo.associations.map { it.assetId.toIdentifier() },
-            session.wallet.toGem(),
-        )
-    }
+    val networks = session.filterNotNull()
+        .flatMapLatest { session ->
+            assetQuery(session.wallet.id.id, sourceAssetId).filterNotNull().map { source ->
+                newReceiveSession(source.asset.toGem())
+                    .onAssociations(source.associations.map { it.assetId.toIdentifier() })
+                    .networks(session.wallet.toGem())
+            }
+        }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemReceiveNetworks(networks = listOf(GemReceiveNetwork(sourceAssetId.toIdentifier(), row = chainRow(sourceAssetId.chain.string))), showsSelector = false))
 
     fun assetState(asset: Asset): GemReceiveAssetState = service.assetState(asset.toGem())

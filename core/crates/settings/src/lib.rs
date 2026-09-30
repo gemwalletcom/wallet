@@ -43,8 +43,10 @@ pub struct Settings {
 pub struct Indexer {
     pub alchemy: ProviderSettings,
     pub algorand: ProviderSettings,
+    pub aptos: ProviderSettings,
     pub ankr: ProviderSettings,
     pub blockscout: ProviderSettings,
+    pub etherscan: ProviderSettings,
     pub fastnear: FastNearIndexer,
     pub subscan: ProviderSettings,
     pub sui: ProviderSettings,
@@ -470,7 +472,6 @@ pub struct RewardsWallet {
 pub struct Swap {
     pub nearintents: URL,
     pub okx: Okx,
-    pub relay: URL,
     pub swapsxyz: URL,
 }
 

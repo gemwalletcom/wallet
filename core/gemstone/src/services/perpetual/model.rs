@@ -5,8 +5,10 @@ use crate::models::list::{GemListRow, GemListSection};
 use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemPriceRow, GemRowText, GemValueHeader};
 use crate::services::chart::candlestick_header;
 use crate::services::chart::model::{GemChartDateStyle, GemChartHeader, GemChartSelection};
+use crate::services::chart::rules as chart_rules;
 use crate::services::failures::StepFailure;
 use crate::services::localization::GemLocalizedText;
+use chrono::{DateTime, Utc};
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualPositionData};
 use primitives::{Asset, AssetId, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
@@ -190,9 +192,14 @@ impl PerpetualMarketLine {
     }
 }
 
-#[uniffi::export]
-pub fn perpetual_market_rows(markets: Vec<PerpetualData>) -> Vec<GemAssetItemRow> {
-    markets.iter().map(|data| rules::market_row(&data.perpetual, &data.asset).item_row()).collect()
+pub fn perpetual_market_items(markets: Vec<PerpetualData>) -> Vec<GemPerpetualMarketItem> {
+    markets
+        .into_iter()
+        .map(|data| GemPerpetualMarketItem {
+            row: rules::market_row(&data.perpetual, &data.asset).item_row(),
+            data,
+        })
+        .collect()
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -208,14 +215,13 @@ pub struct GemPerpetualMarketSections {
 }
 
 #[uniffi::export]
+pub fn perpetual_chart_levels(price_low: f64, price_high: f64, current_price: f64) -> Vec<GemFormattedNumber> {
+    rules::chart_levels(price_low, price_high, current_price)
+}
+
+#[uniffi::export]
 pub fn perpetual_market_sections(markets: Vec<PerpetualData>) -> GemPerpetualMarketSections {
-    let (pinned, markets): (Vec<_>, Vec<_>) = markets
-        .into_iter()
-        .map(|data| GemPerpetualMarketItem {
-            row: rules::market_row(&data.perpetual, &data.asset).item_row(),
-            data,
-        })
-        .partition(|item| item.data.metadata.is_pinned);
+    let (pinned, markets): (Vec<_>, Vec<_>) = perpetual_market_items(markets).into_iter().partition(|item| item.data.metadata.is_pinned);
     GemPerpetualMarketSections { pinned, markets }
 }
 
@@ -239,11 +245,24 @@ pub struct GemPerpetualChartLine {
 pub struct GemPerpetualChartLayout {
     pub price_low: f64,
     pub price_high: f64,
-    pub ticks: Vec<GemFormattedNumber>,
-    pub x_tick_count: u32,
     pub lines: Vec<GemPerpetualChartLine>,
-    pub current_price: Option<GemFormattedNumber>,
+    pub current_price: GemFormattedNumber,
+    pub current_tone: GemValueTone,
     pub tones: Vec<GemValueTone>,
+    pub volume_high: f64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemCandleTickFormat {
+    Time,
+    Day,
+    MonthYear,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCandleTick {
+    pub date: DateTime<Utc>,
+    pub format: GemCandleTickFormat,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -252,21 +271,29 @@ pub struct GemCandleChart {
     pub layout: GemPerpetualChartLayout,
     pub header: GemChartHeader,
     pub date_style: GemChartDateStyle,
+    pub base: f64,
+    pub start: DateTime<Utc>,
+    pub end: DateTime<Utc>,
+    pub body_width: f64,
+    pub x_ticks: Vec<GemCandleTick>,
 }
 
 #[uniffi::export]
 impl GemCandleChart {
     pub fn selection(&self, index: u32) -> Option<GemChartSelection> {
-        let base = self.candles.first()?.close;
         let candle = self.candles.get(index as usize)?;
         Some(GemChartSelection {
-            header: candlestick_header(base, candle.close),
+            header: candlestick_header(self.base, candle.close),
             date: candle.date,
         })
     }
 
     pub fn tooltip(&self, index: u32) -> Option<GemCandleTooltip> {
         self.candles.get(index as usize).map(rules::candle_tooltip)
+    }
+
+    pub fn index_at(&self, fraction: f64) -> Option<u32> {
+        chart_rules::nearest_index(self.candles.iter().map(|candle| candle.date), self.start..=self.end, fraction)
     }
 }
 

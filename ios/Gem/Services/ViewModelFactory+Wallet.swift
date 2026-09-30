@@ -130,6 +130,7 @@ public extension ViewModelFactory {
                 price: priceService,
                 preferences: preferencesService,
                 explorer: explorerService,
+                priceAlerts: priceAlertService,
             ),
             preferences: observablePreferences,
             asset: asset,

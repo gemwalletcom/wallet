@@ -21,6 +21,7 @@ import com.gemwallet.android.application.wallet_connect.toConnectionSession
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
@@ -31,8 +32,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -49,7 +52,7 @@ class WalletConnectCoordinator(
     private val walletConnectClient: WalletConnectClient,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val chainService: GemChainServiceInterface,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : IsWalletConnectEnabled,
     PairWalletConnect,
     SyncWalletConnectSessions,
@@ -61,13 +64,14 @@ class WalletConnectCoordinator(
     private val pendingEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 16)
     private val isWalletConnectInit = MutableStateFlow(false)
     private val approvingWallet = MutableStateFlow<Wallet?>(null)
-    val bridgeEvents = isWalletConnectInit.flatMapLatest {
+    private val events = isWalletConnectInit.flatMapLatest {
         if (it) {
             merge(walletConnectClient.events, pendingEvents)
         } else {
             emptyFlow()
         }
     }
+    val bridgeEvents = events.filter(::isFirstDelivery).flowOn(Dispatchers.IO)
 
     init {
         scope.launch(Dispatchers.IO) {
@@ -79,7 +83,7 @@ class WalletConnectCoordinator(
             }
         }
         scope.launch(Dispatchers.IO) {
-            bridgeEvents.collect { event ->
+            events.collect { event ->
                 when (event) {
                     is WalletConnectEvent.SessionDeleted -> walletConnectService.deleteSession(event.topic)
                     is WalletConnectEvent.SessionSettled -> storeSettledSession(event.session)
@@ -113,8 +117,8 @@ class WalletConnectCoordinator(
                         onSuccess = { onSuccess() },
                         onError = { onError(clientErrorText(it)) },
                     )
-                } catch (err: Throwable) {
-                    onError(err.errorText())
+                } catch (error: Throwable) {
+                    onError(error.errorText())
                 }
             },
             onError = { onError(clientErrorText(it)) },
@@ -151,7 +155,7 @@ class WalletConnectCoordinator(
             onSuccess = {
                 if (rejection.deletesSession) {
                     scope.launch {
-                        runCatching { walletConnectService.deleteSession(proposal.pairingTopic) }
+                        runCatchingCancellable { walletConnectService.deleteSession(proposal.pairingTopic) }
                             .onFailure { Log.e("WalletConnect", "Delete rejected session failed", it) }
                     }
                 }
@@ -186,6 +190,11 @@ class WalletConnectCoordinator(
     override fun authMessage(payloadParams: WalletConnectAuthPayloadParams, issuer: String): String = walletConnectClient.formatAuthMessage(payloadParams, issuer)
 
     override fun authObject(payloadParams: WalletConnectAuthPayloadParams, issuer: String, signature: String): WalletConnectAuthObject = walletConnectClient.generateAuthObject(payloadParams, issuer, signature)
+
+    private fun isFirstDelivery(event: WalletConnectEvent): Boolean = when (event) {
+        is WalletConnectEvent.SessionProposal -> walletConnectService.shouldProcessProposal(event.proposal.proposerPublicKey)
+        else -> true
+    }
 
     private fun initWalletConnect(onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         if (isWalletConnectInit.value) {
@@ -235,7 +244,7 @@ class WalletConnectCoordinator(
 
     private fun persistNewSessions(wallet: Wallet, activeBefore: Set<String>, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         scope.launch(Dispatchers.IO) {
-            runCatching {
+            runCatchingCancellable {
                 addNewSessions(wallet, activeBefore)
             }.onSuccess {
                 onSuccess()

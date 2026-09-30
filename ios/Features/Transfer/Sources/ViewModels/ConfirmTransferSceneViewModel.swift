@@ -220,7 +220,7 @@ extension ConfirmTransferSceneViewModel {
         return .error(
             title: Localized.Errors.errorOccurred,
             error: error,
-            onInfoAction: error.display().hasInfoSheet() ? { [weak self] in self?.onSelectListError(error: error) } : nil,
+            onInfoAction: confirmation.errorInfo(error: error).map { info in { [weak self] in self?.isPresentingSheet = .info(info.infoSheet) } },
         )
     }
 }

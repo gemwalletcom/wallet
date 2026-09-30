@@ -39,13 +39,6 @@ extension NodeRecord: CreateTable {
 }
 
 extension NodeRecord {
-    func mapToChainNode() -> ChainNode {
-        ChainNode(
-            chain: chain.rawValue,
-            node: mapToNode(),
-        )
-    }
-
     func mapToNode() -> Node {
         Node(
             url: url,

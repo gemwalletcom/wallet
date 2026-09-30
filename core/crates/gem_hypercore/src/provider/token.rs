@@ -13,7 +13,7 @@ impl<C: Client> ChainToken for HyperCoreClient<C> {
     async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Sync + Send>> {
         let symbol = AssetId::decode_token_id(&token_id).into_iter().next().unwrap_or_default();
         let spot_meta = self.get_spot_meta().await?;
-        let token = spot_meta.tokens.iter().find(|t| t.name == symbol).ok_or(format!("Token not found with symbol: {}", symbol))?;
+        let token = spot_meta.tokens.iter().find(|t| t.name == symbol).ok_or_else(|| format!("Token not found with symbol: {}", symbol))?;
 
         let asset_id = token.asset_id(self.chain);
 
@@ -32,7 +32,7 @@ impl<C: Client> ChainToken for HyperCoreClient<C> {
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
-mod tests {
+mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{USDC_TOKEN_ID, create_hypercore_test_client};
 

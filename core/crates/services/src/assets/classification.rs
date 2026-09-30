@@ -45,7 +45,7 @@ impl AssetClassificationRules {
         None
     }
 
-    pub fn apply(&self, mut asset: AssetBasic) -> AssetBasic {
+    pub fn classified(&self, mut asset: AssetBasic) -> AssetBasic {
         if let Some(risk) = self.classify(asset.score.rank, &asset.asset.name, &asset.asset.symbol) {
             asset.score = AssetScore::new(risk.threshold());
             asset.properties.is_enabled = false;
@@ -77,7 +77,7 @@ mod tests {
         let mut asset = Asset::mock_erc20().as_basic_primitive();
         asset.asset.name = "www.example.com".to_string();
 
-        let asset = rules.apply(asset);
+        let asset = rules.classified(asset);
 
         assert_eq!(asset.score.rank, AssetRank::Spam.threshold());
         assert!(!asset.properties.is_enabled);

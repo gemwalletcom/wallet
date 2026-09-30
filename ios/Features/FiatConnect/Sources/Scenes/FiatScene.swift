@@ -10,11 +10,11 @@ import SwiftUI
 struct FiatScene: View {
     @State private var model: FiatSceneViewModel
 
-    public init(model: FiatSceneViewModel) {
+    init(model: FiatSceneViewModel) {
         _model = State(initialValue: model)
     }
 
-    public var body: some View {
+    var body: some View {
         let viewState = model.viewState
         return List {
             CurrencyInputValidationView(

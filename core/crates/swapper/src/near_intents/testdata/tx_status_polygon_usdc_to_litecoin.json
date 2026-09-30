@@ -1,0 +1,23 @@
+[
+ {
+  "originAsset": "nep245:v2_1.omni.hot.tg:137_qiStmoQJDQPTebaPjgx5VBxZv6L",
+  "destinationAsset": "nep141:ltc.omft.near",
+  "depositAddress": "0x5d4A8B7d32f42C6a1aFC0a55867ad17C2278e86C",
+  "status": "SUCCESS",
+  "amountIn": "70000000",
+  "amountOut": "101438912",
+  "originChainTxHashes": [
+   "0x6a083d43a80f236ba5952dfdccaf99e3935a1dadef7d9f55e64857cccd2ac408"
+  ],
+  "appFees": [
+   {
+    "recipient": "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc",
+    "fee": 25
+   },
+   {
+    "recipient": "buybacks.multisignature.near",
+    "fee": 25
+   }
+  ]
+ }
+]

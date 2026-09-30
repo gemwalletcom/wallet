@@ -25,12 +25,6 @@ let package = Package(
             name: "SwiftHTTPClient",
             dependencies: [],
             path: "SwiftHTTPClient",
-            exclude: ["Tests"],
-        ),
-        .testTarget(
-            name: "SwiftHTTPClientTests",
-            dependencies: ["SwiftHTTPClient"],
-            path: "SwiftHTTPClient/Tests",
         ),
         .target(
             name: "WebSocketClient",

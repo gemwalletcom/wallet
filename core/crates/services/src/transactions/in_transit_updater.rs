@@ -6,13 +6,13 @@ use std::time::Duration;
 use chrono::{DateTime, Utc};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::swap::{SwapResult, SwapStatus};
-use primitives::{Chain, JobConfiguration, Transaction, TransactionId, TransactionState, TransactionSwapMetadata, TransactionType};
-use storage::{Database, TransactionFilter, TransactionUpdate, TransactionsRepository};
+use primitives::{Chain, JobConfiguration, Transaction, TransactionId, TransactionState, TransactionSwapMetadata};
+use storage::{Database, TransactionFilter, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
 use swapper::cross_chain::{self, DepositAddressMap};
 use swapper::swapper::GemSwapper;
 
-use crate::transactions::SwapVaultAddressClient;
+use crate::transactions::{SwapVaultAddressClient, swap_result_metadata, swap_state_updates};
 
 #[derive(Clone, Copy)]
 pub struct InTransitConfig {
@@ -85,7 +85,7 @@ impl InTransitUpdater {
         let mut updated = 0;
 
         for transaction in transactions_to_check {
-            if self.process_transaction(transaction, now, cutoff, &vault_addresses).await? {
+            if self.update_transaction(transaction, now, cutoff, &vault_addresses).await? {
                 updated += 1;
             }
         }
@@ -93,7 +93,7 @@ impl InTransitUpdater {
         Ok(updated)
     }
 
-    async fn process_transaction(&self, transaction: &Transaction, now: DateTime<Utc>, cutoff: DateTime<Utc>, vault_addresses: &DepositAddressMap) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn update_transaction(&self, transaction: &Transaction, now: DateTime<Utc>, cutoff: DateTime<Utc>, vault_addresses: &DepositAddressMap) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let chain = transaction.id.chain;
         let hash = transaction.id.hash.as_str();
         let elapsed = match (now - transaction.created_at).to_std() {
@@ -101,13 +101,13 @@ impl InTransitUpdater {
             Err(_) => DurationMs(Duration::default()),
         };
 
-        let provider = cross_chain::swap_provider_with_vault_addresses(transaction, vault_addresses);
+        let provider = cross_chain::in_transit_swap_provider(transaction, vault_addresses);
         let provider_name = provider.as_ref().map(|provider| provider.as_ref().to_string()).unwrap_or_default();
         let result = match provider {
             Some(provider) => match self.swapper.get_swap_result(chain, provider, hash).await {
                 Ok(r) => r,
-                Err(err) => {
-                    error_with_fields!("in_transit check failed", &err as &dyn Error, chain = chain.as_ref(), hash = hash, provider = provider_name, elapsed = elapsed);
+                Err(error) => {
+                    error_with_fields!("in_transit check failed", &error as &dyn Error, chain = chain.as_ref(), hash = hash, provider = provider_name, elapsed = elapsed);
                     if transaction.created_at < cutoff {
                         info_with_fields!("in_transit timed out", chain = chain.as_ref(), hash = hash, provider = provider_name, elapsed = elapsed);
                         self.check_schedules().remove(&transaction.id);
@@ -124,7 +124,7 @@ impl InTransitUpdater {
                 eta_in_seconds: None,
             },
         };
-        let Some((state, metadata)) = resolve_status(&result, transaction.created_at, cutoff) else {
+        let Some((state, metadata)) = final_swap_state(&result, transaction.created_at, cutoff) else {
             info_with_fields!("in_transit pending", chain = chain.as_ref(), hash = hash, provider = provider_name, elapsed = elapsed);
             self.schedule_next_check(transaction, now);
             return Ok(false);
@@ -133,7 +133,7 @@ impl InTransitUpdater {
         info_with_fields!("in_transit confirmed", chain = chain.as_ref(), hash = hash, state = state.as_ref(), elapsed = elapsed);
 
         self.check_schedules().remove(&transaction.id);
-        let metadata = metadata.and_then(|m| serde_json::to_value(m).ok());
+        let metadata = swap_result_metadata(transaction, metadata);
         self.save_and_publish(chain, transaction, state, metadata).await?;
         Ok(true)
     }
@@ -161,10 +161,7 @@ impl InTransitUpdater {
     }
 
     async fn save_and_publish(&self, chain: Chain, transaction: &Transaction, state: TransactionState, metadata: Option<serde_json::Value>) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let updates = match metadata {
-            Some(ref json) => vec![TransactionUpdate::State(state), TransactionUpdate::Kind(TransactionType::Swap), TransactionUpdate::Metadata(json.clone())],
-            None => vec![TransactionUpdate::State(state), TransactionUpdate::Kind(TransactionType::Swap)],
-        };
+        let updates = swap_state_updates(state, metadata.as_ref());
         let hash = transaction.id.hash.clone();
         self.database.run(move |client| client.update_transaction(chain.as_ref(), &hash, updates)).await?;
 
@@ -174,7 +171,7 @@ impl InTransitUpdater {
     }
 }
 
-fn resolve_status(result: &SwapResult, created_at: DateTime<Utc>, cutoff: DateTime<Utc>) -> Option<(TransactionState, Option<TransactionSwapMetadata>)> {
+fn final_swap_state(result: &SwapResult, created_at: DateTime<Utc>, cutoff: DateTime<Utc>) -> Option<(TransactionState, Option<TransactionSwapMetadata>)> {
     let metadata = result.metadata.clone();
     match result.status.transaction_state() {
         Some(state) => Some((state, metadata)),
@@ -187,7 +184,7 @@ fn resolve_status(result: &SwapResult, created_at: DateTime<Utc>, cutoff: DateTi
 mod tests {
     use super::*;
     use num_bigint::BigUint;
-    use primitives::{HOUR, MINUTE};
+    use primitives::{HOUR, MINUTE, SwapProvider};
 
     #[test]
     fn test_scan_limit_covers_check_interval_window() {
@@ -206,76 +203,70 @@ mod tests {
     }
 
     #[test]
-    fn test_resolve_status_completed() {
+    fn test_final_swap_state_completed() {
         let now = Utc::now();
         let result = SwapResult {
             status: SwapStatus::Completed,
             ..SwapResult::pending()
         };
-        let Some((state, _)) = resolve_status(&result, now, now) else {
+        let Some((state, _)) = final_swap_state(&result, now, now) else {
             panic!("completed status should resolve");
         };
         assert_eq!(state, TransactionState::Confirmed);
     }
 
     #[test]
-    fn test_resolve_status_failed() {
+    fn test_final_swap_state_failed() {
         let now = Utc::now();
         let result = SwapResult {
             status: SwapStatus::Failed,
             ..SwapResult::pending()
         };
-        let Some((state, _)) = resolve_status(&result, now, now) else {
+        let Some((state, _)) = final_swap_state(&result, now, now) else {
             panic!("failed status should resolve");
         };
         assert_eq!(state, TransactionState::Failed);
     }
 
     #[test]
-    fn test_resolve_status_refunded() {
+    fn test_final_swap_state_refunded() {
         let now = Utc::now();
         let result = SwapResult {
             status: SwapStatus::Refunded,
             ..SwapResult::pending()
         };
-        let Some((state, _)) = resolve_status(&result, now, now) else {
+        let Some((state, _)) = final_swap_state(&result, now, now) else {
             panic!("refunded status should resolve");
         };
         assert_eq!(state, TransactionState::Refunded);
     }
 
     #[test]
-    fn test_resolve_status_pending_within_timeout() {
+    fn test_final_swap_state_pending_within_timeout() {
         let now = Utc::now();
         let cutoff = Utc::now() - HOUR;
-        assert!(resolve_status(&SwapResult::pending(), now, cutoff).is_none());
+        assert!(final_swap_state(&SwapResult::pending(), now, cutoff).is_none());
     }
 
     #[test]
-    fn test_resolve_status_pending_past_timeout() {
+    fn test_final_swap_state_pending_past_timeout() {
         let cutoff = Utc::now();
         let created_at = Utc::now() - HOUR * 2;
-        let Some((state, _)) = resolve_status(&SwapResult::pending(), created_at, cutoff) else {
+        let Some((state, _)) = final_swap_state(&SwapResult::pending(), created_at, cutoff) else {
             panic!("timed out pending status should resolve");
         };
         assert_eq!(state, TransactionState::Failed);
     }
 
     #[test]
-    fn test_resolve_status_metadata_from_result() {
+    fn test_final_swap_state_metadata_from_result() {
         let now = Utc::now();
         let result = SwapResult {
             status: SwapStatus::Completed,
-            metadata: Some(TransactionSwapMetadata {
-                from_asset: "bitcoin".into(),
-                from_value: BigUint::from(50_000u64),
-                to_asset: "ethereum".into(),
-                to_value: BigUint::from(2_500u64),
-                provider: Some("thorchain".to_string()),
-            }),
+            metadata: Some(TransactionSwapMetadata::new("bitcoin".into(), BigUint::from(50_000u64), "ethereum".into(), BigUint::from(2_500u64), SwapProvider::Thorchain)),
             ..SwapResult::pending()
         };
-        let Some((_, Some(resolved))) = resolve_status(&result, now, now) else {
+        let Some((_, Some(resolved))) = final_swap_state(&result, now, now) else {
             panic!("completed status should include metadata");
         };
         assert_eq!(resolved.from_value, BigUint::from(50_000u64));

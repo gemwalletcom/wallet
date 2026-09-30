@@ -54,7 +54,9 @@ pub(super) async fn build_tron_quote_data(transaction_data: &TransactionData, fr
 }
 
 pub(super) fn build_solana_quote_data(transaction_data: &TransactionData) -> Result<SwapQuoteData, SwapperError> {
-    let bytes = bs58::decode(&transaction_data.data).into_vec().map_err(|err| SwapperError::TransactionError(format!("invalid swap transaction data: {err}")))?;
+    let bytes = bs58::decode(&transaction_data.data)
+        .into_vec()
+        .map_err(|error| SwapperError::TransactionError(format!("invalid swap transaction data: {error}")))?;
     Ok(SwapQuoteData::new_contract(transaction_data.to.clone(), BigUint::from(0u64), encode_base64(&bytes), None, None))
 }
 

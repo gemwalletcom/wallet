@@ -15,6 +15,7 @@ mod testkit;
 
 pub use provider::ThorChain;
 
+use primitives::Chain;
 use strum::Display;
 
 use super::SwapperProvider;
@@ -55,6 +56,20 @@ impl THORChainNetwork {
                 "0x68208D99746b805a1Ae41421950A47b711E35681",
             ],
             Self::Mayachain => &["0xe3985E6b61b814F7Cdb188766562ba71b446B46d", "0x700E97ef07219440487840Dc472E7120A7FF11F4"],
+        }
+    }
+
+    pub fn chain(&self) -> Chain {
+        match self {
+            Self::Thorchain => Chain::Thorchain,
+            Self::Mayachain => Chain::Mayachain,
+        }
+    }
+
+    pub fn native_asset(&self) -> &'static str {
+        match self {
+            Self::Thorchain => "THOR.RUNE",
+            Self::Mayachain => "MAYA.CACAO",
         }
     }
 }

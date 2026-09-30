@@ -47,7 +47,7 @@ impl GemSwapper {
         self.swappers.iter().find(|x| x.provider().id == *provider).map(|v| &**v).ok_or(SwapperError::NoAvailableProvider)
     }
 
-    fn apply_gas_limit_multiplier(chain: &Chain, gas_limit: String) -> String {
+    fn gas_limit_with_multiplier(chain: &Chain, gas_limit: String) -> String {
         if let Some(evm_chain) = EVMChain::from_chain(*chain) {
             let multiplier = if evm_chain.is_zkstack() { 2.0 } else { 1.0 };
             if let Ok(gas_limit_value) = gas_limit.parse::<f64>() {
@@ -171,13 +171,11 @@ impl GemSwapper {
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<SwapQuotes, SwapperError> {
         let provider_ids: BTreeSet<_> = self.get_providers_for_request(request)?.into_iter().map(|p| p.id).collect();
-        let providers = self.swappers.iter().filter(|x| provider_ids.contains(&x.provider().id)).collect::<Vec<_>>();
-
-        let quotes_futures = providers.into_iter().map(|x| {
+        let quotes_futures = self.swappers.iter().filter(|x| provider_ids.contains(&x.provider().id)).map(|x| {
             let provider_id = x.provider().id.id().to_string();
             async move {
-                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|e| (provider_id.clone(), e))?;
-                x.get_quote(&request).await.map_err(|e| (provider_id, e))
+                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|error| (provider_id.clone(), error))?;
+                x.get_quote(&request).await.map_err(|error| (provider_id, error))
             }
         });
 
@@ -234,7 +232,7 @@ impl GemSwapper {
         let provider = self.get_swapper_by_provider(&quote.data.provider.id)?;
         let mut quote_data = provider.get_quote_data(quote, data).await?;
         if let Some(gas_limit) = quote_data.gas_limit.take() {
-            quote_data.gas_limit = Some(Self::apply_gas_limit_multiplier(&quote.request.from_asset.chain(), gas_limit));
+            quote_data.gas_limit = Some(Self::gas_limit_with_multiplier(&quote.request.from_asset.chain(), gas_limit));
         }
         Ok(quote_data)
     }
@@ -503,7 +501,7 @@ mod tests {
 }
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
-mod timing_tests {
+mod swap_integration_tests {
     use std::{sync::Arc, time::Instant};
 
     use num_bigint::BigUint;
@@ -535,6 +533,7 @@ mod timing_tests {
     }
 
     #[tokio::test]
+    #[ignore = "timing report without assertions, run manually"]
     async fn test_report_preload_and_quote_durations_per_provider() {
         let swapper = GemSwapper::new(Arc::new(NativeProvider::new().set_debug(false)));
 

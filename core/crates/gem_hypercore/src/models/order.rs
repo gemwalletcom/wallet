@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use serde_serializers::deserialize_f64_from_str;
+use serde_serializers::{deserialize_f64_from_str, deserialize_option_f64_from_str};
 use strum::{Display, EnumString};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -44,6 +44,10 @@ pub enum FillDirection {
     CloseLong,
     #[strum(serialize = "Close Short")]
     CloseShort,
+    #[strum(serialize = "Long > Short")]
+    LongToShort,
+    #[strum(serialize = "Short > Long")]
+    ShortToLong,
     #[strum(default)]
     Other(String),
 }
@@ -69,12 +73,15 @@ pub struct UserFill {
     pub coin: String,
     pub hash: String,
     pub oid: u64,
+    pub tid: u64,
     pub sz: String,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub closed_pnl: f64,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub fee: f64,
     pub fee_token: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_f64_from_str")]
+    pub builder_fee: Option<f64>,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub px: f64,
     pub dir: FillDirection,

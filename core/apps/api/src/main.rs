@@ -341,9 +341,9 @@ mod tests {
     #[rocket::async_test]
     async fn test_no_route_collisions() {
         let rocket = mount_routes(rocket::build(), true);
-        if let Err(e) = rocket.ignite().await {
-            let error = format!("{:?}", e);
-            assert!(!error.contains("Collisions"), "Route collisions detected: {error}");
+        if let Err(error) = rocket.ignite().await {
+            let message = format!("{error:?}");
+            assert!(!message.contains("Collisions"), "Route collisions detected: {message}");
         }
     }
 }

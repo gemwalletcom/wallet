@@ -69,7 +69,7 @@ fn map_status(status: &str) -> FiatTransactionStatus {
 }
 
 pub fn map_order_from_response(payload: TransakOrderResponse) -> FiatTransactionUpdate {
-    let transaction_id = payload.partner_order_id.clone().or(payload.quote_id.clone()).unwrap_or_else(|| payload.id.clone());
+    let transaction_id = payload.partner_order_id.clone().or_else(|| payload.quote_id.clone()).unwrap_or_else(|| payload.id.clone());
     let provider_transaction_id = (transaction_id != payload.id).then_some(payload.id.clone());
 
     FiatTransactionUpdate {

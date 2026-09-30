@@ -37,3 +37,28 @@ flowchart LR
 | The address is flagged | "Suspicious address" under its picture, the same warning as on Confirm, even for a contact | |
 | The address is a contract, token or validator | no balances | they are not fetched for anything but a plain address |
 | The wallet has no transactions | "Your activity will appear here. Make your first transaction" | |
+
+## Push notifications
+
+A settled transaction pushes to every device subscribed to the wallet. A failed one pushes only to the sender, naming the action with the same word as the successful push; a failed incoming transaction pushes nothing, because nothing arrived.
+
+| Type | Successful | Failed or Reverted |
+|---|---|---|
+| Transfer, sent | 💸 Sent: 1 SOL<br>To 7YjV…RACA | ❌ Transfer: Failed<br>To 7YjV…RACA |
+| Transfer, received | 💰 Received: 1 SOL<br>From 7YjV…RACA | no push |
+| NFT, sent | 🖼️ Sent NFT: #1234…<br>To 7YjV…RACA | ❌ Transfer: Failed<br>To 7YjV…RACA |
+| NFT, received | 🖼️ Received NFT: #1234…<br>From 7YjV…RACA | no push |
+| Swap | 🔄 Swap from USDC to SOL<br>1 USDC > 0.0084 SOL | ❌ Swap: Failed |
+| Token approval | ✅ Token Approval USDC<br>To Uniswap | ❌ Token Approval: Failed |
+| Stake | 🔒 Stake 10 SOL<br>To Everstake | ❌ Stake: Failed |
+| Unstake | 🔒 Unstake 10 SOL<br>From Everstake | ❌ Unstake: Failed |
+| Redelegate | 🔄 Redelegate 10 SOL<br>To Everstake | ❌ Redelegate: Failed |
+| Claim rewards | 🎁 Claim Rewards 0.1 SOL | ❌ Claim Rewards: Failed |
+| Withdraw, stake or earn | 🔓 Withdraw 10 SOL<br>From Everstake | ❌ Withdraw: Failed |
+| Earn deposit | 🔒 Stake 10 USDC<br>To Yo | ❌ Stake: Failed |
+| Freeze, Unfreeze | Freeze 10 TRX, Unfreeze 10 TRX | ❌ Freeze: Failed, ❌ Unfreeze: Failed |
+| Contract call | 💸 Sent: 0.5 SOL<br>To JUP6…TaV4 | ❌ Smart Contract: Failed |
+| Perpetual open, close | 📈 Long BTC<br>Entered at $65,000 🚀; 📉 Short BTC<br>You made $12 💰 | no push; only filled Hyperliquid orders are recorded |
+| Asset activation, perpetual modify | no push | no push |
+
+The second line is the push body; a failed swap, approval, stake action or contract call has none. A failed transfer says Transfer rather than Sent, because nothing was sent.

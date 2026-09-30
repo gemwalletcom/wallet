@@ -3,12 +3,13 @@ use crate::{APTOS_NATIVE_COIN, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_
 use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::DateTime;
 use num_bigint::{BigInt, BigUint};
-use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionType};
+use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionSwapReferralFee, TransactionType, swap::APTOS_REFERRAL_ADDRESS};
 use std::error::Error;
 
 const PANORA_SWAP_EVENT: &str = "panora_swap";
 const PANORA_SWAP_EVENT_ADDRESS: &str = "0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c";
 const PANORA_SWAP_SUMMARY_EVENT: &str = "PanoraSwapSummaryEvent";
+const PANORA_FEE_INTEGRATOR_EVENT: &str = "FeeEventIntegrator";
 const APTOS_NATIVE_METADATA_ADDRESS: &str = "0xa";
 
 #[derive(serde::Deserialize)]
@@ -19,6 +20,29 @@ struct PanoraSwapSummaryEventData {
     output_token_address: String,
     #[serde(deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
     output_token_amount: BigUint,
+}
+
+#[derive(serde::Deserialize)]
+struct PanoraFeeIntegratorEventData {
+    integrator_address: String,
+    token_address: String,
+    #[serde(deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    token_amount: BigUint,
+}
+
+fn map_referral_fee(events: &[Event], chain: Chain, sender: &str) -> Option<TransactionSwapReferralFee> {
+    if sender == APTOS_REFERRAL_ADDRESS {
+        return None;
+    }
+    events
+        .iter()
+        .filter(|event| event.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) && event.event_type.contains(PANORA_FEE_INTEGRATOR_EVENT))
+        .filter_map(|event| serde_json::from_value::<PanoraFeeIntegratorEventData>(event.data.clone()?).ok())
+        .find(|data| data.integrator_address == APTOS_REFERRAL_ADDRESS)
+        .map(|data| TransactionSwapReferralFee {
+            asset_id: map_token_address_to_asset_id(chain, &data.token_address),
+            value: data.token_amount,
+        })
 }
 
 fn map_token_address_to_asset_id(chain: Chain, token_address: &str) -> AssetId {
@@ -71,11 +95,12 @@ fn called_contract(transaction: &Transaction) -> Option<String> {
 fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Chain) -> Option<PrimitivesTransaction> {
     let meta = extract_meta(&transaction)?;
     let contract = called_contract(&transaction);
+    let referral_fee = map_referral_fee(&events, chain, &meta.sender);
 
     if let Some(summary) = events
         .iter()
-        .find(|e| e.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) && e.event_type.contains(PANORA_SWAP_SUMMARY_EVENT))
-        .and_then(|e| e.data.clone())
+        .find(|event| event.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) && event.event_type.contains(PANORA_SWAP_SUMMARY_EVENT))
+        .and_then(|event| event.data.clone())
         .and_then(|data| serde_json::from_value::<PanoraSwapSummaryEventData>(data).ok())
     {
         let from_asset = map_token_address_to_asset_id(chain, &summary.input_token_address);
@@ -92,7 +117,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
             },
         ];
 
-        let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), Some(SwapProvider::Panora.id().to_owned()))?;
+        let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), Some(SwapProvider::Panora))?.with_referral_fee(referral_fee);
         let asset_id = swap.from_asset.clone();
         let metadata = serde_json::to_value(&swap).ok();
         let to = meta.sender.clone();
@@ -103,8 +128,8 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         });
     }
 
-    let withdraw_event = events.iter().find(|e| e.event_type == FUNGIBLE_ASSET_WITHDRAW_EVENT)?;
-    let deposit_event = events.iter().find(|e| e.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT)?;
+    let withdraw_event = events.iter().find(|event| event.event_type == FUNGIBLE_ASSET_WITHDRAW_EVENT)?;
+    let deposit_event = events.iter().find(|event| event.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT)?;
     let withdraw_amount = withdraw_event.get_amount()?;
     let deposit_amount = deposit_event.get_amount()?;
 
@@ -133,10 +158,10 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
 
     let provider = events
         .iter()
-        .find(|e| e.event_type.contains(PANORA_SWAP_EVENT))
-        .and_then(|e| if e.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) { Some(SwapProvider::Panora.id().to_owned()) } else { None });
+        .find(|event| event.event_type.contains(PANORA_SWAP_EVENT))
+        .and_then(|event| if event.event_type.contains(PANORA_SWAP_EVENT_ADDRESS) { Some(SwapProvider::Panora) } else { None });
 
-    let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), provider)?;
+    let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), provider)?.with_referral_fee(referral_fee);
     let asset_id = swap.from_asset.clone();
     let metadata = serde_json::to_value(&swap).ok();
     let to = meta.sender.clone();
@@ -157,7 +182,7 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
     let meta = extract_meta(&transaction)?;
     let asset_id = chain.as_asset_id();
 
-    if events.iter().any(|e| e.event_type.contains("Swap")) {
+    if events.iter().any(|event| event.event_type.contains("Swap")) {
         return map_swap_transaction(transaction, events, chain);
     }
 
@@ -241,14 +266,14 @@ mod tests {
         let result = map_transaction(transaction);
 
         assert!(result.is_some());
-        let tx = result.unwrap();
-        assert_eq!(tx.hash(), TEST_TRANSACTION_ID);
-        assert_eq!(tx.id.to_string(), format!("aptos_{TEST_TRANSACTION_ID}"));
-        assert_eq!(tx.from, "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446");
-        assert_eq!(tx.to, "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc");
-        assert_eq!(tx.value, BigUint::from(2431838058u64));
-        assert_eq!(tx.state, TransactionState::Confirmed);
-        assert_eq!(tx.transaction_type, TransactionType::Transfer);
+        let mapped = result.unwrap();
+        assert_eq!(mapped.hash(), TEST_TRANSACTION_ID);
+        assert_eq!(mapped.id.to_string(), format!("aptos_{TEST_TRANSACTION_ID}"));
+        assert_eq!(mapped.from, "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446");
+        assert_eq!(mapped.to, "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc");
+        assert_eq!(mapped.value, BigUint::from(2431838058u64));
+        assert_eq!(mapped.state, TransactionState::Confirmed);
+        assert_eq!(mapped.transaction_type, TransactionType::Transfer);
     }
 
     #[test]
@@ -258,24 +283,45 @@ mod tests {
         let result = map_transaction(transaction);
 
         assert!(result.is_some());
-        let tx = result.unwrap();
-        assert_eq!(tx.id.to_string(), "aptos_0xf1c24162c08b6b8b452c00adad1836d72949902a8701611479d4e49fec0a9e3c");
-        assert_eq!(tx.from, "0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef");
-        assert_eq!(tx.to, "0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef");
-        assert_eq!(tx.state, TransactionState::Confirmed);
-        assert_eq!(tx.transaction_type, TransactionType::Swap);
-        assert_eq!(tx.contract.as_deref(), Some("0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c"));
-        assert_eq!(tx.asset_id, AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID));
-        assert_eq!(tx.fee_asset_id, Chain::Aptos.as_asset_id());
-        assert_eq!(tx.fee, BigUint::from(142_600u32));
-        assert!(tx.metadata.is_some());
+        let mapped = result.unwrap();
+        assert_eq!(mapped.id.to_string(), "aptos_0xf1c24162c08b6b8b452c00adad1836d72949902a8701611479d4e49fec0a9e3c");
+        assert_eq!(mapped.from, "0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef");
+        assert_eq!(mapped.to, "0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef");
+        assert_eq!(mapped.state, TransactionState::Confirmed);
+        assert_eq!(mapped.transaction_type, TransactionType::Swap);
+        assert_eq!(mapped.contract.as_deref(), Some("0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c"));
+        assert_eq!(mapped.asset_id, AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID));
+        assert_eq!(mapped.fee_asset_id, Chain::Aptos.as_asset_id());
+        assert_eq!(mapped.fee, BigUint::from(142_600u32));
+        assert!(mapped.metadata.is_some());
 
-        let metadata: primitives::TransactionSwapMetadata = serde_json::from_value(tx.metadata.unwrap()).unwrap();
+        let metadata: primitives::TransactionSwapMetadata = serde_json::from_value(mapped.metadata.unwrap()).unwrap();
         assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID));
         assert_eq!(metadata.from_value, BigUint::from(2346314u64));
         assert_eq!(metadata.to_asset, Chain::Aptos.as_asset_id());
         assert_eq!(metadata.to_value, BigUint::from(120590251u64));
         assert_eq!(metadata.provider.unwrap(), "panora");
+        assert_eq!(metadata.referral_fee, None);
+    }
+
+    #[test]
+    fn test_map_transaction_swap_panora_referral_fee() {
+        let transaction: Transaction = serde_json::from_str(include_str!("../../testdata/transaction_swap_panora_referral_fee.json")).unwrap();
+
+        let mapped = map_transaction(transaction).unwrap();
+        let metadata: primitives::TransactionSwapMetadata = serde_json::from_value(mapped.metadata.unwrap()).unwrap();
+
+        assert_eq!(mapped.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.from_asset, Chain::Aptos.as_asset_id());
+        assert_eq!(metadata.from_value, BigUint::from(500000000u64));
+        assert_eq!(metadata.to_value, BigUint::from(3782787u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::Aptos.as_asset_id(),
+                value: BigUint::from(1249510u64),
+            })
+        );
     }
 
     #[test]
@@ -285,14 +331,14 @@ mod tests {
         let result = map_transaction(transaction);
 
         assert!(result.is_some());
-        let tx = result.unwrap();
-        assert_eq!(tx.id.to_string(), "aptos_0x130cc74c1a768780ca062a97bc833a01dec85b2d315484869559b7cdee4d0e75");
-        assert_eq!(tx.from, "0xc95615aa095c100b18eb6eaa0f0a0f30b9cd96685118a7cbc1a2328a91ca2eda");
-        assert_eq!(tx.to, "0xe5452230b8d5f4a664e33b8ad95354e50da64caaf003f11c0158391e96a4db2c");
-        assert_eq!(tx.value, BigUint::from(1100000000u64));
-        assert_eq!(tx.state, TransactionState::Confirmed);
-        assert_eq!(tx.transaction_type, TransactionType::StakeDelegate);
-        assert_eq!(tx.fee, BigUint::from(142400u64));
+        let mapped = result.unwrap();
+        assert_eq!(mapped.id.to_string(), "aptos_0x130cc74c1a768780ca062a97bc833a01dec85b2d315484869559b7cdee4d0e75");
+        assert_eq!(mapped.from, "0xc95615aa095c100b18eb6eaa0f0a0f30b9cd96685118a7cbc1a2328a91ca2eda");
+        assert_eq!(mapped.to, "0xe5452230b8d5f4a664e33b8ad95354e50da64caaf003f11c0158391e96a4db2c");
+        assert_eq!(mapped.value, BigUint::from(1100000000u64));
+        assert_eq!(mapped.state, TransactionState::Confirmed);
+        assert_eq!(mapped.transaction_type, TransactionType::StakeDelegate);
+        assert_eq!(mapped.fee, BigUint::from(142400u64));
     }
 
     #[test]
@@ -302,13 +348,13 @@ mod tests {
         let result = map_transaction(transaction);
 
         assert!(result.is_some());
-        let tx = result.unwrap();
-        assert_eq!(tx.id.to_string(), "aptos_0xef6430bef0e8de7090b2c4bce210adb75d648be4614dcc37232b0d67f819b137");
-        assert_eq!(tx.from, "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc");
-        assert_eq!(tx.to, "0xdb5247f859ce63dbe8940cf8773be722a60dcc594a8be9aca4b76abceb251b8e");
-        assert_eq!(tx.value, BigUint::from(1109984251u64));
-        assert_eq!(tx.state, TransactionState::Confirmed);
-        assert_eq!(tx.transaction_type, TransactionType::StakeUndelegate);
-        assert_eq!(tx.fee, BigUint::from(88400u64));
+        let mapped = result.unwrap();
+        assert_eq!(mapped.id.to_string(), "aptos_0xef6430bef0e8de7090b2c4bce210adb75d648be4614dcc37232b0d67f819b137");
+        assert_eq!(mapped.from, "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc");
+        assert_eq!(mapped.to, "0xdb5247f859ce63dbe8940cf8773be722a60dcc594a8be9aca4b76abceb251b8e");
+        assert_eq!(mapped.value, BigUint::from(1109984251u64));
+        assert_eq!(mapped.state, TransactionState::Confirmed);
+        assert_eq!(mapped.transaction_type, TransactionType::StakeUndelegate);
+        assert_eq!(mapped.fee, BigUint::from(88400u64));
     }
 }

@@ -383,6 +383,8 @@ impl GemSwapSession {
         let button_action = self.button_action(available_balance);
         let is_transfer_loading = self.is_transfer_loading();
         let quote = self.pair_quote(pay.as_ref(), receive.as_ref());
+        let is_receive_loading = self.is_quote_loading() && !is_transfer_loading;
+        let receive_quote = quote.filter(|_| !is_receive_loading);
         GemSwapViewState {
             quotes_state: self.quotes_state(pay.as_ref().map(|pay| &pay.asset)),
             action: self.action(),
@@ -411,7 +413,7 @@ impl GemSwapSession {
             },
             receive: GemSwapSideState {
                 title: side_title(receive.as_ref()),
-                amount_placeholder: side_amount_placeholder(receive.as_ref()),
+                amount_placeholder: side_amount_placeholder(receive.as_ref().filter(|_| !is_receive_loading)),
                 icon: receive.as_ref().map(|receive| asset_icon(&receive.asset.id)),
                 interaction: GemSwapSideInteraction {
                     is_amount_editable: false,
@@ -421,11 +423,11 @@ impl GemSwapSession {
                 balance: receive.as_ref().map(|receive| available_balance_text(receive.asset.clone(), GemAssetBalance::from(receive))),
                 fiat: receive
                     .as_ref()
-                    .zip(quote)
+                    .zip(receive_quote)
                     .and_then(|(receive, quote)| fiat_amount_of(&receive.asset, &quote.to_value, price_value(receive), currency.clone(), GemCurrencyStyle::Currency)),
             },
-            is_receive_loading: self.is_quote_loading() && !is_transfer_loading,
-            receive_amount: quote.map(receive_amount),
+            is_receive_loading,
+            receive_amount: receive_quote.map(receive_amount),
             providers: receive
                 .as_ref()
                 .filter(|_| quote.is_some())
@@ -1000,6 +1002,22 @@ mod tests {
         let stale = session.view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(mock_asset_data(Chain::Bitcoin, 0)), Currency::USD);
         assert_eq!((stale.quote, stale.receive_amount, stale.details, stale.receive.fiat), (None, None, None, None));
         assert!(stale.providers.is_empty(), "a quote for another pair is not shown while the new one loads");
+    }
+
+    #[test]
+    fn test_a_refresh_shows_the_loading_indicator_without_the_old_quote() {
+        let ready = GemSwapSession::mock_ready();
+        let request = ready.quotes.as_ref().unwrap().request.clone();
+        let receive = AssetData {
+            price: Some(Price::new(100.0, 0.0, Utc::now(), PriceProvider::Coingecko)),
+            ..mock_asset_data(Chain::Solana, 0)
+        };
+        let shown = ready.view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(receive.clone()), Currency::USD);
+        let refreshing = ready.on_fetch_started(request).view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(receive), Currency::USD);
+
+        assert!(shown.receive_amount.is_some() && shown.receive.fiat.is_some());
+        assert!(refreshing.is_receive_loading);
+        assert_eq!((refreshing.receive_amount, refreshing.receive.fiat, refreshing.receive.amount_placeholder.as_str()), (None, None, ""));
     }
 
     #[test]

@@ -54,6 +54,14 @@ pub mod sql_types {
     pub struct NotificationType;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "perpetual_direction"))]
+    pub struct PerpetualDirection;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "perpetual_provider"))]
+    pub struct PerpetualProvider;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "platform"))]
     pub struct Platform;
 
@@ -567,13 +575,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::PerpetualProvider;
+
     perpetuals (id) {
         #[max_length = 128]
         id -> Varchar,
         #[max_length = 128]
         name -> Varchar,
-        #[max_length = 32]
-        provider -> Varchar,
+        provider -> PerpetualProvider,
         #[max_length = 256]
         asset_id -> Varchar,
         #[max_length = 128]
@@ -911,45 +921,6 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
-    use super::sql_types::SwapProvider;
-    use super::sql_types::SwapStatus;
-
-    swap_partner_transactions (id) {
-        id -> Int4,
-        provider -> SwapProvider,
-        #[max_length = 256]
-        provider_transaction_id -> Varchar,
-        status -> SwapStatus,
-        #[max_length = 256]
-        from_address -> Varchar,
-        #[max_length = 256]
-        to_address -> Varchar,
-        #[max_length = 128]
-        from_asset_id -> Varchar,
-        #[max_length = 256]
-        from_value -> Varchar,
-        from_amount_usd -> Nullable<Float8>,
-        #[max_length = 128]
-        to_asset_id -> Varchar,
-        #[max_length = 256]
-        to_value -> Varchar,
-        to_amount_usd -> Nullable<Float8>,
-        #[max_length = 128]
-        referral_fee_asset_id -> Nullable<Varchar>,
-        #[max_length = 256]
-        referral_fee_value -> Nullable<Varchar>,
-        referral_fee_amount_usd -> Nullable<Float8>,
-        #[max_length = 256]
-        from_transaction_hash -> Nullable<Varchar>,
-        #[max_length = 256]
-        to_transaction_hash -> Nullable<Varchar>,
-        updated_at -> Timestamp,
-        created_at -> Timestamp,
-    }
-}
-
-diesel::table! {
-    use diesel::sql_types::*;
     use super::sql_types::TagVisibility;
 
     tags (id) {
@@ -1005,6 +976,47 @@ diesel::table! {
         asset_id -> Varchar,
         #[max_length = 256]
         address -> Varchar,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::PerpetualProvider;
+    use super::sql_types::TransactionType;
+    use super::sql_types::PerpetualDirection;
+
+    transactions_perpetuals (transaction_id) {
+        transaction_id -> Int8,
+        provider -> PerpetualProvider,
+        asset_id -> Varchar,
+        kind -> TransactionType,
+        direction -> PerpetualDirection,
+        size_usd -> Float8,
+        referral_fee_amount_usd -> Float8,
+        updated_at -> Timestamp,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::SwapProvider;
+    use super::sql_types::SwapStatus;
+
+    transactions_swaps (transaction_id) {
+        transaction_id -> Int8,
+        provider -> SwapProvider,
+        status -> SwapStatus,
+        from_asset_id -> Varchar,
+        from_amount -> Float8,
+        from_amount_usd -> Nullable<Float8>,
+        to_asset_id -> Varchar,
+        to_amount -> Float8,
+        to_amount_usd -> Nullable<Float8>,
+        referral_fee_asset_id -> Varchar,
+        referral_fee_amount_usd -> Nullable<Float8>,
+        updated_at -> Timestamp,
+        created_at -> Timestamp,
     }
 }
 
@@ -1125,6 +1137,9 @@ diesel::joinable!(support_sessions -> devices (device_id));
 diesel::joinable!(transactions -> chains (chain));
 diesel::joinable!(transactions_addresses -> assets (asset_id));
 diesel::joinable!(transactions_addresses -> transactions (transaction_id));
+diesel::joinable!(transactions_perpetuals -> assets (asset_id));
+diesel::joinable!(transactions_perpetuals -> transactions (transaction_id));
+diesel::joinable!(transactions_swaps -> transactions (transaction_id));
 diesel::joinable!(usernames -> wallets (wallet_id));
 diesel::joinable!(wallets_subscriptions -> chains (chain));
 diesel::joinable!(wallets_subscriptions -> devices (device_id));
@@ -1177,10 +1192,11 @@ diesel::allow_tables_to_appear_in_same_query!(
     scan_detections,
     subscriptions_addresses_exclude,
     support_sessions,
-    swap_partner_transactions,
     tags,
     transactions,
     transactions_addresses,
+    transactions_perpetuals,
+    transactions_swaps,
     usernames,
     wallets,
     wallets_addresses,

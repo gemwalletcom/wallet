@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Localization
+import Components
 import SwiftUI
 
 public extension View {
-    func confirmationDialog<T>(
+    func confirmationDialog<T: Sendable>(
         _ title: some StringProtocol,
         presenting data: Binding<T?>,
         sensoryFeedback: SensoryFeedback? = nil,
@@ -13,13 +13,7 @@ public extension View {
     )
         -> some View
     {
-        let isPresented: Binding<Bool> = Binding(
-            get: { data.wrappedValue != nil },
-            set: { newValue in
-                guard !newValue else { return }
-                data.wrappedValue = nil
-            },
-        )
+        let isPresented = data.mappedToBool()
         let iPhone = UIDevice.current.userInterfaceIdiom == .phone
 
         return ifElse(iPhone) {
@@ -34,22 +28,7 @@ public extension View {
                 },
             )
         } elseContent: {
-            $0.alert(
-                title,
-                isPresented: isPresented,
-                presenting: data.wrappedValue,
-                actions: { value in
-                    VStack {
-                        actions(value)
-                        Button(Localized.Common.cancel, role: .cancel) {
-                            isPresented.wrappedValue = false
-                        }
-                    }
-                },
-                message: { _ in
-                    message()
-                },
-            )
+            $0.alert(title, presenting: data, actions: actions, message: message)
         }
         .ifLet(sensoryFeedback) { view, value in
             view.sensoryFeedback(value, trigger: isPresented.wrappedValue) { $1 }

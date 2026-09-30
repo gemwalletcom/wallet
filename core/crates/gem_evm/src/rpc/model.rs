@@ -1,12 +1,15 @@
 use crate::address::ethereum_address_checksum;
+use alloy_primitives::B256;
+use alloy_sol_types::SolEvent;
 use num_bigint::{BigInt, BigUint};
 use primitives::{
     Chain, TransactionState,
     contract_constants::{ARC_SYSTEM_LOG_ADDRESS, EVM_ZERO_BLOCK_HASH},
+    decode_hex,
 };
 use serde::{Deserialize, Serialize};
 use serde_serializers::{bigint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_u64_from_str, deserialize_u64_from_str_or_int};
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::HashMap, str::FromStr};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -114,6 +117,13 @@ pub struct Log {
     pub data: String,
     #[serde(default)]
     pub transaction_hash: Option<String>,
+}
+
+impl Log {
+    pub fn decode_event<E: SolEvent>(&self) -> Option<E> {
+        let topics = self.topics.iter().map(|topic| B256::from_str(topic)).collect::<Result<Vec<_>, _>>().ok()?;
+        E::decode_raw_log_validate(topics, &decode_hex(&self.data).ok()?).ok()
+    }
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]

@@ -14,7 +14,7 @@ use crate::services::error_text::GemErrorText;
 use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedAction};
 use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
-use primitives::{AddressName, BlockExplorerLink, PaymentVerification, PerpetualType};
+use primitives::{AddressName, AssetType, BlockExplorerLink, PaymentVerification, PerpetualType};
 use primitives::{
     Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
@@ -216,7 +216,7 @@ impl GemConfirmData {
             value: transfer.value.clone(),
             available_value,
             fee_asset: fee_asset.id.clone(),
-            fee_asset_balance: metadata.fee_asset_balance.available.clone().into(),
+            fee_asset_balance: transfer.fee_available_value(&metadata.fee_asset_balance),
             fee: self.fee.fee.clone(),
             is_max_amount: transfer.use_max_amount,
             destination_account_exists: self.metadata.get_is_destination_address_exist().ok(),
@@ -356,7 +356,7 @@ fn acquire_options(flow: GemAcquireAssetFlow) -> Vec<GemAcquireOption> {
 
 pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], currency: Currency, input_asset_id: &AssetId, fee_asset_id: &AssetId) -> Option<GemConfirmErrorInfo> {
     let info = |sheet: GemConfirmErrorSheet, asset: Option<&Asset>, title: String, requirement: Option<&GemConfirmRequirement>, required: Option<&GemFormattedNumber>| {
-        let required = required.or(requirement.map(|requirement| &requirement.required)).cloned();
+        let required = required.or_else(|| requirement.map(|requirement| &requirement.required)).cloned();
         let price = asset.and_then(|asset| prices.iter().find(|price| price.asset_id == asset.id)).map(|price| price.price);
         let buy_amount = matches!(sheet, GemConfirmErrorSheet::NetworkFeeRequired | GemConfirmErrorSheet::NetworkFeeMissing).then(|| get_fiat_config().insufficient_network_fee_buy_amount);
         GemConfirmErrorInfo {
@@ -367,7 +367,7 @@ pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], curre
             required,
             available: requirement.map(|requirement| requirement.available.clone()),
             shortfall: requirement.map(|requirement| requirement.shortfall.clone()),
-            acquire: asset.map(|asset| GemAcquireAsset {
+            acquire: asset.filter(|asset| asset.asset_type != AssetType::PERPETUAL).map(|asset| GemAcquireAsset {
                 flow: acquire_asset_flow(asset.chain()),
                 options: acquire_options(acquire_asset_flow(asset.chain())),
                 buy_amount,
@@ -761,7 +761,8 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::FeeOption;
     use primitives::{
-        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType, TransferDataExtra, TransferDataOutputAction,
+        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType, TransferAmount, TransferDataExtra, TransferDataOutputAction,
+        known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{ApprovalData, SwapData},
     };
     use primitives::{AddressName, AddressType, Delegation, DelegationValidator, VerificationStatus};
@@ -813,10 +814,13 @@ mod tests {
         let mut switched = matching;
         switched.confirm.input.from = Account::mock(Chain::Solana, "other");
 
-        assert!(matches!(
+        assert_eq!(
             switched.signer_input().unwrap_err(),
-            GemConfirmError::SenderMismatch { from, signer } if from == "other" && signer == "sender"
-        ));
+            GemConfirmError::SenderMismatch {
+                from: "other".to_string(),
+                signer: "sender".to_string(),
+            }
+        );
     }
 
     #[test]
@@ -1310,6 +1314,17 @@ mod tests {
             "a balance sheet leaves the amount to the user"
         );
 
+        let usdc = HYPERCORE_PERPETUAL_USDC.clone();
+        let perpetual_balance = GemConfirmErrorDisplay::BalanceRequired {
+            requirement: GemConfirmRequirement::new(&requirement, &usdc),
+            asset: usdc.clone(),
+        };
+        assert_eq!(
+            error_info(&perpetual_balance, &prices, Currency::USD, &usdc.id, &usdc.id).unwrap().acquire,
+            None,
+            "a perpetual balance is funded by a deposit, never bought"
+        );
+
         let without_price = error_info(&display, &[], Currency::USD, &token, &asset.id).unwrap();
         assert_eq!(without_price.required_fiat, None, "no price means no fiat, never a zero");
     }
@@ -1523,6 +1538,36 @@ mod tests {
     }
 
     #[test]
+    fn test_preload_amount_hypercore_withdrawal() {
+        let usdc = HYPERCORE_PERPETUAL_USDC.clone();
+        let mut data = SendInput::mock(Chain::HyperCore, TransactionInputType::Withdrawal { asset: usdc.clone() }).confirm;
+        data.input.transfer.value = BigInt::from(305_000_000);
+        data.fee.fee = BigInt::from(1_000_000);
+        let underwater = GemAssetBalance {
+            asset_id: usdc.id.clone(),
+            withdrawable: GemBigUint::from(305_000_000u32),
+            ..GemAssetBalance::mock_with_available(0)
+        };
+        let metadata = GemConfirmMetadata {
+            asset_balance: underwater.clone(),
+            fee_asset_balance: underwater,
+            ..GemConfirmMetadata::mock(&usdc.id, 0)
+        };
+
+        assert_eq!(
+            data.preload_amount(&metadata, &usdc),
+            GemTransferAmountResult::Amount {
+                amount: TransferAmount {
+                    value: BigInt::from(304_000_000),
+                    network_fee: BigInt::from(1_000_000),
+                    is_max_amount: true,
+                },
+            },
+            "the withdrawable balance pays the fee even when nothing is available for margin"
+        );
+    }
+
+    #[test]
     fn test_only_a_token_approval_carries_an_approval_header_value() {
         let asset = Asset::from_chain(Chain::Ethereum);
         let approval = TransactionInputType::TokenApprove {
@@ -1535,10 +1580,10 @@ mod tests {
             },
         };
 
-        assert!(matches!(approval.approval_value(), Some((id, GemApprovalValue::Unlimited)) if id == asset.id));
+        assert_eq!(approval.approval_value(), Some((asset.id.clone(), GemApprovalValue::Unlimited)));
         assert!((TransactionInputType::Transfer { asset }).approval_value().is_none());
-        assert!(matches!(approval_value_from(Some(&GemBigUint::from(42u32)), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
-        assert!(matches!(approval_value_from(Some(&GemBigUint::from(42u32)), true), GemApprovalValue::Unlimited));
+        assert_eq!(approval_value_from(Some(&GemBigUint::from(42u32)), false), GemApprovalValue::Exact { value: GemBigUint::from(42u32) });
+        assert_eq!(approval_value_from(Some(&GemBigUint::from(42u32)), true), GemApprovalValue::Unlimited);
     }
 
     #[test]

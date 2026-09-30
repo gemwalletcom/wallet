@@ -38,6 +38,7 @@ pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64,
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum FiatAmountInput {
     Empty,
     Invalid,
@@ -267,13 +268,13 @@ mod tests {
 
     #[test]
     fn test_parse_amount_takes_whole_amounts_only_and_treats_zero_as_empty() {
-        assert!(matches!(parse_amount("1 000"), FiatAmountInput::Value(value) if value == 1000.0));
-        assert!(matches!(parse_amount(" 12 "), FiatAmountInput::Value(value) if value == 12.0));
-        assert!(matches!(parse_amount(""), FiatAmountInput::Empty));
-        assert!(matches!(parse_amount("0"), FiatAmountInput::Empty));
-        assert!(matches!(parse_amount(" 12,5 "), FiatAmountInput::Invalid));
-        assert!(matches!(parse_amount("12.5"), FiatAmountInput::Invalid));
-        assert!(matches!(parse_amount("abc"), FiatAmountInput::Invalid));
+        assert_eq!(parse_amount("1 000"), FiatAmountInput::Value(1000.0));
+        assert_eq!(parse_amount(" 12 "), FiatAmountInput::Value(12.0));
+        assert_eq!(parse_amount(""), FiatAmountInput::Empty);
+        assert_eq!(parse_amount("0"), FiatAmountInput::Empty);
+        assert_eq!(parse_amount(" 12,5 "), FiatAmountInput::Invalid);
+        assert_eq!(parse_amount("12.5"), FiatAmountInput::Invalid);
+        assert_eq!(parse_amount("abc"), FiatAmountInput::Invalid);
     }
 
     #[test]

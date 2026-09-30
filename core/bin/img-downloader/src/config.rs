@@ -20,6 +20,7 @@ pub struct ImgDownloaderConfig {
 #[derive(Debug, Deserialize, Clone)]
 pub struct ImageConfig {
     pub size: u32,
+    pub asset_types: Vec<ImageType>,
     pub types: Vec<ImageType>,
     pub request: ImageRequestConfig,
 }

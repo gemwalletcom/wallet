@@ -67,7 +67,7 @@ fn bigdecimal_to_plain_string(decimal: &BigDecimal) -> String {
 fn format_full(decimal: &BigDecimal) -> String {
     let plain = bigdecimal_to_plain_string(&decimal.normalized());
     let plain = strip_trailing_zeros(&plain);
-    apply_thousands_separator(&plain)
+    with_thousands_separator(&plain)
 }
 
 fn format_auto(decimal: &BigDecimal) -> String {
@@ -85,7 +85,7 @@ fn format_short(decimal: &BigDecimal) -> String {
     let plain = bigdecimal_to_plain_string(decimal);
     let (integer, fraction) = plain.split_once('.').unwrap_or((&plain, ""));
     let fraction = if fraction.len() > 2 { &fraction[..2] } else { fraction };
-    apply_thousands_separator(&format!("{}.{:0<2}", integer, fraction))
+    with_thousands_separator(&format!("{}.{:0<2}", integer, fraction))
 }
 
 fn format_middle(decimal: &BigDecimal) -> String {
@@ -112,7 +112,7 @@ fn strip_trailing_zeros(value: &str) -> String {
     if let Some(stripped) = trimmed.strip_suffix('.') { stripped.to_string() } else { trimmed.to_string() }
 }
 
-fn apply_thousands_separator(value: &str) -> String {
+fn with_thousands_separator(value: &str) -> String {
     add_thousands_separator(value, ',', '.')
 }
 

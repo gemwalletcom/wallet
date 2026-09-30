@@ -1,6 +1,5 @@
 #[derive(Debug, Clone, Default)]
 pub struct FeeStats {
-    pub median: i64,
     pub p75: i64,
     pub p90: i64,
     pub avg: i64,
@@ -27,7 +26,6 @@ pub fn calculate_fee_stats(fees: &[i64]) -> FeeStats {
     let sum: i64 = values.iter().sum();
 
     FeeStats {
-        median: percentile(&values, 50),
         p75: percentile(&values, 75),
         p90: percentile(&values, 90),
         avg: sum / count as i64,

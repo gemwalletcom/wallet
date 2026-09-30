@@ -8,13 +8,13 @@ use primitives::currency::Currency as PrimitiveCurrency;
 use primitives::nft::NFTType as PrimitiveNFTType;
 use primitives::rewards::{RedemptionStatus as PrimitiveRedemptionStatus, RewardEventType as PrimitiveRewardEventType, RewardRedemptionType as PrimitiveRewardRedemptionType, RewardStatus as PrimitiveRewardStatus};
 use primitives::scan::AddressType as PrimitiveAddressType;
-use primitives::swap::SwapStatus as PrimitiveSwapStatus;
 use primitives::{
     AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, DeviceLocale as PrimitiveDeviceLocale, FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType,
     FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId, NotificationType as PrimitiveNotificationType,
-    PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection, PriceId as PrimitivePriceId,
-    PriceProvider as PrimitivePriceProvider, ScanProvider as PrimitiveScanProvider, ScanType as PrimitiveScanType, SwapProvider as PrimitiveSwapProvider, TagVisibility as PrimitiveTagVisibility,
+    PerpetualDirection as PrimitivePerpetualDirection, PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection,
+    PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, ScanProvider as PrimitiveScanProvider, ScanType as PrimitiveScanType, SwapProvider as PrimitiveSwapProvider, TagVisibility as PrimitiveTagVisibility,
     TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
+    swap::SwapStatus as PrimitiveSwapStatus,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -25,9 +25,9 @@ use std::str::FromStr;
 use crate::schema::sql_types::{
     AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, Currency as CurrencySql, DeviceLocale as DeviceLocaleSql, FiatRateProvider as FiatRateProviderSql,
     FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql,
-    Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql,
-    ScanProvider as ScanProviderSql, ScanType as ScanTypeSql, SwapProvider as SwapProviderSql, SwapStatus as SwapStatusSql, TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql,
-    UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
+    PerpetualDirection as PerpetualDirectionSql, PerpetualProvider as PerpetualProviderSql, Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql,
+    RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql, ScanProvider as ScanProviderSql, ScanType as ScanTypeSql, SwapProvider as SwapProviderSql, SwapStatus as SwapStatusSql,
+    TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
 };
 
 macro_rules! diesel_enum {
@@ -53,7 +53,7 @@ macro_rules! diesel_enum {
         impl FromSql<$sql_type, Pg> for $wrapper {
             fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
                 let s = std::str::from_utf8(bytes.as_bytes())?;
-                Ok(Self(<$inner>::from_str(s).map_err(|e| format!("Invalid {}: {}", stringify!($wrapper), e))?))
+                Ok(Self(<$inner>::from_str(s).map_err(|error| format!("Invalid {}: {}", stringify!($wrapper), error))?))
             }
         }
 
@@ -127,6 +127,14 @@ diesel_enum!(ScanProviderRow, PrimitiveScanProvider, ScanProviderSql);
 
 diesel_enum!(ScanTypeRow, PrimitiveScanType, ScanTypeSql);
 
+diesel_enum!(PerpetualDirectionRow, PrimitivePerpetualDirection, PerpetualDirectionSql);
+
+diesel_enum!(PerpetualProviderRow, PrimitivePerpetualProvider, PerpetualProviderSql);
+
+diesel_enum!(SwapProviderRow, PrimitiveSwapProvider, SwapProviderSql);
+
+diesel_enum!(SwapStatusRow, PrimitiveSwapStatus, SwapStatusSql);
+
 diesel_enum!(RewardEventType, PrimitiveRewardEventType, RewardEventTypeSql, [CreateUsername, InvitePending, InviteNew, Joined, Enabled, Disabled]);
 
 diesel_enum!(TransactionState, PrimitiveTransactionState, TransactionStateSql, [Pending, Confirmed, InTransit, Failed, Reverted, Refunded]);
@@ -137,8 +145,6 @@ diesel_enum!(Platform, PrimitivePlatform, PlatformSql, [IOS, Android]);
 
 diesel_enum!(Currency, PrimitiveCurrency, CurrencySql);
 diesel_enum!(FiatRateProviderRow, PrimitiveFiatRateProvider, FiatRateProviderSql);
-diesel_enum!(SwapProviderRow, PrimitiveSwapProvider, SwapProviderSql);
-diesel_enum!(SwapStatusRow, PrimitiveSwapStatus, SwapStatusSql);
 
 diesel_enum!(
     DeviceLocale,
@@ -202,7 +208,7 @@ macro_rules! diesel_varchar {
         impl FromSql<diesel::sql_types::Varchar, Pg> for $wrapper {
             fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
                 let s = std::str::from_utf8(bytes.as_bytes())?;
-                Ok(Self(<$inner>::from_str(s).map_err(|e| format!("Invalid {}: {}", stringify!($wrapper), e))?))
+                Ok(Self(<$inner>::from_str(s).map_err(|error| format!("Invalid {}: {}", stringify!($wrapper), error))?))
             }
         }
 
@@ -217,7 +223,6 @@ macro_rules! diesel_varchar {
 
 diesel_varchar!(ChainRow, Chain);
 diesel_varchar!(PriceAlertDirectionRow, PrimitivePriceAlertDirection);
-diesel_varchar!(PerpetualProviderRow, PrimitivePerpetualProvider);
 diesel_varchar!(PriceProviderRow, PrimitivePriceProvider);
 diesel_varchar!(FiatProviderNameRow, PrimitiveFiatProviderName);
 
@@ -307,7 +312,7 @@ macro_rules! diesel_varchar_display {
         impl FromSql<diesel::sql_types::Varchar, Pg> for $wrapper {
             fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
                 let s = std::str::from_utf8(bytes.as_bytes())?;
-                Ok(Self(<$inner>::from_str(s).map_err(|e| format!("Invalid {}: {}", stringify!($wrapper), e))?))
+                Ok(Self(<$inner>::from_str(s).map_err(|error| format!("Invalid {}: {}", stringify!($wrapper), error))?))
             }
         }
 

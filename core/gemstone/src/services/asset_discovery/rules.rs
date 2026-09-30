@@ -19,7 +19,7 @@ mod tests {
         let account = Account {
             chain: Chain::Ethereum,
             address: "0xaddress".into(),
-            derivation_path: "".into(),
+            derivation_path: String::new(),
             extended_public_key: None,
         };
 

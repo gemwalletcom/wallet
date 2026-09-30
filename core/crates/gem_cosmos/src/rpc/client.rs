@@ -58,9 +58,9 @@ impl<C: Client> CosmosClient<C> {
         let inbound_query = format!("message.sender='{address}'");
         let outbound_query = format!("message.recipient='{address}'");
         let (inbound, outbound) = futures::try_join!(self.get_transactions_by_query(key, &inbound_query, limit), self.get_transactions_by_query(key, &outbound_query, limit),)?;
-        let responses = inbound.tx_responses.into_iter().chain(outbound.tx_responses).collect::<Vec<_>>();
+        let responses = inbound.tx_responses.into_iter().chain(outbound.tx_responses);
         let txs = inbound.txs.into_iter().chain(outbound.txs).collect::<Vec<_>>();
-        Ok(responses.into_iter().zip(txs).map(|(response, tx)| TransactionResponse { tx, tx_response: response }).collect::<Vec<_>>())
+        Ok(responses.zip(txs).map(|(response, tx)| TransactionResponse { tx, tx_response: response }).collect::<Vec<_>>())
     }
 
     pub async fn get_transactions_by_query(&self, key: &'static str, filter: &str, limit: usize) -> Result<TransactionsResponse, Box<dyn Error + Send + Sync>> {

@@ -80,6 +80,7 @@ pub fn search_collections(data: Vec<NFTData>, query: &str) -> Vec<GemNftItem> {
     }
     sorted_collections(data)
         .into_iter()
+        .filter(|data| !data.assets.is_empty())
         .flat_map(|mut data| {
             if data.collection.name.to_lowercase().contains(&query) {
                 return vec![item(data)];
@@ -374,7 +375,8 @@ mod tests {
         apes.assets[1].name = "Punk Ape".to_string();
         apes.assets[2].name = "Ape 2".to_string();
         let lone = NFTData::mock_with("Punk Solo", VerificationStatus::Verified, 1);
-        let items = vec![punks, apes, lone];
+        let emptied = NFTData::mock_with("Punk Gone", VerificationStatus::Verified, 0);
+        let items = vec![punks, apes, lone, emptied];
 
         assert_eq!(labels(search_collections(items.clone(), " punk ")), vec!["asset Punk Ape of Apes", "collection Punks (2)", "asset Punk Solo of Punk Solo"]);
         assert!(search_collections(items.clone(), "").is_empty());

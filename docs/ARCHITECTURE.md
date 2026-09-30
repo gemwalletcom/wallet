@@ -739,14 +739,14 @@ val chartUIState = combine(loaded, price) { session, price -> session.viewState(
 }
 ```
 
-The chart data carries its bounds and date style, and `GemChartData.selection(index)` answers the header and date under a finger, so neither view keeps a chart model of its own.
+The chart data carries its bounds, date style and plotted window (`start` to `end`, the room after the newest point included), `GemChartData.index_at(fraction)` answers which point a finger is on, and `GemChartData.selection(index)` answers the header and date for it, so neither view keeps a chart model of its own. The candle chart answers the same two questions and labels each time tick with its own format, so an app maps the window onto the plot width, reports every gesture as a fraction of that width, and turns a tick into text.
 
 Four rules keep the collapse honest:
 
 - **The phase has one source of truth.** A chart session derives its phase from the canonical loaded chart, last error and loading facts. A session that stores a canonical phase instead must not also store equivalent independent flags. Do not add a second representation of the same state.
 - **Empty is not a failure.** `NoData` is its own variant, so a series with one point renders the empty state instead of an error, and neither app has to guess from an `Option`.
 - **A progress flag that coexists with content is a field, not a variant.** A refresh happens *while* data is on screen, so `is_refreshing` sits beside the phase; anything that replaces the screen is a variant.
-- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed spot price is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. A `view_state` that takes what the screen already asked Core for is a parameter the session should own.
+- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed spot price is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom and pan are session state for the same reason: the drawn window cannot be computed without them, `on_zoom` and `on_pan` clamp against the points the session holds, and a new period starts unzoomed by construction.
 
 The app switches and stops. No `if isLoading` ahead of the switch, no `default:` inside it: the exhaustiveness is what makes a new variant a compile error on both platforms instead of a blank screen on one.
 
@@ -1419,7 +1419,7 @@ For a real platform-only concern, iOS uses a feature service in `Features/<Featu
 
 ### Composition services are reached through the screen service
 
-`GemExplorerService`, `GemDeeplinkService`, `GemSwapService`, `GemAssetConfigService`, `GemPriceService` are *composition* services: screen services hold them, and a screen reads their answers through its own service — the chart's contract link rides in `GemChartService::sections`, the confirm screen's sender link is `GemConfirmTransferService::address_url`, the asset screen's share link, token link and swap pair ride in its `GemAssetDetails` record (`share_url`, `token_link`, `swap_pair`), and the confirm sheet's acquire flow is `GemConfirmation::acquire_asset_flow`. A composition service's method is exported only while an app still calls it ([no trivial exports](#no-trivial-exports)). One route per answer, and it is the screen service's: an answer also reached through a Hilt-injected coordinator or a `CompositionLocal` is a second route, and two routes disagree somewhere (a slippage default, an acquire-flow title). A composition service therefore reaches the Compose tree only at the root: the navigation builder, the one caller that is not a screen, reads `LocalDeeplinkService` and `LocalAssetsService` once in `rememberWalletNavigationState` and hands them to `WalletNavigator` as parameters; no feature composable reads one.
+`GemExplorerService`, `GemDeeplinkService`, `GemSwapService`, `GemAssetConfigService`, `GemPriceService` are *composition* services: screen services hold them, and a screen reads their answers through its own service — the chart's contract link rides in `GemChartService::sections`, the confirm screen's sender link is `GemConfirmTransferService::address_url`, the asset screen's share link, token link and swap pair ride in its `GemAssetDetails` record (`share_url`, `token_link`, `swap_pair`), and the confirm sheet's acquire flow is `GemConfirmation::acquire_asset_flow`. A composition service's method is exported only while an app still calls it ([no trivial exports](#no-trivial-exports)). One route per answer, and it is the screen service's: an answer also reached through a Hilt-injected coordinator or a `CompositionLocal` is a second route, and two routes disagree somewhere (a slippage default, an acquire-flow title). A composition service therefore reaches the Compose tree only at the root: the navigation builder, the one caller that is not a screen, reads `LocalDeeplinkService` and `LocalNavigationService` once in `rememberWalletNavigationState` and hands them to `WalletNavigator` as parameters; no feature composable reads one.
 
 On Android the Hilt module binds both the concrete class and the generated interface (`fun provideGemFooServiceInterface(service: GemFooService): GemFooServiceInterface = service`): Core constructors need the concrete type to compose, view models and coordinators take the interface.
 
@@ -1853,7 +1853,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualsViewModel` (+ `RecentActivityQuery`, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioViewModel` |
 | `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `SetPriceAlertSceneViewModel` | `PriceAlertsViewModel`, `SetPriceAlertViewModel` |
-| `GemReceiveService` | — | `ReceiveSceneViewModel` | `ReceiveViewModel` |
+| `GemReceiveService` | `GemReceiveSession` (the network list stays anchored to the asset the screen opened on) | `ReceiveSceneViewModel` | `ReceiveViewModel` |
 | `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsViewModel` vended by `SelectAssetSceneViewModel` and `PerpetualsSceneViewModel` | `RecentsViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
 | `GemRewardsService` | — | `RewardsSceneViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `RewardsViewModel` |
@@ -1877,8 +1877,8 @@ These primarily serve Core composition or native lifecycle integration. Reuse th
 
 | Core service | Held by |
 | --- | --- |
-| `GemBalanceService` | composed by `app_start`, `asset_discovery`, `assets`, `confirm`, `fiat`, `perpetual`, `receive`, `rewards`, `stream`, `swap`, `transaction_state`, `wallet_home` |
-| `GemAssetsService` | composed by `app_start`, `assets`, `balance`, `confirm`, `fiat`, `receive`, `search`, `transaction_state`, `transactions`, `wallet_connect` |
+| `GemBalanceService` | composed by `app_start`, `asset_discovery`, `assets`, `confirm`, `fiat`, `navigation`, `perpetual`, `receive`, `rewards`, `search`, `stream`, `swap`, `transaction_state`, `transactions`, `wallet_home`; the only writer of balance rows |
+| `GemAssetsService` | composed by `app_start`, `assets`, `balance`, `confirm`, `fiat`, `receive`, `search`, `transactions`, `wallet_connect` |
 | `GemExplorerService` | composed by `address_details`, `assets`, `chart`, `confirm`, `nft`, `node`, `stake`, `transactions`, `wallet`, `wallet_connect` |
 | `GemPriceService` | composed by `assets`, `chart`, `confirm`, `currency`, `perpetual`, `portfolio`, `search`, `stream` |
 | `GemStreamSubscriptionService` | composed by `assets`, `balance`, `stream`, `swap` |

@@ -2,12 +2,14 @@
 
 import Components
 import Foundation
+import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemToast
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import Store
 
 @MainActor
 protocol AssetActions: AnyObject {
@@ -75,9 +77,49 @@ extension PerpetualPinActions {
 @MainActor
 protocol SearchResultActions: AssetActions, PerpetualPinActions {
     var service: any GemAssetSelectionServiceProtocol { get }
+    var onSelectAssetAction: AssetAction { get }
+    var searchQuery: ObservableQuery<WalletSearchQuery> { get }
 }
 
 extension SearchResultActions {
+    var searchResult: WalletSearchResult {
+        searchQuery.value
+    }
+
+    func assets(_ ids: [AssetId]) -> [AssetData] {
+        searchResult.assets.assets(ids: ids)
+    }
+
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
+    }
+
+    func onSelectAsset(_ asset: Asset) {
+        onSelectAssetAction?(asset)
+        Task { [service] in
+            do {
+                try await service.addRecent(action: .open, asset: asset.toGem())
+            } catch {
+                debugLog("\(Self.self) add recent error: \(error)")
+            }
+        }
+    }
+
+    func contextMenuItems(for assetData: AssetData) -> [ContextMenuItemType] {
+        AssetContextMenu.items(
+            for: assetData,
+            onCopy: { [weak self] in
+                self?.isPresentingToastMessage = .copy(addressCopy(chain: assetData.asset.chain.toGem(), address: $0).copiedMessage)
+            },
+            onPin: { [weak self] in
+                self?.onPinAsset(assetData.asset, value: !assetData.metadata.isPinned)
+            },
+            onAddToWallet: { [weak self] in
+                self?.onAddToWallet(assetData.asset.id)
+            },
+        )
+    }
+
     func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
         try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
     }
@@ -88,15 +130,5 @@ extension SearchResultActions {
 
     func setPerpetualPinned(_ perpetual: Perpetual, pinned: Bool) async throws -> GemToast {
         try await service.setPerpetualPinned(perpetualId: perpetual.id, name: perpetual.name, pinned: pinned)
-    }
-
-    func addRecent(_ asset: Asset) {
-        Task { [service] in
-            do {
-                try await service.addRecent(action: .open, asset: asset.toGem())
-            } catch {
-                debugLog("\(Self.self) add recent error: \(error)")
-            }
-        }
     }
 }

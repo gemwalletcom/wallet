@@ -13,6 +13,7 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -33,7 +34,7 @@ class HyperliquidObserverService(
     private val perpetualService: GemPerpetualServiceInterface,
     private val streamService: GemPerpetualStreamServiceInterface,
     private val connection: WebSocketConnectable,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : PerpetualObserver {
 
     private val foreground = MutableStateFlow(false)

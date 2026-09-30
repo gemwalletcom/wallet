@@ -63,8 +63,8 @@ pub fn get_chain_for_coinmarketcap_platform(platform: &Platform) -> Option<Chain
     get_chain_for_coinmarketcap_platform_name(&platform.name).or_else(|| get_chain_for_coinmarketcap_platform_slug(&platform.coin.slug))
 }
 
-pub fn get_coinmarketcap_logo_url(logo: &str) -> Option<String> {
-    Some(logo.replace("/64x64/", "/200x200/").replace("/128x128/", "/200x200/"))
+pub fn get_coinmarketcap_logo_url(logo: &str) -> String {
+    logo.replace("/64x64/", "/200x200/").replace("/128x128/", "/200x200/")
 }
 
 fn get_chain_for_coinmarketcap_platform_slug(slug: &str) -> Option<Chain> {
@@ -113,15 +113,15 @@ mod tests {
     fn test_coinmarketcap_logo_url_uses_largest_available_source() {
         assert_eq!(
             get_coinmarketcap_logo_url("https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png"),
-            Some("https://s2.coinmarketcap.com/static/img/coins/200x200/1027.png".to_string())
+            "https://s2.coinmarketcap.com/static/img/coins/200x200/1027.png"
         );
         assert_eq!(
             get_coinmarketcap_logo_url("https://s2.coinmarketcap.com/static/img/coins/128x128/825.png"),
-            Some("https://s2.coinmarketcap.com/static/img/coins/200x200/825.png".to_string())
+            "https://s2.coinmarketcap.com/static/img/coins/200x200/825.png"
         );
         assert_eq!(
             get_coinmarketcap_logo_url("https://s2.coinmarketcap.com/static/img/coins/200x200/825.png"),
-            Some("https://s2.coinmarketcap.com/static/img/coins/200x200/825.png".to_string())
+            "https://s2.coinmarketcap.com/static/img/coins/200x200/825.png"
         );
     }
 }

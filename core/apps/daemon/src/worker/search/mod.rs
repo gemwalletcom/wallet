@@ -6,12 +6,13 @@ use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
 use crate::worker::jobs::WorkerJob;
 
-pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
-    let services = ctx.services();
+pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
+    let services = context.services();
     let config = services.config();
     let search = services.search_jobs().await?;
 
-    ctx.plan_builder(WorkerService::Search, &config, shutdown_rx)
+    context
+        .plan_builder(WorkerService::Search, &config, shutdown)
         .job(WorkerJob::UpdateAssetsIndex, {
             let search = search.clone();
             move |_| {

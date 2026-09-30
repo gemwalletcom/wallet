@@ -13,11 +13,12 @@ import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.models.ChartUIState
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
+import uniffi.gemstone.GemChartData
 import java.time.ZoneId
 import java.util.Locale
 
 @Composable
-fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
+fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
     key(state.period) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
         val context = LocalContext.current
@@ -35,18 +36,23 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, per
             onPeriodSelect = onPeriodSelect,
             periods = periods,
         ) { model ->
+            val points = remember(model) { model.linePoints() }
             val minLabel = remember(model) { model.bounds.low.text() }
             val maxLabel = remember(model) { model.bounds.high.text() }
-            val points = remember(model) { model.values.mapIndexed { index, value -> ChartPoint(x = index.toFloat(), y = value.value.toFloat()) } }
             GemLineChart(
                 points = points,
                 bounds = model.bounds,
                 lineColor = MaterialTheme.colorScheme.primary,
+                indexAt = { fraction -> model.indexAt(fraction.toDouble())?.toInt() },
                 selectedIndex = selectedIndex,
                 onSelectionChanged = { selectedIndex = it },
+                onZoom = onZoom,
+                onPan = onPan,
                 minLabel = minLabel,
                 maxLabel = maxLabel,
             )
         }
     }
 }
+
+internal fun GemChartData.linePoints(): List<ChartPoint> = values.map { value -> ChartPoint(x = (value.date - start) / (end - start).coerceAtLeast(1L).toFloat(), y = value.value.toFloat()) }

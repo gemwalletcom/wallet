@@ -1,15 +1,15 @@
 pub mod approval;
 pub mod mode;
-pub mod partner_transaction;
 pub mod price_impact;
 pub mod quote_asset;
+pub mod referral;
 pub mod slippage;
 pub use approval::SwapQuoteData;
 pub use approval::*;
 pub use mode::*;
-pub use partner_transaction::*;
 pub use price_impact::*;
 pub use quote_asset::QuoteAsset;
+pub use referral::*;
 pub mod result;
 pub use result::*;
 pub use slippage::*;

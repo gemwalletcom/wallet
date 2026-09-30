@@ -25,7 +25,7 @@ impl TransferDataExtra {
 impl Default for TransferDataExtra {
     fn default() -> Self {
         Self {
-            to: "".to_string(),
+            to: String::new(),
             gas_limit: None,
             gas_price: None,
             data: None,

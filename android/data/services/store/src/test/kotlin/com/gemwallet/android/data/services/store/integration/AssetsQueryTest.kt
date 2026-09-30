@@ -180,4 +180,11 @@ class AssetsQueryTest {
         assertEquals(listOf(AssetId(Chain.Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")), query.hidden(WalletId("wallet-1"), Chain.Ethereum).first().map { it.asset.id })
         assertEquals(emptyList<AssetId>(), query.hidden(WalletId("wallet-2"), Chain.Ethereum).first().map { it.asset.id })
     }
+
+    @Test
+    fun coreWalletAssetsStayOnTheWalletsChainsAndListPinnedAndVisibleFirst() = runBlocking(Dispatchers.IO) {
+        val assets = database.assetsDao().getWalletAssets("wallet-1")
+
+        assertEquals(listOf("ethereum", "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7"), assets.map { it.id })
+    }
 }

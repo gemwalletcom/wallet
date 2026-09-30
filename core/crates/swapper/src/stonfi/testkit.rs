@@ -1,7 +1,7 @@
 pub use primitives::testkit::signer_mock::TEST_TON_SENDER;
 
 use super::{
-    constants::FALLBACK_ROUTERS,
+    constants::DISCOVERY_ROUTERS,
     model::{Router, SwapSimulation},
     provider::Stonfi,
     quote::{DiscoveredPool, PoolData, router_model},
@@ -77,7 +77,7 @@ impl DiscoveredPool {
     pub fn mock(pool_address: &str) -> Self {
         Self {
             pool_address: pool_address.to_string(),
-            router: router_model(&FALLBACK_ROUTERS[0]),
+            router: router_model(&DISCOVERY_ROUTERS[0]),
             asset0: TON_PROXY_JETTON_ADDRESS.to_string(),
             asset1: TON_USDT_TOKEN_ID.to_string(),
             wallet0: TEST_PTON_WALLET.to_string(),

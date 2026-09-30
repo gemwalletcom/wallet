@@ -109,13 +109,13 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for MayanParser 
             (order_hash == key).then_some(net_amount)
         })?;
 
-        let metadata = TransactionSwapMetadata {
-            from_asset: AssetId::from(*context.metadata.chain, (!input_token.is_zero()).then(|| input_token.to_checksum(None))),
-            from_value: u256_to_biguint(&amount),
-            to_asset: AssetId::from(*context.metadata.chain, (!output_token.is_zero()).then(|| output_token.to_checksum(None))),
-            to_value: u256_to_biguint(&output_amount),
-            provider: Some(SwapProvider::Mayan.id().to_string()),
-        };
+        let metadata = TransactionSwapMetadata::new(
+            AssetId::from(*context.metadata.chain, (!input_token.is_zero()).then(|| input_token.to_checksum(None))),
+            u256_to_biguint(&amount),
+            AssetId::from(*context.metadata.chain, (!output_token.is_zero()).then(|| output_token.to_checksum(None))),
+            u256_to_biguint(&output_amount),
+            SwapProvider::Mayan,
+        );
 
         context.make_swap_transaction(&context.transaction.from, &recipient.to_checksum(None), &metadata)
     }

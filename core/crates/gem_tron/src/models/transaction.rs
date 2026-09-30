@@ -2,8 +2,10 @@ use crate::address::TronAddress;
 use crate::address::serializer::deserialize as tron_address_deserialize;
 use crate::address::serializer::optional as tron_address_optional;
 use crate::models::TronContractType;
-use primitives::OptionStringExt;
+use alloy_sol_types::{SolEvent, Word};
+use primitives::{OptionStringExt, decode_hex};
 use serde::{Deserialize, Deserializer, Serialize};
+use std::str::FromStr;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Transaction {
@@ -109,6 +111,13 @@ pub struct TronLog {
     pub address: Option<TronAddress>,
     pub topics: Option<Vec<String>>,
     pub data: Option<String>,
+}
+
+impl TronLog {
+    pub fn decode_event<E: SolEvent>(&self) -> Option<E> {
+        let topics = self.topics.as_ref()?.iter().map(|topic| Word::from_str(topic).ok()).collect::<Option<Vec<_>>>()?;
+        E::decode_raw_log_validate(topics, &decode_hex(self.data.as_deref()?).ok()?).ok()
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

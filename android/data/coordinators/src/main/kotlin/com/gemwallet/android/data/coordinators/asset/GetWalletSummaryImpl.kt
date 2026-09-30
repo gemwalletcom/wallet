@@ -15,6 +15,7 @@ import com.gemwallet.android.ext.toPrimitives
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -36,7 +37,7 @@ class GetWalletSummaryImpl(
     private val bannersQuery: BannersQuery,
     private val userConfig: UserConfig,
     private val walletHomeService: GemWalletHomeServiceInterface,
-    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
+    scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : GetWalletSummary {
 
     private val walletSummary = getSession().flatMapLatest { session ->

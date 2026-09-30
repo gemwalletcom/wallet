@@ -12,6 +12,7 @@ import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
@@ -25,7 +26,6 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAssetData
-import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertData
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -42,13 +42,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
@@ -59,6 +59,10 @@ import uniffi.gemstone.GemPriceAlertToggle
 @OptIn(ExperimentalCoroutinesApi::class)
 class AssetViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
     private val viewModels = mutableListOf<ViewModel>()
 
@@ -84,7 +88,6 @@ class AssetViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         every { chainAssetQuery(mockSession().wallet.id.id, asset.id, any()) } returns chainAssetInfoFlow
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any(), any()) } returns MutableStateFlow(emptyList())
@@ -106,7 +109,6 @@ class AssetViewModelTest {
     fun tearDown() {
         viewModels.forEach { it.viewModelScope.cancel() }
         viewModels.clear()
-        Dispatchers.resetMain()
     }
 
     @Test

@@ -68,13 +68,15 @@ where
 
 impl ThorChain<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
-        let endpoint = rpc_provider.get_endpoint(Chain::Thorchain).ok()?;
-        Some(Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Thorchain))
+        let network = THORChainNetwork::Thorchain;
+        let endpoint = rpc_provider.get_endpoint(network.chain()).ok()?;
+        Some(Self::with_endpoint(endpoint, rpc_provider, network))
     }
 
     pub fn new_mayachain(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
-        let endpoint = rpc_provider.get_endpoint(Chain::Mayachain).ok()?;
-        Some(Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Mayachain))
+        let network = THORChainNetwork::Mayachain;
+        let endpoint = rpc_provider.get_endpoint(network.chain()).ok()?;
+        Some(Self::with_endpoint(endpoint, rpc_provider, network))
     }
 
     fn with_endpoint(endpoint: String, rpc_provider: Arc<dyn RpcProvider>, network: THORChainNetwork) -> Self {
@@ -148,7 +150,7 @@ where
             .client
             .get_quote(from_asset.clone(), to_asset.clone(), value.to_string(), QUOTE_INTERVAL, QUOTE_QUANTITY, fee.address, fee.bps.into())
             .await
-            .map_err(|e| self.map_quote_error(e, from_asset.decimals as i32))?;
+            .map_err(|error| self.map_quote_error(error, from_asset.decimals as i32))?;
 
         if quote.recommended_min_amount_in > value {
             return Err(SwapperError::InputAmountError {

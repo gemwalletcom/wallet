@@ -106,7 +106,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
@@ -117,10 +116,10 @@ class WalletNavigator(
     val backStack: NavBackStack<NavKey>,
     val currentTab: MutableState<String>,
     private val deeplinkService: GemDeeplinkServiceInterface,
-    private val assetsService: GemAssetsServiceInterface,
     private val navigationService: GemNavigationServiceInterface,
     private val session: StateFlow<Session?>,
     private val scope: CoroutineScope,
+    private val onOpenAction: (UrlAction) -> Unit,
 ) {
     private val routeMessages = mutableStateMapOf<NavKey, RouteMessage>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
@@ -138,8 +137,8 @@ class WalletNavigator(
     }
 
     private fun openAssetRoute(route: AssetRoute) = scope.launch {
-        runCatchingCancellable { withContext(Dispatchers.IO) { assetsService.openAsset(route.assetId.toIdentifier()) } }
-            .onSuccess { asset -> if (asset != null) push(route) }
+        runCatchingCancellable { withContext(Dispatchers.IO) { navigationService.openAsset(route.assetId.toIdentifier()) } }
+            .onSuccess { target -> if (target is GemNavigationTarget.Asset) push(route) }
             .onFailure { Log.e(TAG, "opening an asset failed", it) }
     }
 
@@ -248,7 +247,11 @@ class WalletNavigator(
     }
 
     fun openUrlAction(action: UrlAction): Boolean {
-        val deeplink = (action as? UrlAction.Deeplink)?.deeplink ?: return false
+        if (action !is UrlAction.Deeplink) {
+            onOpenAction(action)
+            return true
+        }
+        val deeplink = action.deeplink
         val origin = backStack.lastOrNull()
         scope.launch {
             runCatchingCancellable { withContext(Dispatchers.IO) { navigationService.openDeeplink(deeplink) } }

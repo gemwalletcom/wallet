@@ -85,7 +85,7 @@ pub fn import_request(kind: GemWalletImportKind, chain: Option<Chain>, input: &s
         (GemWalletImportKind::Phrase, Some(chain)) => Ok(GemWalletImportType::SinglePhrase { words: words(), chain }),
         (GemWalletImportKind::PrivateKey, Some(chain)) => Ok(GemWalletImportType::PrivateKey { value: input.trim().to_string(), chain }),
         (GemWalletImportKind::Address, Some(chain)) => Ok(GemWalletImportType::Address {
-            address: name_record.map(|record| record.address.trim()).non_empty().unwrap_or(input.trim()).to_string(),
+            address: name_record.map(|record| record.address.trim()).non_empty().unwrap_or_else(|| input.trim()).to_string(),
             chain,
         }),
         (GemWalletImportKind::PrivateKey | GemWalletImportKind::Address, None) => Err(GemWalletImportError::MissingChain),
@@ -93,7 +93,7 @@ pub fn import_request(kind: GemWalletImportKind, chain: Option<Chain>, input: &s
 }
 
 pub fn import_name(name_record: Option<&NameRecord>, default_name: &str) -> String {
-    name_record.map(|record| record.name.trim()).non_empty().unwrap_or(default_name.trim()).to_string()
+    name_record.map(|record| record.name.trim()).non_empty().unwrap_or_else(|| default_name.trim()).to_string()
 }
 
 fn validated_words(words: Vec<String>) -> Result<Vec<String>, GemWalletImportError> {
@@ -411,8 +411,8 @@ mod tests {
             import_request(GemWalletImportKind::Address, Some(Chain::Ethereum), " 0x123 ", Some(&NameRecord::mock("", ""))),
             Ok(GemWalletImportType::Address { address, .. }) if address == "0x123"
         ));
-        assert!(matches!(import_request(GemWalletImportKind::Address, None, "0x123", None), Err(GemWalletImportError::MissingChain)));
-        assert!(matches!(import_request(GemWalletImportKind::PrivateKey, None, "0x123", None), Err(GemWalletImportError::MissingChain)));
+        assert_eq!(import_request(GemWalletImportKind::Address, None, "0x123", None).unwrap_err(), GemWalletImportError::MissingChain);
+        assert_eq!(import_request(GemWalletImportKind::PrivateKey, None, "0x123", None).unwrap_err(), GemWalletImportError::MissingChain);
     }
 
     #[test]

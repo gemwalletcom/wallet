@@ -19,8 +19,8 @@ pub struct MoonPayError {
 }
 
 impl<T> From<MoonPayResponse<T>> for Result<T, Box<dyn std::error::Error + Send + Sync>> {
-    fn from(resp: MoonPayResponse<T>) -> Self {
-        match resp {
+    fn from(response: MoonPayResponse<T>) -> Self {
+        match response {
             MoonPayResponse::Success(data) => Ok(data),
             MoonPayResponse::Error(error) => Err(error.message.into()),
         }

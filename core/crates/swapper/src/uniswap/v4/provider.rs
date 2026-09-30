@@ -9,7 +9,7 @@ use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::evm::{check_approval_erc20_with_client, check_approval_permit2_with_client},
-    fees::{apply_slippage_in_bp, default_referral_fees},
+    fees::{default_referral_fees, subtract_bps},
     uniswap::{
         deadline::get_sig_deadline,
         discovery::{PoolDiscovery, candidate_pairs, discover_v4_pools},
@@ -137,10 +137,10 @@ impl Swapper for UniswapV4 {
         let (evm_chain, input, output, from_value) = Self::routed_request(request)?;
         let (token_in, token_out) = (input.address, output.address);
         let fee_tiers = self.get_tiers();
-        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;
-        let quote_amount_in = if fee_token_is_input && fee_bps > 0 { apply_slippage_in_bp(&from_value, fee_bps) } else { from_value };
+        let quote_amount_in = if fee_token_is_input && fee_bps > 0 { subtract_bps(&from_value, fee_bps) } else { from_value };
 
         _ = self.preload_pool_candidates(from_chain, token_in, token_out).await;
         let pool_keys = build_pool_keys(&token_in, &token_out, &fee_tiers);
@@ -155,20 +155,19 @@ impl Swapper for UniswapV4 {
             Vec::new()
         };
         let direct_calls = pool_keys.iter().map(|pool_key| build_quote_exact_single_request(&token_in, deployment.quoter, quote_amount_in, &pool_key.1)).collect();
-        let quote_calls = iter::once(direct_calls)
+        let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = iter::once(direct_calls)
             .chain(build_quote_exact_requests(deployment.quoter, &quote_exact_params))
             .enumerate()
             .flat_map(|(route_idx, calls)| calls.into_iter().enumerate().map(move |(fee_tier_idx, call)| (QuotePosition { route_idx, fee_tier_idx }, call)))
-            .collect::<Vec<_>>();
-        let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = quote_calls.into_iter().unzip();
+            .unzip();
         let results = create_client(self.rpc_provider.clone(), from_chain)?.batch_request(calls).await?;
         let quote_result = get_best_quote(&results, &positions, super::quoter::decode_quoter_response)?;
 
         let fee_tier_idx = quote_result.fee_tier_idx;
         let route_idx = quote_result.route_idx;
 
-        let to_value = if fee_token_is_input { quote_result.amount_out } else { apply_slippage_in_bp(&quote_result.amount_out, fee_bps) };
-        let to_min_value = apply_slippage_in_bp(&to_value, request.options.slippage.bps);
+        let to_value = if fee_token_is_input { quote_result.amount_out } else { subtract_bps(&quote_result.amount_out, fee_bps) };
+        let to_min_value = subtract_bps(&to_value, request.options.slippage.bps);
 
         let fee_tier = if route_idx == 0 {
             pool_keys.get(fee_tier_idx).and_then(|(pairs, _)| pairs.first()).map(|pair| pair.fee_tier as u32)

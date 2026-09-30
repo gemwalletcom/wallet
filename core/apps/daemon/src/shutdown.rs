@@ -10,15 +10,15 @@ pub type ShutdownSender = Arc<watch::Sender<bool>>;
 pub type ShutdownReceiver = watch::Receiver<bool>;
 
 pub fn channel() -> (ShutdownSender, ShutdownReceiver) {
-    let (tx, rx) = watch::channel(false);
-    (Arc::new(tx), rx)
+    let (sender, receiver) = watch::channel(false);
+    (Arc::new(sender), receiver)
 }
 
-pub fn spawn_signal_handler(shutdown_tx: ShutdownSender) -> tokio::task::JoinHandle<()> {
+pub fn spawn_signal_handler(shutdown_sender: ShutdownSender) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
         let signal = wait_for_signal().await;
         info_with_fields!("shutdown signal received", signal = signal, status = "ok");
-        let _ = shutdown_tx.send(true);
+        let _ = shutdown_sender.send(true);
     })
 }
 

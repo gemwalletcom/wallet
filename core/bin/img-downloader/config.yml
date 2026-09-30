@@ -2,6 +2,9 @@ folder: ../../assets/blockchains
 delay: 1s
 image:
   size: 256
+  asset_types:
+    - png
+    - webp
   types:
     - png
     - jpeg

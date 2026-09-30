@@ -1,4 +1,4 @@
-use crate::models::custom_types::GemBigInt;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::services::failures::StepFailure;
 use primitives::{AssetId, Chain, Transaction, TransactionId, TransactionState, WalletId};
 
@@ -6,6 +6,7 @@ use primitives::{AssetId, Chain, Transaction, TransactionId, TransactionState, W
 pub struct GemTransactionStateUpdate {
     pub state: TransactionState,
     pub fee: Option<GemBigInt>,
+    pub value: Option<GemBigUint>,
     pub block_number: Option<String>,
     pub metadata: Option<String>,
     pub confirmation_eta_seconds: Option<u32>,
@@ -17,6 +18,7 @@ impl GemTransactionStateUpdate {
         Self {
             state,
             fee: None,
+            value: None,
             block_number: None,
             metadata: None,
             confirmation_eta_seconds: None,
@@ -25,7 +27,7 @@ impl GemTransactionStateUpdate {
     }
 
     pub fn has_field_changes(&self) -> bool {
-        self.fee.is_some() || self.block_number.is_some() || self.metadata.is_some() || self.confirmation_eta_seconds.is_some()
+        self.fee.is_some() || self.value.is_some() || self.block_number.is_some() || self.metadata.is_some() || self.confirmation_eta_seconds.is_some()
     }
 }
 

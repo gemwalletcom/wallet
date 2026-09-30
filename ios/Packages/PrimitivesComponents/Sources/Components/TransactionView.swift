@@ -15,7 +15,7 @@ struct TransactionView: View {
         self.row = row
     }
 
-    public var body: some View {
+    var body: some View {
         ListItemView(model: row.listItem)
     }
 }

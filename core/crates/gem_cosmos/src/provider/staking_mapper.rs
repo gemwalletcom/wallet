@@ -71,7 +71,7 @@ pub fn map_staking_delegations(active_delegations: Vec<Delegation>, unbonding_de
             shares: BigUint::from(0u32),
             rewards: parse_to_biguint(&rewards),
             completion_date: None,
-            delegation_id: "".to_string(),
+            delegation_id: String::new(),
             validator_id: delegation.delegation.validator_address,
         })
     });
@@ -114,7 +114,7 @@ mod tests {
         assert_eq!(result.len(), 1);
         let delegation = &result[0];
         assert_eq!(delegation.asset_id.to_string(), "cosmos");
-        assert!(matches!(delegation.state, DelegationState::Active));
+        assert_eq!(delegation.state, DelegationState::Active);
         assert_eq!(delegation.balance.to_string(), "10250000");
         assert_eq!(delegation.validator_id, "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3");
         assert_eq!(delegation.rewards.to_string(), "0");
@@ -135,7 +135,7 @@ mod tests {
         assert_eq!(result.len(), 1);
         let delegation = &result[0];
         assert_eq!(delegation.asset_id.to_string(), "cosmos");
-        assert!(matches!(delegation.state, DelegationState::Active));
+        assert_eq!(delegation.state, DelegationState::Active);
         assert_eq!(delegation.balance.to_string(), "10250000");
         assert_eq!(delegation.validator_id, "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3");
         assert_eq!(delegation.rewards.to_string(), "307413");

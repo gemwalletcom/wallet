@@ -30,7 +30,7 @@ fn calculate_spot_usdc_value(swap_data: &SwapData, from_asset: &Asset, to_asset:
         (true, false) => quote_value(&swap_data.quote.from_value.to_string(), from_asset.decimals),
         (false, true) => {
             let net_output = quote_value(&swap_data.quote.to_value.to_string(), to_asset.decimals)?;
-            let fee_factor = 1.0 - f64::from(builder_fee_bps) / HYPERCORE_BUILDER_FEE_RATE_SCALE;
+            let fee_factor = 1.0 - builder_fee_rate(builder_fee_bps);
             Ok(net_output / fee_factor)
         }
         _ => Err("spot swap quote must have exactly one USDC leg".into()),
@@ -59,7 +59,7 @@ fn fee_amount_in_usdc(value: f64, fee_rate: f64) -> BigInt {
     BigInt::from((value * fee_rate * USDC_DECIMALS_MULTIPLIER) as i64)
 }
 
-fn builder_fee_rate(builder_fee_bps: u32) -> f64 {
+pub(crate) fn builder_fee_rate(builder_fee_bps: u32) -> f64 {
     f64::from(builder_fee_bps) / HYPERCORE_BUILDER_FEE_RATE_SCALE
 }
 

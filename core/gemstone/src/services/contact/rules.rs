@@ -53,7 +53,7 @@ pub fn contact(existing: Option<&Contact>, id: String, name: String, description
 }
 
 pub fn scanned_address(input: &str, payment: Option<&PaymentRequest>) -> GemContactScannedAddress {
-    let address = payment.map(|payment| payment.address.trim()).non_empty().unwrap_or(input.trim());
+    let address = payment.map(|payment| payment.address.trim()).non_empty().unwrap_or_else(|| input.trim());
     GemContactScannedAddress {
         address: address.to_string(),
         memo: payment.and_then(|payment| payment.memo.clone()),

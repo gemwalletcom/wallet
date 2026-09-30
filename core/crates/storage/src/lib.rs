@@ -40,9 +40,10 @@ pub use self::repositories::{
     scan_addresses_repository::ScanAddressesRepository,
     scan_detections_repository::ScanDetectionsRepository,
     support_sessions_repository::SupportSessionsRepository,
-    swap_partner_transactions_repository::SwapPartnerTransactionsRepository,
     tag_repository::{AssetTagLink, PerpetualTagLink, Tag, TagRepository},
+    transactions_perpetuals_repository::{TransactionPerpetualRecord, TransactionsPerpetualsRepository},
     transactions_repository::{TransactionFilter, TransactionUpdate, TransactionsRepository},
+    transactions_swaps_repository::{TransactionSwapRecord, TransactionsSwapsRepository},
     wallets_repository::{NewWallet, WalletAddress, WalletRecord, WalletsRepository},
 };
 

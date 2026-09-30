@@ -4,7 +4,10 @@ import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.BalancesDao
 import com.gemwallet.android.data.services.store.database.StoreConverters
 import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.entities.DbBalance
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
+import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.AssetBalance
@@ -26,6 +29,19 @@ class GemstoneBalanceStore(private val balancesDao: BalancesDao, private val ass
 
     override suspend fun setAssetConfiguration(walletId: String, assetIds: List<String>, configuration: GemAssetConfiguration) =
         assetsDao.setAssetConfiguration(walletId, assetIds, isVisible = configuration.isEnabled, isPinned = configuration.isPinned)
+
+    override suspend fun addBalances(walletId: String, assetIds: List<String>, enabled: Boolean) = withContext(Dispatchers.IO) {
+        assetsDao.insertBalances(
+            assetIds.map { assetId ->
+                DbBalance(
+                    assetId = AssetId(assetId).toIdentifier(),
+                    walletId = walletId,
+                    isVisible = enabled,
+                    updatedAt = null,
+                )
+            },
+        )
+    }
 
     override suspend fun updateBalances(walletId: String, balances: List<GemBalanceRecord>) = transactionRunner.run {
         val updatedAt = System.currentTimeMillis()

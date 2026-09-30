@@ -120,6 +120,36 @@ impl ChartsRepository for DatabaseClient {
     }
 }
 
+pub(crate) fn chart_price_at(client: &mut DatabaseClient, price_id: &str, at: NaiveDateTime) -> Result<Option<ChartResult>, diesel::result::Error> {
+    if let Some(point) = charts
+        .filter(raw_coin_id.eq(price_id))
+        .filter(raw_created_at.le(at))
+        .order(raw_created_at.desc())
+        .select((raw_created_at, raw_price))
+        .first::<ChartResult>(&mut client.connection)
+        .optional()?
+    {
+        return Ok(Some(point));
+    }
+    if let Some(point) = charts_hourly
+        .filter(hourly_coin_id.eq(price_id))
+        .filter(hourly_created_at.le(at))
+        .order(hourly_created_at.desc())
+        .select((hourly_created_at, hourly_price))
+        .first::<ChartResult>(&mut client.connection)
+        .optional()?
+    {
+        return Ok(Some(point));
+    }
+    charts_daily
+        .filter(daily_coin_id.eq(price_id))
+        .filter(daily_created_at.le(at))
+        .order(daily_created_at.desc())
+        .select((daily_created_at, daily_price))
+        .first::<ChartResult>(&mut client.connection)
+        .optional()
+}
+
 pub(crate) fn chart_extremes(client: &mut DatabaseClient, price_id: &str, timeframe: ChartTimeframe) -> Result<MinMax<f64>, diesel::result::Error> {
     match timeframe {
         ChartTimeframe::Raw => {

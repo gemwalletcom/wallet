@@ -35,6 +35,15 @@ pub struct PerpetualMarketData {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
 #[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
+pub struct PerpetualPrice {
+    pub coin: String,
+    pub price: f64,
+    pub price_percent_change_24h: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
+#[model(swift = "Equatable, Sendable, Hashable")]
+#[serde(rename_all = "camelCase")]
 pub struct PerpetualBasic {
     pub asset_id: AssetId,
     pub perpetual_id: PerpetualId,
@@ -188,6 +197,14 @@ pub enum PerpetualType {
 }
 
 impl PerpetualType {
+    pub fn fiat_value(&self) -> Option<f64> {
+        match self {
+            Self::Open { data } | Self::Close { data } | Self::Increase { data } => Some(data.fiat_value),
+            Self::Reduce { data } => Some(data.data.fiat_value),
+            Self::Modify { .. } => None,
+        }
+    }
+
     pub fn base_asset(&self) -> &Asset {
         match self {
             Self::Open { data } | Self::Close { data } | Self::Increase { data } => &data.base_asset,

@@ -42,6 +42,7 @@ Build mocked `eth_call` return data with the generated contract bindings (`<Cont
 
 - Add integration tests for RPC functionality to verify real network compatibility
 - Gate live chain RPC tests behind `chain_integration_tests` and live swap provider tests behind `swap_integration_tests`; keep ordinary unit tests deterministic
+- Put every live test in a module named after its feature (`#[cfg(all(test, feature = "chain_integration_tests"))] mod chain_integration_tests`), never a gated `mod tests` or a gated test fn inside one: `just test <CRATE>` runs `--all-features` and skips only names containing `integration_tests`, and `just test-integration` selects by the feature name
 - Gate Postgres-backed tests behind `database_integration_tests`. `Database::mock()` (storage testkit) connects to `DATABASE_URL` through one connection held in a test transaction, so every write rolls back when the pool drops; migrate first (`just migrate`), then run `just test-database`
 - Prefer recent blocks for batch operations (more reliable than historical blocks)
 - Verify both successful calls and proper error propagation

@@ -219,12 +219,16 @@ impl WalletsRepository for DatabaseClient {
             return Ok(0);
         }
 
-        let all_addresses: Vec<String> = subscriptions.iter().map(|(_, _, addr)| addr.clone()).collect::<HashSet<_>>().into_iter().collect();
+        let all_addresses: Vec<String> = subscriptions.iter().map(|(_, _, address)| address.clone()).collect::<HashSet<_>>().into_iter().collect();
 
         let existing_rows = wallet_addresses(self, all_addresses.clone())?;
         let existing_set: HashSet<String> = existing_rows.iter().map(|row| row.address.clone()).collect();
 
-        let missing_addresses: Vec<NewWalletAddressRow> = all_addresses.iter().filter(|addr| !existing_set.contains(*addr)).map(|address| NewWalletAddressRow { address: address.clone() }).collect();
+        let missing_addresses: Vec<NewWalletAddressRow> = all_addresses
+            .iter()
+            .filter(|address| !existing_set.contains(*address))
+            .map(|address| NewWalletAddressRow { address: address.clone() })
+            .collect();
 
         let new_rows = if missing_addresses.is_empty() {
             vec![]
@@ -268,7 +272,7 @@ impl WalletsRepository for DatabaseClient {
             return Ok(0);
         }
 
-        let all_addresses: Vec<String> = subscriptions.iter().map(|(_, _, addr)| addr.clone()).collect::<HashSet<_>>().into_iter().collect();
+        let all_addresses: Vec<String> = subscriptions.iter().map(|(_, _, address)| address.clone()).collect::<HashSet<_>>().into_iter().collect();
 
         let address_rows = wallet_addresses(self, all_addresses)?;
         let address_map: HashMap<String, i32> = address_rows.into_iter().map(|row| (row.address, row.id)).collect();
@@ -318,12 +322,12 @@ impl WalletsRepository for DatabaseClient {
             .load(&mut self.connection)?;
         Ok(rows
             .into_iter()
-            .map(|(wallet, sub, addr, device)| DeviceSubscription {
+            .map(|(wallet, subscription, address, device)| DeviceSubscription {
                 wallet_row_id: wallet.id,
                 device: device.as_primitive(),
                 wallet_id: wallet.wallet_id.0,
-                chain: sub.chain.0,
-                address: addr.address,
+                chain: subscription.chain.0,
+                address: address.address,
             })
             .collect())
     }

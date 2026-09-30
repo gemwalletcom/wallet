@@ -105,8 +105,6 @@ swap:
       secret: ""
     passphrase: ""
     project: ""
-  relay:
-    url: "https://api.relay.link"
   swapsxyz:
     url: "https://api-v2.swaps.xyz/api"
 
@@ -385,12 +383,20 @@ indexer:
     url: "https://mainnet-idx.algonode.cloud"
     key:
       secret: ""
+  aptos:
+    url: "https://archive.mainnet.aptoslabs.com"
+    key:
+      secret: ""
   ankr:
     url: "https://rpc.ankr.com/multichain"
     key:
       secret: ""
   blockscout:
     url: "https://api.blockscout.com"
+    key:
+      secret: ""
+  etherscan:
+    url: "https://api.etherscan.io"
     key:
       secret: ""
   fastnear:

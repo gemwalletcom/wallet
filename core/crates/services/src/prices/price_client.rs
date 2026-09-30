@@ -141,8 +141,8 @@ impl PriceClient {
             }
             match self.add_prices_with_mappings(provider.as_ref(), mappings).await {
                 Ok(added) => count += added,
-                Err(err) => {
-                    error_with_fields!("fetch prices provider failed", &*err, provider = kind.id(), asset_id = asset_id_str.as_str());
+                Err(error) => {
+                    error_with_fields!("fetch prices provider failed", &*error, provider = kind.id(), asset_id = asset_id_str.as_str());
                 }
             }
         }
@@ -155,10 +155,10 @@ impl PriceClient {
         };
         match self.add_prices_with_mappings(provider.as_ref(), provider.get_mappings_for_price_id(&price_id.provider_price_id).await).await {
             Ok(added) => Ok(added),
-            Err(err) => {
+            Err(error) => {
                 let kind = provider.provider();
                 let price_id_str = price_id.to_string();
-                error_with_fields!("fetch prices provider failed", &*err, provider = kind.id(), price_id = price_id_str.as_str());
+                error_with_fields!("fetch prices provider failed", &*error, provider = kind.id(), price_id = price_id_str.as_str());
                 Ok(0)
             }
         }

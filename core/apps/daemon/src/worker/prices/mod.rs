@@ -16,14 +16,14 @@ use crate::worker::plan::JobPlanBuilder;
 
 type JobFuture = BoxFuture<'static, Result<usize, Box<dyn Error + Send + Sync>>>;
 
-pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
-    let services = ctx.services();
+pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
+    let services = context.services();
     let config = services.config();
     let assets_producer = services.stream_producer("prices_provider_assets", streamer::no_shutdown()).await?;
     let prices_producer = services.stream_producer("prices_provider_prices", streamer::no_shutdown()).await?;
     let prices = services.price_jobs(assets_producer, prices_producer).await?;
 
-    let mut builder = add_platform_jobs(ctx.plan_builder(WorkerService::Prices, config.as_ref(), shutdown_rx), &prices);
+    let mut builder = add_platform_jobs(context.plan_builder(WorkerService::Prices, config.as_ref(), shutdown), &prices);
     for kind in prices.enabled_providers().to_vec() {
         builder = add_provider_jobs(builder, &prices, kind).await?;
     }

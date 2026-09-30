@@ -200,6 +200,7 @@ interface AssetsDao {
         """
         SELECT * FROM $ASSET_INFO WHERE
             walletId = :walletId
+            AND address IS NOT NULL
             AND assetRank >= 0
             AND (NOT :enabled OR isEnabled = 1)
             AND (NOT :buyable OR isBuyEnabled = 1)
@@ -209,7 +210,7 @@ interface AssetsDao {
             AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
             AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR id IN (:assetIds))
             AND (NOT :byChains OR chain IN (:selectedChains))
-            ORDER BY balanceFiatTotalAmount DESC, assetRank DESC
+            ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
         """,
     )
     suspend fun getWalletAssetsQuery(
@@ -494,9 +495,6 @@ interface AssetsDao {
         selectedChains = filters.chains(),
         limit = limit,
     )
-
-    @Query("SELECT * FROM balances WHERE wallet_id = :walletId AND asset_id = :assetId")
-    suspend fun getBalance(walletId: String, assetId: String): DbBalance?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addRecentActivity(record: DbRecentActivity)

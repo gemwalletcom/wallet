@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use super::constants::is_supported_v2;
 use crate::Route;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -20,7 +21,7 @@ pub struct Router {
 
 impl Router {
     pub(super) fn is_supported_v2(&self) -> bool {
-        self.major_version == 2 && (self.minor_version == 1 || self.minor_version == 2)
+        is_supported_v2(self.major_version, self.minor_version)
     }
 }
 

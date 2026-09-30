@@ -131,7 +131,7 @@ impl<'a> JobPlanBuilder<'a> {
                 Some(param) => pending.variant.with_param_duration(self.config.ok_or("ConfigCacher required for jobs_with_config")?, &param).await?,
                 None => pending.variant,
             };
-            plan = (pending.add)(plan, variant.resolve_interval(self.config).await?);
+            plan = (pending.add)(plan, variant.interval_duration(self.config).await?);
         }
         Ok(plan.finish())
     }

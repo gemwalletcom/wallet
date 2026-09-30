@@ -4,7 +4,7 @@ use bigdecimal::{
 };
 use num_traits::FromPrimitive;
 
-pub fn apply_slippage(original_price: f64, slippage_bps: u32) -> f64 {
+pub fn price_after_slippage(original_price: f64, slippage_bps: u32) -> f64 {
     original_price * (1.0 - slippage_bps as f64 / 10000.0)
 }
 pub fn price_to_hex_price(price: f64, quote_asset_decimals: u32, base_asset_decimals: u32) -> Result<String, String> {
@@ -24,8 +24,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_apply_slippage_sell() {
-        assert_eq!(apply_slippage(100.0, 100), 99.0);
+    fn test_price_after_slippage_sell() {
+        assert_eq!(price_after_slippage(100.0, 100), 99.0);
     }
 
     #[test]

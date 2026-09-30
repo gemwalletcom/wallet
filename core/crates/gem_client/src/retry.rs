@@ -28,8 +28,8 @@ where
     loop {
         match operation().await {
             Ok(result) => return Ok(result),
-            Err(err) => {
-                if attempt < max_retries && should_retry(&err) {
+            Err(error) => {
+                if attempt < max_retries && should_retry(&error) {
                     attempt += 1;
                     let delay = Duration::from_secs(2_u64.saturating_pow(attempt).min(1800));
 
@@ -42,7 +42,7 @@ where
                     continue;
                 }
 
-                return Err(err);
+                return Err(error);
             }
         }
     }

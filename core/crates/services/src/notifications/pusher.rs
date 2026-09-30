@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use localizer::LanguageLocalizer;
+use localizer::{LanguageLocalizer, TransactionAction};
 use number_formatter::{ValueFormatter, ValueStyle};
 use primitives::{AddressFormatStyle, AddressFormatter, Asset, AssetVecExt, Chain, DeviceSubscription, FiatQuoteType, Transaction, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionType};
 use push_notification::{GorushNotification, PushNotification, PushNotificationTransaction, PushNotificationTypes};
@@ -42,7 +42,33 @@ impl Pusher {
         })
     }
 
+    fn failed_message(localizer: &LanguageLocalizer, transaction: &Transaction, to_address: &str) -> Option<Message> {
+        let (action, message) = match transaction.transaction_type {
+            TransactionType::Transfer | TransactionType::TransferNFT => (TransactionAction::Transfer, Some(localizer.notification_sent_description(to_address))),
+            TransactionType::Swap => (TransactionAction::Swap, None),
+            TransactionType::TokenApproval => (TransactionAction::TokenApproval, None),
+            TransactionType::StakeDelegate | TransactionType::EarnDeposit => (TransactionAction::Stake, None),
+            TransactionType::StakeUndelegate => (TransactionAction::Unstake, None),
+            TransactionType::StakeRedelegate => (TransactionAction::Redelegate, None),
+            TransactionType::StakeRewards => (TransactionAction::ClaimRewards, None),
+            TransactionType::StakeWithdraw | TransactionType::EarnWithdraw => (TransactionAction::Withdraw, None),
+            TransactionType::StakeFreeze => (TransactionAction::Freeze, None),
+            TransactionType::StakeUnfreeze => (TransactionAction::Unfreeze, None),
+            TransactionType::SmartContractCall => (TransactionAction::SmartContract, None),
+            TransactionType::AssetActivation | TransactionType::PerpetualOpenPosition | TransactionType::PerpetualClosePosition | TransactionType::PerpetualModifyPosition => return None,
+        };
+        Some(Message {
+            title: localizer.notification_transaction_failed_title(action),
+            message,
+        })
+    }
+
     pub fn message(localizer: LanguageLocalizer, transaction: &Transaction, address: &str, assets: &Vec<Asset>, to_address: &str, from_address: &str) -> Result<Message, Box<dyn Error + Send + Sync>> {
+        if transaction.state.is_failed()
+            && let Some(message) = Self::failed_message(&localizer, transaction, to_address)
+        {
+            return Ok(message);
+        }
         let asset = assets.asset_result(transaction.asset_id.clone())?;
         let amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, &transaction.value.to_string(), asset.decimals, &asset.symbol)?;
 
@@ -166,6 +192,26 @@ impl Pusher {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::TransactionState;
+
+    #[test]
+    fn test_message_failed() {
+        let assets = vec![Asset::mock_eth()];
+        let failed_swap = Transaction {
+            transaction_type: TransactionType::Swap,
+            state: TransactionState::Reverted,
+            ..Transaction::mock()
+        };
+        let swap = Pusher::message(LanguageLocalizer::new(), &failed_swap, "0xfrom", &assets, "0xto", "0xfrom").unwrap();
+        assert_eq!((swap.title.as_str(), swap.message), ("❌ \u{2068}Swap\u{2069}: Failed", None));
+
+        let failed_transfer = Transaction {
+            state: TransactionState::Failed,
+            ..Transaction::mock()
+        };
+        let transfer = Pusher::message(LanguageLocalizer::new(), &failed_transfer, "0xfrom", &assets, "0xto", "0xfrom").unwrap();
+        assert_eq!((transfer.title.as_str(), transfer.message.as_deref()), ("❌ \u{2068}Transfer\u{2069}: Failed", Some("To \u{2068}0xto\u{2069}")));
+    }
 
     #[test]
     fn test_format_currency() {

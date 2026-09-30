@@ -13,11 +13,9 @@ import Store
 
 public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
     private let assetStore: AssetStore
-    private let balanceStore: BalanceStore
 
-    public init(assetStore: AssetStore, balanceStore: BalanceStore) {
+    public init(assetStore: AssetStore) {
         self.assetStore = assetStore
-        self.balanceStore = balanceStore
     }
 
     public func getAssetIds(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
@@ -61,21 +59,5 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
 
     public func setSwappableAssets(assetIds: [Gemstone.AssetId]) async throws {
         try assetStore.updateSwappableAssets(assetIds: assetIds)
-    }
-
-    public func addBalances(walletId: WalletId, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
-        try balanceStore.addBalance(
-            assetIds: assetIds,
-            isEnabled: enabled,
-            for: walletId,
-        )
-    }
-
-    public func addMissingBalances(walletId: WalletId, assetIds: [Gemstone.AssetId]) async throws {
-        try balanceStore.addBalance(
-            assetIds: assetIds,
-            isEnabled: false,
-            for: walletId,
-        )
     }
 }

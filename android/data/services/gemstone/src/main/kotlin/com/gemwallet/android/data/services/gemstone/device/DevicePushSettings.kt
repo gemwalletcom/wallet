@@ -10,6 +10,7 @@ import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.services.store.ConfigStore
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.NotificationsAvailable
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
@@ -78,7 +79,7 @@ class DevicePushSettings(
             return
         }
         configStore.putString(PUSH_TOKEN, stored)
-        scope.launch { runCatching { deviceService.get().synchronizeIfNeeded() } }
+        scope.launch { runCatchingCancellable { deviceService.get().synchronizeIfNeeded() } }
     }
 
     suspend fun getPushToken(): String = configStore.getString(PUSH_TOKEN)

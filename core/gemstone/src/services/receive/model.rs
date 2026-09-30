@@ -1,4 +1,4 @@
-use primitives::AssetId;
+use primitives::{Asset, AssetId, Wallet};
 
 use crate::services::assets::model::GemAssetText;
 
@@ -25,4 +25,26 @@ pub struct GemReceiveNetworks {
 pub struct GemReceiveNetwork {
     pub asset_id: AssetId,
     pub row: crate::services::chain::GemChainRow,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemReceiveSession {
+    pub source: Asset,
+    pub associations: Vec<AssetId>,
+}
+
+#[uniffi::export]
+pub fn new_receive_session(asset: Asset) -> GemReceiveSession {
+    GemReceiveSession { source: asset, associations: vec![] }
+}
+
+#[uniffi::export]
+impl GemReceiveSession {
+    pub fn on_associations(&self, associations: Vec<AssetId>) -> Self {
+        Self { associations, ..self.clone() }
+    }
+
+    pub fn networks(&self, wallet: Wallet) -> GemReceiveNetworks {
+        super::rules::networks(&self.source, self.associations.clone(), &wallet)
+    }
 }

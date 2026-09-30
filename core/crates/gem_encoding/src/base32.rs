@@ -6,5 +6,5 @@ pub fn encode_base32(bytes: &[u8]) -> String {
 }
 
 pub fn decode_base32(value: &[u8]) -> Result<Vec<u8>, EncodingError> {
-    BASE32_NOPAD.decode(value).map_err(|e| EncodingError::Invalid(EncodingType::Base32, e.to_string()))
+    BASE32_NOPAD.decode(value).map_err(|error| EncodingError::Invalid(EncodingType::Base32, error.to_string()))
 }

@@ -49,14 +49,14 @@ pub fn parse_websocket_data(data: &[u8], mode: PerpetualAccountMode) -> Result<H
 }
 
 fn map_active_asset_ctx(data: ActiveAssetCtxData) -> PerpetualMarketData {
-    let ActiveAssetCtxData { symbol, ctx } = data;
-    let mark_price = ctx.mark_px;
-    let price = ctx.mid_px.unwrap_or(mark_price);
-    let prev_price = ctx.prev_day_px;
+    let ActiveAssetCtxData { symbol, ctx: asset_context } = data;
+    let mark_price = asset_context.mark_px;
+    let price = asset_context.mid_px.unwrap_or(mark_price);
+    let prev_price = asset_context.prev_day_px;
     let price_percent_change_24h = if prev_price > 0.0 { ((price - prev_price) / prev_price) * 100.0 } else { 0.0 };
-    let open_interest = ctx.open_interest * price;
-    let volume_24h = ctx.day_ntl_vlm;
-    let funding = ctx.funding * 100.0;
+    let open_interest = asset_context.open_interest * price;
+    let volume_24h = asset_context.day_ntl_vlm;
+    let funding = asset_context.funding * 100.0;
 
     PerpetualMarketData {
         coin: symbol,

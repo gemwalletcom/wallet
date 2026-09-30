@@ -3,13 +3,13 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Wallet, WalletId};
+use primitives::{Asset, AssetId, WalletId};
 
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemRecentActivityService;
-pub use model::{GemReceiveAssetState, GemReceiveNetwork, GemReceiveNetworks, GemReceiveWarning};
+pub use model::{GemReceiveAssetState, GemReceiveNetwork, GemReceiveNetworks, GemReceiveSession, GemReceiveWarning};
 
 #[derive(uniffi::Object)]
 pub struct GemReceiveService {
@@ -27,10 +27,6 @@ impl GemReceiveService {
 
     pub fn asset_state(&self, asset: Asset) -> GemReceiveAssetState {
         rules::asset_state(&asset)
-    }
-
-    pub fn networks(&self, asset: Asset, associations: Vec<AssetId>, wallet: Wallet) -> GemReceiveNetworks {
-        rules::networks(&asset, associations, &wallet)
     }
 
     pub async fn update_asset(&self, asset_id: AssetId) -> Result<(), GemServiceError> {

@@ -1,17 +1,10 @@
 import Foundation
 @testable import GemstoneServices
 import GemstoneServicesTestKit
-@testable import Keychain
 import Primitives
 import Testing
 
 struct LocalKeystoreTests {
-    @Test
-    func keychainCancellationIsRecognized() {
-        #expect(Status.userCanceled.isAuthenticationCancelled)
-        #expect(!Status.authFailed.isAuthenticationCancelled)
-    }
-
     @Test
     func testImportWallet() throws {
         let keystore = LocalKeystore.mock()

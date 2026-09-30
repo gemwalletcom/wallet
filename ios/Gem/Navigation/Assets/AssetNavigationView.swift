@@ -22,8 +22,10 @@ struct AssetNavigationView: View {
             .bindQuery(model.assetQuery, model.bannersQuery, model.transactionsQuery)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button(action: model.onTogglePriceAlert) {
-                        model.priceAlertsImage(details)
+                    if let priceAlertsImage = model.priceAlertsImage(details) {
+                        Button(action: model.onTogglePriceAlert) {
+                            priceAlertsImage
+                        }
                     }
 
                     AdaptiveActionMenu(

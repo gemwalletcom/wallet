@@ -19,7 +19,7 @@ impl ChainSimulation for SuiProvider {
         } else {
             input.encoded_transaction
         };
-        let transaction: sui_types::Transaction = decode_transaction(&encoded_transaction).map_err(|err| format!("parse transaction: {err}"))?;
+        let transaction: sui_types::Transaction = decode_transaction(&encoded_transaction).map_err(|error| format!("parse transaction: {error}"))?;
         let sender = transaction.sender.to_string();
 
         let simulated = self.simulate_encoded_transaction(&encoded_transaction).await?;

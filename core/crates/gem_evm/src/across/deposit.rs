@@ -1,9 +1,16 @@
 use std::{error::Error, io};
 
-use alloy_primitives::{B256, Bytes, LogData, U256, hex};
-use alloy_sol_types::SolEvent;
+use alloy_primitives::{Address, B256, Bytes, LogData, U256, hex};
+use alloy_sol_types::{SolCall, SolEvent, SolValue};
 
-use super::contracts::V3SpokePoolInterface::{FundsDeposited, V3FundsDeposited};
+use super::asset::AcrossAsset;
+use super::contracts::{
+    V3SpokePoolInterface::{FundsDeposited, V3FundsDeposited},
+    multicall_handler,
+};
+use crate::{contracts::IERC20, u256::u256_to_biguint};
+use primitives::{AssetId, TransactionSwapReferralFee, swap::EVM_REFERRAL_ADDRESS};
+use std::str::FromStr;
 
 pub struct RelayData {
     pub depositor: B256,
@@ -18,6 +25,23 @@ pub struct RelayData {
     pub fill_deadline: u32,
     pub exclusivity_deadline: u32,
     pub message: Bytes,
+}
+
+impl RelayData {
+    pub fn referral_fee(&self, to_asset: &AssetId) -> Option<TransactionSwapReferralFee> {
+        let referral = Address::from_str(EVM_REFERRAL_ADDRESS).ok()?;
+        let instructions = multicall_handler::Instructions::abi_decode(&self.message).ok()?;
+        let amount = instructions.calls.into_iter().find_map(|call| {
+            if call.target == referral && !call.value.is_zero() {
+                return Some(call.value);
+            }
+            IERC20::transferCall::abi_decode(&call.callData).ok().filter(|transfer| transfer.to == referral).map(|transfer| transfer.value)
+        })?;
+        Some(TransactionSwapReferralFee {
+            asset_id: to_asset.clone(),
+            value: u256_to_biguint(&(amount * AcrossAsset::from_asset(to_asset)?.scale)),
+        })
+    }
 }
 
 pub struct Deposit {
