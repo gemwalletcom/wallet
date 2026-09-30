@@ -2,6 +2,7 @@ use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     Asset, AssetId, TransactionSwapMetadata, TransactionSwapReferralFee,
+    known_assets::HYPERCORE_SPOT_USDC,
     swap::{EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS, SOLANA_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS},
 };
 
@@ -33,15 +34,9 @@ impl MayanTransactionResult {
         let from_chain = self.from_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
         let to_chain = self.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
         let from_asset = asset_id_for_token(from_chain, &self.from_token_address)?;
-        let from_value = match self.from_amount64.as_deref() {
-            Some(value) => value.parse::<BigUint>().ok()?,
-            None => decimal_value(self.from_amount.as_deref()?, asset_decimals(&from_asset)?)?,
-        };
+        let from_value = amount_value(self.from_amount.as_deref(), self.from_amount64.as_deref(), asset_decimals(&from_asset))?;
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
-        let to_value = match self.to_amount64.as_deref() {
-            Some(value) => value.parse::<BigUint>().ok()?,
-            None => decimal_value(self.to_amount.as_deref()?, asset_decimals(&to_asset).or(output_decimals).or_else(|| self.min_amount_decimals())?)?,
-        };
+        let to_value = amount_value(self.to_amount.as_deref(), self.to_amount64.as_deref(), asset_decimals(&to_asset).or(output_decimals).or_else(|| self.min_amount_decimals()))?;
 
         let referral_fee = match self.client_status {
             MayanClientStatus::Completed => self.referral_fee(&from_asset, &from_value, &to_asset, &to_value),
@@ -74,7 +69,14 @@ impl MayanTransactionResult {
 }
 
 fn asset_decimals(asset_id: &AssetId) -> Option<u32> {
-    asset_id.is_native().then(|| Asset::from_chain(asset_id.chain).decimals as u32)
+    if asset_id.is_native() {
+        return Some(Asset::from_chain(asset_id.chain).decimals as u32);
+    }
+    (*asset_id == HYPERCORE_SPOT_USDC.id).then_some(HYPERCORE_SPOT_USDC.decimals as u32)
+}
+
+fn amount_value(amount: Option<&str>, amount64: Option<&str>, decimals: Option<u32>) -> Option<BigUint> {
+    decimals.zip(amount).and_then(|(decimals, amount)| decimal_value(amount, decimals)).or_else(|| amount64?.parse().ok())
 }
 
 fn decimal_value(amount: &str, decimals: u32) -> Option<BigUint> {
@@ -126,7 +128,7 @@ mod tests {
                 AssetId::from_chain(Chain::Hyperliquid),
                 "154100000000000000000",
                 HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
-                "14828488252",
+                "1482848825200",
                 Some((AssetId::from_chain(Chain::Hyperliquid), "770500000000000000")),
             ),
             (
@@ -191,17 +193,12 @@ mod tests {
         assert_eq!(
             map_swap_result(&result, Some(18)).metadata,
             Some(
-                TransactionSwapMetadata::new(
-                    ETHEREUM_USDT_ASSET_ID.clone(),
-                    "280000000".parse().unwrap(),
-                    to_asset.clone(),
-                    "447930094673253720688".parse().unwrap(),
-                    SwapperProvider::Mayan
-                )
-                .with_referral_fee(Some(TransactionSwapReferralFee {
-                    asset_id: to_asset,
-                    value: "2262273205420473336".parse().unwrap(),
-                }))
+                TransactionSwapMetadata::new(ETHEREUM_USDT_ASSET_ID.clone(), "280000000".parse().unwrap(), to_asset.clone(), "447930094673253720688".parse().unwrap(), SwapperProvider::Mayan).with_referral_fee(Some(
+                    TransactionSwapReferralFee {
+                        asset_id: to_asset,
+                        value: "2262273205420473336".parse().unwrap(),
+                    }
+                ))
             )
         );
     }
@@ -222,6 +219,7 @@ mod tests {
         assert_eq!(refunded.metadata.and_then(|metadata| metadata.referral_fee), None);
 
         let invalid = MayanTransactionResult {
+            from_amount: None,
             from_amount64: Some("invalid".to_string()),
             ..result(include_str!("test/pol_to_bnb_swift.json"))
         };
