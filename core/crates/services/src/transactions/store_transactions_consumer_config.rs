@@ -55,9 +55,10 @@ impl StoreTransactionsConsumerConfig {
         Duration::from_secs(block_time_secs * self.outdated_block_count).max(self.outdated_min_timeout)
     }
 
-    pub fn should_notify_transaction(&self, transaction: &Transaction, is_notify_devices: bool, send_addresses: &SendAddressMap) -> bool {
+    pub fn should_notify_transaction(&self, transaction: &Transaction, address: &str, is_notify_devices: bool, send_addresses: &SendAddressMap) -> bool {
         is_notify_devices
             && transaction.state != TransactionState::InTransit
+            && (!transaction.state.is_failed() || transaction.is_sent(address.to_string()))
             && !cross_chain::is_from_vault_address(transaction, send_addresses)
             && !self.is_transaction_outdated(transaction.created_at.naive_utc(), transaction.asset_id.chain, transaction.transaction_type.clone())
     }
@@ -174,7 +175,14 @@ mod tests {
         let config = StoreTransactionsConsumerConfig::mock();
         let empty = SendAddressMap::new();
 
-        assert!(config.should_notify_transaction(&Transaction::mock(), true, &empty));
+        assert!(config.should_notify_transaction(&Transaction::mock(), "0xfrom", true, &empty));
+
+        let failed = Transaction {
+            state: TransactionState::Reverted,
+            ..Transaction::mock()
+        };
+        assert!(config.should_notify_transaction(&failed, "0xfrom", true, &empty), "the sender hears that its transaction failed");
+        assert!(!config.should_notify_transaction(&failed, "0xto", true, &empty), "a failed incoming transaction delivered nothing");
     }
 
     #[test]
@@ -185,14 +193,14 @@ mod tests {
             state: TransactionState::InTransit,
             ..Transaction::mock()
         };
-        assert!(!config.should_notify_transaction(&transaction, true, &empty));
+        assert!(!config.should_notify_transaction(&transaction, "0xfrom", true, &empty));
     }
 
     #[test]
     fn test_should_notify_transaction_no_devices() {
         let config = StoreTransactionsConsumerConfig::mock();
         let empty = SendAddressMap::new();
-        assert!(!config.should_notify_transaction(&Transaction::mock(), false, &empty));
+        assert!(!config.should_notify_transaction(&Transaction::mock(), "0xfrom", false, &empty));
     }
 
     #[test]
@@ -200,6 +208,6 @@ mod tests {
         let config = StoreTransactionsConsumerConfig::mock();
         let transaction = Transaction::mock();
         let vault_addresses = SendAddressMap::from([(transaction.from.clone(), primitives::SwapProvider::Thorchain)]);
-        assert!(!config.should_notify_transaction(&transaction, true, &vault_addresses));
+        assert!(!config.should_notify_transaction(&transaction, "0xfrom", true, &vault_addresses));
     }
 }

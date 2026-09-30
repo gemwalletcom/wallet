@@ -187,7 +187,7 @@ impl StoreTransactionsConsumer {
             .flat_map(|subscription| {
                 publishable_transactions
                     .iter()
-                    .filter(|transaction| transaction.addresses().contains(&subscription.address) && config.should_notify_transaction(transaction, is_notify_devices, send_addresses))
+                    .filter(|transaction| transaction.addresses().contains(&subscription.address) && config.should_notify_transaction(transaction, &subscription.address, is_notify_devices, send_addresses))
                     .map(|transaction| {
                         let assets = transaction.asset_ids().iter().filter_map(|id| assets.get(id)).map(|asset_price| asset_price.asset.asset.clone()).collect();
                         (subscription.clone(), (*transaction).clone(), assets)
