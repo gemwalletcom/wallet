@@ -8,6 +8,7 @@ use primitives::{
 use crate::{SwapResult, SwapperProvider};
 
 const MAYAN_SWIFT_V1_SERVICE: &str = "SWIFT_SWAP";
+const MAX_TOKEN_DECIMALS: u32 = 36;
 
 use super::{
     asset::asset_id_for_token,
@@ -34,13 +35,25 @@ impl MayanTransactionResult {
         let from_asset = asset_id_for_token(from_chain, &self.from_token_address)?;
         let from_value = match self.from_amount64.as_deref() {
             Some(value) => value.parse::<BigUint>().ok()?,
-            None => native_value(&from_asset, self.from_amount.as_deref()?)?,
+            None => decimal_value(self.from_amount.as_deref()?, asset_decimals(&from_asset)?)?,
         };
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
-        let to_value = self.to_amount64.as_deref()?.parse::<BigUint>().ok()?;
+        let to_value = match self.to_amount64.as_deref() {
+            Some(value) => value.parse::<BigUint>().ok()?,
+            None => decimal_value(self.to_amount.as_deref()?, asset_decimals(&to_asset).or_else(|| self.output_decimals())?)?,
+        };
 
-        let referral_fee = self.referral_fee(&from_asset, &from_value, &to_asset, &to_value);
+        let referral_fee = match self.client_status {
+            MayanClientStatus::Completed => self.referral_fee(&from_asset, &from_value, &to_asset, &to_value),
+            MayanClientStatus::InProgress | MayanClientStatus::Refunded => None,
+        };
         Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Mayan).with_referral_fee(referral_fee))
+    }
+
+    fn output_decimals(&self) -> Option<u32> {
+        let amount = self.min_amount_out.as_deref()?;
+        let value = self.min_amount_out64.as_deref()?.parse::<BigUint>().ok().filter(|value| *value > BigUint::ZERO)?;
+        (0..=MAX_TOKEN_DECIMALS).find(|decimals| decimal_value(amount, *decimals).as_ref() == Some(&value))
     }
 
     fn referral_fee(&self, from_asset: &AssetId, from_value: &BigUint, to_asset: &AssetId, to_value: &BigUint) -> Option<TransactionSwapReferralFee> {
@@ -60,11 +73,12 @@ impl MayanTransactionResult {
     }
 }
 
-fn native_value(asset_id: &AssetId, amount: &str) -> Option<BigUint> {
-    if !asset_id.is_native() {
-        return None;
-    }
-    BigNumberFormatter::value_from_amount_exact(amount, Asset::from_chain(asset_id.chain).decimals as u32).ok()
+fn asset_decimals(asset_id: &AssetId) -> Option<u32> {
+    asset_id.is_native().then(|| Asset::from_chain(asset_id.chain).decimals as u32)
+}
+
+fn decimal_value(amount: &str, decimals: u32) -> Option<BigUint> {
+    BigNumberFormatter::value_from_amount_exact(amount, decimals).ok()
 }
 
 #[cfg(test)]
@@ -72,7 +86,7 @@ mod tests {
     use super::*;
     use primitives::{
         AssetId, Chain,
-        asset_constants::{BASE_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID},
+        asset_constants::{ARBITRUM_USDT_ASSET_ID, BASE_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID},
         swap::SwapStatus,
     };
 
@@ -116,6 +130,22 @@ mod tests {
                 Some((AssetId::from_chain(Chain::Hyperliquid), "770500000000000000")),
             ),
             (
+                include_str!("test/eth_to_arbitrum_usdt_swift_v1_decimal_output.json"),
+                AssetId::from_chain(Chain::Ethereum),
+                "1450000000000000",
+                ARBITRUM_USDT_ASSET_ID.clone(),
+                "4696204",
+                Some((ARBITRUM_USDT_ASSET_ID.clone(), "23718")),
+            ),
+            (
+                include_str!("test/eth_to_sui_swift.json"),
+                AssetId::from_chain(Chain::Ethereum),
+                "10000000000000000",
+                AssetId::from_chain(Chain::Sui),
+                "7534906306",
+                Some((AssetId::from_chain(Chain::Ethereum), "50000000000000")),
+            ),
+            (
                 include_str!("test/sol_to_eth_swift.json"),
                 AssetId::from_chain(Chain::Solana),
                 "16195149",
@@ -154,20 +184,18 @@ mod tests {
 
     #[test]
     fn test_map_swap_result_without_metadata() {
-        for (json, status) in [
-            (include_str!("test/eth_to_sui_swift.json"), SwapStatus::Completed),
-            (include_str!("test/mctp_pending.json"), SwapStatus::Pending),
-            (include_str!("test/swift_refunded.json"), SwapStatus::Refunded),
-        ] {
-            assert_eq!(
-                map_swap_result(&result(json)),
-                SwapResult {
-                    status,
-                    metadata: None,
-                    eta_in_seconds: None,
-                }
-            );
-        }
+        assert_eq!(
+            map_swap_result(&result(include_str!("test/mctp_pending.json"))),
+            SwapResult {
+                status: SwapStatus::Pending,
+                metadata: None,
+                eta_in_seconds: None,
+            }
+        );
+
+        let refunded = map_swap_result(&result(include_str!("test/swift_refunded.json")));
+        assert_eq!(refunded.status, SwapStatus::Refunded);
+        assert_eq!(refunded.metadata.and_then(|metadata| metadata.referral_fee), None);
 
         let invalid = MayanTransactionResult {
             from_amount64: Some("invalid".to_string()),
