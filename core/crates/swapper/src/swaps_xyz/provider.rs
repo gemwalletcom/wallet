@@ -287,10 +287,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_missing_unregistered_status_is_pending() {
-        let upstream = MockClient::new().with_get(|_| Err(ClientError::Http { status: 404, body: vec![] }));
-        let provider = SwapsXyz::with_client(SwapsXyzClient::new(upstream, MockClient::new()), SuiClient::new("https://example.com"));
-        let result = provider.get_swap_result(&SwapResultRequest::new(Chain::Algorand, "source-hash")).await.unwrap();
-        assert_eq!(result.status, SwapStatus::Pending);
+        for error in [
+            ClientError::Http { status: 404, body: vec![] },
+            ClientError::Response {
+                status: 404,
+                message: "Failed to get tx status for txHash source-hash".to_string(),
+                body: vec![],
+            },
+        ] {
+            let upstream = MockClient::new().with_get(move |_| Err(error.clone()));
+            let provider = SwapsXyz::with_client(SwapsXyzClient::new(upstream, MockClient::new()), SuiClient::new("https://example.com"));
+            let result = provider.get_swap_result(&SwapResultRequest::new(Chain::Algorand, "source-hash")).await.unwrap();
+            assert_eq!(result.status, SwapStatus::Pending);
+        }
     }
 
     #[tokio::test]

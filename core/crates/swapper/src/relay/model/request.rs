@@ -1,7 +1,7 @@
 use num_bigint::BigUint;
 use primitives::{decode_hex, swap::SwapStatus};
 use serde::Deserialize;
-use serde_serializers::deserialize_biguint_from_str;
+use serde_serializers::deserialize_option_biguint_from_str;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -72,9 +72,9 @@ pub struct RelayRequestAppFees {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RelayRequestAppFee {
-    pub recipient: String,
-    #[serde(deserialize_with = "deserialize_biguint_from_str")]
-    pub amount: BigUint,
+    pub recipient: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]
+    pub amount: Option<BigUint>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
