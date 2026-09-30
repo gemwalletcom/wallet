@@ -1,25 +1,28 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{Duration, NaiveDateTime};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{AssetId, DAY, SwapProvider, Transaction, TransactionId, TransactionType, swap::SwapStatus};
+use primitives::{AssetId, DAY, PriceData, SwapProvider, Transaction, TransactionId, TransactionType, swap::SwapStatus};
 use storage::{AssetsRepository, Database, DatabaseError, PricesRepository, TransactionSwapRecord, TransactionsRepository, TransactionsSwapsRepository};
 use streamer::consumer::MessageConsumer;
 
-const MAX_OUTPUT_TO_INPUT_VALUE: f64 = 2.0;
+use crate::ConfigCacher;
+use crate::transactions::StoreTransactionsSwapsConsumerConfig;
 
 pub struct StoreTransactionsSwapsConsumer {
     database: Database,
+    config: Arc<ConfigCacher>,
 }
 
 impl StoreTransactionsSwapsConsumer {
-    pub fn new(database: Database) -> Self {
-        Self { database }
+    pub fn new(database: Database, config: Arc<ConfigCacher>) -> Self {
+        Self { database, config }
     }
 
-    async fn swap_record(&self, transaction: &Transaction) -> Result<Option<TransactionSwapRecord>, Box<dyn Error + Send + Sync>> {
+    async fn swap_record(&self, config: &StoreTransactionsSwapsConsumerConfig, transaction: &Transaction) -> Result<Option<TransactionSwapRecord>, Box<dyn Error + Send + Sync>> {
         let status = transaction.state.swap_status();
         if transaction.transaction_type != TransactionType::Swap || status == SwapStatus::Pending {
             return Ok(None);
@@ -34,8 +37,8 @@ impl StoreTransactionsSwapsConsumer {
         let (from_amount, from_amount_usd) = self.amount(&metadata.from_asset, &metadata.from_value, at).await?;
         let (to_amount, to_amount_usd) = self.amount(&metadata.to_asset, &metadata.to_value, at).await?;
         let (_, referral_fee_amount_usd) = self.amount(&referral_fee.asset_id, &referral_fee.value, at).await?;
-        let to_amount_usd = value_within(to_amount_usd, from_amount_usd, MAX_OUTPUT_TO_INPUT_VALUE);
-        let referral_fee_amount_usd = value_within(referral_fee_amount_usd, from_amount_usd.or(to_amount_usd), 1.0);
+        let to_amount_usd = to_amount_usd.filter(|value| is_output_within_input_value(*value, from_amount_usd, config.max_output_to_input_value));
+        let referral_fee_amount_usd = referral_fee_amount_usd.filter(|value| is_fee_within_swap_value(*value, from_amount_usd.or(to_amount_usd)));
         Ok(Some(TransactionSwapRecord {
             provider,
             status,
@@ -53,10 +56,13 @@ impl StoreTransactionsSwapsConsumer {
 
     async fn amount(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<(f64, Option<f64>), Box<dyn Error + Send + Sync>> {
         let asset_id = asset_id.clone();
-        let (asset, price) = self.database.run(move |client| Ok::<_, DatabaseError>((client.get_asset(&asset_id)?, client.get_price_at(&asset_id, at)?))).await?;
+        let (asset, price, prices) = self
+            .database
+            .run(move |client| Ok::<_, DatabaseError>((client.get_asset(&asset_id)?, client.get_price_at(&asset_id, at)?, client.get_prices_for_asset(&asset_id)?)))
+            .await?;
         let amount = BigNumberFormatter::value_as_f64(&value.to_string(), asset.decimals as u32)?;
         let max_age = Duration::from_std(DAY)?;
-        let amount_usd = price.filter(|(price_at, _)| at - *price_at <= max_age).map(|(_, price)| amount * price);
+        let amount_usd = price.filter(|(price_at, _)| at - *price_at <= max_age && is_within_supply(amount, &prices)).map(|(_, price)| amount * price);
         Ok((amount, amount_usd))
     }
 }
@@ -70,15 +76,24 @@ impl MessageConsumer<TransactionId, usize> for StoreTransactionsSwapsConsumer {
     async fn consume(&self, payload: TransactionId) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let id = payload.clone();
         let transaction = self.database.run(move |client| client.get_transaction_by_id(&id, vec![])).await?;
-        let Some(record) = self.swap_record(&transaction).await? else {
+        let config = StoreTransactionsSwapsConsumerConfig::read(&self.config).await?;
+        let Some(record) = self.swap_record(&config, &transaction).await? else {
             return Ok(0);
         };
         Ok(self.database.run(move |client| client.upsert_transaction_swap(&payload, record)).await?)
     }
 }
 
-fn value_within(value: Option<f64>, reference: Option<f64>, max_ratio: f64) -> Option<f64> {
-    value.filter(|value| reference.is_none_or(|reference| *value <= reference * max_ratio))
+fn is_within_supply(amount: f64, prices: &[PriceData]) -> bool {
+    prices.iter().flat_map(|price| [price.total_supply, price.max_supply]).flatten().reduce(f64::max).is_none_or(|supply| amount <= supply)
+}
+
+fn is_output_within_input_value(output_usd: f64, input_usd: Option<f64>, max_output_to_input_value: f64) -> bool {
+    input_usd.is_none_or(|input_usd| output_usd <= input_usd * max_output_to_input_value)
+}
+
+fn is_fee_within_swap_value(fee_usd: f64, swap_usd: Option<f64>) -> bool {
+    swap_usd.is_none_or(|swap_usd| fee_usd <= swap_usd)
 }
 
 #[cfg(test)]
@@ -86,12 +101,36 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_value_within() {
-        assert_eq!(value_within(Some(1.5), Some(100.0), 1.0), Some(1.5));
-        assert_eq!(value_within(Some(1.24e16), Some(12.3), 1.0), None);
-        assert_eq!(value_within(Some(2.46e18), Some(12.3), MAX_OUTPUT_TO_INPUT_VALUE), None);
-        assert_eq!(value_within(Some(99.0), Some(100.0), MAX_OUTPUT_TO_INPUT_VALUE), Some(99.0));
-        assert_eq!(value_within(Some(5.0), None, 1.0), Some(5.0));
-        assert_eq!(value_within(None, Some(100.0), 1.0), None);
+    fn test_is_output_within_input_value() {
+        assert!(is_output_within_input_value(99.0, Some(100.0), 2.0));
+        assert!(!is_output_within_input_value(2.46e18, Some(12.3), 2.0));
+        assert!(is_output_within_input_value(2.46e18, None, 2.0));
+    }
+
+    #[test]
+    fn test_is_fee_within_swap_value() {
+        assert!(is_fee_within_swap_value(1.5, Some(100.0)));
+        assert!(!is_fee_within_swap_value(81.86, Some(0.12)));
+        assert!(is_fee_within_swap_value(5.0, None));
+    }
+
+    #[test]
+    fn test_is_within_supply() {
+        let price = PriceData {
+            total_supply: Some(1_000_000.0),
+            max_supply: None,
+            ..PriceData::mock()
+        };
+        assert!(is_within_supply(5_000.0, std::slice::from_ref(&price)));
+        assert!(!is_within_supply(1e20, std::slice::from_ref(&price)));
+        assert!(is_within_supply(
+            1e20,
+            &[PriceData {
+                total_supply: None,
+                max_supply: None,
+                ..PriceData::mock()
+            }]
+        ));
+        assert!(is_within_supply(1e20, &[]));
     }
 }

@@ -129,7 +129,7 @@ impl Services {
     }
 
     pub fn store_transactions_swaps_consumer(&self) -> StoreTransactionsSwapsConsumer {
-        StoreTransactionsSwapsConsumer::new(self.database())
+        StoreTransactionsSwapsConsumer::new(self.database(), self.config())
     }
 
     pub fn store_transactions_perpetuals_consumer(&self) -> StoreTransactionsPerpetualsConsumer {
