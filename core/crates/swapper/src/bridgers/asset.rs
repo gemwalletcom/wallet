@@ -1,7 +1,7 @@
 use std::{collections::BTreeSet, sync::LazyLock};
 
 use primitives::{
-    AssetId, Chain, ChainType,
+    AssetId, Chain,
     asset_constants::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_USDC_ASSET_ID, CELO_USDC_ASSET_ID, CELO_USDT_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, HYPEREVM_USDC_ASSET_ID,
         LINEA_USDC_E_ASSET_ID, MANTLE_USDT0_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID,
@@ -57,96 +57,67 @@ impl Network {
     }
 }
 
-#[derive(Debug, Clone)]
-pub(super) struct Token {
-    pub asset_id: AssetId,
-    pub code: &'static str,
-    pub decimals: u32,
-}
-
-impl Token {
-    fn native(chain: Chain, code: &'static str, decimals: u32) -> Self {
-        Self {
-            asset_id: AssetId::from_chain(chain),
-            code,
-            decimals,
-        }
-    }
-
-    fn new(asset_id: &AssetId, code: &'static str, decimals: u32) -> Self {
-        Self { asset_id: asset_id.clone(), code, decimals }
-    }
-
-    pub fn from_asset_id(asset_id: &AssetId) -> Result<Self, SwapperError> {
-        TOKENS.iter().find(|token| &token.asset_id == asset_id).cloned().ok_or(SwapperError::NotSupportedAsset)
-    }
-
-    pub fn address(&self) -> String {
-        self.asset_id.token_id.clone().unwrap_or_else(|| EVM_NATIVE_TOKEN_ADDRESS.to_lowercase())
-    }
-}
-
-pub(super) static TOKENS: LazyLock<Vec<Token>> = LazyLock::new(|| {
+static TOKENS: LazyLock<Vec<(AssetId, &'static str)>> = LazyLock::new(|| {
     vec![
-        Token::native(Chain::SmartChain, "BNB(BSC)", 18),
-        Token::new(&SMARTCHAIN_USDC_ASSET_ID, "USDC(BSC)", 18),
-        Token::new(&SMARTCHAIN_USDT_ASSET_ID, "USDT(BSC)", 18),
-        Token::native(Chain::Polygon, "POL(POL)", 18),
-        Token::new(&POLYGON_USDC_ASSET_ID, "USDC(POL)", 6),
-        Token::new(&POLYGON_USDT_ASSET_ID, "USDT(POL)", 6),
-        Token::native(Chain::Arbitrum, "ETH(ARB)", 18),
-        Token::new(&ARBITRUM_USDC_ASSET_ID, "USDC(ARB)", 6),
-        Token::new(&ARBITRUM_USDT_ASSET_ID, "USDT(ARB)", 6),
-        Token::native(Chain::AvalancheC, "AVAX(C-Chain)", 18),
-        Token::new(&AVALANCHE_USDC_ASSET_ID, "USDC(C-Chain)", 6),
-        Token::new(&AVALANCHE_USDT_ASSET_ID, "USDT(C-Chain)", 6),
-        Token::native(Chain::Optimism, "ETH(Optimism)", 18),
-        Token::new(&OPTIMISM_USDC_ASSET_ID, "USDC(Optimism)", 6),
-        Token::new(&OPTIMISM_USDT_ASSET_ID, "USDT(Optimism)", 6),
-        Token::native(Chain::Base, "ETH(BASE)", 18),
-        Token::new(&BASE_USDC_ASSET_ID, "USDC(BASE)", 6),
-        Token::native(Chain::OpBNB, "BNB(opBNB)", 18),
-        Token::new(&MANTLE_USDT0_ASSET_ID, "USDT0(MNT)", 6),
-        Token::native(Chain::Linea, "ETH(LINEA)", 18),
-        Token::new(&LINEA_USDC_E_ASSET_ID, "USDC(LINEA)", 6),
-        Token::native(Chain::Celo, "CELO", 18),
-        Token::new(&CELO_USDC_ASSET_ID, "USDC(CELO)", 6),
-        Token::new(&CELO_USDT_ASSET_ID, "USDT(CELO)", 6),
-        Token::native(Chain::XLayer, "OKB(XLayer)", 18),
-        Token::new(&XLAYER_USDT_ASSET_ID, "USDT0(XLayer)", 6),
-        Token::native(Chain::Sonic, "S(Sonic)", 18),
-        Token::native(Chain::Robinhood, "ETH(Robinhood)", 18),
-        Token::native(Chain::Hyperliquid, "HYPE(HyperEVM)", 18),
-        Token::new(&HYPEREVM_USDC_ASSET_ID, "USDC(HyperEVM)", 6),
-        Token::native(Chain::Ethereum, "ETH", 18),
-        Token::new(&ETHEREUM_USDC_ASSET_ID, "USDC", 6),
-        Token::new(&ETHEREUM_USDT_ASSET_ID, "USDT(ERC20)", 6),
-        Token::native(Chain::Solana, "SOL", 9),
-        Token::new(&SOLANA_USDC_ASSET_ID, "USDC(SOL)", 6),
-        Token::new(&SOLANA_USDT_ASSET_ID, "USDT(SOL)", 6),
-        Token::native(Chain::Bitcoin, "BTC", 8),
+        (AssetId::from_chain(Chain::SmartChain), "BNB(BSC)"),
+        (SMARTCHAIN_USDC_ASSET_ID.clone(), "USDC(BSC)"),
+        (SMARTCHAIN_USDT_ASSET_ID.clone(), "USDT(BSC)"),
+        (AssetId::from_chain(Chain::Polygon), "POL(POL)"),
+        (POLYGON_USDC_ASSET_ID.clone(), "USDC(POL)"),
+        (POLYGON_USDT_ASSET_ID.clone(), "USDT(POL)"),
+        (AssetId::from_chain(Chain::Arbitrum), "ETH(ARB)"),
+        (ARBITRUM_USDC_ASSET_ID.clone(), "USDC(ARB)"),
+        (ARBITRUM_USDT_ASSET_ID.clone(), "USDT(ARB)"),
+        (AssetId::from_chain(Chain::AvalancheC), "AVAX(C-Chain)"),
+        (AVALANCHE_USDC_ASSET_ID.clone(), "USDC(C-Chain)"),
+        (AVALANCHE_USDT_ASSET_ID.clone(), "USDT(C-Chain)"),
+        (AssetId::from_chain(Chain::Optimism), "ETH(Optimism)"),
+        (OPTIMISM_USDC_ASSET_ID.clone(), "USDC(Optimism)"),
+        (OPTIMISM_USDT_ASSET_ID.clone(), "USDT(Optimism)"),
+        (AssetId::from_chain(Chain::Base), "ETH(BASE)"),
+        (BASE_USDC_ASSET_ID.clone(), "USDC(BASE)"),
+        (AssetId::from_chain(Chain::OpBNB), "BNB(opBNB)"),
+        (MANTLE_USDT0_ASSET_ID.clone(), "USDT0(MNT)"),
+        (AssetId::from_chain(Chain::Linea), "ETH(LINEA)"),
+        (LINEA_USDC_E_ASSET_ID.clone(), "USDC(LINEA)"),
+        (AssetId::from_chain(Chain::Celo), "CELO"),
+        (CELO_USDC_ASSET_ID.clone(), "USDC(CELO)"),
+        (CELO_USDT_ASSET_ID.clone(), "USDT(CELO)"),
+        (AssetId::from_chain(Chain::XLayer), "OKB(XLayer)"),
+        (XLAYER_USDT_ASSET_ID.clone(), "USDT0(XLayer)"),
+        (AssetId::from_chain(Chain::Sonic), "S(Sonic)"),
+        (AssetId::from_chain(Chain::Robinhood), "ETH(Robinhood)"),
+        (AssetId::from_chain(Chain::Hyperliquid), "HYPE(HyperEVM)"),
+        (HYPEREVM_USDC_ASSET_ID.clone(), "USDC(HyperEVM)"),
+        (AssetId::from_chain(Chain::Ethereum), "ETH"),
+        (ETHEREUM_USDC_ASSET_ID.clone(), "USDC"),
+        (ETHEREUM_USDT_ASSET_ID.clone(), "USDT(ERC20)"),
+        (AssetId::from_chain(Chain::Solana), "SOL"),
+        (SOLANA_USDC_ASSET_ID.clone(), "USDC(SOL)"),
+        (SOLANA_USDT_ASSET_ID.clone(), "USDT(SOL)"),
+        (AssetId::from_chain(Chain::Bitcoin), "BTC"),
     ]
 });
+
+pub(super) fn get_token_code(asset_id: &AssetId) -> Result<&'static str, SwapperError> {
+    TOKENS.iter().find(|(id, _)| id == asset_id).map(|(_, code)| *code).ok_or(SwapperError::NotSupportedAsset)
+}
+
+pub(super) fn get_token_address(asset_id: &AssetId) -> String {
+    asset_id.token_id.clone().unwrap_or_else(|| EVM_NATIVE_TOKEN_ADDRESS.to_lowercase())
+}
 
 pub(super) fn supported_assets() -> Vec<SwapperChainAsset> {
     NETWORKS
         .iter()
         .map(|network| {
-            let tokens = TOKENS.iter().filter(|token| token.asset_id.chain == network.chain && token.asset_id.is_token()).map(|token| token.asset_id.clone()).collect();
+            let tokens = TOKENS.iter().filter(|(id, _)| id.chain == network.chain && id.is_token()).map(|(id, _)| id.clone()).collect();
             SwapperChainAsset::Assets(network.chain, tokens)
         })
         .collect()
 }
 
 pub(super) fn vault_addresses() -> VaultAddresses {
-    let deposit: Vec<String> = NETWORKS.iter().filter_map(|network| network.router).map(str::to_string).collect::<BTreeSet<_>>().into_iter().collect();
-    let send = NETWORKS
-        .iter()
-        .filter(|network| network.chain.chain_type() == ChainType::Ethereum)
-        .filter_map(|network| network.router)
-        .map(str::to_string)
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect();
-    VaultAddresses { deposit, send }
+    let routers: Vec<String> = NETWORKS.iter().filter_map(|network| network.router).map(str::to_string).collect::<BTreeSet<_>>().into_iter().collect();
+    VaultAddresses { deposit: routers.clone(), send: routers }
 }

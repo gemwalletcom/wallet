@@ -7,12 +7,12 @@ use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    Chain, ChainType,
+    AssetId, Chain, ChainType,
     swap::{SwapResult, SwapStatus},
 };
 
 use super::{
-    asset::{Network, Token, supported_assets, vault_addresses},
+    asset::{Network, get_token_address, get_token_code, supported_assets, vault_addresses},
     client::BridgersClient,
     model::{QuoteRequest as BridgersQuoteRequest, RecordsRequest, RouteData, SwapRequest},
     transaction::get_transaction_value,
@@ -24,7 +24,6 @@ use crate::{
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::DEFAULT_REFERRER,
-    hyperliquid::provider::spot::math::scale_units,
     models::ApprovalType,
 };
 
@@ -53,11 +52,11 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Bridgers<C> {
         }
     }
 
-    async fn get_evm_quote_data(&self, network: Network, from_token: &Token, to_token: &Token, swap: &SwapRequest) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_evm_quote_data(&self, network: Network, from_asset: &AssetId, to_code: &str, swap: &SwapRequest) -> Result<SwapperQuoteData, SwapperError> {
         let transaction = self.client.get_swap(swap).await?.tx_data;
         let router = network.router()?;
-        let value = get_transaction_value(&transaction, router, from_token, to_token, swap)?;
-        let approval = match &from_token.asset_id.token_id {
+        let value = get_transaction_value(&transaction, router, from_asset, to_code, swap)?;
+        let approval = match &from_asset.token_id {
             None => None,
             Some(token_id) => match check_approval_erc20(
                 swap.from_address.clone(),
@@ -81,13 +80,15 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Bridgers<C> {
 fn get_quote_request(request: &QuoteRequest, value: &BigUint) -> Result<BridgersQuoteRequest, SwapperError> {
     let from_network = Network::from_chain(request.from_asset.chain())?;
     from_network.router()?;
-    let from_token = Token::from_asset_id(&request.from_asset.asset_id())?;
-    let to_token = Token::from_asset_id(&request.to_asset.asset_id())?;
+    let from_asset = request.from_asset.asset_id();
+    let to_asset = request.to_asset.asset_id();
+    get_token_code(&from_asset)?;
+    get_token_code(&to_asset)?;
     Ok(BridgersQuoteRequest {
         source_flag: DEFAULT_REFERRER.to_string(),
-        from_token_address: from_token.address(),
-        to_token_address: to_token.address(),
-        from_token_amount: scale_units(value.clone(), request.from_asset.decimals, from_token.decimals)?.to_string(),
+        from_token_address: get_token_address(&from_asset),
+        to_token_address: get_token_address(&to_asset),
+        from_token_amount: value.to_string(),
         from_token_chain: from_network.code.to_string(),
         to_token_chain: Network::from_chain(request.to_asset.chain())?.code.to_string(),
     })
@@ -175,8 +176,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let network = Network::from_chain(request.from_asset.chain())?;
-        let from_token = Token::from_asset_id(&request.from_asset.asset_id())?;
-        let to_token = Token::from_asset_id(&request.to_asset.asset_id())?;
+        let to_code = get_token_code(&request.to_asset.asset_id())?;
         let route: RouteData = serde_json::from_str(&quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let swap = SwapRequest {
             quote: get_quote_request(request, &quote.from_value)?,
@@ -186,7 +186,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
             slippage: BigNumberFormatter::value(&quote.data.slippage_bps.to_string(), SLIPPAGE_DECIMALS).map_err(SwapperError::compute_quote_error)?,
         };
         match network.chain.chain_type() {
-            ChainType::Ethereum => self.get_evm_quote_data(network, &from_token, &to_token, &swap).await,
+            ChainType::Ethereum => self.get_evm_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
             _ => Err(SwapperError::NotSupportedChain),
         }
     }

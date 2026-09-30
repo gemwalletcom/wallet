@@ -3,10 +3,9 @@ use std::str::FromStr;
 use alloy_primitives::{Address, U256, hex};
 use alloy_sol_types::{SolCall, sol};
 
-use super::{
-    asset::Token,
-    model::{EvmTransaction, SwapRequest, get_to_token},
-};
+use primitives::AssetId;
+
+use super::model::{EvmTransaction, SwapRequest, get_to_token};
 use crate::SwapperError;
 
 sol! {
@@ -16,41 +15,55 @@ sol! {
     }
 }
 
-pub(super) fn get_transaction_value(transaction: &EvmTransaction, router: &str, from_token: &Token, to_token: &Token, swap: &SwapRequest) -> Result<U256, SwapperError> {
+struct SwapCall {
+    to_token: String,
+    destination: String,
+    min_return_amount: U256,
+}
+
+pub(super) fn get_transaction_value(transaction: &EvmTransaction, router: &str, from_asset: &AssetId, to_code: &str, swap: &SwapRequest) -> Result<U256, SwapperError> {
     if Address::from_str(&transaction.to).map_err(|_| SwapperError::InvalidRoute)? != Address::from_str(router)? {
         return Err(SwapperError::InvalidRoute);
     }
-    let from_amount = U256::from_str(&swap.quote.from_token_amount)?;
     let value = U256::from_str(&transaction.value).map_err(|_| SwapperError::InvalidRoute)?;
     let data = hex::decode(&transaction.data).map_err(|_| SwapperError::InvalidRoute)?;
-    let (call_to_token, destination, min_return_amount) = match &from_token.asset_id.token_id {
-        None => {
-            let call = IBridgers::swapEthCall::abi_decode(&data).map_err(|_| SwapperError::InvalidRoute)?;
-            if value != from_amount {
-                return Err(SwapperError::InvalidRoute);
-            }
-            (call.toToken, call.destination, call.minReturnAmount)
-        }
-        Some(token_id) => {
-            let call = IBridgers::swapCall::abi_decode(&data).map_err(|_| SwapperError::InvalidRoute)?;
-            if call.fromToken != Address::from_str(token_id).map_err(|_| SwapperError::InvalidRoute)? || call.fromAmount != from_amount || value != U256::ZERO {
-                return Err(SwapperError::InvalidRoute);
-            }
-            (call.toToken, call.destination, call.minReturnAmount)
-        }
-    };
-    if destination != swap.to_address || min_return_amount != U256::from_str(&swap.amount_out_min)? || call_to_token != get_to_token(to_token.code, &swap.slippage) {
+    let call = get_swap_call(&data, value, from_asset, U256::from_str(&swap.quote.from_token_amount)?)?;
+    if call.destination != swap.to_address || call.min_return_amount != U256::from_str(&swap.amount_out_min)? || call.to_token != get_to_token(to_code, &swap.slippage) {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(value)
 }
 
+fn get_swap_call(data: &[u8], value: U256, from_asset: &AssetId, from_amount: U256) -> Result<SwapCall, SwapperError> {
+    match &from_asset.token_id {
+        None => {
+            let call = IBridgers::swapEthCall::abi_decode(data).map_err(|_| SwapperError::InvalidRoute)?;
+            if value != from_amount {
+                return Err(SwapperError::InvalidRoute);
+            }
+            Ok(SwapCall {
+                to_token: call.toToken,
+                destination: call.destination,
+                min_return_amount: call.minReturnAmount,
+            })
+        }
+        Some(token_id) => {
+            let call = IBridgers::swapCall::abi_decode(data).map_err(|_| SwapperError::InvalidRoute)?;
+            if call.fromToken != Address::from_str(token_id).map_err(|_| SwapperError::InvalidRoute)? || call.fromAmount != from_amount || value != U256::ZERO {
+                return Err(SwapperError::InvalidRoute);
+            }
+            Ok(SwapCall {
+                to_token: call.toToken,
+                destination: call.destination,
+                min_return_amount: call.minReturnAmount,
+            })
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use primitives::{
-        AssetId, Chain,
-        asset_constants::{BASE_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID},
-    };
+    use primitives::{Chain, asset_constants::BASE_USDC_ASSET_ID};
 
     use super::*;
     use crate::bridgers::{
@@ -64,9 +77,7 @@ mod tests {
         let token: BridgersResponse = serde_json::from_str(include_str!("testdata/swap_base_usdc_bsc_usdt.json")).unwrap();
         let native_tx = serde_json::from_value::<SwapData>(native.data).unwrap().tx_data;
         let token_tx = serde_json::from_value::<SwapData>(token.data).unwrap().tx_data;
-        let bnb = Token::from_asset_id(&AssetId::from_chain(Chain::OpBNB)).unwrap();
-        let base_usdc = Token::from_asset_id(&BASE_USDC_ASSET_ID).unwrap();
-        let bsc_usdt = Token::from_asset_id(&SMARTCHAIN_USDT_ASSET_ID).unwrap();
+        let bnb = AssetId::from_chain(Chain::OpBNB);
         let native_swap = SwapRequest {
             quote: QuoteRequest {
                 from_token_amount: "100000000000000000".to_string(),
@@ -91,8 +102,11 @@ mod tests {
         };
         let opbnb_router = "0x8F957Ed3F969D7b6e5d6dF81e61A5Ff45F594dD1";
 
-        assert_eq!(get_transaction_value(&native_tx, opbnb_router, &bnb, &bsc_usdt, &native_swap).unwrap(), U256::from(100_000_000_000_000_000u64));
-        assert_eq!(get_transaction_value(&token_tx, "0xa18968Cc31232724F1DBD0D1e8d0b323D89F3501", &base_usdc, &bsc_usdt, &token_swap).unwrap(), U256::ZERO);
-        assert_eq!(get_transaction_value(&native_tx, opbnb_router, &bnb, &bsc_usdt, &other_destination).unwrap_err(), SwapperError::InvalidRoute);
+        assert_eq!(get_transaction_value(&native_tx, opbnb_router, &bnb, "USDT(BSC)", &native_swap).unwrap(), U256::from(100_000_000_000_000_000u64));
+        assert_eq!(
+            get_transaction_value(&token_tx, "0xa18968Cc31232724F1DBD0D1e8d0b323D89F3501", &BASE_USDC_ASSET_ID, "USDT(BSC)", &token_swap).unwrap(),
+            U256::ZERO
+        );
+        assert_eq!(get_transaction_value(&native_tx, opbnb_router, &bnb, "USDT(BSC)", &other_destination).unwrap_err(), SwapperError::InvalidRoute);
     }
 }
