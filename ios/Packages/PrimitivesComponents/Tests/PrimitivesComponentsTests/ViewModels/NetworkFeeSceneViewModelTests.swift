@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Components
 import Foundation
-import enum Gemstone.FeePriority
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemFeeRateRow
 import struct Gemstone.GemFeeRateRows
@@ -14,24 +12,6 @@ import GemstonePrimitivesTestKit
 import Localization
 import Primitives
 @testable import PrimitivesComponents
-
-extension NetworkFeeSceneViewModel {
-    var selectedRowItem: ListItemModel? {
-        feeRateRows.first(where: \.isSelected).map(rowItem(for:))
-    }
-}
-
-private extension GemFeeRateRow {
-    static func rate(_ priority: Gemstone.FeePriority = .normal, fee: BigInt? = nil, isSelected: Bool = true) -> GemFeeRateRow {
-        .mock(
-            kind: .priority(priority: priority),
-            fee: fee,
-            value: .feeRate(rate: .mock(value: 1, unit: .plain, display: .number(precision: .fraction(min: 2, max: 2)), notation: .plain, tone: .plain, rounding: .toNearest), unit: .gwei),
-            isSelected: isSelected,
-        )
-    }
-}
-
 import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
@@ -55,7 +35,7 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func showFeeRatesSelector() {
         #expect(NetworkFeeSceneViewModel.mock(feeRates: .mock(
-            rows: [.rate()],
+            rows: [.mock(kind: .priority(priority: .normal), isSelected: true)],
             showsOptions: false,
             unitType: .gwei,
             unitDecimals: 9,
@@ -63,7 +43,7 @@ struct NetworkFeeSceneViewModelTests {
             normalTotal: 1,
         )).showFeeRates == false)
         #expect(NetworkFeeSceneViewModel.mock(feeRates: .mock(
-            rows: [.rate(), .rate(.fast, isSelected: false)],
+            rows: [.mock(kind: .priority(priority: .normal), isSelected: true), .mock(kind: .priority(priority: .fast))],
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
@@ -107,7 +87,7 @@ struct NetworkFeeSceneViewModelTests {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),
             feeRates: .mock(
-                rows: [.rate(fee: 5000)],
+                rows: [.mock(kind: .priority(priority: .normal), fee: 5000, isSelected: true)],
                 showsOptions: false,
                 unitType: .native,
                 unitDecimals: 9,
@@ -126,7 +106,7 @@ struct NetworkFeeSceneViewModelTests {
     func fiatValueForNonNativeFeeType() throws {
         let model = NetworkFeeSceneViewModel.mock(
             feeRates: .mock(
-                rows: [.rate(fee: 21_000_000_000_000)],
+                rows: [.mock(kind: .priority(priority: .normal), fee: 21_000_000_000_000, isSelected: true)],
                 showsOptions: false,
                 unitType: .gwei,
                 unitDecimals: 9,
@@ -146,7 +126,7 @@ struct NetworkFeeSceneViewModelTests {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),
             feeRates: .mock(
-                rows: [.rate(fee: 5000)],
+                rows: [.mock(kind: .priority(priority: .normal), fee: 5000, isSelected: true)],
                 showsOptions: false,
                 unitType: .native,
                 unitDecimals: 9,
@@ -176,7 +156,7 @@ struct NetworkFeeSceneViewModelTests {
         let custom = try #require(NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(),
             feeRates: .mock(
-                rows: [.rate(fee: 1000)],
+                rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
                 showsOptions: false,
                 unitType: .satVb,
                 unitDecimals: 1,
@@ -196,7 +176,7 @@ struct NetworkFeeSceneViewModelTests {
         let custom = try #require(NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(),
             feeRates: .mock(
-                rows: [.rate(fee: 1000)],
+                rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
                 showsOptions: false,
                 unitType: .satVb,
                 unitDecimals: 1,
@@ -217,7 +197,7 @@ struct NetworkFeeSceneViewModelTests {
             let custom = NetworkFeeSceneViewModel.mock(
                 feeAsset: .mock(),
                 feeRates: .mock(
-                    rows: [.rate(fee: 1000)],
+                    rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
                     showsOptions: false,
                     unitType: .satVb,
                     unitDecimals: 1,
@@ -241,7 +221,7 @@ struct NetworkFeeSceneViewModelTests {
             let custom = NetworkFeeSceneViewModel.mock(
                 feeAsset: .mock(),
                 feeRates: .mock(
-                    rows: [.rate(fee: 1000)],
+                    rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
                     showsOptions: false,
                     unitType: .satVb,
                     unitDecimals: 1,
@@ -262,7 +242,7 @@ struct NetworkFeeSceneViewModelTests {
             let custom = NetworkFeeSceneViewModel.mock(
                 feeAsset: .mock(),
                 feeRates: .mock(
-                    rows: [.rate(fee: 1000)],
+                    rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
                     showsOptions: false,
                     unitType: .satVb,
                     unitDecimals: 1,
@@ -282,7 +262,7 @@ struct NetworkFeeSceneViewModelTests {
         let reopened = try #require(NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(),
             feeRates: .mock(
-                rows: [.rate(fee: 1000)],
+                rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
                 showsOptions: false,
                 unitType: .satVb,
                 unitDecimals: 1,

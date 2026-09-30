@@ -9,6 +9,7 @@ import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
@@ -31,13 +32,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemEarnInput
@@ -53,6 +51,10 @@ import java.math.BigInteger
 class EarnViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
     private val provider = mockDelegationValidator(id = "earn-provider", apr = 4.0, providerType = StakeProviderType.Earn)
     private val funded = mockDelegation(base = mockDelegationBase(assetId = asset.id, balance = BigInteger("500"), shares = BigInteger("500")), validator = provider)
@@ -85,12 +87,6 @@ class EarnViewModelTest {
     private val getSession = mockk<GetSession> {
         every { this@mockk() } returns session
     }
-
-    @Before
-    fun setUp() = kotlinx.coroutines.Dispatchers.setMain(testDispatcher)
-
-    @After
-    fun tearDown() = kotlinx.coroutines.Dispatchers.resetMain()
 
     private fun viewModel(providers: List<com.wallet.core.primitives.DelegationValidator> = listOf(provider), positions: List<com.wallet.core.primitives.Delegation> = listOf(funded, empty), screenAssetId: AssetId = asset.id) =
         EarnViewModel(

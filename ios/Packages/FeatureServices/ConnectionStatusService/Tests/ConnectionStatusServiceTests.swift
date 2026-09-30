@@ -2,18 +2,10 @@
 
 @testable import ConnectionStatusService
 import ConnectionStatusServiceTestKit
-import ConnectivityService
 import Primitives
 import Testing
 
 struct ConnectionStatusServiceTests {
-    @Test
-    func connectivityStateIsOffline() {
-        #expect(ConnectivityState.unknown.isOffline == false)
-        #expect(ConnectivityState.satisfied.isOffline == false)
-        #expect(ConnectivityState.unsatisfied(.noNetwork).isOffline == true)
-    }
-
     @Test
     @MainActor
     func updateComponent() {

@@ -72,6 +72,6 @@ mod tests {
     fn the_small_widget_abbreviates_its_price() {
         let ids = coin_ids(GemWidgetSize::Small);
         let coins = coins(&ids, vec![AssetBasic::mock_with_price(Chain::Bitcoin, 690_000.0, -3.5)], "USD", GemWidgetSize::Small);
-        assert!(matches!(coins[0].price.display, GemNumberDisplay::Abbreviated));
+        assert_eq!(coins[0].price.display, GemNumberDisplay::Abbreviated);
     }
 }

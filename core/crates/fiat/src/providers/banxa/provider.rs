@@ -84,7 +84,7 @@ mod tests {
         let request = FiatWebhookRequest::mock_banxa_signed(include_str!("../../../testdata/banxa/webhook_order_complete.json"));
         let result = BanxaClient::mock().parse_webhook(request).await.unwrap();
 
-        assert!(matches!(result, FiatWebhook::OrderId(order_id) if order_id == "banxa_order_123"));
+        assert_eq!(result, FiatWebhook::OrderId("banxa_order_123".to_string()));
     }
 
     #[tokio::test]

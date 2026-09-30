@@ -214,3 +214,25 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         ].compactMap(\.self)
     }
 }
+
+public final class GemPerpetualStreamServiceMock: GemPerpetualStreamServiceProtocol, @unchecked Sendable {
+    private let lock = NSLock()
+    private var connectedAddresses: [String] = []
+
+    public init() {}
+
+    public var addresses: [String] { lock.withLock { connectedAddresses } }
+
+    public func connected(address: String, mode _: Gemstone.PerpetualAccountMode) async throws {
+        lock.withLock { connectedAddresses.append(address) }
+    }
+
+    public func disconnected() async {}
+
+    public func candleUpdate(walletId _: Gemstone.WalletId, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.ChartCandleUpdate? {
+        nil
+    }
+
+    public func subscribe(subscription _: Gemstone.GemPerpetualSubscription) async throws {}
+    public func unsubscribe(subscription _: Gemstone.GemPerpetualSubscription) async throws {}
+}

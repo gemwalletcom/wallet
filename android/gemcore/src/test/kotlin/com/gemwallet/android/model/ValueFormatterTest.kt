@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -9,9 +10,16 @@ import java.util.Locale
 
 class ValueFormatterTest {
 
+    private val defaultLocale = Locale.getDefault()
+
     @Before
     fun setUp() {
         Locale.setDefault(Locale.US)
+    }
+
+    @After
+    fun tearDown() {
+        Locale.setDefault(defaultLocale)
     }
 
     @Test

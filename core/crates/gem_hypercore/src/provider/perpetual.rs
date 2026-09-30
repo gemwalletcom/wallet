@@ -444,7 +444,7 @@ mod tests {
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
-mod integration_tests {
+mod chain_integration_tests {
     use crate::provider::testkit::{TEST_ADDRESS, create_hypercore_test_client};
     use chain_traits::ChainPerpetual;
     use primitives::ChartPeriod;

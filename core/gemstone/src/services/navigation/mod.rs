@@ -296,7 +296,7 @@ mod tests {
 
             let result = service.open_deeplink(Deeplink::Receive { asset_id: bitcoin.id.clone() }).await;
 
-            assert!(matches!(result, Err(GemServiceError::NoAccountForChain { chain: Chain::Bitcoin })));
+            assert_eq!(result.unwrap_err(), GemServiceError::NoAccountForChain { chain: Chain::Bitcoin });
         });
     }
 }

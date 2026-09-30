@@ -111,7 +111,6 @@ let package = Package(
             dependencies: [
                 "ConnectionStatusService",
                 "ConnectionStatusServiceTestKit",
-                .product(name: "ConnectivityService", package: "SystemServices"),
                 "Primitives",
             ],
             path: "ConnectionStatusService/Tests",

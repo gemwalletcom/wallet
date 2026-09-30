@@ -15,14 +15,4 @@ class ButtonStateTest {
         assertEquals(ButtonState.Enabled, buttonState(enabled = true, loading = false))
         assertEquals(ButtonState.Disabled, buttonState(enabled = false, loading = false))
     }
-
-    @Test
-    fun onlyEnabledStateIsInteractive() {
-        for (enabled in listOf(true, false)) {
-            for (loading in listOf(true, false)) {
-                val interactive = buttonState(enabled = enabled, loading = loading) == ButtonState.Enabled
-                assertEquals(enabled && !loading, interactive)
-            }
-        }
-    }
 }

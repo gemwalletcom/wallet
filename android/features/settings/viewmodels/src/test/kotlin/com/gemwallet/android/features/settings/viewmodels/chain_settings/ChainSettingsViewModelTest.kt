@@ -3,24 +3,22 @@ package com.gemwallet.android.features.settings.viewmodels.chain_settings
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockGemNodeSelection
 import com.gemwallet.android.testkit.mockLatency
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemChainSettingsSection
@@ -35,14 +33,13 @@ class ChainSettingsViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val models = mutableListOf<ChainSettingsViewModel>()
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     @After
     fun tearDown() {
         models.forEach { it.viewModelScope.cancel() }
         models.clear()
-        Dispatchers.resetMain()
     }
 
     private fun service(nodesByCall: List<List<GemNodeSelection>>, statuses: Map<String, GemNodeStatusState> = emptyMap()): GemChainSettingsServiceInterface {

@@ -360,7 +360,7 @@ mod tests {
     fn test_a_malicious_verdict_stops_the_load_before_it_asks_the_chain() {
         let (result, requests) = load_with_scan(r#"{"isMalicious":true,"isScanComplete":true}"#);
 
-        assert!(matches!(result, Err(GemConfirmError::ScanMalicious)));
+        assert_eq!(result.unwrap_err(), GemConfirmError::ScanMalicious);
         assert_eq!(
             requests,
             vec!["/v2/devices/scan/transaction"],

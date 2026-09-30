@@ -5,6 +5,6 @@ import Foundation
 
 extension WebSocket {
     static func mock() -> WebSocket {
-        WebSocket(request: URLRequest(url: URL(string: "wss://example.com")!))
+        WebSocket(request: URLRequest(url: URL(string: "wss://127.0.0.1:9")!))
     }
 }
