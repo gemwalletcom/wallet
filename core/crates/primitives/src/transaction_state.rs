@@ -38,6 +38,13 @@ impl TransactionState {
         }
     }
 
+    pub fn is_failed(&self) -> bool {
+        match self {
+            Self::Failed | Self::Reverted => true,
+            Self::Pending | Self::Confirmed | Self::InTransit | Self::Refunded => false,
+        }
+    }
+
     pub fn merged_with(self, updated: Self) -> Self {
         if self == Self::Pending || updated.is_completed() { updated } else { self }
     }

@@ -1,4 +1,4 @@
-use localizer::LanguageLocalizer;
+use localizer::{LanguageLocalizer, TransactionAction};
 
 #[test]
 fn test_specific_language() {
@@ -67,4 +67,14 @@ fn test_the_referral_window_names_the_device_and_wallet_age_in_the_right_plural(
         let text = LanguageLocalizer::new_with_language(language).rewards_error_referral_eligibility_expired(30);
         assert_ne!(text, english.rewards_error_referral_eligibility_expired(30), "{language} reads its own translation, not the English fallback");
     }
+}
+
+#[test]
+fn test_notification_transaction_failed_title() {
+    let english = LanguageLocalizer::new_with_language("en");
+    assert_eq!(english.notification_transaction_failed_title(TransactionAction::Swap), "❌ \u{2068}Swap\u{2069}: Failed");
+    assert_eq!(english.notification_transaction_failed_title(TransactionAction::TokenApproval), "❌ \u{2068}Token Approval\u{2069}: Failed");
+    assert_eq!(english.notification_token_approval_title("USDC"), "✅ Token Approval \u{2068}USDC\u{2069}");
+    assert_eq!(english.notification_transaction_failed_title(TransactionAction::ClaimRewards), "❌ \u{2068}Claim Rewards\u{2069}: Failed");
+    assert_eq!(english.notification_claim_rewards_title("1 SOL"), "🎁 Claim Rewards \u{2068}1 SOL\u{2069}");
 }

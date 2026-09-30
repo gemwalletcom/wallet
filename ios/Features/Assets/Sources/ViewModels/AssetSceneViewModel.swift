@@ -156,8 +156,8 @@ public final class AssetSceneViewModel: Sendable {
         Images.System.ellipsis
     }
 
-    public func priceAlertsImage(_ details: GemAssetDetails) -> Image {
-        details.state.priceAlert.image
+    public func priceAlertsImage(_ details: GemAssetDetails) -> Image? {
+        details.state.priceAlert?.image
     }
 
     public func menuItems(_ details: GemAssetDetails) -> [ActionMenuItemType] {
@@ -272,8 +272,8 @@ public extension AssetSceneViewModel {
     }
 
     func onTogglePriceAlert() {
+        guard let toggled = details.state.priceAlert?.toggled() else { return }
         Task {
-            let toggled = details.state.priceAlert.toggled()
             do {
                 let toast = try await service.setPriceAlert(asset: asset.toGem(), enabled: toggled == .enabled)
                 isPresentingToastMessage = ToastMessage(toast: toast)

@@ -18,6 +18,7 @@ use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
+use crate::services::price_alert::GemPriceAlertService;
 use session::GemChartSession;
 
 pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType};
@@ -47,13 +48,20 @@ pub struct GemChartService {
     price: Arc<GemPriceService>,
     preferences: Arc<GemPreferencesService>,
     explorer: Arc<GemExplorerService>,
+    price_alerts: Arc<GemPriceAlertService>,
 }
 
 #[uniffi::export]
 impl GemChartService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>, explorer: Arc<GemExplorerService>) -> Self {
-        Self { api, price, preferences, explorer }
+    pub fn new(api: Arc<GemApiClient>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>, explorer: Arc<GemExplorerService>, price_alerts: Arc<GemPriceAlertService>) -> Self {
+        Self {
+            api,
+            price,
+            preferences,
+            explorer,
+            price_alerts,
+        }
     }
 
     pub async fn sections(&self, asset: Asset, price: Option<f64>, market: Option<AssetMarket>, price_alerts: Vec<PriceAlert>, links: Vec<AssetLink>) -> Result<Vec<GemListSection>, GemServiceError> {
@@ -63,7 +71,15 @@ impl GemChartService {
             None => None,
         };
         let contract_explorer = asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(asset.id.chain, token_id));
-        Ok(rules::chart_sections(&asset, currency, price, market.as_ref(), price_alerts, links, contract_explorer))
+        Ok(rules::chart_sections(
+            &asset,
+            currency,
+            price,
+            market.as_ref(),
+            self.price_alerts.is_available().then_some(price_alerts),
+            links,
+            contract_explorer,
+        ))
     }
 
     pub fn new_session(&self) -> GemChartSession {

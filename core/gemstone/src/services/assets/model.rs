@@ -772,7 +772,7 @@ impl GemValueHeader {
 pub struct GemAssetDetailsState {
     pub is_view_only: bool,
     pub shows_banners: bool,
-    pub price_alert: GemPriceAlertToggle,
+    pub price_alert: Option<GemPriceAlertToggle>,
     pub empty_state: GemEmptyState,
 }
 

@@ -188,7 +188,7 @@ public extension Gemstone.GemAssetDetailsState {
     static func mock(
         isViewOnly: Bool = false,
         showsBanners: Bool = false,
-        priceAlert: Gemstone.GemPriceAlertToggle = .enabled,
+        priceAlert: Gemstone.GemPriceAlertToggle? = nil,
         emptyState: Gemstone.GemEmptyState = .mock(),
     ) -> Gemstone.GemAssetDetailsState {
         Gemstone.GemAssetDetailsState(

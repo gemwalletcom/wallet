@@ -38,8 +38,10 @@ fun RowScope.AssetDetailsMenu(details: GemAssetDetails, onPriceAlert: () -> Unit
         context.shareText(subject = null, text = details.shareUrl, chooserTitle = shareTitle)
     }
 
-    IconButton(onClick = onPriceAlert) {
-        Icon(details.state.priceAlert.symbol().vector(), "")
+    details.state.priceAlert?.let { priceAlert ->
+        IconButton(onClick = onPriceAlert) {
+            Icon(priceAlert.symbol().vector(), "")
+        }
     }
     IconButton(onClick = { menuExpanded = !menuExpanded }) {
         Icon(

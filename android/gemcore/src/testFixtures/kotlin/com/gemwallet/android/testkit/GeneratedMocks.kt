@@ -1086,7 +1086,7 @@ fun mockGemAssetDetails(
 fun mockGemAssetDetailsState(
     isViewOnly: Boolean = false,
     showsBanners: Boolean = false,
-    priceAlert: uniffi.gemstone.GemPriceAlertToggle = uniffi.gemstone.GemPriceAlertToggle.ENABLED,
+    priceAlert: uniffi.gemstone.GemPriceAlertToggle? = null,
     emptyState: uniffi.gemstone.GemEmptyState = mockGemEmptyState(),
 ) = uniffi.gemstone.GemAssetDetailsState(
     isViewOnly = isViewOnly,
