@@ -77,4 +77,6 @@ pub struct GraphqlVariables {
     pub block_number: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hash: Option<String>,
 }

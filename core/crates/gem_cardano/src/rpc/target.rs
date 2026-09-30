@@ -7,6 +7,7 @@ pub enum CardanoTarget {
     Tip,
     Block { number: u64 },
     AddressTransactions { address: String, limit: usize },
+    Transaction { hash: String },
     Balance { address: String },
     Utxos { address: String },
     NetworkMagic,
@@ -33,6 +34,7 @@ impl CardanoTarget {
             Self::Tip => None,
             Self::Block { .. } => Some("GetBlockByNumber"),
             Self::AddressTransactions { .. } => Some("GetTransactionsByAddress"),
+            Self::Transaction { .. } => Some("GetTransactionByHash"),
             Self::Balance { .. } => Some("GetBalance"),
             Self::Utxos { .. } => Some("UtxoSetForAddress"),
             Self::NetworkMagic => Some("GetNetworkMagic"),
@@ -47,6 +49,7 @@ impl CardanoTarget {
             Self::AddressTransactions { .. } => {
                 "query GetTransactionsByAddress($address: String!, $limit: Int!) { transactions(limit: $limit, order_by: { includedAt: desc }, where: { outputs: { address: { _eq: $address } } }) { hash includedAt inputs { address value } outputs { address value } fee } }"
             }
+            Self::Transaction { .. } => "query GetTransactionByHash($hash: Hash32Hex!) { transactions(where: { hash: { _eq: $hash } }) { hash includedAt inputs { address value } outputs { address value } fee } }",
             Self::Balance { .. } => "query GetBalance($address: String!) { utxos: utxos_aggregate(where: { address: { _eq: $address }  } ) { aggregate { sum { value } } } }",
             Self::Utxos { .. } => {
                 "query UtxoSetForAddress($address: String!) { utxos(order_by: { value: desc } , where: { address: { _eq: $address }  } ) { address value txHash index tokens { quantity asset { fingerprint policyId assetName } } } }"
@@ -66,6 +69,10 @@ impl CardanoTarget {
             Self::AddressTransactions { address, limit } => GraphqlVariables {
                 address: Some(address.clone()),
                 limit: Some(*limit),
+                ..Default::default()
+            },
+            Self::Transaction { hash } => GraphqlVariables {
+                hash: Some(hash.clone()),
                 ..Default::default()
             },
             Self::Balance { address } | Self::Utxos { address } => GraphqlVariables {
