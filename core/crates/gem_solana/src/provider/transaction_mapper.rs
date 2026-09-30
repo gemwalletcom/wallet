@@ -2,7 +2,8 @@ use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
 
 use crate::{
-    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022, WSOL_TOKEN_ADDRESS,
+    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
+    WSOL_TOKEN_ADDRESS,
     models::{BlockTransaction, BlockTransactions, Instruction},
 };
 use primitives::{
@@ -12,7 +13,7 @@ use primitives::{
 use super::parsers::ProtocolParsers;
 
 const CHAIN: Chain = Chain::Solana;
-const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID)];
+const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID), (SwapProvider::Orca, ORCA_WHIRLPOOL_PROGRAM_ID)];
 const MPL_CORE_TRANSFER_V1: u8 = 14;
 const MPL_TOKEN_METADATA_TRANSFER_V1: u8 = 49;
 const MPL_TOKEN_METADATA_MINT_ACCOUNT_INDEX: usize = 4;
@@ -339,6 +340,22 @@ mod tests {
         assert_eq!(transaction.hash(), "vXUaBxa3MtnodHE7by5sXpExWHoMdcp7qiMKk1UoM8CnYBGD84KpzbErWLVf7RfjAmsrhJxjJ3Df7hqJ4Qh4umb");
         assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
         assert_eq!(transaction.state, TransactionState::Confirmed);
+    }
+
+    #[test]
+    fn test_map_orca_swap_referral_fee() {
+        let transaction = map_single_transaction(include_str!("../../testdata/swap_orca_referral_fee.json"));
+        let metadata = transaction.swap_metadata().unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.provider.as_deref(), Some("orca"));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
+                value: BigUint::from(6000u32),
+            })
+        );
     }
 
     fn map_single_transaction(payload: &str) -> primitives::Transaction {
