@@ -14,6 +14,7 @@ use super::parsers::ProtocolParsers;
 
 const CHAIN: Chain = Chain::Solana;
 const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID), (SwapProvider::Orca, ORCA_WHIRLPOOL_PROGRAM_ID)];
+const NATIVE_TRANSFER_PROGRAMS: [&str; 3] = [SYSTEM_PROGRAM_ID, COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID];
 const MPL_CORE_TRANSFER_V1: u8 = 14;
 const MPL_TOKEN_METADATA_TRANSFER_V1: u8 = 49;
 const MPL_TOKEN_METADATA_MINT_ACCOUNT_INDEX: usize = 4;
@@ -181,7 +182,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         return Some(transaction);
     }
 
-    if (account_keys.len() == 3 && account_keys.last()? == SYSTEM_PROGRAM_ID) || (account_keys.len() == 4 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID)) {
+    if account_keys.len() >= 3 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().skip(2).all(|key| NATIVE_TRANSFER_PROGRAMS.contains(&key.as_str())) {
         let from = account_keys.first()?.clone();
         let to = account_keys.get(1)?.clone();
         let value = transaction.get_balance_change(&from);
@@ -356,6 +357,16 @@ mod tests {
                 value: BigUint::from(6000u32),
             })
         );
+    }
+
+    #[test]
+    fn test_map_transfer_sol_with_memo_and_compute_budget() {
+        let transaction = map_single_transaction(include_str!("../../testdata/transfer_sol_with_memo_compute.json"));
+
+        assert_eq!(transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(transaction.from, "BUW2vSJMbNojvi9vh1oRg6Qd88GAYSqZifXzZ7JN8uKV");
+        assert_eq!(transaction.to, "7YjizA4PUnLvuKijmEHjdDDbfWyG2LMqGCLVjpWrARCA");
+        assert!(transaction.memo.as_deref().is_some_and(|memo| memo.starts_with('=')));
     }
 
     fn map_single_transaction(payload: &str) -> primitives::Transaction {
