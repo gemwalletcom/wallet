@@ -5,7 +5,10 @@ use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     ChainSigner, HyperliquidOrder, NumberIncrementer, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualType, SignerError, SignerInput, TransactionInputType,
-    asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID, decode_hex, known_assets::HYPERCORE_SPOT_USDC, stake_type::StakeType,
+    asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID,
+    decode_hex,
+    known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC},
+    stake_type::StakeType,
 };
 use serde::Serialize;
 use serde_json::{self, Value};
@@ -347,7 +350,9 @@ impl ChainSigner for HyperCoreSigner {
         if asset.id != HYPERCORE_SPOT_USDC.id {
             return Err(SignerError::InvalidInput(format!("Unsupported HyperCore deposit asset: {}", asset.id)));
         }
-        let amount = input_amount(input)?;
+        let decimals = HYPERCORE_PERPETUAL_USDC.decimals as u32;
+        let value = &input.value / BigUint::from(10u32).pow(asset.decimals as u32 - decimals);
+        let amount = BigNumberFormatter::plain_value(&value, decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
         let nonce = Self::timestamp_ms();
 
         let usd_class_transfer = UsdClassTransfer::new(amount, true, nonce);
@@ -389,7 +394,7 @@ mod tests {
     use primitives::transaction_load_metadata::AgentPrivateKey;
     use primitives::{
         Asset, AssetId, AssetType, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, SignerInput, StakeType, SwapProvider, TransactionFee,
-        TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID, known_assets::HYPERCORE_PERPETUAL_USDC,
+        TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID,
     };
     use std::sync::Arc;
 
@@ -608,12 +613,13 @@ mod tests {
             TransactionInputType::Deposit { asset: HYPERCORE_SPOT_USDC.clone() },
             TEST_PRIVATE_KEY_ETHEREUM_ADDRESS,
             TEST_PRIVATE_KEY_ETHEREUM_ADDRESS,
-            "150000000",
+            "155098260466",
             TransactionLoadMetadata::Hyperliquid { order: None },
         );
         let signed = HyperCoreSigner.sign_deposit(&input, &TEST_PRIVATE_KEY).unwrap();
         let request: serde_json::Value = serde_json::from_str(&signed).unwrap();
 
+        assert_eq!(request["action"]["amount"], "1550.982604", "Hyperliquid rounds to perpetual precision, so a max spot balance must not round up past itself");
         assert_eq!(
             BroadcastProvider.decode_transaction_broadcast(signed.as_bytes(), r#"{"status":"ok","response":{"type":"default"}}"#).unwrap(),
             format!("action:usdClassTransfer:perp:{}", request["nonce"]),
