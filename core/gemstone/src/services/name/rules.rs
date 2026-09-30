@@ -18,7 +18,7 @@ pub fn address_name_update(name: AddressName) -> GemAddressNameUpdate {
     }
 }
 
-fn names_the_user_owns(address_type: &AddressType) -> bool {
+pub(crate) fn names_the_user_owns(address_type: &AddressType) -> bool {
     match address_type {
         AddressType::Contact | AddressType::InternalWallet => true,
         AddressType::Address | AddressType::Contract | AddressType::Asset | AddressType::Validator => false,

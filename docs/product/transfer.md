@@ -28,6 +28,8 @@ flowchart LR
 | There is not enough of the coin that pays the fee | the fee in that coin above its value: `0.0000129 BNB` over `$0.01` | that is the amount the user has to add |
 | The user can pick which asset pays the fee | its value and the asset: `$0.01` with `USDC` | |
 | The user taps Network Fee | the fee in its coin above its value, and faster, slower or custom fees where the network allows | |
+| The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
+| The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
 | The recipient is flagged | a "Suspicious address" warning with one line on why, under the amount; Confirm stays disabled | |
 | Confirm loads with a problem the user can act on: not enough balance or network fee, a required memo, a risky transaction | its explanation opens by itself | the user sees what to do before looking for it |
 | A refresh or a fee change finds the same problem | the explanation stays as the user left it | it opens once per problem |
