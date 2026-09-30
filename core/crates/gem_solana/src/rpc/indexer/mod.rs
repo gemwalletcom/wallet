@@ -3,10 +3,11 @@ mod jsonrpc;
 use std::error::Error;
 
 use gem_client::Client;
-use gem_jsonrpc::client::JsonRpcClient;
+use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
 use serde::Deserialize;
 
 use self::jsonrpc::SolanaIndexerRpc;
+use crate::{jsonrpc::SolanaRpc, models::SingleTransaction};
 
 #[derive(Debug, Deserialize)]
 struct Transactions {
@@ -26,6 +27,10 @@ pub struct SolanaIndexer<C: Client + Clone> {
 impl<C: Client + Clone> SolanaIndexer<C> {
     pub fn new(client: JsonRpcClient<C>) -> Self {
         Self { client }
+    }
+
+    pub(crate) async fn get_transaction(&self, signature: &str) -> Result<Option<SingleTransaction>, JsonRpcError> {
+        self.client.request(SolanaRpc::GetTransaction(signature.to_string())).await
     }
 
     pub(crate) async fn get_transaction_ids_by_address(&self, address: &str, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
