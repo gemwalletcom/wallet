@@ -1,7 +1,7 @@
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::models::token::{BigInt, TokenBalance, TokenBalanceChange};
 
@@ -159,6 +159,20 @@ impl BlockTransaction {
             asset_id: Chain::Solana.as_asset_id(),
             amount,
         }
+    }
+
+    pub fn get_created_token_accounts_rent_by_owner(&self, owner: &str) -> BigInt {
+        if !self.is_fee_payer(owner) {
+            return BigInt::from(0);
+        }
+        let existing_accounts: HashSet<i64> = self.meta.pre_token_balances.iter().map(|balance| balance.account_index).collect();
+        self.meta
+            .post_token_balances
+            .iter()
+            .filter(|balance| balance.owner == owner && !existing_accounts.contains(&balance.account_index))
+            .filter_map(|balance| usize::try_from(balance.account_index).ok())
+            .map(|index| BigInt::from(*self.meta.post_balances.get(index).unwrap_or(&0)) - BigInt::from(*self.meta.pre_balances.get(index).unwrap_or(&0)))
+            .sum()
     }
 
     fn is_fee_payer(&self, owner: &str) -> bool {
