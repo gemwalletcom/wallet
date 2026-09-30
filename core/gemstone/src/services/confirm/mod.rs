@@ -162,7 +162,7 @@ impl GemConfirmService {
         Ok(confirm_data.fee_load(confirm_metadata?, fee_asset?, currency))
     }
 
-    pub fn simulation(&self, input_type: TransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Result<GemConfirmSimulation, GemConfirmError> {
+    pub fn simulation(&self, input_type: TransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemConfirmSimulation {
         let has_critical_warning = simulation.as_ref().map(SimulationResult::has_critical_warning).unwrap_or(false);
         let chain = input_type.transaction_asset().chain();
         let approval = input_type.approval_value();
@@ -186,13 +186,13 @@ impl GemConfirmService {
             })
             .collect();
         let (primary_fields, secondary_fields): (Vec<_>, Vec<_>) = payload_fields.into_iter().partition(|field| field.display == SimulationPayloadFieldDisplay::Primary);
-        Ok(GemConfirmSimulation {
+        GemConfirmSimulation {
             has_critical_warning,
             primary_fields: payload_rows(&primary_fields, chain, &address_url),
             secondary_fields: payload_rows(&secondary_fields, chain, &address_url),
             header,
             balance_changes,
-        })
+        }
     }
 }
 

@@ -1204,8 +1204,8 @@ mod tests {
             volume: 3.0,
             ..ChartCandleStick::mock_range(9.0, 12.0)
         };
-        let busy = ChartCandleStick { volume: 12.0, ..quiet.clone() };
-        let silent = [ChartCandleStick { volume: 0.0, ..quiet.clone() }];
+        let busy = ChartCandleStick { volume: 12.0, ..quiet };
+        let silent = [ChartCandleStick { volume: 0.0, ..quiet }];
 
         assert_eq!(chart_layout(&[quiet.clone(), busy, quiet.clone()], &quiet, None).volume_high, 12.0, "the volume axis reaches the busiest candle");
         assert_eq!(chart_layout(&silent, &silent[0], None).volume_high, 0.0, "no volume, no bars");

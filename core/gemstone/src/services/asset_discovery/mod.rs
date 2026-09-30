@@ -86,7 +86,7 @@ impl GemAssetDiscoveryService {
     where
         F: Future<Output = Result<T, GemServiceError>>,
     {
-        if self.preferences.is_initial_load_completed(wallet_id.clone(), step)? {
+        if self.preferences.is_initial_load_completed(wallet_id.clone(), step) {
             return Ok(());
         }
         sync.await?;

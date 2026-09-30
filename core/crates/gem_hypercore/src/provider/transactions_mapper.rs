@@ -14,10 +14,10 @@ use crate::models::spot::SpotMeta;
 use crate::models::token::SpotToken;
 use crate::models::transaction_id::{HyperCoreActionId, HyperCoreTransactionId};
 use crate::perpetual_formatter::usdc_value;
+use crate::provider::fee_calculator::builder_fee_rate;
 use crate::provider::perpetual_mapper::create_perpetual_asset_id;
 use crate::provider::transaction_state_mapper::prepare_perpetual_fill;
 
-const BUILDER_FEE_DENOMINATOR: f64 = 100_000.0;
 const BUILDER_FEE_RATE_TOLERANCE: f64 = 0.01;
 const PREVIOUS_BUILDER_FEE_BPS: [u32; 2] = [43, 50];
 
@@ -108,7 +108,7 @@ pub(crate) fn builder_fee_amount<'a>(fills: impl IntoIterator<Item = &'a UserFil
     let builder_fee: f64 = fills.into_iter().filter_map(|fill| fill.builder_fee).sum();
     let fee_rate = builder_fee / quote_amount;
     let is_builder_rate = PREVIOUS_BUILDER_FEE_BPS.into_iter().chain([HypercoreConfig::default().max_builder_fee_bps]).any(|bps| {
-        let builder_rate = f64::from(bps) / BUILDER_FEE_DENOMINATOR;
+        let builder_rate = builder_fee_rate(bps);
         (fee_rate - builder_rate).abs() <= builder_rate * BUILDER_FEE_RATE_TOLERANCE
     });
     (builder_fee > 0.0 && is_builder_rate).then_some(builder_fee)

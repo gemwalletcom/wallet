@@ -5,11 +5,9 @@ use gem_jsonrpc::alien::RpcProvider;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_solana::models::jito::{FeeStats, calculate_fee_stats};
 use gem_solana::models::prioritization_fee::SolanaPrioritizationFee;
-use gem_solana::{JUPITER_PROGRAM_ID, SolanaRpc, SolanaRpcConfig, USDC_TOKEN_MINT};
+use gem_solana::{JUPITER_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, SolanaRpc, SolanaRpcConfig, USDC_TOKEN_MINT};
 use gemstone::alien::{new_alien_client, reqwest_provider::NativeProvider};
 use primitives::Chain;
-
-pub const ORCA_WHIRLPOOL: &str = "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc";
 
 const MIN_NORMAL_FEE: u64 = 10_000;
 const MIN_FAST_FEE: u64 = 100_000;
@@ -64,7 +62,7 @@ impl SolanaGasClient {
 
         let mut account_fees = AccountFeeStats::default();
 
-        for (account, name) in [(JUPITER_PROGRAM_ID, "jupiter"), (ORCA_WHIRLPOOL, "orca"), (USDC_TOKEN_MINT, "usdc")] {
+        for (account, name) in [(JUPITER_PROGRAM_ID, "jupiter"), (ORCA_WHIRLPOOL_PROGRAM_ID, "orca"), (USDC_TOKEN_MINT, "usdc")] {
             let fees: Vec<SolanaPrioritizationFee> = client.request(SolanaRpc::GetRecentPrioritizationFees(vec![account.to_string()])).await?;
 
             if !fees.is_empty() {
