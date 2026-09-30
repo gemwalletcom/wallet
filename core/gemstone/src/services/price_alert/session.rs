@@ -353,11 +353,10 @@ mod tests {
             format: GemNumberFormat { decimal_separator: ",".to_string() },
             ..GemPriceAlertSession::mock()
         }
-        .on_price(Some(2.5), None);
-        let suggestion = &session.view_state().suggestions[0];
+        .on_price(Some(0.66), None);
+        let inputs: Vec<String> = session.view_state().suggestions.into_iter().map(|suggestion| suggestion.input_text).collect();
 
-        assert_eq!(suggestion.input_text, session.format.value_text(suggestion.label.value));
-        assert!(suggestion.input_text.contains(',') || !suggestion.input_text.contains('.'), "{}", suggestion.input_text);
+        assert_eq!(inputs, vec!["0,62", "0,7"]);
     }
 
     #[test]
