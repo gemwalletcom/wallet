@@ -384,7 +384,7 @@ indexer:
     key:
       secret: ""
   aptos:
-    url: "https://api.mainnet.aptoslabs.com/v1/graphql"
+    url: "https://archive.mainnet.aptoslabs.com"
     key:
       secret: ""
   ankr:
