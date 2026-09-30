@@ -538,7 +538,7 @@ pub fn wallet_search_view(input: GemWalletSearchInput, shows_recents: bool, show
         state: wallet_search_state(&counts, input.is_loading),
         pinned_asset_ids: assets.pinned,
         asset_ids: preview(assets.assets, assets_limit),
-        has_more_assets: counts.assets > assets_limit,
+        has_more_assets: counts.pinned_assets + counts.assets > assets_limit,
         pinned_perpetuals: perpetuals.pinned,
         perpetuals: preview(perpetuals.markets, PERPETUALS_PREVIEW_LIMIT),
         has_more_perpetuals: counts.perpetuals > PERPETUALS_PREVIEW_LIMIT,
@@ -1375,20 +1375,32 @@ mod tests {
         assert_eq!(view.pinned_asset_ids, vec![ids[5].clone()]);
         assert_eq!(view.asset_ids.len(), 12, "the preview shows the initial limit");
         assert!(!view.asset_ids.contains(&ids[5]), "a pinned asset is not repeated in the preview");
-        assert!(view.has_more_assets, "13 unpinned assets are more than the preview shows");
         assert!(view.state.shows_pinned && view.state.shows_assets);
+    }
 
-        let pinned_only = wallet_search_view(
-            GemWalletSearchInput {
-                asset_ids: ids.clone(),
-                pinned_asset_ids: ids,
-                ..search_input("")
-            },
-            false,
-            false,
-            false,
-        );
-        assert!(pinned_only.asset_ids.is_empty() && !pinned_only.has_more_assets, "pinned assets never count towards more");
+    #[test]
+    fn test_pinned_rows_in_the_fetched_window_still_offer_more() {
+        let view = |query: &str, rows: usize, pinned: usize| {
+            let ids = token_ids(rows);
+            wallet_search_view(
+                GemWalletSearchInput {
+                    asset_ids: ids.clone(),
+                    pinned_asset_ids: ids.into_iter().take(pinned).collect(),
+                    ..search_input(query)
+                },
+                false,
+                false,
+                false,
+            )
+        };
+
+        for query in ["", "usd"] {
+            let fetch = wallet_search_limits(query).fetch as usize;
+            assert!(view(query, fetch, 0).has_more_assets, "a full window offers more");
+            assert!(view(query, fetch, 1).has_more_assets, "a pinned row shares the window, so a full window still offers more");
+            assert!(view(query, fetch, fetch).has_more_assets, "a window full of pinned rows can hide the rest");
+            assert!(!view(query, fetch - 1, 2).has_more_assets, "a window the store could not fill has nothing more");
+        }
     }
 
     #[test]
