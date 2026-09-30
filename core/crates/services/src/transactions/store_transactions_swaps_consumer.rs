@@ -47,13 +47,14 @@ impl StoreTransactionsSwapsConsumer {
         let from = self.asset_value(&metadata.from_asset, &metadata.from_value, at).await?;
         let to = self.asset_value(&metadata.to_asset, &metadata.to_value, at).await?;
         let to_amount_usd = to.amount_usd.filter(|value| is_output_within_input_value(*value, from.amount_usd, config.max_output_to_input_value));
-        let referral_fee_amount_usd = fee.amount_usd.filter(|value| is_fee_within_swap_value(*value, from.amount_usd.or(to_amount_usd)));
+        let from_amount_usd = from.amount_usd.filter(|value| is_input_within_output_value(*value, to_amount_usd, config.max_input_to_output_value));
+        let referral_fee_amount_usd = fee.amount_usd.filter(|value| is_fee_within_swap_value(*value, from_amount_usd.or(to_amount_usd)));
         Ok(Some(TransactionSwapRecord {
             provider,
             status,
             from_asset_id: metadata.from_asset,
             from_amount: from.amount,
-            from_amount_usd: from.amount_usd,
+            from_amount_usd,
             to_asset_id: metadata.to_asset,
             to_amount: to.amount,
             to_amount_usd,
@@ -103,6 +104,10 @@ fn is_output_within_input_value(output_usd: f64, input_usd: Option<f64>, max_out
     input_usd.is_none_or(|input_usd| output_usd <= input_usd * max_output_to_input_value)
 }
 
+fn is_input_within_output_value(input_usd: f64, output_usd: Option<f64>, max_input_to_output_value: f64) -> bool {
+    output_usd.is_none_or(|output_usd| input_usd <= output_usd * max_input_to_output_value)
+}
+
 fn is_fee_within_swap_value(fee_usd: f64, swap_usd: Option<f64>) -> bool {
     swap_usd.is_none_or(|swap_usd| fee_usd <= swap_usd)
 }
@@ -116,6 +121,13 @@ mod tests {
         assert!(is_output_within_input_value(99.0, Some(100.0), 2.0));
         assert!(!is_output_within_input_value(2.46e18, Some(12.3), 2.0));
         assert!(is_output_within_input_value(2.46e18, None, 2.0));
+    }
+
+    #[test]
+    fn test_is_input_within_output_value() {
+        assert!(is_input_within_output_value(100.0, Some(99.0), 2.0));
+        assert!(!is_input_within_output_value(561510226.8, Some(9.15), 2.0));
+        assert!(is_input_within_output_value(561510226.8, None, 2.0));
     }
 
     #[test]
