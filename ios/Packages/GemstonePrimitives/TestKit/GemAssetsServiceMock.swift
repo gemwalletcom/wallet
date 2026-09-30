@@ -28,8 +28,6 @@ public final class GemAssetStoreMock: GemAssetStore, @unchecked Sendable {
 
     public func saveAssets(assets _: [Gemstone.AssetBasic]) async throws {}
     public func saveAsset(asset _: Gemstone.AssetFull) async throws {}
-    public func addMissingBalances(walletId _: Gemstone.WalletId, assetIds _: [Gemstone.AssetId]) async throws {}
-    public func addBalances(walletId _: Gemstone.WalletId, assetIds _: [Gemstone.AssetId], enabled _: Bool) async throws {}
     public func setBuyableAssets(assetIds _: [Gemstone.AssetId]) async throws {}
     public func setSellableAssets(assetIds _: [Gemstone.AssetId]) async throws {}
     public func setSwappableAssets(assetIds _: [Gemstone.AssetId]) async throws {}
@@ -102,7 +100,6 @@ public extension GemAssetsService {
             store: store,
             price: GemPriceService(store: GemPriceStoreMock(), preferences: GemPreferencesService(store: preferences)),
             preferences: GemPreferencesService(store: preferences),
-            session: GemWalletSessionService(store: GemWalletSessionStoreMock(), wallets: GemWalletStoreMock()),
         )
     }
 }

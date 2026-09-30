@@ -193,6 +193,17 @@ class PendingNavigationCoordinatorTest {
         assertEquals(PendingNavigation.FromLink("gem://tokens/bitcoin"), coordinator.pendingNavigation.value)
     }
 
+    @Test
+    fun pendIntent_relaunchedFromRecents_isIgnored() {
+        val intent = mockk<Intent>(relaxed = true)
+        every { intent.dataString } returns "wc:abc@2?relay-protocol=irn"
+        every { intent.flags } returns Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY
+
+        coordinator.pendIntent(intent)
+
+        assertNull(coordinator.pendingNavigation.value)
+    }
+
     private object NoOpWalletConnect : PendingNavigationCoordinator.WalletConnectHandler {
         override fun onPairing(uri: String) = Unit
         override fun onRequest() = Unit

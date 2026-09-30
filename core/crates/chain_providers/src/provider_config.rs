@@ -6,6 +6,7 @@ use settings::Settings;
 pub(crate) struct IndexerProvidersConfig {
     pub(crate) alchemy: RemoteProviderConfig,
     pub(crate) algorand: RemoteProviderConfig,
+    pub(crate) aptos: RemoteProviderConfig,
     pub(crate) ankr: RemoteProviderConfig,
     pub(crate) blockscout: RemoteProviderConfig,
     pub(crate) fastnear: FastNearProvidersConfig,
@@ -47,6 +48,7 @@ impl ProviderConfig {
             indexers: IndexerProvidersConfig {
                 alchemy: settings.indexer.alchemy.remote_provider_config(),
                 algorand: settings.indexer.algorand.remote_provider_config(),
+                aptos: settings.indexer.aptos.remote_provider_config(),
                 ankr: settings.indexer.ankr.remote_provider_config(),
                 blockscout: settings.indexer.blockscout.remote_provider_config(),
                 fastnear: FastNearProvidersConfig {

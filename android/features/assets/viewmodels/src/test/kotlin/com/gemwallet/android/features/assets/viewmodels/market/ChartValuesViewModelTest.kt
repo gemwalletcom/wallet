@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockChartDateValue
@@ -21,7 +22,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -29,12 +29,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartSession
@@ -45,6 +44,10 @@ import uniffi.gemstone.GemServiceException
 class ChartValuesViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
     private val currencyFlow = MutableStateFlow(Currency.USD)
     private val viewModels = mutableListOf<ViewModel>()
@@ -57,7 +60,6 @@ class ChartValuesViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         every { chartService.newSession() } answers {
             GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false, zoom = GemChartZoom(scale = 1.0, offset = 0.0))
         }
@@ -73,7 +75,6 @@ class ChartValuesViewModelTest {
             }
         }
         viewModels.clear()
-        Dispatchers.resetMain()
     }
 
     @Test

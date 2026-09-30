@@ -19,7 +19,4 @@ dependencies {
     implementation(project(":features:stake:presents"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
-
-    testImplementation(testFixtures(project(":gemcore")))
-    testImplementation(libs.junit)
 }

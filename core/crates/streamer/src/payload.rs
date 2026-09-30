@@ -290,7 +290,7 @@ mod tests {
     fn test_legacy_wallet_stream_event_deserialization() {
         let payload: WalletStreamPayload = serde_json::from_str(r#"{"wallet_id":123,"event":"Nft"}"#).unwrap();
 
-        assert!(matches!(payload.event, WalletStreamEvent::Nft));
+        assert_eq!(payload.event, WalletStreamEvent::Nft);
     }
 }
 
@@ -377,7 +377,7 @@ impl fmt::Display for WalletStreamPayload {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum WalletStreamEvent {
     #[serde(alias = "Transactions")]

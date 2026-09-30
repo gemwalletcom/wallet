@@ -419,18 +419,22 @@ mod tests {
 
     #[test]
     fn test_a_cancelled_signer_is_a_cancel_not_a_failure() {
-        assert!(matches!(sign_error(Chain::Ethereum, GemstoneError::Cancelled), GemConfirmError::Cancelled));
-        assert!(matches!(
+        assert_eq!(sign_error(Chain::Ethereum, GemstoneError::Cancelled), GemConfirmError::Cancelled);
+        assert_eq!(
             sign_error(Chain::Ethereum, GemstoneError::AnyError { msg: "boom".into() }),
-            GemConfirmError::Sign { error: GemSignerError::SigningError(msg), chain: Chain::Ethereum, .. } if msg == "boom"
-        ));
+            GemConfirmError::Sign {
+                error: GemSignerError::SigningError("boom".to_string()),
+                chain: Chain::Ethereum,
+                msg: "boom".to_string(),
+            }
+        );
     }
 
     #[test]
     fn test_a_cancelled_keystore_prompt_is_a_cancel_not_a_load_failure() {
-        assert!(matches!(GemConfirmError::from(GemServiceError::Cancelled), GemConfirmError::Cancelled));
-        assert!(matches!(GemConfirmError::from(GemServiceError::Offline), GemConfirmError::Offline));
-        assert!(matches!(GemConfirmError::from(GemServiceError::Store { msg: "x".to_string() }), GemConfirmError::Load { .. }));
+        assert_eq!(GemConfirmError::from(GemServiceError::Cancelled), GemConfirmError::Cancelled);
+        assert_eq!(GemConfirmError::from(GemServiceError::Offline), GemConfirmError::Offline);
+        assert_eq!(GemConfirmError::from(GemServiceError::Store { msg: "x".to_string() }), GemConfirmError::Load { msg: "x".to_string() });
     }
 
     #[test]
@@ -440,14 +444,24 @@ mod tests {
 
         let with_requirement = GemConfirmError::InsufficientNetworkFee {
             asset: asset.clone(),
-            requirement: Some(requirement),
+            requirement: Some(requirement.clone()),
         };
         let without = GemConfirmError::InsufficientNetworkFee { asset: asset.clone(), requirement: None };
-        assert!(matches!(with_requirement.display(), GemConfirmErrorDisplay::NetworkFeeRequired { .. }));
-        assert!(matches!(
+        assert_eq!(
+            with_requirement.display(),
+            GemConfirmErrorDisplay::NetworkFeeRequired {
+                asset: asset.clone(),
+                title: asset.display_title(),
+                requirement: GemConfirmRequirement::new(&requirement, &asset),
+            }
+        );
+        assert_eq!(
             without.display(),
-            GemConfirmErrorDisplay::NetworkFeeMissing { ref title, .. } if *title == asset.display_title()
-        ));
+            GemConfirmErrorDisplay::NetworkFeeMissing {
+                asset: asset.clone(),
+                title: asset.display_title(),
+            }
+        );
 
         let dust = GemConfirmError::Sign {
             error: GemSignerError::DustThreshold,
@@ -459,8 +473,8 @@ mod tests {
             chain: Chain::Bitcoin,
             msg: "boom".to_string(),
         };
-        assert!(matches!(dust.display(), GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin }));
-        assert!(matches!(signing.display(), GemConfirmErrorDisplay::Message { msg } if msg == "boom"));
+        assert_eq!(dust.display(), GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin });
+        assert_eq!(signing.display(), GemConfirmErrorDisplay::Message { msg: "boom".to_string() });
 
         assert!(dust.display().sheet().is_some());
         assert!(signing.display().sheet().is_none());
@@ -469,24 +483,24 @@ mod tests {
 
     #[test]
     fn test_gateway_errors_keep_their_kind() {
-        match load_error(GatewayError::NetworkError { msg: "timeout".to_string() }) {
-            GemConfirmError::Network { msg } => assert_eq!(msg, "timeout"),
-            error => panic!("expected a network error, got {error:?}"),
-        }
-        assert!(matches!(load_error(GatewayError::Offline), GemConfirmError::Offline));
-        assert!(matches!(broadcast_error(vec![], GatewayError::Offline), GemConfirmError::Offline));
-        assert!(matches!(broadcast_error(vec!["h1".to_string()], GatewayError::Offline), GemConfirmError::Broadcast { .. }));
-        match load_error(GatewayError::PlatformError { msg: "dust".to_string() }) {
-            GemConfirmError::Load { msg } => assert_eq!(msg, "Platform error: dust"),
-            error => panic!("expected a load error, got {error:?}"),
-        }
-        match broadcast_error(vec![], GatewayError::NetworkError { msg: "offline".to_string() }) {
-            GemConfirmError::Network { msg } => assert_eq!(msg, "offline"),
-            error => panic!("expected a network error, got {error:?}"),
-        }
-        match broadcast_error(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }) {
-            GemConfirmError::Broadcast { hashes, .. } => assert_eq!(hashes, vec!["h1".to_string()]),
-            error => panic!("expected a partial broadcast error, got {error:?}"),
-        }
+        assert_eq!(load_error(GatewayError::NetworkError { msg: "timeout".to_string() }), GemConfirmError::Network { msg: "timeout".to_string() });
+        assert_eq!(load_error(GatewayError::Offline), GemConfirmError::Offline);
+        assert_eq!(broadcast_error(vec![], GatewayError::Offline), GemConfirmError::Offline);
+        assert_eq!(
+            broadcast_error(vec!["h1".to_string()], GatewayError::Offline),
+            GemConfirmError::Broadcast {
+                hashes: vec!["h1".to_string()],
+                msg: GatewayError::Offline.to_string(),
+            }
+        );
+        assert_eq!(load_error(GatewayError::PlatformError { msg: "dust".to_string() }), GemConfirmError::Load { msg: "Platform error: dust".to_string() });
+        assert_eq!(broadcast_error(vec![], GatewayError::NetworkError { msg: "offline".to_string() }), GemConfirmError::Network { msg: "offline".to_string() });
+        assert_eq!(
+            broadcast_error(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }),
+            GemConfirmError::Broadcast {
+                hashes: vec!["h1".to_string()],
+                msg: GatewayError::NetworkError { msg: "offline".to_string() }.to_string(),
+            }
+        );
     }
 }

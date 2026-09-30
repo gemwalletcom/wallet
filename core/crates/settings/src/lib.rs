@@ -43,6 +43,7 @@ pub struct Settings {
 pub struct Indexer {
     pub alchemy: ProviderSettings,
     pub algorand: ProviderSettings,
+    pub aptos: ProviderSettings,
     pub ankr: ProviderSettings,
     pub blockscout: ProviderSettings,
     pub etherscan: ProviderSettings,

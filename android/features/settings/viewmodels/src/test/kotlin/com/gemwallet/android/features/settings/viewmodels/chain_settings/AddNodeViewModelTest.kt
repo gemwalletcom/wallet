@@ -1,22 +1,19 @@
 package com.gemwallet.android.features.settings.viewmodels.chain_settings
 
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemAddNodeException
 import uniffi.gemstone.GemAddNodePhase
@@ -33,11 +30,8 @@ import uniffi.gemstone.LatencyType
 class AddNodeViewModelTest {
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
-
-    @After
-    fun tearDown() = Dispatchers.resetMain()
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     private val check = GemNodeCheck(
         url = "https://node",

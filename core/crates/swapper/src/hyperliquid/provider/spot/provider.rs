@@ -275,7 +275,7 @@ mod unit_tests {
 }
 
 #[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
-mod tests {
+mod swap_integration_tests {
     use super::*;
     use crate::{hyperliquid::provider::spot::math::SPOT_ASSET_OFFSET, testkit::mock_quote};
     use primitives::swap::SwapQuoteDataType;
@@ -299,7 +299,7 @@ mod tests {
         let quote_data = spot.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
         assert_eq!(quote.data.provider.id, SwapperProvider::Hyperliquid);
         assert!(quote.to_value > BigUint::ZERO);
-        assert!(matches!(quote_data.data_type, SwapQuoteDataType::Contract));
+        assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
 
         let from_amount = BigDecimal::from_str(&BigNumberFormatter::value(&quote.from_value.to_string(), quote.request.from_asset.decimals as i32).unwrap()).unwrap();
         let to_amount = BigDecimal::from_str(&BigNumberFormatter::value(&quote.to_value.to_string(), quote.request.to_asset.decimals as i32).unwrap()).unwrap();

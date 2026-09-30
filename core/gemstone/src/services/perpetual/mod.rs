@@ -143,7 +143,7 @@ impl GemPerpetualService {
     }
 
     pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
-        if !trigger.should_sync_markets(self.markets_updated_at()?, Utc::now().timestamp()) {
+        if !trigger.should_sync_markets(self.preferences.get_perpetual_markets_updated_at(), Utc::now().timestamp()) {
             return Ok(false);
         }
         self.sync_markets(chain).await?;
@@ -255,10 +255,6 @@ impl GemPerpetualService {
 }
 
 impl GemPerpetualService {
-    pub fn markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
-        self.preferences.get_perpetual_markets_updated_at()
-    }
-
     pub async fn get_candlesticks(&self, chain: Chain, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
         Ok(self.gateway.get_perpetual_candlesticks(chain, symbol, period.as_ref().to_string()).await?)
     }
@@ -283,7 +279,7 @@ impl GemPerpetualService {
     pub async fn update_prices(&self, prices: HashMap<String, f64>) -> Result<(), GemServiceError> {
         let _writes = self.writes.lock().await;
         let now = Utc::now().timestamp();
-        if !is_outdated(self.preferences.get_perpetual_prices_updated_at()?, now, PRICES_UPDATE_INTERVAL_SECONDS) {
+        if !is_outdated(self.preferences.get_perpetual_prices_updated_at(), now, PRICES_UPDATE_INTERVAL_SECONDS) {
             return Ok(());
         }
         let stored = self.store.get_perpetuals(prices.keys().cloned().collect()).await?;
@@ -336,7 +332,7 @@ mod tests {
         let writes = testkit.store.price_writes.lock().unwrap();
         assert_eq!(writes.len(), 1, "a second message inside the interval is dropped, not written again");
         assert_eq!(writes[0].iter().map(|price| (price.coin.as_str(), price.price)).collect::<Vec<_>>(), vec![("BTC", 104_633.0)]);
-        assert!(testkit.preferences.get_perpetual_prices_updated_at().unwrap().is_some());
+        assert!(testkit.preferences.get_perpetual_prices_updated_at().is_some());
     }
 
     #[test]

@@ -7,6 +7,7 @@ import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
 import com.gemwallet.android.features.settings.viewmodels.models.settingsAction
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.actions.SettingsAction
@@ -17,7 +18,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,16 +26,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemListRow
@@ -53,6 +52,10 @@ import uniffi.gemstone.GemSettingsServiceInterface
 class SettingsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     private val preferences = mockk<ObservablePreferences>(relaxed = true)
     private val wallets = MutableStateFlow<List<Wallet>>(emptyList())
     private val walletsQuery = mockk<WalletsQuery>(relaxed = true) {
@@ -68,14 +71,12 @@ class SettingsViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         viewModel = createViewModel()
     }
 
     @After
     fun tearDown() = runTest(testDispatcher) {
         viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
-        Dispatchers.resetMain()
     }
 
     @Test

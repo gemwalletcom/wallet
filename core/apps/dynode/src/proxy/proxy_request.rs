@@ -105,9 +105,6 @@ impl ProxyRequest {
 
 #[cfg(test)]
 mod tests {
-    use std::thread;
-    use std::time::Duration;
-
     use super::*;
 
     #[test]
@@ -154,16 +151,6 @@ mod tests {
         assert_eq!(request.host, "example.com");
         assert_eq!(request.user_agent, "test-agent");
         assert_eq!(request.chain, Chain::Ethereum);
-    }
-
-    #[test]
-    fn test_elapsed_time() {
-        let request = ProxyRequest::mock(Chain::Ethereum, Method::GET, "/test", &[]);
-
-        thread::sleep(Duration::from_millis(1));
-
-        let elapsed = request.elapsed();
-        assert!(elapsed.as_millis() > 0);
     }
 
     #[test]

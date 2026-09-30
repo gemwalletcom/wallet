@@ -187,7 +187,7 @@ mod tests {
         let provider = OkxProvider::mock(mock_client(error, error), "{}");
 
         let result = provider.get_quote(&mock_solana_request()).await;
-        assert!(matches!(result, Err(SwapperError::ComputeQuoteError(msg)) if msg == "Request frequency too high"));
+        assert_eq!(result.unwrap_err(), SwapperError::ComputeQuoteError("Request frequency too high".to_string()));
     }
 
     #[tokio::test]

@@ -5,35 +5,31 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockPortfolioChartData
 import com.gemwallet.android.testkit.mockPortfolioData
 import com.gemwallet.android.testkit.mockSession
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValuePercentage
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PortfolioType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.ChartDateValue
 import uniffi.gemstone.GemListRow
@@ -50,6 +46,10 @@ import java.util.concurrent.TimeUnit
 class PortfolioViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     private val session = mockSession()
     private val sessionFlow = MutableStateFlow<Session?>(session)
     private val viewModels = mutableListOf<ViewModel>()
@@ -72,7 +72,6 @@ class PortfolioViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         every { service.showPerpetuals(any(), any()) } returns false
     }
 
@@ -86,7 +85,6 @@ class PortfolioViewModelTest {
             }
         }
         viewModels.clear()
-        Dispatchers.resetMain()
     }
 
     @Test

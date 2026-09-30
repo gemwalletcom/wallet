@@ -11,6 +11,7 @@ pub use model::GemSearchScope;
 pub use store::GemSearchStore;
 
 use crate::services::assets::{GemAssetsService, rules as assets_rules};
+use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualService;
 use crate::services::price::GemPriceService;
@@ -18,6 +19,7 @@ use crate::services::price::GemPriceService;
 #[derive(uniffi::Object)]
 pub struct GemSearchService {
     assets: Arc<GemAssetsService>,
+    balance: Arc<GemBalanceService>,
     price: Arc<GemPriceService>,
     perpetuals: Arc<GemPerpetualService>,
     store: Arc<dyn GemSearchStore>,
@@ -26,8 +28,8 @@ pub struct GemSearchService {
 #[uniffi::export]
 impl GemSearchService {
     #[uniffi::constructor]
-    pub fn new(assets: Arc<GemAssetsService>, price: Arc<GemPriceService>, perpetuals: Arc<GemPerpetualService>, store: Arc<dyn GemSearchStore>) -> Self {
-        Self { assets, price, perpetuals, store }
+    pub fn new(assets: Arc<GemAssetsService>, balance: Arc<GemBalanceService>, price: Arc<GemPriceService>, perpetuals: Arc<GemPerpetualService>, store: Arc<dyn GemSearchStore>) -> Self {
+        Self { assets, balance, price, perpetuals, store }
     }
 }
 
@@ -63,7 +65,7 @@ impl GemSearchService {
         let asset_ids = rules::asset_ids(assets);
         self.assets.save_assets(assets.to_vec()).await?;
         self.price.update_prices(rules::prices(assets)).await?;
-        self.assets.add_missing_balances(wallet.id.clone(), asset_ids.clone()).await?;
+        self.balance.add_missing_balances(wallet.id.clone(), asset_ids.clone()).await?;
         self.store.set_assets(key.to_string(), asset_ids).await
     }
 

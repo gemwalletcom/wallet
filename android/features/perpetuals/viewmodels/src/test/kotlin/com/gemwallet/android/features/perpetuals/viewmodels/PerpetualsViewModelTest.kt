@@ -10,6 +10,7 @@ import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemValueHeader
@@ -31,7 +32,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -40,12 +40,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualServiceInterface
@@ -57,14 +55,13 @@ class PerpetualsViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private var model: PerpetualsViewModel? = null
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     @After
     fun tearDown() {
         model?.viewModelScope?.cancel()
         model = null
-        Dispatchers.resetMain()
     }
 
     @Test

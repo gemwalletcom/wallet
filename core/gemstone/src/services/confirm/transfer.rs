@@ -178,9 +178,7 @@ impl GemConfirmTransferService {
     pub(super) async fn simulation_state(&self, input_type: TransactionInputType, simulation: SimulationResult) -> Result<GemConfirmSimulationState, GemConfirmError> {
         let chain = input_type.transaction_asset().chain();
         let assets = self.confirm.ensure_simulation_assets(simulation.asset_ids()).await?;
-        let Ok(details) = self.confirm.simulation(input_type, Some(simulation.clone()), assets, |chain, address| self.address_url(chain, address)) else {
-            return Ok(simulation_seed(chain, Some(simulation)));
-        };
+        let details = self.confirm.simulation(input_type, Some(simulation.clone()), assets, |chain, address| self.address_url(chain, address));
         let requests = details.address_requests(chain);
         let address_names = self.names.get_address_names(requests).await.unwrap_or_default();
         Ok(GemConfirmSimulationState {

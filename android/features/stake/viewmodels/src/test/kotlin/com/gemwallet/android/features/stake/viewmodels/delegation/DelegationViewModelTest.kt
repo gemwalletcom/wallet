@@ -7,6 +7,7 @@ import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
@@ -23,18 +24,14 @@ import com.wallet.core.primitives.WalletId
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
@@ -43,6 +40,10 @@ import java.math.BigInteger
 class DelegationViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
 
     private val walletId = WalletId("wallet-own")
@@ -57,12 +58,6 @@ class DelegationViewModelTest {
     private val validatorsQuery = mockk<ValidatorsQuery> {
         every { this@mockk(asset.id, StakeProviderType.Stake) } returns flowOf(listOf(validator))
     }
-
-    @Before
-    fun setUp() = Dispatchers.setMain(testDispatcher)
-
-    @After
-    fun tearDown() = Dispatchers.resetMain()
 
     @Test
     fun `delegation lookup is scoped to the session wallet, not just validator and delegation id`() = runTest(testDispatcher) {

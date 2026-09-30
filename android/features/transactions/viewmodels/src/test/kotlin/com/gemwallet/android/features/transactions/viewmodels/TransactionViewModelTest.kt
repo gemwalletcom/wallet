@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.services.store.queries.TransactionQuery
 import com.gemwallet.android.data.services.store.queries.WalletQuery
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemTransactionDetailRows
@@ -19,17 +20,14 @@ import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemTransactionDetailsServiceInterface
 import uniffi.gemstone.BlockExplorerLink as GemBlockExplorerLink
@@ -39,6 +37,10 @@ import uniffi.gemstone.WalletType as GemWalletType
 class TransactionViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
+
     private val transactionExtended = mockTransactionExtended(
         transaction = mockTransaction(assetId = mockAssetId(chain = Chain.Near), type = TransactionType.Swap),
         asset = mockAsset(id = mockAssetId(chain = Chain.Near)),
@@ -58,13 +60,9 @@ class TransactionViewModelTest {
         )
     }
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
-
     @After
     fun tearDown() {
         model.viewModelScope.cancel()
-        Dispatchers.resetMain()
     }
 
     @Test

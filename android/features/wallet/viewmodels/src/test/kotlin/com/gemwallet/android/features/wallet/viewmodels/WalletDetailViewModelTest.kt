@@ -4,30 +4,27 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.data.services.store.queries.WalletQuery
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletDeletion
-import uniffi.gemstone.GemWalletSecret
 import uniffi.gemstone.GemWalletSecretKind
 import uniffi.gemstone.GemWalletServiceInterface
 
@@ -37,14 +34,13 @@ class WalletDetailViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val models = mutableListOf<androidx.lifecycle.ViewModel>()
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     @After
     fun tearDown() {
         models.forEach { it.viewModelScope.cancel() }
         models.clear()
-        Dispatchers.resetMain()
     }
 
     private val walletId = "multicoin_0xabc"

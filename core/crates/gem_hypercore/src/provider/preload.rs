@@ -120,7 +120,7 @@ mod tests {
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
-mod integration_tests {
+mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::create_hypercore_test_client;
     use primitives::{Asset, Chain, TransactionLoadInput};

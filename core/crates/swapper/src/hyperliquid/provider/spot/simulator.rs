@@ -5,7 +5,7 @@ use gem_hypercore::models::spot::OrderbookLevel;
 
 use crate::SwapperError;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub(super) struct SimulationResult {
     pub amount_out: BigDecimal,
     pub limit_price: BigDecimal,
@@ -109,7 +109,7 @@ mod tests {
     fn test_simulate_sell_insufficient_depth() {
         let amount = BigDecimal::from_str("10").unwrap();
         let bids = vec![OrderbookLevel::mock("2", "3"), OrderbookLevel::mock("1.5", "5")];
-        assert!(matches!(simulate_sell(&amount, &bids), Err(SwapperError::NoQuoteAvailable)));
+        assert_eq!(simulate_sell(&amount, &bids), Err(SwapperError::NoQuoteAvailable));
     }
 
     #[test]
@@ -133,6 +133,6 @@ mod tests {
     fn test_simulate_buy_insufficient_depth() {
         let amount = BigDecimal::from_str("25").unwrap();
         let asks = vec![OrderbookLevel::mock("2", "3"), OrderbookLevel::mock("3", "5")];
-        assert!(matches!(simulate_buy(&amount, &asks), Err(SwapperError::NoQuoteAvailable)));
+        assert_eq!(simulate_buy(&amount, &asks), Err(SwapperError::NoQuoteAvailable));
     }
 }

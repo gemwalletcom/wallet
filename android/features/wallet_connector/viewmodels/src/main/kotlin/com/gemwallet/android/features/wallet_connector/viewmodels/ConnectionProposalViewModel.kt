@@ -21,13 +21,19 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.WalletId
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -41,10 +47,11 @@ import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.applicationConnectionRow
 import uniffi.gemstone.connectionProposal
 import uniffi.gemstone.walletSections
-import javax.inject.Inject
 
-@HiltViewModel
-class ConnectionProposalViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = ConnectionProposalViewModel.Factory::class)
+class ConnectionProposalViewModel @AssistedInject constructor(
+    @Assisted private val proposal: WalletConnectSessionProposal,
+    @Assisted private val verifyContext: WalletConnectVerifyContext,
     private val approveWalletConnection: ApproveWalletConnection,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
@@ -54,10 +61,12 @@ class ConnectionProposalViewModel @Inject constructor(
 
     val state = MutableStateFlow<ConnectionProposalUIState>(ConnectionProposalUIState.Init(WalletConnectionVerificationStatus.UNKNOWN))
 
-    private val _proposal = MutableStateFlow<WalletConnectSessionProposal?>(null)
+    private val refusals = Channel<String>(Channel.BUFFERED)
+    val refusalMessages: Flow<String> = refusals.receiveAsFlow()
+
     private val _sessionProposal = MutableStateFlow<GemSessionProposal?>(null)
 
-    val proposal = _sessionProposal.map { prepared -> prepared?.let { applicationConnectionRow(it.proposal.metadata) } }
+    val peer = _sessionProposal.map { prepared -> prepared?.let { applicationConnectionRow(it.proposal.metadata) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableWallets = _sessionProposal.map { prepared -> prepared?.proposal?.wallets.orEmpty().map { it.toPrimitives() } }
@@ -89,10 +98,7 @@ class ConnectionProposalViewModel @Inject constructor(
         buttonState(enabled = wallet != null, loading = sceneState is ConnectionProposalUIState.Approving)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
-    fun onProposal(proposal: WalletConnectSessionProposal, verifyContext: WalletConnectVerifyContext, onNotify: (String) -> Unit) {
-        if (!walletConnectService.shouldProcessProposal(proposal.proposerPublicKey)) {
-            return
-        }
+    init {
         viewModelScope.launch {
             val prepared = withContext(ioDispatcher) {
                 runCatchingCancellable {
@@ -106,25 +112,18 @@ class ConnectionProposalViewModel @Inject constructor(
                 }
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")
-                onNotify(error.errorText().text(context))
-                reject(proposal, (error as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.USER_REJECTED)
+                refusals.trySend(error.errorText().text(context))
+                reject((error as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.USER_REJECTED)
                 return@launch
             }
             state.update { ConnectionProposalUIState.Init(prepared.verificationStatus) }
             _sessionProposal.update { prepared }
-            _proposal.update { proposal }
         }
     }
 
     fun onApprove(onError: (GemErrorText) -> Unit) {
-        val wallet = selectedWallet.value
-        val proposal = _proposal.value
+        val wallet = selectedWallet.value ?: return
         if (state.value is ConnectionProposalUIState.Approving) {
-            return
-        }
-
-        if (wallet == null || proposal == null) {
-            finish()
             return
         }
         state.update { ConnectionProposalUIState.Approving(it.verificationStatus) }
@@ -133,11 +132,11 @@ class ConnectionProposalViewModel @Inject constructor(
                 approveWalletConnection.approveConnection(
                     wallet = wallet,
                     proposal = proposal,
-                    onSuccess = { finish(proposal) },
-                    onError = { error -> fail(proposal, error, onError) },
+                    onSuccess = ::finish,
+                    onError = { error -> fail(error, onError) },
                 )
             }
-            result.onFailure { err -> fail(proposal, err.errorText(), onError) }
+            result.onFailure { err -> fail(err.errorText(), onError) }
         }
     }
 
@@ -145,12 +144,7 @@ class ConnectionProposalViewModel @Inject constructor(
         if (state.value is ConnectionProposalUIState.Approving) {
             return
         }
-        val proposal = _proposal.value
-        if (proposal == null) {
-            finish()
-            return
-        }
-        reject(proposal)
+        reject()
     }
 
     fun onWalletSelected(walletId: WalletId) {
@@ -160,40 +154,30 @@ class ConnectionProposalViewModel @Inject constructor(
         _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId } }
     }
 
-    private fun reject(proposal: WalletConnectSessionProposal, reason: GemWalletConnectRejectionReason = GemWalletConnectRejectionReason.USER_REJECTED) {
+    private fun reject(reason: GemWalletConnectRejectionReason = GemWalletConnectRejectionReason.USER_REJECTED) {
         viewModelScope.launch(ioDispatcher) {
             approveWalletConnection.rejectConnection(
                 proposal = proposal,
                 reason = reason,
-                onSuccess = { finish(proposal) },
-                onError = { finish(proposal) },
+                onSuccess = ::finish,
+                onError = { finish() },
             )
         }
     }
 
-    private fun fail(proposal: WalletConnectSessionProposal, error: GemErrorText, onError: (GemErrorText) -> Unit) {
+    private fun fail(error: GemErrorText, onError: (GemErrorText) -> Unit) {
         if (activeRequest.finish(proposal)) {
-            reset()
             onError(error)
         }
     }
 
-    private fun finish(proposal: WalletConnectSessionProposal) {
-        if (activeRequest.finish(proposal)) {
-            reset()
-        }
-    }
-
     private fun finish() {
-        reset()
-        activeRequest.finish()
+        activeRequest.finish(proposal)
     }
 
-    private fun reset() {
-        _proposal.update { null }
-        _sessionProposal.update { null }
-        _selectedWallet.update { null }
-        state.update { ConnectionProposalUIState.Init(WalletConnectionVerificationStatus.UNKNOWN) }
+    @AssistedFactory
+    interface Factory {
+        fun create(proposal: WalletConnectSessionProposal, verifyContext: WalletConnectVerifyContext): ConnectionProposalViewModel
     }
 
     private companion object {

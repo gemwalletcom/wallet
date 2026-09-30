@@ -1799,7 +1799,7 @@ mod tests {
             is_swap_enabled: true,
             ..AssetMetaData::mock()
         };
-        let tradable = AssetMetaData { is_buy_enabled: true, ..swappable.clone() };
+        let tradable = AssetMetaData { is_buy_enabled: true, ..swappable };
         for event in [BannerEvent::ActivateAsset, BannerEvent::AccountBlockedMultiSignature] {
             for metadata in [&tradable, &swappable] {
                 assert_eq!(state(WalletType::Multicoin, metadata, &[event]).empty_state.actions, vec![], "{event:?} locks the empty state like the header");

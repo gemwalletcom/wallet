@@ -7,6 +7,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockGemAppUpdateOffer
 import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.navigation.OnboardingRoute
@@ -17,21 +18,19 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemAppUpdateAction
@@ -43,11 +42,14 @@ import uniffi.gemstone.GemWalletSessionServiceInterface
 class AppViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
+
     private val models = mutableListOf<AppViewModel>()
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
         mockkStatic(Log::class)
         every { Log.e(any(), any(), any()) } returns 0
     }
@@ -56,7 +58,6 @@ class AppViewModelTest {
     fun tearDown() {
         models.forEach { it.viewModelScope.cancel() }
         models.clear()
-        Dispatchers.resetMain()
         unmockkStatic(Log::class)
     }
 
