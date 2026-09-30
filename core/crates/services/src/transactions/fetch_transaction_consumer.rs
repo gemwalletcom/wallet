@@ -6,7 +6,7 @@ use cacher::{CacheKey, CacherClient};
 use chain_providers::ChainProviders;
 use primitives::TransactionIdRequest;
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
-use swapper::swapper::GemSwapper;
+use swapper::{SwapResultRequest, swapper::GemSwapper};
 
 use crate::transactions::transaction_with_swap_result;
 
@@ -36,7 +36,7 @@ impl MessageConsumer<TransactionIdRequest, usize> for FetchTransactionConsumer {
         };
         let transaction = match swap_provider {
             Some(provider) => {
-                let result = self.swapper.get_swap_result(chain, provider, &transaction.id.hash).await?;
+                let result = self.swapper.get_swap_result(provider, &SwapResultRequest::from(&transaction)).await?;
                 transaction_with_swap_result(transaction, result)
             }
             None => transaction,

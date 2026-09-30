@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use chrono::{DateTime, Utc};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
-use primitives::swap::{SwapResult, SwapStatus};
+use primitives::swap::{SwapResult, SwapResultRequest, SwapStatus};
 use primitives::{Chain, JobConfiguration, Transaction, TransactionId, TransactionState, TransactionSwapMetadata};
 use storage::{Database, TransactionFilter, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
@@ -104,7 +104,7 @@ impl InTransitUpdater {
         let provider = cross_chain::in_transit_swap_provider(transaction, vault_addresses);
         let provider_name = provider.as_ref().map(|provider| provider.as_ref().to_string()).unwrap_or_default();
         let result = match provider {
-            Some(provider) => match self.swapper.get_swap_result(chain, provider, hash).await {
+            Some(provider) => match self.swapper.get_swap_result(provider, &SwapResultRequest::from(transaction)).await {
                 Ok(r) => r,
                 Err(error) => {
                     error_with_fields!("in_transit check failed", &error as &dyn Error, chain = chain.as_ref(), hash = hash, provider = provider_name, elapsed = elapsed);

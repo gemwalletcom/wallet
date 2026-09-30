@@ -1,7 +1,7 @@
 use crate::ranking::rank_quotes;
 use crate::{
-    AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData, across,
-    alien::RpcProvider, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz,
+    AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
+    across, alien::RpcProvider, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz,
     thorchain, uniswap,
 };
 use num_bigint::BigInt;
@@ -237,8 +237,8 @@ impl GemSwapper {
         Ok(quote_data)
     }
 
-    pub async fn get_swap_result(&self, chain: Chain, provider: SwapperProvider, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        self.get_swapper_by_provider(&provider)?.get_swap_result(chain, transaction_hash).await
+    pub async fn get_swap_result(&self, provider: SwapperProvider, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        self.get_swapper_by_provider(&provider)?.get_swap_result(request).await
     }
 
     pub async fn get_vault_addresses(&self, provider: &SwapperProvider, from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {

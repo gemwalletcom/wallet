@@ -2,7 +2,7 @@ use super::{
     SwapperProviderMode, SwapperQuoteData,
     cross_chain::VaultAddresses,
     error::SwapperError,
-    models::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapperChainAsset},
+    models::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, SwapperChainAsset},
 };
 use async_trait::async_trait;
 use std::fmt::Debug;
@@ -20,7 +20,7 @@ pub trait Swapper: Send + Sync + Debug {
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses { deposit: vec![], send: vec![] })
     }
-    async fn get_swap_result(&self, _chain: Chain, _transaction_hash: &str) -> Result<SwapResult, SwapperError> {
+    async fn get_swap_result(&self, _request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
         if self.provider().mode == SwapperProviderMode::OnChain {
             Ok(SwapResult {
                 status: SwapStatus::Completed,

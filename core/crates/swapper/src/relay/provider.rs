@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_tron::address::TronAddress;
 use primitives::{
-    AssetId, Chain, EvmNativeCurrency,
+    AssetId, EvmNativeCurrency,
     swap::{ApprovalData, SlippageMode},
 };
 
@@ -20,7 +20,7 @@ use super::{
     solana, ton,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::{check_approval_erc20, check_approval_trc20},
     client_factory::create_ton_client,
     config::get_swap_proxy_url,
@@ -156,13 +156,13 @@ where
         }
     }
 
-    async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        match RelayChain::from_chain(&chain).ok_or(SwapperError::NotSupportedChain)? {
-            RelayChain::Ton => self.get_ton_swap_result(transaction_hash).await,
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        match RelayChain::from_chain(&request.chain).ok_or(SwapperError::NotSupportedChain)? {
+            RelayChain::Ton => self.get_ton_swap_result(&request.transaction_hash).await,
             RelayChain::Bitcoin | RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Solana => {
-                let response = self.client.get_request(transaction_hash).await?;
-                let request = response.requests.first().ok_or(SwapperError::InvalidRoute)?;
-                Ok(mapper::map_swap_result(request))
+                let response = self.client.get_request(&request.transaction_hash).await?;
+                let relay_request = response.requests.first().ok_or(SwapperError::InvalidRoute)?;
+                Ok(mapper::map_swap_result(relay_request))
             }
         }
     }
@@ -218,6 +218,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    use primitives::Chain;
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock, approval::DEFAULT_TRON_SWAP_ENERGY_LIMIT, relay::model::Step};
     use primitives::{
@@ -324,6 +325,7 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
+    use primitives::Chain;
     use super::*;
     use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
     use primitives::{
@@ -351,7 +353,7 @@ mod swap_integration_tests {
         assert!(quote.to_value > BigUint::ZERO);
         assert_eq!((data.value, data.data_type, data.approval), (quote.from_value, SwapQuoteDataType::Transfer, None));
         assert!(data.to.starts_with("bc1q"));
-        let result = relay.get_swap_result(Chain::Bitcoin, "4e8707e3247bce0797315699ef78b6531cd0776e9dc186ac54512f17b5c04782").await?;
+        let result = relay.get_swap_result(&SwapResultRequest::new(Chain::Bitcoin, "4e8707e3247bce0797315699ef78b6531cd0776e9dc186ac54512f17b5c04782")).await?;
         assert_eq!(result.status, SwapStatus::Completed);
         assert_eq!(result.metadata.unwrap().from_asset, AssetId::from_chain(Chain::Bitcoin));
         Ok(())
@@ -532,7 +534,7 @@ mod swap_integration_tests {
         assert_eq!(quote.from_value, reverse_request.value);
         assert!(quote.to_value > BigUint::ZERO);
 
-        let result = relay.get_swap_result(Chain::Ton, "e86159ff0662a587649bc1d2ff0cd146e6628c3cc37396f7b680bd28260f44b5").await?;
+        let result = relay.get_swap_result(&SwapResultRequest::new(Chain::Ton, "e86159ff0662a587649bc1d2ff0cd146e6628c3cc37396f7b680bd28260f44b5")).await?;
         assert_eq!(result.status, SwapStatus::Completed);
         assert_eq!(result.metadata.unwrap().from_asset, AssetId::from_chain(Chain::Ton));
 
