@@ -16,16 +16,16 @@ use super::{
     wormhole_chain,
 };
 
-pub fn map_swap_result(result: &MayanTransactionResult) -> SwapResult {
+pub fn map_swap_result(result: &MayanTransactionResult, output_decimals: Option<u32>) -> SwapResult {
     SwapResult {
         status: result.client_status.swap_status(),
-        metadata: result.swap_metadata(),
+        metadata: result.swap_metadata(output_decimals),
         eta_in_seconds: None,
     }
 }
 
 impl MayanTransactionResult {
-    fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
+    fn swap_metadata(&self, output_decimals: Option<u32>) -> Option<TransactionSwapMetadata> {
         if self.client_status == MayanClientStatus::InProgress {
             return None;
         }
@@ -40,7 +40,7 @@ impl MayanTransactionResult {
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
         let to_value = match self.to_amount64.as_deref() {
             Some(value) => value.parse::<BigUint>().ok()?,
-            None => decimal_value(self.to_amount.as_deref()?, asset_decimals(&to_asset).or_else(|| self.output_decimals())?)?,
+            None => decimal_value(self.to_amount.as_deref()?, asset_decimals(&to_asset).or(output_decimals).or_else(|| self.min_amount_decimals())?)?,
         };
 
         let referral_fee = match self.client_status {
@@ -50,7 +50,7 @@ impl MayanTransactionResult {
         Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Mayan).with_referral_fee(referral_fee))
     }
 
-    fn output_decimals(&self) -> Option<u32> {
+    fn min_amount_decimals(&self) -> Option<u32> {
         let amount = self.min_amount_out.as_deref()?;
         let value = self.min_amount_out64.as_deref()?.parse::<BigUint>().ok().filter(|value| *value > BigUint::ZERO)?;
         (0..=MAX_TOKEN_DECIMALS).find(|decimals| decimal_value(amount, *decimals).as_ref() == Some(&value))
@@ -86,7 +86,7 @@ mod tests {
     use super::*;
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ARBITRUM_USDT_ASSET_ID, BASE_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID},
+        asset_constants::{ARBITRUM_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID},
         swap::SwapStatus,
     };
 
@@ -172,7 +172,7 @@ mod tests {
         ] {
             let referral_fee = referral_fee.map(|(asset_id, value)| TransactionSwapReferralFee { asset_id, value: value.parse().unwrap() });
             assert_eq!(
-                map_swap_result(&result(json)),
+                map_swap_result(&result(json), None),
                 SwapResult {
                     status: SwapStatus::Completed,
                     metadata: Some(TransactionSwapMetadata::new(from_asset, from_value.parse().unwrap(), to_asset, to_value.parse().unwrap(), SwapperProvider::Mayan).with_referral_fee(referral_fee)),
@@ -183,9 +183,33 @@ mod tests {
     }
 
     #[test]
+    fn test_map_swap_result_with_output_token_decimals() {
+        let result = result(include_str!("test/eth_to_base_aero_swift_v1_decimal_output.json"));
+        let to_asset = AssetId::from_token(Chain::Base, "0x940181a94A35A4569E4529A3CDfB74e38FD98631");
+
+        assert!(map_swap_result(&result, None).metadata.is_none());
+        assert_eq!(
+            map_swap_result(&result, Some(18)).metadata,
+            Some(
+                TransactionSwapMetadata::new(
+                    ETHEREUM_USDT_ASSET_ID.clone(),
+                    "280000000".parse().unwrap(),
+                    to_asset.clone(),
+                    "447930094673253720688".parse().unwrap(),
+                    SwapperProvider::Mayan
+                )
+                .with_referral_fee(Some(TransactionSwapReferralFee {
+                    asset_id: to_asset,
+                    value: "2262273205420473336".parse().unwrap(),
+                }))
+            )
+        );
+    }
+
+    #[test]
     fn test_map_swap_result_without_metadata() {
         assert_eq!(
-            map_swap_result(&result(include_str!("test/mctp_pending.json"))),
+            map_swap_result(&result(include_str!("test/mctp_pending.json")), None),
             SwapResult {
                 status: SwapStatus::Pending,
                 metadata: None,
@@ -193,7 +217,7 @@ mod tests {
             }
         );
 
-        let refunded = map_swap_result(&result(include_str!("test/swift_refunded.json")));
+        let refunded = map_swap_result(&result(include_str!("test/swift_refunded.json")), None);
         assert_eq!(refunded.status, SwapStatus::Refunded);
         assert_eq!(refunded.metadata.and_then(|metadata| metadata.referral_fee), None);
 
@@ -201,13 +225,13 @@ mod tests {
             from_amount64: Some("invalid".to_string()),
             ..result(include_str!("test/pol_to_bnb_swift.json"))
         };
-        assert!(map_swap_result(&invalid).metadata.is_none());
+        assert!(map_swap_result(&invalid, None).metadata.is_none());
     }
 
     #[test]
     fn test_map_swap_result_rejects_decimal_hyperevm_output() {
         assert_eq!(
-            map_swap_result(&result(include_str!("test/hyperevm_to_solana_invalid_amount.json"))),
+            map_swap_result(&result(include_str!("test/hyperevm_to_solana_invalid_amount.json")), None),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: None,
