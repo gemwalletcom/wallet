@@ -44,6 +44,10 @@ pub enum FillDirection {
     CloseLong,
     #[strum(serialize = "Close Short")]
     CloseShort,
+    #[strum(serialize = "Long > Short")]
+    LongToShort,
+    #[strum(serialize = "Short > Long")]
+    ShortToLong,
     #[strum(default)]
     Other(String),
 }

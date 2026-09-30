@@ -43,7 +43,9 @@ fn map_fill_group(address: &str, fills: Vec<UserFill>, spot_meta: Option<&SpotMe
 
     match &last_fill.dir {
         FillDirection::Buy | FillDirection::Sell => map_spot_fill_group(address, fills, &last_fill, spot_meta),
-        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort | FillDirection::Other(_) => map_perpetual_fill_group(address, fills, &last_fill),
+        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort | FillDirection::LongToShort | FillDirection::ShortToLong | FillDirection::Other(_) => {
+            map_perpetual_fill_group(address, fills, &last_fill)
+        }
     }
 }
 
@@ -289,6 +291,21 @@ mod tests {
         }];
 
         assert!(map_user_fills("0xabc", fills, Some(&spot_meta())).is_empty());
+    }
+
+    #[test]
+    fn test_map_perpetual_fills_maps_position_flip_to_open() {
+        let fill: UserFill = serde_json::from_value(serde_json::json!({
+            "coin": "BTC", "hash": "0xflip", "oid": 7, "tid": 7, "sz": "0.1", "closedPnl": "12.5", "fee": "1.0",
+            "builderFee": "4.5", "px": "100000", "dir": "Long > Short", "time": 1
+        }))
+        .unwrap();
+        let transactions = map_user_fills("0xabc", vec![fill], Some(&spot_meta()));
+        let metadata = transactions[0].perpetual_metadata().unwrap();
+
+        assert_eq!(transactions[0].transaction_type, TransactionType::PerpetualOpenPosition);
+        assert_eq!(metadata.direction, PerpetualDirection::Short);
+        assert!(metadata.referral_fee.is_some());
     }
 
     #[test]

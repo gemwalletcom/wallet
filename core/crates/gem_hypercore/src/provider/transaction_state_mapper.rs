@@ -24,6 +24,8 @@ fn perpetual_fill_type_and_direction(dir: &FillDirection) -> Option<(Transaction
         FillDirection::OpenShort => Some((TransactionType::PerpetualOpenPosition, PerpetualDirection::Short)),
         FillDirection::CloseLong => Some((TransactionType::PerpetualClosePosition, PerpetualDirection::Long)),
         FillDirection::CloseShort => Some((TransactionType::PerpetualClosePosition, PerpetualDirection::Short)),
+        FillDirection::LongToShort => Some((TransactionType::PerpetualOpenPosition, PerpetualDirection::Short)),
+        FillDirection::ShortToLong => Some((TransactionType::PerpetualOpenPosition, PerpetualDirection::Long)),
         FillDirection::Buy | FillDirection::Sell | FillDirection::Other(_) => None,
     }
 }
@@ -64,7 +66,7 @@ pub fn map_transaction_state_order(fills: Vec<UserFill>, oid: u64, request_id: S
 
     match &last_fill.dir {
         FillDirection::Buy | FillDirection::Sell => {}
-        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort => {
+        FillDirection::OpenLong | FillDirection::OpenShort | FillDirection::CloseLong | FillDirection::CloseShort | FillDirection::LongToShort | FillDirection::ShortToLong => {
             if let Some(changes) = perpetual_fill_changes(&matching_fills, last_fill) {
                 update.changes.extend(changes);
             }
