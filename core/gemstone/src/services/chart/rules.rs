@@ -70,7 +70,7 @@ fn change_percentage(period: ChartPeriod, base_value: f64, latest: &AssetPrice) 
     }
 }
 
-pub fn chart_sections(asset: &Asset, currency: Currency, price: Option<f64>, market: Option<&AssetMarket>, price_alerts: Vec<PriceAlert>, links: Vec<AssetLink>, contract_explorer: Option<BlockExplorerLink>) -> Vec<GemListSection> {
+pub fn chart_sections(asset: &Asset, currency: Currency, price: Option<f64>, market: Option<&AssetMarket>, price_alerts: Option<Vec<PriceAlert>>, links: Vec<AssetLink>, contract_explorer: Option<BlockExplorerLink>) -> Vec<GemListSection> {
     let market_sections = [
         market.map(|market| market_section(market, currency.clone())).unwrap_or_default(),
         available_rows([contract_row(asset, contract_explorer)]),
@@ -99,10 +99,8 @@ fn section(title: GemListSectionTitle, rows: Vec<GemListRow>) -> GemListSection 
     }
 }
 
-fn price_alert_section(price: Option<f64>, price_alerts: Vec<PriceAlert>) -> Option<GemListSection> {
-    if !has_price(price) {
-        return None;
-    }
+fn price_alert_section(price: Option<f64>, price_alerts: Option<Vec<PriceAlert>>) -> Option<GemListSection> {
+    let price_alerts = price_alerts.filter(|_| has_price(price))?;
     let count = displayed_price_alert_ids(price_alerts).len() as u32;
     let row = match count {
         0 => GemListRow::Link {
@@ -601,7 +599,7 @@ mod tests {
         let links = vec![AssetLink::new("https://example.com", LinkType::Website)];
 
         assert_eq!(
-            chart_sections(&token, Currency::USD, Some(1.0), Some(&market), vec![], links.clone(), Some(BlockExplorerLink::mock())),
+            chart_sections(&token, Currency::USD, Some(1.0), Some(&market), Some(vec![]), links.clone(), Some(BlockExplorerLink::mock())),
             vec![
                 set_price_alert(),
                 section(
@@ -636,7 +634,7 @@ mod tests {
 
     #[test]
     fn test_chart_sections_skip_missing_values_and_empty_sections() {
-        let sections = chart_sections(&Asset::mock(), Currency::USD, None, Some(&AssetMarket::mock_partial()), vec![], vec![], None);
+        let sections = chart_sections(&Asset::mock(), Currency::USD, None, Some(&AssetMarket::mock_partial()), Some(vec![]), vec![], None);
 
         assert_eq!(
             sections,
@@ -656,7 +654,12 @@ mod tests {
 
     #[test]
     fn test_chart_sections_rank_badge_limit() {
-        let rank = |rank: i32| chart_sections(&Asset::mock(), Currency::USD, None, Some(&AssetMarket::mock_with_rank(rank)), vec![], vec![], None).remove(0).rows.remove(0);
+        let rank = |rank: i32| {
+            chart_sections(&Asset::mock(), Currency::USD, None, Some(&AssetMarket::mock_with_rank(rank)), Some(vec![]), vec![], None)
+                .remove(0)
+                .rows
+                .remove(0)
+        };
 
         assert_eq!(
             rank(MARKET_CAP_RANK_BADGE_LIMIT),
@@ -674,7 +677,10 @@ mod tests {
     fn test_chart_sections_without_market_keep_contract() {
         let token = Asset::mock_ethereum_usdc();
 
-        assert_eq!(chart_sections(&token, Currency::USD, None, None, vec![], vec![], None), vec![section(GemListSectionTitle::None, vec![contract(&token, None)])]);
+        assert_eq!(
+            chart_sections(&token, Currency::USD, None, None, Some(vec![]), vec![], None),
+            vec![section(GemListSectionTitle::None, vec![contract(&token, None)])]
+        );
     }
 
     #[test]
@@ -683,7 +689,7 @@ mod tests {
         let auto = PriceAlert::new_auto(asset.id.clone(), Currency::USD);
         let mut notified = PriceAlert::new_price(asset.id.clone(), Currency::USD, 120.0, PriceAlertDirection::Up);
         notified.last_notified_at = Some(Utc::now());
-        let first = |price: Option<f64>, alerts: Vec<PriceAlert>| chart_sections(&asset, Currency::USD, price, None, alerts, vec![], None).into_iter().next();
+        let first = |price: Option<f64>, alerts: Vec<PriceAlert>| chart_sections(&asset, Currency::USD, price, None, Some(alerts), vec![], None).into_iter().next();
 
         assert_eq!(first(Some(1.0), vec![]), Some(set_price_alert()));
         assert_eq!(
@@ -702,5 +708,10 @@ mod tests {
         assert_eq!(first(Some(0.0), vec![auto.clone()]), None);
         assert_eq!(first(None, vec![auto]), None);
         assert_eq!(first(None, vec![]), None);
+    }
+
+    #[test]
+    fn test_chart_sections_offer_no_price_alerts_when_the_app_cannot_push() {
+        assert_eq!(chart_sections(&Asset::mock(), Currency::USD, Some(1.0), None, None, vec![], None), vec![]);
     }
 }
