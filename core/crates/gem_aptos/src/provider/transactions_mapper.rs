@@ -1,16 +1,21 @@
-use crate::models::{DelegationPoolAddStakeData, DelegationPoolUnlockStakeData, Event, Transaction, TransactionResponse};
+use crate::address::AccountAddress;
+use crate::models::{DelegationPoolAddStakeData, DelegationPoolUnlockStakeData, Event, IndexerTransaction, Transaction, TransactionResponse};
 use crate::{APTOS_NATIVE_COIN, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_UNLOCK_STAKE_EVENT, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, STAKE_DEPOSIT_EVENT};
 use chain_primitives::{BalanceDiff, SwapMapper};
-use chrono::DateTime;
+use chrono::{DateTime, NaiveDateTime};
 use num_bigint::{BigInt, BigUint};
 use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionSwapReferralFee, TransactionType, swap::APTOS_REFERRAL_ADDRESS};
+use std::collections::HashMap;
 use std::error::Error;
 
 const PANORA_SWAP_EVENT: &str = "panora_swap";
 const PANORA_SWAP_EVENT_ADDRESS: &str = "0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c";
 const PANORA_SWAP_SUMMARY_EVENT: &str = "PanoraSwapSummaryEvent";
 const PANORA_FEE_INTEGRATOR_EVENT: &str = "FeeEventIntegrator";
-const APTOS_NATIVE_METADATA_ADDRESS: &str = "0xa";
+const APTOS_NATIVE_METADATA_ADDRESS: u8 = 0x0a;
+const INDEXER_TIMESTAMP_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.f";
+const FUNGIBLE_ASSET_DEPOSIT_ACTIVITY: &str = "0x1::fungible_asset::Deposit";
+const FUNGIBLE_ASSET_WITHDRAW_ACTIVITY: &str = "0x1::fungible_asset::Withdraw";
 
 #[derive(serde::Deserialize)]
 struct PanoraSwapSummaryEventData {
@@ -46,7 +51,7 @@ fn map_referral_fee(events: &[Event], chain: Chain, sender: &str) -> Option<Tran
 }
 
 fn map_token_address_to_asset_id(chain: Chain, token_address: &str) -> AssetId {
-    if token_address == APTOS_NATIVE_METADATA_ADDRESS || token_address == APTOS_NATIVE_COIN {
+    if token_address == APTOS_NATIVE_COIN || AccountAddress::from_hex(token_address).ok() == AccountAddress::from_bytes(&[APTOS_NATIVE_METADATA_ADDRESS]).ok() {
         chain.as_asset_id()
     } else {
         AssetId::from_token(chain, token_address)
@@ -172,6 +177,61 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
     })
 }
 
+pub fn map_indexer_transaction(hash: String, transaction: IndexerTransaction) -> Option<PrimitivesTransaction> {
+    let chain = Chain::Aptos;
+    let user_transaction = transaction.user_transactions.first()?;
+    let activities = &transaction.fungible_asset_activities;
+    let sender = AccountAddress::from_hex(&user_transaction.sender).ok()?;
+    let is_owner = |owner: &Option<String>, address: &AccountAddress| owner.as_deref().and_then(|owner| AccountAddress::from_hex(owner).ok()).as_ref() == Some(address);
+    let referral_address = AccountAddress::from_hex(APTOS_REFERRAL_ADDRESS).ok()?;
+
+    let fee: u64 = activities.iter().filter(|activity| activity.is_gas_fee).filter_map(|activity| activity.amount).sum();
+    let mut balance_changes: HashMap<AssetId, BigInt> = HashMap::new();
+    for activity in activities.iter().filter(|activity| !activity.is_gas_fee && is_owner(&activity.owner_address, &sender)) {
+        let asset_id = map_token_address_to_asset_id(chain, activity.asset_type.as_deref()?);
+        let amount = BigInt::from(activity.amount?);
+        let change = match activity.activity_type.as_str() {
+            FUNGIBLE_ASSET_DEPOSIT_ACTIVITY => amount,
+            FUNGIBLE_ASSET_WITHDRAW_ACTIVITY => -amount,
+            _ => continue,
+        };
+        *balance_changes.entry(asset_id).or_default() += change;
+    }
+    let balance_diffs = balance_changes.into_iter().map(|(asset_id, diff)| BalanceDiff { asset_id, diff }).collect::<Vec<_>>();
+    let referral_fee = activities
+        .iter()
+        .find(|activity| activity.activity_type == FUNGIBLE_ASSET_DEPOSIT_ACTIVITY && is_owner(&activity.owner_address, &referral_address))
+        .and_then(|activity| {
+            Some(TransactionSwapReferralFee {
+                asset_id: map_token_address_to_asset_id(chain, activity.asset_type.as_deref()?),
+                value: BigUint::from(activity.amount?),
+            })
+        });
+    let contract = user_transaction.entry_function_id_str.as_deref().and_then(|function| function.split("::").next()).map(str::to_string);
+    let provider = contract.as_deref().filter(|contract| *contract == PANORA_SWAP_EVENT_ADDRESS).map(|_| SwapProvider::Panora);
+    let swap = SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), provider)?.with_referral_fee(referral_fee);
+
+    let meta = TransactionMeta {
+        hash,
+        sender: user_transaction.sender.clone(),
+        state: if activities.iter().all(|activity| activity.is_transaction_success) {
+            TransactionState::Confirmed
+        } else {
+            TransactionState::Failed
+        },
+        fee: BigUint::from(fee),
+        created_at: NaiveDateTime::parse_from_str(&user_transaction.timestamp, INDEXER_TIMESTAMP_FORMAT).ok()?.and_utc(),
+    };
+    let asset_id = swap.from_asset.clone();
+    let metadata = serde_json::to_value(&swap).ok();
+    let to = meta.sender.clone();
+
+    Some(PrimitivesTransaction {
+        contract,
+        ..build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value, TransactionType::Swap, metadata)
+    })
+}
+
 fn build_transaction(meta: TransactionMeta, asset_id: AssetId, fee_asset_id: AssetId, to: String, value: BigUint, transaction_type: TransactionType, metadata: Option<serde_json::Value>) -> PrimitivesTransaction {
     PrimitivesTransaction::new(meta.hash, asset_id, meta.sender, to, None, transaction_type, meta.state, meta.fee, fee_asset_id, value, None, metadata, meta.created_at)
 }
@@ -222,6 +282,29 @@ mod tests {
     use crate::models::TransactionResponse;
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use primitives::asset_constants::APTOS_USDT_TOKEN_ID;
+
+    #[test]
+    fn test_map_indexer_transaction_panora_swap() {
+        let response: primitives::graphql::GraphqlData<IndexerTransaction> = serde_json::from_str(include_str!("../../testdata/indexer_transaction_panora_swap.json")).unwrap();
+        let transaction = map_indexer_transaction("0xhash".to_string(), response.data.unwrap()).unwrap();
+        let metadata = transaction.swap_metadata().unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.from, "0xe65f9bd40d97937a92e5e4d67dfe29c47bb29e39ecb53ea30ebc4f748712d4bf");
+        assert_eq!(transaction.fee, BigUint::from(1873500u64));
+        assert_eq!(metadata.provider.as_deref(), Some("panora"));
+        assert_eq!(metadata.from_asset, Chain::Aptos.as_asset_id());
+        assert_eq!(metadata.from_value, BigUint::from(1300000000u64));
+        assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID));
+        assert_eq!(metadata.to_value, BigUint::from(7368961u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::Aptos.as_asset_id(),
+                value: BigUint::from(3250648u64),
+            })
+        );
+    }
 
     #[test]
     fn test_map_transaction_broadcast() {

@@ -383,6 +383,10 @@ indexer:
     url: "https://mainnet-idx.algonode.cloud"
     key:
       secret: ""
+  aptos:
+    url: "https://api.mainnet.aptoslabs.com/v1/graphql"
+    key:
+      secret: ""
   ankr:
     url: "https://rpc.ankr.com/multichain"
     key:

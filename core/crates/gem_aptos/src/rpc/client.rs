@@ -16,6 +16,7 @@ use crate::models::{
 use crate::provider::payload_builder::{
     build_stake_transaction_payload, build_swap_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload, build_unstake_transaction_payload, build_withdraw_transaction_payload,
 };
+use crate::rpc::AptosIndexer;
 use crate::rpc::target::AptosTarget;
 use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, SIMULATION_MAX_GAS_AMOUNT};
 
@@ -23,11 +24,16 @@ use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, SIMULATION_MAX_
 pub struct AptosClient<C: Client> {
     client: C,
     pub chain: Chain,
+    pub(crate) indexer: Option<AptosIndexer<C>>,
 }
 
 impl<C: Client> AptosClient<C> {
     pub fn new(client: C) -> Self {
-        Self { client, chain: Chain::Aptos }
+        Self { client, chain: Chain::Aptos, indexer: None }
+    }
+
+    pub fn with_indexer(self, indexer: AptosIndexer<C>) -> Self {
+        Self { indexer: Some(indexer), ..self }
     }
 
     pub fn get_chain(&self) -> Chain {

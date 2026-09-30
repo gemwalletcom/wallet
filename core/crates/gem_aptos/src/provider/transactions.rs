@@ -6,7 +6,7 @@ use gem_client::Client;
 use primitives::Transaction;
 
 use crate::{
-    provider::transactions_mapper::{map_transaction, map_transactions},
+    provider::transactions_mapper::{map_indexer_transaction, map_transaction, map_transactions},
     rpc::client::AptosClient,
 };
 
@@ -20,8 +20,14 @@ impl<C: Client> ChainBlockTransactions for AptosClient<C> {
 #[async_trait]
 impl<C: Client> ChainTransaction for AptosClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let hash = request.hash;
-        Ok(map_transaction(self.get_transaction_by_hash(&hash).await?))
+        let TransactionIdRequest { hash, block_number, .. } = request;
+        match self.get_transaction_by_hash(&hash).await {
+            Ok(transaction) => Ok(map_transaction(transaction)),
+            Err(error) => match (&self.indexer, block_number) {
+                (Some(indexer), Some(version)) => Ok(indexer.get_transaction_by_version(version).await?.and_then(|transaction| map_indexer_transaction(hash, transaction))),
+                _ => Err(error),
+            },
+        }
     }
 }
 

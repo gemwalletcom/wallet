@@ -1,6 +1,7 @@
 pub mod account;
 pub mod coin;
 pub mod fee;
+pub mod indexer;
 pub mod ledger;
 pub mod signer_transaction;
 pub mod staking;
@@ -10,6 +11,7 @@ pub mod view;
 pub use account::*;
 pub use coin::*;
 pub use fee::*;
+pub use indexer::*;
 pub use ledger::*;
 pub use signer_transaction::*;
 pub use staking::*;
