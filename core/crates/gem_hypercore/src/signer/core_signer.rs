@@ -1,7 +1,7 @@
 use ::signer::Signer;
 use alloy_primitives::hex;
 use gem_evm::eip712::hash_typed_data;
-use num_bigint::BigInt;
+use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     ChainSigner, HyperliquidOrder, NumberIncrementer, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualType, SignerError, SignerInput, TransactionInputType,
@@ -34,8 +34,7 @@ pub struct HyperCoreSigner;
 
 impl HyperCoreSigner {
     fn sign_transfer_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<String> {
-        let asset = input.input_type.get_asset();
-        let amount = BigNumberFormatter::value(&input.value.to_string(), asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let amount = input_amount(input)?;
         self.sign_spot_send(&amount, &input.destination_address, HYPERCORE_CORE_HYPE_TOKEN_ID, private_key)
     }
 
@@ -57,7 +56,7 @@ impl HyperCoreSigner {
 
     fn sign_token_transfer_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<String> {
         let asset = input.input_type.get_asset();
-        let amount = BigNumberFormatter::value(&input.value.to_string(), asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let amount = input_amount(input)?;
         let token_id = spot_token_id_for_asset_id(&asset.id).ok_or_else(|| SignerError::InvalidInput(format!("Invalid spot token ID: {}", asset.id)))?;
         self.sign_spot_send(&amount, &input.destination_address, &token_id, private_key)
     }
@@ -333,9 +332,8 @@ impl ChainSigner for HyperCoreSigner {
     }
 
     fn sign_withdrawal(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let asset = input.input_type.get_asset();
-        let value = BigInt::from(input.value.clone()) + &input.fee.fee;
-        let amount = BigNumberFormatter::value(&value.to_string(), asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let fee = BigUint::try_from(&input.fee.fee).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let amount = BigNumberFormatter::plain_value(&(&input.value + fee), input.input_type.get_asset().decimals as u32).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
         let timestamp = Self::timestamp_ms();
 
         let withdrawal_request = WithdrawalRequest::new(amount, timestamp, input.destination_address.clone());
@@ -345,6 +343,10 @@ impl ChainSigner for HyperCoreSigner {
     fn sign_data(&self, _input: &SignerInput, _private_key: &[u8]) -> Result<String, SignerError> {
         Err(SignerError::SigningError("Data signing not supported".to_string()))
     }
+}
+
+fn input_amount(input: &SignerInput) -> SignerResult<String> {
+    BigNumberFormatter::plain_value(&input.value, input.input_type.get_asset().decimals as u32).map_err(|err| SignerError::InvalidInput(err.to_string()))
 }
 
 fn get_builder(builder: &str, fee: i32) -> Result<Builder, SignerError> {
@@ -365,13 +367,13 @@ fn fee_rate(tenths_bps: u32) -> String {
 mod tests {
     use super::*;
     use crate::core::actions::Grouping;
-    use num_bigint::BigUint;
+    use num_bigint::BigInt;
     use primitives::swap::SwapData;
     use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS};
     use primitives::transaction_load_metadata::AgentPrivateKey;
     use primitives::{
         Asset, AssetId, AssetType, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, SignerInput, StakeType, SwapProvider, TransactionFee,
-        TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID, known_assets::HYPERCORE_PERPETUAL_USDC,
+        TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID, known_assets::HYPERCORE_PERPETUAL_USDC, known_assets::HYPERCORE_SPOT_USDC,
     };
     use std::sync::Arc;
 
@@ -553,6 +555,21 @@ mod tests {
         assert_eq!(request["action"]["type"], "spotSend");
         assert_eq!(request["action"]["token"], "USDC:0x6d1e7cde53ba9467b783cb7c530ce054");
         assert_eq!(request["action"]["amount"], "0.02");
+    }
+
+    #[test]
+    fn test_input_amount() {
+        for (value, amount) in [("150000000", "1.5"), ("10", "0.0000001")] {
+            let input = SignerInput::mock_with_input_type(
+                TransactionInputType::Transfer { asset: HYPERCORE_SPOT_USDC.clone() },
+                TEST_PRIVATE_KEY_ETHEREUM_ADDRESS,
+                TEST_PRIVATE_KEY_ETHEREUM_ADDRESS,
+                value,
+                TransactionLoadMetadata::None,
+            );
+
+            assert_eq!(input_amount(&input).unwrap(), amount, "Hyperliquid reads plain decimals only, never 1E-7");
+        }
     }
 
     #[test]
