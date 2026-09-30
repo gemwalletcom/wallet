@@ -2,7 +2,11 @@ use primitives::swap::SwapStatus;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_u64_from_str_or_int;
 
-pub(super) const RESPONSE_SUCCESS: u64 = 100;
+pub(super) mod response_code {
+    pub const SUCCESS: u64 = 100;
+    pub const QUOTE_FAIL: u64 = 412;
+}
+
 const CHANNEL: &str = "ht6zut";
 
 #[derive(Debug, Clone, Deserialize)]

@@ -3,18 +3,18 @@ use std::{fmt::Debug, str::FromStr, sync::Arc};
 use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
-use gem_evm::u256::u256_to_biguint;
+use gem_evm::{constants::TOKEN_TRANSFER_GAS_LIMIT, u256::u256_to_biguint};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     AssetId, Chain, ChainType,
-    swap::{SwapResult, SwapStatus},
+    swap::{ApprovalData, SwapResult, SwapStatus},
 };
 
 use super::{
     asset::{Network, get_token_address, get_token_code, supported_assets, vault_addresses},
     client::BridgersClient,
-    model::{QuoteRequest as BridgersQuoteRequest, RecordsRequest, RouteData, SwapRequest},
+    model::{QuoteRequest as BridgersQuoteRequest, QuoteTxData, RecordsRequest, RouteData, SwapRequest},
     transaction::get_transaction_value,
 };
 use crate::{
@@ -26,9 +26,6 @@ use crate::{
     fees::DEFAULT_REFERRER,
     models::ApprovalType,
 };
-
-const SLIPPAGE_DECIMALS: i32 = 4;
-const SWAP_GAS_LIMIT: u64 = 150_000;
 
 #[derive(Debug)]
 pub struct Bridgers<C: Client + Clone + Send + Sync + Debug + 'static> {
@@ -56,25 +53,33 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Bridgers<C> {
         let transaction = self.client.get_swap(swap).await?.tx_data;
         let router = network.router()?;
         let value = get_transaction_value(&transaction, router, from_asset, to_code, swap)?;
-        let approval = match &from_asset.token_id {
-            None => None,
-            Some(token_id) => match check_approval_erc20(
-                swap.from_address.clone(),
-                token_id.clone(),
-                router.to_string(),
-                U256::from_str(&swap.quote.from_token_amount)?,
-                self.rpc_provider.clone(),
-                &network.chain,
-            )
-            .await?
-            {
-                ApprovalType::Approve(data) => Some(data),
-                ApprovalType::Permit2(_) | ApprovalType::None => None,
-            },
-        };
-        let gas_limit = get_swap_gas_limit_with_approval(&approval, None, SWAP_GAS_LIMIT);
+        let approval = self.get_approval(network, router, from_asset, swap).await?;
+        let gas_limit = get_swap_gas_limit_with_approval(&approval, None, TOKEN_TRANSFER_GAS_LIMIT * 2);
         Ok(SwapperQuoteData::new_contract(router.to_string(), u256_to_biguint(&value), transaction.data, approval, gas_limit))
     }
+
+    async fn get_approval(&self, network: Network, router: &str, from_asset: &AssetId, swap: &SwapRequest) -> Result<Option<ApprovalData>, SwapperError> {
+        let Some(token_id) = &from_asset.token_id else {
+            return Ok(None);
+        };
+        let amount = U256::from_str(&swap.quote.from_token_amount)?;
+        match check_approval_erc20(swap.from_address.clone(), token_id.clone(), router.to_string(), amount, self.rpc_provider.clone(), &network.chain).await? {
+            ApprovalType::Approve(data) => Ok(Some(data)),
+            ApprovalType::Permit2(_) | ApprovalType::None => Ok(None),
+        }
+    }
+}
+
+fn get_min_from_value(quote: &QuoteTxData, request: &QuoteRequest) -> Result<BigUint, SwapperError> {
+    let min_value = BigNumberFormatter::value_from_amount_biguint(&quote.deposit_min, request.from_asset.decimals).map_err(SwapperError::compute_quote_error)?;
+    let max_value = BigNumberFormatter::value_from_amount_biguint(&quote.deposit_max, request.from_asset.decimals).map_err(SwapperError::compute_quote_error)?;
+    if request.value < min_value {
+        return Err(SwapperError::InputAmountError { min_amount: Some(min_value.to_string()) });
+    }
+    if request.value > max_value {
+        return Err(SwapperError::NoQuoteAvailable);
+    }
+    Ok(min_value)
 }
 
 fn get_quote_request(request: &QuoteRequest, value: &BigUint) -> Result<BridgersQuoteRequest, SwapperError> {
@@ -111,13 +116,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let quote = self.client.get_quote(&get_quote_request(request, &request.value)?).await?.tx_data;
 
-        let min_value = BigNumberFormatter::value_from_amount_biguint(&quote.deposit_min, request.from_asset.decimals).map_err(SwapperError::compute_quote_error)?;
-        if request.value < min_value {
-            return Err(SwapperError::InputAmountError { min_amount: Some(min_value.to_string()) });
-        }
-        if request.value > BigNumberFormatter::value_from_amount_biguint(&quote.deposit_max, request.from_asset.decimals).map_err(SwapperError::compute_quote_error)? {
-            return Err(SwapperError::NoQuoteAvailable);
-        }
+        let min_value = get_min_from_value(&quote, request)?;
         let to_amount = BigNumberFormatter::value_from_amount_biguint(&quote.to_token_amount, request.to_asset.decimals).map_err(SwapperError::compute_quote_error)?;
         let chain_fee = BigNumberFormatter::value_from_amount_biguint(&quote.chain_fee, request.to_asset.decimals).map_err(SwapperError::compute_quote_error)?;
         if to_amount <= chain_fee {
@@ -183,7 +182,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
             from_address: request.wallet_address.clone(),
             to_address: request.destination_address.clone(),
             amount_out_min: route.amount_out_min,
-            slippage: BigNumberFormatter::value(&quote.data.slippage_bps.to_string(), SLIPPAGE_DECIMALS).map_err(SwapperError::compute_quote_error)?,
+            slippage: BigNumberFormatter::value(&quote.data.slippage_bps.to_string(), 4).map_err(SwapperError::compute_quote_error)?,
         };
         match network.chain.chain_type() {
             ChainType::Ethereum => self.get_evm_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,

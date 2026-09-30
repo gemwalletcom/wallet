@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use gem_client::{Client, ClientExt, Target};
 use serde::de::DeserializeOwned;
 
-use super::model::{BridgersResponse, QuoteData, QuoteRequest, RESPONSE_SUCCESS, RecordsData, RecordsRequest, SwapData, SwapRequest};
+use super::model::{BridgersResponse, QuoteData, QuoteRequest, RecordsData, RecordsRequest, SwapData, SwapRequest, response_code};
 use crate::SwapperError;
 
 #[derive(Clone, Debug)]
@@ -53,7 +53,8 @@ where
 
     fn data<T: DeserializeOwned>(response: BridgersResponse) -> Result<T, SwapperError> {
         match response.res_code {
-            RESPONSE_SUCCESS => serde_json::from_value(response.data).map_err(SwapperError::compute_quote_error),
+            response_code::SUCCESS => serde_json::from_value(response.data).map_err(SwapperError::compute_quote_error),
+            response_code::QUOTE_FAIL => Err(SwapperError::NoQuoteAvailable),
             _ => Err(SwapperError::ComputeQuoteError(response.res_msg)),
         }
     }

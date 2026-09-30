@@ -121,3 +121,17 @@ pub(super) fn vault_addresses() -> VaultAddresses {
     let routers: Vec<String> = NETWORKS.iter().filter_map(|network| network.router).map(str::to_string).collect::<BTreeSet<_>>().into_iter().collect();
     VaultAddresses { deposit: routers.clone(), send: routers }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_network_from_chain() {
+        assert_eq!(Network::from_chain(Chain::OpBNB).unwrap().code, "opBNB");
+        assert_eq!(Network::from_chain(Chain::Hyperliquid).unwrap().code, "HyperEVM");
+        assert_eq!(Network::from_chain(Chain::Mantle).unwrap().code, "MNT");
+        assert_eq!(Network::from_chain(Chain::Bitcoin).unwrap().router(), Err(SwapperError::NotSupportedChain));
+        assert_eq!(Network::from_chain(Chain::Tron).unwrap_err(), SwapperError::NotSupportedChain);
+    }
+}
