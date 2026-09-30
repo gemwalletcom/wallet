@@ -140,6 +140,13 @@ impl SwapStatus {
             SwapStatus::Pending => None,
         }
     }
+
+    pub fn charges_referral_fee(&self) -> bool {
+        match self {
+            SwapStatus::Completed => true,
+            SwapStatus::Pending | SwapStatus::Failed | SwapStatus::Refunded => false,
+        }
+    }
 }
 
 #[cfg(test)]
