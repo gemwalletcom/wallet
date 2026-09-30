@@ -112,6 +112,14 @@ pub fn map_transaction(cosmos_chain: CosmosChain, transaction: TransactionRespon
             from_address = message.delegator_address;
             to_address = message.validator_address;
         }
+        Message::MsgDeposit(message) => {
+            let coin = message.coins.first().filter(|coin| coin.asset.to_lowercase().ends_with(&format!(".{default_denom}")))?;
+            asset_id = native_asset_id;
+            transaction_type = TransactionType::SmartContractCall;
+            value = coin.amount.parse().ok()?;
+            from_address = message.signer.clone();
+            to_address = message.signer;
+        }
         _ => return None,
     }
 
@@ -171,6 +179,18 @@ mod tests {
             result.unwrap_err().to_string(),
             "signature verification failed; please verify account number (1343971) and chain-id (cosmoshub-4): (unable to verify single signer signature): unauthorized"
         );
+    }
+
+    #[test]
+    fn test_map_thorchain_msg_deposit() {
+        let result: TransactionResponse = serde_json::from_str(include_str!("../../testdata/thorchain_msg_deposit.json")).unwrap();
+        let transaction = map_transactions(CosmosChain::Thorchain, vec![result]).first().unwrap().clone();
+
+        assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(transaction.asset_id, Chain::Thorchain.as_asset_id());
+        assert_eq!(transaction.from, "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc");
+        assert_eq!(transaction.value, BigUint::from(238536268u64));
+        assert_eq!(transaction.memo.as_deref(), Some("=:e:0xc17ecB5049dd80fCca2b75E025F64613f17C67AA:0/1/0:g1:50"));
     }
 
     #[test]
