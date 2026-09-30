@@ -424,7 +424,7 @@ pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType
     let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
     let deposit = match mode {
         PerpetualAccountMode::Standard => GemHeaderButtonAction::SelectDepositAsset { asset_ids: perpetual.deposit_asset_ids() },
-        PerpetualAccountMode::Unified => GemHeaderButtonAction::Deposit { asset: perpetual.bridge_asset() },
+        PerpetualAccountMode::Unified => GemHeaderButtonAction::Deposit { asset: perpetual.deposit_asset() },
     };
     let actions = match wallet_type {
         WalletType::View => GemHeaderActions::WatchOnly,

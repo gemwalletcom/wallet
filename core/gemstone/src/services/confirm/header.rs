@@ -76,7 +76,7 @@ fn transaction_header(transfer: &GemTransferData, load: Option<&GemConfirmLoad>,
 
 fn header_asset(transfer: &GemTransferData) -> Asset {
     match &transfer.input_type {
-        TransactionInputType::Withdrawal { .. } => GemPerpetual::new(PerpetualProvider::Hypercore).bridge_asset(),
+        TransactionInputType::Withdrawal { .. } => GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset(),
         _ => transfer.input_type.get_asset().clone(),
     }
 }
@@ -183,7 +183,7 @@ mod tests {
         assert_eq!(
             header.icon,
             Some(GemValueHeaderIcon::Asset {
-                icon: asset_icon(&GemPerpetual::new(PerpetualProvider::Hypercore).bridge_asset().id)
+                icon: asset_icon(&GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset().id)
             })
         );
     }

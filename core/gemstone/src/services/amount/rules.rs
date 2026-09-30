@@ -41,7 +41,6 @@ impl GemAmountType {
         let decimals = asset.decimals as u32;
         let (value, error) = match entry_value(&text, decimals, price, input_type) {
             Ok(Some(value)) => {
-                let value = movable_value(self, asset, value);
                 let error = validate(asset, &value, &input.available_value, &minimum_value(self, asset)).err();
                 (Some(value), error)
             }
@@ -61,7 +60,7 @@ impl GemAmountType {
     }
 
     pub fn input(&self, asset: &Asset, balance: &GemAssetBalance) -> GemAmountInput {
-        let available = movable_value(self, asset, self.available_value(asset, balance));
+        let available = self.available_value(asset, balance);
         let reserve = reserve_for_fee(self, asset);
         let max_after_fee = (&available - &reserve).max(BigInt::from(0));
         let reserved_fee = reserves_fee(self, &reserve, &max_after_fee, &minimum_value(self, asset)).then_some(reserve);
@@ -221,7 +220,7 @@ pub fn transfer_amount_type(transfer: &GemAmountTransfer) -> GemAmountType {
 
 pub fn transfer_display_asset(transfer: &GemAmountTransfer, asset: Asset) -> Asset {
     match transfer {
-        GemAmountTransfer::Withdraw => GemPerpetual::new(PerpetualProvider::Hypercore).bridge_asset(),
+        GemAmountTransfer::Withdraw => GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset(),
         GemAmountTransfer::Send { .. } | GemAmountTransfer::Deposit => asset,
     }
 }
@@ -329,7 +328,7 @@ fn minimum_value(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
     let stake_config = stake_chain(asset.chain()).map(get_stake_config);
     match amount_type {
         GemAmountType::Transfer | GemAmountType::Earn { .. } => BigInt::from(0),
-        GemAmountType::Deposit if asset.id == GemPerpetual::new(PerpetualProvider::Hypercore).bridge_asset().id => BigInt::from(MIN_DEPOSIT_AMOUNT),
+        GemAmountType::Deposit if asset.id == GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset().id => BigInt::from(MIN_DEPOSIT_AMOUNT),
         GemAmountType::Deposit => BigInt::from(0),
         GemAmountType::Withdraw => usdc_minimum(asset, MIN_WITHDRAW_AMOUNT),
         GemAmountType::Stake { stake_type } => match stake_type {
@@ -346,13 +345,6 @@ fn minimum_value(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
                 GemAmountPerpetualPosition::Reduce { available } => minimum.min(BigInt::from(available.clone())),
             }
         }
-    }
-}
-
-fn movable_value(amount_type: &GemAmountType, asset: &Asset, value: BigInt) -> BigInt {
-    match amount_type {
-        GemAmountType::Deposit => GemPerpetual::new(PerpetualProvider::Hypercore).deposit_value(asset, value),
-        GemAmountType::Transfer | GemAmountType::Withdraw | GemAmountType::Stake { .. } | GemAmountType::Earn { .. } | GemAmountType::Perpetual { .. } => value,
     }
 }
 
@@ -1189,17 +1181,6 @@ mod tests {
     }
 
     #[test]
-    fn test_deposit_moves_at_most_the_perpetual_precision() {
-        let spot = HYPERCORE_SPOT_USDC.clone();
-        let input = GemAmountType::Deposit.input(&spot, &GemAssetBalance::mock_with_available(112_345_678));
-        let entry = |text: &str| GemAmountType::Deposit.entry(&spot, &input, None, GemAmountInputType::Asset, text.to_string(), Currency::USD);
-
-        assert_eq!(input.max_value, BigInt::from(112_345_600));
-        assert_eq!(entry("1.12345678").value, Some(BigInt::from(112_345_600)));
-        assert_eq!(entry("0.0000005").error, Some(GemAmountError::Zero));
-    }
-
-    #[test]
     fn test_transfer_deposit_withdraw_rules() {
         assert_eq!(minimum_value(&GemAmountType::Transfer, &Asset::from_chain(Chain::Ethereum)), BigInt::ZERO);
         assert_eq!(minimum_value(&GemAmountType::Deposit, &ARBITRUM_USDC), BigInt::from(MIN_DEPOSIT_AMOUNT));
@@ -1442,7 +1423,7 @@ mod tests {
         assert_eq!(transfer_display_asset(&GemAmountTransfer::Deposit, Asset::mock_hypercore_usdc()), Asset::mock_hypercore_usdc());
         assert_eq!(
             transfer_display_asset(&GemAmountTransfer::Withdraw, Asset::mock_hypercore_usdc()),
-            GemPerpetual::new(PerpetualProvider::Hypercore).bridge_asset()
+            GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()
         );
 
         let balance = GemAssetBalance::mock();

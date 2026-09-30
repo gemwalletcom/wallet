@@ -445,7 +445,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
         GemSelectAssetType::Deposit { asset_ids } => with_filter(flow(GemSelectRowAction::Navigate, None), Some(GemAssetFilter::asset_ids(asset_ids))),
         GemSelectAssetType::Withdraw => with_filter(
             GemSelectAssetFlow {
-                display_asset: Some(GemPerpetual::new(PerpetualProvider::Hypercore).bridge_asset()),
+                display_asset: Some(GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()),
                 ..flow(GemSelectRowAction::Navigate, None)
             },
             Some(GemAssetFilter::asset_ids(vec![HYPERCORE_PERPETUAL_USDC.id.clone()])),

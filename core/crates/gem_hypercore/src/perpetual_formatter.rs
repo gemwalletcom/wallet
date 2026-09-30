@@ -1,5 +1,4 @@
-use num_bigint::{BigInt, BigUint};
-use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
+use num_bigint::BigUint;
 
 const MIN_ORDER_VALUE_USD: f64 = 10.0;
 const USDC_CENTS_MULTIPLIER: f64 = 100.0;
@@ -46,11 +45,6 @@ impl PerpetualFormatter {
         }
     }
 
-    pub fn truncate_usdc_value(value: BigInt, decimals: i32) -> BigInt {
-        let step = BigInt::from(10).pow((decimals - HYPERCORE_PERPETUAL_USDC.decimals).max(0) as u32);
-        &value - &value % &step
-    }
-
     pub fn format_size(size: f64, sz_decimals: i32) -> String {
         let decimals = sz_decimals.max(0) as usize;
         let multiplier = 10_f64.powi(sz_decimals);
@@ -69,12 +63,6 @@ fn format_and_trim(value: f64, decimals: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_truncate_usdc_value() {
-        assert_eq!(PerpetualFormatter::truncate_usdc_value(BigInt::from(112_345_678), 8), BigInt::from(112_345_600));
-        assert_eq!(PerpetualFormatter::truncate_usdc_value(BigInt::from(5_000_001), 6), BigInt::from(5_000_001));
-    }
 
     #[test]
     fn test_minimum_order_usd_amount() {

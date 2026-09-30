@@ -36,15 +36,9 @@ impl GemPerpetual {
         }
     }
 
-    pub fn bridge_asset(&self) -> Asset {
+    pub fn deposit_asset(&self) -> Asset {
         match self.provider {
             PerpetualProvider::Hypercore => ARBITRUM_USDC.clone(),
-        }
-    }
-
-    pub fn deposit_value(&self, asset: &Asset, value: GemBigInt) -> GemBigInt {
-        match self.provider {
-            PerpetualProvider::Hypercore => PerpetualFormatter::truncate_usdc_value(value, asset.decimals),
         }
     }
 
@@ -58,11 +52,11 @@ impl GemPerpetual {
     }
 
     pub fn deposit_asset_ids(&self) -> Vec<AssetId> {
-        vec![self.bridge_asset().id, HYPERCORE_SPOT_USDC.id.clone()]
+        vec![self.deposit_asset().id, HYPERCORE_SPOT_USDC.id.clone()]
     }
 
     pub fn deposit_recipient(&self, asset: &Asset, owner: GemRecipient) -> Result<GemRecipient, GemServiceError> {
-        if asset.id == self.bridge_asset().id {
+        if asset.id == self.deposit_asset().id {
             Ok(GemRecipient {
                 address: HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS.to_string(),
                 ..self.recipient()
