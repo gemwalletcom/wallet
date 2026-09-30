@@ -1,6 +1,7 @@
 use num_bigint::BigUint;
+use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, TransactionSwapMetadata, TransactionSwapReferralFee,
+    Asset, AssetId, TransactionSwapMetadata, TransactionSwapReferralFee,
     swap::{EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS, SOLANA_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS},
 };
 
@@ -31,7 +32,10 @@ impl MayanTransactionResult {
         let from_chain = self.from_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
         let to_chain = self.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
         let from_asset = asset_id_for_token(from_chain, &self.from_token_address)?;
-        let from_value = self.from_amount64.as_deref()?.parse::<BigUint>().ok()?;
+        let from_value = match self.from_amount64.as_deref() {
+            Some(value) => value.parse::<BigUint>().ok()?,
+            None => native_value(&from_asset, self.from_amount.as_deref()?)?,
+        };
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
         let to_value = self.to_amount64.as_deref()?.parse::<BigUint>().ok()?;
 
@@ -56,12 +60,19 @@ impl MayanTransactionResult {
     }
 }
 
+fn native_value(asset_id: &AssetId, amount: &str) -> Option<BigUint> {
+    if !asset_id.is_native() {
+        return None;
+    }
+    BigNumberFormatter::value_from_amount_exact(amount, Asset::from_chain(asset_id.chain).decimals as u32).ok()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use primitives::{
         AssetId, Chain,
-        asset_constants::{BASE_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID},
+        asset_constants::{BASE_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID},
         swap::SwapStatus,
     };
 
@@ -95,6 +106,14 @@ mod tests {
                 AssetId::from_chain(Chain::Base),
                 "3834692054613521",
                 Some((AssetId::from_chain(Chain::Base), "19367131588957")),
+            ),
+            (
+                include_str!("test/hype_to_hypercore_usdc_mono_chain.json"),
+                AssetId::from_chain(Chain::Hyperliquid),
+                "154100000000000000000",
+                HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
+                "14828488252",
+                Some((AssetId::from_chain(Chain::Hyperliquid), "770500000000000000")),
             ),
             (
                 include_str!("test/sol_to_eth_swift.json"),
