@@ -26,7 +26,7 @@ internal fun WalletHeader(walletSummary: WalletSummary?, onSendClick: () -> Unit
                     is GemHeaderButtonAction.Receive -> onReceiveClick()
                     is GemHeaderButtonAction.Buy -> onBuyClick()
                     is GemHeaderButtonAction.Swap -> onSwapClick()
-                    is GemHeaderButtonAction.Deposit, is GemHeaderButtonAction.SelectDepositAsset, is GemHeaderButtonAction.Withdraw, GemHeaderButtonAction.SendCollectible, GemHeaderButtonAction.CollectibleMenu -> Unit
+                    is GemHeaderButtonAction.Deposit, is GemHeaderButtonAction.Withdraw, GemHeaderButtonAction.SendCollectible, GemHeaderButtonAction.CollectibleMenu -> Unit
                 }
             }
         },

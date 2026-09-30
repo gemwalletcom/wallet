@@ -38,12 +38,12 @@ struct PerpetualsSceneViewModelTests {
     }
 
     @Test
-    func depositFromSeveralSourcesOpensThePicker() {
+    func depositWithoutAnAssetOpensThePicker() {
         var selected: SelectAssetType?
         let model = PerpetualsSceneViewModel.mock(onSelectAssetType: { selected = $0 })
 
-        model.onSelectHeaderAction(.selectDepositAsset(assetIds: [.mock()]))
+        model.onSelectHeaderAction(.deposit(asset: nil))
 
-        #expect(selected == .deposit([.mock()]))
+        #expect(selected == .deposit)
     }
 }

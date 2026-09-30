@@ -15,7 +15,6 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.RecentActivityType
 
 @Composable
@@ -24,7 +23,7 @@ fun PerpetualsScreen(
     onOpenPerpetual: AssetIdAction,
     onOpenPortfolio: () -> Unit,
     amountAction: AmountTransactionAction,
-    onSelectDepositAsset: (List<AssetId>) -> Unit,
+    onSelectDepositAsset: () -> Unit,
     viewModel: PerpetualsViewModel = hiltViewModel(),
     recentsViewModel: RecentsViewModel = hiltViewModel(),
 ) {
@@ -76,7 +75,7 @@ fun PerpetualsScreen(
 
                 is PerpetualsAction.Deposit -> amountAction(AmountParams.Deposit(action.assetId))
 
-                is PerpetualsAction.SelectDepositAsset -> onSelectDepositAsset(action.assetIds)
+                is PerpetualsAction.SelectDepositAsset -> onSelectDepositAsset()
 
                 PerpetualsAction.OpenPortfolio -> onOpenPortfolio()
 

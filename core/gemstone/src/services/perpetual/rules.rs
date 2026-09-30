@@ -423,8 +423,8 @@ pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType
     let (available, withdrawable) = balance.as_ref().map_or((0.0, 0.0), |balance| (balance.available, balance.withdrawable));
     let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
     let deposit = match mode {
-        PerpetualAccountMode::Standard => GemHeaderButtonAction::SelectDepositAsset { asset_ids: perpetual.deposit_asset_ids() },
-        PerpetualAccountMode::Unified => GemHeaderButtonAction::Deposit { asset: perpetual.deposit_asset() },
+        PerpetualAccountMode::Standard => GemHeaderButtonAction::Deposit { asset: None },
+        PerpetualAccountMode::Unified => GemHeaderButtonAction::Deposit { asset: Some(perpetual.deposit_asset()) },
     };
     let actions = match wallet_type {
         WalletType::View => GemHeaderActions::WatchOnly,
@@ -903,7 +903,7 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::PerpetualTriggerOrder;
     use primitives::TransactionInputType;
-    use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
+    use primitives::known_assets::ARBITRUM_USDC;
 
     #[test]
     fn test_the_balance_header_names_the_asset_each_button_moves() {
@@ -913,15 +913,10 @@ mod tests {
         };
         let withdraw = GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() };
 
-        assert_eq!(actions(PerpetualAccountMode::Unified), vec![withdraw.clone(), GemHeaderButtonAction::Deposit { asset: ARBITRUM_USDC.clone() }]);
+        assert_eq!(actions(PerpetualAccountMode::Unified), vec![withdraw.clone(), GemHeaderButtonAction::Deposit { asset: Some(ARBITRUM_USDC.clone()) }]);
         assert_eq!(
             actions(PerpetualAccountMode::Standard),
-            vec![
-                withdraw,
-                GemHeaderButtonAction::SelectDepositAsset {
-                    asset_ids: vec![ARBITRUM_USDC.id.clone(), HYPERCORE_SPOT_USDC.id.clone()]
-                }
-            ],
+            vec![withdraw, GemHeaderButtonAction::Deposit { asset: None }],
             "a standard account keeps spot and perpetual USDC apart, so it can also deposit from spot"
         );
     }

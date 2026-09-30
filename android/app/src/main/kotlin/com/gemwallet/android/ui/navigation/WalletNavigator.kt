@@ -274,7 +274,7 @@ class WalletNavigator(
     fun openPerpetuals() = push(PerpetualsRoute)
     fun openPerpetual(assetId: AssetId) = push(PerpetualRoute(assetId))
 
-    fun openPerpetualDepositSelect(assetIds: List<AssetId>) = push(PerpetualDepositSelectRoute(assetIds))
+    fun openPerpetualDepositSelect() = push(PerpetualDepositSelectRoute)
 
     fun openRecent(asset: Asset) {
         val target = navigationService.assetTarget(asset.toGem()) as? GemNavigationTarget.Asset ?: return

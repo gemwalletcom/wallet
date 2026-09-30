@@ -9,7 +9,7 @@ internal sealed interface PerpetualsAction {
     data object Refresh : PerpetualsAction
     data class Withdraw(val assetId: AssetId) : PerpetualsAction
     data class Deposit(val assetId: AssetId) : PerpetualsAction
-    data class SelectDepositAsset(val assetIds: List<AssetId>) : PerpetualsAction
+    data object SelectDepositAsset : PerpetualsAction
     data object OpenPortfolio : PerpetualsAction
     data object Close : PerpetualsAction
     data class TogglePin(val perpetualId: PerpetualId) : PerpetualsAction

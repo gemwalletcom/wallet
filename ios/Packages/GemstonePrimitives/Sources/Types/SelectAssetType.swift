@@ -13,7 +13,7 @@ public enum SelectAssetType: Identifiable, Hashable, Sendable {
     case payment([AssetId])
     case manage
     case priceAlert
-    case deposit([AssetId])
+    case deposit
     case withdraw
 
     public var id: String {
@@ -43,7 +43,7 @@ public extension SelectAssetType {
         case let .payment(assetIds): .payment(assetIds: assetIds)
         case .manage: .manage
         case .priceAlert: .priceAlert
-        case let .deposit(assetIds): .deposit(assetIds: assetIds)
+        case .deposit: .deposit
         case .withdraw: .withdraw
         }
     }

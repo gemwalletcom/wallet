@@ -485,7 +485,7 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(
             WalletRootRoute,
             PerpetualsRoute,
-            PerpetualDepositSelectRoute(listOf(mockAssetId(Chain.Arbitrum))),
+            PerpetualDepositSelectRoute,
             AmountRoute("amount"),
             ConfirmTransferRoute("confirm"),
         )

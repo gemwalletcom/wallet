@@ -42,7 +42,7 @@ public struct HeaderButtonsView: View {
     private func buttonView(for button: GemHeaderButton) -> some View {
         Group {
             switch button.action {
-            case .send, .receive, .buy, .swap, .deposit, .selectDepositAsset, .withdraw, .sendCollectible:
+            case .send, .receive, .buy, .swap, .deposit, .withdraw, .sendCollectible:
                 RoundButton(
                     title: button.kind.title,
                     image: button.kind.image,

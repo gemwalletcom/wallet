@@ -190,7 +190,7 @@ public extension AssetSceneViewModel {
         case .send: onSelect(assetType: .send(.asset(asset: assetData.asset.toGem())))
         case let .swap(payAssetId?, receiveAssetId): onSelect(assetType: .swap(payAssetId, receiveAssetId))
         case .receive: onSelectReceive()
-        case .swap, .deposit, .selectDepositAsset, .withdraw, .sendCollectible, .collectibleMenu: break
+        case .swap, .deposit, .withdraw, .sendCollectible, .collectibleMenu: break
         }
     }
 

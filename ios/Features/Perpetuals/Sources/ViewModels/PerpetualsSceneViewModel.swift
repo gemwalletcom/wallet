@@ -147,10 +147,10 @@ extension PerpetualsSceneViewModel {
 
     func onSelectHeaderAction(_ action: GemHeaderButtonAction) {
         switch action {
-        case let .deposit(asset):
+        case let .deposit(asset?):
             onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
-        case let .selectDepositAsset(assetIds):
-            onSelectAssetType?(.deposit(assetIds))
+        case .deposit(nil):
+            onSelectAssetType?(.deposit)
         case let .withdraw(asset):
             onSelectAmount?(AmountInput(type: .withdraw, asset: asset.toPrimitives()))
         case .send, .receive, .buy, .swap, .sendCollectible, .collectibleMenu:

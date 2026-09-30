@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
 import com.gemwallet.android.features.perpetuals.presents.components.previewPerpetual
@@ -132,9 +131,7 @@ internal fun PerpetualsScene(
                                 ) {
                                     AssetHeadActions(balanceHeader.actions ?: return@ValueListHead) { action ->
                                         when (action) {
-                                            is GemHeaderButtonAction.Deposit -> onAction(PerpetualsAction.Deposit(action.asset.toPrimitives().id))
-
-                                            is GemHeaderButtonAction.SelectDepositAsset -> onAction(PerpetualsAction.SelectDepositAsset(action.assetIds.mapNotNull { it.toAssetId() }))
+                                            is GemHeaderButtonAction.Deposit -> onAction(action.asset?.let { PerpetualsAction.Deposit(it.toPrimitives().id) } ?: PerpetualsAction.SelectDepositAsset)
 
                                             is GemHeaderButtonAction.Withdraw -> onAction(PerpetualsAction.Withdraw(action.asset.toPrimitives().id))
 
@@ -256,7 +253,7 @@ fun PreviewPerpetualsScene() {
                 subtitle = GemRowText(GemLocalizedText.Text("Available: $45,000.00"), GemValueTone.NEUTRAL),
                 subtitleIcon = null,
                 actions = GemHeaderActions.Buttons(
-                    listOf(GemHeaderButton(GemHeaderButtonKind.DEPOSIT, GemHeaderButtonAction.SelectDepositAsset(emptyList()), isEnabled = true)),
+                    listOf(GemHeaderButton(GemHeaderButtonKind.DEPOSIT, GemHeaderButtonAction.Deposit(null), isEnabled = true)),
                 ),
             ),
             positions = emptyList(),

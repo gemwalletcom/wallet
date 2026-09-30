@@ -24,14 +24,14 @@ data object PerpetualsRoute : NavKey
 data class PerpetualRoute(val assetId: AssetId) : NavKey
 
 @Serializable
-data class PerpetualDepositSelectRoute(val assetIds: List<AssetId>) : NavKey
+data object PerpetualDepositSelectRoute : NavKey
 
 fun EntryProviderScope<NavKey>.perpetualsScreen(
     onCancel: () -> Unit,
     onOpenPerpetual: AssetIdAction,
     onOpenPortfolio: () -> Unit,
     amountAction: AmountTransactionAction,
-    onSelectDepositAsset: (List<AssetId>) -> Unit,
+    onSelectDepositAsset: () -> Unit,
     confirmAction: ConfirmTransactionAction,
     onTransaction: (TransactionId) -> Unit,
     onGetAsset: (GetAssetAction, AssetId) -> Unit,
@@ -46,9 +46,8 @@ fun EntryProviderScope<NavKey>.perpetualsScreen(
         )
     }
 
-    entry<PerpetualDepositSelectRoute> { key ->
+    entry<PerpetualDepositSelectRoute> {
         SelectDepositScreen(
-            assetIds = key.assetIds,
             onCancel = onCancel,
             onSelect = { amountAction(AmountParams.Deposit(it)) },
         )

@@ -59,7 +59,7 @@ struct AmountSceneRequestTests {
     @Test
     func theRequestBuildsTheTransferItNames() async throws {
         let send = try await transferData(AmountSceneViewModel.mock(), value: 100, useMaxAmount: false)
-        let arbitrumUSDC = AssetData.mock(asset: .mock(id: AssetId(chain: .arbitrum, tokenId: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"), symbol: "USDC", decimals: 6, type: .erc20))
+        let arbitrumUSDC = AssetData.mock(asset: .mock(id: .mock(chain: .arbitrum, tokenId: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"), name: "USD Coin", symbol: "USDC", decimals: 6, type: .erc20))
         let session = try GemWalletSessionService.mock(wallet: .mock(accounts: [.mock(chain: .arbitrum)]))
         let deposit = try await transferData(AmountSceneViewModel.mock(type: .deposit, assetData: arbitrumUSDC), value: 200, useMaxAmount: true, session: session)
 

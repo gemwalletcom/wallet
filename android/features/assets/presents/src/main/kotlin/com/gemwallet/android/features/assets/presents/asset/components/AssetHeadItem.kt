@@ -17,7 +17,7 @@ internal fun AssetHeadItem(header: GemValueHeader, onAction: (AssetAction) -> Un
                 is GemHeaderButtonAction.Receive -> action.assetId?.toAssetId()?.let { onAction(AssetAction.Receive(it)) }
                 is GemHeaderButtonAction.Buy -> action.assetId?.toAssetId()?.let { onAction(AssetAction.Buy(it)) }
                 is GemHeaderButtonAction.Swap -> action.payAssetId?.toAssetId()?.let { onAction(AssetAction.Swap(fromAssetId = it, toAssetId = action.receiveAssetId?.toAssetId())) }
-                is GemHeaderButtonAction.Deposit, is GemHeaderButtonAction.SelectDepositAsset, is GemHeaderButtonAction.Withdraw, GemHeaderButtonAction.SendCollectible, GemHeaderButtonAction.CollectibleMenu -> Unit
+                is GemHeaderButtonAction.Deposit, is GemHeaderButtonAction.Withdraw, GemHeaderButtonAction.SendCollectible, GemHeaderButtonAction.CollectibleMenu -> Unit
             }
         }
     }
