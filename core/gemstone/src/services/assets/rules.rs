@@ -442,7 +442,13 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
             },
             Some(GemAssetFilter::Enabled),
         ),
-        GemSelectAssetType::Deposit => with_filter(flow(GemSelectRowAction::Navigate, None), Some(GemAssetFilter::asset_ids(GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset_ids()))),
+        GemSelectAssetType::Deposit => with_filter(
+            GemSelectAssetFlow {
+                filters: vec![GemAssetFilter::HasAvailableBalance],
+                ..flow(GemSelectRowAction::Navigate, None)
+            },
+            Some(GemAssetFilter::asset_ids(GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset_ids())),
+        ),
         GemSelectAssetType::Withdraw => with_filter(
             GemSelectAssetFlow {
                 display_asset: Some(GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()),
@@ -1164,10 +1170,13 @@ mod tests {
             rows(GemSelectAssetType::Deposit),
             (
                 GemSelectAssetScope::Wallet,
-                vec![GemAssetFilter::ChainsOrAssetIds {
-                    chains: Vec::new(),
-                    asset_ids: vec![AssetId::from_token(Chain::Arbitrum, "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"), HYPERCORE_SPOT_USDC.id.clone()]
-                }]
+                vec![
+                    GemAssetFilter::HasAvailableBalance,
+                    GemAssetFilter::ChainsOrAssetIds {
+                        chains: Vec::new(),
+                        asset_ids: vec![AssetId::from_token(Chain::Arbitrum, "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"), HYPERCORE_SPOT_USDC.id.clone()]
+                    }
+                ]
             )
         );
         assert_eq!(
