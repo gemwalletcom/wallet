@@ -38,7 +38,6 @@ rpc = [
 ]
 signer = ["dep:signer", "dep:k256", "gem_encoding/protobuf"]
 reqwest = ["gem_client/reqwest"]
-unit_tests = ["signer"]
 chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
 
 [dev-dependencies]

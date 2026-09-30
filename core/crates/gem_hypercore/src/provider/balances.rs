@@ -40,7 +40,7 @@ impl<C: Client> ChainBalances for HyperCoreClient<C> {
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
-mod integration_tests {
+mod chain_integration_tests {
     use crate::provider::testkit::{TEST_ADDRESS, USDC_TOKEN_ID, create_hypercore_test_client};
     use chain_traits::ChainBalances;
     use num_bigint::BigUint;

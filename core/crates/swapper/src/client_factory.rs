@@ -38,7 +38,7 @@ pub fn create_ton_client(provider: Arc<dyn RpcProvider>) -> Result<TonClient<Rpc
 }
 
 #[cfg(all(test, feature = "reqwest_provider", feature = "swap_integration_tests"))]
-mod tests {
+mod swap_integration_tests {
     use super::*;
     use crate::NativeProvider;
     use gem_solana::{SolanaRpc, models::blockhash::SolanaBlockhashResult, try_decode_blockhash};

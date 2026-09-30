@@ -33,6 +33,9 @@ dependencies {
     api(libs.kotlinx.serialization.json)
     implementation(libs.compose.runtime.android)
 
+    testFixturesApi(libs.junit)
+    testFixturesApi(libs.kotlinx.coroutines.test)
+
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

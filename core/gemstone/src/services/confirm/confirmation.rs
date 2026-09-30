@@ -457,8 +457,8 @@ mod tests {
             let newer = confirmation.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
 
             let state = |load: GemConfirmLoad| Ok(ConfirmState { load, confirm_data: None, swap: None });
-            assert!(matches!(confirmation.store_latest(older, state(stale.clone())), Err(GemConfirmError::Cancelled)));
-            assert!(matches!(confirmation.store_latest(older, Err(GemConfirmError::Offline)), Err(GemConfirmError::Cancelled)));
+            assert_eq!(confirmation.store_latest(older, state(stale.clone())).unwrap_err(), GemConfirmError::Cancelled);
+            assert_eq!(confirmation.store_latest(older, Err(GemConfirmError::Offline)).unwrap_err(), GemConfirmError::Cancelled);
             assert!(confirmation.state().await.unwrap().address_name.is_none());
 
             assert!(confirmation.store_latest(newer, state(stale)).is_ok());

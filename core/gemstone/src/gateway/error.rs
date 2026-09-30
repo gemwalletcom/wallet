@@ -3,7 +3,7 @@ use crate::transaction_state::TransactionStatusError;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use std::{error::Error, fmt::Display};
 
-#[derive(Debug, Clone, uniffi::Error)]
+#[derive(Debug, Clone, PartialEq, uniffi::Error)]
 pub enum GatewayError {
     Offline,
     NetworkError { msg: String },
@@ -111,19 +111,16 @@ mod tests {
 
     #[test]
     fn test_map_network_error_keeps_offline_kind() {
-        assert!(matches!(map_network_error(Box::new(AlienError::Offline)), GatewayError::Offline));
-        assert!(matches!(
-            map_network_error(Box::<gem_client::ClientError>::new(gem_client::ClientError::Network(AlienError::Offline.to_string()))),
-            GatewayError::Offline
-        ));
-        assert!(matches!(
+        assert_eq!(map_network_error(Box::new(AlienError::Offline)), GatewayError::Offline);
+        assert_eq!(map_network_error(Box::<gem_client::ClientError>::new(gem_client::ClientError::Network(AlienError::Offline.to_string()))), GatewayError::Offline);
+        assert_eq!(
             map_network_error(Box::new(JsonRpcError {
                 code: ERROR_CLIENT_ERROR,
                 message: "Network error: network offline".to_string(),
                 cause: None,
             })),
             GatewayError::Offline
-        ));
+        );
         assert!(matches!(map_network_error(Box::new(AlienError::ResponseError { msg: "timeout".into() })), GatewayError::NetworkError { .. }));
     }
 

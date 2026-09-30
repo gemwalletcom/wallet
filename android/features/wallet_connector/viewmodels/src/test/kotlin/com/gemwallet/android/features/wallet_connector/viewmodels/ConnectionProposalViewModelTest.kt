@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockWallet
@@ -19,20 +20,17 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectException
@@ -45,14 +43,13 @@ class ConnectionProposalViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val models = mutableListOf<ConnectionProposalViewModel>()
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     @After
     fun tearDown() {
         models.forEach { it.viewModelScope.cancel() }
         models.clear()
-        Dispatchers.resetMain()
     }
 
     private val main = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")))

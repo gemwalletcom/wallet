@@ -143,7 +143,7 @@ pub struct GemStakeViewState {
     pub docs_url: Option<String>,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemStakeAmountInput {
     Stake { validator: DelegationValidator },
     Redelegate { delegation: Delegation, validator: DelegationValidator },

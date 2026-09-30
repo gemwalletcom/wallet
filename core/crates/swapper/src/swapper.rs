@@ -501,7 +501,7 @@ mod tests {
 }
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
-mod timing_tests {
+mod swap_integration_tests {
     use std::{sync::Arc, time::Instant};
 
     use num_bigint::BigUint;
@@ -533,6 +533,7 @@ mod timing_tests {
     }
 
     #[tokio::test]
+    #[ignore = "timing report without assertions, run manually"]
     async fn test_report_preload_and_quote_durations_per_provider() {
         let swapper = GemSwapper::new(Arc::new(NativeProvider::new().set_debug(false)));
 

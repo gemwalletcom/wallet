@@ -48,7 +48,7 @@ impl<C: Client> ChainStaking for TronProvider<C> {
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
-mod integration_tests {
+mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, create_test_client};
     use num_bigint::BigUint;

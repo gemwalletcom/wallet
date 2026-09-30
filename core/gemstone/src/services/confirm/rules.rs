@@ -814,10 +814,13 @@ mod tests {
         let mut switched = matching;
         switched.confirm.input.from = Account::mock(Chain::Solana, "other");
 
-        assert!(matches!(
+        assert_eq!(
             switched.signer_input().unwrap_err(),
-            GemConfirmError::SenderMismatch { from, signer } if from == "other" && signer == "sender"
-        ));
+            GemConfirmError::SenderMismatch {
+                from: "other".to_string(),
+                signer: "sender".to_string(),
+            }
+        );
     }
 
     #[test]
@@ -1577,10 +1580,10 @@ mod tests {
             },
         };
 
-        assert!(matches!(approval.approval_value(), Some((id, GemApprovalValue::Unlimited)) if id == asset.id));
+        assert_eq!(approval.approval_value(), Some((asset.id.clone(), GemApprovalValue::Unlimited)));
         assert!((TransactionInputType::Transfer { asset }).approval_value().is_none());
-        assert!(matches!(approval_value_from(Some(&GemBigUint::from(42u32)), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
-        assert!(matches!(approval_value_from(Some(&GemBigUint::from(42u32)), true), GemApprovalValue::Unlimited));
+        assert_eq!(approval_value_from(Some(&GemBigUint::from(42u32)), false), GemApprovalValue::Exact { value: GemBigUint::from(42u32) });
+        assert_eq!(approval_value_from(Some(&GemBigUint::from(42u32)), true), GemApprovalValue::Unlimited);
     }
 
     #[test]

@@ -7,6 +7,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Chain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -26,9 +27,16 @@ import java.util.Locale
 class ConfirmErrorUIModelTest {
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
 
+    private val defaultLocale = Locale.getDefault()
+
     @Before
     fun setUp() {
         Locale.setDefault(Locale.US)
+    }
+
+    @After
+    fun tearDown() {
+        Locale.setDefault(defaultLocale)
     }
 
     @Test

@@ -144,7 +144,7 @@ pub struct WalletConnectionSessionProposal {
     pub metadata: ApplicationMetadata,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
 #[model(swift = "Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum WalletConnectionVerificationStatus {

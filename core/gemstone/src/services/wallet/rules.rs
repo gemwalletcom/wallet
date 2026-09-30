@@ -411,8 +411,8 @@ mod tests {
             import_request(GemWalletImportKind::Address, Some(Chain::Ethereum), " 0x123 ", Some(&NameRecord::mock("", ""))),
             Ok(GemWalletImportType::Address { address, .. }) if address == "0x123"
         ));
-        assert!(matches!(import_request(GemWalletImportKind::Address, None, "0x123", None), Err(GemWalletImportError::MissingChain)));
-        assert!(matches!(import_request(GemWalletImportKind::PrivateKey, None, "0x123", None), Err(GemWalletImportError::MissingChain)));
+        assert_eq!(import_request(GemWalletImportKind::Address, None, "0x123", None).unwrap_err(), GemWalletImportError::MissingChain);
+        assert_eq!(import_request(GemWalletImportKind::PrivateKey, None, "0x123", None).unwrap_err(), GemWalletImportError::MissingChain);
     }
 
     #[test]
