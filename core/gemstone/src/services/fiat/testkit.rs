@@ -76,7 +76,6 @@ impl FiatQuoteTestkit {
             asset_store,
             Arc::new(GemPriceService::mock(Arc::new(MemoryPriceStore::default()))),
             preferences,
-            session.clone(),
         ));
         let balances = Arc::new(MemoryBalanceStore::default());
         let recents = Arc::new(MemoryRecentActivityStore::default());

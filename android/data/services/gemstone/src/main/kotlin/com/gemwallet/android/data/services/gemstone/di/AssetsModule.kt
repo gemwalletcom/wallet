@@ -210,8 +210,8 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideGemAssetsService(apiClient: GemApiClient, gateway: GemGateway, assetStore: GemAssetStore, priceService: GemPriceService, preferencesService: GemPreferencesService, session: GemWalletSessionService): GemAssetsService =
-        GemAssetsService(apiClient, gateway, assetStore, priceService, preferencesService, session)
+    fun provideGemAssetsService(apiClient: GemApiClient, gateway: GemGateway, assetStore: GemAssetStore, priceService: GemPriceService, preferencesService: GemPreferencesService): GemAssetsService =
+        GemAssetsService(apiClient, gateway, assetStore, priceService, preferencesService)
 
     @Provides
     fun provideGemReceiveService(balanceService: GemBalanceService, assetsService: GemAssetsService, recentActivityService: GemRecentActivityService): GemReceiveServiceInterface =
@@ -235,11 +235,9 @@ object AssetsModule {
     fun provideGemAssetDetailsServiceInterface(service: GemAssetDetailsService): GemAssetDetailsServiceInterface = service
 
     @Provides
-    fun provideGemAssetsServiceInterface(service: GemAssetsService): GemAssetsServiceInterface = service
-
-    @Provides
     @Singleton
-    fun provideGemNavigationService(assets: GemAssetsService, session: GemWalletSessionService, transactionState: GemTransactionStateService): GemNavigationService = GemNavigationService(assets, session, transactionState)
+    fun provideGemNavigationService(assets: GemAssetsService, balance: GemBalanceService, session: GemWalletSessionService, transactionState: GemTransactionStateService): GemNavigationService =
+        GemNavigationService(assets, balance, session, transactionState)
 
     @Provides
     fun provideGemNavigationServiceInterface(service: GemNavigationService): GemNavigationServiceInterface = service

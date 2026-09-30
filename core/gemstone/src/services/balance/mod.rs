@@ -139,8 +139,8 @@ impl GemBalanceService {
         let has_synced = !stored_ids.is_empty();
         let enabled = rules::missing_asset_ids(&enabled, &stored_ids);
         let disabled = rules::missing_asset_ids(&disabled, &stored_ids);
-        self.assets.add_balances(wallet.id.clone(), enabled.clone(), true).await?;
-        self.assets.add_balances(wallet.id.clone(), disabled, false).await?;
+        self.add_balances(wallet.id.clone(), enabled.clone(), true).await?;
+        self.add_balances(wallet.id.clone(), disabled, false).await?;
         if wallet_rules::is_new_wallet(&wallet.source, has_synced) {
             let _ = self.stream.resubscribe().await;
         } else {
@@ -149,9 +149,35 @@ impl GemBalanceService {
         Ok(())
     }
 
-    async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+    pub async fn open_wallet_asset(&self, wallet: Wallet, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
+        let Some(asset) = self.assets.wallet_asset(&wallet, asset_id.clone()).await? else {
+            return Ok(None);
+        };
+        self.add_missing_balances(wallet.id, vec![asset_id]).await?;
+        Ok(Some(asset))
+    }
+
+    pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        if asset_ids.is_empty() {
+            return Ok(());
+        }
         let stored_ids = self.store.get_balance_asset_ids(wallet_id.clone(), asset_ids.clone()).await?;
-        self.assets.add_missing_balances(wallet_id, rules::missing_asset_ids(&asset_ids, &stored_ids)).await
+        self.add_stored_asset_balances(wallet_id, rules::missing_asset_ids(&asset_ids, &stored_ids)).await
+    }
+
+    async fn add_stored_asset_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        if asset_ids.is_empty() {
+            return Ok(());
+        }
+        let asset_ids = self.assets.stored_asset_ids(asset_ids).await?;
+        self.add_balances(wallet_id, asset_ids, false).await
+    }
+
+    async fn add_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
+        if asset_ids.is_empty() {
+            return Ok(());
+        }
+        self.store.add_balances(wallet_id, asset_ids, enabled).await
     }
 
     async fn refresh_enabled_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
@@ -200,7 +226,7 @@ impl GemBalanceService {
         let asset_ids: Vec<AssetId> = rules::unique_asset_ids(updates.iter().map(|update| update.asset_id.clone()).collect());
         let stored: Vec<GemAssetBalance> = self.store.get_available_balances(wallet_id.clone(), asset_ids.clone()).await?.into_iter().map(GemAssetBalance::from).collect();
         let stored_ids: Vec<AssetId> = stored.iter().map(|balance| balance.asset_id.clone()).collect();
-        self.assets.add_missing_balances(wallet_id.clone(), rules::missing_asset_ids(&asset_ids, &stored_ids)).await?;
+        self.add_stored_asset_balances(wallet_id.clone(), rules::missing_asset_ids(&asset_ids, &stored_ids)).await?;
         let records = rules::balance_records(rules::changed_balances(stored, updates), assets);
         if records.is_empty() {
             return Ok(());
@@ -367,7 +393,7 @@ mod tests {
 
             testkit.service.setup_wallet(wallet.clone()).await.unwrap();
 
-            let added = testkit.assets.added_balances.lock().unwrap();
+            let added = testkit.balances.added_balances.lock().unwrap();
             assert_eq!(added.len(), 2);
             assert_eq!(added[0], (wallet.id.clone(), enabled, true));
             assert_eq!(added[1], (wallet.id, disabled, false));
@@ -393,7 +419,7 @@ mod tests {
             let imported_kit = setup(imported).await;
 
             assert_eq!(
-                created_kit.asset_store.added_balances.lock().unwrap()[0],
+                created_kit.balances.added_balances.lock().unwrap()[0],
                 (created.id.clone(), default_balances(&created).0, true),
                 "a created wallet still gets its default rows"
             );
@@ -457,7 +483,7 @@ mod tests {
 
             testkit.service.setup_wallet(wallet).await.unwrap();
 
-            assert!(testkit.assets.added_balances.lock().unwrap().is_empty());
+            assert!(testkit.balances.added_balances.lock().unwrap().is_empty());
             assert!(testkit.balances.balance_writes.lock().unwrap().is_empty());
         });
     }
@@ -482,8 +508,28 @@ mod tests {
                 .await
                 .unwrap();
 
-            assert_eq!(*testkit.assets.added_balances.lock().unwrap(), vec![(wallet.id, vec![cosmos], false)]);
+            assert_eq!(*testkit.balances.added_balances.lock().unwrap(), vec![(wallet.id, vec![cosmos], false)]);
             assert_eq!(testkit.balances.balance_writes.lock().unwrap().len(), 1);
+        });
+    }
+
+    #[test]
+    fn test_a_missing_row_is_added_only_for_an_asset_the_store_knows() {
+        block_on(async {
+            let wallet = Wallet::mock_with_chains(&[Chain::Cosmos, Chain::Ethereum]);
+            let ethereum = AssetId::from_chain(Chain::Ethereum);
+            let cosmos = AssetId::from_chain(Chain::Cosmos);
+            let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+            let testkit = BalanceTestkit::new(MemoryBalanceStore::with_balances(wallet.id.clone(), vec![GemAssetBalance::zero(ethereum.clone())]));
+            testkit
+                .assets
+                .save_assets(vec![default_asset_basic(Asset::from_chain(Chain::Ethereum)), default_asset_basic(Asset::from_chain(Chain::Cosmos))])
+                .await
+                .unwrap();
+
+            testkit.service.add_missing_balances(wallet.id.clone(), vec![ethereum, cosmos.clone(), bitcoin]).await.unwrap();
+
+            assert_eq!(*testkit.balances.added_balances.lock().unwrap(), vec![(wallet.id, vec![cosmos], false)]);
         });
     }
 
@@ -499,7 +545,7 @@ mod tests {
 
             testkit.service.setup_wallet(wallet.clone()).await.unwrap();
 
-            let added = testkit.assets.added_balances.lock().unwrap();
+            let added = testkit.balances.added_balances.lock().unwrap();
             assert_eq!(*added, vec![(wallet.id.clone(), vec![missing_enabled], true), (wallet.id, vec![missing_disabled], false)]);
         });
     }

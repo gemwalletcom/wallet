@@ -78,7 +78,6 @@ impl DiscoveryTestkit {
             asset_store.clone(),
             Arc::new(GemPriceService::mock(Arc::new(MemoryPriceStore::default()))),
             preferences.clone(),
-            session.clone(),
         ));
         let balances = Arc::new(MemoryBalanceStore::default());
         let balance = Arc::new(GemBalanceService::new(gateway.clone(), balances.clone(), assets.clone(), session.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
@@ -87,6 +86,7 @@ impl DiscoveryTestkit {
         let transactions = Arc::new(GemTransactionsService::new(
             device_api.clone(),
             assets.clone(),
+            balance.clone(),
             Arc::new(MemoryTransactionStateStore::default()),
             names.clone(),
             wallet_preferences.clone(),
@@ -98,7 +98,6 @@ impl DiscoveryTestkit {
         let state = Arc::new(GemTransactionStateService::new(
             gateway.clone(),
             Arc::new(MemoryTransactionStateStore::default()),
-            assets.clone(),
             balance.clone(),
             Arc::new(GemStakeService::new(
                 gateway,

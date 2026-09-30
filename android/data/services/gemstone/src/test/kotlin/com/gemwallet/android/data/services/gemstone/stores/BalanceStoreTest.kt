@@ -2,10 +2,18 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.BalancesDao
+import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.data.services.store.database.mockStoreTransactionRunner
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockWalletId
+import com.wallet.core.primitives.Chain
+import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemBalanceRecord
 import uniffi.gemstone.GemBalanceValue
@@ -14,7 +22,23 @@ import java.math.BigInteger
 class GemstoneBalanceStoreTest {
 
     private val balancesDao = mockk<BalancesDao>(relaxed = true)
-    private val subject = GemstoneBalanceStore(balancesDao, mockk<AssetsDao>(relaxed = true), mockStoreTransactionRunner())
+    private val assetsDao = mockk<AssetsDao>(relaxed = true)
+    private val subject = GemstoneBalanceStore(balancesDao, assetsDao, mockStoreTransactionRunner())
+
+    @Test
+    fun addBalancesInsertsEveryRowInOneStatementWithCoresFlag() = runTest {
+        val solana = mockAssetId(chain = Chain.Solana)
+        val ethereum = mockAssetId(chain = Chain.Ethereum)
+        val walletId = mockWalletId()
+
+        subject.addBalances(walletId.id, listOf(solana.toIdentifier(), ethereum.toIdentifier()), false)
+
+        val balances = slot<List<DbBalance>>()
+        coVerify(exactly = 1) { assetsDao.insertBalances(capture(balances)) }
+        assertEquals(listOf(solana.toIdentifier(), ethereum.toIdentifier()), balances.captured.map { it.assetId })
+        assertEquals(listOf(walletId.id, walletId.id), balances.captured.map { it.walletId })
+        assertEquals(listOf(false, false), balances.captured.map { it.isVisible })
+    }
 
     @Test
     fun balanceWritesTheWholeRowWithoutCreatingIt() = runTest {

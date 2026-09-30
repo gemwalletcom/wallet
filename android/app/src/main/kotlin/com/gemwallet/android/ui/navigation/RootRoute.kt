@@ -10,7 +10,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.Session
-import com.gemwallet.android.ui.LocalAssetsService
 import com.gemwallet.android.ui.LocalDeeplinkService
 import com.gemwallet.android.ui.LocalNavigationService
 import com.wallet.core.primitives.AssetId
@@ -25,19 +24,17 @@ data class SwapSelection(val itemType: SwapItemType, val assetId: AssetId)
 
 @Composable
 fun rememberWalletNavigationState(startDestination: NavKey, currentTab: MutableState<String>, session: StateFlow<Session?>, onOpenAction: (UrlAction) -> Unit): WalletNavigator {
-    val assetsService = LocalAssetsService.current
     val deeplinkService = LocalDeeplinkService.current
     val navigationService = LocalNavigationService.current
     val scope = rememberCoroutineScope()
     val currentOnOpenAction by rememberUpdatedState(onOpenAction)
     return key(startDestination) {
         val backStack = rememberWalletNavBackStack(startDestination)
-        remember(backStack, currentTab, deeplinkService, assetsService, navigationService, session, scope) {
+        remember(backStack, currentTab, deeplinkService, navigationService, session, scope) {
             WalletNavigator(
                 backStack = backStack,
                 currentTab = currentTab,
                 deeplinkService = deeplinkService,
-                assetsService = assetsService,
                 navigationService = navigationService,
                 session = session,
                 scope = scope,

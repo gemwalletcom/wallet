@@ -19,7 +19,6 @@ use tracker::{GemTransactionUpdater, Tracking, poll};
 
 use crate::gateway::GemGateway;
 use crate::payment::GemPaymentService;
-use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::nft::GemNftService;
 use crate::services::stake::GemStakeService;
@@ -33,7 +32,6 @@ pub trait GemTransactionStatusService: Send + Sync {
 pub struct GemTransactionStateService {
     gateway: Arc<GemGateway>,
     store: Arc<dyn GemTransactionStateStore>,
-    assets: Arc<GemAssetsService>,
     balance: Arc<GemBalanceService>,
     stake: Arc<GemStakeService>,
     nft: Arc<GemNftService>,
@@ -45,19 +43,10 @@ pub struct GemTransactionStateService {
 #[uniffi::export]
 impl GemTransactionStateService {
     #[uniffi::constructor]
-    pub fn new(
-        gateway: Arc<GemGateway>,
-        store: Arc<dyn GemTransactionStateStore>,
-        assets: Arc<GemAssetsService>,
-        balance: Arc<GemBalanceService>,
-        stake: Arc<GemStakeService>,
-        nft: Arc<GemNftService>,
-        payments: Arc<GemPaymentService>,
-    ) -> Self {
+    pub fn new(gateway: Arc<GemGateway>, store: Arc<dyn GemTransactionStateStore>, balance: Arc<GemBalanceService>, stake: Arc<GemStakeService>, nft: Arc<GemNftService>, payments: Arc<GemPaymentService>) -> Self {
         Self {
             gateway,
             store,
-            assets,
             balance,
             stake,
             nft,
@@ -92,7 +81,7 @@ impl GemTransactionStateService {
 
 impl GemTransactionStateService {
     pub async fn add_notification_transaction(&self, wallet: Wallet, asset_id: AssetId, transaction: Transaction) -> Result<Option<Asset>, GemServiceError> {
-        let Some(asset) = self.assets.open_wallet_asset(wallet.clone(), asset_id).await? else {
+        let Some(asset) = self.balance.open_wallet_asset(wallet.clone(), asset_id).await? else {
             return Ok(None);
         };
         self.add_transactions(wallet.id.clone(), vec![transaction.clone()]).await?;

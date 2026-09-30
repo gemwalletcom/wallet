@@ -2,7 +2,6 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.application.assets.values.toQueryFilter
 import com.gemwallet.android.data.services.store.database.AssetsDao
-import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.data.services.store.database.entities.toAssetBasic
 import com.gemwallet.android.data.services.store.database.entities.toAssetDataModels
 import com.gemwallet.android.data.services.store.database.entities.toDTO
@@ -15,7 +14,6 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetFull
-import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetFilter
@@ -52,10 +50,6 @@ class GemstoneAssetStore(private val assetsDao: AssetsDao) : GemAssetStore {
         )
     }
 
-    override suspend fun addBalances(walletId: String, assetIds: List<String>, enabled: Boolean) = withContext(Dispatchers.IO) {
-        assetsDao.insertBalances(assetIds.map { balanceRecord(walletId, it, enabled) })
-    }
-
     override suspend fun setBuyableAssets(assetIds: List<String>) = withContext(Dispatchers.IO) {
         assetsDao.setBuyableAssets(assetIds)
     }
@@ -71,15 +65,4 @@ class GemstoneAssetStore(private val assetsDao: AssetsDao) : GemAssetStore {
     override suspend fun setStakeableAssets(assetIds: List<String>) = withContext(Dispatchers.IO) {
         assetsDao.setStakeEnabled(assetIds)
     }
-
-    override suspend fun addMissingBalances(walletId: String, assetIds: List<String>) = withContext(Dispatchers.IO) {
-        assetsDao.insertBalances(assetIds.map { balanceRecord(walletId, it, false) })
-    }
-
-    private fun balanceRecord(walletId: String, assetId: String, isVisible: Boolean) = DbBalance(
-        assetId = AssetId(assetId).toIdentifier(),
-        walletId = walletId,
-        isVisible = isVisible,
-        updatedAt = null,
-    )
 }
