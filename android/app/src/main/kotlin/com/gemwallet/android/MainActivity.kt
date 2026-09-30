@@ -95,7 +95,9 @@ class MainActivity :
         systemAuthenticator.prepare()
         systemAuthenticator.refreshEnrollment()
 
-        viewModel.pendIntent(intent)
+        if (savedInstanceState == null) {
+            viewModel.pendIntent(intent)
+        }
         viewModel.maintain(isUnlocked = lockViewModel.uiState.map { it.isUnlocked })
 
         lifecycleScope.launch {
