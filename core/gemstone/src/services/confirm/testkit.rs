@@ -82,7 +82,7 @@ impl ConfirmTestkit {
         let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
         let price = Arc::new(GemPriceService::mock(Arc::new(MemoryPriceStore::default())));
         let asset_store = Arc::new(MemoryAssetStore);
-        let assets = Arc::new(GemAssetsService::new(api, gateway.clone(), asset_store, price.clone(), preferences.clone(), session.clone()));
+        let assets = Arc::new(GemAssetsService::new(api, gateway.clone(), asset_store, price.clone(), preferences.clone()));
         let balances = Arc::new(MemoryBalanceStore::with_balances(
             wallet.id.clone(),
             wallet
@@ -111,7 +111,7 @@ impl ConfirmTestkit {
         let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone()));
         let transaction_store = Arc::new(MemoryTransactionStateStore::default());
         let status = Arc::new(RecordingTransactionStatus::default());
-        let transactions = Arc::new(GemTransactionStateService::new(gateway.clone(), transaction_store.clone(), assets.clone(), balance.clone(), stake, nft, payment.clone()));
+        let transactions = Arc::new(GemTransactionStateService::new(gateway.clone(), transaction_store.clone(), balance.clone(), stake, nft, payment.clone()));
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
             Arc::new(GemSimulationService::new(provider, Arc::new(GemNodeService::mock()))),
@@ -170,12 +170,6 @@ impl GemAssetStore for MemoryAssetStore {
     }
     async fn save_asset(&self, _: AssetFull) -> Result<(), GemServiceError> {
         panic!("unexpected asset write")
-    }
-    async fn add_missing_balances(&self, _: WalletId, _: Vec<AssetId>) -> Result<(), GemServiceError> {
-        panic!("unexpected balance write")
-    }
-    async fn add_balances(&self, _: WalletId, _: Vec<AssetId>, _: bool) -> Result<(), GemServiceError> {
-        panic!("unexpected balance write")
     }
     async fn set_buyable_assets(&self, _: Vec<AssetId>) -> Result<(), GemServiceError> {
         panic!("unexpected asset write")

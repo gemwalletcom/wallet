@@ -62,7 +62,7 @@ struct ServicesFactory {
             store: GemstonePriceStore(priceStore: stores.priceStore),
             preferences: preferencesService,
         )
-        let gemstoneAssetStore = GemstoneAssetStore(assetStore: stores.assetStore, balanceStore: stores.balanceStore)
+        let gemstoneAssetStore = GemstoneAssetStore(assetStore: stores.assetStore)
         let gemstoneFileStore = GemstoneFileStore()
         let gemstoneAddressStore = GemstoneAddressStore(store: stores.addressStore)
         let gemstoneBannerStore = GemstoneBannerStore(store: stores.bannerStore)
@@ -74,7 +74,7 @@ struct ServicesFactory {
             securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
         )
         let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
-        let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService, session: walletSessionService)
+        let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService)
         let scanConfiguration = URLSessionConfiguration.default
         scanConfiguration.timeoutIntervalForRequest = GemConstants.scanTimeout.timeInterval
         let scanService = Gemstone.GemScanService(
@@ -137,7 +137,6 @@ struct ServicesFactory {
         let transactionStateStore = GemstoneTransactionStateStore(store: stores.transactionStore)
         let transactionStateService = gatewayService.transactionStateService(
             store: transactionStateStore,
-            assets: assetsService,
             balance: balanceService,
             stake: stakeService,
             nft: nftService,
@@ -147,6 +146,7 @@ struct ServicesFactory {
         let transactionsService = Gemstone.GemTransactionsService(
             api: deviceApiClient,
             assets: assetsService,
+            balance: balanceService,
             store: transactionStateStore,
             names: nameService,
             walletPreferences: walletPreferencesService,
@@ -155,7 +155,7 @@ struct ServicesFactory {
         )
 
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore, platform: .ios)
-        let navigationService = Gemstone.GemNavigationService(assets: assetsService, session: walletSessionService, transactionState: transactionStateService)
+        let navigationService = Gemstone.GemNavigationService(assets: assetsService, balance: balanceService, session: walletSessionService, transactionState: transactionStateService)
         let navigationPresenter = NavigationPresenter(assetsService: assetsService, navigationService: navigationService, nftService: nftService)
         let gemstonePerpetualStore = GemstonePerpetualStore(store: stores.perpetualStore)
         let perpetualService = gatewayService.perpetualService(
@@ -323,6 +323,7 @@ struct ServicesFactory {
         )
         let searchService = Gemstone.GemSearchService(
             assets: assetsService,
+            balance: balanceService,
             price: priceService,
             perpetuals: perpetualService,
             store: GemstoneSearchStore(store: stores.searchStore, assetListStore: stores.assetListStore),
