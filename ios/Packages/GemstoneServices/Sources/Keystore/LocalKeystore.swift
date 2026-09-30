@@ -1,4 +1,4 @@
-public import Gemstone
+import Gemstone
 import Foundation
 import Primitives
 

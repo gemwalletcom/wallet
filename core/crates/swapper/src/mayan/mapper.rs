@@ -38,10 +38,7 @@ impl MayanTransactionResult {
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
         let to_value = amount_value(self.to_amount.as_deref(), self.to_amount64.as_deref(), asset_decimals(&to_asset).or(output_decimals).or_else(|| self.min_amount_decimals()))?;
 
-        let referral_fee = match self.client_status {
-            MayanClientStatus::Completed => self.referral_fee(&from_asset, &from_value, &to_asset, &to_value),
-            MayanClientStatus::InProgress | MayanClientStatus::Refunded => None,
-        };
+        let referral_fee = self.referral_fee(&from_asset, &from_value, &to_asset, &to_value).filter(|_| self.client_status.swap_status().charges_referral_fee());
         Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Mayan).with_referral_fee(referral_fee))
     }
 

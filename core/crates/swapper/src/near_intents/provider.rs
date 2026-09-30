@@ -5,8 +5,8 @@ use super::{
     supported_assets,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
-    amount_to_value,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
+    SwapperQuoteData, amount_to_value,
     client_factory::create_sui_client,
     cross_chain::VaultAddresses,
     fees::DEFAULT_REFERRER,
@@ -155,11 +155,11 @@ where
         }
     }
 
-    fn build_swap_metadata(transaction: &ExplorerTransaction) -> Option<TransactionSwapMetadata> {
+    fn build_swap_metadata(transaction: &ExplorerTransaction, status: &SwapStatus) -> Option<TransactionSwapMetadata> {
         let from_asset = get_asset_id_from_near_asset(&transaction.origin_asset)?;
         let from_value = BigUint::from_str(&transaction.amount_in).ok()?;
         let to_asset = get_asset_id_from_near_asset(&transaction.destination_asset)?;
-        let referral_fee = Self::referral_fee(transaction, &from_asset, &from_value);
+        let referral_fee = Self::referral_fee(transaction, &from_asset, &from_value).filter(|_| status.charges_referral_fee());
         Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, BigUint::from_str(&transaction.amount_out).ok()?, SwapperProvider::NearIntents).with_referral_fee(referral_fee))
     }
 
@@ -360,13 +360,18 @@ where
         })
     }
 
-    async fn get_swap_result(&self, _chain: Chain, hash: &str) -> Result<SwapResult, SwapperError> {
-        let Some(transaction) = self.explorer.search_transaction(hash).await? else {
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        let transaction = match (self.explorer.search_transaction(&request.transaction_hash).await?, &request.deposit_address) {
+            (Some(transaction), _) => Some(transaction),
+            (None, Some(deposit_address)) => self.explorer.search_deposit(deposit_address, request.deposit_memo.as_deref()).await?,
+            (None, None) => None,
+        };
+        let Some(transaction) = transaction else {
             return Ok(SwapResult::pending());
         };
 
         let status = Self::map_transaction_status(&transaction.status);
-        let metadata = Self::build_swap_metadata(&transaction);
+        let metadata = Self::build_swap_metadata(&transaction, &status);
 
         Ok(SwapResult { status, metadata, eta_in_seconds: None })
     }
@@ -393,7 +398,7 @@ mod tests {
         let transactions: Vec<ExplorerTransaction> = serde_json::from_str(json).unwrap();
         let transaction = &transactions[0];
         let status = NearIntents::<RpcClient>::map_transaction_status(&transaction.status);
-        let metadata = NearIntents::<RpcClient>::build_swap_metadata(transaction);
+        let metadata = NearIntents::<RpcClient>::build_swap_metadata(transaction, &status);
         SwapResult { status, metadata, eta_in_seconds: None }
     }
 
@@ -500,6 +505,14 @@ mod tests {
                 eta_in_seconds: None,
             }
         );
+    }
+
+    #[test]
+    fn swap_result_refunded_without_referral_fee() {
+        let result = status(include_str!("testdata/tx_status_tron_to_litecoin_refunded_app_fee.json"));
+
+        assert_eq!(result.status, SwapStatus::Refunded);
+        assert_eq!(result.metadata.unwrap().referral_fee, None);
     }
 
     #[test]
@@ -686,7 +699,11 @@ mod swap_integration_tests {
         let provider = NearIntents::new(rpc_provider).unwrap();
         let deposit_address = "18gB9wZz1Q4CzniurLye1KdUUqjWjo3ePr";
 
-        let swap_result = provider.get_swap_result(Chain::Bitcoin, deposit_address).await?;
+        let request = SwapResultRequest {
+            deposit_address: Some(deposit_address.to_string()),
+            ..SwapResultRequest::new(Chain::Bitcoin, "")
+        };
+        let swap_result = provider.get_swap_result(&request).await?;
 
         println!("swap_result: {swap_result:?}");
 
