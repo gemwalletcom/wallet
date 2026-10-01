@@ -202,7 +202,7 @@ impl GemAssetDetailsService {
         }
     }
 
-    pub async fn set_price_alert(&self, asset: Asset, enabled: bool) -> Result<GemToast, GemServiceError> {
+    pub async fn set_price_alert(&self, asset: Asset, enabled: bool) -> Result<Option<GemToast>, GemServiceError> {
         self.price_alerts.set_auto_alert(asset, enabled).await
     }
 }

@@ -14,10 +14,12 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
     private let lock = NSLock()
     private var enabled: Bool
     private let setEnabledError: Error?
+    private let allowsNotifications: Bool
 
-    public init(enabled: Bool = false, setEnabledError: Error? = .none) {
+    public init(enabled: Bool = false, setEnabledError: Error? = .none, allowsNotifications: Bool = true) {
         self.enabled = enabled
         self.setEnabledError = setEnabledError
+        self.allowsNotifications = allowsNotifications
     }
 
     public func newAlertSession(assetId: Gemstone.AssetId, format: GemNumberFormat) -> GemPriceAlertSession {
@@ -49,8 +51,11 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         .data
     }
 
-    public func enablePriceAlert(alert _: Gemstone.PriceAlert) async throws {
-        lock.withLock { enabled = true }
+    public func enablePriceAlert(alert _: Gemstone.PriceAlert) async throws -> Bool {
+        if allowsNotifications {
+            lock.withLock { enabled = true }
+        }
+        return allowsNotifications
     }
 
     public func deletePriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
@@ -59,7 +64,10 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         Primitives.Currency.usd.toGem()
     }
 
-    public func setAutoAlert(asset: Gemstone.Asset, enabled isEnabled: Bool) async throws -> GemToast {
+    public func setAutoAlert(asset: Gemstone.Asset, enabled isEnabled: Bool) async throws -> GemToast? {
+        if isEnabled, !allowsNotifications {
+            return nil
+        }
         lock.withLock { enabled = isEnabled }
         return GemToast(text: .priceAlertsToggled(name: asset.name, enabled: isEnabled), icon: .priceAlert)
     }
