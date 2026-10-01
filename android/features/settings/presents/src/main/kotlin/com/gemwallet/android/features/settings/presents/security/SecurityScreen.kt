@@ -10,11 +10,16 @@ import com.gemwallet.android.features.settings.viewmodels.security.SecurityViewM
 fun SecurityScreen(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltViewModel()) {
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val lockInterval by viewModel.lockInterval.collectAsStateWithLifecycle(null)
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val isUpdatingAuthentication by viewModel.isUpdatingAuthentication.collectAsStateWithLifecycle()
 
     SecurityScene(
         sections = sections,
         lockInterval = lockInterval,
         lockPeriods = viewModel.lockPeriods,
+        error = error,
+        isUpdatingAuthentication = isUpdatingAuthentication,
+        onErrorShown = viewModel::clearError,
         onAuthRequired = viewModel::setAuthRequired,
         onHideBalances = viewModel::setHideBalances,
         onLockInterval = { viewModel.setLockInterval(it) },

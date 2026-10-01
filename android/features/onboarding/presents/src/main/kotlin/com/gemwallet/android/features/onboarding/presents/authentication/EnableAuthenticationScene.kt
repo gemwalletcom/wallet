@@ -39,7 +39,7 @@ fun EnableAuthenticationScene(onEnable: () -> Unit, onSkip: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 MainActionButton(
                     title = enableAuthenticationLabel(null).string(context),
-                    onClick = { context.requestAuth(AuthRequest.Required, onEnable) },
+                    onClick = { context.requestAuth(AuthRequest.Required, onSuccess = onEnable) },
                 )
                 TextButton(
                     onClick = onSkip,

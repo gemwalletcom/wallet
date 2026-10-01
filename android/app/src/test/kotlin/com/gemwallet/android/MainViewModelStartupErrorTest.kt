@@ -1,9 +1,11 @@
 package com.gemwallet.android
 
 import android.util.Log
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.wallet.core.primitives.Appearance
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -43,12 +45,56 @@ class MainViewModelStartupErrorTest {
     fun sharedPasswordMigrationFailure_isShownAtStartup() {
         val walletService = mockk<GemWalletServiceInterface>(relaxed = true)
         coEvery { walletService.migrateToSharedPassword() } throws IllegalStateException("Secure preferences could not be loaded")
+        val viewModel = mainViewModel(walletService = walletService)
+
+        viewModel.maintain(flowOf(true))
+
+        assertEquals("Secure preferences could not be loaded", viewModel.uiState.value.startupError)
+        viewModel.resetError()
+        assertNull(viewModel.uiState.value.startupError)
+    }
+
+    @Test
+    fun enabledAuthentication_protectsThePasswordAfterTheFirstUnlock() {
+        val protection = mockk<WalletPasswordProtection>(relaxed = true)
+        every { protection.authenticationRequired() } returns false
+        val viewModel = mainViewModel(authRequired = true, protection = protection)
+        val isUnlocked = MutableStateFlow(false)
+
+        viewModel.maintain(isUnlocked)
+        coVerify(exactly = 0) { protection.setAuthenticationRequired(any()) }
+
+        isUnlocked.value = true
+
+        coVerify(exactly = 1) { protection.setAuthenticationRequired(true) }
+        assertNull(viewModel.uiState.value.startupError)
+    }
+
+    @Test
+    fun failedPasswordProtection_isShownAndStartupContinues() {
+        val protection = mockk<WalletPasswordProtection>(relaxed = true)
+        every { protection.authenticationRequired() } returns false
+        coEvery { protection.setAuthenticationRequired(true) } throws IllegalStateException("Wallet keyset write failed")
+        val walletService = walletService()
+        val viewModel = mainViewModel(authRequired = true, protection = protection, walletService = walletService)
+
+        viewModel.maintain(flowOf(true))
+
+        assertEquals("Wallet keyset write failed", viewModel.uiState.value.startupError)
+        coVerify(exactly = 1) { walletService.migrateToSharedPassword() }
+    }
+
+    private fun walletService() = mockk<GemWalletServiceInterface>(relaxed = true) { coEvery { migrateToSharedPassword() } returns 0u }
+
+    private fun mainViewModel(authRequired: Boolean = false, protection: WalletPasswordProtection = mockk(relaxed = true), walletService: GemWalletServiceInterface = walletService()): MainViewModel {
         val userConfig = mockk<UserConfig>()
+        every { userConfig.authRequired() } returns authRequired
         every { userConfig.appearance() } returns flowOf(Appearance.System)
         val coordinator = mockk<PendingNavigationCoordinator>(relaxed = true)
         every { coordinator.pendingNavigation } returns MutableStateFlow(null)
-        val viewModel = MainViewModel(
+        return MainViewModel(
             userConfig = userConfig,
+            passwordProtection = protection,
             isWalletConnectEnabledCase = mockk(relaxed = true),
             pairWalletConnect = mockk(relaxed = true),
             appStartService = mockk(relaxed = true),
@@ -59,11 +105,5 @@ class MainViewModelStartupErrorTest {
             ioDispatcher = dispatcher,
             context = mockk(relaxed = true),
         )
-
-        viewModel.maintain(flowOf(true))
-
-        assertEquals("Secure preferences could not be loaded", viewModel.uiState.value.startupError)
-        viewModel.resetError()
-        assertNull(viewModel.uiState.value.startupError)
     }
 }

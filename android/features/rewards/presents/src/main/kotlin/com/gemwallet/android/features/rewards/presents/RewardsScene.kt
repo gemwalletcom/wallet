@@ -37,6 +37,7 @@ import com.gemwallet.android.features.rewards.presents.components.rewardsInfo
 import com.gemwallet.android.features.rewards.presents.dialogs.CreateRewardsCodeDialog
 import com.gemwallet.android.features.rewards.presents.dialogs.RedeemRewardsCodeDialog
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
+import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -52,6 +53,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -107,7 +109,12 @@ fun RewardsScene(
 
     var getStartedDialogShow by remember(inviteAction) { mutableStateOf(false) }
     var codeDialogShow by remember(incomingCode, isLoading, isRefreshing) { mutableStateOf(incomingCode is GemIncomingCode.Confirm && !isLoading && !isRefreshing) }
-    val referralCode = (incomingCode as? GemIncomingCode.Confirm)?.code
+    var codeRetryShow by remember { mutableStateOf(false) }
+    val referralCode = when (incomingCode) {
+        is GemIncomingCode.Activate -> incomingCode.code
+        is GemIncomingCode.Confirm -> incomingCode.code
+        null -> null
+    }
 
     val successStr = stringResource(R.string.common_done)
     val scope = rememberCoroutineScope()
@@ -129,8 +136,10 @@ fun RewardsScene(
 
     LaunchedEffect(incomingCode) {
         val code = (incomingCode as? GemIncomingCode.Activate)?.code ?: return@LaunchedEffect
-        onCancelCode()
-        onCode(code, onCodeResult)
+        context.requestAuth(AuthRequest.Default, onCancel = { codeRetryShow = true }) {
+            onCancelCode()
+            onCode(code, onCodeResult)
+        }
     }
 
     Scene(
@@ -221,7 +230,7 @@ fun RewardsScene(
                                     title = stringResource(R.string.transfer_confirm),
                                     state = buttonState(enabled = pending.isEnabled),
                                 ) {
-                                    onCode(pending.code, onCodeResult)
+                                    context.requestAuth(AuthRequest.Default) { onCode(pending.code, onCodeResult) }
                                 }
                             }
                         }
@@ -237,11 +246,12 @@ fun RewardsScene(
     }
 
     RedeemRewardsCodeDialog(
-        isVisible = codeDialogShow,
+        isVisible = codeDialogShow || codeRetryShow,
         referralCode = referralCode,
         onCode = onCode,
     ) {
         codeDialogShow = false
+        codeRetryShow = false
         onCancelCode()
     }
 }

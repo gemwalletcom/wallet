@@ -2,6 +2,7 @@ package com.gemwallet.android
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -61,7 +63,7 @@ class AppViewModelTest {
         unmockkStatic(Log::class)
     }
 
-    private fun viewModel(currentWalletId: String? = null, update: GemAppUpdateOffer? = null, skip: SkipAppUpdate = mockk(relaxed = true)): AppViewModel {
+    private fun viewModel(currentWalletId: String? = null, update: GemAppUpdateOffer? = null, skip: SkipAppUpdate = mockk(relaxed = true), passwordProtection: WalletPasswordProtection = mockk(relaxed = true)): AppViewModel {
         val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(null) }
         val walletSession: GemWalletSessionServiceInterface = mockk {
             coEvery { ensureCurrentWallet() } returns currentWalletId
@@ -75,6 +77,7 @@ class AppViewModelTest {
         return AppViewModel(
             session,
             config,
+            passwordProtection,
             sync,
             skip,
             mockk(relaxed = true),
@@ -145,5 +148,16 @@ class AppViewModelTest {
 
         assertNull(model.uiState.value.update)
         coVerify(exactly = 0) { skip.skipAppUpdate(any()) }
+    }
+
+    @Test
+    fun `enabling authentication during onboarding protects the wallet password`() = runTest(dispatcher) {
+        val passwordProtection: WalletPasswordProtection = mockk(relaxed = true)
+        val model = viewModel(passwordProtection = passwordProtection)
+
+        model.onAuthenticationOffered(enabled = true)
+        advanceUntilIdle()
+
+        coVerify { passwordProtection.setAuthenticationRequired(true) }
     }
 }

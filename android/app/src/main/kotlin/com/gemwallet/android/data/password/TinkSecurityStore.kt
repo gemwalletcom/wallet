@@ -37,7 +37,7 @@ class TinkSecurityStore(private val context: Context) : SecurityStore<Any> {
     private val encryptedStore = TinkEncryptedKeyValueStore(
         context = context,
         config = DEVICE_KEYS_STORE_CONFIG,
-        aeadProvider = aeadProvider,
+        aeadProvider = aeadProvider::get,
     )
 
     override suspend fun getValue(key: Any): String = withContext(Dispatchers.IO) {

@@ -111,7 +111,7 @@ class SecureStorageFailureInstrumentedTest {
     @Test
     fun masterKeyFailureDoesNotPersistAKeysetOrPassword() {
         val provider = TinkAeadProvider(context, config) { throw GeneralSecurityException("Keystore unavailable") }
-        val store = TinkEncryptedKeyValueStore(context, config, provider)
+        val store = TinkEncryptedKeyValueStore(context, config, provider::get)
         assertThrows(GeneralSecurityException::class.java) { store.putString("wallet", "password") }
         assertTrue(context.getSharedPreferences(config.keysetPreferencesFileName, Context.MODE_PRIVATE).all.isEmpty())
         assertTrue(context.getSharedPreferences(name, Context.MODE_PRIVATE).all.isEmpty())

@@ -21,17 +21,20 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.rewards.viewmodels.RewardsViewModel
+import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.walletSections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.requestAuth
 import kotlinx.coroutines.launch
 
 @Composable
 fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewModel()) {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val loadingMessage = stringResource(R.string.common_loading)
     val insufficientPointsMessage = stringResource(R.string.rewards_insufficient_points)
     val doneMessage = stringResource(R.string.common_done)
@@ -85,12 +88,14 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
                 showMessageDialog = insufficientPointsMessage
                 return@RewardsScene
             }
-            scope.launch { snackbar.showSnackbar(loadingMessage, R.drawable.ic_refresh) }
-            viewModel.redeem(it) { error ->
-                if (error == null) {
-                    scope.launch { snackbar.showSnackbar(doneMessage, R.drawable.ic_check_circle) }
-                } else {
-                    showErrorDialog = error
+            context.requestAuth(AuthRequest.Default) {
+                scope.launch { snackbar.showSnackbar(loadingMessage, R.drawable.ic_refresh) }
+                viewModel.redeem(it) { error ->
+                    if (error == null) {
+                        scope.launch { snackbar.showSnackbar(doneMessage, R.drawable.ic_check_circle) }
+                    } else {
+                        showErrorDialog = error
+                    }
                 }
             }
         },
@@ -103,7 +108,6 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         onDismissRequest = { isShowSelectWallets = false },
         title = stringResource(R.string.wallets_title),
     ) {
-        val context = LocalContext.current
         LazyColumn {
             walletSections(availableWalletSections, currentWallet?.id?.id) { id ->
                 viewModel.setWallet(walletId = id)
