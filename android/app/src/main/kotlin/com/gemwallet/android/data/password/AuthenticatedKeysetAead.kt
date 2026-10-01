@@ -14,7 +14,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-internal const val PASSWORD_AUTHENTICATION_WINDOW_SECONDS = 30
+internal const val PASSWORD_AUTHENTICATION_WINDOW_SECONDS = 10
 
 internal fun androidKeyStore(): KeyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
 
