@@ -7,7 +7,7 @@ mod target;
 
 pub use client::base_url;
 pub use model::{QuoteResponse, QuoteResponseError, QuoteResponseResult};
-pub use provider::NearIntents;
+pub use provider::{NearIntents, TREASURY_ADDRESSES};
 
 pub(crate) use assets::{get_asset_id_from_near_asset, get_near_asset_id, supported_assets};
 pub(crate) use client::{NearIntentsClient, NearIntentsExplorer};
