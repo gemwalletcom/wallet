@@ -30,9 +30,6 @@ pub(crate) struct AssetRow {
     pub earn_apr: Option<f64>,
     pub has_image: bool,
     pub has_price: bool,
-    pub circulating_supply: Option<f64>,
-    pub total_supply: Option<f64>,
-    pub max_supply: Option<f64>,
 
     pub updated_at: NaiveDateTime,
 }
@@ -60,9 +57,6 @@ pub(crate) struct NewAssetRow {
     pub earn_apr: Option<f64>,
     pub has_image: bool,
     pub has_price: bool,
-    pub circulating_supply: Option<f64>,
-    pub total_supply: Option<f64>,
-    pub max_supply: Option<f64>,
 }
 
 impl NewAssetRow {
@@ -92,9 +86,6 @@ impl NewAssetRow {
             earn_apr: properties.earn_apr,
             has_image: properties.has_image,
             has_price: properties.has_price,
-            circulating_supply: None,
-            total_supply: None,
-            max_supply: None,
         }
     }
 }

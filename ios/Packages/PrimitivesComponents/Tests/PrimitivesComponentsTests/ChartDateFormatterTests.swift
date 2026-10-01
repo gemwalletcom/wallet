@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemCandleTick
 import enum Gemstone.GemChartDateStyle
 import Primitives
 @testable import PrimitivesComponents
@@ -28,5 +29,14 @@ struct ChartDateFormatterTests {
         #expect(formatter.string(for: today, style: .relative) == "Today, 2:30\u{202F}PM")
         #expect(formatter.string(for: fixed, style: .dayTime) == "Apr 24 at 2:30\u{202F}PM")
         #expect(formatter.string(for: fixed, style: .day) == "Apr 24, 2025")
+    }
+
+    @Test
+    func stringForTick() throws {
+        let fixed = try #require(calendar.date(from: DateComponents(year: 2025, month: 4, day: 24, hour: 14, minute: 30)))
+
+        #expect(formatter.string(for: GemCandleTick(date: fixed, format: .time)) == "2:30\u{202F}PM")
+        #expect(formatter.string(for: GemCandleTick(date: fixed, format: .day)) == "Apr 24")
+        #expect(formatter.string(for: GemCandleTick(date: fixed, format: .monthYear)) == "Apr 2025")
     }
 }

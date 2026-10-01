@@ -1,8 +1,7 @@
-use primitives::OptionStringExt;
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use primitives::{Device, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus};
+use primitives::{Device, OptionStringExt, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus};
 use serde::{Deserialize, Serialize};
 
 use super::constants::{CHATWOOT_CONTENT_TYPE_TEXT, CHATWOOT_DELIVERY_STATUS_DELIVERED, CHATWOOT_DELIVERY_STATUS_READ, CHATWOOT_DELIVERY_STATUS_SENT, CHATWOOT_FILE_TYPE_IMAGE};

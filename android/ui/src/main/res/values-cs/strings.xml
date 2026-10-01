@@ -441,6 +441,7 @@
   <string name="lock_unlock">Odemknout</string>
   <string name="lock_privacy_lock">Zámek soukromí</string>
   <string name="lock_footer">Chraňte přístup k této aplikaci na svém zařízení</string>
+  <string name="lock_passcode">Přístupový kód</string>
   <string name="verify_phrase_title">Potvrdit</string>
   <string name="warnings_externally_controlled_account">Tento účet %1$s může ovládat někdo jiný. Neposílejte na něj prostředky, pokud si nejste jisti, že ho ovládáte vy, jinak můžete o svá aktiva trvale přijít.</string>
   <string name="sell_title">Prodat %1$s</string>

@@ -1,4 +1,4 @@
-use primitives::{Transaction, TransactionId};
+use primitives::{Transaction, TransactionId, TransactionIdRequest};
 use rocket::serde::json::Json;
 use rocket::{State, get, post};
 use services::indexer::IndexerClient;
@@ -12,9 +12,10 @@ pub async fn get_transactions_by_hash(_permission: PermissionDeviceTransactionsR
     Ok(client.get_transactions_by_hash(hash).await?.into())
 }
 
-#[post("/transactions/add", format = "json", data = "<transaction_id>")]
-pub async fn add_transaction(_permission: PermissionAdminWrite, transaction_id: Json<TransactionId>, client: &State<IndexerClient>) -> Result<ApiResponse<TransactionId>, ApiError> {
-    let transaction_id = transaction_id.into_inner();
-    client.refresh_transaction(transaction_id.clone()).await?;
+#[post("/transactions/add", format = "json", data = "<request>")]
+pub async fn add_transaction(_permission: PermissionAdminWrite, request: Json<TransactionIdRequest>, client: &State<IndexerClient>) -> Result<ApiResponse<TransactionId>, ApiError> {
+    let request = request.into_inner();
+    let transaction_id = TransactionId::new(request.chain, request.hash.clone());
+    client.refresh_transaction(request).await?;
     Ok(transaction_id.into())
 }

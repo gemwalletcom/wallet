@@ -2,7 +2,7 @@ use num_bigint::BigUint;
 use primitives::{AssetId, swap::SwapResult};
 use rocket::{State, get};
 use std::str::FromStr;
-use swapper::{Options, QuoteRequest, SwapQuotes, SwapperQuoteAsset, config::get_default_slippage, cross_chain::VaultAddresses, swapper::GemSwapper};
+use swapper::{Options, QuoteRequest, SwapQuotes, SwapResultRequest, SwapperQuoteAsset, config::get_default_slippage, cross_chain::VaultAddresses, swapper::GemSwapper};
 
 use crate::api_clients::PermissionChainRead;
 use crate::params::{AddressParam, AssetIdParam, ChainParam, SwapProviderParam};
@@ -10,7 +10,7 @@ use crate::responders::{ApiError, ApiResponse};
 
 #[get("/chain/swaps/<provider>/transaction/<hash>?<chain>")]
 pub async fn get_swap_result(_permission: PermissionChainRead, provider: SwapProviderParam, hash: &str, chain: ChainParam, swapper: &State<GemSwapper>) -> Result<ApiResponse<SwapResult>, ApiError> {
-    Ok(swapper.get_swap_result(chain.0, provider.0, hash).await?.into())
+    Ok(swapper.get_swap_result(provider.0, &SwapResultRequest::new(chain.0, hash)).await?.into())
 }
 
 #[get("/chain/swaps/<provider>/vault_addresses")]

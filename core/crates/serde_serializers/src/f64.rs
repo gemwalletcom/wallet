@@ -1,5 +1,7 @@
 use serde::{Deserialize, Deserializer, de};
 
+use crate::option::deserialize_option_with;
+
 pub fn deserialize_f64_from_str<'de, D>(deserializer: D) -> Result<f64, D::Error>
 where
     D: Deserializer<'de>,
@@ -12,11 +14,7 @@ pub fn deserialize_option_f64_from_str<'de, D>(deserializer: D) -> Result<Option
 where
     D: Deserializer<'de>,
 {
-    let opt: Option<String> = Option::deserialize(deserializer)?;
-    match opt {
-        Some(s) => s.parse::<f64>().map(Some).map_err(de::Error::custom),
-        None => Ok(None),
-    }
+    deserialize_option_with(deserializer, str::parse::<f64>)
 }
 
 #[cfg(test)]

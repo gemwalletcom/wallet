@@ -534,6 +534,7 @@ lock_require_authentication = Inahitaji uthibitishaji
 lock_unlock = Fungua
 lock_privacy_lock = Kufuli ya Faragha
 lock_footer = Linda ufikiaji wa programu hii kwenye kifaa chako
+lock_passcode = Nambari ya siri
 
 # Verify
 

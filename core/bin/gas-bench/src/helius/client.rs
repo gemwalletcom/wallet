@@ -30,7 +30,7 @@ impl HeliusClient {
         }
     }
 
-    pub async fn fetch_priority_fee_estimate(&self, account_keys: Option<Vec<String>>) -> Result<HeliusPriorityFees, Box<dyn Error + Send + Sync>> {
+    pub async fn get_priority_fee_estimate(&self, account_keys: Option<Vec<String>>) -> Result<HeliusPriorityFees, Box<dyn Error + Send + Sync>> {
         let request = HeliusPriorityFeeRequest {
             jsonrpc: "2.0",
             id: "1",

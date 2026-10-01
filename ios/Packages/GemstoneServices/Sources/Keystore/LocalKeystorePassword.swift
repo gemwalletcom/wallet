@@ -14,9 +14,12 @@ public final class LocalKeystorePassword: KeystorePassword {
         static let passwordAuthenticationPrivacyLock = "password_authentication_privacy_lock"
     }
 
-    private let keychain: Keychain = KeychainDefault()
+    private static let lock = NSLock()
+    private let keychain: Keychain
 
-    public init() {}
+    public init(keychain: Keychain = KeychainDefault()) {
+        self.keychain = keychain
+    }
 
     public func getAvailableAuthentication() -> KeystoreAuthentication {
         KeystoreAuthentication.availableAuthenticationType
@@ -52,41 +55,47 @@ public final class LocalKeystorePassword: KeystorePassword {
     }
 
     public func enableAuthentication(_ enable: Bool, context: LAContext) throws {
-        switch enable {
-        case true:
-            let authentication = getAvailableAuthentication()
-            switch authentication {
-            case .biometrics, .passcode:
-                try changeAuthentication(authentication: authentication, context: context)
-            case .none:
-                throw AnyError("No authentication available")
+        try Self.lock.withLock {
+            switch enable {
+            case true:
+                let authentication = getAvailableAuthentication()
+                switch authentication {
+                case .biometrics, .passcode:
+                    try changeAuthentication(authentication: authentication, context: context)
+                case .none:
+                    throw AnyError("No authentication available")
+                }
+            case false:
+                try changeAuthentication(authentication: .none, context: context)
+                try setPrivacyLockStatus(.disabled)
+                try setAuthenticationLockPeriod(period: .default)
             }
-        case false:
-            try changeAuthentication(authentication: .none, context: context)
-            try setPrivacyLockStatus(.disabled)
-            try setAuthenticationLockPeriod(period: .default)
         }
     }
 
-    public func getPassword() throws -> String {
-        try getPassword(context: LAContext())
-    }
-
-    public func getPassword(context: LAContext) throws -> String {
-        try keychain
-            .authenticationContext(context)
-            .get(Keys.password) ?? ""
-    }
-
-    public func setPassword(_ password: String, authentication: KeystoreAuthentication) throws {
-        try setPassword(password, authentication: authentication, context: LAContext())
+    public func getPassword(createIfMissing: Bool) throws -> String {
+        try Self.lock.withLock {
+            let context = LAContext()
+            if let password = try storedPassword(context: context) {
+                return password
+            }
+            guard createIfMissing else {
+                throw KeystoreError.missingPassword
+            }
+            let authentication = try getAuthentication()
+            let password = try SecureRandom.generateKey(length: 32).hex
+            try setPassword(password, authentication: authentication, context: context)
+            return password
+        }
     }
 
     public func remove() throws {
-        try keychain.remove(Keys.password)
-        try keychain.remove(Keys.passwordAuthentication)
-        try keychain.remove(Keys.passwordAuthenticationPeriod)
-        try keychain.remove(Keys.passwordAuthenticationPrivacyLock)
+        try Self.lock.withLock {
+            try keychain.remove(Keys.password)
+            try keychain.remove(Keys.passwordAuthentication)
+            try keychain.remove(Keys.passwordAuthenticationPeriod)
+            try keychain.remove(Keys.passwordAuthenticationPrivacyLock)
+        }
     }
 }
 
@@ -99,17 +108,24 @@ extension LocalKeystorePassword {
         context: LAContext,
     ) throws {
         try keychain
-            .set(authentication.rawValue, key: Keys.passwordAuthentication)
-
-        try keychain
             .accessibility(.whenUnlockedThisDeviceOnly, authenticationPolicy: authentication.policy)
             .authenticationContext(context)
             .set(password, key: Keys.password)
     }
 
+    private func storedPassword(context: LAContext) throws -> String? {
+        guard let password = try keychain.authenticationContext(context).get(Keys.password), password.isNotEmpty else {
+            return nil
+        }
+        return password
+    }
+
     private func changeAuthentication(authentication: KeystoreAuthentication, context: LAContext) throws {
-        let password = try getPassword(context: context)
-        try setPassword(password, authentication: authentication, context: context)
+        let password = try storedPassword(context: context)
+        try keychain.set(authentication.rawValue, key: Keys.passwordAuthentication)
+        if let password {
+            try setPassword(password, authentication: authentication, context: context)
+        }
     }
 }
 

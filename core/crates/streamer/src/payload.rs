@@ -267,13 +267,30 @@ impl fmt::Display for PricesPayload {
 
 #[cfg(test)]
 mod tests {
-    use super::TransactionsPayload;
+    use super::{TransactionsPayload, WalletStreamEvent, WalletStreamPayload};
     use primitives::Chain;
 
     #[test]
     fn test_transactions_payload_should_notify_devices() {
         assert!(!TransactionsPayload::new(Chain::Ethereum, vec![]).should_notify_devices());
         assert!(TransactionsPayload::new_with_notify(Chain::Ethereum, vec![], vec![]).should_notify_devices());
+    }
+
+    #[test]
+    fn test_wallet_configuration_payload_serialization() {
+        let payload = WalletStreamPayload {
+            wallet_id: 123,
+            event: WalletStreamEvent::WalletConfiguration,
+        };
+
+        assert_eq!(serde_json::to_string(&payload).unwrap(), r#"{"wallet_id":123,"event":"walletConfiguration"}"#);
+    }
+
+    #[test]
+    fn test_legacy_wallet_stream_event_deserialization() {
+        let payload: WalletStreamPayload = serde_json::from_str(r#"{"wallet_id":123,"event":"Nft"}"#).unwrap();
+
+        assert_eq!(payload.event, WalletStreamEvent::Nft);
     }
 }
 
@@ -360,12 +377,21 @@ impl fmt::Display for WalletStreamPayload {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum WalletStreamEvent {
-    Transactions { transaction_ids: Vec<TransactionId>, asset_ids: Vec<AssetId> },
+    #[serde(alias = "Transactions")]
+    Transactions {
+        transaction_ids: Vec<TransactionId>,
+        asset_ids: Vec<AssetId>,
+    },
+    #[serde(alias = "FiatTransaction")]
     FiatTransaction,
+    #[serde(alias = "Nft")]
     Nft,
+    #[serde(alias = "Perpetual")]
     Perpetual,
+    WalletConfiguration,
 }
 
 impl fmt::Display for WalletStreamEvent {
@@ -377,6 +403,7 @@ impl fmt::Display for WalletStreamEvent {
             WalletStreamEvent::FiatTransaction => write!(f, "fiat_transaction"),
             WalletStreamEvent::Nft => write!(f, "nft"),
             WalletStreamEvent::Perpetual => write!(f, "perpetual"),
+            WalletStreamEvent::WalletConfiguration => write!(f, "wallet_configuration"),
         }
     }
 }

@@ -1,8 +1,5 @@
 use gem_encoding::protobuf::{proto_decode, proto_encode};
 
-// Field numbers mirror sui-rpc v0.3.1 state_service.proto:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/state_service.proto
-
 #[derive(Clone, Debug, Default)]
 pub struct GetBalanceRequest {
     pub owner: Option<String>,

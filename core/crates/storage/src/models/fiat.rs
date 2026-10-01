@@ -28,7 +28,7 @@ impl FiatRateRow {
     pub fn from_primitive(rate: FiatRate, provider: FiatRateProvider) -> Self {
         FiatRateRow {
             id: rate.symbol.into(),
-            name: "".to_string(),
+            name: String::new(),
             rate: rate.rate,
             provider: provider.into(),
             is_enabled: false,
@@ -47,7 +47,7 @@ pub(crate) struct FiatAssetRow {
     pub symbol: String,
     pub network: Option<String>,
     pub token_id: Option<String>,
-    pub is_enabled: bool, // managed by db
+    pub is_enabled: bool,
     pub is_enabled_by_provider: bool,
     pub is_buy_enabled: bool,
     pub is_sell_enabled: bool,

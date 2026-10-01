@@ -134,7 +134,6 @@ mod tests {
         let asset3_rank = result.iter().find(|(id, _)| *id == Chain::Solana.as_asset_id()).map(|(_, r)| *r).unwrap();
         let asset4_rank = result.iter().find(|(id, _)| *id == Chain::SmartChain.as_asset_id()).map(|(_, r)| *r).unwrap();
 
-        // Scores: asset1=500, asset2=2500, asset3=3000, asset4=4000
         assert_eq!(asset1_rank, 25);
         assert_eq!(asset2_rank, 50);
         assert_eq!(asset3_rank, 75);

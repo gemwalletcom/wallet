@@ -7,6 +7,7 @@ use crate::services::transaction_state::GemTransactionStateService;
 use primitives::{Asset, AssetId, AssetType, Chain, Deeplink, FiatQuoteType, Payment, Transaction, UrlAction, WalletConnectLink, WalletId};
 
 use crate::services::assets::GemAssetsService;
+use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::push_notification::GemPushNotification;
@@ -27,7 +28,6 @@ pub enum GemNavigationTarget {
     None,
 }
 
-/// What opening a link or a scanned code does: a payment link shows loading while it is prepared.
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemCodeOutcome {
@@ -57,6 +57,7 @@ impl GemNavigationTarget {
 #[derive(uniffi::Object)]
 pub struct GemNavigationService {
     assets: Arc<GemAssetsService>,
+    balance: Arc<GemBalanceService>,
     session: Arc<GemWalletSessionService>,
     transaction_state: Arc<GemTransactionStateService>,
 }
@@ -64,8 +65,8 @@ pub struct GemNavigationService {
 #[uniffi::export]
 impl GemNavigationService {
     #[uniffi::constructor]
-    pub fn new(assets: Arc<GemAssetsService>, session: Arc<GemWalletSessionService>, transaction_state: Arc<GemTransactionStateService>) -> Self {
-        Self { assets, session, transaction_state }
+    pub fn new(assets: Arc<GemAssetsService>, balance: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>, transaction_state: Arc<GemTransactionStateService>) -> Self {
+        Self { assets, balance, session, transaction_state }
     }
 
     pub async fn open_deeplink(&self, deeplink: Deeplink) -> Result<GemNavigationTarget, GemServiceError> {
@@ -122,7 +123,8 @@ impl GemNavigationService {
     }
 
     pub async fn open_asset(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
-        Ok(match self.assets.open_asset(asset_id).await? {
+        let wallet = self.session.require_current_wallet().await?;
+        Ok(match self.balance.open_wallet_asset(wallet, asset_id).await? {
             Some(asset) => target(asset, None),
             None => GemNavigationTarget::None,
         })
@@ -138,7 +140,7 @@ impl GemNavigationService {
         let Some(wallet) = self.session.get_wallet(wallet_id.clone()).await? else {
             return Ok(GemNavigationTarget::None);
         };
-        Ok(match self.assets.open_wallet_asset(wallet, asset_id).await? {
+        Ok(match self.balance.open_wallet_asset(wallet, asset_id).await? {
             Some(asset) => target(asset, Some(wallet_id)),
             None => GemNavigationTarget::None,
         })
@@ -218,7 +220,7 @@ mod tests {
                 asset_id: asset.id.clone(),
                 ..Transaction::mock()
             };
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state.clone());
+            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.session.clone(), testkit.state.clone());
 
             let target = service
                 .open_notification(GemPushNotification::Transaction {
@@ -245,7 +247,7 @@ mod tests {
     #[test]
     fn test_only_a_perpetual_opens_the_perpetual_screen() {
         let testkit = DiscoveryTestkit::with_status(200);
-        let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state);
+        let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.session.clone(), testkit.state);
         let coin = Asset::from_chain(Chain::Ethereum);
         let perpetual = Asset {
             asset_type: AssetType::PERPETUAL,
@@ -270,7 +272,7 @@ mod tests {
             let wallet = Wallet::mock();
             *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
             testkit.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state.clone());
+            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.session.clone(), testkit.state.clone());
 
             assert_eq!(service.open_code("gem://perpetuals".to_string()).await, GemCodeOutcome::Open { target: GemNavigationTarget::Perpetuals });
             assert!(matches!(service.open_code("wc:abc@2?relay-protocol=irn".to_string()).await, GemCodeOutcome::WalletConnect { .. }));
@@ -293,11 +295,11 @@ mod tests {
             testkit.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
             let bitcoin = Asset::from_chain(Chain::Bitcoin);
             testkit.asset_store.save_assets(vec![default_asset_basic(bitcoin.clone())]).await.unwrap();
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.session.clone(), testkit.state.clone());
+            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.session.clone(), testkit.state.clone());
 
             let result = service.open_deeplink(Deeplink::Receive { asset_id: bitcoin.id.clone() }).await;
 
-            assert!(matches!(result, Err(GemServiceError::NoAccountForChain { chain: Chain::Bitcoin })));
+            assert_eq!(result.unwrap_err(), GemServiceError::NoAccountForChain { chain: Chain::Bitcoin });
         });
     }
 }

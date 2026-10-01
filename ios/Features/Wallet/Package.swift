@@ -80,8 +80,6 @@ let package = Package(
                 "Primitives",
                 "GemstonePrimitives",
                 "Store",
-                "NFT",
-                "Components",
                 "PrimitivesComponents",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),

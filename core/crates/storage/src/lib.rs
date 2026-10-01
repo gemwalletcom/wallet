@@ -18,7 +18,7 @@ pub use self::repositories::{
     api_clients_repository::ApiClientsRepository,
     assets_addresses_repository::AssetsAddressesRepository,
     assets_links_repository::AssetsLinksRepository,
-    assets_repository::{AssetFilter, AssetSupply, AssetUpdate, AssetsRepository},
+    assets_repository::{AssetFilter, AssetUpdate, AssetsRepository},
     assets_usage_ranks_repository::AssetsUsageRanksRepository,
     chains_repository::ChainsRepository,
     charts_repository::{ChartFilter, ChartPoint, ChartsRepository},
@@ -41,7 +41,9 @@ pub use self::repositories::{
     scan_detections_repository::ScanDetectionsRepository,
     support_sessions_repository::SupportSessionsRepository,
     tag_repository::{AssetTagLink, PerpetualTagLink, Tag, TagRepository},
+    transactions_perpetuals_repository::{TransactionPerpetualRecord, TransactionsPerpetualsRepository},
     transactions_repository::{TransactionFilter, TransactionUpdate, TransactionsRepository},
+    transactions_swaps_repository::{TransactionSwapRecord, TransactionsSwapsRepository},
     wallets_repository::{NewWallet, WalletAddress, WalletRecord, WalletsRepository},
 };
 

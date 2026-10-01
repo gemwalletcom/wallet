@@ -4,7 +4,6 @@ use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 #[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "camelCase")]
 pub enum ConfigKey {
-    // Referral
     ReferralVerifiedMultiplier,
     ReferralTrustedMultiplier,
     ReferralCooldown,
@@ -12,19 +11,15 @@ pub enum ConfigKey {
     ReferralVerificationDelay,
     ReferralEligibility,
 
-    // Username
     UsernameMinLength,
     UsernameMaxLength,
 
-    // Redemption
     RedemptionMinAccountAge,
     RedemptionCooldownAfterReferral,
     RedemptionRetryMaxRetries,
     RedemptionRetryDelay,
     RedemptionRetryErrors,
 
-    // Referral IP
-    ReferralIpConfidenceScoreThreshold,
     ReferralBlockedIpTypes,
     ReferralBlockedIpTypePenalty,
     ReferralMaxAbuseScore,
@@ -32,7 +27,6 @@ pub enum ConfigKey {
     ReferralPenaltyIspsScore,
     ReferralIpTorAllowed,
 
-    // Referral Risk Scoring (global cross-referrer penalties)
     ReferralRiskScoreFingerprintMatchPerReferrer,
     ReferralRiskScoreFingerprintMatchMaxPenalty,
     ReferralRiskScoreIpReuse,
@@ -73,7 +67,6 @@ pub enum ConfigKey {
     ReferralRiskScoreDeviceFarmingThreshold,
     ReferralRiskScoreDeviceFarmingPenaltyPerDevice,
 
-    // Referral Abuse Detection
     ReferralAbuseDisableThreshold,
     ReferralAbuseAttemptPenalty,
     ReferralAbuseVerifiedThresholdMultiplier,
@@ -92,16 +85,16 @@ pub enum ConfigKey {
     ReferralAbuseVelocityPenaltyPerSignal,
     ReferralAbuseDisabledReferrerPenalty,
 
-    // Fiat
     FiatValidateSubscription,
 
-    // Transactions
     TransactionsMaxAssetTransferCount,
     TransactionsMinAmountUsd,
     TransactionsOutdatedBlockCount,
     TransactionsOutdatedMinTimeout,
+    TransactionsStoreBatchSize,
+    TransactionsSwapMaxOutputToInputValue,
+    TransactionsSwapMaxInputToOutputValue,
 
-    // Alerter
     AlerterPriceAlertsTimer,
     AlerterPriceAlertsCooldown,
     AlerterPriceAlertsThreshold,
@@ -111,7 +104,6 @@ pub enum ConfigKey {
     AlerterStakeRewardsThreshold,
     AlerterStakeRewardsLookback,
 
-    // Price
     PriceTimerTopMarketCap,
     PriceTimerHighMarketCap,
     PriceTimerLowMarketCap,
@@ -138,7 +130,6 @@ pub enum ConfigKey {
     PricePrimaryMaxAge,
     PriceMissingPublishInterval,
 
-    // Assets
     AssetsSpamMarkers,
     AssetsFraudulentAssets,
     AssetsTimerUpdateSuspicious,
@@ -149,40 +140,33 @@ pub enum ConfigKey {
     AssetsTimerUpdateImages,
     AssetsTimerUpdateHasPrice,
 
-    // Lists
     ListsTimerUpdateLists,
 
-    // Fiat
     FiatTimerUpdateAssets,
     FiatTimerUpdateProviderCountries,
     FiatTimerUpdateBuyableAssets,
     FiatTimerUpdateSellableAssets,
     FiatTimerUpdateTrending,
 
-    // Scan
     ScanTimerUpdateValidators,
     ScanTimerUpdateValidatorsStatic,
     ScanTimeout,
     ScanDetectionMaxAge,
     ScanRequiredSuccesses,
 
-    // Rewards
     RewardsTimerAbuseChecker,
     RewardsTimerEligibilityChecker,
     RewardsEligibilityActiveDuration,
     RewardsEligibilityTransactionsCount,
     RewardsEligibilityPromotionLimit,
 
-    // Device
     DeviceTimerUpdater,
     DeviceTimerInactiveObserver,
     DeviceStreamRetention,
     DeviceStreamHistoryLimit,
 
-    // Version
     VersionTimerUpdateStoreVersions,
 
-    // Transaction
     TransactionTimerCleanup,
     TransactionTimerInTransitUpdate,
     TransactionTimerPendingUpdate,
@@ -196,7 +180,6 @@ pub enum ConfigKey {
     TransactionCleanupAddressLimit,
     TransactionCleanupLookback,
 
-    // Perpetuals
     PerpetualClassifierInterval,
     PerpetualClassifierConcurrency,
     PerpetualObserverInterval,
@@ -205,7 +188,6 @@ pub enum ConfigKey {
     PerpetualPriorityTriggerBps,
     PerpetualPriorityLiquidationBps,
 
-    // Search
     SearchAssetsUpdateInterval,
     SearchAssetListsUpdateInterval,
     SearchPerpetualsUpdateInterval,
@@ -215,13 +197,11 @@ pub enum ConfigKey {
     SearchPerpetualsLastUpdatedAt,
     SearchNftsLastUpdatedAt,
 
-    // Parser
     ParserCatchupReloadInterval,
     ParserMinCheckInterval,
     ParserMaxCheckInterval,
     ParserErrorInterval,
 
-    // Price Observed (WebSocket)
     PriceObservedFetchInterval,
     PriceObservedMaxAssets,
     PriceObservedMinObservers,
@@ -247,7 +227,6 @@ impl ConfigKey {
             Self::RedemptionRetryMaxRetries => "1",
             Self::RedemptionRetryDelay => "15s",
             Self::RedemptionRetryErrors => r#"["transaction gas price below minimum"]"#,
-            Self::ReferralIpConfidenceScoreThreshold => "10",
             Self::ReferralBlockedIpTypes => r#"["dataCenter", "hosting"]"#,
             Self::ReferralBlockedIpTypePenalty => "100",
             Self::ReferralMaxAbuseScore => "60",
@@ -314,6 +293,9 @@ impl ConfigKey {
             Self::TransactionsMinAmountUsd => "0.05",
             Self::TransactionsOutdatedBlockCount => "12",
             Self::TransactionsOutdatedMinTimeout => "15m",
+            Self::TransactionsStoreBatchSize => "100",
+            Self::TransactionsSwapMaxOutputToInputValue => "2",
+            Self::TransactionsSwapMaxInputToOutputValue => "2",
             Self::AlerterPriceAlertsTimer => "60s",
             Self::AlerterPriceAlertsCooldown => "24h",
             Self::AlerterPriceAlertsThreshold => "5.0",

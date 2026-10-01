@@ -43,8 +43,10 @@ pub struct Settings {
 pub struct Indexer {
     pub alchemy: ProviderSettings,
     pub algorand: ProviderSettings,
+    pub aptos: ProviderSettings,
     pub ankr: ProviderSettings,
     pub blockscout: ProviderSettings,
+    pub etherscan: ProviderSettings,
     pub fastnear: FastNearIndexer,
     pub subscan: ProviderSettings,
     pub sui: ProviderSettings,
@@ -109,6 +111,7 @@ pub struct Retry {
 pub struct RabbitMQ {
     pub url: String,
     pub prefetch: u16,
+    pub maxbytes: i64,
     pub retry: Retry,
 }
 

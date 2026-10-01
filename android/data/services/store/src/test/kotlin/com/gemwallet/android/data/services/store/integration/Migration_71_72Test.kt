@@ -132,14 +132,15 @@ class Migration_71_72Test {
         assertEquals(assets.map { it.id }.toSet().size, assets.size)
         assertEquals(listOf(Chain.Ethereum), accountsAfterMigration.map { it.chain })
 
+        fun ethereumBalance() = roomDb.balancesDao().getByAssets("wallet-1", listOf("ethereum")).single()
         roomDb.assetsDao().setAssetConfiguration("wallet-1", listOf("ethereum"), isVisible = true, isPinned = true)
-        assertTrue(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isPinned == true)
+        assertTrue(ethereumBalance().isPinned)
         roomDb.assetsDao().setAssetConfiguration("wallet-1", listOf("ethereum"), isVisible = false, isPinned = false)
-        assertFalse(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isVisible == true)
-        assertFalse(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isPinned == true)
+        assertFalse(ethereumBalance().isVisible)
+        assertFalse(ethereumBalance().isPinned)
         roomDb.assetsDao().setAssetConfiguration("wallet-1", listOf("ethereum"), isVisible = true, isPinned = true)
-        assertTrue(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isVisible == true)
-        assertTrue(roomDb.assetsDao().getBalance("wallet-1", "ethereum")?.isPinned == true)
+        assertTrue(ethereumBalance().isVisible)
+        assertTrue(ethereumBalance().isPinned)
         roomDb.close()
     }
 

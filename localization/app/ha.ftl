@@ -534,6 +534,7 @@ lock_require_authentication = Bukatar tantancewa
 lock_unlock = Buɗe
 lock_privacy_lock = Kulle Sirri
 lock_footer = Kare damar shiga wannan app akan na'urarka
+lock_passcode = Lambar wucewa
 
 # Verify
 

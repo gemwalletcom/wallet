@@ -30,7 +30,6 @@ public extension AssetsSections {
             pinnedIds: assets.filter(\.metadata.isPinned).map(\.asset.id),
             showsPopular: showsPopular,
         )
-        let byId = Dictionary(assets.map { ($0.asset.id, $0) }, uniquingKeysWith: { first, _ in first })
-        return AssetsSections(sections: sections.map { AssetsSection(kind: $0.kind, assets: $0.assetIds.compactMap { byId[$0] }) })
+        return AssetsSections(sections: sections.map { AssetsSection(kind: $0.kind, assets: assets.assets(ids: $0.assetIds)) })
     }
 }

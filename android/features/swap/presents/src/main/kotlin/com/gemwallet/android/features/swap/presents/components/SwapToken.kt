@@ -69,7 +69,7 @@ internal fun SwapToken(item: AssetData?, side: GemSwapSideState, calculating: Bo
                 assetSelected = item != null,
                 placeholder = side.amountPlaceholder,
             )
-            SwapEquivalent(calculating = calculating, equivalent = side.fiat?.text().orEmpty())
+            SwapEquivalent(equivalent = side.fiat?.text().orEmpty())
         }
         Column(
             horizontalAlignment = Alignment.End,
@@ -145,10 +145,10 @@ private fun AssetPickerChevron() {
 }
 
 @Composable
-private fun SwapEquivalent(calculating: Boolean, equivalent: String) {
+private fun SwapEquivalent(equivalent: String) {
     Text(
         modifier = Modifier.padding(vertical = paddingHalfSmall),
-        text = if (calculating) "" else equivalent,
+        text = equivalent,
         minLines = 1,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,

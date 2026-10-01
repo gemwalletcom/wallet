@@ -86,11 +86,11 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
                 return@RewardsScene
             }
             scope.launch { snackbar.showSnackbar(loadingMessage, R.drawable.ic_refresh) }
-            viewModel.redeem(it) { err ->
-                if (err == null) {
+            viewModel.redeem(it) { error ->
+                if (error == null) {
                     scope.launch { snackbar.showSnackbar(doneMessage, R.drawable.ic_check_circle) }
                 } else {
-                    showErrorDialog = err
+                    showErrorDialog = error
                 }
             }
         },

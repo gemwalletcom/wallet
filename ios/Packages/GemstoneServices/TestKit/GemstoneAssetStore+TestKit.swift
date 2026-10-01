@@ -6,6 +6,6 @@ import StoreTestKit
 
 public extension GemstoneAssetStore {
     static func mock(db: DB = .mock()) -> GemstoneAssetStore {
-        GemstoneAssetStore(assetStore: .mock(db: db), balanceStore: .mock(db: db))
+        GemstoneAssetStore(assetStore: .mock(db: db))
     }
 }

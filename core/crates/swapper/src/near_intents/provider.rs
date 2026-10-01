@@ -5,8 +5,8 @@ use super::{
     supported_assets,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
-    amount_to_value,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
+    SwapperQuoteData, amount_to_value,
     client_factory::create_sui_client,
     cross_chain::VaultAddresses,
     fees::DEFAULT_REFERRER,
@@ -21,33 +21,34 @@ use gem_sui::{SuiClient, build_transfer_message_bytes};
 use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::Zero;
-use primitives::OptionStringExt;
-use primitives::{Chain, TransactionSwapMetadata, swap::SwapStatus};
+use primitives::{
+    AssetId, Chain, OptionStringExt, TransactionSwapMetadata, TransactionSwapReferralFee,
+    swap::{HUNDRED_PERCENT_IN_BPS, NEAR_REFERRAL_ADDRESS, SwapStatus},
+};
 use std::str::FromStr;
 use std::{fmt::Debug, sync::Arc};
 
 const DEFAULT_DEADLINE_MINUTES: i64 = 30;
 const BITCOIN_DEADLINE_MINUTES: i64 = 120;
 
-// Supported-chain subset of https://docs.near-intents.org/security-compliance/treasury-addresses
 const TREASURY_ADDRESSES: [&str; 17] = [
-    "0x2CfF890f0378a11913B6129B2E97417a2c302680",                         // EVM chains
-    "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd",                         // Monad, XLayer
-    "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra",                                 // Bitcoin
-    "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ",                                 // Bitcoin Cash
-    "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD",                                 // Dogecoin
-    "XxA9DbXaFpF4GFY8KUNX7eAxhZPsWtcKhc",                                 // Dash
-    "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX",                                 // Litecoin
-    "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML",                                // Zcash
-    "intents.near",                                                       // NEAR
-    "HWjmoUNYckccg9Qrwi43JTzBcGcM1nbdAtATf9GXmz16",                       // Solana
-    "UQAfoBd_f0pIvNpUPAkOguUrFWpGWV9TWBeZs_5TXE95_trZ",                   // TON
-    "GDJ4JZXZELZD737NVFORH4PSSQDWFDZTKW3AIDKHYQG23ZXBPDGGQBJK",           // Stellar
-    "0x00ea18889868519abd2f238966cab9875750bb2859ed3a34debec37781520138", // Sui
-    "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446", // Aptos
-    "TX5XiRXdyz7sdFwF5mnhT1QoGCpbkncpke",                                 // TRON
-    "r9R8jciZBYGq32DxxQrBPi5ysZm67iQitH",                                 // XRP
-    "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm",         // Cardano
+    "0x2CfF890f0378a11913B6129B2E97417a2c302680",
+    "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd",
+    "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra",
+    "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ",
+    "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD",
+    "XxA9DbXaFpF4GFY8KUNX7eAxhZPsWtcKhc",
+    "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX",
+    "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML",
+    "intents.near",
+    "HWjmoUNYckccg9Qrwi43JTzBcGcM1nbdAtATf9GXmz16",
+    "UQAfoBd_f0pIvNpUPAkOguUrFWpGWV9TWBeZs_5TXE95_trZ",
+    "GDJ4JZXZELZD737NVFORH4PSSQDWFDZTKW3AIDKHYQG23ZXBPDGGQBJK",
+    "0x00ea18889868519abd2f238966cab9875750bb2859ed3a34debec37781520138",
+    "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446",
+    "TX5XiRXdyz7sdFwF5mnhT1QoGCpbkncpke",
+    "r9R8jciZBYGq32DxxQrBPi5ysZm67iQitH",
+    "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -154,15 +155,19 @@ where
         }
     }
 
-    fn build_swap_metadata(tx: &ExplorerTransaction) -> Option<TransactionSwapMetadata> {
-        let from_asset = get_asset_id_from_near_asset(&tx.origin_asset)?;
-        let to_asset = get_asset_id_from_near_asset(&tx.destination_asset)?;
-        Some(TransactionSwapMetadata {
-            from_asset,
-            from_value: BigUint::from_str(&tx.amount_in).ok()?,
-            to_asset,
-            to_value: BigUint::from_str(&tx.amount_out).ok()?,
-            provider: Some(SwapperProvider::NearIntents.as_ref().to_string()),
+    fn build_swap_metadata(transaction: &ExplorerTransaction, status: &SwapStatus) -> Option<TransactionSwapMetadata> {
+        let from_asset = get_asset_id_from_near_asset(&transaction.origin_asset)?;
+        let from_value = BigUint::from_str(&transaction.amount_in).ok()?;
+        let to_asset = get_asset_id_from_near_asset(&transaction.destination_asset)?;
+        let referral_fee = Self::referral_fee(transaction, &from_asset, &from_value).filter(|_| status.charges_referral_fee());
+        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, BigUint::from_str(&transaction.amount_out).ok()?, SwapperProvider::NearIntents).with_referral_fee(referral_fee))
+    }
+
+    fn referral_fee(transaction: &ExplorerTransaction, from_asset: &AssetId, from_value: &BigUint) -> Option<TransactionSwapReferralFee> {
+        let app_fee = transaction.app_fees.iter().find(|app_fee| app_fee.recipient.eq_ignore_ascii_case(NEAR_REFERRAL_ADDRESS) && app_fee.fee > 0)?;
+        Some(TransactionSwapReferralFee {
+            asset_id: from_asset.clone(),
+            value: from_value * app_fee.fee / HUNDRED_PERCENT_IN_BPS,
         })
     }
 
@@ -200,7 +205,7 @@ where
 
         let message_bytes = build_transfer_message_bytes(&self.sui_client, wallet_address, deposit_address, amount, from_asset.asset_id().token_id.as_deref())
             .await
-            .map_err(|err| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {err}")))?;
+            .map_err(|error| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {error}")))?;
 
         Ok(DepositData {
             to: deposit_address.to_string(),
@@ -355,13 +360,18 @@ where
         })
     }
 
-    async fn get_swap_result(&self, _chain: Chain, hash: &str) -> Result<SwapResult, SwapperError> {
-        let Some(tx) = self.explorer.search_transaction(hash).await? else {
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        let transaction = match (self.explorer.search_transaction(&request.transaction_hash).await?, &request.deposit_address) {
+            (Some(transaction), _) => Some(transaction),
+            (None, Some(deposit_address)) => self.explorer.search_deposit(deposit_address, request.deposit_memo.as_deref()).await?,
+            (None, None) => None,
+        };
+        let Some(transaction) = transaction else {
             return Ok(SwapResult::pending());
         };
 
-        let status = Self::map_transaction_status(&tx.status);
-        let metadata = Self::build_swap_metadata(&tx);
+        let status = Self::map_transaction_status(&transaction.status);
+        let metadata = Self::build_swap_metadata(&transaction, &status);
 
         Ok(SwapResult { status, metadata, eta_in_seconds: None })
     }
@@ -378,14 +388,17 @@ where
 mod tests {
     use super::*;
     use crate::{SwapperError, SwapperQuoteAsset};
-    use primitives::{AssetId, Chain, asset_constants::TON_USDT_ASSET_ID};
+    use primitives::{
+        AssetId, Chain,
+        asset_constants::{POLYGON_USDC_ASSET_ID, TON_USDT_ASSET_ID},
+    };
     use serde_json::json;
 
     fn status(json: &str) -> SwapResult {
         let transactions: Vec<ExplorerTransaction> = serde_json::from_str(json).unwrap();
-        let tx = &transactions[0];
-        let status = NearIntents::<RpcClient>::map_transaction_status(&tx.status);
-        let metadata = NearIntents::<RpcClient>::build_swap_metadata(tx);
+        let transaction = &transactions[0];
+        let status = NearIntents::<RpcClient>::map_transaction_status(&transaction.status);
+        let metadata = NearIntents::<RpcClient>::build_swap_metadata(transaction, &status);
         SwapResult { status, metadata, eta_in_seconds: None }
     }
 
@@ -425,15 +438,32 @@ mod tests {
             result,
             SwapResult {
                 status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::AvalancheC),
-                    from_value: BigUint::from(28000000000000000u64),
-                    to_asset: AssetId::from_chain(Chain::SmartChain),
-                    to_value: BigUint::from(399605209991817u64),
-                    provider: Some("near_intents".to_string()),
-                }),
+                metadata: Some(TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::AvalancheC),
+                    BigUint::from(28000000000000000u64),
+                    AssetId::from_chain(Chain::SmartChain),
+                    BigUint::from(399605209991817u64),
+                    SwapperProvider::NearIntents
+                )),
                 eta_in_seconds: None,
             }
+        );
+    }
+
+    #[test]
+    fn swap_result_referral_fee() {
+        let metadata = status(include_str!("testdata/tx_status_polygon_usdc_to_litecoin.json")).metadata.unwrap();
+
+        assert_eq!(metadata.from_asset, POLYGON_USDC_ASSET_ID.clone());
+        assert_eq!(metadata.from_value, BigUint::from(70000000u64));
+        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Litecoin));
+        assert_eq!(metadata.to_value, BigUint::from(101438912u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: POLYGON_USDC_ASSET_ID.clone(),
+                value: BigUint::from(175000u64),
+            })
         );
     }
 
@@ -445,13 +475,13 @@ mod tests {
             result,
             SwapResult {
                 status: SwapStatus::Pending,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::Solana),
-                    from_value: BigUint::from(646605458u64),
-                    to_asset: AssetId::from_chain(Chain::Bitcoin),
-                    to_value: BigUint::from(69086u64),
-                    provider: Some("near_intents".to_string()),
-                }),
+                metadata: Some(TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::Solana),
+                    BigUint::from(646605458u64),
+                    AssetId::from_chain(Chain::Bitcoin),
+                    BigUint::from(69086u64),
+                    SwapperProvider::NearIntents
+                )),
                 eta_in_seconds: None,
             }
         );
@@ -465,16 +495,24 @@ mod tests {
             result,
             SwapResult {
                 status: SwapStatus::Refunded,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: TON_USDT_ASSET_ID.clone(),
-                    from_value: BigUint::from(6321766u64),
-                    to_asset: AssetId::from_chain(Chain::SmartChain),
-                    to_value: BigUint::from(9690124016594003u64),
-                    provider: Some("near_intents".to_string()),
-                }),
+                metadata: Some(TransactionSwapMetadata::new(
+                    TON_USDT_ASSET_ID.clone(),
+                    BigUint::from(6321766u64),
+                    AssetId::from_chain(Chain::SmartChain),
+                    BigUint::from(9690124016594003u64),
+                    SwapperProvider::NearIntents
+                )),
                 eta_in_seconds: None,
             }
         );
+    }
+
+    #[test]
+    fn swap_result_refunded_without_referral_fee() {
+        let result = status(include_str!("testdata/tx_status_tron_to_litecoin_refunded_app_fee.json"));
+
+        assert_eq!(result.status, SwapStatus::Refunded);
+        assert_eq!(result.metadata.unwrap().referral_fee, None);
     }
 
     #[test]
@@ -661,7 +699,11 @@ mod swap_integration_tests {
         let provider = NearIntents::new(rpc_provider).unwrap();
         let deposit_address = "18gB9wZz1Q4CzniurLye1KdUUqjWjo3ePr";
 
-        let swap_result = provider.get_swap_result(Chain::Bitcoin, deposit_address).await?;
+        let request = SwapResultRequest {
+            deposit_address: Some(deposit_address.to_string()),
+            ..SwapResultRequest::new(Chain::Bitcoin, "")
+        };
+        let swap_result = provider.get_swap_result(&request).await?;
 
         println!("swap_result: {swap_result:?}");
 

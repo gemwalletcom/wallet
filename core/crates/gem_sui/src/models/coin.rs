@@ -66,7 +66,6 @@ pub struct Balance {
     #[serde(deserialize_with = "deserialize_bigint_from_str")]
     pub total_balance: BigInt,
     #[serde(default)]
-    /// Amount in the per-address balance accumulator.
     pub address_balance: u64,
 }
 

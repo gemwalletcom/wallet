@@ -55,7 +55,7 @@ public final class WalletsSceneViewModel {
     }
 
     var sections: [GemWalletSection] {
-        walletSections(wallets: walletsQuery.value.map { $0.toGem() }, currentWalletId: currentWalletId?.id)
+        walletSections(wallets: walletsQuery.value.map { $0.toGem() }, currentWalletId: currentWalletId)
     }
 
     func wallet(for row: GemWalletRow) -> Wallet? {

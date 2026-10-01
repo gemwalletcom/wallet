@@ -2,13 +2,11 @@
 
 import Components
 import Foundation
-import func Gemstone.autocloseOpenSession
 import func Gemstone.autocloseSession
 import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemAutocloseConfirmPolicy
 import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemAutocloseViewState
-import func Gemstone.perpetualOpenRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -39,18 +37,8 @@ public final class AutocloseSceneViewModel {
                 position: position.position.toGem(),
                 format: NumberInput.format(),
             )
-        case let .open(data, _):
-            autocloseOpenSession(
-                direction: data.direction.toGem(),
-                marketPrice: data.marketPrice,
-                size: data.size,
-                leverage: data.leverage,
-                decimals: data.assetDecimals,
-                provider: .hypercore,
-                format: NumberInput.format(),
-            )
-            .onInput(tpslType: .takeProfit, text: data.takeProfit ?? .empty)
-            .onInput(tpslType: .stopLoss, text: data.stopLoss ?? .empty)
+        case let .open(session, _, _):
+            session
         }
     }
 
@@ -79,7 +67,7 @@ public final class AutocloseSceneViewModel {
     func positionRow(_ viewState: GemAutocloseViewState) -> GemAssetItemRow? {
         switch type {
         case .modify: viewState.positionRow?.row
-        case let .open(data, _): perpetualOpenRow(assetId: data.assetId, title: data.symbol, direction: data.direction.toGem(), leverage: data.leverage, size: data.size)
+        case let .open(_, row, _): row
         }
     }
 
@@ -117,7 +105,7 @@ public extension AutocloseSceneViewModel {
                 isPresentingAlertMessage = AlertMessage(error: error)
             }
 
-        case let .open(_, onComplete):
+        case let .open(_, _, onComplete):
             onComplete(state.takeProfit.text, state.stopLoss.text)
         }
     }

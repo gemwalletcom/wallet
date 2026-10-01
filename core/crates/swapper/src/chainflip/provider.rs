@@ -16,12 +16,12 @@ use super::{
         VaultSwapResponse, VaultSwapSolanaExtras,
     },
     client::{ChainflipClient, SUPPORTED_ASSETS, map_swap_result},
-    price::{apply_slippage, price_to_hex_price},
+    price::{price_after_slippage, price_to_hex_price},
     seed::generate_random_seed,
     tx_builder,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     cross_chain::VaultAddresses,
@@ -30,7 +30,6 @@ use crate::{
 };
 use primitives::{
     AssetId, ChainType, MINUTE,
-    chain::Chain,
     hex::{decode_hex, encode_with_0x},
 };
 
@@ -262,7 +261,7 @@ where
         let route_data: ChainflipRouteData = serde_json::from_str(&route.route_data)?;
         let chain = source_asset.chain.clone();
         let price = route_data.estimated_price;
-        let price_slippage = apply_slippage(price, quote.data.slippage_bps);
+        let price_slippage = price_after_slippage(price, quote.data.slippage_bps);
         let quote_asset_decimals = quote.request.to_asset.decimals;
         let base_asset_decimals = quote.request.from_asset.decimals;
         let min_price = price_to_hex_price(price_slippage, quote_asset_decimals, base_asset_decimals).map_err(SwapperError::TransactionError)?;
@@ -339,28 +338,20 @@ where
         Ok(VaultAddresses { deposit, send: vec![] })
     }
 
-    async fn get_swap_result(&self, _chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        let response = self.chainflip_client.get_tx_status(transaction_hash).await?;
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        let response = self.chainflip_client.get_tx_status(&request.transaction_hash).await?;
         Ok(map_swap_result(&response))
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use primitives::Chain;
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
     use gem_client::testkit::MockClient;
     use primitives::AssetId;
     use std::sync::atomic::{AtomicUsize, Ordering};
-
-    #[cfg(feature = "swap_integration_tests")]
-    use crate::{NativeProvider, Options};
-    #[cfg(feature = "swap_integration_tests")]
-    use primitives::{
-        asset_constants::TRON_USDT_TOKEN_ID,
-        known_assets::TRON_USDT,
-        swap::{SwapQuoteDataType, SwapStatus},
-    };
 
     #[test]
     fn test_validate_minimum_amount() {
@@ -751,18 +742,29 @@ mod tests {
 
         assert_eq!(get_best_quote(serde_json::from_value(quotes).unwrap(), &request), Err(SwapperError::InvalidRoute));
     }
+}
+
+#[cfg(all(test, feature = "swap_integration_tests"))]
+mod swap_integration_tests {
+    use primitives::Chain;
+    use super::*;
+    use crate::{NativeProvider, Options, SwapperQuoteAsset};
+    use primitives::{
+        AssetId,
+        asset_constants::TRON_USDT_TOKEN_ID,
+        known_assets::TRON_USDT,
+        swap::{SwapQuoteDataType, SwapStatus},
+    };
 
     #[tokio::test]
-    #[cfg(feature = "swap_integration_tests")]
     async fn test_get_swap_result() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = ChainflipProvider::new(network_provider.clone());
 
-        // Swap ID: 902663
         let tx_hash = "3sbA7vTDa8tmuokNeQxWJBPpxG3A1Vw5rhDxSm63w7hW31bo2nbci8CfLr27JsbhcebLwcJcwqbL8UP5aVCMFLGb";
         let chain = Chain::Solana;
 
-        let result = swap_provider.get_swap_result(chain, tx_hash).await?;
+        let result = swap_provider.get_swap_result(&SwapResultRequest::new(chain, tx_hash)).await?;
 
         println!("Chainflip swap result: {:?}", result);
         assert_eq!(result.status, SwapStatus::Completed);
@@ -771,7 +773,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[cfg(feature = "swap_integration_tests")]
     async fn test_get_quote_data_tron_usdt_to_arbitrum_usdc() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = ChainflipProvider::new(network_provider);
@@ -780,7 +781,6 @@ mod tests {
             to_asset: SwapperQuoteAsset::mock_with_asset_id(primitives::known_assets::ARBITRUM_USDC.id.clone(), "USDC", 6),
             wallet_address: "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            // Route-specific minimums can exceed the global minimum returned by /assets.
             value: BigUint::from(100000000u64),
             options: Options::default(),
         };
@@ -801,7 +801,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[cfg(feature = "swap_integration_tests")]
     async fn test_get_quote_data_tron_usdt_to_trx() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let swap_provider = ChainflipProvider::new(Arc::new(NativeProvider::default()));
         let request = QuoteRequest {

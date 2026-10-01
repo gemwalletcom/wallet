@@ -35,7 +35,6 @@ impl V3Deployment {
 }
 
 pub fn get_uniswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Deployment> {
-    //https://docs.uniswap.org/contracts/v3/reference/deployments/
     let permit2 = get_uniswap_permit2_by_chain(chain)?;
     match chain {
         Chain::Ethereum => Some(V3Deployment::v2_1(
@@ -111,7 +110,6 @@ pub fn get_uniswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Deploym
             permit2,
             "0xFdf682F51FE81Aa4898F0AE2163d8A55c127fbC7",
         )),
-        // See: https://github.com/Uniswap/contracts/blob/main/deployments/143.md
         Chain::Monad => Some(V3Deployment::v2_1(
             "0x204FAca1764B154221e35c0d20aBb3c525710498",
             "0x661E93cca42AfacB172121EF892830cA3b70F08d",
@@ -124,21 +122,18 @@ pub fn get_uniswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Deploym
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
-        // See: https://swap.stable.xyz/deployments
         Chain::Stable => Some(V3Deployment::v2(
             "0x88F0a512eF09175D456bc9547f914f48C013E4aA",
             "0xb070179E7032CdA868b53e6C1742F80c9e940d1A",
             permit2,
             "0x5Be52b52f3d1dbC324d2959637471a4208626144",
         )),
-        // See: https://github.com/Uniswap/contracts/blob/main/deployments/4663.md
         Chain::Robinhood => Some(V3Deployment::v2_1(
             "0x1f7d7550B1b028f7571E69A784071F0205FD2EfA",
             "0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7",
             permit2,
             "0x8876789976dEcBfCbBbe364623C63652db8C0904",
         )),
-        // See: https://github.com/Uniswap/contracts/blob/main/deployments/5042.md
         Chain::Arc => Some(V3Deployment::v2_1(
             "0xf0db7b58379503491d857dB50AC9ece64c653918",
             "0x7DfD4F31be6814D2906BDE155c3e1B146EAc1468",
@@ -181,8 +176,6 @@ fn legacy_uniswap_router_contracts_by_chain(chain: &Chain) -> &'static [&'static
 }
 
 pub fn get_pancakeswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Deployment> {
-    // https://developer.pancakeswap.finance/contracts/universal-router/addresses
-    // https://docs.pancakeswap.finance/developers/smart-contracts/pancakeswap-exchange/v3-contracts#address
     match chain {
         Chain::Ethereum => Some(V3Deployment::v2(
             "0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865",
@@ -231,7 +224,6 @@ pub fn get_pancakeswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Dep
 }
 
 pub fn get_oku_deployment_by_chain(chain: &Chain) -> Option<V3Deployment> {
-    // https://docs.oku.trade/home/extra-information/deployed-contracts
     match chain {
         Chain::Sonic => Some(V3Deployment::v2(
             "0xcb2436774C3e191c85056d248EF4260ce5f27A9D",
@@ -268,7 +260,6 @@ pub fn get_oku_deployment_by_chain(chain: &Chain) -> Option<V3Deployment> {
 }
 
 pub fn get_wagmi_router_deployment_by_chain(chain: &Chain) -> Option<V3Deployment> {
-    // https://docs.wagmi.com/wagmi/contracts#sonic
     match chain {
         Chain::Sonic => Some(V3Deployment::v2(
             "0x56CFC796bC88C9c7e1b38C2b0aF9B7120B079aef",
@@ -281,7 +272,6 @@ pub fn get_wagmi_router_deployment_by_chain(chain: &Chain) -> Option<V3Deploymen
 }
 
 pub fn get_aerodrome_router_deployment_by_chain(chain: &Chain) -> Option<V3Deployment> {
-    // https://aerodrome.finance/security
     let permit2 = get_uniswap_permit2_by_chain(chain)?;
     match chain {
         Chain::Base => Some(V3Deployment::v2(
@@ -370,14 +360,10 @@ mod tests {
 
     #[test]
     fn test_universal_router_abi_recognition() {
-        // Current 2.1 router resolves to the V2_1 ABI.
         assert_eq!(get_universal_router_abi_by_chain_contract(&Chain::Ethereum, "0x4C82D1fBFe28C977cBB58D8C7FF8FCF9F70a2cCA"), Some(UniversalRouterAbi::V2_1));
-        // Legacy routers must still be recognized (V2) so historical swaps keep parsing.
         assert_eq!(get_universal_router_abi_by_chain_contract(&Chain::Ethereum, ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT), Some(UniversalRouterAbi::V2));
         assert!(is_uniswap_router_contract_by_chain(&Chain::Ethereum, ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT));
-        // Case-insensitive matching.
         assert!(is_uniswap_router_contract_by_chain(&Chain::Ethereum, &ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT.to_lowercase()));
-        // Unknown contract is not recognized.
         assert_eq!(get_universal_router_abi_by_chain_contract(&Chain::Ethereum, "0x0000000000000000000000000000000000000000"), None);
     }
 }

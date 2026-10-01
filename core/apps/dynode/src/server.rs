@@ -165,7 +165,7 @@ async fn forward_request(request: &Request<'_>, data: Data<'_>, target: Target<'
                 return Err(ProxyError::new(Status::NotFound, "route not found"));
             }
             let proxy_request = ProxyRequest::from_http(method, headers, body, &uri, chain).map_err(|status| ProxyError::new(status, "Failed to build request"))?;
-            service.handle_request(&proxy_request).await.map_err(|error| {
+            service.proxy_request(&proxy_request).await.map_err(|error| {
                 error_with_fields!(
                     "Proxy request failed",
                     error.as_ref(),

@@ -117,6 +117,12 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
     }
 
+    fun shouldOfferAuthentication(isAvailable: Boolean): Boolean = preferencesService.shouldOfferAuthentication(isAvailable, authRequired())
+
+    fun setAuthenticationOffered() {
+        preferencesService.setAuthenticationOffered()
+    }
+
     private fun <T> read(key: Preferences.Key<T>, default: T): Flow<T> = context.dataStore.data.map { it[key] ?: default }
 
     private suspend fun <T> write(key: Preferences.Key<T>, value: T) {

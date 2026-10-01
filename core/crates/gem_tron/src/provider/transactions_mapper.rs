@@ -1,7 +1,11 @@
 use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::{DateTime, Utc};
+use gem_evm::contracts::{IOkxDexRouter, OkxCommission};
 use num_bigint::{BigInt, BigUint};
-use primitives::{Address as _, AssetId, Transaction, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain, hex::decode_hex_utf8, stake_type::Resource};
+use primitives::{
+    Address as _, AssetId, SwapProvider, Transaction, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, contract_constants::EVM_NATIVE_TOKEN_ADDRESS,
+    hex::decode_hex_utf8, stake_type::Resource, swap::TRON_REFERRAL_ADDRESS,
+};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::error::Error;
@@ -21,7 +25,7 @@ fn resource_type_metadata(resource: Option<&str>) -> Option<Value> {
 }
 
 fn tron_swap_metadata(chain: Chain, owner: &TronAddress, call_value: Option<u64>, logs: &[TronLog], internal_transactions: &[InternalTransaction]) -> Option<TransactionSwapMetadata> {
-    // Native TRX keys as `None` so its call_value and internal transfer legs merge into a single diff.
+    let provider = logs.iter().any(|log| log.decode_event::<IOkxDexRouter::OrderRecord>().is_some()).then_some(SwapProvider::Okx);
     let mut deltas: HashMap<Option<String>, BigInt> = HashMap::new();
 
     for (token, delta) in token_balance_deltas(logs, owner) {
@@ -47,7 +51,31 @@ fn tron_swap_metadata(chain: Chain, owner: &TronAddress, call_value: Option<u64>
         })
         .collect();
 
-    SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), None)
+    SwapMapper::map_swap(&balance_diffs, &BigUint::from(0u8), &chain.as_asset_id(), provider).map(|swap| swap.with_referral_fee(okx_referral_fee(chain, owner, logs)))
+}
+
+fn okx_referral_fee(chain: Chain, owner: &TronAddress, logs: &[TronLog]) -> Option<TransactionSwapReferralFee> {
+    let referral = TronAddress::from_hex_or_base58(TRON_REFERRAL_ADDRESS)?;
+    if *owner == referral {
+        return None;
+    }
+    logs.iter().find_map(|log| {
+        let commission = log
+            .decode_event::<IOkxDexRouter::CommissionFromTokenRecord>()
+            .map(OkxCommission::from)
+            .or_else(|| log.decode_event::<IOkxDexRouter::CommissionToTokenRecord>().map(OkxCommission::from))?;
+        if TronAddress::from(commission.referrer.0.0) != referral {
+            return None;
+        }
+        let asset_id = match commission.token.to_checksum(None) == EVM_NATIVE_TOKEN_ADDRESS {
+            true => chain.as_asset_id(),
+            false => AssetId::from_token(chain, &TronAddress::from(commission.token.0.0).encode()),
+        };
+        Some(TransactionSwapReferralFee {
+            asset_id,
+            value: BigUint::from_bytes_be(&commission.amount.to_be_bytes::<32>()),
+        })
+    })
 }
 
 pub fn map_transaction_broadcast(response: &TronTransactionBroadcast) -> Result<String, Box<dyn Error + Sync + Send>> {
@@ -361,6 +389,29 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.value, BigUint::from(25000000u64));
         assert_ne!(transaction.from, transaction.to);
+    }
+
+    #[test]
+    fn test_map_transaction_okx_swap_referral_fee() {
+        let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_okx_swap.json")).unwrap();
+        let receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_okx_swap_receipt.json")).unwrap();
+
+        let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
+        let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.provider, Some(SwapProvider::Okx.id().to_string()));
+        assert_eq!(metadata.from_asset, Chain::Tron.as_asset_id());
+        assert_eq!(metadata.from_value, BigUint::from(220000000u64));
+        assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"));
+        assert_eq!(metadata.to_value, BigUint::from(72857124u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::Tron.as_asset_id(),
+                value: BigUint::from(1540000u64),
+            })
+        );
     }
 
     #[test]

@@ -48,7 +48,6 @@ impl GemRecentActivityService {
         self.clear_in(GemRecentActivityScope::Wallet { wallet_id }, types).await
     }
 
-    /// `days[i]` is the local day of `recents[i]`; the apps know the time zone, Core groups.
     pub fn view_state(&self, recents: Vec<RecentAsset>, days: Vec<GemDay>, query: String) -> GemRecentsViewState {
         let count = recents.len() as u32;
         let matching: HashSet<AssetId> = matching_assets(recents.iter().map(|recent| recent.asset.clone()).collect(), &query).into_iter().map(|asset| asset.id).collect();

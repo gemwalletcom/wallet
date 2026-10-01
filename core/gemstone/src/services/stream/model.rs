@@ -10,6 +10,7 @@ pub enum GemStreamEvent {
     Perpetual { wallet_id: WalletId },
     Notification { wallet_id: WalletId },
     FiatTransaction { wallet_id: WalletId },
+    WalletConfiguration { wallet_id: WalletId },
     SupportMessage { message_id: String, images: u32 },
     SupportTyping { is_typing: bool },
 }

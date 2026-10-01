@@ -10,9 +10,7 @@ import enum Gemstone.GemPerpetualSubscription
 import struct Gemstone.PerpetualPosition
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Primitives
-import Style
 import SwiftUI
 
 @Observable
@@ -24,6 +22,8 @@ public final class PerpetualChartViewModel {
     private var observeTask: Task<Void, Never>?
 
     private var session: GemCandleSession
+
+    public var isPinching = false
 
     public var currentPeriod: ChartPeriod {
         get { session.period.toPrimitives() }
@@ -44,11 +44,8 @@ public final class PerpetualChartViewModel {
     }
 
     public func state(position: PerpetualPosition?) -> StateViewType<GemCandleChart> {
-        session.viewState().state.stateViewType(session.chart(position: position))
+        session.viewState().state.stateViewType(session.chart(position: position, utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT())))
     }
-
-    public var emptyTitle: String { Localized.Common.notAvailable }
-    public var emptyImage: Image { Images.EmptyContent.activity }
 }
 
 // MARK: - Actions
@@ -58,7 +55,7 @@ public extension PerpetualChartViewModel {
         await subscribeCandles(candleSubscription(perpetual: perpetual, period: currentPeriod))
         observeTask?.cancel()
         observeTask = Task {
-            await observeCandles(perpetual: perpetual)
+            await observeCandles()
         }
     }
 
@@ -78,6 +75,18 @@ public extension PerpetualChartViewModel {
         session = session.onRefresh()
         await updateCandlesticks(perpetual: perpetual)
     }
+
+    func onZoom(_ magnification: Double, anchor: Double) {
+        let zoomed = session.onZoom(magnification: magnification, anchor: anchor)
+        guard zoomed.zoom != session.zoom else { return }
+        session = zoomed
+    }
+
+    func onPan(_ fraction: Double) {
+        let panned = session.onPan(fraction: fraction)
+        guard panned.zoom != session.zoom else { return }
+        session = panned
+    }
 }
 
 // MARK: - Private
@@ -90,7 +99,8 @@ private extension PerpetualChartViewModel {
     func updateCandlesticks(perpetual: Perpetual) async {
         session = session.onSelectMarket(perpetual: perpetual.toGem())
         guard let request = session.request() else { return }
-        session = await session.onResult(result: service.candles(request: request))
+        let result = await service.candles(request: request)
+        session = session.onResult(result: result)
     }
 
     func subscribeCandles(_ subscription: GemPerpetualSubscription) async {
@@ -109,18 +119,12 @@ private extension PerpetualChartViewModel {
         }
     }
 
-    func observeCandles(perpetual: Perpetual) async {
+    func observeCandles() async {
         for await update in await observerService.chartService.makeStream() {
             if Task.isCancelled {
                 break
             }
-            mergeCandle(update, perpetual: perpetual)
+            session = session.onCandleUpdate(update: update.toGem())
         }
-    }
-
-    func mergeCandle(_ update: ChartCandleUpdate, perpetual: Perpetual) {
-        let viewState = session.viewState()
-        guard let merged = service.mergedCandles(candles: viewState.candles, update: update.toGem(), perpetual: perpetual.toGem(), period: viewState.period) else { return }
-        session = session.onCandles(candles: merged)
     }
 }

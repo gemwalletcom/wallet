@@ -19,17 +19,17 @@ pub struct FetchAssetsConsumer {
 
 #[async_trait]
 impl MessageConsumer<FetchAssetsPayload, usize> for FetchAssetsConsumer {
-    async fn should_process(&self, payload: &FetchAssetsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, payload: &FetchAssetsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.cacher.can_process_cached(CacheKey::FetchAssets(&payload.asset_id.to_string())).await
     }
 
-    async fn process(&self, payload: FetchAssetsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: FetchAssetsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         if payload.asset_id.is_native() {
             return Ok(0);
         }
         let token_id = payload.asset_id.get_token_id()?.clone();
         let asset = self.providers.get_token_data(payload.asset_id.chain, token_id.clone()).await?;
-        let classified = self.classification_rules.apply(asset.as_basic_primitive());
+        let classified = self.classification_rules.classified(asset.as_basic_primitive());
         let added = self.database.run(move |client| client.add_assets(vec![classified])).await?;
         if added > 0 {
             self.stream_producer.publish_fetch_asset_status(payload.asset_id.clone()).await?;

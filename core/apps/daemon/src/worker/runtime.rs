@@ -12,7 +12,7 @@ impl WorkerRuntime {
         Self { reporter, schedule }
     }
 
-    pub fn plan(&self, shutdown_rx: ShutdownReceiver) -> JobPlan {
-        JobPlan::new(self.reporter.clone(), shutdown_rx, self.schedule.clone())
+    pub fn plan(&self, shutdown: ShutdownReceiver) -> JobPlan {
+        JobPlan::new(self.reporter.clone(), shutdown, self.schedule.clone())
     }
 }

@@ -3,11 +3,15 @@
 import Components
 import Foundation
 import func Gemstone.autocloseDraft
+import func Gemstone.autocloseOpenSession
 import enum Gemstone.GemAmountRequest
 import protocol Gemstone.GemAmountServiceProtocol
+import struct Gemstone.GemAssetItemRow
 import struct Gemstone.GemAutocloseDraft
+import struct Gemstone.GemAutocloseSession
 import enum Gemstone.GemPerpetualPositionAction
 import struct Gemstone.GemPerpetualTransferData
+import func Gemstone.perpetualOpenRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -53,26 +57,26 @@ public final class AmountPerpetualViewModel {
         leverageSelection?.selected.value ?? transferData.leverage
     }
 
-    private var direction: PerpetualDirection {
-        transferData.direction.toPrimitives()
-    }
-
     var request: GemAmountRequest {
         .perpetual(action: action, leverage: leverage, draft: draft, decimalSeparator: decimalSeparator)
     }
 
-    func makeAutocloseData(size: Double) -> AutocloseOpenData {
-        AutocloseOpenData(
-            assetId: transferData.asset.toPrimitives().id,
-            symbol: transferData.asset.symbol,
-            direction: direction,
+    func autocloseSession(size: Double) -> GemAutocloseSession {
+        autocloseOpenSession(
+            direction: transferData.direction,
             marketPrice: transferData.price,
-            leverage: leverageSelection?.selected.value ?? 1,
             size: size,
-            assetDecimals: transferData.asset.decimals,
-            takeProfit: takeProfit,
-            stopLoss: stopLoss,
+            leverage: leverage,
+            decimals: transferData.asset.decimals,
+            provider: .hypercore,
+            format: NumberInput.format(),
         )
+        .onInput(tpslType: .takeProfit, text: takeProfit ?? .empty)
+        .onInput(tpslType: .stopLoss, text: stopLoss ?? .empty)
+    }
+
+    func openPositionRow(size: Double) -> GemAssetItemRow {
+        perpetualOpenRow(assetId: transferData.asset.id, title: transferData.asset.symbol, direction: transferData.direction, leverage: leverage, size: size)
     }
 
     func onChangeLeverage() {

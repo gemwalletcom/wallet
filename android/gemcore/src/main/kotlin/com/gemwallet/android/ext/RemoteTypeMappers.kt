@@ -1274,16 +1274,6 @@ fun com.wallet.core.primitives.BlockExplorerLink.toGem(): uniffi.gemstone.BlockE
     link = link,
 )
 
-fun uniffi.gemstone.ChainAddress.toPrimitives(): com.wallet.core.primitives.ChainAddress = com.wallet.core.primitives.ChainAddress(
-    chain = chain.toChain(),
-    address = address,
-)
-
-fun com.wallet.core.primitives.ChainAddress.toGem(): uniffi.gemstone.ChainAddress = uniffi.gemstone.ChainAddress(
-    chain = chain.toGem(),
-    address = address,
-)
-
 fun uniffi.gemstone.ChainAsset.toPrimitives(): com.wallet.core.primitives.ChainAsset = com.wallet.core.primitives.ChainAsset(
     asset = asset.toPrimitives(),
     networkName = networkName,
@@ -1800,6 +1790,18 @@ fun com.wallet.core.primitives.PerpetualPositionData.toGem(): uniffi.gemstone.Pe
     perpetual = perpetual.toGem(),
     asset = asset.toGem(),
     position = position.toGem(),
+)
+
+fun uniffi.gemstone.PerpetualPrice.toPrimitives(): com.wallet.core.primitives.PerpetualPrice = com.wallet.core.primitives.PerpetualPrice(
+    coin = coin,
+    price = price,
+    pricePercentChange24h = pricePercentChange24h,
+)
+
+fun com.wallet.core.primitives.PerpetualPrice.toGem(): uniffi.gemstone.PerpetualPrice = uniffi.gemstone.PerpetualPrice(
+    coin = coin,
+    price = price,
+    pricePercentChange24h = pricePercentChange24h,
 )
 
 fun uniffi.gemstone.PerpetualSearchData.toPrimitives(): com.wallet.core.primitives.PerpetualSearchData = com.wallet.core.primitives.PerpetualSearchData(

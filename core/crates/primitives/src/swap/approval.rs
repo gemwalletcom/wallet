@@ -1,6 +1,7 @@
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, serialize_biguint, serialize_option_biguint};
+use strum::{AsRefStr, EnumString};
 
 use crate::{SwapProvider, TransactionState};
 
@@ -79,7 +80,7 @@ impl SwapQuoteData {
             to,
             data_type: SwapQuoteDataType::Transfer,
             value,
-            data: "".to_string(),
+            data: String::new(),
             memo,
             approval: None,
             gas_limit: None,
@@ -120,8 +121,9 @@ pub struct SwapProviderData {
     pub protocol_name: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumString)]
 #[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
 pub enum SwapStatus {
     Pending,
     Completed,
@@ -136,6 +138,13 @@ impl SwapStatus {
             SwapStatus::Failed => Some(TransactionState::Failed),
             SwapStatus::Refunded => Some(TransactionState::Refunded),
             SwapStatus::Pending => None,
+        }
+    }
+
+    pub fn charges_referral_fee(&self) -> bool {
+        match self {
+            SwapStatus::Completed => true,
+            SwapStatus::Pending | SwapStatus::Failed | SwapStatus::Refunded => false,
         }
     }
 }

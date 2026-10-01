@@ -32,7 +32,7 @@ struct ChainAssetQueryTests {
     ]
 
     @Test
-    func fetchNativeAsset() throws {
+    func nativeAsset() throws {
         let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let assetId = AssetId(chain: .ethereum)
 
@@ -45,7 +45,7 @@ struct ChainAssetQueryTests {
     }
 
     @Test
-    func fetchTokenWithoutBalance() throws {
+    func tokenWithoutBalance() throws {
         let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let token = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
         let balanceStore = BalanceStore(db: db)

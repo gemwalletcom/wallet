@@ -47,8 +47,8 @@ impl PerpetualUpdater {
             })
             .await?;
 
-        if let Err(e) = perpetuals_update {
-            error_with_fields!("failed perpetuals update", &e, chain = chain.as_ref());
+        if let Err(error) = perpetuals_update {
+            error_with_fields!("failed perpetuals update", &error, chain = chain.as_ref());
         }
         Ok(count)
     }

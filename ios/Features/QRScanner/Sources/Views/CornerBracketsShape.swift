@@ -17,7 +17,6 @@ struct CornerBracketsShape: Shape {
         let top = (containerSize.height - boxSize) / 2
         let bottom = top + boxSize
 
-        // top left corner
         path.move(to: CGPoint(x: left, y: top + cornerRadius))
         path.addArc(
             center: CGPoint(x: left + cornerRadius, y: top + cornerRadius),
@@ -31,7 +30,6 @@ struct CornerBracketsShape: Shape {
         path.move(to: CGPoint(x: left, y: top + cornerRadius))
         path.addLine(to: CGPoint(x: left, y: top + cornerRadius + cornerLength))
 
-        // top right corner
         path.move(to: CGPoint(x: right, y: top + cornerRadius))
         path.addArc(
             center: CGPoint(x: right - cornerRadius, y: top + cornerRadius),
@@ -45,7 +43,6 @@ struct CornerBracketsShape: Shape {
         path.move(to: CGPoint(x: right, y: top + cornerRadius))
         path.addLine(to: CGPoint(x: right, y: top + cornerRadius + cornerLength))
 
-        // bottom left corner
         path.move(to: CGPoint(x: left, y: bottom - cornerRadius))
         path.addArc(
             center: CGPoint(x: left + cornerRadius, y: bottom - cornerRadius),
@@ -59,7 +56,6 @@ struct CornerBracketsShape: Shape {
         path.move(to: CGPoint(x: left, y: bottom - cornerRadius))
         path.addLine(to: CGPoint(x: left, y: bottom - cornerRadius - cornerLength))
 
-        // bottom right corner
         path.move(to: CGPoint(x: right, y: bottom - cornerRadius))
         path.addArc(
             center: CGPoint(x: right - cornerRadius, y: bottom - cornerRadius),

@@ -1,4 +1,4 @@
-use gem_keystore::Mnemonic;
+use gem_keystore::{Mnemonic, MnemonicSeed};
 use primitives::{Account, BitcoinChain, Chain};
 use zeroize::Zeroizing;
 
@@ -26,7 +26,7 @@ pub fn derive_accounts_from_mnemonic(phrase: &str, chains: Vec<Chain>) -> Result
     let chains = unique_chains(chains);
     let mut accounts = Vec::with_capacity(chains.len());
     for chain in chains {
-        let derived_private_key = derive_private_key_by_chain(seed.as_slice(), entropy.as_slice(), chain)?;
+        let derived_private_key = derive_private_key_by_chain(&seed, entropy.as_slice(), chain)?;
         let mut account = derive_account_from_private_key(&derived_private_key.private_key, chain)?;
         if let Some(extended_public_key) = derived_private_key.extended_public_key {
             account.extended_public_key = Some(extended_public_key);
@@ -39,7 +39,7 @@ pub fn derive_accounts_from_mnemonic(phrase: &str, chains: Vec<Chain>) -> Result
 pub fn derive_private_key_from_mnemonic(phrase: &str, chain: Chain) -> Result<Zeroizing<Vec<u8>>, AccountDerivationError> {
     let seed = Mnemonic::seed(phrase)?;
     let entropy = Mnemonic::entropy(phrase)?;
-    derive_private_key_by_chain(seed.as_slice(), entropy.as_slice(), chain).map(|derived| derived.private_key)
+    derive_private_key_by_chain(&seed, entropy.as_slice(), chain).map(|derived| derived.private_key)
 }
 
 fn unique_chains(chains: Vec<Chain>) -> Vec<Chain> {
@@ -52,7 +52,7 @@ fn unique_chains(chains: Vec<Chain>) -> Vec<Chain> {
     unique
 }
 
-fn derive_private_key_by_chain(seed: &[u8], entropy: &[u8], chain: Chain) -> Result<DerivedPrivateKey, AccountDerivationError> {
+fn derive_private_key_by_chain(seed: &MnemonicSeed, entropy: &[u8], chain: Chain) -> Result<DerivedPrivateKey, AccountDerivationError> {
     let (private_key, extended_public_key) = match derivation_scheme(chain)? {
         DerivationScheme::Bip44 | DerivationScheme::Bip84 => {
             let private_key = bip32::derive_secp256k1_private_key(seed, default_derivation_path(chain))?;

@@ -1,7 +1,7 @@
 use crate::ranking::rank_quotes;
 use crate::{
-    AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData, across,
-    alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi,
+    AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
+    across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi,
     swaps_xyz, thorchain, uniswap,
 };
 use num_bigint::BigInt;
@@ -20,7 +20,6 @@ pub struct GemSwapper {
 }
 
 impl GemSwapper {
-    // filter provider types that does not support cross chain / bridge swaps
     fn filter_by_provider_mode(mode: &SwapperProviderMode, from_chain: Chain, to_chain: Chain) -> bool {
         match mode {
             SwapperProviderMode::OnChain => from_chain == to_chain,
@@ -48,7 +47,7 @@ impl GemSwapper {
         self.swappers.iter().find(|x| x.provider().id == *provider).map(|v| &**v).ok_or(SwapperError::NoAvailableProvider)
     }
 
-    fn apply_gas_limit_multiplier(chain: &Chain, gas_limit: String) -> String {
+    fn gas_limit_with_multiplier(chain: &Chain, gas_limit: String) -> String {
         if let Some(evm_chain) = EVMChain::from_chain(*chain) {
             let multiplier = if evm_chain.is_zkstack() { 2.0 } else { 1.0 };
             if let Ok(gas_limit_value) = gas_limit.parse::<f64>() {
@@ -173,13 +172,11 @@ impl GemSwapper {
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<SwapQuotes, SwapperError> {
         let provider_ids: BTreeSet<_> = self.get_providers_for_request(request)?.into_iter().map(|p| p.id).collect();
-        let providers = self.swappers.iter().filter(|x| provider_ids.contains(&x.provider().id)).collect::<Vec<_>>();
-
-        let quotes_futures = providers.into_iter().map(|x| {
+        let quotes_futures = self.swappers.iter().filter(|x| provider_ids.contains(&x.provider().id)).map(|x| {
             let provider_id = x.provider().id.id().to_string();
             async move {
-                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|e| (provider_id.clone(), e))?;
-                x.get_quote(&request).await.map_err(|e| (provider_id, e))
+                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|error| (provider_id.clone(), error))?;
+                x.get_quote(&request).await.map_err(|error| (provider_id, error))
             }
         });
 
@@ -236,13 +233,13 @@ impl GemSwapper {
         let provider = self.get_swapper_by_provider(&quote.data.provider.id)?;
         let mut quote_data = provider.get_quote_data(quote, data).await?;
         if let Some(gas_limit) = quote_data.gas_limit.take() {
-            quote_data.gas_limit = Some(Self::apply_gas_limit_multiplier(&quote.request.from_asset.chain(), gas_limit));
+            quote_data.gas_limit = Some(Self::gas_limit_with_multiplier(&quote.request.from_asset.chain(), gas_limit));
         }
         Ok(quote_data)
     }
 
-    pub async fn get_swap_result(&self, chain: Chain, provider: SwapperProvider, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        self.get_swapper_by_provider(&provider)?.get_swap_result(chain, transaction_hash).await
+    pub async fn get_swap_result(&self, provider: SwapperProvider, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        self.get_swapper_by_provider(&provider)?.get_swap_result(request).await
     }
 
     pub async fn get_vault_addresses(&self, provider: &SwapperProvider, from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
@@ -287,7 +284,6 @@ mod tests {
                 .collect::<Vec<_>>()
         };
 
-        // Cross-chain providers are eligible across different chains.
         assert_eq!(filter(Chain::Ethereum, Chain::Optimism), vec![SwapperProvider::Thorchain, SwapperProvider::NearIntents, SwapperProvider::Chainflip]);
 
         assert_eq!(
@@ -506,7 +502,7 @@ mod tests {
 }
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
-mod timing_tests {
+mod swap_integration_tests {
     use std::{sync::Arc, time::Instant};
 
     use num_bigint::BigUint;
@@ -538,6 +534,7 @@ mod timing_tests {
     }
 
     #[tokio::test]
+    #[ignore = "timing report without assertions, run manually"]
     async fn test_report_preload_and_quote_durations_per_provider() {
         let swapper = GemSwapper::new(Arc::new(NativeProvider::new().set_debug(false)));
 

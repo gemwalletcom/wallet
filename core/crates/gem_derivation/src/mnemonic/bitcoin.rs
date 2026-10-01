@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use ::bitcoin::Network;
 use ::bitcoin::bip32::{DerivationPath, Xpriv, Xpub};
+use gem_keystore::MnemonicSeed;
 use primitives::{BitcoinChain, Chain};
 
 use super::bip32::ZeroizedXpriv;
@@ -13,7 +14,7 @@ const XPUB_VERSION: u32 = 0x0488_b21e;
 const ZPUB_VERSION: u32 = 0x04b2_4746;
 const DGUB_VERSION: u32 = 0x02fa_cafd;
 
-pub(super) fn derive_extended_public_key(seed: &[u8], bitcoin_chain: BitcoinChain) -> Result<String, AccountDerivationError> {
+pub(super) fn derive_extended_public_key(seed: &MnemonicSeed, bitcoin_chain: BitcoinChain) -> Result<String, AccountDerivationError> {
     let secp = ::bitcoin::secp256k1::Secp256k1::signing_only();
     let master = ZeroizedXpriv(Xpriv::new_master(Network::Bitcoin, seed).map_err(map_bitcoin_error)?);
     let chain = bitcoin_chain.get_chain();

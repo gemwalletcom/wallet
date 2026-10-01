@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use streamer::ConsumerStatusReporter;
+use streamer::{ConsumerStatus, ConsumerStatusReporter};
 
 use crate::metrics::consumer::ConsumerMetrics;
 
@@ -17,7 +17,12 @@ impl ConsumerReporter {
 
 #[async_trait]
 impl ConsumerStatusReporter for ConsumerReporter {
-    async fn report_success(&self, name: &str, duration: u64, result: &str) {
-        self.metrics.record_success(name, duration, result);
+    async fn report(&self, name: &str, status: ConsumerStatus) {
+        match status {
+            ConsumerStatus::Started { queue_wait_seconds } => self.metrics.record_started(name, queue_wait_seconds),
+            ConsumerStatus::Success { duration_milliseconds } => self.metrics.record_success(name, duration_milliseconds),
+            ConsumerStatus::Skipped { duration_milliseconds } => self.metrics.record_skipped(name, duration_milliseconds),
+            ConsumerStatus::Error { duration_milliseconds } => self.metrics.record_error(name, duration_milliseconds),
+        }
     }
 }

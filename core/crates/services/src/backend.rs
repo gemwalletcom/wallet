@@ -22,6 +22,8 @@ use security::TransactionScanProviders;
 use settings::Settings;
 use storage::{Database, DatabaseError};
 use streamer::{Retry, ShutdownReceiver, StreamProducer, StreamProducerConfig};
+use swapper::NativeProvider;
+use swapper::swapper::GemSwapper;
 use tokio::sync::OnceCell;
 
 use crate::access::AccessClient;
@@ -89,14 +91,14 @@ impl Services {
         Ok(AuthClient::new(self.cacher().await?))
     }
 
-    pub async fn stream_producer(&self, name: &str, shutdown_rx: ShutdownReceiver) -> Result<StreamProducer, Box<dyn Error + Send + Sync>> {
+    pub async fn stream_producer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<StreamProducer, Box<dyn Error + Send + Sync>> {
         let rabbitmq = &self.settings.rabbitmq;
-        let config = StreamProducerConfig::new(rabbitmq.url.clone(), Retry::new(rabbitmq.retry.delay, rabbitmq.retry.timeout));
-        StreamProducer::new(&config, name, shutdown_rx).await
+        let config = StreamProducerConfig::new(rabbitmq.url.clone(), Retry::new(rabbitmq.retry.delay, rabbitmq.retry.timeout), rabbitmq.maxbytes);
+        StreamProducer::new(&config, name, shutdown).await
     }
 
-    pub async fn support(&self, shutdown_rx: ShutdownReceiver) -> Result<SupportClient, Box<dyn Error + Send + Sync>> {
-        let stream_producer = self.stream_producer("daemon_support_producer", shutdown_rx).await?;
+    pub async fn support(&self, shutdown: ShutdownReceiver) -> Result<SupportClient, Box<dyn Error + Send + Sync>> {
+        let stream_producer = self.stream_producer("daemon_support_producer", shutdown).await?;
         Ok(SupportClient::new(self.database(), stream_producer, self.cacher().await?))
     }
 
@@ -194,6 +196,10 @@ impl Services {
 
     pub fn chain_providers_for(&self, chain: Chain, user_agent: &str) -> ChainProviders {
         ChainProviders::for_chain(chain, &self.settings, user_agent)
+    }
+
+    pub fn swapper(&self) -> Arc<GemSwapper> {
+        Arc::new(GemSwapper::new(Arc::new(NativeProvider::new_with_endpoints(ProviderFactory::get_chain_endpoints(&self.settings)))))
     }
 
     pub fn assets(&self) -> AssetsClient {

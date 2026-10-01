@@ -62,7 +62,7 @@ Code: [iOS device platform](../ios/Packages/GemstoneServices/Sources/Device/Devi
 
 ## WebSocket stream
 
-`wss://api.gemwallet.com/v2/devices/stream`, authenticated once at upgrade with the header above, carries price, balance, transaction, price-alert, NFT, perpetual, in-app-notification, fiat-transaction and support updates. It runs as its own service (`api websocket_stream`); reconnects replay at most `DeviceStreamHistoryLimit` (default 25) missed events, and price updates are batched every 5 seconds.
+`wss://api.gemwallet.com/v2/devices/stream`, authenticated once at upgrade with the header above, carries price, balance, transaction, price-alert, NFT, perpetual, in-app-notification, fiat-transaction, wallet-configuration and support updates. It runs as its own service (`api websocket_stream`); reconnects replay at most `DeviceStreamHistoryLimit` (default 25) missed events, and price updates are batched every 5 seconds.
 
 Client messages are `{"type": ..., "data": {"assets": [...]}}` with the type `subscribePrices` (the first request on every connection, answered with current USD prices and fiat rates), `addPrices` (prices for the expanded set, no rates), `unsubscribePrices` and `getPrices` (once). `subscribeRealtimePrices` and `unsubscribeRealtimePrices` are still accepted and ignored.
 
@@ -75,6 +75,7 @@ Server events, defined by `StreamEvent`:
 | `transactions` | wallet, transaction ids and affected asset ids (no separate balance event follows) |
 | `priceAlerts` | affected asset ids |
 | `nft`, `perpetual`, `fiatTransaction` | affected wallet id |
+| `walletConfiguration` | wallet id whose configuration must be refreshed |
 | `inAppNotification` | wallet id and notification |
 | `support` | support-stream event |
 

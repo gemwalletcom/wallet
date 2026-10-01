@@ -27,9 +27,6 @@ use crate::services::price_alert::testkit::MemoryPriceAlertStore;
 use crate::services::stream::testkit::SubscriptionTestkit;
 use crate::services::swap::GemSwapService;
 use crate::services::swap::testkit::MemorySwapStore;
-use crate::services::wallet::testkit::MemoryWalletStore;
-use crate::services::wallet_session::GemWalletSessionService;
-use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 fn as_stored(basic: AssetBasic) -> AssetBasic {
@@ -50,7 +47,6 @@ pub struct MemoryAssetStore {
     pub filtered_asset_ids: Mutex<Vec<AssetId>>,
     pub wallet_asset_filters: Mutex<Vec<Vec<GemAssetFilter>>>,
     pub asset_writes: Mutex<Vec<Vec<AssetBasic>>>,
-    pub added_balances: Mutex<Vec<(WalletId, Vec<AssetId>, bool)>>,
     pub buyable_writes: Mutex<Vec<Vec<AssetId>>>,
     pub sellable_writes: Mutex<Vec<Vec<AssetId>>>,
     pub swappable_writes: Mutex<Vec<Vec<AssetId>>>,
@@ -97,14 +93,6 @@ impl GemAssetStore for MemoryAssetStore {
         self.assets.lock().unwrap().push(as_stored(AssetBasic::new(asset.asset, asset.properties, asset.score)));
         Ok(())
     }
-    async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        self.added_balances.lock().unwrap().push((wallet_id, asset_ids, false));
-        Ok(())
-    }
-    async fn add_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
-        self.added_balances.lock().unwrap().push((wallet_id, asset_ids, enabled));
-        Ok(())
-    }
     async fn set_buyable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         self.buyable_writes.lock().unwrap().push(asset_ids);
         Ok(())
@@ -136,7 +124,6 @@ impl GemAssetsService {
             store,
             Arc::new(GemPriceService::mock(price_store)),
             Arc::new(GemPreferencesService::new(preferences)),
-            Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default()))),
         )
     }
 }

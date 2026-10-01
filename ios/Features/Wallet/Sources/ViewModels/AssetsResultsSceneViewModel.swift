@@ -2,12 +2,10 @@
 
 import Components
 import Foundation
-import func Gemstone.addressCopy
 import protocol Gemstone.GemAssetSelectionServiceProtocol
-import struct Gemstone.GemToast
-import struct Gemstone.GemWalletSearchCounts
+import struct Gemstone.GemWalletSearchResultsInput
+import struct Gemstone.GemWalletSearchResultsView
 import struct Gemstone.GemWalletSearchState
-import func Gemstone.walletSearchState
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -18,17 +16,14 @@ import SwiftUI
 
 @Observable
 @MainActor
-public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinActions {
-    private let service: any GemAssetSelectionServiceProtocol
+public final class AssetsResultsSceneViewModel: SearchResultActions {
+    let service: any GemAssetSelectionServiceProtocol
     let wallet: Wallet
 
     let title: String
     let onSelectAssetAction: AssetAction
 
     public let searchQuery: ObservableQuery<WalletSearchQuery>
-    var searchResult: WalletSearchResult {
-        searchQuery.value
-    }
 
     var isPresentingToastMessage: ToastMessage?
     private var loadState: StateViewType<Bool> = .loading
@@ -50,39 +45,20 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         onSelectAssetAction = onSelectAsset
     }
 
-    var currency: Currency {
-        service.getCurrency().toPrimitives()
-    }
-
-    var sections: WalletSearchSections {
-        .from(searchResult, nfts: [])
-    }
-
     var perpetualsTitle: String {
         Localized.Perpetuals.title
     }
 
-    var perpetuals: [PerpetualData] {
-        searchResult.perpetuals
-    }
-
-    private var listsPerpetuals: Bool {
-        searchQuery.request.scope.isList && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
-    }
-
-    var state: GemWalletSearchState {
-        walletSearchState(
-            counts: GemWalletSearchCounts(
-                recents: 0,
-                pinnedAssets: UInt32(sections.pinnedAssets.count),
-                assets: UInt32(sections.assets.count),
-                pinnedPerpetuals: 0,
-                perpetuals: listsPerpetuals ? UInt32(perpetuals.count) : 0,
-                lists: 0,
-                nfts: 0,
-            ),
+    var view: GemWalletSearchResultsView {
+        let result = searchResult
+        return service.walletSearchResultsView(input: GemWalletSearchResultsInput(
+            wallet: wallet.toGem(),
+            scope: searchQuery.request.scope.gemScope,
             isLoading: loadState.isLoading,
-        )
+            assetIds: result.assets.map(\.asset.id),
+            pinnedAssetIds: result.assets.filter(\.metadata.isPinned).map(\.asset.id),
+            perpetuals: result.perpetuals.map { $0.toGem() },
+        ))
     }
 
     func searchState(_ state: GemWalletSearchState) -> SearchContentState {
@@ -91,23 +67,6 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         case .loading: .loading
         case .empty: .empty(EmptyStateViewModel(kind: .searchAssets))
         }
-    }
-
-    func contextMenuItems(for assetData: AssetData) -> [ContextMenuItemType] {
-        AssetContextMenu.items(
-            for: assetData,
-            onCopy: { [weak self] in
-                self?.isPresentingToastMessage = .copy(
-                    addressCopy(chain: assetData.asset.chain.toGem(), address: $0).copiedMessage,
-                )
-            },
-            onPin: { [weak self] in
-                self?.onPinAsset(assetData.asset, value: !assetData.metadata.isPinned)
-            },
-            onAddToWallet: { [weak self] in
-                self?.onAddToWallet(assetData.asset.id)
-            },
-        )
     }
 }
 
@@ -127,32 +86,9 @@ extension AssetsResultsSceneViewModel {
             loadState.setError(error)
         }
     }
-
-    func onSelectAsset(_ asset: Asset) {
-        onSelectAssetAction?(asset)
-        Task { [service] in
-            do {
-                try await service.addRecent(action: .open, asset: asset.toGem())
-            } catch {
-                debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
-            }
-        }
-    }
 }
 
 extension AssetsResultsSceneViewModel {
-    func setAssetPinned(_ asset: Asset, pinned: Bool) async throws -> GemToast {
-        try await service.setAssetPinned(asset: asset.toGem(), pinned: pinned)
-    }
-
-    func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
-    }
-
-    func setPerpetualPinned(_ perpetual: Perpetual, pinned: Bool) async throws -> GemToast {
-        try await service.setPerpetualPinned(perpetualId: perpetual.id.identifier, name: perpetual.name, pinned: pinned)
-    }
-
     var assetItems: ListAssetItemsViewModel {
         ListAssetItemsViewModel(currency: currency, rowStyle: service.flow(selectType: .walletSearchResults).rowStyle)
     }

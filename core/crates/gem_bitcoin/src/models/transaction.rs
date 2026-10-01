@@ -66,12 +66,12 @@ impl Transaction {
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub is_address: bool,
-    pub addresses: Option<Vec<String>>, // will be optional for Coinbase Input
+    pub addresses: Option<Vec<String>>,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub value: BigUint,
     pub n: i64,
-    pub tx_id: Option<String>, // will be optional for Coinbase Input
-    pub vout: Option<i64>,     // will be optional for Coinbase Input
+    pub tx_id: Option<String>,
+    pub vout: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

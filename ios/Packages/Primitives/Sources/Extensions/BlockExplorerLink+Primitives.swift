@@ -3,7 +3,7 @@
 import Foundation
 
 public extension BlockExplorerLink {
-    var url: URL {
-        URL(string: link)!
+    var url: URL? {
+        URL(string: link)
     }
 }

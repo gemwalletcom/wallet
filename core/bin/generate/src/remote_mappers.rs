@@ -10,7 +10,6 @@ pub const PRIMITIVES_SOURCE: &str = "crates/primitives/src";
 pub const GEMSTONE_SOURCE: &str = "gemstone/src";
 pub(crate) const CONFIG: &str = include_str!("../remote_types.yml");
 
-/// `remote_types.yml`: the types that cross, and every type name the generator has to know.
 #[derive(Deserialize)]
 pub struct Config {
     remote: Vec<String>,
@@ -30,8 +29,6 @@ pub struct Config {
     aliases: BTreeMap<String, String>,
 }
 
-/// A `mocks:` entry: a type name, or a type name with the values of the fields the default rules
-/// would build invalid.
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum Mock {
@@ -52,27 +49,22 @@ impl Config {
         self.scalars.iter().any(|scalar| scalar == name)
     }
 
-    /// An identifier this language's bindings already type (`uniffi.toml` custom types), so it crosses without conversion.
     pub(crate) fn is_typed_identifier(&self, name: &str, language: &str) -> bool {
         self.typed_identifiers.get(language).is_some_and(|names| names.iter().any(|typed| typed == name))
     }
 
-    /// A type gemstone declares under another name, such as a big integer or a date.
     pub(crate) fn declared(&self, name: &str) -> Option<&str> {
         self.declared.get(name).map(String::as_str)
     }
 
-    /// The expression that converts a declared type the app spells differently, per language and direction.
     fn conversion(&self, name: &str, language: &str, index: usize) -> Option<&str> {
         self.conversions.get(name)?.get(language)?.get(index).map(String::as_str)
     }
 
-    /// The variant a skipped enum field falls back to, since the app type does not carry one.
     fn default_variant(&self, name: &str) -> Option<&str> {
         self.defaults.get(name).map(String::as_str)
     }
 
-    /// The types `mocks:` lists, from either side of the bridge.
     pub(crate) fn mocked(&self) -> Vec<&str> {
         self.mocks
             .iter()
@@ -90,7 +82,6 @@ impl Config {
         })
     }
 
-    /// The declared names that are gemstone custom types, which the declarations import.
     fn custom_types<'a>(&'a self, types: &'a [RemoteType]) -> Vec<&'a str> {
         self.declared
             .iter()
@@ -161,7 +152,6 @@ impl RemoteType {
     }
 }
 
-/// The remote types declared in `remote_types.yml`, read once from the primitives sources.
 pub struct Generator {
     pub(crate) config: Config,
     pub(crate) types: Vec<RemoteType>,
@@ -172,7 +162,6 @@ pub struct Generator {
     pub(crate) core_errors: BTreeSet<String>,
 }
 
-/// An app model declaration as the apps see it: its module, and for an enum its variants.
 pub(crate) struct AppType {
     pub(crate) module: String,
     pub(crate) variants: Option<Vec<Variant>>,
@@ -308,7 +297,6 @@ impl Generator {
         self.types.is_empty()
     }
 
-    /// The `#[uniffi::remote]` declarations gemstone compiles.
     pub fn remote_types(&self) -> String {
         let types = &self.types;
         let mut names = types.iter().map(RemoteType::name).collect::<Vec<_>>();
@@ -367,8 +355,6 @@ impl Generator {
         self.mappers(&KOTLIN)
     }
 
-    /// One `map()` / `toPrimitives()` / `toGem()` per direction for every remote type that has a
-    /// app model twin; a type without one is held by the apps as the uniffi type itself.
     fn mappers(&self, language: &Language) -> String {
         let mut out = format!("{HEADER}\n{}", language.header);
         for remote in self.types.iter().filter(|remote| remote.app_model()) {
@@ -455,8 +441,6 @@ pub(crate) fn source_files(directory: &Path) -> Vec<std::path::PathBuf> {
     files
 }
 
-/// The records and enums gemstone exports with `#[derive(uniffi::Record)]` or `#[derive(uniffi::Enum)]`,
-/// by name, and the type aliases that name one of them under another name.
 fn uniffi_declarations(sources: &[String]) -> (BTreeMap<String, RemoteType>, BTreeMap<String, String>, BTreeSet<String>) {
     let mut found = BTreeMap::new();
     let mut aliases = BTreeMap::new();
@@ -500,7 +484,6 @@ fn uniffi_declarations(sources: &[String]) -> (BTreeMap<String, RemoteType>, BTr
     (found, aliases, errors)
 }
 
-/// The error types of the `Result`s on a line, which UniFFI names as errors.
 fn result_errors(line: &str) -> Vec<String> {
     line.match_indices("Result<")
         .filter_map(|(start, _)| {
@@ -588,8 +571,6 @@ fn variants(name: &str, body: &[&str]) -> Vec<Variant> {
     variants
 }
 
-/// Splits a tuple variant's types on the commas between them, keeping the ones inside a field
-/// attribute or a generic argument, then drops the attributes: `#[serde(a = "b", c = "d")] Option<BigInt>`.
 fn tuple_types(types: &str) -> Vec<String> {
     let mut fields = Vec::new();
     let mut depth = 0usize;
@@ -696,7 +677,6 @@ fn serde_rename(line: &str) -> Option<String> {
 }
 
 impl Generator {
-    /// How a field type reads inside a `#[uniffi::remote]` declaration in gemstone.
     fn declared_type(&self, type_name: &str) -> String {
         let (inner, wrapper) = unwrap(type_name);
         let declared = match wrapper {
@@ -738,8 +718,6 @@ fn field_names(field: &Field, index: usize) -> (String, String) {
     }
 }
 
-/// The syntax of one app language. Index 0 in every pair is the direction out of Core, index 1
-/// the direction into it.
 struct Language {
     name: &'static str,
     header: &'static str,
@@ -891,7 +869,7 @@ pub(crate) fn screaming_snake_case(name: &str) -> String {
         .enumerate()
         .flat_map(|(index, character)| {
             let separator = (character.is_ascii_uppercase() && index > 0 && !characters[index - 1].is_ascii_uppercase()).then_some('_');
-            separator.into_iter().chain(character.to_ascii_uppercase().to_string().chars().collect::<Vec<_>>())
+            separator.into_iter().chain([character.to_ascii_uppercase()])
         })
         .collect()
 }
@@ -937,9 +915,6 @@ pub(crate) fn uniffi_swift_case(variant: &str) -> String {
         .collect()
 }
 
-/// UniFFI lowers a variant with `heck`, which treats a run of capitals as one word: `TransferNFT`
-/// becomes `transferNft`, where the app model keeps `transferNFT`. The two sides of a mapper therefore
-/// spell the same variant differently whenever it contains an acronym.
 pub(crate) fn uniffi_type_name(name: &str) -> String {
     let camel = uniffi_swift_case(name);
     camel[..1].to_ascii_uppercase() + &camel[1..]

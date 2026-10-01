@@ -29,7 +29,6 @@ import com.gemwallet.android.features.settings.viewmodels.lock.LockViewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.LocalAddressService
-import com.gemwallet.android.ui.LocalAssetsService
 import com.gemwallet.android.ui.LocalChainService
 import com.gemwallet.android.ui.LocalConnectionStatus
 import com.gemwallet.android.ui.LocalDeeplinkService
@@ -48,7 +47,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAddressService
-import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemDeeplinkService
@@ -78,8 +76,6 @@ class MainActivity :
 
     @Inject lateinit var navigationService: GemNavigationService
 
-    @Inject lateinit var assetsService: GemAssetsService
-
     @Inject lateinit var chainService: GemChainService
 
     private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -99,7 +95,9 @@ class MainActivity :
         systemAuthenticator.prepare()
         systemAuthenticator.refreshEnrollment()
 
-        viewModel.pendIntent(intent)
+        if (savedInstanceState == null) {
+            viewModel.pendIntent(intent)
+        }
         viewModel.maintain(isUnlocked = lockViewModel.uiState.map { it.isUnlocked })
 
         lifecycleScope.launch {
@@ -145,7 +143,6 @@ class MainActivity :
                 LocalConnectionStatus provides connectionStatusObserver.status,
                 LocalStreamConnected provides streamConnected,
                 LocalAddressService provides addressService,
-                LocalAssetsService provides assetsService,
                 LocalDeeplinkService provides deeplinkService,
                 LocalNavigationService provides navigationService,
                 LocalChainService provides chainService,

@@ -5,7 +5,7 @@ use gem_hypercore::models::spot::OrderbookLevel;
 
 use crate::SwapperError;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub(super) struct SimulationResult {
     pub amount_out: BigDecimal,
     pub limit_price: BigDecimal,
@@ -26,7 +26,7 @@ pub(super) fn simulate_sell(amount: &BigDecimal, bids: &[OrderbookLevel]) -> Res
         let trade_size = remaining.clone().min(level_size);
         quote_total += &trade_size * &price;
         remaining -= &trade_size;
-        min_price = Some(min_price.map_or(price.clone(), |p| p.min(price.clone())));
+        min_price = Some(min_price.map_or_else(|| price.clone(), |p| p.min(price.clone())));
 
         if remaining <= BigDecimal::zero() {
             return Ok(SimulationResult {
@@ -55,10 +55,10 @@ pub(super) fn simulate_buy(amount: &BigDecimal, asks: &[OrderbookLevel]) -> Resu
         if remaining_quote > level_quote {
             base_total += &level_size;
             remaining_quote -= level_quote;
-            max_price = Some(max_price.map_or(price.clone(), |p| p.max(price.clone())));
+            max_price = Some(max_price.map_or_else(|| price.clone(), |p| p.max(price.clone())));
         } else {
             base_total += &remaining_quote / &price;
-            max_price = Some(max_price.map_or(price.clone(), |p| p.max(price.clone())));
+            max_price = Some(max_price.map_or_else(|| price.clone(), |p| p.max(price.clone())));
             remaining_quote = BigDecimal::zero();
             break;
         }
@@ -109,7 +109,7 @@ mod tests {
     fn test_simulate_sell_insufficient_depth() {
         let amount = BigDecimal::from_str("10").unwrap();
         let bids = vec![OrderbookLevel::mock("2", "3"), OrderbookLevel::mock("1.5", "5")];
-        assert!(matches!(simulate_sell(&amount, &bids), Err(SwapperError::NoQuoteAvailable)));
+        assert_eq!(simulate_sell(&amount, &bids), Err(SwapperError::NoQuoteAvailable));
     }
 
     #[test]
@@ -133,6 +133,6 @@ mod tests {
     fn test_simulate_buy_insufficient_depth() {
         let amount = BigDecimal::from_str("25").unwrap();
         let asks = vec![OrderbookLevel::mock("2", "3"), OrderbookLevel::mock("3", "5")];
-        assert!(matches!(simulate_buy(&amount, &asks), Err(SwapperError::NoQuoteAvailable)));
+        assert_eq!(simulate_buy(&amount, &asks), Err(SwapperError::NoQuoteAvailable));
     }
 }

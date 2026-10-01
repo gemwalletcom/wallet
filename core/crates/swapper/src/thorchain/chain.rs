@@ -67,7 +67,7 @@ impl ChainName {
     pub fn checksum_address(&self, address: &str) -> String {
         if self.is_evm_chain() {
             let address = address.strip_prefix("0X").unwrap_or(address);
-            ethereum_address_checksum(address).unwrap_or(address.to_string())
+            ethereum_address_checksum(address).unwrap_or_else(|_| address.to_string())
         } else {
             address.to_string()
         }

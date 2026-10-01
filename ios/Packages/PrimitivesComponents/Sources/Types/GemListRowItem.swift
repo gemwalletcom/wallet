@@ -199,8 +199,8 @@ extension GemListRow {
     }
 
     private func identifierItem(_ model: ListItemModel, explorer: BlockExplorerLink?, menu: [GemRowMenuItem]) -> GemListRowItem {
-        guard let explorer else { return .menu(model, menu: menu) }
-        return .explorerPage(model, url: explorer.url, menu: menu)
+        guard let url = explorer?.url else { return .menu(model, menu: menu) }
+        return .explorerPage(model, url: url, menu: menu)
     }
 
     private func urlItem(title: GemListRowTitle, value: String?, icon: GemListRowIcon, url: String, target: GemUrlTarget) -> GemListRowItem {

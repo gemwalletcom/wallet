@@ -26,6 +26,7 @@ use crate::services::price::GemPriceService;
 use crate::services::price_alert::GemPriceAlertService;
 use crate::services::support::GemSupportService;
 use crate::services::transactions::GemTransactionsService;
+use crate::services::wallet_configuration::GemWalletConfigurationService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
@@ -42,6 +43,7 @@ pub struct GemStreamService {
     subscriptions: Arc<GemStreamSubscriptionService>,
     session: Arc<GemWalletSessionService>,
     device: Arc<GemDeviceService>,
+    wallet_configuration: Arc<GemWalletConfigurationService>,
 }
 
 #[uniffi::export]
@@ -61,6 +63,7 @@ impl GemStreamService {
         subscriptions: Arc<GemStreamSubscriptionService>,
         session: Arc<GemWalletSessionService>,
         device: Arc<GemDeviceService>,
+        wallet_configuration: Arc<GemWalletConfigurationService>,
     ) -> Self {
         Self {
             price,
@@ -75,6 +78,7 @@ impl GemStreamService {
             subscriptions,
             session,
             device,
+            wallet_configuration,
         }
     }
 
@@ -128,6 +132,12 @@ impl GemStreamService {
                 self.perpetual.sync_positions(wallet_id, Chain::HyperCore, account.address.clone()).await.map(|_| ())
             }
             GemStreamEvent::FiatTransaction { wallet_id } => self.fiat.sync_transactions(wallet_id).await,
+            GemStreamEvent::WalletConfiguration { wallet_id } => {
+                let Some(wallet) = self.session.get_wallet(wallet_id).await? else {
+                    return Ok(());
+                };
+                self.wallet_configuration.refresh(&wallet).await
+            }
         }
     }
 }
@@ -161,6 +171,7 @@ impl GemStreamService {
                 Ok(GemStreamEvent::Notification { wallet_id })
             }
             StreamEvent::FiatTransaction(update) => Ok(GemStreamEvent::FiatTransaction { wallet_id: update.wallet_id }),
+            StreamEvent::WalletConfiguration(update) => Ok(GemStreamEvent::WalletConfiguration { wallet_id: update.wallet_id }),
             StreamEvent::Support(SupportStreamEvent::Message(message)) => {
                 let handled = GemStreamEvent::SupportMessage {
                     message_id: message.id.clone(),

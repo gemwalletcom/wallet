@@ -34,7 +34,7 @@ fn get_gas_limit(input_type: &TransactionInputType) -> BigInt {
         | TransactionInputType::Payment { .. }
         | TransactionInputType::Perpetual { .. }
         | TransactionInputType::Earn { .. } => BigInt::from(DEFAULT_GAS_LIMIT),
-        TransactionInputType::Swap { swap_data, .. } => swap_data.data.gas_limit.as_ref().and_then(|x| x.parse::<u64>().ok()).map(BigInt::from).unwrap_or(BigInt::from(DEFAULT_SWAP_GAS_LIMIT)),
+        TransactionInputType::Swap { swap_data, .. } => swap_data.data.gas_limit.as_ref().and_then(|x| x.parse::<u64>().ok()).map(BigInt::from).unwrap_or_else(|| BigInt::from(DEFAULT_SWAP_GAS_LIMIT)),
         TransactionInputType::Stake { .. } => BigInt::from(DEFAULT_GAS_LIMIT),
     }
 }
@@ -261,7 +261,7 @@ mod tests {
             SolanaPrioritizationFee { prioritization_fee: 175_000 },
             SolanaPrioritizationFee { prioritization_fee: 125_000 },
             SolanaPrioritizationFee { prioritization_fee: 225_000 },
-            SolanaPrioritizationFee { prioritization_fee: 100_000 }, // Should be truncated (6th fee)
+            SolanaPrioritizationFee { prioritization_fee: 100_000 },
         ];
         let input_type = TransactionInputType::Transfer {
             asset: Asset {

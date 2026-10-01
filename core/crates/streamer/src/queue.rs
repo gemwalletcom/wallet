@@ -3,55 +3,33 @@ use strum::{EnumIter, IntoEnumIterator};
 
 #[derive(Debug, Clone, PartialEq, EnumIter)]
 pub enum QueueName {
-    // Process transactions, store and send notifications. Push assets to address_assets table and fetch new assets
     StoreTransactions,
-    // Notifications for price alerts
     NotificationsPriceAlerts,
-    // Notifications for transactions
     NotificationsTransactions,
-    // Notifications for observers
     NotificationsObservers,
-    // Notifications for support messages
     NotificationsSupport,
-    // Notifications for rewards events
     NotificationsRewards,
-    // Failed notifications to handle device disabling
     NotificationsFailed,
-    // fetch new assets and store to db
     FetchAssets,
     FetchAssetStatus,
     FetchAssetAssociations,
-    // fetch prices for an asset or provider price id and store to db
     FetchPrices,
     FetchPricesMetadata,
-    // fetch provider list and store tag memberships
     FetchLists,
-    // fetch new blocks and store to db
     FetchBlocks,
-    // Fetch and store nft collection
-    FetchNFTCollection,
-    // Fetch and store nft collection assets
     FetchNFTCollectionAssets,
-    // Fetch address token balances from providers and store to db
     FetchTokenAssociations,
-    // Fetch address coin balances from providers and store to db
     FetchCoinAssociations,
-    // Fetch address nft assets from providers and store to db
     FetchNftAssociations,
-    // Fetch address transactions from providers and store to db
     FetchAddressTransactions,
     FetchTransactions,
-    // Process fiat order webhooks
     FiatOrderWebhooks,
-    // Process support webhooks
     SupportWebhooks,
-    // Store pending transaction identifiers
     StorePendingTransactions,
-    // Store prices to database
+    StoreTransactionsSwaps,
+    StoreTransactionsPerpetuals,
     StorePrices,
-    // Rewards events (create username, invite, etc.)
     RewardsEvents,
-    // Rewards redemptions
     RewardsRedemptions,
     NotificationsFiatPurchase,
     NotificationsInApp,
@@ -65,6 +43,7 @@ impl QueueName {
 
     pub fn chain_queues() -> Vec<QueueName> {
         vec![
+            QueueName::StoreTransactions,
             QueueName::FetchBlocks,
             QueueName::FetchTokenAssociations,
             QueueName::FetchCoinAssociations,
@@ -89,7 +68,6 @@ impl fmt::Display for QueueName {
             QueueName::FetchPricesMetadata => write!(f, "fetch_prices_metadata"),
             QueueName::FetchLists => write!(f, "fetch_lists"),
             QueueName::FetchBlocks => write!(f, "fetch_blocks"),
-            QueueName::FetchNFTCollection => write!(f, "fetch_nft_collection"),
             QueueName::FetchNFTCollectionAssets => write!(f, "fetch_nft_collection_assets"),
             QueueName::FetchTokenAssociations => write!(f, "fetch_token_associations"),
             QueueName::FetchCoinAssociations => write!(f, "fetch_coin_associations"),
@@ -99,6 +77,8 @@ impl fmt::Display for QueueName {
             QueueName::FiatOrderWebhooks => write!(f, "fiat_order_webhooks"),
             QueueName::SupportWebhooks => write!(f, "support_webhooks"),
             QueueName::StorePendingTransactions => write!(f, "store_pending_transactions"),
+            QueueName::StoreTransactionsSwaps => write!(f, "store_transactions_swaps"),
+            QueueName::StoreTransactionsPerpetuals => write!(f, "store_transactions_perpetuals"),
             QueueName::NotificationsSupport => write!(f, "notifications_support"),
             QueueName::NotificationsRewards => write!(f, "notifications_rewards"),
             QueueName::RewardsEvents => write!(f, "rewards_events"),

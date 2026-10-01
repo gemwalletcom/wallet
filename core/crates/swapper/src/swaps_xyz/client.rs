@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use gem_client::{Client, ClientError, ClientExt};
+use gem_client::{Client, ClientExt};
 
 use super::model::{ActionRequest, ActionResponse, PathsQuery, PathsResponse, StatusQuery, StatusResponse};
 use super::target::SwapsXyzTarget;
@@ -45,7 +45,7 @@ where
         };
         match self.upstream.get(target).await {
             Ok(response) => Ok(Some(response)),
-            Err(ClientError::Http { status: 404, .. }) => Ok(None),
+            Err(error) if error.status() == Some(404) => Ok(None),
             Err(error) => Err(error.into()),
         }
     }

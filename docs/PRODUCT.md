@@ -16,6 +16,10 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 **Smooth.** Scrolling, typing and transitions hold the frame rate. The app never freezes or flickers. A price update changes only the rows it touches, and a result for a wallet or asset the user has already left is dropped, not drawn. A visible hitch, a flash of empty content, or a glimpse of another wallet's data is a defect.
 
+## Look
+
+**Feature symbol.** A screen or sheet that introduces one feature or asks for one decision shows one large symbol from the platform's own set, in the brand blue with no background, above a bold title and a short description, at the size of an info sheet. Every such screen uses this one look so the user recognizes it; a new one copies it rather than drawing an icon.
+
 ## Areas
 
 - [Onboarding](product/onboarding.md) — create a wallet, import a wallet, and what happens right after

@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Localization
 import SwiftUI
 
 public extension View {
-    func alert<T>(
+    func alert<T: Sendable>(
         _ title: some StringProtocol,
         presenting data: Binding<T?>,
         sensoryFeedback: SensoryFeedback? = nil,
@@ -13,13 +14,7 @@ public extension View {
     )
         -> some View
     {
-        let isPresented: Binding<Bool> = Binding(
-            get: { data.wrappedValue != nil },
-            set: { newValue in
-                guard !newValue else { return }
-                data.wrappedValue = nil
-            },
-        )
+        let isPresented = data.mappedToBool()
 
         return alert(
             title,

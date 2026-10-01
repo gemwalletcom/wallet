@@ -8,7 +8,7 @@ pub(super) const TRON_DEX_TOKEN_APPROVE_ADDRESS: &str = "THRAE2VhGNAcvPKtT96AqyX
 const DEFAULT_EVM_GAS_LIMIT: u64 = 920_000;
 
 const SOLANA_DEX_IDS: &str = "277,278,279,343,72,103,284,338,372,403,444,483,357,345,459,457,475,342";
-const TRON_DEX_IDS: &str = "64,98,596"; // Sunswap
+const TRON_DEX_IDS: &str = "64,98,596";
 
 pub(super) fn chain_index(chain: Chain) -> Option<&'static str> {
     match chain {

@@ -25,7 +25,7 @@
 
 #### Coroutines
 
-- A view-model test sets Main to its own `TestDispatcher` and hands that same dispatcher to the view model, which takes it by injection (see [code-style.md](code-style.md)). `tearDown` cancels `viewModelScope` before `resetMain()`, so nothing survives into the next test
+- A view-model test sets Main through `MainDispatcherRule` from `:gemcore` testFixtures with its own `TestDispatcher`, and hands that same dispatcher to the view model, which takes it by injection (see [code-style.md](code-style.md)). Its `@After` cancels `viewModelScope` before the rule resets Main, so nothing survives into the next test
 - Keep `runTest`'s default timeout. A test's first call into Core loads the native library, which a CI runner can take well over ten seconds to do, so a tighter global timeout fails healthy tests there
 - Drive the queued work with `advanceUntilIdle()`, then assert on `.value`. `coVerify(timeout = …)`, `verify(timeout = …)`, `Thread.sleep`, and poll loops never advance the test scheduler — they only hide a race that a slower CI runner loses later (issue #1271)
 

@@ -441,6 +441,7 @@
   <string name="lock_unlock">Разблокировать</string>
   <string name="lock_privacy_lock">Блокировка конфиденциальности</string>
   <string name="lock_footer">Защитите доступ к этому приложению на вашем устройстве</string>
+  <string name="lock_passcode">Пароль</string>
   <string name="verify_phrase_title">Подтвердите</string>
   <string name="warnings_externally_controlled_account">Этот аккаунт %1$s может контролировать кто-то другой. Не отправляйте на него средства, если вы не уверены, что контролируете его, иначе вы можете навсегда потерять свои активы.</string>
   <string name="sell_title">Продать %1$s</string>

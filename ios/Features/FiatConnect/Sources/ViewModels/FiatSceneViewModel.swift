@@ -76,7 +76,7 @@ public final class FiatSceneViewModel {
 
     var amount: String {
         get { viewState.amount }
-        set { applyAmount(newValue, isImmediate: false) }
+        set { setAmount(newValue, isImmediate: false) }
     }
 
     func amountError(_ viewState: GemFiatViewState) -> (any Error)? {
@@ -210,11 +210,11 @@ extension FiatSceneViewModel {
     }
 
     func onSelect(amount: Int) {
-        applyAmount(String(amount), isImmediate: true)
+        setAmount(String(amount), isImmediate: true)
     }
 
     func onSelectRandomAmount() {
-        applyAmount(String(service.randomAmount()), isImmediate: true)
+        setAmount(String(service.randomAmount()), isImmediate: true)
     }
 
     func onSelectFiatProviders() {
@@ -239,7 +239,7 @@ extension FiatSceneViewModel {
         FiatTransactionsSceneViewModel(walletId: wallet.id, service: service)
     }
 
-    private func applyAmount(_ text: String, isImmediate: Bool) {
+    private func setAmount(_ text: String, isImmediate: Bool) {
         guard text != viewState.amount else { return }
         session = session.onAmountChanged(amount: text)
         loadTrigger = FiatLoadTrigger(session: session, isImmediate: isImmediate)

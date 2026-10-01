@@ -311,7 +311,6 @@ mod tests {
             }
         );
 
-        // A max swap sends the balance minus the fee, which can land under the provider minimum.
         let mut swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, "100000000", "1000000", "deposit");
         swap_data.quote.min_from_value = Some(num_bigint::BigUint::from(100_000_000 - FEE + 1));
         let mut max_below_minimum = TransferAmountInput::mock(

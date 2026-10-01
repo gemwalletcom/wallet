@@ -1,4 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use primitives::unix_timestamp;
 
 use crate::actions::WalletConnectTransactionType;
 use crate::sign_type::SignDigestType;
@@ -15,7 +15,7 @@ pub struct SignMessageValidation<'a> {
 }
 
 fn current_timestamp() -> i64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs() as i64).unwrap_or(0)
+    unix_timestamp() as i64
 }
 
 pub fn validate_sign_message(input: &SignMessageValidation) -> Result<(), String> {
@@ -150,13 +150,10 @@ mod tests {
     fn test_validate_ton_sign_message() {
         use gem_ton::signer::{TonSignDataPayload, TonSignMessageData};
 
-        // Invalid: raw JSON without proper encoding
         assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ton, &SignDigestType::TonPersonal, r#"{"payload":{"text":"Hello"},"domain":"example.com"}"#, "")).is_err());
 
-        // Invalid: unknown payload type
         assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ton, &SignDigestType::TonPersonal, r#"{"payload":{"type":"unknown"},"domain":"example.com"}"#, "")).is_err());
 
-        // Valid: text payload
         let ton_data = TonSignMessageData::new(
             TonSignDataPayload::Text { text: "Hello".to_string() },
             "example.com".to_string(),
@@ -164,7 +161,6 @@ mod tests {
         );
         assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ton, &SignDigestType::TonPersonal, &String::from_utf8(ton_data.to_bytes()).unwrap(), "")).is_ok());
 
-        // Valid: binary payload
         let ton_data = TonSignMessageData::new(
             TonSignDataPayload::Binary { bytes: "SGVsbG8=".to_string() },
             "example.com".to_string(),
@@ -172,7 +168,6 @@ mod tests {
         );
         assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ton, &SignDigestType::TonPersonal, &String::from_utf8(ton_data.to_bytes()).unwrap(), "")).is_ok());
 
-        // Valid: cell payload
         let ton_data = TonSignMessageData::new(
             TonSignDataPayload::Cell {
                 schema: "comment#00000000 text:SnakeData = InMsgBody;".to_string(),

@@ -1,10 +1,9 @@
-use primitives::OptionStringExt;
 use std::fmt;
 use std::str::FromStr;
 
 use crc::Crc;
 use gem_encoding::{decode_base64_no_pad, decode_base64_url, encode_base64_url};
-use primitives::{Address as AddressTrait, AddressError, SignerError};
+use primitives::{Address as AddressTrait, AddressError, OptionStringExt, SignerError};
 use serde::{Deserialize, Deserializer, de::Error as _};
 
 #[cfg(feature = "tvm")]
@@ -267,8 +266,8 @@ mod tests {
 
     #[test]
     fn test_hex_to_base64_address() {
-        let addr = "0:8c50a91220a5ccf086a1b2113b1a78787555f02b20d3fa6e97ba1acd710dbdaa";
-        let result = hex_to_base64_address(addr).unwrap();
+        let address = "0:8c50a91220a5ccf086a1b2113b1a78787555f02b20d3fa6e97ba1acd710dbdaa";
+        let result = hex_to_base64_address(address).unwrap();
 
         assert_eq!(result, "EQCMUKkSIKXM8IahshE7Gnh4dVXwKyDT-m6XuhrNcQ29qvOh");
     }
@@ -294,10 +293,10 @@ mod tests {
 
     #[test]
     fn test_from_base64_url() {
-        let addr = Address::try_parse_base64("UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg").unwrap();
+        let address = Address::try_parse_base64("UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg").unwrap();
 
-        assert_eq!(addr.workchain(), 0);
-        assert_eq!(hex::encode(addr.hash_part()), "58d5c54fbb8488af7eaad0cdc759ca8f6ff79fc9555106c1339b037ec0a40347");
+        assert_eq!(address.workchain(), 0);
+        assert_eq!(hex::encode(address.hash_part()), "58d5c54fbb8488af7eaad0cdc759ca8f6ff79fc9555106c1339b037ec0a40347");
     }
 
     #[test]

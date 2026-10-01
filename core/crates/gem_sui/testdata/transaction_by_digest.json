@@ -1,0 +1,107 @@
+{
+    "data": {
+        "transaction": {
+            "digest": "DPbeKCinGzgzcWxDRDe45tVdfyakRcqRd5hzySgqTXPQ",
+            "sender": {
+                "address": "0xbc7f07df6200f2cff2e4370f3644548c1da76f55ff7b12a983e9cac985a69b82"
+            },
+            "effects": {
+                "status": "SUCCESS",
+                "timestamp": "2026-09-14T10:17:32.642Z",
+                "gasEffects": {
+                    "gasObject": {
+                        "owner": {
+                            "address": {
+                                "address": "0xbc7f07df6200f2cff2e4370f3644548c1da76f55ff7b12a983e9cac985a69b82"
+                            }
+                        }
+                    },
+                    "gasSummary": {
+                        "computationCost": 126000,
+                        "storageCost": 15656000,
+                        "storageRebate": 14190264,
+                        "nonRefundableStorageFee": 143336
+                    }
+                },
+                "balanceChanges": {
+                    "nodes": [
+                        {
+                            "owner": {
+                                "address": "0x9d6b98b18fd26b5efeec68d020dcf1be7a94c2c315353779bc6b3aed44188ddf"
+                            },
+                            "coinType": {
+                                "repr": "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"
+                            },
+                            "amount": "15000000"
+                        },
+                        {
+                            "owner": {
+                                "address": "0xbc7f07df6200f2cff2e4370f3644548c1da76f55ff7b12a983e9cac985a69b82"
+                            },
+                            "coinType": {
+                                "repr": "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"
+                            },
+                            "amount": "-3001591736"
+                        },
+                        {
+                            "owner": {
+                                "address": "0xbc7f07df6200f2cff2e4370f3644548c1da76f55ff7b12a983e9cac985a69b82"
+                            },
+                            "coinType": {
+                                "repr": "0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP"
+                            },
+                            "amount": "142528655"
+                        }
+                    ]
+                },
+                "events": {
+                    "nodes": [
+                        {
+                            "contents": {
+                                "type": {
+                                    "repr": "0x1eabed72c53feb3805120a081dc15963c204dc8d091542592abaf7a35689b2fb::pool::SwapEvent"
+                                },
+                                "json": {
+                                    "atob": false,
+                                    "pool": "0xd978d331772a5b90d5a4781e1232d18afd12019d0c35db79e3674beeda8f9126",
+                                    "partner": "0x08b1875b6541c847f05ed71d04cbcfa66e4e8619bf3b8923b07c5b5409433366",
+                                    "amount_in": "2985000000",
+                                    "amount_out": "142528655",
+                                    "ref_amount": "74625",
+                                    "fee_amount": "1492500",
+                                    "vault_a_amount": "1703486658445",
+                                    "vault_b_amount": "83965687885767",
+                                    "before_sqrt_price": "84397752348691665844",
+                                    "after_sqrt_price": "84398263165050339712",
+                                    "steps": "1"
+                                }
+                            },
+                            "transactionModule": {
+                                "package": {
+                                    "address": "0x25ebb9a7c50eb17b3fa9c5a30fb8b5ad8f97caaf4928943acbcff7153dfee5e3"
+                                }
+                            }
+                        },
+                        {
+                            "contents": {
+                                "type": {
+                                    "repr": "0x1eabed72c53feb3805120a081dc15963c204dc8d091542592abaf7a35689b2fb::partner::ReceiveRefFeeEvent"
+                                },
+                                "json": {
+                                    "partner_id": "0x08b1875b6541c847f05ed71d04cbcfa66e4e8619bf3b8923b07c5b5409433366",
+                                    "amount": "74625",
+                                    "type_name": "0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"
+                                }
+                            },
+                            "transactionModule": {
+                                "package": {
+                                    "address": "0x25ebb9a7c50eb17b3fa9c5a30fb8b5ad8f97caaf4928943acbcff7153dfee5e3"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

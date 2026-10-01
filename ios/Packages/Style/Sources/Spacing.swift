@@ -5,57 +5,34 @@ public typealias Spacing = CGFloat
 public typealias Sizing = CGFloat
 
 public extension Spacing {
-    /// 1
     static let space1: Spacing = 1
-    /// 2
     static let space2: Spacing = 2
-    /// 4
     static let space4: Spacing = 4
-    /// 6
     static let space6: Spacing = 6
-    /// 8
     static let space8: Spacing = 8
-    /// 10
     static let space10: Spacing = 10
-    /// 12
     static let space12: Spacing = 12
-    /// 16
     static let space16: Spacing = 16
-    /// 24
     static let space24: Spacing = 24
-    /// 32
     static let space32: Spacing = 32
 
-    // semantic aliases
-
-    /// 2
     static let extraSmall: CGFloat = space2
-    /// 4
     static let tiny: CGFloat = space4
-    /// 8
     static let small: CGFloat = space8
-    /// 16
     static let medium: CGFloat = space16
-    /// 24
     static let large: CGFloat = space24
-    /// 32
     static let extraLarge: CGFloat = space32
 
     enum scene {
-        /// 16
         public static let top: CGFloat = space16
-        /// 8
         public static let bottom: CGFloat = space8
 
         public enum button {
-            /// 340
             public static let maxWidth: CGFloat = 340
-            /// 50
             public static let height: CGFloat = 50
         }
 
         public enum content {
-            /// 360
             public static let maxWidth: CGFloat = 360
         }
     }
@@ -68,44 +45,29 @@ public extension Sizing {
     }
 
     enum image {
-        /// 22
         public static let small: CGFloat = 22
-        /// 34
         public static let semiMedium: CGFloat = 34
-        /// 44
         public static let medium: CGFloat = 44
-        /// 64
         public static let semiLarge: CGFloat = 64
-        /// 88
         public static let large: CGFloat = 88
-        /// 102
         public static let semiExtraLarge: CGFloat = 102
-        /// 120
         public static let extraLarge: CGFloat = 120
 
-        /// 44
         public static let asset: CGFloat = 44
-        /// 44
         public static let app: CGFloat = Self.asset
     }
 
     enum list {
-        /// 100
         public static let minHeight: CGFloat = 84
-        /// 16
         public static let accessory: CGFloat = 16
-        /// 22
         public static let image: CGFloat = 22
-        /// 28
         public static let settings: CGFloat = 28
 
         public enum selected {
-            /// 20
             public static let image: CGFloat = 20
         }
 
         public enum assets {
-            /// 40
             public static let widget: CGFloat = 40
         }
     }
@@ -116,12 +78,10 @@ public extension Sizing {
     }
 
     enum picker {
-        /// 200
         public static let segmentedWidth: CGFloat = 200
     }
 
     enum chart {
-        /// 320
         public static let height: CGFloat = 320
     }
 }

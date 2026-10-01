@@ -165,7 +165,7 @@ impl From<Box<dyn Error + Send + Sync>> for ReferralError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum RewardsRedemptionError {
     NotEligible,
     LimitReached,

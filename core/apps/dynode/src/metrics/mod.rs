@@ -3,12 +3,13 @@ mod traffic;
 
 use std::{
     sync::{Arc, atomic::AtomicU64},
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::Duration,
 };
 
 use gem_tracing::path;
 use metrics::MetricsRegistry;
 use primitives::NodeStatusState;
+use primitives::unix_seconds;
 use prometheus_client::encoding::EncodeLabelSet;
 use prometheus_client::metrics::counter::Counter;
 use prometheus_client::metrics::family::Family;
@@ -390,8 +391,8 @@ impl NodeMonitorMetrics {
         self.latest_block.get_or_create(&labels).set(latest_block.unwrap_or_default());
         self.current_block.get_or_create(&labels).set(current_block.unwrap_or_default());
         self.latency_milliseconds.get_or_create(&labels).set(latency.as_millis().try_into().unwrap_or(u64::MAX));
-        if let Ok(timestamp) = SystemTime::now().duration_since(UNIX_EPOCH) {
-            self.last_check_timestamp_seconds.get_or_create(&labels).set(timestamp.as_secs());
+        if let Ok(timestamp) = unix_seconds() {
+            self.last_check_timestamp_seconds.get_or_create(&labels).set(timestamp);
         }
     }
 

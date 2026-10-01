@@ -96,12 +96,16 @@ pub struct Quote {
 #[serde(rename_all = "camelCase")]
 pub struct ExplorerTransaction {
     pub deposit_address: String,
+    #[serde(default)]
+    pub deposit_memo: Option<String>,
     pub status: String,
     pub origin_asset: String,
     pub destination_asset: String,
     pub amount_in: String,
     pub amount_out: String,
     pub origin_chain_tx_hashes: Vec<String>,
+    #[serde(default)]
+    pub app_fees: Vec<AppFee>,
 }
 
 #[derive(Debug, Clone, Serialize)]

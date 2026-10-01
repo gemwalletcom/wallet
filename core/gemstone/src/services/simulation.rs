@@ -60,8 +60,6 @@ impl GemSimulationService {
         Ok(simulation.prepend_warnings(validation_warnings))
     }
 
-    /// Fails open, the way the scanner does: a provider that cannot answer reaches the review as an
-    /// empty result rather than stopping a signature, and the validation warnings are unaffected.
     pub async fn simulate_send_transaction(&self, chain: Chain, transaction_type: WalletConnectTransactionType, data: String) -> Result<SimulationResult, GemstoneError> {
         let validation_warnings = simulation::send_transaction_validation_warnings(&transaction_type, &data);
 
@@ -167,7 +165,6 @@ impl GemSimulationService {
     }
 }
 
-/// Keeps the gas limit so out-of-gas failures surface, but omits fee prices - they make the trace charge gas and leak fee accounting into the signer's balance diff.
 fn map_transaction_object(transaction: &WCEthereumTransactionData) -> TransactionObject {
     TransactionObject {
         from: Some(transaction.from.clone()),

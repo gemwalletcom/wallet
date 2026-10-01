@@ -27,9 +27,9 @@ pub use store::GemAssetStore;
 
 use crate::api::{GemApiClient, GemApiError};
 use crate::gateway::GemGateway;
+use crate::services::clock::is_outdated;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
-use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetsService {
@@ -38,21 +38,13 @@ pub struct GemAssetsService {
     store: Arc<dyn GemAssetStore>,
     price: Arc<GemPriceService>,
     preferences: Arc<GemPreferencesService>,
-    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemAssetsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>, gateway: Arc<GemGateway>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>, session: Arc<GemWalletSessionService>) -> Self {
-        Self {
-            api,
-            gateway,
-            store,
-            price,
-            preferences,
-            session,
-        }
+    pub fn new(api: Arc<GemApiClient>, gateway: Arc<GemGateway>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>) -> Self {
+        Self { api, gateway, store, price, preferences }
     }
 
     pub async fn ensure_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
@@ -61,11 +53,6 @@ impl GemAssetsService {
         }
         self.sync_missing_assets(vec![asset_id.clone()]).await?;
         self.stored_asset(&asset_id).await?.ok_or_else(|| GemServiceError::NotFound { msg: format!("asset not found: {asset_id}") })
-    }
-
-    pub async fn open_asset(&self, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
-        let wallet = self.session.require_current_wallet().await?;
-        self.open_wallet_asset(wallet, asset_id).await
     }
 }
 
@@ -87,17 +74,15 @@ impl GemAssetsService {
         }
     }
 
-    pub async fn open_wallet_asset(&self, wallet: Wallet, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
-        if !rules::can_open(&wallet, &asset_id) {
+    pub async fn wallet_asset(&self, wallet: &Wallet, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
+        if !rules::can_open(wallet, &asset_id) {
             return Ok(None);
         }
-        let asset = match self.ensure_asset(asset_id.clone()).await {
-            Ok(asset) => asset,
-            Err(GemServiceError::NotFound { .. }) => return Ok(None),
-            Err(error) => return Err(error),
-        };
-        self.add_missing_balances(wallet.id, vec![asset_id]).await?;
-        Ok(Some(asset))
+        match self.ensure_asset(asset_id).await {
+            Ok(asset) => Ok(Some(asset)),
+            Err(GemServiceError::NotFound { .. }) => Ok(None),
+            Err(error) => Err(error),
+        }
     }
 
     async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
@@ -124,7 +109,7 @@ impl GemAssetsService {
     }
 
     pub async fn update_asset(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
-        if !rules::asset_outdated(self.preferences.get_asset_updated_at(&asset_id)?, Utc::now().timestamp(), rules::ASSET_UPDATE_INTERVAL_SECONDS) {
+        if !is_outdated(self.preferences.get_asset_updated_at(&asset_id), Utc::now().timestamp(), rules::ASSET_UPDATE_INTERVAL_SECONDS) {
             return Ok(());
         }
         let asset = self.sync_asset(asset_id.clone()).await?;
@@ -176,22 +161,8 @@ impl GemAssetsService {
         Ok(asset)
     }
 
-    pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        if asset_ids.is_empty() {
-            return Ok(());
-        }
-        let stored = self.store.get_asset_ids(asset_ids).await?;
-        if stored.is_empty() {
-            return Ok(());
-        }
-        self.store.add_missing_balances(wallet_id, stored).await
-    }
-
-    pub async fn add_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
-        if asset_ids.is_empty() {
-            return Ok(());
-        }
-        self.store.add_balances(wallet_id, asset_ids, enabled).await
+    pub async fn stored_asset_ids(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
+        self.store.get_asset_ids(asset_ids).await
     }
 
     pub async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {

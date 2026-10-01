@@ -6,10 +6,10 @@ use chrono::{TimeDelta, Utc};
 use gem_tracing::info_with_fields;
 use localizer::LanguageLocalizer;
 use number_formatter::NumberFormatter;
-use prices::{PriceAlertNotification, PriceAlertRules, PriceAlertTrigger};
-use primitives::{AssetId, Device, FiatRate, Price, PriceAlert, PriceAlertType, PriceAlerts, PriceData};
+use prices::{PriceAlertNotification, PriceAlertRules};
+use primitives::{AssetId, PriceAlert, PriceAlertType, PriceAlerts};
 use push_notification::{GorushNotification, PushNotification, PushNotificationAsset, PushNotificationTypes};
-use storage::{AssetsRepository, Database, DatabaseClient, FiatRepository, PriceAlertsRepository};
+use storage::{AssetsRepository, Database, FiatRepository, PriceAlertsRepository};
 
 #[derive(Clone)]
 pub struct PriceAlertClient {
@@ -50,29 +50,18 @@ impl PriceAlertClient {
                 let mut notifications = Vec::new();
                 let mut notified_ids = HashSet::new();
                 for (price_alert, price_data, device) in price_alerts {
-                    let Some(trigger) = rules.evaluate(&price_alert, &price_data, &rates) else {
+                    let Some(trigger) = rules.evaluate(&price_alert, &device, &price_data, &rates) else {
                         continue;
                     };
                     notified_ids.insert(price_alert.id());
-                    notifications.push(Self::notification(client, device, &price_data, price_alert, trigger, &rates)?);
+                    let asset = client.get_asset(&price_alert.asset_id)?;
+                    notifications.push(PriceAlertNotification::new(device, asset, price_alert, &price_data, trigger));
                 }
 
                 client.update_price_alerts_set_notified_at(notified_ids.into_iter().collect(), now.naive_utc())?;
                 Ok(notifications)
             })
             .await
-    }
-
-    fn notification(client: &mut DatabaseClient, device: Device, price_data: &PriceData, price_alert: PriceAlert, trigger: PriceAlertTrigger, rates: &[FiatRate]) -> Result<PriceAlertNotification, Box<dyn Error + Send + Sync>> {
-        PriceAlertNotification {
-            device,
-            asset: client.get_asset(&price_alert.asset_id)?,
-            price: Price::new(price_data.price, price_data.price_change_percentage_24h, price_data.last_updated_at, price_data.provider),
-            alert_type: trigger.alert_type,
-            price_alert,
-            milestone: trigger.milestone,
-        }
-        .with_rates(rates)
     }
 
     pub fn get_notifications_for_price_alerts(&self, notifications: Vec<PriceAlertNotification>) -> Vec<GorushNotification> {
@@ -84,8 +73,8 @@ impl PriceAlertClient {
                 continue;
             }
 
-            let Some(current_price) = formatter.currency(alert.price.price, alert.currency().as_ref()) else {
-                info_with_fields!("unknown_currency_symbol", currency = alert.currency().as_ref());
+            let Some(current_price) = formatter.currency(alert.price.price, alert.currency.as_ref()) else {
+                info_with_fields!("unknown_currency_symbol", currency = alert.currency.as_ref());
                 continue;
             };
 
@@ -95,7 +84,7 @@ impl PriceAlertClient {
 
             let message = match alert.alert_type {
                 PriceAlertType::PriceUp | PriceAlertType::PriceDown | PriceAlertType::PriceMilestone => {
-                    let Some(target_price) = alert.target_value().and_then(|value| formatter.currency(value, alert.currency().as_ref())) else {
+                    let Some(target_price) = alert.target.and_then(|value| formatter.currency(value, alert.currency.as_ref())) else {
                         continue;
                     };
                     localizer.price_alert_target(&asset_name, &target_price, &current_price, &change)

@@ -4,29 +4,30 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use gem_tracing::info_with_fields;
-use lapin::{BasicProperties, Channel, Confirmation, Connection, ConnectionProperties, ExchangeKind, options::*, types::FieldTable};
+use lapin::{BasicProperties, Channel, Confirmation, Connection, ConnectionProperties, ErrorKind, ExchangeKind, options::*, types::FieldTable};
+use primitives::unix_seconds;
 use tokio::sync::Mutex;
 
 use crate::{ExchangeName, QueueName, Retry, ShutdownReceiver, StreamConnection, with_retry};
 
 const ROUTING_KEY_EXCHANGE_SUFFIX: &str = "_exchange";
-const MAX_QUEUE_BYTES: i64 = 1_000_000_000;
 
 #[derive(Clone)]
 pub struct StreamProducerConfig {
-    pub url: String,
-    pub retry: Retry,
+    url: String,
+    retry: Retry,
+    maxbytes: i64,
 }
 
 impl StreamProducerConfig {
-    pub fn new(url: String, retry: Retry) -> Self {
-        Self { url, retry }
+    pub fn new(url: String, retry: Retry, maxbytes: i64) -> Self {
+        Self { url, retry, maxbytes }
     }
 }
 
-fn queue_args() -> FieldTable {
+fn queue_args(max_queue_bytes: i64) -> FieldTable {
     let mut args = FieldTable::default();
-    args.insert("x-max-length-bytes".into(), MAX_QUEUE_BYTES.into());
+    args.insert("x-max-length-bytes".into(), max_queue_bytes.into());
     args
 }
 
@@ -35,32 +36,35 @@ pub struct StreamProducer {
     url: String,
     connection_name: String,
     retry: Retry,
-    shutdown_rx: ShutdownReceiver,
+    max_queue_bytes: i64,
+    shutdown: ShutdownReceiver,
     channel: Arc<Mutex<Channel>>,
 }
 
 impl StreamProducer {
-    pub async fn new(config: &StreamProducerConfig, connection_name: &str, shutdown_rx: ShutdownReceiver) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let channel = with_retry(&config.retry, connection_name, &shutdown_rx, || Self::try_connect(&config.url, connection_name))
+    pub async fn new(config: &StreamProducerConfig, connection_name: &str, shutdown: ShutdownReceiver) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let channel = with_retry(&config.retry, connection_name, &shutdown, || Self::try_connect(&config.url, connection_name))
             .await?
             .ok_or("shutdown during connect")?;
         Ok(Self {
             url: config.url.clone(),
             connection_name: connection_name.to_string(),
             retry: config.retry.clone(),
-            shutdown_rx,
+            max_queue_bytes: config.maxbytes,
+            shutdown,
             channel: Arc::new(Mutex::new(channel)),
         })
     }
 
-    pub async fn from_connection(connection: &StreamConnection, shutdown_rx: ShutdownReceiver) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let channel = connection.create_channel().await?;
-        let retry = Retry::new(std::time::Duration::from_secs(1), std::time::Duration::from_secs(30));
+    pub async fn from_connection(connection: &StreamConnection, max_queue_bytes: i64, shutdown: ShutdownReceiver) -> Result<Self, Box<dyn Error + Send + Sync>> {
+        let channel = Self::configure_channel(connection.create_channel().await?).await?;
+        let retry = Retry::new(Duration::from_secs(1), Duration::from_secs(30));
         Ok(Self {
             url: connection.url().to_string(),
             connection_name: connection.name().to_string(),
             retry,
-            shutdown_rx,
+            max_queue_bytes,
+            shutdown,
             channel: Arc::new(Mutex::new(channel)),
         })
     }
@@ -68,7 +72,11 @@ impl StreamProducer {
     async fn try_connect(url: &str, name: &str) -> Result<Channel, Box<dyn Error + Send + Sync>> {
         let options = ConnectionProperties::default().with_connection_name(name.to_string().into());
         let connection = Connection::connect(url, options).await?;
-        let channel = connection.create_channel().await?;
+        Self::configure_channel(connection.create_channel().await?).await
+    }
+
+    async fn configure_channel(channel: Channel) -> Result<Channel, Box<dyn Error + Send + Sync>> {
+        channel.confirm_select(ConfirmSelectOptions::default()).await?;
         Ok(channel)
     }
 
@@ -78,7 +86,7 @@ impl StreamProducer {
             return Ok(channel.clone());
         }
 
-        *channel = with_retry(&self.retry, &self.connection_name, &self.shutdown_rx, || Self::try_connect(&self.url, &self.connection_name))
+        *channel = with_retry(&self.retry, &self.connection_name, &self.shutdown, || Self::try_connect(&self.url, &self.connection_name))
             .await?
             .ok_or("shutdown during reconnect")?;
         Ok(channel.clone())
@@ -101,7 +109,7 @@ impl StreamProducer {
         let mut attempt = 0;
 
         loop {
-            if *self.shutdown_rx.borrow() {
+            if *self.shutdown.borrow() {
                 return Err("shutdown during operation".into());
             }
 
@@ -118,10 +126,10 @@ impl StreamProducer {
                         error = error.to_string()
                     );
                     let _ = self.reconnect().await;
-                    let mut shutdown_rx = self.shutdown_rx.clone();
+                    let mut shutdown = self.shutdown.clone();
                     tokio::select! {
                         _ = tokio::time::sleep(delay) => {}
-                        _ = shutdown_rx.changed() => return Err("shutdown during operation".into()),
+                        _ = shutdown.changed() => return Err("shutdown during operation".into()),
                     }
                     delay = next_delay(delay, &self.retry);
                 }
@@ -129,14 +137,32 @@ impl StreamProducer {
         }
     }
 
-    // Queue methods
-
     pub async fn declare_queue(&self, name: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        if self.queue_exists(name).await? {
+            return Ok(());
+        }
+        self.reconnect().await?;
+        let max_queue_bytes = self.max_queue_bytes;
         self.run(|channel| async move {
-            channel.queue_declare(name.into(), QueueDeclareOptions { durable: true, ..Default::default() }, queue_args()).await?;
+            channel.queue_declare(name.into(), QueueDeclareOptions { durable: true, ..Default::default() }, queue_args(max_queue_bytes)).await?;
             Ok(())
         })
         .await
+    }
+
+    async fn queue_exists(&self, name: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        let channel = self.channel().await?;
+        match channel.queue_declare(name.into(), QueueDeclareOptions { passive: true, ..Default::default() }, FieldTable::default()).await {
+            Ok(_) => Ok(true),
+            Err(error) => {
+                if let ErrorKind::ProtocolError(protocol_error) = error.kind()
+                    && protocol_error.get_id() == 404
+                {
+                    return Ok(false);
+                }
+                Err(Box::new(error))
+            }
+        }
     }
 
     pub async fn declare_queues(&self, queues: Vec<QueueName>) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -145,8 +171,6 @@ impl StreamProducer {
         }
         Ok(())
     }
-
-    // Exchange methods
 
     pub async fn declare_exchange(&self, name: &str, kind: ExchangeKind) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.run(|channel| {
@@ -166,8 +190,6 @@ impl StreamProducer {
         Ok(())
     }
 
-    // Bind methods
-
     pub async fn bind_queue(&self, queue: &str, exchange: &str, routing_key: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.run(|channel| async move {
             channel.queue_bind(queue.into(), exchange.into(), routing_key.into(), QueueBindOptions::default(), FieldTable::default()).await?;
@@ -183,33 +205,31 @@ impl StreamProducer {
         self.bind_queue(&queue_name, &exchange_name, routing_key).await
     }
 
-    // Publish methods
-
     async fn publish_message<T>(&self, exchange: &str, routing_key: &str, message: &T) -> Result<bool, Box<dyn Error + Send + Sync>>
     where
         T: serde::Serialize,
     {
         let data = Arc::new(serde_json::to_vec(message)?);
-        self.run(|channel| {
-            let data = data.clone();
-            async move {
-                let confirm = channel
-                    .basic_publish(
-                        exchange.into(),
-                        routing_key.into(),
-                        BasicPublishOptions::default(),
-                        data.as_ref(),
-                        BasicProperties::default().with_delivery_mode(2).with_content_type("application/json".into()),
-                    )
-                    .await?;
+        let published_at = unix_seconds()?;
+        let confirmation = self
+            .run(|channel| {
+                let data = data.clone();
+                async move {
+                    let confirm = channel
+                        .basic_publish(
+                            exchange.into(),
+                            routing_key.into(),
+                            BasicPublishOptions { mandatory: true, ..Default::default() },
+                            data.as_ref(),
+                            BasicProperties::default().with_delivery_mode(2).with_content_type("application/json".into()).with_timestamp(published_at),
+                        )
+                        .await?;
 
-                match confirm.await? {
-                    Confirmation::NotRequested | Confirmation::Ack(_) => Ok(true),
-                    Confirmation::Nack(_) => Ok(false),
+                    Ok(confirm.await?)
                 }
-            }
-        })
-        .await
+            })
+            .await?;
+        confirmed_publish(confirmation)
     }
 
     pub async fn publish<T>(&self, queue: QueueName, message: &T) -> Result<bool, Box<dyn Error + Send + Sync>>
@@ -250,4 +270,29 @@ impl StreamProducer {
 
 fn next_delay(delay: Duration, retry: &Retry) -> Duration {
     (delay * 2).min(retry.timeout)
+}
+
+fn confirmed_publish(confirmation: Confirmation) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    match confirmation {
+        Confirmation::Ack(None) => Ok(true),
+        Confirmation::Ack(Some(message)) | Confirmation::Nack(Some(message)) => Err(format!(
+            "rabbitmq rejected publish: {} {} (exchange={}, routing_key={})",
+            message.reply_code, message.reply_text, message.delivery.exchange, message.delivery.routing_key
+        )
+        .into()),
+        Confirmation::Nack(None) => Err("rabbitmq negatively acknowledged publish".into()),
+        Confirmation::NotRequested => Err("rabbitmq publisher confirms are not enabled".into()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn confirmed_publish_requires_broker_ack() {
+        assert!(confirmed_publish(Confirmation::Ack(None)).is_ok());
+        assert!(confirmed_publish(Confirmation::Nack(None)).is_err());
+        assert!(confirmed_publish(Confirmation::NotRequested).is_err());
+    }
 }

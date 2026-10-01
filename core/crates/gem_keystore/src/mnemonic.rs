@@ -4,10 +4,13 @@ use zeroize::Zeroizing;
 
 use crate::KeystoreError;
 
+pub type MnemonicSeed = [u8; 64];
+
 pub struct Mnemonic;
 
 impl Mnemonic {
     pub const MIN_ENTROPY_LEN: usize = 16;
+    pub const MAX_ENTROPY_LEN: usize = 32;
 
     pub fn generate(word_count: usize) -> Result<Zeroizing<Vec<String>>, KeystoreError> {
         let entropy_len = entropy_len_for_word_count(word_count)?;
@@ -36,10 +39,14 @@ impl Mnemonic {
         phrase.split_whitespace().filter(|word| !Self::is_valid_word(word)).map(ToString::to_string).collect()
     }
 
-    pub fn seed(phrase: &str) -> Result<Zeroizing<[u8; 64]>, KeystoreError> {
+    pub fn seed(phrase: &str) -> Result<Zeroizing<MnemonicSeed>, KeystoreError> {
         let cleaned = Self::clean(phrase)?;
         let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &cleaned).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
         Ok(Zeroizing::new(mnemonic.to_seed_normalized("")))
+    }
+
+    pub fn is_valid_entropy_len(len: usize) -> bool {
+        (Self::MIN_ENTROPY_LEN..=Self::MAX_ENTROPY_LEN).contains(&len) && len.is_multiple_of(4)
     }
 
     pub fn entropy(phrase: &str) -> Result<Zeroizing<Vec<u8>>, KeystoreError> {
@@ -68,7 +75,7 @@ fn entropy_len_for_word_count(word_count: usize) -> Result<usize, KeystoreError>
         15 => Ok(20),
         18 => Ok(24),
         21 => Ok(28),
-        24 => Ok(32),
+        24 => Ok(Mnemonic::MAX_ENTROPY_LEN),
         _ => Err(KeystoreError::invalid_input("mnemonic")),
     }
 }
@@ -92,8 +99,15 @@ mod tests {
     #[test]
     fn test_entropy_len_for_word_count() {
         assert_eq!(entropy_len_for_word_count(12).unwrap(), Mnemonic::MIN_ENTROPY_LEN);
-        assert_eq!(entropy_len_for_word_count(24).unwrap(), 32);
+        assert_eq!(entropy_len_for_word_count(24).unwrap(), Mnemonic::MAX_ENTROPY_LEN);
         assert_eq!(entropy_len_for_word_count(13).unwrap_err(), KeystoreError::invalid_input("mnemonic"));
+
+        for len in [16, 20, 24, 28, 32] {
+            assert!(Mnemonic::is_valid_entropy_len(len));
+        }
+        for len in [0, 15, 17, 33] {
+            assert!(!Mnemonic::is_valid_entropy_len(len));
+        }
     }
 
     #[test]

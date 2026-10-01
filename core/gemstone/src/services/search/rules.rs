@@ -1,7 +1,7 @@
 use crate::services::chain::rules::chain_matches_query;
 
 use primitives::perpetual::{PerpetualData, PerpetualMetadata, PerpetualSearchData};
-use primitives::{Asset, AssetBasic, AssetId, AssetPrice, Chain, Wallet, WalletType};
+use primitives::{Asset, AssetBasic, AssetId, AssetPrice, Chain, PerpetualId, Wallet, WalletType};
 
 use super::model::GemSearchScope;
 
@@ -39,6 +39,13 @@ impl GemSearchScope {
         }
     }
 
+    pub(crate) fn includes_perpetuals(&self) -> bool {
+        match self {
+            Self::All => false,
+            Self::List { .. } => true,
+        }
+    }
+
     pub(super) fn api_tags(&self) -> Vec<String> {
         match self {
             Self::All => Vec::new(),
@@ -70,8 +77,8 @@ pub fn perpetual_data(perpetuals: &[PerpetualSearchData]) -> Vec<PerpetualData> 
         .collect()
 }
 
-pub fn perpetual_ids(perpetuals: &[PerpetualSearchData]) -> Vec<String> {
-    perpetuals.iter().map(|item| item.perpetual.id.to_string()).collect()
+pub fn perpetual_ids(perpetuals: &[PerpetualSearchData]) -> Vec<PerpetualId> {
+    perpetuals.iter().map(|item| item.perpetual.id.clone()).collect()
 }
 
 pub fn wallet_chains(wallet: &Wallet) -> Vec<Chain> {
@@ -132,6 +139,12 @@ mod tests {
     fn test_only_the_all_scope_stores_lists() {
         assert!(GemSearchScope::All.stores_lists());
         assert!(!GemSearchScope::List { id: "trending".to_string() }.stores_lists());
+    }
+
+    #[test]
+    fn test_only_a_list_includes_perpetuals_in_its_results() {
+        assert!(GemSearchScope::List { id: "trending".to_string() }.includes_perpetuals());
+        assert!(!GemSearchScope::All.includes_perpetuals(), "the full results of a typed search are assets; its perpetuals open their own screen");
     }
 
     #[test]

@@ -21,7 +21,7 @@ public struct SupportChatStore: Sendable {
 
     public func failPending(exceptIds: [String]) throws {
         try db.write { db in
-            try SupportMessageRecord
+            _ = try SupportMessageRecord
                 .filter(SupportMessageRecord.Columns.status == SupportMessageStatus.sending.rawValue)
                 .filter(!exceptIds.contains(SupportMessageRecord.Columns.id))
                 .updateAll(db, SupportMessageRecord.Columns.status.set(to: SupportMessageStatus.failed.rawValue))

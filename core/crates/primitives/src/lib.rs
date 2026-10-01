@@ -1,5 +1,3 @@
-// lib.rs
-
 mod access_token_cacher;
 pub use self::access_token_cacher::{AccessTokenCacher, AccessTokenFuture};
 
@@ -182,7 +180,8 @@ pub mod hex;
 pub use self::hex::{HexError, decode_hex, decode_hex_array};
 pub mod transaction_metadata_types;
 pub use self::transaction_metadata_types::{
-    TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata, TransactionWalletConnectMetadata,
+    TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata, TransactionSwapReferralFee,
+    TransactionWalletConnectMetadata,
 };
 pub mod wallet_connect_namespace;
 pub use self::wallet_connect_namespace::{WalletConnectCAIP2, WalletConnectCAIP19};
@@ -279,7 +278,7 @@ pub mod graphql;
 pub mod perpetual;
 pub use self::perpetual::{
     AccountDataType, CancelOrderData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData,
-    PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualReduceData, PerpetualSearchData, PerpetualType, TPSLOrderData,
+    PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualPrice, PerpetualReduceData, PerpetualSearchData, PerpetualType, TPSLOrderData,
 };
 pub mod search;
 pub use self::search::{AssetList, SearchResponse};

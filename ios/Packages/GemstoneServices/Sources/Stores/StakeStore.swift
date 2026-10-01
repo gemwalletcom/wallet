@@ -19,8 +19,8 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
 
     public func getApr(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> Double? {
         switch providerType.toPrimitives() {
-        case .stake: return try store.getStakeApr(assetId: assetId)
-        case .earn: return try store.getEarnApr(assetId: assetId)
+        case .stake: try store.getStakeApr(assetId: assetId)
+        case .earn: try store.getEarnApr(assetId: assetId)
         }
     }
 

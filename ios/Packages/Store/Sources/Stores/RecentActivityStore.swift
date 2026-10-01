@@ -23,6 +23,11 @@ public struct RecentActivityStore: Sendable {
         createdAt: Date = .now,
     ) throws {
         try db.write { db in
+            try RecentActivityRecord
+                .filter(RecentActivityRecord.Columns.assetId == assetId.identifier)
+                .filter(RecentActivityRecord.Columns.walletId == walletId.id)
+                .filter(RecentActivityRecord.Columns.type == type.rawValue)
+                .deleteAll(db)
             try RecentActivityRecord(
                 assetId: assetId,
                 toAssetId: toAssetId,

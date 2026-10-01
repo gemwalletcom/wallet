@@ -10,6 +10,7 @@ import uniffi.gemstone.GemCodeOutcome
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
+import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,6 +29,10 @@ internal sealed interface PendingNavigation {
         override val code: String? = null
     }
 
+    data class FromAction(val action: UrlAction) : Input {
+        override val code: String? = null
+    }
+
     data class Routes(val routes: List<NavKey>, val tab: GemNavigationTab? = null) : PendingNavigation
 
     data class Loading(val input: Input) : PendingNavigation
@@ -40,6 +45,7 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
     internal val pendingNavigation: StateFlow<PendingNavigation?> = _pendingNavigation.asStateFlow()
 
     fun pendIntent(intent: Intent) {
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
         val code = intent.dataString ?: return
         _pendingNavigation.update { PendingNavigation.FromLink(code) }
     }
@@ -52,19 +58,30 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
         _pendingNavigation.update { PendingNavigation.FromScan(code) }
     }
 
+    fun pendAction(action: UrlAction) {
+        _pendingNavigation.update { PendingNavigation.FromAction(action) }
+    }
+
     fun clear() {
         _pendingNavigation.update { null }
     }
 
     suspend fun buildRoutes(walletConnect: WalletConnectHandler): GemErrorText? {
         val pending = _pendingNavigation.value as? PendingNavigation.Input ?: return null
-        val code = pending.code
-        if (code == null) {
-            val destination = (pending as? PendingNavigation.FromNotification)?.let { notificationNavigation.prepareNavigation(it.type, it.data) }
-            replace(pending, destination?.takeIf { it.routes.isNotEmpty() })
-            return null
+        val outcome = when (pending) {
+            is PendingNavigation.FromNotification -> {
+                val destination = notificationNavigation.prepareNavigation(pending.type, pending.data)
+                replace(pending, destination?.takeIf { it.routes.isNotEmpty() })
+                return null
+            }
+
+            is PendingNavigation.FromAction -> navigationService.openAction(pending.action)
+
+            is PendingNavigation.FromLink -> navigationService.openCode(pending.code)
+
+            is PendingNavigation.FromScan -> navigationService.openCode(pending.code)
         }
-        return when (val outcome = navigationService.openCode(code)) {
+        return when (outcome) {
             is GemCodeOutcome.Open -> {
                 replace(pending, outcome.target.destination().takeIf { it.routes.isNotEmpty() })
                 null

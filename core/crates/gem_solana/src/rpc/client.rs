@@ -84,7 +84,7 @@ impl<C: Client + Clone> SolanaClient<C> {
                 let data = account.data.first().ok_or_else(|| -> Box<dyn Error + Send + Sync> { "Missing Solana account data".into() })?;
                 let bytes = decode_base64(data)?;
                 let address = Pubkey::from_str(&addresses[index])?;
-                AddressLookupTableAccount::from_account_data(address, &bytes).map_err(|err| -> Box<dyn Error + Send + Sync> { format!("Invalid Solana address lookup table: {err}").into() })
+                AddressLookupTableAccount::from_account_data(address, &bytes).map_err(|error| -> Box<dyn Error + Send + Sync> { format!("Invalid Solana address lookup table: {error}").into() })
             })
             .collect()
     }
@@ -134,7 +134,7 @@ impl<C: Client + Clone> SolanaClient<C> {
 
     pub async fn get_metaplex_metadata(&self, token_mint: &str) -> Result<Metadata, Box<dyn Error + Send + Sync>> {
         let pubkey = Pubkey::from_str(token_mint)?;
-        let metadata_key = Metadata::find_pda(pubkey).ok_or::<Box<dyn Error + Send + Sync>>("metadata program account not found".into())?.0.to_string();
+        let metadata_key = Metadata::find_pda(pubkey).ok_or("metadata program account not found")?.0.to_string();
         let value = self.get_account_info_base64(&metadata_key).await?.value.ok_or("Failed to get metadata")?;
         let data = value.data.first().ok_or("Missing metadata account data")?;
         decode_metadata(data).map_err(|_| "Failed to decode metadata".into())

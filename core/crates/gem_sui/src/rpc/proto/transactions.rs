@@ -7,14 +7,6 @@ use super::json::decode_json_value;
 use super::{Bcs, FieldMask, Owner, Status, Timestamp, Transaction, UserSignature};
 use gem_encoding::protobuf::{proto_decode, proto_encode};
 
-// Field numbers mirror sui-rpc v0.3.1 transaction response schemas:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/ledger_service.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/transaction_execution_service.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/executed_transaction.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/effects.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/event.proto
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/balance_change.proto
-
 #[derive(Clone, Debug, Default)]
 pub struct GetTransactionRequest {
     pub digest: Option<String>,

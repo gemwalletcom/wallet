@@ -11,26 +11,20 @@ public struct NodeStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func addNodes(chainNodes: [ChainNodes]) throws {
-        try db.write { (db: Database) in
-            for chainNode in chainNodes {
-                for node in chainNode.nodes {
-                    if let chain = Chain(rawValue: chainNode.chain) {
-                        try node
-                            .mapToRecord(chain: chain)
-                            .upsert(db)
-                    }
-                }
-            }
+    public func addNode(chain: Chain, node: Node) throws {
+        try db.write { db in
+            try node
+                .mapToRecord(chain: chain)
+                .upsert(db)
         }
     }
 
-    public func nodes(chain: Chain) throws -> [ChainNode] {
+    public func nodes(chain: Chain) throws -> [Node] {
         try db.read { db in
             try NodeRecord
                 .filter(NodeRecord.Columns.chain == chain.rawValue)
                 .fetchAll(db)
-                .map { $0.mapToChainNode() }
+                .map { $0.mapToNode() }
         }
     }
 

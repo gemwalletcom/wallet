@@ -15,6 +15,10 @@ pub fn should_ask_notifications(declined: bool, last_asked_at: u64, now: u64) ->
     !declined && now.saturating_sub(last_asked_at) >= ASK_NOTIFICATIONS_COOLDOWN_SECONDS
 }
 
+pub fn should_offer_authentication(is_available: bool, is_enabled: bool, is_offered: bool) -> bool {
+    is_available && !is_enabled && !is_offered
+}
+
 pub fn default_currency(locale_currency: Option<String>) -> Currency {
     locale_currency.and_then(|code| Currency::from_str(&code).ok()).unwrap_or(Currency::USD)
 }
@@ -115,6 +119,14 @@ mod tests {
         assert_eq!(notification_prompt(false, true), GemNotificationPrompt::OpenSettings, "the system shows its prompt once");
         assert_eq!(notification_prompt(true, false), GemNotificationPrompt::Enable);
         assert_eq!(notification_prompt(true, true), GemNotificationPrompt::Enable);
+    }
+
+    #[test]
+    fn test_should_offer_authentication() {
+        assert!(should_offer_authentication(true, false, false));
+        assert!(!should_offer_authentication(false, false, false), "a device without biometrics or passcode has nothing to enable");
+        assert!(!should_offer_authentication(true, true, false), "authentication is already on");
+        assert!(!should_offer_authentication(true, false, true), "the offer shows once");
     }
 
     #[test]

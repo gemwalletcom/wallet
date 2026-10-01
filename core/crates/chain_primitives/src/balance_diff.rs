@@ -1,5 +1,5 @@
 use num_bigint::{BigInt, BigUint};
-use primitives::{AssetId, TransactionSwapMetadata};
+use primitives::{AssetId, SwapProvider, TransactionSwapMetadata};
 
 #[derive(Debug)]
 pub struct BalanceDiff {
@@ -10,8 +10,7 @@ pub struct BalanceDiff {
 pub struct SwapMapper;
 
 impl SwapMapper {
-    /// Maps a set of balance changes to swap metadata if they represent a swap transaction
-    pub fn map_swap(balance_diffs: &[BalanceDiff], fee: &BigUint, native_asset_id: &AssetId, provider: Option<String>) -> Option<TransactionSwapMetadata> {
+    pub fn map_swap(balance_diffs: &[BalanceDiff], fee: &BigUint, native_asset_id: &AssetId, provider: Option<SwapProvider>) -> Option<TransactionSwapMetadata> {
         let non_zero_diffs: Vec<&BalanceDiff> = balance_diffs.iter().filter(|diff| diff.diff != BigInt::from(0)).collect();
 
         if non_zero_diffs.len() != 2 {
@@ -21,7 +20,6 @@ impl SwapMapper {
         let first = non_zero_diffs.first()?;
         let second = non_zero_diffs.last()?;
 
-        // One should be positive (received), one negative (sent)
         if (first.diff > BigInt::from(0)) == (second.diff > BigInt::from(0)) {
             return None;
         }
@@ -31,22 +29,19 @@ impl SwapMapper {
         let from_value = Self::calculate_actual_value(&sent_diff.diff, &sent_diff.asset_id, fee, native_asset_id);
         let to_value = Self::calculate_actual_value(&received_diff.diff, &received_diff.asset_id, fee, native_asset_id);
 
-        // Ignore Mint txs
         if from_value == BigUint::from(0u8) {
             return None;
         }
 
-        Some(TransactionSwapMetadata {
-            from_asset: sent_diff.asset_id.clone(),
+        Some(TransactionSwapMetadata::from_provider_id(
+            sent_diff.asset_id.clone(),
             from_value,
-            to_asset: received_diff.asset_id.clone(),
+            received_diff.asset_id.clone(),
             to_value,
-            provider,
-        })
+            provider.map(|provider| provider.id().to_string()),
+        ))
     }
 
-    /// Calculates the actual value of a balance change, accounting for transaction fees
-    /// For native tokens, we need to subtract the fee from the amount since the balance change includes both the swap amount and the fee payment.
     fn calculate_actual_value(amount: &BigInt, asset_id: &AssetId, fee: &BigUint, native_asset_id: &AssetId) -> BigUint {
         let magnitude = amount.magnitude();
         if asset_id == native_asset_id && magnitude >= fee { magnitude - fee } else { magnitude.clone() }
@@ -75,13 +70,13 @@ mod tests {
             },
         ];
 
-        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some("Uniswap".to_string())).unwrap();
+        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some(SwapProvider::UniswapV3)).unwrap();
 
         assert_eq!(swap.from_asset, native_asset);
         assert_eq!(swap.from_value, BigUint::from(4000u64));
         assert_eq!(swap.to_asset, token_asset);
         assert_eq!(swap.to_value, BigUint::from(100u64));
-        assert_eq!(swap.provider, Some("Uniswap".to_string()));
+        assert_eq!(swap.provider, Some(SwapProvider::UniswapV3.id().to_string()));
     }
 
     #[test]
@@ -102,7 +97,7 @@ mod tests {
             },
         ];
 
-        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some("Uniswap".to_string())).unwrap();
+        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some(SwapProvider::UniswapV3)).unwrap();
 
         assert_eq!(swap.from_asset, token_a);
         assert_eq!(swap.from_value, BigUint::from(200u64));
@@ -127,7 +122,7 @@ mod tests {
             },
         ];
 
-        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some("Uniswap".to_string()));
+        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some(SwapProvider::UniswapV3));
 
         assert!(swap.is_none());
     }
@@ -142,7 +137,7 @@ mod tests {
             diff: BigInt::from(-5000),
         }];
 
-        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some("Uniswap".to_string()));
+        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some(SwapProvider::UniswapV3));
 
         assert!(swap.is_none());
     }
@@ -168,7 +163,7 @@ mod tests {
             },
         ];
 
-        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some("Uniswap".to_string())).unwrap();
+        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some(SwapProvider::UniswapV3)).unwrap();
 
         assert_eq!(swap.from_asset, native_asset);
         assert_eq!(swap.to_asset, token_asset);

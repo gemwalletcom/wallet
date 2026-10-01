@@ -34,6 +34,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemWalletSessionServiceInterface
+import uniffi.gemstone.UrlAction
 import javax.inject.Inject
 
 @HiltViewModel
@@ -51,6 +52,10 @@ class AppViewModel @Inject constructor(
 
     fun openPayment(payload: String) {
         pendingNavigationCoordinator.pendScan(payload)
+    }
+
+    fun openAction(action: UrlAction) {
+        pendingNavigationCoordinator.pendAction(action)
     }
 
     private val state = MutableStateFlow(AppState())
@@ -123,6 +128,17 @@ class AppViewModel @Inject constructor(
     fun acceptTerms() {
         viewModelScope.launch(ioDispatcher) {
             userConfig.acceptTerms()
+        }
+    }
+
+    fun shouldOfferAuthentication(isAvailable: Boolean): Boolean = userConfig.shouldOfferAuthentication(isAvailable)
+
+    fun onAuthenticationOffered(enabled: Boolean) {
+        viewModelScope.launch(ioDispatcher) {
+            if (enabled) {
+                userConfig.setAuthRequired(true)
+            }
+            userConfig.setAuthenticationOffered()
         }
     }
 

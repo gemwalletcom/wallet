@@ -1,8 +1,7 @@
-use primitives::OptionStringExt;
 use std::collections::HashMap;
 
 use chain_primitives::format_token_id;
-use primitives::{AssetId, chain::Chain};
+use primitives::{AssetId, OptionStringExt, chain::Chain};
 
 const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Ethereum, "ethereum"),
@@ -52,7 +51,6 @@ pub fn get_chains_for_coingecko_market_id(id: &str) -> Vec<Chain> {
     Chain::all().into_iter().filter(|chain| get_coingecko_market_id_for_chain(*chain) == Some(id)).collect()
 }
 
-// Full list https://api.coingecko.com/api/v3/asset_platforms
 pub fn get_chain_for_coingecko_platform_id(id: &str) -> Option<Chain> {
     COINGECKO_CHAIN_PLATFORMS.iter().find_map(|(chain, platform_id)| (*platform_id == id).then_some(*chain))
 }
@@ -116,7 +114,7 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> Option<&'static str> {
         Chain::Monad => "monad",
         Chain::Plasma => "plasma",
         Chain::XLayer => "okb",
-        Chain::Stable => "tether", // USDT0 is the native gas token
+        Chain::Stable => "tether",
         Chain::Tempo => return None,
         Chain::Arc => "usd-coin",
     };

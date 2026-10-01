@@ -18,6 +18,13 @@ extension XCUIApplication {
         buttons["Continue"].firstMatch.tap()
     }
 
+    func skipEnableAuthentication() {
+        let skip = buttons["Skip"].firstMatch
+        if skip.waitForExistence(timeout: 2) {
+            skip.tap()
+        }
+    }
+
     func tapBack() {
         navigationBars.buttons.element(boundBy: 0).tap()
     }
@@ -37,11 +44,8 @@ extension XCUIApplication {
             buttons["Wallet"].firstMatch.tap()
             tapWalletBar()
             while buttons["gearshape"].waitForExistence(timeout: 2) {
-                // WalletsScene
                 buttons["gearshape"].firstMatch.tap()
-                // WalletDetailScene
                 buttons["Delete"].firstMatch.tap()
-                // Delete confirmation alert
                 alerts.buttons["Delete"].tap()
             }
         }

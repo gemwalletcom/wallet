@@ -18,7 +18,7 @@ struct TransactionHeaderView: View {
         self.action = action
     }
 
-    public var body: some View {
+    var body: some View {
         VStack(alignment: .center) {
             switch header {
             case let .amount(header):

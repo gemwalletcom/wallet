@@ -187,7 +187,7 @@ mod tests {
         let provider = OkxProvider::mock(mock_client(error, error), "{}");
 
         let result = provider.get_quote(&mock_solana_request()).await;
-        assert!(matches!(result, Err(SwapperError::ComputeQuoteError(msg)) if msg == "Request frequency too high"));
+        assert_eq!(result.unwrap_err(), SwapperError::ComputeQuoteError("Request frequency too high".to_string()));
     }
 
     #[tokio::test]
@@ -218,7 +218,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_quote_data_wires_approval_for_evm_and_tron() {
-        // EVM: spender falls back to the tx target, zero allowance triggers approval, gas gets the 50% buffer.
         let client = MockClient::new().with_post(move |path, body| match path {
             PROXY_QUOTE_PATH => Ok(include_str!("testdata/quote_eth_usdc_to_eth.json").as_bytes().to_vec()),
             PROXY_SWAP_PATH => {
@@ -246,7 +245,6 @@ mod tests {
         assert_eq!(approval.value, BigUint::from(1000000u64));
         assert_eq!(quote_data.gas_limit.as_deref(), Some("300000"));
 
-        // Tron: 0x is stripped, approval targets the fixed approve contract, energy kept unbuffered.
         let client = MockClient::new().with_post(|path, body| {
             let params: serde_json::Value = serde_json::from_slice(body).unwrap();
             assert_eq!(params["feePercent"], "1.5");
@@ -301,7 +299,6 @@ mod swap_integration_tests {
             request.wallet_address = wallet_address.to_string();
             request.value = value.parse().unwrap();
 
-            // OKX rate limits to ~1 request per second.
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             let quote = provider.get_quote(&request).await?;
             assert!(quote.to_value > BigUint::ZERO);

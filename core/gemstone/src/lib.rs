@@ -40,7 +40,6 @@ use alien::AlienError;
 
 uniffi::setup_scaffolding!("gemstone");
 
-/// GemstoneError
 #[derive(Debug, PartialEq, Eq, uniffi::Error)]
 pub enum GemstoneError {
     AnyError { msg: String },

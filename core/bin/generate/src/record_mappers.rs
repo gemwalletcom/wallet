@@ -10,12 +10,10 @@ use primitives::Platform;
 
 const SWIFT_SOURCES: &str = "Store/Sources";
 const SWIFT_PATH: &str = "Store/Sources/Generated/RecordMappers.swift";
-/// The store module's sources, from the Android models directory the generator is given.
 const KOTLIN_SOURCES: &str = "../../../../../../../data/services/store/src/main/kotlin";
 const KOTLIN_PATH: &str = "com/gemwallet/android/data/services/store/generated/EntityMappers.kt";
 const KOTLIN_PACKAGE: &str = "com.gemwallet.android.data.services.store.database.entities";
 
-/// The `records:` section of `remote_types.yml`.
 #[derive(Deserialize)]
 struct Config {
     #[serde(default)]
@@ -24,9 +22,6 @@ struct Config {
     record_aliases: BTreeMap<String, BTreeMap<String, String>>,
 }
 
-/// A `records:` entry, keyed by the model: the record each app stores it in, the record fields
-/// the caller passes because the model does not carry them (a parent key), and whether the record
-/// is only written from the model because its rows are read back through a join.
 #[derive(Deserialize)]
 struct Spec {
     #[serde(default)]
@@ -37,21 +32,16 @@ struct Spec {
     android: AppSpec,
 }
 
-/// One app's record for a model: its name, or its name with the fields that do not copy by name.
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum AppSpec {
     Named(String),
     Detailed {
         record: String,
-        /// Record field → the model path it stores, for a renamed or flattened field.
         #[serde(default)]
         fields: BTreeMap<String, String>,
-        /// Model path → the prefix its fields carry as record fields: `metadata: app` stores
-        /// `metadata.name` as `appName`, and an empty prefix stores it as `name`.
         #[serde(default)]
         flatten: BTreeMap<String, String>,
-        /// Model path → the value the model takes where the record stores none, or stores it optional.
         #[serde(default)]
         defaults: BTreeMap<String, String>,
     },
@@ -96,7 +86,6 @@ impl Config {
     }
 }
 
-/// A stored field of a record declaration, in declaration order.
 struct Declared {
     name: String,
     type_name: String,
@@ -184,8 +173,6 @@ impl Language {
     }
 }
 
-/// The record mappers of one app: the models `records:` names, the record declarations the app
-/// writes by hand, and the model declarations they copy.
 pub struct Generator {
     config: Config,
     models: BTreeMap<String, AppRecord>,
@@ -261,7 +248,6 @@ impl Generator {
     }
 }
 
-/// One model ↔ record pair in one app language.
 struct Mapping<'a> {
     language: Language,
     model: &'a str,
@@ -309,8 +295,6 @@ impl Mapping<'_> {
         format!("{writer}{reader}")
     }
 
-    /// The model path a record field stores: a renamed or flattened one from the spec, else the
-    /// model field of the same name.
     fn bound_path(&self, field: &Declared) -> Option<String> {
         if self.spec.keys.contains(&field.name) {
             return None;
@@ -336,7 +320,6 @@ impl Mapping<'_> {
         self.generator.model(model).fields.iter().any(|field| field.name == name)
     }
 
-    /// The model a model path holds.
     fn held_at(&self, path: &str) -> String {
         path.split('.').fold(self.model.to_string(), |holder, segment| {
             let field = self.generator.model(&holder).fields.iter().find(|field| field.name == segment);
@@ -368,7 +351,6 @@ impl Mapping<'_> {
             .collect()
     }
 
-    /// The expression that reads a model path, and its type, optional when a step on the way is.
     fn model_value(&self, path: &str) -> (String, String) {
         let mut holder = self.model.to_string();
         let mut value = String::new();
@@ -414,7 +396,6 @@ impl Mapping<'_> {
         format!("{aliased}{optional}")
     }
 
-    /// A model value as the record field stores it.
     fn stored(&self, value: &str, model_type: &str, field: &Declared, path: &str) -> String {
         let (from, to) = (self.normalized(model_type), self.normalized(&field.type_name));
         if from == to || to == format!("{from}?") {
@@ -424,7 +405,6 @@ impl Mapping<'_> {
             .unwrap_or_else(|| panic!("{}: {path} is {from} and {}.{} stores {to}; no rule converts one to the other", self.model, self.record, field.name))
     }
 
-    /// A record field as the model field reads it.
     fn read(&self, field: &Declared, model_type: &str, path: &str, unwrapped: bool) -> String {
         let (from, to) = (self.normalized(&field.type_name), self.normalized(model_type));
         let value = self.language.reference(&field.name);
@@ -446,14 +426,12 @@ impl Mapping<'_> {
             .unwrap_or_else(|| panic!("{}: {}.{} stores {from} and {path} is {to}; no rule converts one to the other", self.model, self.record, field.name))
     }
 
-    /// An integer converted to another integer type, where the target keeps any optionality.
     fn integer_cast(&self, value: &str, from: &str, to: &str) -> Option<String> {
         let (from_base, to_base) = (from.trim_end_matches('?'), to.trim_end_matches('?'));
         let optional = from.ends_with('?');
         (self.language.is_integer(from_base) && self.language.is_integer(to_base) && (to.ends_with('?') || !optional)).then(|| self.language.cast(value, to_base, optional))
     }
 
-    /// The model built from the record fields bound to paths under `prefix`.
     fn construct(&self, name: &str, prefix: &str, unwrapped: bool) -> String {
         let model = self.generator.model(name);
         let arguments = model
@@ -522,7 +500,6 @@ fn braces(line: &str) -> isize {
     line.matches('{').count() as isize - line.matches('}').count() as isize
 }
 
-/// Every Swift struct's stored properties, in declaration order, by struct name.
 fn swift_records(directory: &Path) -> BTreeMap<String, Vec<Declared>> {
     let mut records = BTreeMap::new();
     for path in source_files(directory, "swift") {
@@ -579,7 +556,6 @@ fn swift_property(line: &str) -> Option<Declared> {
     })
 }
 
-/// Every Kotlin data class's constructor properties, in declaration order, by class name.
 fn kotlin_records(directory: &Path) -> BTreeMap<String, Vec<Declared>> {
     let mut records = BTreeMap::new();
     for path in source_files(directory, "kt") {
@@ -595,7 +571,6 @@ fn kotlin_records(directory: &Path) -> BTreeMap<String, Vec<Declared>> {
     records
 }
 
-/// The text up to the parenthesis that closes one already open.
 fn balanced(text: &str) -> &str {
     let mut depth = 1usize;
     for (index, character) in text.char_indices() {

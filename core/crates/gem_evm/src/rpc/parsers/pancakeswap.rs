@@ -10,7 +10,7 @@ use crate::{
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, universal_router::decode_execute_swap};
+use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_from_transfers, universal_router::decode_execute_swap};
 
 pub struct PancakeSwapParser;
 
@@ -24,19 +24,18 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for PancakeSwapP
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        let metadata = Self::try_map_transfer_swap(context).or_else(|| Self::try_map_command_swap(context))?;
+        let metadata = match Self::try_map_transfer_swap(context) {
+            Some(metadata) => metadata.with_referral_fee(referral_fee_from_transfers(*context.metadata.chain, context.metadata.receipt)),
+            None => Self::try_map_command_swap(context)?,
+        };
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }
 
 impl PancakeSwapParser {
-    fn provider() -> String {
-        SwapProvider::PancakeswapV3.id().to_string()
-    }
-
     fn try_map_command_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
-        decode_execute_swap(context.metadata.chain, UniversalRouterAbi::V2, &Self::provider(), &context.transaction.from, &input_bytes, context.metadata.receipt)
+        decode_execute_swap(context.metadata.chain, UniversalRouterAbi::V2, SwapProvider::PancakeswapV3, &context.transaction.from, &input_bytes, context.metadata.receipt)
     }
 
     fn try_map_transfer_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
@@ -48,20 +47,20 @@ impl PancakeSwapParser {
         let has_native_value = context.transaction.value > BigUint::from(0u8);
 
         match (has_native_value, outgoing.as_slice(), incoming.as_slice()) {
-            (_, [(out_token, out_value)], [(in_token, in_value)]) if out_token != in_token => Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_token(*context.metadata.chain, out_token),
-                from_value: (-(*out_value).clone()).magnitude().clone(),
-                to_asset: AssetId::from_token(*context.metadata.chain, in_token),
-                to_value: (*in_value).magnitude().clone(),
-                provider: Some(Self::provider()),
-            }),
-            (true, [], [(in_token, in_value)]) => Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_chain(*context.metadata.chain),
-                from_value: context.transaction.value.clone(),
-                to_asset: AssetId::from_token(*context.metadata.chain, in_token),
-                to_value: (*in_value).magnitude().clone(),
-                provider: Some(Self::provider()),
-            }),
+            (_, [(out_token, out_value)], [(in_token, in_value)]) if out_token != in_token => Some(TransactionSwapMetadata::new(
+                AssetId::from_token(*context.metadata.chain, out_token),
+                (-(*out_value).clone()).magnitude().clone(),
+                AssetId::from_token(*context.metadata.chain, in_token),
+                (*in_value).magnitude().clone(),
+                SwapProvider::PancakeswapV3,
+            )),
+            (true, [], [(in_token, in_value)]) => Some(TransactionSwapMetadata::new(
+                AssetId::from_chain(*context.metadata.chain),
+                context.transaction.value.clone(),
+                AssetId::from_token(*context.metadata.chain, in_token),
+                (*in_value).magnitude().clone(),
+                SwapProvider::PancakeswapV3,
+            )),
             _ => None,
         }
     }

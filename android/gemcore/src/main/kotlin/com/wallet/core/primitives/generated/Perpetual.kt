@@ -55,6 +55,13 @@ data class PerpetualPositionData (
 )
 
 @Serializable
+data class PerpetualPrice (
+	val coin: String,
+	val price: Double,
+	val pricePercentChange24h: Double
+)
+
+@Serializable
 data class PerpetualSearchData (
 	val perpetual: Perpetual,
 	val asset: Asset

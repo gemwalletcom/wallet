@@ -42,32 +42,26 @@ impl StakeChain {
         Self::from_str(chain.as_ref()).ok()
     }
 
-    /// Get the lock time in seconds
     pub fn get_lock_time(&self) -> u64 {
         self.config().lock_time
     }
 
-    /// Get the minimum stake amount
     pub fn get_min_stake_amount(&self) -> u64 {
         self.config().min_stake_amount
     }
 
-    /// Get if chain support ability to change amount on unstake
     pub fn get_change_amount_on_unstake(&self) -> bool {
         self.config().change_amount_on_unstake
     }
 
-    /// Get if staking on the chain freezes the balance instead of delegating it
     pub fn get_uses_freeze(&self) -> bool {
         matches!(self, Self::Tron)
     }
 
-    /// Get if the chain takes stake amounts in whole units
     pub fn get_uses_whole_amounts(&self) -> bool {
         matches!(self, Self::Tron)
     }
 
-    /// Get if chain support redelegate
     pub fn get_can_redelegate(&self) -> bool {
         self.config().can_redelegate
     }

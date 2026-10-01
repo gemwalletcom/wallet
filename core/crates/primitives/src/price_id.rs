@@ -3,8 +3,6 @@ use std::str::FromStr;
 
 use crate::{PriceProvider, provider_scoped_id::ProviderScopedId};
 
-/// The resolved (provider, provider_price_id) pair used to key prices, charts and any other
-/// provider-scoped data. `id()` produces the synthetic `prices.id` used across the schema.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PriceId {
     pub provider: PriceProvider,

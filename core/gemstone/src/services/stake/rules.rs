@@ -1,4 +1,3 @@
-use primitives::OptionStringExt;
 use std::collections::{HashMap, HashSet};
 
 use crate::services::assets::icon::asset_icon;
@@ -6,12 +5,12 @@ use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderI
 use crate::services::collections::{stale, unique};
 
 use num_bigint::{BigInt, BigUint};
-use primitives::AddressName;
 use primitives::Platform;
 use primitives::{
     AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType,
     VerificationStatus, WalletType, YieldProvider,
 };
+use primitives::{AddressName, OptionStringExt};
 use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
@@ -1724,36 +1723,36 @@ mod tests {
         let other = DelegationValidator::mock_cosmos("other");
 
         let stake = GemStakeAmountInput::Stake { validator: current.clone() };
-        assert!(matches!(stake_type(&with_validator(&stake, other.clone())), StakeType::Stake(validator) if validator.id == "other"));
+        assert_eq!(stake_type(&with_validator(&stake, other.clone())), StakeType::Stake(other.clone()));
 
         let redelegate = GemStakeAmountInput::Redelegate {
             delegation: Delegation::mock_with_validator(current.clone()),
             validator: other.clone(),
         };
-        match stake_type(&redelegate) {
-            StakeType::Redelegate(data) => {
-                assert_eq!(data.delegation.validator.id, "current");
-                assert_eq!(data.to_validator.id, "other");
-            }
-            _ => panic!("expected a redelegate"),
-        }
+        assert_eq!(
+            stake_type(&redelegate),
+            StakeType::Redelegate(RedelegateData {
+                delegation: Delegation::mock_with_validator(current.clone()),
+                to_validator: other.clone(),
+            })
+        );
 
         let rewards = GemStakeAmountInput::Rewards {
             delegations: vec![Delegation::mock_with_validator(current.clone()), Delegation::mock_with_validator(other.clone())],
             validator: current.clone(),
         };
-        assert!(matches!(stake_type(&with_validator(&rewards, other.clone())), StakeType::Rewards(validators) if validators.len() == 1 && validators[0].id == "other"));
+        assert_eq!(stake_type(&with_validator(&rewards, other.clone())), StakeType::Rewards(vec![other.clone()]));
 
         let unstake = GemStakeAmountInput::Unstake {
-            delegation: Delegation::mock_with_validator(current),
+            delegation: Delegation::mock_with_validator(current.clone()),
         };
-        assert!(matches!(stake_type(&with_validator(&unstake, other)), StakeType::Unstake(delegation) if delegation.validator.id == "current"));
+        assert_eq!(stake_type(&with_validator(&unstake, other)), StakeType::Unstake(Delegation::mock_with_validator(current.clone())));
 
         let freeze = GemStakeAmountInput::Freeze { resource: Resource::Bandwidth };
-        assert!(matches!(stake_type(&with_resource(&freeze, Resource::Energy)), StakeType::Freeze(Resource::Energy)));
+        assert_eq!(stake_type(&with_resource(&freeze, Resource::Energy)), StakeType::Freeze(Resource::Energy));
         let unfreeze = GemStakeAmountInput::Unfreeze { resource: Resource::Energy };
-        assert!(matches!(stake_type(&with_resource(&unfreeze, Resource::Bandwidth)), StakeType::Unfreeze(Resource::Bandwidth)));
-        assert!(matches!(with_resource(&stake, Resource::Energy), GemStakeAmountInput::Stake { validator } if validator.id == "current"));
+        assert_eq!(stake_type(&with_resource(&unfreeze, Resource::Bandwidth)), StakeType::Unfreeze(Resource::Bandwidth));
+        assert_eq!(with_resource(&stake, Resource::Energy), GemStakeAmountInput::Stake { validator: current });
     }
 
     #[test]

@@ -22,18 +22,18 @@ use crate::shutdown::ShutdownReceiver;
 use crate::worker::context::WorkerContext;
 
 impl WorkerService {
-    pub async fn run_jobs(self, ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
+    pub async fn run_jobs(self, context: WorkerContext, shutdown: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
         match self {
-            WorkerService::Alerter => alerter::jobs(ctx, shutdown_rx).await,
-            WorkerService::Prices => prices::jobs(ctx, shutdown_rx).await,
-            WorkerService::Fiat => fiat::jobs(ctx, shutdown_rx).await,
-            WorkerService::Assets => assets::jobs(ctx, shutdown_rx).await,
-            WorkerService::System => system::jobs(ctx, shutdown_rx).await,
-            WorkerService::Search => search::jobs(ctx, shutdown_rx).await,
-            WorkerService::Rewards => rewards::jobs(ctx, shutdown_rx).await,
-            WorkerService::Transactions => transactions::jobs(ctx, shutdown_rx).await,
-            WorkerService::Perpetuals => perpetuals::jobs(ctx, shutdown_rx).await,
-            WorkerService::Lists => lists::jobs(ctx, shutdown_rx).await,
+            WorkerService::Alerter => alerter::jobs(context, shutdown).await,
+            WorkerService::Prices => prices::jobs(context, shutdown).await,
+            WorkerService::Fiat => fiat::jobs(context, shutdown).await,
+            WorkerService::Assets => assets::jobs(context, shutdown).await,
+            WorkerService::System => system::jobs(context, shutdown).await,
+            WorkerService::Search => search::jobs(context, shutdown).await,
+            WorkerService::Rewards => rewards::jobs(context, shutdown).await,
+            WorkerService::Transactions => transactions::jobs(context, shutdown).await,
+            WorkerService::Perpetuals => perpetuals::jobs(context, shutdown).await,
+            WorkerService::Lists => lists::jobs(context, shutdown).await,
         }
     }
 }

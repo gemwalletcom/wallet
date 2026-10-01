@@ -69,9 +69,9 @@ pub fn map_transaction_data(input: TransactionLoadInput, sui_coins: OwnedCoins<C
                 let staked_object = objects.iter().find(|obj| obj.object_id == delegation.base.delegation_id).ok_or("Staked SUI object not found in provided objects")?;
 
                 let staked_sui = crate::models::Object {
-                    object_id: staked_object.object_id.parse().map_err(|err| format!("invalid staked Sui object id: {err}"))?,
+                    object_id: staked_object.object_id.parse().map_err(|error| format!("invalid staked Sui object id: {error}"))?,
                     version: staked_object.version.parse().unwrap_or(0),
-                    digest: staked_object.digest.parse().map_err(|err| format!("invalid staked Sui object digest: {err}"))?,
+                    digest: staked_object.digest.parse().map_err(|error| format!("invalid staked Sui object digest: {error}"))?,
                 };
 
                 let unstake_input = UnstakeInput {

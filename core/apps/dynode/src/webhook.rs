@@ -77,8 +77,8 @@ impl DynodeBroadcastWebhookClient {
             Err(ClientError::Http { status, .. }) => {
                 info_with_fields!("broadcast webhook delivery failed", transaction_id = transaction_id.as_str(), request_id = request_id.as_str(), status = status,);
             }
-            Err(err) => {
-                error_with_fields!("broadcast webhook request failed", &err, transaction_id = transaction_id.as_str(), request_id = request_id.as_str(),);
+            Err(error) => {
+                error_with_fields!("broadcast webhook request failed", &error, transaction_id = transaction_id.as_str(), request_id = request_id.as_str(),);
             }
         }
     }

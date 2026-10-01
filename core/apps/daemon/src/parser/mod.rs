@@ -28,11 +28,11 @@ pub struct Parser {
     state_service: ParserStateService,
     reporter: ParserReporter,
     options: ParserOptions,
-    shutdown_rx: ShutdownReceiver,
+    shutdown: ShutdownReceiver,
 }
 
 impl Parser {
-    pub fn new(provider: Box<dyn ChainTraits>, stream_producer: StreamProducer, state_service: ParserStateService, parser_metrics: Arc<ParserMetrics>, options: ParserOptions, shutdown_rx: ShutdownReceiver) -> Self {
+    pub fn new(provider: Box<dyn ChainTraits>, stream_producer: StreamProducer, state_service: ParserStateService, parser_metrics: Arc<ParserMetrics>, options: ParserOptions, shutdown: ShutdownReceiver) -> Self {
         let chain = provider.get_chain();
         let reporter = ParserReporter::new(chain, parser_metrics);
         Self {
@@ -42,16 +42,16 @@ impl Parser {
             state_service,
             reporter,
             options,
-            shutdown_rx,
+            shutdown,
         }
     }
 
     fn is_shutdown(&self) -> bool {
-        *self.shutdown_rx.borrow()
+        *self.shutdown.borrow()
     }
 
     async fn sleep_or_shutdown(&self, duration: Duration) -> bool {
-        shutdown::sleep_or_shutdown(duration, &self.shutdown_rx).await
+        shutdown::sleep_or_shutdown(duration, &self.shutdown).await
     }
 
     async fn wait_if_disabled(&self, state: &ParserState, timeout: Duration) -> bool {
@@ -74,7 +74,7 @@ impl Parser {
         Ok(latest_block)
     }
 
-    async fn execute_plan(&self, plan: BlockPlan, state: &ParserState, timeout: Duration) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn run_block_plan(&self, plan: BlockPlan, state: &ParserState, timeout: Duration) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let start = Instant::now();
         let blocks_desc = format!("{:?}", plan.range.blocks);
 
@@ -108,8 +108,8 @@ impl Parser {
                     duration = DurationMs(start.elapsed())
                 );
             }
-            Err(err) => {
-                error_with_fields!("parser parse_block", &*err, chain = self.chain.as_ref(), blocks = blocks_desc);
+            Err(error) => {
+                error_with_fields!("parser parse_block", &*error, chain = self.chain.as_ref(), blocks = blocks_desc);
                 self.sleep_or_shutdown(timeout).await;
                 return Ok(false);
             }
@@ -125,7 +125,7 @@ impl Parser {
         Ok(true)
     }
 
-    async fn process_blocks(&self, timeout: Duration) -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn run_block_plans(&self, timeout: Duration) -> Result<(), Box<dyn Error + Send + Sync>> {
         loop {
             if self.is_shutdown() {
                 break;
@@ -137,7 +137,7 @@ impl Parser {
                 break;
             };
 
-            if !self.execute_plan(plan, &state, timeout).await? {
+            if !self.run_block_plan(plan, &state, timeout).await? {
                 break;
             }
         }
@@ -162,8 +162,8 @@ impl Parser {
 
             let latest_block = match self.get_latest_block(&state).await {
                 Ok(block) => block,
-                Err(err) => {
-                    error_with_fields!("parser latest_block", &*err, chain = self.chain.as_ref());
+                Err(error) => {
+                    error_with_fields!("parser latest_block", &*error, chain = self.chain.as_ref());
                     self.sleep_or_shutdown(self.options.error_interval).await;
                     continue;
                 }
@@ -182,7 +182,7 @@ impl Parser {
                 continue;
             }
 
-            self.process_blocks(timeout).await?;
+            self.run_block_plans(timeout).await?;
         }
 
         info_with_fields!("parser stopped", chain = self.chain.as_ref());
@@ -220,22 +220,22 @@ pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<Hea
         catchup_reload = catchup_reload_interval
     );
 
-    let (shutdown_tx, shutdown_rx) = shutdown::channel();
+    let (shutdown_sender, shutdown) = shutdown::channel();
     let shutdown_timeout = settings.parser.shutdown.timeout;
 
-    let signal_handle = shutdown::spawn_signal_handler(shutdown_tx);
+    let signal_handle = shutdown::spawn_signal_handler(shutdown_sender);
 
     let mut handles = Vec::new();
 
     for chain in chains {
         let state_service = services.parser_state(chain);
         let parser_metrics = parser_metrics.clone();
-        let shutdown_rx = shutdown_rx.clone();
+        let shutdown = shutdown.clone();
         let settings = settings.clone();
 
         let provider = chain_providers::ProviderFactory::new_from_settings_with_user_agent(chain, &settings, &settings::service_user_agent("parser", None));
 
-        let stream_producer = services.stream_producer(format!("parser_{chain}").as_str(), shutdown_rx.clone()).await?;
+        let stream_producer = services.stream_producer(format!("parser_{chain}").as_str(), shutdown.clone()).await?;
 
         let options = ParserOptions {
             timeout: settings.parser.timeout,
@@ -246,7 +246,7 @@ pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<Hea
         };
 
         handles.push(tokio::spawn(async move {
-            run_parser(state_service, parser_metrics, stream_producer, provider, options, shutdown_rx).await;
+            run_parser(state_service, parser_metrics, stream_producer, provider, options, shutdown).await;
         }));
     }
 
@@ -261,21 +261,21 @@ pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<Hea
     Ok(())
 }
 
-async fn run_parser(state_service: ParserStateService, parser_metrics: Arc<ParserMetrics>, stream_producer: StreamProducer, provider: Box<dyn ChainTraits>, options: ParserOptions, shutdown_rx: ShutdownReceiver) {
+async fn run_parser(state_service: ParserStateService, parser_metrics: Arc<ParserMetrics>, stream_producer: StreamProducer, provider: Box<dyn ChainTraits>, options: ParserOptions, shutdown: ShutdownReceiver) {
     let chain = provider.get_chain();
     let timeout = options.timeout;
 
-    let parser = Parser::new(provider, stream_producer, state_service, parser_metrics, options, shutdown_rx.clone());
+    let parser = Parser::new(provider, stream_producer, state_service, parser_metrics, options, shutdown.clone());
 
     loop {
-        if *shutdown_rx.borrow() {
+        if *shutdown.borrow() {
             break;
         }
 
-        if let Err(e) = parser.start().await {
-            error_with_fields!("parser error", &*e, chain = chain.as_ref());
+        if let Err(error) = parser.start().await {
+            error_with_fields!("parser error", &*error, chain = chain.as_ref());
 
-            if shutdown::sleep_or_shutdown(timeout, &shutdown_rx).await {
+            if shutdown::sleep_or_shutdown(timeout, &shutdown).await {
                 break;
             }
         }

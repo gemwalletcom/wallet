@@ -241,7 +241,7 @@ extension AmountSceneViewModel {
     func onSelectAutoclose() {
         guard let perpetual else { return }
         let amount = NumberInput.double(amountInputModel.text) ?? .zero
-        isPresentingSheet = .autoclose(perpetual.makeAutocloseData(size: amount))
+        isPresentingSheet = .autoclose(session: perpetual.autocloseSession(size: amount), row: perpetual.openPositionRow(size: amount))
     }
 
     public func onAutocloseComplete(takeProfit: String, stopLoss: String) {

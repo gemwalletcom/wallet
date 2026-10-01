@@ -1,5 +1,5 @@
 name: Setup iOS CI
-description: Configure Rust, just, sccache, and Xcode for iOS CI.
+description: Configure Rust, just, sccache, Xcode, and the iOS Simulator for iOS CI.
 
 runs:
   using: composite
@@ -10,3 +10,8 @@ runs:
     - name: Select Xcode
       shell: bash
       run: sudo xcode-select -s /Applications/Xcode.app
+
+    - name: Wait for iOS Simulator
+      shell: bash
+      working-directory: ios
+      run: just wait-simulator

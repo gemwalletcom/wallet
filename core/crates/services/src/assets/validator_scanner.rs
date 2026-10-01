@@ -26,8 +26,7 @@ impl ValidatorScanner {
     pub async fn update_validators_from_static_assets_for_chain(&self, chain: Chain, assets_url: &str) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let static_assets_client = StaticAssetsClient::new(assets_url);
         let static_validators = static_assets_client.get_validators(chain).await?;
-        let validators: Vec<_> = static_validators.into_iter().map(|v| StakeValidator::new(v.id, v.name)).collect();
-        let addresses: Vec<_> = validators.into_iter().filter_map(|v| v.as_scan_address(chain)).collect();
+        let addresses: Vec<_> = static_validators.into_iter().map(|v| StakeValidator::new(v.id, v.name)).filter_map(|v| v.as_scan_address(chain)).collect();
         let count = addresses.len();
         self.database.run(move |client| client.add_scan_addresses(addresses)).await?;
         Ok(count)

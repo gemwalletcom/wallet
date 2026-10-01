@@ -1,17 +1,20 @@
 use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
-use primitives::OptionStringExt;
 
 use crate::{
-    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
-    models::{BlockTransaction, BlockTransactions, Instruction},
+    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
+    WSOL_TOKEN_ADDRESS,
+    models::{BlockTransaction, BlockTransactions, Instruction, TokenBalanceChange},
 };
-use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
+use primitives::{
+    AssetId, Chain, NFTAssetId, OptionStringExt, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, swap::SOLANA_REFERRAL_ADDRESS,
+};
 
 use super::parsers::ProtocolParsers;
 
 const CHAIN: Chain = Chain::Solana;
-const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID)];
+const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID), (SwapProvider::Orca, ORCA_WHIRLPOOL_PROGRAM_ID)];
+const NATIVE_TRANSFER_PROGRAMS: [&str; 3] = [SYSTEM_PROGRAM_ID, COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID];
 const MPL_CORE_TRANSFER_V1: u8 = 14;
 const MPL_TOKEN_METADATA_TRANSFER_V1: u8 = 49;
 const MPL_TOKEN_METADATA_MINT_ACCOUNT_INDEX: usize = 4;
@@ -113,7 +116,11 @@ fn get_swap_provider(account_keys: &[String]) -> Option<(SwapProvider, &'static 
 }
 
 fn map_swap_metadata(transaction: &BlockTransaction, owner: &str, provider: SwapProvider) -> Option<TransactionSwapMetadata> {
-    let balance_changes = transaction.get_balance_changes_by_owner(owner);
+    let native_change = transaction.get_balance_changes_by_owner(owner);
+    let balance_changes = TokenBalanceChange {
+        amount: native_change.amount + transaction.get_created_token_accounts_rent_by_owner(owner),
+        ..native_change
+    };
     let token_balance_changes = transaction.meta.get_token_balance_changes_by_owner(owner);
 
     let (from_asset, from_value, to_asset, to_value) = match token_balance_changes.as_slice() {
@@ -139,12 +146,21 @@ fn map_swap_metadata(transaction: &BlockTransaction, owner: &str, provider: Swap
         _ => return None,
     };
 
-    Some(TransactionSwapMetadata {
-        from_asset,
-        from_value,
-        to_asset,
-        to_value,
-        provider: Some(provider.id().to_owned()),
+    Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, provider).with_referral_fee(map_referral_fee(transaction, owner)))
+}
+
+fn map_referral_fee(transaction: &BlockTransaction, owner: &str) -> Option<TransactionSwapReferralFee> {
+    if owner == SOLANA_REFERRAL_ADDRESS {
+        return None;
+    }
+    let token_changes = transaction.meta.get_token_balance_changes_by_owner(SOLANA_REFERRAL_ADDRESS);
+    let native_change = transaction.get_balance_changes_by_owner(SOLANA_REFERRAL_ADDRESS);
+    token_changes.into_iter().chain([native_change]).find(|change| change.amount.sign() == Sign::Plus).map(|change| TransactionSwapReferralFee {
+        asset_id: match change.asset_id.token_id.as_deref() {
+            Some(WSOL_TOKEN_ADDRESS) => CHAIN.as_asset_id(),
+            _ => change.asset_id,
+        },
+        value: change.amount.magnitude().clone(),
     })
 }
 
@@ -153,7 +169,6 @@ pub fn map_block_transactions(transactions: &BlockTransactions) -> Vec<primitive
 }
 
 pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Option<primitives::Transaction> {
-    // reject multi-sig transactions (3+), but allow fee-payer pattern (2 signatures)
     if transaction.transaction.signatures.len() > 2 {
         return None;
     }
@@ -171,7 +186,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         return Some(transaction);
     }
 
-    if (account_keys.len() == 3 && account_keys.last()? == SYSTEM_PROGRAM_ID) || (account_keys.len() == 4 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID)) {
+    if account_keys.len() >= 3 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().skip(2).all(|key| NATIVE_TRANSFER_PROGRAMS.contains(&key.as_str())) {
         let from = account_keys.first()?.clone();
         let to = account_keys.get(1)?.clone();
         let value = transaction.get_balance_change(&from);
@@ -197,7 +212,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     let pre_token_balances = &transaction.meta.pre_token_balances;
     let post_token_balances = &transaction.meta.post_token_balances;
 
-    // SPL token transfer (regular tokens or NFTs that go through the SPL Token program).
     if let Some(first_balance) = pre_token_balances.first() {
         let token_id = &first_balance.mint;
         if account_keys.iter().any(|key| key == TOKEN_PROGRAM || key == TOKEN_PROGRAM_2022)
@@ -240,7 +254,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         }
     }
 
-    // Metaplex Core NFT transfer (single instruction, no SPL token balances).
     if let Some(nft) = map_metaplex_core_nft_transfer(transaction, account_keys) {
         let metadata = TransactionNFTTransferMetadata::from_asset_id(NFTAssetId::new(chain, &nft.collection, &nft.asset));
         return Some(Transaction::new(
@@ -260,10 +273,10 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         ));
     }
 
-    if let Some((provider, program_id)) = get_swap_provider(account_keys) {
-        let sender = account_keys.first()?.clone();
-        let swap = map_swap_metadata(transaction, &sender, provider)?;
-
+    let sender = account_keys.first()?.clone();
+    if let Some((provider, program_id)) = get_swap_provider(account_keys)
+        && let Some(swap) = map_swap_metadata(transaction, &sender, provider)
+    {
         let transaction = Transaction::new(
             hash,
             swap.from_asset.clone(),
@@ -282,7 +295,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         return Some(transaction);
     }
 
-    // smart contract call
     let contract = transaction
         .transaction
         .message
@@ -290,7 +302,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         .iter()
         .map(|ix| &account_keys[ix.program_id_index])
         .find(|key| !SYSTEM_PROGRAMS.contains(&key.as_str()))?;
-    let sender = account_keys.first()?.clone();
     let value = transaction.get_balance_change(&sender);
 
     Some(Transaction::new(
@@ -326,6 +337,41 @@ mod tests {
     const PNFT_MINT: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
     const CORE_ASSET: &str = "JATWmjADckr2M7TX5xMfo1HNfYS66DKot15fJ4hVLrVE";
     const CORE_COLLECTION: &str = "5pQfZttNUtaj8sySRY9RsdtB81aEAQDh2vnacpxiwTpT";
+
+    #[test]
+    fn test_map_swap_program_without_swap_output() {
+        let transaction = map_single_transaction(include_str!("../../testdata/mayan_deposit_jupiter_route.json"));
+
+        assert_eq!(transaction.hash(), "vXUaBxa3MtnodHE7by5sXpExWHoMdcp7qiMKk1UoM8CnYBGD84KpzbErWLVf7RfjAmsrhJxjJ3Df7hqJ4Qh4umb");
+        assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(transaction.state, TransactionState::Confirmed);
+    }
+
+    #[test]
+    fn test_map_orca_swap_referral_fee() {
+        let transaction = map_single_transaction(include_str!("../../testdata/swap_orca_referral_fee.json"));
+        let metadata = transaction.swap_metadata().unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.provider.as_deref(), Some("orca"));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
+                value: BigUint::from(6000u32),
+            })
+        );
+    }
+
+    #[test]
+    fn test_map_transfer_sol_with_memo_and_compute_budget() {
+        let transaction = map_single_transaction(include_str!("../../testdata/transfer_sol_with_memo_compute.json"));
+
+        assert_eq!(transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(transaction.from, "BUW2vSJMbNojvi9vh1oRg6Qd88GAYSqZifXzZ7JN8uKV");
+        assert_eq!(transaction.to, "7YjizA4PUnLvuKijmEHjdDDbfWyG2LMqGCLVjpWrARCA");
+        assert!(transaction.memo.as_deref().is_some_and(|memo| memo.starts_with('=')));
+    }
 
     fn map_single_transaction(payload: &str) -> primitives::Transaction {
         let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(payload).unwrap();
@@ -411,13 +457,13 @@ mod tests {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_token_to_sol.json")).unwrap();
 
         let transaction = map_transaction(&result.result, 1).unwrap();
-        let expected = TransactionSwapMetadata {
-            from_asset: AssetId::from_token(Chain::Solana, "BKpSnSdNdANUxKPsn4AQ8mf4b9BoeVs9JD1Q8cVkpump"),
-            from_value: BigUint::from(393647577456u64),
-            to_asset: Chain::Solana.as_asset_id(),
-            to_value: BigUint::from(140927839u64),
-            provider: Some(SwapProvider::Jupiter.id().to_owned()),
-        };
+        let expected = TransactionSwapMetadata::new(
+            AssetId::from_token(Chain::Solana, "BKpSnSdNdANUxKPsn4AQ8mf4b9BoeVs9JD1Q8cVkpump"),
+            BigUint::from(393647577456u64),
+            Chain::Solana.as_asset_id(),
+            BigUint::from(140927839u64),
+            SwapProvider::Jupiter,
+        );
 
         assert_eq!(transaction.metadata, Some(serde_json::to_value(expected).unwrap()));
     }
@@ -427,13 +473,13 @@ mod tests {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_token_to_token.json")).unwrap();
 
         let transaction = map_transaction(&result.result, 1).unwrap();
-        let expected = TransactionSwapMetadata {
-            from_asset: AssetId::from_token(Chain::Solana, PYUSD_TOKEN_MINT),
-            from_value: BigUint::from(1000000u64),
-            to_asset: AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
-            to_value: BigUint::from(999932u64),
-            provider: Some(SwapProvider::Jupiter.id().to_owned()),
-        };
+        let expected = TransactionSwapMetadata::new(
+            AssetId::from_token(Chain::Solana, PYUSD_TOKEN_MINT),
+            BigUint::from(1000000u64),
+            AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
+            BigUint::from(999932u64),
+            SwapProvider::Jupiter,
+        );
 
         assert_eq!(transaction.metadata, Some(serde_json::to_value(expected).unwrap()));
     }
@@ -444,14 +490,61 @@ mod tests {
 
         let transaction = map_transaction(&result.result, 1).unwrap();
         let expected = TransactionSwapMetadata {
-            from_asset: Chain::Solana.as_asset_id(),
-            from_value: BigUint::from(10000000u64),
-            to_asset: AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
-            to_value: BigUint::from(1678930u64),
-            provider: Some(SwapProvider::Jupiter.id().to_owned()),
+            referral_fee: Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
+                value: BigUint::from(8436u64),
+            }),
+            ..TransactionSwapMetadata::new(
+                Chain::Solana.as_asset_id(),
+                BigUint::from(10000000u64),
+                AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
+                BigUint::from(1678930u64),
+                SwapProvider::Jupiter,
+            )
         };
 
         assert_eq!(transaction.metadata, Some(serde_json::to_value(expected).unwrap()));
+    }
+
+    #[test]
+    fn test_transaction_swap_jupiter_referral_fee() {
+        let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_jupiter_referral_fee.json")).unwrap();
+
+        let transaction = map_transaction(&result.result, 1).unwrap();
+        let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
+
+        assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Solana, "LinkhB3afbBKb2EQQu7s7umdZceV3wcvAUJhQAfQ23L"));
+        assert_eq!(metadata.from_value, BigUint::from(3000000000u64));
+        assert_eq!(metadata.to_asset, SOLANA_USDC_ASSET_ID.clone());
+        assert_eq!(metadata.to_value, BigUint::from(44913642u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: SOLANA_USDC_ASSET_ID.clone(),
+                value: BigUint::from(225696u64),
+            })
+        );
+    }
+
+    #[test]
+    fn test_transaction_swap_jupiter_new_token_account_rent() {
+        let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_jupiter_new_token_account_rent.json")).unwrap();
+
+        let transaction = map_transaction(&result.result, 1).unwrap();
+        let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Solana, "CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH"));
+        assert_eq!(metadata.from_value, BigUint::from(100000u64));
+        assert_eq!(metadata.to_asset, Chain::Solana.as_asset_id());
+        assert_eq!(metadata.to_value, BigUint::from(837080u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::Solana.as_asset_id(),
+                value: BigUint::from(4206u64),
+            })
+        );
     }
 
     #[test]
@@ -460,11 +553,17 @@ mod tests {
 
         let transaction = map_transaction(&result.result, 1).unwrap();
         let expected = TransactionSwapMetadata {
-            from_asset: SOLANA_USDC_ASSET_ID.clone(),
-            from_value: BigUint::from(56061275u64),
-            to_asset: AssetId::from_token(Chain::Solana, "HmMubgKx91Tpq3jmfcKQwsv5HrErqnCTTRJMB6afFR2u"),
-            to_value: BigUint::from(2190151370200u64),
-            provider: Some(SwapProvider::Okx.id().to_owned()),
+            referral_fee: Some(TransactionSwapReferralFee {
+                asset_id: SOLANA_USDC_ASSET_ID.clone(),
+                value: BigUint::from(280306u64),
+            }),
+            ..TransactionSwapMetadata::new(
+                SOLANA_USDC_ASSET_ID.clone(),
+                BigUint::from(56061275u64),
+                AssetId::from_token(Chain::Solana, "HmMubgKx91Tpq3jmfcKQwsv5HrErqnCTTRJMB6afFR2u"),
+                BigUint::from(2190151370200u64),
+                SwapProvider::Okx,
+            )
         };
 
         assert_eq!(transaction.transaction_type, TransactionType::Swap);

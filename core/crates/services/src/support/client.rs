@@ -40,16 +40,16 @@ impl SupportClient {
             .await?)
     }
 
-    pub async fn process_webhook(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
+    pub async fn publish_webhook(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
         match payload.event.as_str() {
-            EVENT_MESSAGE_CREATED => self.process_message_created(device, payload).await,
-            EVENT_CONVERSATION_TYPING_ON => self.process_typing(device, payload, SupportTypingStatus::On).await,
-            EVENT_CONVERSATION_TYPING_OFF => self.process_typing(device, payload, SupportTypingStatus::Off).await,
+            EVENT_MESSAGE_CREATED => self.publish_message_created(device, payload).await,
+            EVENT_CONVERSATION_TYPING_ON => self.publish_typing(device, payload, SupportTypingStatus::On).await,
+            EVENT_CONVERSATION_TYPING_OFF => self.publish_typing(device, payload, SupportTypingStatus::Off).await,
             _ => Ok(SupportWebhookResult::default()),
         }
     }
 
-    async fn process_message_created(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
+    async fn publish_message_created(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
         let notifications = if let Some(notification) = Self::build_notification(device, payload) {
             self.stream_producer.publish_notifications_support(NotificationsPayload::new(vec![notification])).await?;
             1
@@ -62,7 +62,7 @@ impl SupportClient {
         Ok(SupportWebhookResult { notifications, stream_events })
     }
 
-    async fn process_typing(&self, device: &Device, payload: &ChatwootWebhookPayload, status: SupportTypingStatus) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
+    async fn publish_typing(&self, device: &Device, payload: &ChatwootWebhookPayload, status: SupportTypingStatus) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
         let Some(typing) = payload.support_typing(status) else {
             return Ok(SupportWebhookResult::default());
         };

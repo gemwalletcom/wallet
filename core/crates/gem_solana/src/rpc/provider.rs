@@ -1,20 +1,24 @@
 use std::{error::Error, ops::Deref};
 
 use async_trait::async_trait;
-use chain_traits::{ChainAccount, ChainPerpetual, ChainProvider, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainAccount, ChainPerpetual, ChainProvider, ChainTransaction, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
 use primitives::Chain;
 
 use super::SolanaClient;
 
+pub trait SolanaTransactionsIndexer: ChainTransactions + ChainTransaction {}
+
+impl<T: ChainTransactions + ChainTransaction> SolanaTransactionsIndexer for T {}
+
 pub struct SolanaProvider<C: Client + Clone> {
     client: SolanaClient<C>,
-    transactions_by_address_provider: Box<dyn ChainTransactions>,
+    pub(crate) indexer: Box<dyn SolanaTransactionsIndexer>,
 }
 
 impl<C: Client + Clone> SolanaProvider<C> {
-    pub fn new(client: SolanaClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>) -> Self {
-        Self { client, transactions_by_address_provider }
+    pub fn new(client: SolanaClient<C>, indexer: Box<dyn SolanaTransactionsIndexer>) -> Self {
+        Self { client, indexer }
     }
 
     pub fn new_rpc_only(client: SolanaClient<C>) -> Self {
@@ -33,7 +37,7 @@ impl<C: Client + Clone> Deref for SolanaProvider<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainTransactions for SolanaProvider<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        self.transactions_by_address_provider.get_transactions_by_address(request).await
+        self.indexer.get_transactions_by_address(request).await
     }
 }
 

@@ -29,6 +29,23 @@ struct TransactionStoreTests {
         #expect(try store.getTransactions(states: [.confirmed]).isEmpty)
     }
 
+    @Test func stateUpdateWritesTheConfirmedValue() throws {
+        let asset = AssetBasic.mock(asset: .mock(id: Chain.robinhood.assetId))
+        let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: asset.asset.chain)])], assets: [asset])
+        let walletId = WalletId.single(chain: .robinhood, address: "0xsender")
+        try WalletStore(db: db).addWallet(.mock(id: walletId, type: .single, accounts: [.mock(chain: .robinhood, address: "0xsender")]))
+        let store = TransactionStore(db: db)
+        let transactionId = TransactionId(chain: .robinhood, hash: "hash")
+        try store.addTransactions(walletId: walletId, transactions: [
+            .mock(.mock(id: transactionId, assetId: Chain.robinhood.assetId, state: .pending, feeAssetId: Chain.robinhood.assetId, value: "25000000")),
+        ])
+
+        let updated = try store.updateTransaction(walletId: walletId, transactionId: transactionId, state: .confirmed, fee: nil, value: "499590000", blockNumber: nil, metadata: nil, confirmationEtaSeconds: nil, assetIds: nil)
+
+        #expect(updated == 1)
+        #expect(try store.getTransactions(states: [.confirmed])[walletId]?.map(\.value) == ["499590000"])
+    }
+
     @Test func assetAssociationsReplaced() throws {
         let btc = AssetId(chain: .bitcoin, tokenId: nil)
         let eth = AssetId(chain: .ethereum, tokenId: nil)

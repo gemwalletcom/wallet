@@ -98,7 +98,6 @@ impl Across {
         Self::gas_value(&gas_hex)
     }
 
-    /// Return (message, referral_fee)
     fn message_for_multicall_handler(&self, amount: &U256, output_funding: Funding, output_token: &Address, user_address: &Address, output_chain: Chain, referral_fee: &ReferralFee) -> Result<(Vec<u8>, U256), SwapperError> {
         if referral_fee.bps == 0 {
             return Ok((vec![], U256::from(0)));
@@ -237,9 +236,9 @@ impl Across {
         let from_chain_l2 = from_chain.is_ethereum_layer2();
         let to_chain_l2 = to_chain.is_ethereum_layer2();
         Some(match (from_chain_l2, to_chain_l2) {
-            (true, true) => 5,   // L2 to L2
-            (true, false) => 10, // L2 to L1
-            (false, _) => 20,    // L1 to L2
+            (true, true) => 5,
+            (true, false) => 10,
+            (false, _) => 20,
         })
     }
 }
@@ -286,7 +285,6 @@ impl Swapper for Across {
         let original_output_asset = request.to_asset.asset_id();
         let output_token = parse_address(output.asset_id.chain, output.asset_id.token_id.as_deref().ok_or(SwapperError::NotSupportedAsset)?)?;
 
-        // Get L1 token address
         let mappings = AcrossDeployment::asset_mappings();
         let asset_mapping = mappings.iter().find(|x| x.set.contains(&input.asset_id)).ok_or(SwapperError::NotSupportedAsset)?;
         let asset_mainnet = asset_mapping.set.iter().find(|x| x.chain == Chain::Ethereum).ok_or(SwapperError::NotSupportedAsset)?;
@@ -331,13 +329,11 @@ impl Swapper for Across {
             return Err(SwapperError::NoQuoteAvailable);
         }
 
-        // Check if protocol is paused
         let is_paused = hubpool_client.decoded_paused_call3(paused_result)?;
         if is_paused {
             return Err(SwapperError::ComputeQuoteError("Across protocol is paused".into()));
         }
 
-        // Check bridge amount is too large (Across API has some limit in USD amount but we don't have that info)
         if from_amount > hubpool_client.decoded_pooled_token_call3(pooled_token_result)?.liquidReserves {
             return Err(SwapperError::ComputeQuoteError("Bridge amount is too large".into()));
         }
@@ -349,19 +345,16 @@ impl Swapper for Across {
         let rate_model = token_config.rate_model(&input.asset_id, &output.asset_id)?;
         let cost_config = &asset_mapping.capital_cost;
 
-        // Calculate lp fee
         let lpfee_calc = LpFeeCalculator::new(rate_model);
         let lpfee_percent = lpfee_calc.realized_lp_fee_pct(&util_before, &util_after, false);
         let lpfee = fees::multiply(from_amount, lpfee_percent, cost_config.decimals);
 
-        // Calculate relayer fee
         let relayer_calc = RelayerFeeCalculator::default();
         let relayer_fee_percent = relayer_calc.capital_fee_percent(&BigInt::from_str(&from_amount.to_string())?, cost_config);
         let relayer_fee = fees::multiply(from_amount, relayer_fee_percent, cost_config.decimals);
 
         let referral_config = default_referral_fees().for_chain(request.to_asset.chain()).cloned().unwrap_or_default();
 
-        // Calculate gas limit / price for relayer
         let remain_amount = from_amount - lpfee - relayer_fee;
         let (message, referral_fee) = self.message_for_multicall_handler(&remain_amount, output.funding, &output_token, &recipient_address, request.to_asset.chain(), &referral_config)?;
 
@@ -396,7 +389,6 @@ impl Swapper for Across {
             Some(price) => Self::calculate_fee_in_token(&native_gas_fee, &price, cost_config.decimals),
         };
 
-        // Check if bridge amount is too small
         if remain_amount < gas_fee {
             return Err(SwapperError::InputAmountError { min_amount: None });
         }
@@ -404,7 +396,6 @@ impl Swapper for Across {
         let output_amount = remain_amount - gas_fee;
         let to_value = (output_amount - referral_fee) * output.scale;
 
-        // Update v3 relay data (was used to estimate gas limit) with final output amount, quote timestamp and referral fee.
         let (message, _) = self.message_for_multicall_handler(&output_amount, output.funding, &output_token, &recipient_address, request.to_asset.chain(), &referral_config)?;
         let v3_relay_data = V3RelayData {
             outputAmount: output_amount,
@@ -510,8 +501,8 @@ impl Swapper for Across {
         })
     }
 
-    async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        super::status::get_swap_result(self.rpc_provider.clone(), chain, transaction_hash).await
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        super::status::get_swap_result(self.rpc_provider.clone(), request.chain, &request.transaction_hash).await
     }
 }
 
@@ -563,7 +554,6 @@ mod tests {
         assert!(!Across::is_supported_route(&weth_eth, &usdc_eth));
         assert!(!Across::is_supported_route(&weth_eth, &usdt_tron));
 
-        // native asset
         let eth = AssetId::from(Chain::Ethereum, None);
         let op = AssetId::from(Chain::Optimism, None);
         let arb = AssetId::from(Chain::Arbitrum, None);
@@ -679,7 +669,7 @@ mod tests {
                 to_asset: AssetId::from_chain(Chain::Arbitrum).into(),
                 wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
                 destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-                value: BigUint::from(20000000000000000u64), // 0.02 ETH
+                value: BigUint::from(20000000000000000u64),
                 options,
             };
 
@@ -711,7 +701,7 @@ mod tests {
                 to_asset: to_asset.into(),
                 wallet_address: wallet.into(),
                 destination_address: wallet.into(),
-                value: BigUint::from(50000000u64), // 50 USDC
+                value: BigUint::from(50000000u64),
                 options,
             };
 
@@ -803,7 +793,7 @@ mod tests {
             let swap_provider = Across::new(Arc::new(NativeProvider::default()));
             let tx_hash = "0x026d408d6f548824ccec8dd2fa1381a5b176a2dc357058ee501a062f9008b703";
 
-            let result = swap_provider.get_swap_result(Chain::Arc, tx_hash).await?;
+            let result = swap_provider.get_swap_result(&SwapResultRequest::new(Chain::Arc, tx_hash)).await?;
             let metadata = result.metadata.unwrap();
 
             assert_eq!(result.status, SwapStatus::Completed);
@@ -823,7 +813,7 @@ mod tests {
             let tx_hash = "0x0a970040a9885cf2c8a42df6fcdf02a1f3fe7db12079a35613a665a2ee64df49";
             let chain = Chain::Arbitrum;
 
-            let result = swap_provider.get_swap_result(chain, tx_hash).await?;
+            let result = swap_provider.get_swap_result(&SwapResultRequest::new(chain, tx_hash)).await?;
 
             println!("Across swap result: {:?}", result);
             assert_eq!(result.status, SwapStatus::Completed);

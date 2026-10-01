@@ -1,0 +1,68 @@
+{
+  "state": "COMPLETED",
+  "swapId": "1366190",
+  "srcAsset": "SOL",
+  "srcChain": "Solana",
+  "destAsset": "BTC",
+  "destChain": "Bitcoin",
+  "brokers": [
+    {
+      "account": "cFJZVRaybb2PBwxTiAiRLiQfHY4KPB3RpJK22Q7Fhqk979aCH",
+      "commissionBps": 5
+    },
+    {
+      "account": "cFNDSNTJMRwL773EzoCLn3n2kFSvBHMhEoHDKaHdkDWUa6XVD",
+      "commissionBps": 45
+    }
+  ],
+  "fees": [
+    {
+      "chain": "Ethereum",
+      "asset": "USDC",
+      "type": "NETWORK",
+      "amount": "500000"
+    },
+    {
+      "chain": "Ethereum",
+      "asset": "USDC",
+      "type": "BROKER",
+      "amount": "56526"
+    },
+    {
+      "chain": "Solana",
+      "asset": "SOL",
+      "type": "INGRESS",
+      "amount": "395000"
+    },
+    {
+      "chain": "Bitcoin",
+      "asset": "BTC",
+      "type": "EGRESS",
+      "amount": "510"
+    }
+  ],
+  "deposit": {
+    "amount": "150000000",
+    "txRef": "3qp65NuE5SEp1c4Av3ofhzNh5pFxeBtp3Tm2hCPuSRUC5nTjQpdeYaJ7xHRGnmKr2wxLjU3PVHGu6yPBs2aDAFPH",
+    "witnessedAt": 1772283618000,
+    "witnessedBlockIndex": "11979413-73"
+  },
+  "swap": {
+    "originalInputAmount": "149605000",
+    "remainingInputAmount": "0",
+    "swappedInputAmount": "149605000",
+    "swappedIntermediateAmount": "11248499",
+    "swappedOutputAmount": "17567",
+    "livePriceExecutionDeltaPercentage": -4.73,
+    "regular": {
+      "inputAmount": "149605000",
+      "intermediateAmount": "11248499",
+      "outputAmount": "17567",
+      "scheduledAt": 1772283618000,
+      "scheduledBlockIndex": "11979413-72",
+      "executedAt": 1772283630000,
+      "executedBlockIndex": "11979415-1596",
+      "retryCount": 0
+    }
+  }
+}

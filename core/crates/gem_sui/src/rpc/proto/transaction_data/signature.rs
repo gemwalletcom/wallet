@@ -3,9 +3,6 @@ use sui_types as sdk;
 
 use crate::rpc::proto::Bcs;
 
-// Field numbers mirror sui-rpc v0.3.1 signature schema:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/signature.proto
-
 #[derive(Clone, Debug, Default)]
 pub struct UserSignature {
     pub bcs: Option<Bcs>,

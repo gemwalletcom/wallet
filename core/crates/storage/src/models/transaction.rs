@@ -1,8 +1,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use num_bigint::BigUint;
-use primitives::OptionStringExt;
-use primitives::{Chain, Transaction, TransactionDirection, TransactionId, TransactionUtxoInput};
+use primitives::{Chain, OptionStringExt, Transaction, TransactionDirection, TransactionId, TransactionUtxoInput};
 use serde::de::Error as _;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;

@@ -7,9 +7,7 @@ pub(super) fn map_info(info: Info) -> Vec<AssetImage> {
         return vec![];
     }
 
-    let Some(image_url) = get_coinmarketcap_logo_url(&info.logo) else {
-        return vec![];
-    };
+    let image_url = get_coinmarketcap_logo_url(&info.logo);
 
     info.contract_address
         .into_iter()

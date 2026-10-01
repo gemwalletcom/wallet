@@ -7,16 +7,16 @@ use primitives::{AssetId, Transaction, WalletId};
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum PushNotificationTypes {
-    Test,        // Test payload
-    Transaction, // PushNotificationTransaction (Transaction)
+    Test,
+    Transaction,
     Asset,
-    PriceAlert,      // PriceAlert payload
-    BuyAsset,        // PushNotificationBuyAsset payload
-    SwapAsset,       // PushNotificationSwapAsset payload
-    Support,         // PushNotificationSupport payload
-    Rewards,         // PushNotificationReward payload
-    Stake,           // PushNotificationWalletAsset payload
-    FiatTransaction, // PushNotificationWalletAsset payload
+    PriceAlert,
+    BuyAsset,
+    SwapAsset,
+    Support,
+    Rewards,
+    Stake,
+    FiatTransaction,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -49,7 +49,6 @@ impl PushNotification {
     }
 }
 
-// Only used to decode notification type
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PushNotificationTransaction {

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemCandleTick
 import enum Gemstone.GemChartDateStyle
 import GemstonePrimitives
 import Primitives
@@ -22,6 +23,14 @@ public struct ChartDateFormatter: Sendable {
         case .relative: TransactionDateFormatter(date: date, boundaries: .current(in: timeZone), locale: locale, timeZone: timeZone).row
         case .dayTime: date.formatted(dateTime.month(.abbreviated).day().hour().minute())
         case .day: date.formatted(dateTime.year().month(.abbreviated).day())
+        }
+    }
+
+    public func string(for tick: GemCandleTick) -> String {
+        switch tick.format {
+        case .time: tick.date.formatted(dateTime.hour().minute())
+        case .day: tick.date.formatted(dateTime.day().month(.abbreviated))
+        case .monthYear: tick.date.formatted(dateTime.month(.abbreviated).year())
         }
     }
 

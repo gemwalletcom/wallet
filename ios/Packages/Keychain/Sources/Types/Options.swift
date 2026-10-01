@@ -6,31 +6,20 @@ struct Options: @unchecked Sendable {
     var service: String = ""
     var accessibility: Accessibility = .afterFirstUnlock
     var authenticationPolicy: AuthenticationPolicy?
-    var synchronizable: Bool = false
     var authenticationContext: AnyObject?
-    var attributes = [String: Any]()
 }
 
 extension Options {
-    func query(ignoringAttributeSynchronizable: Bool = true) -> [String: Any] {
+    func query() -> [String: Any] {
         var query = [String: Any]()
 
         query[Class] = String(kSecClassGenericPassword)
-        if ignoringAttributeSynchronizable {
-            query[AttributeSynchronizable] = SynchronizableAny
-        } else {
-            query[AttributeSynchronizable] = synchronizable ? kCFBooleanTrue : kCFBooleanFalse
-        }
-
+        query[AttributeSynchronizable] = SynchronizableAny
         query[AttributeService] = service
 
-        #if !os(watchOS)
-            if #available(iOS 9.0, OSX 10.11, *) {
-                if authenticationContext != nil {
-                    query[UseAuthenticationContext] = authenticationContext
-                }
-            }
-        #endif
+        if authenticationContext != nil {
+            query[UseAuthenticationContext] = authenticationContext
+        }
 
         return query
     }
@@ -48,26 +37,22 @@ extension Options {
         attributes[ValueData] = value
 
         if let policy = authenticationPolicy {
-            if #available(OSX 10.10, *) {
-                var error: Unmanaged<CFError>?
-                guard
-                    let accessControl = SecAccessControlCreateWithFlags(kCFAllocatorDefault, accessibility.rawValue as CFTypeRef, SecAccessControlCreateFlags(rawValue: CFOptionFlags(policy.rawValue)), &error)
-                else {
-                    if let error = error?.takeUnretainedValue() {
-                        return (attributes, error.error)
-                    }
-
-                    return (attributes, Status.unexpectedError)
+            var error: Unmanaged<CFError>?
+            guard
+                let accessControl = SecAccessControlCreateWithFlags(kCFAllocatorDefault, accessibility.rawValue as CFTypeRef, SecAccessControlCreateFlags(rawValue: CFOptionFlags(policy.rawValue)), &error)
+            else {
+                if let error = error?.takeUnretainedValue() {
+                    return (attributes, error.error)
                 }
-                attributes[AttributeAccessControl] = accessControl
-            } else {
-                print("Unavailable 'Touch ID integration' on OS X versions prior to 10.10.")
+
+                return (attributes, KeychainError.unexpectedError)
             }
+            attributes[AttributeAccessControl] = accessControl
         } else {
             attributes[AttributeAccessible] = accessibility.rawValue
         }
 
-        attributes[AttributeSynchronizable] = synchronizable ? kCFBooleanTrue : kCFBooleanFalse
+        attributes[AttributeSynchronizable] = kCFBooleanFalse
 
         return (attributes, nil)
     }

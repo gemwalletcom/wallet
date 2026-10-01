@@ -29,7 +29,7 @@ data class DbAsset(
     val decimals: Int,
     val type: AssetType,
     val chain: Chain,
-    @ColumnInfo("is_enabled") val isEnabled: Boolean = true, // System flag
+    @ColumnInfo("is_enabled") val isEnabled: Boolean = true,
     @ColumnInfo("is_buy_enabled") val isBuyEnabled: Boolean = false,
     @ColumnInfo("is_sell_enabled") val isSellEnabled: Boolean = false,
     @ColumnInfo("is_swap_enabled") val isSwapEnabled: Boolean = false,

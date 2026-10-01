@@ -22,8 +22,6 @@ struct SubscriptionState {
 }
 
 #[derive(uniffi::Object)]
-/// Holds `GemBalanceStore` rather than `GemBalanceService`, which owns it: the balance service holds
-/// this one to resubscribe after a write, so the reverse edge would be a cycle.
 pub struct GemStreamSubscriptionService {
     balances: Arc<dyn GemBalanceStore>,
     alerts: Arc<GemPriceAlertService>,

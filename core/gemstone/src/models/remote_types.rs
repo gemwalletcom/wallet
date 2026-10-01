@@ -5,13 +5,13 @@ use crate::models::custom_types::{GemBigInt, GemBigUint, GemJsonValue};
 use primitives::{
     Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, ApprovalData, Asset, AssetAssociation, AssetAssociationType, AssetBalance, AssetBasic, AssetData, AssetFiatValue,
     AssetFull, AssetLink, AssetList, AssetMarket, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, AssetType, Balance, BalanceMetadata, Banner, BannerEvent, BannerState, BlockExplorerLink, CancelOrderData, Chain,
-    ChainAddress, ChainAsset, ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContactData, ContractCallData, CoreEmoji, CoreListItem,
+    ChainAsset, ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContactData, ContractCallData, CoreEmoji, CoreListItem,
     CoreListItemBadge, CoreListItemIcon, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, DeviceLocale, EarnType, FeePriority, FeeUnitType, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatQuoteUrl,
     FiatRate, FiatTransaction, FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, GasPriceType, InAppNotification, Latency, LatencyType, LinkType, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType, NFTCollection,
     NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, PaymentType,
     PaymentVerification, Permit2ApprovalData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualMetadata,
-    PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPosition, PerpetualPositionData, PerpetualProvider, PerpetualReduceData, PerpetualSearchData, PerpetualTriggerOrder, PerpetualType, Platform,
-    PlatformStore, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceProvider,
+    PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPosition, PerpetualPositionData, PerpetualPrice, PerpetualProvider, PerpetualReduceData, PerpetualSearchData, PerpetualTriggerOrder, PerpetualType,
+    Platform, PlatformStore, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceProvider,
     RecentActivityType, RecentAsset, RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportReason, Resource, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus,
     Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
     SimulationWarningApproval, SimulationWarningType, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData,
@@ -1023,12 +1023,6 @@ pub struct CancelOrderData {
 }
 
 #[uniffi::remote(Record)]
-pub struct ChainAddress {
-    pub chain: Chain,
-    pub address: String,
-}
-
-#[uniffi::remote(Record)]
 pub struct ChainAsset {
     pub asset: Asset,
     pub network_name: String,
@@ -1459,6 +1453,13 @@ pub struct PerpetualPositionData {
     pub perpetual: Perpetual,
     pub asset: Asset,
     pub position: PerpetualPosition,
+}
+
+#[uniffi::remote(Record)]
+pub struct PerpetualPrice {
+    pub coin: String,
+    pub price: f64,
+    pub price_percent_change_24h: f64,
 }
 
 #[uniffi::remote(Record)]

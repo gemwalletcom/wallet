@@ -15,7 +15,7 @@ pub fn map_coin_balance(account: &TronAccount) -> Result<AssetBalance, Box<dyn E
 }
 
 pub fn map_token_balance(balance_hex: &str, asset_id: AssetId) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-    let balance_bytes = decode_hex(balance_hex).map_err(|e| format!("Failed to parse hex balance: {e}"))?;
+    let balance_bytes = decode_hex(balance_hex).map_err(|error| format!("Failed to parse hex balance: {error}"))?;
     let balance = BigUint::from_bytes_be(&balance_bytes);
 
     Ok(AssetBalance::new(asset_id, balance))
@@ -71,14 +71,7 @@ pub fn map_balance_staking(account: &TronAccount, reward: &TronReward, usage: &T
     }
 }
 
-fn new_stake_balance(
-    frozen: BigUint,  // bandwidth frozen
-    locked: BigUint,  // energy frozen
-    staked: BigUint,  // vote amount
-    pending: BigUint, // unfreezing amount
-    rewards: BigUint, // voting rewards
-    metadata: BalanceMetadata,
-) -> Balance {
+fn new_stake_balance(frozen: BigUint, locked: BigUint, staked: BigUint, pending: BigUint, rewards: BigUint, metadata: BalanceMetadata) -> Balance {
     Balance {
         available: BigUint::from(0u32),
         frozen,

@@ -3,6 +3,7 @@ package com.gemwallet.android.features.assets.viewmodels.select
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.wallet.core.primitives.Chain
@@ -20,15 +21,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withContext
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemDay
@@ -41,6 +39,9 @@ import uniffi.gemstone.GemRecentsViewState
 class RecentsViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
 
     private val solAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
     private val ethAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
@@ -63,52 +64,42 @@ class RecentsViewModelTest {
         }
     }
 
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
     @Test
     fun `show makes visible and dismiss hides`() = runTest(testDispatcher) {
-        val vm = RecentsViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
+        val viewModel = RecentsViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
 
-        assertFalse(vm.visible.value)
+        assertFalse(viewModel.visible.value)
 
-        vm.show(filters = setOf(GemAssetFilter.HasBalance))
+        viewModel.show(filters = setOf(GemAssetFilter.HasBalance))
         advanceUntilIdle()
-        assertTrue(vm.visible.value)
+        assertTrue(viewModel.visible.value)
 
-        vm.dismiss()
+        viewModel.dismiss()
         advanceUntilIdle()
-        assertFalse(vm.visible.value)
+        assertFalse(viewModel.visible.value)
     }
 
     @Test
     fun `the view state keeps content after dismiss`() = runTest(testDispatcher) {
         every { recentActivityQuery(WalletId("wallet-1"), any(), any(), 0) } returns flowOf(recentItems)
-        val vm = RecentsViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
+        val viewModel = RecentsViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
 
-        vm.show()
-        vm.viewState.first { it.days.isNotEmpty() }
+        viewModel.show()
+        viewModel.viewState.first { it.days.isNotEmpty() }
 
-        vm.dismiss()
+        viewModel.dismiss()
         withContext(Dispatchers.Default) { delay(100) }
-        assertEquals(recentItems.map { it.toGem() }, vm.viewState.value.days.flatMap { it.recents })
+        assertEquals(recentItems.map { it.toGem() }, viewModel.viewState.value.days.flatMap { it.recents })
     }
 
     @Test
     fun `clear delegates to coordinator with current types`() = runTest(testDispatcher) {
-        val vm = RecentsViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
+        val viewModel = RecentsViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
         val types = listOf(RecentActivityType.Swap)
-        vm.show(types = types)
+        viewModel.show(types = types)
         advanceUntilIdle()
 
-        vm.onClear()
+        viewModel.onClear()
         advanceUntilIdle()
 
         coVerify { recentActivityService.clear(types.map { it.toGem() }) }

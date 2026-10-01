@@ -16,12 +16,12 @@ pub async fn new_stream(redis_url: &str, device_stream: &DeviceStreamClient, obs
     };
     info_with_fields!("websocket device stream connected", status = "ok");
 
-    if let Err(e) = observer.subscribe_device_channel(&mut redis_connection).await {
-        error_fields!("websocket failed to subscribe device channel", message = format!("{e:?}"));
+    if let Err(error) = observer.subscribe_device_channel(&mut redis_connection).await {
+        error_fields!("websocket failed to subscribe device channel", message = format!("{error:?}"));
         return;
     }
-    if let Err(e) = flush_device_stream_events(observer, device_stream, &mut stream).await {
-        error_fields!("websocket failed to flush device stream events", message = format!("{e:?}"));
+    if let Err(error) = flush_device_stream_events(observer, device_stream, &mut stream).await {
+        error_fields!("websocket failed to flush device stream events", message = format!("{error:?}"));
         return;
     }
 
@@ -39,8 +39,8 @@ pub async fn new_stream(redis_url: &str, device_stream: &DeviceStreamClient, obs
                     Ok(_) => {
                         info_with_fields!("websocket tick notified prices", status = "ok");
                     }
-                    Err(e) => {
-                        error_fields!("websocket send error on tick", message = format!("{e:?}"));
+                    Err(error) => {
+                        error_fields!("websocket send error on tick", message = format!("{error:?}"));
                         break;
                     }
                 }
@@ -54,24 +54,24 @@ pub async fn new_stream(redis_url: &str, device_stream: &DeviceStreamClient, obs
                     error_fields!("websocket redis connection lost");
                     break;
                 }
-                match observer.handle_redis_message(&message) {
+                match observer.receive_redis_message(&message) {
                     Ok(Some(event)) => {
-                        if let Err(e) = observer.send_event(&mut stream, event).await {
-                            error_fields!("websocket send event error", message = format!("{e:?}"));
+                        if let Err(error) = observer.send_event(&mut stream, event).await {
+                            error_fields!("websocket send event error", message = format!("{error:?}"));
                             break;
                         }
                     }
                     Ok(None) => { }
-                    Err(e) => {
-                        error_fields!("websocket redis message handler error", message = format!("{e:?}"));
+                    Err(error) => {
+                        error_fields!("websocket redis message handler error", message = format!("{error:?}"));
                     }
                 }
             }
             message = stream.next() => {
                 match message {
                     Some(Ok(message)) => {
-                        if let Err(e) = observer.handle_ws_message(message, &mut redis_connection, &mut stream).await {
-                            error_fields!("websocket message handler error", message = format!("{e:?}"));
+                        if let Err(error) = observer.respond_to_ws_message(message, &mut redis_connection, &mut stream).await {
+                            error_fields!("websocket message handler error", message = format!("{error:?}"));
                             break;
                         }
                     }

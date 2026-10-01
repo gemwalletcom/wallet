@@ -80,7 +80,7 @@ class SupportChatViewModel @Inject constructor(
         }
     }
 
-    fun fetch() = viewModelScope.launch(ioDispatcher) {
+    fun load() = viewModelScope.launch(ioDispatcher) {
         val shown = messages.first()
         val fromTimestamp = supportService.syncFromTimestamp(shown.map { it.toGem() })
         loadState.update { supportService.refresh(fromTimestamp, shown.isNotEmpty()) }

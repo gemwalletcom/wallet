@@ -29,7 +29,7 @@ pub struct BigNumberFormatter {}
 
 impl BigNumberFormatter {
     pub fn big_decimal_value(value: &str, decimals: u32) -> Result<BigDecimal, NumberFormatterError> {
-        let mut decimal = BigDecimal::from_str(value).map_err(|e| NumberFormatterError::InvalidNumber(e.to_string()))?;
+        let mut decimal = BigDecimal::from_str(value).map_err(|error| NumberFormatterError::InvalidNumber(error.to_string()))?;
         let exp = BigInt::from(10).pow(decimals);
         decimal = decimal / BigDecimal::from(exp);
         Ok(decimal)
@@ -136,33 +136,27 @@ mod tests {
 
     #[test]
     fn test_value() {
-        // Test case 1: Valid input
         let result = BigNumberFormatter::value("123456", 3).unwrap();
         assert_eq!(result, "123.456");
 
-        // Test case 2: Input with more decimals than specified
         let result = BigNumberFormatter::value("789123456", 4).unwrap();
         assert_eq!(result, "78912.3456");
 
-        // Test case 3: Input with fewer decimals than specified
         let result = BigNumberFormatter::value("4567", 4).unwrap();
         assert_eq!(result, "0.4567");
 
-        // Test case 4: u256 input
         let result = BigNumberFormatter::value("115792089237316195423570985008687907853269984665640564039457000000000000000000", 18).unwrap();
         assert_eq!(result, "115792089237316195423570985008687907853269984665640564039457");
 
         let result = BigNumberFormatter::value("abc", 2);
         assert!(result.is_err());
 
-        // Test case 6: Output return small value
         let result = BigNumberFormatter::value("1640000000000000", 18).unwrap();
         assert_eq!(result, "0.00164");
     }
 
     #[test]
     fn test_value_from_amount() {
-        // Test case 1: Valid input
         let result = BigNumberFormatter::value_from_amount("1.123", 3).unwrap();
         assert_eq!(result, "1123");
 
@@ -172,7 +166,6 @@ mod tests {
         let result = BigNumberFormatter::value_from_amount("0", 0).unwrap();
         assert_eq!(result, "0");
 
-        // Test case 2: Invalid input
         let result = BigNumberFormatter::value_from_amount("invalid", 3);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), NumberFormatterError::InvalidNumber("invalid".to_string()));
@@ -226,7 +219,6 @@ mod tests {
 
     #[test]
     fn test_value_from_amount_biguint() {
-        // Test case 1: Valid input
         let result = BigNumberFormatter::value_from_amount_biguint("1.123", 3).unwrap();
         assert_eq!(result, BigUint::from(1123u32));
 
@@ -236,12 +228,10 @@ mod tests {
         let result = BigNumberFormatter::value_from_amount_biguint("0", 0).unwrap();
         assert_eq!(result, BigUint::from(0u32));
 
-        // Test case 2: Large numbers
         let result = BigNumberFormatter::value_from_amount_biguint("1000000000000", 18).unwrap();
         let expected = "1000000000000000000000000000000".parse::<BigUint>().unwrap();
         assert_eq!(result, expected);
 
-        // Test case 3: Invalid input
         let result = BigNumberFormatter::value_from_amount_biguint("invalid", 3);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), NumberFormatterError::InvalidNumber("invalid".to_string()));

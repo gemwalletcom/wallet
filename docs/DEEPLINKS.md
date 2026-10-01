@@ -1,6 +1,6 @@
 # Deep links
 
-A deep link opens a screen inside the app. Core parses the same paths under two schemes: `gem://` is handled only by the app, while `https://gemwallet.com/` reaches an installed app only when that path is included in the platform's verified-link configuration.
+A deep link opens a screen inside the app. Core parses the same paths under two schemes: `gem://` is handled only by the app, while `https://gemwallet.com/` reaches an installed app only when that path is included in the platform's verified-link configuration. Android does not register the `gem` scheme, so another app cannot intercept a Gem link there; links that open Gem from outside the app, including the WalletConnect redirect, use `https://gemwallet.com/`.
 
 ## Supported links
 
@@ -33,6 +33,8 @@ https://gemwallet.com/tokens/solana/buy?amount=25
 Sell availability controls whether Sell can be selected in the screen. A direct sell link still opens Sell when the asset is not marked as sellable.
 
 A Receive, Buy, Sell or Swap link for a network the current wallet has no account on opens nothing and says the wallet has no account for that network.
+
+A link opens once, when it arrives. Rotating the phone, switching theme, or reopening the app from Recents does not open the link that launched it again.
 
 ## Links in the support chat
 

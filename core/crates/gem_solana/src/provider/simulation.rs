@@ -1,4 +1,3 @@
-use primitives::OptionStringExt;
 use std::{collections::HashSet, error::Error};
 
 use async_trait::async_trait;
@@ -6,7 +5,7 @@ use chain_traits::{ChainSimulation, ChainToken};
 use futures::future::join_all;
 use gem_client::Client;
 use gem_encoding::decode_base64;
-use primitives::{Asset, SimulationBalanceChange, SimulationInput, SimulationResult};
+use primitives::{Asset, OptionStringExt, SimulationBalanceChange, SimulationInput, SimulationResult};
 
 use crate::{VersionedTransaction, provider::simulation_mapper::map_simulation_result, rpc::SolanaProvider};
 
@@ -14,7 +13,7 @@ use crate::{VersionedTransaction, provider::simulation_mapper::map_simulation_re
 impl<C: Client + Clone> ChainSimulation for SolanaProvider<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         let bytes = decode_base64(&input.encoded_transaction)?;
-        let transaction = VersionedTransaction::deserialize_with_version(&bytes).map_err(|err| format!("parse transaction: {err}"))?;
+        let transaction = VersionedTransaction::deserialize_with_version(&bytes).map_err(|error| format!("parse transaction: {error}"))?;
         let account_keys: Vec<String> = transaction.account_keys().iter().map(ToString::to_string).collect();
         let signer_addresses = match input.signer_address.as_deref().non_empty() {
             Some(signer_address) => HashSet::from([signer_address.to_string()]),

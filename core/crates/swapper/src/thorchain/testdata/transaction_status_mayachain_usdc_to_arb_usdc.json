@@ -1,0 +1,105 @@
+{
+  "tx": {
+    "id": "111999C66DC0A570EB0B7DE36A952DF62897DEFEF8013F0514C17115E68A0238",
+    "chain": "ETH",
+    "from_address": "0x72836d6232b385ae6fb80d9fcd6f09f932cba050",
+    "to_address": "0x6A16f961e24E6E90Bd9f950F768dc42a7f305664",
+    "coins": [
+      {
+        "asset": "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48",
+        "amount": "1000000000000",
+        "decimals": 6
+      }
+    ],
+    "gas": [
+      {
+        "asset": "ETH.ETH",
+        "amount": "75215"
+      }
+    ],
+    "memo": "=:ARB.USDC:0x72836D6232B385aE6FB80d9fCD6F09F932Cba050:0/1/0:g1:50"
+  },
+  "planned_out_txs": [
+    {
+      "chain": "ARB",
+      "to_address": "0x72836D6232B385aE6FB80d9fCD6F09F932Cba050",
+      "coin": {
+        "asset": "ARB.USDC-0XAF88D065E77C8CC2239327C5EDB3A432268E5831",
+        "amount": "984476615900"
+      },
+      "refund": false
+    },
+    {
+      "chain": "MAYA",
+      "to_address": "maya1dl7un46w7l7f3ewrnrm6nq58nerjtp0dr2n7aa",
+      "coin": {
+        "asset": "MAYA.CACAO",
+        "amount": "4553329330200"
+      },
+      "refund": false
+    }
+  ],
+  "out_txs": [
+    {
+      "id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "chain": "MAYA",
+      "from_address": "maya1g98cy3n9mmjrpn0sxmn63lztelera37n8yyjwl",
+      "to_address": "maya1dl7un46w7l7f3ewrnrm6nq58nerjtp0dr2n7aa",
+      "coins": [
+        {
+          "asset": "MAYA.CACAO",
+          "amount": "4553329330200"
+        }
+      ],
+      "gas": [
+        {
+          "asset": "MAYA.CACAO",
+          "amount": "2000000000"
+        }
+      ],
+      "memo": "OUT:111999C66DC0A570EB0B7DE36A952DF62897DEFEF8013F0514C17115E68A0238"
+    },
+    {
+      "id": "C2989BC47AACECB9B165DE283E8080569A3B10329FE26CB955DF95D8EA2821BA",
+      "chain": "ARB",
+      "from_address": "0x6a16f961e24e6e90bd9f950f768dc42a7f305664",
+      "to_address": "0x72836D6232B385aE6FB80d9fCD6F09F932Cba050",
+      "coins": [
+        {
+          "asset": "ARB.USDC-0XAF88D065E77C8CC2239327C5EDB3A432268E5831",
+          "amount": "984476615900",
+          "decimals": 6
+        }
+      ],
+      "gas": [
+        {
+          "asset": "ARB.ETH",
+          "amount": "638"
+        }
+      ],
+      "memo": "OUT:111999C66DC0A570EB0B7DE36A952DF62897DEFEF8013F0514C17115E68A0238"
+    }
+  ],
+  "stages": {
+    "inbound_observed": {
+      "pre_confirmation_count": 38,
+      "final_count": 38,
+      "completed": true
+    },
+    "inbound_confirmation_counted": {
+      "completed": true
+    },
+    "inbound_finalised": {
+      "completed": true
+    },
+    "swap_status": {
+      "pending": false
+    },
+    "swap_finalised": {
+      "completed": true
+    },
+    "outbound_signed": {
+      "completed": true
+    }
+  }
+}

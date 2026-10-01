@@ -97,7 +97,6 @@ pub async fn get_device_transaction_by_id_v2(device: AuthenticatedDeviceWallet, 
     Ok(client.get_transaction_by_wallet_id(device.record.id, device.wallet_id, &id.0).await?.into())
 }
 
-// TODO: Remove the legacy singular route after 2026-11-15.
 #[get("/devices/transaction/<id>")]
 pub async fn get_device_transaction_v2(_device: AuthenticatedDevice, id: TransactionIdParam, client: &State<TransactionsClient>) -> Result<ApiResponse<Transaction>, ApiError> {
     Ok(client.get_transaction_by_id(&id.0).await?.into())

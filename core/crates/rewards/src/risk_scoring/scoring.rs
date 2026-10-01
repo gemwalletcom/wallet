@@ -242,7 +242,6 @@ mod tests {
         let config = RiskScoreConfig::default();
         let fingerprint = input.generate_fingerprint();
 
-        // 1 referrer * 50 per referrer = 50
         let existing = RiskSignal::mock("other_user", &fingerprint, "10.0.0.1", "Comcast", "iPhone15,2", 2);
         let result = calculate_risk_score(&input, &[existing], 0, 0, 0, 0, 0, &config);
 
@@ -256,7 +255,6 @@ mod tests {
         let config = RiskScoreConfig::default();
         let fingerprint = input.generate_fingerprint();
 
-        // 2 referrers * 50 = 100
         let signals = vec![
             RiskSignal::mock("referrer_a", &fingerprint, "10.0.0.1", "Comcast", "iPhone15,2", 2),
             RiskSignal::mock("referrer_b", &fingerprint, "10.0.0.2", "Comcast", "iPhone15,2", 3),
@@ -273,7 +271,6 @@ mod tests {
         let config = RiskScoreConfig::default();
         let fingerprint = input.generate_fingerprint();
 
-        // 5 referrers * 50 = 250, but capped at 200
         let signals: Vec<_> = (0..5).map(|i| RiskSignal::mock(&format!("referrer_{}", i), &fingerprint, &format!("10.0.0.{}", i), "Comcast", "iPhone15,2", 10 + i)).collect();
         let result = calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &config);
 
@@ -309,7 +306,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 1 referrer * 50 per referrer = 50
         let existing = RiskSignal::mock("other_user", "different", "10.0.0.1", "Verizon", "Pixel 8", 1);
         let result = calculate_risk_score(&input, &[existing], 0, 0, 0, 0, 0, &config);
 
@@ -322,7 +318,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 2 referrers * 50 = 100
         let signals = vec![
             RiskSignal::mock("referrer_a", "fp1", "10.0.0.1", "Verizon", "Pixel 8", 1),
             RiskSignal::mock("referrer_b", "fp2", "10.0.0.2", "AT&T", "Galaxy S23", 1),
@@ -338,7 +333,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 5 referrers * 50 = 250, but capped at 200
         let signals: Vec<_> = (0..5).map(|i| RiskSignal::mock(&format!("referrer_{}", i), &format!("fp{}", i), &format!("10.0.0.{}", i), "ISP", "Model", 1)).collect();
         let result = calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &config);
 
@@ -364,7 +358,6 @@ mod tests {
         let config = RiskScoreConfig::default();
         let fingerprint = input.generate_fingerprint();
 
-        // When fingerprint matches, isp_model is not counted (fingerprint is more specific)
         let existing = RiskSignal::mock("other_user", &fingerprint, "10.0.0.1", "Comcast", "iPhone15,2", 2);
         let result = calculate_risk_score(&input, &[existing], 0, 0, 0, 0, 0, &config);
 
@@ -646,7 +639,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let result = calculate_risk_score(&input, &[], 2, 0, 0, 0, 0, &RiskScoreConfig::default());
 
-        // count=2: (2-1) * 40 = 40
         assert_eq!(result.breakdown.device_model_ring_score, 40);
         assert_eq!(result.score, 40);
         assert!(result.is_allowed);
@@ -656,12 +648,10 @@ mod tests {
     fn device_model_ring_scales_with_count() {
         let input = RiskSignalInput::mock();
 
-        // count=3: (3-1) * 40 = 80
         let result = calculate_risk_score(&input, &[], 3, 0, 0, 0, 0, &RiskScoreConfig::default());
         assert_eq!(result.breakdown.device_model_ring_score, 80);
         assert!(!result.is_allowed);
 
-        // count=5: (5-1) * 40 = 160
         let result = calculate_risk_score(&input, &[], 5, 0, 0, 0, 0, &RiskScoreConfig::default());
         assert_eq!(result.breakdown.device_model_ring_score, 160);
         assert!(!result.is_allowed);
@@ -679,17 +669,14 @@ mod tests {
 
     #[test]
     fn velocity_no_burst() {
-        // Signals from different referrer don't trigger velocity for user1
         let result = calculate_risk_score(&RiskSignalInput::mock(), &[RiskSignal::mock_recent("other", 60)], 0, 0, 0, 0, 0, &RiskScoreConfig::default());
         assert_eq!(result.breakdown.velocity_score, 0);
     }
 
     #[test]
     fn velocity_burst() {
-        // Normal user threshold=2 (5/2), 1 signal - no penalty
         let result = calculate_risk_score(&RiskSignalInput::mock(), &[RiskSignal::mock_recent("user1", 60)], 0, 0, 0, 0, 0, &RiskScoreConfig::default());
         assert_eq!(result.breakdown.velocity_score, 0);
-        // 2 signals triggers penalty
         let signals = vec![RiskSignal::mock_recent("user1", 60), RiskSignal::mock_recent("user1", 120)];
         let result = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default());
         assert!(result.breakdown.velocity_score > 0);
@@ -697,7 +684,6 @@ mod tests {
 
     #[test]
     fn velocity_scales_with_count_and_speed() {
-        // More signals and tighter span = higher penalty
         let signals = vec![RiskSignal::mock_recent("user1", 60), RiskSignal::mock_recent("user1", 120)];
         let score2 = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score;
         let signals = vec![RiskSignal::mock_recent("user1", 60), RiskSignal::mock_recent("user1", 120), RiskSignal::mock_recent("user1", 180)];
@@ -708,11 +694,8 @@ mod tests {
 
     #[test]
     fn velocity_faster_spam_higher_penalty() {
-        // Same count but tighter time = higher penalty
-        // 3 signals in 120s span: multiplier=1.6, penalty=300*1.6=480
         let signals = vec![RiskSignal::mock_recent("user1", 60), RiskSignal::mock_recent("user1", 120), RiskSignal::mock_recent("user1", 180)];
         let slow = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score;
-        // 3 signals in 20s span: multiplier=1+(300-20)/300=1.93, penalty=300*1.93=579
         let signals = vec![RiskSignal::mock_recent("user1", 60), RiskSignal::mock_recent("user1", 70), RiskSignal::mock_recent("user1", 80)];
         let fast = calculate_risk_score(&RiskSignalInput::mock(), &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score;
         assert!(fast > slow);
@@ -722,10 +705,8 @@ mod tests {
     fn velocity_verified_user() {
         let mut input = RiskSignalInput::mock();
         input.referrer_status = RewardStatus::Verified;
-        // Verified user threshold=5 (10/2), 4 signals - no penalty
         let signals: Vec<_> = (0..4).map(|i| RiskSignal::mock_recent("user1", 60 + i * 30)).collect();
         assert_eq!(calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score, 0);
-        // 5 signals triggers penalty
         let signals: Vec<_> = (0..5).map(|i| RiskSignal::mock_recent("user1", 60 + i * 30)).collect();
         assert!(calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score > 0);
     }
@@ -734,10 +715,8 @@ mod tests {
     fn velocity_trusted_user() {
         let mut input = RiskSignalInput::mock();
         input.referrer_status = RewardStatus::Trusted;
-        // Trusted user threshold=7 (15/2), 6 signals - no penalty
         let signals: Vec<_> = (0..6).map(|i| RiskSignal::mock_recent("user1", 60 + i * 30)).collect();
         assert_eq!(calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score, 0);
-        // 7 signals triggers penalty
         let signals: Vec<_> = (0..7).map(|i| RiskSignal::mock_recent("user1", 60 + i * 30)).collect();
         assert!(calculate_risk_score(&input, &signals, 0, 0, 0, 0, 0, &RiskScoreConfig::default()).breakdown.velocity_score > 0);
     }
@@ -837,7 +816,6 @@ mod tests {
         let config = RiskScoreConfig::default();
         let fingerprint = input.generate_fingerprint();
 
-        // Same fingerprint + same IP + different referrer = fraud (500 penalty)
         let existing = RiskSignal::mock("other_referrer", &fingerprint, "192.168.1.1", "Comcast", "iPhone15,2", 2);
         let result = calculate_risk_score(&input, &[existing], 0, 0, 0, 0, 0, &config);
 
@@ -851,7 +829,6 @@ mod tests {
         let config = RiskScoreConfig::default();
         let fingerprint = input.generate_fingerprint();
 
-        // Same fingerprint but different IP = only fingerprint penalty (50), not cross-referrer
         let existing = RiskSignal::mock("other_referrer", &fingerprint, "10.0.0.1", "Comcast", "iPhone15,2", 2);
         let result = calculate_risk_score(&input, &[existing], 0, 0, 0, 0, 0, &config);
 
@@ -864,7 +841,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // Same IP but different fingerprint = only IP reuse penalty (50), not cross-referrer
         let existing = RiskSignal::mock("other_referrer", "different_fingerprint", "192.168.1.1", "Verizon", "Pixel 8", 2);
         let result = calculate_risk_score(&input, &[existing], 0, 0, 0, 0, 0, &config);
 
@@ -878,7 +854,6 @@ mod tests {
         let config = RiskScoreConfig::default();
         let fingerprint = input.generate_fingerprint();
 
-        // Same referrer should not trigger cross-referrer penalty
         let existing = RiskSignal::mock("user1", &fingerprint, "192.168.1.1", "Comcast", "iPhone15,2", 2);
         let result = calculate_risk_score(&input, &[existing], 0, 0, 0, 0, 0, &config);
 
@@ -890,7 +865,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 1 referrer is below threshold (2)
         let result = calculate_risk_score(&input, &[], 0, 0, 1, 0, 0, &config);
 
         assert_eq!(result.breakdown.cross_referrer_fingerprint_score, 0);
@@ -901,7 +875,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 2 referrers triggers penalty (threshold is 2)
         let result = calculate_risk_score(&input, &[], 0, 0, 2, 0, 0, &config);
 
         assert_eq!(result.breakdown.cross_referrer_fingerprint_score, 100);
@@ -913,7 +886,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 6 referrers (VPN fraud ring) triggers penalty
         let result = calculate_risk_score(&input, &[], 0, 0, 6, 0, 0, &config);
 
         assert_eq!(result.breakdown.cross_referrer_fingerprint_score, 100);
@@ -925,7 +897,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 4 countries is below threshold (5)
         let result = calculate_risk_score(&input, &[], 0, 0, 0, 4, 0, &config);
 
         assert_eq!(result.breakdown.country_diversity_score, 0);
@@ -936,7 +907,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 5 countries = 5 * 5 = 25 penalty
         let result = calculate_risk_score(&input, &[], 0, 0, 0, 5, 0, &config);
 
         assert_eq!(result.breakdown.country_diversity_score, 25);
@@ -948,13 +918,11 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 10 countries = 10 * 5 = 50 penalty
         let result = calculate_risk_score(&input, &[], 0, 0, 0, 10, 0, &config);
 
         assert_eq!(result.breakdown.country_diversity_score, 50);
         assert!(result.is_allowed);
 
-        // 13 countries = 13 * 5 = 65 penalty -> blocked
         let result = calculate_risk_score(&input, &[], 0, 0, 0, 13, 0, &config);
 
         assert_eq!(result.breakdown.country_diversity_score, 65);
@@ -966,7 +934,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 9 devices is below threshold (10)
         let result = calculate_risk_score(&input, &[], 0, 0, 0, 0, 9, &config);
 
         assert_eq!(result.breakdown.device_farming_score, 0);
@@ -977,7 +944,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 10 devices = 10 * 3 = 30 penalty
         let result = calculate_risk_score(&input, &[], 0, 0, 0, 0, 10, &config);
 
         assert_eq!(result.breakdown.device_farming_score, 30);
@@ -989,13 +955,11 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 20 devices = 20 * 3 = 60 penalty -> blocked
         let result = calculate_risk_score(&input, &[], 0, 0, 0, 0, 20, &config);
 
         assert_eq!(result.breakdown.device_farming_score, 60);
         assert!(!result.is_allowed);
 
-        // 41 devices = 41 * 3 = 123 penalty
         let result = calculate_risk_score(&input, &[], 0, 0, 0, 0, 41, &config);
 
         assert_eq!(result.breakdown.device_farming_score, 123);
@@ -1007,7 +971,6 @@ mod tests {
         let input = RiskSignalInput::mock();
         let config = RiskScoreConfig::default();
 
-        // 10 countries + 41 devices: 10 * 5 = 50 + 41 * 3 = 123 = 173 total
         let result = calculate_risk_score(&input, &[], 0, 0, 0, 10, 41, &config);
 
         assert_eq!(result.breakdown.country_diversity_score, 50);

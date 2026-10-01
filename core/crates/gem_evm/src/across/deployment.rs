@@ -5,7 +5,6 @@ use num_bigint::BigInt;
 use primitives::{AssetId, Chain, asset_constants::*, contract_constants::*};
 use std::{collections::HashMap, vec};
 
-/// https://docs.across.to/developer-docs/developers/contract-addresses
 pub struct AcrossDeployment {
     pub chain_id: u32,
     pub spoke_pool: &'static str,
@@ -164,7 +163,6 @@ impl AcrossDeployment {
                     ARC_USDC_ASSET_ID.clone(),
                 ]),
             },
-            // USDC on BSC decimals are 18
             AssetMapping {
                 capital_cost: CapitalCostConfig {
                     lower_bound: EtherConv::parse_ether("0.0001"),
@@ -196,7 +194,6 @@ impl AcrossDeployment {
                     TRON_USDT_ASSET_ID.clone(),
                 ]),
             },
-            // USDT on BSC decimals are 18
             AssetMapping {
                 capital_cost: CapitalCostConfig {
                     lower_bound: EtherConv::parse_ether("0.0001"),

@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemDeviceKeyService
-import GemstonePrimitivesTestKit
 @testable import GemstoneServices
+import GemstoneServicesTestKit
 import Keychain
 import Primitives
 import Testing
@@ -13,7 +12,7 @@ struct DevicePlatformTests {
     @Test
     func pushTokenRoundTripsThroughTheKeychain() async throws {
         let keychain = RecordingKeychain()
-        let platform = makePlatform(keychain: keychain)
+        let platform = GemstoneDevicePlatform.mock(keychain: keychain)
 
         #expect(try await platform.pushToken() == "")
 
@@ -27,7 +26,7 @@ struct DevicePlatformTests {
     @Test
     func clearDeviceEntriesRemovesTheLegacyDeviceEntriesAndTheToken() async throws {
         let keychain = RecordingKeychain()
-        let platform = makePlatform(keychain: keychain)
+        let platform = GemstoneDevicePlatform.mock(keychain: keychain)
         for key in ["deviceId", "deviceToken", "devicePrivateKey", "devicePublicKey", "gatewaydevice_private_key"] {
             try keychain.set("value", key: key)
         }
@@ -39,13 +38,5 @@ struct DevicePlatformTests {
         #expect(try keychain.get("devicePrivateKey") == nil)
         #expect(try keychain.get("devicePublicKey") == nil)
         #expect(try keychain.get("gatewaydevice_private_key") == "value")
-    }
-
-    private func makePlatform(keychain: RecordingKeychain) -> GemstoneDevicePlatform {
-        GemstoneDevicePlatform(
-            preferencesService: GemPreferencesServiceMock(),
-            deviceKeyService: GemDeviceKeyService(store: GemSecureStoreMock()),
-            keychain: keychain,
-        )
     }
 }

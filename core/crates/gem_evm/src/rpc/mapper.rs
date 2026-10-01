@@ -1,4 +1,3 @@
-use primitives::OptionStringExt;
 use std::borrow::Cow;
 
 use super::parsers::{ProtocolParser, ProtocolParsers};
@@ -11,7 +10,7 @@ use crate::{
 use chrono::DateTime;
 use num_bigint::BigUint;
 use primitives::{
-    AssetId, NFTAssetId, Transaction as PrimitivesTransaction, TransactionType,
+    AssetId, NFTAssetId, OptionStringExt, Transaction as PrimitivesTransaction, TransactionType,
     chain::Chain,
     hex::decode_hex_utf8,
     transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata, TransactionNFTTransferMetadata},
@@ -60,9 +59,9 @@ impl EthereumMapper {
 
         if transaction.to.is_some()
             && transaction.input.len() >= 8
-            && let Some(tx) = ProtocolParsers::map_transaction_with_parsers(&chain, transaction, transaction_receipt, created_at, parsers)
+            && let Some(parsed) = ProtocolParsers::map_transaction_with_parsers(&chain, transaction, transaction_receipt, created_at, parsers)
         {
-            return Some(tx);
+            return Some(parsed);
         }
 
         let build_nft_transfer = |transfer: NftTransferPayload| {
@@ -399,13 +398,13 @@ mod tests {
         let result = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &transaction_receipt, &BigUint::from(1735671600u64));
 
         assert!(result.is_some());
-        let tx = result.unwrap();
-        assert_eq!(tx.transaction_type, TransactionType::Transfer);
-        assert_eq!(tx.asset_id, AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(tx.from, "0x8D25Fb438C6efCD08679ffA82766869B50E24608");
-        assert_eq!(tx.to, "0x0700572b54ccA24Dad0eD4Cdad2c3d3ab6dB652a");
-        assert_eq!(tx.value, BigUint::from(2739900000000000000u64));
-        assert_eq!(tx.id.to_string(), "ethereum_0x0c0626172dbba6984a2e95b3abf1caba39cf11d3c9bc99d7de9ac814671c0cb1");
+        let mapped = result.unwrap();
+        assert_eq!(mapped.transaction_type, TransactionType::Transfer);
+        assert_eq!(mapped.asset_id, AssetId::from_chain(Chain::Ethereum));
+        assert_eq!(mapped.from, "0x8D25Fb438C6efCD08679ffA82766869B50E24608");
+        assert_eq!(mapped.to, "0x0700572b54ccA24Dad0eD4Cdad2c3d3ab6dB652a");
+        assert_eq!(mapped.value, BigUint::from(2739900000000000000u64));
+        assert_eq!(mapped.id.to_string(), "ethereum_0x0c0626172dbba6984a2e95b3abf1caba39cf11d3c9bc99d7de9ac814671c0cb1");
     }
 
     #[test]
@@ -510,13 +509,13 @@ mod tests {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/mayan_native_swap_tx.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/mayan_native_swap_tx_receipt.json"));
 
-        let tx = EthereumMapper::map_transaction(Chain::Polygon, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
+        let mapped = EthereumMapper::map_transaction(Chain::Polygon, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
 
-        assert_eq!(tx.transaction_type, TransactionType::SmartContractCall);
-        assert_eq!(tx.asset_id, AssetId::from_chain(Chain::Polygon));
-        assert_eq!(tx.from, "0x551Ac3629eC87F3957b1074FaF48d22A5a26ecec");
-        assert_eq!(tx.to, "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2");
-        assert_eq!(tx.value, BigUint::parse_bytes(b"124798001816181500204", 10).unwrap());
+        assert_eq!(mapped.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(mapped.asset_id, AssetId::from_chain(Chain::Polygon));
+        assert_eq!(mapped.from, "0x551Ac3629eC87F3957b1074FaF48d22A5a26ecec");
+        assert_eq!(mapped.to, "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2");
+        assert_eq!(mapped.value, BigUint::parse_bytes(b"124798001816181500204", 10).unwrap());
     }
 
     #[test]
@@ -524,13 +523,13 @@ mod tests {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/mayan_token_swap_tx.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/mayan_token_swap_tx_receipt.json"));
 
-        let tx = EthereumMapper::map_transaction(Chain::Polygon, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
+        let mapped = EthereumMapper::map_transaction(Chain::Polygon, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
 
-        assert_eq!(tx.transaction_type, TransactionType::SmartContractCall);
-        assert_eq!(tx.asset_id, AssetId::from_chain(Chain::Polygon));
-        assert_eq!(tx.from, "0x0DC153E9225a0d74460d806C08c961a3EC0ef17D");
-        assert_eq!(tx.to, "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2");
-        assert_eq!(tx.value, BigUint::from(0u64));
+        assert_eq!(mapped.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(mapped.asset_id, AssetId::from_chain(Chain::Polygon));
+        assert_eq!(mapped.from, "0x0DC153E9225a0d74460d806C08c961a3EC0ef17D");
+        assert_eq!(mapped.to, "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2");
+        assert_eq!(mapped.value, BigUint::from(0u64));
     }
 
     #[test]
@@ -554,12 +553,12 @@ mod tests {
             ..TransactionReceipt::mock()
         };
 
-        let tx = EthereumMapper::map_transaction(Chain::SmartChain, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
+        let mapped = EthereumMapper::map_transaction(Chain::SmartChain, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
 
-        assert_eq!(tx.transaction_type, TransactionType::Transfer);
-        assert_eq!(tx.asset_id, AssetId::from_chain(Chain::SmartChain));
-        assert_eq!(tx.memo, Some(memo.to_string()));
-        assert_eq!(tx.data, Some(input));
+        assert_eq!(mapped.transaction_type, TransactionType::Transfer);
+        assert_eq!(mapped.asset_id, AssetId::from_chain(Chain::SmartChain));
+        assert_eq!(mapped.memo, Some(memo.to_string()));
+        assert_eq!(mapped.data, Some(input));
     }
 
     #[test]
@@ -567,13 +566,13 @@ mod tests {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/claim_rewards_tx.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/claim_rewards_receipt.json"));
 
-        let tx = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
+        let mapped = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
 
-        assert_eq!(tx.transaction_type, TransactionType::Transfer);
-        assert_eq!(tx.asset_id, ETHEREUM_USDC_ASSET_ID.clone());
-        assert_eq!(tx.from, "0x34DeFF97889f3A6A483E3b9255cAFCB9a6e03588");
-        assert_eq!(tx.to, "0x0533d3A18D3f812eCFcC838B59B34fEc4d18E4AC");
-        assert_eq!(tx.value, BigUint::from(3900075892u64));
+        assert_eq!(mapped.transaction_type, TransactionType::Transfer);
+        assert_eq!(mapped.asset_id, ETHEREUM_USDC_ASSET_ID.clone());
+        assert_eq!(mapped.from, "0x34DeFF97889f3A6A483E3b9255cAFCB9a6e03588");
+        assert_eq!(mapped.to, "0x0533d3A18D3f812eCFcC838B59B34fEc4d18E4AC");
+        assert_eq!(mapped.value, BigUint::from(3900075892u64));
     }
 
     #[test]
@@ -581,13 +580,13 @@ mod tests {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/yo_deposit_tx.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/yo_deposit_receipt.json"));
 
-        let tx = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
+        let mapped = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
 
-        assert_eq!(tx.transaction_type, TransactionType::EarnDeposit);
-        assert_eq!(tx.asset_id, ETHEREUM_USDT_ASSET_ID.clone());
-        assert_eq!(tx.from, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F");
-        assert_eq!(tx.to, ETHEREUM_YO_PROTOCOL_CONTRACT);
-        assert_eq!(tx.value, BigUint::from(1466009u64));
+        assert_eq!(mapped.transaction_type, TransactionType::EarnDeposit);
+        assert_eq!(mapped.asset_id, ETHEREUM_USDT_ASSET_ID.clone());
+        assert_eq!(mapped.from, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F");
+        assert_eq!(mapped.to, ETHEREUM_YO_PROTOCOL_CONTRACT);
+        assert_eq!(mapped.value, BigUint::from(1466009u64));
     }
 
     #[test]
@@ -595,12 +594,12 @@ mod tests {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/yo_withdraw_tx.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/yo_withdraw_receipt.json"));
 
-        let tx = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
+        let mapped = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
 
-        assert_eq!(tx.transaction_type, TransactionType::EarnWithdraw);
-        assert_eq!(tx.asset_id, ETHEREUM_USDT_ASSET_ID.clone());
-        assert_eq!(tx.from, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F");
-        assert_eq!(tx.to, ETHEREUM_YO_PROTOCOL_CONTRACT);
-        assert_eq!(tx.value, BigUint::from(1466126u64));
+        assert_eq!(mapped.transaction_type, TransactionType::EarnWithdraw);
+        assert_eq!(mapped.asset_id, ETHEREUM_USDT_ASSET_ID.clone());
+        assert_eq!(mapped.from, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F");
+        assert_eq!(mapped.to, ETHEREUM_YO_PROTOCOL_CONTRACT);
+        assert_eq!(mapped.value, BigUint::from(1466126u64));
     }
 }

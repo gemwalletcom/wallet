@@ -33,11 +33,11 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
     }
 
     public func saveRatesAndPrices(currency _: Gemstone.Currency, rates: [Gemstone.FiatRate], conversion: Gemstone.FiatRate?, prices: [GemPriceUpdate]) async throws {
-        try priceStore.saveRatesAndPrices(rates.map { $0.toPrimitives() }, conversion: conversion?.toPrimitives(), prices: prices.map { try $0.priceUpdate() })
+        try priceStore.saveRatesAndPrices(rates.map { $0.toPrimitives() }, conversion: conversion?.toPrimitives(), prices: prices.map { $0.priceUpdate() })
     }
 
     public func savePrices(currency _: Gemstone.Currency, prices: [GemPriceUpdate]) async throws {
-        try priceStore.updatePrices(prices.map { try $0.priceUpdate() })
+        try priceStore.updatePrices(prices.map { $0.priceUpdate() })
     }
 
     public func convertPrices(currency _: Gemstone.Currency, rate: Double) async throws {
@@ -50,8 +50,8 @@ public final class GemstonePriceStore: GemPriceStore, @unchecked Sendable {
 }
 
 private extension GemPriceUpdate {
-    func priceUpdate() throws -> PriceUpdate {
-        try PriceUpdate(
+    func priceUpdate() -> PriceUpdate {
+        PriceUpdate(
             assetId: assetId,
             price: price,
             priceUsd: priceUsd,

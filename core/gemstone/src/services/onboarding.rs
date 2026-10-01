@@ -1,11 +1,11 @@
-use crate::constants::ACCEPT_TERMS_ITEMS;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAcceptTermsItem {
     SelfCustody,
     Recovery,
     Responsibility,
 }
+
+const ACCEPT_TERMS_ITEMS: &[GemAcceptTermsItem] = &[GemAcceptTermsItem::SelfCustody, GemAcceptTermsItem::Recovery, GemAcceptTermsItem::Responsibility];
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTermRow {
@@ -67,6 +67,7 @@ mod tests {
 
     #[test]
     fn test_terms_are_accepted_only_once_every_one_is_ticked() {
+        assert_eq!(ACCEPT_TERMS_ITEMS.len(), 3, "a wallet is only created once all three terms are accepted");
         let session = new_terms_session();
         assert!(!session.view_state().is_accepted);
         assert!(session.view_state().rows.iter().all(|row| !row.is_accepted));

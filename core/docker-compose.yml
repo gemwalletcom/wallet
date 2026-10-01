@@ -132,7 +132,7 @@ services:
       RABBITMQ_DEFAULT_PASS: password
 
   meilisearch:
-    image: getmeili/meilisearch:v1.49.0
+    image: getmeili/meilisearch:v1.54.0
     container_name: meilisearch
     restart: always
     ports:

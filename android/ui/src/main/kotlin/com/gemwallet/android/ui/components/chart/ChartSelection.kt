@@ -2,14 +2,12 @@ package com.gemwallet.android.ui.components.chart
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 
 private const val FADE_IN_MS = 150
 private const val FADE_OUT_MS = 200
@@ -30,36 +28,14 @@ class ChartSelection internal constructor() {
 @Composable
 fun rememberChartSelection(selectedIndex: Int?): ChartSelection {
     val selection = remember { ChartSelection() }
+    val haptic = LocalHapticFeedback.current
     LaunchedEffect(selectedIndex) {
-        if (selectedIndex != null) selection.fadeIn() else selection.fadeOut()
+        if (selectedIndex != null) {
+            haptic.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+            selection.fadeIn()
+        } else {
+            selection.fadeOut()
+        }
     }
     return selection
 }
-
-fun Modifier.chartSelection(vararg keys: Any?, indexAt: (Float) -> Int?, onSelectionChanged: (Int?) -> Unit): Modifier = this
-    .pointerInput(*keys) {
-        detectTapGestures(onPress = { touch ->
-            indexAt(touch.x)?.let { index ->
-                onSelectionChanged(index)
-            }
-            tryAwaitRelease()
-            onSelectionChanged(null)
-        })
-    }
-    .pointerInput(*keys) {
-        detectDragGestures(
-            onDragStart = { touch ->
-                indexAt(touch.x)?.let { index ->
-                    onSelectionChanged(index)
-                }
-            },
-            onDrag = { change, _ ->
-                change.consume()
-                indexAt(change.position.x)?.let { index ->
-                    onSelectionChanged(index)
-                }
-            },
-            onDragEnd = { onSelectionChanged(null) },
-            onDragCancel = { onSelectionChanged(null) },
-        )
-    }

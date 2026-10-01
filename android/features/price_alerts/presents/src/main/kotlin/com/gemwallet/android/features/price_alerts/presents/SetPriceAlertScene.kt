@@ -72,8 +72,7 @@ fun SetPriceAlertScene(
     @StringRes prompt: Int,
     input: GemPriceAlertInput,
     currentPriceText: String,
-    priceSuggestions: List<Pair<String, String>> = emptyList(),
-    percentageSuggestions: List<Pair<String, String>> = emptyList(),
+    suggestions: List<Pair<String, String>> = emptyList(),
     assetRow: GemAssetItemRow? = null,
     buttonState: ButtonState,
     snackbar: SnackbarHostState? = null,
@@ -113,11 +112,6 @@ fun SetPriceAlertScene(
         },
         mainAction = {
             if (value.text.isEmpty()) {
-                val suggestions = when (type) {
-                    PriceAlertNotificationType.Price -> priceSuggestions
-                    PriceAlertNotificationType.PricePercentChange -> percentageSuggestions
-                    else -> emptyList()
-                }
                 if (suggestions.isNotEmpty()) {
                     TabsBar(
                         tabs = suggestions,
@@ -240,8 +234,7 @@ fun SetPriceAlertScenePricePreview() {
             input = GemPriceAlertInput("0", GemPriceAlertSymbol.Currency(uniffi.gemstone.Currency.USD), GemAmountSymbolPlacement.LEADING, null),
             currentPriceText = "Current price $901.80",
             prompt = R.string.price_alerts_set_alert_price_over,
-            priceSuggestions = listOf("$850" to "850", "$950" to "950"),
-            percentageSuggestions = listOf("3%" to "3", "6%" to "6", "9%" to "9"),
+            suggestions = listOf("$850" to "850", "$950" to "950"),
             buttonState = ButtonState.Enabled,
             onType = {},
             onDirection = {},
@@ -262,8 +255,7 @@ fun SetPriceAlertScenePercentagePreview() {
             input = GemPriceAlertInput("5", GemPriceAlertSymbol.Percent, GemAmountSymbolPlacement.TRAILING, uniffi.gemstone.PriceAlertDirection.UP),
             currentPriceText = "Current price $901.80",
             prompt = R.string.price_alerts_set_alert_price_over,
-            priceSuggestions = listOf("$850" to "850", "$950" to "950"),
-            percentageSuggestions = listOf("3%" to "3", "6%" to "6", "9%" to "9"),
+            suggestions = listOf("3%" to "3", "6%" to "6", "9%" to "9"),
             buttonState = ButtonState.Enabled,
             onType = {},
             onDirection = {},

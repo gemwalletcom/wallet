@@ -16,6 +16,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.presents.select.AssetsManageRoute
+import com.gemwallet.android.features.onboarding.presents.authentication.EnableAuthenticationRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletSecurityReminderRoute
 import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletRoute
@@ -105,7 +106,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
@@ -116,10 +116,10 @@ class WalletNavigator(
     val backStack: NavBackStack<NavKey>,
     val currentTab: MutableState<String>,
     private val deeplinkService: GemDeeplinkServiceInterface,
-    private val assetsService: GemAssetsServiceInterface,
     private val navigationService: GemNavigationServiceInterface,
     private val session: StateFlow<Session?>,
     private val scope: CoroutineScope,
+    private val onOpenAction: (UrlAction) -> Unit,
 ) {
     private val routeMessages = mutableStateMapOf<NavKey, RouteMessage>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
@@ -137,8 +137,8 @@ class WalletNavigator(
     }
 
     private fun openAssetRoute(route: AssetRoute) = scope.launch {
-        runCatchingCancellable { withContext(Dispatchers.IO) { assetsService.openAsset(route.assetId.toIdentifier()) } }
-            .onSuccess { asset -> if (asset != null) push(route) }
+        runCatchingCancellable { withContext(Dispatchers.IO) { navigationService.openAsset(route.assetId.toIdentifier()) } }
+            .onSuccess { target -> if (target is GemNavigationTarget.Asset) push(route) }
             .onFailure { Log.e(TAG, "opening an asset failed", it) }
     }
 
@@ -170,6 +170,10 @@ class WalletNavigator(
 
     fun resetToOnboarding() {
         resetTo(OnboardingRoute)
+    }
+
+    fun openEnableAuthentication() {
+        resetTo(EnableAuthenticationRoute)
     }
 
     private fun resetTo(route: NavKey) {
@@ -243,7 +247,11 @@ class WalletNavigator(
     }
 
     fun openUrlAction(action: UrlAction): Boolean {
-        val deeplink = (action as? UrlAction.Deeplink)?.deeplink ?: return false
+        if (action !is UrlAction.Deeplink) {
+            onOpenAction(action)
+            return true
+        }
+        val deeplink = action.deeplink
         val origin = backStack.lastOrNull()
         scope.launch {
             runCatchingCancellable { withContext(Dispatchers.IO) { navigationService.openDeeplink(deeplink) } }

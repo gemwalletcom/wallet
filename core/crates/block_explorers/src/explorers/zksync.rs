@@ -10,7 +10,7 @@ impl ZkSync {
             base_url: "https://explorer.zksync.io",
             tx_path: TX_PATH,
             address_path: ADDRESS_PATH,
-            token_path: Some(ADDRESS_PATH), // ZkSync uses address path for tokens
+            token_path: Some(ADDRESS_PATH),
             nft_path: None,
             validator_path: None,
         };

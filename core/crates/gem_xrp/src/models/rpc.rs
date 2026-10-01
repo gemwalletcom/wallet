@@ -172,7 +172,7 @@ impl Amount {
         match self {
             Amount::Null => None,
             Amount::Str(_) => None,
-            Amount::Amount(amount) => amount.issuer.clone().or(amount.mpt_issuance_id.clone()),
+            Amount::Amount(amount) => amount.issuer.clone().or_else(|| amount.mpt_issuance_id.clone()),
         }
     }
 }
@@ -236,7 +236,7 @@ pub struct Fee {
     #[serde(deserialize_with = "deserialize_u64_from_str")]
     pub minimum_fee: u64,
     #[serde(deserialize_with = "deserialize_u64_from_str")]
-    pub median_fee: u64,
+    pub open_ledger_fee: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -286,7 +286,7 @@ mod tests {
     fn test_account_object_symbol_rlusd() {
         let account_object = AccountObjectLimit {
             currency: "524C555344000000000000000000000000000000".to_string(),
-            issuer: "".to_string(),
+            issuer: String::new(),
         };
         assert_eq!(account_object.symbol(), Some("RLUSD".to_string()));
     }

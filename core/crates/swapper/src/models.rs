@@ -2,7 +2,7 @@ use super::permit2_data::Permit2Data;
 use crate::{SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS};
 use num_bigint::BigUint;
 pub use primitives::swap::Permit2ApprovalData;
-pub use primitives::swap::SwapResult;
+pub use primitives::swap::{SwapResult, SwapResultRequest};
 use primitives::{
     AssetId, Chain,
     swap::{ApprovalData, SlippageMode, SwapProviderMode},

@@ -13,6 +13,7 @@ import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
@@ -25,8 +26,12 @@ import uniffi.gemstone.activityFilters
 import uniffi.gemstone.transactionRows
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GetTransactionsImpl(private val getSession: GetSession, private val getCurrentWalletId: GetCurrentWalletId, private val transactionsQuery: TransactionsQuery, private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) :
-    GetTransactions {
+class GetTransactionsImpl(
+    private val getSession: GetSession,
+    private val getCurrentWalletId: GetCurrentWalletId,
+    private val transactionsQuery: TransactionsQuery,
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+) : GetTransactions {
 
     private val rowCache = TransactionRows()
     private val observations = RecentRequests<Flow<List<GemTransactionRow>>>()

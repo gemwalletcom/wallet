@@ -60,7 +60,7 @@ impl ProxyRequestService {
         headers
     }
 
-    pub async fn handle_request(&self, request: &ProxyRequest, active_url: &Url, chain_config: &ChainConfig, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
+    pub async fn forward_request(&self, request: &ProxyRequest, active_url: &Url, chain_config: &ChainConfig, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
         let chain = request.chain;
         let request_type = request.request_type();
 
@@ -69,8 +69,8 @@ impl ProxyRequestService {
             _ => None,
         };
 
-        let resolved_url = chain_config.resolve_url(active_url, rpc_method, Some(&request.path));
-        let url = RequestUrl::from_parts(resolved_url, &request.path_with_query);
+        let upstream_url = chain_config.url_for_request(active_url, rpc_method, Some(&request.path));
+        let url = RequestUrl::from_parts(upstream_url, &request.path_with_query);
         if request.is_broadcast(&self.broadcast_providers) {
             *broadcast_host = url.url.host_str().map(str::to_owned);
         }
@@ -80,7 +80,7 @@ impl ProxyRequestService {
         self.metrics.add_proxy_request(request.chain.as_ref(), &methods_for_metrics);
 
         if let RequestType::JsonRpc(rpc_request) = request_type {
-            return JsonRpcHandler::handle_request(rpc_request, request, &self.cache, &self.metrics, &url, &self.client, &headers, &self.broadcast_webhook, &self.broadcast_providers).await;
+            return JsonRpcHandler::forward_request(rpc_request, request, &self.cache, &self.metrics, &url, &self.client, &headers, &self.broadcast_webhook, &self.broadcast_providers).await;
         }
 
         let cache_ttl = self.cache.should_cache_request(&chain, request_type);
@@ -180,7 +180,6 @@ fn cacheable_response(chain: Chain, path: &str, status: u16, body: &[u8]) -> boo
     if status != StatusCode::OK.as_u16() || body.is_empty() {
         return false;
     }
-    // TODO(2027-01-01): Remove v2 cache validation with Dynode legacy wallet routes.
     if chain == Chain::Ton && path == "/api/v2/runGetMethod" {
         return serde_json::from_slice::<Value>(body).is_ok_and(|response| response.get("ok") == Some(&Value::Bool(true)) && response.get_value("result").and_then(|result| result.get_i64("exit_code")) == Ok(0));
     }

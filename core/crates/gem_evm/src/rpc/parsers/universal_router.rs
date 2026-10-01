@@ -1,16 +1,22 @@
 use std::str::FromStr;
 
-use alloy_primitives::{Address, B256, U256, keccak256};
-use alloy_sol_types::{SolCall, SolEvent, SolValue};
+use alloy_primitives::{Address, U256, keccak256};
+use alloy_sol_types::{SolCall, SolValue};
 
 use crate::{
     address::ethereum_address_from_topic,
     ethereum_address_checksum,
-    rpc::{mapper::TRANSFER_TOPIC, model::TransactionReceipt},
+    rpc::{
+        mapper::TRANSFER_TOPIC,
+        model::{Log, TransactionReceipt},
+    },
     u256::u256_to_biguint,
     uniswap::{
         actions::{V4Action, decode_action_data},
-        command::{MSG_SENDER, SWEEP_COMMAND, Sweep, UNWRAP_WETH_COMMAND, UnwrapWeth, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V3SwapExactInV2_1, V4_SWAP_COMMAND, WRAP_ETH_COMMAND},
+        command::{
+            ADDRESS_THIS, MSG_SENDER, PAY_PORTION_COMMAND, PayPortion, SWEEP_COMMAND, Sweep, TRANSFER_COMMAND, Transfer, UNWRAP_WETH_COMMAND, UnwrapWeth, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V3SwapExactInV2_1, V4_SWAP_COMMAND,
+            WRAP_ETH_COMMAND,
+        },
         contracts::{
             IUniversalRouter,
             v4::{IPoolManager, PoolKey},
@@ -19,9 +25,12 @@ use crate::{
         path::decode_path,
     },
 };
-use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
+use primitives::{
+    AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, decode_hex,
+    swap::{EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS},
+};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data};
+use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_from_transfers};
 
 const WITHDRAWAL_TOPIC: &str = "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65";
 
@@ -58,13 +67,13 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for UniversalRou
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
         let execute_call = IUniversalRouter::executeCall::abi_decode(&input_bytes).ok()?;
         let router_abi = RouterAbi::from_chain_contract(context.metadata.chain, to);
-        let metadata = decode_execute_swap_call(context.metadata.chain, router_abi, &provider, &context.transaction.from, &execute_call, context.metadata.receipt)?;
+        let metadata = decode_execute_swap_call(context.metadata.chain, router_abi, provider, &context.transaction.from, &execute_call, context.metadata.receipt)?;
 
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }
 
-pub(crate) fn decode_execute_swap(chain: &Chain, universal_router_abi: UniversalRouterAbi, provider: &str, from: &str, input_bytes: &[u8], receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
+pub(crate) fn decode_execute_swap(chain: &Chain, universal_router_abi: UniversalRouterAbi, provider: SwapProvider, from: &str, input_bytes: &[u8], receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
     let execute_call = IUniversalRouter::executeCall::abi_decode(input_bytes).ok()?;
     decode_execute_swap_call(
         chain,
@@ -80,7 +89,7 @@ pub(crate) fn decode_execute_swap(chain: &Chain, universal_router_abi: Universal
     )
 }
 
-fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: &str, from: &str, execute_call: &IUniversalRouter::executeCall, receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
+fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: SwapProvider, from: &str, execute_call: &IUniversalRouter::executeCall, receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
     let commands = &execute_call.commands;
     let inputs = &execute_call.inputs;
     let mut swap_input: Option<(AssetId, U256)> = None;
@@ -88,8 +97,11 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: &str
     let mut swap_provider = provider;
 
     let has_wrap = commands.contains(&WRAP_ETH_COMMAND);
+    let referral = Address::from_str(EVM_REFERRAL_ADDRESS).ok()?;
     let mut unwrap_minimum = None;
     let mut sweep_minimum = None;
+    let mut native_referral_value = None;
+    let mut native_referral_bips = None;
 
     for (command, input) in commands.iter().zip(inputs.iter()) {
         if command == &UNWRAP_WETH_COMMAND {
@@ -98,6 +110,18 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: &str
         } else if command == &SWEEP_COMMAND {
             let sweep = Sweep::abi_decode(input).ok()?;
             sweep_minimum = Some(sweep.amount_min);
+        } else if command == &TRANSFER_COMMAND
+            && let Ok(transfer) = Transfer::abi_decode(input)
+            && transfer.token.is_zero()
+            && transfer.recipient == referral
+        {
+            native_referral_value = Some(transfer.value);
+        } else if command == &PAY_PORTION_COMMAND
+            && let Ok(pay_portion) = PayPortion::abi_decode(input)
+            && pay_portion.token.is_zero()
+            && pay_portion.recipient == referral
+        {
+            native_referral_bips = Some(pay_portion.bips);
         }
     }
 
@@ -139,10 +163,15 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: &str
             && let Some(universal_router_abi) = router_abi.v4
             && let Ok(actions) = decode_action_data(input, universal_router_abi)
         {
-            let native_output = if sweep_minimum.is_none() && commands.as_ref() == [V4_SWAP_COMMAND] {
-                router_abi.router.and_then(|router| native_v4_value_from_receipt(router, from, &actions, receipt))
-            } else {
-                None
+            let native_gross = router_abi.router.and_then(|router| native_v4_value_from_receipt(router, from, &actions, receipt));
+            let native_output = match native_referral_bips {
+                Some(bips) => native_gross.map(|gross| {
+                    let fee = gross * bips / U256::from(HUNDRED_PERCENT_IN_BPS);
+                    native_referral_value = Some(fee);
+                    gross - fee
+                }),
+                None if sweep_minimum.is_none() && commands.as_ref() == [V4_SWAP_COMMAND] => native_gross,
+                None => None,
             };
             for action in actions {
                 let (from_token, to_token, amount_in) = match action {
@@ -168,22 +197,22 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: &str
                     Some(_) => {}
                 }
                 swap_output = Some((leg_to_asset, leg_to_value));
-                swap_provider = SwapProvider::UniswapV4.id();
+                swap_provider = SwapProvider::UniswapV4;
             }
         }
     }
 
     let (from_asset, from_value) = swap_input?;
     let (to_asset, to_value) = swap_output?;
+    let referral_fee = native_referral_value
+        .map(|value| TransactionSwapReferralFee {
+            asset_id: AssetId::from_chain(*chain),
+            value: u256_to_biguint(&value),
+        })
+        .or_else(|| referral_fee_from_transfers(*chain, receipt));
     let (from_asset, from_value) = from_asset.mirror_to_native(u256_to_biguint(&from_value));
     let (to_asset, to_value) = to_asset.mirror_to_native(u256_to_biguint(&U256::from_str(&to_value).ok()?));
-    Some(TransactionSwapMetadata {
-        from_asset,
-        to_asset,
-        from_value,
-        to_value,
-        provider: Some(swap_provider.to_string()),
-    })
+    Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, swap_provider).with_referral_fee(referral_fee))
 }
 
 fn native_v4_value_from_receipt(router: Address, from: &str, actions: &[V4Action], receipt: &TransactionReceipt) -> Option<U256> {
@@ -202,7 +231,7 @@ fn native_v4_value_from_receipt(router: Address, from: &str, actions: &[V4Action
         _ => return None,
     }
     match take {
-        V4Action::TAKE { currency, recipient, amount } if currency.is_zero() && amount.is_zero() && (*recipient == Address::from_str(from).ok()? || *recipient == Address::from_str(MSG_SENDER).ok()?) => {}
+        V4Action::TAKE { currency, recipient, amount } if currency.is_zero() && amount.is_zero() && [from, MSG_SENDER, ADDRESS_THIS].iter().any(|address| Address::from_str(address).ok() == Some(*recipient)) => {}
         V4Action::TAKE_ALL { currency, .. } if currency.is_zero() => {}
         _ => return None,
     }
@@ -214,11 +243,7 @@ fn native_v4_value_from_receipt(router: Address, from: &str, actions: &[V4Action
         hooks: last.hooks,
     };
     let pool_id = keccak256(pool.abi_encode());
-    let mut swaps = receipt.logs.iter().filter_map(|log| {
-        let topics = log.topics.iter().map(|topic| B256::from_str(topic)).collect::<Result<Vec<_>, _>>().ok()?;
-        let event = IPoolManager::Swap::decode_raw_log_validate(topics, &decode_hex(&log.data).ok()?).ok()?;
-        (event.id == pool_id && event.sender == router).then_some(event)
-    });
+    let mut swaps = receipt.logs.iter().filter_map(Log::decode_event::<IPoolManager::Swap>).filter(|event| event.id == pool_id && event.sender == router);
     let swap = swaps.next()?;
     if swaps.next().is_some() || swap.amount0 <= 0 || swap.amount1 >= 0 {
         return None;
@@ -260,7 +285,7 @@ mod tests {
     use crate::rpc::model::{Transaction, TransactionReceipt};
     use crate::rpc::parsers::ProtocolParsers;
     use crate::uniswap::{actions::V4Action, contracts::v4::IV4Router, deployment::UniversalRouterAbi};
-    use alloy_primitives::Address;
+    use alloy_primitives::{Address, B256};
     use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{
@@ -399,6 +424,13 @@ mod tests {
             }
         );
         assert_eq!(metadata.to_value, BigUint::parse_bytes(b"2696771430516915192", 10).unwrap());
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_chain(Chain::Unichain),
+                value: BigUint::from(5000000000000u64),
+            })
+        );
     }
 
     #[test]
@@ -425,7 +457,14 @@ mod tests {
         );
         assert_eq!(metadata.from_value, BigUint::from(2132953u64));
         assert_eq!(metadata.to_asset, AssetId { chain: Chain::Unichain, token_id: None });
-        assert_eq!(metadata.to_value, BigUint::from(1155057703771482u64));
+        assert_eq!(metadata.to_value, BigUint::from(1184492338380233u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_chain(Chain::Unichain),
+                value: BigUint::from(5952222805930u64),
+            })
+        );
     }
 
     #[test]
@@ -469,6 +508,13 @@ mod tests {
             }
         );
         assert_eq!(metadata.to_value, BigUint::from(512854887193301u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_chain(Chain::Ethereum),
+                value: BigUint::from(90000000000000u64),
+            })
+        );
     }
 
     #[test]
@@ -496,6 +542,13 @@ mod tests {
         assert_eq!(metadata.from_value, BigUint::parse_bytes(b"1352497738700000000000", 10).unwrap());
         assert_eq!(metadata.to_asset, AssetId { chain: Chain::Base, token_id: None });
         assert_eq!(metadata.to_value, BigUint::from(29020434785385862u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_chain(Chain::Base),
+                value: BigUint::from(145831330579828u64),
+            })
+        );
     }
 
     #[test]
@@ -523,6 +576,13 @@ mod tests {
             }
         );
         assert_eq!(metadata.to_value, BigUint::from(78290151u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_token(Chain::Polygon, POLYGON_USDT_TOKEN_ID),
+                value: BigUint::from(393417u64),
+            })
+        );
     }
 
     #[test]
@@ -556,6 +616,13 @@ mod tests {
             }
         );
         assert_eq!(metadata.to_value, BigUint::from(9017156750431593u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_token(Chain::Ethereum, TOKEN_USDC_ADDRESS),
+                value: BigUint::from(150000u64),
+            })
+        );
     }
 
     #[test]

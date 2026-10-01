@@ -14,8 +14,13 @@ pub struct PriceData {
     pub all_time_high_date: Option<DateTime<Utc>>,
     pub all_time_low: f64,
     pub all_time_low_date: Option<DateTime<Utc>>,
+    pub market_cap: Option<f64>,
+    pub market_cap_fdv: Option<f64>,
     pub market_cap_rank: Option<i32>,
     pub total_volume: Option<f64>,
+    pub circulating_supply: Option<f64>,
+    pub total_supply: Option<f64>,
+    pub max_supply: Option<f64>,
     pub last_updated_at: DateTime<Utc>,
 }
 

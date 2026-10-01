@@ -534,6 +534,7 @@ lock_require_authentication = Requerir autenticación
 lock_unlock = Desbloquear
 lock_privacy_lock = Bloqueo de privacidad
 lock_footer = Proteger el acceso a esta aplicación en su dispositivo
+lock_passcode = Código de acceso
 
 # Verify
 

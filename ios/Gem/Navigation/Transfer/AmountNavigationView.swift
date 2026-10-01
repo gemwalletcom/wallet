@@ -41,9 +41,10 @@ struct AmountNavigationView: View {
                         selection: $leverageSelection.selected,
                     )
                     .onChange(of: leverageSelection.selected, model.onChangeLeverage)
-                case let .autoclose(openData):
+                case let .autoclose(session, row):
                     AutocloseSheet(
-                        openData: openData,
+                        session: session,
+                        row: row,
                         onComplete: model.onAutocloseComplete,
                     )
                 }

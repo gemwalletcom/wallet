@@ -43,7 +43,7 @@ impl FiatProvider for BanxaClient {
         map_order(order)
     }
 
-    async fn process_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
+    async fn parse_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
         self.verify_webhook(&request)?;
         let order_id = map_webhook_data(request.data).map_err(|_| FiatQuoteError::InvalidWebhook)?;
         Ok(FiatWebhook::OrderId(order_id))
@@ -80,18 +80,18 @@ mod tests {
     use primitives::FiatWebhook;
 
     #[tokio::test]
-    async fn test_process_webhook_accepts_signed_order() {
+    async fn test_parse_webhook_accepts_signed_order() {
         let request = FiatWebhookRequest::mock_banxa_signed(include_str!("../../../testdata/banxa/webhook_order_complete.json"));
-        let result = BanxaClient::mock().process_webhook(request).await.unwrap();
+        let result = BanxaClient::mock().parse_webhook(request).await.unwrap();
 
-        assert!(matches!(result, FiatWebhook::OrderId(order_id) if order_id == "banxa_order_123"));
+        assert_eq!(result, FiatWebhook::OrderId("banxa_order_123".to_string()));
     }
 
     #[tokio::test]
-    async fn test_process_webhook_rejects_missing_signature() {
+    async fn test_parse_webhook_rejects_missing_signature() {
         let request = FiatWebhookRequest::mock(include_str!("../../../testdata/banxa/webhook_order_complete.json"));
 
-        assert!(BanxaClient::mock().process_webhook(request).await.is_err());
+        assert!(BanxaClient::mock().parse_webhook(request).await.is_err());
     }
 
     #[test]

@@ -149,7 +149,11 @@ pub fn wallet_default_assets(chain: Chain) -> Vec<Asset> {
 }
 
 pub fn default_token_rank(asset_id: &AssetId) -> i32 {
-    WALLET_DEFAULT_ASSETS.iter().find(|default| default.asset.id == *asset_id).map(|default| default.rank).unwrap_or(AssetScore::default().rank)
+    WALLET_DEFAULT_ASSETS
+        .iter()
+        .find(|default| default.asset.id == *asset_id)
+        .map(|default| default.rank)
+        .unwrap_or_else(|| AssetScore::default().rank)
 }
 
 fn token_ids(chains: &[Chain], token_id: &str) -> impl Iterator<Item = AssetId> {

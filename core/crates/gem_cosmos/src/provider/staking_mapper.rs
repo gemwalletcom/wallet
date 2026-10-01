@@ -71,7 +71,7 @@ pub fn map_staking_delegations(active_delegations: Vec<Delegation>, unbonding_de
             shares: BigUint::from(0u32),
             rewards: parse_to_biguint(&rewards),
             completion_date: None,
-            delegation_id: "".to_string(),
+            delegation_id: String::new(),
             validator_id: delegation.delegation.validator_address,
         })
     });
@@ -114,7 +114,7 @@ mod tests {
         assert_eq!(result.len(), 1);
         let delegation = &result[0];
         assert_eq!(delegation.asset_id.to_string(), "cosmos");
-        assert!(matches!(delegation.state, DelegationState::Active));
+        assert_eq!(delegation.state, DelegationState::Active);
         assert_eq!(delegation.balance.to_string(), "10250000");
         assert_eq!(delegation.validator_id, "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3");
         assert_eq!(delegation.rewards.to_string(), "0");
@@ -135,10 +135,10 @@ mod tests {
         assert_eq!(result.len(), 1);
         let delegation = &result[0];
         assert_eq!(delegation.asset_id.to_string(), "cosmos");
-        assert!(matches!(delegation.state, DelegationState::Active));
+        assert_eq!(delegation.state, DelegationState::Active);
         assert_eq!(delegation.balance.to_string(), "10250000");
         assert_eq!(delegation.validator_id, "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3");
-        assert_eq!(delegation.rewards.to_string(), "307413"); // Integer part of decimal amount
+        assert_eq!(delegation.rewards.to_string(), "307413");
         assert_eq!(delegation.shares.to_string(), "0");
         assert!(delegation.completion_date.is_none());
         assert_eq!(delegation.delegation_id, "");
@@ -190,7 +190,7 @@ mod tests {
         assert_eq!(validator.id, "cosmosvaloper1q9p73lx07tjqc34vs8jrsu5pg3q4ha534uqv4w");
         assert_eq!(validator.name, "Unstake as we will shut down");
         assert!(validator.is_active);
-        assert_eq!(validator.commission, 5.0); // Commission in percentage
+        assert_eq!(validator.commission, 5.0);
         assert_eq!(validator.apr, 17.575);
 
         let validator2 = &result[1];

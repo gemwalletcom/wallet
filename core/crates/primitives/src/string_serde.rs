@@ -1,5 +1,3 @@
-/// Implements `Serialize` and `Deserialize` for a type that round-trips through its `Display`
-/// and `FromStr` impls. Use for typed string ids (e.g. `PriceId`, `WalletId`, `NFTAssetId`).
 #[macro_export]
 macro_rules! impl_string_serde {
     ($t:ty) => {

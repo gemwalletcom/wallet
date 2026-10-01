@@ -24,5 +24,7 @@ pub mod scan_addresses_repository;
 pub mod scan_detections_repository;
 pub mod support_sessions_repository;
 pub mod tag_repository;
+pub mod transactions_perpetuals_repository;
 pub mod transactions_repository;
+pub mod transactions_swaps_repository;
 pub mod wallets_repository;

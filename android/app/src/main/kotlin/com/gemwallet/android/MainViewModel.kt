@@ -119,8 +119,8 @@ class MainViewModel @Inject constructor(
             else -> pending as? PendingNavigation.Input
         }
         pendingNavigationCoordinator.clear()
-        when (input?.code) {
-            null -> Log.e("MainViewModel", "notification navigation failed", error)
+        when (input) {
+            null, is PendingNavigation.FromNotification -> Log.e("MainViewModel", "notification navigation failed", error)
             else -> _uiState.update { it.copy(navigationError = error.errorText().text(context)) }
         }
     }

@@ -11,16 +11,11 @@ use primitives::{Chain, PriorityFeeValue, fee::FeePriority};
 use std::fmt::Display;
 use std::sync::Arc;
 
-/// Represents unified gas fee data collected from a source.
 #[derive(Debug)]
 pub struct GemstoneFeeData {
-    /// The latest block number.
     pub latest_block: u64,
-    /// The suggested base fee in gwei.
     pub suggest_base_fee: String,
-    /// Gas used ratio for the block, if available (e.g., "50.5%").
     pub gas_used_ratio: Option<String>,
-    /// A list of priority fees for different priority levels.
     pub priority_fees: Vec<PriorityFeeValue>,
 }
 
@@ -44,7 +39,7 @@ impl GemstoneClient {
         Self { native_provider }
     }
 
-    pub async fn fetch_base_priority_fees(&self, blocks: u64, reward_percentiles: Vec<u64>, min_priority_fee: u64) -> Result<GemstoneFeeData, Box<dyn Error + Send + Sync>> {
+    pub async fn get_base_priority_fees(&self, blocks: u64, reward_percentiles: Vec<u64>, min_priority_fee: u64) -> Result<GemstoneFeeData, Box<dyn Error + Send + Sync>> {
         let endpoint = self.native_provider.get_endpoint(Chain::Ethereum)?;
         let alien_client = new_alien_client(endpoint, self.native_provider.clone());
         let client = JsonRpcClient::new(alien_client);
@@ -58,7 +53,7 @@ impl GemstoneClient {
         let priorities = vec![FeePriority::Normal, FeePriority::Fast];
         let calculated_priority_fees = service
             .calculate_priority_fees(&fee_history_data, &priorities, BigInt::from(min_priority_fee))
-            .map_err(|e| format!("Failed to calculate priority fees: {}", e))?;
+            .map_err(|error| format!("Failed to calculate priority fees: {}", error))?;
 
         let gas_used_ratio = fee_history_data.gas_used_ratio.last().map(|val_ref| format!("{:.1}%", *val_ref * 100.0));
 

@@ -1,5 +1,3 @@
-// https://api.gasflow.dev/predict
-
 use gem_client::{ClientError, ClientExt, ReqwestClient, Target};
 use num_bigint::BigInt;
 use primitives::{PriorityFeeValue, fee::FeePriority};
@@ -29,7 +27,6 @@ pub struct GasflowResponse {
 }
 
 impl GasflowResponse {
-    /// Converts the raw Gasflow API data into the common `GemstoneFeeData` format.
     pub fn fee_data(&self) -> GemstoneFeeData {
         let gas_used_ratio_str = Some(format!("{:.1}%", self.network_metrics.gas_ratio_5 * 100.0));
 
@@ -81,7 +78,7 @@ impl GasflowClient {
         }
     }
 
-    pub async fn fetch_prediction(&self) -> Result<GasflowResponse, ClientError> {
+    pub async fn get_prediction(&self) -> Result<GasflowResponse, ClientError> {
         self.client.get(GasflowTarget::Predict).await
     }
 }

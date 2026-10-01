@@ -4,6 +4,14 @@ Run from `core/`. Providers: `coingecko`, `coinmarketcap`, `jupiter`, and `dexsc
 
 All providers implement `ImageProvider` for ID lookups and `ImageListProvider` for top and trending lists. The downloader selects the requested operation before starting a download.
 
+Check existing token images and print invalid paths:
+
+```sh
+cargo run --package img-downloader -- check ../../assets/blockchains/ethereum/assets/0x.../logo.png
+```
+
+The command exits unsuccessfully when a path is unreadable, is not PNG or WEBP content, cannot be decoded, or is not square.
+
 ## Provider contract
 
 - `ImageProvider::get_asset_images(id)` uses the selected provider's identifier and returns zero or more token images. A successful response with no usable matching logo returns an empty list; request failures propagate as errors.

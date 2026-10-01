@@ -2,8 +2,6 @@
 
 import SwiftUI
 
-/// When using in a List, be sure to use `.id(UUID())` to ensure proper rendering and updates.
-/// That is known bugs in List+ProgressView
 public struct ListItemLoadingView: View {
     let clearBackground: Bool
 

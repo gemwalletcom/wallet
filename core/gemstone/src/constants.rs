@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use primitives::{BannerEvent, Currency, TransactionType};
 
-use crate::services::onboarding::{GemAcceptTermsItem, GemSecurityReminderItem};
+use crate::services::onboarding::GemSecurityReminderItem;
 use crate::services::security::GemLockPeriod;
 
 pub const SEARCH_DEBOUNCE: Duration = Duration::from_millis(250);
@@ -13,7 +13,6 @@ pub const FIAT_QUOTE_DEBOUNCE: Duration = Duration::from_millis(250);
 pub const FIAT_QUOTE_REFRESH_INTERVAL: Duration = Duration::from_secs(300);
 pub const FIAT_QUOTE_CURRENCY: Currency = Currency::USD;
 pub const CONNECTION_BANNER_SETTLE_DELAY: Duration = Duration::from_secs(10);
-// TODO: Enable the connection banner once it is polished.
 pub const CONNECTION_BANNER_ENABLED: bool = false;
 pub const OFFLINE_DEBOUNCE: Duration = Duration::from_millis(500);
 pub const PING_INTERVAL: Duration = Duration::from_secs(30);
@@ -28,7 +27,6 @@ pub const WALLET_CONNECT_USER_REJECTED_ERROR_CODE: i32 = 4001;
 pub const WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE: &str = "User rejected the request";
 pub const WALLET_BANNER_EVENTS: &[BannerEvent] = &[BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding];
 pub const PERPETUAL_ACTIVITY_TYPES: &[TransactionType] = &[TransactionType::PerpetualOpenPosition, TransactionType::PerpetualClosePosition, TransactionType::PerpetualModifyPosition];
-pub const ACCEPT_TERMS_ITEMS: &[GemAcceptTermsItem] = &[GemAcceptTermsItem::SelfCustody, GemAcceptTermsItem::Recovery, GemAcceptTermsItem::Responsibility];
 pub const SECURITY_REMINDER_ITEMS: &[GemSecurityReminderItem] = &[GemSecurityReminderItem::KeepSafe, GemSecurityReminderItem::DoNotShare, GemSecurityReminderItem::NoRecovery];
 pub const LOCK_PERIODS: &[GemLockPeriod] = &[
     GemLockPeriod::Immediate,
@@ -128,8 +126,7 @@ mod tests {
     }
 
     #[test]
-    fn test_onboarding_asks_for_every_term_and_shows_every_reminder() {
-        assert_eq!(ACCEPT_TERMS_ITEMS.len(), 3, "a wallet is only created once all three terms are accepted");
+    fn test_onboarding_shows_every_reminder() {
         assert_eq!(SECURITY_REMINDER_ITEMS.first(), Some(&GemSecurityReminderItem::KeepSafe));
         assert_eq!(SECURITY_REMINDER_ITEMS.last(), Some(&GemSecurityReminderItem::NoRecovery));
     }

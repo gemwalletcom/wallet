@@ -15,13 +15,13 @@ pub struct ChainConsumerRunner {
     pub settings: Settings,
     pub connection: StreamConnection,
     pub config: ConsumerConfig,
-    pub shutdown_rx: ShutdownReceiver,
+    pub shutdown: ShutdownReceiver,
     pub reporter: Arc<dyn ConsumerStatusReporter>,
     queue: streamer::QueueName,
 }
 
 impl ChainConsumerRunner {
-    pub async fn new(services: Services, queue: streamer::QueueName, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<Self, Box<dyn Error + Send + Sync>> {
+    pub async fn new(services: Services, queue: streamer::QueueName, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let settings = services.settings().as_ref().clone();
         let connection = StreamConnection::new(&settings.rabbitmq.url, queue.to_string()).await?;
         let config = consumer_config(&settings.consumer);
@@ -30,7 +30,7 @@ impl ChainConsumerRunner {
             settings,
             connection,
             config,
-            shutdown_rx,
+            shutdown,
             reporter,
             queue,
         })
@@ -42,7 +42,7 @@ impl ChainConsumerRunner {
     }
 
     pub async fn stream_producer(&self) -> Result<StreamProducer, Box<dyn Error + Send + Sync>> {
-        StreamProducer::from_connection(&self.connection, self.shutdown_rx.clone()).await
+        StreamProducer::from_connection(&self.connection, self.settings.rabbitmq.maxbytes, self.shutdown.clone()).await
     }
 
     pub async fn run<F, Fut>(self, f: F) -> Result<(), Box<dyn Error + Send + Sync>>
@@ -73,13 +73,13 @@ impl ChainConsumerRunner {
                 loop {
                     match f(runner.clone(), chain).await {
                         Ok(()) => return Ok(()),
-                        Err(err) => {
+                        Err(error) => {
                             failures += 1;
-                            error_with_fields!("consumer chain error", &*err, consumer = queue.as_str(), chain = chain.as_ref(), attempt = failures);
+                            error_with_fields!("consumer chain error", &*error, consumer = queue.as_str(), chain = chain.as_ref(), attempt = failures);
                             if failures >= retries {
-                                return Err(err);
+                                return Err(error);
                             }
-                            if crate::shutdown::sleep_or_shutdown(restart_delay, &runner.shutdown_rx).await {
+                            if crate::shutdown::sleep_or_shutdown(restart_delay, &runner.shutdown).await {
                                 return Ok(());
                             }
                         }

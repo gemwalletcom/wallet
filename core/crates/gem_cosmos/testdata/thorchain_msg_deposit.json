@@ -1,0 +1,277 @@
+{
+  "tx": {
+    "body": {
+      "messages": [
+        {
+          "@type": "/types.MsgDeposit",
+          "coins": [
+            {
+              "asset": "THOR.RUNE",
+              "amount": "238536268",
+              "decimals": "0"
+            }
+          ],
+          "memo": "=:e:0xc17ecB5049dd80fCca2b75E025F64613f17C67AA:0/1/0:g1:50",
+          "signer": "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc",
+          "salt": null
+        }
+      ],
+      "memo": "=:e:0xc17ecB5049dd80fCca2b75E025F64613f17C67AA:0/1/0:g1:50",
+      "timeout_height": "0",
+      "unordered": false,
+      "timeout_timestamp": null,
+      "extension_options": [],
+      "non_critical_extension_options": []
+    },
+    "auth_info": {
+      "signer_infos": [
+        {
+          "public_key": {
+            "@type": "/cosmos.crypto.secp256k1.PubKey",
+            "key": "A4YvapJtFjbZiOtJOj+FheH3BciXfLcgb3TS/nV29Cxw"
+          },
+          "mode_info": {
+            "single": {
+              "mode": "SIGN_MODE_DIRECT"
+            }
+          },
+          "sequence": "0"
+        }
+      ],
+      "fee": {
+        "amount": [],
+        "gas_limit": "200000",
+        "payer": "",
+        "granter": ""
+      },
+      "tip": null
+    },
+    "signatures": [
+      "aactAvbe9DkoHBdUhxq4VMFEl/V0LhpUD65jfNi72JgekBVTCCXfEeZyiebtZyAEjsuUCmlT4EFS88C+ZyTpjQ=="
+    ]
+  },
+  "tx_response": {
+    "height": "23903880",
+    "txhash": "93CE6289CE4DB1FBEFCCB1AF56A86DD9D366AB8E1D12BC59A37F471369096EFC",
+    "codespace": "",
+    "code": 0,
+    "data": "12110A0F2F74797065732E4D7367456D707479",
+    "raw_log": "",
+    "info": "",
+    "gas_wanted": "-1",
+    "gas_used": "313482",
+    "timestamp": "2025-12-01T01:03:29Z",
+    "events": [
+      {
+        "type": "coin_spent",
+        "attributes": [
+          {
+            "key": "spender",
+            "value": "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc",
+            "index": true
+          },
+          {
+            "key": "amount",
+            "value": "2000000rune",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "coin_received",
+        "attributes": [
+          {
+            "key": "receiver",
+            "value": "thor1dheycdevq39qlkxs2a6wuuzyn4aqxhve4qxtxt",
+            "index": true
+          },
+          {
+            "key": "amount",
+            "value": "2000000rune",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "transfer",
+        "attributes": [
+          {
+            "key": "recipient",
+            "value": "thor1dheycdevq39qlkxs2a6wuuzyn4aqxhve4qxtxt",
+            "index": true
+          },
+          {
+            "key": "sender",
+            "value": "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc",
+            "index": true
+          },
+          {
+            "key": "amount",
+            "value": "2000000rune",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "message",
+        "attributes": [
+          {
+            "key": "sender",
+            "value": "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "tx",
+        "attributes": [
+          {
+            "key": "acc_seq",
+            "value": "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc/0",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "tx",
+        "attributes": [
+          {
+            "key": "signature",
+            "value": "aactAvbe9DkoHBdUhxq4VMFEl/V0LhpUD65jfNi72JgekBVTCCXfEeZyiebtZyAEjsuUCmlT4EFS88C+ZyTpjQ==",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "message",
+        "attributes": [
+          {
+            "key": "action",
+            "value": "/types.MsgDeposit",
+            "index": true
+          },
+          {
+            "key": "sender",
+            "value": "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc",
+            "index": true
+          },
+          {
+            "key": "module",
+            "value": "MsgDeposit",
+            "index": true
+          },
+          {
+            "key": "msg_index",
+            "value": "0",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "coin_spent",
+        "attributes": [
+          {
+            "key": "spender",
+            "value": "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc",
+            "index": true
+          },
+          {
+            "key": "amount",
+            "value": "238536268rune",
+            "index": true
+          },
+          {
+            "key": "msg_index",
+            "value": "0",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "coin_received",
+        "attributes": [
+          {
+            "key": "receiver",
+            "value": "thor1g98cy3n9mmjrpn0sxmn63lztelera37n8n67c0",
+            "index": true
+          },
+          {
+            "key": "amount",
+            "value": "238536268rune",
+            "index": true
+          },
+          {
+            "key": "msg_index",
+            "value": "0",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "transfer",
+        "attributes": [
+          {
+            "key": "recipient",
+            "value": "thor1g98cy3n9mmjrpn0sxmn63lztelera37n8n67c0",
+            "index": true
+          },
+          {
+            "key": "sender",
+            "value": "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc",
+            "index": true
+          },
+          {
+            "key": "amount",
+            "value": "238536268rune",
+            "index": true
+          },
+          {
+            "key": "msg_index",
+            "value": "0",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "message",
+        "attributes": [
+          {
+            "key": "sender",
+            "value": "thor14k0f875upg7uz6u5xylkay2yrv30x24tycwpwc",
+            "index": true
+          },
+          {
+            "key": "msg_index",
+            "value": "0",
+            "index": true
+          }
+        ]
+      },
+      {
+        "type": "limit_swap",
+        "attributes": [
+          {
+            "key": "source",
+            "value": "238536268 THOR.RUNE",
+            "index": true
+          },
+          {
+            "key": "target",
+            "value": "0 ETH.ETH",
+            "index": true
+          },
+          {
+            "key": "txid",
+            "value": "93CE6289CE4DB1FBEFCCB1AF56A86DD9D366AB8E1D12BC59A37F471369096EFC",
+            "index": true
+          },
+          {
+            "key": "msg_index",
+            "value": "0",
+            "index": true
+          }
+        ]
+      }
+    ]
+  }
+}

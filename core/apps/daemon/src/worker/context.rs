@@ -21,7 +21,7 @@ impl WorkerContext {
         self.services.clone()
     }
 
-    pub fn plan_builder<'a>(&self, worker: WorkerService, config: &'a ConfigCacher, shutdown_rx: ShutdownReceiver) -> JobPlanBuilder<'a> {
-        JobPlanBuilder::with_config(worker, self.runtime.plan(shutdown_rx), config).filter(self.job_filter.clone())
+    pub fn plan_builder<'a>(&self, worker: WorkerService, config: &'a ConfigCacher, shutdown: ShutdownReceiver) -> JobPlanBuilder<'a> {
+        JobPlanBuilder::with_config(worker, self.runtime.plan(shutdown), config).filter(self.job_filter.clone())
     }
 }

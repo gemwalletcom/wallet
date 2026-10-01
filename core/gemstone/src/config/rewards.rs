@@ -42,7 +42,6 @@ fn normalize_locale(locale: Option<String>) -> String {
 
     match parts.first() {
         Some(&"zh") => {
-            // Check for script or region
             if parts.iter().any(|p| p == &"hant" || p == &"tw" || p == &"hk") {
                 String::from("zh-tw")
             } else {

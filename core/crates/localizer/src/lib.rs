@@ -31,6 +31,20 @@ pub struct LanguageNotification {
     pub description: String,
 }
 
+pub enum TransactionAction {
+    Transfer,
+    Swap,
+    TokenApproval,
+    Stake,
+    Unstake,
+    Redelegate,
+    ClaimRewards,
+    Withdraw,
+    Freeze,
+    Unfreeze,
+    SmartContract,
+}
+
 impl Default for LanguageLocalizer {
     fn default() -> Self {
         Self::new()
@@ -90,7 +104,6 @@ impl LanguageLocalizer {
         }
     }
 
-    // notifications
     pub fn test(&self) -> String {
         fl!(self.loader.as_ref(), "notification_test")
     }
@@ -163,11 +176,28 @@ impl LanguageLocalizer {
         fl!(self.loader.as_ref(), "notification_swap_title", from_symbol = from_symbol, to_symbol = to_symbol)
     }
 
+    pub fn notification_transaction_failed_title(&self, action: TransactionAction) -> String {
+        let loader = self.loader.as_ref();
+        let action = match action {
+            TransactionAction::Transfer => fl!(loader, "notification_action_transfer"),
+            TransactionAction::Swap => fl!(loader, "notification_action_swap"),
+            TransactionAction::TokenApproval => fl!(loader, "notification_action_token_approval"),
+            TransactionAction::Stake => fl!(loader, "notification_action_stake"),
+            TransactionAction::Unstake => fl!(loader, "notification_action_unstake"),
+            TransactionAction::Redelegate => fl!(loader, "notification_action_redelegate"),
+            TransactionAction::ClaimRewards => fl!(loader, "notification_action_claim_rewards"),
+            TransactionAction::Withdraw => fl!(loader, "notification_action_withdraw"),
+            TransactionAction::Freeze => fl!(loader, "notification_action_freeze"),
+            TransactionAction::Unfreeze => fl!(loader, "notification_action_unfreeze"),
+            TransactionAction::SmartContract => fl!(loader, "notification_action_smart_contract"),
+        };
+        fl!(loader, "notification_transaction_failed_title", action = action)
+    }
+
     pub fn notification_swap_description(&self, from_value: &str, to_value: &str) -> String {
         fl!(self.loader.as_ref(), "notification_swap_description", from_value = from_value, to_value = to_value)
     }
 
-    // onboarding
     pub fn notification_onboarding_buy_asset(&self, name: &str) -> (String, String) {
         (
             fl!(self.loader.as_ref(), "notification_onboarding_buy_asset_title", name = name),
@@ -183,12 +213,10 @@ impl LanguageLocalizer {
         fl!(self.loader.as_ref(), "notification_fiat_sale_title", value = value)
     }
 
-    // support
     pub fn notification_support_new_message_title(&self) -> String {
         fl!(self.loader.as_ref(), "support_new_message_title")
     }
 
-    // rewards
     pub fn notification_reward_title(&self, points: i32) -> String {
         fl!(self.loader.as_ref(), "notification_reward_title", value = points)
     }

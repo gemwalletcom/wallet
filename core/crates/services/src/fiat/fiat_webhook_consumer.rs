@@ -58,11 +58,11 @@ impl FiatWebhookConsumer {
 
 #[async_trait]
 impl MessageConsumer<FiatWebhookPayload, bool> for FiatWebhookConsumer {
-    async fn should_process(&self, _payload: &FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         info_with_fields!("received webhook", provider = payload.provider.id());
 
         let provider = match self.providers.iter().find(|provider| provider.name() == payload.provider) {
@@ -80,9 +80,9 @@ impl MessageConsumer<FiatWebhookPayload, bool> for FiatWebhookConsumer {
                 info_with_fields!("fetching order status", provider = provider_id, provider_transaction_id = order_id);
                 match provider.get_order_status(order_id).await {
                     Ok(transaction) => transaction,
-                    Err(e) => {
-                        error_with_fields!("get_order_status", &*e, provider = provider_id, provider_transaction_id = order_id);
-                        return Err(e);
+                    Err(error) => {
+                        error_with_fields!("get_order_status", &*error, provider = provider_id, provider_transaction_id = order_id);
+                        return Err(error);
                     }
                 }
             }
@@ -118,8 +118,8 @@ impl MessageConsumer<FiatWebhookPayload, bool> for FiatWebhookConsumer {
                 info_with_fields!("published fiat transaction to pending", provider = provider_id, transaction_id = transaction_id.to_string());
             }
 
-            if let Err(e) = self.send_fiat_notification(&updated).await {
-                error_with_fields!("send_fiat_notification", &*e, provider = provider_id);
+            if let Err(error) = self.send_fiat_notification(&updated).await {
+                error_with_fields!("send_fiat_notification", &*error, provider = provider_id);
             }
         }
 

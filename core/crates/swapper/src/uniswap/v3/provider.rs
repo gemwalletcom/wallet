@@ -3,7 +3,7 @@ use crate::{
     alien::{RpcClient, RpcProvider},
     approval::{check_approval_erc20_with_client, check_approval_permit2_with_client},
     eth_address,
-    fees::{apply_slippage_in_bp, default_referral_fees},
+    fees::{default_referral_fees, subtract_bps},
     models::*,
     uniswap::{
         deadline::get_sig_deadline,
@@ -126,12 +126,12 @@ impl Swapper for UniswapV3 {
         let client = create_client(self.rpc_provider.clone(), from_chain)?;
 
         let fee_tiers = self.provider.get_tiers();
-        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
 
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;
 
-        let quote_amount_in = if fee_token_is_input && fee_bps > 0 { apply_slippage_in_bp(&from_value, fee_bps) } else { from_value };
+        let quote_amount_in = if fee_token_is_input && fee_bps > 0 { subtract_bps(&from_value, fee_bps) } else { from_value };
 
         _ = self.preload_pool_candidates(from_chain, token_in, token_out).await;
         let paths_array = super::path::build_paths(&token_in, &token_out, &fee_tiers, &base_pair);
@@ -156,8 +156,8 @@ impl Swapper for UniswapV3 {
 
         let quote_result = get_best_quote(&results, &positions, super::quoter_v2::decode_quoter_response)?;
 
-        let to_value = if fee_token_is_input { quote_result.amount_out } else { apply_slippage_in_bp(&quote_result.amount_out, fee_bps) };
-        let to_min_value = apply_slippage_in_bp(&to_value, request.options.slippage.bps);
+        let to_value = if fee_token_is_input { quote_result.amount_out } else { subtract_bps(&quote_result.amount_out, fee_bps) };
+        let to_min_value = subtract_bps(&to_value, request.options.slippage.bps);
 
         let fee_tier_idx = quote_result.fee_tier_idx;
         let route_idx = quote_result.route_idx;

@@ -534,6 +534,7 @@ lock_require_authentication = 需要身份验证
 lock_unlock = 解锁
 lock_privacy_lock = 隐私锁
 lock_footer = 保护此设备上的应用访问安全
+lock_passcode = 密码
 
 # Verify
 

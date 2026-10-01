@@ -1,3 +1,4 @@
+use primitives::unix_timestamp;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -43,7 +44,7 @@ impl ParserMetrics {
         state.current_block = current_block;
         state.latest_block = latest_block;
         state.is_enabled = is_enabled;
-        state.updated_at = super::now_unix() as i64;
+        state.updated_at = unix_timestamp() as i64;
     }
 
     pub fn record_transactions(&self, chain: &str, transactions: &[(String, u64)]) {

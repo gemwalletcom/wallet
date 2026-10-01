@@ -121,8 +121,8 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemSearchService(assetsService: GemAssetsService, priceService: GemPriceService, perpetualService: GemPerpetualService, searchStore: GemSearchStore): GemSearchService =
-        GemSearchService(assetsService, priceService, perpetualService, searchStore)
+    fun provideGemSearchService(assetsService: GemAssetsService, balanceService: GemBalanceService, priceService: GemPriceService, perpetualService: GemPerpetualService, searchStore: GemSearchStore): GemSearchService =
+        GemSearchService(assetsService, balanceService, priceService, perpetualService, searchStore)
 
     @Provides
     @Singleton
@@ -175,8 +175,8 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemChartService(apiClient: GemstoneApiClient, priceService: GemPriceService, preferencesService: GemPreferencesService, explorerService: GemExplorerService): GemChartService =
-        GemChartService(apiClient, priceService, preferencesService, explorerService)
+    fun provideGemChartService(apiClient: GemstoneApiClient, priceService: GemPriceService, preferencesService: GemPreferencesService, explorerService: GemExplorerService, priceAlertService: GemPriceAlertService): GemChartService =
+        GemChartService(apiClient, priceService, preferencesService, explorerService, priceAlertService)
 
     @Provides
     @Singleton

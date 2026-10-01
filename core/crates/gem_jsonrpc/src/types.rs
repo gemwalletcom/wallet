@@ -93,7 +93,7 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for JsonRpcResult<T> {
             return Err(serde::de::Error::custom(format!("missing result and error fields, raw: {raw}")));
         };
 
-        let result = T::deserialize(result.clone()).map_err(|e| serde::de::Error::custom(format!("failed to deserialize result: {e}, raw: {result}")))?;
+        let result = T::deserialize(result.clone()).map_err(|error| serde::de::Error::custom(format!("failed to deserialize result: {error}, raw: {result}")))?;
         Ok(JsonRpcResult::Value(JsonRpcResponse { id, result }))
     }
 }
@@ -122,10 +122,10 @@ impl<T> JsonRpcResults<T> {
             .into_iter()
             .enumerate()
             .map(|(i, r)| {
-                r.take().map_err(|e| JsonRpcError {
-                    code: e.code,
-                    message: format!("batch request [{}]: {}", i, e.message),
-                    cause: e.cause,
+                r.take().map_err(|error| JsonRpcError {
+                    code: error.code,
+                    message: format!("batch request [{}]: {}", i, error.message),
+                    cause: error.cause,
                 })
             })
             .collect()
@@ -161,7 +161,7 @@ mod tests {
     fn test_jsonrpc_error_display_with_client_error_code() {
         let error = JsonRpcError {
             code: ERROR_CLIENT_ERROR,
-            message: "".into(),
+            message: String::new(),
             cause: None,
         };
 

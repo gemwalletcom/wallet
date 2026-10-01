@@ -32,11 +32,11 @@ impl AssetStatusVerdict {
 
 #[async_trait]
 impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
-    async fn should_process(&self, asset_id: &AssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, asset_id: &AssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(asset_id.is_token() && self.providers.iter().any(|provider| provider.supports_chain(asset_id.chain)))
     }
 
-    async fn process(&self, asset_id: AssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, asset_id: AssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let token_id = asset_id.get_token_id()?.clone();
         let target = TokenTarget { token_id, chain: asset_id.chain };
         let results = future::join_all(

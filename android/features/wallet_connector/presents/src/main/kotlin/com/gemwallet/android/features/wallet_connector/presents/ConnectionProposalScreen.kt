@@ -19,19 +19,19 @@ import com.gemwallet.android.ui.localization.text
 @Composable
 fun ConnectionProposalScreen(proposal: WalletConnectSessionProposal, verifyContext: WalletConnectVerifyContext, onError: (String) -> Unit) {
     val context = LocalContext.current
-    val viewModel: ConnectionProposalViewModel = hiltViewModel()
+    val viewModel = hiltViewModel<ConnectionProposalViewModel, ConnectionProposalViewModel.Factory> { it.create(proposal, verifyContext) }
     BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val proposalRows by viewModel.proposalRows.collectAsStateWithLifecycle()
     val statusListItem by viewModel.statusListItem.collectAsStateWithLifecycle()
-    val peer by viewModel.proposal.collectAsStateWithLifecycle()
+    val peer by viewModel.peer.collectAsStateWithLifecycle()
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
     val availableWalletSections by viewModel.availableWalletSections.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(proposal) {
-        viewModel.onProposal(proposal, verifyContext) { message ->
+    LaunchedEffect(viewModel) {
+        viewModel.refusalMessages.collect { message ->
             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         }
     }

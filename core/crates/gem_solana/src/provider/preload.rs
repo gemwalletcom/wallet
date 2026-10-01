@@ -195,8 +195,8 @@ mod chain_integration_tests {
         let swap_data = SwapData::mock_with_provider(SwapProvider::Jupiter);
         let input = TransactionPreloadInput {
             input_type: TransactionInputType::Swap {
-                from_asset: Asset::mock_spl_token().clone(),
-                to_asset: Asset::mock_ethereum_usdc().clone(),
+                from_asset: Asset::mock_spl_token(),
+                to_asset: Asset::mock_ethereum_usdc(),
                 swap_data,
             },
             sender_address: TEST_SOLANA_SENDER.to_string(),

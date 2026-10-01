@@ -10,6 +10,8 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
+import com.gemwallet.android.testkit.mockWalletConnectSessionRequest
+import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletId
@@ -17,9 +19,13 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemChainService
@@ -82,6 +88,28 @@ class WalletConnectCoordinatorTest {
         assertEquals(1, stored.size)
         assertEquals(wallet.id, stored.single().wallet.id)
         assertEquals("topic-1", stored.single().session.sessionId)
+    }
+
+    @Test
+    fun `a proposal Core has already seen never reaches the screen`() = runBlocking {
+        every { walletConnectService.shouldProcessProposal(proposal.proposerPublicKey) } returnsMany listOf(true, false)
+        val verifyContext = mockWalletConnectVerifyContext()
+        val request = mockWalletConnectSessionRequest()
+        subject.pair("wc:uri")
+        val delivered = async { subject.bridgeEvents.take(2).toList() }
+        clientEvents.subscriptionCount.first { it > 1 }
+
+        clientEvents.emit(WalletConnectEvent.SessionProposal(proposal, verifyContext))
+        clientEvents.emit(WalletConnectEvent.SessionProposal(proposal.copy(), verifyContext))
+        clientEvents.emit(WalletConnectEvent.SessionRequest(request, verifyContext))
+
+        assertEquals(
+            listOf(
+                WalletConnectEvent.SessionProposal(proposal, verifyContext),
+                WalletConnectEvent.SessionRequest(request, verifyContext),
+            ),
+            withTimeout(2_000) { delivered.await() },
+        )
     }
 
     @Test

@@ -12,6 +12,7 @@ meilisearch:
 rabbitmq:
   url: "amqp://username:password@localhost:5672"
   prefetch: 50
+  maxbytes: 2000000000
   retry:
     delay: 1s
     timeout: 30s
@@ -382,12 +383,20 @@ indexer:
     url: "https://mainnet-idx.algonode.cloud"
     key:
       secret: ""
+  aptos:
+    url: "https://archive.mainnet.aptoslabs.com"
+    key:
+      secret: ""
   ankr:
     url: "https://rpc.ankr.com/multichain"
     key:
       secret: ""
   blockscout:
     url: "https://api.blockscout.com"
+    key:
+      secret: ""
+  etherscan:
+    url: "https://api.etherscan.io"
     key:
       secret: ""
   fastnear:

@@ -260,7 +260,7 @@ pub struct GemConfirmSimulationState {
     pub simulation: Option<GemConfirmSimulation>,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransferAmountResult {
     Amount { amount: GemTransferAmount },
     Error { error: GemConfirmError },
@@ -485,7 +485,6 @@ impl GemConfirmFeeRow {
     }
 }
 
-/// One block of the confirm screen, in the order the screen shows them.
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemConfirmSection {

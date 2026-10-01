@@ -117,7 +117,7 @@ mod tests {
         assert_eq!(eip1559.total_fee(), BigInt::from(2500u64));
 
         let solana = GasPriceType::solana(BigInt::from(5000u64), BigInt::from(1000u64), BigInt::from(200u64));
-        assert_eq!(solana.total_fee(), BigInt::from(6000u64)); // 5000 + 1000
+        assert_eq!(solana.total_fee(), BigInt::from(6000u64));
     }
 
     #[test]

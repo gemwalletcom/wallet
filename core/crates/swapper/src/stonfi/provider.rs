@@ -1,13 +1,13 @@
 use super::{
     client::StonfiClient,
-    constants::{FALLBACK_ROUTERS, RouterInfo},
+    constants::{DISCOVERY_ROUTERS, RouterInfo},
     model::{QuotePath, SwapSimulation},
-    quote::{DiscoveredPool, PoolData, apply_slippage, compute_amount_out, router_model, scaled_next_min_ask_amount, static_candidates, token_address},
+    quote::{DiscoveredPool, PoolData, compute_amount_out, router_model, scaled_next_min_ask_amount, static_candidates, token_address},
     tx_builder::{self, NextSwapParams, ReferralParams, SwapTransactionParams, build_swap_transaction},
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
-    fees::{ReferralFee, default_referral_fees, reserved_transaction_fees},
+    fees::{ReferralFee, default_referral_fees, reserved_transaction_fees, subtract_bps},
     route_cache::DiscoveryCache,
 };
 use async_trait::async_trait;
@@ -155,7 +155,7 @@ where
         let static_probes = filter_candidates(static_candidates(from_token, to_token), require_v2).into_iter().map(|candidate| candidate.router.address).collect::<Vec<_>>();
         let missing = self.route_cache.missing_probes(from_token, to_token, &probes).into_iter().filter(|probe| !static_probes.contains(probe)).collect::<Vec<_>>();
         let discoveries = join_all(
-            FALLBACK_ROUTERS
+            DISCOVERY_ROUTERS
                 .iter()
                 .filter(|router| missing.iter().any(|address| address == router.address))
                 .map(|router| async move { (router.address.to_string(), self.discover_candidate(from_token, to_token, router).await) }),
@@ -232,7 +232,7 @@ where
         for quote in quotes {
             let quote = match quote {
                 Ok(quote) => quote,
-                Err(err) if is_retryable_get_method_error(&err) => return Err(err),
+                Err(error) if is_retryable_get_method_error(&error) => return Err(error),
                 Err(_) => continue,
             };
             let quote_amount = BigUint::from_str(&quote.1.ask_units)?;
@@ -270,7 +270,7 @@ where
         if ask_units == BigUint::from(0u8) {
             return Err(SwapperError::NoQuoteAvailable);
         }
-        let min_ask_units = apply_slippage(&ask_units, slippage_bps);
+        let min_ask_units = subtract_bps(&ask_units, slippage_bps);
         let simulation = SwapSimulation {
             offer_jetton_wallet: offer_wallet.to_string(),
             ask_jetton_wallet: ask_wallet.to_string(),
@@ -298,7 +298,7 @@ where
     }
 
     fn select_best_quote_path(paths: impl IntoIterator<Item = Result<QuotePath, SwapperError>>) -> Result<QuotePath, SwapperError> {
-        let mut error = None;
+        let mut first_error = None;
         let mut best = None;
         for result in paths {
             match result {
@@ -312,16 +312,14 @@ where
                         best = Some((amount, path));
                     }
                 }
-                Err(err) => {
-                    if error.is_none() {
-                        error = Some(err);
-                    }
+                Err(error) => {
+                    first_error.get_or_insert(error);
                 }
             }
         }
         match best {
             Some((_, path)) => Ok(path),
-            None => match error {
+            None => match first_error {
                 Some(error) => Err(error),
                 None => Err(SwapperError::NoQuoteAvailable),
             },
@@ -461,7 +459,7 @@ fn is_retryable_get_method_error(err: &SwapperError) -> bool {
 
 fn retryable_path_error<'a>(paths: impl IntoIterator<Item = &'a Result<QuotePath, SwapperError>>) -> Option<SwapperError> {
     paths.into_iter().find_map(|path| match path {
-        Err(err) if is_retryable_get_method_error(err) => Some(err.clone()),
+        Err(error) if is_retryable_get_method_error(error) => Some(error.clone()),
         Ok(_) | Err(_) => None,
     })
 }
@@ -475,7 +473,7 @@ fn filter_candidates(candidates: Vec<DiscoveredPool>, require_v2: bool) -> Vec<D
 }
 
 fn eligible_probes(require_v2: bool) -> Vec<String> {
-    FALLBACK_ROUTERS.iter().filter(|router| !require_v2 || router.is_supported_v2()).map(|router| router.address.to_string()).collect()
+    DISCOVERY_ROUTERS.iter().filter(|router| !require_v2 || router.is_supported_v2()).map(|router| router.address.to_string()).collect()
 }
 
 #[cfg(test)]
@@ -512,7 +510,7 @@ mod tests {
         });
 
         provider.preload_pair("unknown-a", "unknown-b", false).await;
-        assert_eq!(calls.lock().unwrap().iter().filter(|method| method.as_str() == "get_pool_data").count(), 2);
+        assert_eq!(calls.lock().unwrap().iter().filter(|method| method.as_str() == "get_pool_data").count(), DISCOVERY_ROUTERS.len());
 
         calls.lock().unwrap().clear();
         provider.preload_pair("unknown-a", "unknown-b", false).await;
@@ -535,12 +533,12 @@ mod tests {
 
         provider.preload_pair("unknown-a", "unknown-b", false).await;
         let first_attempt_calls = calls.load(Ordering::Relaxed);
-        assert_eq!(first_attempt_calls, 8);
+        assert_eq!(first_attempt_calls, DISCOVERY_ROUTERS.len() * 4);
         let probes = eligible_probes(false);
         assert_eq!(provider.route_cache.missing_probes("unknown-a", "unknown-b", &probes), probes);
 
         provider.preload_pair("unknown-a", "unknown-b", false).await;
-        assert_eq!(calls.load(Ordering::Relaxed), first_attempt_calls + 4);
+        assert_eq!(calls.load(Ordering::Relaxed), first_attempt_calls + DISCOVERY_ROUTERS.len() * 2);
     }
 
     #[tokio::test]
@@ -562,10 +560,10 @@ mod tests {
         provider.preload_routes(&ton, &token).await;
 
         let calls = calls.lock().unwrap();
-        assert_eq!(calls.iter().filter(|method| method.as_str() == "get_wallet_address").count(), 2);
-        assert_eq!(calls.iter().filter(|method| method.as_str() == "get_pool_address").count(), 2);
-        assert_eq!(calls.iter().filter(|method| method.as_str() == "get_pool_data").count(), 2);
-        assert_eq!(calls.len(), 6);
+        assert_eq!(calls.iter().filter(|method| method.as_str() == "get_wallet_address").count(), DISCOVERY_ROUTERS.len());
+        assert_eq!(calls.iter().filter(|method| method.as_str() == "get_pool_address").count(), DISCOVERY_ROUTERS.len());
+        assert_eq!(calls.iter().filter(|method| method.as_str() == "get_pool_data").count(), DISCOVERY_ROUTERS.len());
+        assert_eq!(calls.len(), DISCOVERY_ROUTERS.len() * 3);
     }
 
     #[tokio::test]
@@ -578,9 +576,10 @@ mod tests {
             calls_ref.lock().unwrap().push((method.to_string(), address.to_string()));
             match method {
                 "get_wallet_address" => mock_cell_response(TEST_USDT_WALLET),
-                "get_pool_address" if address == FALLBACK_ROUTERS[0].address => mock_cell_response(DISCOVERED_POOL),
-                "get_pool_address" if address == FALLBACK_ROUTERS[1].address && v1_attempts_ref.fetch_add(1, Ordering::Relaxed) == 0 => br#"{"exit_code":1,"stack":[]}"#.to_vec(),
-                "get_pool_address" if address == FALLBACK_ROUTERS[1].address => mock_cell_response(V1_POOL),
+                "get_pool_address" if address == DISCOVERY_ROUTERS[0].address => mock_cell_response(DISCOVERED_POOL),
+                "get_pool_address" if address == DISCOVERY_ROUTERS[1].address && v1_attempts_ref.fetch_add(1, Ordering::Relaxed) == 0 => br#"{"exit_code":1,"stack":[]}"#.to_vec(),
+                "get_pool_address" if address == DISCOVERY_ROUTERS[1].address => mock_cell_response(V1_POOL),
+                "get_pool_address" => mock_cell_response(DISCOVERED_POOL),
                 "get_pool_data" => mock_pool_data_response(false, 1, 1, TEST_USDT_WALLET, TEST_PTON_WALLET, 7),
                 _ => unreachable!("{method} {address}"),
             }
@@ -595,9 +594,9 @@ mod tests {
         provider.preload_pair("unknown-a", "unknown-b", false).await;
         assert_eq!(
             calls.lock().unwrap().iter().filter(|(method, _)| method == "get_pool_address").cloned().collect::<Vec<_>>(),
-            vec![("get_pool_address".to_string(), FALLBACK_ROUTERS[1].address.to_string())]
+            vec![("get_pool_address".to_string(), DISCOVERY_ROUTERS[1].address.to_string())]
         );
-        assert_eq!(provider.route_cache.candidates_for_probes("unknown-a", "unknown-b", &probes).len(), 2);
+        assert_eq!(provider.route_cache.candidates_for_probes("unknown-a", "unknown-b", &probes).len(), DISCOVERY_ROUTERS.len());
     }
 
     #[tokio::test]
@@ -696,8 +695,9 @@ mod tests {
             match method {
                 "get_wallet_address" if address == TON_USDT_TOKEN_ID => mock_cell_response(TEST_USDT_WALLET),
                 "get_wallet_address" if address == GRAM_TOKEN_ID => mock_cell_response(TEST_PTON_WALLET),
-                "get_pool_address" if address == FALLBACK_ROUTERS[0].address => mock_cell_response(DISCOVERED_POOL),
-                "get_pool_address" if address == FALLBACK_ROUTERS[1].address => mock_cell_response(V1_POOL),
+                "get_pool_address" if address == DISCOVERY_ROUTERS[0].address => mock_cell_response(DISCOVERED_POOL),
+                "get_pool_address" if address == DISCOVERY_ROUTERS[1].address => mock_cell_response(V1_POOL),
+                "get_pool_address" => mock_cell_response(DISCOVERED_POOL),
                 "get_pool_data" if address == DISCOVERED_POOL => mock_pool_data_response(false, 1, 19_811_277, TEST_USDT_WALLET, TEST_PTON_WALLET, 20),
                 "get_pool_data" if address == V1_POOL => mock_v1_pool_data_response(226_348_366, 194_933_327_038_860, TEST_USDT_WALLET, TEST_PTON_WALLET, 20),
                 _ => unreachable!("{method} {address}"),
@@ -719,8 +719,8 @@ mod tests {
         let discovered_pool_call = format!("get_pool_data {DISCOVERED_POOL}");
         let v1_pool_call = format!("get_pool_data {V1_POOL}");
 
-        assert_eq!(pool_call_count, 2);
-        assert_eq!(cold_calls.iter().filter(|call| *call == &discovered_pool_call).count(), 1);
+        assert_eq!(pool_call_count, DISCOVERY_ROUTERS.len());
+        assert_eq!(cold_calls.iter().filter(|call| *call == &discovered_pool_call).count(), DISCOVERY_ROUTERS.len() - 1);
         assert_eq!(cold_calls.iter().filter(|call| *call == &v1_pool_call).count(), 1);
         assert_eq!(simulation.router.major_version, 1);
         assert_eq!(simulation.ask_units, "199854680472");
@@ -729,8 +729,8 @@ mod tests {
         provider.quote_direct(&request, &request.value.to_string(), true).await.unwrap();
         let warm_calls = calls.lock().unwrap().clone();
         let warm_pool_call_count = warm_calls.iter().filter(|call| call.starts_with("get_pool_data ")).count();
-        assert_eq!(warm_pool_call_count, 2);
-        assert_eq!(warm_calls.iter().filter(|call| *call == &discovered_pool_call).count(), 1);
+        assert_eq!(warm_pool_call_count, DISCOVERY_ROUTERS.len());
+        assert_eq!(warm_calls.iter().filter(|call| *call == &discovered_pool_call).count(), DISCOVERY_ROUTERS.len() - 1);
         assert_eq!(warm_calls.iter().filter(|call| *call == &v1_pool_call).count(), 1);
     }
 
@@ -770,6 +770,7 @@ mod swap_integration_tests {
     use super::*;
     use crate::{Options, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, stonfi::testkit::NOT_TOKEN_ID, testkit::mock_ton};
     use primitives::{AssetId, asset_constants::TON_USDT_ASSET_ID, testkit::signer_mock::TEST_TON_SENDER};
+    use std::collections::HashMap;
 
     #[tokio::test]
     async fn test_stonfi_quote_and_quote_data_ton_to_usdt() -> Result<(), SwapperError> {
@@ -790,6 +791,35 @@ mod swap_integration_tests {
         assert!(quote_data.data.starts_with("te6cc"));
         println!("STON.fi TON -> USDT quote_data: {quote_data:?}");
 
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_stonfi_quote_and_quote_data_hmstr_native() -> Result<(), SwapperError> {
+        let rpc_provider = NativeProvider::new_with_endpoints(HashMap::from([(Chain::Ton, "https://gemnodes.com/ton".to_string())]));
+        let provider = Stonfi::new(Arc::new(rpc_provider)).unwrap();
+        let hmstr = SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, "EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo"));
+        let ton = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ton));
+        for (from_asset, to_asset, value) in [(hmstr.clone(), ton.clone(), 100_000_000_000u64), (ton, hmstr, 10_000_000u64)] {
+            let request = QuoteRequest {
+                from_asset,
+                to_asset,
+                wallet_address: TEST_TON_SENDER.to_string(),
+                destination_address: TEST_TON_SENDER.to_string(),
+                value: BigUint::from(value),
+                options: Options::new_with_slippage(100.into()),
+            };
+            let quote = provider.get_quote(&request).await?;
+            assert_eq!(quote.from_value, request.value);
+            assert!(quote.to_value > BigUint::ZERO);
+            assert_eq!(quote.data.routes.len(), 1);
+            assert_eq!(quote.data.routes[0].input, request.from_asset.asset_id());
+            assert_eq!(quote.data.routes[0].output, request.to_asset.asset_id());
+            let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            assert!(!quote_data.to.is_empty());
+            assert!(quote_data.value > BigUint::ZERO);
+            assert!(quote_data.data.starts_with("te6cc"));
+        }
         Ok(())
     }
 

@@ -7,7 +7,7 @@ where
     D: Deserializer<'de>,
 {
     let opt: Option<String> = Option::deserialize(deserializer)?;
-    Ok(opt.map(|addr| TronAddress::from_hex_or_base58(&addr).map(|address| address.encode()).unwrap_or(addr)))
+    Ok(opt.map(|value| TronAddress::from_hex_or_base58(&value).map(|address| address.encode()).unwrap_or(value)))
 }
 
 pub mod optional {
@@ -25,7 +25,7 @@ pub mod optional {
         D: Deserializer<'de>,
     {
         let opt: Option<String> = Option::deserialize(deserializer)?;
-        Ok(opt.and_then(|addr| TronAddress::from_hex_or_base58(&addr)))
+        Ok(opt.and_then(|value| TronAddress::from_hex_or_base58(&value)))
     }
 }
 

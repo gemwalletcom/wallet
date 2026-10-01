@@ -84,7 +84,7 @@ public struct ConnectionsScene: View {
             tapToDismiss: false,
         )
         .navigationTitle(model.title)
-        .taskOnce { model.load() }
+        .taskOnce(onLoad)
         .onChange(of: model.walletConnectorPresenter?.isPresentingSheet?.id, model.hideConnectionBar)
     }
 }
@@ -92,6 +92,10 @@ public struct ConnectionsScene: View {
 // MARK: - Actions
 
 extension ConnectionsScene {
+    private func onLoad() {
+        Task { await model.load() }
+    }
+
     private func onPaste() {
         Task { await model.onPaste() }
     }

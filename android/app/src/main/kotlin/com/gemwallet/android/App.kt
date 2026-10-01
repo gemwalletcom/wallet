@@ -49,7 +49,7 @@ class App :
         .diskCache {
             DiskCache.Builder()
                 .directory(cacheDir.resolve("image_cache"))
-                .maxSizeBytes(512L * 1024 * 1024) // 512Mb
+                .maxSizeBytes(512L * 1024 * 1024)
                 .build()
         }
         .build()

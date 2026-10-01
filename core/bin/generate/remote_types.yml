@@ -24,7 +24,6 @@ remote:
   - AssetBalance
   - AssetData
   - BannerState
-  - ChainAddress
   - ChartCandleStick
   - ChartCandleUpdate
   - ChartDateValue
@@ -85,6 +84,7 @@ remote:
   - PerpetualOrderType
   - PerpetualPosition
   - PerpetualPositionData
+  - PerpetualPrice
   - PerpetualProvider
   - PerpetualTriggerOrder
   - PerpetualConfirmData
@@ -334,6 +334,9 @@ mocks:
   - GemWalletConnectMessageRequest
   - GemWalletConnectTransactionRequest
   - GemWalletRow
+  - GemWalletSearchResultsView
+  - GemWalletSearchState
+  - GemWalletSearchView
   - Latency
   - NameRecord
   - NFTAsset

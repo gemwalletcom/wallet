@@ -35,7 +35,7 @@ public struct TransactionStore: Sendable {
     public func getTransaction(walletId: WalletId, transactionId: TransactionId) throws -> TransactionExtended {
         try db.read { db in
             let request = TransactionsQuery.query(walletId: walletId, type: .transaction(id: transactionId.identifier), filter: nil)
-            guard let transaction = try TransactionsQuery.fetchExtended(db, request: request).first else {
+            guard let transaction = try TransactionsQuery.extendedTransactions(db, request: request).first else {
                 throw RecordError.recordNotFound(databaseTableName: TransactionRecord.databaseTableName, key: [:])
             }
             return transaction
@@ -115,6 +115,7 @@ public struct TransactionStore: Sendable {
         transactionId: TransactionId,
         state: TransactionState,
         fee: String?,
+        value: String?,
         blockNumber: Int?,
         metadata: String?,
         confirmationEtaSeconds: UInt32?,
@@ -123,6 +124,7 @@ public struct TransactionStore: Sendable {
         let values: [ColumnAssignment?] = [
             TransactionRecord.Columns.state.set(to: state.rawValue),
             fee.map { TransactionRecord.Columns.fee.set(to: $0) },
+            value.map { TransactionRecord.Columns.value.set(to: $0) },
             blockNumber.map { TransactionRecord.Columns.blockNumber.set(to: $0) },
             metadata.map { TransactionRecord.Columns.metadata.set(to: $0) },
             confirmationEtaSeconds.map { TransactionRecord.Columns.confirmationEtaSeconds.set(to: $0) },

@@ -92,7 +92,6 @@ impl YoGatewayClient {
     }
 }
 
-/// ERC4626 ceiling division: rounds up instead of down so display matches deposited amount.
 fn convert_to_assets_ceil(shares: U256, total_assets: U256, total_supply: U256) -> U256 {
     if shares.is_zero() || total_supply.is_zero() {
         return U256::ZERO;

@@ -30,7 +30,6 @@ import com.gemwallet.android.ui.theme.pendingColor
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.VerificationStatus
-import uniffi.gemstone.ChainAddress
 import uniffi.gemstone.GemAcquireOption
 import uniffi.gemstone.GemAddressFormatStyle
 import uniffi.gemstone.GemAddressServiceInterface
@@ -289,8 +288,6 @@ fun GemNameIndicator.style(): ListItemTextStyle = when (this) {
 }
 
 fun GemAddressServiceInterface.formatShort(address: String, chain: String?): String = format(address, chain, GemAddressFormatStyle.Short)
-
-fun GemAddressServiceInterface.formatShort(addresses: List<ChainAddress>): List<String> = formatAll(addresses, GemAddressFormatStyle.Short)
 
 fun GemAmountField.amountSymbol(): AmountSymbolUIModel = AmountSymbolUIModel(
     symbol = when (val symbol = symbol) {

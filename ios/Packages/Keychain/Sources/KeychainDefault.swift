@@ -41,18 +41,18 @@ public final class KeychainDefault: Keychain {
 
     // MARK: - Public (get) methods
 
-    public func get(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws -> String? {
-        guard let data = try getData(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable) else {
+    public func get(_ key: String) throws -> String? {
+        guard let data = try getData(key) else {
             return nil
         }
         guard let string = String(data: data, encoding: .utf8) else {
-            throw Status.conversionError
+            throw KeychainError.conversionError
         }
         return string
     }
 
-    public func getData(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws -> Data? {
-        var query = options.query(ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+    public func getData(_ key: String) throws -> Data? {
+        var query = options.query()
 
         query[MatchLimit] = MatchLimitOne
         query[ReturnData] = kCFBooleanTrue
@@ -65,27 +65,27 @@ public final class KeychainDefault: Keychain {
         switch status {
         case errSecSuccess:
             guard let data = result as? Data else {
-                throw Status.unexpectedError
+                throw KeychainError.unexpectedError
             }
             return data
         case errSecItemNotFound:
             return nil
         default:
-            throw securityError(status: status)
+            throw KeychainError(status: status)
         }
     }
 
     // MARK: - Public (set) methods
 
-    public func set(_ value: String, key: String, ignoringAttributeSynchronizable: Bool = true) throws {
+    public func set(_ value: String, key: String) throws {
         guard let data = value.data(using: .utf8, allowLossyConversion: false) else {
-            throw Status.conversionError
+            throw KeychainError.conversionError
         }
-        try set(data, key: key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+        try set(data, key: key)
     }
 
-    public func set(_ value: Data, key: String, ignoringAttributeSynchronizable: Bool = true) throws {
-        var query = options.query(ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+    public func set(_ value: Data, key: String) throws {
+        var query = options.query()
         query[AttributeAccount] = key
 
         var status = SecItemCopyMatching(query as CFDictionary, nil)
@@ -94,55 +94,39 @@ public final class KeychainDefault: Keychain {
             var query = options.query()
             query[AttributeAccount] = key
 
-            var (attributes, error) = options.attributes(key: nil, value: value)
+            let (attributes, error) = options.attributes(key: nil, value: value)
             if let error {
                 throw error
             }
-
-            options.attributes.forEach { attributes.updateValue($1, forKey: $0) }
 
             status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
             if status != errSecSuccess {
-                throw securityError(status: status)
+                throw KeychainError(status: status)
             }
         case errSecItemNotFound:
-            var (attributes, error) = options.attributes(key: key, value: value)
+            let (attributes, error) = options.attributes(key: key, value: value)
             if let error {
                 throw error
             }
 
-            options.attributes.forEach { attributes.updateValue($1, forKey: $0) }
-
             status = SecItemAdd(attributes as CFDictionary, nil)
             if status != errSecSuccess {
-                throw securityError(status: status)
+                throw KeychainError(status: status)
             }
         default:
-            throw securityError(status: status)
+            throw KeychainError(status: status)
         }
     }
 
     // MARK: - Public (remove) methods
 
-    public func remove(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws {
-        var query = options.query(ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
+    public func remove(_ key: String) throws {
+        var query = options.query()
         query[AttributeAccount] = key
 
         let status = SecItemDelete(query as CFDictionary)
         if status != errSecSuccess, status != errSecItemNotFound {
-            throw securityError(status: status)
+            throw KeychainError(status: status)
         }
-    }
-
-    // MARK: - Error methods
-
-    @discardableResult
-    fileprivate class func securityError(status: OSStatus) -> Error {
-        Status(status: status)
-    }
-
-    @discardableResult
-    fileprivate func securityError(status: OSStatus) -> Error {
-        type(of: self).securityError(status: status)
     }
 }

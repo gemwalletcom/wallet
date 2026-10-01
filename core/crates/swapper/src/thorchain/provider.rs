@@ -3,7 +3,7 @@ use std::{collections::HashSet, fmt::Debug, sync::Arc, time::Duration};
 use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{AssetId, Chain, ChainType, MINUTE, swap::ApprovalData};
+use primitives::{AssetId, ChainType, MINUTE, swap::ApprovalData};
 
 use num_bigint::BigInt;
 
@@ -15,7 +15,7 @@ use super::{
     quote_data_mapper, quote_mapper, swap_mapper,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData, approval::check_approval_erc20,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData, approval::check_approval_erc20,
     cross_chain::VaultAddresses, fees::default_referral_fees, route_cache::Cache, thorchain::client::ThorChainSwapClient,
 };
 
@@ -68,13 +68,15 @@ where
 
 impl ThorChain<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
-        let endpoint = rpc_provider.get_endpoint(Chain::Thorchain).ok()?;
-        Some(Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Thorchain))
+        let network = THORChainNetwork::Thorchain;
+        let endpoint = rpc_provider.get_endpoint(network.chain()).ok()?;
+        Some(Self::with_endpoint(endpoint, rpc_provider, network))
     }
 
     pub fn new_mayachain(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
-        let endpoint = rpc_provider.get_endpoint(Chain::Mayachain).ok()?;
-        Some(Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Mayachain))
+        let network = THORChainNetwork::Mayachain;
+        let endpoint = rpc_provider.get_endpoint(network.chain()).ok()?;
+        Some(Self::with_endpoint(endpoint, rpc_provider, network))
     }
 
     fn with_endpoint(endpoint: String, rpc_provider: Arc<dyn RpcProvider>, network: THORChainNetwork) -> Self {
@@ -148,7 +150,7 @@ where
             .client
             .get_quote(from_asset.clone(), to_asset.clone(), value.to_string(), QUOTE_INTERVAL, QUOTE_QUANTITY, fee.address, fee.bps.into())
             .await
-            .map_err(|e| self.map_quote_error(e, from_asset.decimals as i32))?;
+            .map_err(|error| self.map_quote_error(error, from_asset.decimals as i32))?;
 
         if quote.recommended_min_amount_in > value {
             return Err(SwapperError::InputAmountError {
@@ -211,8 +213,8 @@ where
         quote_data_mapper::map_quote_data(&from_asset, &route_data, quote.request.from_asset.asset_id().token_id, value, memo, approval)
     }
 
-    async fn get_swap_result(&self, _chain: Chain, hash: &str) -> Result<SwapResult, SwapperError> {
-        let hash = hash.strip_prefix("0x").unwrap_or(hash).to_uppercase();
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        let hash = request.transaction_hash.strip_prefix("0x").unwrap_or(&request.transaction_hash).to_uppercase();
         let response = self.client.get_transaction_status(&hash).await?;
         Ok(swap_mapper::map_swap_result(&response, self.network))
     }
@@ -224,6 +226,7 @@ fn min_value(dust_threshold: &BigInt) -> BigInt {
 
 #[cfg(test)]
 mod tests {
+    use primitives::Chain;
     use num_bigint::BigUint;
     use std::sync::{
         Arc,
@@ -410,6 +413,7 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
+    use primitives::Chain;
     use super::*;
     use crate::{SwapperProvider, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
     use num_bigint::BigUint;
@@ -477,7 +481,7 @@ mod swap_integration_tests {
         let swapper = ThorChain::new(provider.clone()).unwrap();
 
         let tx_hash = "324c16cf014cceca1b2e1c078417f736c9833197735b71a4e875bbb3b07b2fe4";
-        let result = swapper.get_swap_result(Chain::Doge, tx_hash).await?;
+        let result = swapper.get_swap_result(&SwapResultRequest::new(Chain::Doge, tx_hash)).await?;
 
         assert_eq!(result.status, SwapStatus::Completed);
 
@@ -498,7 +502,7 @@ mod swap_integration_tests {
         let from_asset = SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id());
         let to_asset = SwapperQuoteAsset::from(Chain::Ethereum.as_asset_id());
         let mut request = mock_quote(from_asset, to_asset);
-        request.value = BigUint::from(5000000u64); // 0.05 BTC (1e8)
+        request.value = BigUint::from(5000000u64);
         request.destination_address = "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238".to_string();
 
         let quote = mayachain.get_quote(&request).await?;

@@ -16,7 +16,6 @@ use crate::services::transactions::model::{GemAmountSign, GemTransactionAmount, 
 use crate::services::transactions::rules::header_amount;
 use crate::services::transfer::model::GemTransferData;
 
-/// The confirm screen's header; a reserved one keeps its place hidden until the load ends.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemConfirmHeader {
     pub header: GemTransactionHeader,

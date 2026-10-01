@@ -18,11 +18,14 @@ public enum SystemImage {
     public static let clear = "multiply.circle.fill"
     public static let hide = "eye.slash.fill"
     public static let faceid = "faceid"
+    public static let touchid = "touchid"
+    public static let opticid = "opticid"
     public static let network = "network"
     public static let globe = "globe"
     public static let share = "square.and.arrow.up"
     public static let refresh = "arrow.clockwise"
     public static let lock = "lock"
+    public static let lockFill = "lock.fill"
     public static let delete = "trash"
     public static let checkmark = "checkmark"
     public static let ellipsis = "ellipsis"
@@ -60,7 +63,6 @@ public enum SystemImage {
     public static let chartLineUptrendXyaxis = "chart.line.uptrend.xyaxis"
     public static let checkmarkSealFill = "checkmark.seal.fill"
 
-    /// specific to Gem style
     public static let errorOccurred = exclamationmarkTriangleFill
 }
 
@@ -76,10 +78,13 @@ public enum SystemImage {
         (SystemImage.clear, "Clear"),
         (SystemImage.hide, "Hide"),
         (SystemImage.faceid, "Face ID"),
+        (SystemImage.touchid, "Touch ID"),
+        (SystemImage.opticid, "Optic ID"),
         (SystemImage.network, "Network"),
         (SystemImage.globe, "Globe"),
         (SystemImage.share, "Share"),
         (SystemImage.lock, "Lock"),
+        (SystemImage.lockFill, "Lock Fill"),
         (SystemImage.delete, "Delete"),
         (SystemImage.checkmark, "Checkmark"),
         (SystemImage.ellipsis, "Ellipsis"),

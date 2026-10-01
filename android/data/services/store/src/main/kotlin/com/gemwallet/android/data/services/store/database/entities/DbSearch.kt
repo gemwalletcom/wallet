@@ -4,10 +4,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.gemwallet.android.ext.toIdentifier
-import com.wallet.core.primitives.AssetBasic
-import com.wallet.core.primitives.AssetList
-import com.wallet.core.primitives.PerpetualSearchData
 
 @Entity(
     tableName = "search",
@@ -25,17 +21,8 @@ import com.wallet.core.primitives.PerpetualSearchData
 )
 data class DbSearch(@PrimaryKey(autoGenerate = true) val id: Long = 0, val query: String, val assetId: String? = null, val perpetualId: String? = null, val listId: String? = null, val priority: Int)
 
-@JvmName("assetsToSearchRecord")
-fun List<AssetBasic>.toSearchRecord(query: String): List<DbSearch> = mapIndexed { index, basic ->
-    DbSearch(query = query, assetId = basic.asset.id.toIdentifier(), priority = index)
-}
+fun List<String>.toAssetSearchRecords(query: String): List<DbSearch> = mapIndexed { index, id -> DbSearch(query = query, assetId = id, priority = index) }
 
-@JvmName("perpetualsToSearchRecord")
-fun List<PerpetualSearchData>.toSearchRecord(query: String): List<DbSearch> = mapIndexed { index, data ->
-    DbSearch(query = query, perpetualId = data.perpetual.id.toIdentifier(), priority = index)
-}
+fun List<String>.toPerpetualSearchRecords(query: String): List<DbSearch> = mapIndexed { index, id -> DbSearch(query = query, perpetualId = id, priority = index) }
 
-@JvmName("listsToSearchRecord")
-fun List<AssetList>.toSearchRecord(query: String): List<DbSearch> = mapIndexed { index, list ->
-    DbSearch(query = query, listId = list.id, priority = index)
-}
+fun List<String>.toListSearchRecords(query: String): List<DbSearch> = mapIndexed { index, id -> DbSearch(query = query, listId = id, priority = index) }

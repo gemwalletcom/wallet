@@ -20,15 +20,15 @@ pub trait JobStatusReporter: Send + Sync {
     async fn report(&self, name: &str, interval: u64, duration: u64, success: bool);
 }
 
-pub async fn sleep_or_shutdown(duration: Duration, shutdown_rx: &ShutdownReceiver) -> bool {
-    let mut rx = shutdown_rx.clone();
+pub async fn sleep_or_shutdown(duration: Duration, shutdown: &ShutdownReceiver) -> bool {
+    let mut receiver = shutdown.clone();
     tokio::select! {
         _ = tokio::time::sleep(duration) => false,
-        _ = rx.changed() => true,
+        _ = receiver.changed() => true,
     }
 }
 
-pub async fn run_job<Name, F, Fut, R>(name: Name, interval_duration: Duration, reporter: Arc<dyn JobStatusReporter>, shutdown_rx: ShutdownReceiver, schedule: Arc<dyn JobSchedule>, job_fn: F)
+pub async fn run_job<Name, F, Fut, R>(name: Name, interval_duration: Duration, reporter: Arc<dyn JobStatusReporter>, shutdown: ShutdownReceiver, schedule: Arc<dyn JobSchedule>, job_fn: F)
 where
     Name: Into<String> + Send + 'static,
     F: Fn(JobContext) -> Fut + Send + Sync + 'static,
@@ -38,23 +38,23 @@ where
     let job_name = name.into();
 
     loop {
-        if *shutdown_rx.borrow() {
+        if *shutdown.borrow() {
             break;
         }
 
         let decision = schedule.evaluate(job_name.as_str(), interval_duration, SystemTime::now()).await;
-        let ctx = match decision {
-            Ok(RunDecision::Run(ctx)) => ctx,
+        let context = match decision {
+            Ok(RunDecision::Run(context)) => context,
             Ok(RunDecision::Wait(wait)) if wait > Duration::ZERO => {
                 info_with_fields!("job wait", job = job_name.as_str(), wait = human_duration(wait));
-                if sleep_or_shutdown(wait, &shutdown_rx).await {
+                if sleep_or_shutdown(wait, &shutdown).await {
                     break;
                 }
                 continue;
             }
             Ok(RunDecision::Wait(_)) => continue,
-            Err(err) => {
-                error_with_fields!("job schedule evaluation failed", &*err, job = job_name.as_str());
+            Err(error) => {
+                error_with_fields!("job schedule evaluation failed", &*error, job = job_name.as_str());
                 continue;
             }
         };
@@ -62,25 +62,25 @@ where
         let now = Instant::now();
         info_with_fields!("job start", job = job_name.as_str(), interval = human_duration(interval_duration));
 
-        let result = job_fn(ctx).await;
+        let result = job_fn(context).await;
         let duration_ms = now.elapsed().as_millis() as u64;
         let duration_display = human_duration(Duration::from_millis(duration_ms));
 
         match result {
             Ok(value) => {
                 info_with_fields!("job complete", job = job_name.as_str(), duration = duration_display.as_str(), result = format!("{:?}", value));
-                if let Err(err) = schedule.mark_success(job_name.as_str(), SystemTime::now()).await {
-                    error_with_fields!("job schedule update failed", &*err, job = job_name.as_str());
+                if let Err(error) = schedule.mark_success(job_name.as_str(), SystemTime::now()).await {
+                    error_with_fields!("job schedule update failed", &*error, job = job_name.as_str());
                 }
                 reporter.report(&job_name, interval_duration.as_secs(), duration_ms, true).await;
             }
-            Err(err) => {
-                error_with_fields!("job failed", &*err, job = job_name.as_str(), duration = duration_display.as_str());
+            Err(error) => {
+                error_with_fields!("job failed", &*error, job = job_name.as_str(), duration = duration_display.as_str());
                 reporter.report(&job_name, interval_duration.as_secs(), duration_ms, false).await;
             }
         }
 
-        if *shutdown_rx.borrow() || sleep_or_shutdown(interval_duration, &shutdown_rx).await {
+        if *shutdown.borrow() || sleep_or_shutdown(interval_duration, &shutdown).await {
             break;
         }
     }
@@ -88,16 +88,16 @@ where
 
 pub struct JobPlan {
     reporter: Arc<dyn JobStatusReporter>,
-    shutdown_rx: ShutdownReceiver,
+    shutdown: ShutdownReceiver,
     schedule: Arc<dyn JobSchedule>,
     handles: Vec<JobHandle>,
 }
 
 impl JobPlan {
-    pub fn new(reporter: Arc<dyn JobStatusReporter>, shutdown_rx: ShutdownReceiver, schedule: Arc<dyn JobSchedule>) -> Self {
+    pub fn new(reporter: Arc<dyn JobStatusReporter>, shutdown: ShutdownReceiver, schedule: Arc<dyn JobSchedule>) -> Self {
         Self {
             reporter,
-            shutdown_rx,
+            shutdown,
             schedule,
             handles: Vec::new(),
         }
@@ -114,11 +114,11 @@ impl JobPlan {
         let finished = Arc::new(AtomicBool::new(false));
         let finished_clone = finished.clone();
         let reporter = self.reporter.clone();
-        let shutdown_rx = self.shutdown_rx.clone();
+        let shutdown = self.shutdown.clone();
         let schedule = self.schedule.clone();
         let job_name_for_handle = job_name.clone();
         let handle = tokio::spawn(async move {
-            run_job(job_name_for_handle, interval, reporter, shutdown_rx, schedule, job_fn).await;
+            run_job(job_name_for_handle, interval, reporter, shutdown, schedule, job_fn).await;
             finished_clone.store(true, Ordering::Relaxed);
         });
         self.handles.push(JobHandle::new(job_name, handle, finished));

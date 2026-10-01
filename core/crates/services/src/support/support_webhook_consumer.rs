@@ -19,15 +19,15 @@ impl SupportWebhookConsumer {
 
 #[async_trait]
 impl MessageConsumer<SupportWebhookPayload, bool> for SupportWebhookConsumer {
-    async fn should_process(&self, _payload: &SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, _payload: &SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 
-    async fn process(&self, payload: SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let webhook = match serde_json::from_value::<ChatwootWebhookPayload>(payload.data.clone()) {
             Ok(w) => w,
-            Err(e) => {
-                error_with_fields!("support webhook parsing failed", &e, payload = payload.data.to_string());
+            Err(error) => {
+                error_with_fields!("support webhook parsing failed", &error, payload = payload.data.to_string());
                 return Ok(true);
             }
         };
@@ -42,7 +42,7 @@ impl MessageConsumer<SupportWebhookPayload, bool> for SupportWebhookConsumer {
             return Ok(true);
         };
 
-        match self.support_client.process_webhook(&device, &webhook).await {
+        match self.support_client.publish_webhook(&device, &webhook).await {
             Ok(result) => {
                 info_with_fields!(
                     "support webhook processed",

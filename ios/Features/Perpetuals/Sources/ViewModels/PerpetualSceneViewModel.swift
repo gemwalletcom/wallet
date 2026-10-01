@@ -101,6 +101,10 @@ public final class PerpetualSceneViewModel {
     public var perpetual: Perpetual {
         perpetualData.perpetual
     }
+
+    func positionData(_ details: GemPerpetualDetails) -> PerpetualPositionData? {
+        details.position.map { PerpetualPositionData(perpetual: perpetual, asset: asset, position: $0.toPrimitives()) }
+    }
 }
 
 // MARK: - Actions
@@ -208,10 +212,6 @@ private extension PerpetualSceneViewModel {
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
-    }
-
-    public func positionData(_ details: GemPerpetualDetails) -> PerpetualPositionData? {
-        details.position.map { PerpetualPositionData(perpetual: perpetual, asset: asset, position: $0.toPrimitives()) }
     }
 
     func refreshStored() async {

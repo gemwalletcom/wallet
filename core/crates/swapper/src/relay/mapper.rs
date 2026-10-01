@@ -2,12 +2,16 @@ use std::str::FromStr;
 
 use gem_tron::address::TronAddress;
 use num_bigint::BigUint;
-use primitives::{TransactionSwapMetadata, swap::ApprovalData};
+use num_traits::Zero;
+use primitives::{
+    TransactionSwapMetadata, TransactionSwapReferralFee,
+    swap::{ApprovalData, EVM_REFERRAL_ADDRESS},
+};
 
 use super::{
     asset::map_currency_to_asset_id,
     chain::RelayChain,
-    model::{RelayQuoteResponse, RelayRequest},
+    model::{RelayQuoteResponse, RelayRequest, RelayRequestAppFees},
 };
 use crate::{
     SwapResult, SwapperError, SwapperProvider, SwapperQuoteData,
@@ -70,6 +74,25 @@ pub fn map_ton_quote_data(quote_response: &RelayQuoteResponse) -> Result<Swapper
     ))
 }
 
+fn map_referral_fee(app_fees: Option<&RelayRequestAppFees>) -> Option<TransactionSwapReferralFee> {
+    let app_fees = app_fees?;
+    let currency = app_fees.currency.as_ref()?;
+    let value: BigUint = app_fees
+        .actual
+        .iter()
+        .filter(|fee| fee.recipient.as_deref().is_some_and(|recipient| recipient.eq_ignore_ascii_case(EVM_REFERRAL_ADDRESS)))
+        .filter_map(|fee| fee.amount.as_ref())
+        .sum();
+    if value.is_zero() {
+        return None;
+    }
+    let chain = RelayChain::from_chain_id(currency.chain_id)?.to_chain();
+    Some(TransactionSwapReferralFee {
+        asset_id: map_currency_to_asset_id(chain, &currency.address),
+        value,
+    })
+}
+
 pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
     let metadata = request.data.as_ref().and_then(|data| {
         let actual = data.route.as_ref()?.actual.as_ref()?;
@@ -77,13 +100,16 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
         let currency_out = actual.currency_out()?;
         let from_chain = RelayChain::from_chain_id(currency_in.currency.chain_id)?.to_chain();
         let to_chain = RelayChain::from_chain_id(currency_out.currency.chain_id)?.to_chain();
-        Some(TransactionSwapMetadata {
-            from_asset: map_currency_to_asset_id(from_chain, &currency_in.currency.address),
-            from_value: BigUint::from_str(currency_in.amount.as_deref()?).ok()?,
-            to_asset: map_currency_to_asset_id(to_chain, &currency_out.currency.address),
-            to_value: BigUint::from_str(currency_out.amount.as_deref()?).ok()?,
-            provider: Some(SwapperProvider::Relay.as_ref().to_string()),
-        })
+        Some(
+            TransactionSwapMetadata::new(
+                map_currency_to_asset_id(from_chain, &currency_in.currency.address),
+                BigUint::from_str(currency_in.amount.as_deref()?).ok()?,
+                map_currency_to_asset_id(to_chain, &currency_out.currency.address),
+                BigUint::from_str(currency_out.amount.as_deref()?).ok()?,
+                SwapperProvider::Relay,
+            )
+            .with_referral_fee(map_referral_fee(data.app_fees.as_ref())),
+        )
     });
 
     SwapResult {
@@ -97,7 +123,11 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
 mod tests {
     use super::*;
     use crate::relay::model::{RelayQuoteResponse, RelayRequest, RelayRequestsResponse, RelayStatus, Step};
-    use primitives::{AssetId, Chain, asset_constants::BASE_USDC_ASSET_ID, swap::SwapStatus};
+    use primitives::{
+        AssetId, Chain,
+        asset_constants::{BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID},
+        swap::SwapStatus,
+    };
 
     #[test]
     fn test_map_bitcoin_quote_data() {
@@ -200,13 +230,13 @@ mod tests {
             map_swap_result(&response.requests[0]),
             SwapResult {
                 status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: AssetId::from_chain(Chain::Bitcoin),
-                    from_value: BigUint::from(75_357u64),
-                    to_asset: AssetId::from_chain(Chain::Robinhood),
-                    to_value: BigUint::from(22_836_941_417_936_141u64),
-                    provider: Some("relay".to_string()),
-                }),
+                metadata: Some(TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::Bitcoin),
+                    BigUint::from(75_357u64),
+                    AssetId::from_chain(Chain::Robinhood),
+                    BigUint::from(22_836_941_417_936_141u64),
+                    SwapperProvider::Relay
+                )),
                 eta_in_seconds: None,
             }
         );
@@ -215,15 +245,31 @@ mod tests {
             map_swap_result(&response.requests[0]),
             SwapResult {
                 status: SwapStatus::Completed,
-                metadata: Some(TransactionSwapMetadata {
-                    from_asset: BASE_USDC_ASSET_ID.clone(),
-                    from_value: BigUint::from(109_077_539u64),
-                    to_asset: AssetId::from_chain(Chain::Bitcoin),
-                    to_value: BigUint::from(137_291u64),
-                    provider: Some("relay".to_string()),
-                }),
+                metadata: Some(TransactionSwapMetadata::new(
+                    BASE_USDC_ASSET_ID.clone(),
+                    BigUint::from(109_077_539u64),
+                    AssetId::from_chain(Chain::Bitcoin),
+                    BigUint::from(137_291u64),
+                    SwapperProvider::Relay
+                )),
                 eta_in_seconds: None,
             }
+        );
+    }
+
+    #[test]
+    fn test_map_swap_result_referral_fee() {
+        let response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_eth_usdc_referral_fee.json")).unwrap();
+        let metadata = map_swap_result(response.requests.first().unwrap()).metadata.unwrap();
+
+        assert_eq!(metadata.from_asset, ETHEREUM_USDC_ASSET_ID.clone());
+        assert_eq!(metadata.from_value, BigUint::from(350000000u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: ETHEREUM_USDC_ASSET_ID.clone(),
+                value: BigUint::from(1750000u64),
+            })
         );
     }
 
@@ -238,7 +284,13 @@ mod tests {
         assert_eq!(metadata.from_value, BigUint::from(60000000000000u64));
         assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Base));
         assert_eq!(metadata.to_value, BigUint::from(49426938842266u64));
-        assert_eq!(metadata.provider, Some("relay".to_string()));
+        assert_eq!(metadata.provider, Some(SwapperProvider::Relay.as_ref().to_string()));
+
+        let without_app_fee_recipient: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_arb_usdc_without_app_fee_recipient.json")).unwrap();
+        let result = map_swap_result(without_app_fee_recipient.requests.first().unwrap());
+
+        assert_eq!(result.status, SwapStatus::Completed);
+        assert_eq!(result.metadata.and_then(|metadata| metadata.referral_fee), None);
 
         let same_chain_response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_base_eth_to_wsteth.json")).unwrap();
         let result = map_swap_result(same_chain_response.requests.first().unwrap());

@@ -10,6 +10,7 @@ import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -17,7 +18,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import java.util.Locale
 
-class GetActiveAssetsInfoImpl(getWalletAssets: GetWalletAssets, getCurrentCurrency: GetCurrentCurrency, userConfig: UserConfig, scope: CoroutineScope = CoroutineScope(Dispatchers.Default)) : GetActiveAssetsInfo {
+class GetActiveAssetsInfoImpl(getWalletAssets: GetWalletAssets, getCurrentCurrency: GetCurrentCurrency, userConfig: UserConfig, scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)) : GetActiveAssetsInfo {
 
     private val rows = AssetRows()
 

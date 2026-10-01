@@ -61,8 +61,8 @@ pub enum Chain {
     Berachain,
     Ink,
     Unichain,
-    Hyperliquid, // HyperEVM
-    HyperCore,   // HyperCore native chain
+    Hyperliquid,
+    HyperCore,
     Monad,
     XLayer,
     Robinhood,
@@ -161,7 +161,6 @@ impl Chain {
         self.config().is_defi_supported
     }
 
-    // milliseconds
     pub fn block_time(&self) -> u32 {
         self.config().block_time
     }

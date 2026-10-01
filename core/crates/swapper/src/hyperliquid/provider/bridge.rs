@@ -10,7 +10,7 @@ use primitives::{
     asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID,
     contract_constants::HYPERCORE_SYSTEM_ADDRESS,
     known_assets::{HYPERCORE_HYPE, HYPEREVM_HYPE},
-    swap::{SwapResult, SwapStatus},
+    swap::{SwapResult, SwapResultRequest, SwapStatus},
 };
 
 use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
@@ -64,7 +64,7 @@ impl Swapper for HyperCoreBridge {
                 routes: vec![Route {
                     input: request.from_asset.asset_id(),
                     output: request.to_asset.asset_id(),
-                    route_data: "".to_string(),
+                    route_data: String::new(),
                 }],
             },
             request: request.clone(),
@@ -91,7 +91,7 @@ impl Swapper for HyperCoreBridge {
         }
     }
 
-    async fn get_swap_result(&self, _chain: Chain, _transaction_hash: &str) -> Result<SwapResult, SwapperError> {
+    async fn get_swap_result(&self, _request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
         Ok(SwapResult {
             status: SwapStatus::Completed,
             metadata: None,

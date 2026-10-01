@@ -13,7 +13,6 @@ use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 pub enum TransactionFilter {
     States(Vec<PrimitiveTransactionState>),
-    Kinds(Vec<PrimitiveTransactionType>),
 }
 
 #[derive(Debug, Clone)]
@@ -70,13 +69,17 @@ fn upsert_transaction(connection: &mut PgConnection, transaction: &Transaction) 
         .get_result(connection)
         .optional()?;
 
-    match inserted {
-        Some(transaction) => Ok((transaction, true)),
-        None => diesel::update(
-            transactions_dsl::transactions
-                .filter(transactions_dsl::chain.eq(&new_transaction.chain))
-                .filter(transactions_dsl::hash.eq(&new_transaction.hash)),
-        )
+    if let Some(transaction) = inserted {
+        return Ok((transaction, true));
+    }
+    let target = transactions_dsl::transactions
+        .filter(transactions_dsl::chain.eq(&new_transaction.chain))
+        .filter(transactions_dsl::hash.eq(&new_transaction.hash));
+    let existing = target.select(TransactionRow::as_select()).first(connection)?;
+    if *existing.kind == PrimitiveTransactionType::Swap && transaction.transaction_type != PrimitiveTransactionType::Swap {
+        return Ok((existing, false));
+    }
+    diesel::update(target)
         .set((
             transactions_dsl::from_address.eq(&new_transaction.from_address),
             transactions_dsl::to_address.eq(&new_transaction.to_address),
@@ -92,8 +95,7 @@ fn upsert_transaction(connection: &mut PgConnection, transaction: &Transaction) 
         ))
         .returning(TransactionRow::as_returning())
         .get_result(connection)
-        .map(|transaction| (transaction, false)),
-    }
+        .map(|transaction| (transaction, false))
 }
 
 fn get_transaction_by_id(client: &mut DatabaseClient, chain: &str, hash: &str) -> Result<TransactionRow, diesel::result::Error> {
@@ -171,9 +173,6 @@ pub(crate) fn transactions_by_wallet_since(client: &mut DatabaseClient, wallet_i
         match filter {
             TransactionFilter::States(states) => {
                 query = query.filter(tx_dsl::state.eq_any(transaction_states(states)));
-            }
-            TransactionFilter::Kinds(kinds) => {
-                query = query.filter(tx_dsl::kind.eq_any(transaction_kinds(kinds)));
             }
         }
     }
@@ -301,6 +300,8 @@ impl TransactionsRepository for DatabaseClient {
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, DatabaseError> {
         use crate::schema::transactions::dsl::*;
         use crate::schema::transactions_addresses::dsl as addr;
+        use crate::schema::transactions_perpetuals::dsl as perpetuals;
+        use crate::schema::transactions_swaps::dsl as swaps;
 
         if candidate_ids.is_empty() {
             return Ok(0);
@@ -310,6 +311,10 @@ impl TransactionsRepository for DatabaseClient {
             .filter(id.eq_any(&candidate_ids))
             .left_outer_join(addr::transactions_addresses.on(id.eq(addr::transaction_id)))
             .filter(addr::transaction_id.is_null())
+            .left_outer_join(swaps::transactions_swaps.on(id.eq(swaps::transaction_id)))
+            .filter(swaps::transaction_id.is_null())
+            .left_outer_join(perpetuals::transactions_perpetuals.on(id.eq(perpetuals::transaction_id)))
+            .filter(perpetuals::transaction_id.is_null())
             .select(id)
             .load(&mut self.connection)?;
 
@@ -332,9 +337,6 @@ impl TransactionsRepository for DatabaseClient {
             match filter {
                 TransactionFilter::States(states) => {
                     query = query.filter(dsl::state.eq_any(transaction_states(states)));
-                }
-                TransactionFilter::Kinds(kinds) => {
-                    query = query.filter(dsl::kind.eq_any(transaction_kinds(kinds)));
                 }
             }
         }
@@ -415,4 +417,9 @@ mod database_integration_tests {
         assert_eq!(by_hash[0].from, "0xfrom");
         assert_eq!(by_hash[0].to, "0xto");
     }
+}
+
+pub(crate) fn transaction_row_id(client: &mut DatabaseClient, transaction_id: &TransactionId) -> Result<i64, DatabaseError> {
+    use crate::schema::transactions::dsl::*;
+    Ok(transactions.filter(chain.eq(transaction_id.chain.as_ref())).filter(hash.eq(&transaction_id.hash)).select(id).first(&mut client.connection)?)
 }

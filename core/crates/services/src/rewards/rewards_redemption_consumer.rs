@@ -33,19 +33,19 @@ impl<S: RedemptionService> RewardsRedemptionConsumer<S> {
         }
     }
 
-    async fn process_with_retry(&self, request: RedemptionRequest) -> Result<String, Box<dyn Error + Send + Sync>> {
+    async fn redeem_with_retry(&self, request: RedemptionRequest) -> Result<String, Box<dyn Error + Send + Sync>> {
         let mut attempt = 0;
         loop {
             match self.redemption_service.process_redemption(request.clone()).await {
                 Ok(result) => return Ok(result.transaction_id),
-                Err(e) => {
-                    let is_retryable = self.retry_config.errors.iter().any(|p| e.to_string().contains(p));
+                Err(error) => {
+                    let is_retryable = self.retry_config.errors.iter().any(|p| error.to_string().contains(p));
                     if attempt < self.retry_config.max_retries && is_retryable {
                         attempt += 1;
                         tokio::time::sleep(self.retry_config.delay).await;
                         continue;
                     }
-                    return Err(e);
+                    return Err(error);
                 }
             }
         }
@@ -54,13 +54,13 @@ impl<S: RedemptionService> RewardsRedemptionConsumer<S> {
 
 #[async_trait]
 impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionStatus> for RewardsRedemptionConsumer<S> {
-    async fn should_process(&self, payload: &RewardsRedemptionPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_consume(&self, payload: &RewardsRedemptionPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let redemption_id = payload.redemption_id;
         let redemption = self.database.run(move |client| client.get_redemption(redemption_id)).await?;
         Ok(redemption.status == RedemptionStatus::Pending)
     }
 
-    async fn process(&self, payload: RewardsRedemptionPayload) -> Result<RedemptionStatus, Box<dyn Error + Send + Sync>> {
+    async fn consume(&self, payload: RewardsRedemptionPayload) -> Result<RedemptionStatus, Box<dyn Error + Send + Sync>> {
         let redemption_id = payload.redemption_id;
         let (redemption, recipient_address, option) = self
             .database
@@ -82,15 +82,15 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionS
 
         let request = RedemptionRequest { recipient_address, asset };
 
-        match self.process_with_retry(request).await {
+        match self.redeem_with_retry(request).await {
             Ok(transaction_id) => {
                 let updates = vec![RedemptionUpdate::TransactionId(transaction_id.clone()), RedemptionUpdate::Status(RedemptionStatus::Completed)];
                 self.database.run(move |client| client.update_redemption(redemption_id, updates)).await?;
 
                 if let Some(id) = &asset_id {
                     let pending_tx_id = TransactionId::new(id.chain, transaction_id.clone());
-                    if let Err(e) = self.stream_producer.publish(QueueName::StorePendingTransactions, &pending_tx_id).await {
-                        info_with_fields!("failed to publish redemption transaction to pending", transaction_id = pending_tx_id.to_string(), error = e.to_string());
+                    if let Err(error) = self.stream_producer.publish(QueueName::StorePendingTransactions, &pending_tx_id).await {
+                        info_with_fields!("failed to publish redemption transaction to pending", transaction_id = pending_tx_id.to_string(), error = error.to_string());
                     } else {
                         info_with_fields!("published redemption transaction to pending", transaction_id = pending_tx_id.to_string());
                     }
@@ -107,8 +107,8 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionS
                 info_with_fields!("redemption completed", id = payload.redemption_id, asset = asset_id_str.as_deref().unwrap_or("none"), value = value, tx_id = transaction_id);
                 Ok(RedemptionStatus::Completed)
             }
-            Err(e) => {
-                let error_msg = e.to_string();
+            Err(error) => {
+                let error_msg = error.to_string();
                 let updates = vec![RedemptionUpdate::Status(RedemptionStatus::Failed), RedemptionUpdate::Error(error_msg.clone())];
                 self.database.run(move |client| client.update_redemption(redemption_id, updates)).await?;
                 info_with_fields!("redemption failed", id = payload.redemption_id, asset = asset_id_str.as_deref().unwrap_or("none"), value = value, error = error_msg);

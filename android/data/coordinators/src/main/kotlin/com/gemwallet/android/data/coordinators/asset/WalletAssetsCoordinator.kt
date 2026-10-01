@@ -7,13 +7,14 @@ import com.wallet.core.primitives.AssetData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class WalletAssetsCoordinator(assetsQuery: AssetsQuery, getCurrentWalletId: GetCurrentWalletId, scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) : GetWalletAssets {
+class WalletAssetsCoordinator(assetsQuery: AssetsQuery, getCurrentWalletId: GetCurrentWalletId, scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)) : GetWalletAssets {
 
     private val walletAssets: StateFlow<List<AssetData>> = getCurrentWalletId()
         .flatMapLatest { walletId -> assetsQuery(walletId) }

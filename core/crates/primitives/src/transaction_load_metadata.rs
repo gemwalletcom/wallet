@@ -157,7 +157,6 @@ impl TransactionLoadMetadata {
         let TransactionLoadMetadata::Zcash { branch_id, .. } = self else {
             return None;
         };
-        // Zcash branch id is big-endian hex from the rpc node.
         let bytes: [u8; 4] = crate::decode_hex(branch_id).ok()?.try_into().ok()?;
         Some(u32::from_be_bytes(bytes))
     }
@@ -232,7 +231,7 @@ impl TransactionLoadMetadata {
     }
 
     pub fn get_chain_id_u64(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-        self.get_chain_id()?.parse::<u64>().map_err(|e| e.to_string().into())
+        self.get_chain_id()?.parse::<u64>().map_err(|error| error.to_string().into())
     }
 
     pub fn get_contract_call(&self) -> Result<&ContractCallData, Box<dyn std::error::Error + Send + Sync>> {

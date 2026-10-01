@@ -174,7 +174,7 @@ mod tests {
 }
 
 #[cfg(all(test, feature = "security_integration_tests"))]
-mod integration_tests {
+mod security_integration_tests {
     use std::env;
 
     use gem_client::ReqwestClient;

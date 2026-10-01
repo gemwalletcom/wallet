@@ -11,9 +11,12 @@ use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use num_traits::Num;
 
-use super::model::{Transaction, TransactionReceipt};
-use crate::ethereum_address_checksum;
-use primitives::{AssetId, Chain, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionType};
+use super::{
+    mapper::TRANSFER_TOPIC,
+    model::{Transaction, TransactionReceipt},
+};
+use crate::{address::ethereum_address_from_topic, ethereum_address_checksum};
+use primitives::{AssetId, Chain, EVMChain, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, contract_constants::EVM_NATIVE_TOKEN_ADDRESS, swap::EVM_REFERRAL_ADDRESS};
 
 use self::{across::AcrossParser, mayan::MayanParser, okx::OkxParser, pancakeswap::PancakeSwapParser, universal_router::UniversalRouterParser, yo::YoParser};
 
@@ -48,6 +51,10 @@ impl ParseContextExt for ParseContext<'_> {
         let from = ethereum_address_checksum(from).ok()?;
         let to = ethereum_address_checksum(to).ok()?;
         let contract = self.transaction.to.as_ref().and_then(|to| ethereum_address_checksum(to).ok());
+        let metadata = match from == EVM_REFERRAL_ADDRESS {
+            true => metadata.clone().with_referral_fee(None),
+            false => metadata.clone(),
+        };
 
         Some(PrimitivesTransaction::new(
             self.transaction.hash.clone(),
@@ -65,6 +72,26 @@ impl ParseContextExt for ParseContext<'_> {
             self.created_at,
         ))
     }
+}
+
+pub(super) fn referral_fee_from_transfers(chain: Chain, receipt: &TransactionReceipt) -> Option<TransactionSwapReferralFee> {
+    receipt.logs.iter().find_map(|log| {
+        let is_referral_transfer = log.topics.len() == 3 && log.topics.first()? == TRANSFER_TOPIC && ethereum_address_from_topic(log.topics.get(2)?)? == EVM_REFERRAL_ADDRESS;
+        if !is_referral_transfer {
+            return None;
+        }
+        referral_fee_for_token(chain, &log.address, ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?)
+    })
+}
+
+pub(super) fn referral_fee_for_token(chain: Chain, token: &str, value: BigUint) -> Option<TransactionSwapReferralFee> {
+    let token = ethereum_address_checksum(token).ok()?;
+    let is_native = token == EVM_NATIVE_TOKEN_ADDRESS || EVMChain::from_chain(chain).and_then(|chain| chain.weth_contract()).is_some_and(|contract| contract.eq_ignore_ascii_case(&token));
+    let (asset_id, value) = match is_native {
+        true => (AssetId::from_chain(chain), value),
+        false => AssetId::from_token(chain, &token).mirror_to_native(value),
+    };
+    Some(TransactionSwapReferralFee { asset_id, value })
 }
 
 pub fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Option<BigUint> {

@@ -27,7 +27,7 @@ struct WidgetPriceService {
             let assetIds = Self.assetIds(for: widgetFamily)
             let assets = try await provider
                 .request(WidgetAssetsTarget(assetIds: assetIds.map(\.identifier), currency: currency))
-                .map(as: [AssetBasic].self)
+                .map(as: [AssetBasic].self, decoder: JSONDateDecoder.standard)
             return PriceWidgetEntry(
                 date: Date(),
                 coinPrices: Self.coinPrices(assetIds: assetIds, assets: assets, currency: currency, widgetFamily: widgetFamily),

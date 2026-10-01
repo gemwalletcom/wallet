@@ -57,6 +57,7 @@ pub fn state_update(state: TransactionState, changes: &[TransactionChange], tran
     for change in changes {
         match change {
             TransactionChange::NetworkFee(fee) => update.fee = Some(fee.clone()),
+            TransactionChange::Value(value) => update.value = Some(value.clone()),
             TransactionChange::BlockNumber(number) => update.block_number = Some(number.clone()),
             TransactionChange::Metadata(metadata) => update.metadata = Some(metadata_json(metadata)?),
             TransactionChange::ConfirmationEtaSeconds(seconds) => update.confirmation_eta_seconds = Some(*seconds),
@@ -91,7 +92,7 @@ pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{PaymentMerchant, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
+    use primitives::{PaymentMerchant, SwapProvider, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
 
     #[test]
     fn test_payment_link_only_while_the_record_carries_the_payment_id() {
@@ -120,13 +121,7 @@ mod tests {
         let mut transaction = Transaction::mock();
         transaction.transaction_type = TransactionType::Swap;
         transaction.asset_id = AssetId::from_chain(Chain::Ethereum);
-        let swap = TransactionSwapMetadata {
-            from_asset: AssetId::from_chain(Chain::Ethereum),
-            from_value: 100u32.into(),
-            to_asset: AssetId::from_chain(Chain::Solana),
-            to_value: 200u32.into(),
-            provider: None,
-        };
+        let swap = TransactionSwapMetadata::new(AssetId::from_chain(Chain::Ethereum), 100u32.into(), AssetId::from_chain(Chain::Solana), 200u32.into(), SwapProvider::NearIntents);
 
         let update = state_update(TransactionState::Confirmed, &[TransactionChange::Metadata(TransactionMetadata::Swap(swap))], &transaction).unwrap();
 
@@ -138,6 +133,14 @@ mod tests {
             None,
             "an update that leaves the metadata alone moves no assets between rows"
         );
+    }
+
+    #[test]
+    fn test_the_state_update_carries_a_confirmed_value() {
+        let update = state_update(TransactionState::Confirmed, &[TransactionChange::Value(499_590_000u64.into())], &Transaction::mock()).unwrap();
+
+        assert_eq!(update.value, Some(499_590_000u64.into()));
+        assert!(update.has_field_changes());
     }
 
     #[test]

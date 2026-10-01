@@ -19,6 +19,3 @@ async-trait = { workspace = true, optional = true }
 primitives = { path = "../primitives", optional = true }
 reqwest = { workspace = true, optional = true }
 percent-encoding = { workspace = true, optional = true }
-
-[dev-dependencies]
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

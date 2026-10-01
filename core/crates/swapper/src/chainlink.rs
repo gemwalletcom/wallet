@@ -9,7 +9,6 @@ use primitives::{
     contract_constants::{ETHEREUM_CHAINLINK_ETH_USD_FEED_CONTRACT, MONAD_CHAINLINK_USD_FEED_CONTRACT},
 };
 
-// https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/shared/interfaces/AggregatorInterface.sol
 sol! {
     interface AggregatorInterface {
         function latestRoundData() external view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
@@ -35,7 +34,6 @@ impl ChainlinkPriceFeed {
         create_call3(&self.contract, AggregatorInterface::latestRoundDataCall {})
     }
 
-    // Price is in 8 decimals
     pub(super) fn decoded_answer(result: &IMulticall3::Result) -> Result<BigInt, SwapperError> {
         let decoded = decode_call3_return::<AggregatorInterface::latestRoundDataCall>(result).map_err(|_| SwapperError::ComputeQuoteError("failed to decode answer".into()))?;
         Ok(BigInt::from_le_bytes(&decoded.answer.to_le_bytes::<32>()))

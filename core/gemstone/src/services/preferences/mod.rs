@@ -1,4 +1,3 @@
-use primitives::OptionStringExt;
 use std::str::FromStr;
 pub mod rules;
 pub mod store;
@@ -8,9 +7,9 @@ pub(crate) mod testkit;
 use crate::services::error::GemServiceError;
 use std::sync::{Arc, Mutex};
 
-use primitives::ChartPeriod;
 use primitives::currency::Currency;
 use primitives::{Appearance, AssetId, Chain, ConfigResponse, Device, WalletType};
+use primitives::{ChartPeriod, OptionStringExt};
 
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
@@ -44,6 +43,7 @@ const IS_PERPETUAL_ENABLED: &str = "is_perpetual_enabled";
 const IS_HIDE_BALANCE_ENABLED: &str = "is_hide_balance_enabled";
 const IS_DEVELOPER_ENABLED: &str = "is_developer_enabled";
 const IS_ACCEPT_TERMS_COMPLETED: &str = "is_accept_terms_completed";
+const IS_AUTHENTICATION_OFFERED: &str = "is_authentication_offered";
 const APPEARANCE: &str = "appearance";
 const IS_DEVICE_REGISTERED: &str = "is_device_registered";
 const SUBSCRIPTIONS_VERSION: &str = "subscriptions_version";
@@ -118,6 +118,14 @@ impl GemPreferencesService {
 
     pub fn set_accept_terms_completed(&self) -> Result<(), GemServiceError> {
         self.set_observed(IS_ACCEPT_TERMS_COMPLETED, true.to_string())
+    }
+
+    pub fn should_offer_authentication(&self, is_available: bool, is_enabled: bool) -> bool {
+        rules::should_offer_authentication(is_available, is_enabled, rules::flag(self.store.get(IS_AUTHENTICATION_OFFERED.to_string())))
+    }
+
+    pub fn set_authentication_offered(&self) -> Result<(), GemServiceError> {
+        self.store.set(IS_AUTHENTICATION_OFFERED.to_string(), true.to_string())
     }
 
     pub fn get_appearance(&self) -> Appearance {
@@ -261,7 +269,7 @@ impl GemPreferencesService {
         self.store.set(SKIPPED_APP_VERSION.to_string(), version)
     }
 
-    pub fn get_perpetual_markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
+    pub fn get_perpetual_markets_updated_at(&self) -> Option<i64> {
         self.get_timestamp(PERPETUAL_MARKETS_UPDATED_AT)
     }
 
@@ -269,7 +277,7 @@ impl GemPreferencesService {
         self.set_timestamp(PERPETUAL_MARKETS_UPDATED_AT, timestamp)
     }
 
-    pub fn get_perpetual_prices_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
+    pub fn get_perpetual_prices_updated_at(&self) -> Option<i64> {
         self.get_timestamp(PERPETUAL_PRICES_UPDATED_AT)
     }
 
@@ -277,8 +285,8 @@ impl GemPreferencesService {
         self.set_timestamp(PERPETUAL_PRICES_UPDATED_AT, timestamp)
     }
 
-    fn get_timestamp(&self, key: &str) -> Result<Option<i64>, GemServiceError> {
-        Ok(crate::services::clock::parse_timestamp(self.store.get(key.to_string())))
+    fn get_timestamp(&self, key: &str) -> Option<i64> {
+        crate::services::clock::parse_timestamp(self.store.get(key.to_string()))
     }
 
     fn set_timestamp(&self, key: &str, timestamp: Option<i64>) -> Result<(), GemServiceError> {
@@ -300,7 +308,7 @@ impl GemPreferencesService {
         self.store.get(CONFIG.to_string()).and_then(|json| serde_json::from_str(&json).ok())
     }
 
-    pub fn get_asset_updated_at(&self, asset_id: &AssetId) -> Result<Option<i64>, GemServiceError> {
+    pub fn get_asset_updated_at(&self, asset_id: &AssetId) -> Option<i64> {
         self.get_timestamp(&asset_updated_at_key(asset_id))
     }
 
@@ -449,5 +457,14 @@ mod tests {
 
         assert!(!service.is_developer_enabled());
         assert!(!service.is_accept_terms_completed());
+    }
+
+    #[test]
+    fn test_should_offer_authentication() {
+        let service = GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()));
+        assert!(service.should_offer_authentication(true, false));
+
+        service.set_authentication_offered().unwrap();
+        assert!(!service.should_offer_authentication(true, false));
     }
 }

@@ -342,13 +342,11 @@ pub fn generate(root: &Path, platform: Platform, output: &Path, mappings: &TypeM
     GeneratedModels { files, stale }
 }
 
-/// A struct app model as the store mappers read it: its Kotlin package and its fields.
 pub(crate) struct AppRecord {
     pub(crate) kotlin_package: String,
     pub(crate) fields: Vec<AppField>,
 }
 
-/// A field of a struct app model: its app name, its type in each language, and the model it holds.
 pub(crate) struct AppField {
     pub(crate) name: String,
     pub(crate) swift: String,
@@ -356,7 +354,6 @@ pub(crate) struct AppField {
     pub(crate) holds: Option<String>,
 }
 
-/// Every struct app model declared under `primitives`, by name.
 pub(crate) fn app_records(primitives: &Path, mappings: &TypeMappings) -> BTreeMap<String, AppRecord> {
     parsed_files(primitives)
         .into_iter()

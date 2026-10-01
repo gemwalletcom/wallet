@@ -95,7 +95,7 @@ pub fn map_order_from_webhook(webhook: WebhookData) -> FiatTransactionUpdate {
         status,
         fiat_amount,
         fiat_currency,
-        tx,
+        tx: transaction,
         ..
     } = webhook;
 
@@ -103,7 +103,7 @@ pub fn map_order_from_webhook(webhook: WebhookData) -> FiatTransactionUpdate {
         transaction_id: merchant_transaction_id,
         provider_transaction_id: None,
         status: map_status(&status),
-        transaction_hash: tx.and_then(|tx| tx.id),
+        transaction_hash: transaction.and_then(|transaction| transaction.id),
         fiat_amount: Some(fiat_amount),
         fiat_currency: Some(fiat_currency.to_ascii_uppercase()),
     }

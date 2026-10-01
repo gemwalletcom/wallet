@@ -1,9 +1,10 @@
 use num_bigint::BigInt;
+use primitives::unix_seconds;
 use primitives::{
     AssetId, Chain, MONTH, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval,
     SimulationWarningType,
 };
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use super::{approval_method::ApprovalMethod, approval_value::ApprovalValue};
 use gem_evm::ethereum_address_checksum;
@@ -168,7 +169,7 @@ impl ApprovalRequest {
 
     pub(crate) fn expiration_warning(&self) -> Option<SimulationWarning> {
         let expiration = self.warning_expiration?;
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).ok()?.as_secs();
+        let now = unix_seconds().ok()?;
         if expiration <= now.saturating_add(EXCESSIVE_EXPIRATION_WINDOW.as_secs()) {
             return None;
         }

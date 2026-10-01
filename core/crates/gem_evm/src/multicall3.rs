@@ -1,7 +1,6 @@
 use alloy_sol_types::{SolCall, sol};
 use primitives::EVMChain;
 
-// https://www.multicall3.com/
 sol! {
     #[derive(Debug)]
     interface IMulticall3 {
@@ -57,7 +56,7 @@ pub fn create_call3(target: &str, call: impl SolCall) -> IMulticall3::Call3 {
 
 pub fn decode_call3_return<T: SolCall>(result: &IMulticall3::Result) -> Result<T::Return, Box<dyn std::error::Error + Send + Sync>> {
     if result.success {
-        let decoded = T::abi_decode_returns(&result.returnData).map_err(|e| format!("{:?} abi decode error: {:?}", T::SIGNATURE, e))?;
+        let decoded = T::abi_decode_returns(&result.returnData).map_err(|error| format!("{:?} abi decode error: {:?}", T::SIGNATURE, error))?;
         Ok(decoded)
     } else {
         Err(format!("{:?} failed", T::SIGNATURE).into())

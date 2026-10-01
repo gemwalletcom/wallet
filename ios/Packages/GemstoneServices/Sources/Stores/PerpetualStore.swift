@@ -7,6 +7,7 @@ import struct Gemstone.Perpetual
 import struct Gemstone.PerpetualData
 import struct Gemstone.PerpetualMarketData
 import struct Gemstone.PerpetualPosition
+import struct Gemstone.PerpetualPrice
 import enum Gemstone.PerpetualProvider
 import GemstonePrimitives
 import Primitives
@@ -27,8 +28,8 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         try store.upsertPerpetuals(data.map { $0.toPrimitives().perpetual })
     }
 
-    public func setPinned(perpetualIds: [String], pinned: Bool) async throws {
-        try store.setPinned(for: perpetualIds, value: pinned)
+    public func setPinned(perpetualIds: [PerpetualId], pinned: Bool) async throws {
+        try store.setPinned(for: perpetualIds.map(\.identifier), value: pinned)
     }
 
     public func clearPerpetuals(collateralAssetIds: [Gemstone.AssetId]) async throws {
@@ -50,8 +51,8 @@ public final class GemstonePerpetualStore: GemPerpetualStore, @unchecked Sendabl
         )
     }
 
-    public func updatePrices(prices: [String: Double]) async throws {
-        try store.updatePrices(prices)
+    public func updatePrices(prices: [Gemstone.PerpetualPrice]) async throws {
+        try store.updatePrices(prices.map { $0.toPrimitives() })
     }
 
     public func getPositionIds(walletId: WalletId, provider: Gemstone.PerpetualProvider) async throws -> [String] {

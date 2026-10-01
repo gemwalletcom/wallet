@@ -142,7 +142,7 @@ fn validate_value(path: &Path, id: &str, value: &str) -> Result<(), Box<dyn Erro
     if value.contains('"') || value.contains('&') || value.contains('<') || value.contains('>') {
         return Err(format!("{} contains unsupported native string syntax in {}", path.display(), id).into());
     }
-    let mut characters = value.chars().peekable();
+    let mut characters = value.chars();
     while let Some(character) = characters.next() {
         if character == '\\' && characters.next() != Some('n') {
             return Err(format!("{} contains unsupported escape in {}", path.display(), id).into());

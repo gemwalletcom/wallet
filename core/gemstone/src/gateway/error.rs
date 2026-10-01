@@ -3,17 +3,11 @@ use crate::transaction_state::TransactionStatusError;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use std::{error::Error, fmt::Display};
 
-/// Errors that can occur during gateway operations.
-#[derive(Debug, Clone, uniffi::Error)]
+#[derive(Debug, Clone, PartialEq, uniffi::Error)]
 pub enum GatewayError {
-    /// The platform transport reported no connectivity.
     Offline,
-    /// Network-related errors such as timeouts, connection failures, or HTTP errors.
     NetworkError { msg: String },
-    /// Non-network errors from platform code (Kotlin/Swift), allowing clients to
-    /// distinguish and map back to original error types (e.g., BlockchainError.DustError).
     PlatformError { msg: String },
-    /// The node answered for a different network than the chain it was offered for.
     NetworkIdMismatch { chain: String, network_id: String },
 }
 
@@ -117,19 +111,16 @@ mod tests {
 
     #[test]
     fn test_map_network_error_keeps_offline_kind() {
-        assert!(matches!(map_network_error(Box::new(AlienError::Offline)), GatewayError::Offline));
-        assert!(matches!(
-            map_network_error(Box::<gem_client::ClientError>::new(gem_client::ClientError::Network(AlienError::Offline.to_string()))),
-            GatewayError::Offline
-        ));
-        assert!(matches!(
+        assert_eq!(map_network_error(Box::new(AlienError::Offline)), GatewayError::Offline);
+        assert_eq!(map_network_error(Box::<gem_client::ClientError>::new(gem_client::ClientError::Network(AlienError::Offline.to_string()))), GatewayError::Offline);
+        assert_eq!(
             map_network_error(Box::new(JsonRpcError {
                 code: ERROR_CLIENT_ERROR,
                 message: "Network error: network offline".to_string(),
                 cause: None,
             })),
             GatewayError::Offline
-        ));
+        );
         assert!(matches!(map_network_error(Box::new(AlienError::ResponseError { msg: "timeout".into() })), GatewayError::NetworkError { .. }));
     }
 

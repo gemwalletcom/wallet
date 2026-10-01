@@ -15,7 +15,6 @@ pub mod transactions_mapper;
 
 pub struct BroadcastProvider;
 
-// Re-export mappers for convenience
 pub use balances_mapper::*;
 pub use transaction_state_mapper::*;
 pub use transactions_mapper::*;

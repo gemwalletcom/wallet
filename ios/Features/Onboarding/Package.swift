@@ -60,7 +60,7 @@ let package = Package(
             path: "TestKit",
         ),
         .testTarget(
-            name: "OnboardingTest",
+            name: "OnboardingTests",
             dependencies: [
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Onboarding",

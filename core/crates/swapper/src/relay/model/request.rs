@@ -1,5 +1,7 @@
+use num_bigint::BigUint;
 use primitives::{decode_hex, swap::SwapStatus};
 use serde::Deserialize;
+use serde_serializers::deserialize_option_biguint_from_str;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -23,7 +25,8 @@ impl RelayStatus {
         match self {
             RelayStatus::Pending | RelayStatus::Waiting | RelayStatus::Depositing | RelayStatus::Submitted | RelayStatus::Unknown => SwapStatus::Pending,
             RelayStatus::Success | RelayStatus::Completed => SwapStatus::Completed,
-            RelayStatus::Failed | RelayStatus::Failure | RelayStatus::Refund | RelayStatus::Refunded => SwapStatus::Failed,
+            RelayStatus::Failed | RelayStatus::Failure => SwapStatus::Failed,
+            RelayStatus::Refund | RelayStatus::Refunded => SwapStatus::Refunded,
         }
     }
 }
@@ -55,6 +58,23 @@ pub struct RelayRequestData {
     pub route: Option<RelayRoute>,
     #[serde(default)]
     pub in_txs: Vec<RelayRequestTransaction>,
+    pub app_fees: Option<RelayRequestAppFees>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelayRequestAppFees {
+    #[serde(default)]
+    pub actual: Vec<RelayRequestAppFee>,
+    pub currency: Option<RelayCurrency>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelayRequestAppFee {
+    pub recipient: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]
+    pub amount: Option<BigUint>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -125,13 +145,13 @@ mod tests {
     }
 
     #[test]
-    fn test_relay_status_refund_maps_to_failed() {
+    fn test_relay_status_refund_maps_to_refunded() {
         let request: RelayRequest = serde_json::from_value(serde_json::json!({
             "status": "refund",
             "data": null
         }))
         .unwrap();
 
-        assert_eq!(request.status.into_swap_status(), SwapStatus::Failed);
+        assert_eq!(request.status.into_swap_status(), SwapStatus::Refunded);
     }
 }

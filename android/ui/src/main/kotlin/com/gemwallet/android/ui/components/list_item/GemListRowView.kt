@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
@@ -30,6 +32,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkIte
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.textRes
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
@@ -38,6 +41,7 @@ import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemListRow
@@ -54,6 +58,19 @@ fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelectAddres
             item(key = "section:$index") { Spacer16() }
         }
         itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position, onSelect = onSelect, onSelectAddress = onSelectAddress) }
+        gemListSectionFooter(section, key = "footer:$index")
+    }
+}
+
+fun LazyListScope.gemListSectionFooter(section: GemListSection, key: Any) {
+    val text = section.footer.textRes() ?: return
+    item(key = key) {
+        Text(
+            modifier = Modifier.padding(horizontal = paddingLarge),
+            text = stringResource(text),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary,
+        )
     }
 }
 

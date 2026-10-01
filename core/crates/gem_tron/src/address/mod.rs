@@ -33,7 +33,6 @@ impl TronAddress {
     }
 
     pub fn from_hex_or_base58(value: &str) -> Option<Self> {
-        // v3-compatible raw transaction parsing prefers base58 when both formats are technically valid.
         Self::try_parse(value).or_else(|| Self::from_hex(value))
     }
 
@@ -93,7 +92,6 @@ impl AddressTrait for TronAddress {
         let decoded = bs58::decode(address).with_check(None).into_vec().ok()?;
         let payload = match decoded.as_slice() {
             [ADDRESS_PREFIX, payload @ ..] => payload,
-            // v3 accepts 20-byte base58check payloads and normalizes them with the Tron prefix.
             payload => payload,
         };
 

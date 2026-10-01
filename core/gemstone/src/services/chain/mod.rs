@@ -8,7 +8,6 @@ use crate::services::localization::GemLocalizedText;
 
 use crate::wallet_connect::{wallet_connect_namespace, wallet_connect_reference};
 
-/// A network as a list row draws it: its name, the token standard when a screen names one, and its icon.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChainRow {
     pub chain: Chain,
@@ -51,7 +50,6 @@ impl GemChainService {
         Self {}
     }
 
-    /// Every chain by rank, or only `chains` in their order, that matches `query`, as the rows each chain picker draws.
     pub fn chain_rows(&self, chains: Option<Vec<Chain>>, query: String) -> Vec<GemChainRow> {
         rules::matching_chains(chains.unwrap_or_else(rules::chains_by_rank), &query).into_iter().map(chain_row).collect()
     }

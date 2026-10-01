@@ -1,0 +1,736 @@
+{
+  "requests": [
+    {
+      "id": "0x1790766829420d97d721d162a8d195e71519a34d1686e9faddaa49e106fb688c",
+      "status": "success",
+      "user": "0x3a905fcc956f04d6e479962f87895fe7d5c4f618",
+      "recipient": "727921",
+      "sender": "0x3A905fCC956F04d6e479962F87895fE7d5c4f618",
+      "refundTo": null,
+      "supersededByRequestId": null,
+      "duplicateDeposits": null,
+      "depositAddress": null,
+      "data": {
+        "claimStatus": null,
+        "slippageTolerance": "0",
+        "failReason": null,
+        "refundFailReason": null,
+        "usesExternalLiquidity": false,
+        "timeEstimate": 1,
+        "triggeredByFastFill": null,
+        "inTxs": [
+          {
+            "txHash": "0x9efd8625f00a157f635b6122058b6e0d46e740cb858887f654bb467face72c3c",
+            "fee": "1004980000000",
+            "feeUsd": "0.002700",
+            "block": 510329497,
+            "type": "onchain",
+            "chainId": 42161,
+            "timestamp": 1790766867,
+            "status": "success",
+            "data": {
+              "from": "0x3a905fcc956f04d6e479962f87895fe7d5c4f618",
+              "to": "0x4cd00e387622c35bddb9b4c962c136462338bc31",
+              "data": "0xe80179520000000000000000000000003a905fcc956f04d6e479962f87895fe7d5c4f618000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e58310000000000000000000000000000000000000000000000000000000000a1cdb29672b6589c864080e343dfaf488005d1944732242e6746b0a1a3152e1709b5fe",
+              "value": "0"
+            },
+            "stateChanges": [
+              {
+                "address": "0x3a905fcc956f04d6e479962f87895fe7d5c4f618",
+                "change": {
+                  "data": {
+                    "tokenAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                    "tokenKind": "ft"
+                  },
+                  "kind": "token",
+                  "balanceDiff": "-10603954"
+                }
+              },
+              {
+                "address": "0x4cd00e387622c35bddb9b4c962c136462338bc31",
+                "change": {
+                  "data": {
+                    "tokenAddress": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                    "tokenKind": "ft"
+                  },
+                  "kind": "token",
+                  "balanceDiff": "10603954"
+                }
+              }
+            ]
+          }
+        ],
+        "outTxs": [
+          {
+            "txHash": "8fbd1b2be9a4c2f92ec13ffecfa30b1222602523bab26becf8017a2399fc7f0e067ac6526a819793",
+            "fee": "0",
+            "feeUsd": "0.000000",
+            "block": 345295809,
+            "type": "onchain",
+            "chainId": 3586256,
+            "timestamp": 1790766868,
+            "status": "success",
+            "data": {
+              "code": 200,
+              "queued_at": 1790766868431,
+              "l1_address": "0xf70da97812CB96acDF810712Aa562db8dfA3dbEF",
+              "executed_at": 0,
+              "block_height": 345295809,
+              "api_key_index": 3,
+              "transaction_index": 362,
+              "type": 12,
+              "nonce": 110672,
+              "sequence_index": 129827103284,
+              "event_info": "{\"f\":508431,\"t\":727921,\"ai\":3,\"frt\":0,\"trt\":0,\"u\":10603954,\"fee\":0,\"ae\":\"\"}",
+              "account_index": 508431,
+              "verified_at": 0,
+              "committed_at": 0,
+              "transaction_time": 1790766868570300,
+              "expire_at": 1790767467011,
+              "hash": "8fbd1b2be9a4c2f92ec13ffecfa30b1222602523bab26becf8017a2399fc7f0e067ac6526a819793",
+              "parent_hash": "",
+              "info": "{\"FromAccountIndex\":508431,\"ApiKeyIndex\":3,\"ToAccountIndex\":727921,\"AssetIndex\":3,\"FromRouteType\":0,\"ToRouteType\":0,\"Amount\":10603954,\"USDCFee\":0,\"Memo\":[150,114,182,88,156,134,64,128,227,67,223,175,72,128,5,209,148,71,50,36,46,103,70,176,161,163,21,46,23,9,181,254],\"ExpiredAt\":1790767467011,\"Nonce\":110672,\"Sig\":\"cuVNoXfvkhkRY5ZeMZOWI3HuKvOHtIiO5MZWJr641EXnNem4o623AajegpUfEaPB0v/SP35gVAcSLk6wJdubOhbObkznXVFlkM1sVQEvo3E=\",\"L1Sig\":\"0x9d619744f9faaeca9cd0d47e3ec2414feca961ad95a4b0e9c2e8a9c4001fd94b02a51c2114c274bdbd120ef7db64a63e0035bb75e5fff346e40f4e07d77743501b\",\"L2TxAttributes\":null}",
+              "status": 2
+            },
+            "stateChanges": [
+              {
+                "address": "508431",
+                "change": {
+                  "data": {
+                    "tokenAddress": "0",
+                    "tokenKind": "ft"
+                  },
+                  "kind": "token",
+                  "balanceDiff": "-10603954"
+                }
+              },
+              {
+                "address": "727921",
+                "change": {
+                  "data": {
+                    "tokenAddress": "0",
+                    "tokenKind": "ft"
+                  },
+                  "kind": "token",
+                  "balanceDiff": "10603954"
+                }
+              }
+            ]
+          }
+        ],
+        "appFees": {
+          "quoted": [
+            {
+              "recipient": null,
+              "bps": null,
+              "amount": null,
+              "amountFormatted": null
+            }
+          ],
+          "actual": [
+            {
+              "recipient": null,
+              "bps": null,
+              "amount": null,
+              "amountFormatted": null,
+              "amountUsd": null
+            }
+          ],
+          "currency": {
+            "chainId": 42161,
+            "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "decimals": 6,
+            "metadata": {
+              "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+              "verified": true
+            }
+          }
+        },
+        "feeSponsorship": {
+          "quoted": {
+            "selectedComponents": [
+              "",
+              "",
+              "",
+              ""
+            ],
+            "capHit": false,
+            "components": {
+              "execution": {
+                "selected": true,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              },
+              "swap": {
+                "selected": true,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              },
+              "platform": {
+                "selected": true,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              },
+              "app": {
+                "selected": true,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              },
+              "rent": {
+                "selected": false,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              }
+            },
+            "sponsoredTotal": {
+              "amount": null,
+              "amountFormatted": null,
+              "amountUsd": null,
+              "minimumAmount": null
+            },
+            "userPaysTotal": {
+              "amount": null,
+              "amountFormatted": null,
+              "amountUsd": null,
+              "minimumAmount": null
+            },
+            "maxSubsidizationAmount": ""
+          },
+          "actual": {
+            "selectedComponents": [
+              "",
+              "",
+              "",
+              ""
+            ],
+            "capHit": false,
+            "components": {
+              "execution": {
+                "selected": true,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              },
+              "swap": {
+                "selected": true,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              },
+              "platform": {
+                "selected": true,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              },
+              "app": {
+                "selected": true,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              },
+              "rent": {
+                "selected": false,
+                "total": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "sponsored": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                },
+                "userPays": {
+                  "amount": null,
+                  "amountFormatted": null,
+                  "amountUsd": null,
+                  "minimumAmount": null
+                }
+              }
+            },
+            "sponsoredTotal": {
+              "amount": null,
+              "amountFormatted": null,
+              "amountUsd": null,
+              "minimumAmount": null
+            },
+            "userPaysTotal": {
+              "amount": null,
+              "amountFormatted": null,
+              "amountUsd": null,
+              "minimumAmount": null
+            },
+            "maxSubsidizationAmount": "",
+            "sponsorPayment": {
+              "amount": "",
+              "address": "",
+              "chainId": 0
+            }
+          },
+          "currency": {
+            "chainId": 42161,
+            "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "decimals": 6
+          }
+        },
+        "fees": {
+          "quoted": {
+            "swap": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            },
+            "execution": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            },
+            "platform": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            },
+            "app": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            },
+            "sponsored": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            }
+          },
+          "actual": {
+            "swap": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            },
+            "execution": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            },
+            "platform": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            },
+            "app": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            },
+            "sponsored": {
+              "usd": null,
+              "amount": null,
+              "amountFormatted": null
+            }
+          },
+          "currency": {
+            "chainId": 42161,
+            "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "decimals": 6,
+            "metadata": {
+              "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+              "verified": true
+            }
+          }
+        },
+        "route": {
+          "quoted": {
+            "origin": {
+              "inputCurrency": {
+                "currency": {
+                  "chainId": 42161,
+                  "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                  "symbol": "USDC",
+                  "name": "USD Coin",
+                  "decimals": 6,
+                  "metadata": {
+                    "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+                    "verified": true
+                  }
+                },
+                "amount": "10603954",
+                "amountFormatted": "10.603954",
+                "amountUsd": "10.603487",
+                "minimumAmount": "10603954"
+              },
+              "outputCurrency": {
+                "currency": {
+                  "chainId": 42161,
+                  "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                  "symbol": "USDC",
+                  "name": "USD Coin",
+                  "decimals": 6,
+                  "metadata": {
+                    "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+                    "verified": true
+                  }
+                },
+                "amount": "10603954",
+                "amountFormatted": "10.603954",
+                "amountUsd": "10.603487",
+                "minimumAmount": "10603954"
+              },
+              "router": "relay"
+            },
+            "destination": {
+              "inputCurrency": {
+                "currency": {
+                  "chainId": 3586256,
+                  "address": "0",
+                  "symbol": "USDC (Perp)",
+                  "name": "USD Coin (Perp)",
+                  "decimals": 6,
+                  "metadata": {
+                    "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+                    "verified": true
+                  }
+                },
+                "amount": "10603954",
+                "amountFormatted": "10.603954",
+                "amountUsd": "10.603487",
+                "minimumAmount": "10603954"
+              },
+              "outputCurrency": {
+                "currency": {
+                  "chainId": 3586256,
+                  "address": "0",
+                  "symbol": "USDC (Perp)",
+                  "name": "USD Coin (Perp)",
+                  "decimals": 6,
+                  "metadata": {
+                    "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+                    "verified": true
+                  }
+                },
+                "amount": "10603954",
+                "amountFormatted": "10.603954",
+                "amountUsd": "10.603487",
+                "minimumAmount": "10602893"
+              },
+              "router": "relay"
+            }
+          },
+          "actual": {
+            "origin": {
+              "inputCurrency": {
+                "currency": {
+                  "chainId": 42161,
+                  "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                  "symbol": "USDC",
+                  "name": "USD Coin",
+                  "decimals": 6,
+                  "metadata": {
+                    "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+                    "verified": true
+                  }
+                },
+                "amount": "10603954",
+                "amountFormatted": "10.603954",
+                "amountUsd": "10.603487",
+                "minimumAmount": "10603954"
+              },
+              "outputCurrency": {
+                "currency": {
+                  "chainId": 42161,
+                  "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                  "symbol": "USDC",
+                  "name": "USD Coin",
+                  "decimals": 6,
+                  "metadata": {
+                    "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+                    "verified": true
+                  }
+                },
+                "amount": "10603954",
+                "amountFormatted": "10.603954",
+                "amountUsd": "10.603413",
+                "minimumAmount": "10603954"
+              },
+              "router": "relay"
+            },
+            "destination": {
+              "inputCurrency": {
+                "currency": {
+                  "chainId": 3586256,
+                  "address": "0",
+                  "symbol": "USDC (Perp)",
+                  "name": "USD Coin (Perp)",
+                  "decimals": 6,
+                  "metadata": {
+                    "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+                    "verified": true
+                  }
+                },
+                "amount": "10603954",
+                "amountFormatted": "10.603954",
+                "amountUsd": "10.603413",
+                "minimumAmount": "10603954"
+              },
+              "outputCurrency": {
+                "currency": {
+                  "chainId": 3586256,
+                  "address": "0",
+                  "symbol": "USDC (Perp)",
+                  "name": "USD Coin (Perp)",
+                  "decimals": 6,
+                  "metadata": {
+                    "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+                    "verified": true
+                  }
+                },
+                "amount": "10603954",
+                "amountFormatted": "10.603954",
+                "amountUsd": "10.603487",
+                "minimumAmount": "10602893"
+              },
+              "router": "relay"
+            },
+            "rate": "1"
+          }
+        },
+        "quoteOraclePrice": null,
+        "refundCurrencyData": null,
+        "externalMetadata": {
+          "moonpayId": null
+        }
+      },
+      "protocol": {
+        "orderId": "0x9672b6589c864080e343dfaf488005d1944732242e6746b0a1a3152e1709b5fe",
+        "hubType": "onchain",
+        "isWithdrawable": false,
+        "solver": {
+          "address": "0xf70da97812cb96acdf810712aa562db8dfa3dbef",
+          "protocolChainId": "base",
+          "chainId": 8453
+        },
+        "deposit": {
+          "origin": {
+            "amount": "10603954",
+            "chainId": 42161,
+            "currency": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+            "depositor": "0x3a905fcc956f04d6e479962f87895fe7d5c4f618",
+            "depository": "0x4cd00e387622c35bddb9b4c962c136462338bc31",
+            "onchainId": "0x409a8bc091948c2c742d06ecf5838f3fc093742cfa77a6366b174883e8062aec",
+            "transactionId": "0x9efd8625f00a157f635b6122058b6e0d46e740cb858887f654bb467face72c3c"
+          },
+          "attestation": {
+            "execution": {
+              "actions": [
+                "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000058d7a9da4c5de4bfad60d70df547c8a6a91165d4e736c21f472dff435a422fe6c2922f9e5f30d4f0cf8af1e60e627bdcf753fb4f0000000000000000000000000000000000000000000000000000000000a1cdb2"
+              ],
+              "idempotencyKey": "0xbb1c4251f596ee8cfb8ae770248531050f89bc929bfb2c877936eb8ff3e5f292"
+            },
+            "attestations": [
+              {
+                "oracleChainId": "537713",
+                "oracleContract": "0xd180dc3b8cb71b185c563b6e4857592ca93dacaf",
+                "signerAddress": "0x5be2dd28f7810582ed6dc910fd8693878a1d90f2",
+                "signature": "0x9d21f918d98eec3b9708cf064c7f5cbda105e9f6a80e97186f046877f2907cb96ecb3af51c8ce70bc23de9a4cd14894ddfb3aa6693e9cf34b0b40d06ac3c1ae11c"
+              },
+              {
+                "oracleChainId": "537713",
+                "oracleContract": "0xd180dc3b8cb71b185c563b6e4857592ca93dacaf",
+                "signerAddress": "0xa41716ff5a7d4ad22f83b7cb74d9af9767a96a52",
+                "signature": "0xcbe9662450ee1d80b6416c8fc4049d99006e4e1415969b1ddaad7544e34c364023c953f5fbe9dcad09722bb6ee6c5f5f6064cf4c96cbaa919064f255f621b6021c"
+              }
+            ]
+          }
+        },
+        "settlement": {
+          "destination": {
+            "fills": [
+              {
+                "chainId": 3586256,
+                "transactionId": "8fbd1b2be9a4c2f92ec13ffecfa30b1222602523bab26becf8017a2399fc7f0e067ac6526a819793"
+              }
+            ],
+            "refunds": []
+          },
+          "attestation": {
+            "execution": {
+              "actions": [
+                "0x000000000000000000000000000000000000000000000000000000000000000200000000000000000000000058d7a9da4c5de4bfad60d70df547c8a6a91165d4000000000000000000000000d5fa4f5834722d85d95f45387ed60ce09ba4e36fe736c21f472dff435a422fe6c2922f9e5f30d4f0cf8af1e60e627bdcf753fb4f0000000000000000000000000000000000000000000000000000000000a1cdb2"
+              ],
+              "idempotencyKey": "0x2e65fcfd6bb12515ab8daa4b18f34254ec35eeb1a2d74ab4fa65a4d44dbb0b33"
+            },
+            "attestations": [
+              {
+                "oracleChainId": "537713",
+                "oracleContract": "0xd180dc3b8cb71b185c563b6e4857592ca93dacaf",
+                "signerAddress": "0x2c598f73a5ab65c0510fd8efb740826d291cab0e",
+                "signature": "0xfd5a750f79d1d32f6d4c9a2fa67ccba255aaec4333c501d5c9637eba79a9b2911eb43d5c38476fd5422e39fd3606a5bc854592596b5decc2194f5a9d8de25d761c"
+              },
+              {
+                "oracleChainId": "537713",
+                "oracleContract": "0xd180dc3b8cb71b185c563b6e4857592ca93dacaf",
+                "signerAddress": "0xa41716ff5a7d4ad22f83b7cb74d9af9767a96a52",
+                "signature": "0xd1474c729e74497ea01428235ae31c6a845642241df0c942630d7086757a5d243eabe15570483264d02f17340158e97420307520449f9c0f9ffd681e7823dc571c"
+              }
+            ]
+          }
+        }
+      },
+      "requestType": "Crosschain Swap",
+      "features": [
+        "app_fees",
+        "fee_sponsorship"
+      ],
+      "createdAt": "2026-09-30T11:14:27.562Z",
+      "updatedAt": "2026-09-30T11:14:28.750Z"
+    }
+  ]
+}

@@ -72,6 +72,7 @@ pub struct MemoryBalanceStore {
     pub balance_writes: Mutex<Vec<Vec<GemBalanceRecord>>>,
     pub enable_writes: Mutex<Vec<(Vec<AssetId>, bool)>>,
     pub configuration_writes: Mutex<Vec<(Vec<AssetId>, GemAssetConfiguration)>>,
+    pub added_balances: Mutex<Vec<(WalletId, Vec<AssetId>, bool)>>,
     pub yields_between_read_and_write: bool,
 }
 
@@ -131,6 +132,10 @@ impl GemBalanceStore for MemoryBalanceStore {
     async fn get_balance_asset_ids(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         Ok(self.get_available_balances(wallet_id, asset_ids).await?.into_iter().map(|balance| balance.asset_id).collect())
     }
+    async fn add_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
+        self.added_balances.lock().unwrap().push((wallet_id, asset_ids, enabled));
+        Ok(())
+    }
     async fn update_balances(&self, wallet_id: WalletId, balances: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
         let mut stored = self.balances.lock().unwrap();
         let wallet = stored.entry(wallet_id).or_default();
@@ -186,7 +191,6 @@ impl BalanceTestkit {
             assets.clone(),
             Arc::new(GemPriceService::mock(Arc::new(MemoryPriceStore::default()))),
             preferences,
-            session.clone(),
         ));
         let balances = Arc::new(balances);
         let service = GemBalanceService::new(gateway, balances.clone(), assets_service, session, Arc::new(SubscriptionTestkit::new(&[], &[]).service));

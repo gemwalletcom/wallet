@@ -35,7 +35,6 @@ final class NavigationStateManager: Sendable {
 extension NavigationStateManager {
     func select(tab: TabItem) {
         selectedTab = tab
-        // back to root if selected same tab, if some routes already in stack
         guard tab != previousSelectedTab else {
             backToRoot(tab: tab)
             return

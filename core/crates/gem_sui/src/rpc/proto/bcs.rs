@@ -1,9 +1,6 @@
 use gem_encoding::protobuf::{proto_decode, proto_encode};
 use serde::Deserialize;
 
-// Field numbers mirror sui-rpc v0.3.1 BCS protobuf schema:
-// https://docs.rs/crate/sui-rpc/0.3.1/source/vendored/proto/sui/rpc/v2/bcs.proto
-
 #[derive(Clone, Debug, Default)]
 pub struct Bcs {
     pub name: Option<String>,

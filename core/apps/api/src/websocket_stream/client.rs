@@ -53,10 +53,10 @@ impl StreamObserverClient {
         &self.device_id
     }
 
-    pub async fn handle_ws_message(&mut self, message: Message, redis_connection: &mut MultiplexedConnection, stream: &mut DuplexStream) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub async fn respond_to_ws_message(&mut self, message: Message, redis_connection: &mut MultiplexedConnection, stream: &mut DuplexStream) -> Result<(), Box<dyn Error + Send + Sync>> {
         match message {
-            Message::Binary(data) => self.handle_message_payload(data, redis_connection, stream).await,
-            Message::Text(text) => self.handle_message_payload(text.into_bytes(), redis_connection, stream).await,
+            Message::Binary(data) => self.respond_to_message_payload(data, redis_connection, stream).await,
+            Message::Text(text) => self.respond_to_message_payload(text.into_bytes(), redis_connection, stream).await,
             Message::Ping(data) => Ok(stream.send(Message::Pong(data)).await?),
             Message::Close(_) => {
                 info_with_fields!("websocket client closed connection gracefully", status = "ok");
@@ -66,7 +66,7 @@ impl StreamObserverClient {
         }
     }
 
-    async fn handle_message_payload(&mut self, data: Vec<u8>, redis_connection: &mut MultiplexedConnection, stream: &mut DuplexStream) -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn respond_to_message_payload(&mut self, data: Vec<u8>, redis_connection: &mut MultiplexedConnection, stream: &mut DuplexStream) -> Result<(), Box<dyn Error + Send + Sync>> {
         let message = match serde_json::from_slice::<StreamMessage>(&data) {
             Ok(message) => message,
             Err(error) => {
@@ -75,13 +75,13 @@ impl StreamObserverClient {
                 return self.send_event(stream, StreamEvent::Error(detail)).await;
             }
         };
-        if let Some(event) = self.price_handler.handle_stream_message(&message, redis_connection).await? {
+        if let Some(event) = self.price_handler.respond_to_stream_message(&message, redis_connection).await? {
             self.send_event(stream, event).await?;
         }
         Ok(())
     }
 
-    pub fn handle_redis_message(&mut self, message: &PushInfo) -> Result<Option<StreamEvent>, Box<dyn Error + Send + Sync>> {
+    pub fn receive_redis_message(&mut self, message: &PushInfo) -> Result<Option<StreamEvent>, Box<dyn Error + Send + Sync>> {
         let Some((channel, value)) = decode_push_message(message) else {
             return Ok(None);
         };
@@ -89,7 +89,7 @@ impl StreamObserverClient {
         if channel == self.device_channel {
             Ok(Some(serde_json::from_slice::<StreamEvent>(value)?))
         } else {
-            self.price_handler.handle_price_message(value)?;
+            self.price_handler.record_price_message(value)?;
             Ok(None)
         }
     }

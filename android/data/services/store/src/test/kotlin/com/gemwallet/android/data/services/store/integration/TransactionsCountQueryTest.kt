@@ -74,7 +74,7 @@ class TransactionsCountQueryTest {
         val counts = query(wallet.id, pending)
         assertEquals(2, counts.first())
 
-        database.transactionsDao().updateTransactionState(sending.id, wallet.id, TransactionState.Confirmed, fee = null, blockNumber = null, metadata = null, confirmationEtaSeconds = null)
+        database.transactionsDao().updateTransactionState(sending.id, wallet.id, TransactionState.Confirmed, fee = null, value = null, blockNumber = null, metadata = null, confirmationEtaSeconds = null)
 
         assertEquals(1, counts.first())
     }

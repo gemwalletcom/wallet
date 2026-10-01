@@ -73,13 +73,6 @@
     {
       "target": {
         "containerPath": "container:Packages/SwiftHTTPClient",
-        "identifier": "SwiftHTTPClientTests",
-        "name": "SwiftHTTPClientTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Packages/SwiftHTTPClient",
         "identifier": "WebSocketClientTests",
         "name": "WebSocketClientTests"
       }
@@ -157,15 +150,8 @@
     {
       "target": {
         "containerPath": "container:Features/Onboarding",
-        "identifier": "OnboardingTest",
-        "name": "OnboardingTest"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Features/Settings",
-        "identifier": "ChainSettingsTests",
-        "name": "ChainSettingsTests"
+        "identifier": "OnboardingTests",
+        "name": "OnboardingTests"
       }
     },
     {
@@ -180,13 +166,6 @@
         "containerPath": "container:Features/Settings",
         "identifier": "SettingsTests",
         "name": "SettingsTests"
-      }
-    },
-    {
-      "target": {
-        "containerPath": "container:Features/Settings",
-        "identifier": "CurrencyTests",
-        "name": "CurrencyTests"
       }
     },
     {
@@ -225,9 +204,6 @@
       }
     },
     {
-      "skippedTests": [
-        "WebSocketTests"
-      ],
       "target": {
         "containerPath": "container:Packages/FeatureServices",
         "identifier": "WalletConnectorServiceTests",

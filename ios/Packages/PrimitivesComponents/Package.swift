@@ -1,5 +1,4 @@
 // swift-tools-version: 6.0
-// The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
@@ -26,7 +25,6 @@ let package = Package(
         .package(name: "Localization", path: "../Localization"),
         .package(name: "Components", path: "../Components"),
         .package(name: "Style", path: "../Style"),
-        .package(name: "Formatters", path: "../Formatters"),
         .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [

@@ -1,5 +1,4 @@
 use num_traits::ToPrimitive;
-use primitives::OptionStringExt;
 use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
@@ -8,7 +7,7 @@ use gem_sui::{build_transfer_message_bytes, rpc::SuiClient};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, Chain, TransactionSwapMetadata,
+    AssetId, Chain, OptionStringExt, TransactionSwapMetadata, TransactionSwapReferralFee,
     contract_constants::EVM_ZERO_ADDRESS,
     swap::{HUNDRED_PERCENT_IN_BPS, SwapStatus},
 };
@@ -19,8 +18,8 @@ use super::{
     model::{ActionRequest, ActionResponse, AmountLimits, AppFee},
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_sui_client,
-    config::API_BASE_URL, fees::default_referral_fees,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    client_factory::create_sui_client, config::API_BASE_URL, fees::default_referral_fees,
 };
 
 pub struct SwapsXyz<C>
@@ -202,19 +201,28 @@ where
         Ok(SwapperQuoteData { data: payload, ..data })
     }
 
-    async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        let chain = SwapsXyzChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
-        let Some(response) = self.client.get_status(transaction_hash, chain.id).await? else {
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        let chain = SwapsXyzChain::from_chain(request.chain).ok_or(SwapperError::NotSupportedChain)?;
+        let Some(response) = self.client.get_status(&request.transaction_hash, chain.id).await? else {
             return Ok(SwapResult::pending());
         };
         let metadata = response.action_response.and_then(|status| {
-            Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_chain(status.amount_in.native_chain()?.chain),
-                from_value: status.amount_in.amount.clone(),
-                to_asset: AssetId::from_chain(status.amount_out.native_chain()?.chain),
-                to_value: status.amount_out.amount,
-                provider: Some(SwapperProvider::SwapsXyz.as_ref().to_string()),
-            })
+            let referral_fee = status.application_fee.as_ref().and_then(|fee| {
+                Some(TransactionSwapReferralFee {
+                    asset_id: AssetId::from_chain(fee.native_chain()?.chain),
+                    value: fee.amount.clone(),
+                })
+            });
+            Some(
+                TransactionSwapMetadata::new(
+                    AssetId::from_chain(status.amount_in.native_chain()?.chain),
+                    status.amount_in.amount.clone(),
+                    AssetId::from_chain(status.amount_out.native_chain()?.chain),
+                    status.amount_out.amount,
+                    SwapperProvider::SwapsXyz,
+                )
+                .with_referral_fee(referral_fee),
+            )
         });
         Ok(SwapResult {
             status: Self::map_status(&response.status),
@@ -279,10 +287,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_missing_unregistered_status_is_pending() {
-        let upstream = MockClient::new().with_get(|_| Err(ClientError::Http { status: 404, body: vec![] }));
-        let provider = SwapsXyz::with_client(SwapsXyzClient::new(upstream, MockClient::new()), SuiClient::new("https://example.com"));
-        let result = provider.get_swap_result(Chain::Algorand, "source-hash").await.unwrap();
-        assert_eq!(result.status, SwapStatus::Pending);
+        for error in [
+            ClientError::Http { status: 404, body: vec![] },
+            ClientError::Response {
+                status: 404,
+                message: "Failed to get tx status for txHash source-hash".to_string(),
+                body: vec![],
+            },
+        ] {
+            let upstream = MockClient::new().with_get(move |_| Err(error.clone()));
+            let provider = SwapsXyz::with_client(SwapsXyzClient::new(upstream, MockClient::new()), SuiClient::new("https://example.com"));
+            let result = provider.get_swap_result(&SwapResultRequest::new(Chain::Algorand, "source-hash")).await.unwrap();
+            assert_eq!(result.status, SwapStatus::Pending);
+        }
     }
 
     #[tokio::test]

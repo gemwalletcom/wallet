@@ -250,9 +250,7 @@ pub fn first_supported_receive_asset(asset_ids: Vec<AssetId>, pay_asset_id: &Ass
     asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id && supported.contains(asset_id))
 }
 
-/// One wallet page is read for a swap side; a wallet is never loaded whole to pick a default.
 pub const CANDIDATES_LIMIT: u32 = 50;
-/// The swap history a default pair is chosen from.
 pub const RECENTS_LIMIT: u32 = 20;
 
 pub fn pay_candidate_filters() -> Vec<GemAssetFilter> {
@@ -548,10 +546,10 @@ mod tests {
     #[test]
     fn test_quote_request_requires_accounts() {
         let wallet = Wallet::mock_with_chains(&[Chain::Ethereum]);
-        assert!(matches!(
+        assert_eq!(
             quote_request(&wallet, &Asset::from_chain(Chain::Ethereum), &Asset::from_chain(Chain::Solana), BigUint::from(1u32), false, None),
             Err(SwapperError::NotSupportedChain)
-        ));
+        );
     }
 
     #[test]
@@ -589,7 +587,7 @@ mod tests {
         assert_eq!(transfer.quote.use_max_amount, Some(true));
 
         let ethereum_only = Wallet::mock_with_chains(&[Chain::Ethereum]);
-        assert!(matches!(swap_transfer(&ethereum_only, &quote, data), Err(SwapperError::NotSupportedChain)));
+        assert_eq!(swap_transfer(&ethereum_only, &quote, data), Err(SwapperError::NotSupportedChain));
     }
 
     #[test]
@@ -621,10 +619,10 @@ mod tests {
         assert!(request.options.use_max_amount);
         assert_eq!(request.wallet_address, "ethereum-address");
         assert_eq!(request.destination_address, "solana-address");
-        assert!(matches!(
+        assert_eq!(
             requote_request(&wallet, &GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) }), &transfer.value),
             Err(SwapperError::NotSupportedAsset)
-        ));
+        );
         assert!(
             matches!(requote_request(&wallet, &transfer, &BigInt::ZERO), Err(SwapperError::InputAmountError { .. })),
             "nothing is asked for an amount the fee has eaten"

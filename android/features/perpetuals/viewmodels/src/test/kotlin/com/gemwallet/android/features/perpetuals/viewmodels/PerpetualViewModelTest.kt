@@ -8,6 +8,7 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockPerpetualData
@@ -24,7 +25,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -34,16 +35,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.ChartCandleStick
 import uniffi.gemstone.GemCandleResult
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
@@ -55,14 +54,13 @@ class PerpetualViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val models = mutableListOf<PerpetualViewModel>()
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     @After
     fun tearDown() {
         models.forEach { it.viewModelScope.cancel() }
         models.clear()
-        Dispatchers.resetMain()
     }
 
     private val asset = mockAsset()
@@ -163,6 +161,34 @@ class PerpetualViewModelTest {
         model.refreshPerpetual()
         advanceUntilIdle()
         coVerify(exactly = 2) { service.refresh(asset.id.toIdentifier()) }
+    }
+
+    @Test
+    fun `a pinch during a refresh keeps the candle request in flight`() = runTest(dispatcher) {
+        val candles = (0L until 40L).map { ChartCandleStick(date = it * 60_000L, open = 1.0, high = 2.0, low = 0.5, close = 1.5, volume = 10.0) }
+        val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
+            every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+            coEvery { candles(any()) } answers { GemCandleResult(request = firstArg(), state = GemLoadState.Data, candles = candles) }
+        }
+        val model = viewModel(service = service, data = perpetualData())
+        advanceUntilIdle()
+
+        val inFlight = CompletableDeferred<Unit>()
+        coEvery { service.candles(any()) } coAnswers {
+            inFlight.await()
+            GemCandleResult(request = firstArg(), state = GemLoadState.Data, candles = candles)
+        }
+        model.refresh()
+        advanceUntilIdle()
+        repeat(3) {
+            model.onZoom(1.5f, 1f)
+            advanceUntilIdle()
+        }
+        inFlight.complete(Unit)
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { service.candles(any()) }
+        assertFalse(model.isRefreshing.value)
     }
 
     @Test

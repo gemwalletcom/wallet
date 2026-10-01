@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::time::Duration;
 
 use primitives::currency::Currency;
@@ -17,60 +16,53 @@ pub struct PriceAlertRules {
 #[derive(Clone, Debug, PartialEq)]
 pub struct PriceAlertTrigger {
     pub alert_type: PriceAlertType,
-    pub milestone: Option<f64>,
-}
-
-impl PriceAlertTrigger {
-    fn new(alert_type: PriceAlertType) -> Self {
-        Self { alert_type, milestone: None }
-    }
-
-    fn milestone(milestone: f64) -> Self {
-        Self {
-            alert_type: PriceAlertType::PriceMilestone,
-            milestone: Some(milestone),
-        }
-    }
+    pub rate: FiatRate,
+    pub target: Option<f64>,
 }
 
 impl PriceAlertRules {
-    pub fn evaluate(&self, price_alert: &PriceAlert, price_data: &PriceData, rates: &[FiatRate]) -> Option<PriceAlertTrigger> {
+    pub fn evaluate(&self, price_alert: &PriceAlert, device: &Device, price_data: &PriceData, rates: &[FiatRate]) -> Option<PriceAlertTrigger> {
+        let currency = alert_currency(price_alert, device);
+        let rate = rates.iter().find(|rate| rate.symbol == *currency)?.clone();
+        let price = rate.multiplier(price_data.price);
+        let (alert_type, target) = self.alert_type(price_alert, price_data, price)?;
+        Some(PriceAlertTrigger { alert_type, rate, target })
+    }
+
+    fn alert_type(&self, price_alert: &PriceAlert, price_data: &PriceData, price: f64) -> Option<(PriceAlertType, Option<f64>)> {
         if let Some(target_price) = price_alert.price {
             let direction = price_alert.price_direction.as_ref()?;
-            let price = price_data.price * fiat_rate(rates, &price_alert.currency)?;
-            let alert_type = match direction {
-                PriceAlertDirection::Up if price >= target_price => Some(PriceAlertType::PriceUp),
-                PriceAlertDirection::Down if price <= target_price => Some(PriceAlertType::PriceDown),
+            return match direction {
+                PriceAlertDirection::Up if price >= target_price => Some((PriceAlertType::PriceUp, Some(target_price))),
+                PriceAlertDirection::Down if price <= target_price => Some((PriceAlertType::PriceDown, Some(target_price))),
                 _ => None,
             };
-            return alert_type.map(PriceAlertTrigger::new);
         }
 
         if let Some(target_percent) = price_alert.price_percent_change {
             let direction = price_alert.price_direction.as_ref()?;
-            let alert_type = match direction {
-                PriceAlertDirection::Up if price_data.price_change_percentage_24h >= target_percent => Some(PriceAlertType::PricePercentChangeUp),
-                PriceAlertDirection::Down if price_data.price_change_percentage_24h <= -target_percent => Some(PriceAlertType::PricePercentChangeDown),
+            return match direction {
+                PriceAlertDirection::Up if price_data.price_change_percentage_24h >= target_percent => Some((PriceAlertType::PricePercentChangeUp, None)),
+                PriceAlertDirection::Down if price_data.price_change_percentage_24h <= -target_percent => Some((PriceAlertType::PricePercentChangeDown, None)),
                 _ => None,
             };
-            return alert_type.map(PriceAlertTrigger::new);
         }
 
         if price_data.all_time_high > 0.0 && price_data.price > price_data.all_time_high {
-            return Some(PriceAlertTrigger::new(PriceAlertType::AllTimeHigh));
+            return Some((PriceAlertType::AllTimeHigh, None));
         }
 
-        let price_24h_ago = price_24h_ago(price_data.price, price_data.price_change_percentage_24h);
-        if let Some(milestone) = self.crossed_milestone(price_24h_ago, price_data.price) {
-            return Some(PriceAlertTrigger::milestone(milestone));
+        let price_24h_ago = price_24h_ago(price, price_data.price_change_percentage_24h);
+        if let Some(milestone) = self.crossed_milestone(price_24h_ago, price) {
+            return Some((PriceAlertType::PriceMilestone, Some(milestone)));
         }
 
         let threshold = self.change_threshold(price_data.market_cap_rank.unwrap_or(0));
         if price_data.price_change_percentage_24h > threshold {
-            return Some(PriceAlertTrigger::new(PriceAlertType::PriceChangesUp));
+            return Some((PriceAlertType::PriceChangesUp, None));
         }
         if price_data.price_change_percentage_24h < -threshold {
-            return Some(PriceAlertTrigger::new(PriceAlertType::PriceChangesDown));
+            return Some((PriceAlertType::PriceChangesDown, None));
         }
 
         None
@@ -90,38 +82,32 @@ impl PriceAlertRules {
 pub struct PriceAlertNotification {
     pub device: Device,
     pub asset: Asset,
+    pub currency: Currency,
     pub price: Price,
     pub alert_type: PriceAlertType,
     pub price_alert: PriceAlert,
-    pub milestone: Option<f64>,
+    pub target: Option<f64>,
 }
 
 impl PriceAlertNotification {
-    pub fn currency(&self) -> &Currency {
-        match self.alert_type {
-            PriceAlertType::PriceUp | PriceAlertType::PriceDown => &self.price_alert.currency,
-            PriceAlertType::PriceChangesUp | PriceAlertType::PriceChangesDown | PriceAlertType::PricePercentChangeUp | PriceAlertType::PricePercentChangeDown | PriceAlertType::AllTimeHigh | PriceAlertType::PriceMilestone => {
-                &self.device.currency
-            }
+    pub fn new(device: Device, asset: Asset, price_alert: PriceAlert, price_data: &PriceData, trigger: PriceAlertTrigger) -> Self {
+        Self {
+            device,
+            asset,
+            price: price_data.as_price().with_rate(trigger.rate.rate),
+            currency: trigger.rate.symbol,
+            alert_type: trigger.alert_type,
+            price_alert,
+            target: trigger.target,
         }
-    }
-
-    pub fn target_value(&self) -> Option<f64> {
-        match self.alert_type {
-            PriceAlertType::PriceUp | PriceAlertType::PriceDown => self.price_alert.price,
-            PriceAlertType::PriceMilestone => self.milestone,
-            PriceAlertType::PriceChangesUp | PriceAlertType::PriceChangesDown | PriceAlertType::PricePercentChangeUp | PriceAlertType::PricePercentChangeDown | PriceAlertType::AllTimeHigh => None,
-        }
-    }
-
-    pub fn with_rates(self, rates: &[FiatRate]) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let rate = fiat_rate(rates, self.currency()).ok_or_else(|| format!("missing fiat rate for {}", self.currency().as_ref()))?;
-        Ok(Self { price: self.price.with_rate(rate), ..self })
     }
 }
 
-fn fiat_rate(rates: &[FiatRate], currency: &Currency) -> Option<f64> {
-    rates.iter().find(|rate| rate.symbol == *currency).map(|rate| rate.rate)
+fn alert_currency<'a>(price_alert: &'a PriceAlert, device: &'a Device) -> &'a Currency {
+    match price_alert.price {
+        Some(_) => &price_alert.currency,
+        None => &device.currency,
+    }
 }
 
 fn price_24h_ago(current_price: f64, change_percent: f64) -> f64 {
@@ -134,16 +120,30 @@ fn price_24h_ago(current_price: f64, change_percent: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{DateTime, Utc};
-    use primitives::{AssetId, Chain, PriceProvider};
+    use primitives::{AssetId, Chain};
 
     use super::*;
 
-    const TEST_RATES: [FiatRate; 2] = [FiatRate { symbol: Currency::USD, rate: 1.0 }, FiatRate { symbol: Currency::EUR, rate: 0.86 }];
+    const USD: FiatRate = FiatRate { symbol: Currency::USD, rate: 1.0 };
+    const EUR: FiatRate = FiatRate { symbol: Currency::EUR, rate: 0.86 };
+    const TEST_RATES: [FiatRate; 2] = [USD, EUR];
+
+    fn trigger(alert_type: PriceAlertType, rate: FiatRate) -> Option<PriceAlertTrigger> {
+        Some(PriceAlertTrigger { alert_type, rate, target: None })
+    }
+
+    fn target(alert_type: PriceAlertType, target: f64, rate: FiatRate) -> Option<PriceAlertTrigger> {
+        Some(PriceAlertTrigger { alert_type, rate, target: Some(target) })
+    }
+
+    fn device(currency: Currency) -> Device {
+        Device { currency, ..Device::mock() }
+    }
 
     #[test]
     fn test_evaluate() {
         let rules = PriceAlertRules::mock();
+        let usd = device(Currency::USD);
         let asset_id = AssetId::from_chain(Chain::Bitcoin);
         let price_data = PriceData::mock_with(78_987.0, -1.4);
         let over = PriceAlert::new_price(asset_id.clone(), Currency::EUR, 71_000.0, PriceAlertDirection::Up);
@@ -153,93 +153,65 @@ mod tests {
         let percent_up = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Up);
         let auto = PriceAlert::new_auto(asset_id, Currency::EUR);
 
-        assert_eq!(rules.evaluate(&over, &price_data, &TEST_RATES), None);
-        assert_eq!(rules.evaluate(&under, &price_data, &TEST_RATES), Some(PriceAlertTrigger::new(PriceAlertType::PriceDown)));
-        assert_eq!(rules.evaluate(&over_usd, &price_data, &TEST_RATES), Some(PriceAlertTrigger::new(PriceAlertType::PriceUp)));
-        assert_eq!(rules.evaluate(&over_unknown, &price_data, &TEST_RATES), None);
-        assert_eq!(rules.evaluate(&percent_up, &PriceData::mock_with(78_987.0, 5.0), &[]), Some(PriceAlertTrigger::new(PriceAlertType::PricePercentChangeUp)));
-        assert_eq!(rules.evaluate(&percent_up, &PriceData::mock_with(78_987.0, 4.9), &[]), None);
-        assert_eq!(rules.evaluate(&auto, &PriceData::mock_with(78_987.0, 6.0), &[]), Some(PriceAlertTrigger::new(PriceAlertType::PriceChangesUp)));
-        assert_eq!(rules.evaluate(&auto, &PriceData::mock_with(78_987.0, -6.0), &[]), Some(PriceAlertTrigger::new(PriceAlertType::PriceChangesDown)));
-        assert_eq!(rules.evaluate(&auto, &PriceData::mock_with(78_987.0, 1.0), &[]), None);
+        assert_eq!(rules.evaluate(&over, &usd, &price_data, &TEST_RATES), None);
+        assert_eq!(rules.evaluate(&under, &usd, &price_data, &TEST_RATES), target(PriceAlertType::PriceDown, 71_000.0, EUR));
+        assert_eq!(rules.evaluate(&over_usd, &device(Currency::EUR), &price_data, &TEST_RATES), target(PriceAlertType::PriceUp, 71_000.0, USD));
+        assert_eq!(rules.evaluate(&over_unknown, &usd, &price_data, &TEST_RATES), None);
+        assert_eq!(rules.evaluate(&percent_up, &usd, &PriceData::mock_with(78_987.0, 5.0), &TEST_RATES), trigger(PriceAlertType::PricePercentChangeUp, USD));
+        assert_eq!(rules.evaluate(&percent_up, &usd, &PriceData::mock_with(78_987.0, 4.9), &TEST_RATES), None);
+        assert_eq!(rules.evaluate(&auto, &usd, &PriceData::mock_with(78_987.0, 6.0), &TEST_RATES), trigger(PriceAlertType::PriceChangesUp, USD));
+        assert_eq!(rules.evaluate(&auto, &usd, &PriceData::mock_with(78_987.0, -6.0), &TEST_RATES), trigger(PriceAlertType::PriceChangesDown, USD));
+        assert_eq!(rules.evaluate(&auto, &device(Currency::EUR), &PriceData::mock_with(78_987.0, 6.0), &TEST_RATES), trigger(PriceAlertType::PriceChangesUp, EUR));
+        assert_eq!(rules.evaluate(&auto, &device(Currency::JPY), &PriceData::mock_with(78_987.0, 6.0), &TEST_RATES), None);
+        assert_eq!(rules.evaluate(&auto, &usd, &PriceData::mock_with(78_987.0, 1.0), &TEST_RATES), None);
         assert_eq!(
             rules.evaluate(
                 &auto,
+                &device(Currency::EUR),
                 &PriceData {
                     all_time_high: 78_000.0,
                     ..PriceData::mock_with(78_987.0, 1.0)
                 },
-                &[]
+                &TEST_RATES
             ),
-            Some(PriceAlertTrigger::new(PriceAlertType::AllTimeHigh))
-        );
-        assert_eq!(
-            PriceAlertRules {
-                milestones: vec![50_000.0, 100_000.0],
-                ..PriceAlertRules::mock()
-            }
-            .evaluate(&auto, &PriceData::mock_with(101_000.0, 2.0), &[]),
-            Some(PriceAlertTrigger::milestone(100_000.0))
-        );
-        assert_eq!(
-            PriceAlertRules {
-                milestones: vec![100_000.0],
-                ..PriceAlertRules::mock()
-            }
-            .evaluate(&auto, &PriceData::mock_with(99_000.0, -2.0), &[]),
-            None
+            trigger(PriceAlertType::AllTimeHigh, EUR)
         );
     }
 
     #[test]
-    fn test_with_rates() {
-        let asset = Asset::from_chain(Chain::Bitcoin);
-        let price = Price::new(78_987.0, -1.4, DateTime::from_timestamp(1_788_821_182, 0).unwrap(), PriceProvider::Coingecko);
-        let target = PriceAlertNotification {
-            device: Device::mock(),
-            asset: asset.clone(),
-            price,
-            alert_type: PriceAlertType::PriceUp,
-            price_alert: PriceAlert::new_price(asset.id.clone(), Currency::EUR, 71_000.0, PriceAlertDirection::Up),
-            milestone: None,
+    fn test_evaluate_milestone_in_device_currency() {
+        let rules = PriceAlertRules {
+            milestones: vec![50_000.0, 100_000.0],
+            ..PriceAlertRules::mock()
         };
-        let automatic = PriceAlertNotification {
-            alert_type: PriceAlertType::PriceChangesUp,
-            price_alert: PriceAlert::new_auto(asset.id, Currency::EUR),
-            ..target.clone()
-        };
+        let auto = PriceAlert::new_auto(AssetId::from_chain(Chain::Bitcoin), Currency::USD);
 
-        assert_eq!(target.currency(), &Currency::EUR);
-        assert_eq!(target.clone().with_rates(&TEST_RATES).unwrap().price, price.with_rate(0.86));
-        assert_eq!(automatic.currency(), &Currency::USD);
-        assert_eq!(automatic.with_rates(&TEST_RATES).unwrap().price, price);
-        assert!(target.with_rates(&[]).is_err());
+        assert_eq!(
+            rules.evaluate(&auto, &device(Currency::USD), &PriceData::mock_with(101_000.0, 2.0), &TEST_RATES),
+            target(PriceAlertType::PriceMilestone, 100_000.0, USD)
+        );
+        assert_eq!(rules.evaluate(&auto, &device(Currency::USD), &PriceData::mock_with(99_000.0, -2.0), &TEST_RATES), None);
+        assert_eq!(rules.evaluate(&auto, &device(Currency::EUR), &PriceData::mock_with(101_000.0, 2.0), &TEST_RATES), None);
+        assert_eq!(
+            rules.evaluate(&auto, &device(Currency::EUR), &PriceData::mock_with(117_000.0, 2.0), &TEST_RATES),
+            target(PriceAlertType::PriceMilestone, 100_000.0, EUR)
+        );
     }
 
     #[test]
-    fn test_target_value() {
+    fn test_notification_is_in_the_trigger_currency() {
         let asset = Asset::from_chain(Chain::Bitcoin);
-        let alert = PriceAlertNotification {
-            device: Device::mock(),
-            asset: asset.clone(),
-            price: Price::new(80_954.0, -0.27, Utc::now(), PriceProvider::Coingecko),
-            alert_type: PriceAlertType::PriceDown,
-            price_alert: PriceAlert::new_price(asset.id.clone(), Currency::USD, 81_000.0, PriceAlertDirection::Down),
-            milestone: None,
-        };
-        let milestone_alert = PriceAlertNotification {
-            alert_type: PriceAlertType::PriceMilestone,
-            price_alert: PriceAlert::new_auto(asset.id, Currency::USD),
-            milestone: Some(100_000.0),
-            ..alert.clone()
-        };
-        let automatic_alert = PriceAlertNotification {
-            alert_type: PriceAlertType::PriceChangesUp,
-            ..alert.clone()
-        };
+        let price_data = PriceData::mock_with(117_000.0, 2.0);
+        let notification = PriceAlertNotification::new(
+            device(Currency::EUR),
+            asset.clone(),
+            PriceAlert::new_auto(asset.id, Currency::USD),
+            &price_data,
+            target(PriceAlertType::PriceMilestone, 100_000.0, EUR).unwrap(),
+        );
 
-        assert_eq!(alert.target_value(), Some(81_000.0));
-        assert_eq!(milestone_alert.target_value(), Some(100_000.0));
-        assert_eq!(automatic_alert.target_value(), None);
+        assert_eq!(notification.currency, Currency::EUR);
+        assert_eq!(notification.price, price_data.as_price().with_rate(0.86));
+        assert_eq!(notification.target, Some(100_000.0));
     }
 }

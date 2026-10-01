@@ -135,7 +135,7 @@ class TransactionsQueryTest {
         val pending = pendingActivityFilters().toPrimitives()
         assertEquals(listOf(swap.stored()), query(wallet.id, pending, 1000).first().map { it.transaction })
 
-        database.transactionsDao().updateTransactionState(swap.id, wallet.id, TransactionState.Confirmed, fee = null, blockNumber = null, metadata = null, confirmationEtaSeconds = null)
+        database.transactionsDao().updateTransactionState(swap.id, wallet.id, TransactionState.Confirmed, fee = null, value = null, blockNumber = null, metadata = null, confirmationEtaSeconds = null)
 
         assertEquals(emptyList<Transaction>(), query(wallet.id, pending, 1000).first().map { it.transaction })
     }

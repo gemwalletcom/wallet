@@ -21,7 +21,12 @@ CREATE TABLE prices (
     all_time_low_date  timestamp,
     all_time_high      float NOT NULL DEFAULT 0,
     all_time_low       float NOT NULL DEFAULT 0,
-    total_volume       float
+    total_volume       float,
+    market_cap         float,
+    market_cap_fdv     float,
+    circulating_supply float,
+    total_supply       float,
+    max_supply         float
 );
 
 SELECT diesel_manage_updated_at('prices');

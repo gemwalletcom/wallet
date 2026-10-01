@@ -1,6 +1,6 @@
+use primitives::unix_timestamp;
 use std::error::Error;
 use std::str::FromStr;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
@@ -23,11 +23,16 @@ use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, SIMULATION_MAX_
 pub struct AptosClient<C: Client> {
     client: C,
     pub chain: Chain,
+    archive: Option<C>,
 }
 
 impl<C: Client> AptosClient<C> {
     pub fn new(client: C) -> Self {
-        Self { client, chain: Chain::Aptos }
+        Self { client, chain: Chain::Aptos, archive: None }
+    }
+
+    pub fn with_archive(self, archive: C) -> Self {
+        Self { archive: Some(archive), ..self }
     }
 
     pub fn get_chain(&self) -> Chain {
@@ -77,7 +82,12 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn get_transaction_by_hash(&self, hash: &str) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(AptosTarget::GetTransaction { hash: hash.to_string() }).await?)
+        let target = AptosTarget::GetTransaction { hash: hash.to_string() };
+        match (self.client.get(target.clone()).await, &self.archive) {
+            (Ok(transaction), _) => Ok(transaction),
+            (Err(_), Some(archive)) => Ok(archive.get(target).await?),
+            (Err(error), None) => Err(error.into()),
+        }
     }
 
     pub async fn get_gas_price(&self) -> Result<GasFee, Box<dyn Error + Send + Sync>> {
@@ -123,7 +133,7 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn simulate_transaction(&self, sender: &str, sequence: u64, payload: TransactionPayload, gas_price: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        let expiration = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs() + 1_000_000;
+        let expiration = unix_timestamp() + 1_000_000;
         let query = SimulateTransactionQuery {
             estimate_max_gas_amount: false,
             estimate_gas_unit_price: false,
@@ -210,6 +220,23 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::*;
+
+    #[tokio::test]
+    async fn test_get_transaction_by_hash_falls_back_to_archive() {
+        let pruned = MockClient::new().with_get(|_| {
+            Err(gem_client::ClientError::Http {
+                status: 404,
+                body: br#"{"error_code":"transaction_not_found"}"#.to_vec(),
+            })
+        });
+        let archive = MockClient::new().with_get(|path| {
+            assert_eq!(path, "/v1/transactions/by_hash/0xhash");
+            Ok(include_str!("../../testdata/transaction_swap_panora_referral_fee.json").as_bytes().to_vec())
+        });
+
+        assert!(AptosClient::new(pruned.clone()).get_transaction_by_hash("0xhash").await.is_err());
+        assert!(AptosClient::new(pruned).with_archive(archive).get_transaction_by_hash("0xhash").await.is_ok());
+    }
 
     #[tokio::test]
     async fn test_submit_transaction() {

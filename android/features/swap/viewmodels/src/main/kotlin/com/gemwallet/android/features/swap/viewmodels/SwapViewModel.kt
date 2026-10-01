@@ -337,8 +337,8 @@ class SwapViewModel @Inject constructor(
                 onConfirm(ConfirmTransferInput(params))
             }
             session.update { it.onTransferHandedOff(transfer) }
-        } catch (err: SwapperException) {
-            session.update { it.onTransferFailed(transfer, err) }
+        } catch (error: SwapperException) {
+            session.update { it.onTransferFailed(transfer, error) }
         }
     }
 
@@ -364,8 +364,8 @@ class SwapViewModel @Inject constructor(
         )
         currentCoroutineContext().ensureActive()
         GemSwapQuotesResult(request = params.key, quotes = quotes, error = null)
-    } catch (err: SwapperException) {
-        GemSwapQuotesResult(request = params.key, quotes = emptyList(), error = err)
+    } catch (error: SwapperException) {
+        GemSwapQuotesResult(request = params.key, quotes = emptyList(), error = error)
     }
 
     private fun onQuoteResults(results: GemSwapQuotesResult?) {

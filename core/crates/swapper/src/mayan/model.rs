@@ -5,15 +5,14 @@ use super::{
 use crate::{SwapperError, error::ProviderErrorResponse, fees::default_referral_address};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::OptionStringExt;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::BTreeSet, ops::Deref, str::FromStr};
 
 use gem_evm::ethereum_address_checksum;
 pub use gem_sui::tx_builder::transaction_json::TransactionArgument as SuiTransactionArgument;
-use primitives::SolanaInstruction;
 use primitives::swap::{SlippageMode, SwapStatus};
+use primitives::{OptionStringExt, SolanaInstruction};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -511,9 +510,17 @@ pub struct MayanTransactionResult {
     pub to_token_address: String,
     pub from_token_chain: String,
     pub to_token_chain: String,
+    pub from_amount: Option<String>,
     pub from_amount64: Option<String>,
+    pub to_amount: Option<String>,
     pub to_amount64: Option<String>,
+    pub min_amount_out: Option<String>,
+    pub min_amount_out64: Option<String>,
     pub client_status: MayanClientStatus,
+    pub service: Option<String>,
+    pub referrer_address: Option<String>,
+    pub referrer_bps: Option<u32>,
+    pub mayan_bps: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

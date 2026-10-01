@@ -243,7 +243,6 @@ pub enum GemListRowIcon {
     AddToWallet,
 }
 
-/// What tapping a row opens or switches; each app maps it to its route or handler once.
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemRowAction {
     Wallets,
@@ -447,7 +446,6 @@ pub enum GemProviderKind {
     Fiat { provider: primitives::FiatProviderName },
 }
 
-/// A swap or fiat provider offering an amount: the name, what it gives and its value, and whether it is the one picked.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemProviderRow {
     pub kind: GemProviderKind,
@@ -457,7 +455,6 @@ pub struct GemProviderRow {
     pub is_selected: bool,
 }
 
-/// An address a screen shows: the text it reads, the short address a tap reveals when the text is a name, and its long-press menu.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAddressRow {
     pub title: GemLocalizedText,
@@ -494,7 +491,6 @@ impl GemAddressRow {
     }
 }
 
-/// An entry of a row's long-press menu; a copy entry reads "Copy" on both apps.
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemRowMenuItem {
     Copy { copy: GemCopy },

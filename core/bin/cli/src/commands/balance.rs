@@ -16,7 +16,7 @@ impl BalanceCommand {
 
         match providers.get_balance_coin(chain, address.clone()).await {
             Ok(balance) => println!("{}: {}", balance.asset_id, balance.balance.available),
-            Err(e) => eprintln!("Coin balance error: {}", e),
+            Err(error) => eprintln!("Coin balance error: {}", error),
         }
 
         match providers.get_balance_assets(chain, address.clone()).await {
@@ -25,13 +25,13 @@ impl BalanceCommand {
                     println!("{}: {}", balance.asset_id, balance.balance.available);
                 }
             }
-            Err(e) => eprintln!("Assets balance error: {}", e),
+            Err(error) => eprintln!("Assets balance error: {}", error),
         }
 
         match providers.get_balance_staking(chain, address.clone()).await {
             Ok(Some(balance)) => println!("{} (staked): {}", balance.asset_id, balance.balance.staked),
             Ok(None) => {}
-            Err(e) => eprintln!("Staking balance error: {}", e),
+            Err(error) => eprintln!("Staking balance error: {}", error),
         }
 
         Ok(())

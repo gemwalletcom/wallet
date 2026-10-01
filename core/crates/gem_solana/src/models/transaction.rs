@@ -1,7 +1,7 @@
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::models::token::{BigInt, TokenBalance, TokenBalanceChange};
 
@@ -141,10 +141,9 @@ impl BlockTransaction {
     }
 
     pub fn get_balance_changes_by_owner(&self, owner: &str) -> TokenBalanceChange {
-        // Find all account indices that belong to the owner
-        let account_indices: Vec<usize> = self.transaction.message.account_keys.iter().enumerate().filter_map(|(i, k)| if k == owner { Some(i) } else { None }).collect();
+        let account_indices = self.transaction.message.account_keys.iter().enumerate().filter_map(|(i, k)| if k == owner { Some(i) } else { None });
 
-        let (total_pre, total_post) = account_indices.into_iter().fold((0u64, 0u64), |(pre_acc, post_acc), idx| {
+        let (total_pre, total_post) = account_indices.fold((0u64, 0u64), |(pre_acc, post_acc), idx| {
             let pre = *self.meta.pre_balances.get(idx).unwrap_or(&0);
             let post = *self.meta.post_balances.get(idx).unwrap_or(&0);
             (pre_acc.wrapping_add(pre), post_acc.wrapping_add(post))
@@ -160,6 +159,20 @@ impl BlockTransaction {
             asset_id: Chain::Solana.as_asset_id(),
             amount,
         }
+    }
+
+    pub fn get_created_token_accounts_rent_by_owner(&self, owner: &str) -> BigInt {
+        if !self.is_fee_payer(owner) {
+            return BigInt::from(0);
+        }
+        let existing_accounts: HashSet<i64> = self.meta.pre_token_balances.iter().map(|balance| balance.account_index).collect();
+        self.meta
+            .post_token_balances
+            .iter()
+            .filter(|balance| balance.owner == owner && !existing_accounts.contains(&balance.account_index))
+            .filter_map(|balance| usize::try_from(balance.account_index).ok())
+            .map(|index| BigInt::from(*self.meta.post_balances.get(index).unwrap_or(&0)) - BigInt::from(*self.meta.pre_balances.get(index).unwrap_or(&0)))
+            .sum()
     }
 
     fn is_fee_payer(&self, owner: &str) -> bool {
@@ -234,20 +247,20 @@ mod tests {
 
     #[test]
     fn test_balance_change() {
-        let tx = BlockTransaction::mock(&["sender", "recipient"], vec![100_000, 0], vec![85_000, 10_000]);
-        assert_eq!(tx.get_balance_change("sender"), 10_000);
+        let block_transaction = BlockTransaction::mock(&["sender", "recipient"], vec![100_000, 0], vec![85_000, 10_000]);
+        assert_eq!(block_transaction.get_balance_change("sender"), 10_000);
     }
 
     #[test]
     fn test_balance_change_no_change() {
-        let tx = BlockTransaction::mock(&["sender"], vec![100_000], vec![95_000]);
-        assert_eq!(tx.get_balance_change("sender"), 0);
+        let block_transaction = BlockTransaction::mock(&["sender"], vec![100_000], vec![95_000]);
+        assert_eq!(block_transaction.get_balance_change("sender"), 0);
     }
 
     #[test]
     fn test_balance_change_received() {
-        let tx = BlockTransaction::mock(&["sender"], vec![100_000], vec![200_000]);
-        assert_eq!(tx.get_balance_change("sender"), 0);
+        let block_transaction = BlockTransaction::mock(&["sender"], vec![100_000], vec![200_000]);
+        assert_eq!(block_transaction.get_balance_change("sender"), 0);
     }
 
     #[test]
@@ -303,7 +316,7 @@ mod tests {
 
     #[test]
     fn test_balance_change_unknown_address() {
-        let tx = BlockTransaction::mock(&["sender"], vec![100_000], vec![85_000]);
-        assert_eq!(tx.get_balance_change("unknown"), 0);
+        let block_transaction = BlockTransaction::mock(&["sender"], vec![100_000], vec![85_000]);
+        assert_eq!(block_transaction.get_balance_change("unknown"), 0);
     }
 }

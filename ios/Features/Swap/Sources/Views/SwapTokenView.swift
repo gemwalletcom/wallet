@@ -34,7 +34,7 @@ struct SwapTokenView: View {
             if showLoading {
                 LoadingView()
             }
-            TextField(showLoading ? "" : side.amountPlaceholder, text: $text)
+            TextField(side.amountPlaceholder, text: $text)
                 .keyboardType(.decimalPad)
                 .foregroundStyle(Colors.black)
                 .font(.app.title1)

@@ -8,6 +8,8 @@ pub struct ThorchainMemo {
     pub tx_type: String,
     pub asset: String,
     pub address: String,
+    pub affiliate: Option<String>,
+    pub affiliate_bps: Option<u32>,
 }
 
 impl ThorchainMemo {
@@ -25,6 +27,8 @@ impl ThorchainMemo {
             tx_type: parts[0].to_string(),
             asset: parts[1].to_string(),
             address: parts[2].to_string(),
+            affiliate: parts.get(4).filter(|affiliate| !affiliate.is_empty()).map(ToString::to_string),
+            affiliate_bps: parts.get(5).and_then(|bps| bps.parse().ok()),
         })
     }
 
@@ -92,6 +96,8 @@ mod tests {
 
         assert_eq!(parsed.destination_chain(THORChainNetwork::Thorchain), Some(Chain::Bitcoin));
         assert_eq!(parsed.token_symbol(), None);
+        assert_eq!(parsed.affiliate.as_deref(), Some("affiliate"));
+        assert_eq!(parsed.affiliate_bps, Some(150));
     }
 
     #[test]

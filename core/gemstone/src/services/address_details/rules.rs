@@ -1,7 +1,6 @@
-use primitives::OptionStringExt;
 use std::iter::once;
 
-use primitives::{AddressDetails, AddressName, AddressType, Asset, AssetBalance, AssetId, Chain, VerificationStatus, block_explorer::BlockExplorerLink};
+use primitives::{AddressDetails, AddressName, AddressType, Asset, AssetBalance, AssetId, Chain, OptionStringExt, VerificationStatus, block_explorer::BlockExplorerLink};
 
 use super::model::GemAddressDetails;
 use crate::config::image::GemImage;

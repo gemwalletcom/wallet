@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use ::bitcoin::Network;
 use ::bitcoin::bip32::{DerivationPath, Xpriv};
+use gem_keystore::MnemonicSeed;
 use zeroize::Zeroizing;
 
 use crate::AccountDerivationError;
@@ -14,7 +15,7 @@ impl Drop for ZeroizedXpriv {
     }
 }
 
-pub(super) fn derive_secp256k1_private_key(seed: &[u8], path: &str) -> Result<Zeroizing<Vec<u8>>, AccountDerivationError> {
+pub(super) fn derive_secp256k1_private_key(seed: &MnemonicSeed, path: &str) -> Result<Zeroizing<Vec<u8>>, AccountDerivationError> {
     let secp = ::bitcoin::secp256k1::Secp256k1::signing_only();
     let master = ZeroizedXpriv(Xpriv::new_master(Network::Bitcoin, seed).map_err(map_bip32_error)?);
     let derivation_path = DerivationPath::from_str(path).map_err(map_bip32_error)?;

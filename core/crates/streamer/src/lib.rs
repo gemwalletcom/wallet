@@ -1,5 +1,6 @@
 pub mod connection;
 pub mod consumer;
+pub mod consumer_status;
 pub mod exchange;
 pub mod payload;
 pub mod queue;
@@ -17,9 +18,9 @@ use tokio::sync::watch;
 pub type ShutdownReceiver = watch::Receiver<bool>;
 
 pub fn no_shutdown() -> ShutdownReceiver {
-    let (tx, rx) = watch::channel(false);
-    std::mem::forget(tx);
-    rx
+    let (sender, receiver) = watch::channel(false);
+    std::mem::forget(sender);
+    receiver
 }
 
 #[derive(Clone)]
@@ -34,7 +35,7 @@ impl Retry {
     }
 }
 
-pub async fn with_retry<F, Fut, T>(retry: &Retry, name: &str, shutdown_rx: &ShutdownReceiver, mut f: F) -> Result<Option<T>, Box<dyn Error + Send + Sync>>
+pub async fn with_retry<F, Fut, T>(retry: &Retry, name: &str, shutdown: &ShutdownReceiver, mut f: F) -> Result<Option<T>, Box<dyn Error + Send + Sync>>
 where
     F: FnMut() -> Fut,
     Fut: Future<Output = Result<T, Box<dyn Error + Send + Sync>>>,
@@ -42,7 +43,7 @@ where
     let mut delay = retry.delay;
     let mut attempt: u32 = 0;
     loop {
-        if *shutdown_rx.borrow() {
+        if *shutdown.borrow() {
             return Ok(None);
         }
         attempt += 1;
@@ -53,12 +54,12 @@ where
                 }
                 return Ok(Some(result));
             }
-            Err(err) => {
-                info_with_fields!("rabbitmq reconnect retry", connection = name, attempt = attempt, delay_secs = delay.as_secs(), error = err.to_string());
-                let mut rx = shutdown_rx.clone();
+            Err(error) => {
+                info_with_fields!("rabbitmq reconnect retry", connection = name, attempt = attempt, delay_secs = delay.as_secs(), error = error.to_string());
+                let mut receiver = shutdown.clone();
                 tokio::select! {
                     _ = tokio::time::sleep(delay) => {}
-                    _ = rx.changed() => return Ok(None),
+                    _ = receiver.changed() => return Ok(None),
                 }
                 delay = (delay * 2).min(retry.timeout);
             }
@@ -68,8 +69,8 @@ where
 
 pub use connection::StreamConnection;
 pub use consumer::ConsumerConfig;
-pub use consumer::ConsumerStatusReporter;
 pub use consumer::run_consumer;
+pub use consumer_status::{ConsumerStatus, ConsumerStatusReporter};
 pub use exchange::ExchangeName;
 pub use lapin::ExchangeKind;
 pub use payload::*;
@@ -78,4 +79,4 @@ pub use push_notification::{FailedNotification, GorushNotification, GorushNotifi
 pub use queue::QueueName;
 pub use steam_producer_queue::StreamProducerQueue;
 pub use stream_producer::{StreamProducer, StreamProducerConfig};
-pub use stream_reader::{StreamReader, StreamReaderConfig};
+pub use stream_reader::{StreamMessage, StreamReader, StreamReaderConfig};

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -13,7 +14,6 @@ import com.wallet.core.primitives.TransactionsFilter
 import com.wallet.core.primitives.WalletId
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,14 +21,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemTransactionFilter
 import uniffi.gemstone.GemTransactionRow
@@ -40,14 +38,13 @@ class TransactionsViewModelFiltersTest {
     private val dispatcher = StandardTestDispatcher()
     private val models = mutableListOf<androidx.lifecycle.ViewModel>()
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     @After
     fun tearDown() {
         models.forEach { it.viewModelScope.cancel() }
         models.clear()
-        Dispatchers.resetMain()
     }
 
     private val first = mockWallet(id = WalletId("multicoin_0xabc"))

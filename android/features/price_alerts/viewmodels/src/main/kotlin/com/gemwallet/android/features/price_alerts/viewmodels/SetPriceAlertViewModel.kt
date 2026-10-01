@@ -109,10 +109,7 @@ class SetPriceAlertViewModel @Inject constructor(
     val buttonState: StateFlow<ButtonState> = viewState.map { buttonState(enabled = it.canConfirm, loading = it.isSaving) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, buttonState(enabled = false))
 
-    val priceSuggestions: StateFlow<List<Pair<String, String>>> = viewState.map { state -> state.priceSuggestions.map { it.suggestion() } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val percentageSuggestions: StateFlow<List<Pair<String, String>>> = viewState.map { state -> state.percentageSuggestions.map { it.suggestion() } }
+    val suggestions: StateFlow<List<Pair<String, String>>> = viewState.map { state -> state.suggestions.map { it.suggestion() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private fun GemPriceSuggestion.suggestion(): Pair<String, String> = label.text() to inputText

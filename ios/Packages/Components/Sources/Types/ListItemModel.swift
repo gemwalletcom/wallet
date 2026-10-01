@@ -10,8 +10,7 @@ public enum TitleTagType {
 }
 
 public enum ListItemViewPlaceholderType: Identifiable, CaseIterable {
-    /// items supports placeholder progress view
-    case subtitle // right corner of cell
+    case subtitle
 
     public var id: Self {
         self

@@ -22,7 +22,6 @@ public struct TransactionHeaderListItemView: View {
         switch header {
         case .swap:
             Section {
-                // Swap row has two distinct tap regions; SwapAmountView wires Buttons internally.
                 TransactionHeaderView(header: header, action: action)
             }
         case .amount, .value, .nft, .assetImage:

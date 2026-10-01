@@ -25,7 +25,7 @@ use crate::{
 };
 
 use super::{
-    math::{SpotSide, apply_slippage, format_decimal, format_decimal_with_scale, format_order_size, round_size_down, scale_units, spot_asset_index},
+    math::{SpotSide, format_decimal, format_decimal_with_scale, format_order_size, limit_price_with_slippage, round_size_down, scale_units, spot_asset_index},
     simulator::{simulate_buy, simulate_sell},
 };
 
@@ -137,7 +137,6 @@ impl Swapper for HyperCoreSpot {
             return Err(SwapperError::NoQuoteAvailable);
         }
 
-        // Round to sz_decimals before simulation to ensure quote matches execution.
         let (raw_output, base_limit_price, size_rounded, actual_from_value) = match side {
             SpotSide::Sell => {
                 let rounded_input = round_size_down(&amount_in, base_token.sz_decimals);
@@ -159,7 +158,6 @@ impl Swapper for HyperCoreSpot {
             }
         };
 
-        // Check minimum USD value (quote token is USDC)
         let quote_amount = match side {
             SpotSide::Sell => &raw_output,
             SpotSide::Buy => &amount_in,
@@ -177,19 +175,18 @@ impl Swapper for HyperCoreSpot {
             .try_into()
             .map_err(|_| SwapperError::ComputeQuoteError(format!("{} precision: {}", INVALID_AMOUNT, to_token.wei_decimals)))?;
 
-        let token_units = BigNumberFormatter::value_from_amount_biguint(&format_decimal(&output_amount), token_decimals).map_err(|err| SwapperError::ComputeQuoteError(format!("{}: {err}", INVALID_AMOUNT)))?;
+        let token_units = BigNumberFormatter::value_from_amount_biguint(&format_decimal(&output_amount), token_decimals).map_err(|error| SwapperError::ComputeQuoteError(format!("{}: {error}", INVALID_AMOUNT)))?;
         let scaled_units = scale_units(token_units, token_decimals, request.to_asset.decimals)?;
         let to_value = scaled_units;
 
         let price_decimals = 8u32.saturating_sub(base_token.sz_decimals);
-        let limit_price = apply_slippage(&base_limit_price, side, request.options.slippage.bps, price_decimals)?;
+        let limit_price = limit_price_with_slippage(&base_limit_price, side, request.options.slippage.bps, price_decimals)?;
         let limit_price = format_decimal_with_scale(&limit_price, price_decimals);
 
         let order_size = format_order_size(&size_rounded, base_token.sz_decimals);
 
         let asset_index = spot_asset_index(market.index);
 
-        // Adjust from_value for use_max_amount to reflect actual swapped amount after sz_decimals rounding.
         let from_value = actual_from_value.unwrap_or_else(|| request.value.clone());
 
         let quote = Quote {
@@ -228,7 +225,7 @@ impl Swapper for HyperCoreSpot {
         let order: PlaceOrder = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let order_json = serde_json::to_string(&order).map_err(SwapperError::transaction_error)?;
 
-        Ok(SwapperQuoteData::new_contract("".to_string(), quote.from_value.clone(), order_json, None, None))
+        Ok(SwapperQuoteData::new_contract(String::new(), quote.from_value.clone(), order_json, None, None))
     }
 }
 
@@ -278,7 +275,7 @@ mod unit_tests {
 }
 
 #[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
-mod tests {
+mod swap_integration_tests {
     use super::*;
     use crate::{hyperliquid::provider::spot::math::SPOT_ASSET_OFFSET, testkit::mock_quote};
     use primitives::swap::SwapQuoteDataType;
@@ -302,7 +299,7 @@ mod tests {
         let quote_data = spot.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
         assert_eq!(quote.data.provider.id, SwapperProvider::Hyperliquid);
         assert!(quote.to_value > BigUint::ZERO);
-        assert!(matches!(quote_data.data_type, SwapQuoteDataType::Contract));
+        assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
 
         let from_amount = BigDecimal::from_str(&BigNumberFormatter::value(&quote.from_value.to_string(), quote.request.from_asset.decimals as i32).unwrap()).unwrap();
         let to_amount = BigDecimal::from_str(&BigNumberFormatter::value(&quote.to_value.to_string(), quote.request.to_asset.decimals as i32).unwrap()).unwrap();

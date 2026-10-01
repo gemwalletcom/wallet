@@ -534,6 +534,7 @@ lock_require_authentication = 認証を要求
 lock_unlock = ロック解除
 lock_privacy_lock = プライバシーロック
 lock_footer = デバイス上のこのアプリへのアクセスを保護する
+lock_passcode = パスコード
 
 # Verify
 

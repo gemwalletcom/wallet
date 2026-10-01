@@ -3,7 +3,6 @@ pub mod job;
 pub mod parser;
 
 use std::sync::{Arc, Mutex, MutexGuard};
-use std::time::SystemTime;
 
 use metrics::MetricsRegistry;
 use prometheus_client::registry::Registry;
@@ -12,10 +11,6 @@ use rocket::{State, get};
 
 pub fn locked<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
-}
-
-pub fn now_unix() -> u64 {
-    SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs()
 }
 
 pub trait MetricsProvider: Send + Sync {

@@ -1,5 +1,6 @@
+use primitives::unix_timestamp;
 use std::str::FromStr;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use gem_tracing::path;
 use primitives::{Chain, ChainType};
@@ -189,7 +190,7 @@ impl Metrics {
     }
 
     pub(crate) fn set_cooldown(&self, group: &str, service: &str, endpoint: &str, path: &str, duration: Duration) {
-        let until = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs().saturating_add(duration.as_secs());
+        let until = unix_timestamp().saturating_add(duration.as_secs());
         self.cooldowns
             .get_or_create(&CooldownLabels {
                 group: group.to_string(),

@@ -51,18 +51,18 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func fetchDoesNotRunWhileTransferDataLoading() async throws {
+    func loadDoesNotRunWhileTransferDataLoading() async throws {
         let model = SwapSceneViewModel.mock()
         await model.load()
         let previousToValue = model.toValue
-        let previousQuote = model.selectedSwapQuote
+        let previousQuote = model.viewState.quote
 
         model.session = try #require(model.session.startTransfer())
         await model.load()
 
         #expect(model.viewState.isQuoteLoading == false)
         #expect(model.toValue == previousToValue)
-        #expect(model.selectedSwapQuote == previousQuote)
+        #expect(model.viewState.quote == previousQuote)
     }
 
     @Test
@@ -100,7 +100,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test(.timeLimit(.minutes(1)))
-    func refreshKeepsReceiveValueUntilTheNewQuoteArrives() async {
+    func refreshHidesReceiveValueUntilTheNewQuoteArrives() async {
         let (answers, answer) = AsyncStream<[SwapperQuote]>.makeStream()
         let model = SwapSceneViewModel.mock(service: GemSwapQuoteServiceMock(quotes: { _ in await answers.first { _ in true } ?? [] }))
         answer.yield([.mock(toValue: 1_000_000, request: .mock(toAsset: .mock(decimals: 6)))])
@@ -113,7 +113,7 @@ struct SwapSceneViewModelTests {
             }
         }
 
-        #expect(model.toValue == "1")
+        #expect(model.toValue.isEmpty)
 
         answer.yield([.mock(toValue: 2_000_000, request: .mock(toAsset: .mock(decimals: 6)))])
         await refresh.value
@@ -127,14 +127,14 @@ struct SwapSceneViewModelTests {
         await model.load()
 
         #expect(model.toValue.isNotEmpty)
-        #expect(model.selectedSwapQuote != nil)
+        #expect(model.viewState.quote != nil)
 
         model.amountInputModel.text = .empty
         model.onChangeFromValue("1", .empty)
 
         #expect(model.viewState.isInputEmpty)
         #expect(model.toValue.isEmpty)
-        #expect(model.selectedSwapQuote == nil)
+        #expect(model.viewState.quote == nil)
     }
 
     @Test
@@ -151,7 +151,7 @@ struct SwapSceneViewModelTests {
 
         #expect(model.amountInputModel.text == "1")
         #expect(model.toValue.isEmpty)
-        #expect(model.selectedSwapQuote == nil)
+        #expect(model.viewState.quote == nil)
         #expect(model.viewState.error == nil)
         #expect(model.loadTrigger?.isImmediate == true)
     }
@@ -167,7 +167,7 @@ struct SwapSceneViewModelTests {
 
         #expect(model.amountInputModel.text.isEmpty)
         #expect(model.toValue.isEmpty)
-        #expect(model.selectedSwapQuote == nil)
+        #expect(model.viewState.quote == nil)
     }
 
     @Test
@@ -231,11 +231,11 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(service: service)
         await model.load()
 
-        #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
+        #expect(model.viewState.quote?.data.provider.id == .uniswapV3)
 
         model.onFinishSwapProviderSelection(.thorchain)
 
-        #expect(model.selectedSwapQuote?.data.provider.id == .thorchain)
+        #expect(model.viewState.quote?.data.provider.id == .thorchain)
     }
 
     @Test
@@ -246,7 +246,7 @@ struct SwapSceneViewModelTests {
         model.session = model.session.onFetchStarted(request: .mock())
 
         #expect(model.viewState.isQuoteLoading)
-        #expect(model.selectedSwapQuote != nil)
+        #expect(model.viewState.quote != nil)
         #expect(model.swapDetails != nil)
     }
 

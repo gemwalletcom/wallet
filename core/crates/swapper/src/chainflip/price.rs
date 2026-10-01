@@ -4,10 +4,9 @@ use bigdecimal::{
 };
 use num_traits::FromPrimitive;
 
-pub fn apply_slippage(original_price: f64, slippage_bps: u32) -> f64 {
+pub fn price_after_slippage(original_price: f64, slippage_bps: u32) -> f64 {
     original_price * (1.0 - slippage_bps as f64 / 10000.0)
 }
-/// https://docs.chainflip.io/lp/integrations/lp-api#hex-price
 pub fn price_to_hex_price(price: f64, quote_asset_decimals: u32, base_asset_decimals: u32) -> Result<String, String> {
     if price.is_nan() || price.is_infinite() {
         return Err(format!("Input price ({price}) is NaN or Infinity."));
@@ -25,13 +24,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_apply_slippage_sell() {
-        assert_eq!(apply_slippage(100.0, 100), 99.0);
+    fn test_price_after_slippage_sell() {
+        assert_eq!(price_after_slippage(100.0, 100), 99.0);
     }
 
     #[test]
     fn test_example_10000_usdc_eth() {
-        // 10000 USDC/ETH, base asset is USDC, quote asset is ETH
         assert_eq!(price_to_hex_price(10000.0, 6, 18).unwrap(), "0x2af31dc4611873bf3f70834acd");
     }
 }

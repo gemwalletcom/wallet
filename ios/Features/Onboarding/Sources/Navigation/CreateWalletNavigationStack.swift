@@ -34,6 +34,9 @@ public struct CreateWalletNavigationStack: View {
                 .navigationDestination(for: Scenes.SecurityReminder.self) { _ in
                     securityReminderScene
                 }
+                .navigationDestination(for: Scenes.EnableAuthentication.self) { _ in
+                    EnableAuthenticationScene(model: model.enableAuthenticationModel())
+                }
                 .alertSheet($model.isPresentingAlertMessage)
         }
     }
@@ -71,11 +74,16 @@ extension CreateWalletNavigationStack {
                 model.isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, error: error)
             }
         case .verifyPhrase: navigationPath.append(Scenes.VerifyPhrase())
+        case .enableAuthentication: navigationPath.append(Scenes.EnableAuthentication())
         }
     }
 
     func onVerifyPhraseComplete(words: [String]) async throws {
         try await model.createWallet(words: words)
-        model.dismiss()
+        if model.shouldOfferAuthentication {
+            navigate(to: .enableAuthentication)
+        } else {
+            model.dismiss()
+        }
     }
 }

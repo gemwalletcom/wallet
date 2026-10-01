@@ -93,7 +93,7 @@ fun ConfirmTransferScreen(
 ) {
     val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
     RefreshOnTimer(refreshIntervalMillis) {
-        if (viewModel.screen.value.refreshes()) viewModel.fetch()
+        if (viewModel.screen.value.refreshes()) viewModel.load()
     }
 
     val context = LocalContext.current
