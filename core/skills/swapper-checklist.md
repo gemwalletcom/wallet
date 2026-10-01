@@ -7,6 +7,7 @@ Audit a swapper provider in `crates/swapper/src/<provider>/provider.rs` against 
 - [ ] Same-chain swaps prefer onchain math and node RPC over centralized quote APIs when practical
 - [ ] Cross-chain swaps may use centralized/provider APIs when that is the protocol integration surface
 - [ ] Avoid unnecessary chained API/RPC calls before quoting; batch or cache calls where practical
+- [ ] Cross-chain quotes set `Quote.eta_in_seconds` from the provider's estimate converted to seconds; `None` only when the provider returns no estimate
 
 ### 2. get_quote_data Correctness
 - [ ] Input amount: for `SwapAmountMode::Fixed` providers `GemSwapper` applies `max_quote_value_with_fee_reserve` before `get_quote()`, which uses `request.value` for both the provider request and `Quote.from_value`; `get_quote_data()` reads `quote.from_value`, never `quote.request.value`. The two differ when `use_max_amount` is true, and `RESERVED_NATIVE_FEES` (`fees/reserve.rs`) needs an entry for every supported source chain, otherwise a Max native swap leaves nothing for gas

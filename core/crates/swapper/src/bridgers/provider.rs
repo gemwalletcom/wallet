@@ -138,7 +138,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
-            eta_in_seconds: None,
+            eta_in_seconds: Some(quote.estimated_time * 60),
         })
     }
 
@@ -202,6 +202,7 @@ mod swap_integration_tests {
             let network = Network::from_chain(request.from_asset.chain())?;
 
             assert!(quote.to_value > BigUint::ZERO);
+            assert!(quote.eta_in_seconds > Some(0));
             assert_eq!(data.to, network.router()?);
         }
 

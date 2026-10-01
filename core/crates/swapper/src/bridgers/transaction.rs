@@ -5,7 +5,7 @@ use alloy_sol_types::{SolCall, sol};
 
 use primitives::AssetId;
 
-use super::model::{EvmTransaction, SwapRequest, get_to_token};
+use super::model::{EvmTransaction, SwapRequest};
 use crate::SwapperError;
 
 sol! {
@@ -28,10 +28,17 @@ pub(super) fn get_transaction_value(transaction: &EvmTransaction, router: &str, 
     let value = U256::from_str(&transaction.value).map_err(|_| SwapperError::InvalidRoute)?;
     let data = hex::decode(&transaction.data).map_err(|_| SwapperError::InvalidRoute)?;
     let call = get_swap_call(&data, value, from_asset, U256::from_str(&swap.quote.from_token_amount)?)?;
-    if call.destination != swap.to_address || call.min_return_amount != U256::from_str(&swap.amount_out_min)? || call.to_token != get_to_token(to_code, &swap.slippage) {
+    if call.destination != swap.to_address || call.min_return_amount != U256::from_str(&swap.amount_out_min)? || !is_valid_to_token(&call.to_token, to_code, &swap.slippage) {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(value)
+}
+
+fn is_valid_to_token(to_token: &str, code: &str, slippage: &str) -> bool {
+    match to_token.split('|').collect::<Vec<_>>().as_slice() {
+        [token, _channel, token_slippage, ..] => *token == code && *token_slippage == slippage,
+        _ => false,
+    }
 }
 
 fn get_swap_call(data: &[u8], value: U256, from_asset: &AssetId, from_amount: U256) -> Result<SwapCall, SwapperError> {
@@ -108,5 +115,13 @@ mod tests {
             U256::ZERO
         );
         assert_eq!(get_transaction_value(&native_tx, opbnb_router, &bnb, "USDT(BSC)", &other_destination).unwrap_err(), SwapperError::InvalidRoute);
+    }
+
+    #[test]
+    fn test_is_valid_to_token() {
+        assert!(is_valid_to_token("USDT(BSC)|other|0.005|bridgers|0", "USDT(BSC)", "0.005"));
+        assert!(!is_valid_to_token("USDT(BSC)|ht6zut|0.01|bridgers|0", "USDT(BSC)", "0.005"));
+        assert!(!is_valid_to_token("BNB(BSC)|ht6zut|0.005|bridgers|0", "USDT(BSC)", "0.005"));
+        assert!(!is_valid_to_token("USDT(BSC)", "USDT(BSC)", "0.005"));
     }
 }

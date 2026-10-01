@@ -13,8 +13,6 @@ pub(super) mod response_code {
     pub const QUOTE_FAIL: u64 = 412;
 }
 
-const CHANNEL: &str = "ht6zut";
-
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct BridgersResponse {
@@ -49,6 +47,7 @@ pub(super) struct QuoteTxData {
     pub deposit_min: String,
     pub deposit_max: String,
     pub chain_fee: String,
+    pub estimated_time: u32,
 }
 
 #[derive(Debug, Clone, Default, Serialize)]
@@ -78,10 +77,6 @@ pub(super) struct EvmTransaction {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(super) struct RouteData {
     pub amount_out_min: String,
-}
-
-pub(super) fn get_to_token(code: &str, slippage: &str) -> String {
-    format!("{code}|{CHANNEL}|{slippage}|bridgers|0")
 }
 
 #[derive(Debug, Clone, Serialize)]
