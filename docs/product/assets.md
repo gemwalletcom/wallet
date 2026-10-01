@@ -46,6 +46,7 @@ flowchart LR
 |---|---|---|
 | The price chart cannot load | it shows that there is no data; only being offline shows an error | server text is not written for users |
 | The user pinches the chart | it zooms toward the newest point while that point is on screen, and around the fingers once panned back, down to 14 points on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period | fewer points are too few to read a trend `test_magnified` `test_on_pan` |
+| The user touches the chart | a short hold shows the point under the finger; a sideways slide shows it at once while the chart is not zoomed and pans a zoomed chart; a drag that starts upright scrolls the page, and once the point shows the page stays put; a second finger hides the point | the price is read by sliding along the line; once zoomed, the same slide is how the user goes back in time `test_zoomed_chart` |
 
 ## Manage tokens
 

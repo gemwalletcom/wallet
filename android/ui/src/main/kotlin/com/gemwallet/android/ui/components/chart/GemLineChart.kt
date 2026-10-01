@@ -76,6 +76,7 @@ private object Alpha {
 fun GemLineChart(
     points: List<ChartPoint>,
     bounds: GemChartBounds,
+    isZoomed: Boolean,
     lineColor: Color,
     indexAt: (Float) -> Int?,
     onZoom: (Float, Float) -> Unit,
@@ -138,6 +139,7 @@ fun GemLineChart(
             val selectionChanged by rememberUpdatedState(onSelectionChanged)
             val zoom by rememberUpdatedState(onZoom)
             val pan by rememberUpdatedState(onPan)
+            val zoomed by rememberUpdatedState(isZoomed)
 
             val screenPoints = remember(points, chartSize, paddedMin, paddedRange) {
                 points.map { point -> Offset(screenX(point.x), valueToScreenY(point.y)) }
@@ -152,6 +154,7 @@ fun GemLineChart(
                     .chartGestures(
                         plotLeft = curveLeft,
                         plotWidth = curveWidth,
+                        isZoomed = { zoomed },
                         indexAt = { pointIndex(it) },
                         onSelectionChanged = { selectionChanged(it) },
                         onZoom = { magnification, anchor -> zoom(magnification, anchor) },

@@ -33,6 +33,7 @@ flowchart LR
 | The user long-presses a market | it is pinned | |
 | The user searches | positions and markets are filtered | |
 | The user pinches the chart | it zooms toward the newest candle while that candle is on screen, and around the point between the fingers once panned back, down to 14 candles on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period; a market with fewer than 14 candles draws them at that width, newest on the right | the live candle is what the user watches; wider bodies than 14 stop reading as a trend `test_magnified` `test_candle_chart` |
+| The user touches the chart | a short hold shows the tooltip of the candle under the finger; a sideways slide shows it at once while the chart is not zoomed and pans a zoomed chart; a drag that starts upright scrolls the page, and once the tooltip shows the page stays put; a second finger hides the tooltip | candles are read by sliding along them; once zoomed, the same slide is how the user goes back in time `test_candle_chart` |
 | The chart shows its time labels | at most four, on round times of the user's own clock (quarter hours, six hours, whole days, calendar months); a pan slides them with their candles and only a pinch changes the step | a label that jumps or re-spaces while the user drags cannot be read `test_x_ticks` |
 | The market has a position | the position shows, with Modify and Close in place of Long and Short | |
 | Long or Short opens | the leverage starts at the default from Settings | |
