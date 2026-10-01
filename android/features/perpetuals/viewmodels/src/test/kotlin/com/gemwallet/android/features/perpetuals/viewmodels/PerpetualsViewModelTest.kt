@@ -8,12 +8,10 @@ import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalance
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockGemValueHeader
 import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockPerpetualData
 import com.gemwallet.android.testkit.mockPerpetualPositionData
@@ -45,8 +43,11 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemHeaderActions
+import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualServiceInterface
+import uniffi.gemstone.GemValueHeader
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -67,7 +68,7 @@ class PerpetualsViewModelTest {
     @Test
     fun `pull to refresh asks core for a user requested markets sync`() = runTest(dispatcher) {
         val trigger = CompletableDeferred<GemMarketsRefreshTrigger>()
-        val service = mockk<GemPerpetualServiceInterface>(relaxed = true)
+        val service = mockk<GemPerpetualServiceInterface>()
         coEvery { service.refresh(any()) } answers {
             trigger.complete(firstArg())
             emptyList()
@@ -81,7 +82,7 @@ class PerpetualsViewModelTest {
     @Test
     fun `opening the screen asks core for a scheduled refresh, not positions alone`() = runTest(dispatcher) {
         val trigger = CompletableDeferred<GemMarketsRefreshTrigger>()
-        val service = mockk<GemPerpetualServiceInterface>(relaxed = true)
+        val service = mockk<GemPerpetualServiceInterface>()
         coEvery { service.refresh(any()) } answers {
             trigger.complete(firstArg())
             emptyList()
@@ -162,15 +163,15 @@ class PerpetualsViewModelTest {
 
     @Test
     fun `the header comes from core for the session wallet and the stored balance`() = runTest(dispatcher) {
-        val balance = PerpetualBalance(available = 50.0, reserved = 50.0, withdrawable = 0.0)
-        val header = mockGemValueHeader()
-        val service = mockk<GemPerpetualServiceInterface> {
-            every { balanceHeader(mockWallet().id.id, WalletType.View.toGem(), balance.toGem()) } returns header
-        }
+        val leveraged = PerpetualBalance(available = 50.0, reserved = 50.0, withdrawable = 0.0)
 
-        val subject = viewModel(service, balance = balance, walletType = WalletType.View)
+        val funded = viewModel(mockk(relaxed = true), balance = leveraged)
+        val watching = viewModel(mockk(relaxed = true), balance = leveraged, walletType = WalletType.View)
         advanceUntilIdle()
 
-        assertEquals(header, subject.balanceHeader.value)
+        assertEquals(false, requireNotNull(funded.balanceHeader.value).withdrawEnabled())
+        assertEquals(GemHeaderActions.WatchOnly, watching.balanceHeader.value?.actions)
     }
+
+    private fun GemValueHeader.withdrawEnabled(): Boolean? = (actions as? GemHeaderActions.Buttons)?.buttons?.first { it.kind == GemHeaderButtonKind.WITHDRAW }?.isEnabled
 }

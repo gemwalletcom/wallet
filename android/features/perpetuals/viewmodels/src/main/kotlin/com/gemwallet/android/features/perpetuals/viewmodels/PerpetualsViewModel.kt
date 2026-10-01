@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemMarketsRefreshTrigger
+import uniffi.gemstone.GemPerpetualDepositTarget
 import uniffi.gemstone.GemPerpetualMarketCounts
 import uniffi.gemstone.GemPerpetualMarketSection
 import uniffi.gemstone.GemPerpetualMarketSections
@@ -50,6 +51,7 @@ import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.PerpetualProvider
+import uniffi.gemstone.perpetualBalanceHeader
 import uniffi.gemstone.perpetualMarketQuery
 import uniffi.gemstone.perpetualMarketSections
 import uniffi.gemstone.perpetualPositionRows
@@ -113,8 +115,8 @@ class PerpetualsViewModel @Inject constructor(
             .flatMapLatest { perpetualWalletBalanceQuery(it.wallet.id, HypercoreUSDC.id) }
             .map { it?.balance }
             .distinctUntilChanged(),
-        getSession().filterNotNull().map { it.wallet }.distinctUntilChanged(),
-    ) { balance, wallet -> service.balanceHeader(wallet.id.id, wallet.type.toGem(), balance?.toGem()) }
+        getSession().filterNotNull().map { it.wallet.type }.distinctUntilChanged(),
+    ) { balance, walletType -> perpetualBalanceHeader(balance?.toGem(), walletType.toGem()) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val recent: StateFlow<List<Asset>> = getSession()
@@ -155,6 +157,10 @@ class PerpetualsViewModel @Inject constructor(
     fun unsubscribeMarketPrices() {
         perpetualObserver.unsubscribe(GemPerpetualSubscription.MarketPrices)
     }
+
+    suspend fun depositTarget(): GemPerpetualDepositTarget? = runCatchingCancellable { service.depositTarget() }
+        .onFailure { Log.e(TAG, "perpetual deposit target failed", it) }
+        .getOrNull()
 
     fun onTogglePin(perpetualId: PerpetualId) = viewModelScope.launch(ioDispatcher) {
         val item = (pinnedPerpetuals.value + unpinnedPerpetuals.value).firstOrNull { it.data.perpetual.id == perpetualId.toIdentifier() } ?: return@launch

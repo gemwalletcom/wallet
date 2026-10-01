@@ -12,6 +12,7 @@ import struct Gemstone.GemPerpetualMarketSession
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemValueHeader
+import func Gemstone.perpetualBalanceHeader
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -43,7 +44,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     var balanceHeader: GemValueHeader {
-        service.balanceHeader(walletId: wallet.id, walletType: wallet.type.toGem(), balance: walletBalanceQuery.value?.balance.toGem())
+        perpetualBalanceHeader(balance: walletBalanceQuery.value?.balance.toGem(), walletType: wallet.type.toGem())
     }
 
     var isSearchPresented: Bool = false
@@ -147,14 +148,23 @@ extension PerpetualsSceneViewModel {
 
     func onSelectHeaderAction(_ action: GemHeaderButtonAction) {
         switch action {
-        case let .deposit(asset?):
-            onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
-        case .deposit(nil):
-            onSelectAssetType?(.deposit)
+        case .deposit:
+            Task { await onSelectDeposit() }
         case let .withdraw(asset):
             onSelectAmount?(AmountInput(type: .withdraw, asset: asset.toPrimitives()))
         case .send, .receive, .buy, .swap, .sendCollectible, .collectibleMenu:
             break
+        }
+    }
+
+    func onSelectDeposit() async {
+        do {
+            switch try await service.depositTarget() {
+            case .selectAsset: onSelectAssetType?(.deposit)
+            case let .amount(asset): onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
+            }
+        } catch {
+            debugLog("PerpetualsSceneViewModel deposit target error: \(error)")
         }
     }
 

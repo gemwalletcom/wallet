@@ -78,6 +78,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public var connectionFailures = 0
     public var connectionGate: (@Sendable (Gemstone.Wallet) async -> Void)?
     public private(set) var connectionCount = 0
+    public var depositTargetValue: Gemstone.GemPerpetualDepositTarget = .selectAsset
     private var updatedAt: Int64?
 
     public init(marketsUpdatedAt: Int64? = nil) {
@@ -121,6 +122,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         syncPositionsCount += 1
     }
 
+    public func depositTarget() async throws -> Gemstone.GemPerpetualDepositTarget {
+        depositTargetValue
+    }
+
     public func refresh(trigger: Gemstone.GemMarketsRefreshTrigger) async -> [Gemstone.GemPerpetualRefreshFailure] {
         try? await syncCurrentPositions()
         _ = try? await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
@@ -144,10 +149,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public func setPinned(perpetualId _: PerpetualId, pinned _: Bool) async throws {}
 
     public func addRecent(action _: Gemstone.GemAssetAction, asset _: Gemstone.Asset) async throws {}
-
-    public func balanceHeader(walletId _: WalletId, walletType _: Gemstone.WalletType, balance _: Gemstone.PerpetualBalance?) -> Gemstone.GemValueHeader {
-        .mock()
-    }
 }
 
 public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServiceProtocol, @unchecked Sendable {

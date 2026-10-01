@@ -38,12 +38,24 @@ struct PerpetualsSceneViewModelTests {
     }
 
     @Test
-    func depositWithoutAnAssetOpensThePicker() {
+    func depositOpensThePickerWhenThereIsAChoice() async {
         var selected: SelectAssetType?
         let model = PerpetualsSceneViewModel.mock(onSelectAssetType: { selected = $0 })
 
-        model.onSelectHeaderAction(.deposit(asset: nil))
+        await model.onSelectDeposit()
 
         #expect(selected == .deposit)
+    }
+
+    @Test
+    func depositOpensTheAmountOfTheOneSource() async {
+        let perpetuals = GemPerpetualServiceMock()
+        perpetuals.depositTargetValue = .amount(asset: Asset.mock().toGem())
+        var selected: AmountInput?
+        let model = PerpetualsSceneViewModel.mock(perpetualService: perpetuals, onSelectAmount: { selected = $0 })
+
+        await model.onSelectDeposit()
+
+        #expect(selected == AmountInput(type: .deposit, asset: .mock()))
     }
 }

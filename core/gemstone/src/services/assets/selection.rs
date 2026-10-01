@@ -3,7 +3,9 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetId, PerpetualId, Wallet, WalletType};
 
-use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchInput, GemWalletSearchLimits, GemWalletSearchResultsInput, GemWalletSearchResultsView, GemWalletSearchView};
+use super::model::{
+    GemAssetAction, GemAssetFilter, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchInput, GemWalletSearchLimits, GemWalletSearchResultsInput, GemWalletSearchResultsView, GemWalletSearchView,
+};
 use super::rules;
 use crate::services::chain::rules as chain_rules;
 
@@ -52,11 +54,16 @@ impl GemAssetSelectionService {
     }
 
     pub fn flow(&self, select_type: GemSelectAssetType) -> GemSelectAssetFlow {
-        let swap_receive_assets = match &select_type {
-            GemSelectAssetType::SwapReceive { pay_asset_id: Some(pay_asset_id) } => Some(self.swap.supported_assets(pay_asset_id.clone())),
+        let assets = match &select_type {
+            GemSelectAssetType::SwapReceive { pay_asset_id: Some(pay_asset_id) } => Some(GemAssetFilter::from(self.swap.supported_assets(pay_asset_id.clone()))),
+            GemSelectAssetType::Deposit => self
+                .session
+                .current_wallet_id()
+                .ok()
+                .map(|wallet_id| GemAssetFilter::asset_ids(self.perpetuals.deposit_assets(wallet_id).into_iter().map(|asset| asset.id).collect())),
             _ => None,
         };
-        rules::select_asset_flow(select_type, swap_receive_assets)
+        rules::select_asset_flow(select_type, assets)
     }
 
     pub fn wallet_search_limits(&self, query: String) -> GemWalletSearchLimits {

@@ -2,7 +2,7 @@ use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSection};
-use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemPriceRow, GemRowText};
+use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemPriceRow, GemRowText, GemValueHeader};
 use crate::services::chart::candlestick_header;
 use crate::services::chart::model::{GemChartDateStyle, GemChartHeader, GemChartSelection};
 use crate::services::chart::rules as chart_rules;
@@ -11,7 +11,7 @@ use crate::services::localization::GemLocalizedText;
 use chrono::{DateTime, Utc};
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualPositionData};
-use primitives::{Asset, AssetId, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType};
+use primitives::{Asset, AssetId, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -332,6 +332,12 @@ pub enum GemPerpetualEnablementTrigger {
     PreferenceChanged,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemPerpetualDepositTarget {
+    SelectAsset,
+    Amount { asset: Asset },
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPerpetualRefreshStep {
     Positions,
@@ -548,4 +554,9 @@ mod tests {
 #[uniffi::export]
 pub fn perpetual_balance_total(balance: Option<PerpetualBalance>) -> GemFormattedNumber {
     rules::balance_total(balance.as_ref())
+}
+
+#[uniffi::export]
+pub fn perpetual_balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemValueHeader {
+    rules::balance_header(balance, wallet_type)
 }

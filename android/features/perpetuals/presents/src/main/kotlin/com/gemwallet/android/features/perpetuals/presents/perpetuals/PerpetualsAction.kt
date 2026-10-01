@@ -8,8 +8,7 @@ internal sealed interface PerpetualsAction {
     data class SetSearching(val isSearching: Boolean) : PerpetualsAction
     data object Refresh : PerpetualsAction
     data class Withdraw(val assetId: AssetId) : PerpetualsAction
-    data class Deposit(val assetId: AssetId) : PerpetualsAction
-    data object SelectDepositAsset : PerpetualsAction
+    data object Deposit : PerpetualsAction
     data object OpenPortfolio : PerpetualsAction
     data object Close : PerpetualsAction
     data class TogglePin(val perpetualId: PerpetualId) : PerpetualsAction
