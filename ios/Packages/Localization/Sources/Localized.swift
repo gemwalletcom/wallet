@@ -745,6 +745,8 @@ public enum Localized {
     public static let oneHour = Localized.tr("Localizable", "lock.one_hour", fallback: "1 hour")
     /// 1 minute
     public static let oneMinute = Localized.tr("Localizable", "lock.one_minute", fallback: "1 minute")
+    /// Passcode
+    public static let passcode = Localized.tr("Localizable", "lock.passcode", fallback: "Passcode")
     /// Privacy Lock
     public static let privacyLock = Localized.tr("Localizable", "lock.privacy_lock", fallback: "Privacy Lock")
     /// Require authentication

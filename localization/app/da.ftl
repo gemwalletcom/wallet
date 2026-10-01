@@ -534,6 +534,7 @@ lock_require_authentication = Kræv godkendelse
 lock_unlock = Lås op
 lock_privacy_lock = Privatlivslås
 lock_footer = Beskyt adgangen til denne app på din enhed
+lock_passcode = Adgangskode
 
 # Verify
 

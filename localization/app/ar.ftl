@@ -534,6 +534,7 @@ lock_require_authentication = تتطلب المصادقة
 lock_unlock = فتح
 lock_privacy_lock = قفل الخصوصية
 lock_footer = حماية الوصول إلى هذا التطبيق على جهازك
+lock_passcode = رمز المرور
 
 # Verify
 

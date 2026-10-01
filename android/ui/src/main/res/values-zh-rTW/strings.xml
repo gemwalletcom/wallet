@@ -441,6 +441,7 @@
   <string name="lock_unlock">解鎖</string>
   <string name="lock_privacy_lock">隱私鎖</string>
   <string name="lock_footer">保護此裝置上的 App 存取安全</string>
+  <string name="lock_passcode">密碼</string>
   <string name="verify_phrase_title">確認</string>
   <string name="warnings_externally_controlled_account">此 %1$s 帳戶可能由他人控制。除非確定該帳戶由您掌控，請勿將資金轉入，以免永久失去資產。</string>
   <string name="sell_title">出售%1$s</string>

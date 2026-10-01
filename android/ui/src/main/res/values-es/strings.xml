@@ -441,6 +441,7 @@
   <string name="lock_unlock">Desbloquear</string>
   <string name="lock_privacy_lock">Bloqueo de privacidad</string>
   <string name="lock_footer">Proteger el acceso a esta aplicación en su dispositivo</string>
+  <string name="lock_passcode">Código de acceso</string>
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta cuenta de %1$s puede estar controlada por otra persona. No envíe fondos a ella a menos que esté seguro de que la controla, o podría perder sus activos de forma permanente.</string>
   <string name="sell_title">Vender %1$s</string>

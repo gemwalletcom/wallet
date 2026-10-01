@@ -16,9 +16,10 @@ struct EnableAuthenticationScene: View {
     var body: some View {
         VStack {
             Spacer()
-            StateEmptyView(
-                title: model.message,
-                image: Image(systemName: model.image),
+            StateHeroView(
+                systemImage: model.image,
+                title: model.title,
+                description: model.description,
             )
             .padding(.horizontal, .medium)
             Spacer()
@@ -42,7 +43,6 @@ struct EnableAuthenticationScene: View {
             .padding(.bottom, .scene.bottom)
         }
         .background(Colors.grayBackground)
-        .navigationTitle(model.title)
         .toolbarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
         .interactiveDismissDisabled()

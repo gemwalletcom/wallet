@@ -441,6 +441,7 @@
   <string name="lock_unlock">Entsperren</string>
   <string name="lock_privacy_lock">Datenschutzsperre</string>
   <string name="lock_footer">Schützen Sie den Zugriff auf diese App auf Ihrem Gerät</string>
+  <string name="lock_passcode">Passcode</string>
   <string name="verify_phrase_title">Bestätigen</string>
   <string name="warnings_externally_controlled_account">Dieses %1$s-Konto kann von jemand anderem kontrolliert werden. Senden Sie kein Geld darauf, es sei denn, Sie sind sicher, dass Sie es kontrollieren, sonst könnten Sie Ihr Vermögen dauerhaft verlieren.</string>
   <string name="sell_title">Verkaufen %1$s</string>

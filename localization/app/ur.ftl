@@ -534,6 +534,7 @@ lock_require_authentication = تصدیق کی ضرورت ہے۔
 lock_unlock = غیر مقفل کریں۔
 lock_privacy_lock = پرائیویسی لاک
 lock_footer = اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔
+lock_passcode = پاس کوڈ
 
 # Verify
 

@@ -534,6 +534,7 @@ lock_require_authentication = Yêu cầu xác thực
 lock_unlock = Mở khóa
 lock_privacy_lock = Khóa riêng tư
 lock_footer = Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn
+lock_passcode = Mật mã
 
 # Verify
 

@@ -53,6 +53,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | A wallet is created or imported, the device has biometrics or a passcode, and app authentication is off | before the wallet screen, the app offers to turn it on with Enable and Skip | a new wallet should not stay open to anyone holding the unlocked phone |
+| The offer opens | it is titled with the device's unlock method, Face ID, Touch ID, Optic ID or Passcode, with that method's symbol and Enable with its name | the user sees the exact unlock they are turning on |
 | The user taps Enable | the device asks for authentication, then app authentication is on as if turned on in Settings → Security | |
 | The authentication prompt is cancelled or fails | the offer stays open | |
 | The user taps Skip or goes back | the wallet screen opens | Settings → Security still turns it on |
@@ -87,6 +88,7 @@ flowchart TD
 |---|---|---|---|
 | The user types an invalid word while importing a Secret Phrase | no per-word highlight | highlights the invalid word | Intentional: a one-sided feature, added to iOS only when required |
 | The user takes a screenshot of the Secret Phrase or private key screen | the screenshot is detected and the user is warned | the screenshot is blocked | Intentional |
+| The app lock offer opens on a device with biometrics | Face ID, Touch ID or Optic ID, with that symbol | Passcode, with a lock | Intentional: Android has no single name for its unlock methods, and its Security settings already call it Passcode |
 
 ## Rules
 

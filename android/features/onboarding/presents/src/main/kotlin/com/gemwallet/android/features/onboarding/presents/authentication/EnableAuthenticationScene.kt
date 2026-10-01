@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.empty.EmptyStateView
+import com.gemwallet.android.ui.components.empty.StateHeroView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
@@ -34,7 +34,7 @@ fun EnableAuthenticationScene(onEnable: () -> Unit, onSkip: () -> Unit) {
     BackHandler(onBack = onSkip)
 
     Scene(
-        title = stringResource(R.string.settings_security),
+        title = "",
         mainAction = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 MainActionButton(
@@ -57,9 +57,10 @@ fun EnableAuthenticationScene(onEnable: () -> Unit, onSkip: () -> Unit) {
         },
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            EmptyStateView(
-                title = stringResource(R.string.lock_footer),
-                iconVector = AppIcons.Fingerprint,
+            StateHeroView(
+                icon = AppIcons.Lock,
+                title = stringResource(R.string.lock_passcode),
+                description = stringResource(R.string.lock_footer),
             )
         }
     }

@@ -534,6 +534,7 @@ lock_require_authentication = Nangangailangan ng pagpapatunay
 lock_unlock = I-unlock
 lock_privacy_lock = Privacy Lock
 lock_footer = Protektahan ang access sa app na ito sa iyong device
+lock_passcode = Passcode
 
 # Verify
 
