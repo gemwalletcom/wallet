@@ -1,5 +1,5 @@
-list:
-    just --list
+default:
+    @just --list
 
 build:
     cargo build
@@ -25,10 +25,8 @@ install-rust:
     @rustc --version
 
 install-postgres:
-	brew install libpq postgresql@15
-	brew link postgresql@15
-	export LDFLAGS="-L/opt/homebrew/opt/libpq/lib"
-	export CPPFLAGS="-I/opt/homebrew/opt/libpq/include"
+    brew install libpq postgresql@15
+    brew link postgresql@15
 
 install-diesel:
     @echo Install Diesel
@@ -48,7 +46,7 @@ test-integration:
     @echo "Running integration tests only..."
     cargo test --lib --all --features chain_integration_tests -- chain_integration_tests --test-threads=1
     cargo test --lib -p swapper --features swap_integration_tests -- swap_integration_tests --test-threads=1
-    cargo test --lib -p fiat --features fiat_integration_tests -- fiat_integration_tests --test-threads=1 
+    cargo test --lib -p fiat --features fiat_integration_tests -- fiat_integration_tests --test-threads=1
     cargo test --lib -p nft --features nft_integration_tests -- nft_integration_tests --test-threads=1
     cargo test --lib -p prices --features price_integration_tests -- price_integration_tests --test-threads=1
 
