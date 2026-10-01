@@ -9,6 +9,7 @@ public extension CreateWalletViewModel {
     static func mock(service: any GemWalletServiceProtocol = GemWalletService.mock()) -> CreateWalletViewModel {
         CreateWalletViewModel(
             service: service,
+            biometryService: BiometryAuthenticationMock(),
             preferences: .mock(),
             onComplete: nil,
         )

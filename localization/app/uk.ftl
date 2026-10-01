@@ -534,6 +534,7 @@ lock_require_authentication = Вимагається автентифікаці�
 lock_unlock = Розблокувати
 lock_privacy_lock = Блокування конфіденційності
 lock_footer = Захистіть доступ до цієї програми на своєму пристрої
+lock_passcode = Пароль
 
 # Verify
 

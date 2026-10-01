@@ -534,6 +534,7 @@ lock_require_authentication = 需要身分驗證
 lock_unlock = 解鎖
 lock_privacy_lock = 隱私鎖
 lock_footer = 保護此裝置上的 App 存取安全
+lock_passcode = 密碼
 
 # Verify
 

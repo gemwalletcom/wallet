@@ -534,6 +534,7 @@ lock_require_authentication = ต้องมีการรับรองค�
 lock_unlock = ปลดล็อค
 lock_privacy_lock = ล็อคความเป็นส่วนตัว
 lock_footer = ป้องกันการเข้าถึงแอปนี้บนอุปกรณ์ของคุณ
+lock_passcode = รหัสผ่าน
 
 # Verify
 

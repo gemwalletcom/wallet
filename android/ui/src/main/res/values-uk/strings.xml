@@ -441,6 +441,7 @@
   <string name="lock_unlock">Розблокувати</string>
   <string name="lock_privacy_lock">Блокування конфіденційності</string>
   <string name="lock_footer">Захистіть доступ до цієї програми на своєму пристрої</string>
+  <string name="lock_passcode">Пароль</string>
   <string name="verify_phrase_title">Підтвердити</string>
   <string name="warnings_externally_controlled_account">Цей обліковий запис %1$s може контролювати хтось інший. Не надсилайте на нього кошти, якщо ви не впевнені, що контролюєте його, інакше ви можете назавжди втратити свої активи.</string>
   <string name="sell_title">Продати %1$s</string>

@@ -534,6 +534,7 @@ lock_require_authentication = Authenticatie vereisen
 lock_unlock = Ontgrendelen
 lock_privacy_lock = Privacyslot
 lock_footer = Beveilig de toegang tot deze app op uw apparaat
+lock_passcode = Toegangscode
 
 # Verify
 

@@ -16,6 +16,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.presents.select.AssetsManageRoute
+import com.gemwallet.android.features.onboarding.presents.authentication.EnableAuthenticationRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletSecurityReminderRoute
 import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletRoute
@@ -169,6 +170,10 @@ class WalletNavigator(
 
     fun resetToOnboarding() {
         resetTo(OnboardingRoute)
+    }
+
+    fun openEnableAuthentication() {
+        resetTo(EnableAuthenticationRoute)
     }
 
     private fun resetTo(route: NavKey) {

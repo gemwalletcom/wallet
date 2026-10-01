@@ -985,6 +985,8 @@ lock_unlock = Unlock
 lock_privacy_lock = Privacy Lock
 # Used in Privacy Lock settings as a footer helper text.
 lock_footer = Protect access to this app on your device
+# Title of the screen that offers to turn on app authentication on a device with a passcode and no biometrics.
+lock_passcode = Passcode
 
 # Verify
 

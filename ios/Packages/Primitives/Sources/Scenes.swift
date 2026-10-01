@@ -15,6 +15,10 @@ public enum Scenes {
         public init() {}
     }
 
+    public struct EnableAuthentication: Hashable, Codable {
+        public init() {}
+    }
+
     public struct Notifications: Hashable, Codable {
         public init() {}
     }

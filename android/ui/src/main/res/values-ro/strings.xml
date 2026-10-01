@@ -441,6 +441,7 @@
   <string name="lock_unlock">Deblocați</string>
   <string name="lock_privacy_lock">Blocare confidențialitate</string>
   <string name="lock_footer">Protejați accesul la această aplicație pe dispozitivul dvs.</string>
+  <string name="lock_passcode">Cod de acces</string>
   <string name="verify_phrase_title">Confirmați</string>
   <string name="warnings_externally_controlled_account">Acest cont %1$s poate fi controlat de altcineva. Nu trimiteți fonduri în el decât dacă sunteți sigur că îl controlați, altfel vă puteți pierde definitiv bunurile.</string>
   <string name="sell_title">Vânzare %1$s</string>

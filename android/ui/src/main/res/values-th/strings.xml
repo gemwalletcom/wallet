@@ -441,6 +441,7 @@
   <string name="lock_unlock">ปลดล็อค</string>
   <string name="lock_privacy_lock">ล็อคความเป็นส่วนตัว</string>
   <string name="lock_footer">ป้องกันการเข้าถึงแอปนี้บนอุปกรณ์ของคุณ</string>
+  <string name="lock_passcode">รหัสผ่าน</string>
   <string name="verify_phrase_title">ยืนยัน</string>
   <string name="warnings_externally_controlled_account">บัญชี %1$s นี้อาจถูกควบคุมโดยผู้อื่น อย่าส่งเงินไปยังบัญชีนี้ เว้นแต่คุณจะแน่ใจว่าคุณเป็นผู้ควบคุม มิฉะนั้นคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร</string>
   <string name="sell_title">ขาย %1$s</string>

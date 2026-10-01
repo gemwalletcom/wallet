@@ -441,6 +441,7 @@
   <string name="lock_unlock">I-unlock</string>
   <string name="lock_privacy_lock">Privacy Lock</string>
   <string name="lock_footer">Protektahan ang access sa app na ito sa iyong device</string>
+  <string name="lock_passcode">Passcode</string>
   <string name="verify_phrase_title">Kumpirmahin</string>
   <string name="warnings_externally_controlled_account">Maaaring kontrolado ng ibang tao ang %1$s account na ito. Huwag magpadala ng pondo rito maliban kung sigurado kang ikaw ang may kontrol dito, o maaari mong permanenteng mawala ang iyong mga asset.</string>
   <string name="sell_title">Ibenta %1$s</string>

@@ -534,6 +534,7 @@ lock_require_authentication = Necesită autentificare
 lock_unlock = Deblocați
 lock_privacy_lock = Blocare confidențialitate
 lock_footer = Protejați accesul la această aplicație pe dispozitivul dvs.
+lock_passcode = Cod de acces
 
 # Verify
 

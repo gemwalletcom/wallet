@@ -534,6 +534,7 @@ lock_require_authentication = نیاز به احراز هویت
 lock_unlock = باز کردن قفل
 lock_privacy_lock = قفل حریم خصوصی
 lock_footer = دسترسی به این برنامه را در دستگاه خود محافظت کنید
+lock_passcode = رمزعبور
 
 # Verify
 

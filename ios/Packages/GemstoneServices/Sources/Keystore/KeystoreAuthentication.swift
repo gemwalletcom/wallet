@@ -39,8 +39,12 @@ extension KeystoreAuthentication {
 }
 
 public extension KeystoreAuthentication {
+    static var availableBiometryType: LABiometryType {
+        LAContext().biometryType
+    }
+
     static var availableBiometryName: String? {
-        switch LAContext().biometryType {
+        switch availableBiometryType {
         case .faceID: "Face ID"
         case .touchID: "Touch ID"
         case .opticID: "Optic ID"

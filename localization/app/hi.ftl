@@ -534,6 +534,7 @@ lock_require_authentication = प्रमाणीकरण की आवश्
 lock_unlock = अनलॉक
 lock_privacy_lock = गोपनीयता लॉक
 lock_footer = अपने डिवाइस पर इस ऐप तक पहुंच सुरक्षित रखें
+lock_passcode = पासकोड
 
 # Verify
 

@@ -534,6 +534,7 @@ lock_require_authentication = Memerlukan pengesahan
 lock_unlock = Buka kunci
 lock_privacy_lock = Kunci Privasi
 lock_footer = Lindungi akses kepada apl ini pada peranti anda
+lock_passcode = Kod Laluan
 
 # Verify
 
