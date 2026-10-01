@@ -9,7 +9,7 @@ use syn::{Attribute, Expr, ExprLit, Fields, GenericArgument, Item, Lit, Meta, Pa
 
 const MARKER: &str = "model";
 const DERIVE: &str = "Model";
-const KOTLIN_PACKAGE: &str = "com.wallet.core.primitives";
+pub(crate) const KOTLIN_PACKAGE: &str = "com.wallet.core.primitives";
 const SWIFT_DIRECTORY: &str = "Primitives/Sources/Generated";
 const KOTLIN_DIRECTORY: &str = "primitives/generated";
 const SKIPPED_FILES: &[&str] = &[
@@ -408,11 +408,11 @@ fn parsed_files(sources: &Path) -> Vec<(PathBuf, Vec<Model>)> {
         .collect()
 }
 
-fn folders(relative: &Path) -> Vec<String> {
+pub(crate) fn folders(relative: &Path) -> Vec<String> {
     relative.parent().map(|parent| parent.iter().map(|folder| folder.to_string_lossy().to_string()).collect()).unwrap_or_default()
 }
 
-fn kotlin_package(folders: &[String]) -> String {
+pub(crate) fn kotlin_package(folders: &[String]) -> String {
     [KOTLIN_PACKAGE.to_string()].into_iter().chain(folders.iter().map(|folder| folder.to_lowercase())).collect::<Vec<_>>().join(".")
 }
 

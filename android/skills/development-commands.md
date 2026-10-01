@@ -5,7 +5,7 @@ Use Gradle for Android builds and tests, with `just` wrappers for the repo’s c
 ## Setup and Shared Tasks
 
 ```bash
-just list
+just
 just install
 just generate
 just generate-models

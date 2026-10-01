@@ -12,12 +12,9 @@ import protocol Gemstone.GemRewardsServiceProtocol
 import struct Gemstone.GemRewardsSession
 import struct Gemstone.GemRewardsState
 import struct Gemstone.GemRewardsViewState
+import struct Gemstone.GemRewardsWallet
 import enum Gemstone.GemServiceError
-import struct Gemstone.GemWalletRow
-import func Gemstone.incomingReferralCode
 import func Gemstone.rewardsSession
-import func Gemstone.walletRow
-import func Gemstone.walletSections
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -28,15 +25,6 @@ import Style
 @MainActor
 public final class RewardsSceneViewModel: Sendable {
     private let service: any GemRewardsServiceProtocol
-    private let activateCode: String?
-
-    private(set) var selectedWallet: Wallet {
-        didSet { selectedWalletRow = walletRow(wallet: selectedWallet.toGem()) }
-    }
-
-    private(set) var selectedWalletRow: GemWalletRow
-    private(set) var wallets: [Wallet]
-    let showsWalletSelector: Bool
 
     private(set) var session: GemRewardsSession {
         didSet { viewState = session.viewState(now: Date()) }
@@ -47,24 +35,16 @@ public final class RewardsSceneViewModel: Sendable {
     var isPresentingSheet: RewardsSheetType?
     var isPresentingAlert: AlertMessage?
 
-    public init?(
+    public init(
         service: any GemRewardsServiceProtocol,
         wallets: [Wallet],
         currentWallet: Wallet?,
         activateCode: String? = nil,
     ) {
-        let core = wallets.map { $0.toGem() }
-        guard let wallet = service.selectedWallet(current: currentWallet?.toGem(), wallets: core).map({ $0.toPrimitives() }) else { return nil }
         self.service = service
-        let session = rewardsSession().onSelectWallet(walletId: wallet.id)
+        let session = rewardsSession(code: activateCode).onWallets(wallets: wallets.map { $0.toGem() }, current: currentWallet?.id)
         self.session = session
         viewState = session.viewState(now: Date())
-        selectedWallet = wallet
-        selectedWalletRow = walletRow(wallet: wallet.toGem())
-        let choice = service.wallets(wallets: core)
-        self.wallets = choice.wallets.map { $0.toPrimitives() }
-        showsWalletSelector = choice.canChoose
-        self.activateCode = activateCode
     }
 
     // MARK: - UI Properties
@@ -97,11 +77,16 @@ public final class RewardsSceneViewModel: Sendable {
         Localized.Rewards.ActivateReferralCode.description
     }
 
-    var walletSelectorModel: SelectWalletViewModel {
-        SelectWalletViewModel(
-            sections: walletSections(wallets: wallets.map { $0.toGem() }, currentWalletId: nil),
-            selectedRow: selectedWalletRow,
-        )
+    var wallet: GemRewardsWallet? {
+        viewState.wallet
+    }
+
+    var emptyContentModel: EmptyStateViewModel {
+        EmptyStateViewModel(kind: .rewards)
+    }
+
+    var walletSelectorModel: SelectWalletViewModel? {
+        wallet.map { SelectWalletViewModel(sections: $0.sections, selectedRow: $0.row) }
     }
 
     var shareText: String? {
@@ -152,49 +137,41 @@ public final class RewardsSceneViewModel: Sendable {
         AppUrl.rewards(.rewards)
     }
 
-    var createCodeViewModel: CreateRewardsCodeViewModel {
-        CreateRewardsCodeViewModel(
-            service: service,
-            wallet: selectedWallet,
-        ) { [weak self] rewards in
-            guard let self else { return }
-            session = session.onRewards(rewards: rewards)
+    var createCodeViewModel: CreateRewardsCodeViewModel? {
+        wallet.map { wallet in
+            CreateRewardsCodeViewModel(service: service, walletId: wallet.id) { [weak self] rewards in
+                guard let self else { return }
+                session = session.onRewards(walletId: wallet.id, rewards: rewards)
+            }
         }
     }
 
-    func redeemCodeViewModel(code: String) -> RedeemRewardsCodeViewModel {
-        RedeemRewardsCodeViewModel(
-            service: service,
-            wallet: selectedWallet,
-            code: code,
-        ) { [weak self] _ in
-            guard let self else { return }
-            showActivatedToast()
-            Task { await self.refresh() }
+    func redeemCodeViewModel(code: String) -> RedeemRewardsCodeViewModel? {
+        wallet.map { wallet in
+            RedeemRewardsCodeViewModel(service: service, walletId: wallet.id, code: code) { [weak self] rewards in
+                guard let self else { return }
+                session = session.onRewards(walletId: wallet.id, rewards: rewards)
+                showActivatedToast()
+            }
         }
     }
 
     // MARK: - Actions
 
     func selectWallet(id: String) {
-        guard let wallet = wallets.first(where: { $0.id.id == id }) else { return }
-        selectedWallet = wallet
-        session = session.onSelectWallet(walletId: wallet.id)
+        session = session.onSelectWallet(rowId: id)
         Task { await refresh() }
     }
 
     func refresh() async {
-        let result = await service.refresh(walletId: selectedWallet.id)
-        session = session.onResult(result: result)
-    }
-
-    func onTaskOnce() async {
-        await refresh()
-
-        switch incomingReferralCode(code: activateCode, wallets: wallets.map { $0.toGem() }) {
+        if let walletId = session.wallet?.id {
+            session = await session.onResult(result: service.refresh(walletId: walletId))
+        }
+        guard let code = viewState.incomingCode else { return }
+        session = session.onCodeHandled()
+        switch code {
         case let .activate(code): await useReferralCode(code)
         case let .confirm(code): isPresentingSheet = .activateCode(code: code)
-        case .none: break
         }
     }
 
@@ -204,9 +181,10 @@ public final class RewardsSceneViewModel: Sendable {
     }
 
     private func useReferralCode(_ code: String) async {
+        guard let walletId = session.wallet?.id else { return }
         do {
-            let rewards = try await service.useReferralCode(wallet: selectedWallet.toGem(), code: code)
-            session = session.onRewards(rewards: rewards)
+            let rewards = try await service.useReferralCode(walletId: walletId, code: code)
+            session = session.onRewards(walletId: walletId, rewards: rewards)
             showActivatedToast()
         } catch let error as GemServiceError {
             showError(error.localizedDescription)
@@ -240,8 +218,9 @@ public final class RewardsSceneViewModel: Sendable {
     }
 
     func redeem(redemptionId: String) async {
+        guard let walletId = session.wallet?.id else { return }
         do {
-            _ = try await service.redeem(wallet: selectedWallet.toGem(), redemptionId: redemptionId)
+            _ = try await service.redeem(walletId: walletId, redemptionId: redemptionId)
             toastMessage = ToastMessage.success(Localized.Common.done)
         } catch let error as GemServiceError {
             showError(error.localizedDescription)

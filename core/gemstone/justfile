@@ -1,4 +1,4 @@
-list:
+default:
     @just --list
 
 build:

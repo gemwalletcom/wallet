@@ -145,9 +145,7 @@ impl GemAssetsService {
         }
         let synced = self.sync_assets(missing.clone()).await.unwrap_or_default();
         for asset_id in rules::missing_asset_ids(missing, synced) {
-            if self.node_token_asset(asset_id).await.is_err() {
-                continue;
-            }
+            let _ = self.node_token_asset(asset_id).await;
         }
         self.assets(asset_ids).await
     }

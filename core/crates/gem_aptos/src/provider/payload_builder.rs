@@ -5,7 +5,7 @@ use serde_json::json;
 
 use crate::models::TransactionPayload;
 use crate::token_id::is_fungible_asset_token_id;
-use crate::{APTOS_TRANSFER_FUNCTION, DELEGATION_POOL_ADD_STAKE_FUNCTION, DELEGATION_POOL_UNLOCK_FUNCTION, DELEGATION_POOL_WITHDRAW_FUNCTION, ENTRY_FUNCTION_PAYLOAD_TYPE};
+use crate::{APTOS_TRANSFER_FUNCTION, DELEGATION_POOL_ADD_STAKE_FUNCTION, DELEGATION_POOL_UNLOCK_FUNCTION, DELEGATION_POOL_WITHDRAW_FUNCTION, ENTRY_FUNCTION_PAYLOAD_TYPE, FUNGIBLE_TRANSFER_FUNCTION, OBJECT_CORE_TYPE};
 
 fn build_payload(function: &str, first_argument: &str, amount: &str) -> TransactionPayload {
     TransactionPayload {
@@ -34,8 +34,8 @@ pub fn build_transfer_transaction_payload(recipient: &str, amount: &str) -> Tran
 
 pub fn build_fungible_transfer_transaction_payload(token_id: &str, recipient: &str, amount: &str) -> TransactionPayload {
     TransactionPayload {
-        function: Some("0x1::primary_fungible_store::transfer".to_string()),
-        type_arguments: vec!["0x1::object::ObjectCore".to_string()],
+        function: Some(FUNGIBLE_TRANSFER_FUNCTION.to_string()),
+        type_arguments: vec![OBJECT_CORE_TYPE.to_string()],
         arguments: vec![json!(token_id), json!(recipient), json!(amount)],
         payload_type: ENTRY_FUNCTION_PAYLOAD_TYPE.to_string(),
     }

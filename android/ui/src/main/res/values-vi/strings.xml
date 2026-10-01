@@ -586,6 +586,8 @@
   <string name="rewards_nickname">Biệt danh</string>
   <string name="rewards_unverified_title">Phần thưởng chưa được kích hoạt.</string>
   <string name="rewards_unverified_description">Phần thưởng sẽ tự động được kích hoạt khi bạn sử dụng ứng dụng nhiều hơn.</string>
+  <string name="rewards_state_empty_title">Phần thưởng cần ví đa coin</string>
+  <string name="rewards_state_empty_description">Tạo hoặc nhập ví đa coin để mời bạn bè và nhận điểm.</string>
   <string name="recent_activity_title">Gần đây</string>
   <string name="recent_activity_state_empty_title">Thông tin gần đây của bạn sẽ xuất hiện ở đây</string>
   <string name="recent_activity_state_empty_description">Nội dung bạn sử dụng gần đây sẽ xuất hiện ở đây</string>

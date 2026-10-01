@@ -3,21 +3,34 @@ use crate::precision::GemValueStyle;
 use crate::services::assets::icon::asset_icon;
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
-use primitives::{CoreEmoji, OptionStringExt, RewardRedemptionOption, RewardStatus, Rewards, Wallet};
+use primitives::{CoreEmoji, OptionStringExt, RewardRedemptionOption, RewardStatus, Rewards, Wallet, WalletId};
 
-use super::model::{GemIncomingCode, GemRewardsInviteAction, GemRewardsPendingReferral, GemRewardsRedemption, GemRewardsState};
+use super::model::{GemIncomingCode, GemRewardsInviteAction, GemRewardsPendingReferral, GemRewardsRedemption, GemRewardsState, GemRewardsWallet};
 use crate::config::rewards::get_referral_url;
 use crate::formatted_number::{GemFormattedNumber, GemNumberUnit};
 use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle, GemNoticeKind};
 use crate::services::localization::GemLocalizedText;
+use crate::services::wallet::rules as wallet_rules;
+use crate::services::wallet_session::rules as session_rules;
 
-pub fn incoming_code(code: Option<&str>, wallets: &[Wallet]) -> Option<GemIncomingCode> {
+pub fn incoming_code(code: Option<&str>, wallet: Option<&GemRewardsWallet>) -> Option<GemIncomingCode> {
+    let can_choose = wallet?.can_choose;
     let code = code.map(str::trim).non_empty()?.to_string();
-    match wallets {
-        [] => None,
-        [_] => Some(GemIncomingCode::Activate { code }),
-        _ => Some(GemIncomingCode::Confirm { code }),
+    match can_choose {
+        false => Some(GemIncomingCode::Activate { code }),
+        true => Some(GemIncomingCode::Confirm { code }),
     }
+}
+
+pub fn wallet(wallets: Vec<Wallet>, requested: Option<&WalletId>, current: Option<&WalletId>) -> Option<GemRewardsWallet> {
+    let wallets = session_rules::rewards_wallets(wallets);
+    let selected = session_rules::rewards_wallet(&wallets, requested, current)?;
+    Some(GemRewardsWallet {
+        id: selected.id.clone(),
+        row: wallet_rules::row(selected),
+        can_choose: session_rules::can_choose_wallet(&wallets),
+        sections: wallet_rules::sections(wallets, None),
+    })
 }
 
 pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {

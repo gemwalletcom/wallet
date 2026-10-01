@@ -275,8 +275,7 @@ public extension AssetSceneViewModel {
         guard let toggled = details.state.priceAlert?.toggled() else { return }
         Task {
             do {
-                let toast = try await service.setPriceAlert(asset: asset.toGem(), enabled: toggled == .enabled)
-                isPresentingToastMessage = ToastMessage(toast: toast)
+                isPresentingToastMessage = try await service.setPriceAlert(asset: asset.toGem(), enabled: toggled == .enabled).map { ToastMessage(toast: $0) }
             } catch let error as GemServiceError {
                 isPresentingToastMessage = .error(error.localizedDescription)
             } catch {

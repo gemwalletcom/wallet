@@ -66,7 +66,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         )
     }
 
-    public func setPriceAlert(asset: Asset, enabled: Bool) async throws -> GemToast {
+    public func setPriceAlert(asset: Asset, enabled: Bool) async throws -> GemToast? {
         GemToast(text: .priceAlertsToggled(name: asset.name, enabled: enabled), icon: .priceAlert)
     }
 

@@ -586,6 +586,8 @@
   <string name="rewards_nickname">Soprannome</string>
   <string name="rewards_unverified_title">Premi non ancora attivi.</string>
   <string name="rewards_unverified_description">I premi si attivano automaticamente man mano che utilizzi l\'app.</string>
+  <string name="rewards_state_empty_title">Le ricompense richiedono un portafoglio Multi-Coin</string>
+  <string name="rewards_state_empty_description">Crea o importa un portafoglio Multi-Coin per invitare amici e guadagnare punti.</string>
   <string name="recent_activity_title">Recenti</string>
   <string name="recent_activity_state_empty_title">I tuoi recenti verranno visualizzati qui</string>
   <string name="recent_activity_state_empty_description">Le risorse che hai utilizzato di recente verranno visualizzate qui</string>

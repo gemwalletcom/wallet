@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl};
 
-use super::session::GemFiatSession;
+use super::session::{GemFiatQuoteRequest, GemFiatQuotesResult, GemFiatSession};
 use super::{GemFiatService, rules};
 use crate::config::fiat_config::get_fiat_config;
 use crate::constants::FIAT_QUOTE_CURRENCY;
@@ -52,12 +52,12 @@ impl GemFiatQuoteService {
         GemLoadState::refreshed(self.sync_transactions().await, has_transactions)
     }
 
-    pub async fn quotes(&self, quote_type: FiatQuoteType, asset_id: AssetId, amount: f64) -> Result<Vec<FiatQuote>, GemServiceError> {
-        let wallet_id = self.session.current_wallet_id()?;
-        if let Ok(asset) = self.fiat.asset(asset_id.clone()).await {
-            let _ = self.recent_activity.add_recent(rules::quote_action(&quote_type), asset).await;
-        }
-        self.fiat.get_quotes(wallet_id, quote_type, asset_id, amount, FIAT_QUOTE_CURRENCY).await
+    pub async fn quotes(&self, request: GemFiatQuoteRequest, asset_id: AssetId) -> GemFiatQuotesResult {
+        let (quotes, error) = match self.fetch_quotes(request.quote_type, asset_id, request.amount).await {
+            Ok(quotes) => (quotes, None),
+            Err(error) => (vec![], Some(error)),
+        };
+        GemFiatQuotesResult { request, quotes, error }
     }
 
     pub async fn quote_url(&self, asset_id: AssetId, quote_id: String) -> Result<FiatQuoteUrl, GemServiceError> {
@@ -69,6 +69,14 @@ impl GemFiatQuoteService {
 }
 
 impl GemFiatQuoteService {
+    async fn fetch_quotes(&self, quote_type: FiatQuoteType, asset_id: AssetId, amount: f64) -> Result<Vec<FiatQuote>, GemServiceError> {
+        let wallet_id = self.session.current_wallet_id()?;
+        if let Ok(asset) = self.fiat.asset(asset_id.clone()).await {
+            let _ = self.recent_activity.add_recent(rules::quote_action(&quote_type), asset).await;
+        }
+        self.fiat.get_quotes(wallet_id, quote_type, asset_id, amount, FIAT_QUOTE_CURRENCY).await
+    }
+
     async fn sync_transactions(&self) -> Result<(), GemServiceError> {
         self.fiat.sync_transactions(self.session.current_wallet_id()?).await
     }
@@ -79,15 +87,20 @@ mod tests {
     use futures::executor::block_on;
     use primitives::{Asset, Chain};
 
+    use super::super::GemFiatQuoteRequest;
     use super::super::testkit::FiatQuoteTestkit;
+
+    fn request(quote_type: primitives::FiatQuoteType) -> GemFiatQuoteRequest {
+        GemFiatQuoteRequest { quote_type, amount: 50.0 }
+    }
 
     #[test]
     fn test_asking_for_quotes_records_what_the_user_is_buying_or_selling() {
         let asset = Asset::from_chain(Chain::Ethereum);
         let testkit = FiatQuoteTestkit::new(&asset);
 
-        let _ = block_on(testkit.service.quotes(primitives::FiatQuoteType::Sell, asset.id.clone(), 50.0));
-        let _ = block_on(testkit.service.quotes(primitives::FiatQuoteType::Buy, asset.id, 50.0));
+        block_on(testkit.service.quotes(request(primitives::FiatQuoteType::Sell), asset.id.clone()));
+        block_on(testkit.service.quotes(request(primitives::FiatQuoteType::Buy), asset.id));
 
         let recorded: Vec<primitives::RecentActivityType> = testkit.recents.added.lock().unwrap().iter().map(|(activity, _)| activity.activity_type.clone()).collect();
         assert_eq!(
@@ -95,6 +108,18 @@ mod tests {
             vec![primitives::RecentActivityType::FiatSell, primitives::RecentActivityType::FiatBuy],
             "each quote request records the side the user asked for"
         );
+    }
+
+    #[test]
+    fn test_a_failed_quote_request_answers_the_request_it_was_asked() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let testkit = FiatQuoteTestkit::new(&asset);
+
+        let result = block_on(testkit.service.quotes(request(primitives::FiatQuoteType::Sell), asset.id));
+
+        assert_eq!(result.request, request(primitives::FiatQuoteType::Sell));
+        assert!(result.quotes.is_empty());
+        assert!(result.error.is_some(), "the provider answered with something that is not a quote list");
     }
 
     #[test]

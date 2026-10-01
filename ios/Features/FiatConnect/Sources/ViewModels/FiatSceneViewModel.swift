@@ -8,7 +8,6 @@ import enum Gemstone.FiatProviderName
 import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemFiatAmountCheck
 import protocol Gemstone.GemFiatQuoteServiceProtocol
-import struct Gemstone.GemFiatQuotesResult
 import struct Gemstone.GemFiatSession
 import struct Gemstone.GemFiatSuggestedAmount
 import struct Gemstone.GemFiatViewState
@@ -177,18 +176,8 @@ extension FiatSceneViewModel {
     func load() async {
         guard let request = session.quoteRequest() else { return }
         session = session.onFetchStarted(request: request)
-        let results: GemFiatQuotesResult
-        do {
-            let quotes = try await service.quotes(quoteType: request.quoteType, assetId: asset.id, amount: request.amount)
-            results = GemFiatQuotesResult(request: request, quotes: quotes, error: nil)
-        } catch let error as GemServiceError {
-            guard !error.isCancelled, !Task.isCancelled else { return }
-            results = GemFiatQuotesResult(request: request, quotes: [], error: error)
-            debugLog("FiatSceneViewModel get quotes error: \(error)")
-        } catch {
-            debugLog("FiatSceneViewModel get quotes error: \(error)")
-            return
-        }
+        let results = await service.quotes(request: request, assetId: asset.id)
+        guard results.error == nil || !Task.isCancelled else { return }
         session = session.onQuoteResults(results: results)
     }
 

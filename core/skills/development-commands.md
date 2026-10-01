@@ -103,6 +103,5 @@ Generated files: `gemstone/generated/kotlin/` → copied to `gemstone/android/ge
 
 ```sh
 just localize                   # Update English localization files only
-just localize-all               # Update all localization files
 just outdated                   # Check for outdated dependencies
 ```

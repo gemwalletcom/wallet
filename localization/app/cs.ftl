@@ -725,6 +725,8 @@ rewards_pending_description_ready = Váš bonus je připraven!
 rewards_nickname = Přezdívka
 rewards_unverified_title = Odměny zatím nejsou aktivní.
 rewards_unverified_description = Odměny se aktivují automaticky, jakmile aplikaci používáte více.
+rewards_state_empty_title = Odměny vyžadují peněženku Multi-Coin
+rewards_state_empty_description = Vytvořte nebo importujte peněženku Multi-Coin, abyste mohli zvát přátele a získávat body.
 
 # Recent Activity
 

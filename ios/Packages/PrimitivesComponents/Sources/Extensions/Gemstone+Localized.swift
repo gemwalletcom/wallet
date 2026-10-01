@@ -629,6 +629,8 @@ public extension GemEmptyStateText {
         case .searchActivityDescription: Localized.Activity.State.Empty.searchDescription
         case .searchNetworksTitle: Localized.Networks.State.Empty.searchTitle
         case .searchPerpetualsTitle: Localized.Perpetuals.EmptyState.noMarketsFound
+        case .rewardsTitle: Localized.Rewards.stateEmptyTitle
+        case .rewardsDescription: Localized.Rewards.stateEmptyDescription
         }
     }
 }
