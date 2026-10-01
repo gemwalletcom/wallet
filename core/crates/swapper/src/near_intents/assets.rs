@@ -279,8 +279,15 @@ pub fn get_near_asset_id(asset: &SwapperQuoteAsset) -> Result<String, SwapperErr
     chain_assets.get(&asset_id).map(|value| (*value).to_string()).ok_or(SwapperError::NotSupportedAsset)
 }
 
+const NEAR_INTENTS_PREVIOUS_NATIVE_ASSETS: [(&str, Chain); 2] = [("nep141:btc.omft.near", Chain::Bitcoin), ("nep245:v2_1.omni.hot.tg:9745_11111111111111111111", Chain::Plasma)];
+
 pub fn get_asset_id_from_near_asset(near_asset_id: &str) -> Option<AssetId> {
-    NEAR_INTENTS_ASSETS.values().flat_map(|assets| assets.iter()).find(|(_, v)| **v == near_asset_id).map(|(k, _)| k.clone())
+    NEAR_INTENTS_ASSETS.values().flat_map(|assets| assets.iter()).find(|(_, v)| **v == near_asset_id).map(|(k, _)| k.clone()).or_else(|| {
+        NEAR_INTENTS_PREVIOUS_NATIVE_ASSETS
+            .iter()
+            .find(|(previous_asset_id, _)| *previous_asset_id == near_asset_id)
+            .map(|(_, chain)| chain.as_asset_id())
+    })
 }
 
 pub fn supported_assets() -> Vec<SwapperChainAsset> {
@@ -292,6 +299,13 @@ mod tests {
     use super::*;
     use primitives::AssetType;
     use primitives::asset_constants::{APTOS_USDC_ASSET_ID, ARBITRUM_WETH_ASSET_ID, BASE_WETH_ASSET_ID, ETHEREUM_WETH_ASSET_ID, GNOSIS_WETH_ASSET_ID, OPTIMISM_WETH_ASSET_ID, POLYGON_WETH_ASSET_ID, STELLAR_USDC_ASSET_ID};
+
+    #[test]
+    fn test_get_asset_id_from_previous_near_asset() {
+        assert_eq!(get_asset_id_from_near_asset("nep141:btc.omft.near"), Some(Chain::Bitcoin.as_asset_id()));
+        assert_eq!(get_asset_id_from_near_asset(NEAR_INTENTS_BTC_NATIVE), Some(Chain::Bitcoin.as_asset_id()));
+        assert_eq!(get_asset_id_from_near_asset("nep245:v2_1.omni.hot.tg:9745_11111111111111111111"), Some(Chain::Plasma.as_asset_id()));
+    }
 
     #[test]
     fn test_get_asset_id() {
