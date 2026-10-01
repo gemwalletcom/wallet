@@ -7,8 +7,8 @@ use gem_evm::{constants::TOKEN_TRANSFER_GAS_LIMIT, u256::u256_to_biguint};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, Chain, ChainType,
-    swap::{ApprovalData, SwapResult, SwapStatus},
+    AssetId, ChainType,
+    swap::{ApprovalData, SwapResult, SwapResultRequest, SwapStatus},
 };
 
 use super::{
@@ -143,11 +143,11 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
         })
     }
 
-    async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        let sender = match chain.chain_type() {
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        let sender = match request.chain.chain_type() {
             ChainType::Ethereum => {
-                create_eth_client(self.rpc_provider.clone(), chain)?
-                    .get_transaction_by_hash(transaction_hash)
+                create_eth_client(self.rpc_provider.clone(), request.chain)?
+                    .get_transaction_by_hash(&request.transaction_hash)
                     .await
                     .map_err(SwapperError::compute_quote_error)?
                     .ok_or(SwapperError::InvalidRoute)?
@@ -159,7 +159,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
         let status = records
             .list
             .iter()
-            .find(|record| record.hash.eq_ignore_ascii_case(transaction_hash))
+            .find(|record| record.hash.eq_ignore_ascii_case(&request.transaction_hash))
             .map_or(SwapStatus::Pending, |record| record.status.swap_status());
         Ok(SwapResult {
             status,
@@ -198,6 +198,7 @@ mod swap_integration_tests {
         alien::reqwest_provider::NativeProvider,
         bridgers::testkit::{mock_base_usdc_to_bsc_usdt_request, mock_opbnb_to_bsc_usdt_request},
     };
+    use primitives::Chain;
 
     const BRIDGERS_API_URL: &str = "https://api.bridgers.xyz";
 
@@ -215,7 +216,7 @@ mod swap_integration_tests {
             assert_eq!(data.to, network.router()?);
         }
 
-        let result = provider.get_swap_result(Chain::OpBNB, "0xb55fa0488d55291f1036b1b707309b1e6101f57dddb3b43fc5d3d336fd960db5").await?;
+        let result = provider.get_swap_result(&SwapResultRequest::new(Chain::OpBNB, "0xb55fa0488d55291f1036b1b707309b1e6101f57dddb3b43fc5d3d336fd960db5")).await?;
 
         assert_eq!(result.status, SwapStatus::Completed);
         Ok(())
