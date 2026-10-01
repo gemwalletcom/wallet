@@ -107,6 +107,11 @@ pub(super) fn get_token_address(asset_id: &AssetId) -> String {
     asset_id.token_id.clone().unwrap_or_else(|| EVM_NATIVE_TOKEN_ADDRESS.to_lowercase())
 }
 
+pub(super) fn get_asset_id(code: &str, address: &str) -> Option<AssetId> {
+    let chain = NETWORKS.iter().find(|network| network.code == code)?.chain;
+    TOKENS.iter().map(|(id, _)| id).find(|id| id.chain == chain && get_token_address(id) == address).cloned()
+}
+
 pub(super) fn supported_assets() -> Vec<SwapperChainAsset> {
     NETWORKS
         .iter()

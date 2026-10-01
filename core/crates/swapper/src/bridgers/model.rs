@@ -1,6 +1,12 @@
-use primitives::swap::SwapStatus;
+use std::str::FromStr;
+
+use num_bigint::BigUint;
+use primitives::{TransactionSwapMetadata, swap::SwapStatus};
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_u64_from_str_or_int;
+
+use super::asset::get_asset_id;
+use crate::SwapperProvider;
 
 pub(super) mod response_code {
     pub const SUCCESS: u64 = 100;
@@ -90,9 +96,28 @@ pub(super) struct RecordsData {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub(super) struct Record {
     pub hash: String,
     pub status: RecordStatus,
+    pub from_chain: String,
+    pub to_chain: String,
+    pub from_token_address: String,
+    pub to_token_address: String,
+    pub from_amount: String,
+    pub to_amount: String,
+}
+
+impl Record {
+    pub fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
+        Some(TransactionSwapMetadata::new(
+            get_asset_id(&self.from_chain, &self.from_token_address)?,
+            BigUint::from_str(&self.from_amount).ok()?,
+            get_asset_id(&self.to_chain, &self.to_token_address)?,
+            BigUint::from_str(&self.to_amount).ok()?,
+            SwapperProvider::Bridgers,
+        ))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -118,15 +143,31 @@ impl RecordStatus {
 
 #[cfg(test)]
 mod tests {
+    use primitives::{AssetId, Chain, asset_constants::ARBITRUM_USDC_ASSET_ID};
+
     use super::*;
 
     #[test]
-    fn test_record_status() {
-        let response: BridgersResponse = serde_json::from_str(include_str!("testdata/records_opbnb_ton.json")).unwrap();
-        let record = serde_json::from_value::<RecordsData>(response.data).unwrap().list.remove(0);
+    fn test_record() {
+        let response: BridgersResponse = serde_json::from_str(include_str!("testdata/records.json")).unwrap();
+        let records = serde_json::from_value::<RecordsData>(response.data).unwrap().list;
+        let arbitrum_to_opbnb = &records[0];
+        let opbnb_to_ton = &records[1];
 
-        assert_eq!(record.hash, "0xb55fa0488d55291f1036b1b707309b1e6101f57dddb3b43fc5d3d336fd960db5");
-        assert_eq!(record.status, RecordStatus::ReceiveComplete);
+        assert_eq!(arbitrum_to_opbnb.hash, "0x8cb98cd501b2e0b5da96a97492c1f1819fe2a72de6db8a8c40c6d5b862a7cd28");
+        assert_eq!(arbitrum_to_opbnb.status, RecordStatus::ReceiveComplete);
+        assert_eq!(
+            arbitrum_to_opbnb.swap_metadata(),
+            Some(TransactionSwapMetadata {
+                from_asset: ARBITRUM_USDC_ASSET_ID.clone(),
+                from_value: BigUint::from(20_000_000u64),
+                to_asset: AssetId::from_chain(Chain::OpBNB),
+                to_value: BigUint::from(25_126_000_000_000_000u64),
+                provider: Some("bridgers".to_string()),
+                referral_fee: None,
+            })
+        );
+        assert_eq!(opbnb_to_ton.swap_metadata(), None);
         assert_eq!(serde_json::from_str::<RecordStatus>(r#""refund_complete""#).unwrap(), RecordStatus::RefundComplete);
         assert_eq!(serde_json::from_str::<RecordStatus>(r#""wait_receive_send""#).unwrap(), RecordStatus::Pending);
     }

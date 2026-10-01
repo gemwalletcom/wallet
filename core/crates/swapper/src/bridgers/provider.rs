@@ -14,7 +14,7 @@ use primitives::{
 use super::{
     asset::{Network, get_token_address, get_token_code, supported_assets, vault_addresses},
     client::BridgersClient,
-    model::{QuoteRequest as BridgersQuoteRequest, QuoteTxData, RecordsRequest, RouteData, SwapRequest},
+    model::{QuoteRequest as BridgersQuoteRequest, QuoteTxData, Record, RecordsRequest, RouteData, SwapRequest},
     transaction::get_transaction_value,
 };
 use crate::{
@@ -156,14 +156,10 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
             _ => return Err(SwapperError::NotSupportedChain),
         };
         let records = self.client.get_records(&RecordsRequest { from_address: sender }).await?;
-        let status = records
-            .list
-            .iter()
-            .find(|record| record.hash.eq_ignore_ascii_case(&request.transaction_hash))
-            .map_or(SwapStatus::Pending, |record| record.status.swap_status());
+        let record = records.list.iter().find(|record| record.hash == request.transaction_hash);
         Ok(SwapResult {
-            status,
-            metadata: None,
+            status: record.map_or(SwapStatus::Pending, |record| record.status.swap_status()),
+            metadata: record.and_then(Record::swap_metadata),
             eta_in_seconds: None,
         })
     }
@@ -198,7 +194,7 @@ mod swap_integration_tests {
         alien::reqwest_provider::NativeProvider,
         bridgers::testkit::{mock_base_usdc_to_bsc_usdt_request, mock_opbnb_to_bsc_usdt_request},
     };
-    use primitives::Chain;
+    use primitives::{Chain, TransactionSwapMetadata, asset_constants::ARBITRUM_USDC_ASSET_ID};
 
     const BRIDGERS_API_URL: &str = "https://api.bridgers.xyz";
 
@@ -216,9 +212,22 @@ mod swap_integration_tests {
             assert_eq!(data.to, network.router()?);
         }
 
-        let result = provider.get_swap_result(&SwapResultRequest::new(Chain::OpBNB, "0xb55fa0488d55291f1036b1b707309b1e6101f57dddb3b43fc5d3d336fd960db5")).await?;
+        let result = provider.get_swap_result(&SwapResultRequest::new(Chain::Arbitrum, "0x8cb98cd501b2e0b5da96a97492c1f1819fe2a72de6db8a8c40c6d5b862a7cd28")).await?;
 
-        assert_eq!(result.status, SwapStatus::Completed);
+        assert_eq!(
+            result,
+            SwapResult {
+                status: SwapStatus::Completed,
+                metadata: Some(TransactionSwapMetadata::new(
+                    ARBITRUM_USDC_ASSET_ID.clone(),
+                    BigUint::from(20_000_000u64),
+                    AssetId::from_chain(Chain::OpBNB),
+                    BigUint::from(25_126_000_000_000_000u64),
+                    SwapperProvider::Bridgers,
+                )),
+                eta_in_seconds: None,
+            }
+        );
         Ok(())
     }
 }
