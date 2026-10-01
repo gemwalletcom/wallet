@@ -143,12 +143,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
     }
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
-        let records = self
-            .client
-            .get_records(&RecordsRequest {
-                from_address: request.from_address.clone().ok_or(SwapperError::InvalidRoute)?,
-            })
-            .await?;
+        let records = self.client.get_records(&RecordsRequest::new(request.from_address.clone().ok_or(SwapperError::InvalidRoute)?)).await?;
         let record = records.list.iter().find(|record| record.hash == request.transaction_hash);
         Ok(SwapResult {
             status: record.map_or(SwapStatus::Pending, |record| record.status.swap_status()),

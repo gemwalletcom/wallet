@@ -83,6 +83,14 @@ pub(super) struct RouteData {
 #[serde(rename_all = "camelCase")]
 pub(super) struct RecordsRequest {
     pub from_address: String,
+    pub page_no: u32,
+    pub page_size: u32,
+}
+
+impl RecordsRequest {
+    pub fn new(from_address: String) -> Self {
+        Self { from_address, page_no: 1, page_size: 50 }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

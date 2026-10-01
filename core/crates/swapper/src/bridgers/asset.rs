@@ -17,9 +17,10 @@ pub(super) struct Network {
     pub chain: Chain,
     pub code: &'static str,
     router: Option<&'static str>,
+    payout: Option<&'static str>,
 }
 
-pub(super) const NETWORKS: [Network; 17] = [
+pub(super) const NETWORKS: [Network; 19] = [
     Network::new(Chain::SmartChain, "BSC", "0xc1d13492285eb664951E201BF7C80c7c6318a1b5"),
     Network::new(Chain::Polygon, "POLYGON", "0xc1d13492285eb664951E201BF7C80c7c6318a1b5"),
     Network::new(Chain::Arbitrum, "ARBITRUM", "0xc1d13492285eb664951E201BF7C80c7c6318a1b5"),
@@ -36,16 +37,32 @@ pub(super) const NETWORKS: [Network; 17] = [
     Network::new(Chain::Hyperliquid, "HyperEVM", "0x89A70b162bE7dBc8b5e7579066fA58190C48d693"),
     Network::destination(Chain::Ethereum, "ETH"),
     Network::destination(Chain::Solana, "SOLANA"),
-    Network::destination(Chain::Bitcoin, "BTC"),
+    Network::payout(Chain::Bitcoin, "BTC", "bc1q7t4vyehjsexdme84qhdgd4dawcn54djh0m78fz"),
+    Network::payout(Chain::Litecoin, "LTC", "ltc1q0sc0myh0a2wap7eshhyz2ahc2xdn86g7fv32r2"),
+    Network::payout(Chain::Doge, "DOGE", "DNqWDenhxgWTfy2bpJn4tES6uMwz1nqt6C"),
 ];
 
 impl Network {
     const fn new(chain: Chain, code: &'static str, router: &'static str) -> Self {
-        Self { chain, code, router: Some(router) }
+        Self {
+            chain,
+            code,
+            router: Some(router),
+            payout: None,
+        }
     }
 
     const fn destination(chain: Chain, code: &'static str) -> Self {
-        Self { chain, code, router: None }
+        Self { chain, code, router: None, payout: None }
+    }
+
+    const fn payout(chain: Chain, code: &'static str, address: &'static str) -> Self {
+        Self {
+            chain,
+            code,
+            router: None,
+            payout: Some(address),
+        }
     }
 
     pub fn router(&self) -> Result<&'static str, SwapperError> {
@@ -96,6 +113,8 @@ static TOKENS: LazyLock<Vec<(AssetId, &'static str)>> = LazyLock::new(|| {
         (SOLANA_USDC_ASSET_ID.clone(), "USDC(SOL)"),
         (SOLANA_USDT_ASSET_ID.clone(), "USDT(SOL)"),
         (AssetId::from_chain(Chain::Bitcoin), "BTC"),
+        (AssetId::from_chain(Chain::Litecoin), "LTC"),
+        (AssetId::from_chain(Chain::Doge), "DOGE"),
     ]
 });
 
@@ -124,7 +143,11 @@ pub(super) fn supported_assets() -> Vec<SwapperChainAsset> {
 
 pub(super) fn vault_addresses() -> VaultAddresses {
     let routers: Vec<String> = NETWORKS.iter().filter_map(|network| network.router).map(str::to_string).collect::<BTreeSet<_>>().into_iter().collect();
-    VaultAddresses { deposit: routers.clone(), send: routers }
+    let payouts = NETWORKS.iter().filter_map(|network| network.payout).map(str::to_string);
+    VaultAddresses {
+        deposit: routers.clone(),
+        send: routers.into_iter().chain(payouts).collect(),
+    }
 }
 
 #[cfg(test)]
@@ -136,7 +159,17 @@ mod tests {
         assert_eq!(Network::from_chain(Chain::OpBNB).unwrap().code, "opBNB");
         assert_eq!(Network::from_chain(Chain::Hyperliquid).unwrap().code, "HyperEVM");
         assert_eq!(Network::from_chain(Chain::Mantle).unwrap().code, "MNT");
+        assert_eq!(Network::from_chain(Chain::Litecoin).unwrap().router(), Err(SwapperError::NotSupportedChain));
         assert_eq!(Network::from_chain(Chain::Bitcoin).unwrap().router(), Err(SwapperError::NotSupportedChain));
         assert_eq!(Network::from_chain(Chain::Tron).unwrap_err(), SwapperError::NotSupportedChain);
+    }
+
+    #[test]
+    fn test_vault_addresses() {
+        let vault_addresses = vault_addresses();
+
+        assert!(!vault_addresses.deposit.contains(&"ltc1q0sc0myh0a2wap7eshhyz2ahc2xdn86g7fv32r2".to_string()));
+        assert!(vault_addresses.send.contains(&"ltc1q0sc0myh0a2wap7eshhyz2ahc2xdn86g7fv32r2".to_string()));
+        assert!(vault_addresses.send.contains(&"0xD1088D3376C2384D469d1c0d55D503695e1BE3E6".to_string()));
     }
 }
