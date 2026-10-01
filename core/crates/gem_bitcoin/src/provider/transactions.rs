@@ -37,7 +37,9 @@ impl<C: Client> ChainBlockTransactions for BitcoinClient<C> {
 impl<C: Client> ChainTransaction for BitcoinClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
-        let transaction = self.get_transaction(&hash).await?;
+        let Some(transaction) = self.get_transaction(&hash).await? else {
+            return Ok(None);
+        };
         if transaction.block_height <= 0 || transaction.block_time <= 0 {
             return Ok(None);
         }

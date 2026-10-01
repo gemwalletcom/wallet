@@ -1,7 +1,7 @@
 use crate::SUI_COIN_TYPE;
 #[cfg(feature = "rpc")]
 use crate::models::{BalanceChange, Digest, Effect, Event, GasObject, GasUsed, Owner, OwnerObject, STATUS_SUCCESS, Status};
-use crate::models::{Coin, Object, OwnedCoins};
+use crate::models::{Coin, Object, OwnedCoins, SuiSystemState};
 #[cfg(feature = "rpc")]
 use num_bigint::{BigInt, BigUint};
 #[cfg(feature = "rpc")]
@@ -84,6 +84,16 @@ impl Digest {
             balance_changes: Some(balance_changes),
             events,
             timestamp_ms: 1778964551487,
+        }
+    }
+}
+
+impl SuiSystemState {
+    pub fn mock() -> Self {
+        SuiSystemState {
+            epoch: 859,
+            epoch_start_ms: Some(1_750_000_000_000),
+            epoch_duration_ms: Some(86_400_000),
         }
     }
 }

@@ -1,0 +1,11 @@
+[
+  {
+    "originAsset": "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
+    "destinationAsset": "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+    "depositAddress": "11111111111111111111111111111111",
+    "status": "PENDING_DEPOSIT",
+    "amountIn": "0",
+    "amountOut": "0",
+    "originChainTxHashes": []
+  }
+]

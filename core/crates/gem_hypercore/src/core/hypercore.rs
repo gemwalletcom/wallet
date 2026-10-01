@@ -1,11 +1,22 @@
+use gem_evm::eip712::hash_typed_data;
 use serde_json::Value;
+use signer::Signer;
+use std::error::Error;
 
 use super::{actions::*, eip712, hasher::action_hash, models::PhantomAgent};
+use crate::models::action::SignedExchangeRequest;
 
 fn l1_action_typed_data(action: Value, nonce: u64) -> Result<String, String> {
     let hash = action_hash(&action, None, nonce, None)?;
     let phantom_agent = PhantomAgent::new(hash);
     eip712::create_l1_eip712_json(&phantom_agent)
+}
+
+pub fn recover_l1_action_signer(request: &SignedExchangeRequest) -> Result<String, Box<dyn Error + Send + Sync>> {
+    let hash = action_hash(&request.action, request.vault_address.as_deref(), request.nonce, request.expires_after)?;
+    let typed_data = eip712::create_l1_eip712_json(&PhantomAgent::new(hash))?;
+    let digest = hash_typed_data(&typed_data)?;
+    Ok(Signer::recover_ethereum_address(&digest, &request.signature.to_bytes()?)?)
 }
 
 fn spot_send_typed_data(spot_send: SpotSend) -> Result<String, String> {
@@ -83,7 +94,15 @@ pub fn token_delegate_typed_data(token_delegate: TokenDelegate) -> Result<String
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_ETHEREUM_ADDRESS;
     use primitives::{asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID, contract_constants::HYPERCORE_SYSTEM_ADDRESS};
+
+    #[test]
+    fn test_recover_l1_action_signer() {
+        let request: SignedExchangeRequest = serde_json::from_str(include_str!("../../testdata/hl_action_signed_market_order.json")).unwrap();
+
+        assert_eq!(recover_l1_action_signer(&request).unwrap(), TEST_PRIVATE_KEY_ETHEREUM_ADDRESS);
+    }
 
     #[test]
     fn test_action_open_long() {

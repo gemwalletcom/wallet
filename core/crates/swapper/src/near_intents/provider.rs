@@ -157,10 +157,11 @@ where
 
     fn build_swap_metadata(transaction: &ExplorerTransaction, status: &SwapStatus) -> Option<TransactionSwapMetadata> {
         let from_asset = get_asset_id_from_near_asset(&transaction.origin_asset)?;
-        let from_value = BigUint::from_str(&transaction.amount_in).ok()?;
+        let from_value = BigUint::from_str(&transaction.amount_in).ok().filter(|value| !value.is_zero())?;
         let to_asset = get_asset_id_from_near_asset(&transaction.destination_asset)?;
+        let to_value = BigUint::from_str(&transaction.amount_out).ok().filter(|value| !value.is_zero())?;
         let referral_fee = Self::referral_fee(transaction, &from_asset, &from_value).filter(|_| status.charges_referral_fee());
-        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, BigUint::from_str(&transaction.amount_out).ok()?, SwapperProvider::NearIntents).with_referral_fee(referral_fee))
+        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::NearIntents).with_referral_fee(referral_fee))
     }
 
     fn referral_fee(transaction: &ExplorerTransaction, from_asset: &AssetId, from_value: &BigUint) -> Option<TransactionSwapReferralFee> {
@@ -485,6 +486,13 @@ mod tests {
                 eta_in_seconds: None,
             }
         );
+    }
+
+    #[test]
+    fn swap_result_pending_deposit_without_amounts() {
+        let result = status(include_str!("testdata/tx_status_solana_to_arbitrum_pending_deposit.json"));
+
+        assert_eq!(result, SwapResult::pending());
     }
 
     #[test]

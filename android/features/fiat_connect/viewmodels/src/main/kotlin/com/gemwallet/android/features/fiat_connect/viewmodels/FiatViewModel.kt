@@ -141,7 +141,7 @@ class FiatViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { refreshes -> if (refreshes) tickerFlow(GemConstants.fiatQuoteRefreshInterval.inWholeMilliseconds) {} else emptyFlow() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
-    private val quoteRetry = MutableStateFlow(0L)
+    private val quoteRefresh = MutableStateFlow(0L)
 
     init {
         assetInfo.filterNotNull()
@@ -157,8 +157,8 @@ class FiatViewModel @Inject constructor(
             session.map { it.quoteRequest() }.distinctUntilChanged().debounce(GemConstants.fiatQuoteDebounce),
             assetInfo.filterNotNull().map { it.asset.id }.distinctUntilChanged(),
             ticker,
-            quoteRetry,
-        ) { request, assetId, tick, retry -> request?.let { QuoteFetch(it, assetId, tick, retry) } }
+            quoteRefresh,
+        ) { request, assetId, tick, refresh -> request?.let { QuoteFetch(it, assetId, tick, refresh) } }
             .distinctUntilChanged()
             .mapLatest { fetch -> fetch?.let { loadQuotes(it.request, it.assetId) } }
             .launchIn(viewModelScope)
@@ -196,10 +196,13 @@ class FiatViewModel @Inject constructor(
     }
 
     fun retry() {
-        quoteRetry.value += 1
+        quoteRefresh.value += 1
     }
 
     fun setRefreshEnabled(isEnabled: Boolean) {
+        if (isEnabled && !refreshEnabled.value && session.value.refreshesQuotes(true)) {
+            quoteRefresh.value += 1
+        }
         refreshEnabled.value = isEnabled
     }
 
@@ -218,5 +221,5 @@ class FiatViewModel @Inject constructor(
         const val TAG = "FiatViewModel"
     }
 
-    private data class QuoteFetch(val request: GemFiatQuoteRequest, val assetId: AssetId, val ticker: Long, val retry: Long)
+    private data class QuoteFetch(val request: GemFiatQuoteRequest, val assetId: AssetId, val ticker: Long, val refresh: Long)
 }

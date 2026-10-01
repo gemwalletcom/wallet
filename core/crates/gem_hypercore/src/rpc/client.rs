@@ -8,7 +8,7 @@ use crate::models::{
     position::AssetPositions,
     referral::Referral,
     spot::{OrderbookResponse, SpotMeta},
-    user::{AgentSession, DelegatorHistoryUpdate, LedgerUpdate, UserAbstractionMode, UserFee},
+    user::{AgentSession, DelegatorHistoryUpdate, LedgerUpdate, UserAbstractionMode, UserFee, UserRole},
 };
 use chain_traits::{ChainSimulation, ChainTraits};
 use gem_client::{Client, ClientExt};
@@ -162,6 +162,10 @@ impl<C: Client> HyperCoreClient<C> {
             builder: builder.to_string(),
         })
         .await
+    }
+
+    pub async fn get_user_role(&self, user: &str) -> Result<UserRole, Box<dyn Error + Send + Sync>> {
+        self.info(InfoRequest::UserRole { user: user.to_string() }).await
     }
 
     pub async fn get_user_fees(&self, user: &str) -> Result<UserFee, Box<dyn Error + Send + Sync>> {

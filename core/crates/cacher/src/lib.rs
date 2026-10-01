@@ -244,6 +244,13 @@ impl CacherClient {
         Ok(redis::cmd("ZRANGEBYSCORE").arg(key).arg(min).arg(max).arg("LIMIT").arg(0).arg(limit).query_async(&mut self.connection.clone()).await?)
     }
 
+    pub async fn sorted_set_scores(&self, key: &str, members: &[String]) -> Result<Vec<Option<f64>>, Box<dyn Error + Send + Sync>> {
+        if members.is_empty() {
+            return Ok(vec![]);
+        }
+        Ok(redis::cmd("ZMSCORE").arg(key).arg(members).query_async(&mut self.connection.clone()).await?)
+    }
+
     pub async fn sorted_set_card(&self, key: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
         Ok(redis::cmd("ZCARD").arg(key).query_async(&mut self.connection.clone()).await?)
     }
