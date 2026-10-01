@@ -8,6 +8,8 @@ internal interface SecureStringStore {
     fun putString(key: String, value: String)
 
     fun removeString(key: String): Boolean
+
+    fun holdsNothingBut(key: String): Boolean = false
 }
 
 internal fun SecureStringStore.getOrMigrate(legacyStore: SecureStringStore, key: String): String? {

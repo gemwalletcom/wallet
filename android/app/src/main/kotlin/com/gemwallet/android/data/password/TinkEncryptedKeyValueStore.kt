@@ -34,6 +34,8 @@ internal class TinkEncryptedKeyValueStore(context: Context, private val config: 
 
     override fun removeString(key: String): Boolean = synchronized(secureStorageLock) { sharedPreferences.edit().remove(storageKey(key)).commit() }
 
+    override fun holdsNothingBut(key: String): Boolean = synchronized(secureStorageLock) { sharedPreferences.all.keys.all { it == storageKey(key) } }
+
     private fun associatedData(key: String): ByteArray = "${config.namespace}:$key".toByteArray(UTF_8)
 
     private fun storageKey(key: String): String {

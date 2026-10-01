@@ -12,6 +12,7 @@ import androidx.test.uiautomator.Until
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeNotNull
@@ -19,7 +20,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.security.GeneralSecurityException
-import java.security.KeyStore
+import java.security.SecureRandom
 
 @RunWith(AndroidJUnit4::class)
 class PasswordKeysetInstrumentedTest {
@@ -87,6 +88,32 @@ class PasswordKeysetInstrumentedTest {
         }
     }
 
+    @Test
+    fun aLostKeyResetsOnlyAStoreThatHoldsNoOtherPassword() {
+        val keyset = PasswordKeyset(context, config)
+        val values = TinkEncryptedKeyValueStore(context, config, keyset::get)
+        val passwords = TinkPasswordStore(values, NoLegacyStore, SecureRandom(), keyset)
+        val original = passwords.getOrCreatePassword("password")
+        values.putString("wallet", "secret")
+        authenticate()
+        keyset.setAuthenticationRequired(true)
+        assertEquals(original, passwords.getOrCreatePassword("password"))
+
+        waitForAuthenticationToExpire()
+        assertThrows(GeneralSecurityException::class.java) { passwords.getOrCreatePassword("password") }
+        assertTrue(keyset.authenticationRequired)
+
+        androidKeyStore().deleteEntry("${config.masterKeyAlias}_authenticated")
+        assertThrows(GeneralSecurityException::class.java) { passwords.getOrCreatePassword("password") }
+        assertTrue(keyset.authenticationRequired)
+
+        assertTrue(values.removeString("wallet"))
+        val replacement = passwords.getOrCreatePassword("password")
+        assertNotEquals(original, replacement)
+        assertFalse(keyset.authenticationRequired)
+        assertEquals(replacement, passwords.getPassword("password"))
+    }
+
     private fun store() = TinkEncryptedKeyValueStore(context, config, PasswordKeyset(context, config)::get)
 
     private fun authenticate() {
@@ -105,9 +132,16 @@ class PasswordKeysetInstrumentedTest {
     private fun cleanupStore() {
         context.deleteSharedPreferences(config.keysetPreferencesFileName)
         context.deleteSharedPreferences(config.preferencesFileName)
-        KeyStore.getInstance("AndroidKeyStore").apply {
-            load(null)
-            listOf(config.masterKeyAlias, "${config.masterKeyAlias}_authenticated").forEach(::deleteEntry)
-        }
+        listOf(config.masterKeyAlias, "${config.masterKeyAlias}_authenticated").forEach { alias -> runCatching { androidKeyStore().deleteEntry(alias) } }
+    }
+
+    private object NoLegacyStore : SecureStringStore {
+        override fun contains(key: String) = false
+
+        override fun getString(key: String): String? = null
+
+        override fun putString(key: String, value: String) = Unit
+
+        override fun removeString(key: String) = true
     }
 }

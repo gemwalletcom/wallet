@@ -2,10 +2,13 @@ package com.gemwallet.android.data.password
 
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
+import android.security.keystore.UserNotAuthenticatedException
 import com.google.crypto.tink.Aead
 import java.security.GeneralSecurityException
 import java.security.KeyStore
+import java.security.UnrecoverableKeyException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -18,8 +21,23 @@ internal fun androidKeyStore(): KeyStore = KeyStore.getInstance("AndroidKeyStore
 internal class AuthenticatedKeysetAead(private val alias: String) : Aead {
     fun deleteKey() = androidKeyStore().deleteEntry(alias)
 
+    fun isKeyLost(): Boolean {
+        val keyStore = androidKeyStore()
+        if (!keyStore.containsAlias(alias)) return true
+        return try {
+            val key = keyStore.getKey(alias, null) as? SecretKey ?: return false
+            cipher().init(Cipher.ENCRYPT_MODE, key)
+            false
+        } catch (_: KeyPermanentlyInvalidatedException) {
+            true
+        } catch (_: UserNotAuthenticatedException) {
+            false
+        } catch (error: UnrecoverableKeyException) {
+            if (error.cause == null) true else throw error
+        }
+    }
+
     fun createKey() {
-        if (androidKeyStore().containsAlias(alias)) return
         val builder = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
             .setKeySize(256)
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)

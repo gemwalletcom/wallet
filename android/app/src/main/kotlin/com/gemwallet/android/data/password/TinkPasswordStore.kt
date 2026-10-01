@@ -55,6 +55,10 @@ class TinkPasswordStore internal constructor(private val encryptedStore: SecureS
 
     @Synchronized
     override fun getOrCreatePassword(key: String): String {
+        if (keyset?.isKeyLost == true && encryptedStore.holdsNothingBut(key)) {
+            check(encryptedStore.removeString(key)) { "Wallet password removal failed" }
+            keyset.discardLostKey()
+        }
         encryptedStore.getOrMigrate(legacyStore, key)?.let { return it }
         val password = ByteArray(32)
         return try {

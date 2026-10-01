@@ -20,6 +20,16 @@ internal class PasswordKeyset(context: Context, private val config: TinkStoreCon
     val authenticationRequired: Boolean
         get() = preferences.contains(protectedName)
 
+    val isKeyLost: Boolean
+        get() = authenticationRequired && authenticated.isKeyLost()
+
+    @Synchronized
+    fun discardLostKey() {
+        check(preferences.edit().remove(protectedName).commit()) { "Wallet keyset write failed" }
+        runCatching { authenticated.deleteKey() }
+        unprotected.reset()
+    }
+
     fun get(): Aead = if (authenticationRequired) protectedHandle().getPrimitive(RegistryConfiguration.get(), Aead::class.java) else unprotected.get()
 
     @Synchronized
