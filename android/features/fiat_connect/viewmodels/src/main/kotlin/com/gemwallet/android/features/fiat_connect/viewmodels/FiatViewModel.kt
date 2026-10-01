@@ -52,12 +52,10 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetBalanceScope
 import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
-import uniffi.gemstone.GemFiatQuotesResult
 import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemFiatViewState
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemSelectAssetType
-import uniffi.gemstone.GemServiceException
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -166,12 +164,7 @@ class FiatViewModel @Inject constructor(
 
     private suspend fun loadQuotes(request: GemFiatQuoteRequest, assetId: AssetId) {
         session.update { it.onFetchStarted(request) }
-        val results = try {
-            GemFiatQuotesResult(request, withContext(ioDispatcher) { service.quotes(request.quoteType, assetId.toIdentifier(), request.amount) }, null)
-        } catch (error: GemServiceException) {
-            Log.e(TAG, "fiat quotes request failed", error)
-            GemFiatQuotesResult(request, emptyList(), error)
-        }
+        val results = withContext(ioDispatcher) { service.quotes(request, assetId.toIdentifier()) }
         session.update { it.onQuoteResults(results) }
     }
 
