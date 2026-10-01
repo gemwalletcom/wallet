@@ -1,6 +1,6 @@
 #[cfg(test)]
 use crate::models::staking::SuiValidator;
-use crate::models::staking::{SuiStakeDelegation, SuiStakeStatus, SuiSystemState, SuiValidators};
+use crate::models::staking::{SuiStakeDelegation, SuiSystemState, SuiValidators};
 use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use primitives::{Chain, DelegationBase, DelegationState, DelegationValidator};
@@ -13,23 +13,21 @@ pub fn map_validators(validators: SuiValidators) -> Vec<DelegationValidator> {
         .collect()
 }
 
-pub fn map_delegations(delegations: Vec<SuiStakeDelegation>, system_state: SuiSystemState) -> Vec<DelegationBase> {
-    let epoch_start_ms = system_state.epoch_start_timestamp_ms.parse::<i64>().unwrap_or(0);
-    let epoch_duration_ms = system_state.epoch_duration_ms.parse::<i64>().unwrap_or(0);
-
+pub fn map_delegations(delegations: Vec<SuiStakeDelegation>, system_state: &SuiSystemState) -> Vec<DelegationBase> {
     delegations
         .into_iter()
         .flat_map(|delegation| {
             let validator_address = delegation.validator_address.clone();
             delegation.stakes.into_iter().map(move |stake| {
-                let completion_date = match map_stake_state(&stake.status) {
-                    DelegationState::Activating => Some(DateTime::from_timestamp((epoch_start_ms + epoch_duration_ms) / 1000, 0).unwrap_or_else(Utc::now)),
-                    DelegationState::Active | DelegationState::Pending | DelegationState::Inactive | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => None,
+                let (state, completion_date) = if stake.stake_active_epoch > system_state.epoch {
+                    (DelegationState::Activating, activation_date(stake.stake_active_epoch, system_state))
+                } else {
+                    (DelegationState::Active, None)
                 };
 
                 DelegationBase {
                     asset_id: Chain::Sui.as_asset_id(),
-                    state: map_stake_state(&stake.status),
+                    state,
                     balance: stake.principal,
                     shares: BigUint::from(0u32),
                     rewards: stake.estimated_reward.unwrap_or_else(|| BigUint::from(0u32)),
@@ -47,17 +45,41 @@ pub fn map_staking_apy(validators: SuiValidators) -> Result<f64, Box<dyn std::er
     Ok(max_apy * 100.0)
 }
 
-fn map_stake_state(status: &SuiStakeStatus) -> DelegationState {
-    match status {
-        SuiStakeStatus::Active => DelegationState::Active,
-        SuiStakeStatus::Pending => DelegationState::Activating,
-        SuiStakeStatus::Unstaked => DelegationState::Deactivating,
-    }
+fn activation_date(activation_epoch: u64, system_state: &SuiSystemState) -> Option<DateTime<Utc>> {
+    let epochs = i64::try_from(activation_epoch.checked_sub(system_state.epoch)?).ok()?;
+    let epoch_duration_ms = i64::try_from(system_state.epoch_duration_ms?).ok()?;
+    DateTime::from_timestamp_millis(system_state.epoch_start_ms?.checked_add(epochs.checked_mul(epoch_duration_ms)?)?)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_map_delegations() {
+        let delegations: Vec<SuiStakeDelegation> = serde_json::from_str(include_str!("../../testdata/stakes.json")).unwrap();
+
+        let result = map_delegations(delegations.clone(), &SuiSystemState::mock());
+        assert_eq!(
+            result.iter().map(|delegation| delegation.state).collect::<Vec<_>>(),
+            vec![DelegationState::Active, DelegationState::Active, DelegationState::Active, DelegationState::Activating, DelegationState::Active]
+        );
+        assert_eq!(result[3].completion_date, DateTime::from_timestamp_millis(1_750_086_400_000));
+        assert_eq!(result[0].completion_date, None);
+
+        let result = map_delegations(
+            delegations.clone(),
+            &SuiSystemState {
+                epoch_duration_ms: None,
+                ..SuiSystemState::mock()
+            },
+        );
+        assert_eq!(result[3].state, DelegationState::Activating);
+        assert_eq!(result[3].completion_date, None);
+
+        let result = map_delegations(delegations, &SuiSystemState { epoch: 860, ..SuiSystemState::mock() });
+        assert_eq!(result.iter().map(|delegation| delegation.state).collect::<Vec<_>>(), vec![DelegationState::Active; 5]);
+    }
 
     #[test]
     fn test_map_validators_uses_individual_apys() {

@@ -2,7 +2,7 @@ use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_biguint_from_str;
 #[cfg(feature = "rpc")]
-use serde_serializers::deserialize_option_biguint_from_str;
+use serde_serializers::{deserialize_option_biguint_from_str, deserialize_u64_from_str};
 
 #[cfg(feature = "rpc")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,21 +13,11 @@ pub struct SuiStakeDelegation {
     pub stakes: Vec<SuiStake>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct SuiSystemState {
-    pub epoch: String,
-    pub epoch_start_timestamp_ms: String,
-    pub epoch_duration_ms: String,
-}
-
-#[cfg(feature = "rpc")]
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub enum SuiStakeStatus {
-    Active,
-    Pending,
-    Unstaked,
+    pub epoch: u64,
+    pub epoch_start_ms: Option<i64>,
+    pub epoch_duration_ms: Option<u64>,
 }
 
 #[cfg(feature = "rpc")]
@@ -35,11 +25,10 @@ pub enum SuiStakeStatus {
 #[serde(rename_all = "camelCase")]
 pub struct SuiStake {
     pub staked_sui_id: String,
-    pub status: SuiStakeStatus,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub principal: BigUint,
-    pub stake_request_epoch: String,
-    pub stake_active_epoch: String,
+    #[serde(deserialize_with = "deserialize_u64_from_str")]
+    pub stake_active_epoch: u64,
     #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]
     pub estimated_reward: Option<BigUint>,
 }
