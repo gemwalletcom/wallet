@@ -10,7 +10,7 @@ use super::proto::{
     self as proto, Argument, FieldMask, Input, ListOwnedObjectsRequest, ListOwnedObjectsResponse, MoveCall, ProgrammableTransaction, SimulateTransactionRequest, SimulateTransactionResponse, Transaction as GrpcTransaction,
     TransactionChecks, TransactionKind, WithMut,
 };
-use crate::models::staking::{SuiStake, SuiStakeDelegation, SuiStakeStatus, SuiSystemState, SuiValidator, SuiValidators};
+use crate::models::staking::{SuiStake, SuiStakeDelegation, SuiSystemState, SuiValidator, SuiValidators};
 use crate::{SUI_SYSTEM_ID, sui_system_package_address, sui_system_state_object_id};
 
 const STAKED_SUI_TYPE: &str = "0x3::staking_pool::StakedSui";
@@ -54,10 +54,8 @@ impl SuiClient {
                     staking_pool: delegation.staking_pool,
                     stakes: vec![SuiStake {
                         staked_sui_id: delegation.staked_sui_id,
-                        status: SuiStakeStatus::Active,
                         principal: BigUint::from(delegation.principal),
-                        stake_request_epoch: delegation.activation_epoch.to_string(),
-                        stake_active_epoch: delegation.activation_epoch.to_string(),
+                        stake_active_epoch: delegation.activation_epoch,
                         estimated_reward: Some(BigUint::from(rewards)),
                     }],
                 }
@@ -84,16 +82,11 @@ impl SuiClient {
     }
 
     pub async fn get_system_state(&self) -> Result<SuiSystemState, Box<dyn Error + Send + Sync>> {
-        let epoch = self.get_epoch(None, Some(FieldMask::from_paths(["epoch", "start", "end"]))).await?;
-        let start_ms = epoch.start.as_ref().map(timestamp_millis).unwrap_or_default().to_string();
-        let duration_ms = match (epoch.start.as_ref(), epoch.end.as_ref()) {
-            (Some(start), Some(end)) => (timestamp_millis(end) - timestamp_millis(start)).max(0).to_string(),
-            _ => "0".to_string(),
-        };
+        let epoch = self.get_epoch(None, Some(FieldMask::from_paths(["epoch", "start", "system_state.parameters.epoch_duration_ms"]))).await?;
         Ok(SuiSystemState {
-            epoch: epoch.epoch.to_string(),
-            epoch_start_timestamp_ms: start_ms,
-            epoch_duration_ms: duration_ms,
+            epoch: epoch.epoch,
+            epoch_start_ms: epoch.start.as_ref().map(timestamp_millis),
+            epoch_duration_ms: epoch.system_state.and_then(|state| state.parameters).and_then(|parameters| parameters.epoch_duration_ms),
         })
     }
 

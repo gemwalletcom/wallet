@@ -27,7 +27,7 @@ impl ChainStaking for SuiProvider {
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         let delegations = self.get_stake_delegations(address).await?;
         let system_state = self.get_system_state().await?;
-        let delegation_bases = staking_mapper::map_delegations(delegations, system_state);
+        let delegation_bases = staking_mapper::map_delegations(delegations, &system_state);
         Ok(delegation_bases)
     }
 }
