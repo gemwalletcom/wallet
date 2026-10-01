@@ -6,8 +6,10 @@ import SwiftUI
 public struct ChartListView<Model: ChartListViewable, Content: View>: View {
     @Environment(\.connectionStatus) private var connectionStatus
 
-    @Bindable var model: Model
+    let model: Model
     @ViewBuilder let content: () -> Content
+
+    @State private var isPinching = false
 
     public init(model: Model, @ViewBuilder content: @escaping () -> Content) {
         self.model = model
@@ -17,18 +19,15 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
     public var body: some View {
         List {
             Section {} header: {
-                ChartStateView(
-                    state: model.chartState,
-                    selectedPeriod: $model.selectedPeriod,
-                    periods: model.periods,
-                )
+                ChartListHeader(model: model, isPinching: $isPinching)
             }
             .fullWidthSection()
             content()
         }
+        .scrollDisabled(isPinching)
         .listSectionSpacing(.compact)
-        .task(id: model.selectedPeriod) {
-            await model.load()
+        .background {
+            ChartPeriodLoader(model: model)
         }
         .refreshable {
             await model.load()
@@ -36,5 +35,27 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
         .refreshableTimer(every: connectionStatus.refreshInterval(for: .chart)) { @MainActor _ in
             await model.load()
         }
+    }
+}
+
+private struct ChartListHeader<Model: ChartListViewable>: View {
+    @Bindable var model: Model
+    @Binding var isPinching: Bool
+
+    var body: some View {
+        ChartStateView(state: model.chartState, selectedPeriod: $model.selectedPeriod, periods: model.periods) { chart in
+            ChartView(chart: chart, isPinching: $isPinching, onZoom: model.onZoom, onPan: model.onPan)
+        }
+    }
+}
+
+private struct ChartPeriodLoader<Model: ChartListViewable>: View {
+    let model: Model
+
+    var body: some View {
+        Color.clear
+            .task(id: model.selectedPeriod) {
+                await model.load()
+            }
     }
 }

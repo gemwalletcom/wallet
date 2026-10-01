@@ -7,4 +7,4 @@ mod staking;
 
 pub use client::SuiClient;
 pub use indexer::SuiIndexer;
-pub use provider::SuiProvider;
+pub use provider::{SuiProvider, SuiTransactionsIndexer};

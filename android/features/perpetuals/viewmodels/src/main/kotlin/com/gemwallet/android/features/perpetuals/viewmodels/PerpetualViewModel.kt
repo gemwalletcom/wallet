@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -62,6 +63,8 @@ import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.candleSession
 import uniffi.gemstone.loadError
+import java.time.Instant
+import java.time.ZoneId
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -133,6 +136,7 @@ class PerpetualViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.period.toPrimitives())
 
     private val candleViewState = candles.map { it.viewState() }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.viewState())
 
     val isRefreshing: StateFlow<Boolean> = candleViewState.map { it.isRefreshing }
@@ -144,18 +148,20 @@ class PerpetualViewModel @Inject constructor(
             null -> when (state.state) {
                 GemLoadState.Loading -> StateViewType.Loading
                 GemLoadState.NoData -> StateViewType.NoData
-                else -> session.chart(position?.toGem())?.let { StateViewType.Data(it) } ?: StateViewType.NoData
+                else -> session.chart(position?.toGem(), ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds)?.let { StateViewType.Data(it) } ?: StateViewType.NoData
             }
 
             else -> StateViewType.Error(error.errorText().text(context))
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
+    }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
 
     private val screenVisible = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
-            combine(perpetual.map { it?.perpetual }.distinctUntilChanged(), candles, ::Pair).collectLatest { (market, session) ->
+            combine(perpetual.map { it?.perpetual }.distinctUntilChanged(), candles.distinctUntilChangedBy { it.request() }, ::Pair).collectLatest { (market, session) ->
                 val selected = market?.let { session.onSelectMarket(it.toGem()) } ?: return@collectLatest
                 if (selected != session) {
                     candles.value = selected
@@ -168,10 +174,7 @@ class PerpetualViewModel @Inject constructor(
         }
         viewModelScope.launch {
             perpetualObserver.chartUpdates.collect { update ->
-                val market = perpetual.value?.perpetual ?: return@collect
-                val session = candles.value
-                val merged = withContext(ioDispatcher) { service.mergedCandles(session.candles, update.toGem(), market.toGem(), session.period) } ?: return@collect
-                candles.update { it.onCandles(merged) }
+                candles.update { it.onCandleUpdate(update.toGem()) }
             }
         }
         viewModelScope.launch {
@@ -214,6 +217,14 @@ class PerpetualViewModel @Inject constructor(
                 .onFailure { Log.e(TAG, "storing the chart period failed", it) }
         }
         candles.update { it.onSelectPeriod(period.toGem()) }
+    }
+
+    fun onZoom(magnification: Float, anchor: Float) {
+        candles.update { it.onZoom(magnification.toDouble(), anchor.toDouble()) }
+    }
+
+    fun onPan(fraction: Float) {
+        candles.update { it.onPan(fraction.toDouble()) }
     }
 
     private val errorState = MutableStateFlow<String?>(null)

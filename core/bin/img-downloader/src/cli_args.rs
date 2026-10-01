@@ -1,4 +1,10 @@
-use clap::{Parser, ValueEnum};
+use clap::{Parser, Subcommand, ValueEnum};
+use std::path::PathBuf;
+
+#[derive(Debug, Subcommand)]
+pub enum Command {
+    Check { images: Vec<PathBuf> },
+}
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
 pub enum ImageSource {
@@ -17,6 +23,9 @@ pub enum ImageMode {
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct Args {
+    #[command(subcommand)]
+    pub command: Option<Command>,
+
     /// Image source provider
     #[arg(long, value_enum, default_value = "coingecko")]
     pub source: ImageSource,

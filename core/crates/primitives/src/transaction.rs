@@ -1,5 +1,5 @@
 use crate::{
-    AddressName, AssetAddress, NFTAssetId, TransactionId, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionSwapMetadata, asset_id::AssetId, transaction_direction::TransactionDirection,
+    AddressName, AssetAddress, NFTAssetId, TransactionId, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionSwapMetadata, asset_id::AssetId, transaction_direction::TransactionDirection,
     transaction_metadata_types::TransactionAssetTransfersMetadata, transaction_state::TransactionState, transaction_type::TransactionType, transaction_utxo::TransactionUtxoInput,
 };
 
@@ -247,6 +247,10 @@ impl Transaction {
 
     pub fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
         self.metadata.as_ref().and_then(|value| TransactionSwapMetadata::deserialize(value).ok())
+    }
+
+    pub fn perpetual_metadata(&self) -> Option<TransactionPerpetualMetadata> {
+        self.metadata.as_ref().and_then(|value| TransactionPerpetualMetadata::deserialize(value).ok())
     }
 
     pub fn payment_metadata(&self) -> Option<TransactionPaymentMetadata> {

@@ -12,7 +12,7 @@ use primitives::{
     perpetual::PerpetualType,
 };
 
-use crate::constants::TRANSACTION_FEE_UNITS;
+use crate::constants::{TRANSACTION_FEE_UNITS, WITHDRAWAL_FEE};
 use crate::is_spot_swap;
 use crate::provider::fee_calculator::{calculate_perpetual_fee_amount, calculate_spot_fee_amount};
 use crate::provider::preload_cache::{HyperCoreCache, UserFeeRates};
@@ -55,8 +55,12 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         match &input.input_type {
-            TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Stake { .. } => Ok(TransactionLoadData {
+            TransactionInputType::Transfer { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Stake { .. } => Ok(TransactionLoadData {
                 fee: TransactionFee::new_from_fee(BigInt::from(0), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
+                metadata: TransactionLoadMetadata::Hyperliquid { order: None },
+            }),
+            TransactionInputType::Withdrawal { asset } => Ok(TransactionLoadData {
+                fee: TransactionFee::new_from_fee(BigInt::from(WITHDRAWAL_FEE), asset.id.clone()),
                 metadata: TransactionLoadMetadata::Hyperliquid { order: None },
             }),
             TransactionInputType::Swap { from_asset, to_asset, .. } => {
@@ -99,8 +103,24 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
+
+    #[tokio::test]
+    async fn test_get_transaction_load_withdrawal() {
+        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Withdrawal { asset: HYPERCORE_PERPETUAL_USDC.clone() });
+
+        let load = HyperCoreClient::mock().get_transaction_load(input).await.unwrap();
+
+        assert_eq!(load.fee.fee, BigInt::from(WITHDRAWAL_FEE));
+        assert_eq!(load.fee.fee_asset, HYPERCORE_PERPETUAL_USDC.id);
+    }
+}
+
 #[cfg(all(test, feature = "chain_integration_tests"))]
-mod integration_tests {
+mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::create_hypercore_test_client;
     use primitives::{Asset, Chain, TransactionLoadInput};

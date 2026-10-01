@@ -27,6 +27,10 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         try store.getBalanceAssetIds(walletId: walletId, assetIds: assetIds)
     }
 
+    public func addBalances(walletId: WalletId, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
+        try store.addBalance(assetIds: assetIds, isEnabled: enabled, for: walletId)
+    }
+
     public func updateBalances(walletId: WalletId, balances: [GemBalanceRecord]) async throws {
         let updates = try balances.map { balance in
             try UpdateBalance(

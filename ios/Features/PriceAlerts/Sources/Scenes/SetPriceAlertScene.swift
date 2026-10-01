@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemPriceAlertViewState
+import enum Gemstone.PriceAlertNotificationType
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -62,9 +63,9 @@ extension SetPriceAlertScene {
     var alertTypePickerView: some View {
         Picker("", selection: $model.type) {
             Text(Localized.Asset.price)
-                .tag(SetPriceAlertType.price)
+                .tag(Gemstone.PriceAlertNotificationType.price)
             Text(Localized.Common.percentage)
-                .tag(SetPriceAlertType.percentage)
+                .tag(Gemstone.PriceAlertNotificationType.pricePercentChange)
         }
         .pickerStyle(.segmented)
         .fixedSize()

@@ -29,17 +29,27 @@ impl<C: Client + Clone> ChainBlockTransactions for SolanaProvider<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainTransaction for SolanaProvider<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let hash = request.hash;
-        let transaction: Option<SingleTransaction> = self.get_transaction(&hash).await?;
-        let Some(transaction) = transaction else {
-            return Ok(None);
-        };
-        let block_transaction = BlockTransaction {
-            meta: transaction.meta,
-            transaction: transaction.transaction,
-        };
-        Ok(map_transaction(&block_transaction, transaction.block_time))
+        let transaction: Option<SingleTransaction> = self.get_transaction(&request.hash).await?;
+        match transaction {
+            Some(transaction) => Ok(map_single_transaction(transaction)),
+            None => self.indexer.get_transaction_by_hash(request).await,
+        }
     }
+}
+
+#[async_trait]
+impl<C: Client + Clone> ChainTransaction for SolanaIndexer<C> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        Ok(self.get_transaction(&request.hash).await?.and_then(map_single_transaction))
+    }
+}
+
+fn map_single_transaction(transaction: SingleTransaction) -> Option<Transaction> {
+    let block_transaction = BlockTransaction {
+        meta: transaction.meta,
+        transaction: transaction.transaction,
+    };
+    map_transaction(&block_transaction, transaction.block_time)
 }
 
 #[async_trait]
@@ -50,6 +60,35 @@ impl<C: Client + Clone> ChainTransactions for SolanaIndexer<C> {
         Ok(TransactionsResult::TransactionRequests(
             transaction_ids.into_iter().map(|transaction_id| TransactionIdRequest::new(primitives::Chain::Solana, transaction_id, None)).collect(),
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use primitives::{Chain, testkit::json::load_json_rpc_result};
+    use serde_json::Value;
+
+    use super::*;
+    use crate::{method::GET_TRANSACTION, rpc::SolanaClient};
+
+    const MAYAN_SWIFT_DEPOSIT: &str = "2VhEGwgr8foH7m3Xo4yciuMYvPDvcYjvGRyj4mNbQfjkKoLj7DmgA9FfWWi2HzhSW1mLHNNKExXpNcUnC8TgLcFA";
+
+    #[tokio::test]
+    async fn test_get_transaction_by_hash_missing_on_node_uses_indexer() {
+        let node = mock_jsonrpc_client(|method, _| {
+            assert_eq!(method, GET_TRANSACTION);
+            Ok(Value::Null)
+        });
+        let indexer = mock_jsonrpc_client(|method, _| {
+            assert_eq!(method, GET_TRANSACTION);
+            Ok(load_json_rpc_result(include_str!("../../testdata/mayan_swift_deposit_token.json")))
+        });
+        let provider = SolanaProvider::new(SolanaClient::new(node), Box::new(SolanaIndexer::new(indexer)));
+
+        let transaction = provider.get_transaction_by_hash(TransactionIdRequest::new(Chain::Solana, MAYAN_SWIFT_DEPOSIT.to_string(), None)).await.unwrap().unwrap();
+
+        assert_eq!(transaction.hash(), MAYAN_SWIFT_DEPOSIT);
     }
 }
 

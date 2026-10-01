@@ -31,6 +31,20 @@ pub struct LanguageNotification {
     pub description: String,
 }
 
+pub enum TransactionAction {
+    Transfer,
+    Swap,
+    TokenApproval,
+    Stake,
+    Unstake,
+    Redelegate,
+    ClaimRewards,
+    Withdraw,
+    Freeze,
+    Unfreeze,
+    SmartContract,
+}
+
 impl Default for LanguageLocalizer {
     fn default() -> Self {
         Self::new()
@@ -160,6 +174,24 @@ impl LanguageLocalizer {
 
     pub fn notification_swap_title(&self, from_symbol: &str, to_symbol: &str) -> String {
         fl!(self.loader.as_ref(), "notification_swap_title", from_symbol = from_symbol, to_symbol = to_symbol)
+    }
+
+    pub fn notification_transaction_failed_title(&self, action: TransactionAction) -> String {
+        let loader = self.loader.as_ref();
+        let action = match action {
+            TransactionAction::Transfer => fl!(loader, "notification_action_transfer"),
+            TransactionAction::Swap => fl!(loader, "notification_action_swap"),
+            TransactionAction::TokenApproval => fl!(loader, "notification_action_token_approval"),
+            TransactionAction::Stake => fl!(loader, "notification_action_stake"),
+            TransactionAction::Unstake => fl!(loader, "notification_action_unstake"),
+            TransactionAction::Redelegate => fl!(loader, "notification_action_redelegate"),
+            TransactionAction::ClaimRewards => fl!(loader, "notification_action_claim_rewards"),
+            TransactionAction::Withdraw => fl!(loader, "notification_action_withdraw"),
+            TransactionAction::Freeze => fl!(loader, "notification_action_freeze"),
+            TransactionAction::Unfreeze => fl!(loader, "notification_action_unfreeze"),
+            TransactionAction::SmartContract => fl!(loader, "notification_action_smart_contract"),
+        };
+        fl!(loader, "notification_transaction_failed_title", action = action)
     }
 
     pub fn notification_swap_description(&self, from_value: &str, to_value: &str) -> String {

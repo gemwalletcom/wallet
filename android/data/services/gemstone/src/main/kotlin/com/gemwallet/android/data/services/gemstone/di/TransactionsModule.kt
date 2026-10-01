@@ -36,6 +36,7 @@ object TransactionsModule {
     fun provideTransactionsService(
         apiClient: GemDeviceApiClient,
         assetsService: GemAssetsService,
+        balanceService: GemBalanceService,
         transactionStore: GemstoneTransactionStateStore,
         nameService: GemNameService,
         walletPreferencesService: GemWalletPreferencesService,
@@ -44,6 +45,7 @@ object TransactionsModule {
     ): GemTransactionsService = GemTransactionsService(
         apiClient,
         assetsService,
+        balanceService,
         transactionStore,
         nameService,
         walletPreferencesService,
@@ -60,12 +62,11 @@ object TransactionsModule {
     fun provideTransactionStateService(
         store: GemstoneTransactionStateStore,
         gateway: GemGateway,
-        assetsService: GemAssetsService,
         balanceService: GemBalanceService,
         stakeService: GemStakeService,
         nftService: GemNftService,
         paymentService: GemPaymentService,
-    ): GemTransactionStateService = GemTransactionStateService(gateway, store, assetsService, balanceService, stakeService, nftService, paymentService)
+    ): GemTransactionStateService = GemTransactionStateService(gateway, store, balanceService, stakeService, nftService, paymentService)
 
     @Singleton
     @Provides

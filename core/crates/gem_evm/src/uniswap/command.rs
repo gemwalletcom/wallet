@@ -21,6 +21,7 @@ pub const UNWRAP_WETH_COMMAND: u8 = 0x0c;
 pub const V4_SWAP_COMMAND: u8 = 0x10;
 
 #[allow(non_camel_case_types)]
+#[derive(Debug, PartialEq)]
 pub enum UniversalRouterCommand {
     V3_SWAP_EXACT_IN(V3SwapExactIn),
     V3_SWAP_EXACT_IN_V2_1(V3SwapExactInV2_1),
@@ -239,6 +240,7 @@ impl UnwrapWeth {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Permit2Permit {
     pub permit_single: IAllowanceTransfer::PermitSingle,
     pub signature: Bytes,

@@ -43,7 +43,7 @@ class GemstonePerpetualStore(private val perpetualDao: PerpetualDao, private val
         )
     }
 
-    override suspend fun updatePrices(prices: Map<String, Double>) = perpetualDao.updatePrices(prices)
+    override suspend fun updatePrices(prices: List<uniffi.gemstone.PerpetualPrice>) = perpetualDao.updatePrices(prices.map { it.toPrimitives() })
 
     override suspend fun getPositionIds(walletId: String, provider: GemPerpetualProvider): List<String> = perpetualPositionDao.getPositionsByProvider(walletId, provider.toPrimitives()).map { it.id }
 

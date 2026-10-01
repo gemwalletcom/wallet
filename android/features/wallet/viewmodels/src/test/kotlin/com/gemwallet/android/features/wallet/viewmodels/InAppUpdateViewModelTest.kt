@@ -2,22 +2,20 @@ package com.gemwallet.android.features.wallet.viewmodels
 
 import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockGemAppUpdateOffer
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemAppUpdateAction
 import uniffi.gemstone.GemAppUpdateOffer
@@ -26,20 +24,18 @@ import uniffi.gemstone.GemAppUpdateOffer
 class InAppUpdateViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     private val offer = MutableStateFlow<GemAppUpdateOffer?>(null)
     private lateinit var skipAppUpdate: FakeSkipAppUpdate
     private lateinit var updateService: FakeInAppUpdateService
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         skipAppUpdate = FakeSkipAppUpdate()
         updateService = FakeInAppUpdateService()
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
     }
 
     @Test

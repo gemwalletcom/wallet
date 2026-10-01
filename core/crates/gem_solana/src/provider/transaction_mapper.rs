@@ -2,7 +2,8 @@ use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
 
 use crate::{
-    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022, WSOL_TOKEN_ADDRESS,
+    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
+    WSOL_TOKEN_ADDRESS,
     models::{BlockTransaction, BlockTransactions, Instruction},
 };
 use primitives::{
@@ -12,7 +13,8 @@ use primitives::{
 use super::parsers::ProtocolParsers;
 
 const CHAIN: Chain = Chain::Solana;
-const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID)];
+const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID), (SwapProvider::Orca, ORCA_WHIRLPOOL_PROGRAM_ID)];
+const NATIVE_TRANSFER_PROGRAMS: [&str; 3] = [SYSTEM_PROGRAM_ID, COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID];
 const MPL_CORE_TRANSFER_V1: u8 = 14;
 const MPL_TOKEN_METADATA_TRANSFER_V1: u8 = 49;
 const MPL_TOKEN_METADATA_MINT_ACCOUNT_INDEX: usize = 4;
@@ -180,7 +182,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         return Some(transaction);
     }
 
-    if (account_keys.len() == 3 && account_keys.last()? == SYSTEM_PROGRAM_ID) || (account_keys.len() == 4 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID)) {
+    if account_keys.len() >= 3 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().skip(2).all(|key| NATIVE_TRANSFER_PROGRAMS.contains(&key.as_str())) {
         let from = account_keys.first()?.clone();
         let to = account_keys.get(1)?.clone();
         let value = transaction.get_balance_change(&from);
@@ -267,10 +269,10 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         ));
     }
 
-    if let Some((provider, program_id)) = get_swap_provider(account_keys) {
-        let sender = account_keys.first()?.clone();
-        let swap = map_swap_metadata(transaction, &sender, provider)?;
-
+    let sender = account_keys.first()?.clone();
+    if let Some((provider, program_id)) = get_swap_provider(account_keys)
+        && let Some(swap) = map_swap_metadata(transaction, &sender, provider)
+    {
         let transaction = Transaction::new(
             hash,
             swap.from_asset.clone(),
@@ -296,7 +298,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         .iter()
         .map(|ix| &account_keys[ix.program_id_index])
         .find(|key| !SYSTEM_PROGRAMS.contains(&key.as_str()))?;
-    let sender = account_keys.first()?.clone();
     let value = transaction.get_balance_change(&sender);
 
     Some(Transaction::new(
@@ -332,6 +333,41 @@ mod tests {
     const PNFT_MINT: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
     const CORE_ASSET: &str = "JATWmjADckr2M7TX5xMfo1HNfYS66DKot15fJ4hVLrVE";
     const CORE_COLLECTION: &str = "5pQfZttNUtaj8sySRY9RsdtB81aEAQDh2vnacpxiwTpT";
+
+    #[test]
+    fn test_map_swap_program_without_swap_output() {
+        let transaction = map_single_transaction(include_str!("../../testdata/mayan_deposit_jupiter_route.json"));
+
+        assert_eq!(transaction.hash(), "vXUaBxa3MtnodHE7by5sXpExWHoMdcp7qiMKk1UoM8CnYBGD84KpzbErWLVf7RfjAmsrhJxjJ3Df7hqJ4Qh4umb");
+        assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(transaction.state, TransactionState::Confirmed);
+    }
+
+    #[test]
+    fn test_map_orca_swap_referral_fee() {
+        let transaction = map_single_transaction(include_str!("../../testdata/swap_orca_referral_fee.json"));
+        let metadata = transaction.swap_metadata().unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.provider.as_deref(), Some("orca"));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
+                value: BigUint::from(6000u32),
+            })
+        );
+    }
+
+    #[test]
+    fn test_map_transfer_sol_with_memo_and_compute_budget() {
+        let transaction = map_single_transaction(include_str!("../../testdata/transfer_sol_with_memo_compute.json"));
+
+        assert_eq!(transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(transaction.from, "BUW2vSJMbNojvi9vh1oRg6Qd88GAYSqZifXzZ7JN8uKV");
+        assert_eq!(transaction.to, "7YjizA4PUnLvuKijmEHjdDDbfWyG2LMqGCLVjpWrARCA");
+        assert!(transaction.memo.as_deref().is_some_and(|memo| memo.starts_with('=')));
+    }
 
     fn map_single_transaction(payload: &str) -> primitives::Transaction {
         let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(payload).unwrap();

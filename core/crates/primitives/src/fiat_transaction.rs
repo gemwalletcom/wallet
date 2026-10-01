@@ -66,7 +66,7 @@ pub struct FiatTransactionUpdate {
     pub fiat_currency: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[allow(clippy::large_enum_variant)]
 pub enum FiatWebhook {
     OrderId(String),

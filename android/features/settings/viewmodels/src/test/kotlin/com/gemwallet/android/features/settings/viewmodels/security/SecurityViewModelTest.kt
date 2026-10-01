@@ -3,22 +3,19 @@ package com.gemwallet.android.features.settings.viewmodels.security
 import android.content.Context
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.security.cases.SecurityPreferences
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.ui.R
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
@@ -36,11 +33,8 @@ class SecurityViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
-
-    @After
-    fun tearDown() = Dispatchers.resetMain()
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     private fun securityPreferences(authRequired: Boolean = false, lockMinutes: Int = 0) = mockk<SecurityPreferences>(relaxed = true) {
         every { getLockInterval() } returns flowOf(lockMinutes)

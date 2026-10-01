@@ -15,8 +15,7 @@ fun SetPriceAlertScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { o
     val type by viewModel.type.collectAsStateWithLifecycle()
     val direction by viewModel.direction.collectAsStateWithLifecycle()
     val prompt by viewModel.prompt.collectAsStateWithLifecycle()
-    val priceSuggestions by viewModel.priceSuggestions.collectAsStateWithLifecycle()
-    val percentageSuggestions by viewModel.percentageSuggestions.collectAsStateWithLifecycle()
+    val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
     val assetRow by viewModel.assetRow.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
@@ -29,8 +28,7 @@ fun SetPriceAlertScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { o
         prompt = prompt,
         input = input,
         currentPriceText = currentPriceText,
-        priceSuggestions = priceSuggestions,
-        percentageSuggestions = percentageSuggestions,
+        suggestions = suggestions,
         assetRow = assetRow,
         buttonState = buttonState,
         snackbar = snackbar,

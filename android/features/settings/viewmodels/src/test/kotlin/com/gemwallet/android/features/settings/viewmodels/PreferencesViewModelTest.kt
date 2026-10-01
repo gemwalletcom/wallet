@@ -5,12 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.features.settings.viewmodels.models.PerpetualSetting
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.Currency
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,12 +18,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.job
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
@@ -42,6 +41,10 @@ import uniffi.gemstone.GemSettingsServiceInterface
 class PreferencesViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(testDispatcher)
+
     private val perpetualEnabled = MutableStateFlow(false)
     private val currency = MutableStateFlow(Currency.USD)
     private var sectionRequests = 0
@@ -75,7 +78,6 @@ class PreferencesViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         viewModel = PreferencesViewModel(
             preferences,
             settingsService,
@@ -88,7 +90,6 @@ class PreferencesViewModelTest {
     @After
     fun tearDown() = runTest(testDispatcher) {
         viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
-        Dispatchers.resetMain()
     }
 
     @Test

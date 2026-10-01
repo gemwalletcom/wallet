@@ -13,6 +13,15 @@ pub fn ensure_url_supported(url: &str, supported_types: &[ImageType]) -> std::re
 
 pub fn decode(url: &str, content_type: Option<&str>, bytes: &[u8], supported_types: &[ImageType]) -> Result<DynamicImage, Box<dyn Error + Send + Sync>> {
     let image_type = image_type(url, content_type, bytes).ok_or(ImageDownloadError::UnsupportedType(None))?;
+    decode_image(bytes, image_type, supported_types)
+}
+
+pub fn decode_bytes(bytes: &[u8], supported_types: &[ImageType]) -> Result<DynamicImage, Box<dyn Error + Send + Sync>> {
+    let image_type = bytes_image_type(bytes).ok_or(ImageDownloadError::UnsupportedType(None))?;
+    decode_image(bytes, image_type, supported_types)
+}
+
+fn decode_image(bytes: &[u8], image_type: ImageType, supported_types: &[ImageType]) -> Result<DynamicImage, Box<dyn Error + Send + Sync>> {
     ensure_supported_type(image_type, supported_types)?;
     if image_type == ImageType::Svg {
         decode_svg(bytes).map_err(|_| ImageDownloadError::InvalidImage(image_type).into())
@@ -29,8 +38,11 @@ fn image_type(url: &str, content_type: Option<&str>, bytes: &[u8]) -> Option<Ima
     content_type
         .and_then(content_type_image_type)
         .or_else(|| url.split('?').next().and_then(ImageType::from_extension))
-        .or_else(|| ImageType::from_magic_bytes(bytes))
-        .or_else(|| bytes.get(..bytes.len().min(128)).and_then(svg_prefix_image_type))
+        .or_else(|| bytes_image_type(bytes))
+}
+
+fn bytes_image_type(bytes: &[u8]) -> Option<ImageType> {
+    ImageType::from_magic_bytes(bytes).or_else(|| bytes.get(..bytes.len().min(128)).and_then(svg_prefix_image_type))
 }
 
 fn content_type_image_type(content_type: &str) -> Option<ImageType> {

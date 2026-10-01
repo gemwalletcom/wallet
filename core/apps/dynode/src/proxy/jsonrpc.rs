@@ -137,7 +137,7 @@ impl JsonRpcHandler {
             (serde_json::to_vec(&results)?, StatusCode::OK.as_u16(), CacheStatus::Hit)
         } else {
             let (body, missing_status) = Self::send_upstream(&missing_calls, request, metrics, url, client, forward_headers).await?;
-            let response = serde_json::from_slice::<Value>(&body).map_err(|error| Self::format_parse_error(missing_status, &body, error))?;
+            let response = Self::single_call_batch_response(&missing_calls, serde_json::from_slice::<Value>(&body).map_err(|error| Self::format_parse_error(missing_status, &body, error))?);
             let (body, status, cache_status) = if response.is_array() {
                 let ordered = Self::order_batch(&missing_calls, response)?;
                 let Value::Array(results) = ordered else {
@@ -222,6 +222,13 @@ impl JsonRpcHandler {
         Ok((result, status, body))
     }
 
+    fn single_call_batch_response(calls: &[JsonRpcCall], response: Value) -> Value {
+        match (calls, response) {
+            ([call], Value::Object(object)) if object.get("id").and_then(Value::as_u64) == Some(call.id) => Value::Array(vec![Value::Object(object)]),
+            (_, response) => response,
+        }
+    }
+
     fn order_batch(calls: &[JsonRpcCall], response: Value) -> Result<Value, BoxError> {
         let Value::Array(results) = response else {
             return Ok(response);
@@ -296,6 +303,18 @@ mod tests {
             "status=502, parse error: expected value at line 1 column 1"
         );
         assert_eq!(JsonRpcHandler::format_parse_error(500, &[0xff, 0xfe], err()), "status=500, parse error: expected value at line 1 column 1");
+    }
+
+    #[test]
+    fn test_single_call_batch_response() {
+        let calls = vec![JsonRpcCall::mock(1, "eth_call")];
+        let result = json!({ "jsonrpc": "2.0", "id": 1, "result": "0x12" });
+
+        assert_eq!(JsonRpcHandler::single_call_batch_response(&calls, result.clone()), json!([result]));
+        assert_eq!(JsonRpcHandler::single_call_batch_response(&calls, json!([result])), json!([result]));
+
+        let batch_error = json!({ "jsonrpc": "2.0", "id": null, "error": { "code": -32600, "message": "invalid request" } });
+        assert_eq!(JsonRpcHandler::single_call_batch_response(&calls, batch_error.clone()), batch_error);
     }
 
     #[test]

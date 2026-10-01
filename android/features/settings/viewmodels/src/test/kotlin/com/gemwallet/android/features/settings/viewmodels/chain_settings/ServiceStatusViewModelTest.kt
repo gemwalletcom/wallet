@@ -1,21 +1,19 @@
 package com.gemwallet.android.features.settings.viewmodels.chain_settings
 
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.testkit.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemListRow
@@ -28,13 +26,12 @@ class ServiceStatusViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val viewModels = mutableListOf<ServiceStatusViewModel>()
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     @After
     fun tearDown() {
         viewModels.forEach { it.viewModelScope.cancel() }
-        Dispatchers.resetMain()
     }
 
     @Test

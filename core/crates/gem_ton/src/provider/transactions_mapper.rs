@@ -175,7 +175,7 @@ fn jetton_swap_metadata(actions: &[TraceAction]) -> Option<(String, TransactionS
     let (Some(from_asset), Some(to_asset)) = (ton_asset_id(swap.asset_in.as_deref()), ton_asset_id(swap.asset_out.as_deref())) else {
         return None;
     };
-    let metadata = TransactionSwapMetadata::from_provider_id(from_asset, swap.dex_incoming_transfer.amount.clone(), to_asset, swap.dex_outgoing_transfer.amount.clone(), swap.dex).with_referral_fee(map_referral_fee(actions, &sender));
+    let metadata = TransactionSwapMetadata::from_provider_id(from_asset, swap.dex_incoming_transfer.amount.clone(), to_asset, swap.dex_outgoing_transfer.amount.clone(), swap.provider()).with_referral_fee(map_referral_fee(actions, &sender));
     Some((sender, metadata))
 }
 
@@ -309,7 +309,7 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(2263786603u64));
         assert_eq!(
             serde_json::from_value::<TransactionSwapMetadata>(transaction.metadata.clone().unwrap()).unwrap(),
-            TransactionSwapMetadata::from_provider_id(dust, BigUint::from(2263786603u64), Chain::Ton.as_asset_id(), BigUint::from(726191509u64), Some("stonfi".to_string())).with_referral_fee(Some(TransactionSwapReferralFee {
+            TransactionSwapMetadata::from_provider_id(dust, BigUint::from(2263786603u64), Chain::Ton.as_asset_id(), BigUint::from(726191509u64), Some("stonfi_v2".to_string())).with_referral_fee(Some(TransactionSwapReferralFee {
                 asset_id: Chain::Ton.as_asset_id(),
                 value: BigUint::from(727647u64),
             }))
@@ -336,7 +336,7 @@ mod tests {
                 BigUint::from(1000000000u64),
                 AssetId::from_token(Chain::Ton, "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"),
                 BigUint::from(2436222u64),
-                Some("stonfi".to_string())
+                Some("stonfi_v2".to_string())
             )
         );
     }

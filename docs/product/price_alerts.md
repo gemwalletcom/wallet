@@ -19,8 +19,11 @@ flowchart LR
 |---|---|---|
 | The user sets a target | the direction (over or under, increase or decrease) follows the value against the current price | |
 | A target is hit | the alert fires once and is then removed from the list | |
+| The price crosses a round number | the push names the round number and the current price in the user's currency | the milestone is counted in that currency, so both numbers read in one currency |
 | An asset's automatic alert and targets are both off | its Price Alerts screen shows the empty state, and only then | |
 
 ## Platform differences
 
-None recorded.
+| When | iOS | Android | Expected |
+|---|---|---|---|
+| The build cannot push (F-Droid, Huawei) | not applicable | no price alert bell on the asset screen, no price alert row on the asset or chart screen | Intentional: an alert that can never be delivered is not offered |

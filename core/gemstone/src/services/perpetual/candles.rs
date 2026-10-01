@@ -1,9 +1,11 @@
-use primitives::{ChartPeriod, Perpetual, PerpetualPosition};
+use chrono::TimeDelta;
+use primitives::{ChartCandleUpdate, ChartPeriod, Perpetual, PerpetualPosition};
 
 use super::model::GemCandleChart;
-use super::rules;
+use super::{chart, rules};
 use crate::models::perpetual::GemChartCandleStick;
 use crate::models::state::{GemLoad, GemLoadState};
+use crate::services::chart::GemChartZoom;
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemCandleRequest {
@@ -33,6 +35,7 @@ pub struct GemCandleSession {
     pub state: GemLoadState,
     pub candles: Vec<GemChartCandleStick>,
     pub is_refreshing: bool,
+    pub zoom: GemChartZoom,
 }
 
 #[uniffi::export]
@@ -82,12 +85,29 @@ impl GemCandleSession {
         }
     }
 
-    pub fn on_candles(&self, candles: Vec<GemChartCandleStick>) -> Self {
+    pub fn on_zoom(&self, magnification: f64, anchor: f64) -> Self {
         Self {
-            state: GemLoadState::Data,
-            candles,
-            is_refreshing: false,
+            zoom: self.zoom.magnified(magnification, anchor, self.candles.len()),
             ..self.clone()
+        }
+    }
+
+    pub fn on_pan(&self, fraction: f64) -> Self {
+        Self {
+            zoom: self.zoom.panned(fraction, self.candles.len()),
+            ..self.clone()
+        }
+    }
+
+    pub fn on_candle_update(&self, update: ChartCandleUpdate) -> Self {
+        match self.symbol.as_ref().and_then(|symbol| rules::merged_candles(&self.candles, update, symbol, &self.period)) {
+            Some(candles) => Self {
+                state: GemLoadState::Data,
+                candles,
+                is_refreshing: false,
+                ..self.clone()
+            },
+            None => self.clone(),
         }
     }
 
@@ -96,8 +116,8 @@ impl GemCandleSession {
         self.symbol.clone().filter(|_| needs_candles).map(|symbol| GemCandleRequest { symbol, period: self.period })
     }
 
-    pub fn chart(&self, position: Option<PerpetualPosition>) -> Option<GemCandleChart> {
-        rules::candle_chart(&self.candles, self.period, position.as_ref())
+    pub fn chart(&self, position: Option<PerpetualPosition>, utc_offset_seconds: i32) -> Option<GemCandleChart> {
+        chart::candle_chart(&self.candles, self.period, position.as_ref(), self.zoom, TimeDelta::seconds(i64::from(utc_offset_seconds)))
     }
 
     pub fn view_state(&self) -> GemCandleViewState {
@@ -121,6 +141,7 @@ impl GemCandleSession {
             state: GemLoadState::Loading,
             candles: Vec::new(),
             is_refreshing: false,
+            zoom: GemChartZoom::default(),
         }
     }
 }
@@ -213,13 +234,36 @@ mod tests {
     }
 
     #[test]
-    fn test_a_streamed_candle_replaces_what_is_shown_without_asking_again() {
+    fn test_on_zoom() {
+        let candles = GemChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70);
+        let shown = session().on_result(loaded(session().request().unwrap(), candles.clone()));
+        let zoomed = shown.on_zoom(100.0, 1.0);
+        let refreshing = zoomed.on_refresh();
+
+        assert_eq!(zoomed.zoom, GemChartZoom { scale: 5.0, offset: 0.0 }, "the session clamps against the candles it holds");
+        assert_eq!(zoomed.chart(None, 0).map(|chart| chart.candles.len()), Some(15), "the chart draws the zoomed window");
+        assert_eq!(refreshing.on_result(loaded(refreshing.request().unwrap(), candles)).zoom, zoomed.zoom, "a refresh keeps the zoom");
+        assert_eq!(zoomed.on_select_period(ChartPeriod::Week).zoom, GemChartZoom::default(), "a new period starts unzoomed");
+    }
+
+    #[test]
+    fn test_on_pan() {
+        let shown = session().on_result(loaded(session().request().unwrap(), GemChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70)));
+
+        assert_eq!(shown.on_zoom(4.0, 1.0).on_pan(0.4).zoom, GemChartZoom { scale: 4.0, offset: 0.1 });
+    }
+
+    #[test]
+    fn test_on_candle_update() {
         let shown = session().on_result(loaded(session().request().unwrap(), vec![candle(1)]));
+        let update = ChartCandleUpdate {
+            coin: "BTC".to_string(),
+            interval: rules::candle_interval(&ChartPeriod::Day).to_string(),
+            candle: candle(2),
+        };
+        let updated = shown.on_candle_update(update.clone());
 
-        let merged = shown.on_candles(vec![candle(1), candle(2)]);
-
-        assert_eq!(merged.view_state().candles.len(), 2);
-        assert!(merged.request().is_none());
-        assert!(shown.request().is_none(), "shown candles are not asked for again until a refresh");
+        assert_eq!((updated.request(), updated.candles), (None, vec![candle(2)]), "a streamed candle replaces what is shown without asking again");
+        assert_eq!(session().on_candle_update(update), session(), "a candle streamed before the first load is not a chart");
     }
 }

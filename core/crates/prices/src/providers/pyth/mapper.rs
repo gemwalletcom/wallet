@@ -26,12 +26,11 @@ pub fn price_feed_id_for_chain(chain: Chain) -> Option<&'static str> {
         Chain::Bitcoin => "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
         Chain::BitcoinCash => "3dd2b63686a450ec7290df3a1e0b583c0481f651351edfa7636f39aed55cf8a3",
         Chain::Litecoin => "6e3f3fa8253588df9326580180233eb791e03b443a3ba7a1d892e73874e19a54",
-        Chain::Ethereum | Chain::Arbitrum | Chain::Optimism | Chain::Base | Chain::Linea | Chain::Manta | Chain::ZkSync | Chain::Abstract | Chain::Ink | Chain::Unichain | Chain::Blast | Chain::World | Chain::Plasma | Chain::Robinhood => {
+        Chain::Ethereum | Chain::Arbitrum | Chain::Optimism | Chain::Base | Chain::Linea | Chain::Manta | Chain::ZkSync | Chain::Abstract | Chain::Ink | Chain::Unichain | Chain::Blast | Chain::World | Chain::Robinhood => {
             "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace"
         }
         Chain::SmartChain | Chain::OpBNB => "2f95862b045670cd22bee3114c39763a4a08beeb663b145d283c31d7d1101c4f",
         Chain::Solana => "ef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
-        Chain::Polygon => "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
         Chain::Thorchain => "5fcf71143bb70d41af4fa9aa1287e2efd3c5911cee59f909f915c9f61baacb1e",
         Chain::Cosmos => "b00b60f88b03a6a625a8d1c048c3f66653edf217439983d037e7222c4e612819",
         Chain::Osmosis => "5867f5683c757393a0670ef0f701490950fe93fdb006d181c8265a831ac0c5c6",
@@ -47,7 +46,7 @@ pub fn price_feed_id_for_chain(chain: Chain) -> Option<&'static str> {
         Chain::Injective => "7a5bc1d2b56ad029048cd63964b3ad2776eadf812edc1a43a31406cb54bff592",
         Chain::Sei => "53614f1cb0c031d4af66c04cb9c756234adad0e1cee85303795091499a4084eb",
         Chain::SeiEvm => "53614f1cb0c031d4af66c04cb9c756234adad0e1cee85303795091499a4084eb",
-        Chain::Noble => "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+        Chain::Noble => USDC_FEED_ID,
         Chain::Mantle => "4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585",
         Chain::Celo => "7d669ddcdd23d9ef1fa9a9cc022ba055ec900e91c4cb960f3c20429d4447a411",
         Chain::Near => "c415de8d2eba7db216527dff4b60e8f3a5311c740dadb233e13e12547e226750",
@@ -55,15 +54,11 @@ pub fn price_feed_id_for_chain(chain: Chain) -> Option<&'static str> {
         Chain::Algorand => "fa17ceaf30d19ba51112fdcc750cc83454776f47fb0112e4af07f15f4bb1ebc0",
         Chain::Polkadot => "ca3eed9b267293f6595901c734c7525ce8ef49adafe8284606ceb307afa2ca5b",
         Chain::Cardano => "2a01deaec9e51a579277b34b122399984d0bbf57e2458a7e42fecd2829867a0d",
-        Chain::Berachain => "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
         Chain::Hyperliquid | Chain::HyperCore => "4279e31cc369bbcc2faf022b382b080e32a8e689ff20fbc530d2a603eb6cd98b",
-        Chain::Fantom | Chain::Sonic => "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
-        Chain::Gnosis => "c5f60d00d926ee369ded32a38a6bd5c1e0faa936f91b987a5d0dcf3c5d8afab0",
-        Chain::Monad => "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
         Chain::XLayer => "d6f83dfeaff95d596ddec26af2ee32f391c206a183b161b7980821860eeef2f5",
         Chain::Stable => "2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
         Chain::Arc => USDC_FEED_ID,
-        Chain::Mayachain | Chain::Dash | Chain::Tempo => return None,
+        Chain::Polygon | Chain::Berachain | Chain::Fantom | Chain::Sonic | Chain::Gnosis | Chain::Monad | Chain::Plasma | Chain::Mayachain | Chain::Dash | Chain::Tempo => return None,
     };
     Some(feed_id)
 }
@@ -78,6 +73,9 @@ mod tests {
         let chains = asset_ids_for_feed_id(eth_feed);
         assert!(chains.contains(&AssetId::from_chain(Chain::Ethereum)));
         assert!(chains.contains(&AssetId::from_chain(Chain::Arbitrum)));
+        assert!(!chains.contains(&AssetId::from_chain(Chain::Monad)));
+        assert!(!chains.contains(&AssetId::from_chain(Chain::Polygon)));
+        assert_eq!(price_feed_id_for_chain(Chain::Noble), Some(USDC_FEED_ID));
         assert_eq!(price_feed_id_for_chain(Chain::Mayachain), None);
         assert!(asset_ids_for_feed_id("missing").is_empty());
     }

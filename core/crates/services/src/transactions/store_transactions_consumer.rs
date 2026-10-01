@@ -4,7 +4,8 @@ use std::time::Duration;
 use std::{collections::HashMap, error::Error};
 
 use async_trait::async_trait;
-use primitives::{AssetIdVecExt, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
+use futures::{StreamExt, TryStreamExt, stream};
+use primitives::{AssetAddress, AssetIdVecExt, AssetPriceMetadata, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
 use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, NftRepository, TransactionsRepository, WalletsRepository};
 use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
@@ -14,8 +15,6 @@ use super::SwapVaultAddressClient;
 use crate::assets::add_transaction_addresses;
 use crate::config::ConfigCacher;
 use crate::notifications::Pusher;
-
-const TRANSACTION_BATCH_SIZE: usize = 100;
 
 const CROSS_CHAIN_SOURCE_TYPES: [TransactionType; 3] = [TransactionType::Transfer, TransactionType::SmartContractCall, TransactionType::Swap];
 
@@ -34,29 +33,96 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
     }
 
     async fn consume(&self, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let chain = payload.chain;
-        let addresses: Vec<_> = payload.transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
-        let subscriptions = self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?;
+        let config = StoreTransactionsConsumerConfig::read(&self.config).await?;
+        let referral_transactions = payload.transactions.iter().filter(|transaction| referral_queue(transaction).is_some()).cloned().collect();
+        let count = self.store_subscribed_transactions(&config, payload).await?;
+        self.store_referral_transactions(&config, referral_transactions).await?;
+        Ok(count)
+    }
+}
+
+impl StoreTransactionsConsumer {
+    async fn store_subscribed_transactions(&self, config: &StoreTransactionsConsumerConfig, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        let is_notify_devices = payload.should_notify_devices();
+        let subscriptions = self.get_subscriptions(payload.chain, &payload.transactions).await?;
         if subscriptions.is_empty() {
             return Ok(0);
         }
 
-        let config = StoreTransactionsConsumerConfig::read(&self.config).await?;
-        let is_notify_devices = payload.should_notify_devices();
         let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
-        let subscription_addresses: HashSet<_> = subscriptions.iter().map(|s| &s.address).collect();
-        let transactions = Self::transactions_for_storage(payload.transactions, &deposit_addresses, &send_addresses)
-            .into_iter()
-            .filter(|transaction| config.is_transaction_within_asset_transfer_limit(transaction))
-            .filter(|transaction| transaction.addresses().iter().any(|address| subscription_addresses.contains(address)))
-            .collect::<Vec<_>>();
-        let min_amount = config.min_amount_usd;
+        let transactions = Self::subscribed_transactions_for_storage(config, payload.transactions, &subscriptions, &deposit_addresses, &send_addresses);
         if transactions.is_empty() {
             return Ok(0);
         }
 
-        let notification_subscriptions = Self::unique_subscriptions_per_device(subscriptions.clone());
+        let assets = self.get_existing_assets_and_fetch_missing(config, &transactions).await?;
+        let subscribed_transactions = Self::subscribed_transactions(config, &subscriptions, &transactions, &assets);
+        let transactions_map = subscribed_transactions.iter().map(|(_, transaction)| (transaction.id.clone(), (*transaction).clone())).collect::<HashMap<_, _>>();
+        if transactions_map.is_empty() {
+            return Ok(0);
+        }
+        let assets_addresses = Self::assets_addresses(&subscribed_transactions, &assets);
 
+        let transaction_count = transactions_map.len();
+        let inserted_transaction_ids = self.upsert_transactions(transactions_map.values().cloned().collect(), config.batch_size).await?;
+        let publishable_transactions = transactions_map
+            .values()
+            .filter(|transaction| should_publish_transaction(&payload.notification_type, inserted_transaction_ids.contains(&transaction.id)))
+            .collect::<Vec<_>>();
+
+        let notifications = self.get_notifications(config, &subscriptions, &publishable_transactions, &assets, is_notify_devices, &send_addresses).await?;
+        let wallet_events = Self::wallet_events(&subscriptions, &subscribed_transactions, &publishable_transactions);
+
+        if !assets_addresses.is_empty() {
+            self.database.run(move |client| add_transaction_addresses(client, assets_addresses)).await?;
+        }
+        self.stream_producer.publish_notifications_transactions(notifications).await?;
+        self.stream_producer.publish_wallet_stream_events(wallet_events).await?;
+
+        Ok(transaction_count)
+    }
+
+    async fn store_referral_transactions(&self, config: &StoreTransactionsConsumerConfig, transactions: Vec<Transaction>) -> Result<(), Box<dyn Error + Send + Sync>> {
+        if transactions.is_empty() {
+            return Ok(());
+        }
+        let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
+        let transactions = Self::transactions_for_storage(transactions, &deposit_addresses, &send_addresses);
+        let asset_ids: Vec<AssetId> = transactions.iter().flat_map(Transaction::asset_ids).collect::<HashSet<_>>().into_iter().collect();
+        let lookup_ids = asset_ids.clone();
+        let existing_ids = self.database.run(move |client| client.get_assets(lookup_ids)).await?.into_iter().map(|asset| asset.id).collect::<HashSet<_>>();
+        self.stream_producer.publish_fetch_assets(asset_ids.into_iter().filter(|id| !existing_ids.contains(id)).collect()).await?;
+
+        let transactions = transactions.into_iter().filter(|transaction| transaction.asset_ids().iter().all(|id| existing_ids.contains(id))).collect::<Vec<_>>();
+        let referrals = transactions.iter().filter_map(|transaction| Some((referral_queue(transaction)?, transaction.id.clone()))).collect::<Vec<_>>();
+        self.upsert_transactions(transactions, config.batch_size).await?;
+        for (queue, transaction_id) in referrals {
+            self.stream_producer.publish(queue, &transaction_id).await?;
+        }
+        Ok(())
+    }
+
+    async fn get_subscriptions(&self, chain: Chain, transactions: &[Transaction]) -> Result<Vec<DeviceSubscription>, Box<dyn Error + Send + Sync>> {
+        let addresses: Vec<_> = transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
+        Ok(self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?)
+    }
+
+    fn subscribed_transactions_for_storage(
+        config: &StoreTransactionsConsumerConfig,
+        transactions: Vec<Transaction>,
+        subscriptions: &[DeviceSubscription],
+        deposit_addresses: &DepositAddressMap,
+        send_addresses: &SendAddressMap,
+    ) -> Vec<Transaction> {
+        let subscription_addresses: HashSet<_> = subscriptions.iter().map(|subscription| &subscription.address).collect();
+        Self::transactions_for_storage(transactions, deposit_addresses, send_addresses)
+            .into_iter()
+            .filter(|transaction| config.is_transaction_within_asset_transfer_limit(transaction))
+            .filter(|transaction| transaction.addresses().iter().any(|address| subscription_addresses.contains(address)))
+            .collect()
+    }
+
+    async fn get_existing_assets_and_fetch_missing(&self, config: &StoreTransactionsConsumerConfig, transactions: &[Transaction]) -> Result<HashMap<AssetId, AssetPriceMetadata>, Box<dyn Error + Send + Sync>> {
         let asset_ids: Vec<AssetId> = transactions.iter().flat_map(Transaction::asset_ids).collect::<HashSet<_>>().into_iter().collect();
         let nft_asset_ids: Vec<NFTAssetId> = transactions.iter().filter_map(Transaction::nft_asset_id).collect::<HashSet<_>>().into_iter().collect();
 
@@ -64,28 +130,35 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
             self.get_existing_and_missing_assets(asset_ids, config.primary_price_max_age),
             self.get_missing_nft_assets(Self::supported_nft_asset_ids(nft_asset_ids)),
         )?;
-        let existing_assets_map: HashMap<AssetId, primitives::AssetPriceMetadata> = existing_assets.into_iter().map(|asset| (asset.asset.asset.id.clone(), asset)).collect();
 
         self.stream_producer.publish_fetch_assets(missing_assets).await?;
         self.stream_producer.publish_fetch_nft_assets(missing_nft_assets).await?;
 
-        let subscribed_transactions = subscriptions
+        Ok(existing_assets.into_iter().map(|asset| (asset.asset.asset.id.clone(), asset)).collect())
+    }
+
+    fn subscribed_transactions<'a>(
+        config: &StoreTransactionsConsumerConfig,
+        subscriptions: &'a [DeviceSubscription],
+        transactions: &'a [Transaction],
+        assets: &HashMap<AssetId, AssetPriceMetadata>,
+    ) -> Vec<(&'a DeviceSubscription, &'a Transaction)> {
+        subscriptions
             .iter()
             .flat_map(|subscription| transactions.iter().map(move |transaction| (subscription, transaction)))
             .filter(|(subscription, transaction)| transaction.addresses().contains(&subscription.address))
-            .filter(|(_, transaction)| transaction.asset_ids().iter().all(|id| existing_assets_map.contains_key(id)))
+            .filter(|(_, transaction)| transaction.asset_ids().iter().all(|id| assets.contains_key(id)))
             .filter(|(subscription, transaction)| {
                 let transaction = transaction.finalize(vec![subscription.address.clone()]);
-                existing_assets_map
+                assets
                     .get(&transaction.asset_id)
-                    .is_some_and(|asset_price| !config.is_transaction_insufficient_amount(&transaction, &asset_price.asset.asset, asset_price.price, min_amount))
+                    .is_some_and(|asset_price| !config.is_transaction_insufficient_amount(&transaction, &asset_price.asset.asset, asset_price.price, config.min_amount_usd))
             })
-            .collect::<Vec<_>>();
-        let transactions_map = subscribed_transactions.iter().map(|(_, transaction)| (transaction.id.clone(), (*transaction).clone())).collect::<HashMap<_, _>>();
-        if transactions_map.is_empty() {
-            return Ok(0);
-        }
-        let assets_addresses = subscribed_transactions
+            .collect()
+    }
+
+    fn assets_addresses(subscribed_transactions: &[(&DeviceSubscription, &Transaction)], assets: &HashMap<AssetId, AssetPriceMetadata>) -> Vec<AssetAddress> {
+        subscribed_transactions
             .iter()
             .filter(|(_, transaction)| Self::should_store_asset_addresses(transaction))
             .flat_map(|(subscription, transaction)| {
@@ -93,36 +166,43 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
                     .assets_addresses_with_fee()
                     .into_iter()
                     .filter(|address| address.address == subscription.address)
-                    .filter(|address| existing_assets_map.contains_key(&address.asset_id))
+                    .filter(|address| assets.contains_key(&address.asset_id))
             })
-            .collect::<HashSet<_>>();
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect()
+    }
 
-        let transaction_count = transactions_map.len();
-        let inserted_transaction_ids = self.upsert_transactions(transactions_map.values().cloned().collect()).await?;
-        let publishable_transactions = transactions_map
-            .values()
-            .filter(|transaction| should_publish_transaction(&payload.notification_type, inserted_transaction_ids.contains(&transaction.id)))
-            .collect::<Vec<_>>();
-
-        let notification_requests = notification_subscriptions
-            .iter()
+    async fn get_notifications(
+        &self,
+        config: &StoreTransactionsConsumerConfig,
+        subscriptions: &[DeviceSubscription],
+        publishable_transactions: &[&Transaction],
+        assets: &HashMap<AssetId, AssetPriceMetadata>,
+        is_notify_devices: bool,
+        send_addresses: &SendAddressMap,
+    ) -> Result<Vec<NotificationsPayload>, Box<dyn Error + Send + Sync>> {
+        let notification_requests = Self::unique_subscriptions_per_device(subscriptions.to_vec())
+            .into_iter()
             .flat_map(|subscription| {
-                publishable_transactions.iter().filter_map(|transaction| {
-                    if !transaction.addresses().contains(&subscription.address) || !config.should_notify_transaction(transaction, is_notify_devices, &send_addresses) {
-                        return None;
-                    }
-
-                    let assets = transaction.asset_ids().iter().filter_map(|id| existing_assets_map.get(id)).map(|asset_price| asset_price.asset.asset.clone()).collect();
-                    Some((subscription.clone(), (**transaction).clone(), assets))
-                })
+                publishable_transactions
+                    .iter()
+                    .filter(|transaction| transaction.addresses().contains(&subscription.address) && config.should_notify_transaction(transaction, &subscription.address, is_notify_devices, send_addresses))
+                    .map(|transaction| {
+                        let assets = transaction.asset_ids().iter().filter_map(|id| assets.get(id)).map(|asset_price| asset_price.asset.asset.clone()).collect();
+                        (subscription.clone(), (*transaction).clone(), assets)
+                    })
+                    .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
-        let mut notifications = Vec::with_capacity(notification_requests.len());
-        for (subscription, transaction, assets) in notification_requests {
-            notifications.push(NotificationsPayload::new(self.pusher.get_messages(&subscription, transaction, assets).await?));
-        }
+        stream::iter(notification_requests)
+            .then(|(subscription, transaction, assets)| async move { Ok::<_, Box<dyn Error + Send + Sync>>(NotificationsPayload::new(self.pusher.get_messages(&subscription, transaction, assets).await?)) })
+            .try_collect()
+            .await
+    }
 
-        let wallet_events = subscriptions
+    fn wallet_events(subscriptions: &[DeviceSubscription], subscribed_transactions: &[(&DeviceSubscription, &Transaction)], publishable_transactions: &[&Transaction]) -> Vec<WalletStreamPayload> {
+        subscriptions
             .iter()
             .map(|subscription| subscription.wallet_row_id)
             .collect::<HashSet<_>>()
@@ -147,26 +227,9 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
                     .then_some(WalletStreamPayload { wallet_id, event: WalletStreamEvent::Nft });
                 transactions.into_iter().chain(nfts)
             })
-            .collect();
-
-        let assets_addresses: Vec<_> = assets_addresses.into_iter().collect();
-        if !assets_addresses.is_empty() {
-            self.database.run(move |client| add_transaction_addresses(client, assets_addresses)).await?;
-        }
-        self.stream_producer.publish_notifications_transactions(notifications).await?;
-        self.stream_producer.publish_wallet_stream_events(wallet_events).await?;
-        let swap_transaction_ids = transactions_map
-            .values()
-            .filter(|transaction| transaction.transaction_type == TransactionType::Swap && transaction.swap_metadata().is_some_and(|metadata| metadata.referral_fee.is_some()))
-            .map(|transaction| transaction.id.clone())
-            .collect::<Vec<_>>();
-        self.stream_producer.publish_batch(QueueName::StoreTransactionsSwaps, &swap_transaction_ids).await?;
-
-        Ok(transaction_count)
+            .collect()
     }
-}
 
-impl StoreTransactionsConsumer {
     fn supported_nft_asset_ids(nft_asset_ids: Vec<NFTAssetId>) -> Vec<NFTAssetId> {
         let supported_chains = NFTChain::all().into_iter().map(Chain::from).collect::<HashSet<_>>();
         nft_asset_ids.into_iter().filter(|asset_id| supported_chains.contains(&asset_id.chain)).collect()
@@ -239,16 +302,38 @@ impl StoreTransactionsConsumer {
         Ok(nft_asset_ids.into_iter().filter(|id| !existing_ids.contains(id)).collect())
     }
 
-    async fn upsert_transactions(&self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, Box<dyn Error + Send + Sync>> {
+    async fn upsert_transactions(&self, transactions: Vec<Transaction>, batch_size: usize) -> Result<HashSet<TransactionId>, Box<dyn Error + Send + Sync>> {
         Ok(self
             .database
             .run(move |client| {
-                transactions.chunks(TRANSACTION_BATCH_SIZE).try_fold(HashSet::new(), |inserted_ids, chunk| -> Result<HashSet<TransactionId>, DatabaseError> {
+                transactions.chunks(batch_size).try_fold(HashSet::new(), |inserted_ids, chunk| -> Result<HashSet<TransactionId>, DatabaseError> {
                     let chunk_inserted_ids = client.upsert_transactions(chunk.to_vec())?;
                     Ok(inserted_ids.into_iter().chain(chunk_inserted_ids).collect())
                 })
             })
             .await?)
+    }
+}
+
+fn referral_queue(transaction: &Transaction) -> Option<QueueName> {
+    match transaction.transaction_type {
+        TransactionType::Swap => transaction.swap_metadata()?.referral_fee.map(|_| QueueName::StoreTransactionsSwaps),
+        TransactionType::PerpetualOpenPosition | TransactionType::PerpetualClosePosition => transaction.perpetual_metadata()?.referral_fee.map(|_| QueueName::StoreTransactionsPerpetuals),
+        TransactionType::Transfer
+        | TransactionType::TransferNFT
+        | TransactionType::TokenApproval
+        | TransactionType::StakeDelegate
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRewards
+        | TransactionType::StakeRedelegate
+        | TransactionType::StakeWithdraw
+        | TransactionType::StakeFreeze
+        | TransactionType::StakeUnfreeze
+        | TransactionType::AssetActivation
+        | TransactionType::SmartContractCall
+        | TransactionType::PerpetualModifyPosition
+        | TransactionType::EarnDeposit
+        | TransactionType::EarnWithdraw => None,
     }
 }
 
@@ -267,7 +352,10 @@ mod tests {
         provider::transaction_mapper::map_transaction,
     };
     use num_bigint::BigUint;
-    use primitives::{AssetId, Device, JsonRpcResult, SwapProvider, TransactionSwapMetadata, WalletId, asset_constants::SOLANA_USDC_ASSET_ID, contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID};
+    use primitives::{
+        AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId, asset_constants::SOLANA_USDC_ASSET_ID,
+        contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID,
+    };
 
     #[test]
     fn test_relay_lookup_table_deposit_enters_cross_chain_processing() {
@@ -303,6 +391,46 @@ mod tests {
         assert!(should_publish_transaction(&TransactionNotificationType::NewTransaction, true));
         assert!(!should_publish_transaction(&TransactionNotificationType::NewTransaction, false));
         assert!(should_publish_transaction(&TransactionNotificationType::StateChange, false));
+    }
+
+    #[test]
+    fn test_referral_queue() {
+        let referral_fee = TransactionSwapReferralFee {
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            value: BigUint::from(1u32),
+        };
+        let referral_swap = Transaction {
+            metadata: serde_json::to_value(TransactionSwapMetadata::mock().with_referral_fee(Some(referral_fee.clone()))).ok(),
+            ..Transaction::mock_swap()
+        };
+        let referral_perpetual = Transaction {
+            transaction_type: TransactionType::PerpetualOpenPosition,
+            metadata: serde_json::to_value(TransactionPerpetualMetadata {
+                referral_fee: Some(referral_fee),
+                ..TransactionPerpetualMetadata::mock()
+            })
+            .ok(),
+            ..Transaction::mock()
+        };
+
+        assert_eq!(referral_queue(&referral_swap), Some(QueueName::StoreTransactionsSwaps));
+        assert_eq!(referral_queue(&referral_perpetual), Some(QueueName::StoreTransactionsPerpetuals));
+        assert_eq!(referral_queue(&Transaction::mock_swap()), None);
+        assert_eq!(
+            referral_queue(&Transaction {
+                transaction_type: TransactionType::PerpetualOpenPosition,
+                metadata: serde_json::to_value(TransactionPerpetualMetadata::mock()).ok(),
+                ..Transaction::mock()
+            }),
+            None
+        );
+        assert_eq!(
+            referral_queue(&Transaction {
+                transaction_type: TransactionType::Transfer,
+                ..referral_swap
+            }),
+            None
+        );
     }
 
     #[test]

@@ -232,12 +232,12 @@ impl PricesRepository for DatabaseClient {
     }
 
     fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError> {
-        let price_ids = prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row.id.to_string()).collect::<Vec<_>>();
-        let mut points = Vec::with_capacity(price_ids.len());
-        for price_id in price_ids {
-            points.extend(chart_price_at(self, &price_id, at)?);
-        }
-        Ok(points.into_iter().max_by_key(|(created_at, _)| *created_at))
+        let providers = price_provider_rows(self)?;
+        let rows = prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row).collect::<Vec<_>>();
+        let Some(row) = ranked_prices(&providers, &rows).into_iter().next() else {
+            return Ok(None);
+        };
+        Ok(chart_price_at(self, &row.id.to_string(), at)?)
     }
 
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError> {
@@ -363,16 +363,15 @@ impl PricesRepository for DatabaseClient {
     }
 }
 
+fn ranked_prices<'a>(providers: &[PriceProviderConfigRow], rows: &'a [PriceRow]) -> Vec<&'a PriceRow> {
+    let mut candidates: Vec<(&PriceProviderConfigRow, &PriceRow)> = providers.iter().filter(|p| p.enabled).filter_map(|p| rows.iter().find(|row| row.provider.0 == p.id.0).map(|row| (p, row))).collect();
+    candidates.sort_by_key(|(p, _)| p.priority);
+    candidates.into_iter().map(|(_, row)| row).collect()
+}
+
 fn primary_price<'a>(providers: &[PriceProviderConfigRow], rows: &'a [PriceRow], max_age: Duration) -> Option<&'a PriceRow> {
     let cutoff = (Utc::now() - chrono::Duration::from_std(max_age).ok()?).naive_utc();
-    let mut candidates: Vec<(&PriceProviderConfigRow, &PriceRow)> = providers
-        .iter()
-        .filter(|p| p.enabled)
-        .filter_map(|p| rows.iter().find(|row| row.provider.0 == p.id.0).map(|row| (p, row)))
-        .filter(|(_, row)| row.last_updated_at >= cutoff)
-        .collect();
-    candidates.sort_by_key(|(p, _)| p.priority);
-    candidates.first().map(|(_, row)| *row)
+    ranked_prices(providers, rows).into_iter().find(|row| row.last_updated_at >= cutoff)
 }
 
 #[cfg(test)]

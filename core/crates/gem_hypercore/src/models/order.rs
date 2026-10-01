@@ -44,6 +44,10 @@ pub enum FillDirection {
     CloseLong,
     #[strum(serialize = "Close Short")]
     CloseShort,
+    #[strum(serialize = "Long > Short")]
+    LongToShort,
+    #[strum(serialize = "Short > Long")]
+    ShortToLong,
     #[strum(default)]
     Other(String),
 }
@@ -69,6 +73,7 @@ pub struct UserFill {
     pub coin: String,
     pub hash: String,
     pub oid: u64,
+    pub tid: u64,
     pub sz: String,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub closed_pnl: f64,

@@ -24,7 +24,4 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
-
-    testImplementation(testFixtures(project(":gemcore")))
-    testImplementation(libs.junit)
 }

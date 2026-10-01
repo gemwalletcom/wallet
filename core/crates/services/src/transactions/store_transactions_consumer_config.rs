@@ -17,17 +17,19 @@ pub struct StoreTransactionsConsumerConfig {
     pub max_asset_transfer_count: usize,
     pub min_amount_usd: f64,
     pub primary_price_max_age: Duration,
+    pub batch_size: usize,
 }
 
 impl StoreTransactionsConsumerConfig {
     pub async fn read(config: &ConfigCacher) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let (swap_outdated_timeout, outdated_block_count, outdated_min_timeout, max_asset_transfer_count, min_amount_usd, primary_price_max_age) = tokio::try_join!(
+        let (swap_outdated_timeout, outdated_block_count, outdated_min_timeout, max_asset_transfer_count, min_amount_usd, primary_price_max_age, batch_size) = tokio::try_join!(
             config.get_duration(ConfigKey::TransactionSwapOutdatedTimeout),
             config.get_i64(ConfigKey::TransactionsOutdatedBlockCount),
             config.get_duration(ConfigKey::TransactionsOutdatedMinTimeout),
             config.get_usize(ConfigKey::TransactionsMaxAssetTransferCount),
             config.get_f64(ConfigKey::TransactionsMinAmountUsd),
             config.get_duration(ConfigKey::PricePrimaryMaxAge),
+            config.get_usize(ConfigKey::TransactionsStoreBatchSize),
         )?;
         Ok(Self {
             swap_outdated_timeout,
@@ -36,6 +38,7 @@ impl StoreTransactionsConsumerConfig {
             max_asset_transfer_count,
             min_amount_usd,
             primary_price_max_age,
+            batch_size: batch_size.max(1),
         })
     }
 
@@ -52,9 +55,10 @@ impl StoreTransactionsConsumerConfig {
         Duration::from_secs(block_time_secs * self.outdated_block_count).max(self.outdated_min_timeout)
     }
 
-    pub fn should_notify_transaction(&self, transaction: &Transaction, is_notify_devices: bool, send_addresses: &SendAddressMap) -> bool {
+    pub fn should_notify_transaction(&self, transaction: &Transaction, address: &str, is_notify_devices: bool, send_addresses: &SendAddressMap) -> bool {
         is_notify_devices
             && transaction.state != TransactionState::InTransit
+            && (!transaction.state.is_failed() || transaction.is_sent(address.to_string()))
             && !cross_chain::is_from_vault_address(transaction, send_addresses)
             && !self.is_transaction_outdated(transaction.created_at.naive_utc(), transaction.asset_id.chain, transaction.transaction_type.clone())
     }
@@ -171,7 +175,14 @@ mod tests {
         let config = StoreTransactionsConsumerConfig::mock();
         let empty = SendAddressMap::new();
 
-        assert!(config.should_notify_transaction(&Transaction::mock(), true, &empty));
+        assert!(config.should_notify_transaction(&Transaction::mock(), "0xfrom", true, &empty));
+
+        let failed = Transaction {
+            state: TransactionState::Reverted,
+            ..Transaction::mock()
+        };
+        assert!(config.should_notify_transaction(&failed, "0xfrom", true, &empty), "the sender hears that its transaction failed");
+        assert!(!config.should_notify_transaction(&failed, "0xto", true, &empty), "a failed incoming transaction delivered nothing");
     }
 
     #[test]
@@ -182,14 +193,14 @@ mod tests {
             state: TransactionState::InTransit,
             ..Transaction::mock()
         };
-        assert!(!config.should_notify_transaction(&transaction, true, &empty));
+        assert!(!config.should_notify_transaction(&transaction, "0xfrom", true, &empty));
     }
 
     #[test]
     fn test_should_notify_transaction_no_devices() {
         let config = StoreTransactionsConsumerConfig::mock();
         let empty = SendAddressMap::new();
-        assert!(!config.should_notify_transaction(&Transaction::mock(), false, &empty));
+        assert!(!config.should_notify_transaction(&Transaction::mock(), "0xfrom", false, &empty));
     }
 
     #[test]
@@ -197,6 +208,6 @@ mod tests {
         let config = StoreTransactionsConsumerConfig::mock();
         let transaction = Transaction::mock();
         let vault_addresses = SendAddressMap::from([(transaction.from.clone(), primitives::SwapProvider::Thorchain)]);
-        assert!(!config.should_notify_transaction(&transaction, true, &vault_addresses));
+        assert!(!config.should_notify_transaction(&transaction, "0xfrom", true, &vault_addresses));
     }
 }

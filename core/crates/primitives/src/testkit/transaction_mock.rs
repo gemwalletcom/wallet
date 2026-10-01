@@ -139,6 +139,7 @@ impl TransactionPerpetualMetadata {
             direction: PerpetualDirection::Long,
             is_liquidation: None,
             provider: None,
+            referral_fee: None,
         }
     }
 }

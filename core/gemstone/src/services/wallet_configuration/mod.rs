@@ -27,7 +27,7 @@ impl GemWalletConfigurationService {
 impl GemWalletConfigurationService {
     pub async fn sync(&self, wallet: &Wallet) -> Result<(), GemServiceError> {
         let wallet_id = wallet.id.clone();
-        if self.preferences.is_wallet_configuration_completed(wallet_id.clone())? {
+        if self.preferences.is_wallet_configuration_completed(wallet_id.clone()) {
             return Ok(());
         }
         self.refresh(wallet).await

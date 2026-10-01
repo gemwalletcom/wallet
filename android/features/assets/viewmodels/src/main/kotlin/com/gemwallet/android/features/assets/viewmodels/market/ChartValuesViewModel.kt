@@ -22,6 +22,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartPeriod
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,10 +38,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.AssetPrice
 import uniffi.gemstone.GemChartPhase
+import uniffi.gemstone.GemChartRequest
 import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemServiceException
-import javax.inject.Inject
 
 private const val StopTimeoutMillis = 5_000L
 
@@ -64,9 +65,7 @@ class ChartValuesViewModel internal constructor(
             getCurrentCurrency.getCurrency().collect { currency -> session.update { it.onCurrency(currency.toGem()) } }
         }
         viewModelScope.launch {
-            session.collectLatest { current ->
-                if (current.isLoading || current.isRefreshing) load()
-            }
+            session.map { it.request() }.distinctUntilChanged().collectLatest { request -> request?.let { load(it) } }
         }
     }
 
@@ -118,13 +117,20 @@ class ChartValuesViewModel internal constructor(
         session.update { it.onRefresh() }
     }
 
-    private suspend fun load() {
-        val period = session.value.period
+    fun onZoom(magnification: Float, anchor: Float) {
+        session.update { it.onZoom(magnification.toDouble(), anchor.toDouble()) }
+    }
+
+    fun onPan(fraction: Float) {
+        session.update { it.onPan(fraction.toDouble()) }
+    }
+
+    private suspend fun load(request: GemChartRequest) {
         try {
-            val chart = withContext(ioDispatcher) { chartService.syncCharts(assetId.toIdentifier(), period) }
-            session.update { it.onLoaded(chart, period) }
+            val chart = withContext(ioDispatcher) { chartService.syncCharts(assetId.toIdentifier(), request.period) }
+            session.update { it.onLoaded(chart, request.period) }
         } catch (e: GemServiceException) {
-            session.update { it.onFailed(e, period) }
+            session.update { it.onFailed(e, request.period) }
         }
     }
 

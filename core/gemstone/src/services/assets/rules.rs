@@ -538,7 +538,7 @@ pub fn wallet_search_view(input: GemWalletSearchInput, shows_recents: bool, show
         state: wallet_search_state(&counts, input.is_loading),
         pinned_asset_ids: assets.pinned,
         asset_ids: preview(assets.assets, assets_limit),
-        has_more_assets: counts.assets > assets_limit,
+        has_more_assets: counts.pinned_assets + counts.assets > assets_limit,
         pinned_perpetuals: perpetuals.pinned,
         perpetuals: preview(perpetuals.markets, PERPETUALS_PREVIEW_LIMIT),
         has_more_perpetuals: counts.perpetuals > PERPETUALS_PREVIEW_LIMIT,
@@ -655,7 +655,7 @@ pub struct DetailsSectionsInput<'a> {
     pub price: Option<f64>,
     pub price_change_percentage_24h: Option<f64>,
     pub currency: Currency,
-    pub price_alerts: &'a [PriceAlert],
+    pub price_alerts: Option<&'a [PriceAlert]>,
     pub fee_balance_metadata: Option<BalanceMetadata>,
     pub banner_events: &'a [BannerEvent],
 }
@@ -675,7 +675,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
     } = input;
     let chain = asset.chain();
     let allows_actions = allows_actions(banner_events);
-    let displayed_alerts = displayed_price_alert_ids(price_alerts.to_vec()).len();
+    let displayed_alerts = price_alerts.map(|alerts| displayed_price_alert_ids(alerts.to_vec()).len()).unwrap_or_default();
     let quoted = price_row(price, price_change_percentage_24h, currency, GemCurrencyStyle::Currency);
     let row = |row: GemListRow, action: Option<GemRowAction>| GemAssetDetailRow::Row { row, action };
     let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon, action: GemRowAction| GemAssetDetailRow::Row {
@@ -795,12 +795,12 @@ pub fn header_actions(wallet_type: WalletType, asset_id: &AssetId, metadata: &As
     }
 }
 
-pub fn details_state(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent], price_alerts: &[PriceAlert]) -> GemAssetDetailsState {
+pub fn details_state(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent], price_alerts: Option<&[PriceAlert]>) -> GemAssetDetailsState {
     let is_view_only = wallet_type == WalletType::View;
     GemAssetDetailsState {
         is_view_only,
         shows_banners: !banner_events.is_empty(),
-        price_alert: price_alert_toggle(price_alerts),
+        price_alert: price_alerts.map(price_alert_toggle),
         empty_state: screen_empty_state(
             GemEmptyStateKind::Asset,
             is_view_only,
@@ -1375,20 +1375,32 @@ mod tests {
         assert_eq!(view.pinned_asset_ids, vec![ids[5].clone()]);
         assert_eq!(view.asset_ids.len(), 12, "the preview shows the initial limit");
         assert!(!view.asset_ids.contains(&ids[5]), "a pinned asset is not repeated in the preview");
-        assert!(view.has_more_assets, "13 unpinned assets are more than the preview shows");
         assert!(view.state.shows_pinned && view.state.shows_assets);
+    }
 
-        let pinned_only = wallet_search_view(
-            GemWalletSearchInput {
-                asset_ids: ids.clone(),
-                pinned_asset_ids: ids,
-                ..search_input("")
-            },
-            false,
-            false,
-            false,
-        );
-        assert!(pinned_only.asset_ids.is_empty() && !pinned_only.has_more_assets, "pinned assets never count towards more");
+    #[test]
+    fn test_pinned_rows_in_the_fetched_window_still_offer_more() {
+        let view = |query: &str, rows: usize, pinned: usize| {
+            let ids = token_ids(rows);
+            wallet_search_view(
+                GemWalletSearchInput {
+                    asset_ids: ids.clone(),
+                    pinned_asset_ids: ids.into_iter().take(pinned).collect(),
+                    ..search_input(query)
+                },
+                false,
+                false,
+                false,
+            )
+        };
+
+        for query in ["", "usd"] {
+            let fetch = wallet_search_limits(query).fetch as usize;
+            assert!(view(query, fetch, 0).has_more_assets, "a full window offers more");
+            assert!(view(query, fetch, 1).has_more_assets, "a pinned row shares the window, so a full window still offers more");
+            assert!(view(query, fetch, fetch).has_more_assets, "a window full of pinned rows can hide the rest");
+            assert!(!view(query, fetch - 1, 2).has_more_assets, "a window the store could not fill has nothing more");
+        }
     }
 
     #[test]
@@ -1664,7 +1676,7 @@ mod tests {
     }
 
     fn state(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemAssetDetailsState {
-        details_state(wallet_type, metadata, banner_events, &[])
+        details_state(wallet_type, metadata, banner_events, Some(&[]))
     }
 
     fn actions(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemHeaderActions {
@@ -1675,7 +1687,7 @@ mod tests {
         header_actions(wallet_type, &AssetId::from_chain(Chain::Bitcoin), metadata, banner_events, &swap_pair)
     }
 
-    fn sections(asset: &Asset, metadata: &AssetMetaData, balance: &GemAssetBalance, price: Option<f64>, price_alerts: &[PriceAlert]) -> Vec<GemAssetDetailSection> {
+    fn sections(asset: &Asset, metadata: &AssetMetaData, balance: &GemAssetBalance, price: Option<f64>, price_alerts: Option<&[PriceAlert]>) -> Vec<GemAssetDetailSection> {
         details_sections(DetailsSectionsInput {
             wallet_type: WalletType::Multicoin,
             asset,
@@ -1801,7 +1813,7 @@ mod tests {
             is_swap_enabled: true,
             ..AssetMetaData::mock()
         };
-        let tradable = AssetMetaData { is_buy_enabled: true, ..swappable.clone() };
+        let tradable = AssetMetaData { is_buy_enabled: true, ..swappable };
         for event in [BannerEvent::ActivateAsset, BannerEvent::AccountBlockedMultiSignature] {
             for metadata in [&tradable, &swappable] {
                 assert_eq!(state(WalletType::Multicoin, metadata, &[event]).empty_state.actions, vec![], "{event:?} locks the empty state like the header");
@@ -1847,7 +1859,7 @@ mod tests {
     fn test_details_sections_offer_manage_until_the_balance_is_enabled() {
         let asset = Asset::from_chain(Chain::Ethereum);
         let balance = GemAssetBalance::mock();
-        let manage = |metadata: &AssetMetaData| section(&sections(&asset, metadata, &balance, Some(1.0), &[]), GemListSectionTitle::Manage);
+        let manage = |metadata: &AssetMetaData| section(&sections(&asset, metadata, &balance, Some(1.0), Some(&[])), GemListSectionTitle::Manage);
         let link = |title: GemListRowTitle, icon: GemListRowIcon, action: GemRowAction| GemAssetDetailRow::Row {
             row: GemListRow::Link {
                 title,
@@ -1895,7 +1907,7 @@ mod tests {
                 price: Some(1.0),
                 price_change_percentage_24h: None,
                 currency: Currency::USD,
-                price_alerts: &[],
+                price_alerts: Some(&[]),
                 fee_balance_metadata,
                 banner_events: &[],
             });
@@ -1953,7 +1965,7 @@ mod tests {
             earn_apr: Some(4.0),
             ..AssetMetaData::mock()
         };
-        let rows = sections(&Asset::from_chain(Chain::Ethereum), &earn_enabled, &GemAssetBalance::mock(), Some(1.0), &[]);
+        let rows = sections(&Asset::from_chain(Chain::Ethereum), &earn_enabled, &GemAssetBalance::mock(), Some(1.0), Some(&[]));
         let earn = rows.iter().flat_map(|section| section.rows.clone()).find_map(|row| match row {
             GemAssetDetailRow::Row { row, action } if matches!(row, GemListRow::Amount { title: GemListRowTitle::StakeApr, .. } | GemListRow::Text { title: GemListRowTitle::StakeApr, .. }) => {
                 assert_eq!(action, Some(GemRowAction::Earn), "the rate opens earn");
@@ -1972,7 +1984,7 @@ mod tests {
             reserved: GemBigUint::from(10u32),
             ..GemAssetBalance::mock_with_available(100)
         };
-        let sections = sections(&token, &AssetMetaData::mock(), &reserving, Some(1.0), &[]);
+        let sections = sections(&token, &AssetMetaData::mock(), &reserving, Some(1.0), Some(&[]));
 
         assert_eq!(sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::None, GemListSectionTitle::Balances]);
         assert!(matches!(
@@ -2012,7 +2024,7 @@ mod tests {
                 price: Some(1.0),
                 price_change_percentage_24h: None,
                 currency: Currency::USD,
-                price_alerts: &[],
+                price_alerts: Some(&[]),
                 fee_balance_metadata: None,
                 banner_events,
             })
@@ -2091,8 +2103,8 @@ mod tests {
         let manual = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 120.0, PriceAlertDirection::Up);
         let mut notified = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 140.0, PriceAlertDirection::Up);
         notified.last_notified_at = Some(Utc::now());
-        let alerts_row = |price: Option<f64>, alerts: Vec<PriceAlert>| {
-            sections(&asset, &metadata, &balance, price, &alerts)[0].rows.iter().find_map(|row| match row {
+        let alerts_row = |price: Option<f64>, alerts: Option<Vec<PriceAlert>>| {
+            sections(&asset, &metadata, &balance, price, alerts.as_deref())[0].rows.iter().find_map(|row| match row {
                 GemAssetDetailRow::Row {
                     row: GemListRow::Link {
                         title: GemListRowTitle::PriceAlerts, value, ..
@@ -2103,11 +2115,12 @@ mod tests {
             })
         };
 
-        assert_eq!(alerts_row(Some(1.0), vec![auto.clone(), manual, notified.clone()]), Some("2".to_string()));
-        assert_eq!(alerts_row(Some(1.0), vec![notified]), None);
-        assert_eq!(alerts_row(Some(0.0), vec![auto.clone()]), None);
-        assert_eq!(alerts_row(None, vec![auto]), None);
-        assert_eq!(alerts_row(Some(1.0), vec![]), None);
+        assert_eq!(alerts_row(Some(1.0), Some(vec![auto.clone(), manual, notified.clone()])), Some("2".to_string()));
+        assert_eq!(alerts_row(Some(1.0), None), None, "no alert row where the app cannot push");
+        assert_eq!(alerts_row(Some(1.0), Some(vec![notified])), None);
+        assert_eq!(alerts_row(Some(0.0), Some(vec![auto.clone()])), None);
+        assert_eq!(alerts_row(None, Some(vec![auto])), None);
+        assert_eq!(alerts_row(Some(1.0), Some(vec![])), None);
     }
 
     #[test]
@@ -2131,10 +2144,11 @@ mod tests {
         let manual = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 120.0, PriceAlertDirection::Up);
         let mut notified = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 140.0, PriceAlertDirection::Up);
         notified.last_notified_at = Some(Utc::now());
-        let state = |alerts: Vec<PriceAlert>| details_state(WalletType::Multicoin, &plain, &[], &alerts);
+        let state = |alerts: Option<Vec<PriceAlert>>| details_state(WalletType::Multicoin, &plain, &[], alerts.as_deref());
 
-        assert_eq!(state(vec![auto, manual.clone(), notified]).price_alert, GemPriceAlertToggle::Enabled);
-        assert_eq!(state(vec![manual]).price_alert, GemPriceAlertToggle::Disabled);
+        assert_eq!(state(Some(vec![auto, manual.clone(), notified])).price_alert, Some(GemPriceAlertToggle::Enabled));
+        assert_eq!(state(Some(vec![manual])).price_alert, Some(GemPriceAlertToggle::Disabled));
+        assert_eq!(state(None).price_alert, None, "no toggle where the app cannot push");
     }
 
     #[test]
@@ -2186,7 +2200,7 @@ mod tests {
             ..GemAssetBalance::mock()
         };
         let offers_earn = |metadata: &AssetMetaData, balance: &GemAssetBalance| {
-            sections(&asset, metadata, balance, Some(1.0), &[]).iter().flat_map(|section| section.rows.clone()).any(|row| {
+            sections(&asset, metadata, balance, Some(1.0), Some(&[])).iter().flat_map(|section| section.rows.clone()).any(|row| {
                 matches!(
                     row,
                     GemAssetDetailRow::Row {

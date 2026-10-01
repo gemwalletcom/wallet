@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemAssetItemRow
+import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemInfoSheet
 import InfoSheet
 import Primitives
@@ -10,7 +12,7 @@ public enum AmountSheetType: Identifiable {
     case infoAction(GemInfoSheet)
     case fiatConnect(assetAddress: AssetAddress, wallet: Wallet)
     case leverageSelector(selection: SelectionState<LeverageOption>)
-    case autoclose(AutocloseOpenData)
+    case autoclose(session: GemAutocloseSession, row: GemAssetItemRow)
 
     public var id: String {
         switch self {

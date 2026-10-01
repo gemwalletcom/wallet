@@ -44,22 +44,21 @@ impl GemWalletPreferencesService {
 
 impl GemWalletPreferencesService {
     pub fn includes_perpetual_collateral(&self, wallet_id: WalletId) -> bool {
-        let mode = self.get_perpetual_account_mode(wallet_id).unwrap_or(PerpetualAccountMode::Standard);
-        crate::services::perpetual::rules::includes_perpetual_collateral(mode)
+        crate::services::perpetual::rules::includes_perpetual_collateral(self.get_perpetual_account_mode(wallet_id))
     }
 
-    pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> Result<PerpetualAccountMode, GemServiceError> {
-        Ok(match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string()).as_deref() {
+    pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> PerpetualAccountMode {
+        match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string()).as_deref() {
             Some("unified") => PerpetualAccountMode::Unified,
             _ => PerpetualAccountMode::Standard,
-        })
+        }
     }
 
     pub fn get_assets_timestamp(&self, wallet_id: WalletId) -> u64 {
         self.get_timestamp(wallet_id, WalletPreferenceKey::AssetsTimestamp)
     }
 
-    pub fn is_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> Result<bool, GemServiceError> {
+    pub fn is_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> bool {
         self.get_flag(wallet_id, initial_load_key(step))
     }
 }
@@ -98,7 +97,7 @@ impl GemWalletPreferencesService {
         self.set_flag(wallet_id, initial_load_key(step))
     }
 
-    pub fn is_wallet_configuration_completed(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
+    pub fn is_wallet_configuration_completed(&self, wallet_id: WalletId) -> bool {
         self.get_flag(wallet_id, WalletPreferenceKey::CompleteInitialWalletConfiguration)
     }
 
@@ -130,8 +129,8 @@ impl GemWalletPreferencesService {
         crate::services::clock::parse_timestamp_or_zero(self.store.get(wallet_id, key))
     }
 
-    fn get_flag(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> Result<bool, GemServiceError> {
-        Ok(self.store.get(wallet_id, key.as_ref().to_string()).as_deref() == Some("true"))
+    fn get_flag(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> bool {
+        self.store.get(wallet_id, key.as_ref().to_string()).as_deref() == Some("true")
     }
 
     fn set_flag(&self, wallet_id: WalletId, key: WalletPreferenceKey) -> Result<(), GemServiceError> {
@@ -184,18 +183,18 @@ mod tests {
         assert_eq!(service.get_transactions_timestamp(wallet.clone(), Some(asset_id)), 42);
         assert_eq!(service.get_transactions_timestamp(wallet.clone(), None), 7);
 
-        assert!(!service.is_initial_load_completed(wallet.clone(), GemDiscoveryStep::Nfts).unwrap());
+        assert!(!service.is_initial_load_completed(wallet.clone(), GemDiscoveryStep::Nfts));
         service.complete_initial_synchronization(wallet.clone()).unwrap();
-        assert!(service.is_initial_load_completed(wallet.clone(), GemDiscoveryStep::Nfts).unwrap());
-        assert!(service.is_wallet_configuration_completed(wallet.clone()).unwrap());
-        assert!(!service.is_wallet_configuration_completed(other.clone()).unwrap());
+        assert!(service.is_initial_load_completed(wallet.clone(), GemDiscoveryStep::Nfts));
+        assert!(service.is_wallet_configuration_completed(wallet.clone()));
+        assert!(!service.is_wallet_configuration_completed(other.clone()));
 
         service.set_perpetual_account_mode(wallet.clone(), PerpetualAccountMode::Unified).unwrap();
-        assert_eq!(service.get_perpetual_account_mode(wallet.clone()).unwrap(), PerpetualAccountMode::Unified);
-        assert_eq!(service.get_perpetual_account_mode(other).unwrap(), PerpetualAccountMode::Standard);
+        assert_eq!(service.get_perpetual_account_mode(wallet.clone()), PerpetualAccountMode::Unified);
+        assert_eq!(service.get_perpetual_account_mode(other), PerpetualAccountMode::Standard);
 
         service.delete_preferences(wallet.clone()).unwrap();
         assert_eq!(service.get_transactions_timestamp(wallet.clone(), None), 0);
-        assert!(!service.is_wallet_configuration_completed(wallet).unwrap());
+        assert!(!service.is_wallet_configuration_completed(wallet));
     }
 }

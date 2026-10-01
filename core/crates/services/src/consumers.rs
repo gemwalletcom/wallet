@@ -19,7 +19,8 @@ use crate::prices::{FetchPricesConsumer, FetchPricesMetadataConsumer, StorePrice
 use crate::rewards::{RedemptionRetryConfig, RewardsConsumer, RewardsRedemptionConsumer};
 use crate::support::SupportWebhookConsumer;
 use crate::transactions::{
-    FetchAddressTransactionsConsumer, FetchBlocksConsumer, FetchTransactionConsumer, StorePendingTransactionsConsumer, StoreTransactionsConsumer, StoreTransactionsSwapsConsumer, SwapVaultAddressClient, WalletStreamConsumer,
+    FetchAddressTransactionsConsumer, FetchBlocksConsumer, FetchTransactionConsumer, StorePendingTransactionsConsumer, StoreTransactionsConsumer, StoreTransactionsPerpetualsConsumer, StoreTransactionsSwapsConsumer, SwapVaultAddressClient,
+    WalletStreamConsumer,
 };
 
 impl Services {
@@ -98,7 +99,7 @@ impl Services {
     }
 
     pub async fn fetch_transaction_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchTransactionConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchTransactionConsumer::new(self.chain_providers_for(chain, user_agent), stream_producer, self.cacher().await?))
+        Ok(FetchTransactionConsumer::new(self.chain_providers_for(chain, user_agent), self.swapper(), stream_producer, self.cacher().await?))
     }
 
     pub async fn store_transactions_consumer(&self, stream_producer: StreamProducer) -> Result<StoreTransactionsConsumer, Box<dyn Error + Send + Sync>> {
@@ -128,7 +129,11 @@ impl Services {
     }
 
     pub fn store_transactions_swaps_consumer(&self) -> StoreTransactionsSwapsConsumer {
-        StoreTransactionsSwapsConsumer::new(self.database())
+        StoreTransactionsSwapsConsumer::new(self.database(), self.config())
+    }
+
+    pub fn store_transactions_perpetuals_consumer(&self) -> StoreTransactionsPerpetualsConsumer {
+        StoreTransactionsPerpetualsConsumer::new(self.database())
     }
 
     pub async fn notifications_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<NotificationsConsumer, Box<dyn Error + Send + Sync>> {

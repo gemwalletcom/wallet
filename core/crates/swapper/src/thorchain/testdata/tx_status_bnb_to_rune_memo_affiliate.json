@@ -1,0 +1,73 @@
+{
+  "tx": {
+    "id": "C17A0F5082044F68D9D396C1C20147AB403A5E3FF694EB99036DCE220DA1EC1F",
+    "chain": "BSC",
+    "from_address": "0x951454cad517fcb54a5a60f20c934df90966b2a7",
+    "to_address": "0xe35add035d34b4a08e4d4d2e76c4a356a4172a84",
+    "coins": [
+      {
+        "asset": "BSC.BNB",
+        "amount": "1000000"
+      }
+    ],
+    "gas": [
+      {
+        "asset": "BSC.BNB",
+        "amount": "2195"
+      }
+    ],
+    "memo": "=:r:thor1tl4q489a5p8eu5mpwryrl6mnktgsgmtptj3ucl:0/1/0:g1:50"
+  },
+  "planned_out_txs": [
+    {
+      "chain": "THOR",
+      "to_address": "thor1tl4q489a5p8eu5mpwryrl6mnktgsgmtptj3ucl",
+      "coin": {
+        "asset": "THOR.RUNE",
+        "amount": "533821733"
+      },
+      "refund": false
+    }
+  ],
+  "out_txs": [
+    {
+      "id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "chain": "THOR",
+      "from_address": "thor1g98cy3n9mmjrpn0sxmn63lztelera37n8n67c0",
+      "to_address": "thor1tl4q489a5p8eu5mpwryrl6mnktgsgmtptj3ucl",
+      "coins": [
+        {
+          "asset": "THOR.RUNE",
+          "amount": "533821733"
+        }
+      ],
+      "gas": [
+        {
+          "asset": "THOR.RUNE",
+          "amount": "2000000"
+        }
+      ],
+      "memo": "OUT:C17A0F5082044F68D9D396C1C20147AB403A5E3FF694EB99036DCE220DA1EC1F"
+    }
+  ],
+  "stages": {
+    "inbound_observed": {
+      "pre_confirmation_count": 95,
+      "final_count": 95,
+      "completed": true
+    },
+    "inbound_confirmation_counted": {
+      "remaining_confirmation_seconds": 0,
+      "completed": true
+    },
+    "inbound_finalised": {
+      "completed": true
+    },
+    "swap_status": {
+      "pending": false
+    },
+    "swap_finalised": {
+      "completed": true
+    }
+  }
+}

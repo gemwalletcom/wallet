@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use cacher::{CacheKey, CacherClient};
-use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionId};
+use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionIdRequest};
 use storage::{AssetsRepository, Database};
 use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducer, StreamProducerQueue};
 
@@ -60,9 +60,9 @@ impl IndexerClient {
         self.fetch_nft_asset(asset_id).await
     }
 
-    pub async fn refresh_transaction(&self, transaction_id: TransactionId) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher.delete(&CacheKey::FetchTransaction(transaction_id.chain.as_ref(), &transaction_id.hash).key()).await?;
-        self.stream_producer.publish_fetch_transactions(vec![transaction_id.into()]).await?;
+    pub async fn refresh_transaction(&self, request: TransactionIdRequest) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.cacher.delete(&CacheKey::FetchTransaction(request.chain.as_ref(), &request.hash).key()).await?;
+        self.stream_producer.publish_fetch_transactions(vec![request]).await?;
         Ok(())
     }
 }

@@ -85,13 +85,17 @@ public struct PerpetualStore: Sendable {
         }
     }
 
-    public func updatePrices(_ prices: [String: Double]) throws {
+    public func updatePrices(_ prices: [PerpetualPrice]) throws {
         guard !prices.isEmpty else { return }
         try db.write { db in
-            for (name, price) in prices {
+            for price in prices {
                 try PerpetualRecord
-                    .filter(PerpetualRecord.Columns.name == name)
-                    .updateAll(db, PerpetualRecord.Columns.price.set(to: price))
+                    .filter(PerpetualRecord.Columns.name == price.coin)
+                    .updateAll(
+                        db,
+                        PerpetualRecord.Columns.price.set(to: price.price),
+                        PerpetualRecord.Columns.pricePercentChange24h.set(to: price.pricePercentChange24h),
+                    )
             }
         }
     }

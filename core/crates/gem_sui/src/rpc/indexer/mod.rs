@@ -20,6 +20,11 @@ struct TransactionsData {
 }
 
 #[derive(Debug, Deserialize)]
+struct TransactionData {
+    transaction: Option<GraphqlTransaction>,
+}
+
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TransactionConnection {
     nodes: Vec<GraphqlTransaction>,
@@ -69,6 +74,16 @@ impl<C: Client> SuiIndexer<C> {
 
         Ok(transactions)
     }
+
+    pub(crate) async fn get_transaction(&self, digest: &str) -> Result<Option<Digest>, Box<dyn Error + Send + Sync>> {
+        let target = SuiIndexerTarget::Transaction { digest: digest.to_string() };
+        let body = target.body();
+        let response: GraphqlData<TransactionData> = self.client.post(target, &body).await?;
+        if let Some(error) = response.errors.and_then(|errors| errors.into_iter().next()) {
+            return Err(error.message.into());
+        }
+        Ok(response.data.ok_or("missing Sui GraphQL transaction data")?.transaction.map(map_transaction))
+    }
 }
 
 #[cfg(test)]
@@ -81,6 +96,34 @@ mod tests {
     use gem_client::testkit::MockClient;
 
     use super::*;
+
+    #[tokio::test]
+    async fn test_get_transaction() {
+        let client = MockClient::new().with_post(|_, body| {
+            let request = serde_json::from_slice::<serde_json::Value>(body).unwrap();
+            assert_eq!(request["operationName"], "GetTransaction");
+            assert_eq!(request["variables"]["digest"], "DPbeKCinGzgzcWxDRDe45tVdfyakRcqRd5hzySgqTXPQ");
+            Ok(include_str!("../../../testdata/transaction_by_digest.json").as_bytes().to_vec())
+        });
+
+        let transaction = SuiIndexer::new(client).get_transaction("DPbeKCinGzgzcWxDRDe45tVdfyakRcqRd5hzySgqTXPQ").await.unwrap().unwrap();
+
+        let transaction = crate::provider::transactions_mapper::map_transaction(transaction).unwrap();
+
+        assert_eq!(transaction.hash(), "DPbeKCinGzgzcWxDRDe45tVdfyakRcqRd5hzySgqTXPQ");
+        assert_eq!(transaction.transaction_type, primitives::TransactionType::Swap);
+        assert!(transaction.swap_metadata().unwrap().referral_fee.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_get_transaction_swap_events_without_swap_output() {
+        let client = MockClient::new().with_post(|_, _| Ok(include_str!("../../../testdata/transaction_by_digest_mayan_deposit.json").as_bytes().to_vec()));
+
+        let transaction = SuiIndexer::new(client).get_transaction("G923qmxFaS7YUyZ3maYVpJBeW3yLCcMCxDyNJ8kJWfUz").await.unwrap().unwrap();
+        let transaction = crate::provider::transactions_mapper::map_transaction(transaction).unwrap();
+
+        assert_eq!(transaction.transaction_type, primitives::TransactionType::SmartContractCall);
+    }
 
     #[tokio::test]
     async fn test_get_transactions_by_address() {

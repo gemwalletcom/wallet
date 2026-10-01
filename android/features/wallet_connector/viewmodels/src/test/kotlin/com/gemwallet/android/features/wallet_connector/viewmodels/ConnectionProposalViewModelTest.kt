@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockWallet
@@ -18,24 +19,20 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectException
+import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
@@ -45,14 +42,13 @@ class ConnectionProposalViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val models = mutableListOf<ConnectionProposalViewModel>()
 
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     @After
     fun tearDown() {
         models.forEach { it.viewModelScope.cancel() }
         models.clear()
-        Dispatchers.resetMain()
     }
 
     private val main = mockWallet(id = mockWalletId(address = "0xabc"), name = "Main Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")))
@@ -64,7 +60,6 @@ class ConnectionProposalViewModelTest {
     private val verifyContext = mockWalletConnectVerifyContext()
 
     private fun service(): GemWalletConnectServiceInterface = mockk(relaxed = true) {
-        every { shouldProcessProposal(any()) } returns true
         every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata(name = "Uniswap").toGem()
         coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
             proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
@@ -74,6 +69,8 @@ class ConnectionProposalViewModelTest {
     }
 
     private fun viewModel(service: GemWalletConnectServiceInterface = service(), approve: ApproveWalletConnection = mockk(relaxed = true)) = ConnectionProposalViewModel(
+        proposal = proposal,
+        verifyContext = verifyContext,
         approveWalletConnection = approve,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
@@ -89,26 +86,23 @@ class ConnectionProposalViewModelTest {
     fun `a prepared proposal offers the default wallet and enables the button`() = runTest(dispatcher) {
         val model = viewModel()
 
-        model.onProposal(proposal, verifyContext) {}
-
         assertEquals(main, model.selectedWallet.first { it != null })
         assertEquals(listOf(main, secondary), model.availableWallets.value)
         assertEquals(listOf("Main Wallet", "Second Wallet"), model.availableWalletSections.value.flatMap { it.rows }.map { it.name })
-        assertEquals("Uniswap", model.proposal.value?.title)
+        assertEquals("Uniswap", model.peer.value?.title)
         assertEquals(WalletConnectionVerificationStatus.VERIFIED, model.state.value.verificationStatus)
         assertEquals(ButtonState.Enabled, model.buttonState.first { it == ButtonState.Enabled })
     }
 
     @Test
-    fun `a proposal Core has already seen is dropped`() = runTest(dispatcher) {
-        val service = service()
-        every { service.shouldProcessProposal(any()) } returns false
+    fun `rejecting while the proposal loads refuses it to the dapp`() = runTest(dispatcher) {
+        val approve: ApproveWalletConnection = mockk(relaxed = true)
+        val model = viewModel(approve = approve)
 
-        val model = viewModel(service = service)
-        model.onProposal(proposal, verifyContext) {}
+        model.onReject()
+        advanceUntilIdle()
 
-        assertNull(model.selectedWallet.value)
-        assertEquals(ButtonState.Disabled, model.buttonState.value)
+        verify { approve.rejectConnection(proposal, GemWalletConnectRejectionReason.USER_REJECTED, any(), any()) }
     }
 
     @Test
@@ -118,14 +112,13 @@ class ConnectionProposalViewModelTest {
             GemWalletConnectException.UnsupportedChains() to "Unsupported chain",
             GemWalletConnectException.UnsupportedWallets() to "No supported wallets",
         ).forEach { (error, text) ->
-            val notified = CompletableDeferred<String>()
             val approve: ApproveWalletConnection = mockk(relaxed = true)
             val service = service()
             coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } throws error
 
-            viewModel(service = service, approve = approve).onProposal(proposal, verifyContext) { notified.complete(it) }
+            val model = viewModel(service = service, approve = approve)
 
-            assertEquals(text, notified.await())
+            assertEquals(text, model.refusalMessages.first())
             advanceUntilIdle()
             verify { approve.rejectConnection(proposal, any(), any(), any()) }
         }
@@ -134,7 +127,6 @@ class ConnectionProposalViewModelTest {
     @Test
     fun `an unknown wallet id leaves the selection alone`() = runTest(dispatcher) {
         val model = viewModel()
-        model.onProposal(proposal, verifyContext) {}
         model.selectedWallet.first { it != null }
 
         model.onWalletSelected(com.wallet.core.primitives.WalletId("multicoin_0xnope"))

@@ -869,7 +869,7 @@ pub(crate) fn screaming_snake_case(name: &str) -> String {
         .enumerate()
         .flat_map(|(index, character)| {
             let separator = (character.is_ascii_uppercase() && index > 0 && !characters[index - 1].is_ascii_uppercase()).then_some('_');
-            separator.into_iter().chain(character.to_ascii_uppercase().to_string().chars().collect::<Vec<_>>())
+            separator.into_iter().chain([character.to_ascii_uppercase()])
         })
         .collect()
 }

@@ -69,8 +69,8 @@ flowchart LR
 | The user picks an asset | quotes are asked at once | |
 | The user types an amount | quotes are asked shortly after typing stops | |
 | The screen stays open | quotes refresh every `30 seconds` | |
-| A refresh | You Receive stays on screen until the new quote arrives | |
-| The amount, an asset or the slippage changes | You Receive clears; nothing else clears it | |
+| A refresh, including going back from Confirm | You Receive shows only the loading indicator until the new quote arrives, never the old amount with it | |
+| The amount, an asset or the slippage changes | You Receive clears | |
 | An answer arrives for an amount or pair the user has already changed | it is thrown away | |
 | The price impact is a loss of more than `1%` | Details shows the Price Impact | |
 | The user picks another provider | the choice survives refreshes | |

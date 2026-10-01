@@ -11,6 +11,7 @@ impl StoreTransactionsConsumerConfig {
             max_asset_transfer_count: 10,
             min_amount_usd: 0.01,
             primary_price_max_age: DAY,
+            batch_size: 100,
         }
     }
 }

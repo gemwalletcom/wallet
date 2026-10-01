@@ -1,6 +1,7 @@
 use ::signer::Signer;
 use alloy_primitives::hex;
 use gem_evm::eip712::hash_typed_data;
+use num_bigint::BigInt;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     ChainSigner, HyperliquidOrder, NumberIncrementer, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualType, SignerError, SignerInput, TransactionInputType,
@@ -333,7 +334,8 @@ impl ChainSigner for HyperCoreSigner {
 
     fn sign_withdrawal(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let asset = input.input_type.get_asset();
-        let amount = BigNumberFormatter::value(&input.value.to_string(), asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let value = BigInt::from(input.value.clone()) + &input.fee.fee;
+        let amount = BigNumberFormatter::value(&value.to_string(), asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
         let timestamp = Self::timestamp_ms();
 
         let withdrawal_request = WithdrawalRequest::new(amount, timestamp, input.destination_address.clone());
@@ -369,7 +371,7 @@ mod tests {
     use primitives::transaction_load_metadata::AgentPrivateKey;
     use primitives::{
         Asset, AssetId, AssetType, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, SignerInput, StakeType, SwapProvider, TransactionFee,
-        TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID,
+        TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID, known_assets::HYPERCORE_PERPETUAL_USDC,
     };
     use std::sync::Arc;
 
@@ -593,5 +595,25 @@ mod tests {
 
         assert!(!market_order.is_buy);
         assert!(!market_order.reduce_only);
+    }
+
+    #[test]
+    fn test_sign_withdrawal() {
+        let input = SignerInput::new(
+            TransactionLoadInput {
+                value: BigUint::from(1_000_000u64),
+                ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Withdrawal { asset: HYPERCORE_PERPETUAL_USDC.clone() })
+            },
+            TransactionFee {
+                fee: BigInt::from(1_000_000),
+                fee_asset: HYPERCORE_PERPETUAL_USDC.id.clone(),
+                ..TransactionFee::mock()
+            },
+        );
+
+        let signed: serde_json::Value = serde_json::from_str(&HyperCoreSigner.sign_withdrawal(&input, &[2u8; 32]).unwrap()).unwrap();
+
+        assert_eq!(signed["action"]["type"], "withdraw3");
+        assert_eq!(signed["action"]["amount"], "2", "hyperliquid keeps 1 USDC of the signed amount, so the 1 USDC the confirm showed arrives");
     }
 }

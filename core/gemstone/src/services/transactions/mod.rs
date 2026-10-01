@@ -19,6 +19,7 @@ pub use model::{
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
+use crate::services::balance::GemBalanceService;
 use crate::services::chain::rules as chain_rules;
 use crate::services::name::GemNameService;
 use crate::services::swap::GemSwapPair;
@@ -30,6 +31,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 pub struct GemTransactionsService {
     api: Arc<GemDeviceApiClient>,
     assets: Arc<GemAssetsService>,
+    balance: Arc<GemBalanceService>,
     store: Arc<dyn GemTransactionStateStore>,
     names: Arc<GemNameService>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
@@ -51,6 +53,7 @@ impl GemTransactionsService {
     pub fn new(
         api: Arc<GemDeviceApiClient>,
         assets: Arc<GemAssetsService>,
+        balance: Arc<GemBalanceService>,
         store: Arc<dyn GemTransactionStateStore>,
         names: Arc<GemNameService>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
@@ -60,6 +63,7 @@ impl GemTransactionsService {
         Self {
             api,
             assets,
+            balance,
             store,
             names,
             wallet_preferences,
@@ -93,7 +97,7 @@ impl GemTransactionsService {
 
         let new_asset_ids = self.assets.sync_missing_assets(rules::transaction_asset_ids(&response.transactions)).await?;
         if !new_asset_ids.is_empty() {
-            self.assets.add_missing_balances(wallet_id.clone(), new_asset_ids).await?;
+            self.balance.add_missing_balances(wallet_id.clone(), new_asset_ids).await?;
         }
         let pending = rules::pending_transactions(&response.transactions);
         self.store.add_transactions(wallet_id.clone(), response.transactions).await?;

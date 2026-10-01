@@ -3,6 +3,7 @@ package com.gemwallet.android.features.wallet.viewmodels
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.GetAllWallets
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockGemWalletRow
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
@@ -11,17 +12,14 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletPlaceholder
@@ -34,17 +32,17 @@ import uniffi.gemstone.GemWalletSubtitle
 class WalletsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
+
     private val wallets = MutableStateFlow<List<GemWalletSection>>(emptyList())
     private val models = mutableListOf<WalletsViewModel>()
-
-    @Before
-    fun setUp() = Dispatchers.setMain(dispatcher)
 
     @After
     fun tearDown() {
         models.forEach { it.viewModelScope.cancel() }
         models.clear()
-        Dispatchers.resetMain()
     }
 
     @Test

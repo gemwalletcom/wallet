@@ -1,11 +1,12 @@
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use num_bigint::BigInt;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{Perpetual, PerpetualData};
-use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AutocloseValidation, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualProvider, TpslType, Wallet, WalletId};
+use primitives::{
+    Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AutocloseValidation, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualPrice, PerpetualProvider, TpslType, Wallet, WalletId,
+};
 
 use super::details::GemPerpetualDetailsService;
 use super::model::{GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualTransferData};
@@ -42,7 +43,7 @@ pub struct MemoryPerpetualStore {
     pub positions: Mutex<Vec<PerpetualPosition>>,
     pub position_writes: Mutex<Vec<(Vec<PerpetualPosition>, Vec<String>)>>,
     pub markets: Mutex<Vec<PerpetualMarketData>>,
-    pub price_writes: Mutex<Vec<HashMap<String, f64>>>,
+    pub price_writes: Mutex<Vec<Vec<PerpetualPrice>>>,
     pub deleted: Mutex<u32>,
     pub cleared_collateral: Mutex<Vec<Vec<AssetId>>>,
     pub perpetual_writes: Mutex<Vec<Vec<PerpetualData>>>,
@@ -82,7 +83,7 @@ impl GemPerpetualStore for MemoryPerpetualStore {
         self.markets.lock().unwrap().push(market);
         Ok(())
     }
-    async fn update_prices(&self, prices: HashMap<String, f64>) -> Result<(), GemServiceError> {
+    async fn update_prices(&self, prices: Vec<PerpetualPrice>) -> Result<(), GemServiceError> {
         self.price_writes.lock().unwrap().push(prices);
         Ok(())
     }
@@ -96,6 +97,7 @@ pub struct PerpetualTestkit {
     pub recents: Arc<MemoryRecentActivityStore>,
     pub asset_store: Arc<MemoryAssetStore>,
     pub wallets: Arc<MemoryWalletStore>,
+    pub balance: Arc<GemBalanceService>,
     pub balances: Arc<MemoryBalanceStore>,
     pub preferences: Arc<GemPreferencesService>,
     pub wallet_preferences: Arc<GemWalletPreferencesService>,
@@ -158,7 +160,7 @@ impl PerpetualTestkit {
             store.clone(),
             assets,
             preferences.clone(),
-            balance,
+            balance.clone(),
             wallet_preferences.clone(),
             session.clone(),
             Arc::new(GemRecentActivityService::new(recents.clone(), session)),
@@ -171,6 +173,7 @@ impl PerpetualTestkit {
             recents,
             asset_store,
             wallets,
+            balance,
             balances,
             preferences,
             wallet_preferences,
@@ -183,6 +186,7 @@ impl PerpetualTestkit {
         let transactions = Arc::new(GemTransactionsService::new(
             device_api.clone(),
             Arc::new(GemAssetsService::mock(self.provider.clone(), self.asset_store.clone())),
+            self.balance.clone(),
             Arc::new(MemoryTransactionStateStore::default()),
             Arc::new(GemNameService::new(device_api, Arc::new(MemoryAddressStore::default()))),
             self.wallet_preferences.clone(),

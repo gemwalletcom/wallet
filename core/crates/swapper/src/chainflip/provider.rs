@@ -353,15 +353,6 @@ mod tests {
     use primitives::AssetId;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
-    #[cfg(feature = "swap_integration_tests")]
-    use crate::{NativeProvider, Options};
-    #[cfg(feature = "swap_integration_tests")]
-    use primitives::{
-        asset_constants::TRON_USDT_TOKEN_ID,
-        known_assets::TRON_USDT,
-        swap::{SwapQuoteDataType, SwapStatus},
-    };
-
     #[test]
     fn test_validate_minimum_amount() {
         let minimum_amount = BigUint::from(68_000_000u32);
@@ -751,9 +742,20 @@ mod tests {
 
         assert_eq!(get_best_quote(serde_json::from_value(quotes).unwrap(), &request), Err(SwapperError::InvalidRoute));
     }
+}
+
+#[cfg(all(test, feature = "swap_integration_tests"))]
+mod swap_integration_tests {
+    use super::*;
+    use crate::{NativeProvider, Options, SwapperQuoteAsset};
+    use primitives::{
+        AssetId,
+        asset_constants::TRON_USDT_TOKEN_ID,
+        known_assets::TRON_USDT,
+        swap::{SwapQuoteDataType, SwapStatus},
+    };
 
     #[tokio::test]
-    #[cfg(feature = "swap_integration_tests")]
     async fn test_get_swap_result() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = ChainflipProvider::new(network_provider.clone());
@@ -770,7 +772,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[cfg(feature = "swap_integration_tests")]
     async fn test_get_quote_data_tron_usdt_to_arbitrum_usdc() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = ChainflipProvider::new(network_provider);
@@ -799,7 +800,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[cfg(feature = "swap_integration_tests")]
     async fn test_get_quote_data_tron_usdt_to_trx() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let swap_provider = ChainflipProvider::new(Arc::new(NativeProvider::default()));
         let request = QuoteRequest {

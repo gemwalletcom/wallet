@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.integration
 
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -53,7 +54,7 @@ class GemListRowViewActionTest {
             }
         }
 
-        composeRule.onNodeWithText(VALUE).performClick()
+        composeRule.onNodeWithText(VALUE).assertHasNoClickAction().performClick()
 
         assertEquals(null, selected)
     }

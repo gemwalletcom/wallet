@@ -17,6 +17,4 @@ dependencies {
     implementation(project(":features:nft:viewmodels"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
-
-    testImplementation(libs.junit)
 }

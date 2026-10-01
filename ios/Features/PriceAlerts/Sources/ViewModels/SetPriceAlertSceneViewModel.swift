@@ -22,7 +22,7 @@ public final class SetPriceAlertSceneViewModel {
     private let currencyFormatter: CurrencyFormatter
 
     private var session: GemPriceAlertSession
-    private var amounts: [SetPriceAlertType: String] = [:]
+    private var amounts: [Gemstone.PriceAlertNotificationType: String] = [:]
     var isPresentingAlertMessage: AlertMessage?
 
     public let assetQuery: ObservableQuery<AssetQuery>
@@ -48,9 +48,9 @@ public final class SetPriceAlertSceneViewModel {
         pricedSession.viewState()
     }
 
-    var type: SetPriceAlertType {
-        get { SetPriceAlertType(notificationType: session.notificationType.toPrimitives()) }
-        set { session = session.onType(notificationType: newValue.notificationType.toGem()).onInput(input: NumberInput.double(amounts[newValue, default: .empty])) }
+    var type: Gemstone.PriceAlertNotificationType {
+        get { session.notificationType }
+        set { session = session.onType(notificationType: newValue).onInput(input: NumberInput.double(amounts[newValue, default: .empty])) }
     }
 
     var amount: String {
@@ -62,11 +62,7 @@ public final class SetPriceAlertSceneViewModel {
     }
 
     func suggestions(_ viewState: GemPriceAlertViewState) -> [PriceSuggestion] {
-        let values = switch type {
-        case .price: viewState.priceSuggestions
-        case .percentage: viewState.percentageSuggestions
-        }
-        return values.map { PriceSuggestion(title: $0.label.text(), inputValue: $0.inputText) }
+        viewState.suggestions.map { PriceSuggestion(title: $0.label.text(), inputValue: $0.inputText) }
     }
 
     func directionTitle(_ viewState: GemPriceAlertViewState) -> String {

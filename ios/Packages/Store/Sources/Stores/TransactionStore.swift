@@ -115,6 +115,7 @@ public struct TransactionStore: Sendable {
         transactionId: TransactionId,
         state: TransactionState,
         fee: String?,
+        value: String?,
         blockNumber: Int?,
         metadata: String?,
         confirmationEtaSeconds: UInt32?,
@@ -123,6 +124,7 @@ public struct TransactionStore: Sendable {
         let values: [ColumnAssignment?] = [
             TransactionRecord.Columns.state.set(to: state.rawValue),
             fee.map { TransactionRecord.Columns.fee.set(to: $0) },
+            value.map { TransactionRecord.Columns.value.set(to: $0) },
             blockNumber.map { TransactionRecord.Columns.blockNumber.set(to: $0) },
             metadata.map { TransactionRecord.Columns.metadata.set(to: $0) },
             confirmationEtaSeconds.map { TransactionRecord.Columns.confirmationEtaSeconds.set(to: $0) },

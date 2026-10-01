@@ -32,7 +32,7 @@ impl<C: Client> ChainToken for HyperCoreClient<C> {
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
-mod tests {
+mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{USDC_TOKEN_ID, create_hypercore_test_client};
 

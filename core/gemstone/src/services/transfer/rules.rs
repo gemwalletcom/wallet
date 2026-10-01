@@ -1,4 +1,5 @@
 use chrono::Utc;
+use gem_hypercore::perpetual_formatter::usdc_value;
 use num_bigint::BigInt;
 use primitives::swap::{ApprovalData, SwapQuoteDataType};
 use primitives::{
@@ -141,10 +142,11 @@ impl TransferInput for TransactionInputType {
     }
 
     fn fee_asset(&self) -> Asset {
-        if let Self::Perpetual { perpetual_type, .. } = self {
-            return perpetual_type.base_asset().clone();
+        match self {
+            Self::Perpetual { perpetual_type, .. } => perpetual_type.base_asset().clone(),
+            Self::Withdrawal { asset } => asset.clone(),
+            _ => asset_rules::fee_asset(self.transaction_asset()),
         }
-        asset_rules::fee_asset(self.transaction_asset())
     }
 
     fn default_fee_priority(&self) -> FeePriority {
@@ -259,6 +261,7 @@ impl TransferInput for TransactionInputType {
                     direction: data.direction.clone(),
                     is_liquidation: None,
                     provider: None,
+                    referral_fee: None,
                 })?),
                 PerpetualType::Reduce { data } => Some(serde_json::to_value(TransactionPerpetualMetadata {
                     pnl: 0.0,
@@ -266,6 +269,7 @@ impl TransferInput for TransactionInputType {
                     direction: data.position_direction.clone(),
                     is_liquidation: None,
                     provider: None,
+                    referral_fee: None,
                 })?),
                 PerpetualType::Modify { .. } => None,
             },
@@ -489,6 +493,13 @@ impl GemTransferData {
         self.input_type.application_short_name()
     }
 
+    pub(crate) fn fee_available_value(&self, balance: &GemAssetBalance) -> BigInt {
+        match &self.input_type {
+            TransactionInputType::Withdrawal { .. } => self.available_value(balance),
+            _ => BigInt::from(balance.available.clone()),
+        }
+    }
+
     pub(crate) fn available_value(&self, balance: &GemAssetBalance) -> BigInt {
         let asset = self.input_type.get_asset();
         match &self.input_type {
@@ -530,7 +541,10 @@ impl GemPendingTransactionInput {
             TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => self.simulation.and_then(|simulation| simulation.header),
             _ => None,
         };
-        let transfer_value = self.value.to_biguint().ok_or_else(|| "negative transfer value".to_string())?;
+        let transfer_value = match transfer.input_type.get_perpetual_type().ok().and_then(PerpetualType::fiat_value) {
+            Some(fiat_value) => usdc_value(fiat_value),
+            None => self.value.to_biguint().ok_or_else(|| "negative transfer value".to_string())?,
+        };
         let (recipient, value, memo) = match &approval {
             Some(approval) => (approval.spender.clone(), approval.value.clone(), None),
             None => {
@@ -676,6 +690,30 @@ mod tests {
             .header_kind(),
             GemTransactionHeaderKind::Symbol
         );
+    }
+
+    #[test]
+    fn test_a_pending_perpetual_order_is_worth_its_size_not_its_margin() {
+        let market = Asset {
+            id: AssetId::from_token(Chain::HyperCore, "perpetual::SOL"),
+            ..Asset::from_chain(Chain::HyperCore)
+        };
+        let data = PerpetualConfirmData {
+            fiat_value: 250.0,
+            margin_amount: 25.0,
+            leverage: 10,
+            ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)
+        };
+        let open = TransactionInputType::Perpetual {
+            asset: market,
+            perpetual_type: PerpetualType::Open { data },
+        };
+        let mut input = GemPendingTransactionInput::mock(open, TransactionType::PerpetualOpenPosition, "order:1", 0, 1);
+        input.value = BigInt::from(25_000_000);
+
+        let transaction = input.pending_transaction().unwrap().unwrap();
+
+        assert_eq!(transaction.value, BigUint::from(250_000_000u64), "the row shows the position size, as the indexed fill does, not the margin");
     }
 
     #[test]
@@ -880,6 +918,8 @@ mod tests {
             other_collateral.id,
             "the fee asset is the collateral the transaction itself carries, not a chain-wide default, so it can never disagree with the balance the load reads"
         );
+        let withdrawal = TransactionInputType::Withdrawal { asset: HYPERCORE_PERPETUAL_USDC.clone() };
+        assert_eq!(withdrawal.fee_asset().id, HYPERCORE_PERPETUAL_USDC.id, "the withdrawal fee comes out of the balance being withdrawn");
         let nft = TransactionInputType::TransferNft { asset: token, nft_asset: NFTAsset::mock() };
         assert_eq!(nft.fee_asset().id, AssetId::from_chain(Chain::Ethereum));
         let spl = TransactionInputType::Transfer { asset: Asset::mock_spl_token() };

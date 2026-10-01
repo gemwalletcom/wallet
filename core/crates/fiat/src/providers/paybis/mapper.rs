@@ -400,7 +400,7 @@ mod tests {
         let data: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_no_changes.json")).unwrap();
 
         let result = map_webhook(data).unwrap();
-        assert!(matches!(result, FiatWebhook::None), "Verification webhooks should map to FiatWebhook::None");
+        assert_eq!(result, FiatWebhook::None);
     }
 
     #[test]

@@ -35,4 +35,4 @@ One canonical statement per rule. Root `AGENTS.md` routes tasks and defines non-
 
 ## Shared Skill Layout
 
-`.agents/skills/<name>/SKILL.md` is the canonical source, with YAML `name` and `description`. `.claude/skills` is a symlink to `../.agents/skills`; root and platform `CLAUDE.md` files link to `AGENTS.md`. Preserve those links and edit the shared sources. Personal ignore rules may hide these paths, so check tracked status when adding a skill. Keep agent-specific hooks and local settings out of the repository.
+`.agents/skills/<name>/SKILL.md` is the canonical source, with YAML `name` and `description`. `.claude/skills` is a symlink to `../.agents/skills`; preserve that link and edit the shared sources. Repository and platform instructions live in `AGENTS.md`. Personal ignore rules may hide these paths, so check tracked status when adding a skill. Keep agent-specific hooks and local settings out of the repository.

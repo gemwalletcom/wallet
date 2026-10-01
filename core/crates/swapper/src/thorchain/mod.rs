@@ -66,10 +66,10 @@ impl THORChainNetwork {
         }
     }
 
-    pub fn affiliate_collector_address(&self) -> &'static str {
+    pub fn native_asset(&self) -> &'static str {
         match self {
-            Self::Thorchain => "thor1dl7un46w7l7f3ewrnrm6nq58nerjtp0dradjtd",
-            Self::Mayachain => "maya1dl7un46w7l7f3ewrnrm6nq58nerjtp0dr2n7aa",
+            Self::Thorchain => "THOR.RUNE",
+            Self::Mayachain => "MAYA.CACAO",
         }
     }
 }

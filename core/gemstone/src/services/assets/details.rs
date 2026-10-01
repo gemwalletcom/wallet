@@ -155,6 +155,7 @@ impl GemAssetDetailsService {
             metadata,
             ..
         } = asset_data;
+        let price_alerts = self.price_alerts.is_available().then_some(price_alerts);
         let owner_address = Some(account.address).non_empty();
         let price_change_percentage_24h = price.as_ref().map(|price| price.price_change_percentage_24h);
         let price = price.map(|price| price.price);
@@ -176,7 +177,7 @@ impl GemAssetDetailsService {
                 )
             },
             title: rules::asset_title(&asset),
-            state: rules::details_state(wallet_type, &metadata, &banner_events, &price_alerts),
+            state: rules::details_state(wallet_type, &metadata, &banner_events, price_alerts.as_deref()),
             banner: visible_banners.into_iter().next(),
             sections: rules::details_sections(rules::DetailsSectionsInput {
                 wallet_type,
@@ -186,7 +187,7 @@ impl GemAssetDetailsService {
                 price,
                 price_change_percentage_24h,
                 currency,
-                price_alerts: &price_alerts,
+                price_alerts: price_alerts.as_deref(),
                 fee_balance_metadata,
                 banner_events: &banner_events,
             }),

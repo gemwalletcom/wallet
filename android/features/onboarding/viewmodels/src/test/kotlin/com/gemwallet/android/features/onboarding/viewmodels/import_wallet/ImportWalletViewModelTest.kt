@@ -4,6 +4,7 @@ import android.content.Context
 import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.NameServiceMock
 import com.gemwallet.android.testkit.mockNameRecord
 import com.gemwallet.android.testkit.mockWallet
@@ -16,16 +17,14 @@ import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNameRecordState
@@ -38,6 +37,11 @@ import uniffi.gemstone.GemWalletServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ImportWalletViewModelTest {
+
+    private val dispatcher = StandardTestDispatcher()
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     private val chain = Chain.Ethereum
 
@@ -66,13 +70,10 @@ class ImportWalletViewModelTest {
     @After
     fun tearDown() {
         unmockkAll()
-        Dispatchers.resetMain()
     }
 
     @Test
-    fun privateKeyInputNeverReachesTheResolver() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
-        Dispatchers.setMain(dispatcher)
+    fun privateKeyInputNeverReachesTheResolver() = runTest(dispatcher) {
         val addressInput = NameServiceMock()
         val viewModel = viewModel(addressInput, dispatcher)
 
@@ -86,9 +87,7 @@ class ImportWalletViewModelTest {
     }
 
     @Test
-    fun viewAddressInputResolves() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
-        Dispatchers.setMain(dispatcher)
+    fun viewAddressInputResolves() = runTest(dispatcher) {
         val addressInput = NameServiceMock()
         val viewModel = viewModel(addressInput, dispatcher)
 
@@ -102,9 +101,7 @@ class ImportWalletViewModelTest {
     }
 
     @Test
-    fun anImportTappedAsTheScreenOpensIsStillNamed() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
-        Dispatchers.setMain(dispatcher)
+    fun anImportTappedAsTheScreenOpensIsStillNamed() = runTest(dispatcher) {
         val service = service()
         val viewModel = viewModel(NameServiceMock(), dispatcher, service)
         val request = slot<GemWalletImportRequest>()
@@ -120,9 +117,7 @@ class ImportWalletViewModelTest {
     }
 
     @Test
-    fun continuingWithAnExistingWalletOffersPush() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
-        Dispatchers.setMain(dispatcher)
+    fun continuingWithAnExistingWalletOffersPush() = runTest(dispatcher) {
         val service = service()
         coEvery { service.importWallet(any()) } returns GemWalletImportResult.Existing(mockWallet(name = "Main").toGem())
         val enablePush = mockk<EnablePushForNewWallet>(relaxed = true)
@@ -146,9 +141,7 @@ class ImportWalletViewModelTest {
     }
 
     @Test
-    fun aSuggestionCompletesTheLastWord() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
-        Dispatchers.setMain(dispatcher)
+    fun aSuggestionCompletesTheLastWord() = runTest(dispatcher) {
         val viewModel = viewModel(NameServiceMock(), dispatcher)
 
         viewModel.importSelect(ImportType(GemWalletImportKind.PHRASE, chain))
@@ -162,9 +155,7 @@ class ImportWalletViewModelTest {
     }
 
     @Test
-    fun aCursorInsideThePhraseHidesSuggestions() = runTest {
-        val dispatcher = StandardTestDispatcher(testScheduler)
-        Dispatchers.setMain(dispatcher)
+    fun aCursorInsideThePhraseHidesSuggestions() = runTest(dispatcher) {
         val viewModel = viewModel(NameServiceMock(), dispatcher)
 
         viewModel.importSelect(ImportType(GemWalletImportKind.PHRASE, chain))

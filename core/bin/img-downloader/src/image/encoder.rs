@@ -32,3 +32,17 @@ fn compress_png(bytes: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>>
     let options = oxipng::Options::from_preset(4);
     Ok(oxipng::optimize_from_memory(&bytes, &options)?)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::ImageFormat;
+
+    #[test]
+    fn test_encode_png() {
+        let bytes = encode_png(DynamicImage::new_rgba8(400, 200), 256).unwrap();
+
+        assert_eq!(image::guess_format(&bytes).unwrap(), ImageFormat::Png);
+        assert_eq!(image::load_from_memory(&bytes).unwrap().dimensions(), (256, 256));
+    }
+}

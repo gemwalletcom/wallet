@@ -45,6 +45,7 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
     internal val pendingNavigation: StateFlow<PendingNavigation?> = _pendingNavigation.asStateFlow()
 
     fun pendIntent(intent: Intent) {
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
         val code = intent.dataString ?: return
         _pendingNavigation.update { PendingNavigation.FromLink(code) }
     }

@@ -105,7 +105,7 @@ impl ProviderFactory {
                 let chain = CosmosChain::from_chain(chain).unwrap();
                 Box::new(CosmosClient::new(chain, gem_client))
             }
-            ChainType::Aptos => Box::new(AptosClient::new(gem_client)),
+            ChainType::Aptos => Box::new(AptosClient::new(gem_client.clone()).with_archive(config.indexers.aptos.configure_client(gem_client))),
             ChainType::Sui => Box::new(SuiProvider::new(
                 SuiClient::new_with_transport(config.url, Arc::new(ReqwestGrpcTransport::new_with_client(reqwest_client))),
                 Box::new(SuiIndexer::new(config.indexers.sui.configure_client(gem_client))),

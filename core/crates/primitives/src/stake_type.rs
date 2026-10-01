@@ -3,7 +3,7 @@ use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RedelegateData {
     pub delegation: Delegation,
     #[serde(rename = "toValidator")]
@@ -19,7 +19,7 @@ pub enum Resource {
     Energy,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "type", content = "content")]
 pub enum StakeType {
     Stake(DelegationValidator),
