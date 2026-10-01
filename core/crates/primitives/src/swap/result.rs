@@ -44,7 +44,7 @@ impl From<&Transaction> for SwapResultRequest {
         Self {
             chain: transaction.id.chain,
             transaction_hash: transaction.id.hash.clone(),
-            deposit_address: Some(transaction.to.clone()).filter(|address| !address.is_empty()),
+            deposit_address: transaction.recipient_address(),
             deposit_memo: transaction.memo.clone().filter(|memo| !memo.is_empty()),
         }
     }
@@ -53,6 +53,8 @@ impl From<&Transaction> for SwapResultRequest {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::TransactionUtxoInput;
+    use num_bigint::BigUint;
 
     #[test]
     fn test_swap_result_request_from_transaction() {
@@ -74,5 +76,17 @@ mod tests {
         });
         assert_eq!(request.deposit_address, None);
         assert_eq!(request.deposit_memo, None);
+
+        let input = |address: &str, value: u32| TransactionUtxoInput {
+            address: address.to_string(),
+            value: BigUint::from(value),
+        };
+        let request = SwapResultRequest::from(&Transaction {
+            to: String::new(),
+            utxo_inputs: Some(vec![input("sender", 166_576)]),
+            utxo_outputs: Some(vec![input("sender", 66_432), input("deposit", 100_000)]),
+            ..Transaction::mock()
+        });
+        assert_eq!(request.deposit_address.as_deref(), Some("deposit"));
     }
 }
