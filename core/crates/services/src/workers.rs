@@ -25,7 +25,7 @@ use crate::prices::{
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
 use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater};
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
-use crate::transactions::{InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, TransactionQueueMetrics, VaultAddressesUpdater};
+use crate::transactions::{CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
 
 #[derive(Clone)]
@@ -434,8 +434,16 @@ impl Services {
         let pending_config = PendingTransactionsUpdaterConfig::from_config(&config).await?;
         let providers = Arc::new(self.chain_providers(&service_user_agent("daemon", Some("transactions"))));
         let swapper = self.swapper();
-        let in_transit_updater = InTransitUpdater::new(database.clone(), in_transit_config, swapper.clone(), stream_producer.clone(), SwapVaultAddressClient::new(cacher.clone()), metrics.clone());
-        let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer, database, pending_config, metrics);
+        let in_transit_updater = InTransitUpdater::new(
+            database.clone(),
+            in_transit_config,
+            swapper.clone(),
+            stream_producer.clone(),
+            SwapVaultAddressClient::new(cacher.clone()),
+            metrics.clone(),
+            CheckSchedule::new(cacher.clone(), TransactionQueue::InTransit),
+        );
+        let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer, database, pending_config, metrics, CheckSchedule::new(cacher.clone(), TransactionQueue::Pending));
         Ok(TransactionJobs {
             in_transit_updater: Arc::new(in_transit_updater),
             pending_updater: Arc::new(pending_updater),

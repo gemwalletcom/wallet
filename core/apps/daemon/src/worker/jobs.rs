@@ -211,7 +211,7 @@ impl WorkerJob {
             PublishPricesAssetsMetadata => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceMetadataPublishInterval)),
             PublishMissingPrices => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceMissingPublishInterval)),
             UpdateInTransitTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerInTransitUpdate)),
-            UpdatePendingTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerPendingUpdate)),
+            UpdatePendingTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionPendingTimer)),
             UpdateSwapVaultAddresses => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerSwapVaultAddresses)),
             AlertStakeRewards => JobSpec::new(WorkerService::Alerter, JobInterval::Config(ConfigKey::AlerterStakeRewardsTimer)),
             ClassifyPerpetualAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualClassifierInterval)),

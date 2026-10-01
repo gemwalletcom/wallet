@@ -1,5 +1,6 @@
 mod address_details_client;
 mod address_names_client;
+mod check_schedule;
 mod fetch_address_transactions_consumer;
 mod fetch_blocks_consumer;
 mod fetch_transaction_consumer;
@@ -22,6 +23,7 @@ mod wallet_stream_consumer;
 
 pub use address_details_client::AddressDetailsClient;
 pub use address_names_client::AddressNamesClient;
+pub use check_schedule::CheckSchedule;
 pub use fetch_address_transactions_consumer::FetchAddressTransactionsConsumer;
 pub use fetch_blocks_consumer::FetchBlocksConsumer;
 pub use fetch_transaction_consumer::FetchTransactionConsumer;
@@ -37,7 +39,7 @@ pub use store_transactions_perpetuals_consumer::StoreTransactionsPerpetualsConsu
 pub use store_transactions_swaps_consumer::StoreTransactionsSwapsConsumer;
 pub use store_transactions_swaps_consumer_config::StoreTransactionsSwapsConsumerConfig;
 pub use swap_state::{swap_result_metadata, swap_state_updates, transaction_with_swap_result};
-pub use transaction_queue_metrics::{TransactionQueue, TransactionQueueMetrics};
+pub use transaction_queue_metrics::{TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
 pub use transactions_client::TransactionsClient;
 pub use vault_address::SwapVaultAddressClient;
 pub use vault_addresses_updater::VaultAddressesUpdater;
