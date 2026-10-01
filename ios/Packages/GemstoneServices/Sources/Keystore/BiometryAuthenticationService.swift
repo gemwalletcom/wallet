@@ -63,14 +63,9 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
     }
 
     public var isPasscodeSet: Bool {
-        do {
-            try LAContext().canEvaluatePolicyThrowing(policy: .deviceOwnerAuthentication)
-            return true
-        } catch let error as LAError {
-            return error.code != .passcodeNotSet
-        } catch {
-            return true
-        }
+        var error: NSError?
+        LAContext().canEvaluatePolicy(.deviceOwnerAuthentication, error: &error)
+        return error?.code != LAError.passcodeNotSet.rawValue
     }
 
     @MainActor
