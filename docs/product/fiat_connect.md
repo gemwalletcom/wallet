@@ -23,6 +23,7 @@ flowchart LR
 | The user types an amount | whole dollars between `$5` and `$10,000` | |
 | More than one provider quoted | the user can pick another; the choice survives refreshes | |
 | The screen stays open | quotes refresh every `5 minutes` | |
+| The user comes back to the screen after a refresh was due | quotes are fetched again at once, unless the last request failed | a quote kept while the app was away could expire before Continue |
 | A shown quote is up to `15 minutes` old, even after a network change | it stays usable on the device that asked for it | Buy never fails just because the refresh came late |
 | The user taps Continue | the asset is already switched on in the wallet | the coins are visible on return |
 

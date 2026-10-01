@@ -507,22 +507,27 @@ class FiatViewModelTest {
     }
 
     @Test
-    fun `the quote clock only runs while the screen is started`() = runTest(testDispatcher) {
+    fun `the quote clock only runs while the screen is started and a return fetches at once`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
         try {
+            viewModel.setRefreshEnabled(true)
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
             coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
 
-            advanceTimeBy(RefreshIntervalMs + DebounceSettleMs)
+            viewModel.setRefreshEnabled(false)
+            advanceTimeBy(QuoteLifetimeMs)
             runCurrent()
             coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
 
             viewModel.setRefreshEnabled(true)
-            advanceTimeBy(RefreshIntervalMs + DebounceSettleMs)
             runCurrent()
             coVerify(exactly = 2) { service.quotes(any(), any(), any()) }
+
+            advanceTimeBy(RefreshIntervalMs + DebounceSettleMs)
+            runCurrent()
+            coVerify(exactly = 3) { service.quotes(any(), any(), any()) }
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -540,6 +545,11 @@ class FiatViewModelTest {
             coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
 
             advanceTimeBy(RefreshIntervalMs * 2)
+            runCurrent()
+            coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
+
+            viewModel.setRefreshEnabled(false)
+            viewModel.setRefreshEnabled(true)
             runCurrent()
             coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
 
@@ -573,5 +583,6 @@ class FiatViewModelTest {
         val OneBitcoin: BigInteger = BigInteger("100000000")
         const val DebounceSettleMs = 300L
         const val RefreshIntervalMs = 300_000L
+        const val QuoteLifetimeMs = 16 * 60_000L
     }
 }
