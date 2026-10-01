@@ -112,7 +112,9 @@ impl InTransitUpdater {
         };
 
         info_with_fields!("in_transit completed", chain = chain.as_ref(), hash = hash, provider = provider_name, state = state.as_ref(), elapsed = elapsed);
-        self.metrics.record_completion(TransactionQueue::InTransit, TransactionQueueGroup::new(chain, provider), elapsed_duration);
+        if transaction.created_at >= cutoff {
+            self.metrics.record_completion(TransactionQueue::InTransit, TransactionQueueGroup::new(chain, provider), elapsed_duration);
+        }
 
         self.schedule.remove(&transaction.id).await?;
         let metadata = swap_result_metadata(transaction, metadata);
