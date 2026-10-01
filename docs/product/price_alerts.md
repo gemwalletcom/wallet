@@ -21,6 +21,7 @@ flowchart LR
 | A target is hit | the alert fires once and is then removed from the list | |
 | The price crosses a round number | the push names the round number and the current price in the user's currency | the milestone is counted in that currency, so both numbers read in one currency |
 | An asset's automatic alert and targets are both off | its Price Alerts screen shows the empty state, and only then | |
+| The user enables an alert but refuses notifications | nothing changes: no alert is kept, no confirmation is shown, the Enable Price Alerts switch stays off | an alert that can never be delivered is not kept `test_an_alert_is_enabled_only_after_notifications_are_allowed` |
 
 ## Platform differences
 

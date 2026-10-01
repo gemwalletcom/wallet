@@ -208,7 +208,7 @@ class AssetViewModel @Inject constructor(
         val current = details.value?.state?.priceAlert ?: return@launch
         val asset = chainAssetInfo.value?.assetData?.asset ?: return@launch
         runCatchingCancellable { assetDetailsService.setPriceAlert(asset.toGem(), current.toggled() == GemPriceAlertToggle.ENABLED) }
-            .onSuccess { emitToast(it.message(context)) }
+            .onSuccess { toast -> toast?.let { emitToast(it.message(context)) } }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 
