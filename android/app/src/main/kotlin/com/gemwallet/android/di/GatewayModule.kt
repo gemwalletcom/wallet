@@ -147,7 +147,8 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemRewardsService(apiClient: GemstoneDeviceApiClient, authService: GemAuthService, balanceService: GemBalanceService): GemRewardsServiceInterface = GemRewardsService(apiClient, authService, balanceService)
+    fun provideGemRewardsService(apiClient: GemstoneDeviceApiClient, authService: GemAuthService, balanceService: GemBalanceService, walletSessionService: GemWalletSessionService): GemRewardsServiceInterface =
+        GemRewardsService(apiClient, authService, balanceService, walletSessionService)
 
     @Provides
     @Singleton

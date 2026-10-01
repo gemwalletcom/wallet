@@ -1,9 +1,10 @@
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::list::{GemListRow, GemListSection};
 use crate::models::state::GemLoadState;
-use primitives::{AssetId, Rewards, Wallet, WalletId};
+use primitives::{AssetId, Rewards, WalletId};
 
 use crate::services::localization::GemLocalizedText;
+use crate::services::wallet::model::{GemWalletRow, GemWalletSection};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRewardsResult {
@@ -13,10 +14,20 @@ pub struct GemRewardsResult {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemRewardsWallet {
+    pub id: WalletId,
+    pub row: GemWalletRow,
+    pub sections: Vec<GemWalletSection>,
+    pub can_choose: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRewardsViewState {
     pub state: GemLoadState,
     pub rewards: GemRewardsState,
     pub is_refreshing: bool,
+    pub wallet: Option<GemRewardsWallet>,
+    pub incoming_code: Option<GemIncomingCode>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -55,12 +66,6 @@ pub struct GemRewardsState {
     pub redemptions: Vec<GemRewardsRedemption>,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemRewardsWallets {
-    pub wallets: Vec<Wallet>,
-    pub can_choose: bool,
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemIncomingCode {
     Activate { code: String },
@@ -77,6 +82,17 @@ pub struct GemRewardsRedemption {
     pub points: GemFormattedNumber,
     pub value: GemFormattedNumber,
     pub confirmation: GemLocalizedText,
+}
+
+impl GemRewardsWallet {
+    pub fn selecting(&self, row_id: &str) -> Option<Self> {
+        let row = self.sections.iter().flat_map(|section| &section.rows).find(|row| row.id == row_id)?;
+        Some(Self {
+            id: WalletId::from_id(&row.id)?,
+            row: row.clone(),
+            ..self.clone()
+        })
+    }
 }
 
 impl Default for GemRewardsState {

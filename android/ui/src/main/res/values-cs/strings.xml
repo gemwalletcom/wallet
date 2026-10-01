@@ -586,6 +586,8 @@
   <string name="rewards_nickname">Přezdívka</string>
   <string name="rewards_unverified_title">Odměny zatím nejsou aktivní.</string>
   <string name="rewards_unverified_description">Odměny se aktivují automaticky, jakmile aplikaci používáte více.</string>
+  <string name="rewards_state_empty_title">Odměny vyžadují peněženku Multi-Coin</string>
+  <string name="rewards_state_empty_description">Vytvořte nebo importujte peněženku Multi-Coin, abyste mohli zvát přátele a získávat body.</string>
   <string name="recent_activity_title">Nedávné</string>
   <string name="recent_activity_state_empty_title">Zde se zobrazí vaše nedávné</string>
   <string name="recent_activity_state_empty_description">Zde se zobrazí položky, které jste nedávno použili</string>

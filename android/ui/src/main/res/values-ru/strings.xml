@@ -586,6 +586,8 @@
   <string name="rewards_nickname">Никнейм</string>
   <string name="rewards_unverified_title">Награды пока неактивны.</string>
   <string name="rewards_unverified_description">Награды активируются автоматически по мере более частого использования приложения.</string>
+  <string name="rewards_state_empty_title">Для наград нужен мультимонетный кошелек</string>
+  <string name="rewards_state_empty_description">Создайте или импортируйте мультимонетный кошелек, чтобы приглашать друзей и получать баллы.</string>
   <string name="recent_activity_title">Последние</string>
   <string name="recent_activity_state_empty_title">Здесь появятся ваши недавние активы</string>
   <string name="recent_activity_state_empty_description">Здесь будут отображаться активы, которые вы недавно использовали</string>

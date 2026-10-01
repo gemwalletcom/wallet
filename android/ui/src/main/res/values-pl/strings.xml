@@ -586,6 +586,8 @@
   <string name="rewards_nickname">Przydomek</string>
   <string name="rewards_unverified_title">Nagrody nie są jeszcze aktywne.</string>
   <string name="rewards_unverified_description">Nagrody aktywują się automatycznie w miarę jak częściej korzystasz z aplikacji.</string>
+  <string name="rewards_state_empty_title">Nagrody wymagają portfela z wieloma monetami</string>
+  <string name="rewards_state_empty_description">Utwórz lub zaimportuj portfel z wieloma monetami, aby zapraszać znajomych i zdobywać punkty.</string>
   <string name="recent_activity_title">Ostatnie</string>
   <string name="recent_activity_state_empty_title">Tutaj pojawią się Twoje ostatnie wpisy</string>
   <string name="recent_activity_state_empty_description">Tutaj pojawią się ostatnio używane zasoby</string>

@@ -725,6 +725,8 @@ rewards_pending_description_ready = Bonasi yako iko tayari!
 rewards_nickname = Jina la utani
 rewards_unverified_title = Zawadi hazijaanza kutumika bado.
 rewards_unverified_description = Zawadi huamilishwa kiotomatiki unapotumia programu zaidi.
+rewards_state_empty_title = Zawadi zinahitaji mkoba wa sarafu nyingi
+rewards_state_empty_description = Unda au ingiza mkoba wa sarafu nyingi ili kualika marafiki na kupata pointi.
 
 # Recent Activity
 

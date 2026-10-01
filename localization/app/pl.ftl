@@ -725,6 +725,8 @@ rewards_pending_description_ready = Twój bonus jest gotowy!
 rewards_nickname = Przydomek
 rewards_unverified_title = Nagrody nie są jeszcze aktywne.
 rewards_unverified_description = Nagrody aktywują się automatycznie w miarę jak częściej korzystasz z aplikacji.
+rewards_state_empty_title = Nagrody wymagają portfela z wieloma monetami
+rewards_state_empty_description = Utwórz lub zaimportuj portfel z wieloma monetami, aby zapraszać znajomych i zdobywać punkty.
 
 # Recent Activity
 
