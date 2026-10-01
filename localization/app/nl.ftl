@@ -725,6 +725,8 @@ rewards_pending_description_ready = Je bonus staat klaar!
 rewards_nickname = Bijnaam
 rewards_unverified_title = Beloningen nog niet actief.
 rewards_unverified_description = Je beloningen worden automatisch geactiveerd naarmate je de app meer gebruikt.
+rewards_state_empty_title = Voor beloningen is een multi-coin portemonnee nodig
+rewards_state_empty_description = Maak of importeer een multi-coin portemonnee om vrienden uit te nodigen en punten te verdienen.
 
 # Recent Activity
 

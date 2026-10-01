@@ -586,6 +586,8 @@
   <string name="rewards_nickname">כינוי</string>
   <string name="rewards_unverified_title">הפרסים עדיין לא פעילים.</string>
   <string name="rewards_unverified_description">הפרסים מופעלים אוטומטית ככל שתשתמשו יותר באפליקציה.</string>
+  <string name="rewards_state_empty_title">תגמולים דורשים ארנק רב מטבע</string>
+  <string name="rewards_state_empty_description">צרו או ייבאו ארנק רב מטבע כדי להזמין חברים ולצבור נקודות.</string>
   <string name="recent_activity_title">אחרונים</string>
   <string name="recent_activity_state_empty_title">האחרונים שלך יופיעו כאן</string>
   <string name="recent_activity_state_empty_description">נכסים שבהם השתמשת לאחרונה יופיעו כאן</string>

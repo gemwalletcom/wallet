@@ -725,6 +725,8 @@ rewards_pending_description_ready = Votre prime est prête !
 rewards_nickname = Surnom
 rewards_unverified_title = Récompenses non encore actives.
 rewards_unverified_description = Les récompenses s'activent automatiquement à mesure que vous utilisez l'application.
+rewards_state_empty_title = Les récompenses nécessitent un portefeuille multi-pièces
+rewards_state_empty_description = Créez ou importez un portefeuille multi-pièces pour inviter des amis et gagner des points.
 
 # Recent Activity
 

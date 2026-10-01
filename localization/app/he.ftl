@@ -725,6 +725,8 @@ rewards_pending_description_ready = הבונוס שלך מוכן!
 rewards_nickname = כינוי
 rewards_unverified_title = הפרסים עדיין לא פעילים.
 rewards_unverified_description = הפרסים מופעלים אוטומטית ככל שתשתמשו יותר באפליקציה.
+rewards_state_empty_title = תגמולים דורשים ארנק רב מטבע
+rewards_state_empty_description = צרו או ייבאו ארנק רב מטבע כדי להזמין חברים ולצבור נקודות.
 
 # Recent Activity
 
