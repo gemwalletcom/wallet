@@ -147,7 +147,7 @@ impl StoreTransactionsConsumer {
             .iter()
             .flat_map(|subscription| transactions.iter().map(move |transaction| (subscription, transaction)))
             .filter(|(subscription, transaction)| transaction.addresses().contains(&subscription.address))
-            .filter(|(_, transaction)| transaction.asset_ids().iter().all(|id| assets.contains_key(id)))
+            .filter(|(_, transaction)| transaction.asset_ids().iter().all(|id| assets.get(id).is_some_and(|asset| asset.asset.is_enabled_for_transactions())))
             .filter(|(subscription, transaction)| {
                 let transaction = transaction.finalize(vec![subscription.address.clone()]);
                 assets
@@ -289,8 +289,7 @@ impl StoreTransactionsConsumer {
         let assets_with_prices = self.database.run(move |client| client.get_assets_with_prices(filters, primary_price_max_age)).await?;
         let existing_ids = assets_with_prices.iter().map(|asset| asset.asset.asset.id.clone()).collect::<HashSet<_>>();
         let missing_assets = assets_ids.into_iter().filter(|asset_id| !existing_ids.contains(asset_id)).collect();
-        let enabled_assets = assets_with_prices.into_iter().filter(|asset| asset.asset.properties.is_enabled).collect();
-        Ok((enabled_assets, missing_assets))
+        Ok((assets_with_prices, missing_assets))
     }
 
     async fn get_missing_nft_assets(&self, nft_asset_ids: Vec<NFTAssetId>) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {
@@ -353,8 +352,8 @@ mod tests {
     };
     use num_bigint::BigUint;
     use primitives::{
-        AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId, asset_constants::SOLANA_USDC_ASSET_ID,
-        contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID,
+        Asset, AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId, asset_constants::SOLANA_USDC_ASSET_ID,
+        contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, known_assets::HYPERCORE_PERPETUAL_USDC,
     };
 
     #[test]
@@ -376,6 +375,33 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(5_000_000u64));
         assert_eq!(transaction.metadata, None);
         assert_eq!(cross_chain::swap_provider_with_vault_addresses(transaction, &deposit_addresses), Some(SwapProvider::Relay));
+    }
+
+    #[test]
+    fn test_subscribed_transactions_asset_filter() {
+        let config = StoreTransactionsConsumerConfig::mock();
+        let subscriptions = vec![DeviceSubscription {
+            address: "0xfrom".to_string(),
+            ..DeviceSubscription::mock()
+        }];
+        let asset = |asset: Asset, is_enabled: bool| {
+            let mut basic = asset.as_basic_primitive();
+            basic.properties.is_enabled = is_enabled;
+            (basic.asset.id.clone(), AssetPriceMetadata { asset: basic, price: None })
+        };
+        let assets = HashMap::from([asset(Asset::mock_eth(), true), asset(Asset::mock_ethereum_usdc(), false), asset(HYPERCORE_PERPETUAL_USDC.clone(), false)]);
+        let transfer = Transaction::mock();
+        let disabled_token_transfer = Transaction::mock_with_params(Asset::mock_ethereum_usdc().id, TransactionType::Transfer, BigUint::from(1u32));
+        let perpetual = Transaction::mock_with_params(HYPERCORE_PERPETUAL_USDC.id.clone(), TransactionType::PerpetualOpenPosition, BigUint::from(1u32));
+        let missing_asset_transfer = Transaction::mock_with_params(AssetId::from_chain(Chain::Bitcoin), TransactionType::Transfer, BigUint::from(1u32));
+        let transactions = vec![transfer, disabled_token_transfer, perpetual, missing_asset_transfer];
+
+        let subscribed = StoreTransactionsConsumer::subscribed_transactions(&config, &subscriptions, &transactions, &assets);
+
+        assert_eq!(
+            subscribed.iter().map(|(_, transaction)| transaction.asset_id.clone()).collect::<Vec<_>>(),
+            vec![AssetId::from_chain(Chain::Ethereum), HYPERCORE_PERPETUAL_USDC.id.clone()]
+        );
     }
 
     #[test]

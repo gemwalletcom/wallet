@@ -534,6 +534,7 @@ lock_require_authentication = Richiedi l'autenticazione
 lock_unlock = Sblocca
 lock_privacy_lock = Blocco privacy
 lock_footer = Proteggi l'accesso a questa app sul tuo dispositivo
+lock_passcode = Codice di accesso
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Il tuo bonus è pronto!
 rewards_nickname = Soprannome
 rewards_unverified_title = Premi non ancora attivi.
 rewards_unverified_description = I premi si attivano automaticamente man mano che utilizzi l'app.
+rewards_state_empty_title = Le ricompense richiedono un portafoglio Multi-Coin
+rewards_state_empty_description = Crea o importa un portafoglio Multi-Coin per invitare amici e guadagnare punti.
 
 # Recent Activity
 

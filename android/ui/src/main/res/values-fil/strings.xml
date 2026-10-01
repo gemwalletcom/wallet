@@ -441,6 +441,7 @@
   <string name="lock_unlock">I-unlock</string>
   <string name="lock_privacy_lock">Privacy Lock</string>
   <string name="lock_footer">Protektahan ang access sa app na ito sa iyong device</string>
+  <string name="lock_passcode">Passcode</string>
   <string name="verify_phrase_title">Kumpirmahin</string>
   <string name="warnings_externally_controlled_account">Maaaring kontrolado ng ibang tao ang %1$s account na ito. Huwag magpadala ng pondo rito maliban kung sigurado kang ikaw ang may kontrol dito, o maaari mong permanenteng mawala ang iyong mga asset.</string>
   <string name="sell_title">Ibenta %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Palayaw</string>
   <string name="rewards_unverified_title">Hindi pa aktibo ang mga gantimpala.</string>
   <string name="rewards_unverified_description">Awtomatikong naa-activate ang mga reward habang mas madalas mong ginagamit ang app.</string>
+  <string name="rewards_state_empty_title">Kailangan ng Multi-Coin wallet para sa mga gantimpala</string>
+  <string name="rewards_state_empty_description">Gumawa o mag-import ng Multi-Coin wallet para makapag-imbita ng mga kaibigan at makakuha ng puntos.</string>
   <string name="recent_activity_title">Mga Kamakailan</string>
   <string name="recent_activity_state_empty_title">Lalabas dito ang iyong mga kamakailan</string>
   <string name="recent_activity_state_empty_description">Lalabas dito ang mga asset na ginamit mo kamakailan</string>

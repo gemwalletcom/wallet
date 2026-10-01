@@ -534,6 +534,7 @@ lock_require_authentication = Bukatar tantancewa
 lock_unlock = Buɗe
 lock_privacy_lock = Kulle Sirri
 lock_footer = Kare damar shiga wannan app akan na'urarka
+lock_passcode = Lambar wucewa
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Karin kyautar ku a shirye take!
 rewards_nickname = Laƙabi
 rewards_unverified_title = Ladabi bai yi aiki ba tukuna.
 rewards_unverified_description = Lada yana kunna ta atomatik yayin da kake amfani da app ɗin sosai.
+rewards_state_empty_title = Lada yana buƙatar Wallet na Multi-Coin
+rewards_state_empty_description = Ƙirƙiri ko shigo da Wallet na Multi-Coin don gayyatar abokai da samun maki.
 
 # Recent Activity
 

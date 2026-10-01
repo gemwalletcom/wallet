@@ -5,7 +5,7 @@ import struct Gemstone.GemSlippageSuggestion
 import GemstonePrimitives
 import PrimitivesComponents
 
-extension GemSlippageSuggestion: @retroactive Identifiable, SuggestionViewable {
+extension GemSlippageSuggestion: @retroactive Identifiable, @retroactive SuggestionViewable {
     public var id: UInt32 {
         bps
     }

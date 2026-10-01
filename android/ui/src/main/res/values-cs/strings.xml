@@ -441,6 +441,7 @@
   <string name="lock_unlock">Odemknout</string>
   <string name="lock_privacy_lock">Zámek soukromí</string>
   <string name="lock_footer">Chraňte přístup k této aplikaci na svém zařízení</string>
+  <string name="lock_passcode">Přístupový kód</string>
   <string name="verify_phrase_title">Potvrdit</string>
   <string name="warnings_externally_controlled_account">Tento účet %1$s může ovládat někdo jiný. Neposílejte na něj prostředky, pokud si nejste jisti, že ho ovládáte vy, jinak můžete o svá aktiva trvale přijít.</string>
   <string name="sell_title">Prodat %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Přezdívka</string>
   <string name="rewards_unverified_title">Odměny zatím nejsou aktivní.</string>
   <string name="rewards_unverified_description">Odměny se aktivují automaticky, jakmile aplikaci používáte více.</string>
+  <string name="rewards_state_empty_title">Odměny vyžadují peněženku Multi-Coin</string>
+  <string name="rewards_state_empty_description">Vytvořte nebo importujte peněženku Multi-Coin, abyste mohli zvát přátele a získávat body.</string>
   <string name="recent_activity_title">Nedávné</string>
   <string name="recent_activity_state_empty_title">Zde se zobrazí vaše nedávné</string>
   <string name="recent_activity_state_empty_description">Zde se zobrazí položky, které jste nedávno použili</string>

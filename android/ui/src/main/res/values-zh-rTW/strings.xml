@@ -441,6 +441,7 @@
   <string name="lock_unlock">解鎖</string>
   <string name="lock_privacy_lock">隱私鎖</string>
   <string name="lock_footer">保護此裝置上的 App 存取安全</string>
+  <string name="lock_passcode">密碼</string>
   <string name="verify_phrase_title">確認</string>
   <string name="warnings_externally_controlled_account">此 %1$s 帳戶可能由他人控制。除非確定該帳戶由您掌控，請勿將資金轉入，以免永久失去資產。</string>
   <string name="sell_title">出售%1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">暱稱</string>
   <string name="rewards_unverified_title">積分功能尚未啟用。</string>
   <string name="rewards_unverified_description">繼續使用 App，積分功能會自動啟用。</string>
+  <string name="rewards_state_empty_title">積分需要多幣種錢包</string>
+  <string name="rewards_state_empty_description">建立或匯入多幣種錢包，即可邀請好友並賺取積分。</string>
   <string name="recent_activity_title">近期</string>
   <string name="recent_activity_state_empty_title">最近的記錄將顯示在這裡</string>
   <string name="recent_activity_state_empty_description">最近使用過的資產將顯示在這裡</string>

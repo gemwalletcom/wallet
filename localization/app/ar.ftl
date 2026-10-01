@@ -534,6 +534,7 @@ lock_require_authentication = تتطلب المصادقة
 lock_unlock = فتح
 lock_privacy_lock = قفل الخصوصية
 lock_footer = حماية الوصول إلى هذا التطبيق على جهازك
+lock_passcode = رمز المرور
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = مكافأتك جاهزة!
 rewards_nickname = كنية
 rewards_unverified_title = المكافآت غير مفعلة بعد.
 rewards_unverified_description = يتم تفعيل المكافآت تلقائيًا كلما زاد استخدامك للتطبيق.
+rewards_state_empty_title = المكافآت تتطلب محفظة متعددة العملات
+rewards_state_empty_description = أنشئ محفظة متعددة العملات أو استوردها لدعوة الأصدقاء وكسب النقاط.
 
 # Recent Activity
 

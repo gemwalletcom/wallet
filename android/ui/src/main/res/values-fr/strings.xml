@@ -441,6 +441,7 @@
   <string name="lock_unlock">Déverrouiller</string>
   <string name="lock_privacy_lock">Verrouillage de la confidentialité</string>
   <string name="lock_footer">Protégez l\'accès à cette application sur votre appareil</string>
+  <string name="lock_passcode">Mot de passe</string>
   <string name="verify_phrase_title">Confirmer</string>
   <string name="warnings_externally_controlled_account">Ce compte %1$s peut être contrôlé par quelqu\'un d\'autre. N\'y envoyez pas de fonds à moins d\'être certain de le contrôler, sinon vous pourriez perdre définitivement vos actifs.</string>
   <string name="sell_title">Vendre %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Surnom</string>
   <string name="rewards_unverified_title">Récompenses non encore actives.</string>
   <string name="rewards_unverified_description">Les récompenses s\'activent automatiquement à mesure que vous utilisez l\'application.</string>
+  <string name="rewards_state_empty_title">Les récompenses nécessitent un portefeuille multi-pièces</string>
+  <string name="rewards_state_empty_description">Créez ou importez un portefeuille multi-pièces pour inviter des amis et gagner des points.</string>
   <string name="recent_activity_title">Récents</string>
   <string name="recent_activity_state_empty_title">Vos récents apparaîtront ici</string>
   <string name="recent_activity_state_empty_description">Les éléments que vous avez récemment utilisés apparaîtront ici</string>

@@ -13,7 +13,7 @@ pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<
     let services = context.services();
     let config = services.config();
     let stream_producer = services.stream_producer("transactions_worker", shutdown.clone()).await?;
-    let transactions = services.transaction_jobs(stream_producer).await?;
+    let transactions = services.transaction_jobs(stream_producer, context.transaction_metrics()).await?;
 
     context
         .plan_builder(WorkerService::Transactions, &config, shutdown)

@@ -441,6 +441,7 @@
   <string name="lock_unlock">Buka kunci</string>
   <string name="lock_privacy_lock">Kunci Privasi</string>
   <string name="lock_footer">Lindungi akses kepada apl ini pada peranti anda</string>
+  <string name="lock_passcode">Kod Laluan</string>
   <string name="verify_phrase_title">Sahkan</string>
   <string name="warnings_externally_controlled_account">Akaun %1$s ini mungkin dikawal oleh orang lain. Jangan hantar dana ke akaun ini melainkan anda pasti anda yang mengawalnya, atau anda mungkin kehilangan aset anda secara kekal.</string>
   <string name="sell_title">Jual %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Nama panggilan</string>
   <string name="rewards_unverified_title">Ganjaran belum aktif lagi.</string>
   <string name="rewards_unverified_description">Ganjaran diaktifkan secara automatik apabila anda menggunakan aplikasi dengan lebih kerap.</string>
+  <string name="rewards_state_empty_title">Ganjaran memerlukan dompet Berbilang Koin</string>
+  <string name="rewards_state_empty_description">Buat atau import dompet Berbilang Koin untuk menjemput rakan dan memperoleh mata.</string>
   <string name="recent_activity_title">Terkini</string>
   <string name="recent_activity_state_empty_title">Tempahan anda akan dipaparkan di sini</string>
   <string name="recent_activity_state_empty_description">Aset yang anda gunakan baru-baru ini akan dipaparkan di sini</string>

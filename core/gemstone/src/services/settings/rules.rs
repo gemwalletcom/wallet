@@ -152,6 +152,14 @@ pub fn notifications_sections(push_enabled: bool) -> Vec<GemListSection> {
     ]
 }
 
+#[uniffi::export]
+pub fn enable_authentication_label(authentication_name: Option<String>) -> GemLocalizedText {
+    match authentication_name {
+        Some(value) => GemLocalizedText::EnableValue { value },
+        None => GemLocalizedText::RowTitle { title: GemListRowTitle::Authentication },
+    }
+}
+
 pub fn security_sections(input: GemSecurityInput, hide_balance_enabled: bool) -> Vec<GemListSection> {
     let toggle = |title: GemListRowTitle, is_on: bool, action: GemRowAction| GemListRow::toggle(title, GemListRowIcon::None, is_on, action);
     vec![
@@ -160,10 +168,7 @@ pub fn security_sections(input: GemSecurityInput, hide_balance_enabled: bool) ->
             footer: GemListSectionFooter::Authentication,
             rows: [
                 Some(GemListRow::Toggle {
-                    label: match input.authentication_name {
-                        Some(value) => GemLocalizedText::EnableValue { value },
-                        None => GemLocalizedText::RowTitle { title: GemListRowTitle::Authentication },
-                    },
+                    label: enable_authentication_label(input.authentication_name),
                     icon: GemListRowIcon::None,
                     is_on: input.authentication_enabled,
                     action: GemRowAction::Authentication,

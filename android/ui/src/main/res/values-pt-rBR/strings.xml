@@ -441,6 +441,7 @@
   <string name="lock_unlock">Desbloqueio</string>
   <string name="lock_privacy_lock">Bloqueio de privacidade</string>
   <string name="lock_footer">Proteja o acesso a este aplicativo no seu dispositivo</string>
+  <string name="lock_passcode">Senha</string>
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta conta %1$s pode ser controlada por outra pessoa. Não envie fundos para ela a menos que tenha certeza de que você a controla, ou poderá perder seus ativos permanentemente.</string>
   <string name="sell_title">Vender %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Apelido</string>
   <string name="rewards_unverified_title">As recompensas ainda não estão ativas.</string>
   <string name="rewards_unverified_description">As recompensas são ativadas automaticamente conforme você usa o aplicativo com mais frequência.</string>
+  <string name="rewards_state_empty_title">As recompensas exigem uma carteira multimoeda</string>
+  <string name="rewards_state_empty_description">Crie ou importe uma carteira multimoeda para convidar amigos e ganhar pontos.</string>
   <string name="recent_activity_title">Recentes</string>
   <string name="recent_activity_state_empty_title">Seus recentes aparecerão aqui</string>
   <string name="recent_activity_state_empty_description">Os recursos que você usou recentemente aparecerão aqui</string>

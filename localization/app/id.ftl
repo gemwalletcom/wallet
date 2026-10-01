@@ -534,6 +534,7 @@ lock_require_authentication = Memerlukan otentikasi
 lock_unlock = Buka kunci
 lock_privacy_lock = Kunci Privasi
 lock_footer = Lindungi akses ke aplikasi ini di perangkat Anda
+lock_passcode = Kode Sandi
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Bonus Anda sudah siap!
 rewards_nickname = Nama panggilan
 rewards_unverified_title = Hadiah belum aktif.
 rewards_unverified_description = Hadiah akan aktif secara otomatis seiring Anda semakin sering menggunakan aplikasi.
+rewards_state_empty_title = Hadiah memerlukan dompet Multi-Koin
+rewards_state_empty_description = Buat atau impor dompet Multi-Koin untuk mengundang teman dan mendapatkan poin.
 
 # Recent Activity
 

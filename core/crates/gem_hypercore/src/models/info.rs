@@ -47,6 +47,9 @@ pub enum InfoRequest {
         user: String,
         builder: String,
     },
+    UserRole {
+        user: String,
+    },
     UserFees {
         user: String,
     },

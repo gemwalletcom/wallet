@@ -11,13 +11,15 @@ use super::constants::{CHATWOOT_CONTENT_TYPE_TEXT, CHATWOOT_DELIVERY_STATUS_DELI
 pub enum MessageType {
     Incoming,
     Outgoing,
+    Other(i32),
 }
 
 impl From<i32> for MessageType {
     fn from(value: i32) -> Self {
         match value {
+            0 => MessageType::Incoming,
             1 => MessageType::Outgoing,
-            _ => MessageType::Incoming,
+            other => MessageType::Other(other),
         }
     }
 }
@@ -27,6 +29,7 @@ impl From<MessageType> for i32 {
         match value {
             MessageType::Incoming => 0,
             MessageType::Outgoing => 1,
+            MessageType::Other(value) => value,
         }
     }
 }
@@ -196,6 +199,7 @@ impl Message {
         let sender = match &self.message_type {
             MessageType::Incoming => SupportMessageSender::User,
             MessageType::Outgoing => SupportMessageSender::Agent(self.sender.as_ref()?.support_agent()?),
+            MessageType::Other(_) => return None,
         };
 
         support_message(
@@ -418,6 +422,24 @@ mod tests {
         assert_eq!(messages[0].content, "from agent");
         assert_eq!(messages[0].sender, SupportMessageSender::mock_agent("Test Agent"));
         assert_eq!(messages[0].status, SupportMessageStatus::Sent);
+    }
+
+    #[test]
+    fn test_support_public_messages_skips_template_messages() {
+        let response: ChatwootMessagesResponse = serde_json::from_str(
+            r#"{
+                "payload": [{
+                    "id": 1,
+                    "content": "Give the team a way to reach you.",
+                    "conversation_id": 2,
+                    "message_type": 3,
+                    "created_at": 1766478193
+                }]
+            }"#,
+        )
+        .unwrap();
+
+        assert!(support_public_messages(&response.payload).is_empty());
     }
 
     #[test]

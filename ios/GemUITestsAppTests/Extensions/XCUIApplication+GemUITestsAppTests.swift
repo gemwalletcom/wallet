@@ -18,6 +18,13 @@ extension XCUIApplication {
         buttons["Continue"].firstMatch.tap()
     }
 
+    func skipEnableAuthentication() {
+        let skip = buttons["Skip"].firstMatch
+        if skip.waitForExistence(timeout: 2) {
+            skip.tap()
+        }
+    }
+
     func tapBack() {
         navigationBars.buttons.element(boundBy: 0).tap()
     }

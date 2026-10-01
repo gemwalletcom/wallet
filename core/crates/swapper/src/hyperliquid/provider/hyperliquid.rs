@@ -3,9 +3,8 @@ use std::sync::Arc;
 use async_trait::async_trait;
 
 use primitives::{
-    Chain,
     known_assets::{HYPERCORE_HYPE, HYPEREVM_HYPE},
-    swap::SwapResult,
+    swap::{SwapResult, SwapResultRequest},
 };
 
 use crate::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, alien::RpcProvider};
@@ -80,7 +79,7 @@ impl Swapper for Hyperliquid {
         Err(SwapperError::NoQuoteAvailable)
     }
 
-    async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        self.bridge.get_swap_result(chain, transaction_hash).await
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        self.bridge.get_swap_result(request).await
     }
 }

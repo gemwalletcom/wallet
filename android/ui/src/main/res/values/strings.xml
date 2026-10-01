@@ -441,6 +441,7 @@
   <string name="lock_unlock">Unlock</string>
   <string name="lock_privacy_lock">Privacy Lock</string>
   <string name="lock_footer">Protect access to this app on your device</string>
+  <string name="lock_passcode">Passcode</string>
   <string name="verify_phrase_title">Confirm</string>
   <string name="warnings_externally_controlled_account">This %1$s account can be controlled by someone else. Do not send funds to it unless you are certain you control it, or you may permanently lose your assets.</string>
   <string name="sell_title">Sell %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Nickname</string>
   <string name="rewards_unverified_title">Rewards not active yet.</string>
   <string name="rewards_unverified_description">Rewards activate automatically as you use the app more.</string>
+  <string name="rewards_state_empty_title">Rewards need a Multi-Coin wallet</string>
+  <string name="rewards_state_empty_description">Create or import a Multi-Coin wallet to invite friends and earn points.</string>
   <string name="recent_activity_title">Recents</string>
   <string name="recent_activity_state_empty_title">Your recents will appear here</string>
   <string name="recent_activity_state_empty_description">Assets you\'ve recently used will appear here</string>

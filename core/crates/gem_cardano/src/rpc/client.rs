@@ -49,6 +49,11 @@ impl<C: Client> CardanoClient<C> {
         Ok(self.query::<Data<AddressTransactions>>(target).await?.data.transactions)
     }
 
+    pub async fn get_transaction(&self, hash: &str) -> Result<Option<AddressTransaction>, Box<dyn Error + Send + Sync>> {
+        let target = CardanoTarget::Transaction { hash: hash.to_string() };
+        Ok(self.query::<Data<AddressTransactions>>(target).await?.data.transactions.into_iter().next())
+    }
+
     pub async fn get_balance(&self, address: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
         let response: GraphqlData<BalanceResponse> = self.query(CardanoTarget::Balance { address: address.to_string() }).await?;
 
@@ -150,5 +155,21 @@ mod tests {
         assert_eq!(transactions.len(), 1);
         assert_eq!(transactions[0].transaction.hash, "tx_hash");
         assert_eq!(transactions[0].included_at, "2023-01-01T00:00:00Z");
+    }
+
+    #[tokio::test]
+    async fn test_get_transaction() {
+        let client = MockClient::new().with_post(|path, body| {
+            assert_eq!(path, "/");
+            let request: serde_json::Value = serde_json::from_slice(body).unwrap();
+            assert_eq!(request["operationName"], "GetTransactionByHash");
+            assert_eq!(request["variables"], serde_json::json!({ "hash": "tx_hash" }));
+            Ok(br#"{"data":{"transactions":[{"hash":"tx_hash","includedAt":"2025-12-06T17:35:46Z","inputs":[{"address":"addr1","value":"1000"}],"outputs":[{"address":"addr2","value":"900"}],"fee":"100"}]}}"#.to_vec())
+        });
+
+        let transaction = CardanoClient::new(client).get_transaction("tx_hash").await.unwrap().unwrap();
+
+        assert_eq!(transaction.transaction.hash, "tx_hash");
+        assert_eq!(transaction.included_at, "2025-12-06T17:35:46Z");
     }
 }

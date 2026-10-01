@@ -12,6 +12,7 @@ use crate::services::assets::rules::{asset_text, balance_text, fee_amount};
 use crate::services::contact::model::contact_avatar;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::{GemLocalizedText, GemPerpetualConfirmedAction};
+use crate::services::name::rules::names_the_user_owns;
 use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
 use primitives::{AddressName, AssetType, BlockExplorerLink, PaymentVerification, PerpetualType};
@@ -605,7 +606,8 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 let avatar = contact_avatar(address_name.as_ref(), destination.name().as_deref());
                 let address = destination.address();
                 let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
-                let name = GemAddressService::new().name_text(destination.name(), short_address.clone(), avatar.is_some() || !destination.shows_address_beside_name());
+                let is_named_by_user = address_name.as_ref().is_some_and(|address_name| names_the_user_owns(&address_name.address_type));
+                let name = GemAddressService::new().name_text(destination.name(), short_address.clone(), is_named_by_user || !destination.shows_address_beside_name());
                 let text = match &destination {
                     GemConfirmDestination::Resource { resource } => GemLocalizedText::Resource { resource: *resource },
                     _ => GemLocalizedText::Text { text: name.unwrap_or(short_address) },
@@ -1769,6 +1771,13 @@ mod tests {
         assert_eq!(unnamed.avatar, None, "an address nobody named shows no avatar");
         assert_eq!(unnamed.short_address, None, "an unnamed address has nothing to reveal");
         assert_eq!(unnamed.text, text("recipient"), "an unnamed address reads as its short form");
+
+        let own_wallet = recipient_row(&transfer, Some(AddressName::mock("recipient", "Savings", AddressType::InternalWallet, VerificationStatus::Verified))).unwrap();
+        assert_eq!(own_wallet.text, text("Savings"), "the user's own wallet reads as its name alone");
+        assert_eq!(own_wallet.short_address, Some("recipient".to_string()), "its address shows on a tap");
+
+        let resolved = recipient_row(&transfer, Some(AddressName::mock("recipient", "vitalik.eth", AddressType::Address, VerificationStatus::Verified))).unwrap();
+        assert_eq!(resolved.text, text("vitalik.eth (recipient)"), "a name the user did not give keeps the address beside it");
 
         let validator = DelegationValidator::stake(Chain::HyperCore, "0x000000000056f99d36b6f2e0c51fd41496bbacb8".into(), "ValiDAO".into(), true, 0.0, 0.0);
         let unstake = GemTransferData::mock(TransactionInputType::Stake {

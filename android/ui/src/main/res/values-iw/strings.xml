@@ -441,6 +441,7 @@
   <string name="lock_unlock">פתח את הנעילה</string>
   <string name="lock_privacy_lock">נעילת פרטיות</string>
   <string name="lock_footer">הגן על הגישה לאפליקציה הזו במכשיר שלך</string>
+  <string name="lock_passcode">קוד גישה</string>
   <string name="verify_phrase_title">לְאַשֵׁר</string>
   <string name="warnings_externally_controlled_account">ייתכן שמישהו אחר שולט בחשבון %1$s זה. אל תשלח אליו כספים אלא אם אתה בטוח שאתה שולט בו, אחרת אתה עלול לאבד את הנכסים שלך לצמיתות.</string>
   <string name="sell_title">למכור %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">כינוי</string>
   <string name="rewards_unverified_title">הפרסים עדיין לא פעילים.</string>
   <string name="rewards_unverified_description">הפרסים מופעלים אוטומטית ככל שתשתמשו יותר באפליקציה.</string>
+  <string name="rewards_state_empty_title">תגמולים דורשים ארנק רב מטבע</string>
+  <string name="rewards_state_empty_description">צרו או ייבאו ארנק רב מטבע כדי להזמין חברים ולצבור נקודות.</string>
   <string name="recent_activity_title">אחרונים</string>
   <string name="recent_activity_state_empty_title">האחרונים שלך יופיעו כאן</string>
   <string name="recent_activity_state_empty_description">נכסים שבהם השתמשת לאחרונה יופיעו כאן</string>

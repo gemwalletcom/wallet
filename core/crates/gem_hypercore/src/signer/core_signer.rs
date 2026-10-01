@@ -16,6 +16,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use zeroize::Zeroizing;
 
 use crate::{
+    constants::{BUILDER_ADDRESS, REFERRAL_CODE},
     core::{
         actions::{
             ApproveAgent, ApproveBuilderFee, Builder, CDeposit, CWithdraw, Cancel, CancelOrder, PlaceOrder, SetReferrer, SpotSend, TokenDelegate, UpdateLeverage, UsdClassTransfer, WithdrawalRequest, make_market_order, make_position_tp_sl,
@@ -28,9 +29,6 @@ use crate::{
     is_spot_swap,
     models::{timestamp::TimestampField, token::spot_token_id_for_asset_id},
 };
-
-const REFERRAL_CODE: &str = "GEMWALLET";
-const BUILDER_ADDRESS: &str = "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc";
 
 type SignerResult<T> = Result<T, SignerError>;
 

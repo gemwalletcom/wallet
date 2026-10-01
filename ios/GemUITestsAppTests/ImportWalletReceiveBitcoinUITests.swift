@@ -44,5 +44,6 @@ final class ImportWalletReceiveBitcoinUITests: XCTestCase {
 
         app.textFields["importInputField"].typeText(words)
         app.buttons["Import"].firstMatch.tap()
+        app.skipEnableAuthentication()
     }
 }

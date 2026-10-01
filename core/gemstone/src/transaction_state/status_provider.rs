@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use primitives::{Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate, chain_transaction_timeout, swap_transaction_timeout};
 use std::sync::Arc;
-use swapper::{SwapResult, SwapperProvider, swapper::GemSwapper};
+use swapper::{SwapResult, SwapResultRequest, SwapperProvider, swapper::GemSwapper};
 
 use crate::gateway::ChainClientFactory;
 use crate::gateway::map_network_error;
@@ -13,6 +13,7 @@ pub struct SwapStateRequest {
     pub state: TransactionState,
     pub swap_provider: SwapperProvider,
     pub destination_chain: Chain,
+    pub swap_result: SwapResultRequest,
 }
 
 pub struct StatusProvider {
@@ -59,6 +60,7 @@ impl StatusProvider {
                     state: transaction.state,
                     swap_provider,
                     destination_chain,
+                    swap_result: SwapResultRequest::from(transaction),
                 };
                 self.get_swap_status(chain, request).await?
             }
@@ -84,7 +86,7 @@ impl StatusProvider {
                 let source_chain_update = self.chain_status(chain, request.transaction).await?;
                 Ok(pending_cross_chain_swap_update(source_chain_update))
             }
-            TransactionState::InTransit => self.swap_provider_status(chain, request.swap_provider, &request.transaction.id).await,
+            TransactionState::InTransit => self.swap_provider_status(request.swap_provider, &request.swap_result).await,
             state @ (TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted | TransactionState::Refunded) => Ok(TransactionUpdate::new_state(state)),
         }
     }
@@ -94,8 +96,8 @@ impl StatusProvider {
         provider.get_transaction_status(request).await.map_err(|error| TransactionStatusError::from(map_network_error(error)))
     }
 
-    async fn swap_provider_status(&self, chain: Chain, provider: SwapperProvider, transaction_hash: &str) -> Result<TransactionUpdate, TransactionStatusError> {
-        let result = self.swapper.get_swap_result(chain, provider, transaction_hash).await.map_err(|error| TransactionStatusError::NetworkError(error.to_string()))?;
+    async fn swap_provider_status(&self, provider: SwapperProvider, request: &SwapResultRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+        let result = self.swapper.get_swap_result(provider, request).await.map_err(|error| TransactionStatusError::NetworkError(error.to_string()))?;
         Ok(in_transit_swap_update(result))
     }
 }

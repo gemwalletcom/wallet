@@ -441,6 +441,7 @@
   <string name="lock_unlock">আনলক করুন</string>
   <string name="lock_privacy_lock">গোপনীয়তা লক</string>
   <string name="lock_footer">আপনার ডিভাইসে এই অ্যাপের অ্যাক্সেস সুরক্ষিত করুন</string>
+  <string name="lock_passcode">পাসকোড</string>
   <string name="verify_phrase_title">নিশ্চিত করুন</string>
   <string name="warnings_externally_controlled_account">এই %1$s অ্যাকাউন্টটি অন্য কেউ নিয়ন্ত্রণ করতে পারে। এটি আপনার নিয়ন্ত্রণে আছে বলে নিশ্চিত না হলে এতে তহবিল পাঠাবেন না, নইলে আপনি স্থায়ীভাবে আপনার সম্পদ হারাতে পারেন।</string>
   <string name="sell_title">%1$s বিক্রি করুন</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">ডাকনাম</string>
   <string name="rewards_unverified_title">পুরস্কারগুলো এখনও সক্রিয় হয়নি।</string>
   <string name="rewards_unverified_description">আপনি অ্যাপটি যত বেশি ব্যবহার করবেন, পুরস্কারগুলো তত স্বয়ংক্রিয়ভাবে সক্রিয় হবে।</string>
+  <string name="rewards_state_empty_title">পুরস্কারের জন্য মাল্টি-কয়েন ওয়ালেট প্রয়োজন</string>
+  <string name="rewards_state_empty_description">বন্ধুদের আমন্ত্রণ জানাতে ও পয়েন্ট অর্জন করতে একটি মাল্টি-কয়েন ওয়ালেট তৈরি বা ইমপোর্ট করুন।</string>
   <string name="recent_activity_title">সাম্প্রতিক</string>
   <string name="recent_activity_state_empty_title">আপনার সাম্প্রতিক এখানে প্রদর্শিত হবে</string>
   <string name="recent_activity_state_empty_description">আপনার সম্প্রতি ব্যবহার করা সম্পদ এখানে প্রদর্শিত হবে</string>

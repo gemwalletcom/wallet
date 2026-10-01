@@ -25,7 +25,6 @@ let package = Package(
         .package(name: "Localization", path: "../Localization"),
         .package(name: "Components", path: "../Components"),
         .package(name: "Style", path: "../Style"),
-        .package(name: "Formatters", path: "../Formatters"),
         .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [

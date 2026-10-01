@@ -441,6 +441,7 @@
   <string name="lock_unlock">غیر مقفل کریں۔</string>
   <string name="lock_privacy_lock">پرائیویسی لاک</string>
   <string name="lock_footer">اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔</string>
+  <string name="lock_passcode">پاس کوڈ</string>
   <string name="verify_phrase_title">تصدیق کریں۔</string>
   <string name="warnings_externally_controlled_account">اس %1$s اکاؤنٹ کو کوئی اور کنٹرول کر سکتا ہے۔ جب تک آپ کو یقین نہ ہو کہ اس کا کنٹرول آپ کے پاس ہے، اس میں رقوم نہ بھیجیں، ورنہ آپ اپنے اثاثے مستقل طور پر کھو سکتے ہیں۔</string>
   <string name="sell_title">فروخت کریں %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">عرفی نام</string>
   <string name="rewards_unverified_title">انعامات ابھی فعال نہیں ہیں۔</string>
   <string name="rewards_unverified_description">جب آپ ایپ کو زیادہ استعمال کرتے ہیں تو انعامات خود بخود فعال ہوجاتے ہیں۔</string>
+  <string name="rewards_state_empty_title">انعامات کے لیے ملٹی کوائن والیٹ درکار ہے</string>
+  <string name="rewards_state_empty_description">دوستوں کو مدعو کرنے اور پوائنٹس حاصل کرنے کے لیے ملٹی کوائن والیٹ بنائیں یا امپورٹ کریں۔</string>
   <string name="recent_activity_title">حالیہ</string>
   <string name="recent_activity_state_empty_title">آپ کی حالیہ چیزیں یہاں ظاہر ہوں گی۔</string>
   <string name="recent_activity_state_empty_description">وہ اثاثے جو آپ نے حال ہی میں استعمال کیے ہیں وہ یہاں ظاہر ہوں گے۔</string>

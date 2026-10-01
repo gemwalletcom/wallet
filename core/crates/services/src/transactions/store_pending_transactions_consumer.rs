@@ -28,7 +28,7 @@ impl MessageConsumer<TransactionId, usize> for StorePendingTransactionsConsumer 
         let expires_at = unix_seconds()?.saturating_add(u64::from(chain_transaction_timeout(payload.chain)) / 1000) as f64;
         let key = CacheKey::PendingTransactions(payload.chain.as_ref());
         self.cacher.add_to_sorted_set_cached(key, &[(payload.hash, expires_at)]).await?;
-        info_with_fields!("stored pending transaction", transaction_id = transaction_id.as_str());
+        info_with_fields!("pending added", transaction_id = transaction_id.as_str());
         Ok(1)
     }
 }

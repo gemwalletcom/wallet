@@ -13,7 +13,7 @@ use primitives::{
 
 use super::{SQUID_COSMOS_MULTICALL, SUPPORTED_CHAINS, client::SquidClient, model::*};
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::{DEFAULT_SWAP_FEE_BPS, default_referral_fees},
@@ -180,8 +180,8 @@ where
         })
     }
 
-    async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        let result = self.client.get_status(transaction_hash, chain.network_id()).await?;
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        let result = self.client.get_status(&request.transaction_hash, request.chain.network_id()).await?;
         Ok(SwapResult {
             status: result.squid_transaction_status.swap_status(),
             metadata: None,
@@ -268,7 +268,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_squid_swap_status() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
-        let result = squid.get_swap_result(Chain::Cosmos, "D68723CEADAB65795B176FAE0B84B0ED5923DA9AAEC69502F8D30554431250A9").await?;
+        let result = squid.get_swap_result(&SwapResultRequest::new(Chain::Cosmos, "D68723CEADAB65795B176FAE0B84B0ED5923DA9AAEC69502F8D30554431250A9")).await?;
         println!("status: {:?}", result.status);
         assert_eq!(result.status, SwapStatus::Completed);
         Ok(())

@@ -534,6 +534,7 @@ lock_require_authentication = 需要身分驗證
 lock_unlock = 解鎖
 lock_privacy_lock = 隱私鎖
 lock_footer = 保護此裝置上的 App 存取安全
+lock_passcode = 密碼
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = 積分已可領取！
 rewards_nickname = 暱稱
 rewards_unverified_title = 積分功能尚未啟用。
 rewards_unverified_description = 繼續使用 App，積分功能會自動啟用。
+rewards_state_empty_title = 積分需要多幣種錢包
+rewards_state_empty_description = 建立或匯入多幣種錢包，即可邀請好友並賺取積分。
 
 # Recent Activity
 

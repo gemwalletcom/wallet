@@ -534,6 +534,7 @@ lock_require_authentication = 需要身份验证
 lock_unlock = 解锁
 lock_privacy_lock = 隐私锁
 lock_footer = 保护此设备上的应用访问安全
+lock_passcode = 密码
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = 积分已可领取！
 rewards_nickname = 昵称
 rewards_unverified_title = 积分尚未激活。
 rewards_unverified_description = 继续使用应用，积分功能会自动激活。
+rewards_state_empty_title = 积分需要多币种钱包
+rewards_state_empty_description = 创建或导入多币种钱包，即可邀请好友并赚取积分。
 
 # Recent Activity
 

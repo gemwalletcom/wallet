@@ -441,6 +441,7 @@
   <string name="lock_unlock">Kilidi aç</string>
   <string name="lock_privacy_lock">Gizlilik Kilidi</string>
   <string name="lock_footer">Cihazınızda bu uygulamaya erişimi koruyun</string>
+  <string name="lock_passcode">Şifre</string>
   <string name="verify_phrase_title">Onaylamak</string>
   <string name="warnings_externally_controlled_account">Bu %1$s hesabı başka biri tarafından kontrol ediliyor olabilir. Hesabı sizin kontrol ettiğinizden emin olmadıkça bu hesaba para göndermeyin, aksi takdirde varlıklarınızı kalıcı olarak kaybedebilirsiniz.</string>
   <string name="sell_title">%1$s sat</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Takma ad</string>
   <string name="rewards_unverified_title">Ödüller henüz aktif değil.</string>
   <string name="rewards_unverified_description">Uygulamayı daha çok kullandıkça ödüller otomatik olarak etkinleşir.</string>
+  <string name="rewards_state_empty_title">Ödüller için Çoklu Coin cüzdanı gerekir</string>
+  <string name="rewards_state_empty_description">Arkadaşlarınızı davet etmek ve puan kazanmak için bir Çoklu Coin cüzdanı oluşturun veya içe aktarın.</string>
   <string name="recent_activity_title">Son Kullanılanlar</string>
   <string name="recent_activity_state_empty_title">Son aramalarınız burada görünecek</string>
   <string name="recent_activity_state_empty_description">Yakın zamanda kullandığınız varlıklar burada görünecek</string>

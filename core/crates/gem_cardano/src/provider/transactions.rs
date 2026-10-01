@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -22,7 +22,12 @@ impl<C: Client> ChainBlockTransactions for CardanoClient<C> {
 }
 
 #[async_trait]
-impl<C: Client> ChainTransaction for CardanoClient<C> {}
+impl<C: Client> ChainTransaction for CardanoClient<C> {
+    async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let transaction = self.get_transaction(&request.hash).await?;
+        Ok(transaction.and_then(|transaction| map_transaction(self.get_chain(), &transaction.included_at, &transaction.transaction)))
+    }
+}
 
 #[async_trait]
 impl<C: Client> ChainTransactions for CardanoClient<C> {

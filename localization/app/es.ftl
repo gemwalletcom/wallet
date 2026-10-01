@@ -534,6 +534,7 @@ lock_require_authentication = Requerir autenticación
 lock_unlock = Desbloquear
 lock_privacy_lock = Bloqueo de privacidad
 lock_footer = Proteger el acceso a esta aplicación en su dispositivo
+lock_passcode = Código de acceso
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = ¡Tu bono está listo!
 rewards_nickname = Apodo
 rewards_unverified_title = Las recompensas aún no están activas.
 rewards_unverified_description = Las recompensas se activan automáticamente a medida que usas más la aplicación.
+rewards_state_empty_title = Las recompensas requieren una billetera multi-moneda
+rewards_state_empty_description = Crea o importa una billetera multi-moneda para invitar a amigos y ganar puntos.
 
 # Recent Activity
 

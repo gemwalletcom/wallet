@@ -534,6 +534,7 @@ lock_require_authentication = تصدیق کی ضرورت ہے۔
 lock_unlock = غیر مقفل کریں۔
 lock_privacy_lock = پرائیویسی لاک
 lock_footer = اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔
+lock_passcode = پاس کوڈ
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = آپ کا بونس تیار ہے!
 rewards_nickname = عرفی نام
 rewards_unverified_title = انعامات ابھی فعال نہیں ہیں۔
 rewards_unverified_description = جب آپ ایپ کو زیادہ استعمال کرتے ہیں تو انعامات خود بخود فعال ہوجاتے ہیں۔
+rewards_state_empty_title = انعامات کے لیے ملٹی کوائن والیٹ درکار ہے
+rewards_state_empty_description = دوستوں کو مدعو کرنے اور پوائنٹس حاصل کرنے کے لیے ملٹی کوائن والیٹ بنائیں یا امپورٹ کریں۔
 
 # Recent Activity
 

@@ -441,6 +441,7 @@
   <string name="lock_unlock">Sblocca</string>
   <string name="lock_privacy_lock">Blocco privacy</string>
   <string name="lock_footer">Proteggi l\'accesso a questa app sul tuo dispositivo</string>
+  <string name="lock_passcode">Codice di accesso</string>
   <string name="verify_phrase_title">Confermare</string>
   <string name="warnings_externally_controlled_account">Questo account %1$s può essere controllato da qualcun altro. Non inviarvi fondi a meno che tu non sia certo di controllarlo, altrimenti potresti perdere definitivamente i tuoi beni.</string>
   <string name="sell_title">Vendi %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Soprannome</string>
   <string name="rewards_unverified_title">Premi non ancora attivi.</string>
   <string name="rewards_unverified_description">I premi si attivano automaticamente man mano che utilizzi l\'app.</string>
+  <string name="rewards_state_empty_title">Le ricompense richiedono un portafoglio Multi-Coin</string>
+  <string name="rewards_state_empty_description">Crea o importa un portafoglio Multi-Coin per invitare amici e guadagnare punti.</string>
   <string name="recent_activity_title">Recenti</string>
   <string name="recent_activity_state_empty_title">I tuoi recenti verranno visualizzati qui</string>
   <string name="recent_activity_state_empty_description">Le risorse che hai utilizzato di recente verranno visualizzate qui</string>

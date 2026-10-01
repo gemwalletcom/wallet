@@ -534,6 +534,7 @@ lock_require_authentication = Exigir autenticação
 lock_unlock = Desbloqueio
 lock_privacy_lock = Bloqueio de privacidade
 lock_footer = Proteja o acesso a este aplicativo no seu dispositivo
+lock_passcode = Senha
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Seu bônus está pronto!
 rewards_nickname = Apelido
 rewards_unverified_title = As recompensas ainda não estão ativas.
 rewards_unverified_description = As recompensas são ativadas automaticamente conforme você usa o aplicativo com mais frequência.
+rewards_state_empty_title = As recompensas exigem uma carteira multimoeda
+rewards_state_empty_description = Crie ou importe uma carteira multimoeda para convidar amigos e ganhar pontos.
 
 # Recent Activity
 

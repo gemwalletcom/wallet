@@ -441,6 +441,7 @@
   <string name="lock_unlock">Ontgrendelen</string>
   <string name="lock_privacy_lock">Privacyslot</string>
   <string name="lock_footer">Beveilig de toegang tot deze app op uw apparaat</string>
+  <string name="lock_passcode">Toegangscode</string>
   <string name="verify_phrase_title">Bevestig</string>
   <string name="warnings_externally_controlled_account">Dit %1$s-account kan door iemand anders worden beheerd. Stuur er geen geld naartoe, tenzij u zeker weet dat u het zelf beheert, anders kunt u uw bezittingen permanent kwijtraken.</string>
   <string name="sell_title">Verkoop %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Bijnaam</string>
   <string name="rewards_unverified_title">Beloningen nog niet actief.</string>
   <string name="rewards_unverified_description">Je beloningen worden automatisch geactiveerd naarmate je de app meer gebruikt.</string>
+  <string name="rewards_state_empty_title">Voor beloningen is een multi-coin portemonnee nodig</string>
+  <string name="rewards_state_empty_description">Maak of importeer een multi-coin portemonnee om vrienden uit te nodigen en punten te verdienen.</string>
   <string name="recent_activity_title">Recente</string>
   <string name="recent_activity_state_empty_title">Je recente berichten verschijnen hier</string>
   <string name="recent_activity_state_empty_description">Activa die u onlangs heeft gebruikt, worden hier weergegeven</string>

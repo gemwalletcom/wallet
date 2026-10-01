@@ -534,6 +534,7 @@ lock_require_authentication = Kimlik doğrulama gerektir
 lock_unlock = Kilidi aç
 lock_privacy_lock = Gizlilik Kilidi
 lock_footer = Cihazınızda bu uygulamaya erişimi koruyun
+lock_passcode = Şifre
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Bonusunuz hazır!
 rewards_nickname = Takma ad
 rewards_unverified_title = Ödüller henüz aktif değil.
 rewards_unverified_description = Uygulamayı daha çok kullandıkça ödüller otomatik olarak etkinleşir.
+rewards_state_empty_title = Ödüller için Çoklu Coin cüzdanı gerekir
+rewards_state_empty_description = Arkadaşlarınızı davet etmek ve puan kazanmak için bir Çoklu Coin cüzdanı oluşturun veya içe aktarın.
 
 # Recent Activity
 

@@ -534,6 +534,7 @@ lock_require_authentication = Memerlukan pengesahan
 lock_unlock = Buka kunci
 lock_privacy_lock = Kunci Privasi
 lock_footer = Lindungi akses kepada apl ini pada peranti anda
+lock_passcode = Kod Laluan
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Bonus anda sudah siap!
 rewards_nickname = Nama panggilan
 rewards_unverified_title = Ganjaran belum aktif lagi.
 rewards_unverified_description = Ganjaran diaktifkan secara automatik apabila anda menggunakan aplikasi dengan lebih kerap.
+rewards_state_empty_title = Ganjaran memerlukan dompet Berbilang Koin
+rewards_state_empty_description = Buat atau import dompet Berbilang Koin untuk menjemput rakan dan memperoleh mata.
 
 # Recent Activity
 

@@ -441,6 +441,7 @@
   <string name="lock_unlock">Розблокувати</string>
   <string name="lock_privacy_lock">Блокування конфіденційності</string>
   <string name="lock_footer">Захистіть доступ до цієї програми на своєму пристрої</string>
+  <string name="lock_passcode">Пароль</string>
   <string name="verify_phrase_title">Підтвердити</string>
   <string name="warnings_externally_controlled_account">Цей обліковий запис %1$s може контролювати хтось інший. Не надсилайте на нього кошти, якщо ви не впевнені, що контролюєте його, інакше ви можете назавжди втратити свої активи.</string>
   <string name="sell_title">Продати %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Прізвисько</string>
   <string name="rewards_unverified_title">Нагороди ще не активні.</string>
   <string name="rewards_unverified_description">Винагороди активуються автоматично, коли ви більше користуєтеся додатком.</string>
+  <string name="rewards_state_empty_title">Для нагород потрібен мультимонетний гаманець</string>
+  <string name="rewards_state_empty_description">Створіть або імпортуйте мультимонетний гаманець, щоб запрошувати друзів і отримувати бали.</string>
   <string name="recent_activity_title">Нещодавні</string>
   <string name="recent_activity_state_empty_title">Тут з\'являться ваші нещодавні активи</string>
   <string name="recent_activity_state_empty_description">Тут відображатимуться активи, які ви нещодавно використовували</string>

@@ -30,12 +30,8 @@ pub struct QuoteSwapResponse {
     pub recommended_min_amount_in: BigInt,
     pub inbound_address: Option<String>,
     pub router: Option<String>,
-    pub fees: QuoteFees,
     pub total_swap_seconds: Option<u32>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuoteFees {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionStatus {

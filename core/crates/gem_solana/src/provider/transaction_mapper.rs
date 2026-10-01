@@ -4,7 +4,7 @@ use num_bigint::{BigUint, Sign};
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
     WSOL_TOKEN_ADDRESS,
-    models::{BlockTransaction, BlockTransactions, Instruction},
+    models::{BlockTransaction, BlockTransactions, Instruction, TokenBalanceChange},
 };
 use primitives::{
     AssetId, Chain, NFTAssetId, OptionStringExt, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, swap::SOLANA_REFERRAL_ADDRESS,
@@ -116,7 +116,11 @@ fn get_swap_provider(account_keys: &[String]) -> Option<(SwapProvider, &'static 
 }
 
 fn map_swap_metadata(transaction: &BlockTransaction, owner: &str, provider: SwapProvider) -> Option<TransactionSwapMetadata> {
-    let balance_changes = transaction.get_balance_changes_by_owner(owner);
+    let native_change = transaction.get_balance_changes_by_owner(owner);
+    let balance_changes = TokenBalanceChange {
+        amount: native_change.amount + transaction.get_created_token_accounts_rent_by_owner(owner),
+        ..native_change
+    };
     let token_balance_changes = transaction.meta.get_token_balance_changes_by_owner(owner);
 
     let (from_asset, from_value, to_asset, to_value) = match token_balance_changes.as_slice() {
@@ -518,6 +522,27 @@ mod tests {
             Some(TransactionSwapReferralFee {
                 asset_id: SOLANA_USDC_ASSET_ID.clone(),
                 value: BigUint::from(225696u64),
+            })
+        );
+    }
+
+    #[test]
+    fn test_transaction_swap_jupiter_new_token_account_rent() {
+        let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_jupiter_new_token_account_rent.json")).unwrap();
+
+        let transaction = map_transaction(&result.result, 1).unwrap();
+        let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Solana, "CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH"));
+        assert_eq!(metadata.from_value, BigUint::from(100000u64));
+        assert_eq!(metadata.to_asset, Chain::Solana.as_asset_id());
+        assert_eq!(metadata.to_value, BigUint::from(837080u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::Solana.as_asset_id(),
+                value: BigUint::from(4206u64),
             })
         );
     }

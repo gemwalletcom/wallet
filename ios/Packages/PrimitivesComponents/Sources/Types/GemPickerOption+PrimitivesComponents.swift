@@ -5,7 +5,7 @@ import Components
 
 extension Gemstone.GemPickerOption: @retroactive Identifiable {}
 
-extension Gemstone.GemPickerOption: WheelPickerDisplayable {
+extension Gemstone.GemPickerOption: @retroactive WheelPickerDisplayable {
     public var id: UInt8 {
         value
     }

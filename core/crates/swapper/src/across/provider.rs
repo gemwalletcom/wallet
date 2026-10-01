@@ -501,8 +501,8 @@ impl Swapper for Across {
         })
     }
 
-    async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        super::status::get_swap_result(self.rpc_provider.clone(), chain, transaction_hash).await
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        super::status::get_swap_result(self.rpc_provider.clone(), request.chain, &request.transaction_hash).await
     }
 }
 
@@ -793,7 +793,7 @@ mod tests {
             let swap_provider = Across::new(Arc::new(NativeProvider::default()));
             let tx_hash = "0x026d408d6f548824ccec8dd2fa1381a5b176a2dc357058ee501a062f9008b703";
 
-            let result = swap_provider.get_swap_result(Chain::Arc, tx_hash).await?;
+            let result = swap_provider.get_swap_result(&SwapResultRequest::new(Chain::Arc, tx_hash)).await?;
             let metadata = result.metadata.unwrap();
 
             assert_eq!(result.status, SwapStatus::Completed);
@@ -813,7 +813,7 @@ mod tests {
             let tx_hash = "0x0a970040a9885cf2c8a42df6fcdf02a1f3fe7db12079a35613a665a2ee64df49";
             let chain = Chain::Arbitrum;
 
-            let result = swap_provider.get_swap_result(chain, tx_hash).await?;
+            let result = swap_provider.get_swap_result(&SwapResultRequest::new(chain, tx_hash)).await?;
 
             println!("Across swap result: {:?}", result);
             assert_eq!(result.status, SwapStatus::Completed);

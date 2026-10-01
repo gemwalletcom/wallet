@@ -441,6 +441,7 @@
   <string name="lock_unlock">Deblocați</string>
   <string name="lock_privacy_lock">Blocare confidențialitate</string>
   <string name="lock_footer">Protejați accesul la această aplicație pe dispozitivul dvs.</string>
+  <string name="lock_passcode">Cod de acces</string>
   <string name="verify_phrase_title">Confirmați</string>
   <string name="warnings_externally_controlled_account">Acest cont %1$s poate fi controlat de altcineva. Nu trimiteți fonduri în el decât dacă sunteți sigur că îl controlați, altfel vă puteți pierde definitiv bunurile.</string>
   <string name="sell_title">Vânzare %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Poreclă</string>
   <string name="rewards_unverified_title">Recompensele nu sunt încă active.</string>
   <string name="rewards_unverified_description">Recompensele se activează automat pe măsură ce utilizați aplicația mai mult.</string>
+  <string name="rewards_state_empty_title">Recompensele necesită un portofel multi-monede</string>
+  <string name="rewards_state_empty_description">Creați sau importați un portofel multi-monede pentru a invita prieteni și a câștiga puncte.</string>
   <string name="recent_activity_title">Recente</string>
   <string name="recent_activity_state_empty_title">Recentele dvs. vor apărea aici</string>
   <string name="recent_activity_state_empty_description">Elementele pe care le-ați folosit recent vor apărea aici</string>

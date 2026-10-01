@@ -155,6 +155,14 @@ impl Transaction {
         self.utxo_outputs.as_ref().map_or_else(Vec::new, |v| v.iter().map(|x| x.address.clone()).collect())
     }
 
+    pub fn recipient_address(&self) -> Option<String> {
+        if !self.to.is_empty() {
+            return Some(self.to.clone());
+        }
+        let inputs = self.input_addresses();
+        self.output_addresses().into_iter().find(|address| !inputs.contains(address))
+    }
+
     pub fn addresses(&self) -> Vec<String> {
         let mut addresses = vec![self.from.clone(), self.to.clone()];
         addresses.extend(self.input_addresses());

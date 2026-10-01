@@ -22,6 +22,15 @@ pub enum ClientError<E = Vec<u8>> {
     Serialization(String),
 }
 
+impl<E> ClientError<E> {
+    pub fn status(&self) -> Option<u16> {
+        match self {
+            Self::Http { status, .. } | Self::Response { status, .. } => Some(*status),
+            Self::Network(_) | Self::Timeout | Self::Serialization(_) => None,
+        }
+    }
+}
+
 impl ClientError {
     pub fn decode_body<E: DeserializeOwned>(self) -> ClientError<Option<E>> {
         match self {

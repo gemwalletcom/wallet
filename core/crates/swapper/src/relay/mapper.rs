@@ -77,7 +77,12 @@ pub fn map_ton_quote_data(quote_response: &RelayQuoteResponse) -> Result<Swapper
 fn map_referral_fee(app_fees: Option<&RelayRequestAppFees>) -> Option<TransactionSwapReferralFee> {
     let app_fees = app_fees?;
     let currency = app_fees.currency.as_ref()?;
-    let value: BigUint = app_fees.actual.iter().filter(|fee| fee.recipient.eq_ignore_ascii_case(EVM_REFERRAL_ADDRESS)).map(|fee| &fee.amount).sum();
+    let value: BigUint = app_fees
+        .actual
+        .iter()
+        .filter(|fee| fee.recipient.as_deref().is_some_and(|recipient| recipient.eq_ignore_ascii_case(EVM_REFERRAL_ADDRESS)))
+        .filter_map(|fee| fee.amount.as_ref())
+        .sum();
     if value.is_zero() {
         return None;
     }
@@ -280,6 +285,12 @@ mod tests {
         assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Base));
         assert_eq!(metadata.to_value, BigUint::from(49426938842266u64));
         assert_eq!(metadata.provider, Some(SwapperProvider::Relay.as_ref().to_string()));
+
+        let without_app_fee_recipient: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_arb_usdc_without_app_fee_recipient.json")).unwrap();
+        let result = map_swap_result(without_app_fee_recipient.requests.first().unwrap());
+
+        assert_eq!(result.status, SwapStatus::Completed);
+        assert_eq!(result.metadata.and_then(|metadata| metadata.referral_fee), None);
 
         let same_chain_response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_base_eth_to_wsteth.json")).unwrap();
         let result = map_swap_result(same_chain_response.requests.first().unwrap());

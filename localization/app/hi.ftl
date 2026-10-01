@@ -534,6 +534,7 @@ lock_require_authentication = प्रमाणीकरण की आवश्
 lock_unlock = अनलॉक
 lock_privacy_lock = गोपनीयता लॉक
 lock_footer = अपने डिवाइस पर इस ऐप तक पहुंच सुरक्षित रखें
+lock_passcode = पासकोड
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = आपका बोनस तैयार �
 rewards_nickname = उपनाम
 rewards_unverified_title = पुरस्कार अभी सक्रिय नहीं हैं।
 rewards_unverified_description = जैसे-जैसे आप ऐप का अधिक उपयोग करेंगे, पुरस्कार स्वचालित रूप से सक्रिय हो जाएंगे।
+rewards_state_empty_title = पुरस्कारों के लिए बहु-सिक्का वॉलेट ज़रूरी है
+rewards_state_empty_description = दोस्तों को आमंत्रित करने और अंक कमाने के लिए बहु-सिक्का वॉलेट बनाएं या इम्पोर्ट करें।
 
 # Recent Activity
 

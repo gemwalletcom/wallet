@@ -441,6 +441,7 @@
   <string name="lock_unlock">Lås op</string>
   <string name="lock_privacy_lock">Privatlivslås</string>
   <string name="lock_footer">Beskyt adgangen til denne app på din enhed</string>
+  <string name="lock_passcode">Adgangskode</string>
   <string name="verify_phrase_title">Bekræft</string>
   <string name="warnings_externally_controlled_account">Denne %1$s-konto kan være kontrolleret af en anden. Overfør ikke penge til den, medmindre du er sikker på, at du kontrollerer den, ellers kan du permanent miste dine aktiver.</string>
   <string name="sell_title">Sælg %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Kælenavn</string>
   <string name="rewards_unverified_title">Belønninger er endnu ikke aktive.</string>
   <string name="rewards_unverified_description">Belønninger aktiveres automatisk, når du bruger appen mere.</string>
+  <string name="rewards_state_empty_title">Belønninger kræver en multi-coin-tegnebog</string>
+  <string name="rewards_state_empty_description">Opret eller importér en multi-coin-tegnebog for at invitere venner og optjene point.</string>
   <string name="recent_activity_title">Seneste</string>
   <string name="recent_activity_state_empty_title">Dine seneste vil blive vist her</string>
   <string name="recent_activity_state_empty_description">Aktiver, du for nylig har brugt, vises her</string>

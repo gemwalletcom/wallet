@@ -1,5 +1,7 @@
 pub const APTOS_NATIVE_COIN: &str = "0x1::aptos_coin::AptosCoin";
 pub const APTOS_TRANSFER_FUNCTION: &str = "0x1::aptos_account::transfer";
+pub const FUNGIBLE_TRANSFER_FUNCTION: &str = "0x1::primary_fungible_store::transfer";
+pub const OBJECT_CORE_TYPE: &str = "0x1::object::ObjectCore";
 pub const ENTRY_FUNCTION_PAYLOAD_TYPE: &str = "entry_function_payload";
 pub const NO_ACCOUNT_SIGNATURE_TYPE: &str = "no_account_signature";
 pub const FEE_PAYER_SIGNATURE_TYPE: &str = "fee_payer_signature";

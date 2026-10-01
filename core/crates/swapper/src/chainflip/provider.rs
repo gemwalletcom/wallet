@@ -21,7 +21,7 @@ use super::{
     tx_builder,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     cross_chain::VaultAddresses,
@@ -30,7 +30,6 @@ use crate::{
 };
 use primitives::{
     AssetId, ChainType, MINUTE,
-    chain::Chain,
     hex::{decode_hex, encode_with_0x},
 };
 
@@ -339,14 +338,15 @@ where
         Ok(VaultAddresses { deposit, send: vec![] })
     }
 
-    async fn get_swap_result(&self, _chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        let response = self.chainflip_client.get_tx_status(transaction_hash).await?;
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        let response = self.chainflip_client.get_tx_status(&request.transaction_hash).await?;
         Ok(map_swap_result(&response))
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use primitives::Chain;
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
     use gem_client::testkit::MockClient;
@@ -746,6 +746,7 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
+    use primitives::Chain;
     use super::*;
     use crate::{NativeProvider, Options, SwapperQuoteAsset};
     use primitives::{
@@ -763,7 +764,7 @@ mod swap_integration_tests {
         let tx_hash = "3sbA7vTDa8tmuokNeQxWJBPpxG3A1Vw5rhDxSm63w7hW31bo2nbci8CfLr27JsbhcebLwcJcwqbL8UP5aVCMFLGb";
         let chain = Chain::Solana;
 
-        let result = swap_provider.get_swap_result(chain, tx_hash).await?;
+        let result = swap_provider.get_swap_result(&SwapResultRequest::new(chain, tx_hash)).await?;
 
         println!("Chainflip swap result: {:?}", result);
         assert_eq!(result.status, SwapStatus::Completed);

@@ -441,6 +441,7 @@
   <string name="lock_unlock">Desbloquear</string>
   <string name="lock_privacy_lock">Bloqueo de privacidad</string>
   <string name="lock_footer">Proteger el acceso a esta aplicación en su dispositivo</string>
+  <string name="lock_passcode">Código de acceso</string>
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta cuenta de %1$s puede estar controlada por otra persona. No envíe fondos a ella a menos que esté seguro de que la controla, o podría perder sus activos de forma permanente.</string>
   <string name="sell_title">Vender %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Apodo</string>
   <string name="rewards_unverified_title">Las recompensas aún no están activas.</string>
   <string name="rewards_unverified_description">Las recompensas se activan automáticamente a medida que usas más la aplicación.</string>
+  <string name="rewards_state_empty_title">Las recompensas requieren una billetera multi-moneda</string>
+  <string name="rewards_state_empty_description">Crea o importa una billetera multi-moneda para invitar a amigos y ganar puntos.</string>
   <string name="recent_activity_title">Recientes</string>
   <string name="recent_activity_state_empty_title">Tus recientes aparecerán aquí</string>
   <string name="recent_activity_state_empty_description">Los recursos que has usado recientemente aparecerán aquí</string>

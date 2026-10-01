@@ -10,7 +10,7 @@ use super::{
 use crate::amount_to_value;
 use crate::client_factory::create_eth_client;
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::{default_referral_address, default_referral_fees},
@@ -187,8 +187,8 @@ where
         }
     }
 
-    async fn get_swap_result(&self, _chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
-        let result = self.explorer_client.get_transaction_status(transaction_hash).await?;
+    async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        let result = self.explorer_client.get_transaction_status(&request.transaction_hash).await?;
         let output_decimals = self.output_token_decimals(&result).await;
         Ok(map_swap_result(&result, output_decimals))
     }
@@ -603,7 +603,7 @@ mod swap_integration_tests {
         let rpc_provider = Arc::new(NativeProvider::default().set_debug(false));
         let provider = Mayan::new(rpc_provider);
         let hash = "0xfb2464f06d38f39a274b2a5e3414dbed43ad405a06295aaeaded8865efc7d4f4";
-        let result = provider.get_swap_result(Chain::Ethereum, hash).await?;
+        let result = provider.get_swap_result(&SwapResultRequest::new(Chain::Ethereum, hash)).await?;
 
         assert_eq!(result.status, SwapStatus::Completed);
         let metadata = result.metadata.unwrap();

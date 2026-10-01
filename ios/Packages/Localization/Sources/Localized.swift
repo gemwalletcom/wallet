@@ -745,6 +745,8 @@ public enum Localized {
     public static let oneHour = Localized.tr("Localizable", "lock.one_hour", fallback: "1 hour")
     /// 1 minute
     public static let oneMinute = Localized.tr("Localizable", "lock.one_minute", fallback: "1 minute")
+    /// Passcode
+    public static let passcode = Localized.tr("Localizable", "lock.passcode", fallback: "Passcode")
     /// Privacy Lock
     public static let privacyLock = Localized.tr("Localizable", "lock.privacy_lock", fallback: "Privacy Lock")
     /// Require authentication
@@ -1095,6 +1097,10 @@ public enum Localized {
     public static func shareText(_ p1: Any) -> String {
       return Localized.tr("Localizable", "rewards.share_text", String(describing: p1), fallback: "Join Gem Wallet with my referral link and earn rewards: %@")
     }
+    /// Create or import a Multi-Coin wallet to invite friends and earn points.
+    public static let stateEmptyDescription = Localized.tr("Localizable", "rewards.state_empty_description", fallback: "Create or import a Multi-Coin wallet to invite friends and earn points.")
+    /// Rewards need a Multi-Coin wallet
+    public static let stateEmptyTitle = Localized.tr("Localizable", "rewards.state_empty_title", fallback: "Rewards need a Multi-Coin wallet")
     /// Rewards
     public static let title = Localized.tr("Localizable", "rewards.title", fallback: "Rewards")
     /// Username

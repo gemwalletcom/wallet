@@ -534,6 +534,7 @@ lock_require_authentication = Yêu cầu xác thực
 lock_unlock = Mở khóa
 lock_privacy_lock = Khóa riêng tư
 lock_footer = Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn
+lock_passcode = Mật mã
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Phần thưởng của bạn đã sẵn sàn
 rewards_nickname = Biệt danh
 rewards_unverified_title = Phần thưởng chưa được kích hoạt.
 rewards_unverified_description = Phần thưởng sẽ tự động được kích hoạt khi bạn sử dụng ứng dụng nhiều hơn.
+rewards_state_empty_title = Phần thưởng cần ví đa coin
+rewards_state_empty_description = Tạo hoặc nhập ví đa coin để mời bạn bè và nhận điểm.
 
 # Recent Activity
 

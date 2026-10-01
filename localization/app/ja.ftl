@@ -534,6 +534,7 @@ lock_require_authentication = 認証を要求
 lock_unlock = ロック解除
 lock_privacy_lock = プライバシーロック
 lock_footer = デバイス上のこのアプリへのアクセスを保護する
+lock_passcode = パスコード
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = ポイントを受け取れるようにな�
 rewards_nickname = ニックネーム
 rewards_unverified_title = ポイント機能はまだ利用できません。
 rewards_unverified_description = アプリを使い続けると、ポイント機能が自動的に有効になります。
+rewards_state_empty_title = ポイントにはマルチコインウォレットが必要です
+rewards_state_empty_description = マルチコインウォレットを作成またはインポートすると、友達を招待してポイントを獲得できます。
 
 # Recent Activity
 

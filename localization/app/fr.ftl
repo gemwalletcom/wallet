@@ -534,6 +534,7 @@ lock_require_authentication = Exiger une authentification
 lock_unlock = Déverrouiller
 lock_privacy_lock = Verrouillage de la confidentialité
 lock_footer = Protégez l'accès à cette application sur votre appareil
+lock_passcode = Mot de passe
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Votre prime est prête !
 rewards_nickname = Surnom
 rewards_unverified_title = Récompenses non encore actives.
 rewards_unverified_description = Les récompenses s'activent automatiquement à mesure que vous utilisez l'application.
+rewards_state_empty_title = Les récompenses nécessitent un portefeuille multi-pièces
+rewards_state_empty_description = Créez ou importez un portefeuille multi-pièces pour inviter des amis et gagner des points.
 
 # Recent Activity
 

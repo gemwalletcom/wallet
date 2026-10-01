@@ -196,7 +196,7 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
                 let data: DelegationPoolUnlockStakeData = serde_json::from_value(event.data.clone()?).ok()?;
                 return Some(build_transaction(meta, asset_id.clone(), asset_id, data.pool_address, data.amount_unlocked, TransactionType::StakeUndelegate, None));
             }
-            _ => continue,
+            _ => {}
         }
     }
 

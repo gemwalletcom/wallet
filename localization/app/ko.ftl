@@ -534,6 +534,7 @@ lock_require_authentication = 인증 필요
 lock_unlock = 잠금 해제
 lock_privacy_lock = 개인 정보 보호 잠금
 lock_footer = 기기에서 이 앱에 대한 액세스를 보호하세요
+lock_passcode = 비밀번호
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = 보너스가 지급되었습니다!
 rewards_nickname = 별명
 rewards_unverified_title = 보상 프로그램이 아직 활성화되지 않았습니다.
 rewards_unverified_description = 앱을 더 많이 사용할수록 보상이 자동으로 활성화됩니다.
+rewards_state_empty_title = 보상을 받으려면 멀티코인 지갑이 필요합니다
+rewards_state_empty_description = 멀티코인 지갑을 만들거나 가져와서 친구를 초대하고 포인트를 받으세요.
 
 # Recent Activity
 

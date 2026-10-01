@@ -441,6 +441,7 @@
   <string name="lock_unlock">Разблокировать</string>
   <string name="lock_privacy_lock">Блокировка конфиденциальности</string>
   <string name="lock_footer">Защитите доступ к этому приложению на вашем устройстве</string>
+  <string name="lock_passcode">Пароль</string>
   <string name="verify_phrase_title">Подтвердите</string>
   <string name="warnings_externally_controlled_account">Этот аккаунт %1$s может контролировать кто-то другой. Не отправляйте на него средства, если вы не уверены, что контролируете его, иначе вы можете навсегда потерять свои активы.</string>
   <string name="sell_title">Продать %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Никнейм</string>
   <string name="rewards_unverified_title">Награды пока неактивны.</string>
   <string name="rewards_unverified_description">Награды активируются автоматически по мере более частого использования приложения.</string>
+  <string name="rewards_state_empty_title">Для наград нужен мультимонетный кошелек</string>
+  <string name="rewards_state_empty_description">Создайте или импортируйте мультимонетный кошелек, чтобы приглашать друзей и получать баллы.</string>
   <string name="recent_activity_title">Последние</string>
   <string name="recent_activity_state_empty_title">Здесь появятся ваши недавние активы</string>
   <string name="recent_activity_state_empty_description">Здесь будут отображаться активы, которые вы недавно использовали</string>

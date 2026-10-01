@@ -1,0 +1,50 @@
+[
+  {
+    "originAsset": "nep141:tron.omft.near",
+    "destinationAsset": "nep141:ltc.omft.near",
+    "depositAddress": "TTn2J8KGDdfjj27d8bAuKgB3Z4hvbyZbdD",
+    "depositMemo": null,
+    "depositAddressAndMemo": "TTn2J8KGDdfjj27d8bAuKgB3Z4hvbyZbdD",
+    "recipient": "ltc1qfyexsujyujetqfy9szdha7k8fnkuy4zwuml6ak",
+    "status": "REFUNDED",
+    "createdAt": "2026-09-03T21:39:44.196Z",
+    "createdAtTimestamp": 1788471584,
+    "intentHashes": "CK54B1BezdL4ws9ocNkeyatYSPwfx7GeX4gmUt38Eds",
+    "referral": "gemwallet",
+    "amountInFormatted": "43.269289",
+    "amountOutFormatted": "0.27589639",
+    "appFees": [
+      {
+        "recipient": "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc",
+        "fee": 25
+      },
+      {
+        "recipient": "buybacks.multisignature.near",
+        "fee": 25
+      }
+    ],
+    "nearTxHashes": [
+      "B4LKohUyvaH9mE6GBsXphQMrnN51zoiXmY1nLUg24rbA",
+      "J26AcbuxScu9EZjUJoCwAPCKUfTKp8e4UH5wUSxgmJHR"
+    ],
+    "originChainTxHashes": [
+      "7732e5ab9d89a0982e7a0221f67b276d7a8783263e19dae1422f80432b6ce295",
+      "05840373208b42a16a6b5c51759e58123b62cc086134b06babd626c77f3657d5"
+    ],
+    "destinationChainTxHashes": [],
+    "amountIn": "43269289",
+    "amountInUsd": "14.347057769464",
+    "amountOut": "27589639",
+    "amountOutUsd": "14.283156110300",
+    "refundTo": "TF7ETZLdSeZab29QbyvNviUL1N4yU9YCWS",
+    "senders": [
+      "TF7ETZLdSeZab29QbyvNviUL1N4yU9YCWS"
+    ],
+    "refundReason": "NO_LIQUIDITY",
+    "refundFee": "290000",
+    "refundFeeFormatted": "0.29",
+    "depositType": "ORIGIN_CHAIN",
+    "recipientType": "DESTINATION_CHAIN",
+    "refundType": "ORIGIN_CHAIN"
+  }
+]

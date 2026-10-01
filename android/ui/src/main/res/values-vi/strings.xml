@@ -441,6 +441,7 @@
   <string name="lock_unlock">Mở khóa</string>
   <string name="lock_privacy_lock">Khóa riêng tư</string>
   <string name="lock_footer">Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn</string>
+  <string name="lock_passcode">Mật mã</string>
   <string name="verify_phrase_title">Xác nhận</string>
   <string name="warnings_externally_controlled_account">Tài khoản %1$s này có thể do người khác kiểm soát. Không gửi tiền vào tài khoản này trừ khi bạn chắc chắn mình kiểm soát nó, nếu không bạn có thể mất vĩnh viễn tài sản của mình.</string>
   <string name="sell_title">Bán %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Biệt danh</string>
   <string name="rewards_unverified_title">Phần thưởng chưa được kích hoạt.</string>
   <string name="rewards_unverified_description">Phần thưởng sẽ tự động được kích hoạt khi bạn sử dụng ứng dụng nhiều hơn.</string>
+  <string name="rewards_state_empty_title">Phần thưởng cần ví đa coin</string>
+  <string name="rewards_state_empty_description">Tạo hoặc nhập ví đa coin để mời bạn bè và nhận điểm.</string>
   <string name="recent_activity_title">Gần đây</string>
   <string name="recent_activity_state_empty_title">Thông tin gần đây của bạn sẽ xuất hiện ở đây</string>
   <string name="recent_activity_state_empty_description">Nội dung bạn sử dụng gần đây sẽ xuất hiện ở đây</string>

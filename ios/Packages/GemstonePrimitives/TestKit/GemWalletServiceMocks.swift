@@ -64,6 +64,7 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     private var hideBalanceEnabled = false
     private var developerEnabled = false
     private var acceptTermsCompleted = false
+    private var authenticationOffered = false
     private var appearance: Gemstone.Appearance = .system
 
     public func isPerpetualEnabled() -> Bool {
@@ -100,6 +101,14 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
 
     public func setAcceptTermsCompleted() throws {
         acceptTermsCompleted = true
+    }
+
+    public func shouldOfferAuthentication(isAvailable: Bool, isEnabled: Bool) -> Bool {
+        isAvailable && !isEnabled && !authenticationOffered
+    }
+
+    public func setAuthenticationOffered() throws {
+        authenticationOffered = true
     }
 
     public func getAppearance() -> Gemstone.Appearance {

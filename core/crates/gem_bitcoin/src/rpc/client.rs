@@ -38,8 +38,12 @@ impl<C: Client> BitcoinClient<C> {
             .await?)
     }
 
-    pub async fn get_transaction(&self, txid: &str) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(BlockbookTarget::GetTransaction { hash: txid.to_string() }).await?)
+    pub async fn get_transaction(&self, txid: &str) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
+        match self.client.get(BlockbookTarget::GetTransaction { hash: txid.to_string() }).await {
+            Ok(transaction) => Ok(Some(transaction)),
+            Err(error) if error.status() == Some(400) => Ok(None),
+            Err(error) => Err(error.into()),
+        }
     }
 
     pub async fn get_balance(&self, address: &str) -> Result<BitcoinAccount, Box<dyn Error + Send + Sync>> {
@@ -84,9 +88,26 @@ impl<C: Client> chain_traits::ChainProvider for BitcoinClient<C> {
 #[cfg(test)]
 mod tests {
     use gem_client::testkit::MockClient;
-    use gem_client::{CONTENT_TYPE, ContentType};
+    use gem_client::{CONTENT_TYPE, ClientError, ContentType};
 
     use super::*;
+
+    #[tokio::test]
+    async fn test_get_transaction_not_found() {
+        let not_found = BitcoinClient::new(
+            MockClient::new().with_get(|_| {
+                Err(ClientError::Http {
+                    status: 400,
+                    body: br#"{"error":"Transaction 'abcd' not found"}"#.to_vec(),
+                })
+            }),
+            BitcoinChain::Bitcoin,
+        );
+        let unavailable = BitcoinClient::new(MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: vec![] })), BitcoinChain::Bitcoin);
+
+        assert!(not_found.get_transaction("abcd").await.unwrap().is_none());
+        assert!(unavailable.get_transaction("abcd").await.is_err());
+    }
 
     #[tokio::test]
     async fn test_broadcast_transaction() {

@@ -6,7 +6,10 @@ use gem_client::Client;
 use primitives::BroadcastOptions;
 
 use crate::{
-    provider::{BroadcastProvider, transactions_mapper::map_transaction_broadcast},
+    provider::{
+        BroadcastProvider,
+        transactions_mapper::{map_signed_transaction_broadcast, map_transaction_broadcast},
+    },
     rpc::client::HyperCoreClient,
 };
 
@@ -21,13 +24,14 @@ impl<C: Client> ChainTransactionBroadcast for HyperCoreClient<C> {
 
 impl ChainTransactionDecode for BroadcastProvider {
     fn decode_transaction_broadcast(&self, request: &[u8], response: &str) -> Result<String, Box<dyn Error + Sync + Send>> {
-        map_transaction_broadcast(request, serde_json::from_str(response)?)
+        map_signed_transaction_broadcast(request, serde_json::from_str(response)?)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_ETHEREUM_ADDRESS;
 
     #[test]
     fn test_decode_transaction_broadcast() {
@@ -53,12 +57,18 @@ mod tests {
         ] {
             assert_eq!(provider.decode_transaction_broadcast_bytes(request, response.as_bytes()).unwrap(), expected);
         }
-        let request = include_bytes!("../../testdata/hl_action_update_position_tp_sl.json");
-        for response in [
-            r#"{"status":"ok","response":{"type":"order","data":{"statuses":["waitingForTrigger","waitingForTrigger"]}}}"#,
-            r#"{"status":"ok","response":{"type":"order","data":{"statuses":["waitingForFill"]}}}"#,
+        let request = include_bytes!("../../testdata/hl_action_signed_market_order.json");
+        for (response, expected) in [
+            (
+                r#"{"status":"ok","response":{"type":"order","data":{"statuses":[{"filled":{"totalSz":"0.28","avgPx":"200.21","oid":561960681274}}]}}}"#,
+                format!("signedOrder:{TEST_PRIVATE_KEY_ETHEREUM_ADDRESS}:1790829872053:561960681274"),
+            ),
+            (
+                r#"{"status":"ok","response":{"type":"order","data":{"statuses":["waitingForFill"]}}}"#,
+                format!("signedOrder:{TEST_PRIVATE_KEY_ETHEREUM_ADDRESS}:1790829872053"),
+            ),
         ] {
-            assert_eq!(provider.decode_transaction_broadcast(request, response).unwrap(), "action:order:1755132472149");
+            assert_eq!(provider.decode_transaction_broadcast(request, response).unwrap(), expected);
         }
         let request = br#"{"action":{"type":"cancel","cancels":[{"a":1,"o":123}]},"nonce":123}"#;
         let response = r#"{"status":"ok","response":{"type":"cancel","data":{"statuses":["success"]}}}"#;

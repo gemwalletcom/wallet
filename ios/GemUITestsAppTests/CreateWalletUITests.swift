@@ -57,6 +57,7 @@ final class CreateWalletUITests: XCTestCase {
 
         words.forEach { app.buttons[$0].firstMatch.tap() }
         app.tapContinue()
+        app.skipEnableAuthentication()
 
         return words
     }

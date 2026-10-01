@@ -12,17 +12,20 @@ import SwiftUI
 @MainActor
 public final class ImportWalletViewModel {
     private let service: any GemWalletServiceProtocol
+    private let biometryService: any BiometryAuthenticatable
     let preferences: ObservablePreferences
     private let nameService: any GemNameServiceProtocol
     let onComplete: VoidAction
 
     public init(
         service: any GemWalletServiceProtocol,
+        biometryService: any BiometryAuthenticatable,
         preferences: ObservablePreferences,
         nameService: any GemNameServiceProtocol,
         onComplete: VoidAction,
     ) {
         self.service = service
+        self.biometryService = biometryService
         self.preferences = preferences
         self.nameService = nameService
         self.onComplete = onComplete
@@ -32,8 +35,16 @@ public final class ImportWalletViewModel {
         preferences.isAcceptTermsCompleted
     }
 
-    func importWalletModel(type: ImportWalletType) -> ImportWalletSceneViewModel {
+    var shouldOfferAuthentication: Bool {
+        preferences.shouldOfferAuthentication(service: biometryService)
+    }
+
+    func importWalletModel(type: ImportWalletType, onComplete: VoidAction) -> ImportWalletSceneViewModel {
         ImportWalletSceneViewModel(service: service, nameService: nameService, type: type, onComplete: onComplete)
+    }
+
+    func enableAuthenticationModel() -> EnableAuthenticationSceneViewModel {
+        EnableAuthenticationSceneViewModel(service: biometryService, preferences: preferences, onComplete: onComplete)
     }
 
     func importWalletTypeModel() -> ImportWalletTypeSceneViewModel {

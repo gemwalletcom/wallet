@@ -534,6 +534,7 @@ lock_require_authentication = Nangangailangan ng pagpapatunay
 lock_unlock = I-unlock
 lock_privacy_lock = Privacy Lock
 lock_footer = Protektahan ang access sa app na ito sa iyong device
+lock_passcode = Passcode
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Handa na ang iyong bonus!
 rewards_nickname = Palayaw
 rewards_unverified_title = Hindi pa aktibo ang mga gantimpala.
 rewards_unverified_description = Awtomatikong naa-activate ang mga reward habang mas madalas mong ginagamit ang app.
+rewards_state_empty_title = Kailangan ng Multi-Coin wallet para sa mga gantimpala
+rewards_state_empty_description = Gumawa o mag-import ng Multi-Coin wallet para makapag-imbita ng mga kaibigan at makakuha ng puntos.
 
 # Recent Activity
 

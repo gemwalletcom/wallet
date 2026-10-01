@@ -81,6 +81,17 @@ public final class ObservablePreferences: Sendable {
         }
     }
 
+    public func shouldOfferAuthentication(service: any BiometryAuthenticatable) -> Bool {
+        preferencesService.shouldOfferAuthentication(
+            isAvailable: service.availableAuthentication != .none,
+            isEnabled: service.requiresAuthentication,
+        )
+    }
+
+    public func setAuthenticationOffered() {
+        write { try preferencesService.setAuthenticationOffered() }
+    }
+
     @ObservationIgnored
     public var isPerpetualEnabled: Bool {
         get {

@@ -534,6 +534,7 @@ lock_require_authentication = প্রমাণীকরণ প্রয়ো�
 lock_unlock = আনলক করুন
 lock_privacy_lock = গোপনীয়তা লক
 lock_footer = আপনার ডিভাইসে এই অ্যাপের অ্যাক্সেস সুরক্ষিত করুন
+lock_passcode = পাসকোড
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = আপনার বোনাস প্রস
 rewards_nickname = ডাকনাম
 rewards_unverified_title = পুরস্কারগুলো এখনও সক্রিয় হয়নি।
 rewards_unverified_description = আপনি অ্যাপটি যত বেশি ব্যবহার করবেন, পুরস্কারগুলো তত স্বয়ংক্রিয়ভাবে সক্রিয় হবে।
+rewards_state_empty_title = পুরস্কারের জন্য মাল্টি-কয়েন ওয়ালেট প্রয়োজন
+rewards_state_empty_description = বন্ধুদের আমন্ত্রণ জানাতে ও পয়েন্ট অর্জন করতে একটি মাল্টি-কয়েন ওয়ালেট তৈরি বা ইমপোর্ট করুন।
 
 # Recent Activity
 

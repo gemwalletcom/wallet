@@ -441,6 +441,7 @@
   <string name="lock_unlock">Fungua</string>
   <string name="lock_privacy_lock">Kufuli ya Faragha</string>
   <string name="lock_footer">Linda ufikiaji wa programu hii kwenye kifaa chako</string>
+  <string name="lock_passcode">Nambari ya siri</string>
   <string name="verify_phrase_title">Thibitisha</string>
   <string name="warnings_externally_controlled_account">Akaunti hii ya %1$s inaweza kudhibitiwa na mtu mwingine. Usitume pesa kwake isipokuwa una uhakika kuwa unaidhibiti, la sivyo unaweza kupoteza mali yako kabisa.</string>
   <string name="sell_title">Uza %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Jina la utani</string>
   <string name="rewards_unverified_title">Zawadi hazijaanza kutumika bado.</string>
   <string name="rewards_unverified_description">Zawadi huamilishwa kiotomatiki unapotumia programu zaidi.</string>
+  <string name="rewards_state_empty_title">Zawadi zinahitaji mkoba wa sarafu nyingi</string>
+  <string name="rewards_state_empty_description">Unda au ingiza mkoba wa sarafu nyingi ili kualika marafiki na kupata pointi.</string>
   <string name="recent_activity_title">Hivi karibuni</string>
   <string name="recent_activity_state_empty_title">Habari zako za hivi majuzi zitaonekana hapa</string>
   <string name="recent_activity_state_empty_description">Vipengee ambavyo umetumia hivi karibuni vitaonekana hapa</string>

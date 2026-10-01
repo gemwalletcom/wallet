@@ -441,6 +441,7 @@
   <string name="lock_unlock">Entsperren</string>
   <string name="lock_privacy_lock">Datenschutzsperre</string>
   <string name="lock_footer">Schützen Sie den Zugriff auf diese App auf Ihrem Gerät</string>
+  <string name="lock_passcode">Passcode</string>
   <string name="verify_phrase_title">Bestätigen</string>
   <string name="warnings_externally_controlled_account">Dieses %1$s-Konto kann von jemand anderem kontrolliert werden. Senden Sie kein Geld darauf, es sei denn, Sie sind sicher, dass Sie es kontrollieren, sonst könnten Sie Ihr Vermögen dauerhaft verlieren.</string>
   <string name="sell_title">Verkaufen %1$s</string>
@@ -585,6 +586,8 @@
   <string name="rewards_nickname">Spitzname</string>
   <string name="rewards_unverified_title">Prämien noch nicht aktiv.</string>
   <string name="rewards_unverified_description">Prämien werden automatisch aktiviert, je mehr Sie die App nutzen.</string>
+  <string name="rewards_state_empty_title">Prämien erfordern eine Multi-Coin-Wallet</string>
+  <string name="rewards_state_empty_description">Erstellen oder importieren Sie eine Multi-Coin-Wallet, um Freunde einzuladen und Punkte zu sammeln.</string>
   <string name="recent_activity_title">Aktuelles</string>
   <string name="recent_activity_state_empty_title">Ihre letzten Einträge werden hier angezeigt</string>
   <string name="recent_activity_state_empty_description">Hier werden die Assets angezeigt, die Sie kürzlich verwendet haben</string>

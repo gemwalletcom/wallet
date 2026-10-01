@@ -534,6 +534,7 @@ lock_require_authentication = Necesită autentificare
 lock_unlock = Deblocați
 lock_privacy_lock = Blocare confidențialitate
 lock_footer = Protejați accesul la această aplicație pe dispozitivul dvs.
+lock_passcode = Cod de acces
 
 # Verify
 
@@ -724,6 +725,8 @@ rewards_pending_description_ready = Bonusul tău este gata!
 rewards_nickname = Poreclă
 rewards_unverified_title = Recompensele nu sunt încă active.
 rewards_unverified_description = Recompensele se activează automat pe măsură ce utilizați aplicația mai mult.
+rewards_state_empty_title = Recompensele necesită un portofel multi-monede
+rewards_state_empty_description = Creați sau importați un portofel multi-monede pentru a invita prieteni și a câștiga puncte.
 
 # Recent Activity
 
