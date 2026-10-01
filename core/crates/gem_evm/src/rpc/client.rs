@@ -10,7 +10,7 @@ use serde_serializers::{biguint_from_hex_str, u64_from_str};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use super::model::{Block, BlockHeader, TraceCallResult, Transaction, TransactionReceipt};
+use super::model::{Block, BlockHeader, TraceCallResult, TransactionReceipt};
 use crate::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
 use crate::models::fee::EthereumFeeHistory;
 #[cfg(feature = "rpc")]
@@ -83,10 +83,6 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     pub async fn get_latest_block(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
         u64_from_str(&self.client.request::<String, _>(EthereumRpc::BlockNumber).await?)
-    }
-
-    pub async fn get_transaction_by_hash(&self, hash: &str) -> Result<Option<Transaction>, JsonRpcError> {
-        self.client.request(EthereumRpc::GetTransactionByHash { hash: hash.to_string() }).await
     }
 
     pub async fn get_transaction_receipt(&self, hash: &str) -> Result<Option<TransactionReceipt>, JsonRpcError> {

@@ -20,7 +20,6 @@ use super::{
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
-    client_factory::create_eth_client,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::DEFAULT_REFERRER,
@@ -144,18 +143,12 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
     }
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
-        let sender = match request.chain.chain_type() {
-            ChainType::Ethereum => {
-                create_eth_client(self.rpc_provider.clone(), request.chain)?
-                    .get_transaction_by_hash(&request.transaction_hash)
-                    .await
-                    .map_err(SwapperError::compute_quote_error)?
-                    .ok_or(SwapperError::InvalidRoute)?
-                    .from
-            }
-            _ => return Err(SwapperError::NotSupportedChain),
-        };
-        let records = self.client.get_records(&RecordsRequest { from_address: sender }).await?;
+        let records = self
+            .client
+            .get_records(&RecordsRequest {
+                from_address: request.from_address.clone().ok_or(SwapperError::InvalidRoute)?,
+            })
+            .await?;
         let record = records.list.iter().find(|record| record.hash == request.transaction_hash);
         Ok(SwapResult {
             status: record.map_or(SwapStatus::Pending, |record| record.status.swap_status()),
@@ -212,7 +205,11 @@ mod swap_integration_tests {
             assert_eq!(data.to, network.router()?);
         }
 
-        let result = provider.get_swap_result(&SwapResultRequest::new(Chain::Arbitrum, "0x8cb98cd501b2e0b5da96a97492c1f1819fe2a72de6db8a8c40c6d5b862a7cd28")).await?;
+        let request = SwapResultRequest {
+            from_address: Some("0x1085c5f70f7f7591d97da281a64688385455c2bd".to_string()),
+            ..SwapResultRequest::new(Chain::Arbitrum, "0x8cb98cd501b2e0b5da96a97492c1f1819fe2a72de6db8a8c40c6d5b862a7cd28")
+        };
+        let result = provider.get_swap_result(&request).await?;
 
         assert_eq!(
             result,
