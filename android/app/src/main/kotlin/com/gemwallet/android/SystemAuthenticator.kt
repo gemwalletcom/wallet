@@ -1,7 +1,7 @@
 package com.gemwallet.android
 
+import android.app.admin.DevicePolicyManager
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.biometric.BiometricManager
@@ -87,15 +87,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
     }
 
     fun openSettings() {
-        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Intent(Settings.ACTION_BIOMETRIC_ENROLL).putExtra(
-                Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                SystemAuthPolicy.allowedAuthenticators,
-            )
-        } else {
-            Intent(Settings.ACTION_SECURITY_SETTINGS)
-        }
-        runCatching { activity.startActivity(intent) }.onFailure {
+        runCatching { activity.startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD)) }.onFailure {
             activity.startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
         }
     }

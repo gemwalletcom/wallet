@@ -535,6 +535,8 @@ lock_unlock = باز کردن قفل
 lock_privacy_lock = قفل حریم خصوصی
 lock_footer = دسترسی به این برنامه را در دستگاه خود محافظت کنید
 lock_passcode = رمزعبور
+lock_passcode_off_title = رمز عبور دستگاه خاموش است
+lock_passcode_off_description = Gem با رمز عبور دستگاه شما قفل شده است. برای باز کردن Gem، رمز عبور را در تنظیمات دستگاه روشن کنید. کیف پول‌های شما امن هستند.
 
 # Verify
 

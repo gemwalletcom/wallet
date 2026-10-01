@@ -535,6 +535,8 @@ lock_unlock = Odblokuj
 lock_privacy_lock = Blokada prywatności
 lock_footer = Chroń dostęp do tej aplikacji na swoim urządzeniu
 lock_passcode = Hasło
+lock_passcode_off_title = Kod urządzenia jest wyłączony
+lock_passcode_off_description = Gem jest zablokowany kodem urządzenia. Włącz kod w ustawieniach urządzenia, aby otworzyć Gem. Twoje portfele są bezpieczne.
 
 # Verify
 

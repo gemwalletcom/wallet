@@ -535,6 +535,8 @@ lock_unlock = Desbloqueio
 lock_privacy_lock = Bloqueio de privacidade
 lock_footer = Proteja o acesso a este aplicativo no seu dispositivo
 lock_passcode = Senha
+lock_passcode_off_title = O código do dispositivo está desativado
+lock_passcode_off_description = O Gem está bloqueado com o código do seu dispositivo. Ative um código nos ajustes do dispositivo para abrir o Gem. Suas carteiras estão seguras.
 
 # Verify
 

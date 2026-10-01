@@ -535,6 +535,8 @@ lock_unlock = 잠금 해제
 lock_privacy_lock = 개인 정보 보호 잠금
 lock_footer = 기기에서 이 앱에 대한 액세스를 보호하세요
 lock_passcode = 비밀번호
+lock_passcode_off_title = 기기 암호가 꺼져 있습니다
+lock_passcode_off_description = Gem은 기기 암호로 잠겨 있습니다. Gem을 열려면 기기 설정에서 암호를 켜세요. 지갑은 안전합니다.
 
 # Verify
 

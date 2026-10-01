@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">נעילת פרטיות</string>
   <string name="lock_footer">הגן על הגישה לאפליקציה הזו במכשיר שלך</string>
   <string name="lock_passcode">קוד גישה</string>
+  <string name="lock_passcode_off_title">קוד הגישה של המכשיר כבוי</string>
+  <string name="lock_passcode_off_description">Gem נעול באמצעות קוד הגישה של המכשיר. הפעל קוד גישה בהגדרות המכשיר כדי לפתוח את Gem. הארנקים שלך בטוחים.</string>
   <string name="verify_phrase_title">לְאַשֵׁר</string>
   <string name="warnings_externally_controlled_account">ייתכן שמישהו אחר שולט בחשבון %1$s זה. אל תשלח אליו כספים אלא אם אתה בטוח שאתה שולט בו, אחרת אתה עלול לאבד את הנכסים שלך לצמיתות.</string>
   <string name="sell_title">למכור %1$s</string>

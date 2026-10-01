@@ -535,6 +535,8 @@ lock_unlock = Deblocați
 lock_privacy_lock = Blocare confidențialitate
 lock_footer = Protejați accesul la această aplicație pe dispozitivul dvs.
 lock_passcode = Cod de acces
+lock_passcode_off_title = Codul dispozitivului este dezactivat
+lock_passcode_off_description = Gem este blocat cu codul dispozitivului. Activați un cod din setările dispozitivului pentru a deschide Gem. Portofelele dvs. sunt în siguranță.
 
 # Verify
 

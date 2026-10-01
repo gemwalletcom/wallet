@@ -535,6 +535,8 @@ lock_unlock = Entsperren
 lock_privacy_lock = Datenschutzsperre
 lock_footer = Schützen Sie den Zugriff auf diese App auf Ihrem Gerät
 lock_passcode = Passcode
+lock_passcode_off_title = Gerätecode ist deaktiviert
+lock_passcode_off_description = Gem ist mit dem Code Ihres Geräts gesperrt. Aktivieren Sie einen Code in den Geräteeinstellungen, um Gem zu öffnen. Ihre Wallets sind sicher.
 
 # Verify
 

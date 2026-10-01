@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">गोपनीयता लॉक</string>
   <string name="lock_footer">अपने डिवाइस पर इस ऐप तक पहुंच सुरक्षित रखें</string>
   <string name="lock_passcode">पासकोड</string>
+  <string name="lock_passcode_off_title">डिवाइस पासकोड बंद है</string>
+  <string name="lock_passcode_off_description">Gem आपके डिवाइस पासकोड से लॉक है। Gem खोलने के लिए डिवाइस सेटिंग्स में पासकोड चालू करें। आपके वॉलेट सुरक्षित हैं।</string>
   <string name="verify_phrase_title">पुष्टि करना</string>
   <string name="warnings_externally_controlled_account">इस %1$s खाते को कोई और नियंत्रित कर सकता है। जब तक आप सुनिश्चित न हों कि इसका नियंत्रण आपके पास है, इसमें धनराशि न भेजें, वरना आप अपनी संपत्ति हमेशा के लिए खो सकते हैं।</string>
   <string name="sell_title">बेचें %1$s</string>

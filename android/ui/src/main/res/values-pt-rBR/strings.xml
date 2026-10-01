@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">Bloqueio de privacidade</string>
   <string name="lock_footer">Proteja o acesso a este aplicativo no seu dispositivo</string>
   <string name="lock_passcode">Senha</string>
+  <string name="lock_passcode_off_title">O código do dispositivo está desativado</string>
+  <string name="lock_passcode_off_description">O Gem está bloqueado com o código do seu dispositivo. Ative um código nos ajustes do dispositivo para abrir o Gem. Suas carteiras estão seguras.</string>
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta conta %1$s pode ser controlada por outra pessoa. Não envie fundos para ela a menos que tenha certeza de que você a controla, ou poderá perder seus ativos permanentemente.</string>
   <string name="sell_title">Vender %1$s</string>

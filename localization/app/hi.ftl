@@ -535,6 +535,8 @@ lock_unlock = अनलॉक
 lock_privacy_lock = गोपनीयता लॉक
 lock_footer = अपने डिवाइस पर इस ऐप तक पहुंच सुरक्षित रखें
 lock_passcode = पासकोड
+lock_passcode_off_title = डिवाइस पासकोड बंद है
+lock_passcode_off_description = Gem आपके डिवाइस पासकोड से लॉक है। Gem खोलने के लिए डिवाइस सेटिंग्स में पासकोड चालू करें। आपके वॉलेट सुरक्षित हैं।
 
 # Verify
 

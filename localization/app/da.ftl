@@ -535,6 +535,8 @@ lock_unlock = Lås op
 lock_privacy_lock = Privatlivslås
 lock_footer = Beskyt adgangen til denne app på din enhed
 lock_passcode = Adgangskode
+lock_passcode_off_title = Enhedens adgangskode er slået fra
+lock_passcode_off_description = Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine wallets er i sikkerhed.
 
 # Verify
 

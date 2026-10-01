@@ -535,6 +535,8 @@ lock_unlock = ロック解除
 lock_privacy_lock = プライバシーロック
 lock_footer = デバイス上のこのアプリへのアクセスを保護する
 lock_passcode = パスコード
+lock_passcode_off_title = デバイスのパスコードがオフです
+lock_passcode_off_description = Gem はデバイスのパスコードでロックされています。Gem を開くには、デバイスの設定でパスコードをオンにしてください。ウォレットは安全です。
 
 # Verify
 

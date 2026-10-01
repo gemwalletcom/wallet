@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">قفل حریم خصوصی</string>
   <string name="lock_footer">دسترسی به این برنامه را در دستگاه خود محافظت کنید</string>
   <string name="lock_passcode">رمزعبور</string>
+  <string name="lock_passcode_off_title">رمز عبور دستگاه خاموش است</string>
+  <string name="lock_passcode_off_description">Gem با رمز عبور دستگاه شما قفل شده است. برای باز کردن Gem، رمز عبور را در تنظیمات دستگاه روشن کنید. کیف پول‌های شما امن هستند.</string>
   <string name="verify_phrase_title">تایید کنید</string>
   <string name="warnings_externally_controlled_account">ممکن است شخص دیگری این حساب %1$s را کنترل کند. تا زمانی که مطمئن نیستید کنترل آن در دست شماست، وجهی به آن ارسال نکنید، وگرنه ممکن است دارایی‌های خود را برای همیشه از دست بدهید.</string>
   <string name="sell_title">فروش %1$s</string>

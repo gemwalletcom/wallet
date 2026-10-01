@@ -535,6 +535,8 @@ lock_unlock = Розблокувати
 lock_privacy_lock = Блокування конфіденційності
 lock_footer = Захистіть доступ до цієї програми на своєму пристрої
 lock_passcode = Пароль
+lock_passcode_off_title = Пароль пристрою вимкнено
+lock_passcode_off_description = Gem захищено паролем пристрою. Увімкніть пароль у налаштуваннях пристрою, щоб відкрити Gem. Ваші гаманці в безпеці.
 
 # Verify
 

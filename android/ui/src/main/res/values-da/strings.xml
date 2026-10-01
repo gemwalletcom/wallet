@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">Privatlivslås</string>
   <string name="lock_footer">Beskyt adgangen til denne app på din enhed</string>
   <string name="lock_passcode">Adgangskode</string>
+  <string name="lock_passcode_off_title">Enhedens adgangskode er slået fra</string>
+  <string name="lock_passcode_off_description">Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine wallets er i sikkerhed.</string>
   <string name="verify_phrase_title">Bekræft</string>
   <string name="warnings_externally_controlled_account">Denne %1$s-konto kan være kontrolleret af en anden. Overfør ikke penge til den, medmindre du er sikker på, at du kontrollerer den, ellers kan du permanent miste dine aktiver.</string>
   <string name="sell_title">Sælg %1$s</string>
