@@ -132,7 +132,7 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func rewardsScene(activateCode: String?) -> RewardsSceneViewModel? {
+    func rewardsScene(activateCode: String?) -> RewardsSceneViewModel {
         let wallets = currentWallets()
         return RewardsSceneViewModel(
             service: rewardsService,

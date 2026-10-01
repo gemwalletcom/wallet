@@ -588,6 +588,8 @@
   <string name="rewards_nickname">Nickname</string>
   <string name="rewards_unverified_title">Rewards not active yet.</string>
   <string name="rewards_unverified_description">Rewards activate automatically as you use the app more.</string>
+  <string name="rewards_state_empty_title">Rewards need a Multi-Coin wallet</string>
+  <string name="rewards_state_empty_description">Create or import a Multi-Coin wallet to invite friends and earn points.</string>
   <string name="recent_activity_title">Recents</string>
   <string name="recent_activity_state_empty_title">Your recents will appear here</string>
   <string name="recent_activity_state_empty_description">Assets you\'ve recently used will appear here</string>

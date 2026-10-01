@@ -727,6 +727,8 @@ rewards_pending_description_ready = جایزه شما آماده است!
 rewards_nickname = نام مستعار
 rewards_unverified_title = هنوز بخش جوایز فعال نشده است.
 rewards_unverified_description = با استفاده بیشتر از برنامه، جوایز به طور خودکار فعال می‌شوند.
+rewards_state_empty_title = پاداش‌ها به کیف پول مولتی کوین نیاز دارند
+rewards_state_empty_description = برای دعوت از دوستان و کسب امتیاز، یک کیف پول مولتی کوین بسازید یا وارد کنید.
 
 # Recent Activity
 

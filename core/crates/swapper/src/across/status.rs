@@ -63,7 +63,7 @@ impl SourceDeposit {
 }
 
 async fn source_deposit(rpc_provider: Arc<dyn RpcProvider>, chain: Chain, transaction_hash: &str) -> Result<SourceDeposit, SwapperError> {
-    let origin_chain_id = u64::from(AcrossDeployment::deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?.chain_id);
+    let origin_chain_id = chain.network_id_value().ok_or(SwapperError::NotSupportedChain)?;
 
     if chain == Chain::Tron {
         let Some(receipt) = create_tron_client(rpc_provider)?.get_transaction_receipt(transaction_hash.to_string()).await.map_err(SwapperError::transaction_error)? else {

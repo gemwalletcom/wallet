@@ -727,6 +727,8 @@ rewards_pending_description_ready = Ваш бонус готовий!
 rewards_nickname = Прізвисько
 rewards_unverified_title = Нагороди ще не активні.
 rewards_unverified_description = Винагороди активуються автоматично, коли ви більше користуєтеся додатком.
+rewards_state_empty_title = Для нагород потрібен мультимонетний гаманець
+rewards_state_empty_description = Створіть або імпортуйте мультимонетний гаманець, щоб запрошувати друзів і отримувати бали.
 
 # Recent Activity
 

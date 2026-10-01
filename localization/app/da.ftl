@@ -727,6 +727,8 @@ rewards_pending_description_ready = Din bonus er klar!
 rewards_nickname = Kælenavn
 rewards_unverified_title = Belønninger er endnu ikke aktive.
 rewards_unverified_description = Belønninger aktiveres automatisk, når du bruger appen mere.
+rewards_state_empty_title = Belønninger kræver en multi-coin-tegnebog
+rewards_state_empty_description = Opret eller importér en multi-coin-tegnebog for at invitere venner og optjene point.
 
 # Recent Activity
 

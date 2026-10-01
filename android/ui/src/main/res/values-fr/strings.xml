@@ -588,6 +588,8 @@
   <string name="rewards_nickname">Surnom</string>
   <string name="rewards_unverified_title">Récompenses non encore actives.</string>
   <string name="rewards_unverified_description">Les récompenses s\'activent automatiquement à mesure que vous utilisez l\'application.</string>
+  <string name="rewards_state_empty_title">Les récompenses nécessitent un portefeuille multi-pièces</string>
+  <string name="rewards_state_empty_description">Créez ou importez un portefeuille multi-pièces pour inviter des amis et gagner des points.</string>
   <string name="recent_activity_title">Récents</string>
   <string name="recent_activity_state_empty_title">Vos récents apparaîtront ici</string>
   <string name="recent_activity_state_empty_description">Les éléments que vous avez récemment utilisés apparaîtront ici</string>

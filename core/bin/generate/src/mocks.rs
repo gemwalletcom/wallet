@@ -1,3 +1,4 @@
+use crate::models::KOTLIN_PACKAGE;
 use crate::remote_mappers::{Field, Generator, HEADER, RemoteType, Variant, Wrapper, camel_case, uniffi_swift_case, uniffi_type_name, unwrap};
 
 pub(crate) struct MockSyntax {
@@ -143,7 +144,7 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
     none: "null",
     empty_list: "emptyList()",
     empty_map: "emptyMap()",
-    app_module: "com.wallet.core.primitives",
+    app_module: KOTLIN_PACKAGE,
     app_qualifier: "",
     app_case: str::to_string,
     app_types: &[

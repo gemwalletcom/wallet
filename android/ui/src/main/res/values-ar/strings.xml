@@ -588,6 +588,8 @@
   <string name="rewards_nickname">كنية</string>
   <string name="rewards_unverified_title">المكافآت غير مفعلة بعد.</string>
   <string name="rewards_unverified_description">يتم تفعيل المكافآت تلقائيًا كلما زاد استخدامك للتطبيق.</string>
+  <string name="rewards_state_empty_title">المكافآت تتطلب محفظة متعددة العملات</string>
+  <string name="rewards_state_empty_description">أنشئ محفظة متعددة العملات أو استوردها لدعوة الأصدقاء وكسب النقاط.</string>
   <string name="recent_activity_title">آخر الأخبار</string>
   <string name="recent_activity_state_empty_title">ستظهر أحدث أعمالك هنا</string>
   <string name="recent_activity_state_empty_description">ستظهر هنا الأصول التي استخدمتها مؤخرًا</string>

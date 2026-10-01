@@ -588,6 +588,8 @@
   <string name="rewards_nickname">Poreclă</string>
   <string name="rewards_unverified_title">Recompensele nu sunt încă active.</string>
   <string name="rewards_unverified_description">Recompensele se activează automat pe măsură ce utilizați aplicația mai mult.</string>
+  <string name="rewards_state_empty_title">Recompensele necesită un portofel multi-monede</string>
+  <string name="rewards_state_empty_description">Creați sau importați un portofel multi-monede pentru a invita prieteni și a câștiga puncte.</string>
   <string name="recent_activity_title">Recente</string>
   <string name="recent_activity_state_empty_title">Recentele dvs. vor apărea aici</string>
   <string name="recent_activity_state_empty_description">Elementele pe care le-ați folosit recent vor apărea aici</string>

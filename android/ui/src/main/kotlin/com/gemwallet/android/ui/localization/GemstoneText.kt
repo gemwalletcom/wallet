@@ -588,6 +588,8 @@ fun GemEmptyStateText.text(context: Context, symbol: String): String = when (thi
     GemEmptyStateText.SEARCH_ACTIVITY_DESCRIPTION -> context.getString(R.string.activity_state_empty_search_description)
     GemEmptyStateText.SEARCH_NETWORKS_TITLE -> context.getString(R.string.networks_state_empty_search_title)
     GemEmptyStateText.SEARCH_PERPETUALS_TITLE -> context.getString(R.string.perpetuals_empty_state_no_markets_found)
+    GemEmptyStateText.REWARDS_TITLE -> context.getString(R.string.rewards_state_empty_title)
+    GemEmptyStateText.REWARDS_DESCRIPTION -> context.getString(R.string.rewards_state_empty_description)
 }
 
 @StringRes

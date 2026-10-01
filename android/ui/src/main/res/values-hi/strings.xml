@@ -588,6 +588,8 @@
   <string name="rewards_nickname">उपनाम</string>
   <string name="rewards_unverified_title">पुरस्कार अभी सक्रिय नहीं हैं।</string>
   <string name="rewards_unverified_description">जैसे-जैसे आप ऐप का अधिक उपयोग करेंगे, पुरस्कार स्वचालित रूप से सक्रिय हो जाएंगे।</string>
+  <string name="rewards_state_empty_title">पुरस्कारों के लिए बहु-सिक्का वॉलेट ज़रूरी है</string>
+  <string name="rewards_state_empty_description">दोस्तों को आमंत्रित करने और अंक कमाने के लिए बहु-सिक्का वॉलेट बनाएं या इम्पोर्ट करें।</string>
   <string name="recent_activity_title">हाल ही</string>
   <string name="recent_activity_state_empty_title">आपकी हाल की गतिविधियाँ यहाँ दिखाई देंगी</string>
   <string name="recent_activity_state_empty_description">आपके द्वारा हाल ही में उपयोग की गई संपत्तियाँ यहाँ दिखाई देंगी</string>

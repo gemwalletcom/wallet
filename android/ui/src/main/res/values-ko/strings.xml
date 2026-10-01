@@ -588,6 +588,8 @@
   <string name="rewards_nickname">별명</string>
   <string name="rewards_unverified_title">보상 프로그램이 아직 활성화되지 않았습니다.</string>
   <string name="rewards_unverified_description">앱을 더 많이 사용할수록 보상이 자동으로 활성화됩니다.</string>
+  <string name="rewards_state_empty_title">보상을 받으려면 멀티코인 지갑이 필요합니다</string>
+  <string name="rewards_state_empty_description">멀티코인 지갑을 만들거나 가져와서 친구를 초대하고 포인트를 받으세요.</string>
   <string name="recent_activity_title">최근</string>
   <string name="recent_activity_state_empty_title">최근 항목이 여기에 표시됩니다.</string>
   <string name="recent_activity_state_empty_description">최근에 사용한 애셋이 여기에 표시됩니다.</string>

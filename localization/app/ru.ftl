@@ -727,6 +727,8 @@ rewards_pending_description_ready = Ваш бонус готов!
 rewards_nickname = Никнейм
 rewards_unverified_title = Награды пока неактивны.
 rewards_unverified_description = Награды активируются автоматически по мере более частого использования приложения.
+rewards_state_empty_title = Для наград нужен мультимонетный кошелек
+rewards_state_empty_description = Создайте или импортируйте мультимонетный кошелек, чтобы приглашать друзей и получать баллы.
 
 # Recent Activity
 

@@ -588,6 +588,8 @@
   <string name="rewards_nickname">عرفی نام</string>
   <string name="rewards_unverified_title">انعامات ابھی فعال نہیں ہیں۔</string>
   <string name="rewards_unverified_description">جب آپ ایپ کو زیادہ استعمال کرتے ہیں تو انعامات خود بخود فعال ہوجاتے ہیں۔</string>
+  <string name="rewards_state_empty_title">انعامات کے لیے ملٹی کوائن والیٹ درکار ہے</string>
+  <string name="rewards_state_empty_description">دوستوں کو مدعو کرنے اور پوائنٹس حاصل کرنے کے لیے ملٹی کوائن والیٹ بنائیں یا امپورٹ کریں۔</string>
   <string name="recent_activity_title">حالیہ</string>
   <string name="recent_activity_state_empty_title">آپ کی حالیہ چیزیں یہاں ظاہر ہوں گی۔</string>
   <string name="recent_activity_state_empty_description">وہ اثاثے جو آپ نے حال ہی میں استعمال کیے ہیں وہ یہاں ظاہر ہوں گے۔</string>

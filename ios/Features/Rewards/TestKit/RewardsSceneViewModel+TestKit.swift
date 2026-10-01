@@ -10,7 +10,7 @@ public extension RewardsSceneViewModel {
         service: any GemRewardsServiceProtocol = GemRewardsServiceMock(),
         wallets: [Wallet],
         activateCode: String? = nil,
-    ) -> RewardsSceneViewModel? {
+    ) -> RewardsSceneViewModel {
         RewardsSceneViewModel(service: service, wallets: wallets, currentWallet: wallets.first, activateCode: activateCode)
     }
 }

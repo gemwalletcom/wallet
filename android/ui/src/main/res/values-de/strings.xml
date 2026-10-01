@@ -588,6 +588,8 @@
   <string name="rewards_nickname">Spitzname</string>
   <string name="rewards_unverified_title">Prämien noch nicht aktiv.</string>
   <string name="rewards_unverified_description">Prämien werden automatisch aktiviert, je mehr Sie die App nutzen.</string>
+  <string name="rewards_state_empty_title">Prämien erfordern eine Multi-Coin-Wallet</string>
+  <string name="rewards_state_empty_description">Erstellen oder importieren Sie eine Multi-Coin-Wallet, um Freunde einzuladen und Punkte zu sammeln.</string>
   <string name="recent_activity_title">Aktuelles</string>
   <string name="recent_activity_state_empty_title">Ihre letzten Einträge werden hier angezeigt</string>
   <string name="recent_activity_state_empty_description">Hier werden die Assets angezeigt, die Sie kürzlich verwendet haben</string>

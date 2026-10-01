@@ -588,6 +588,8 @@
   <string name="rewards_nickname">Nama panggilan</string>
   <string name="rewards_unverified_title">Hadiah belum aktif.</string>
   <string name="rewards_unverified_description">Hadiah akan aktif secara otomatis seiring Anda semakin sering menggunakan aplikasi.</string>
+  <string name="rewards_state_empty_title">Hadiah memerlukan dompet Multi-Koin</string>
+  <string name="rewards_state_empty_description">Buat atau impor dompet Multi-Koin untuk mengundang teman dan mendapatkan poin.</string>
   <string name="recent_activity_title">Terbaru</string>
   <string name="recent_activity_state_empty_title">Yang terbaru akan muncul di sini</string>
   <string name="recent_activity_state_empty_description">Aset yang baru-baru ini Anda gunakan akan muncul di sini</string>

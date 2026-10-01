@@ -1328,6 +1328,10 @@ rewards_nickname = Nickname
 rewards_unverified_title = Rewards not active yet.
 # Used in rewards UI for the unverified description.
 rewards_unverified_description = Rewards activate automatically as you use the app more.
+# Used in rewards UI as the empty-state title when no wallet can earn rewards.
+rewards_state_empty_title = Rewards need a Multi-Coin wallet
+# Used in rewards UI as the empty-state description when no wallet can earn rewards.
+rewards_state_empty_description = Create or import a Multi-Coin wallet to invite friends and earn points.
 
 # Recent Activity
 

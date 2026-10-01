@@ -588,6 +588,8 @@
   <string name="rewards_nickname">Jina la utani</string>
   <string name="rewards_unverified_title">Zawadi hazijaanza kutumika bado.</string>
   <string name="rewards_unverified_description">Zawadi huamilishwa kiotomatiki unapotumia programu zaidi.</string>
+  <string name="rewards_state_empty_title">Zawadi zinahitaji mkoba wa sarafu nyingi</string>
+  <string name="rewards_state_empty_description">Unda au ingiza mkoba wa sarafu nyingi ili kualika marafiki na kupata pointi.</string>
   <string name="recent_activity_title">Hivi karibuni</string>
   <string name="recent_activity_state_empty_title">Habari zako za hivi majuzi zitaonekana hapa</string>
   <string name="recent_activity_state_empty_description">Vipengee ambavyo umetumia hivi karibuni vitaonekana hapa</string>

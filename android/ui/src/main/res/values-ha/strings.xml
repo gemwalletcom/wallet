@@ -588,6 +588,8 @@
   <string name="rewards_nickname">Laƙabi</string>
   <string name="rewards_unverified_title">Ladabi bai yi aiki ba tukuna.</string>
   <string name="rewards_unverified_description">Lada yana kunna ta atomatik yayin da kake amfani da app ɗin sosai.</string>
+  <string name="rewards_state_empty_title">Lada yana buƙatar Wallet na Multi-Coin</string>
+  <string name="rewards_state_empty_description">Ƙirƙiri ko shigo da Wallet na Multi-Coin don gayyatar abokai da samun maki.</string>
   <string name="recent_activity_title">Kwanan nan</string>
   <string name="recent_activity_state_empty_title">Sabbin labaran ku za su bayyana a nan</string>
   <string name="recent_activity_state_empty_description">Kadarorin da kuka yi amfani da su kwanan nan za su bayyana a nan</string>

@@ -727,6 +727,8 @@ rewards_pending_description_ready = โบนัสของคุณพร้�
 rewards_nickname = ชื่อเล่น
 rewards_unverified_title = ระบบรางวัลยังไม่เปิดใช้งาน
 rewards_unverified_description = รางวัลจะเปิดใช้งานโดยอัตโนมัติเมื่อคุณใช้งานแอปมากขึ้น
+rewards_state_empty_title = รางวัลต้องใช้กระเป๋าเงินแบบหลายเหรียญ
+rewards_state_empty_description = สร้างหรือนำเข้ากระเป๋าเงินแบบหลายเหรียญเพื่อเชิญเพื่อนและรับคะแนน
 
 # Recent Activity
 

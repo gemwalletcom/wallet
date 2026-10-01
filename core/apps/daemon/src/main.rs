@@ -82,7 +82,8 @@ async fn run_worker_services(settings: settings::Settings, workers: &[WorkerServ
 
     let service_name = workers.first().map(AsRef::as_ref).unwrap_or("worker");
     let job_metrics = Arc::new(metrics::job::JobMetrics::new(service_name));
-    let composite = Arc::new(metrics::Metrics::new(vec![job_metrics.clone()]));
+    let transaction_metrics = Arc::new(metrics::transactions::TransactionMetrics::default());
+    let composite = Arc::new(metrics::Metrics::new(vec![job_metrics.clone(), transaction_metrics.clone()]));
     let health_state = health::spawn_server(composite);
 
     let signal_handle = shutdown::spawn_signal_handler(shutdown_sender);
@@ -90,7 +91,7 @@ async fn run_worker_services(settings: settings::Settings, workers: &[WorkerServ
     let worker_jobs: Vec<_> = futures::future::join_all(schedules.into_iter().map(|(svc, schedule)| {
         let reporter = Arc::new(JobReporter::new(job_metrics.clone()));
         let runtime = WorkerRuntime::new(reporter, schedule);
-        let context = WorkerContext::new(services.clone(), runtime, options.job.clone());
+        let context = WorkerContext::new(services.clone(), runtime, options.job.clone(), transaction_metrics.clone());
         let shutdown = shutdown.clone();
         async move {
             match svc.run_jobs(context, shutdown).await {

@@ -94,7 +94,8 @@ impl AcrossDeployment {
         if AcrossAsset::from_asset(&native).and_then(|routed| token_address(&routed.asset_id)) == Some(token) {
             return Some(native);
         }
-        Self::supported_assets().get(&chain)?.iter().find(|asset| token_address(asset) == Some(token)).cloned()
+        let mapped_assets = Self::asset_mappings().into_iter().flat_map(|mapping| mapping.set).filter(|asset| asset.chain == chain);
+        Self::supported_assets().remove(&chain).unwrap_or_default().into_iter().chain(mapped_assets).find(|asset| token_address(asset) == Some(token))
     }
 
     pub fn deposit_addresses() -> Vec<String> {
@@ -273,7 +274,7 @@ mod tests {
     use super::AcrossDeployment;
     use primitives::{
         Chain,
-        asset_constants::{ARC_USDC_TOKEN_ID, ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_WETH_ASSET_ID},
+        asset_constants::{ARC_USDC_TOKEN_ID, LINEA_USDC_E_ASSET_ID, LINEA_USDC_E_TOKEN_ID, ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_WETH_ASSET_ID},
         contract_constants::{ARC_ACROSS_MULTICALL_HANDLER_CONTRACT, ARC_ACROSS_SPOKE_POOL_CONTRACT, ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT},
     };
 
@@ -294,5 +295,6 @@ mod tests {
         assert_eq!(deployment.multicall_handler(), ARC_ACROSS_MULTICALL_HANDLER_CONTRACT);
         assert_eq!(AcrossDeployment::supported_assets().get(&Chain::Arc), Some(&vec![]));
         assert_eq!(AcrossDeployment::supported_asset_for_token(Chain::Arc, ARC_USDC_TOKEN_ID.parse().unwrap()), Some(Chain::Arc.as_asset_id()));
+        assert_eq!(AcrossDeployment::supported_asset_for_token(Chain::Linea, LINEA_USDC_E_TOKEN_ID.parse().unwrap()), Some(LINEA_USDC_E_ASSET_ID.clone()));
     }
 }

@@ -588,6 +588,8 @@
   <string name="rewards_nickname">ニックネーム</string>
   <string name="rewards_unverified_title">ポイント機能はまだ利用できません。</string>
   <string name="rewards_unverified_description">アプリを使い続けると、ポイント機能が自動的に有効になります。</string>
+  <string name="rewards_state_empty_title">ポイントにはマルチコインウォレットが必要です</string>
+  <string name="rewards_state_empty_description">マルチコインウォレットを作成またはインポートすると、友達を招待してポイントを獲得できます。</string>
   <string name="recent_activity_title">最近</string>
   <string name="recent_activity_state_empty_title">最近のものがここに表示されます</string>
   <string name="recent_activity_state_empty_description">最近使用したアセットがここに表示されます</string>

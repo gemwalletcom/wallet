@@ -588,6 +588,8 @@
   <string name="rewards_nickname">暱稱</string>
   <string name="rewards_unverified_title">積分功能尚未啟用。</string>
   <string name="rewards_unverified_description">繼續使用 App，積分功能會自動啟用。</string>
+  <string name="rewards_state_empty_title">積分需要多幣種錢包</string>
+  <string name="rewards_state_empty_description">建立或匯入多幣種錢包，即可邀請好友並賺取積分。</string>
   <string name="recent_activity_title">近期</string>
   <string name="recent_activity_state_empty_title">最近的記錄將顯示在這裡</string>
   <string name="recent_activity_state_empty_description">最近使用過的資產將顯示在這裡</string>
