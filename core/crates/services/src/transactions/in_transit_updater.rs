@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::error::Error;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
@@ -12,7 +12,7 @@ use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
 use swapper::cross_chain::{self, DepositAddressMap};
 use swapper::swapper::GemSwapper;
 
-use crate::transactions::{SwapVaultAddressClient, swap_result_metadata, swap_state_updates};
+use crate::transactions::{SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, swap_result_metadata, swap_state_updates};
 
 #[derive(Clone, Copy)]
 pub struct InTransitConfig {
@@ -42,17 +42,19 @@ pub struct InTransitUpdater {
     swapper: Arc<GemSwapper>,
     stream_producer: StreamProducer,
     vault_client: SwapVaultAddressClient,
+    metrics: Arc<dyn TransactionQueueMetrics>,
     check_schedules: Mutex<HashMap<TransactionId, CheckSchedule>>,
 }
 
 impl InTransitUpdater {
-    pub fn new(database: Database, config: InTransitConfig, swapper: Arc<GemSwapper>, stream_producer: StreamProducer, vault_client: SwapVaultAddressClient) -> Self {
+    pub fn new(database: Database, config: InTransitConfig, swapper: Arc<GemSwapper>, stream_producer: StreamProducer, vault_client: SwapVaultAddressClient, metrics: Arc<dyn TransactionQueueMetrics>) -> Self {
         Self {
             database,
             config,
             swapper,
             stream_producer,
             vault_client,
+            metrics,
             check_schedules: Mutex::new(HashMap::new()),
         }
     }
@@ -63,6 +65,8 @@ impl InTransitUpdater {
             .database
             .run(move |client| client.get_transactions_by_filter(vec![TransactionFilter::States(vec![TransactionState::InTransit])], scan_limit))
             .await?;
+        self.metrics.record_queue(TransactionQueue::InTransit, in_transit_chain_counts(&transactions));
+
         let now = Utc::now();
         let transactions_to_check = {
             let schedules = self.check_schedules();
@@ -180,11 +184,25 @@ fn final_swap_state(result: &SwapResult, created_at: DateTime<Utc>, cutoff: Date
     }
 }
 
+fn in_transit_chain_counts(transactions: &[Transaction]) -> BTreeMap<Chain, usize> {
+    let chains = transactions.iter().map(|transaction| transaction.id.chain).collect::<BTreeSet<_>>();
+    chains.into_iter().map(|chain| (chain, transactions.iter().filter(|transaction| transaction.id.chain == chain).count())).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use num_bigint::BigUint;
     use primitives::{HOUR, MINUTE, SwapProvider};
+
+    #[test]
+    fn test_in_transit_chain_counts() {
+        let ethereum = Transaction::mock();
+        let solana = Transaction::mock_with_params(primitives::AssetId::from_chain(Chain::Solana), primitives::TransactionType::Swap, BigUint::from(1u32));
+
+        assert_eq!(in_transit_chain_counts(&[ethereum.clone(), ethereum, solana]), BTreeMap::from([(Chain::Ethereum, 2), (Chain::Solana, 1)]));
+        assert_eq!(in_transit_chain_counts(&[]), BTreeMap::new());
+    }
 
     #[test]
     fn test_scan_limit_covers_check_interval_window() {

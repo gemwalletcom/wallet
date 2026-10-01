@@ -1,6 +1,7 @@
 pub mod consumer;
 pub mod job;
 pub mod parser;
+pub mod transactions;
 
 use std::sync::{Arc, Mutex, MutexGuard};
 

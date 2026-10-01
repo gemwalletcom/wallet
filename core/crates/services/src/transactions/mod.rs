@@ -14,6 +14,7 @@ mod store_transactions_perpetuals_consumer;
 mod store_transactions_swaps_consumer;
 mod store_transactions_swaps_consumer_config;
 mod swap_state;
+mod transaction_queue_metrics;
 mod transactions_client;
 mod vault_address;
 mod vault_addresses_updater;
@@ -36,6 +37,7 @@ pub use store_transactions_perpetuals_consumer::StoreTransactionsPerpetualsConsu
 pub use store_transactions_swaps_consumer::StoreTransactionsSwapsConsumer;
 pub use store_transactions_swaps_consumer_config::StoreTransactionsSwapsConsumerConfig;
 pub use swap_state::{swap_result_metadata, swap_state_updates, transaction_with_swap_result};
+pub use transaction_queue_metrics::{TransactionQueue, TransactionQueueMetrics};
 pub use transactions_client::TransactionsClient;
 pub use vault_address::SwapVaultAddressClient;
 pub use vault_addresses_updater::VaultAddressesUpdater;

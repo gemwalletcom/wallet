@@ -1,12 +1,14 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::error::Error;
 use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use crate::ConfigCacher;
+use crate::transactions::{TransactionQueue, TransactionQueueMetrics};
 use cacher::{CacheKey, CacherClient};
 use chain_providers::{ChainProviders, TransactionIdRequest};
 use config_keys::ConfigParamKey;
+use futures::{StreamExt, TryStreamExt, future::try_join_all, stream};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::{Chain, TransactionId, chain_transaction_timeout};
 use storage::{Database, DatabaseError, TransactionsRepository};
@@ -34,29 +36,32 @@ pub struct PendingTransactionsUpdater {
     stream_producer: StreamProducer,
     database: Database,
     config: PendingTransactionsUpdaterConfig,
+    metrics: Arc<dyn TransactionQueueMetrics>,
 }
 
 impl PendingTransactionsUpdater {
-    pub fn new(providers: Arc<ChainProviders>, cacher: CacherClient, stream_producer: StreamProducer, database: Database, config: PendingTransactionsUpdaterConfig) -> Self {
+    pub fn new(providers: Arc<ChainProviders>, cacher: CacherClient, stream_producer: StreamProducer, database: Database, config: PendingTransactionsUpdaterConfig, metrics: Arc<dyn TransactionQueueMetrics>) -> Self {
         Self {
             providers,
             cacher,
             stream_producer,
             database,
             config,
+            metrics,
         }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let mut updated = 0;
-        for chain in Chain::all() {
-            if !self.has_pending_transactions(chain).await? {
-                continue;
-            }
-            updated += self.update_chain(chain).await?;
-        }
+        let pending_counts = self.pending_counts().await?;
+        let chains = pending_counts.keys().copied().collect::<Vec<_>>();
+        self.metrics.record_queue(TransactionQueue::Pending, pending_counts);
 
-        Ok(updated)
+        stream::iter(chains).then(|chain| self.update_chain(chain)).try_fold(0, |total, count| async move { Ok(total + count) }).await
+    }
+
+    async fn pending_counts(&self) -> Result<BTreeMap<Chain, usize>, Box<dyn Error + Send + Sync>> {
+        let counts = try_join_all(Chain::all().into_iter().map(|chain| async move { Ok::<_, Box<dyn Error + Send + Sync>>((chain, self.pending_count(chain).await?)) })).await?;
+        Ok(counts.into_iter().filter(|(_, count)| *count > 0).collect())
     }
 
     async fn update_chain(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -123,10 +128,9 @@ impl PendingTransactionsUpdater {
         self.cacher.remove_from_sorted_set_cached(CacheKey::PendingTransactions(chain.as_ref()), &[identifier.to_string()]).await
     }
 
-    async fn has_pending_transactions(&self, chain: Chain) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn pending_count(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let pending_key = CacheKey::PendingTransactions(chain.as_ref());
-        let pending_count = self.cacher.sorted_set_card(&pending_key.key()).await?;
-        Ok(pending_count > 0)
+        Ok(self.cacher.sorted_set_card(&pending_key.key()).await? as usize)
     }
 }
 
