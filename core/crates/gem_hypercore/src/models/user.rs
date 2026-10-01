@@ -29,6 +29,30 @@ pub struct AgentSession {
     pub valid_until: u64,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(tag = "role", rename_all = "camelCase")]
+pub enum UserRole {
+    Agent {
+        data: AgentOwner,
+    },
+    #[serde(other)]
+    Other,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct AgentOwner {
+    pub user: String,
+}
+
+impl UserRole {
+    pub fn owner(self, signer: &str) -> String {
+        match self {
+            Self::Agent { data } => data.user,
+            Self::Other => signer.to_string(),
+        }
+    }
+}
+
 pub(crate) struct AgentApproval {
     pub(crate) approval_required: bool,
     pub(crate) name: String,
@@ -110,4 +134,22 @@ pub enum LedgerDelta {
     },
     #[serde(other)]
     Other,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_user_role_owner() {
+        let signer = "0xd864a8c0ba6f7a3008ddf148e1194813ba3842d2";
+        for (response, owner) in [
+            (r#"{"role":"agent","data":{"user":"0xf5421efce6a6fede2ab38baa02e9e87bf16ef534"}}"#, "0xf5421efce6a6fede2ab38baa02e9e87bf16ef534"),
+            (r#"{"role":"user"}"#, signer),
+            (r#"{"role":"missing"}"#, signer),
+            (r#"{"role":"subAccount","data":{"master":"0xf5421efce6a6fede2ab38baa02e9e87bf16ef534"}}"#, signer),
+        ] {
+            assert_eq!(serde_json::from_str::<UserRole>(response).unwrap().owner(signer), owner);
+        }
+    }
 }
