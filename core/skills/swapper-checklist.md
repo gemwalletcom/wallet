@@ -30,6 +30,7 @@ Audit a swapper provider in `crates/swapper/src/<provider>/provider.rs` against 
 
 ### 6. Swap Result Tracking
 - [ ] `get_swap_result()` maps provider status to `SwapResult` / `SwapStatus` and handles completed, pending, and failed/refunded states
+- [ ] Completed results carry `TransactionSwapMetadata` (from/to asset, raw values, provider) built from the provider's status response; the backend rewrites an indexed deposit to `Swap` from this result, and `metadata: None` leaves the swap without its destination side
 
 ### 7. Error Mapping
 - [ ] Provider-specific errors map to the existing typed `SwapperError` variants: a minimum-amount rejection becomes `SwapperError::InputAmountError { min_amount }` with the amount converted to base units; unsupported assets and routes use their own variants instead of a generic failure
