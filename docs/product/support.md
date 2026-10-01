@@ -24,6 +24,7 @@ flowchart LR
 | The user attaches a photo | it is resized before it goes | |
 | The user taps a photo | it opens full-size | |
 | A message fails | it is marked failed, not removed; a failed text can be retried from the message | |
+| The support desk posts an automatic prompt (asking for an email, a greeting, an away notice) | it is not shown | the chat shows only what the user and the support team wrote; the prompt would otherwise appear as the user's own message |
 | A reply has a Gem Wallet link | it opens the right screen inside the app | |
 | Any other link | it opens in the browser | |
 | The app loses the live connection | the typing indicator goes away | it lives only as long as the live connection, so it never stays under a reply that already arrived |
