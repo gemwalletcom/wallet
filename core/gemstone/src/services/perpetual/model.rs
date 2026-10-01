@@ -332,10 +332,17 @@ pub enum GemPerpetualEnablementTrigger {
     PreferenceChanged,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemPerpetualDepositTarget {
+    SelectAsset,
+    Amount { asset: Asset },
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPerpetualRefreshStep {
     Positions,
     Markets,
+    DepositBalances,
     Transactions,
 }
 

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 @testable import Perpetuals
 import PerpetualsTestKit
@@ -34,5 +35,27 @@ struct PerpetualsSceneViewModelTests {
 
         #expect(perpetuals.syncPositionsCount == 1)
         #expect(perpetuals.syncMarketsCount == 1)
+    }
+
+    @Test
+    func depositOpensThePickerWhenThereIsAChoice() async {
+        var selected: SelectAssetType?
+        let model = PerpetualsSceneViewModel.mock(onSelectAssetType: { selected = $0 })
+
+        await model.onSelectDeposit()
+
+        #expect(selected == .deposit)
+    }
+
+    @Test
+    func depositOpensTheAmountOfTheOneSource() async {
+        let perpetuals = GemPerpetualServiceMock()
+        perpetuals.depositTargetValue = .amount(asset: Asset.mock().toGem())
+        var selected: AmountInput?
+        let model = PerpetualsSceneViewModel.mock(perpetualService: perpetuals, onSelectAmount: { selected = $0 })
+
+        await model.onSelectDeposit()
+
+        #expect(selected == AmountInput(type: .deposit, asset: .mock()))
     }
 }

@@ -158,6 +158,7 @@ struct WalletNavigationView: View {
                 model: viewModelFactory.perpetualsScene(
                     wallet: model.wallet,
                     onSelectAmount: { model.isPresentingSheet = .amount($0) },
+                    onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
                     onSelectAsset: navigationRouter.openAsset,
                     onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
                 ),

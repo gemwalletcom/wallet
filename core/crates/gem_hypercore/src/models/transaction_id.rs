@@ -8,6 +8,9 @@ const ACTION_C_WITHDRAW: &str = "cWithdraw";
 const ACTION_TOKEN_DELEGATE: &str = "tokenDelegate";
 const TOKEN_DELEGATE_STAKE: &str = "stake";
 const TOKEN_DELEGATE_UNSTAKE: &str = "unstake";
+const ACTION_USD_CLASS_TRANSFER: &str = "usdClassTransfer";
+const USD_CLASS_TRANSFER_TO_PERP: &str = "perp";
+const USD_CLASS_TRANSFER_TO_SPOT: &str = "spot";
 const SIGNED_ORDER_KEY: &str = "signedOrder";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,6 +26,7 @@ pub enum HyperCoreActionId {
     CDeposit { wei: u64, nonce: u64 },
     CWithdraw { wei: u64, nonce: u64 },
     TokenDelegate { wei: u64, is_undelegate: bool, nonce: u64 },
+    UsdClassTransfer { to_perp: bool, nonce: u64 },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -63,7 +67,7 @@ impl Display for HyperCoreSignedOrderId {
 impl HyperCoreActionId {
     pub fn nonce(&self) -> u64 {
         match self {
-            Self::Nonce(nonce) | Self::Order(nonce) | Self::CDeposit { nonce, .. } | Self::CWithdraw { nonce, .. } | Self::TokenDelegate { nonce, .. } => *nonce,
+            Self::Nonce(nonce) | Self::Order(nonce) | Self::CDeposit { nonce, .. } | Self::CWithdraw { nonce, .. } | Self::TokenDelegate { nonce, .. } | Self::UsdClassTransfer { nonce, .. } => *nonce,
         }
     }
 }
@@ -75,6 +79,7 @@ impl From<ExchangeRequest> for HyperCoreActionId {
             ExchangeAction::CDeposit { wei } => Self::CDeposit { wei, nonce: request.nonce },
             ExchangeAction::CWithdraw { wei } => Self::CWithdraw { wei, nonce: request.nonce },
             ExchangeAction::TokenDelegate { wei, is_undelegate } => Self::TokenDelegate { wei, is_undelegate, nonce: request.nonce },
+            ExchangeAction::UsdClassTransfer { to_perp } => Self::UsdClassTransfer { to_perp, nonce: request.nonce },
             ExchangeAction::Other => Self::Nonce(request.nonce),
         }
     }
@@ -117,6 +122,10 @@ impl Display for HyperCoreActionId {
                 let direction = if *is_undelegate { TOKEN_DELEGATE_UNSTAKE } else { TOKEN_DELEGATE_STAKE };
                 write!(formatter, "{ACTION_TOKEN_DELEGATE}:{wei}:{direction}:{nonce}")
             }
+            Self::UsdClassTransfer { to_perp, nonce } => {
+                let direction = if *to_perp { USD_CLASS_TRANSFER_TO_PERP } else { USD_CLASS_TRANSFER_TO_SPOT };
+                write!(formatter, "{ACTION_USD_CLASS_TRANSFER}:{direction}:{nonce}")
+            }
         }
     }
 }
@@ -144,6 +153,8 @@ fn parse_action_id(value: &str) -> Option<HyperCoreActionId> {
             is_undelegate: true,
             nonce: nonce.parse().ok()?,
         }),
+        [ACTION_USD_CLASS_TRANSFER, USD_CLASS_TRANSFER_TO_PERP, nonce] => Some(HyperCoreActionId::UsdClassTransfer { to_perp: true, nonce: nonce.parse().ok()? }),
+        [ACTION_USD_CLASS_TRANSFER, USD_CLASS_TRANSFER_TO_SPOT, nonce] => Some(HyperCoreActionId::UsdClassTransfer { to_perp: false, nonce: nonce.parse().ok()? }),
         _ => None,
     }
 }
@@ -170,6 +181,10 @@ mod tests {
                 nonce: 1778110454168
             }))
         );
+        assert_eq!(
+            HyperCoreTransactionId::parse("action:usdClassTransfer:perp:1778110454168"),
+            Some(HyperCoreTransactionId::Action(HyperCoreActionId::UsdClassTransfer { to_perp: true, nonce: 1778110454168 }))
+        );
         assert_eq!(HyperCoreTransactionId::parse("0xba3b"), None);
 
         assert_eq!(HyperCoreTransactionId::Order(413978262893).to_string(), "order:413978262893");
@@ -182,6 +197,10 @@ mod tests {
             })
             .to_string(),
             "action:tokenDelegate:1000000:stake:1778110454168"
+        );
+        assert_eq!(
+            HyperCoreTransactionId::Action(HyperCoreActionId::UsdClassTransfer { to_perp: false, nonce: 1778110454168 }).to_string(),
+            "action:usdClassTransfer:spot:1778110454168"
         );
         assert_eq!(HyperCoreActionId::Nonce(1778110454168).nonce(), 1778110454168);
     }

@@ -61,6 +61,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     let onSelectAmount: ((AmountInput) -> Void)?
+    let onSelectAssetType: ((SelectAssetType) -> Void)?
     let onSelectAsset: ((Asset) -> Void)?
     let onSelectPortfolio: VoidAction
 
@@ -70,6 +71,7 @@ public final class PerpetualsSceneViewModel {
         observerService: any PerpetualObservable,
         recentAssetsService: any GemRecentActivityServiceProtocol,
         onSelectAmount: ((AmountInput) -> Void)? = nil,
+        onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
         onSelectPortfolio: (() -> Void)? = nil,
     ) {
@@ -77,6 +79,7 @@ public final class PerpetualsSceneViewModel {
         self.service = service
         self.observerService = observerService
         self.onSelectAmount = onSelectAmount
+        self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsQuery(walletId: wallet.id, searchQuery: ""), initialValue: [])
@@ -145,12 +148,23 @@ extension PerpetualsSceneViewModel {
 
     func onSelectHeaderAction(_ action: GemHeaderButtonAction) {
         switch action {
-        case let .deposit(asset):
-            onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
+        case .deposit:
+            Task { await onSelectDeposit() }
         case let .withdraw(asset):
             onSelectAmount?(AmountInput(type: .withdraw, asset: asset.toPrimitives()))
         case .send, .receive, .buy, .swap, .sendCollectible, .collectibleMenu:
             break
+        }
+    }
+
+    func onSelectDeposit() async {
+        do {
+            switch try await service.depositTarget() {
+            case .selectAsset: onSelectAssetType?(.deposit)
+            case let .amount(asset): onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
+            }
+        } catch {
+            debugLog("PerpetualsSceneViewModel deposit target error: \(error)")
         }
     }
 
