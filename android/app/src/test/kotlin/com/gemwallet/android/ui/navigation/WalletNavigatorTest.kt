@@ -15,6 +15,7 @@ import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWa
 import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletTypeRoute
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsRoute
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
@@ -346,17 +347,13 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun openSwapTo_opensSwapWithReceiveAssetSelection() {
+    fun openGetAsset_swapWithoutPayAssetOpensWithTheMissingAssetToReceive() {
         val navigator = navigatorWith(WalletRootRoute)
         val receiveAssetId = mockAssetId(Chain.Tron)
 
-        navigator.openSwapTo(receiveAssetId)
+        navigator.openGetAsset(GetAssetAction.Swap(payAssetId = null), receiveAssetId)
 
-        assertEquals(listOf(WalletRootRoute, SwapRoute), navigator.backStack.toList())
-        assertEquals(
-            SwapSelection(itemType = SwapItemType.Receive, assetId = receiveAssetId),
-            navigator.swapSelection(SwapRoute),
-        )
+        assertEquals(listOf(WalletRootRoute, SwapPairRoute(from = null, to = receiveAssetId)), navigator.backStack.toList())
     }
 
     @Test
