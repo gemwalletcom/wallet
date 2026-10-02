@@ -38,7 +38,7 @@ use number_formatter::CryptoFiatConverter;
 use swapper::AssetList as SwapAssetList;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
-use crate::services::collections::{missing, missing_by, unique, unique_by};
+use crate::services::collections::{missing_by, unique, unique_by};
 use primitives::AssetType;
 
 pub fn menu_rows(input: &GemAssetMenuInput) -> Vec<GemAssetMenuRow> {
@@ -81,10 +81,6 @@ pub fn swappable_asset_ids(listed: Vec<AssetId>) -> Vec<AssetId> {
     let mut asset_ids = listed;
     asset_ids.extend(natives.filter(|native| !asset_ids.contains(native)).collect::<Vec<_>>());
     asset_ids
-}
-
-pub fn missing_asset_ids(requested: Vec<AssetId>, existing: Vec<AssetId>) -> Vec<AssetId> {
-    missing(requested, existing)
 }
 
 pub fn asset_prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
@@ -1594,6 +1590,16 @@ mod tests {
     }
 
     #[test]
+    fn test_asset_prices_skip_assets_without_price() {
+        let priced = AssetBasic::mock_with_price(Chain::Ethereum, 2.0, 1.5);
+
+        let prices = asset_prices(&[priced, Asset::from_chain(Chain::Bitcoin).as_basic_primitive()]);
+
+        assert_eq!(prices.len(), 1);
+        assert_eq!((prices[0].asset_id.chain, prices[0].price, prices[0].price_change_percentage_24h), (Chain::Ethereum, 2.0, 1.5));
+    }
+
+    #[test]
     fn test_merge_assets_keeps_the_backend_copy_of_a_token() {
         let merged = merge_assets(
             vec![
@@ -1629,16 +1635,6 @@ mod tests {
         let (enabled, _) = default_balances(&Wallet::mock_with_type(WalletType::Single, &[Chain::Tempo]));
         assert!(!enabled.contains(&AssetId::from_chain(Chain::Tempo)));
         assert!(wallet_default_assets(Chain::Tempo).iter().all(|asset| enabled.contains(&asset.id)));
-    }
-
-    #[test]
-    fn test_missing_asset_ids_drops_known_and_duplicate_ids() {
-        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
-        let ethereum = AssetId::from_chain(Chain::Ethereum);
-
-        let missing = missing_asset_ids(vec![bitcoin.clone(), ethereum.clone(), ethereum.clone()], vec![bitcoin]);
-
-        assert_eq!(missing, vec![ethereum]);
     }
 
     #[test]

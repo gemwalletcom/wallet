@@ -1,13 +1,13 @@
 use crate::models::{
     balance::Balances,
     candlestick::Candlestick,
-    metadata::HypercoreMetadataResponse,
+    metadata::{HypercoreMetadataResponse, perpetual_asset_id},
     order::OpenOrder,
     portfolio::HypercorePortfolioResponse,
     position::{AssetPositions, LeverageType, Position},
 };
 use primitives::{
-    Asset, AssetId, AssetType, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
+    Asset, AssetType, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
     chart::{ChartCandleStick, ChartDateValue},
     known_assets::USDC_SYMBOL,
     perpetual::{PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
@@ -17,10 +17,6 @@ use std::collections::BTreeMap;
 
 const HIP3_PERP_ASSET_OFFSET: u32 = 100_000;
 const HIP3_PERP_ASSET_STRIDE: u32 = 10_000;
-
-pub fn create_perpetual_asset_id(coin: &str) -> AssetId {
-    crate::models::metadata::perpetual_asset_id(coin)
-}
 
 pub fn create_perpetual_id(coin: &str) -> PerpetualId {
     PerpetualId::new(PerpetualProvider::Hypercore, coin)
@@ -80,7 +76,7 @@ pub fn map_position(position: Position, address: String, orders: &[OpenOrder]) -
         }
     };
     let perpetual_id = create_perpetual_id(&position.coin);
-    let asset_id = create_perpetual_asset_id(&position.coin);
+    let asset_id = perpetual_asset_id(&position.coin);
 
     let (take_profit, stop_loss) = map_tp_sl_from_orders(orders, &position.coin);
 

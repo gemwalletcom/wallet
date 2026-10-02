@@ -15,6 +15,7 @@ use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::perpetual::model::perpetual_confirm_details;
+use crate::services::perpetual::rules::autoclose_row;
 use crate::services::simulation::warning_rows;
 use crate::services::swap::model::swap_quote_details;
 use crate::services::transfer::GemTransferData;
@@ -108,7 +109,7 @@ impl GemConfirmation {
             TransactionInputType::Perpetual {
                 perpetual_type: PerpetualType::Modify { data },
                 ..
-            } => self.service.autoclose_row(data.clone()).map(|row| GemConfirmDetails::PerpetualAutoclose { row }),
+            } => autoclose_row(data).map(|row| GemConfirmDetails::PerpetualAutoclose { row }),
             TransactionInputType::Perpetual { perpetual_type, .. } => perpetual_confirm_details(perpetual_type.clone()).map(|details| GemConfirmDetails::Perpetual { details }),
             _ => None,
         }

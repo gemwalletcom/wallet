@@ -5,7 +5,7 @@ use diesel::sql_types::Text;
 use primitives::rewards::RewardStatus as PrimitiveRewardStatus;
 use primitives::{NaiveDateTimeExt, ReferralLeader, ReferralLeaderboard, RewardEvent, TransactionState as PrimitiveTransactionState, now};
 
-use crate::models::{NewRewardEventRow, NewRewardReferralRow, NewRewardsRow, NewUsernameRow, ReferralAttemptRow, RewardEventRow, RewardReferralRow, RewardsRow, UsernameRow, WalletRow};
+use crate::models::{NewRewardEventRow, NewRewardReferralRow, NewRewardsRow, NewUsernameRow, ReferralAttemptRow, RewardEventRow, RewardReferralRow, RewardsRow, UsernameRow};
 use crate::repositories::transactions_repository::{TransactionFilter, transactions_by_wallet_since};
 use crate::repositories::wallets_repository::{device_rows_by_wallet_id, first_subscription_date_by_wallet_id, wallet_row_by_id};
 use crate::sql_types::{RewardEventType, RewardStatus, UsernameStatus};
@@ -266,10 +266,6 @@ fn require_reward_event(client: &mut DatabaseClient, event_id: i32) -> Result<Re
     get_event(client, event_id).or_not_found_internal(event_id.to_string())
 }
 
-fn require_wallet_by_id(client: &mut DatabaseClient, wallet_id: i32) -> Result<WalletRow, DatabaseError> {
-    wallet_row_by_id(client, wallet_id)
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RewardsEligibilityConfig {
     pub activity_cutoff: NaiveDateTime,
@@ -353,7 +349,7 @@ fn referred_username(client: &mut DatabaseClient, wallet_id: i32) -> Result<Stri
     match find_username(client, UsernameLookup::WalletId(wallet_id))? {
         Some(username) => Ok(username.username),
         None => {
-            let wallet = require_wallet_by_id(client, wallet_id)?;
+            let wallet = wallet_row_by_id(client, wallet_id)?;
             Ok(wallet.wallet_id.address().to_string())
         }
     }
@@ -361,7 +357,7 @@ fn referred_username(client: &mut DatabaseClient, wallet_id: i32) -> Result<Stri
 
 fn ensure_wallet_reward_identity(client: &mut DatabaseClient, wallet_id: i32) -> Result<RewardIdentityRecord, DatabaseError> {
     let device_id = latest_wallet_device_id(client, wallet_id)?;
-    let wallet_address = require_wallet_by_id(client, wallet_id)?.wallet_id.address().to_string();
+    let wallet_address = wallet_row_by_id(client, wallet_id)?.wallet_id.address().to_string();
 
     let username = match find_username(client, UsernameLookup::WalletId(wallet_id))? {
         Some(username) => {
@@ -640,7 +636,7 @@ impl RewardsRepository for DatabaseClient {
 
     fn get_address_by_username(&mut self, username: &str) -> Result<String, DatabaseError> {
         let username_row = require_username(self, UsernameLookup::Username(username))?;
-        let wallet = require_wallet_by_id(self, username_row.wallet_id)?;
+        let wallet = wallet_row_by_id(self, username_row.wallet_id)?;
         Ok(wallet.wallet_id.address().to_string())
     }
 

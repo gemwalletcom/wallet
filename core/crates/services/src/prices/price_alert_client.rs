@@ -78,7 +78,7 @@ impl PriceAlertClient {
                 continue;
             };
 
-            let change = formatter.percent(alert.price.price_change_percentage_24h, alert.device.locale.as_ref());
+            let change = formatter.percent(alert.price.price_change_percentage_24h);
             let localizer = LanguageLocalizer::new_with_language(alert.device.locale.as_ref());
             let asset_name = alert.asset.full_name();
 

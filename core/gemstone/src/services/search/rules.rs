@@ -1,7 +1,7 @@
 use crate::services::chain::rules::chain_matches_query;
 
 use primitives::perpetual::{PerpetualData, PerpetualMetadata, PerpetualSearchData};
-use primitives::{Asset, AssetBasic, AssetId, AssetPrice, Chain, PerpetualId, Wallet, WalletType};
+use primitives::{Asset, AssetBasic, AssetId, Chain, PerpetualId, Wallet, WalletType};
 
 use super::model::GemSearchScope;
 
@@ -80,10 +80,6 @@ pub fn wallet_chains(wallet: &Wallet) -> Vec<Chain> {
     }
 }
 
-pub fn prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
-    crate::services::assets::rules::asset_prices(assets)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -99,16 +95,6 @@ mod tests {
         assert_eq!(GemSearchScope::All.token_chains(&[]), Chain::all());
         assert_eq!(GemSearchScope::All.token_chains(&[Chain::Solana]), vec![Chain::Solana]);
         assert!(GemSearchScope::List { id: "stocks".to_string() }.token_chains(&[]).is_empty());
-    }
-
-    #[test]
-    fn test_prices_skip_assets_without_price() {
-        let priced = AssetBasic::mock_with_price(Chain::Ethereum, 2.0, 1.5);
-
-        let prices = prices(&[priced, Asset::from_chain(Chain::Bitcoin).as_basic_primitive()]);
-
-        assert_eq!(prices.len(), 1);
-        assert_eq!((prices[0].asset_id.chain, prices[0].price, prices[0].price_change_percentage_24h), (Chain::Ethereum, 2.0, 1.5));
     }
 
     #[test]

@@ -28,6 +28,7 @@ pub use store::GemAssetStore;
 use crate::api::{GemApiClient, GemApiError};
 use crate::gateway::GemGateway;
 use crate::services::clock::is_outdated;
+use crate::services::collections::missing;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 
@@ -122,11 +123,11 @@ impl GemAssetsService {
 
     pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
-        let missing = rules::missing_asset_ids(asset_ids, existing);
-        if missing.is_empty() {
+        let missing_ids = missing(asset_ids, existing);
+        if missing_ids.is_empty() {
             return Ok(vec![]);
         }
-        self.sync_assets(missing).await
+        self.sync_assets(missing_ids).await
     }
 
     async fn sync_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
@@ -139,12 +140,12 @@ impl GemAssetsService {
 
     pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
-        let missing = rules::missing_asset_ids(asset_ids.clone(), existing);
-        if missing.is_empty() {
+        let missing_ids = missing(asset_ids.clone(), existing);
+        if missing_ids.is_empty() {
             return self.assets(asset_ids).await;
         }
-        let synced = self.sync_assets(missing.clone()).await.unwrap_or_default();
-        for asset_id in rules::missing_asset_ids(missing, synced) {
+        let synced = self.sync_assets(missing_ids.clone()).await.unwrap_or_default();
+        for asset_id in missing(missing_ids, synced) {
             let _ = self.node_token_asset(asset_id).await;
         }
         self.assets(asset_ids).await

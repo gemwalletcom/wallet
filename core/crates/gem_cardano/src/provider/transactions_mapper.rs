@@ -2,11 +2,6 @@ use crate::models::rpc::Transaction;
 use chrono::DateTime;
 use num_bigint::BigUint;
 use primitives::{TransactionState, TransactionType, chain::Chain, transaction_utxo::TransactionUtxoInput};
-use std::error::Error;
-
-pub fn map_transaction_broadcast(hash: String) -> Result<String, Box<dyn Error + Sync + Send>> {
-    if hash.is_empty() { Err("Empty transaction hash".into()) } else { Ok(hash) }
-}
 
 pub fn map_transaction(chain: Chain, created_at: &str, transaction: &Transaction) -> Option<primitives::Transaction> {
     let inputs: Vec<TransactionUtxoInput> = transaction
@@ -54,13 +49,6 @@ pub fn map_transaction(chain: Chain, created_at: &str, transaction: &Transaction
 mod tests {
     use super::*;
     use crate::models::rpc::{Input, Output};
-
-    #[test]
-    fn test_map_transaction_broadcast() {
-        let hash = "test_hash_123".to_string();
-        let result = map_transaction_broadcast(hash).unwrap();
-        assert_eq!(result, "test_hash_123");
-    }
 
     #[test]
     fn test_map_transaction() {

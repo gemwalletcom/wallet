@@ -81,7 +81,7 @@ impl GemSearchService {
     async fn save_assets(&self, wallet: &Wallet, assets: &[AssetBasic], key: &str) -> Result<(), GemServiceError> {
         let asset_ids = rules::asset_ids(assets);
         self.assets.save_assets(assets.to_vec()).await?;
-        self.price.update_prices(rules::prices(assets)).await?;
+        self.price.update_prices(assets_rules::asset_prices(assets)).await?;
         self.balance.add_missing_balances(wallet.id.clone(), asset_ids.clone()).await?;
         self.store.set_assets(key.to_string(), asset_ids).await
     }

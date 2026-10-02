@@ -35,12 +35,12 @@ impl<C: Client + Clone> MonadStakingClient<C> {
 #[async_trait]
 impl<C: Client + Clone> EvmStakingClient for MonadStakingClient<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
-        let result = self.call_lens(encode_apys(&[])).await?;
+        let result = self.call_lens(encode_apys()).await?;
         Ok(decode_apys(&result)?.into_iter().max().filter(|apy_bps| *apy_bps > 0).map(|apy_bps| apy_bps as f64 / 100.0))
     }
 
     async fn get_staking_validators(&self, _apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
-        let result = self.call_lens(encode_validators(&[])).await?;
+        let result = self.call_lens(encode_validators()).await?;
         let (validators, network_apy_bps) = decode_validators(&result)?;
         let network_apy = network_apy_bps as f64 / 100.0;
 
@@ -140,7 +140,7 @@ mod tests {
     async fn test_get_staking_validators_asks_the_lens_for_the_full_validator_set() {
         let rpc_client = mock_jsonrpc_client(|request_method, params| {
             assert_eq!(request_method, method::ETH_CALL);
-            assert_eq!(params[0]["data"], json!(encode_prefixed(encode_validators(&[]))));
+            assert_eq!(params[0]["data"], json!(encode_prefixed(encode_validators())));
             let validator = |validator_id: u64, is_active: bool| IMonadStakingLens::ValidatorInfo {
                 validatorId: validator_id,
                 stake: U256::from(1u32),
