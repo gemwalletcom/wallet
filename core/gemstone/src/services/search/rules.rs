@@ -52,14 +52,6 @@ impl GemSearchScope {
             Self::List { id } => vec![id.clone()],
         }
     }
-
-    pub fn search_key(&self, query: &str) -> String {
-        let query = query.trim();
-        match self {
-            Self::List { id } if query.is_empty() => format!("tag:{id}"),
-            Self::All | Self::List { .. } => query.to_string(),
-        }
-    }
 }
 
 pub fn asset_ids(assets: &[AssetBasic]) -> Vec<AssetId> {
@@ -107,15 +99,6 @@ mod tests {
         assert_eq!(GemSearchScope::All.token_chains(&[]), Chain::all());
         assert_eq!(GemSearchScope::All.token_chains(&[Chain::Solana]), vec![Chain::Solana]);
         assert!(GemSearchScope::List { id: "stocks".to_string() }.token_chains(&[]).is_empty());
-    }
-
-    #[test]
-    fn test_search_key() {
-        let list = GemSearchScope::List { id: "stocks".to_string() };
-        assert_eq!(GemSearchScope::All.search_key(" btc "), "btc");
-        assert_eq!(list.search_key(""), "tag:stocks");
-        assert_eq!(list.search_key("eth"), "eth");
-        assert_eq!(list.api_tags(), vec!["stocks".to_string()]);
     }
 
     #[test]

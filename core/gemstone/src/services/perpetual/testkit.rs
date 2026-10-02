@@ -129,7 +129,7 @@ impl PerpetualTestkit {
         testkit
     }
 
-    fn with_provider(provider: TestAlienProvider) -> Self {
+    pub fn with_provider(provider: TestAlienProvider) -> Self {
         let wallet = Wallet::mock();
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));

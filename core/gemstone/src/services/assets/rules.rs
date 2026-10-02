@@ -83,10 +83,6 @@ pub fn swappable_asset_ids(listed: Vec<AssetId>) -> Vec<AssetId> {
     asset_ids
 }
 
-pub fn token_search_chains(chains: &[Chain]) -> Vec<Chain> {
-    if chains.is_empty() { Chain::all() } else { chains.to_vec() }
-}
-
 pub fn missing_asset_ids(requested: Vec<AssetId>, existing: Vec<AssetId>) -> Vec<AssetId> {
     missing(requested, existing)
 }
@@ -1667,12 +1663,6 @@ mod tests {
         assert_eq!(asset_ids.first(), Some(&token));
         assert_eq!(asset_ids.iter().filter(|asset_id| **asset_id == AssetId::from_chain(Chain::Ethereum)).count(), 1);
         assert!(asset_ids.iter().filter(|asset_id| asset_id.token_id.is_none()).all(|asset_id| asset_id.chain.is_swap_supported()));
-    }
-
-    #[test]
-    fn test_token_search_chains_defaults_to_every_chain() {
-        assert_eq!(token_search_chains(&[Chain::Ethereum]), vec![Chain::Ethereum]);
-        assert_eq!(token_search_chains(&[]), Chain::all());
     }
 
     fn state(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemAssetDetailsState {
