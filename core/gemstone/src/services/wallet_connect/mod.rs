@@ -266,6 +266,7 @@ impl GemWalletConnectService {
                 };
                 let message = self.wallet_connect.decode_sign_message(chain, sign_type, data);
                 self.ensure_live(expiry)?;
+                self.session.set_current_wallet_id(Some(connection.wallet.id.clone()))?;
                 let signature = self
                     .signer
                     .sign_message(GemWalletConnectMessageRequest {
@@ -322,6 +323,7 @@ impl GemWalletConnectService {
         let simulation = self.simulation.simulate_send_transaction(chain, transaction_type, data).await?;
         let transfer = rules::transfer_data(chain, connection.session.metadata.clone(), transaction, action)?;
         self.ensure_live(expiry)?;
+        self.session.set_current_wallet_id(Some(connection.wallet.id.clone()))?;
         self.signer
             .sign_transaction(GemWalletConnectTransactionRequest {
                 session_id,
@@ -593,6 +595,32 @@ mod tests {
         let provider = Arc::new(crate::testkit::TestAlienProvider::with_json_by_path(200, &[("scan/transaction", scan.unwrap_or("not json")), ("gemnodes.com", node)]));
         let service = GemWalletConnectService::mock_with_signer(signer.clone(), Wallet::mock(), provider.clone()).await;
         (service, signer, provider)
+    }
+
+    #[test]
+    fn test_a_request_makes_its_wallet_current_and_leaves_it_current() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Solana, TEST_PRIVATE_KEY_SOLANA_ADDRESS)]);
+        let other = WalletId::Multicoin("0xother".to_string());
+        let service = block_on(GemWalletConnectService::mock(Ok("signature".to_string()), wallet.clone()));
+        service.session.set_current_wallet_id(Some(other)).unwrap();
+
+        let outcome = block_on(service.request_outcome(GemWalletConnectSessionRequest::mock_siws()));
+
+        assert_eq!(outcome.failure, None);
+        assert_eq!(service.session.get_current_wallet_id().unwrap(), Some(wallet.id));
+    }
+
+    #[test]
+    fn test_a_request_rejected_before_the_signer_keeps_the_current_wallet() {
+        block_on(async {
+            let (service, _, _) = scanned_service(Some(r#"{"isScanComplete":true,"maliciousWebsite":"https://example.com"}"#)).await;
+            let other = WalletId::Multicoin("0xother".to_string());
+            service.session.set_current_wallet_id(Some(other.clone())).unwrap();
+
+            service.request_outcome(GemWalletConnectSessionRequest::mock("phishing")).await;
+
+            assert_eq!(service.session.get_current_wallet_id().unwrap(), Some(other));
+        })
     }
 
     #[test]
