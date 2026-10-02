@@ -204,8 +204,8 @@ struct ConfirmTransferSceneViewModelTests {
             showsOptions: false,
             unitType: .gwei,
             unitDecimals: 9,
-            selectedTotal: 20,
-            normalTotal: 20,
+            selected: .regular(gasPrice: 20),
+            normal: .regular(gasPrice: 20),
         ))
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
 
@@ -239,8 +239,8 @@ struct ConfirmTransferSceneViewModelTests {
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
-            selectedTotal: 20,
-            normalTotal: 20,
+            selected: .regular(gasPrice: 20),
+            normal: .regular(gasPrice: 20),
         )))
 
         model.state = .mock(load: .mock())
@@ -262,8 +262,8 @@ struct ConfirmTransferSceneViewModelTests {
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
-            selectedTotal: 20,
-            normalTotal: 20,
+            selected: .regular(gasPrice: 20),
+            normal: .regular(gasPrice: 20),
         ))
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
         let expected = { confirmation.viewState(screen: model.state.screen) }
@@ -283,7 +283,7 @@ struct ConfirmTransferSceneViewModelTests {
             feeRates: .mock(rows: [
                 .mock(kind: .priority(priority: .normal), isSelected: true),
                 .mock(kind: .priority(priority: .fast), isSelected: false),
-            ], showsOptions: true, unitType: .gwei, unitDecimals: 9, selectedTotal: 20, normalTotal: 20),
+            ], showsOptions: true, unitType: .gwei, unitDecimals: 9, selected: .regular(gasPrice: 20), normal: .regular(gasPrice: 20)),
             warnings: [warning],
         ))
 
@@ -309,8 +309,8 @@ struct ConfirmTransferSceneViewModelTests {
                 showsOptions: true,
                 unitType: .gwei,
                 unitDecimals: 9,
-                selectedTotal: 20,
-                normalTotal: 20,
+                selected: .regular(gasPrice: 20),
+                normal: .regular(gasPrice: 20),
             ),
         )
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmationMock)

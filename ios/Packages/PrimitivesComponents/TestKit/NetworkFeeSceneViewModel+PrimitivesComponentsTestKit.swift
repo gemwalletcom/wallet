@@ -6,6 +6,7 @@ import func Gemstone.feeAmount
 import enum Gemstone.FeeOption
 import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemConfirmFeeSelection
+import struct Gemstone.GemCustomFeeField
 import struct Gemstone.GemCustomFeeSession
 import struct Gemstone.GemFeeAmount
 import struct Gemstone.GemFeeAsset
@@ -52,15 +53,16 @@ public extension NetworkFeeSceneViewModel {
                 rates: rates,
                 feeAsset: showsFeeAssets ? assets.first(where: { $0.asset.id == feeAsset.id }) : nil,
                 feeAssets: assets,
-                custom: rates.map {
+                custom: rates.map { rows in
                     GemCustomFeeSession(
                         feeAsset: feeAsset.toGem(),
-                        input: "",
                         format: NumberInput.format(),
-                        rows: $0,
+                        rows: rows,
                         loadedFee: feeAmount,
                         price: feeAssetPrice?.price,
                         currency: Currency.usd.toGem(),
+                        baseFee: rows.baseFee.flatMap { $0 > 0 ? GemCustomFeeField(title: .baseFee, input: "") : nil },
+                        rate: GemCustomFeeField(title: rows.baseFee == nil ? .customFee : .priorityFee, input: ""),
                     )
                 },
             ),

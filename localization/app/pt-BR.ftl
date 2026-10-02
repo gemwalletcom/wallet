@@ -476,6 +476,9 @@ fee_rates_normal = Normal
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Personalizado
+fee_rate_priority = Taxa de prioridade
+fee_rate_base = Taxa base
+fee_rate_suggested = Sugerido
 
 # Banner
 

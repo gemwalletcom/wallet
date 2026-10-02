@@ -476,6 +476,9 @@ fee_rates_normal = طبيعي
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = مخصص
+fee_rate_priority = رسوم الأولوية
+fee_rate_base = الرسوم الأساسية
+fee_rate_suggested = المقترح
 
 # Banner
 

@@ -233,7 +233,7 @@ pub use self::solana_types::{SolanaAccountMeta, SolanaInstruction};
 pub mod fee;
 pub mod fee_priority_value;
 pub mod gas_price_type;
-pub use self::fee::{CustomFee, FeePriority, FeeRate, FeeUnitType, GasPriceType, SOLANA_PRIORITY_FEE_SCALE};
+pub use self::fee::{FeePriority, FeeRate, FeeUnitType, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, custom_fee_value};
 pub use self::fee_priority_value::PriorityFeeValue;
 pub mod response;
 pub use self::response::{RequestError, ResponseError, ResponseResult};

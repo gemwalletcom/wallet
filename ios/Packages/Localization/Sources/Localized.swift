@@ -533,12 +533,18 @@ public enum Localized {
     }
   }
   public enum FeeRate {
+    /// Base Fee
+    public static let base = Localized.tr("Localizable", "fee_rate.base", fallback: "Base Fee")
     /// Custom
     public static let custom = Localized.tr("Localizable", "fee_rate.custom", fallback: "Custom")
     /// gwei
     public static let gwei = Localized.tr("Localizable", "fee_rate.gwei", fallback: "gwei")
+    /// Priority Fee
+    public static let priority = Localized.tr("Localizable", "fee_rate.priority", fallback: "Priority Fee")
     /// sat/vB
     public static let satvB = Localized.tr("Localizable", "fee_rate.satvB", fallback: "sat/vB")
+    /// Suggested
+    public static let suggested = Localized.tr("Localizable", "fee_rate.suggested", fallback: "Suggested")
   }
   public enum FeeRates {
     /// Fast

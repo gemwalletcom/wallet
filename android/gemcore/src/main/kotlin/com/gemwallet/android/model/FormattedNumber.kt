@@ -27,6 +27,7 @@ private val GemFormattedNumber.numberRounding: RoundingMode
     get() = when (rounding) {
         GemNumberRounding.TO_NEAREST -> RoundingMode.HALF_EVEN
         GemNumberRounding.TOWARD_ZERO -> RoundingMode.DOWN
+        GemNumberRounding.AWAY_FROM_ZERO -> RoundingMode.UP
     }
 
 private fun GemFormattedNumber.body(locale: Locale): String = when (val display = display) {
@@ -113,6 +114,7 @@ private fun GemFormattedNumber.abbreviatedText(value: BigDecimal, locale: Locale
         roundingMode = when (rounding) {
             GemNumberRounding.TO_NEAREST -> android.icu.math.BigDecimal.ROUND_HALF_EVEN
             GemNumberRounding.TOWARD_ZERO -> android.icu.math.BigDecimal.ROUND_DOWN
+            GemNumberRounding.AWAY_FROM_ZERO -> android.icu.math.BigDecimal.ROUND_UP
         }
         currencyCode?.let { currency = android.icu.util.Currency.getInstance(it) }
     }

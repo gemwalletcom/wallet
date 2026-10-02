@@ -476,6 +476,9 @@ fee_rates_normal = Na al'ada
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Na Musamman
+fee_rate_priority = Kudin fifiko
+fee_rate_base = Kudin tushe
+fee_rate_suggested = An ba da shawara
 
 # Banner
 

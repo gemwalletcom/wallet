@@ -395,6 +395,9 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Vlastní</string>
+  <string name="fee_rate_priority">Prioritní poplatek</string>
+  <string name="fee_rate_base">Základní poplatek</string>
+  <string name="fee_rate_suggested">Doporučeno</string>
   <string name="banner_account_activation_title">Poplatek za aktivaci účtu</string>
   <string name="banner_account_activation_description">Síť %1$s vyžaduje jednorázový poplatek %2$s.</string>
   <string name="banner_stake_title">Začněte sázet %1$s</string>

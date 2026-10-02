@@ -395,6 +395,9 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizzato</string>
+  <string name="fee_rate_priority">Commissione di priorità</string>
+  <string name="fee_rate_base">Commissione base</string>
+  <string name="fee_rate_suggested">Suggerito</string>
   <string name="banner_account_activation_title">Commissione di attivazione del conto</string>
   <string name="banner_account_activation_description">La rete %1$s richiede una tariffa una tantum di %2$s.</string>
   <string name="banner_stake_title">Inizia a puntare %1$s</string>

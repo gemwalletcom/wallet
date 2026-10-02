@@ -881,6 +881,12 @@ fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 # Used in the network fee rate selector for the custom fee rate row label.
 fee_rate_custom = Custom
+# Used in the custom network fee screen on EVM networks for the priority fee (tip) field label.
+fee_rate_priority = Priority Fee
+# Used in the custom network fee screen on EVM networks for the base fee field label.
+fee_rate_base = Base Fee
+# Footer of each field on the custom fee screen, followed by the value Normal uses.
+fee_rate_suggested = Suggested
 
 # Banner
 

@@ -395,6 +395,9 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Свій</string>
+  <string name="fee_rate_priority">Плата за пріоритет</string>
+  <string name="fee_rate_base">Базова плата</string>
+  <string name="fee_rate_suggested">Рекомендована</string>
   <string name="banner_account_activation_title">Плата за активацію рахунку</string>
   <string name="banner_account_activation_description">Мережа %1$s вимагає одноразової оплати в розмірі %2$s.</string>
   <string name="banner_stake_title">Почніть стейкінг %1$s</string>

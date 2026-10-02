@@ -476,6 +476,9 @@ fee_rates_normal = सामान्य
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = कस्टम
+fee_rate_priority = प्राथमिकता शुल्क
+fee_rate_base = बेस शुल्क
+fee_rate_suggested = सुझाया गया
 
 # Banner
 

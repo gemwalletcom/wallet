@@ -39,6 +39,7 @@ pub enum GemLocalizedText {
     ChartLine { kind: GemPerpetualChartLineKind, price: GemFormattedNumber },
     ExpectedProfit,
     ExpectedLoss,
+    SuggestedFeeRate,
     ShowSecret { kind: GemWalletSecretKind },
     SecretKind { kind: GemWalletSecretKind },
     NewWallet,
