@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">Блокировка конфиденциальности</string>
   <string name="lock_footer">Защитите доступ к этому приложению на вашем устройстве</string>
   <string name="lock_passcode">Пароль</string>
+  <string name="lock_passcode_off_title">Пароль устройства отключён</string>
+  <string name="lock_passcode_off_description">Gem защищён паролем устройства. Включите пароль в настройках устройства, чтобы открыть Gem. Ваши кошельки в безопасности.</string>
   <string name="verify_phrase_title">Подтвердите</string>
   <string name="warnings_externally_controlled_account">Этот аккаунт %1$s может контролировать кто-то другой. Не отправляйте на него средства, если вы не уверены, что контролируете его, иначе вы можете навсегда потерять свои активы.</string>
   <string name="sell_title">Продать %1$s</string>

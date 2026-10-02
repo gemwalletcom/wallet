@@ -535,6 +535,8 @@ lock_unlock = Kilidi aç
 lock_privacy_lock = Gizlilik Kilidi
 lock_footer = Cihazınızda bu uygulamaya erişimi koruyun
 lock_passcode = Şifre
+lock_passcode_off_title = Cihaz parolası kapalı
+lock_passcode_off_description = Gem, cihazınızın parolasıyla kilitli. Gem'i açmak için cihaz ayarlarından bir parola açın. Cüzdanlarınız güvende.
 
 # Verify
 

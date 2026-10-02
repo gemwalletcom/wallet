@@ -535,6 +535,8 @@ lock_unlock = 解鎖
 lock_privacy_lock = 隱私鎖
 lock_footer = 保護此裝置上的 App 存取安全
 lock_passcode = 密碼
+lock_passcode_off_title = 裝置密碼已關閉
+lock_passcode_off_description = Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。你的錢包是安全的。
 
 # Verify
 

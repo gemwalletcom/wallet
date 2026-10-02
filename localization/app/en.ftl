@@ -987,6 +987,10 @@ lock_privacy_lock = Privacy Lock
 lock_footer = Protect access to this app on your device
 # Title of the screen that offers to turn on app authentication on a device with a passcode and no biometrics.
 lock_passcode = Passcode
+# Title of the lock screen shown when app authentication is on but the device passcode (screen lock) has been turned off.
+lock_passcode_off_title = Device passcode is off
+# Description on the same lock screen: the app cannot be unlocked until the user turns the device passcode (screen lock) back on.
+lock_passcode_off_description = Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe.
 
 # Verify
 

@@ -535,6 +535,8 @@ lock_unlock = פתח את הנעילה
 lock_privacy_lock = נעילת פרטיות
 lock_footer = הגן על הגישה לאפליקציה הזו במכשיר שלך
 lock_passcode = קוד גישה
+lock_passcode_off_title = קוד הגישה של המכשיר כבוי
+lock_passcode_off_description = Gem נעול באמצעות קוד הגישה של המכשיר. הפעל קוד גישה בהגדרות המכשיר כדי לפתוח את Gem. הארנקים שלך בטוחים.
 
 # Verify
 

@@ -535,6 +535,8 @@ lock_unlock = فتح
 lock_privacy_lock = قفل الخصوصية
 lock_footer = حماية الوصول إلى هذا التطبيق على جهازك
 lock_passcode = رمز المرور
+lock_passcode_off_title = رمز مرور الجهاز متوقف
+lock_passcode_off_description = Gem مقفل برمز مرور جهازك. فعّل رمز المرور من إعدادات جهازك لفتح Gem. محافظك آمنة.
 
 # Verify
 

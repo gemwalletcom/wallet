@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">隐私锁</string>
   <string name="lock_footer">保护此设备上的应用访问安全</string>
   <string name="lock_passcode">密码</string>
+  <string name="lock_passcode_off_title">设备密码已关闭</string>
+  <string name="lock_passcode_off_description">Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。你的钱包是安全的。</string>
   <string name="verify_phrase_title">确认</string>
   <string name="warnings_externally_controlled_account">此 %1$s 账户可能由他人控制。除非确定该账户由您掌控，切勿向其转入资金，以免永久损失资产。</string>
   <string name="sell_title">出售%1$s</string>

@@ -535,6 +535,8 @@ lock_unlock = Mở khóa
 lock_privacy_lock = Khóa riêng tư
 lock_footer = Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn
 lock_passcode = Mật mã
+lock_passcode_off_title = Mật mã thiết bị đang tắt
+lock_passcode_off_description = Gem được khóa bằng mật mã thiết bị của bạn. Hãy bật mật mã trong cài đặt thiết bị để mở Gem. Ví của bạn vẫn an toàn.
 
 # Verify
 

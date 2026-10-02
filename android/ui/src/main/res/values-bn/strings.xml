@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">গোপনীয়তা লক</string>
   <string name="lock_footer">আপনার ডিভাইসে এই অ্যাপের অ্যাক্সেস সুরক্ষিত করুন</string>
   <string name="lock_passcode">পাসকোড</string>
+  <string name="lock_passcode_off_title">ডিভাইসের পাসকোড বন্ধ আছে</string>
+  <string name="lock_passcode_off_description">Gem আপনার ডিভাইসের পাসকোড দিয়ে লক করা। Gem খুলতে ডিভাইসের সেটিংসে পাসকোড চালু করুন। আপনার ওয়ালেটগুলো নিরাপদ আছে।</string>
   <string name="verify_phrase_title">নিশ্চিত করুন</string>
   <string name="warnings_externally_controlled_account">এই %1$s অ্যাকাউন্টটি অন্য কেউ নিয়ন্ত্রণ করতে পারে। এটি আপনার নিয়ন্ত্রণে আছে বলে নিশ্চিত না হলে এতে তহবিল পাঠাবেন না, নইলে আপনি স্থায়ীভাবে আপনার সম্পদ হারাতে পারেন।</string>
   <string name="sell_title">%1$s বিক্রি করুন</string>

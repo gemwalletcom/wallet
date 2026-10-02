@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">プライバシーロック</string>
   <string name="lock_footer">デバイス上のこのアプリへのアクセスを保護する</string>
   <string name="lock_passcode">パスコード</string>
+  <string name="lock_passcode_off_title">デバイスのパスコードがオフです</string>
+  <string name="lock_passcode_off_description">Gem はデバイスのパスコードでロックされています。Gem を開くには、デバイスの設定でパスコードをオンにしてください。ウォレットは安全です。</string>
   <string name="verify_phrase_title">確認する</string>
   <string name="warnings_externally_controlled_account">この%1$sアカウントは他の人が管理している可能性があります。自分が管理していると確信できない限り、資金を送らないでください。資産を永久に失う可能性があります。</string>
   <string name="sell_title">%1$sを売る</string>

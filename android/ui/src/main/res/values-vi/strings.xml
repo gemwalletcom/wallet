@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">Khóa riêng tư</string>
   <string name="lock_footer">Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn</string>
   <string name="lock_passcode">Mật mã</string>
+  <string name="lock_passcode_off_title">Mật mã thiết bị đang tắt</string>
+  <string name="lock_passcode_off_description">Gem được khóa bằng mật mã thiết bị của bạn. Hãy bật mật mã trong cài đặt thiết bị để mở Gem. Ví của bạn vẫn an toàn.</string>
   <string name="verify_phrase_title">Xác nhận</string>
   <string name="warnings_externally_controlled_account">Tài khoản %1$s này có thể do người khác kiểm soát. Không gửi tiền vào tài khoản này trừ khi bạn chắc chắn mình kiểm soát nó, nếu không bạn có thể mất vĩnh viễn tài sản của mình.</string>
   <string name="sell_title">Bán %1$s</string>

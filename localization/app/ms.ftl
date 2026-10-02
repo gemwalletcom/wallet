@@ -535,6 +535,8 @@ lock_unlock = Buka kunci
 lock_privacy_lock = Kunci Privasi
 lock_footer = Lindungi akses kepada apl ini pada peranti anda
 lock_passcode = Kod Laluan
+lock_passcode_off_title = Kod laluan peranti dimatikan
+lock_passcode_off_description = Gem dikunci dengan kod laluan peranti anda. Hidupkan kod laluan dalam tetapan peranti untuk membuka Gem. Dompet anda selamat.
 
 # Verify
 

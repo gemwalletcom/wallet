@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">Kulle Sirri</string>
   <string name="lock_footer">Kare damar shiga wannan app akan na\'urarka</string>
   <string name="lock_passcode">Lambar wucewa</string>
+  <string name="lock_passcode_off_title">An kashe lambar sirrin na\'ura</string>
+  <string name="lock_passcode_off_description">An kulle Gem da lambar sirrin na\'urarka. Kunna lambar sirri a cikin saitunan na\'urar don buɗe Gem. Walat ɗinka suna cikin aminci.</string>
   <string name="verify_phrase_title">Tabbatar</string>
   <string name="warnings_externally_controlled_account">Wani na iya sarrafa wannan asusun %1$s. Kada ku tura kuɗi zuwa gare shi sai dai idan kun tabbata kuna sarrafa shi, in ba haka ba kuna iya rasa kadarorin ku na dindindin.</string>
   <string name="sell_title">Saya %1$s</string>

@@ -7,6 +7,7 @@ enum LockSceneState {
     case unlocked
     case locked
     case lockedCanceled
+    case passcodeOff
 }
 
 extension LockSceneState: Equatable {
@@ -15,7 +16,8 @@ extension LockSceneState: Equatable {
         case (.unlocking, .unlocking),
              (.unlocked, .unlocked),
              (.locked, .locked),
-             (.lockedCanceled, .lockedCanceled):
+             (.lockedCanceled, .lockedCanceled),
+             (.passcodeOff, .passcodeOff):
             true
         default:
             false

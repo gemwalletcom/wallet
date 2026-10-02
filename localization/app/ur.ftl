@@ -535,6 +535,8 @@ lock_unlock = غیر مقفل کریں۔
 lock_privacy_lock = پرائیویسی لاک
 lock_footer = اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔
 lock_passcode = پاس کوڈ
+lock_passcode_off_title = ڈیوائس کا پاس کوڈ بند ہے
+lock_passcode_off_description = Gem آپ کی ڈیوائس کے پاس کوڈ سے لاک ہے۔ Gem کھولنے کے لیے ڈیوائس کی ترتیبات میں پاس کوڈ آن کریں۔ آپ کے والیٹس محفوظ ہیں۔
 
 # Verify
 

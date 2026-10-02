@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">Kunci Privasi</string>
   <string name="lock_footer">Lindungi akses kepada apl ini pada peranti anda</string>
   <string name="lock_passcode">Kod Laluan</string>
+  <string name="lock_passcode_off_title">Kod laluan peranti dimatikan</string>
+  <string name="lock_passcode_off_description">Gem dikunci dengan kod laluan peranti anda. Hidupkan kod laluan dalam tetapan peranti untuk membuka Gem. Dompet anda selamat.</string>
   <string name="verify_phrase_title">Sahkan</string>
   <string name="warnings_externally_controlled_account">Akaun %1$s ini mungkin dikawal oleh orang lain. Jangan hantar dana ke akaun ini melainkan anda pasti anda yang mengawalnya, atau anda mungkin kehilangan aset anda secara kekal.</string>
   <string name="sell_title">Jual %1$s</string>

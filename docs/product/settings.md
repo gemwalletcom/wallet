@@ -34,6 +34,7 @@ flowchart LR
 | The lock period has passed, whatever the app was doing | the lock re-engages | |
 | The user returns before the lock period passes | the app stays unlocked, and the period starts again the next time the user leaves the app | time spent in the app never counts, so a Face ID prompt for a transaction is not followed by an unlock prompt |
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
+| The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
 | The user turns the push switch on | the app asks the system for permission | |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |
 | The app has offered push | it asks again no sooner than 30 days later, unless the user turned push off | |
@@ -50,6 +51,7 @@ flowchart LR
 | When | iOS | Android | Expected |
 |---|---|---|---|
 | The user opens Security | also offers Privacy Lock | does not | Intentional |
+| The device passcode is off while the lock is on | the lock screen explains it in text | the lock screen explains it and opens screen lock setup | Intentional: iOS has no public way to open passcode settings |
 | The user opens Developer | includes a deep link URL tool | includes a platform store setting | Intentional (developer-only) |
 | The build cannot push (F-Droid, Huawei) | not applicable | Settings does not list Notifications, so neither the push switch nor Price Alerts is reachable | Intentional: the build has no push service |
 

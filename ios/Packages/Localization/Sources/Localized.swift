@@ -747,6 +747,10 @@ public enum Localized {
     public static let oneMinute = Localized.tr("Localizable", "lock.one_minute", fallback: "1 minute")
     /// Passcode
     public static let passcode = Localized.tr("Localizable", "lock.passcode", fallback: "Passcode")
+    /// Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe.
+    public static let passcodeOffDescription = Localized.tr("Localizable", "lock.passcode_off_description", fallback: "Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe.")
+    /// Device passcode is off
+    public static let passcodeOffTitle = Localized.tr("Localizable", "lock.passcode_off_title", fallback: "Device passcode is off")
     /// Privacy Lock
     public static let privacyLock = Localized.tr("Localizable", "lock.privacy_lock", fallback: "Privacy Lock")
     /// Require authentication

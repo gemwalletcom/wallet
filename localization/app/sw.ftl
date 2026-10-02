@@ -535,6 +535,8 @@ lock_unlock = Fungua
 lock_privacy_lock = Kufuli ya Faragha
 lock_footer = Linda ufikiaji wa programu hii kwenye kifaa chako
 lock_passcode = Nambari ya siri
+lock_passcode_off_title = Nambari ya siri ya kifaa imezimwa
+lock_passcode_off_description = Gem imefungwa kwa nambari ya siri ya kifaa chako. Washa nambari ya siri kwenye mipangilio ya kifaa ili kufungua Gem. Pochi zako ziko salama.
 
 # Verify
 

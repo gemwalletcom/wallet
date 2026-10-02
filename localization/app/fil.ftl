@@ -535,6 +535,8 @@ lock_unlock = I-unlock
 lock_privacy_lock = Privacy Lock
 lock_footer = Protektahan ang access sa app na ito sa iyong device
 lock_passcode = Passcode
+lock_passcode_off_title = Naka-off ang passcode ng device
+lock_passcode_off_description = Naka-lock ang Gem gamit ang passcode ng iyong device. I-on ang passcode sa mga setting ng device para mabuksan ang Gem. Ligtas ang iyong mga wallet.
 
 # Verify
 

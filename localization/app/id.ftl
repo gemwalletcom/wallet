@@ -535,6 +535,8 @@ lock_unlock = Buka kunci
 lock_privacy_lock = Kunci Privasi
 lock_footer = Lindungi akses ke aplikasi ini di perangkat Anda
 lock_passcode = Kode Sandi
+lock_passcode_off_title = Kode sandi perangkat nonaktif
+lock_passcode_off_description = Gem dikunci dengan kode sandi perangkat Anda. Aktifkan kode sandi di pengaturan perangkat untuk membuka Gem. Dompet Anda aman.
 
 # Verify
 

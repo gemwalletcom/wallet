@@ -535,6 +535,8 @@ lock_unlock = ปลดล็อค
 lock_privacy_lock = ล็อคความเป็นส่วนตัว
 lock_footer = ป้องกันการเข้าถึงแอปนี้บนอุปกรณ์ของคุณ
 lock_passcode = รหัสผ่าน
+lock_passcode_off_title = รหัสผ่านอุปกรณ์ปิดอยู่
+lock_passcode_off_description = Gem ถูกล็อกด้วยรหัสผ่านอุปกรณ์ของคุณ เปิดรหัสผ่านในการตั้งค่าอุปกรณ์เพื่อเปิด Gem กระเป๋าเงินของคุณปลอดภัย
 
 # Verify
 

@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">Kufuli ya Faragha</string>
   <string name="lock_footer">Linda ufikiaji wa programu hii kwenye kifaa chako</string>
   <string name="lock_passcode">Nambari ya siri</string>
+  <string name="lock_passcode_off_title">Nambari ya siri ya kifaa imezimwa</string>
+  <string name="lock_passcode_off_description">Gem imefungwa kwa nambari ya siri ya kifaa chako. Washa nambari ya siri kwenye mipangilio ya kifaa ili kufungua Gem. Pochi zako ziko salama.</string>
   <string name="verify_phrase_title">Thibitisha</string>
   <string name="warnings_externally_controlled_account">Akaunti hii ya %1$s inaweza kudhibitiwa na mtu mwingine. Usitume pesa kwake isipokuwa una uhakika kuwa unaidhibiti, la sivyo unaweza kupoteza mali yako kabisa.</string>
   <string name="sell_title">Uza %1$s</string>

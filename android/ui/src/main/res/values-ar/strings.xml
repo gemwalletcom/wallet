@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">قفل الخصوصية</string>
   <string name="lock_footer">حماية الوصول إلى هذا التطبيق على جهازك</string>
   <string name="lock_passcode">رمز المرور</string>
+  <string name="lock_passcode_off_title">رمز مرور الجهاز متوقف</string>
+  <string name="lock_passcode_off_description">Gem مقفل برمز مرور جهازك. فعّل رمز المرور من إعدادات جهازك لفتح Gem. محافظك آمنة.</string>
   <string name="verify_phrase_title">يتأكد</string>
   <string name="warnings_externally_controlled_account">قد يتحكم شخص آخر في حساب %1$s هذا. لا ترسل أموالًا إليه إلا إذا كنت متأكدًا من أنك تتحكم فيه، وإلا فقد تفقد أصولك بشكل دائم.</string>
   <string name="sell_title">بيع %1$s</string>

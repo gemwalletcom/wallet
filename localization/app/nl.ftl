@@ -535,6 +535,8 @@ lock_unlock = Ontgrendelen
 lock_privacy_lock = Privacyslot
 lock_footer = Beveilig de toegang tot deze app op uw apparaat
 lock_passcode = Toegangscode
+lock_passcode_off_title = Toegangscode van apparaat staat uit
+lock_passcode_off_description = Gem is vergrendeld met de toegangscode van je apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Je portemonnees zijn veilig.
 
 # Verify
 

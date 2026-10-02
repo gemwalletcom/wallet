@@ -535,6 +535,8 @@ lock_unlock = Buɗe
 lock_privacy_lock = Kulle Sirri
 lock_footer = Kare damar shiga wannan app akan na'urarka
 lock_passcode = Lambar wucewa
+lock_passcode_off_title = An kashe lambar sirrin na'ura
+lock_passcode_off_description = An kulle Gem da lambar sirrin na'urarka. Kunna lambar sirri a cikin saitunan na'urar don buɗe Gem. Walat ɗinka suna cikin aminci.
 
 # Verify
 

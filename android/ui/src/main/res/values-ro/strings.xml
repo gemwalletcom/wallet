@@ -442,6 +442,8 @@
   <string name="lock_privacy_lock">Blocare confidențialitate</string>
   <string name="lock_footer">Protejați accesul la această aplicație pe dispozitivul dvs.</string>
   <string name="lock_passcode">Cod de acces</string>
+  <string name="lock_passcode_off_title">Codul dispozitivului este dezactivat</string>
+  <string name="lock_passcode_off_description">Gem este blocat cu codul dispozitivului. Activați un cod din setările dispozitivului pentru a deschide Gem. Portofelele dvs. sunt în siguranță.</string>
   <string name="verify_phrase_title">Confirmați</string>
   <string name="warnings_externally_controlled_account">Acest cont %1$s poate fi controlat de altcineva. Nu trimiteți fonduri în el decât dacă sunteți sigur că îl controlați, altfel vă puteți pierde definitiv bunurile.</string>
   <string name="sell_title">Vânzare %1$s</string>
