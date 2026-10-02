@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
@@ -112,7 +112,9 @@ impl InTransitUpdater {
         };
 
         info_with_fields!("in_transit completed", chain = chain.as_ref(), hash = hash, provider = provider_name, state = state.as_ref(), elapsed = elapsed);
-        self.metrics.record_completion(TransactionQueue::InTransit, TransactionQueueGroup::new(chain, provider), elapsed_duration);
+        if transaction.created_at >= cutoff {
+            self.metrics.record_completion(TransactionQueue::InTransit, TransactionQueueGroup::new(chain, provider), elapsed_duration);
+        }
 
         self.schedule.remove(&transaction.id).await?;
         let metadata = swap_result_metadata(transaction, metadata);
@@ -141,12 +143,13 @@ fn final_swap_state(result: &SwapResult, created_at: DateTime<Utc>, cutoff: Date
 }
 
 fn in_transit_counts(transactions: &[Transaction], vault_addresses: &DepositAddressMap) -> BTreeMap<TransactionQueueGroup, usize> {
-    let groups = transactions
+    transactions
         .iter()
         .map(|transaction| TransactionQueueGroup::new(transaction.id.chain, cross_chain::in_transit_swap_provider(transaction, vault_addresses)))
-        .collect::<Vec<_>>();
-    let unique = groups.iter().copied().collect::<BTreeSet<_>>();
-    unique.into_iter().map(|group| (group, groups.iter().filter(|candidate| **candidate == group).count())).collect()
+        .fold(BTreeMap::new(), |mut counts, group| {
+            *counts.entry(group).or_default() += 1;
+            counts
+        })
 }
 
 #[cfg(test)]

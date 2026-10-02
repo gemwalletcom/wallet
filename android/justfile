@@ -1,5 +1,5 @@
-list:
-    just --list
+default:
+    @just --list
 
 install: install-java install-toolchains install-ndk install-ktlint
 
@@ -115,12 +115,6 @@ start-emulator:
 stop-emulator:
     @bash ./scripts/android_emulator.sh shutdown
 
-mobsfscan:
-    @command -v uv >/dev/null || { \
-        echo "uv is not installed. Install it via 'curl -LsSf https://astral.sh/uv/install.sh | sh'."; \
-        exit 1; }
-    uv tool run mobsfscan -- --type android --config .mobsf --exit-warning
-
 release:
     @BUILD_MODE=release ./gradlew clean :app:bundleGoogleRelease --no-configuration-cache
 
@@ -141,4 +135,4 @@ generate-stone:
     @./gradlew :gemstone:bindgenKotlin :gemstone:buildCargoNdk --rerun-tasks
 
 bump TARGET="patch":
-	@cd .. && just bump {{TARGET}}
+    @cd .. && just bump {{TARGET}}

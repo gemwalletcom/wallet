@@ -586,6 +586,8 @@
   <string name="rewards_nickname">ชื่อเล่น</string>
   <string name="rewards_unverified_title">ระบบรางวัลยังไม่เปิดใช้งาน</string>
   <string name="rewards_unverified_description">รางวัลจะเปิดใช้งานโดยอัตโนมัติเมื่อคุณใช้งานแอปมากขึ้น</string>
+  <string name="rewards_state_empty_title">รางวัลต้องใช้กระเป๋าเงินแบบหลายเหรียญ</string>
+  <string name="rewards_state_empty_description">สร้างหรือนำเข้ากระเป๋าเงินแบบหลายเหรียญเพื่อเชิญเพื่อนและรับคะแนน</string>
   <string name="recent_activity_title">ล่าสุด</string>
   <string name="recent_activity_state_empty_title">ข้อมูลล่าสุดของคุณจะปรากฏที่นี่</string>
   <string name="recent_activity_state_empty_description">เนื้อหาที่คุณใช้ล่าสุดจะปรากฏที่นี่</string>

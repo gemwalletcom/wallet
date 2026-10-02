@@ -725,6 +725,8 @@ rewards_pending_description_ready = Ihr Bonus ist bereit!
 rewards_nickname = Spitzname
 rewards_unverified_title = Prämien noch nicht aktiv.
 rewards_unverified_description = Prämien werden automatisch aktiviert, je mehr Sie die App nutzen.
+rewards_state_empty_title = Prämien erfordern eine Multi-Coin-Wallet
+rewards_state_empty_description = Erstellen oder importieren Sie eine Multi-Coin-Wallet, um Freunde einzuladen und Punkte zu sammeln.
 
 # Recent Activity
 

@@ -15,6 +15,7 @@ pub enum PublicUrl {
     APK,
 }
 
+pub const WEBSITE_URL: &str = "https://gemwallet.com";
 pub const ASSETS_URL: &str = "https://assets.gemwallet.com";
 pub const APK_URL: &str = "https://apk.gemwallet.com";
 pub const API_URL: &str = "https://api.gemwallet.com";
@@ -38,11 +39,11 @@ impl PublicUrl {
 impl PublicUrl {
     pub fn url(&self) -> String {
         match self {
-            Self::Website => "https://gemwallet.com".to_string(),
+            Self::Website => WEBSITE_URL.to_string(),
             Self::Assets => ASSETS_URL.to_string(),
-            Self::PrivacyPolicy => "https://gemwallet.com/privacy".to_string(),
-            Self::TermsOfService => "https://gemwallet.com/terms".to_string(),
-            Self::Support => "https://gemwallet.com/support".to_string(),
+            Self::PrivacyPolicy => format!("{WEBSITE_URL}/privacy"),
+            Self::TermsOfService => format!("{WEBSITE_URL}/terms"),
+            Self::Support => format!("{WEBSITE_URL}/support"),
             Self::CodebaseIos => "https://github.com/gemwalletcom/gem-ios/".to_string(),
             Self::CodebaseAndroid => "https://github.com/gemwalletcom/gem-android/".to_string(),
             Self::AppStore => "https://apps.apple.com/app/apple-store/id6448712670".to_string(),

@@ -586,6 +586,8 @@
   <string name="rewards_nickname">ডাকনাম</string>
   <string name="rewards_unverified_title">পুরস্কারগুলো এখনও সক্রিয় হয়নি।</string>
   <string name="rewards_unverified_description">আপনি অ্যাপটি যত বেশি ব্যবহার করবেন, পুরস্কারগুলো তত স্বয়ংক্রিয়ভাবে সক্রিয় হবে।</string>
+  <string name="rewards_state_empty_title">পুরস্কারের জন্য মাল্টি-কয়েন ওয়ালেট প্রয়োজন</string>
+  <string name="rewards_state_empty_description">বন্ধুদের আমন্ত্রণ জানাতে ও পয়েন্ট অর্জন করতে একটি মাল্টি-কয়েন ওয়ালেট তৈরি বা ইমপোর্ট করুন।</string>
   <string name="recent_activity_title">সাম্প্রতিক</string>
   <string name="recent_activity_state_empty_title">আপনার সাম্প্রতিক এখানে প্রদর্শিত হবে</string>
   <string name="recent_activity_state_empty_description">আপনার সম্প্রতি ব্যবহার করা সম্পদ এখানে প্রদর্শিত হবে</string>

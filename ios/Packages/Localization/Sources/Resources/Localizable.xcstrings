@@ -73154,6 +73154,388 @@
         }
       }
     },
+    "rewards.state_empty_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أنشئ محفظة متعددة العملات أو استوردها لدعوة الأصدقاء وكسب النقاط."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বন্ধুদের আমন্ত্রণ জানাতে ও পয়েন্ট অর্জন করতে একটি মাল্টি-কয়েন ওয়ালেট তৈরি বা ইমপোর্ট করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vytvořte nebo importujte peněženku Multi-Coin, abyste mohli zvát přátele a získávat body."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opret eller importér en multi-coin-tegnebog for at invitere venner og optjene point."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstellen oder importieren Sie eine Multi-Coin-Wallet, um Freunde einzuladen und Punkte zu sammeln."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create or import a Multi-Coin wallet to invite friends and earn points."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea o importa una billetera multi-moneda para invitar a amigos y ganar puntos."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "برای دعوت از دوستان و کسب امتیاز، یک کیف پول مولتی کوین بسازید یا وارد کنید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gumawa o mag-import ng Multi-Coin wallet para makapag-imbita ng mga kaibigan at makakuha ng puntos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créez ou importez un portefeuille multi-pièces pour inviter des amis et gagner des points."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ƙirƙiri ko shigo da Wallet na Multi-Coin don gayyatar abokai da samun maki."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "צרו או ייבאו ארנק רב מטבע כדי להזמין חברים ולצבור נקודות."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दोस्तों को आमंत्रित करने और अंक कमाने के लिए बहु-सिक्का वॉलेट बनाएं या इम्पोर्ट करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buat atau impor dompet Multi-Koin untuk mengundang teman dan mendapatkan poin."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea o importa un portafoglio Multi-Coin per invitare amici e guadagnare punti."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マルチコインウォレットを作成またはインポートすると、友達を招待してポイントを獲得できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "멀티코인 지갑을 만들거나 가져와서 친구를 초대하고 포인트를 받으세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buat atau import dompet Berbilang Koin untuk menjemput rakan dan memperoleh mata."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maak of importeer een multi-coin portemonnee om vrienden uit te nodigen en punten te verdienen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utwórz lub zaimportuj portfel z wieloma monetami, aby zapraszać znajomych i zdobywać punkty."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crie ou importe uma carteira multimoeda para convidar amigos e ganhar pontos."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creați sau importați un portofel multi-monede pentru a invita prieteni și a câștiga puncte."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Создайте или импортируйте мультимонетный кошелек, чтобы приглашать друзей и получать баллы."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unda au ingiza mkoba wa sarafu nyingi ili kualika marafiki na kupata pointi."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "สร้างหรือนำเข้ากระเป๋าเงินแบบหลายเหรียญเพื่อเชิญเพื่อนและรับคะแนน"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arkadaşlarınızı davet etmek ve puan kazanmak için bir Çoklu Coin cüzdanı oluşturun veya içe aktarın."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Створіть або імпортуйте мультимонетний гаманець, щоб запрошувати друзів і отримувати бали."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "دوستوں کو مدعو کرنے اور پوائنٹس حاصل کرنے کے لیے ملٹی کوائن والیٹ بنائیں یا امپورٹ کریں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tạo hoặc nhập ví đa coin để mời bạn bè và nhận điểm."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建或导入多币种钱包，即可邀请好友并赚取积分。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立或匯入多幣種錢包，即可邀請好友並賺取積分。"
+          }
+        }
+      }
+    },
+    "rewards.state_empty_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المكافآت تتطلب محفظة متعددة العملات"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পুরস্কারের জন্য মাল্টি-কয়েন ওয়ালেট প্রয়োজন"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odměny vyžadují peněženku Multi-Coin"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belønninger kræver en multi-coin-tegnebog"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prämien erfordern eine Multi-Coin-Wallet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rewards need a Multi-Coin wallet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las recompensas requieren una billetera multi-moneda"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پاداش‌ها به کیف پول مولتی کوین نیاز دارند"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kailangan ng Multi-Coin wallet para sa mga gantimpala"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les récompenses nécessitent un portefeuille multi-pièces"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lada yana buƙatar Wallet na Multi-Coin"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תגמולים דורשים ארנק רב מטבע"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुरस्कारों के लिए बहु-सिक्का वॉलेट ज़रूरी है"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hadiah memerlukan dompet Multi-Koin"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le ricompense richiedono un portafoglio Multi-Coin"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポイントにはマルチコインウォレットが必要です"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보상을 받으려면 멀티코인 지갑이 필요합니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganjaran memerlukan dompet Berbilang Koin"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voor beloningen is een multi-coin portemonnee nodig"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nagrody wymagają portfela z wieloma monetami"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As recompensas exigem uma carteira multimoeda"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recompensele necesită un portofel multi-monede"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для наград нужен мультимонетный кошелек"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zawadi zinahitaji mkoba wa sarafu nyingi"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รางวัลต้องใช้กระเป๋าเงินแบบหลายเหรียญ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ödüller için Çoklu Coin cüzdanı gerekir"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для нагород потрібен мультимонетний гаманець"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "انعامات کے لیے ملٹی کوائن والیٹ درکار ہے"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phần thưởng cần ví đa coin"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "积分需要多币种钱包"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "積分需要多幣種錢包"
+          }
+        }
+      }
+    },
     "rewards.title": {
       "extractionState": "manual",
       "localizations": {

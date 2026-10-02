@@ -586,6 +586,8 @@
   <string name="rewards_nickname">昵称</string>
   <string name="rewards_unverified_title">积分尚未激活。</string>
   <string name="rewards_unverified_description">继续使用应用，积分功能会自动激活。</string>
+  <string name="rewards_state_empty_title">积分需要多币种钱包</string>
+  <string name="rewards_state_empty_description">创建或导入多币种钱包，即可邀请好友并赚取积分。</string>
   <string name="recent_activity_title">近期</string>
   <string name="recent_activity_state_empty_title">最近的记录将显示在这里</string>
   <string name="recent_activity_state_empty_description">最近使用过的资产将显示在此处</string>

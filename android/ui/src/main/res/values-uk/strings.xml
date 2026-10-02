@@ -586,6 +586,8 @@
   <string name="rewards_nickname">Прізвисько</string>
   <string name="rewards_unverified_title">Нагороди ще не активні.</string>
   <string name="rewards_unverified_description">Винагороди активуються автоматично, коли ви більше користуєтеся додатком.</string>
+  <string name="rewards_state_empty_title">Для нагород потрібен мультимонетний гаманець</string>
+  <string name="rewards_state_empty_description">Створіть або імпортуйте мультимонетний гаманець, щоб запрошувати друзів і отримувати бали.</string>
   <string name="recent_activity_title">Нещодавні</string>
   <string name="recent_activity_state_empty_title">Тут з\'являться ваші нещодавні активи</string>
   <string name="recent_activity_state_empty_description">Тут відображатимуться активи, які ви нещодавно використовували</string>

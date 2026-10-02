@@ -725,6 +725,8 @@ rewards_pending_description_ready = 積分已可領取！
 rewards_nickname = 暱稱
 rewards_unverified_title = 積分功能尚未啟用。
 rewards_unverified_description = 繼續使用 App，積分功能會自動啟用。
+rewards_state_empty_title = 積分需要多幣種錢包
+rewards_state_empty_description = 建立或匯入多幣種錢包，即可邀請好友並賺取積分。
 
 # Recent Activity
 

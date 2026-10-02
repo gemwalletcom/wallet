@@ -586,6 +586,8 @@
   <string name="rewards_nickname">نام مستعار</string>
   <string name="rewards_unverified_title">هنوز بخش جوایز فعال نشده است.</string>
   <string name="rewards_unverified_description">با استفاده بیشتر از برنامه، جوایز به طور خودکار فعال می‌شوند.</string>
+  <string name="rewards_state_empty_title">پاداش‌ها به کیف پول مولتی کوین نیاز دارند</string>
+  <string name="rewards_state_empty_description">برای دعوت از دوستان و کسب امتیاز، یک کیف پول مولتی کوین بسازید یا وارد کنید.</string>
   <string name="recent_activity_title">تازه‌ها</string>
   <string name="recent_activity_state_empty_title">موارد اخیر شما در اینجا ظاهر می شود</string>
   <string name="recent_activity_state_empty_description">دارایی هایی که اخیراً استفاده کرده اید در اینجا ظاهر می شوند</string>

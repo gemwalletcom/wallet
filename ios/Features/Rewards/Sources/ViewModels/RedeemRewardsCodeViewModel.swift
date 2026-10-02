@@ -4,7 +4,6 @@ import Foundation
 import protocol Gemstone.GemRewardsServiceProtocol
 import enum Gemstone.GemServiceError
 import struct Gemstone.Rewards
-import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -13,8 +12,8 @@ import PrimitivesComponents
 @MainActor
 final class RedeemRewardsCodeViewModel: TextInputViewModelProtocol {
     private let service: any GemRewardsServiceProtocol
-    private let wallet: Wallet
-    private let onSuccess: (String) -> Void
+    private let walletId: WalletId
+    private let onSuccess: (Rewards) -> Void
 
     var text: String
     var isLoading: Bool = false
@@ -22,12 +21,12 @@ final class RedeemRewardsCodeViewModel: TextInputViewModelProtocol {
 
     init(
         service: any GemRewardsServiceProtocol,
-        wallet: Wallet,
+        walletId: WalletId,
         code: String = "",
-        onSuccess: @escaping (String) -> Void,
+        onSuccess: @escaping (Rewards) -> Void,
     ) {
         self.service = service
-        self.wallet = wallet
+        self.walletId = walletId
         text = code
         self.onSuccess = onSuccess
     }
@@ -49,8 +48,8 @@ final class RedeemRewardsCodeViewModel: TextInputViewModelProtocol {
 
         isLoading = true
         do {
-            _ = try await service.useReferralCode(wallet: wallet.toGem(), code: text)
-            onSuccess(text)
+            let rewards = try await service.useReferralCode(walletId: walletId, code: text)
+            onSuccess(rewards)
         } catch let error as GemServiceError {
             errorMessage = error.localizedDescription
         } catch {

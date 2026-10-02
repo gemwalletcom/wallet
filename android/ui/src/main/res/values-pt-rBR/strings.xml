@@ -586,6 +586,8 @@
   <string name="rewards_nickname">Apelido</string>
   <string name="rewards_unverified_title">As recompensas ainda não estão ativas.</string>
   <string name="rewards_unverified_description">As recompensas são ativadas automaticamente conforme você usa o aplicativo com mais frequência.</string>
+  <string name="rewards_state_empty_title">As recompensas exigem uma carteira multimoeda</string>
+  <string name="rewards_state_empty_description">Crie ou importe uma carteira multimoeda para convidar amigos e ganhar pontos.</string>
   <string name="recent_activity_title">Recentes</string>
   <string name="recent_activity_state_empty_title">Seus recentes aparecerão aqui</string>
   <string name="recent_activity_state_empty_description">Os recursos que você usou recentemente aparecerão aqui</string>

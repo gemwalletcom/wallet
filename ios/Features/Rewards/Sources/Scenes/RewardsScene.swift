@@ -23,7 +23,9 @@ public struct RewardsScene: View {
                 CenterLoadingView()
             case let .error(error):
                 stateErrorView(error: error)
-            case .data, .noData:
+            case .noData:
+                EmptyView()
+            case .data:
                 inviteFriendsSection
                 if let notice = model.rewardsState.errorNotice {
                     Section {
@@ -39,13 +41,19 @@ public struct RewardsScene: View {
         }
         .refreshable { await model.refresh() }
         .contentMargins(.top, .scene.top, for: .scrollContent)
+        .overlay {
+            if case .noData = model.viewState.state {
+                EmptyContentView(model: model.emptyContentModel)
+                    .padding(.horizontal, .medium)
+            }
+        }
         .listSectionSpacing(.compact)
         .listStyle(.insetGrouped)
         .navigationTitle(model.title)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                if model.showsWalletSelector {
-                    WalletBarView(row: model.selectedWalletRow) {
+                if let wallet = model.wallet, wallet.canChoose {
+                    WalletBarView(row: wallet.row) {
                         model.isPresentingSheet = .walletSelector
                     }
                 } else {
@@ -60,38 +68,44 @@ public struct RewardsScene: View {
         .sheet(item: $model.isPresentingSheet) { sheet in
             switch sheet {
             case .walletSelector:
-                SelectableListNavigationStack(
-                    model: model.walletSelectorModel,
-                    onFinishSelection: { rows in
-                        if let row = rows.first {
-                            model.selectWallet(id: row.id)
-                        }
-                        model.isPresentingSheet = nil
-                    },
-                    listContent: { wallet in
-                        ListItemView(model: wallet.nameListItem)
-                    },
-                )
+                if let walletSelectorModel = model.walletSelectorModel {
+                    SelectableListNavigationStack(
+                        model: walletSelectorModel,
+                        onFinishSelection: { rows in
+                            if let row = rows.first {
+                                model.selectWallet(id: row.id)
+                            }
+                            model.isPresentingSheet = nil
+                        },
+                        listContent: { wallet in
+                            ListItemView(model: wallet.nameListItem)
+                        },
+                    )
+                }
             case .share:
                 if let shareText = model.shareText {
                     ShareSheet(activityItems: [shareText])
                 }
             case .createCode:
-                TextInputScene(model: model.createCodeViewModel) {
-                    model.isPresentingSheet = nil
+                if let createCodeViewModel = model.createCodeViewModel {
+                    TextInputScene(model: createCodeViewModel) {
+                        model.isPresentingSheet = nil
+                    }
+                    .presentationDetents([.medium])
                 }
-                .presentationDetents([.medium])
             case let .activateCode(code):
-                TextInputScene(model: model.redeemCodeViewModel(code: code)) {
-                    model.isPresentingSheet = nil
+                if let redeemCodeViewModel = model.redeemCodeViewModel(code: code) {
+                    TextInputScene(model: redeemCodeViewModel) {
+                        model.isPresentingSheet = nil
+                    }
+                    .presentationDetents([.medium])
                 }
-                .presentationDetents([.medium])
             case let .url(url):
                 SFSafariView(url: url)
             }
         }
         .taskOnce {
-            Task { await model.onTaskOnce() }
+            Task { await model.refresh() }
         }
         .toast(message: $model.toastMessage)
         .alertSheet($model.isPresentingAlert)

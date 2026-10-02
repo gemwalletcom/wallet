@@ -74,8 +74,8 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         .data
     }
 
-    public func quotes(quoteType _: Gemstone.FiatQuoteType, assetId _: Gemstone.AssetId, amount _: Double) async throws -> [Gemstone.FiatQuote] {
-        quotes
+    public func quotes(request: GemFiatQuoteRequest, assetId _: Gemstone.AssetId) async -> GemFiatQuotesResult {
+        GemFiatQuotesResult(request: request, quotes: quotes, error: nil)
     }
 
     public func quoteUrl(assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {

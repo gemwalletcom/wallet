@@ -725,6 +725,8 @@ rewards_pending_description_ready = Il tuo bonus è pronto!
 rewards_nickname = Soprannome
 rewards_unverified_title = Premi non ancora attivi.
 rewards_unverified_description = I premi si attivano automaticamente man mano che utilizzi l'app.
+rewards_state_empty_title = Le ricompense richiedono un portafoglio Multi-Coin
+rewards_state_empty_description = Crea o importa un portafoglio Multi-Coin per invitare amici e guadagnare punti.
 
 # Recent Activity
 

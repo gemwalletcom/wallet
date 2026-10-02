@@ -114,9 +114,7 @@ struct SettingsNavigationView: View {
             AppearanceScene(model: viewModelFactory.appearanceScene())
         }
         .navigationDestination(for: Scenes.Rewards.self) { scene in
-            if let model = viewModelFactory.rewardsScene(activateCode: scene.code) {
-                RewardsScene(model: model)
-            }
+            RewardsScene(model: viewModelFactory.rewardsScene(activateCode: scene.code))
         }
         .navigationDestination(for: Scenes.ChainSettings.self) {
             ChainSettingsScene(model: viewModelFactory.chainSettingsScene(chain: $0.chain))

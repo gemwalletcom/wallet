@@ -43,13 +43,10 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     var showErrorDialog by remember { mutableStateOf<Throwable?>(null) }
     var showMessageDialog by remember { mutableStateOf<String?>(null) }
 
-    val canChooseWallet by viewModel.canChooseWallet.collectAsStateWithLifecycle()
-    val availableWalletSections by viewModel.availableWalletSections.collectAsStateWithLifecycle()
-    val currentWallet by viewModel.currentWallet.collectAsStateWithLifecycle()
+    val wallet by viewModel.wallet.collectAsStateWithLifecycle()
     val referralLink by viewModel.referralLink.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val loadError by viewModel.loadError.collectAsStateWithLifecycle()
     val incomingCode by viewModel.incomingCode.collectAsStateWithLifecycle()
     val introItems by viewModel.introItems.collectAsStateWithLifecycle()
     val inviteAction by viewModel.inviteAction.collectAsStateWithLifecycle()
@@ -62,10 +59,9 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     val redemptions by viewModel.redemptions.collectAsStateWithLifecycle()
 
     RewardsScene(
-        isLoading = isLoading,
+        state = state,
         isRefreshing = isRefreshing,
-        loadError = loadError,
-        isAvailableWalletSelect = canChooseWallet,
+        wallet = wallet,
         incomingCode = incomingCode,
         referralLink = referralLink,
         introItems = introItems,
@@ -77,10 +73,9 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         shareText = shareText,
         sections = sections,
         redemptions = redemptions,
-        currentWallet = currentWallet,
         onUsername = viewModel::createReferral,
         onCode = viewModel::useCode,
-        onCancelCode = viewModel::cancelCode,
+        onCodeHandled = viewModel::onCodeHandled,
         onRefresh = viewModel::sync,
         onWallet = { isShowSelectWallets = true },
         onRedeem = {
@@ -109,7 +104,7 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         title = stringResource(R.string.wallets_title),
     ) {
         LazyColumn {
-            walletSections(availableWalletSections, currentWallet?.id?.id) { id ->
+            walletSections(wallet?.sections.orEmpty(), wallet?.row?.id) { id ->
                 viewModel.setWallet(walletId = id)
                 isShowSelectWallets = false
             }
