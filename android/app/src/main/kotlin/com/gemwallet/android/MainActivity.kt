@@ -186,7 +186,9 @@ class MainActivity :
     }
 
     override fun onDestroy() {
-        systemAuthenticator.cancel()
+        if (!isChangingConfigurations) {
+            systemAuthenticator.cancel()
+        }
         super.onDestroy()
     }
 

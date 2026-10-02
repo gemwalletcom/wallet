@@ -34,6 +34,7 @@ flowchart LR
 | The lock period has passed, whatever the app was doing | the lock re-engages | |
 | The user returns before the lock period passes | the app stays unlocked, and the period starts again the next time the user leaves the app | time spent in the app never counts, so a Face ID prompt for a transaction is not followed by an unlock prompt |
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
+| The phone is turned or the appearance changes while the unlock prompt is open | the same prompt stays open and unlocks the app | Android recreates the screen; cancelling the prompt then crashed the app (#1457) |
 | The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
 | The user turns the push switch on | the app asks the system for permission | |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |
