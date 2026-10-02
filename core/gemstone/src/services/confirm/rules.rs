@@ -45,6 +45,8 @@ use num_bigint::{BigInt, Sign};
 use primitives::AssetPrice;
 use primitives::{TransactionInputType, TransferAmountInput};
 
+const BASE_FEE_INCREASE_PERCENT: u32 = 20;
+
 impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {
         let GemConfirmInput { from, transfer } = &self.confirm.input;
@@ -546,9 +548,10 @@ fn base_fee_rate(rates: &[GemFeeRate]) -> Option<&GemFeeRate> {
 }
 
 pub(super) fn confirmation_fee_rates(asset_id: &AssetId, is_max_amount: bool, rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
-    let increase_percent = match EVMChain::from_chain(asset_id.chain) {
-        Some(chain) if is_max_amount && asset_id.is_native() => chain.chain_stack().max_amount_base_fee_increase_percent(),
-        _ => 0,
+    let increase_percent = if is_max_amount && asset_id.is_native() {
+        EVMChain::from_chain(asset_id.chain).map_or(0, |chain| chain.chain_stack().max_amount_base_fee_increase_percent())
+    } else {
+        BASE_FEE_INCREASE_PERCENT
     };
     let mut rates = rates;
     for rate in &mut rates {
@@ -1000,7 +1003,7 @@ mod tests {
 
         let normal = fee_rate_rows(Chain::Ethereum, &ethereum, &rates, &GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }, &GemTransactionLoadFee::mock(21_000));
         assert_eq!(normal.selected, Some(GasPriceType::eip1559(gwei(24), gwei(1))), "the fields start from the picked priority");
-        assert_eq!(normal.base_fee, Some(gwei(24)), "the normal row's base fee is the floor of the base fee field");
+        assert_eq!(normal.base_fee, Some(gwei(24)), "the base fee field starts from the base fee normal signs");
 
         let custom = fee_rate_rows(
             Chain::Ethereum,
@@ -1104,18 +1107,18 @@ mod tests {
     }
 
     #[test]
-    fn test_confirmation_fee_rates_keep_the_base_fee_except_for_a_max_send_on_a_stack_that_needs_room() {
+    fn test_confirmation_fee_rates_base_fee_increase() {
         let native = AssetId::from_chain;
         let token = |chain| AssetId::from_token(chain, "0x1111111111111111111111111111111111111111");
         for (asset_id, is_max_amount, base_fee) in [
-            (native(Chain::Ethereum), false, 100),
+            (native(Chain::Ethereum), false, 120),
             (native(Chain::Ethereum), true, 100),
-            (token(Chain::Ethereum), true, 100),
-            (native(Chain::Arbitrum), false, 100),
+            (token(Chain::Ethereum), true, 120),
+            (native(Chain::Arbitrum), false, 120),
             (native(Chain::Arbitrum), true, 105),
             (native(Chain::Robinhood), true, 105),
-            (token(Chain::Robinhood), true, 100),
-            (native(Chain::Optimism), false, 100),
+            (token(Chain::Robinhood), true, 120),
+            (native(Chain::Optimism), false, 120),
             (native(Chain::Optimism), true, 100),
             (native(Chain::ZkSync), true, 100),
         ] {

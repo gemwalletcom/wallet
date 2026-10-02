@@ -535,8 +535,6 @@ public enum Localized {
   public enum FeeRate {
     /// Base Fee
     public static let base = Localized.tr("Localizable", "fee_rate.base", fallback: "Base Fee")
-    /// Current base fee
-    public static let currentBase = Localized.tr("Localizable", "fee_rate.current_base", fallback: "Current base fee")
     /// Custom
     public static let custom = Localized.tr("Localizable", "fee_rate.custom", fallback: "Custom")
     /// gwei

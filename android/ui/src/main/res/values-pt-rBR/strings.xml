@@ -397,7 +397,6 @@
   <string name="fee_rate_custom">Personalizado</string>
   <string name="fee_rate_priority">Taxa de prioridade</string>
   <string name="fee_rate_base">Taxa base</string>
-  <string name="fee_rate_current_base">Taxa base atual</string>
   <string name="fee_rate_suggested">Sugerido</string>
   <string name="banner_account_activation_title">Taxa de ativação da conta</string>
   <string name="banner_account_activation_description">A rede %1$s exige uma taxa única de %2$s.</string>

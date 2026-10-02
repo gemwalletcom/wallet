@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = Свой
 fee_rate_priority = Приоритет
 fee_rate_base = Базовая плата
-fee_rate_current_base = Сейчас в сети
 fee_rate_suggested = Рекомендовано
 
 # Banner

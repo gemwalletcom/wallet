@@ -114,7 +114,7 @@ impl GemCustomFeeSession {
         sanitize_number_input(&self.format.decimal_separator, text, Some(self.rows.unit_decimals), None)
     }
 
-    fn read(&self, field: &GemCustomFeeField, minimum: BigInt, maximum: BigInt, hint_title: GemLocalizedText, hint: Option<BigInt>) -> FieldReading {
+    fn read(&self, field: &GemCustomFeeField, minimum: BigInt, maximum: BigInt, hint: Option<BigInt>) -> FieldReading {
         let rows = &self.rows;
         let number = |value: &BigInt, rounding| GemFormattedNumber {
             rounding,
@@ -146,7 +146,7 @@ impl GemCustomFeeSession {
                     unit: GemNumberUnit::Plain,
                     ..number(value, GemNumberRounding::AwayFromZero)
                 }),
-                hint_title,
+                hint_title: GemLocalizedText::SuggestedFeeRate,
                 hint: hint.as_ref().map(|value| text(value, GemNumberRounding::AwayFromZero)),
                 check,
             },
@@ -187,18 +187,12 @@ impl GemCustomFeeSession {
         let config = get_fee_config(self.fee_asset.chain());
         let rows = &self.rows;
         let maximum = rows.normal.as_ref().map(GasPriceType::total_fee).unwrap_or_default() * config.max_multiplier;
-        let rate = self.read(
-            &self.rate,
-            config.minimum_custom_fee_rate.unwrap_or_default(),
-            maximum.clone(),
-            GemLocalizedText::SuggestedFeeRate,
-            rows.normal.as_ref().map(rate_of),
-        );
+        let rate = self.read(&self.rate, config.minimum_custom_fee_rate.unwrap_or_default(), maximum.clone(), rows.normal.as_ref().map(rate_of));
         let base_fee = self
             .base_fee
             .as_ref()
             .zip(rows.base_fee.as_ref())
-            .map(|(field, network_base_fee)| self.read(field, network_base_fee.clone(), maximum, GemLocalizedText::CurrentBaseFee, Some(network_base_fee.clone())));
+            .map(|(field, normal_base_fee)| self.read(field, normal_base_fee.clone(), maximum, Some(normal_base_fee.clone())));
         let base = base_fee.as_ref().map(|base_fee| base_fee.value.clone()).or(rows.base_fee.clone());
         let gas_price = match &base {
             Some(base) => GasPriceType::eip1559(base.clone(), rate.value.clone()),
@@ -246,7 +240,7 @@ mod tests {
             unit_decimals: 9,
             selected: Some(GasPriceType::eip1559(gwei(24), gwei(1))),
             normal: Some(GasPriceType::eip1559(gwei(24), gwei(1))),
-            base_fee: Some(gwei(20)),
+            base_fee: Some(gwei(24)),
         }
     }
 
@@ -347,8 +341,8 @@ mod tests {
         let estimate = fresh.view_state();
         assert_eq!(
             estimate.base_fee.as_ref().unwrap().hint,
-            Some(minimum_text(FeeUnitType::Gwei, &gwei(20), 9, "ETH")),
-            "the base fee field hints the network's base fee, rounded up like its minimum so typing what it shows passes"
+            Some(minimum_text(FeeUnitType::Gwei, &gwei(24), 9, "ETH")),
+            "the base fee field suggests the base fee normal signs, rounded up like its minimum so typing what it shows passes"
         );
         assert_eq!(
             estimate.rate.placeholder,
@@ -358,12 +352,21 @@ mod tests {
             }),
             "the tip field hints the normal tip"
         );
+        assert_eq!(
+            estimate.base_fee.as_ref().unwrap().placeholder,
+            Some(GemFormattedNumber {
+                unit: GemNumberUnit::Plain,
+                rounding: GemNumberRounding::AwayFromZero,
+                ..GemFormattedNumber::adaptive(24.0, None)
+            }),
+            "an empty base fee field shows the base fee Normal signs, headroom included"
+        );
         assert_eq!(estimate.selection, Some(custom(None, None)), "an untouched screen keeps following the network");
-        assert_eq!(estimate.fee_value, gwei(21 * 21_000), "the preview takes the hinted base fee and tip");
+        assert_eq!(estimate.fee_value, gwei(25 * 21_000), "an untouched screen costs what Normal signs");
 
-        let typed = fresh.on_base_fee_input("22".to_string()).on_input("5".to_string()).view_state();
-        assert_eq!(typed.selection, Some(custom(Some(gwei(22)), Some(gwei(5)))));
-        assert_eq!(typed.fee_value, gwei(27 * 21_000), "the fee follows the typed base fee plus the typed tip");
+        let typed = fresh.on_base_fee_input("30".to_string()).on_input("5".to_string()).view_state();
+        assert_eq!(typed.selection, Some(custom(Some(gwei(30)), Some(gwei(5)))));
+        assert_eq!(typed.fee_value, gwei(35 * 21_000), "the fee follows the typed base fee plus the typed tip");
 
         let tip_only = fresh.on_input("5".to_string()).view_state();
         assert_eq!(tip_only.selection, Some(custom(None, Some(gwei(5)))), "a tip alone leaves the base fee to the network");
@@ -387,20 +390,20 @@ mod tests {
     }
 
     #[test]
-    fn test_an_evm_base_fee_cannot_go_under_the_network_and_a_tip_under_the_chain_minimum() {
+    fn test_an_evm_base_fee_cannot_go_under_normal_and_a_tip_under_the_chain_minimum() {
         let fresh = session(Chain::Ethereum, evm_rows(), Some(gwei(25 * 21_000)), None);
-        let low_base = fresh.on_base_fee_input("19".to_string()).on_input("1".to_string()).view_state();
+        let low_base = fresh.on_base_fee_input("23".to_string()).on_input("1".to_string()).view_state();
         assert_eq!(
             low_base.base_fee.unwrap().check,
             GemCustomFeeCheck::BelowMinimum {
-                rate: minimum_text(FeeUnitType::Gwei, &gwei(20), 9, "ETH")
+                rate: minimum_text(FeeUnitType::Gwei, &gwei(24), 9, "ETH")
             },
-            "the base fee floor is the network's current base fee, not the margin the wallet adds"
+            "the base fee floor is what normal signs, so a custom fee never has less headroom than normal"
         );
         assert_eq!(low_base.selection, None);
-        let at_network = fresh.on_base_fee_input("20".to_string()).on_input("1".to_string()).view_state();
-        assert_eq!(at_network.base_fee.unwrap().check, GemCustomFeeCheck::Valid, "the network base fee itself is accepted");
-        assert!(at_network.selection.is_some());
+        let at_normal = fresh.on_base_fee_input("24".to_string()).on_input("1".to_string()).view_state();
+        assert_eq!(at_normal.base_fee.unwrap().check, GemCustomFeeCheck::Valid, "normal's base fee itself is accepted");
+        assert!(at_normal.selection.is_some());
 
         let low_tip = fresh.on_base_fee_input("24".to_string()).on_input("0.005".to_string()).view_state();
         assert_eq!(

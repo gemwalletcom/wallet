@@ -294,8 +294,6 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.ExpectedLoss -> context.getString(R.string.perpetual_auto_close_expected_loss)
 
-    GemLocalizedText.CurrentBaseFee -> context.getString(R.string.fee_rate_current_base)
-
     GemLocalizedText.SuggestedFeeRate -> context.getString(R.string.fee_rate_suggested)
 
     is GemLocalizedText.ShowSecret -> context.getString(R.string.common_show, context.getString(kind.stringRes()))

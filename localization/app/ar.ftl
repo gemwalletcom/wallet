@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = مخصص
 fee_rate_priority = رسوم الأولوية
 fee_rate_base = الرسوم الأساسية
-fee_rate_current_base = الرسوم الأساسية الحالية
 fee_rate_suggested = المقترح
 
 # Banner

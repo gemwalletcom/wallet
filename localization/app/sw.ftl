@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = Maalum
 fee_rate_priority = Ada ya Kipaumbele
 fee_rate_base = Ada ya Msingi
-fee_rate_current_base = Ada ya msingi ya sasa
 fee_rate_suggested = Inapendekezwa
 
 # Banner

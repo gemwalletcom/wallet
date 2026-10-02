@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = מותאם אישית
 fee_rate_priority = עמלת עדיפות
 fee_rate_base = עמלת בסיס
-fee_rate_current_base = עמלת הבסיס הנוכחית
 fee_rate_suggested = מוצע
 
 # Banner

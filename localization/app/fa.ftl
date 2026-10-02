@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = سفارشی
 fee_rate_priority = کارمزد اولویت
 fee_rate_base = کارمزد پایه
-fee_rate_current_base = کارمزد پایه فعلی
 fee_rate_suggested = پیشنهادی
 
 # Banner

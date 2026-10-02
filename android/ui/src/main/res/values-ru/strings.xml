@@ -397,7 +397,6 @@
   <string name="fee_rate_custom">Свой</string>
   <string name="fee_rate_priority">Приоритет</string>
   <string name="fee_rate_base">Базовая плата</string>
-  <string name="fee_rate_current_base">Сейчас в сети</string>
   <string name="fee_rate_suggested">Рекомендовано</string>
   <string name="banner_account_activation_title">Плата за активацию аккаунта</string>
   <string name="banner_account_activation_description">Сеть %1$s требует единовременную плату в размере %2$s.</string>

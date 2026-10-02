@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = กำหนดเอง
 fee_rate_priority = ค่าธรรมเนียมลำดับความสำคัญ
 fee_rate_base = ค่าธรรมเนียมพื้นฐาน
-fee_rate_current_base = ค่าธรรมเนียมพื้นฐานปัจจุบัน
 fee_rate_suggested = แนะนำ
 
 # Banner

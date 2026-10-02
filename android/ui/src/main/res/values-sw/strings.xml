@@ -397,7 +397,6 @@
   <string name="fee_rate_custom">Maalum</string>
   <string name="fee_rate_priority">Ada ya Kipaumbele</string>
   <string name="fee_rate_base">Ada ya Msingi</string>
-  <string name="fee_rate_current_base">Ada ya msingi ya sasa</string>
   <string name="fee_rate_suggested">Inapendekezwa</string>
   <string name="banner_account_activation_title">Ada ya Kuanzisha Akaunti</string>
   <string name="banner_account_activation_description">Mtandao wa %1$s unahitaji ada ya mara moja ya %2$s.</string>

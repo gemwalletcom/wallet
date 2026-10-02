@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = Personalizzato
 fee_rate_priority = Commissione di priorità
 fee_rate_base = Commissione base
-fee_rate_current_base = Commissione base attuale
 fee_rate_suggested = Suggerito
 
 # Banner

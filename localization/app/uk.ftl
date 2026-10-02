@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = Свій
 fee_rate_priority = Плата за пріоритет
 fee_rate_base = Базова плата
-fee_rate_current_base = Поточна базова плата
 fee_rate_suggested = Рекомендована
 
 # Banner

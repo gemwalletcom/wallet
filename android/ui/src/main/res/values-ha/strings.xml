@@ -397,7 +397,6 @@
   <string name="fee_rate_custom">Na Musamman</string>
   <string name="fee_rate_priority">Kudin fifiko</string>
   <string name="fee_rate_base">Kudin tushe</string>
-  <string name="fee_rate_current_base">Kudin tushe na yanzu</string>
   <string name="fee_rate_suggested">An ba da shawara</string>
   <string name="banner_account_activation_title">Kudin Kunna Asusu</string>
   <string name="banner_account_activation_description">Cibiyar sadarwar %1$s tana buƙatar kuɗin lokaci ɗaya na %2$s.</string>

@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = حسب ضرورت
 fee_rate_priority = ترجیحی فیس
 fee_rate_base = بنیادی فیس
-fee_rate_current_base = موجودہ بنیادی فیس
 fee_rate_suggested = تجویز کردہ
 
 # Banner

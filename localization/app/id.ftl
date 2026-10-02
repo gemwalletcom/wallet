@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = Kustom
 fee_rate_priority = Biaya Prioritas
 fee_rate_base = Biaya Dasar
-fee_rate_current_base = Biaya dasar saat ini
 fee_rate_suggested = Disarankan
 
 # Banner

@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = Na Musamman
 fee_rate_priority = Kudin fifiko
 fee_rate_base = Kudin tushe
-fee_rate_current_base = Kudin tushe na yanzu
 fee_rate_suggested = An ba da shawara
 
 # Banner

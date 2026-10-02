@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = Tilpasset
 fee_rate_priority = Prioritetsgebyr
 fee_rate_base = Basisgebyr
-fee_rate_current_base = Nuværende basisgebyr
 fee_rate_suggested = Foreslået
 
 # Banner

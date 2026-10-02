@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = Tùy chỉnh
 fee_rate_priority = Phí ưu tiên
 fee_rate_base = Phí cơ bản
-fee_rate_current_base = Phí cơ bản hiện tại
 fee_rate_suggested = Đề xuất
 
 # Banner

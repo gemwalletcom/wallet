@@ -67,19 +67,19 @@ struct NetworkFeeCustomViewModelTests {
         let model = NetworkFeeCustomViewModel.mock(
             selected: .eip1559(gasPrice: BigInt(24_000_000_000), priorityFee: BigInt(1_000_000_000)),
             normal: .eip1559(gasPrice: BigInt(24_000_000_000), priorityFee: BigInt(1_000_000_000)),
-            networkBaseFee: BigInt(20_000_000_000),
+            networkBaseFee: BigInt(24_000_000_000),
             onSelect: { recorder.record($0) },
         )
         model.input = "5"
         #expect(model.isConfirmEnabled, "a tip alone rides the network's base fee")
 
-        model.baseFeeInput = "19"
-        #expect(model.baseFeeField?.errorText?.isNotEmpty == true, "a base fee under the network's is refused")
+        model.baseFeeInput = "23"
+        #expect(model.baseFeeField?.errorText?.isNotEmpty == true, "a base fee under the one Normal signs is refused")
         #expect(model.isConfirmEnabled == false)
 
-        model.baseFeeInput = "22"
+        model.baseFeeInput = "30"
         model.confirm()
-        #expect(recorder.selections == [.custom(baseFee: BigInt(22_000_000_000), rate: BigInt(5_000_000_000))])
+        #expect(recorder.selections == [.custom(baseFee: BigInt(30_000_000_000), rate: BigInt(5_000_000_000))])
     }
 }
 

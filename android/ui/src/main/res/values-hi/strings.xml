@@ -397,7 +397,6 @@
   <string name="fee_rate_custom">कस्टम</string>
   <string name="fee_rate_priority">प्राथमिकता शुल्क</string>
   <string name="fee_rate_base">बेस शुल्क</string>
-  <string name="fee_rate_current_base">वर्तमान बेस शुल्क</string>
   <string name="fee_rate_suggested">सुझाया गया</string>
   <string name="banner_account_activation_title">खाता सक्रियण शुल्क</string>
   <string name="banner_account_activation_description">%1$s नेटवर्क को %2$s का एक बार शुल्क देना पड़ता है।</string>

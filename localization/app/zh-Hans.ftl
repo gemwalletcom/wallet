@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = 自定义
 fee_rate_priority = 优先费用
 fee_rate_base = 基础费用
-fee_rate_current_base = 当前基础费用
 fee_rate_suggested = 建议
 
 # Banner

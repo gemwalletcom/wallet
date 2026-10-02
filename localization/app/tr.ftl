@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = Özel
 fee_rate_priority = Öncelik Ücreti
 fee_rate_base = Temel Ücret
-fee_rate_current_base = Mevcut temel ücret
 fee_rate_suggested = Önerilen
 
 # Banner

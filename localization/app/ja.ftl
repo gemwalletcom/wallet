@@ -478,7 +478,6 @@ fee_rate_gwei = gwei
 fee_rate_custom = カスタム
 fee_rate_priority = 優先手数料
 fee_rate_base = 基本手数料
-fee_rate_current_base = 現在の基本手数料
 fee_rate_suggested = 推奨
 
 # Banner

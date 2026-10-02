@@ -180,8 +180,6 @@ public extension GemLocalizedText {
             Localized.Perpetual.AutoClose.expectedProfit
         case .expectedLoss:
             Localized.Perpetual.AutoClose.expectedLoss
-        case .currentBaseFee:
-            Localized.FeeRate.currentBase
         case .suggestedFeeRate:
             Localized.FeeRate.suggested
         case let .showSecret(kind):

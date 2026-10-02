@@ -397,7 +397,6 @@
   <string name="fee_rate_custom">Tilpasset</string>
   <string name="fee_rate_priority">Prioritetsgebyr</string>
   <string name="fee_rate_base">Basisgebyr</string>
-  <string name="fee_rate_current_base">Nuværende basisgebyr</string>
   <string name="fee_rate_suggested">Foreslået</string>
   <string name="banner_account_activation_title">Kontoaktiveringsgebyr</string>
   <string name="banner_account_activation_description">%1$s netværket kræver et engangsgebyr på %2$s.</string>

@@ -885,9 +885,7 @@ fee_rate_custom = Custom
 fee_rate_priority = Priority Fee
 # Used in the custom network fee screen on EVM networks for the base fee field label.
 fee_rate_base = Base Fee
-# Footer of the Base Fee field on the custom fee screen, followed by the network's current base fee.
-fee_rate_current_base = Current base fee
-# Footer of the Priority Fee or Custom Fee field on the custom fee screen, followed by the Normal rate.
+# Footer of each field on the custom fee screen, followed by the value Normal uses.
 fee_rate_suggested = Suggested
 
 # Banner

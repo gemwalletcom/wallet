@@ -397,7 +397,6 @@
   <string name="fee_rate_custom">مخصص</string>
   <string name="fee_rate_priority">رسوم الأولوية</string>
   <string name="fee_rate_base">الرسوم الأساسية</string>
-  <string name="fee_rate_current_base">الرسوم الأساسية الحالية</string>
   <string name="fee_rate_suggested">المقترح</string>
   <string name="banner_account_activation_title">رسوم تفعيل الحساب</string>
   <string name="banner_account_activation_description">تتطلب شبكة %1$s رسومًا لمرة واحدة قدرها %2$s.</string>
