@@ -1,5 +1,7 @@
-use primitives::swap::SwapStatus;
+use primitives::swap::{SlippageMode, SwapStatus};
 use serde::{Deserialize, Serialize};
+
+use crate::{SwapperError, SwapperSlippage, fees::percent_to_bps};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -50,6 +52,16 @@ fn deserialize_transaction_request<'de, D: serde::Deserializer<'de>>(deserialize
 pub struct SquidEstimate {
     pub to_amount: String,
     pub estimated_route_duration: u32,
+    pub aggregate_slippage: f64,
+}
+
+impl SquidEstimate {
+    pub fn slippage_bps(&self, requested: &SwapperSlippage) -> Result<u32, SwapperError> {
+        match requested.mode {
+            SlippageMode::Exact => Ok(requested.bps),
+            SlippageMode::Auto => percent_to_bps(self.aggregate_slippage).ok_or(SwapperError::InvalidRoute),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -91,6 +103,14 @@ impl SquidStatus {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_estimate_slippage_bps() {
+        let estimate = serde_json::from_str::<SquidRouteResponse>(include_str!("../../testdata/squid/route_osmosis_to_cosmos_auto.json")).unwrap().route.estimate;
+
+        assert_eq!(estimate.slippage_bps(&SwapperSlippage { bps: 100, mode: SlippageMode::Auto }), Ok(50), "auto reports the slippage Squid picked");
+        assert_eq!(estimate.slippage_bps(&SwapperSlippage { bps: 100, mode: SlippageMode::Exact }), Ok(100), "a chosen slippage stays the one asked for");
+    }
 
     #[test]
     fn test_deserialize_status_response() {

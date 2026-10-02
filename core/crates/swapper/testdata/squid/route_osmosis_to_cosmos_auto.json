@@ -1,0 +1,277 @@
+{
+  "route": {
+    "estimate": {
+      "actions": [
+        {
+          "type": "swap",
+          "chainType": "cosmos",
+          "data": {
+            "address": "osmo1mw0ac6rwlp5r8wapwk3zs6g29h8fcscxqakdzw9emkne6c8wjp9q0t3v8t",
+            "chainId": "osmosis-1",
+            "coinAddresses": [
+              "ibc/27394fb092d2eccd56123c74f36e4c1f926001ceada9ca97ea622b25f41e5eb2",
+              "uosmo"
+            ],
+            "dex": "Osmosis",
+            "enabled": true,
+            "path": [
+              "uosmo",
+              "ibc/27394fb092d2eccd56123c74f36e4c1f926001ceada9ca97ea622b25f41e5eb2"
+            ],
+            "slippage": 0.005,
+            "aggregateSlippage": 0.005
+          },
+          "fromChain": "osmosis-1",
+          "toChain": "osmosis-1",
+          "fromToken": {
+            "id": "osmosis-1_uosmo",
+            "symbol": "OSMO",
+            "address": "uosmo",
+            "chainId": "osmosis-1",
+            "name": "Osmosis",
+            "decimals": 6,
+            "interchainTokenId": null,
+            "coingeckoId": "osmosis",
+            "type": "cosmos",
+            "logoURI": "https://raw.githubusercontent.com/axelarnetwork/axelar-configs/main/images/tokens/osmo.svg",
+            "axelarNetworkSymbol": "OSMO",
+            "subGraphOnly": false,
+            "subGraphIds": [
+              "uosmo"
+            ],
+            "position": 1,
+            "enabled": true,
+            "active": true,
+            "visible": true,
+            "createdBy": "axelar_import_job",
+            "usdPrice": 0.03659372826025154
+          },
+          "toToken": {
+            "id": "osmosis-1_ibc/27394fb092d2eccd56123c74f36e4c1f926001ceada9ca97ea622b25f41e5eb2",
+            "symbol": "ATOM",
+            "address": "ibc/27394fb092d2eccd56123c74f36e4c1f926001ceada9ca97ea622b25f41e5eb2",
+            "chainId": "osmosis-1",
+            "name": "ATOM",
+            "decimals": 6,
+            "coingeckoId": "cosmos",
+            "type": "cosmos",
+            "logoURI": "https://raw.githubusercontent.com/0xsquid/assets/main/images/tokens/atom.svg",
+            "axelarNetworkSymbol": "ATOM",
+            "subGraphOnly": false,
+            "subGraphIds": [],
+            "enabled": true,
+            "active": true,
+            "visible": true,
+            "usdPrice": 1.7038491984483402
+          },
+          "fromAmount": "10000000",
+          "toAmount": "212766",
+          "toAmountMin": "211702",
+          "exchangeRate": "0.0212766",
+          "priceImpact": "-0.0028200789622109",
+          "stage": 4,
+          "provider": "Osmosis",
+          "logoURI": "https://raw.githubusercontent.com/0xsquid/assets/refs/heads/main/images/webp128/providers/osmosis.webp",
+          "description": "Swap OSMO to ATOM"
+        },
+        {
+          "type": "bridge",
+          "chainType": "cosmos",
+          "data": {
+            "enabled": true,
+            "name": "uatom-osmosis-cosmoshub",
+            "provider": "IBC",
+            "type": "ibc",
+            "ibcChannel": "channel-0",
+            "logoURI": "https://raw.githubusercontent.com/0xsquid/assets/main/images/master/providers/ibc.svg",
+            "calls": [
+              {
+                "chainType": "cosmos",
+                "callType": 1,
+                "call": {
+                  "typeUrl": "/ibc.applications.transfer.v1.MsgTransfer",
+                  "value": {
+                    "sourcePort": "transfer",
+                    "sourceChannel": "channel-0",
+                    "token": {
+                      "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+                      "amount": "212766"
+                    },
+                    "sender": "",
+                    "receiver": "",
+                    "timeoutTimestamp": {
+                      "low": -1447466752,
+                      "high": 416978336,
+                      "unsigned": false
+                    },
+                    "memo": "{\"ibc_callback\":\"osmo1n6ney9tsf55etz9nrmzyd8wa7e64qd3s06a74fqs30ka8pps6cvqtsycr6\"}"
+                  }
+                }
+              }
+            ]
+          },
+          "fromChain": "osmosis-1",
+          "toChain": "cosmoshub-4",
+          "fromToken": {
+            "id": "osmosis-1_ibc/27394fb092d2eccd56123c74f36e4c1f926001ceada9ca97ea622b25f41e5eb2",
+            "symbol": "ATOM",
+            "address": "ibc/27394fb092d2eccd56123c74f36e4c1f926001ceada9ca97ea622b25f41e5eb2",
+            "chainId": "osmosis-1",
+            "name": "ATOM",
+            "decimals": 6,
+            "coingeckoId": "cosmos",
+            "type": "cosmos",
+            "logoURI": "https://raw.githubusercontent.com/0xsquid/assets/main/images/tokens/atom.svg",
+            "axelarNetworkSymbol": "ATOM",
+            "subGraphOnly": false,
+            "subGraphIds": [],
+            "enabled": true,
+            "active": true,
+            "visible": true,
+            "usdPrice": 1.7038491984483402
+          },
+          "toToken": {
+            "id": "cosmoshub-4_uatom",
+            "symbol": "ATOM",
+            "address": "uatom",
+            "chainId": "cosmoshub-4",
+            "name": "ATOM",
+            "decimals": 6,
+            "interchainTokenId": null,
+            "coingeckoId": "cosmos",
+            "type": "cosmos",
+            "logoURI": "https://raw.githubusercontent.com/axelarnetwork/axelar-configs/main/images/tokens/atom.svg",
+            "axelarNetworkSymbol": "ATOM",
+            "subGraphOnly": false,
+            "subGraphIds": [
+              "uatom"
+            ],
+            "position": 1,
+            "enabled": true,
+            "active": true,
+            "visible": true,
+            "createdBy": "axelar_import_job",
+            "usdPrice": 1.7038491984483402
+          },
+          "fromAmount": "212766",
+          "toAmount": "212766",
+          "toAmountMin": "212766",
+          "exchangeRate": "1.0",
+          "priceImpact": "0",
+          "stage": 4,
+          "provider": "IBC",
+          "logoURI": "https://raw.githubusercontent.com/0xsquid/assets/main/images/master/providers/ibc.svg",
+          "description": "Bridge ATOM to Cosmos Hub",
+          "estimatedDuration": 20
+        }
+      ],
+      "fromAmount": "10000000",
+      "toAmount": "212766",
+      "toAmountMin": "212766",
+      "exchangeRate": "0.0212766",
+      "aggregatePriceImpact": "0.0",
+      "fromAmountUSD": "0.36",
+      "toAmountUSD": "0.36",
+      "toAmountMinUSD": "0.36",
+      "aggregateSlippage": 0.5,
+      "fromToken": {
+        "id": "osmosis-1_uosmo",
+        "symbol": "OSMO",
+        "address": "uosmo",
+        "chainId": "osmosis-1",
+        "name": "Osmosis",
+        "decimals": 6,
+        "interchainTokenId": null,
+        "coingeckoId": "osmosis",
+        "type": "cosmos",
+        "logoURI": "https://raw.githubusercontent.com/axelarnetwork/axelar-configs/main/images/tokens/osmo.svg",
+        "volatility": 3,
+        "axelarNetworkSymbol": "OSMO",
+        "subGraphOnly": false,
+        "subGraphIds": [
+          "uosmo"
+        ],
+        "position": 1,
+        "enabled": true,
+        "active": true,
+        "visible": true,
+        "createdBy": "axelar_import_job",
+        "usdPrice": 0.03659372826025154
+      },
+      "toToken": {
+        "id": "cosmoshub-4_uatom",
+        "symbol": "ATOM",
+        "address": "uatom",
+        "chainId": "cosmoshub-4",
+        "name": "ATOM",
+        "decimals": 6,
+        "interchainTokenId": null,
+        "coingeckoId": "cosmos",
+        "type": "cosmos",
+        "logoURI": "https://raw.githubusercontent.com/axelarnetwork/axelar-configs/main/images/tokens/atom.svg",
+        "volatility": 3,
+        "axelarNetworkSymbol": "ATOM",
+        "subGraphOnly": false,
+        "subGraphIds": [
+          "uatom"
+        ],
+        "position": 1,
+        "enabled": true,
+        "active": true,
+        "visible": true,
+        "createdBy": "axelar_import_job",
+        "usdPrice": 1.7038491984483402
+      },
+      "isBoostSupported": true,
+      "feeCosts": [],
+      "gasCosts": [
+        {
+          "type": "executeCall",
+          "token": {
+            "id": "osmosis-1_uosmo",
+            "symbol": "OSMO",
+            "address": "uosmo",
+            "chainId": "osmosis-1",
+            "name": "Osmosis",
+            "decimals": 6,
+            "interchainTokenId": null,
+            "coingeckoId": "osmosis",
+            "type": "cosmos",
+            "logoURI": "https://raw.githubusercontent.com/axelarnetwork/axelar-configs/main/images/tokens/osmo.svg",
+            "volatility": 3,
+            "axelarNetworkSymbol": "OSMO",
+            "subGraphOnly": false,
+            "subGraphIds": [
+              "uosmo"
+            ],
+            "position": 1,
+            "enabled": true,
+            "active": true,
+            "visible": true,
+            "createdBy": "axelar_import_job",
+            "usdPrice": 0.03659372826025154
+          },
+          "amount": "72600",
+          "gasLimit": "1650000",
+          "amountUsd": "0.00"
+        }
+      ],
+      "estimatedRouteDuration": 20
+    },
+    "transactionRequest": {},
+    "params": {
+      "fromChain": "osmosis-1",
+      "toChain": "cosmoshub-4",
+      "fromToken": "uosmo",
+      "toToken": "uatom",
+      "fromAmount": "10000000",
+      "fromAddress": "osmo1tkvyjqeq204rmrrz3w4hcrs336qahsfwn8m0ye",
+      "toAddress": "cosmos1tkvyjqeq204rmrrz3w4hcrs336qahsfwmugljt",
+      "slippageConfig": {
+        "autoMode": 1
+      },
+      "quoteOnly": true
+    },
+    "quoteId": "015991ed5e794587f9a77c87d999c0fc"
+  }
+}
