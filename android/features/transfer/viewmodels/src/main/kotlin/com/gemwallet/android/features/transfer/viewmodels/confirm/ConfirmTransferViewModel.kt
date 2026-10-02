@@ -85,7 +85,6 @@ import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.TransactionInputType
-import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -288,9 +287,7 @@ class ConfirmTransferViewModel @Inject constructor(
 
     fun changeFeePriority(priority: FeePriority) = changeFeeSelection(GemConfirmFeeSelection.Priority(priority.toGem()))
 
-    fun changeCustomFee(gasPrice: BigInteger) = changeFeeSelection(GemConfirmFeeSelection.Custom(gasPrice))
-
-    private fun changeFeeSelection(selection: GemConfirmFeeSelection) = loadOptions.update { it?.onFeeSelection(selection) }
+    fun changeFeeSelection(selection: GemConfirmFeeSelection) = loadOptions.update { it?.onFeeSelection(selection) }
 
     fun changePaymentAsset(assetId: AssetId) {
         val current = transfer.value ?: return

@@ -476,6 +476,10 @@ fee_rates_normal = স্বাভাবিক
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = কাস্টম
+fee_rate_priority = অগ্রাধিকার ফি
+fee_rate_base = বেস ফি
+fee_rate_current_base = বর্তমান বেস ফি
+fee_rate_suggested = প্রস্তাবিত
 
 # Banner
 

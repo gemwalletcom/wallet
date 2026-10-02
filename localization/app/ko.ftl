@@ -476,6 +476,10 @@ fee_rates_normal = 보통
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = 사용자 지정
+fee_rate_priority = 우선순위 수수료
+fee_rate_base = 기본 수수료
+fee_rate_current_base = 현재 기본 수수료
+fee_rate_suggested = 추천
 
 # Banner
 

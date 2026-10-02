@@ -293,7 +293,7 @@ fun ConfirmTransferScreen(
             screen = feeScreen,
             feeListItem = feeListItem,
             onSelectPriority = viewModel::changeFeePriority,
-            onSelectCustom = viewModel::changeCustomFee,
+            onSelectCustom = viewModel::changeFeeSelection,
             onSelectFeeAsset = viewModel::changeFeeAsset,
             onCancel = { showSelectTxSpeed = false },
         )

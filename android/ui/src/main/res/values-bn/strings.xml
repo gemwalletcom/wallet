@@ -395,6 +395,10 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">কাস্টম</string>
+  <string name="fee_rate_priority">অগ্রাধিকার ফি</string>
+  <string name="fee_rate_base">বেস ফি</string>
+  <string name="fee_rate_current_base">বর্তমান বেস ফি</string>
+  <string name="fee_rate_suggested">প্রস্তাবিত</string>
   <string name="banner_account_activation_title">অ্যাকাউন্ট অ্যাক্টিভেশন ফি</string>
   <string name="banner_account_activation_description">%1$s নেটওয়ার্কের জন্য %2$s এর এককালীন ফি প্রয়োজন।</string>
   <string name="banner_stake_title">%1$s স্টেক করা শুরু করুন</string>

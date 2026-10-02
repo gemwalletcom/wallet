@@ -476,6 +476,10 @@ fee_rates_normal = Normalne
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Niestandardowe
+fee_rate_priority = Opłata priorytetowa
+fee_rate_base = Opłata bazowa
+fee_rate_current_base = Bieżąca opłata bazowa
+fee_rate_suggested = Sugerowane
 
 # Banner
 

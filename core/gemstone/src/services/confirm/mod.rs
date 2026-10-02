@@ -8,7 +8,7 @@ pub(crate) mod rules;
 pub(crate) mod screen;
 mod swap;
 #[cfg(test)]
-mod testkit;
+pub(crate) mod testkit;
 mod transfer;
 
 use std::sync::Arc;
@@ -113,7 +113,8 @@ impl GemConfirmService {
             self.simulate(chain, input),
         );
         let metadata = metadata.map_err(error::load_error)?;
-        let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates.map_err(error::load_error)?);
+        let fee_rates = fee_rates.map_err(error::load_error)?;
+        let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates);
         let simulation = simulation?;
 
         rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;

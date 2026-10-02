@@ -395,6 +395,10 @@
   <string name="fee_rate_satvB">ساتوشی بر بایت</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">سفارشی</string>
+  <string name="fee_rate_priority">کارمزد اولویت</string>
+  <string name="fee_rate_base">کارمزد پایه</string>
+  <string name="fee_rate_current_base">کارمزد پایه فعلی</string>
+  <string name="fee_rate_suggested">پیشنهادی</string>
   <string name="banner_account_activation_title">کارمزد فعال سازی حساب.</string>
   <string name="banner_account_activation_description">شبکه %1$s نیاز به کارمزد اولیه %2$s ای دارد.</string>
   <string name="banner_stake_title">شروع به استیک کردن %1$s.</string>

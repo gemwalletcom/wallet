@@ -395,6 +395,10 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Tùy chỉnh</string>
+  <string name="fee_rate_priority">Phí ưu tiên</string>
+  <string name="fee_rate_base">Phí cơ bản</string>
+  <string name="fee_rate_current_base">Phí cơ bản hiện tại</string>
+  <string name="fee_rate_suggested">Đề xuất</string>
   <string name="banner_account_activation_title">Phí kích hoạt tài khoản</string>
   <string name="banner_account_activation_description">Mạng %1$s yêu cầu một khoản phí một lần là %2$s.</string>
   <string name="banner_stake_title">Bắt đầu đặt cược %1$s</string>

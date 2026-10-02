@@ -476,6 +476,10 @@ fee_rates_normal = 普通
 fee_rate_satvB = 聰/vB
 fee_rate_gwei = gwei
 fee_rate_custom = 自訂
+fee_rate_priority = 優先手續費
+fee_rate_base = 基本手續費
+fee_rate_current_base = 目前基本手續費
+fee_rate_suggested = 建議
 
 # Banner
 

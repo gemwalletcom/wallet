@@ -39,16 +39,16 @@ struct NetworkFeeSceneViewModelTests {
             showsOptions: false,
             unitType: .gwei,
             unitDecimals: 9,
-            selectedTotal: 1,
-            normalTotal: 1,
+            selected: .regular(gasPrice: 1),
+            normal: .regular(gasPrice: 1),
         )).showFeeRates == false)
         #expect(NetworkFeeSceneViewModel.mock(feeRates: .mock(
             rows: [.mock(kind: .priority(priority: .normal), isSelected: true), .mock(kind: .priority(priority: .fast))],
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
-            selectedTotal: 1,
-            normalTotal: 1,
+            selected: .regular(gasPrice: 1),
+            normal: .regular(gasPrice: 1),
         )).showFeeRates)
     }
 
@@ -91,8 +91,8 @@ struct NetworkFeeSceneViewModelTests {
                 showsOptions: false,
                 unitType: .native,
                 unitDecimals: 9,
-                selectedTotal: 5000,
-                normalTotal: 5000,
+                selected: .regular(gasPrice: 5000),
+                normal: .regular(gasPrice: 5000),
             ),
             feeAssetPrice: .mock(price: 150.0),
             feeAmount: BigInt(5000),
@@ -110,8 +110,8 @@ struct NetworkFeeSceneViewModelTests {
                 showsOptions: false,
                 unitType: .gwei,
                 unitDecimals: 9,
-                selectedTotal: 1,
-                normalTotal: 1,
+                selected: .regular(gasPrice: 1),
+                normal: .regular(gasPrice: 1),
             ),
             feeAssetPrice: .mock(price: 3000.0),
             feeAmount: BigInt(21_000_000_000_000),
@@ -130,8 +130,8 @@ struct NetworkFeeSceneViewModelTests {
                 showsOptions: false,
                 unitType: .native,
                 unitDecimals: 9,
-                selectedTotal: 5000,
-                normalTotal: 5000,
+                selected: .regular(gasPrice: 5000),
+                normal: .regular(gasPrice: 5000),
             ),
             feeAmount: BigInt(5000),
         )
@@ -152,46 +152,6 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func customFeeInputConfirmsEnteredRate() throws {
-        let custom = try #require(NetworkFeeSceneViewModel.mock(
-            feeAsset: .mock(),
-            feeRates: .mock(
-                rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
-                showsOptions: false,
-                unitType: .satVb,
-                unitDecimals: 1,
-                selectedTotal: 20,
-                normalTotal: 20,
-            ),
-            feeAmount: 1000,
-        ).customFeeModel())
-
-        #expect(custom.isConfirmEnabled == false)
-        custom.input = "4"
-        #expect(custom.isConfirmEnabled)
-    }
-
-    @Test
-    func customFeeInputRejectsRateAboveMax() throws {
-        let custom = try #require(NetworkFeeSceneViewModel.mock(
-            feeAsset: .mock(),
-            feeRates: .mock(
-                rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
-                showsOptions: false,
-                unitType: .satVb,
-                unitDecimals: 1,
-                selectedTotal: 20,
-                normalTotal: 20,
-            ),
-            feeAmount: 1000,
-        ).customFeeModel())
-        custom.input = "999"
-
-        #expect(custom.isConfirmEnabled == false)
-        #expect(custom.errorText != nil)
-    }
-
-    @Test
     func customFeeConfirmForwardsSelectionToOwner() async {
         await confirmation { selected in
             let custom = NetworkFeeSceneViewModel.mock(
@@ -201,79 +161,18 @@ struct NetworkFeeSceneViewModelTests {
                     showsOptions: false,
                     unitType: .satVb,
                     unitDecimals: 1,
-                    selectedTotal: 20,
-                    normalTotal: 20,
+                    selected: .regular(gasPrice: 20),
+                    normal: .regular(gasPrice: 20),
                 ),
                 feeAmount: 1000,
                 onSelect: {
-                    #expect($0 == .custom(gasPrice: 40))
+                    #expect($0 == .custom(baseFee: nil, rate: 40))
                     selected()
                 },
             ).customFeeModel()!
             custom.input = "4"
             custom.confirm()
         }
-    }
-
-    @Test
-    func customFeeRejectedRateDoesNotConfirm() async {
-        await confirmation(expectedCount: 0) { selected in
-            let custom = NetworkFeeSceneViewModel.mock(
-                feeAsset: .mock(),
-                feeRates: .mock(
-                    rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
-                    showsOptions: false,
-                    unitType: .satVb,
-                    unitDecimals: 1,
-                    selectedTotal: 20,
-                    normalTotal: 20,
-                ),
-                feeAmount: 1000,
-                onSelect: { _ in selected() },
-            ).customFeeModel()!
-            custom.input = "999"
-            custom.confirm()
-        }
-    }
-
-    @Test
-    func customFeeMaxAnchoredToNormalRate() async throws {
-        await confirmation { selected in
-            let custom = NetworkFeeSceneViewModel.mock(
-                feeAsset: .mock(),
-                feeRates: .mock(
-                    rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
-                    showsOptions: false,
-                    unitType: .satVb,
-                    unitDecimals: 1,
-                    selectedTotal: 20,
-                    normalTotal: 20,
-                ),
-                feeAmount: 1000,
-                onSelect: {
-                    #expect($0 == .custom(gasPrice: 200))
-                    selected()
-                },
-            ).customFeeModel()!
-            custom.input = "20"
-            custom.confirm()
-        }
-
-        let reopened = try #require(NetworkFeeSceneViewModel.mock(
-            feeAsset: .mock(),
-            feeRates: .mock(
-                rows: [.mock(kind: .priority(priority: .normal), fee: 1000, isSelected: true)],
-                showsOptions: false,
-                unitType: .satVb,
-                unitDecimals: 1,
-                selectedTotal: 200,
-                normalTotal: 20,
-            ),
-            feeAmount: 1000,
-        ).customFeeModel())
-        reopened.input = "21"
-        #expect(reopened.isConfirmEnabled == false)
-        #expect(reopened.errorText != nil)
     }
 
     @Test
