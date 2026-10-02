@@ -72,6 +72,10 @@ fun WalletApp(
         }
     }
 
+    LaunchedEffect(navigator) {
+        navigator.observeCurrentWallet()
+    }
+
     val walletConnectorRequest = activeWalletConnectRequest?.current?.collectAsStateWithLifecycle()?.value
     LaunchedEffect(walletConnectorRequest?.key, navigator) {
         navigator.showWalletConnectorRequest(walletConnectorRequest?.key)
