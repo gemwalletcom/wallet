@@ -153,7 +153,7 @@ class PendingNavigationCoordinatorTest {
     fun buildRoutes_notificationPayload_storesRouteFromNotificationNavigation() = runTest {
         val expected = PendingNavigation.Routes(listOf(RewardsRoute(code = "from-notification")), GemNavigationTab.SETTINGS)
         coEvery { notificationNavigation.prepareNavigation("rewards", null) } returns expected
-        coordinator.pendNotification("rewards", null)
+        coordinator.pendIntent(notificationIntent("rewards"))
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
@@ -164,7 +164,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_notificationPayloadWithNoRoute_clears() = runTest {
         coEvery { notificationNavigation.prepareNavigation("test", null) } returns PendingNavigation.Routes(emptyList())
-        coordinator.pendNotification("test", null)
+        coordinator.pendIntent(notificationIntent("test"))
 
         coordinator.buildRoutes(NoOpWalletConnect)
 
@@ -172,11 +172,17 @@ class PendingNavigationCoordinatorTest {
     }
 
     @Test
-    fun pendIntent_withoutLink_isIgnoredWhateverExtrasItCarries() {
+    fun pendIntent_notificationPayload_pendsTheNotification() {
+        coordinator.pendIntent(notificationIntent("transaction", "{}"))
+
+        assertEquals(PendingNavigation.FromNotification("transaction", "{}"), coordinator.pendingNavigation.value)
+    }
+
+    @Test
+    fun pendIntent_malformedExtras_isIgnored() {
         val intent = mockk<Intent>(relaxed = true)
         every { intent.dataString } returns null
-        every { intent.getStringExtra(PushNotificationField.Type.key) } returns "transaction"
-        every { intent.getStringExtra(PushNotificationField.Data.key) } returns "{}"
+        every { intent.getStringExtra(any()) } throws RuntimeException("Parcelable encountered ClassNotFoundException reading a Serializable object")
 
         coordinator.pendIntent(intent)
 
@@ -202,6 +208,14 @@ class PendingNavigationCoordinatorTest {
         coordinator.pendIntent(intent)
 
         assertNull(coordinator.pendingNavigation.value)
+    }
+
+    private fun notificationIntent(type: String, data: String? = null): Intent {
+        val intent = mockk<Intent>(relaxed = true)
+        every { intent.dataString } returns null
+        every { intent.getStringExtra(PushNotificationField.Type.key) } returns type
+        every { intent.getStringExtra(PushNotificationField.Data.key) } returns data
+        return intent
     }
 
     private object NoOpWalletConnect : PendingNavigationCoordinator.WalletConnectHandler {
