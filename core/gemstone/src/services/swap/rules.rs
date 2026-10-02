@@ -150,7 +150,11 @@ pub fn requote_request(wallet: &Wallet, transfer: &GemTransferData, value: &BigI
         return Err(SwapperError::NotSupportedAsset);
     };
     let value = value.to_biguint().filter(|value| *value > BigUint::ZERO).ok_or(SwapperError::InputAmountError { min_amount: None })?;
-    let request = quote_request(wallet, from_asset, to_asset, value, transfer.use_max_amount, Some(swap_data.quote.slippage_bps))?;
+    let slippage_bps = match swap_data.quote.slippage_mode {
+        SwapperSlippageMode::Auto => None,
+        SwapperSlippageMode::Exact => Some(swap_data.quote.slippage_bps),
+    };
+    let request = quote_request(wallet, from_asset, to_asset, value, transfer.use_max_amount, slippage_bps)?;
     Ok((swap_data.quote.provider_data.provider, request))
 }
 
@@ -188,6 +192,7 @@ pub fn swap_quote(quote: &Quote) -> SwapQuote {
             protocol_name: quote.data.provider.protocol.clone(),
         },
         slippage_bps: quote.data.slippage_bps,
+        slippage_mode: quote.request.options.slippage.mode,
         eta_in_seconds: quote.eta_in_seconds,
         use_max_amount: Some(quote.request.options.use_max_amount),
     }
@@ -583,7 +588,7 @@ mod tests {
         assert_eq!(transfer.quote.from_value, BigUint::from(99u64));
         assert_eq!(transfer.quote.min_from_value, Some(BigUint::from(90u64)));
         assert_eq!(transfer.quote.provider_data.provider, swapper::SwapperProvider::Jupiter);
-        assert_eq!(transfer.quote.slippage_bps, 50);
+        assert_eq!((transfer.quote.slippage_bps, transfer.quote.slippage_mode), (50, SwapperSlippageMode::Exact));
         assert_eq!(transfer.quote.use_max_amount, Some(true));
 
         let ethereum_only = Wallet::mock_with_chains(&[Chain::Ethereum]);
@@ -607,8 +612,22 @@ mod tests {
             ..GemTransferData::mock(TransactionInputType::Swap {
                 from_asset: Asset::from_chain(Chain::Ethereum),
                 to_asset: Asset::from_chain(Chain::Solana),
-                swap_data,
+                swap_data: swap_data.clone(),
             })
+        };
+        let auto = GemTransferData {
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Solana),
+                swap_data: SwapData {
+                    quote: SwapQuote {
+                        slippage_mode: SwapperSlippageMode::Auto,
+                        ..swap_data.quote.clone()
+                    },
+                    ..swap_data
+                },
+            },
+            ..transfer.clone()
         };
 
         let (provider, request) = requote_request(&wallet, &transfer, &transfer.value).unwrap();
@@ -616,6 +635,14 @@ mod tests {
         assert_eq!(provider, SwapperProvider::Jupiter);
         assert_eq!(request.value, BigUint::from(100u64), "the amount the user typed is asked again, not the amount a provider trimmed");
         assert_eq!(request.options.slippage, SwapperSlippage { bps: 75, mode: SwapperSlippageMode::Exact }, "the slippage the quote was accepted with is kept");
+        assert_eq!(
+            requote_request(&wallet, &auto, &auto.value).unwrap().1.options.slippage,
+            SwapperSlippage {
+                mode: SwapperSlippageMode::Auto,
+                ..get_default_slippage(&Chain::Ethereum)
+            },
+            "an Auto quote is asked again in Auto, not pinned at the number its provider picked"
+        );
         assert!(request.options.use_max_amount);
         assert_eq!(request.wallet_address, "ethereum-address");
         assert_eq!(request.destination_address, "solana-address");

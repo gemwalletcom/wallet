@@ -2325,6 +2325,7 @@ fun mockSwapQuote(
     toValue: java.math.BigInteger = java.math.BigInteger.ZERO,
     providerData: uniffi.gemstone.SwapProviderData = mockSwapProviderData(),
     slippageBps: UInt = 0u,
+    slippageMode: uniffi.gemstone.SwapperSlippageMode = uniffi.gemstone.SwapperSlippageMode.AUTO,
     etaInSeconds: UInt? = null,
     useMaxAmount: Boolean? = null,
 ) = uniffi.gemstone.SwapQuote(
@@ -2335,6 +2336,7 @@ fun mockSwapQuote(
     toValue = toValue,
     providerData = providerData,
     slippageBps = slippageBps,
+    slippageMode = slippageMode,
     etaInSeconds = etaInSeconds,
     useMaxAmount = useMaxAmount,
 )
