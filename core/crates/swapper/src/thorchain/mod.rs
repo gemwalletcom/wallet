@@ -20,7 +20,6 @@ use strum::Display;
 
 use super::SwapperProvider;
 
-const QUOTE_MINIMUM: i64 = 0;
 const QUOTE_INTERVAL: i64 = 1;
 const QUOTE_QUANTITY: i64 = 0;
 const DUST_THRESHOLD_MULTIPLIER: i64 = 2;

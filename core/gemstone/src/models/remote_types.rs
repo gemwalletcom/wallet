@@ -14,9 +14,9 @@ use primitives::{
     Platform, PlatformStore, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceProvider,
     RecentActivityType, RecentAsset, RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportReason, Resource, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus,
     Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
-    SimulationWarningApproval, SimulationWarningType, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData,
-    SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType, Transaction, TransactionDirection, TransactionExtended, TransactionInputType,
-    TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnection,
+    SimulationWarningApproval, SimulationWarningType, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapAmountMode,
+    SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType, Transaction, TransactionDirection, TransactionExtended,
+    TransactionInputType, TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnection,
     WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType, YieldProvider,
 };
 use std::str::FromStr;
@@ -649,6 +649,12 @@ pub enum SupportMessageStatus {
 pub enum SupportTypingStatus {
     On,
     Off,
+}
+
+#[uniffi::remote(Enum)]
+pub enum SwapAmountMode {
+    Fixed,
+    Flexible,
 }
 
 #[uniffi::remote(Enum)]
@@ -1710,6 +1716,7 @@ pub struct SwapQuote {
     pub slippage_mode: primitives::SlippageMode,
     pub eta_in_seconds: Option<u32>,
     pub use_max_amount: Option<bool>,
+    pub amount_mode: Option<SwapAmountMode>,
 }
 
 #[uniffi::remote(Record)]

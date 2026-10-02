@@ -1,11 +1,13 @@
 use std::str::FromStr;
 
-use num_bigint::BigInt;
+use num_bigint::{BigInt, BigUint};
 use primitives::{Asset, AssetId, BITCOINCASH_PREFIX, Chain};
 
 use super::{THORChainNetwork, chain::ChainName};
+use crate::fees::subtract_bps;
 
 const THORCHAIN_DECIMALS: i32 = 8;
+const MEMO_AMOUNT_SIGNIFICANT_DIGITS: usize = 5;
 
 pub fn value_from(value: &str, decimals: i32) -> BigInt {
     let value = BigInt::from_str(value).unwrap_or_default();
@@ -70,12 +72,25 @@ impl THORChainAsset {
         })
     }
 
-    pub fn swap_memo(&self, asset_name: &str, destination_address: String, minimum: i64, interval: i64, quantity: i64, fee_address: String, bps: u32) -> String {
+    pub fn trade_limit(&self, value: &BigUint, slippage_bps: u32) -> BigUint {
+        value_from(&subtract_bps(value, slippage_bps).to_string(), self.decimals as i32).magnitude().clone()
+    }
+
+    pub fn swap_memo(&self, asset_name: &str, destination_address: String, limit: &BigUint, interval: i64, quantity: i64, fee_address: String, bps: u32) -> String {
         let address = match self.chain.chain() {
             Chain::BitcoinCash => destination_address.strip_prefix(BITCOINCASH_PREFIX).unwrap_or(&destination_address),
             _ => destination_address.as_str(),
         };
-        format!("=:{asset_name}:{address}:{minimum}/{interval}/{quantity}:{fee_address}:{bps}")
+        let limit = memo_amount(limit);
+        format!("=:{asset_name}:{address}:{limit}/{interval}/{quantity}:{fee_address}:{bps}")
+    }
+}
+
+fn memo_amount(limit: &BigUint) -> String {
+    let digits = limit.to_string();
+    match digits.len().saturating_sub(MEMO_AMOUNT_SIGNIFICANT_DIGITS) {
+        0 => digits,
+        exponent => format!("{}e{exponent}", &digits[..MEMO_AMOUNT_SIGNIFICANT_DIGITS]),
     }
 }
 
@@ -157,50 +172,56 @@ mod tests {
         assert_eq!(
             THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::SmartChain.as_ref())
                 .unwrap()
-                .swap_memo("s", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
+                .swap_memo("s", destination_address.clone(), &BigUint::ZERO, 1, 0, fee_address.clone(), bps),
             "=:s:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
             THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Ethereum.as_ref())
                 .unwrap()
-                .swap_memo("e", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
+                .swap_memo("e", destination_address.clone(), &BigUint::ZERO, 1, 0, fee_address.clone(), bps),
             "=:e:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
             THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Doge.as_ref())
                 .unwrap()
-                .swap_memo("d", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
+                .swap_memo("d", destination_address.clone(), &BigUint::ZERO, 1, 0, fee_address.clone(), bps),
             "=:d:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
             THORChainAsset::from_id(THORChainNetwork::Thorchain, &ETHEREUM_USDT_ASSET_ID)
                 .unwrap()
-                .swap_memo("ETH.USDT", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
+                .swap_memo("ETH.USDT", destination_address.clone(), &BigUint::ZERO, 1, 0, fee_address.clone(), bps),
             "=:ETH.USDT:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
-            THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::BitcoinCash.as_ref())
-                .unwrap()
-                .swap_memo("c", "bitcoincash:qpcns7lget89x9km0t8ry5fk52e8lhl53q0a64gd65".to_string(), 0, 1, 0, fee_address.clone(), bps),
+            THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::BitcoinCash.as_ref()).unwrap().swap_memo(
+                "c",
+                "bitcoincash:qpcns7lget89x9km0t8ry5fk52e8lhl53q0a64gd65".to_string(),
+                &BigUint::ZERO,
+                1,
+                0,
+                fee_address.clone(),
+                bps
+            ),
             "=:c:qpcns7lget89x9km0t8ry5fk52e8lhl53q0a64gd65:0/1/0:g1:50"
         );
         assert_eq!(
             THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, &THORCHAIN_TCY_ASSET_ID.to_string())
                 .unwrap()
-                .swap_memo("THOR.TCY", destination_address, 0, 1, 0, fee_address.clone(), bps),
+                .swap_memo("THOR.TCY", destination_address, &BigUint::ZERO, 1, 0, fee_address.clone(), bps),
             "=:THOR.TCY:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
             THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Zcash.as_ref())
                 .unwrap()
-                .swap_memo("z", "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML".to_string(), 0, 1, 0, fee_address.clone(), bps),
+                .swap_memo("z", "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML".to_string(), &BigUint::ZERO, 1, 0, fee_address.clone(), bps),
             "=:z:t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML:0/1/0:g1:50"
         );
         assert_eq!(
             THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Cardano.as_ref()).unwrap().swap_memo(
                 "aa",
                 "addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5".to_string(),
-                0,
+                &BigUint::ZERO,
                 1,
                 0,
                 fee_address,
@@ -208,6 +229,27 @@ mod tests {
             ),
             "=:aa:addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5:0/1/0:g1:50"
         );
+    }
+
+    #[test]
+    fn test_trade_limit() {
+        let bitcoin = THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Bitcoin.as_ref()).unwrap();
+        let ethereum = THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Ethereum.as_ref()).unwrap();
+        let usdt = THORChainAsset::from_id(THORChainNetwork::Thorchain, &ETHEREUM_USDT_ASSET_ID).unwrap();
+
+        assert_eq!(bitcoin.trade_limit(&BigUint::from(100_000_000u64), 50), BigUint::from(99_500_000u64), "1 BTC less 0.5%, already in 8 decimals");
+        assert_eq!(ethereum.trade_limit(&BigUint::from(10u64.pow(18)), 50), BigUint::from(99_500_000u64), "1 ETH less 0.5%, scaled down from 18 decimals");
+        assert_eq!(usdt.trade_limit(&BigUint::from(1_000_000_000u64), 50), BigUint::from(99_500_000_000u64), "1000 USDT less 0.5%, scaled up from 6 decimals");
+        assert_eq!(bitcoin.trade_limit(&BigUint::from(1u64), 50), BigUint::ZERO, "a dust quote has no limit to enforce");
+    }
+
+    #[test]
+    fn test_memo_amount() {
+        assert_eq!(memo_amount(&BigUint::ZERO), "0");
+        assert_eq!(memo_amount(&BigUint::from(12345u32)), "12345");
+        assert_eq!(memo_amount(&BigUint::from(123456u32)), "12345e1", "anything longer keeps five significant digits, rounded down");
+        assert_eq!(memo_amount(&BigUint::from(99_500_000u64)), "99500e3", "and is exact when the rest is zeros");
+        assert_eq!(memo_amount(&BigUint::from(u128::MAX)), "34028e34", "any amount takes at most eight bytes of a Bitcoin memo");
     }
 
     #[test]
@@ -236,7 +278,7 @@ mod tests {
 
         assert!(asset.is_some(), "TRON USDT asset should be recognized");
 
-        let memo = asset.unwrap().swap_memo("TRON.USDT", tron_destination, 0, 1, 0, fee_address, bps);
+        let memo = asset.unwrap().swap_memo("TRON.USDT", tron_destination, &BigUint::ZERO, 1, 0, fee_address, bps);
 
         assert_eq!(memo, "=:TRON.USDT:TEB39Rt69QkgD1BKhqaRNqGxfQzCarkRCb:0/1/0:g1:50");
     }

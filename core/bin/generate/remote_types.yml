@@ -175,6 +175,7 @@ remote:
   - StakeType
   - EarnType
   - SwapQuoteDataType
+  - SwapAmountMode
   - ApprovalData
   - Permit2ApprovalData
   - SwapProviderData

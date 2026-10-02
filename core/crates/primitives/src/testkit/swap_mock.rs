@@ -111,6 +111,7 @@ impl SwapQuote {
             slippage_mode: SlippageMode::Exact,
             eta_in_seconds: Some(30),
             use_max_amount: None,
+            amount_mode: None,
         }
     }
 
@@ -134,6 +135,7 @@ impl SwapQuote {
             slippage_mode: SlippageMode::Exact,
             eta_in_seconds: Some(30),
             use_max_amount: None,
+            amount_mode: None,
         }
     }
 }

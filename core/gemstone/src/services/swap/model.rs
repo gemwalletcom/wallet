@@ -3,7 +3,7 @@ use crate::models::custom_types::GemBigUint;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use primitives::swap::{SlippageMode, SwapData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Currency};
-use swapper::{Quote, SwapperError};
+use swapper::{Quote, SwapperError, fees::subtract_bps};
 
 use super::rules;
 use super::session::provider_row;
@@ -129,7 +129,7 @@ pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset, 
     let receive = GemSwapValue::new(quote.to_value.clone(), to_asset.decimals as u32, to_price);
     let price_impact = pay.price_impact(&receive);
     GemSwapQuoteSummary {
-        min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
+        min_receive_value: subtract_bps(&quote.to_value, quote.slippage_bps),
         rate: rules::swap_rate(&from_asset, &quote.from_value, &to_asset, &quote.to_value),
         price_impact_row: price_impact.map(|impact| rules::price_impact_row(impact, from_asset.symbol.clone())),
         price_impact,

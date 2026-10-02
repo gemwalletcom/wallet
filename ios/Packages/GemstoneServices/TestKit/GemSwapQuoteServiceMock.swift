@@ -128,6 +128,7 @@ private extension SwapperQuote {
             slippageMode: request.options.slippage.mode,
             etaInSeconds: etaInSeconds,
             useMaxAmount: request.options.useMaxAmount,
+            amountMode: nil,
         )
     }
 }

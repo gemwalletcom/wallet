@@ -20,3 +20,9 @@ impl SwapProviderMode {
         }
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SwapAmountMode {
+    Fixed,
+    Flexible,
+}

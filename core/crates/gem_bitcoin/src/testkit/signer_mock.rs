@@ -98,6 +98,7 @@ fn mock_swap_input(chain: BitcoinChain, provider: SwapProvider, use_max_amount: 
                 slippage_mode: SlippageMode::Exact,
                 eta_in_seconds: None,
                 use_max_amount,
+                amount_mode: None,
             },
             data: quote_data(destination_address, value.to_string()),
         },

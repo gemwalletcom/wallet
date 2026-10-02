@@ -8,6 +8,7 @@ use crate::alien::{AlienProvider, AlienRpcProvider, coalescing_provider};
 use crate::services::node::GemNodeService;
 use primitives::AssetId;
 use std::sync::Arc;
+use swapper::SwapAmountMode;
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemSwapper {
@@ -48,5 +49,8 @@ impl GemSwapper {
     }
     pub async fn get_quote_data(&self, quote: &SwapperQuote, data: FetchQuoteData) -> Result<GemSwapQuoteData, SwapperError> {
         self.inner.get_quote_data(quote, data).await
+    }
+    pub fn amount_mode(&self, provider: &SwapperProvider, request: &SwapperQuoteRequest) -> Option<SwapAmountMode> {
+        self.inner.amount_mode(provider, request)
     }
 }

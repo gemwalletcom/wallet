@@ -436,7 +436,7 @@ impl GemSwapSession {
             details: pay
                 .zip(receive)
                 .zip(quote)
-                .map(|((pay, receive), quote)| quote_details(rules::swap_quote(quote), pay.asset.clone(), receive.asset.clone(), price_value(&pay), price_value(&receive), &currency)),
+                .map(|((pay, receive), quote)| quote_details(rules::swap_quote(quote, None), pay.asset.clone(), receive.asset.clone(), price_value(&pay), price_value(&receive), &currency)),
             quote: quote.cloned(),
         }
     }

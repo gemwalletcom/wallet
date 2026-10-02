@@ -1854,6 +1854,7 @@ public extension Gemstone.SwapQuote {
         slippageMode: Gemstone.SwapperSlippageMode = .auto,
         etaInSeconds: UInt32? = nil,
         useMaxAmount: Bool? = nil,
+        amountMode: Gemstone.SwapAmountMode? = nil,
     ) -> Gemstone.SwapQuote {
         Gemstone.SwapQuote(
             fromAddress: fromAddress,
@@ -1866,6 +1867,7 @@ public extension Gemstone.SwapQuote {
             slippageMode: slippageMode,
             etaInSeconds: etaInSeconds,
             useMaxAmount: useMaxAmount,
+            amountMode: amountMode,
         )
     }
 }

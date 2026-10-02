@@ -2,7 +2,7 @@ use super::permit2_data::Permit2Data;
 use crate::{SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS};
 use num_bigint::BigUint;
 pub use primitives::swap::Permit2ApprovalData;
-pub use primitives::swap::{SwapResult, SwapResultRequest};
+pub use primitives::swap::{SwapAmountMode, SwapResult, SwapResultRequest};
 use primitives::{
     AssetId, Chain,
     swap::{ApprovalData, SlippageMode, SwapProviderMode},
@@ -199,12 +199,6 @@ impl FetchQuoteData {
             _ => None,
         }
     }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SwapAmountMode {
-    Fixed,
-    Flexible,
 }
 
 #[derive(Debug, Clone, PartialEq)]

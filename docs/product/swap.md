@@ -43,7 +43,7 @@ Providers take an amount in one of two ways. Some swap whatever arrives at a dep
 ```mermaid
 flowchart LR
     A[100% of a network's coin] --> B{How the provider takes the amount}
-    B -- swaps whatever arrives --> C[Full balance quoted] --> D[Fee comes off at signing] --> E{Still above the provider's minimum?}
+    B -- swaps whatever arrives --> C[Full balance quoted] --> D[Confirm asks again for everything but the fee] --> E{Still above the provider's minimum?}
     E -- yes --> F[Nothing left behind]
     E -- no --> G[The minimum is shown]
     B -- needs the exact amount --> H[Balance minus a fee reserve quoted] --> I{Ethereum-style network?}
@@ -53,7 +53,8 @@ flowchart LR
 
 | When the user swaps 100% of a network's coin and | Expected | Why |
 |---|---|---|
-| the provider swaps whatever arrives: Near Intents, Chainflip, Thorchain and Relay from Bitcoin and other non-Ethereum networks | the full balance is quoted; the network fee comes off when the transaction is signed, so nothing is left behind | a deposit can be any amount |
+| the provider swaps whatever arrives: Near Intents, Thorchain and Relay from Bitcoin and other non-Ethereum networks | Swap quotes the full balance; the confirmation screen asks the provider again for everything but the network fee and shows that amount, so nothing is left behind | a deposit can be any amount, and the Minimum Receive has to be priced on what arrives |
+| the provider is Chainflip from Bitcoin | the full balance is quoted and the network fee comes off when the transaction is signed | Chainflip enforces a price, not an amount |
 | what is left after the fee is under that provider's minimum | the minimum is shown, not a balance error | the provider would reject or refund it |
 | the provider needs the exact amount: Uniswap, PancakeSwap, OKX, Jupiter, Squid, Mayan, Across | Swap quotes the balance minus a fee reserve, so the quote is close; the confirmation screen then asks for everything but the actual network fee and shows that amount | the reserve is a guess; the fee is known only on the confirmation screen |
 | that provider is used on Solana, TON, Tron, Sui or Aptos | the reserve stays in the wallet | those networks charge more than the fee shown: rent, forwarding, energy |
@@ -95,3 +96,4 @@ flowchart LR
 - Every eligible provider is awaited, so the slowest one decides how long a quote takes.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it loaded and showed.
 - The Slippage row reads Auto on both screens until the user picks a value.
+- Minimum Receive is the floor the signed trade enforces: THORChain and Mayachain write it into the memo.

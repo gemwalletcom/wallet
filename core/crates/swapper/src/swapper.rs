@@ -39,8 +39,8 @@ impl GemSwapper {
         })
     }
 
-    fn amount_mode(&self, quote: &Quote) -> Option<SwapAmountMode> {
-        self.get_swapper_by_provider(&quote.data.provider.id).ok().map(|swapper| swapper.amount_mode(&quote.request))
+    pub fn amount_mode(&self, provider: &SwapperProvider, request: &QuoteRequest) -> Option<SwapAmountMode> {
+        self.get_swapper_by_provider(provider).ok().map(|swapper| swapper.amount_mode(request))
     }
 
     fn get_swapper_by_provider(&self, provider: &SwapperProvider) -> Result<&dyn Swapper, SwapperError> {
@@ -190,7 +190,7 @@ impl GemSwapper {
             }
         }
 
-        let quotes = rank_quotes(request, quotes, &quote_preferences(), |quote| self.amount_mode(quote));
+        let quotes = rank_quotes(request, quotes, &quote_preferences(), |quote| self.amount_mode(&quote.data.provider.id, &quote.request));
         Ok(SwapQuotes { quotes, errors })
     }
 

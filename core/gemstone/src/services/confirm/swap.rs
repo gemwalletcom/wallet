@@ -1,9 +1,9 @@
 use std::time::Instant;
 
 use primitives::swap::SwapQuoteDataType;
-use primitives::{TransactionInputType, Wallet};
+use primitives::{AssetId, TransactionInputType, Wallet};
 use swapper::fees::max_amount_spends_all_but_fee;
-use swapper::{ProviderType, Quote};
+use swapper::{ProviderType, Quote, SwapAmountMode};
 
 use super::error::sign_error;
 use super::{GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmMetadata, GemConfirmTransferService, SendInput};
@@ -44,12 +44,15 @@ impl ConfirmSwapQuote {
     }
 }
 
-pub(super) fn max_swap_fit(transfer: &GemTransferData, metadata: &GemConfirmMetadata, fee: &GemBigInt) -> Option<GemBigInt> {
+pub(super) fn max_swap_fit(transfer: &GemTransferData, metadata: &GemConfirmMetadata, fee: &GemBigInt, fee_asset: &AssetId) -> Option<GemBigInt> {
     let TransactionInputType::Swap { from_asset, swap_data, .. } = &transfer.input_type else {
         return None;
     };
-    let exact_native = from_asset.id.is_native() && swap_data.data.data_type == SwapQuoteDataType::Contract;
-    if !transfer.use_max_amount || !exact_native || !max_amount_spends_all_but_fee(from_asset.chain()) {
+    let sends_all_but_fee = match swap_data.quote.amount_mode {
+        Some(SwapAmountMode::Flexible) => true,
+        Some(SwapAmountMode::Fixed) | None => swap_data.data.data_type == SwapQuoteDataType::Contract && max_amount_spends_all_but_fee(from_asset.chain()),
+    };
+    if !transfer.use_max_amount || fee_asset != &from_asset.id || !sends_all_but_fee {
         return None;
     }
     let target = GemBigInt::from(metadata.asset_balance.available.clone()) - fee;
@@ -69,7 +72,7 @@ impl GemConfirmTransferService {
     }
 
     pub(super) async fn fitted_max_swap(&self, wallet: &Wallet, fee: GemConfirmFeeLoad, swap: Option<ConfirmSwapQuote>, now: Instant) -> Result<(GemConfirmFeeLoad, Option<ConfirmSwapQuote>), GemConfirmError> {
-        let Some(value) = max_swap_fit(&fee.confirm_data.input.transfer, &fee.metadata, &fee.fee.value) else {
+        let Some(value) = max_swap_fit(&fee.confirm_data.input.transfer, &fee.metadata, &fee.fee.value, &fee.fee_asset.id) else {
             return Ok((fee, swap));
         };
         let GemSwapRequote { quote, transfer } = self.swap.requote_at(wallet, &fee.confirm_data.input.transfer, &value).await?;
@@ -110,7 +113,7 @@ mod tests {
     use std::time::{Duration, Instant};
 
     use futures::executor::block_on;
-    use primitives::swap::{Permit2ApprovalData, SwapData};
+    use primitives::swap::{Permit2ApprovalData, SwapData, SwapQuote};
     use primitives::{Asset, Chain, Currency, SwapProvider, TransactionInputType, Wallet};
     use swapper::testkit::MockSwapper;
     use swapper::{FetchQuoteData, Quote, SwapperProvider};
@@ -138,25 +141,76 @@ mod tests {
         let fee = GemBigInt::from(10);
         let contract = SwapData::mock_with_provider(SwapProvider::UniswapV3);
         let deposit = SwapData::mock_transfer(SwapProvider::NearIntents, "1000", "1", "0xdeposit");
+        let any_amount = SwapData {
+            quote: SwapQuote {
+                amount_mode: Some(SwapAmountMode::Flexible),
+                ..deposit.quote.clone()
+            },
+            ..deposit.clone()
+        };
+        let exact_amount = SwapData {
+            quote: SwapQuote {
+                amount_mode: Some(SwapAmountMode::Fixed),
+                ..deposit.quote.clone()
+            },
+            ..deposit.clone()
+        };
+        let sol_metadata = GemConfirmMetadata::mock(&Asset::mock_sol().id, 1_000);
 
         assert_eq!(
-            max_swap_fit(&swap(Asset::mock_eth(), contract.clone(), true, 995), &metadata, &fee),
+            max_swap_fit(&swap(Asset::mock_eth(), contract.clone(), true, 995), &metadata, &fee, &Asset::mock_eth().id),
             Some(990.into()),
             "the reserve the quote kept back becomes everything but the fee"
         );
-        assert_eq!(max_swap_fit(&swap(Asset::mock_eth(), contract.clone(), true, 990), &metadata, &fee), None, "an amount that already fits is left alone");
-        assert_eq!(max_swap_fit(&swap(Asset::mock_eth(), contract.clone(), false, 500), &metadata, &fee), None, "only a max amount is fitted");
-        assert_eq!(max_swap_fit(&swap(Asset::mock_eth(), deposit, true, 1_000), &metadata, &fee), None, "a deposit takes the fee off at signing instead");
-        assert_eq!(max_swap_fit(&swap(Asset::mock_erc20(), contract.clone(), true, 995), &metadata, &fee), None, "a token pays its fee in the coin");
         assert_eq!(
-            max_swap_fit(&swap(Asset::mock_sol(), contract.clone(), true, 995), &GemConfirmMetadata::mock(&Asset::mock_sol().id, 1_000), &fee),
+            max_swap_fit(&swap(Asset::mock_eth(), contract.clone(), true, 990), &metadata, &fee, &Asset::mock_eth().id),
+            None,
+            "an amount that already fits is left alone"
+        );
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_eth(), contract.clone(), false, 500), &metadata, &fee, &Asset::mock_eth().id),
+            None,
+            "only a max amount is fitted"
+        );
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_eth(), any_amount.clone(), true, 1_000), &metadata, &fee, &Asset::mock_eth().id),
+            Some(990.into()),
+            "a provider that swaps whatever arrives is asked for what will arrive: everything but the fee"
+        );
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_sol(), any_amount.clone(), true, 1_000), &sol_metadata, &fee, &Asset::mock_sol().id),
+            Some(990.into()),
+            "on any network"
+        );
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_sol(), exact_amount, true, 995), &sol_metadata, &fee, &Asset::mock_sol().id),
+            None,
+            "a deposit of an exact amount keeps the reserve it was quoted with"
+        );
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_eth(), deposit, true, 1_000), &metadata, &fee, &Asset::mock_eth().id),
+            None,
+            "a quote that does not say how its provider takes the amount is only fitted as a contract call"
+        );
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_erc20(), contract.clone(), true, 995), &metadata, &fee, &Asset::mock_eth().id),
+            None,
+            "a token pays its fee in the coin"
+        );
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_sol(), contract.clone(), true, 995), &sol_metadata, &fee, &Asset::mock_sol().id),
             None,
             "a network that charges more than its fee keeps its reserve"
         );
         assert_eq!(
-            max_swap_fit(&swap(Asset::mock_eth(), contract, true, 995), &metadata, &GemBigInt::from(1_000)),
+            max_swap_fit(&swap(Asset::mock_eth(), contract, true, 995), &metadata, &GemBigInt::from(1_000), &Asset::mock_eth().id),
             None,
             "a fee that eats the balance is left to the amount check"
+        );
+        assert_eq!(
+            max_swap_fit(&swap(Asset::mock_sol(), any_amount, true, 1_000), &sol_metadata, &fee, &Asset::mock_erc20().id),
+            None,
+            "a fee paid in another asset leaves the balance whole, so there is nothing to fit"
         );
     }
 
@@ -230,12 +284,14 @@ mod tests {
     }
 
     #[test]
-    fn test_a_max_swap_that_needs_the_exact_amount_is_asked_again_for_everything_but_the_fee() {
+    fn test_a_max_swap_is_asked_again_for_everything_but_the_fee() {
         block_on(async {
             let swapper = MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request)));
             let builds = swapper.builds();
+            let deposit_swapper = MockSwapper::new(SwapperProvider::NearIntents, |request| Ok(Quote::mock_with_request(request))).with_amount_mode(SwapAmountMode::Flexible);
+            let deposit_builds = deposit_swapper.builds();
             let wallet = Wallet::mock_with_chains(&[Chain::Ethereum]);
-            let testkit = ConfirmTestkit::with_swap(wallet.clone(), Arc::new(GemSwapService::mock_with_swappers(vec![Box::new(swapper)])));
+            let testkit = ConfirmTestkit::with_swap(wallet.clone(), Arc::new(GemSwapService::mock_with_swappers(vec![Box::new(swapper), Box::new(deposit_swapper)])));
             let max_swap = |swap_data: SwapData, value: u32| {
                 let mut confirm = GemConfirmData::mock(
                     Chain::Ethereum,
@@ -270,14 +326,33 @@ mod tests {
             assert_eq!(sent(&fitted), Some((990.into(), 10.into())), "what leaves the wallet plus the fee is the whole balance");
             assert_eq!(builds.lock().unwrap().clone(), vec![FetchQuoteData::None]);
 
-            let deposit = max_swap(SwapData::mock_transfer(SwapProvider::NearIntents, "1000", "1", "0xdeposit"), 1_000);
+            let any_amount = SwapData::mock_transfer(SwapProvider::NearIntents, "1000", "1", "0xdeposit");
+            let deposit = max_swap(
+                SwapData {
+                    quote: SwapQuote {
+                        amount_mode: Some(SwapAmountMode::Flexible),
+                        ..any_amount.quote.clone()
+                    },
+                    ..any_amount
+                },
+                1_000,
+            );
             let held = ConfirmSwapQuote::initial(&deposit.confirm_data.input.transfer, now).unwrap();
-            let (kept, swap) = Box::pin(testkit.service.fitted_max_swap(&wallet, deposit, Some(held), now)).await.unwrap();
+            let (fitted_deposit, swap) = Box::pin(testkit.service.fitted_max_swap(&wallet, deposit, Some(held), now)).await.unwrap();
 
-            assert!(swap.unwrap().quote.is_none(), "a deposit is not asked again; the fee comes off at signing, and the held quote stays as it was");
-            assert_eq!(kept.confirm_data.input.transfer.value, 1_000.into());
-            assert_eq!(sent(&kept), Some((990.into(), 10.into())));
-            assert_eq!(builds.lock().unwrap().len(), 1);
+            assert_eq!(
+                swap.unwrap().quote.unwrap().request.value,
+                990u32.into(),
+                "a deposit sends everything but the fee, so the provider is asked again for what will arrive"
+            );
+            assert_eq!(fitted_deposit.confirm_data.input.transfer.value, 990.into());
+            assert_eq!(sent(&fitted_deposit), Some((990.into(), 10.into())), "what leaves the wallet does not change");
+            assert_eq!(
+                fitted_deposit.confirm_data.input.transfer.input_type.get_swap_data().unwrap().quote.amount_mode,
+                Some(SwapAmountMode::Flexible),
+                "the quote asked again still says how its provider takes the amount"
+            );
+            assert_eq!((builds.lock().unwrap().len(), deposit_builds.lock().unwrap().len()), (1, 1));
         });
     }
 

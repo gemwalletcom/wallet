@@ -5,7 +5,7 @@ use number_formatter::BigNumberFormatter;
 use primitives::swap::{SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Chain, TransactionInputType, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
-use swapper::{AssetList, Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
+use swapper::{AssetList, Options, Permit2ApprovalData, Quote, QuoteRequest, SwapAmountMode, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
 use crate::formatted_number::GemValueTone;
@@ -79,16 +79,10 @@ pub fn quote_input(pay_asset: &Asset, receive_asset: &Asset, value: &str, availa
     })
 }
 
-const BASIS_POINTS: u32 = 10_000;
 const BPS_PER_PERCENT: f64 = 100.0;
 
 pub fn selected_quote(quotes: &[Quote], preferred: Option<SwapperProvider>) -> Option<Quote> {
     quotes.iter().find(|quote| Some(quote.data.provider.id) == preferred).or_else(|| quotes.first()).cloned()
-}
-
-pub fn min_receive_value(value: &BigUint, slippage_bps: u32) -> BigUint {
-    let kept = BASIS_POINTS.saturating_sub(slippage_bps);
-    value * BigUint::from(kept) / BigUint::from(BASIS_POINTS)
 }
 
 pub fn slippage_bps_from_percent(percent: f64) -> Option<u32> {
@@ -127,10 +121,10 @@ pub fn slippage_check(bps: u32, config: &SwapConfig) -> GemSlippageCheck {
     }
 }
 
-pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData) -> Result<GemSwapTransfer, SwapperError> {
+pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData, amount_mode: Option<SwapAmountMode>) -> Result<GemSwapTransfer, SwapperError> {
     let to_chain = AssetId::new(&quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?.chain;
     Ok(GemSwapTransfer {
-        quote: swap_quote(quote),
+        quote: swap_quote(quote, amount_mode),
         data,
         recipient: account_address(wallet, to_chain)?,
         value: quote.request.value.clone(),
@@ -179,7 +173,7 @@ fn asset_rate(base: &Asset, quote: &Asset, value: f64) -> GemAssetRate {
     }
 }
 
-pub fn swap_quote(quote: &Quote) -> SwapQuote {
+pub fn swap_quote(quote: &Quote, amount_mode: Option<SwapAmountMode>) -> SwapQuote {
     SwapQuote {
         from_address: quote.request.wallet_address.clone(),
         from_value: quote.from_value.clone(),
@@ -195,6 +189,7 @@ pub fn swap_quote(quote: &Quote) -> SwapQuote {
         slippage_mode: quote.request.options.slippage.mode,
         eta_in_seconds: quote.eta_in_seconds,
         use_max_amount: Some(quote.request.options.use_max_amount),
+        amount_mode,
     }
 }
 
@@ -423,17 +418,6 @@ mod tests {
     }
 
     #[test]
-    fn test_min_receive_value_keeps_the_slippage_share() {
-        let value = BigUint::from(1_000_000u32);
-        assert_eq!(min_receive_value(&value, 0), value);
-        assert_eq!(min_receive_value(&value, 100), BigUint::from(990_000u32));
-        assert_eq!(min_receive_value(&value, 50), BigUint::from(995_000u32));
-        assert_eq!(min_receive_value(&value, BASIS_POINTS), BigUint::from(0u32));
-        assert_eq!(min_receive_value(&value, BASIS_POINTS + 1), BigUint::from(0u32));
-        assert_eq!(min_receive_value(&BigUint::from(1u32), 100), BigUint::from(0u32), "a single atomic unit floors to nothing");
-    }
-
-    #[test]
     fn test_a_percent_button_takes_that_share_of_the_balance() {
         let available = BigInt::from(1_000_000_000u64);
         assert_eq!(amount_for_percent(&available, 100), available);
@@ -570,7 +554,7 @@ mod tests {
         };
         let data = SwapQuoteData::mock_contract_call("0xrouter", "100", "0x", Some("swap-memo"));
 
-        let transfer = swap_transfer(&wallet, &quote, data.clone()).unwrap();
+        let transfer = swap_transfer(&wallet, &quote, data.clone(), Some(SwapAmountMode::Fixed)).unwrap();
 
         let transfer_data = transfer.transfer_data(Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana));
         assert_eq!(transfer_data.recipient.address, "solana-address");
@@ -589,10 +573,11 @@ mod tests {
         assert_eq!(transfer.quote.min_from_value, Some(BigUint::from(90u64)));
         assert_eq!(transfer.quote.provider_data.provider, swapper::SwapperProvider::Jupiter);
         assert_eq!((transfer.quote.slippage_bps, transfer.quote.slippage_mode), (50, SwapperSlippageMode::Exact));
+        assert_eq!(transfer.quote.amount_mode, Some(SwapAmountMode::Fixed), "the confirmation screen reads how the provider takes the amount from the quote");
         assert_eq!(transfer.quote.use_max_amount, Some(true));
 
         let ethereum_only = Wallet::mock_with_chains(&[Chain::Ethereum]);
-        assert_eq!(swap_transfer(&ethereum_only, &quote, data), Err(SwapperError::NotSupportedChain));
+        assert_eq!(swap_transfer(&ethereum_only, &quote, data, Some(SwapAmountMode::Fixed)), Err(SwapperError::NotSupportedChain));
     }
 
     #[test]

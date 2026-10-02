@@ -8,8 +8,8 @@ use primitives::{AssetId, ChainType, MINUTE, swap::ApprovalData};
 use num_bigint::BigInt;
 
 use super::{
-    DUST_THRESHOLD_MULTIPLIER, QUOTE_INTERVAL, QUOTE_MINIMUM, QUOTE_QUANTITY, THORChainNetwork,
-    asset::{THORChainAsset, value_to},
+    DUST_THRESHOLD_MULTIPLIER, QUOTE_INTERVAL, QUOTE_QUANTITY, THORChainNetwork,
+    asset::{THORChainAsset, value_from, value_to},
     chain::ChainName,
     model::{AsgardVault, InboundAddress, InboundAddressesExt, RouteData},
     quote_data_mapper, quote_mapper, swap_mapper,
@@ -127,7 +127,7 @@ where
         let from_asset = THORChainAsset::from_asset_id(self.network, &request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let to_asset = THORChainAsset::from_asset_id(self.network, &request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
 
-        let value = super::asset::value_from(&request.value.to_string(), from_asset.decimals as i32);
+        let value = value_from(&request.value.to_string(), from_asset.decimals as i32);
         let inbound_addresses = self.get_inbound_addresses().await?;
         let from_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &from_asset)?;
         let to_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &to_asset)?;
@@ -191,7 +191,8 @@ where
         let to_asset = THORChainAsset::from_asset_id(self.network, &quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let memo_asset_name = if to_asset.is_token() { to_asset.quote_asset_name() } else { to_asset.chain.short_name().to_string() };
 
-        let memo = to_asset.swap_memo(&memo_asset_name, quote.request.destination_address.clone(), QUOTE_MINIMUM, QUOTE_INTERVAL, QUOTE_QUANTITY, fee.address, fee.bps);
+        let limit = to_asset.trade_limit(&quote.to_value, quote.data.slippage_bps);
+        let memo = to_asset.swap_memo(&memo_asset_name, quote.request.destination_address.clone(), &limit, QUOTE_INTERVAL, QUOTE_QUANTITY, fee.address, fee.bps);
 
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
         let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
@@ -226,8 +227,8 @@ fn min_value(dust_threshold: &BigInt) -> BigInt {
 
 #[cfg(test)]
 mod tests {
-    use primitives::Chain;
     use num_bigint::BigUint;
+    use primitives::Chain;
     use std::sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
@@ -349,7 +350,7 @@ mod tests {
         let quote = Quote {
             from_value: BigUint::from(10000000u64),
             min_from_value: None,
-            to_value: BigUint::from(1u64),
+            to_value: BigUint::from(100_000_000u64),
             data: ProviderData {
                 provider: swapper.provider().clone(),
                 routes: vec![Route {
@@ -367,7 +368,11 @@ mod tests {
 
         assert_eq!(data.to, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML");
         assert_eq!(data.value, BigUint::from(10000000u64));
-        assert_eq!(data.memo, Some("=:b:bc1qdestination:0/1/0:g1:50".to_string()));
+        assert_eq!(
+            data.memo,
+            Some("=:b:bc1qdestination:99500e3/1/0:g1:50".to_string()),
+            "the memo refuses anything below the minimum the quote shows: 1 BTC less 0.5%"
+        );
     }
 
     #[tokio::test]
@@ -413,10 +418,10 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
-    use primitives::Chain;
     use super::*;
     use crate::{SwapperProvider, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
     use num_bigint::BigUint;
+    use primitives::Chain;
     use primitives::swap::SwapStatus;
     use std::sync::Arc;
 
@@ -513,7 +518,7 @@ mod swap_integration_tests {
         assert!(quote.to_value > BigUint::ZERO);
         assert!(!quote.data.routes.is_empty());
         assert!(!quote_data.to.is_empty());
-        assert_eq!(quote_data.memo, Some("=:e:0x1c7d4b196cb0c7b01d743fbc6116a902379c7238:0/1/0:g1:50".to_string()));
+        assert_ne!(quote_data.memo, Some("=:e:0x1c7d4b196cb0c7b01d743fbc6116a902379c7238:0/1/0:g1:50".to_string()), "a live quote never signs a zero limit");
 
         Ok(())
     }

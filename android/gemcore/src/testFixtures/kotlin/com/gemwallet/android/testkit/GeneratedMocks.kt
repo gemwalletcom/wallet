@@ -2328,6 +2328,7 @@ fun mockSwapQuote(
     slippageMode: uniffi.gemstone.SwapperSlippageMode = uniffi.gemstone.SwapperSlippageMode.AUTO,
     etaInSeconds: UInt? = null,
     useMaxAmount: Boolean? = null,
+    amountMode: uniffi.gemstone.SwapAmountMode? = null,
 ) = uniffi.gemstone.SwapQuote(
     fromAddress = fromAddress,
     fromValue = fromValue,
@@ -2339,6 +2340,7 @@ fun mockSwapQuote(
     slippageMode = slippageMode,
     etaInSeconds = etaInSeconds,
     useMaxAmount = useMaxAmount,
+    amountMode = amountMode,
 )
 
 fun mockSwapQuoteData(

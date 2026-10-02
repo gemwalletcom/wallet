@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, serialize_biguint, serialize_option_biguint};
 use strum::{AsRefStr, EnumString};
 
-use crate::{SwapProvider, TransactionState, swap::SlippageMode};
+use crate::{
+    SwapProvider, TransactionState,
+    swap::{SlippageMode, SwapAmountMode},
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -112,6 +115,7 @@ pub struct SwapQuote {
     pub slippage_mode: SlippageMode,
     pub eta_in_seconds: Option<u32>,
     pub use_max_amount: Option<bool>,
+    pub amount_mode: Option<SwapAmountMode>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -171,6 +175,7 @@ mod tests {
             slippage_mode: SlippageMode::Exact,
             eta_in_seconds: None,
             use_max_amount: None,
+            amount_mode: None,
         };
         let json = serde_json::to_value(&quote).unwrap();
 
