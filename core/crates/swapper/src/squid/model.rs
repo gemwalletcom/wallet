@@ -52,14 +52,14 @@ fn deserialize_transaction_request<'de, D: serde::Deserializer<'de>>(deserialize
 pub struct SquidEstimate {
     pub to_amount: String,
     pub estimated_route_duration: u32,
-    pub aggregate_slippage: f64,
+    pub aggregate_slippage: Option<f64>,
 }
 
 impl SquidEstimate {
     pub fn slippage_bps(&self, requested: &SwapperSlippage) -> Result<u32, SwapperError> {
         match requested.mode {
             SlippageMode::Exact => Ok(requested.bps),
-            SlippageMode::Auto => percent_to_bps(self.aggregate_slippage).ok_or(SwapperError::InvalidRoute),
+            SlippageMode::Auto => self.aggregate_slippage.and_then(percent_to_bps).ok_or(SwapperError::InvalidRoute),
         }
     }
 }
@@ -106,10 +106,19 @@ mod tests {
 
     #[test]
     fn test_estimate_slippage_bps() {
-        let estimate = serde_json::from_str::<SquidRouteResponse>(include_str!("../../testdata/squid/route_osmosis_to_cosmos_auto.json")).unwrap().route.estimate;
+        let auto = SwapperSlippage { bps: 100, mode: SlippageMode::Auto };
+        let exact = SwapperSlippage { bps: 100, mode: SlippageMode::Exact };
+        let mut response: serde_json::Value = serde_json::from_str(include_str!("../../testdata/squid/route_osmosis_to_cosmos_auto.json")).unwrap();
+        let estimate = serde_json::from_value::<SquidRouteResponse>(response.clone()).unwrap().route.estimate;
 
-        assert_eq!(estimate.slippage_bps(&SwapperSlippage { bps: 100, mode: SlippageMode::Auto }), Ok(50), "auto reports the slippage Squid picked");
-        assert_eq!(estimate.slippage_bps(&SwapperSlippage { bps: 100, mode: SlippageMode::Exact }), Ok(100), "a chosen slippage stays the one asked for");
+        assert_eq!(estimate.slippage_bps(&auto), Ok(50), "auto reports the slippage Squid picked");
+        assert_eq!(estimate.slippage_bps(&exact), Ok(100), "a chosen slippage stays the one asked for");
+
+        response["route"]["estimate"].as_object_mut().unwrap().remove("aggregateSlippage");
+        let without_slippage = serde_json::from_value::<SquidRouteResponse>(response).unwrap().route.estimate;
+
+        assert_eq!(without_slippage.slippage_bps(&exact), Ok(100), "a route without the field still quotes a chosen slippage");
+        assert_eq!(without_slippage.slippage_bps(&auto), Err(SwapperError::InvalidRoute), "auto never falls back to a slippage Squid did not report");
     }
 
     #[test]
