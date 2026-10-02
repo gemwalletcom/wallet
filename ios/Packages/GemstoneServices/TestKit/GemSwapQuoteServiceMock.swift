@@ -125,6 +125,7 @@ private extension SwapperQuote {
             toValue: toValue,
             providerData: SwapProviderData(provider: data.provider.id, name: data.provider.name, protocolName: data.provider.protocol),
             slippageBps: data.slippageBps,
+            slippageMode: request.options.slippage.mode,
             etaInSeconds: etaInSeconds,
             useMaxAmount: request.options.useMaxAmount,
         )

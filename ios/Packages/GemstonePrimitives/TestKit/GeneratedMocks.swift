@@ -1851,6 +1851,7 @@ public extension Gemstone.SwapQuote {
         toValue: BigUInt = 0,
         providerData: Gemstone.SwapProviderData = .mock(),
         slippageBps: UInt32 = 0,
+        slippageMode: Gemstone.SwapperSlippageMode = .auto,
         etaInSeconds: UInt32? = nil,
         useMaxAmount: Bool? = nil,
     ) -> Gemstone.SwapQuote {
@@ -1862,6 +1863,7 @@ public extension Gemstone.SwapQuote {
             toValue: toValue,
             providerData: providerData,
             slippageBps: slippageBps,
+            slippageMode: slippageMode,
             etaInSeconds: etaInSeconds,
             useMaxAmount: useMaxAmount,
         )

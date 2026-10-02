@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, serialize_biguint, serialize_option_biguint};
 use strum::{AsRefStr, EnumString};
 
-use crate::{SwapProvider, TransactionState};
+use crate::{SwapProvider, TransactionState, swap::SlippageMode};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -109,6 +109,7 @@ pub struct SwapQuote {
     pub to_value: BigUint,
     pub provider_data: SwapProviderData,
     pub slippage_bps: u32,
+    pub slippage_mode: SlippageMode,
     pub eta_in_seconds: Option<u32>,
     pub use_max_amount: Option<bool>,
 }
@@ -167,6 +168,7 @@ mod tests {
                 protocol_name: "Jupiter".to_string(),
             },
             slippage_bps: 50,
+            slippage_mode: SlippageMode::Exact,
             eta_in_seconds: None,
             use_max_amount: None,
         };

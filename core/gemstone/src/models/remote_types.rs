@@ -1707,6 +1707,7 @@ pub struct SwapQuote {
     pub to_value: GemBigUint,
     pub provider_data: SwapProviderData,
     pub slippage_bps: u32,
+    pub slippage_mode: primitives::SlippageMode,
     pub eta_in_seconds: Option<u32>,
     pub use_max_amount: Option<bool>,
 }
