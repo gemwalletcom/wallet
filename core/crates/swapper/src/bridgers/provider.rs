@@ -122,6 +122,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
             return Err(SwapperError::NoQuoteAvailable);
         }
         let to_value = to_amount - chain_fee;
+        let eta_in_seconds = quote.eta_in_seconds();
         let route_data = RouteData { amount_out_min: quote.amount_out_min };
 
         Ok(Quote {
@@ -138,7 +139,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
                 slippage_bps: request.options.slippage.bps,
             },
             request: request.clone(),
-            eta_in_seconds: Some(quote.estimated_time * 60),
+            eta_in_seconds,
         })
     }
 

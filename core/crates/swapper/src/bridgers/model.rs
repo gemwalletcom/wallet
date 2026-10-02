@@ -50,6 +50,17 @@ pub(super) struct QuoteTxData {
     pub estimated_time: u32,
 }
 
+impl QuoteTxData {
+    pub fn eta_in_seconds(&self) -> Option<u32> {
+        match self.estimated_time {
+            1 => Some(180),
+            2 | 10 => Some(600),
+            3 => Some(1800),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct SwapRequest {
@@ -149,6 +160,24 @@ mod tests {
     use primitives::{AssetId, Chain, asset_constants::ARBITRUM_USDC_ASSET_ID};
 
     use super::*;
+
+    #[test]
+    fn test_quote_eta_in_seconds() {
+        let quote = |estimated_time| QuoteTxData {
+            amount_out_min: String::new(),
+            to_token_amount: String::new(),
+            deposit_min: String::new(),
+            deposit_max: String::new(),
+            chain_fee: String::new(),
+            estimated_time,
+        };
+
+        assert_eq!(quote(1).eta_in_seconds(), Some(180));
+        assert_eq!(quote(2).eta_in_seconds(), Some(600));
+        assert_eq!(quote(3).eta_in_seconds(), Some(1800));
+        assert_eq!(quote(10).eta_in_seconds(), Some(600));
+        assert_eq!(quote(4).eta_in_seconds(), None);
+    }
 
     #[test]
     fn test_record() {
