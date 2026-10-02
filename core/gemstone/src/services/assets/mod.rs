@@ -14,7 +14,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, Wallet, WalletId};
 
 pub use add::GemAddAssetService;
 pub use details::GemAssetDetailsService;
@@ -171,14 +171,6 @@ impl GemAssetsService {
         Ok(self.api.client.get_asset(asset_id).await?)
     }
 
-    pub async fn search_assets(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemApiError> {
-        Ok(self.api.client.get_search_assets(query, chains).await?)
-    }
-
-    pub async fn search(&self, query: String, chains: Vec<Chain>, tags: Vec<String>) -> Result<SearchResponse, GemApiError> {
-        Ok(self.api.client.get_search(query, chains, tags).await?)
-    }
-
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
         let results = futures::future::join_all(rules::asset_list_versions(&versions).into_iter().map(|(list, remote_version)| self.sync_availability_list(list, remote_version))).await;
         for result in results {
@@ -234,12 +226,6 @@ impl GemAssetsService {
             return Ok(());
         }
         self.store.save_assets(missing).await
-    }
-
-    pub async fn search_assets_and_tokens(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
-        let token_chains = rules::token_search_chains(&chains);
-        let (assets, tokens) = futures::join!(self.search_assets(query.clone(), chains), self.search_tokens(query, token_chains));
-        Ok(rules::merge_assets(assets?, tokens))
     }
 
     pub async fn get_fiat_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, GemApiError> {

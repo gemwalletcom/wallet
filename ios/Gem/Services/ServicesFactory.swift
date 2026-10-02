@@ -323,6 +323,7 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
         )
         let searchService = Gemstone.GemSearchService(
+            api: apiClient,
             assets: assetsService,
             balance: balanceService,
             price: priceService,

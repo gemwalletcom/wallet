@@ -175,7 +175,7 @@ extension WalletSearchSceneViewModel {
     private func updateRequest() {
         var request = searchQuery.request
         request.searchBy = searchableQuery
-        request.searchKey = service.searchKey(query: searchableQuery, scope: request.scope.gemScope)
+        request.searchKey = request.scope.gemScope.searchKey(query: searchableQuery)
         request.limit = Int(service.walletSearchLimits(query: searchableQuery).fetch)
         searchQuery.request = request
         loadState = searchableQuery.isNotEmpty ? .loading : .noData
