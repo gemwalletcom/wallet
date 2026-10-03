@@ -385,6 +385,7 @@ diesel::table! {
         #[max_length = 32]
         alpha2 -> Varchar,
         is_allowed -> Bool,
+        is_enabled -> Bool,
         updated_at -> Timestamp,
         created_at -> Timestamp,
     }

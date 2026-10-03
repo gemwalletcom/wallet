@@ -28,8 +28,11 @@ pub fn localized_fiat_error(error: Box<dyn std::error::Error + Send + Sync>, loc
             RequestError::Forbidden => ApiError::BadRequest(localizer.fiat_error_quote_unavailable()),
         };
     }
-    if error.downcast_ref::<FiatQuoteError>().is_some() {
-        return ApiError::BadRequest(localizer.errors_generic());
+    if let Some(error) = error.downcast_ref::<FiatQuoteError>() {
+        return match error {
+            FiatQuoteError::RegionUnavailable => ApiError::OkError(localizer.fiat_error_region_unavailable()),
+            FiatQuoteError::MinimumAmount(_) | FiatQuoteError::UnsupportedState(_) | FiatQuoteError::InvalidRequest(_) | FiatQuoteError::InvalidWebhook => ApiError::BadRequest(localizer.errors_generic()),
+        };
     }
     ApiError::from(error)
 }
@@ -230,6 +233,7 @@ impl<'r, T: Serialize> Responder<'r, 'static> for ApiResponse<T> {
 #[cfg(test)]
 mod tests {
     use super::{ApiError, INTERNAL_ERROR_MESSAGE};
+    use fiat::error::FiatQuoteError;
     use gem_client::ClientError;
     use primitives::RequestError;
     use rewards::{RewardsError, RewardsRedemptionError};
@@ -238,6 +242,8 @@ mod tests {
 
     #[test]
     fn test_a_fiat_error_reads_in_the_device_language() {
+        let unavailable = super::localized_fiat_error(Box::new(FiatQuoteError::RegionUnavailable), "en");
+        assert_eq!(unavailable.public(), (Status::Ok, "Not available in your region.".to_string(), None));
         let limited = super::localized_fiat_error(Box::new(RequestError::LimitReached), "de");
         assert_eq!(limited, ApiError::OkError("Zu viele Angebotsanfragen. Bitte versuchen Sie es in ein paar Minuten erneut.".to_string()));
         assert_eq!(

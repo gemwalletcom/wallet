@@ -39,6 +39,7 @@ rewards_error_referral_referrer_limit_reached = 紹介コードの利用上限�
 errors_generic = 予期しないエラーが発生しました。しばらくしてからもう一度お試しください。
 fiat_error_limit_reached = 見積もりのリクエストが多すぎます。数分後にもう一度お試しください。
 fiat_error_quote_unavailable = この見積もりは利用できなくなりました。もう一度お試しください。
+fiat_error_region_unavailable = お住まいの地域では利用できません。
 rewards_error_referral_country_ineligible = 現在、お住まいの国では紹介プログラムをご利用いただけません：{$value}。
 notification_rewards_disabled_title = 紹介コードが無効になりました
 notification_rewards_disabled_description = 紹介プログラムの規約に繰り返し違反したため、この紹介コードは無効になりました。

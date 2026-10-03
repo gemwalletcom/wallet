@@ -258,6 +258,10 @@ impl LanguageLocalizer {
         fl!(self.loader.as_ref(), "fiat_error_limit_reached")
     }
 
+    pub fn fiat_error_region_unavailable(&self) -> String {
+        fl!(self.loader.as_ref(), "fiat_error_region_unavailable")
+    }
+
     pub fn fiat_error_quote_unavailable(&self) -> String {
         fl!(self.loader.as_ref(), "fiat_error_quote_unavailable")
     }

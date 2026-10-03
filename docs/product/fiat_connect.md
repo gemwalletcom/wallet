@@ -21,6 +21,7 @@ flowchart LR
 |---|---|---|
 | The screen opens | the amount starts at `$50` for Buy and `$100` for Sell | |
 | The user types an amount | whole dollars between `$5` and `$10,000` | |
+| Gem disables a provider for a country | the provider receives no new quote requests there; the screen shows a localized region-unavailable message when no provider serves the country; provider country syncs preserve the block | Gem controls availability independently of provider-reported coverage |
 | More than one provider quoted | the user can pick another; the choice survives refreshes | |
 | The screen stays open | quotes refresh every `5 minutes` | |
 | The user comes back to the screen after a refresh was due | quotes are fetched again at once, unless the last request failed | a quote kept while the app was away could expire before Continue |

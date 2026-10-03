@@ -284,6 +284,7 @@ pub(crate) struct FiatProviderCountryRow {
     pub provider: FiatProviderNameRow,
     pub alpha2: String,
     pub is_allowed: bool,
+    pub is_enabled: bool,
 }
 
 impl FiatProviderCountryRow {
@@ -295,6 +296,7 @@ impl FiatProviderCountryRow {
             provider,
             alpha2: primitive.alpha2.clone(),
             is_allowed: primitive.is_allowed,
+            is_enabled: true,
         }
     }
 
@@ -302,7 +304,7 @@ impl FiatProviderCountryRow {
         FiatProviderCountry {
             provider: self.provider.0,
             alpha2: self.alpha2.clone(),
-            is_allowed: self.is_allowed,
+            is_allowed: self.is_allowed && self.is_enabled,
         }
     }
 }

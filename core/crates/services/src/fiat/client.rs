@@ -6,7 +6,7 @@ use cacher::{CacheKey, CacherClient, RateLimiter};
 use config_keys::{ConfigKey, RateLimitKey};
 use fiat::error::FiatQuoteError;
 use fiat::model::{FiatMapping, FiatMappingMap};
-use fiat::quotes::{compare_quotes, get_provider_quote, is_provider_eligible};
+use fiat::quotes::{compare_quotes, get_provider_quote, is_country_allowed, is_provider_eligible};
 use fiat::{FiatDeviceContext, FiatProvider, FiatWebhookRequest, IPAddressInfo, IPCheckClient};
 use futures::future::join_all;
 use gem_tracing::{error_with_fields, info_with_fields};
@@ -168,6 +168,9 @@ impl FiatClient {
         let ip_address_info = self.get_ip_address(ip_address).await.map_err(|error| format!("IP address validation failed: {error}"))?;
         let fiat_mapping_map = fiat_mapping(asset, request.quote_type, fiat_assets);
         let country_code = &ip_address_info.alpha2;
+        if !is_country_allowed(&providers_countries, country_code, request.provider_id.as_deref()) {
+            return Err(FiatQuoteError::RegionUnavailable.into());
+        }
 
         let requests = self.providers.iter().filter(|provider| request.provider_id.as_deref().is_none_or(|id| provider.name().id() == id)).filter_map(|provider| {
             let provider_name = provider.name();

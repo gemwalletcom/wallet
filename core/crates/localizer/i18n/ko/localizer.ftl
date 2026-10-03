@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = 추천 코드 사용 횟수가 �
 errors_generic = 예기치 않은 오류가 발생했습니다. 나중에 다시 시도해 주세요.
 fiat_error_limit_reached = 견적 요청이 너무 많습니다. 몇 분 후에 다시 시도해 주세요.
 fiat_error_quote_unavailable = 이 견적은 더 이상 사용할 수 없습니다. 다시 시도해 주세요.
+fiat_error_region_unavailable = 현재 지역에서는 이용할 수 없습니다.
 rewards_error_referral_country_ineligible = 현재 귀하의 국가에서는 추천 서비스를 이용하실 수 없습니다. {$value}.
 notification_rewards_disabled_title = 추천 코드가 비활성화되었습니다.
 notification_rewards_disabled_description = 이 추천 코드는 추천 프로그램 약관을 반복적으로 위반하여 사용이 중단되었습니다.
