@@ -1,4 +1,6 @@
-use gem_wallet_connect::{SignDigestType, WalletConnectAction, WalletConnectRequestHandler, WalletConnectResponseHandler, WalletConnectResponseType, WalletConnectTransaction, WalletConnectTransactionType, config_session_properties};
+use gem_wallet_connect::{
+    SignDigestType, WalletConnectAction, WalletConnectRequestHandler, WalletConnectResponseHandler, WalletConnectResponseType, WalletConnectTransaction, WalletConnectTransactionType, config_session_properties, decode_sign_message,
+};
 use primitives::{Account, Chain, ChainAddress, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest};
 use std::collections::HashMap;
 
@@ -80,7 +82,7 @@ impl WalletConnect {
     }
 
     pub fn decode_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
-        simulation::decode_message(chain, sign_type, data)
+        decode_sign_message(chain, sign_type, data)
     }
 
     pub fn decode_send_transaction(&self, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, GemstoneError> {

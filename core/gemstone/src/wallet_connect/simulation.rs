@@ -1,19 +1,5 @@
-use gem_wallet_connect::{
-    SignDigestType, SignMessageValidation, WCEthereumTransactionData, WalletConnectRequestHandler, WalletConnectTransaction, WalletConnectTransactionType, decode_sign_message, validate_send_transaction, validate_sign_message,
-};
+use gem_wallet_connect::{SignDigestType, SignMessageValidation, WCEthereumTransactionData, WalletConnectRequestHandler, WalletConnectTransaction, WalletConnectTransactionType, validate_send_transaction, validate_sign_message};
 use primitives::{Chain, SimulationWarning, hex};
-
-use crate::message::sign_type::SignMessage;
-
-pub fn decode_message(chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
-    let result = decode_sign_message(chain, sign_type, data);
-
-    SignMessage {
-        chain: result.chain,
-        sign_type: result.sign_type,
-        data: result.data,
-    }
-}
 
 pub(crate) fn parse_eip712_message(data: &str) -> Option<gem_evm::eip712::EIP712Message> {
     serde_json::from_str(data).ok().and_then(|value| gem_evm::eip712::parse_eip712_json(&value).ok())

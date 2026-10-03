@@ -82,13 +82,6 @@ pub struct Transaction {
     pub signatures: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct Signature {
-    pub block_time: i64,
-    pub signature: String,
-}
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Instruction {

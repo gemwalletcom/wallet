@@ -1,19 +1,14 @@
 mod admin;
-mod api_clients;
-mod assets;
 mod auth;
 mod catchers;
-mod chain;
 mod config;
 mod devices;
 mod markets;
 mod metrics;
 mod model;
 mod nft;
-mod params;
 mod prices;
 mod referral;
-mod responders;
 mod status;
 mod support;
 mod swap;
@@ -30,6 +25,7 @@ use strum::IntoEnumIterator;
 
 use ::defi::{DefiProviderClient, DefiProviderConfig};
 use ::nft::{NFTProviderClient, NFTProviderConfig};
+use api::{api_clients, assets, chain, params, responders};
 use chain_providers::ProviderFactory;
 use model::APIService;
 use name_resolver::{NameClient, NameConfig, NameProviderFactory};

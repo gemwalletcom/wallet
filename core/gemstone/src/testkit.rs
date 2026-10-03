@@ -1,5 +1,4 @@
 use crate::alien::{AlienError, AlienHttpMethod, AlienProvider, AlienResponse, AlienTarget};
-use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemFeeOptions, GemSignedTransaction, GemTransactionLoadFee};
 use crate::payment::GemPaymentService;
 use crate::services::assets::{GemAssetsService, testkit::MemoryAssetStore};
@@ -11,7 +10,7 @@ use gem_wallet_connect::WCEthereumTransactionData;
 use num_bigint::BigInt;
 use payment::PaymentTransaction;
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
-use primitives::{AssetId, Chain, ChainAddress, FeePriority, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
+use primitives::{AssetId, Chain, ChainAddress, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -161,15 +160,6 @@ impl GemSignedTransaction {
         Self {
             data: "signed".to_string(),
             transaction_type,
-        }
-    }
-}
-
-impl GemFeeRate {
-    pub fn mock(priority: FeePriority, gas_price: u64) -> Self {
-        Self {
-            priority,
-            gas_price_type: GasPriceType::regular(gas_price),
         }
     }
 }

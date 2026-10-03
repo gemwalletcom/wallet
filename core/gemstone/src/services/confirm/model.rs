@@ -5,7 +5,6 @@ use crate::fee::GemCustomFeeSession;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
-use crate::models::gateway::GemFeeRate;
 use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::precision::GemValueStyle;
@@ -22,7 +21,7 @@ use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmTitle;
 use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
-use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
+use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeRate, FeeUnitType, SimulationResult, Wallet};
 use primitives::{AssetPrice, Currency, PaymentVerification};
 use swapper::Quote;
 
@@ -95,7 +94,7 @@ pub struct GemConfirmData {
     pub fee: GemTransactionLoadFee,
     pub selected_priority: FeePriority,
     pub fee_selection: GemConfirmFeeSelection,
-    pub fee_rates: Vec<GemFeeRate>,
+    pub fee_rates: Vec<FeeRate>,
     pub metadata: GemTransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
 }
@@ -560,7 +559,7 @@ mod tests {
                 ..GemConfirmLoad::mock()
             },
             confirm_data: Some(GemConfirmData {
-                fee_rates: vec![GemFeeRate::mock(FeePriority::Normal, 10), GemFeeRate::mock(FeePriority::Fast, 25)],
+                fee_rates: vec![FeeRate::mock(FeePriority::Normal, 10), FeeRate::mock(FeePriority::Fast, 25)],
                 fee_selection,
                 ..GemConfirmData::mock(chain, primitives::TransactionInputType::Transfer { asset: Asset::from_chain(chain) })
             }),

@@ -1,5 +1,5 @@
 use gem_evm::{EIP712Domain, EIP712TypedValue, eip712::parse_eip712_json};
-use primitives::hex;
+use primitives::{SimulationPayloadFieldType, hex};
 
 type GemEIP712MessageDomain = EIP712Domain;
 
@@ -15,18 +15,11 @@ pub struct GemEIP712Section {
     pub values: Vec<GemEIP712Value>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum GemEIP712ValueType {
-    Text,
-    Address,
-    Timestamp,
-}
-
 #[derive(Debug, PartialEq)]
 pub struct GemEIP712Value {
     pub name: String,
     pub value: String,
-    pub value_type: GemEIP712ValueType,
+    pub value_type: SimulationPayloadFieldType,
 }
 
 const TIMESTAMP_FIELDS: &[&str] = &["deadline", "sigdeadline", "expiration", "validto", "validuntil", "expiry", "timestamp"];
@@ -54,11 +47,11 @@ fn flatten_field(name: &str, value: &EIP712TypedValue, out: &mut Vec<GemEIP712Va
             out.push(GemEIP712Value {
                 name: name.to_string(),
                 value: value.clone(),
-                value_type: GemEIP712ValueType::Address,
+                value_type: SimulationPayloadFieldType::Address,
             });
         }
         EIP712TypedValue::Uint256 { value } | EIP712TypedValue::Int256 { value } | EIP712TypedValue::String { value } => {
-            let value_type = if is_timestamp_field(name) { GemEIP712ValueType::Timestamp } else { GemEIP712ValueType::Text };
+            let value_type = if is_timestamp_field(name) { SimulationPayloadFieldType::Timestamp } else { SimulationPayloadFieldType::Text };
             out.push(GemEIP712Value {
                 name: name.to_string(),
                 value: value.clone(),
@@ -69,14 +62,14 @@ fn flatten_field(name: &str, value: &EIP712TypedValue, out: &mut Vec<GemEIP712Va
             out.push(GemEIP712Value {
                 name: name.to_string(),
                 value: value.to_string(),
-                value_type: GemEIP712ValueType::Text,
+                value_type: SimulationPayloadFieldType::Text,
             });
         }
         EIP712TypedValue::Bytes { value } => {
             out.push(GemEIP712Value {
                 name: name.to_string(),
                 value: hex::encode_with_0x(value),
-                value_type: GemEIP712ValueType::Text,
+                value_type: SimulationPayloadFieldType::Text,
             });
         }
         EIP712TypedValue::Struct { fields } => {

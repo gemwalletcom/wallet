@@ -7,7 +7,6 @@ edition = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true }
 primitives = { path = "../primitives" }
-serde_json = { workspace = true }
 hex = { workspace = true }
 sha1 = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
@@ -24,3 +23,4 @@ security_integration_tests = []
 gem_client = { path = "../gem_client", features = ["testkit"] }
 tokio = { workspace = true }
 primitives = { path = "../primitives", features = ["testkit"] }
+serde_json = { workspace = true }
