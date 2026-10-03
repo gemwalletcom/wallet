@@ -1524,7 +1524,7 @@ fun mockGemNftRow(
 fun mockGemNodeCheck(
     url: String = "",
     chainId: String? = null,
-    latestBlockNumber: ULong = 0u,
+    latestBlockNumber: ULong? = null,
     isInSync: Boolean = false,
     latency: uniffi.gemstone.Latency = mockLatency().toGem(),
 ) = uniffi.gemstone.GemNodeCheck(

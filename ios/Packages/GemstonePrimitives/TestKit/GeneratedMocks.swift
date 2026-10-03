@@ -790,7 +790,7 @@ public extension Gemstone.GemNodeCheck {
     static func mock(
         url: String = "",
         chainId: String? = nil,
-        latestBlockNumber: UInt64 = 0,
+        latestBlockNumber: UInt64? = nil,
         isInSync: Bool = false,
         latency: Gemstone.Latency = Primitives.Latency.mock().toGem(),
     ) -> Gemstone.GemNodeCheck {

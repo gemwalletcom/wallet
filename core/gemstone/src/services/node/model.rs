@@ -11,7 +11,7 @@ use crate::services::service_status::GemLatencyStatus;
 pub enum GemNodeStatusState {
     Loading,
     Error,
-    Result { latest_block_number: u64, latency: Latency },
+    Result { latest_block_number: Option<u64>, latency: Latency },
 }
 
 impl GemNodeStatusState {
@@ -27,7 +27,7 @@ impl GemNodeStatusState {
 
     pub fn latest_block(&self) -> Option<u64> {
         match self {
-            Self::Result { latest_block_number, .. } => Some(*latest_block_number),
+            Self::Result { latest_block_number, .. } => *latest_block_number,
             Self::Loading | Self::Error => None,
         }
     }
@@ -37,7 +37,7 @@ impl GemNodeStatusState {
 pub struct GemNodeCheck {
     pub url: String,
     pub chain_id: Option<String>,
-    pub latest_block_number: u64,
+    pub latest_block_number: Option<u64>,
     pub is_in_sync: bool,
     pub latency: Latency,
 }
@@ -58,21 +58,22 @@ pub enum GemNodeCheckRow {
 
 impl GemNodeCheck {
     pub fn rows(&self) -> Vec<GemNodeCheckRow> {
-        vec![
-            GemNodeCheckRow::ChainId {
+        [
+            Some(GemNodeCheckRow::ChainId {
                 value: text_or_placeholder(self.chain_id.as_deref()),
-            },
-            GemNodeCheckRow::InSync {
+            }),
+            Some(GemNodeCheckRow::InSync {
                 state: match self.is_in_sync {
                     true => GemNodeSyncState::InSync,
                     false => GemNodeSyncState::OutOfSync,
                 },
-            },
-            GemNodeCheckRow::LatestBlock {
-                value: GemFormattedNumber::count(self.latest_block_number),
-            },
-            GemNodeCheckRow::Latency { milliseconds: self.latency.value as u32 },
+            }),
+            self.latest_block_number.map(|value| GemNodeCheckRow::LatestBlock { value: GemFormattedNumber::count(value) }),
+            Some(GemNodeCheckRow::Latency { milliseconds: self.latency.value as u32 }),
         ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 }
 
@@ -180,6 +181,10 @@ mod tests {
     #[test]
     fn test_a_node_row_subtitle_names_the_latest_block_and_admits_when_it_has_none() {
         let result = GemNodeStatusState::mock_result(21_000_000);
+        let blockless = GemNodeStatusState::Result {
+            latest_block_number: None,
+            latency: Latency::from_milliseconds(80),
+        };
 
         assert_eq!(
             result.subtitle(),
@@ -188,6 +193,7 @@ mod tests {
             }
         );
         assert_eq!(GemNodeStatusState::Loading.subtitle(), GemNodeSubtitle::LatestBlock { value: None });
+        assert_eq!(blockless.subtitle(), GemNodeSubtitle::LatestBlock { value: None });
         assert_eq!(
             GemNodeStatusState::Error.subtitle(),
             GemNodeSubtitle::LatestBlock { value: None },
@@ -204,11 +210,11 @@ mod tests {
     }
 
     #[test]
-    fn test_a_checked_node_shows_the_same_four_rows_whatever_it_answered() {
+    fn test_a_checked_node_shows_supported_status_rows() {
         let check = GemNodeCheck {
             url: "https://node".to_string(),
             chain_id: None,
-            latest_block_number: 21_000_000,
+            latest_block_number: Some(21_000_000),
             is_in_sync: false,
             latency: Latency::from_milliseconds(120),
         };
@@ -239,6 +245,17 @@ mod tests {
                 GemNodeCheckRow::LatestBlock {
                     value: GemFormattedNumber::count(21_000_000)
                 },
+                GemNodeCheckRow::Latency { milliseconds: 120 },
+            ]
+        );
+
+        let blockless = GemNodeCheck { latest_block_number: None, ..synced };
+
+        assert_eq!(
+            blockless.rows(),
+            vec![
+                GemNodeCheckRow::ChainId { value: "1".to_string() },
+                GemNodeCheckRow::InSync { state: GemNodeSyncState::InSync },
                 GemNodeCheckRow::Latency { milliseconds: 120 },
             ]
         );
