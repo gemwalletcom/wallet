@@ -8,23 +8,30 @@ use crate::{QuoteRequest, SwapperError};
 
 pub static RESERVED_NATIVE_FEES: LazyLock<HashMap<Chain, &'static str>> = LazyLock::new(|| {
     HashMap::from([
-        (Chain::Ethereum, "1000000000000000"),
-        (Chain::Arbitrum, "300000000000000"),
-        (Chain::Base, "300000000000000"),
-        (Chain::Optimism, "500000000000000"),
-        (Chain::AvalancheC, "3000000000000000"),
-        (Chain::SmartChain, "2000000000000000"),
-        (Chain::Polygon, "20000000000000000"),
-        (Chain::Gnosis, "5000000000000000"),
-        (Chain::Berachain, "5000000000000000"),
-        (Chain::Sui, "50000000"),
-        (Chain::Solana, "5000000"),
-        (Chain::Tron, "2000000"),
-        (Chain::Ton, "20000000"),
-        (Chain::Aptos, "20000000"),
-        (Chain::Monad, "5000000000000000"),
-        (Chain::XLayer, "5000000000000000"),
-        (Chain::Plasma, "5000000000000000"),
+        (Chain::Ethereum, "1000000000000000"),    // 0.001 ETH
+        (Chain::Arbitrum, "300000000000000"),     // 0.0003 ARB ETH
+        (Chain::Base, "300000000000000"),         // 0.0003 BASE ETH
+        (Chain::Optimism, "500000000000000"),     // 0.0005 OP ETH
+        (Chain::AvalancheC, "3000000000000000"),  // 0.003 AVAX
+        (Chain::SmartChain, "2000000000000000"),  // 0.002 BNB
+        (Chain::Polygon, "20000000000000000"),    // 0.02 MATIC
+        (Chain::Gnosis, "5000000000000000"),      // 0.005 XDAI
+        (Chain::Berachain, "5000000000000000"),   // 0.005 BERA
+        (Chain::Sui, "50000000"),                 // 0.05 SUI
+        (Chain::Solana, "5000000"),               // 0.005 SOL: base + priority fees + wSOL ATA rent
+        (Chain::Tron, "2000000"),                 // 2 TRX: native Chainflip memo transfer fee plus buffer
+        (Chain::Ton, "20000000"),                 // 0.02 TON
+        (Chain::Aptos, "20000000"),               // 0.2 APT
+        (Chain::Monad, "5000000000000000"),       // 0.005 MON
+        (Chain::XLayer, "5000000000000000"),      // 0.005 OKB
+        (Chain::Plasma, "5000000000000000"),      // 0.005 XPL
+        (Chain::OpBNB, "100000000000000"),        // 0.0001 BNB
+        (Chain::Mantle, "50000000000000000"),     // 0.05 MNT
+        (Chain::Linea, "300000000000000"),        // 0.0003 ETH
+        (Chain::Celo, "10000000000000000"),       // 0.01 CELO
+        (Chain::Sonic, "50000000000000000"),      // 0.05 S
+        (Chain::Robinhood, "100000000000000"),    // 0.0001 ETH
+        (Chain::Hyperliquid, "1000000000000000"), // 0.001 HYPE
     ])
 });
 
