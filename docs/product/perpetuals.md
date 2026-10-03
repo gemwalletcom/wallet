@@ -43,6 +43,7 @@ flowchart LR
 | An order is placed | it is priced `2%` against the trader | it must fill while the price moves |
 | An opened position appears in Activity | its size (margin × leverage) while it fills, then the filled size in dollars | the row must read the same before and after Hyperliquid reports it; the filled size can differ by cents because size is rounded to the market's step and the fill price moves |
 | The user taps Close on a position | straight to confirmation, with the expected PnL | |
+| A position has paid funding | Funding Payments shows it as a negative cost, for a long and a short alike | a short must see when funding costs money, the same as on Hyperliquid |
 | The user withdraws | the amount is what arrives on Arbitrum, the Network Fee shows Hyperliquid's `1 USDC`, and Max leaves the fee out | Hyperliquid takes the fee out of every withdrawal, so the screen shows what actually arrives |
 | The wallet's currency is not dollars | every perpetual value is still in dollars | the collateral is USDC |
 | A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen | one rule decides which screen an asset opens, for both apps |
