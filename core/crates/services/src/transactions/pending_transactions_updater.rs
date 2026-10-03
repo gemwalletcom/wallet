@@ -135,7 +135,7 @@ impl PendingTransactionsUpdater {
         match self.providers.get_transaction_by_hash(TransactionIdRequest::new(chain, identifier.to_string(), None)).await {
             Ok(Some(transaction)) => {
                 info_with_fields!("pending loaded", chain = chain.as_ref(), identifier = identifier, elapsed = elapsed, latency = DurationMs(start.elapsed()));
-                self.metrics.record_completion(TransactionQueue::Pending, TransactionQueueGroup::new(chain, None), elapsed_duration);
+                self.metrics.record_completion(TransactionQueue::Pending, TransactionQueueGroup::new(chain, None), None, elapsed_duration);
                 self.stream_producer.publish_transactions(TransactionsPayload::new_with_notify(chain, vec![], vec![transaction])).await?;
                 Ok(true)
             }

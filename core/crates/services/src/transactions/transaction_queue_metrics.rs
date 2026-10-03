@@ -25,5 +25,5 @@ impl TransactionQueueGroup {
 
 pub trait TransactionQueueMetrics: Send + Sync {
     fn record_queue(&self, queue: TransactionQueue, counts: BTreeMap<TransactionQueueGroup, usize>);
-    fn record_completion(&self, queue: TransactionQueue, group: TransactionQueueGroup, elapsed: Duration);
+    fn record_completion(&self, queue: TransactionQueue, group: TransactionQueueGroup, to_chain: Option<Chain>, elapsed: Duration);
 }
