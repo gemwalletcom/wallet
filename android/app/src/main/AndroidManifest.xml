@@ -25,11 +25,6 @@
         tools:replace="android:dataExtractionRules"
         >
         <activity
-            android:name="com.gemwallet.android.NotificationTapActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:theme="@android:style/Theme.NoDisplay" />
-        <activity
             android:name="com.gemwallet.android.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Wallet.Starting"
