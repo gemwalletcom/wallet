@@ -119,7 +119,7 @@ impl Services {
             stream_producer,
             pusher: Pusher::new(self.database()),
             config: self.config(),
-            vault_client: SwapVaultAddressClient::new(self.cacher().await?),
+            vault_client: SwapVaultAddressClient::new(Arc::new(self.cacher().await?)),
         })
     }
 

@@ -304,7 +304,7 @@ impl TransactionJobs {
     }
 
     pub fn vault_addresses_updater(&self) -> VaultAddressesUpdater {
-        VaultAddressesUpdater::new(self.swapper.clone(), self.cacher.clone())
+        VaultAddressesUpdater::new(self.swapper.clone(), Arc::new(self.cacher.clone()))
     }
 }
 
@@ -439,7 +439,7 @@ impl Services {
             in_transit_config,
             swapper.clone(),
             stream_producer.clone(),
-            SwapVaultAddressClient::new(cacher.clone()),
+            SwapVaultAddressClient::new(Arc::new(cacher.clone())),
             metrics.clone(),
             CheckSchedule::new(Arc::new(cacher.clone()), TransactionQueue::InTransit),
         );
