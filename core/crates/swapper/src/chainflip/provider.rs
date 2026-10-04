@@ -40,6 +40,11 @@ const ASSETS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
 const VAULT_ETH: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
 const VAULT_ARB: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
 const VAULT_SOL: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
+const VAULT_SOL_PROGRAM: &str = "AusZPVXPoUM8QJJ2SL4KwvRGCQ22cDg6Y4rg7EvFrxi7";
+const VAULT_SOL_DATA: &str = "ACLMuTFvDAb3oecQQGkTVqpUbhCKHG3EZ9uNXHK1W9ka";
+const VAULT_SOL_USDC: &str = "8KNqCBB1LKWbtjNxY9v2g1fSBKm2ZRgNNv7rmx2bE6Ce";
+const VAULT_SOL_USDT: &str = "R4Z9JGY8iMmG4UJf6aBtzobAo4rmGMdfLgXrbXSWc4y";
+const VAULT_SOL_NATIVE: &str = "3tJ67qa2GDfvv2wcMYNUfN5QBZrFpTwcU8ASZKMvCTVU";
 const VAULT_TRON: &str = "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC";
 
 #[derive(Debug)]
@@ -82,6 +87,13 @@ where
 
 fn vault_deposit_addresses() -> Vec<String> {
     vec![VAULT_ETH.to_string(), VAULT_ARB.to_string(), VAULT_SOL.to_string(), VAULT_TRON.to_string()]
+}
+
+fn vault_send_addresses() -> Vec<String> {
+    vault_deposit_addresses()
+        .into_iter()
+        .chain([VAULT_SOL_PROGRAM, VAULT_SOL_DATA, VAULT_SOL_USDC, VAULT_SOL_USDT, VAULT_SOL_NATIVE].map(str::to_string))
+        .collect()
 }
 
 fn build_quote_request(request: &QuoteRequest, assets: &AssetsResponse) -> Result<(ChainflipQuoteRequest, BigUint), SwapperError> {
@@ -335,7 +347,8 @@ where
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         let deposit = vault_deposit_addresses();
-        Ok(VaultAddresses { deposit, send: vec![] })
+        let send = vault_send_addresses();
+        Ok(VaultAddresses { deposit, send })
     }
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
@@ -346,11 +359,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use primitives::Chain;
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
     use gem_client::testkit::MockClient;
     use primitives::AssetId;
+    use primitives::Chain;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[test]
@@ -395,6 +408,16 @@ mod tests {
         assert_eq!(quote.min_from_value, Some(BigUint::from(68000000u64)));
         assert_eq!(assets_requests.load(Ordering::Relaxed), 1);
         assert_eq!(quote_requests.load(Ordering::Relaxed), 1);
+    }
+
+    #[tokio::test]
+    async fn test_stable_vaults_classify_egress() {
+        let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(MockClient::new()), Arc::new(ProviderMock::new(String::new())));
+
+        let addresses = provider.get_vault_addresses(None).await.unwrap();
+
+        assert!(addresses.deposit.iter().all(|address| addresses.send.contains(address)));
+        assert!(addresses.send.len() > addresses.deposit.len());
     }
 
     #[test]
@@ -746,9 +769,9 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
-    use primitives::Chain;
     use super::*;
     use crate::{NativeProvider, Options, SwapperQuoteAsset};
+    use primitives::Chain;
     use primitives::{
         AssetId,
         asset_constants::TRON_USDT_TOKEN_ID,
