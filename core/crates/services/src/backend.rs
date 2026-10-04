@@ -223,7 +223,7 @@ impl Services {
     }
 
     pub fn wallets(&self, stream_producer: StreamProducer) -> WalletsClient {
-        WalletsClient::new(self.database(), stream_producer)
+        WalletsClient::new(self.database(), Arc::new(stream_producer))
     }
 
     pub fn wallet_configuration(&self, cacher: CacherClient, user_agent: &str) -> WalletConfigurationClient {
@@ -259,7 +259,7 @@ impl Services {
     }
 
     pub fn indexer(&self, cacher: CacherClient, stream_producer: StreamProducer) -> IndexerClient {
-        IndexerClient::new(self.database(), Arc::new(cacher), stream_producer)
+        IndexerClient::new(self.database(), Arc::new(cacher), Arc::new(stream_producer))
     }
 
     pub fn access(&self) -> AccessClient {

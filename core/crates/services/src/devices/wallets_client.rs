@@ -1,20 +1,21 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::error::Error;
+use std::sync::Arc;
 
 use primitives::{AddressChains, Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains};
 use storage::{Database, DatabaseError, DevicesRepository, FiatRepository, NewWallet, NftRepository, RewardsRepository, TransactionsRepository, WalletsRepository};
-use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue};
+use streamer::{ChainAddressPayload, StreamProducerQueue};
 
 use super::admin_device::AdminWalletOverview;
 
 #[derive(Clone)]
 pub struct WalletsClient {
     database: Database,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl WalletsClient {
-    pub fn new(database: Database, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, stream_producer }
     }
 

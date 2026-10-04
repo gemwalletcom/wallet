@@ -4,16 +4,16 @@ use std::sync::Arc;
 use cacher::{ThrottleCacher, ThrottledTask};
 use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionIdRequest};
 use storage::{AssetsRepository, Database};
-use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducer, StreamProducerQueue};
+use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducerQueue};
 
 pub struct IndexerClient {
     database: Database,
     throttle: Arc<dyn ThrottleCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl IndexerClient {
-    pub fn new(database: Database, throttle: Arc<dyn ThrottleCacher>, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, throttle, stream_producer }
     }
 
