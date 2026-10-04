@@ -166,7 +166,7 @@ impl Services {
             Arc::new(AbuseIPDBClient::new(security.abuseipdb.url.clone(), security.abuseipdb.key.secret.clone())),
             Arc::new(IpApiClient::new(security.ipapi.url.clone(), security.ipapi.key.secret.clone())),
         ];
-        Ok(IpSecurityClient::new(providers, self.cacher().await?))
+        Ok(IpSecurityClient::new(providers, Arc::new(self.cacher().await?)))
     }
 
     pub fn redemption_service(&self) -> Result<TransferRedemptionService, Box<dyn Error + Send + Sync>> {
