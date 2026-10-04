@@ -8,19 +8,19 @@ use storage::{Database, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 use swapper::{SwapResultRequest, swapper::GemSwapper};
 
-use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
+use crate::throttle::{Throttle, ThrottledTask};
 use crate::transactions::transaction_with_swap_result;
 
 pub struct FetchTransactionConsumer {
     pub providers: ChainProviders,
     pub swapper: Arc<GemSwapper>,
     pub producer: StreamProducer,
-    pub throttle: Arc<dyn FetchThrottle>,
+    pub throttle: Arc<dyn Throttle>,
     pub database: Database,
 }
 
 impl FetchTransactionConsumer {
-    pub fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: StreamProducer, throttle: Arc<dyn FetchThrottle>, database: Database) -> Self {
+    pub fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: StreamProducer, throttle: Arc<dyn Throttle>, database: Database) -> Self {
         Self {
             providers,
             swapper,
@@ -41,7 +41,7 @@ impl FetchTransactionConsumer {
 impl MessageConsumer<TransactionIdRequest, usize> for FetchTransactionConsumer {
     async fn should_consume(&self, payload: &TransactionIdRequest) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.throttle
-            .try_start(ThrottledFetch::Transaction {
+            .try_start(ThrottledTask::FetchTransaction {
                 chain: payload.chain.as_ref(),
                 hash: &payload.hash,
             })

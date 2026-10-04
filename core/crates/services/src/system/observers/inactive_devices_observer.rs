@@ -1,20 +1,23 @@
-use cacher::{CacheKey, CacherClient};
+use std::error::Error;
+use std::sync::Arc;
+
 use localizer::LanguageLocalizer;
 use primitives::{Asset, Chain};
 use push_notification::{GorushNotification, PushNotification};
-use std::error::Error;
 use storage::{Database, DatabaseError, DevicesRepository, WalletsRepository};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
 
+use crate::throttle::{Throttle, ThrottledTask};
+
 pub struct InactiveDevicesObserver {
     database: Database,
-    cacher: CacherClient,
+    throttle: Arc<dyn Throttle>,
     stream_producer: StreamProducer,
 }
 
 impl InactiveDevicesObserver {
-    pub fn new(database: Database, cacher: CacherClient, stream_producer: StreamProducer) -> Self {
-        Self { database, cacher, stream_producer }
+    pub fn new(database: Database, throttle: Arc<dyn Throttle>, stream_producer: StreamProducer) -> Self {
+        Self { database, throttle, stream_producer }
     }
 
     pub async fn observe(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -31,7 +34,7 @@ impl InactiveDevicesObserver {
             if subscriptions.is_empty() {
                 continue;
             }
-            if !self.cacher.can_process_cached(CacheKey::InactiveDeviceObserver(&device.id)).await? {
+            if !self.throttle.try_start(ThrottledTask::InactiveDeviceObservation { device_id: &device.id }).await? {
                 continue;
             }
             let language_localizer = LanguageLocalizer::new_with_language(device.locale.as_ref());

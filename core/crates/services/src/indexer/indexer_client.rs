@@ -5,16 +5,16 @@ use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionIdRequest};
 use storage::{AssetsRepository, Database};
 use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducer, StreamProducerQueue};
 
-use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
+use crate::throttle::{Throttle, ThrottledTask};
 
 pub struct IndexerClient {
     database: Database,
-    throttle: Arc<dyn FetchThrottle>,
+    throttle: Arc<dyn Throttle>,
     stream_producer: StreamProducer,
 }
 
 impl IndexerClient {
-    pub fn new(database: Database, throttle: Arc<dyn FetchThrottle>, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, throttle: Arc<dyn Throttle>, stream_producer: StreamProducer) -> Self {
         Self { database, throttle, stream_producer }
     }
 
@@ -26,7 +26,7 @@ impl IndexerClient {
     }
 
     pub async fn refresh_asset(&self, asset_id: AssetId) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.throttle.reset(&[ThrottledFetch::Assets { asset_id: &asset_id.to_string() }]).await?;
+        self.throttle.reset(&[ThrottledTask::FetchAssets { asset_id: &asset_id.to_string() }]).await?;
         self.stream_producer.publish_fetch_assets(vec![asset_id]).await?;
         Ok(())
     }
@@ -58,13 +58,13 @@ impl IndexerClient {
     }
 
     pub async fn refresh_nft_asset(&self, asset_id: NFTAssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.throttle.reset(&[ThrottledFetch::NftAsset { asset_id: &asset_id.to_string() }]).await?;
+        self.throttle.reset(&[ThrottledTask::FetchNftAsset { asset_id: &asset_id.to_string() }]).await?;
         self.fetch_nft_asset(asset_id).await
     }
 
     pub async fn refresh_transaction(&self, request: TransactionIdRequest) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.throttle
-            .reset(&[ThrottledFetch::Transaction {
+            .reset(&[ThrottledTask::FetchTransaction {
                 chain: request.chain.as_ref(),
                 hash: &request.hash,
             }])
@@ -74,13 +74,13 @@ impl IndexerClient {
     }
 }
 
-fn address_fetches(address: &ChainAddress) -> [ThrottledFetch<'_>; 4] {
+fn address_fetches(address: &ChainAddress) -> [ThrottledTask<'_>; 4] {
     let (chain, address) = (address.chain.as_ref(), address.address.as_str());
     [
-        ThrottledFetch::CoinAddresses { chain, address },
-        ThrottledFetch::TokenAddresses { chain, address },
-        ThrottledFetch::NftAssetsAddresses { chain, address },
-        ThrottledFetch::AddressTransactions { chain, address },
+        ThrottledTask::FetchCoinAddresses { chain, address },
+        ThrottledTask::FetchTokenAddresses { chain, address },
+        ThrottledTask::FetchNftAssetsAddresses { chain, address },
+        ThrottledTask::FetchAddressTransactions { chain, address },
     ]
 }
 
@@ -89,7 +89,7 @@ mod tests {
     use primitives::{Chain, ChainAddress};
 
     use super::address_fetches;
-    use crate::fetch_throttle::ThrottledFetch;
+    use crate::throttle::ThrottledTask;
 
     #[test]
     fn test_address_fetches() {
@@ -99,10 +99,10 @@ mod tests {
         assert_eq!(
             address_fetches(&address),
             [
-                ThrottledFetch::CoinAddresses { chain, address: address_value },
-                ThrottledFetch::TokenAddresses { chain, address: address_value },
-                ThrottledFetch::NftAssetsAddresses { chain, address: address_value },
-                ThrottledFetch::AddressTransactions { chain, address: address_value },
+                ThrottledTask::FetchCoinAddresses { chain, address: address_value },
+                ThrottledTask::FetchTokenAddresses { chain, address: address_value },
+                ThrottledTask::FetchNftAssetsAddresses { chain, address: address_value },
+                ThrottledTask::FetchAddressTransactions { chain, address: address_value },
             ]
         );
     }

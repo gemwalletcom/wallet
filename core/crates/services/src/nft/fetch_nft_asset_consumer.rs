@@ -1,21 +1,21 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
 use crate::nft::NFTClient;
+use crate::throttle::{Throttle, ThrottledTask};
 use async_trait::async_trait;
 use streamer::{FetchNFTAssetPayload, consumer::MessageConsumer};
 
 pub struct FetchNftAssetConsumer {
     pub nft_client: NFTClient,
-    pub throttle: Arc<dyn FetchThrottle>,
+    pub throttle: Arc<dyn Throttle>,
 }
 
 #[async_trait]
 impl MessageConsumer<FetchNFTAssetPayload, usize> for FetchNftAssetConsumer {
     async fn should_consume(&self, payload: &FetchNFTAssetPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let asset_id = payload.asset_id.to_string();
-        self.throttle.try_start(ThrottledFetch::NftAsset { asset_id: &asset_id }).await
+        self.throttle.try_start(ThrottledTask::FetchNftAsset { asset_id: &asset_id }).await
     }
 
     async fn consume(&self, payload: FetchNFTAssetPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {

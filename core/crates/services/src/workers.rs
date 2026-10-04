@@ -45,7 +45,7 @@ impl AlerterJobs {
     }
 
     pub fn staking_rewards_notifier(&self) -> StakingRewardsNotifier {
-        StakingRewardsNotifier::new(self.chain_providers.clone(), self.database.clone(), self.stake_rewards_config, self.cacher.clone(), self.stream_producer.clone())
+        StakingRewardsNotifier::new(self.chain_providers.clone(), self.database.clone(), self.stake_rewards_config, Arc::new(self.cacher.clone()), self.stream_producer.clone())
     }
 }
 
@@ -278,7 +278,7 @@ impl SystemJobs {
     }
 
     pub fn inactive_devices_observer(&self) -> InactiveDevicesObserver {
-        InactiveDevicesObserver::new(self.database.clone(), self.cacher.clone(), self.stream_producer.clone())
+        InactiveDevicesObserver::new(self.database.clone(), Arc::new(self.cacher.clone()), self.stream_producer.clone())
     }
 
     pub fn version_updater(&self) -> VersionUpdater {

@@ -2,8 +2,6 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use cacher::CacheKey;
-use cacher::CacherClient;
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use localizer::LanguageLocalizer;
@@ -13,6 +11,8 @@ use primitives::{Asset, Chain, DelegationBase, DeviceSubscription, TransactionTy
 use push_notification::{GorushNotification, PushNotification};
 use storage::{Database, TransactionsRepository, WalletsRepository};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
+
+use crate::throttle::{Throttle, ThrottledTask};
 
 #[derive(Clone, Copy)]
 pub struct StakeRewardsConfig {
@@ -24,17 +24,17 @@ pub struct StakingRewardsNotifier {
     chain_providers: Arc<ChainProviders>,
     database: Database,
     config: StakeRewardsConfig,
-    cacher: CacherClient,
+    throttle: Arc<dyn Throttle>,
     stream_producer: StreamProducer,
 }
 
 impl StakingRewardsNotifier {
-    pub fn new(chain_providers: Arc<ChainProviders>, database: Database, config: StakeRewardsConfig, cacher: CacherClient, stream_producer: StreamProducer) -> Self {
+    pub fn new(chain_providers: Arc<ChainProviders>, database: Database, config: StakeRewardsConfig, throttle: Arc<dyn Throttle>, stream_producer: StreamProducer) -> Self {
         Self {
             chain_providers,
             database,
             config,
-            cacher,
+            throttle,
             stream_producer,
         }
     }
@@ -66,7 +66,7 @@ impl StakingRewardsNotifier {
             return Ok(false);
         }
 
-        if !self.cacher.can_process_cached(CacheKey::AlerterStakeRewards(chain.as_ref(), address)).await? {
+        if !self.throttle.try_start(ThrottledTask::StakeRewardsAlert { chain: chain.as_ref(), address }).await? {
             return Ok(false);
         }
 

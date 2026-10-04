@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
+use crate::throttle::{Throttle, ThrottledTask};
 use async_trait::async_trait;
 use chain_providers::{ChainProviders, TransactionsRequest, TransactionsResult};
 use config_keys::ConfigParamKey;
@@ -11,12 +11,12 @@ use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, Transac
 pub struct FetchAddressTransactionsConsumer {
     pub providers: ChainProviders,
     pub producer: StreamProducer,
-    pub throttle: Arc<dyn FetchThrottle>,
+    pub throttle: Arc<dyn Throttle>,
     pub config: Arc<ConfigCacher>,
 }
 
 impl FetchAddressTransactionsConsumer {
-    pub fn new(providers: ChainProviders, producer: StreamProducer, throttle: Arc<dyn FetchThrottle>, config: Arc<ConfigCacher>) -> Self {
+    pub fn new(providers: ChainProviders, producer: StreamProducer, throttle: Arc<dyn Throttle>, config: Arc<ConfigCacher>) -> Self {
         Self { providers, producer, throttle, config }
     }
 }
@@ -25,7 +25,7 @@ impl FetchAddressTransactionsConsumer {
 impl MessageConsumer<ChainAddressPayload, usize> for FetchAddressTransactionsConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.throttle
-            .try_start(ThrottledFetch::AddressTransactions {
+            .try_start(ThrottledTask::FetchAddressTransactions {
                 chain: payload.value.chain.as_ref(),
                 address: &payload.value.address,
             })

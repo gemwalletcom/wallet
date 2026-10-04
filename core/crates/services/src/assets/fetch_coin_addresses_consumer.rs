@@ -7,16 +7,16 @@ use storage::Database;
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
 use super::addresses::update_coin_address;
-use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
+use crate::throttle::{Throttle, ThrottledTask};
 
 pub struct FetchCoinAddressesConsumer {
     pub provider: ChainProviders,
     pub database: Database,
-    pub throttle: Arc<dyn FetchThrottle>,
+    pub throttle: Arc<dyn Throttle>,
 }
 
 impl FetchCoinAddressesConsumer {
-    pub fn new(provider: ChainProviders, database: Database, throttle: Arc<dyn FetchThrottle>) -> Self {
+    pub fn new(provider: ChainProviders, database: Database, throttle: Arc<dyn Throttle>) -> Self {
         Self { provider, database, throttle }
     }
 }
@@ -25,7 +25,7 @@ impl FetchCoinAddressesConsumer {
 impl MessageConsumer<ChainAddressPayload, String> for FetchCoinAddressesConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.throttle
-            .try_start(ThrottledFetch::CoinAddresses {
+            .try_start(ThrottledTask::FetchCoinAddresses {
                 chain: payload.value.chain.as_ref(),
                 address: &payload.value.address,
             })

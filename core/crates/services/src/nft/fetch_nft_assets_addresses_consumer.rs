@@ -6,10 +6,10 @@ use async_trait::async_trait;
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
 use super::NFTClient;
-use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
+use crate::throttle::{Throttle, ThrottledTask};
 
 pub struct FetchNftAssetsAddressesConsumer {
-    pub throttle: Arc<dyn FetchThrottle>,
+    pub throttle: Arc<dyn Throttle>,
     pub nft_client: NFTClient,
 }
 
@@ -17,7 +17,7 @@ pub struct FetchNftAssetsAddressesConsumer {
 impl MessageConsumer<ChainAddressPayload, usize> for FetchNftAssetsAddressesConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.throttle
-            .try_start(ThrottledFetch::NftAssetsAddresses {
+            .try_start(ThrottledTask::FetchNftAssetsAddresses {
                 chain: payload.value.chain.as_ref(),
                 address: &payload.value.address,
             })

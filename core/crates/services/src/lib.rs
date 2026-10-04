@@ -8,7 +8,6 @@ mod config;
 mod consumers;
 pub mod defi;
 pub mod devices;
-pub mod fetch_throttle;
 pub mod fiat;
 pub mod indexer;
 mod job_schedule;
@@ -27,6 +26,7 @@ pub mod swap;
 pub mod system;
 #[cfg(test)]
 mod testkit;
+pub mod throttle;
 pub mod transactions;
 pub mod webhooks;
 mod workers;
