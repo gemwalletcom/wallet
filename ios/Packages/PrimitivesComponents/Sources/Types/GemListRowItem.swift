@@ -5,6 +5,7 @@ import Foundation
 import struct Gemstone.GemAssetIcon
 import struct Gemstone.GemCopy
 import enum Gemstone.GemInfoTopic
+import enum Gemstone.GemListFieldValue
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowIcon
 import enum Gemstone.GemListRowTitle
@@ -160,6 +161,8 @@ extension GemListRow {
             )
         case let .identifier(title, copy, explorer, _, menu):
             identifierItem(ListItemModel(title: title.text, subtitle: copy.display), explorer: explorer?.toPrimitives(), menu: menu)
+        case let .field(title, value):
+            fieldItem(title: title.text, value: value)
         case let .explorer(title, url):
             URL(string: url).map { .page(ListItemModel(title: title.text), url: $0) } ?? .listItem(ListItemModel(title: title.text))
         case let .icon(icon, imageUrl):
@@ -196,6 +199,14 @@ extension GemListRow {
 
     private func listItem(title: GemListRowTitle, value: String?, icon: GemListRowIcon) -> ListItemModel {
         ListItemModel(title: title.text, subtitle: value, imageStyle: icon.imageStyle)
+    }
+
+    private func fieldItem(title: String, value: GemListFieldValue) -> GemListRowItem {
+        switch value {
+        case let .text(text): .listItem(ListItemModel(title: title, subtitle: text))
+        case let .date(date): .listItem(ListItemModel(title: title, subtitle: TransactionDateFormatter(date: date).row))
+        case let .address(display, _, explorer, menu): identifierItem(ListItemModel(title: title, subtitle: display), explorer: explorer.toPrimitives(), menu: menu)
+        }
     }
 
     private func identifierItem(_ model: ListItemModel, explorer: BlockExplorerLink?, menu: [GemRowMenuItem]) -> GemListRowItem {

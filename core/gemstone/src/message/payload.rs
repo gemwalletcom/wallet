@@ -6,15 +6,16 @@ use std::collections::HashSet;
 
 use crate::message::eip712::{GemEIP712Message, GemEIP712Value};
 use crate::message::sign_type::MessageType;
+use crate::models::list::GemListRow;
 use crate::services::localization::GemLocalizedText;
-use crate::services::simulation::{GemSimulationPayloadRow, payload_rows};
+use crate::services::simulation::payload_rows;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct MessagePayloadPreview {
     pub message_type: MessageType,
     pub title: GemLocalizedText,
-    pub primary: Vec<GemSimulationPayloadRow>,
-    pub secondary: Vec<GemSimulationPayloadRow>,
+    pub primary: Vec<GemListRow>,
+    pub secondary: Vec<GemListRow>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

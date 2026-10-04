@@ -106,7 +106,6 @@ import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemSecurityReminderItem
 import uniffi.gemstone.GemSelectAssetTitle
-import uniffi.gemstone.GemSimulationPayloadTitle
 import uniffi.gemstone.GemSlippageFooter
 import uniffi.gemstone.GemStakeSection
 import uniffi.gemstone.GemSubmitMessage
@@ -437,16 +436,6 @@ fun QRScanType.stringRes(): Int = when (this) {
     QRScanType.TokenContract -> R.string.wallet_import_contract_address_field
     QRScanType.SecretPhrase -> R.string.common_secret_phrase
     QRScanType.PrivateKey -> R.string.common_private_key
-}
-
-fun GemSimulationPayloadTitle.text(context: Context): String = when (this) {
-    GemSimulationPayloadTitle.Contract -> context.getString(R.string.asset_contract)
-    GemSimulationPayloadTitle.Method -> context.getString(R.string.common_method)
-    GemSimulationPayloadTitle.Token -> context.getString(R.string.common_token)
-    GemSimulationPayloadTitle.Spender -> context.getString(R.string.transfer_to)
-    GemSimulationPayloadTitle.Value -> context.getString(R.string.perpetual_value)
-    GemSimulationPayloadTitle.Expiration -> context.getString(R.string.common_expiration)
-    is GemSimulationPayloadTitle.Custom -> label
 }
 
 @StringRes
@@ -861,6 +850,11 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.TRANSFER -> context.getString(R.string.transfer_title)
     GemListRowTitle.SWAP -> context.getString(R.string.wallet_swap)
     GemListRowTitle.CONTRACT -> context.getString(R.string.asset_contract)
+    GemListRowTitle.METHOD -> context.getString(R.string.common_method)
+    GemListRowTitle.TOKEN -> context.getString(R.string.common_token)
+    GemListRowTitle.SPENDER -> context.getString(R.string.transfer_to)
+    GemListRowTitle.VALUE -> context.getString(R.string.perpetual_value)
+    GemListRowTitle.EXPIRATION -> context.getString(R.string.common_expiration)
     GemListRowTitle.TOKEN_ID -> context.getString(R.string.asset_token_id)
     GemListRowTitle.COLLECTION -> context.getString(R.string.nft_collection)
     GemListRowTitle.PRICE -> context.getString(R.string.asset_price)

@@ -233,7 +233,8 @@ mod tests {
         eip712::{GemEIP712Section, GemEIP712Value},
         sign_type::MessageType,
     };
-    use crate::services::simulation::GemSimulationPayloadTitle;
+    use crate::models::list::GemListRow;
+    use crate::services::localization::GemLocalizedText;
     use crate::signer::ChainTransactionSigner;
     use gem_evm::EIP712Domain;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
@@ -709,8 +710,15 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let payload_preview = decoder.payload_preview(vec![], explorer_link).unwrap().expect("expected SIWE payload preview");
         assert_eq!(payload_preview.message_type, MessageType::Siwe);
         assert_eq!(payload_preview.primary.len(), 2);
-        assert_eq!(payload_preview.primary[0].title, GemSimulationPayloadTitle::Custom { label: "domain".to_string() });
-        assert_eq!(payload_preview.primary[1].title, GemSimulationPayloadTitle::Custom { label: "address".to_string() });
+        let titles = payload_preview
+            .primary
+            .iter()
+            .map(|row| match row {
+                GemListRow::Field { title, .. } => Some(title.clone()),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(titles, vec![Some(GemLocalizedText::Text { text: "domain".to_string() }), Some(GemLocalizedText::Text { text: "address".to_string() })]);
     }
 
     #[test]

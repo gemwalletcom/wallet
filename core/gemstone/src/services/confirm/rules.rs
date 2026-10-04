@@ -698,13 +698,13 @@ pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, warnings: Vec<GemListRo
 mod tests {
     use super::*;
     use crate::models::copy::GemCopy;
-    use crate::models::list::GemRowMenuItem;
+    use crate::models::list::{GemListFieldValue, GemRowMenuItem};
 
     #[test]
     fn test_the_confirm_screen_lists_its_blocks_in_one_order() {
-        let text = |value: &str| crate::services::simulation::GemSimulationPayloadRow {
-            title: crate::services::simulation::GemSimulationPayloadTitle::Method,
-            value: crate::services::simulation::GemSimulationPayloadValue::Text { text: value.to_string() },
+        let text = |value: &str| GemListRow::Field {
+            title: GemLocalizedText::RowTitle { title: GemListRowTitle::Method },
+            value: GemListFieldValue::Text { text: value.to_string() },
         };
         let asset = Asset::mock_eth();
         let change = GemListRow::AssetChange {

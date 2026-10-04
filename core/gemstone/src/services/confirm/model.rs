@@ -15,7 +15,7 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::model::GemPerpetualConfirmDetails;
-use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
+use crate::services::simulation::{address_requests, named_payload_rows};
 use crate::services::swap::model::{GemSwapDetails, GemSwapPairSelection};
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmTitle;
@@ -378,8 +378,8 @@ impl GemSimulationValue {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulation {
-    pub primary_fields: Vec<GemSimulationPayloadRow>,
-    pub secondary_fields: Vec<GemSimulationPayloadRow>,
+    pub primary_fields: Vec<GemListRow>,
+    pub secondary_fields: Vec<GemListRow>,
     pub header: Option<GemSimulationValue>,
     pub balance_changes: Vec<GemListRow>,
     pub has_critical_warning: bool,
@@ -491,7 +491,7 @@ pub enum GemConfirmSection {
     Notice { row: GemListRow },
     Details { rows: Vec<GemConfirmRowContent> },
     Warnings { rows: Vec<GemListRow> },
-    Payload { primary: Vec<GemSimulationPayloadRow>, secondary: Vec<GemSimulationPayloadRow> },
+    Payload { primary: Vec<GemListRow>, secondary: Vec<GemListRow> },
     BalanceChanges { rows: Vec<GemListRow> },
     NetworkFee,
     Verification,

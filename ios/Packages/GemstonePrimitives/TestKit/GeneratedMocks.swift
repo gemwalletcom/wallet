@@ -466,8 +466,8 @@ public extension Gemstone.GemConfirmScreen {
 
 public extension Gemstone.GemConfirmSimulation {
     static func mock(
-        primaryFields: [Gemstone.GemSimulationPayloadRow] = [],
-        secondaryFields: [Gemstone.GemSimulationPayloadRow] = [],
+        primaryFields: [Gemstone.GemListRow] = [],
+        secondaryFields: [Gemstone.GemListRow] = [],
         header: Gemstone.GemSimulationValue? = nil,
         balanceChanges: [Gemstone.GemListRow] = [],
         hasCriticalWarning: Bool = false,
@@ -948,8 +948,8 @@ public extension Gemstone.GemSignMessagePreview {
     static func mock(
         title: Gemstone.GemLocalizedText = .mock(),
         text: String = "",
-        primaryFields: [Gemstone.GemSimulationPayloadRow] = [],
-        secondaryFields: [Gemstone.GemSimulationPayloadRow] = [],
+        primaryFields: [Gemstone.GemListRow] = [],
+        secondaryFields: [Gemstone.GemListRow] = [],
         hasCriticalWarning: Bool = false,
         header: Gemstone.GemSimulationValue? = nil,
         rows: [Gemstone.GemListRow] = [],

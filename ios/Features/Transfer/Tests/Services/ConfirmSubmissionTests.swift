@@ -3,7 +3,6 @@
 import Foundation
 import enum Gemstone.GemConfirmError
 import enum Gemstone.GemListRow
-import struct Gemstone.GemSimulationPayloadRow
 import enum Gemstone.GemSubmitResult
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -59,14 +58,14 @@ struct ConfirmSubmissionTests {
 
     @Test
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() async {
-        let primary = GemSimulationPayloadRow(title: .contract, value: .text(text: "0x1"))
+        let primary = GemListRow.field(title: .rowTitle(title: .contract), value: .text(text: "0x1"))
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
             simulation: .mock(simulation: .mock(primaryFields: [primary])),
         )))
         await model.load()
 
         #expect(model.primaryPayloadFields.count == 1)
-        #expect(model.primaryPayloadFields.first?.title == .contract)
+        #expect(model.primaryPayloadFields == [primary])
         #expect(model.secondaryPayloadFields.isEmpty)
     }
 

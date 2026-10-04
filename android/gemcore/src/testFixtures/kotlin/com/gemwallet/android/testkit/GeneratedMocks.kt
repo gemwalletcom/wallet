@@ -1292,8 +1292,8 @@ fun mockGemConfirmScreen(
 )
 
 fun mockGemConfirmSimulation(
-    primaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
-    secondaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
+    primaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
+    secondaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
     header: uniffi.gemstone.GemSimulationValue? = null,
     balanceChanges: List<uniffi.gemstone.GemListRow> = emptyList(),
     hasCriticalWarning: Boolean = false,
@@ -1634,8 +1634,8 @@ fun mockGemRowText(
 fun mockGemSignMessagePreview(
     title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     text: String = "",
-    primaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
-    secondaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
+    primaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
+    secondaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
     hasCriticalWarning: Boolean = false,
     header: uniffi.gemstone.GemSimulationValue? = null,
     rows: List<uniffi.gemstone.GemListRow> = emptyList(),
