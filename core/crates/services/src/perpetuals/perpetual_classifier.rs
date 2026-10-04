@@ -2,11 +2,12 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{CacheKey, CacherClient};
 use chain_providers::ChainProviders;
 use futures::{StreamExt, stream};
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{Chain, PerpetualPosition};
+
+use super::{PerpetualAddressStore, PerpetualAddressTier};
 
 #[derive(Clone, Copy)]
 pub struct PerpetualPositionClassifierConfig {
@@ -18,19 +19,19 @@ pub struct PerpetualPositionClassifierConfig {
 pub struct PerpetualPositionClassifier {
     chain: Chain,
     providers: Arc<ChainProviders>,
-    cacher: CacherClient,
+    addresses: Arc<dyn PerpetualAddressStore>,
     config: PerpetualPositionClassifierConfig,
 }
 
 impl PerpetualPositionClassifier {
-    pub fn new(chain: Chain, providers: Arc<ChainProviders>, cacher: CacherClient, config: PerpetualPositionClassifierConfig) -> Self {
-        Self { chain, providers, cacher, config }
+    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressStore>, config: PerpetualPositionClassifierConfig) -> Self {
+        Self { chain, providers, addresses, config }
     }
 
     pub async fn classify(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let addresses = self.get_addresses(CacheKey::PerpetualTrackedAddresses(self.chain.as_ref())).await?;
-        let current_active = self.get_address_set(CacheKey::PerpetualActiveAddresses(self.chain.as_ref())).await?;
-        let current_priority = self.get_address_set(CacheKey::PerpetualPriorityAddresses(self.chain.as_ref())).await?;
+        let addresses = self.addresses.addresses(self.chain, PerpetualAddressTier::Tracked).await?;
+        let current_active = self.get_address_set(PerpetualAddressTier::Active).await?;
+        let current_priority = self.get_address_set(PerpetualAddressTier::Priority).await?;
 
         let mut active_addresses = Vec::new();
         let mut priority_addresses = Vec::new();
@@ -66,8 +67,8 @@ impl PerpetualPositionClassifier {
             }
         }
 
-        self.cacher.set_cached(CacheKey::PerpetualActiveAddresses(self.chain.as_ref()), &active_addresses).await?;
-        self.cacher.set_cached(CacheKey::PerpetualPriorityAddresses(self.chain.as_ref()), &priority_addresses).await?;
+        self.addresses.set_addresses(self.chain, PerpetualAddressTier::Active, &active_addresses).await?;
+        self.addresses.set_addresses(self.chain, PerpetualAddressTier::Priority, &priority_addresses).await?;
 
         info_with_fields!(
             "perpetual_classifier",
@@ -80,12 +81,8 @@ impl PerpetualPositionClassifier {
         Ok(addresses.len())
     }
 
-    async fn get_addresses(&self, key: CacheKey<'_>) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        Ok(self.cacher.get_cached_optional::<Vec<String>>(key).await?.unwrap_or_default())
-    }
-
-    async fn get_address_set(&self, key: CacheKey<'_>) -> Result<HashSet<String>, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_addresses(key).await?.into_iter().collect())
+    async fn get_address_set(&self, tier: PerpetualAddressTier) -> Result<HashSet<String>, Box<dyn Error + Send + Sync>> {
+        Ok(self.addresses.addresses(self.chain, tier).await?.into_iter().collect())
     }
 }
 

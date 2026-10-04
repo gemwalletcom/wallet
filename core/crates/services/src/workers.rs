@@ -117,15 +117,15 @@ pub struct PerpetualJobs {
 
 impl PerpetualJobs {
     pub fn classifier(&self, chain: Chain) -> PerpetualPositionClassifier {
-        PerpetualPositionClassifier::new(chain, self.providers.clone(), self.cacher.clone(), self.classifier_config)
+        PerpetualPositionClassifier::new(chain, self.providers.clone(), Arc::new(self.cacher.clone()), self.classifier_config)
     }
 
     pub fn observer(&self, chain: Chain) -> PerpetualPositionObserver {
-        PerpetualPositionObserver::new(chain, self.providers.clone(), self.cacher.clone(), self.config.clone(), self.stream_producer.clone())
+        PerpetualPositionObserver::new(chain, self.providers.clone(), Arc::new(self.cacher.clone()), self.config.clone(), self.stream_producer.clone())
     }
 
     pub fn address_refresher(&self) -> PerpetualAddressRefresher {
-        PerpetualAddressRefresher::new(self.providers.clone(), self.database.clone(), self.cacher.clone())
+        PerpetualAddressRefresher::new(self.providers.clone(), self.database.clone(), Arc::new(self.cacher.clone()))
     }
 }
 

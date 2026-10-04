@@ -2,27 +2,27 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{CacheKey, CacherClient};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use primitives::Chain;
 use storage::{Database, WalletsRepository};
 
+use super::{PerpetualAddressStore, PerpetualAddressTier};
+
 pub struct PerpetualAddressRefresher {
     providers: Arc<ChainProviders>,
     database: Database,
-    cacher: CacherClient,
+    addresses: Arc<dyn PerpetualAddressStore>,
 }
 
 impl PerpetualAddressRefresher {
-    pub fn new(providers: Arc<ChainProviders>, database: Database, cacher: CacherClient) -> Self {
-        Self { providers, database, cacher }
+    pub fn new(providers: Arc<ChainProviders>, database: Database, addresses: Arc<dyn PerpetualAddressStore>) -> Self {
+        Self { providers, database, addresses }
     }
 
     pub async fn update(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let referred_addresses = self.providers.get_perpetual_referred_addresses(chain).await?;
         let referred_count = referred_addresses.len();
-        let key = CacheKey::PerpetualTrackedAddresses(chain.as_ref());
 
         let tracked_addresses: Vec<String> = if referred_addresses.is_empty() {
             vec![]
@@ -37,7 +37,7 @@ impl PerpetualAddressRefresher {
                 .collect()
         };
 
-        self.cacher.set_cached(key, &tracked_addresses).await?;
+        self.addresses.set_addresses(chain, PerpetualAddressTier::Tracked, &tracked_addresses).await?;
 
         info_with_fields!("perpetual_refresher", chain = chain.as_ref(), referred = referred_count, tracked = tracked_addresses.len());
 
