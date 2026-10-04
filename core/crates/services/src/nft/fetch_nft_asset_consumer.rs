@@ -2,8 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::nft::NFTClient;
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 use async_trait::async_trait;
+use cacher::{ThrottleCacher, ThrottledTask};
 use streamer::{FetchNFTAssetPayload, consumer::MessageConsumer};
 
 pub struct FetchNftAssetConsumer {

@@ -2,12 +2,12 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use storage::Database;
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
 
 use super::addresses::update_token_addresses;
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct FetchTokenAddressesConsumer {
     pub provider: ChainProviders,

@@ -1,15 +1,16 @@
 use std::{error::Error, sync::Arc};
 
+use cacher::SwapVaultAddressCacher;
 use primitives::SwapProvider;
 
-use super::proxy_client::{SwapDepositAddressCacher, SwapProxyClient};
+use super::proxy_client::SwapProxyClient;
 
 pub struct NearIntentsProxyClient {
     client: SwapProxyClient,
 }
 
 impl NearIntentsProxyClient {
-    pub fn new(url: String, deposit_addresses: Arc<dyn SwapDepositAddressCacher>) -> Self {
+    pub fn new(url: String, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> Self {
         Self {
             client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::NearIntents, "/quote/depositAddress"),
         }

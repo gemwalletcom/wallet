@@ -2,12 +2,11 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
+use cacher::{PerpetualAddressCacher, PerpetualAddressTier};
 use chain_providers::ChainProviders;
 use futures::{StreamExt, stream};
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{Chain, PerpetualPosition};
-
-use super::{PerpetualAddressCacher, PerpetualAddressTier};
 
 #[derive(Clone, Copy)]
 pub struct PerpetualPositionClassifierConfig {

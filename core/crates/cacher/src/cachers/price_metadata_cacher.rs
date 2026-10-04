@@ -3,8 +3,9 @@ use std::error::Error;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
 use primitives::PriceId;
+
+use crate::{CacheKey, CacherClient};
 
 #[async_trait]
 pub trait PriceMetadataCacher: Send + Sync {

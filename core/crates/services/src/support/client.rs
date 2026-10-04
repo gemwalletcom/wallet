@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use cacher::DeviceStreamCacher;
 use localizer::LanguageLocalizer;
 use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus};
 use push_notification::{GorushNotification, PushNotification, PushNotificationSupport, PushNotificationTypes};
@@ -10,7 +11,6 @@ use support::markdown_plain_text;
 
 use super::constants::{EVENT_CONVERSATION_TYPING_OFF, EVENT_CONVERSATION_TYPING_ON, EVENT_MESSAGE_CREATED};
 use super::model::ChatwootWebhookPayload;
-use crate::devices::DeviceStreamCacher;
 
 #[derive(Debug, Default)]
 pub struct SupportWebhookResult {

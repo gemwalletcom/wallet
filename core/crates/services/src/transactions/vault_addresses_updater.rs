@@ -1,10 +1,9 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use cacher::{SwapVaultAddressCacher, SwapVaultAddressKind};
 use primitives::SwapProvider;
 use swapper::swapper::GemSwapper;
-
-use super::vault_address::{SwapVaultAddressCacher, SwapVaultAddressKind};
 
 pub struct VaultAddressesUpdater {
     swapper: Arc<GemSwapper>,

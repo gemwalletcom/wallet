@@ -3,7 +3,7 @@ use std::error::Error;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use cacher::{AccessTokenCacherClient, CacherClient, RateLimiter};
+use cacher::{AccessTokenCacherClient, CacherClient, SwapVaultAddressCacher};
 use chain_providers::{ChainProviders, ProviderFactory};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
@@ -47,7 +47,7 @@ use crate::rewards::{RewardsClient, RewardsRedemptionClient};
 use crate::security::{ScanClient, ScanMetrics, scan_providers};
 use crate::support::SupportApiClient;
 use crate::support::SupportClient;
-use crate::swap::{NearIntentsProxyClient, SwapClient, SwapDepositAddressCacher, SwapsXyzProxyClient};
+use crate::swap::{NearIntentsProxyClient, SwapClient, SwapsXyzProxyClient};
 use crate::transactions::{AddressDetailsClient, AddressNamesClient, TransactionsClient};
 use crate::webhooks::WebhooksClient;
 
@@ -120,7 +120,7 @@ impl Services {
             self.database(),
             self.config(),
             Arc::new(cacher.clone()),
-            Arc::new(RateLimiter::new(cacher)),
+            Arc::new(cacher),
             providers,
             self.ip_address_provider().await?,
             stream_producer,
@@ -235,7 +235,7 @@ impl Services {
     }
 
     pub fn rewards(&self, cacher: CacherClient, stream_producer: StreamProducer, ip_security: IpSecurityClient) -> RewardsClient {
-        RewardsClient::new(self.database(), self.config(), Arc::new(RateLimiter::new(cacher)), stream_producer, ip_security, self.pusher())
+        RewardsClient::new(self.database(), self.config(), Arc::new(cacher), stream_producer, ip_security, self.pusher())
     }
 
     pub fn rewards_redemption(&self, stream_producer: StreamProducer) -> RewardsRedemptionClient {
@@ -276,7 +276,7 @@ impl Services {
 
     async fn ip_address_provider(&self) -> Result<Arc<dyn IpAddressProvider>, Box<dyn Error + Send + Sync>> {
         let provider = Arc::new(FiatProviderFactory::new_ip_check_client(&self.settings));
-        Ok(Arc::new(CachedIpAddressProvider::new(self.cacher().await?, provider)))
+        Ok(Arc::new(CachedIpAddressProvider::new(Arc::new(self.cacher().await?), provider)))
     }
 
     pub fn chain(&self, user_agent: &str) -> ChainClient {
@@ -317,11 +317,11 @@ impl Services {
         SwapClient::new(self.database())
     }
 
-    pub fn near_intents(&self, deposit_addresses: Arc<dyn SwapDepositAddressCacher>) -> NearIntentsProxyClient {
+    pub fn near_intents(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> NearIntentsProxyClient {
         NearIntentsProxyClient::new(self.settings.swap.nearintents.url.clone(), deposit_addresses)
     }
 
-    pub fn swaps_xyz(&self, deposit_addresses: Arc<dyn SwapDepositAddressCacher>) -> SwapsXyzProxyClient {
+    pub fn swaps_xyz(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> SwapsXyzProxyClient {
         SwapsXyzProxyClient::new(self.settings.swap.swapsxyz.url.clone(), deposit_addresses)
     }
 }

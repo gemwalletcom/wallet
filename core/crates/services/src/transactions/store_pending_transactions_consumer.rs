@@ -1,3 +1,4 @@
+use cacher::PendingTransactionsCacher;
 use primitives::unix_seconds;
 use std::error::Error;
 use std::sync::Arc;
@@ -6,8 +7,6 @@ use async_trait::async_trait;
 use gem_tracing::info_with_fields;
 use primitives::{TransactionId, chain_transaction_timeout};
 use streamer::consumer::MessageConsumer;
-
-use super::pending_transactions_cacher::PendingTransactionsCacher;
 
 pub struct StorePendingTransactionsConsumer {
     pending: Arc<dyn PendingTransactionsCacher>,

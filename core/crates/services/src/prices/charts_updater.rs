@@ -2,7 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::prices::{ChartsHistoryCacher, PriceClient};
+use crate::prices::PriceClient;
+use cacher::ChartsHistoryCacher;
 use chrono::{DateTime, Utc};
 use gem_tracing::info_with_fields;
 use prices::PriceAssetsProvider;

@@ -2,8 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use crate::prices::PriceMetadataCacher;
 use async_trait::async_trait;
+use cacher::PriceMetadataCacher;
 use config_keys::{ConfigKey, ConfigParamKey};
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceMapping, PriceProviders};

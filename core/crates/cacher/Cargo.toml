@@ -4,6 +4,9 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
+async-trait = { workspace = true }
+futures = { workspace = true }
+strum = { workspace = true }
 gem_tracing = { path = "../gem_tracing" }
 config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }

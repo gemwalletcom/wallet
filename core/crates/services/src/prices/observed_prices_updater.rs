@@ -3,7 +3,8 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::prices::{ObservedAssetsCacher, PriceClient};
+use crate::prices::PriceClient;
+use cacher::ObservedAssetsCacher;
 use prices::AssetPriceMapping;
 use primitives::{AssetId, PriceProvider};
 use storage::{Database, PricesRepository};

@@ -1,7 +1,5 @@
-use primitives::IpUsageType;
+use primitives::{IpCheckResult, IpUsageType};
 use serde::Deserialize;
-
-use crate::model::IpCheckResult;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct IpApiResponse {

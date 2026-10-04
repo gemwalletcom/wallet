@@ -1,7 +1,8 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
+
+use crate::{CacheKey, CacherClient};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ThrottledTask<'a> {

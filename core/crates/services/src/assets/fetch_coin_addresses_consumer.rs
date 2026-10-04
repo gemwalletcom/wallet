@@ -2,12 +2,12 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use storage::Database;
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
 use super::addresses::update_coin_address;
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct FetchCoinAddressesConsumer {
     pub provider: ChainProviders,

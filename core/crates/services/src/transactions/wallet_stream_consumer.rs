@@ -3,11 +3,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
+use cacher::DeviceStreamCacher;
 use primitives::{StreamEvent, StreamTransactionsUpdate, StreamWalletUpdate, WalletId, unix_timestamp};
 use storage::{Database, DatabaseError, WalletsRepository};
 use streamer::{WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
-
-use crate::devices::DeviceStreamCacher;
 
 pub struct WalletStreamConsumer {
     pub database: Database,

@@ -1598,12 +1598,15 @@ dependencies = [
 name = "cacher"
 version = "2.114.59"
 dependencies = [
+ "async-trait",
  "config_keys",
+ "futures",
  "gem_tracing",
  "primitives",
  "redis",
  "serde",
  "serde_json",
+ "strum",
  "tokio",
 ]
 

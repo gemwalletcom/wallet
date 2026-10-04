@@ -2,8 +2,9 @@ use std::collections::HashSet;
 use std::error::Error;
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
 use primitives::PriceProvider;
+
+use crate::{CacheKey, CacherClient};
 
 #[async_trait]
 pub trait ChartsHistoryCacher: Send + Sync {

@@ -2,12 +2,11 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
+use cacher::{PerpetualAddressCacher, PerpetualAddressTier};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use primitives::Chain;
 use storage::{Database, WalletsRepository};
-
-use super::{PerpetualAddressCacher, PerpetualAddressTier};
 
 pub struct PerpetualAddressRefresher {
     providers: Arc<ChainProviders>,

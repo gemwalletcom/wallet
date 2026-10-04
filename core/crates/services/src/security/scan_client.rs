@@ -4,8 +4,7 @@ use std::future::Future;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use async_trait::async_trait;
-use cacher::{AccessTokenCacherClient, CacheKey, CacherClient};
+use cacher::{AccessTokenCacherClient, CacherClient, SafeScanTarget, ScanSafeCacher};
 use config_keys::{ConfigKey, ConfigParamKey};
 use futures::future;
 use gem_client::ReqwestClient;
@@ -27,37 +26,6 @@ pub trait ScanMetrics: Send + Sync {
 pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Duration) -> Result<TransactionScanProviders, Box<dyn Error + Send + Sync>> {
     let config = ScanProviderConfig::new(&settings.security, timeout);
     ScanProviderFactory::new_transaction_providers(&config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
-}
-
-pub struct SafeScanTarget {
-    scan_type: ScanType,
-    target: String,
-    ttl: u64,
-}
-
-impl SafeScanTarget {
-    fn cache_key(&self) -> CacheKey<'_> {
-        CacheKey::ScanSafe(self.scan_type.as_ref(), &self.target, self.ttl)
-    }
-}
-
-#[async_trait]
-pub trait ScanSafeCacher: Send + Sync {
-    async fn is_safe(&self, target: &SafeScanTarget) -> Result<bool, Box<dyn Error + Send + Sync>>;
-    async fn add_safe(&self, targets: &[&SafeScanTarget]) -> Result<(), Box<dyn Error + Send + Sync>>;
-}
-
-#[async_trait]
-impl ScanSafeCacher for CacherClient {
-    async fn is_safe(&self, target: &SafeScanTarget) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_cached_optional::<bool>(target.cache_key()).await?.is_some())
-    }
-
-    async fn add_safe(&self, targets: &[&SafeScanTarget]) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let entries = targets.iter().map(|target| (target.cache_key(), &true)).collect::<Vec<_>>();
-        self.set_values_cached(&entries).await?;
-        Ok(())
-    }
 }
 
 pub struct ScanClient {

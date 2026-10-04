@@ -2,31 +2,13 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
+use cacher::AddressStatusCacher;
 use chain_providers::ChainProviders;
 use futures::future::join_all;
 use primitives::{AddressStatus, Chain, ChainAddress, WalletConfiguration, WalletConfigurationResult, WalletId, WalletType};
 use storage::{Database, WalletsRepository};
 
 const ADDRESS_STATUS_CHAINS: [Chain; 7] = [Chain::Tron, Chain::Solana, Chain::Xrp, Chain::Stellar, Chain::Algorand, Chain::Aptos, Chain::Near];
-
-#[async_trait]
-pub trait AddressStatusCacher: Send + Sync {
-    async fn address_statuses(&self, address: &ChainAddress) -> Result<Option<Vec<AddressStatus>>, Box<dyn Error + Send + Sync>>;
-    async fn set_address_statuses(&self, address: &ChainAddress, statuses: &[AddressStatus]) -> Result<(), Box<dyn Error + Send + Sync>>;
-}
-
-#[async_trait]
-impl AddressStatusCacher for CacherClient {
-    async fn address_statuses(&self, address: &ChainAddress) -> Result<Option<Vec<AddressStatus>>, Box<dyn Error + Send + Sync>> {
-        self.get_cached_optional(cache_key(address)).await
-    }
-
-    async fn set_address_statuses(&self, address: &ChainAddress, statuses: &[AddressStatus]) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.set_cached(cache_key(address), &statuses).await
-    }
-}
 
 pub struct WalletConfigurationClient {
     database: Database,
@@ -89,8 +71,4 @@ impl WalletConfigurationClient {
 
         Some(statuses)
     }
-}
-
-fn cache_key(address: &ChainAddress) -> CacheKey<'_> {
-    CacheKey::AddressStatus(address.chain.as_ref(), &address.address)
 }

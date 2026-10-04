@@ -372,6 +372,10 @@ pub use self::simulation::{
 };
 pub mod ip_usage_type;
 pub use self::ip_usage_type::IpUsageType;
+pub mod ip_check;
+pub use self::ip_check::{IPAddressInfo, IpCheckResult};
+pub mod fee_estimates;
+pub use self::fee_estimates::{ChainFeeEstimates, FeeEstimate, FeeEstimatesByPriority};
 pub mod connection_component;
 pub use self::connection_component::ConnectionComponent;
 pub mod connection_status;

@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use cacher::{ChartsHistoryCacher, ObservedAssetsCacher, PerpetualAddressCacher, PriceMetadataCacher, SwapVaultAddressCacher, ThrottleCacher};
 use chain_providers::ChainProviders;
 use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
@@ -17,18 +18,15 @@ use crate::assets::repository::PostgresRepository;
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
 use crate::fiat::{FiatAssetsUpdater, FiatRatesUpdater};
 use crate::notifications::{StakeRewardsConfig, StakingRewardsNotifier};
-use crate::perpetuals::{PerpetualAddressCacher, PerpetualAddressRefresher, PerpetualPositionClassifier, PerpetualPositionClassifierConfig, PerpetualPositionObserver};
+use crate::perpetuals::{PerpetualAddressRefresher, PerpetualPositionClassifier, PerpetualPositionClassifierConfig, PerpetualPositionObserver};
 use crate::prices::{
-    AssetsProviders, ChartsHistoryCacher, ChartsHistoryConfig, ChartsHistoryUpdater, ChartsUpdater, MarketsClient, MarketsUpdater, MissingPricesPublisher, ObservedAssetsCacher, ObservedPricesConfig, ObservedPricesUpdater, PriceAlertClient,
-    PriceAlertSender, PriceClient, PriceMetadataCacher, PricesCleanupUpdater, PricesMetricsUpdater, PricesUpdater,
+    AssetsProviders, ChartsHistoryConfig, ChartsHistoryUpdater, ChartsUpdater, MarketsClient, MarketsUpdater, MissingPricesPublisher, ObservedPricesConfig, ObservedPricesUpdater, PriceAlertClient, PriceAlertSender, PriceClient,
+    PricesCleanupUpdater, PricesMetricsUpdater, PricesUpdater,
 };
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
 use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater};
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
-use crate::throttle_cacher::ThrottleCacher;
-use crate::transactions::{
-    CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressCacher, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater,
-};
+use crate::transactions::{CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
 
 #[derive(Clone)]

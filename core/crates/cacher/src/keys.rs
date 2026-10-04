@@ -3,7 +3,7 @@ use primitives::{SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE};
 
 const SECONDS_PER_YEAR: u64 = 365 * SECONDS_PER_DAY;
 
-pub enum CacheKey<'a> {
+pub(crate) enum CacheKey<'a> {
     ReferralIpCheck(&'a str),
 
     InactiveDeviceObserver(&'a str),
@@ -57,7 +57,7 @@ pub enum CacheKey<'a> {
 }
 
 impl CacheKey<'_> {
-    pub fn key(&self) -> String {
+    pub(crate) fn key(&self) -> String {
         match self {
             Self::ReferralIpCheck(ip_address) => format!("referral:ip_check:{}", ip_address),
             Self::InactiveDeviceObserver(device_id) => format!("device:inactive_observer:{}", device_id),
@@ -97,7 +97,7 @@ impl CacheKey<'_> {
         }
     }
 
-    pub fn ttl(&self) -> u64 {
+    pub(crate) fn ttl(&self) -> u64 {
         match self {
             Self::ReferralIpCheck(_) => SECONDS_PER_DAY,
             Self::InactiveDeviceObserver(_) => 30 * SECONDS_PER_DAY,

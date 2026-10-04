@@ -2,13 +2,13 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use storage::{AssetsRepository, Database};
 use streamer::{FetchAssetsPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
 
 use crate::assets::AssetClassificationRules;
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct FetchAssetsConsumer {
     pub database: Database,

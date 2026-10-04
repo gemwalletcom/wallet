@@ -1,5 +1,5 @@
 use crate::ConfigCacher;
-use crate::prices::ChartsHistoryCacher;
+use cacher::ChartsHistoryCacher;
 use chrono::Utc;
 use config_keys::ConfigKey;
 use primitives::PriceProvider;

@@ -3,11 +3,11 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use gem_client::{ClientExt, ReqwestClient};
+use primitives::IpCheckResult;
 
 use super::model::AbuseIPDBResponse;
 use super::target::AbuseIpDbTarget;
 use crate::ip_check_provider::IpCheckProvider;
-use crate::model::IpCheckResult;
 
 #[derive(Clone)]
 pub struct AbuseIPDBClient {

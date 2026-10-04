@@ -2,27 +2,9 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
-use cacher::{CacheError, CacheKey, CacherClient};
+use cacher::{CacheError, MarketsCacher};
 use primitives::{AssetId, AssetTag, Markets, MarketsAssets, PriceId, PriceProvider};
 use storage::{Database, DatabaseClient, DatabaseError, PricesRepository, TagRepository};
-
-#[async_trait]
-pub trait MarketsCacher: Send + Sync {
-    async fn markets(&self) -> Result<Option<Markets>, Box<dyn Error + Send + Sync>>;
-    async fn set_markets(&self, markets: &Markets) -> Result<(), Box<dyn Error + Send + Sync>>;
-}
-
-#[async_trait]
-impl MarketsCacher for CacherClient {
-    async fn markets(&self) -> Result<Option<Markets>, Box<dyn Error + Send + Sync>> {
-        self.get_cached_optional(CacheKey::Markets).await
-    }
-
-    async fn set_markets(&self, markets: &Markets) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.set_cached(CacheKey::Markets, markets).await
-    }
-}
 
 #[derive(Clone)]
 pub struct MarketsClient {

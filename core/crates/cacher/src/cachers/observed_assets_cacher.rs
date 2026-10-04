@@ -1,8 +1,9 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
 use primitives::AssetId;
+
+use crate::{CacheKey, CacherClient};
 
 #[async_trait]
 pub trait ObservedAssetsCacher: Send + Sync {

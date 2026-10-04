@@ -3,10 +3,10 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use cacher::{ThrottleCacher, ThrottledTask};
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
 use super::NFTClient;
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct FetchNftAssetsAddressesConsumer {
     pub throttle: Arc<dyn ThrottleCacher>,

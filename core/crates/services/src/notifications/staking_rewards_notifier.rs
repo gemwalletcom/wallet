@@ -2,6 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use localizer::LanguageLocalizer;
@@ -11,8 +12,6 @@ use primitives::{Asset, Chain, DelegationBase, DeviceSubscription, TransactionTy
 use push_notification::{GorushNotification, PushNotification};
 use storage::{Database, TransactionsRepository, WalletsRepository};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
-
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 #[derive(Clone, Copy)]
 pub struct StakeRewardsConfig {

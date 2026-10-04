@@ -1,20 +1,13 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
+use primitives::IPAddressInfo;
 
 use crate::providers::MoonPayClient;
 
 #[derive(Clone)]
 pub struct IPCheckClient {
     client: MoonPayClient,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IPAddressInfo {
-    pub alpha2: String,
-    pub state: String,
-    pub ip_address: String,
 }
 
 #[async_trait]

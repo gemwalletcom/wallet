@@ -1,34 +1,21 @@
-use std::{error::Error, sync::Arc};
+use std::sync::Arc;
 
-use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
+use cacher::{SwapVaultAddressCacher, SwapVaultAddressKind};
 use gem_client::{ClientError, ReqwestClient, Response};
 use gem_tracing::error_with_fields;
 use primitives::SwapProvider;
 use reqwest::{Method, RequestBuilder};
 use serde::Serialize;
 
-#[async_trait]
-pub trait SwapDepositAddressCacher: Send + Sync {
-    async fn add_deposit_address(&self, provider: &SwapProvider, address: &str) -> Result<(), Box<dyn Error + Send + Sync>>;
-}
-
-#[async_trait]
-impl SwapDepositAddressCacher for CacherClient {
-    async fn add_deposit_address(&self, provider: &SwapProvider, address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.add_to_set_cached(CacheKey::SwapDepositAddresses(provider.as_ref()), &[address.to_string()]).await.map(|_| ())
-    }
-}
-
 pub(super) struct SwapProxyClient {
     client: ReqwestClient,
-    deposit_addresses: Arc<dyn SwapDepositAddressCacher>,
+    deposit_addresses: Arc<dyn SwapVaultAddressCacher>,
     provider: SwapProvider,
     deposit_address_pointer: &'static str,
 }
 
 impl SwapProxyClient {
-    pub(super) fn new(url: String, deposit_addresses: Arc<dyn SwapDepositAddressCacher>, provider: SwapProvider, deposit_address_pointer: &'static str) -> Self {
+    pub(super) fn new(url: String, deposit_addresses: Arc<dyn SwapVaultAddressCacher>, provider: SwapProvider, deposit_address_pointer: &'static str) -> Self {
         Self {
             client: ReqwestClient::new(url, gem_client::reqwest_client()),
             deposit_addresses,
@@ -58,7 +45,7 @@ impl SwapProxyClient {
         let Some(address) = response.pointer(self.deposit_address_pointer).and_then(|value| value.as_str()).filter(|address| !address.is_empty()) else {
             return;
         };
-        if let Err(error) = self.deposit_addresses.add_deposit_address(&self.provider, address).await {
+        if let Err(error) = self.deposit_addresses.add_vault_addresses(self.provider, SwapVaultAddressKind::Deposit, &[address.to_string()]).await {
             error_with_fields!("swap deposit address cache failed", &*error, provider = self.provider.as_ref());
         }
     }

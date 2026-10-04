@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::CacheError;
+use cacher::{CacheError, ObservedAssetsCacher, PriceCacher};
 use chrono::NaiveDateTime;
 use config_keys::ConfigKey;
 use gem_tracing::error_with_fields;
@@ -12,7 +12,6 @@ use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTi
 use storage::{AssetFilter, AssetsRepository, ChartsRepository, Database, DatabaseError, FiatRepository, PriceAsset, PricesRepository};
 
 use crate::ConfigCacher;
-use crate::prices::{ObservedAssetsCacher, PriceCacher};
 
 #[derive(Clone)]
 pub struct PriceClient {

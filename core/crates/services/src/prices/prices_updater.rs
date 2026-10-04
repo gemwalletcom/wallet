@@ -3,7 +3,8 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use crate::prices::{PriceClient, PriceMetadataCacher};
+use crate::prices::PriceClient;
+use cacher::PriceMetadataCacher;
 use config_keys::ConfigKey;
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset};

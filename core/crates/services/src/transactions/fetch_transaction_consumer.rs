@@ -2,13 +2,13 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use primitives::{Transaction, TransactionId, TransactionIdRequest};
 use storage::{Database, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 use swapper::{SwapResultRequest, swapper::GemSwapper};
 
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 use crate::transactions::transaction_with_swap_result;
 
 pub struct FetchTransactionConsumer {

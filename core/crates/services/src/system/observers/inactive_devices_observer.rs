@@ -1,13 +1,12 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use cacher::{ThrottleCacher, ThrottledTask};
 use localizer::LanguageLocalizer;
 use primitives::{Asset, Chain};
 use push_notification::{GorushNotification, PushNotification};
 use storage::{Database, DatabaseError, DevicesRepository, WalletsRepository};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
-
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct InactiveDevicesObserver {
     database: Database,

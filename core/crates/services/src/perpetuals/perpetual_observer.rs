@@ -3,6 +3,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
+use cacher::{PerpetualAddressCacher, PerpetualAddressTier};
 use chain_providers::ChainProviders;
 use chain_traits::TransactionsRequest;
 use config_keys::ConfigParamKey;
@@ -10,8 +11,6 @@ use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::Chain;
 use streamer::steam_producer_queue::StreamProducerQueue;
 use streamer::{StreamProducer, TransactionsPayload};
-
-use super::{PerpetualAddressCacher, PerpetualAddressTier};
 
 pub struct PerpetualPositionObserver {
     chain: Chain,

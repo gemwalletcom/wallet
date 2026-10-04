@@ -1,5 +1,13 @@
-use primitives::IpUsageType;
 use serde::{Deserialize, Serialize};
+
+use crate::IpUsageType;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IPAddressInfo {
+    pub alpha2: String,
+    pub state: String,
+    pub ip_address: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IpCheckResult {

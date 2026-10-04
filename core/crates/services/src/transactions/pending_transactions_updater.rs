@@ -4,7 +4,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::ConfigCacher;
-use crate::transactions::{CheckSchedule, PendingTransactionsCacher, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
+use crate::transactions::{CheckSchedule, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
+use cacher::PendingTransactionsCacher;
 use chain_providers::{ChainProviders, TransactionIdRequest};
 use chrono::{DateTime, Utc};
 use config_keys::{ConfigKey, ConfigParamKey};

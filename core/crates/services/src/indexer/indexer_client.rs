@@ -1,11 +1,10 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use cacher::{ThrottleCacher, ThrottledTask};
 use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionIdRequest};
 use storage::{AssetsRepository, Database};
 use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducer, StreamProducerQueue};
-
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct IndexerClient {
     database: Database,
@@ -89,7 +88,7 @@ mod tests {
     use primitives::{Chain, ChainAddress};
 
     use super::address_fetches;
-    use crate::throttle_cacher::ThrottledTask;
+    use cacher::ThrottledTask;
 
     #[test]
     fn test_address_fetches() {

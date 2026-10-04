@@ -2,8 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 use async_trait::async_trait;
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::{ChainProviders, TransactionsRequest, TransactionsResult};
 use config_keys::ConfigParamKey;
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};

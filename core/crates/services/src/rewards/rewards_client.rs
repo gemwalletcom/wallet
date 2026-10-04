@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::GLOBAL_RATE_LIMIT_SCOPE;
+use cacher::{GLOBAL_RATE_LIMIT_SCOPE, RateLimitCacher};
 use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::error_with_fields;
 use localizer::LanguageLocalizer;
@@ -18,7 +18,6 @@ use super::risk::{RiskAssessment, assess_referral_risk};
 use super::summary::rewards_by_wallet_id;
 use super::username::{create_username, username_rules};
 use crate::ConfigCacher;
-use crate::rate_limit_cacher::RateLimitCacher;
 
 enum ReferralCodeUse {
     Applied(Vec<RewardEvent>),
