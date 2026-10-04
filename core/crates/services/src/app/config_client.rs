@@ -47,7 +47,7 @@ impl ConfigClient {
 
     async fn get_features(&self, ip_address: &str) -> Result<Features, Box<dyn Error + Send + Sync>> {
         let country = self.ip_address_provider.get_ip_address(ip_address).await?;
-        let policies = self.database.run(|client| client.get_features()).await?;
+        let policies = self.database.run(FeaturesRepository::get_features).await?;
         Ok(Features::for_country(&policies, &country.alpha2))
     }
 
