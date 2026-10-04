@@ -174,9 +174,16 @@ impl PriceJobs {
             min_observers: self.config.get_usize(ConfigKey::PriceObservedMinObservers).await?,
             primary_price_max_age: self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?,
         };
-        ObservedPricesUpdater::new(self.cacher.clone(), self.database.clone(), self.price_client.clone(), self.providers.clone(), self.prices_producer.clone(), observed_config)
-            .update()
-            .await
+        ObservedPricesUpdater::new(
+            Arc::new(self.cacher.clone()),
+            self.database.clone(),
+            self.price_client.clone(),
+            self.providers.clone(),
+            self.prices_producer.clone(),
+            observed_config,
+        )
+        .update()
+        .await
     }
 
     pub fn missing_prices_publisher(&self) -> MissingPricesPublisher {

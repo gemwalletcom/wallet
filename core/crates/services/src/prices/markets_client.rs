@@ -1,30 +1,49 @@
 use std::collections::HashMap;
 use std::error::Error;
+use std::sync::Arc;
 
+use async_trait::async_trait;
 use cacher::{CacheError, CacheKey, CacherClient};
 use primitives::{AssetId, AssetTag, Markets, MarketsAssets, PriceId, PriceProvider};
 use storage::{Database, DatabaseClient, DatabaseError, PricesRepository, TagRepository};
 
+#[async_trait]
+pub trait MarketsStore: Send + Sync {
+    async fn markets(&self) -> Result<Option<Markets>, Box<dyn Error + Send + Sync>>;
+    async fn set_markets(&self, markets: &Markets) -> Result<(), Box<dyn Error + Send + Sync>>;
+}
+
+#[async_trait]
+impl MarketsStore for CacherClient {
+    async fn markets(&self) -> Result<Option<Markets>, Box<dyn Error + Send + Sync>> {
+        self.get_cached_optional(CacheKey::Markets).await
+    }
+
+    async fn set_markets(&self, markets: &Markets) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.set_cached(CacheKey::Markets, markets).await
+    }
+}
+
 #[derive(Clone)]
 pub struct MarketsClient {
     database: Database,
-    cacher: CacherClient,
+    store: Arc<dyn MarketsStore>,
 }
 
 impl MarketsClient {
-    pub fn new(database: Database, cacher: CacherClient) -> Self {
-        Self { database, cacher }
+    pub fn new(database: Database, store: Arc<dyn MarketsStore>) -> Self {
+        Self { database, store }
     }
 
     pub async fn get_markets(&self) -> Result<Markets, Box<dyn Error + Send + Sync>> {
-        match self.cacher.get_cached_optional(CacheKey::Markets).await? {
+        match self.store.markets().await? {
             Some(markets) => Ok(markets),
             None => Err(Box::new(CacheError::not_found_resource("Markets"))),
         }
     }
 
     pub async fn set_markets(&self, markets: Markets) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher.set_cached(CacheKey::Markets, &markets).await
+        self.store.set_markets(&markets).await
     }
 
     pub async fn get_asset_ids_for_provider_price_ids(&self, provider: PriceProvider, provider_price_ids: Vec<String>) -> Result<Vec<AssetId>, Box<dyn Error + Send + Sync>> {

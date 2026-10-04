@@ -145,7 +145,7 @@ impl Services {
     }
 
     pub fn prices(&self, cacher: CacherClient) -> PriceClient {
-        PriceClient::new(self.database(), self.config(), cacher)
+        PriceClient::new(self.database(), self.config(), Arc::new(cacher.clone()), Arc::new(cacher))
     }
 
     pub fn charts(&self) -> ChartClient {
@@ -153,7 +153,7 @@ impl Services {
     }
 
     pub fn markets(&self, cacher: CacherClient) -> MarketsClient {
-        MarketsClient::new(self.database(), cacher)
+        MarketsClient::new(self.database(), Arc::new(cacher))
     }
 
     pub fn price_alerts(&self) -> PriceAlertClient {

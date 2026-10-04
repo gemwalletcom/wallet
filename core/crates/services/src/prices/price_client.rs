@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{CacheError, CacheKey, CacherClient};
+use cacher::CacheError;
 use chrono::NaiveDateTime;
 use config_keys::ConfigKey;
 use gem_tracing::error_with_fields;
@@ -12,17 +12,19 @@ use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTi
 use storage::{AssetFilter, AssetsRepository, ChartsRepository, Database, DatabaseError, FiatRepository, PriceAsset, PricesRepository};
 
 use crate::ConfigCacher;
+use crate::prices::{ObservedAssetsStore, PriceCacheStore};
 
 #[derive(Clone)]
 pub struct PriceClient {
     database: Database,
     config: Arc<ConfigCacher>,
-    cacher_client: CacherClient,
+    cache: Arc<dyn PriceCacheStore>,
+    observed: Arc<dyn ObservedAssetsStore>,
 }
 
 impl PriceClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, cacher_client: CacherClient) -> Self {
-        Self { database, config, cacher_client }
+    pub fn new(database: Database, config: Arc<ConfigCacher>, cache: Arc<dyn PriceCacheStore>, observed: Arc<dyn ObservedAssetsStore>) -> Self {
+        Self { database, config, cache, observed }
     }
 
     pub async fn set_fiat_rates(&self, provider: FiatRateProvider, rates: Vec<FiatRate>) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -61,32 +63,28 @@ impl PriceClient {
     }
 
     pub async fn set_cache_fiat_rates(&self, rates: Vec<FiatRate>) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher_client.set_cached(CacheKey::FiatRates, &rates).await
+        self.cache.set_fiat_rates(&rates).await
     }
 
     pub async fn get_cache_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
-        match self.cacher_client.get_cached_optional::<Vec<FiatRate>>(CacheKey::FiatRates).await? {
+        match self.cache.fiat_rates().await? {
             Some(rates) => Ok(rates),
             None => Err(Box::new(CacheError::not_found_resource("FiatRates"))),
         }
     }
 
     pub async fn set_cache_prices(&self, prices: Vec<AssetPriceInfo>, ttl_seconds: i64) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let values: Vec<(String, String)> = prices.iter().filter_map(|x| serde_json::to_string(&x).ok().map(|value| (CacheKey::Price(&x.asset_id.to_string()).key(), value))).collect();
-
-        self.cacher_client.set_values_with_publish(values, ttl_seconds).await
+        self.cache.set_prices(&prices, ttl_seconds).await
     }
 
     pub async fn get_cache_prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPriceInfo>, Box<dyn Error + Send + Sync>> {
-        let keys: Vec<String> = asset_ids.iter().map(|x| CacheKey::Price(&x.to_string()).key()).collect();
-        self.cacher_client.get_values(keys).await
+        self.cache.prices(&asset_ids).await
     }
 
     pub async fn get_cache_price(&self, asset_id: &AssetId) -> Result<AssetPriceInfo, Box<dyn Error + Send + Sync>> {
-        let id = asset_id.to_string();
-        match self.cacher_client.get_cached_optional::<AssetPriceInfo>(CacheKey::Price(&id)).await? {
+        match self.cache.price(asset_id).await? {
             Some(price) => Ok(price),
-            None => Err(Box::new(CacheError::not_found("Price", id))),
+            None => Err(Box::new(CacheError::not_found("Price", asset_id.to_string()))),
         }
     }
 
@@ -106,9 +104,7 @@ impl PriceClient {
     }
 
     pub async fn track_observed_assets(&self, asset_ids: &[AssetId]) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let key = CacheKey::ObservedAssets;
-        let ids: Vec<String> = asset_ids.iter().map(ToString::to_string).collect();
-        self.cacher_client.sorted_set_incr_with_expire(&key.key(), &ids, key.ttl() as i64).await
+        self.observed.track_observed_assets(asset_ids).await
     }
 
     pub async fn add_prices(&self, provider: &dyn PriceAssetsProvider, mappings: Vec<AssetPriceMapping>) -> Result<Vec<PriceData>, Box<dyn Error + Send + Sync>> {
@@ -127,16 +123,15 @@ impl PriceClient {
     pub async fn add_prices_for_asset_id(&self, providers: &PriceProviders, asset_id: &AssetId) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let asset_id_str = asset_id.to_string();
         let mut count = 0;
-        let cooldown = self.config.get_duration(ConfigKey::PriceMissingCooldown).await?.as_secs();
+        let cooldown = self.config.get_duration(ConfigKey::PriceMissingCooldown).await?;
         for provider in providers.values() {
             let kind = provider.provider();
-            let key = CacheKey::PriceMissingMapping(kind.id(), &asset_id_str, cooldown);
-            if self.cacher_client.get_cached_optional::<bool>(key).await?.is_some() {
+            if self.cache.is_mapping_missing(kind, &asset_id_str).await? {
                 continue;
             }
             let mappings = provider.get_mappings_for_asset_id(asset_id).await;
             if matches!(&mappings, Ok(mappings) if mappings.is_empty()) {
-                self.cacher_client.set_cached(CacheKey::PriceMissingMapping(kind.id(), &asset_id_str, cooldown), &true).await?;
+                self.cache.set_mapping_missing(kind, &asset_id_str, cooldown).await?;
                 continue;
             }
             match self.add_prices_with_mappings(provider.as_ref(), mappings).await {

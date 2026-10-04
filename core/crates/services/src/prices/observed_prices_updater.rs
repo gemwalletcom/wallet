@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::error::Error;
+use std::sync::Arc;
 use std::time::Duration;
 
-use crate::prices::PriceClient;
-use cacher::{CacheKey, CacherClient};
+use crate::prices::{ObservedAssetsStore, PriceClient};
 use prices::AssetPriceMapping;
 use primitives::{AssetId, PriceProvider};
 use storage::{Database, PricesRepository};
@@ -19,7 +19,7 @@ pub struct ObservedPricesConfig {
 }
 
 pub struct ObservedPricesUpdater {
-    cacher_client: CacherClient,
+    observed: Arc<dyn ObservedAssetsStore>,
     database: Database,
     price_client: PriceClient,
     providers: AssetsProviders,
@@ -28,9 +28,9 @@ pub struct ObservedPricesUpdater {
 }
 
 impl ObservedPricesUpdater {
-    pub fn new(cacher_client: CacherClient, database: Database, price_client: PriceClient, providers: AssetsProviders, stream_producer: StreamProducer, config: ObservedPricesConfig) -> Self {
+    pub fn new(observed: Arc<dyn ObservedAssetsStore>, database: Database, price_client: PriceClient, providers: AssetsProviders, stream_producer: StreamProducer, config: ObservedPricesConfig) -> Self {
         Self {
-            cacher_client,
+            observed,
             database,
             price_client,
             providers,
@@ -63,7 +63,6 @@ impl ObservedPricesUpdater {
     }
 
     async fn get_observed_assets(&self) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        let key = CacheKey::ObservedAssets;
-        self.cacher_client.sorted_set_range_by_score(&key.key(), self.config.min_observers as f64, f64::INFINITY, self.config.max_assets).await
+        self.observed.observed_assets(self.config.min_observers, self.config.max_assets).await
     }
 }
