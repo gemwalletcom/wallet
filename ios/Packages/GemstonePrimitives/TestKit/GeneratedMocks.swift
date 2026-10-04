@@ -1346,6 +1346,28 @@ public extension Gemstone.GemWalletConnectTransactionRequest {
     }
 }
 
+public extension Gemstone.GemWalletHomeViewState {
+    static func mock(
+        walletRow: Gemstone.GemWalletRow = .mock(),
+        header: Gemstone.GemValueHeader = .mock(),
+        showCollections: Bool = false,
+        showsPerpetuals: Bool = false,
+        banner: Gemstone.GemBannerRow? = nil,
+        pinnedAssetIds: [Primitives.AssetId] = [],
+        assetIds: [Primitives.AssetId] = [],
+    ) -> Gemstone.GemWalletHomeViewState {
+        Gemstone.GemWalletHomeViewState(
+            walletRow: walletRow,
+            header: header,
+            showCollections: showCollections,
+            showsPerpetuals: showsPerpetuals,
+            banner: banner,
+            pinnedAssetIds: pinnedAssetIds,
+            assetIds: assetIds,
+        )
+    }
+}
+
 public extension Gemstone.GemWalletRow {
     static func mock(
         id: String = "",

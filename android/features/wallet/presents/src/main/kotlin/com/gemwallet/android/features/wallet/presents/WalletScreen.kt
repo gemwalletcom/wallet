@@ -22,17 +22,16 @@ fun WalletScreen(onAction: (WalletAction) -> Unit, onContentReady: () -> Unit = 
     val importing by viewModel.isLoadingAssets.collectAsStateWithLifecycle()
     val pinnedAssets by viewModel.pinnedAssets.collectAsStateWithLifecycle()
     val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
-    val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
-    val bannerRow by viewModel.bannerRow.collectAsStateWithLifecycle()
+    val homeState by viewModel.homeState.collectAsStateWithLifecycle()
+    val isBalanceHidden by viewModel.isBalanceHidden.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val collectionsAvailable by viewModel.collectionsAvailable.collectAsStateWithLifecycle()
 
     val snackbar = remember { SnackbarHostState() }
     ToastEffect(viewModel.toastEvents, snackbar)
 
     val currentOnContentReady by rememberUpdatedState(onContentReady)
-    LaunchedEffect(walletSummary != null) {
-        if (walletSummary != null) currentOnContentReady()
+    LaunchedEffect(homeState != null) {
+        if (homeState != null) currentOnContentReady()
     }
 
     val currentWalletId by viewModel.currentWalletId.collectAsStateWithLifecycle()
@@ -53,13 +52,12 @@ fun WalletScreen(onAction: (WalletAction) -> Unit, onContentReady: () -> Unit = 
     }
 
     WalletScene(
-        walletSummary = walletSummary,
+        homeState = homeState,
+        isBalanceHidden = isBalanceHidden,
         importing = importing,
         pinnedAssets = pinnedAssets,
         unpinnedAssets = unpinnedAssets,
-        bannerRow = bannerRow,
         isRefreshing = isRefreshing,
-        collectionsAvailable = collectionsAvailable,
         snackbar = snackbar,
         listState = listState,
         assetActions = assetActions,

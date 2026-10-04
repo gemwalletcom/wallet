@@ -278,7 +278,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         Primitives.Currency.usd.toGem()
     }
 
-    public func viewState(wallet _: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.GemPerpetualCollateral?, banners: [Gemstone.Banner]) -> GemWalletHomeViewState {
+    public func viewState(wallet: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.GemPerpetualCollateral?, banners: [Gemstone.Banner], assetIds: [Gemstone.AssetId], pinnedAssetIds: [Gemstone.AssetId]) -> GemWalletHomeViewState {
         let collateral: Double = perpetual.map { ($0.balance.available + $0.balance.reserved) * $0.price } ?? 0
         let value = balances.reduce(0.0) { $0 + $1.amount * $1.price } + collateral
         let total = Gemstone.TotalFiatValue(value: value, pnlAmount: 0, pnlPercentage: 0)
@@ -289,6 +289,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         let pnl: GemLocalizedText? = showsPnl ? .pnl(amount: pnlAmount, percent: formattedPercentage(value: total.pnlPercentage, style: .unsigned)) : nil
         let pnlTone: GemValueTone = total.pnlAmount > 0 ? .positive : total.pnlAmount < 0 ? .negative : .neutral
         return GemWalletHomeViewState(
+            walletRow: walletRow(wallet: wallet),
             header: GemValueHeader(
                 icon: nil,
                 title: .number(number: formattedCurrency(value: total.value, code: Currency.usd.rawValue, style: .fiat)),
@@ -299,6 +300,8 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
             showCollections: false,
             showsPerpetuals: false,
             banner: nil,
+            pinnedAssetIds: pinnedAssetIds,
+            assetIds: assetIds.filter { !pinnedAssetIds.contains($0) },
         )
     }
 

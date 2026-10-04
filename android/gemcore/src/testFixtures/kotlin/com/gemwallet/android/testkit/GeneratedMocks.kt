@@ -1941,6 +1941,24 @@ fun mockGemWalletConnectTransactionRequest(
     action = action,
 )
 
+fun mockGemWalletHomeViewState(
+    walletRow: uniffi.gemstone.GemWalletRow = mockGemWalletRow(),
+    header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
+    showCollections: Boolean = false,
+    showsPerpetuals: Boolean = false,
+    banner: uniffi.gemstone.GemBannerRow? = null,
+    pinnedAssetIds: List<String> = emptyList(),
+    assetIds: List<String> = emptyList(),
+) = uniffi.gemstone.GemWalletHomeViewState(
+    walletRow = walletRow,
+    header = header,
+    showCollections = showCollections,
+    showsPerpetuals = showsPerpetuals,
+    banner = banner,
+    pinnedAssetIds = pinnedAssetIds,
+    assetIds = assetIds,
+)
+
 fun mockGemWalletRow(
     id: String = "",
     name: String = "",

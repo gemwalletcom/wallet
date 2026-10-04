@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.IoDispatcher
-import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.assets.cases.GetWalletHomeState
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
@@ -46,7 +46,7 @@ class AppViewModel @Inject constructor(
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     private val appStartService: GemAppStartServiceInterface,
     private val walletSessionService: GemWalletSessionServiceInterface,
-    getWalletSummary: GetWalletSummary,
+    getWalletHomeState: GetWalletHomeState,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -63,7 +63,7 @@ class AppViewModel @Inject constructor(
     private val startDestination = MutableStateFlow<NavKey?>(null)
     val startDestinationState = startDestination.asStateFlow()
     val session: StateFlow<Session?> = getSession()
-    private val walletReadyState = getWalletSummary.getWalletSummary()
+    private val walletReadyState = getWalletHomeState.walletHomeState()
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
     val launchReadyState = combine(

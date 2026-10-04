@@ -11,6 +11,7 @@ import struct Gemstone.GemNftEntry
 import struct Gemstone.GemPerpetualCollateral
 import struct Gemstone.GemToast
 import protocol Gemstone.GemWalletHomeServiceProtocol
+import struct Gemstone.GemWalletHomeViewState
 import struct Gemstone.GemWalletRow
 import func Gemstone.walletRow
 import GemstonePrimitives
@@ -119,19 +120,14 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         Gemstone.walletRow(wallet: wallet.toGem())
     }
 
-    var homeState: WalletHomeState {
-        let viewState = service.viewState(
+    var homeState: GemWalletHomeViewState {
+        service.viewState(
             wallet: wallet.toGem(),
             balances: fiatValuesQuery.value.map { $0.toGem() },
             perpetual: perpetualCollateral,
             banners: bannersQuery.value.map { $0.toGem() },
-        )
-        return WalletHomeState(
-            sections: AssetsSections.from(assets),
-            header: viewState.header.valueHeader,
-            showPerpetuals: viewState.showsPerpetuals,
-            showCollections: viewState.showCollections,
-            banner: viewState.banner,
+            assetIds: assets.map(\.asset.id),
+            pinnedAssetIds: assets.filter(\.metadata.isPinned).map(\.asset.id),
         )
     }
 }
