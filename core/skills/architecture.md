@@ -141,7 +141,7 @@ Reference: `crates/storage/src/lib.rs` (`Database`).
 
 ## Cacher Pattern
 
-Redis is reached through cachers in the `cacher` crate, one `src/cachers/<name>_cacher.rs` per contract: a `…Cacher` trait with the async operations its consumers use and its `impl` on `CacherClient`. A cacher takes and returns `primitives` types, or a small plain struct from its module when none fits (`CachedFiatQuote`, `SafeScanTarget`). Keys, TTLs, serialization and pub/sub channels stay inside the crate: `CacheKey` and the raw client methods are `pub(crate)`. Because a cacher is already a narrow async port, a service receives `Arc<dyn …Cacher>` from the composition root directly, without a second domain port around it; decisions such as generated ids, defaults and what a missing entry means stay in the service. `Store` names persistence ports, not caches.
+Redis is reached through cachers in the `cacher` crate, one `src/cachers/<name>.rs` per contract: a `…Cacher` trait with the async operations its consumers use and its `impl` on `CacherClient`. A cacher takes and returns `primitives` types, or a small plain struct from its module when none fits (`CachedFiatQuote`, `SafeScanTarget`). Keys, TTLs, serialization and pub/sub channels stay inside the crate: `CacheKey` and the raw client methods are `pub(crate)`. Because a cacher is already a narrow async port, a service receives `Arc<dyn …Cacher>` from the composition root directly, without a second domain port around it; decisions such as generated ids, defaults and what a missing entry means stay in the service. `Store` names persistence ports, not caches.
 
 Reference: `crates/cacher/src/cachers/mod.rs`.
 
