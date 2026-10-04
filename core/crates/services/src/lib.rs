@@ -15,6 +15,7 @@ pub mod nft;
 pub mod notifications;
 pub mod perpetuals;
 pub mod prices;
+mod rate_limits;
 pub mod rewards;
 pub mod search;
 pub mod security;

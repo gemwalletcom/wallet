@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::RateLimiter;
 use config_keys::{ConfigKey, RateLimitKey};
 use fiat::error::FiatQuoteError;
 use fiat::model::{FiatMapping, FiatMappingMap};
@@ -19,12 +18,13 @@ use streamer::{FiatWebhookPayload, QueueName, StreamProducer};
 
 use super::fiat_cacher_client::{CachedFiatQuote, FiatCacherClient};
 use crate::ConfigCacher;
+use crate::rate_limits::RateLimits;
 
 pub struct FiatClient {
     database: Database,
     config: Arc<ConfigCacher>,
     fiat_cacher: FiatCacherClient,
-    rate_limiter: RateLimiter,
+    rate_limiter: Arc<dyn RateLimits>,
     providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
     ip_address_provider: Arc<dyn IpAddressProvider>,
     stream_producer: StreamProducer,
@@ -35,7 +35,7 @@ impl FiatClient {
         database: Database,
         config: Arc<ConfigCacher>,
         fiat_cacher: FiatCacherClient,
-        rate_limiter: RateLimiter,
+        rate_limiter: Arc<dyn RateLimits>,
         providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
         ip_address_provider: Arc<dyn IpAddressProvider>,
         stream_producer: StreamProducer,

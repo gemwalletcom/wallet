@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{GLOBAL_RATE_LIMIT_SCOPE, RateLimiter};
+use cacher::GLOBAL_RATE_LIMIT_SCOPE;
 use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::error_with_fields;
 use localizer::LanguageLocalizer;
@@ -18,6 +18,7 @@ use super::risk::{RiskAssessment, assess_referral_risk};
 use super::summary::rewards_by_wallet_id;
 use super::username::{create_username, username_rules};
 use crate::ConfigCacher;
+use crate::rate_limits::RateLimits;
 
 enum ReferralCodeUse {
     Applied(Vec<RewardEvent>),
@@ -46,14 +47,14 @@ async fn referrer_multiplier(config: &ConfigCacher, status: &RewardStatus) -> Re
 pub struct RewardsClient {
     db: Database,
     config: Arc<ConfigCacher>,
-    rate_limiter: RateLimiter,
+    rate_limiter: Arc<dyn RateLimits>,
     stream_producer: StreamProducer,
     ip_security_client: IpSecurityClient,
     pusher: PusherClient,
 }
 
 impl RewardsClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: RateLimiter, stream_producer: StreamProducer, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: Arc<dyn RateLimits>, stream_producer: StreamProducer, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
         Self {
             db: database,
             config,

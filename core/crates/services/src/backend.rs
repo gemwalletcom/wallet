@@ -120,7 +120,7 @@ impl Services {
             self.database(),
             self.config(),
             FiatCacherClient::new(cacher.clone()),
-            RateLimiter::new(cacher),
+            Arc::new(RateLimiter::new(cacher)),
             providers,
             self.ip_address_provider().await?,
             stream_producer,
@@ -235,7 +235,7 @@ impl Services {
     }
 
     pub fn rewards(&self, cacher: CacherClient, stream_producer: StreamProducer, ip_security: IpSecurityClient) -> RewardsClient {
-        RewardsClient::new(self.database(), self.config(), RateLimiter::new(cacher), stream_producer, ip_security, self.pusher())
+        RewardsClient::new(self.database(), self.config(), Arc::new(RateLimiter::new(cacher)), stream_producer, ip_security, self.pusher())
     }
 
     pub fn rewards_redemption(&self, stream_producer: StreamProducer) -> RewardsRedemptionClient {
