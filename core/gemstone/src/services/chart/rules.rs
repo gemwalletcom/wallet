@@ -237,6 +237,7 @@ pub fn zoomed_chart(data: GemChartData, zoom: GemChartZoom) -> GemChartData {
         values,
         start: *window.start(),
         end: *window.end(),
+        is_zoomed: zoom.is_zoomed(),
         ..data
     }
 }
@@ -265,6 +266,7 @@ pub fn price_chart_data(chart: GemChart, period: ChartPeriod, currency: Currency
         currency,
         start: values[0].date,
         end: values[values.len() - 1].date,
+        is_zoomed: false,
         values,
         header: None,
         date_style: date_style(period),
@@ -290,6 +292,7 @@ pub fn change_chart_data(values: Vec<ChartDateValue>, shows_secondary_value: boo
         currency,
         start: values[0].date,
         end: values[values.len() - 1].date,
+        is_zoomed: false,
         values,
         header: None,
         date_style: date_style(period),
@@ -397,6 +400,7 @@ mod tests {
         );
         assert_eq!((zoomed.selection(0), zoomed.selection(last)), (None, None), "the points drawn past either edge cannot be selected");
         assert_eq!(zoomed.index_at(1.2), Some(last - 1));
+        assert_eq!((whole.is_zoomed, zoomed.is_zoomed), (false, true));
         assert_eq!(
             (gap.values[gap.bounds.lower_index as usize].value, gap.values[gap.bounds.upper_index as usize].value),
             (100.0, 200.0),

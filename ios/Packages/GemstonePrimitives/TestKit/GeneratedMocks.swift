@@ -326,6 +326,7 @@ public extension Gemstone.GemChartData {
         dateStyle: Gemstone.GemChartDateStyle = .relative,
         start: Date = Date(timeIntervalSince1970: 0),
         end: Date = Date(timeIntervalSince1970: 0),
+        isZoomed: Bool = false,
     ) -> Gemstone.GemChartData {
         Gemstone.GemChartData(
             valueType: valueType,
@@ -338,6 +339,7 @@ public extension Gemstone.GemChartData {
             dateStyle: dateStyle,
             start: start,
             end: end,
+            isZoomed: isZoomed,
         )
     }
 }

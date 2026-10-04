@@ -53,7 +53,8 @@ pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, position:
         .min()
         .unwrap_or(LONE_CANDLE_INTERVAL);
     let earliest = first.date.min(last.date - interval * (MIN_VISIBLE_POINTS as i32 - 1));
-    let (window_start, window_end) = zoom.clamped(candles.len()).window(earliest, last.date).into_inner();
+    let zoom = zoom.clamped(candles.len());
+    let (window_start, window_end) = zoom.window(earliest, last.date).into_inner();
     let start = window_start - interval / 2;
     let end = window_end + fraction_of(window_end - window_start, RIGHT_PADDING).max(interval / 2);
     let from = candles.partition_point(|candle| candle.date <= window_start - interval);
@@ -69,6 +70,7 @@ pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, position:
         end,
         body_width: interval.num_milliseconds() as f64 * CANDLE_BODY_FRACTION / (end - start).num_milliseconds() as f64,
         x_ticks: x_ticks(visible, start..=end, interval, utc_offset),
+        is_zoomed: zoom.is_zoomed(),
     })
 }
 
@@ -162,6 +164,11 @@ mod tests {
         assert_eq!((zoomed.start, zoomed.end, zoomed.candles.len()), (at(1140), at(2370), 21), "the candle straddling the left edge stays drawn");
         assert_eq!(zoomed.layout, chart_layout(&candles[19..], &candles[39], None), "the price axis fits the candles on screen");
         assert_eq!(chart(&candles, 100.0, 0.0).candles, candles[25..], "a pinch stops with fourteen candles on screen");
+        assert_eq!(
+            (whole.is_zoomed, zoomed.is_zoomed, chart(&candles[..10], 2.0, 0.0).is_zoomed),
+            (false, true, false),
+            "a market with fewer than fourteen candles never zooms"
+        );
         assert_eq!((panned.start, panned.end), (at(555), at(1785)));
         assert_eq!(panned.index_at(0.0), Some(1), "a candle whose middle is off the plot is never picked");
         assert_eq!(
