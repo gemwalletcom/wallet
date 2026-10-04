@@ -174,7 +174,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
 
     let price_client = services.prices(cacher_client.clone());
     let charts_client = services.charts();
-    let config_client = services.app_config();
+    let config_client = services.app_config().await?;
     let price_alert_client = services.price_alerts();
     let name_config = NameConfig {
         max_name_length: settings_clone.name.max_name_length,

@@ -282,7 +282,7 @@ impl NewFiatTransactionRow {
 pub(crate) struct FiatProviderCountryRow {
     pub id: String,
     pub provider: FiatProviderNameRow,
-    pub alpha2: String,
+    pub country: String,
     pub is_allowed: bool,
     pub is_enabled: bool,
 }
@@ -294,7 +294,7 @@ impl FiatProviderCountryRow {
         Self {
             id: format!("{}_{}", provider.0.id(), primitive.alpha2).to_lowercase(),
             provider,
-            alpha2: primitive.alpha2.clone(),
+            country: primitive.alpha2.clone(),
             is_allowed: primitive.is_allowed,
             is_enabled: true,
         }
@@ -303,7 +303,7 @@ impl FiatProviderCountryRow {
     pub fn as_primitive(&self) -> FiatProviderCountry {
         FiatProviderCountry {
             provider: self.provider.0,
-            alpha2: self.alpha2.clone(),
+            alpha2: self.country.clone(),
             is_allowed: self.is_allowed && self.is_enabled,
         }
     }

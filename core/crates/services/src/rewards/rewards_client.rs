@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{CacherClient, GLOBAL_RATE_LIMIT_SCOPE, RateLimiter};
+use cacher::{GLOBAL_RATE_LIMIT_SCOPE, RateLimiter};
 use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::error_with_fields;
 use localizer::LanguageLocalizer;
@@ -46,20 +46,20 @@ async fn referrer_multiplier(config: &ConfigCacher, status: &RewardStatus) -> Re
 pub struct RewardsClient {
     db: Database,
     config: Arc<ConfigCacher>,
+    rate_limiter: RateLimiter,
     stream_producer: StreamProducer,
     ip_security_client: IpSecurityClient,
-    rate_limiter: RateLimiter,
     pusher: PusherClient,
 }
 
 impl RewardsClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, cacher: CacherClient, stream_producer: StreamProducer, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: RateLimiter, stream_producer: StreamProducer, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
         Self {
             db: database,
             config,
+            rate_limiter,
             stream_producer,
             ip_security_client,
-            rate_limiter: RateLimiter::new(cacher),
             pusher,
         }
     }

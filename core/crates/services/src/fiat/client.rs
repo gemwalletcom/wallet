@@ -2,12 +2,12 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{CacheKey, CacherClient, RateLimiter};
+use cacher::RateLimiter;
 use config_keys::{ConfigKey, RateLimitKey};
 use fiat::error::FiatQuoteError;
 use fiat::model::{FiatMapping, FiatMappingMap};
 use fiat::quotes::{compare_quotes, get_provider_quote, is_country_allowed, is_provider_eligible};
-use fiat::{FiatDeviceContext, FiatProvider, FiatWebhookRequest, IPAddressInfo, IPCheckClient};
+use fiat::{FiatDeviceContext, FiatProvider, FiatWebhookRequest, IpAddressProvider};
 use futures::future::join_all;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{
@@ -23,24 +23,30 @@ use crate::ConfigCacher;
 pub struct FiatClient {
     database: Database,
     config: Arc<ConfigCacher>,
-    cacher: CacherClient,
     fiat_cacher: FiatCacherClient,
     rate_limiter: RateLimiter,
     providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
-    ip_check_client: IPCheckClient,
+    ip_address_provider: Arc<dyn IpAddressProvider>,
     stream_producer: StreamProducer,
 }
 
 impl FiatClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, cacher: CacherClient, providers: Vec<Box<dyn FiatProvider + Send + Sync>>, ip_check_client: IPCheckClient, stream_producer: StreamProducer) -> Self {
+    pub(crate) fn new(
+        database: Database,
+        config: Arc<ConfigCacher>,
+        fiat_cacher: FiatCacherClient,
+        rate_limiter: RateLimiter,
+        providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
+        ip_address_provider: Arc<dyn IpAddressProvider>,
+        stream_producer: StreamProducer,
+    ) -> Self {
         Self {
             database,
             config,
-            fiat_cacher: FiatCacherClient::new(cacher.clone()),
-            rate_limiter: RateLimiter::new(cacher.clone()),
-            cacher,
+            fiat_cacher,
+            rate_limiter,
             providers,
-            ip_check_client,
+            ip_address_provider,
             stream_producer,
         }
     }
@@ -165,7 +171,7 @@ impl FiatClient {
             .database
             .run(move |client| -> Result<_, DatabaseError> { Ok((client.get_fiat_providers_countries()?, client.get_fiat_assets_for_asset_id(&asset_id)?, client.get_fiat_providers()?)) })
             .await?;
-        let ip_address_info = self.get_ip_address(ip_address).await.map_err(|error| format!("IP address validation failed: {error}"))?;
+        let ip_address_info = self.ip_address_provider.get_ip_address(ip_address).await.map_err(|error| format!("IP address validation failed: {error}"))?;
         let fiat_mapping_map = fiat_mapping(asset, request.quote_type, fiat_assets);
         let country_code = &ip_address_info.alpha2;
         if !is_country_allowed(&providers_countries, country_code, request.provider_id.as_deref()) {
@@ -226,7 +232,7 @@ impl FiatClient {
         let url = provider.get_quote_url(data.clone()).await?;
         let country = match country_code {
             Some(country_code) => country_code,
-            None => self.get_ip_address(&context.ip_address).await?.alpha2,
+            None => self.ip_address_provider.get_ip_address(&context.ip_address).await?.alpha2,
         };
         let pending_transaction = FiatTransaction::new_pending(&data, Some(country), url.provider_transaction_id.clone());
         let (device_id, wallet_id, address_id) = (context.device_id, context.wallet_id, wallet_address.id);
@@ -260,10 +266,6 @@ impl FiatClient {
             return Err(RequestError::LimitReached.into());
         }
         Ok(())
-    }
-
-    async fn get_ip_address(&self, ip_address: &str) -> Result<IPAddressInfo, Box<dyn Error + Send + Sync>> {
-        self.cacher.get_or_set_cached(CacheKey::FiatIpCheck(ip_address), || self.ip_check_client.get_ip_address(ip_address)).await
     }
 }
 

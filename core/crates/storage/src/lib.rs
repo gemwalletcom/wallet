@@ -24,6 +24,7 @@ pub use self::repositories::{
     charts_repository::{ChartFilter, ChartPoint, ChartsRepository},
     config_repository::ConfigRepository,
     devices_repository::{DeviceFieldUpdate, DeviceRecord, DevicesRepository},
+    features_repository::FeaturesRepository,
     fiat_repository::{FiatAssetFilter, FiatRepository, FiatTransactionRecord},
     migrations_repository::MigrationsRepository,
     nft_repository::{NftCollectionFilter, NftRepository},

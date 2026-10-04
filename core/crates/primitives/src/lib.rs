@@ -60,6 +60,8 @@ pub mod asset_association;
 pub use self::asset_association::{AssetAssociation, AssetAssociationType};
 pub mod config;
 pub use self::config::{ConfigResponse, ConfigVersions, Release, SwapConfig};
+pub mod feature;
+pub use self::feature::{Feature, FeaturePolicy, Features};
 pub mod duration;
 pub use self::duration::{DAY, HOUR, MINUTE, MONTH, SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE, SECONDS_PER_WEEK, WEEK, parse_duration};
 pub mod currency;

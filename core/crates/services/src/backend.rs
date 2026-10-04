@@ -3,12 +3,12 @@ use std::error::Error;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use cacher::{AccessTokenCacherClient, CacherClient};
+use cacher::{AccessTokenCacherClient, CacherClient, RateLimiter};
 use chain_providers::{ChainProviders, ProviderFactory};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
 use defi::{DefiProviderClient, DefiProviderConfig};
-use fiat::{FiatProvider, FiatProviderFactory};
+use fiat::{FiatProvider, FiatProviderFactory, IpAddressProvider};
 use gem_client::ReqwestClient;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::JsonRpcClient;
@@ -27,7 +27,7 @@ use swapper::swapper::GemSwapper;
 use tokio::sync::OnceCell;
 
 use crate::access::AccessClient;
-use crate::app::ConfigClient;
+use crate::app::{CachedIpAddressProvider, ConfigClient};
 use crate::assets::ListsClient;
 use crate::assets::{AssetsClient, SearchClient};
 use crate::auth::AuthClient;
@@ -36,7 +36,7 @@ use crate::config::ConfigCacher;
 use crate::defi::DefiClient;
 use crate::devices::DeviceStreamClient;
 use crate::devices::{DevicesClient, WalletConfigurationClient, WalletsClient};
-use crate::fiat::FiatClient;
+use crate::fiat::{FiatCacherClient, FiatClient};
 use crate::indexer::IndexerClient;
 use crate::nft::NFTClient;
 use crate::notifications::NotificationsClient;
@@ -116,7 +116,15 @@ impl Services {
     pub async fn fiat(&self, stream_producer: StreamProducer) -> Result<FiatClient, Box<dyn Error + Send + Sync>> {
         let cacher = self.cacher().await?;
         let providers = self.fiat_providers(fiat_access_token_cacher(cacher.clone()));
-        Ok(FiatClient::new(self.database(), self.config(), cacher, providers, FiatProviderFactory::new_ip_check_client(&self.settings), stream_producer))
+        Ok(FiatClient::new(
+            self.database(),
+            self.config(),
+            FiatCacherClient::new(cacher.clone()),
+            RateLimiter::new(cacher),
+            providers,
+            self.ip_address_provider().await?,
+            stream_producer,
+        ))
     }
 
     pub async fn fiat_access_token_cacher(&self) -> Result<Arc<dyn AccessTokenCacher>, Box<dyn Error + Send + Sync>> {
@@ -227,7 +235,7 @@ impl Services {
     }
 
     pub fn rewards(&self, cacher: CacherClient, stream_producer: StreamProducer, ip_security: IpSecurityClient) -> RewardsClient {
-        RewardsClient::new(self.database(), self.config(), cacher, stream_producer, ip_security, self.pusher())
+        RewardsClient::new(self.database(), self.config(), RateLimiter::new(cacher), stream_producer, ip_security, self.pusher())
     }
 
     pub fn rewards_redemption(&self, stream_producer: StreamProducer) -> RewardsRedemptionClient {
@@ -262,8 +270,13 @@ impl Services {
         WebhooksClient::new(stream_producer, self.settings.support.webhook.key.secret.clone())
     }
 
-    pub fn app_config(&self) -> ConfigClient {
-        ConfigClient::new(self.database())
+    pub async fn app_config(&self) -> Result<ConfigClient, Box<dyn Error + Send + Sync>> {
+        Ok(ConfigClient::new(self.database(), self.ip_address_provider().await?))
+    }
+
+    async fn ip_address_provider(&self) -> Result<Arc<dyn IpAddressProvider>, Box<dyn Error + Send + Sync>> {
+        let provider = Arc::new(FiatProviderFactory::new_ip_check_client(&self.settings));
+        Ok(Arc::new(CachedIpAddressProvider::new(self.cacher().await?, provider)))
     }
 
     pub fn chain(&self, user_agent: &str) -> ChainClient {

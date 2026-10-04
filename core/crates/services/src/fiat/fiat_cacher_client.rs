@@ -17,12 +17,12 @@ pub(super) struct CachedFiatQuote {
     pub(super) url: Option<FiatQuoteUrl>,
 }
 
-pub(super) struct FiatCacherClient {
+pub(crate) struct FiatCacherClient {
     cacher: CacherClient,
 }
 
 impl FiatCacherClient {
-    pub(super) fn new(cacher: CacherClient) -> Self {
+    pub(crate) fn new(cacher: CacherClient) -> Self {
         Self { cacher }
     }
 

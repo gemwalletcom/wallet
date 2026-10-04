@@ -45,7 +45,7 @@ mod tests {
     use super::*;
     use crate::alien::{AlienError, AlienProvider, AlienResponse, AlienTarget};
     use async_trait::async_trait;
-    use primitives::{ConfigVersions, SwapConfig};
+    use primitives::{ConfigVersions, Features, SwapConfig};
     use std::future::Future;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::task::{Context, Poll};
@@ -71,6 +71,13 @@ mod tests {
             })
             .await;
             let config = ConfigResponse {
+                features: Features {
+                    buy: true,
+                    sell: true,
+                    swap: true,
+                    perpetuals: true,
+                    rewards: true,
+                },
                 releases: vec![],
                 versions: ConfigVersions {
                     fiat_on_ramp_assets: request as i32,
