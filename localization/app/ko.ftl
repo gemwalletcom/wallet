@@ -552,6 +552,8 @@ sell_title = %@ 판매
 
 # Info
 
+info_region_unavailable_description = 이 기능은 회원님의 지역에서 사용할 수 없습니다. 이용 가능 여부는 지역 규정과 서비스 제공업체의 요건에 따라 달라집니다.
+
 info_network_fee_title = 네트워크 수수료
 info_watch_wallet_title = 시계 지갑
 info_watch_wallet_description = 접근할 수는 없지만 거래 및 이동을 볼 수 있는 지갑입니다.

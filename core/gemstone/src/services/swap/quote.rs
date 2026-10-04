@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Currency};
+use primitives::{Asset, AssetId, Currency, Feature};
 use swapper::{Quote, SwapperError};
 
 use super::model::{GemSwapPairSelection, GemSwapSide};
@@ -8,6 +8,7 @@ use super::rules;
 use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession, GemSwapTransfer};
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::services::balance::GemBalanceService;
+use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::{StepFailure, record_result};
 use crate::services::preferences::GemPreferencesService;
@@ -41,19 +42,25 @@ pub struct GemSwapQuoteService {
     balances: Arc<GemBalanceService>,
     stream: Arc<GemStreamSubscriptionService>,
     session: Arc<GemWalletSessionService>,
+    config: Arc<GemConfigService>,
 }
 
 #[uniffi::export]
 impl GemSwapQuoteService {
     #[uniffi::constructor]
-    pub fn new(swap: Arc<GemSwapService>, preferences: Arc<GemPreferencesService>, balances: Arc<GemBalanceService>, stream: Arc<GemStreamSubscriptionService>, session: Arc<GemWalletSessionService>) -> Self {
+    pub fn new(swap: Arc<GemSwapService>, preferences: Arc<GemPreferencesService>, balances: Arc<GemBalanceService>, stream: Arc<GemStreamSubscriptionService>, session: Arc<GemWalletSessionService>, config: Arc<GemConfigService>) -> Self {
         Self {
             swap,
             preferences,
             balances,
             stream,
             session,
+            config,
         }
+    }
+
+    pub fn is_available(&self) -> bool {
+        self.config.is_feature_enabled(Feature::Swap)
     }
 
     pub fn get_currency(&self) -> Currency {

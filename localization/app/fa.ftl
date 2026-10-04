@@ -552,6 +552,8 @@ sell_title = فروش %@
 
 # Info
 
+info_region_unavailable_description = این قابلیت در منطقه شما در دسترس نیست. دسترسی به قوانین محلی و الزامات ارائه‌دهندگان بستگی دارد.
+
 info_network_fee_title = کارمزد شبکه
 info_watch_wallet_title = کیف پول مشاهده‌ای
 info_watch_wallet_description = کیف پولی که به آن دسترسی ندارید اما می توانید تراکنش ها و حرکات آن را تماشا کنید.

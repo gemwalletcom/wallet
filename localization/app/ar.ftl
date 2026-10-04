@@ -552,6 +552,8 @@ sell_title = بيع %@
 
 # Info
 
+info_region_unavailable_description = هذه الميزة غير متاحة في منطقتك. يعتمد التوفر على القواعد المحلية ومتطلبات مزودي الخدمة.
+
 info_network_fee_title = رسوم الشبكة
 info_watch_wallet_title = شاهد المحفظة
 info_watch_wallet_description = محفظة لا يمكنك الوصول إليها، ولكن يمكنك مشاهدة معاملاتها وحركاتها.

@@ -9,23 +9,33 @@ pub mod stream;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use crate::services::error::GemServiceError;
-use crate::services::failures::record;
-use futures::lock::Mutex;
-use model::{GemPerpetualConnection, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use chrono::Utc;
+use futures::lock::Mutex;
 use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::perpetual::{PerpetualAccountPositions, PerpetualBalance, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
-use primitives::{Asset, AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualId, PerpetualProvider, RecentActivityType, Wallet, WalletId};
-use std::collections::HashMap;
+use primitives::{Asset, AssetId, Chain, ChartPeriod, Feature, PerpetualAccountMode, PerpetualId, PerpetualProvider, RecentActivityType, Wallet, WalletId};
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
+use crate::gateway::GemGateway;
+use crate::models::perpetual::GemChartCandleStick;
+use crate::services::assets::{GemAssetAction, GemAssetsService};
+use crate::services::balance::GemBalanceService;
 use crate::services::clock::is_outdated;
+use crate::services::config::GemConfigService;
+use crate::services::error::GemServiceError;
+use crate::services::failures::record;
 use crate::services::preferences::GemPreferencesService;
+use crate::services::price::GemPriceService;
+use crate::services::stream::rules::hyperliquid_account;
+use crate::services::transfer::{GemRecentActivityScope, GemRecentActivityService};
+use crate::services::wallet_preferences::GemWalletPreferencesService;
+use crate::services::wallet_session::GemWalletSessionService;
+use model::{GemPerpetualConnection, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
 
 pub use autoclose::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify};
 pub use candles::{GemCandleRequest, GemCandleResult, GemCandleSession, GemCandleViewState};
@@ -35,16 +45,6 @@ pub use model::{
     GemPerpetualSocketUpdate, GemPerpetualTransferData,
 };
 pub use store::GemPerpetualStore;
-
-use crate::gateway::GemGateway;
-use crate::models::perpetual::GemChartCandleStick;
-use crate::services::assets::{GemAssetAction, GemAssetsService};
-use crate::services::balance::GemBalanceService;
-use crate::services::price::GemPriceService;
-use crate::services::stream::rules::hyperliquid_account;
-use crate::services::transfer::{GemRecentActivityScope, GemRecentActivityService};
-use crate::services::wallet_preferences::GemWalletPreferencesService;
-use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemPerpetualService {
@@ -57,6 +57,7 @@ pub struct GemPerpetualService {
     wallet_preferences: Arc<GemWalletPreferencesService>,
     session: Arc<GemWalletSessionService>,
     recent_activity: Arc<GemRecentActivityService>,
+    config: Arc<GemConfigService>,
     writes: Mutex<()>,
 }
 
@@ -73,6 +74,7 @@ impl GemPerpetualService {
         wallet_preferences: Arc<GemWalletPreferencesService>,
         session: Arc<GemWalletSessionService>,
         recent_activity: Arc<GemRecentActivityService>,
+        config: Arc<GemConfigService>,
     ) -> Self {
         Self {
             gateway,
@@ -84,8 +86,13 @@ impl GemPerpetualService {
             wallet_preferences,
             session,
             recent_activity,
+            config,
             writes: Mutex::new(()),
         }
+    }
+
+    pub fn is_available(&self) -> bool {
+        self.config.is_feature_enabled(Feature::Perpetuals)
     }
 
     pub async fn add_recent(&self, action: GemAssetAction, asset: Asset) -> Result<(), GemServiceError> {

@@ -552,6 +552,8 @@ sell_title = فروخت کریں %@
 
 # Info
 
+info_region_unavailable_description = یہ خصوصیت آپ کے علاقے میں دستیاب نہیں ہے۔ دستیابی مقامی قواعد اور سروس فراہم کرنے والوں کی ضروریات پر منحصر ہے۔
+
 info_network_fee_title = نیٹ ورک فیس
 info_watch_wallet_title = والیٹ دیکھیں
 info_watch_wallet_description = ایک والیٹ جس تک آپ کی رسائی نہیں ہے، لیکن آپ اس کے لین دین اور نقل و حرکت دیکھ سکتے ہیں۔

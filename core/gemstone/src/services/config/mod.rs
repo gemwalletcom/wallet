@@ -1,12 +1,12 @@
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::ConfigResponse;
+use primitives::{ConfigResponse, Feature};
 
 use crate::api::{GemApiClient, GemApiError};
+use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 
 type ConfigResult = Result<ConfigResponse, GemServiceError>;
@@ -26,6 +26,10 @@ impl GemConfigService {
 }
 
 impl GemConfigService {
+    pub fn is_feature_enabled(&self, feature: Feature) -> bool {
+        self.preferences.get_config().map(|config| config.features.is_enabled(feature)).unwrap_or(true)
+    }
+
     pub async fn update_config(&self) -> ConfigResult {
         let config = self.api.client.get_config().await.map_err(GemApiError::from)?;
         self.preferences.set_config(&config)?;
@@ -74,9 +78,10 @@ mod tests {
                 features: Features {
                     buy: true,
                     sell: true,
-                    swap: true,
+                    swap: request % 2 == 0,
                     perpetuals: true,
                     rewards: true,
+                    staking: true,
                 },
                 releases: vec![],
                 versions: ConfigVersions {
@@ -119,6 +124,32 @@ mod tests {
 
         assert_eq!(cached.versions.fiat_on_ramp_assets, 0);
         assert_eq!(provider.requests.load(Ordering::SeqCst), 2);
+    }
+
+    #[test]
+    fn test_is_feature_enabled_uses_startup_config_without_requests() {
+        let provider = Arc::new(ConfigProvider::default());
+        let service = GemConfigService::mock(provider.clone());
+        futures::executor::block_on(async {
+            service.update_config().await.unwrap();
+            assert_eq!(service.is_feature_enabled(Feature::Swap), true);
+            assert_eq!(service.is_feature_enabled(Feature::Swap), true);
+            assert_eq!(provider.requests.load(Ordering::SeqCst), 1);
+            service.update_config().await.unwrap();
+            assert_eq!(service.is_feature_enabled(Feature::Swap), false);
+            assert_eq!(service.is_feature_enabled(Feature::Swap), false);
+        });
+        assert_eq!(provider.requests.load(Ordering::SeqCst), 2);
+    }
+
+    #[test]
+    fn test_is_feature_enabled_defaults_to_enabled_without_config() {
+        let provider = Arc::new(ConfigProvider::default());
+        let service = GemConfigService::mock(provider.clone());
+        for feature in [Feature::Buy, Feature::Sell, Feature::Swap, Feature::Perpetuals, Feature::Rewards, Feature::Staking] {
+            assert_eq!(service.is_feature_enabled(feature), true);
+        }
+        assert_eq!(provider.requests.load(Ordering::SeqCst), 0);
     }
 
     #[test]

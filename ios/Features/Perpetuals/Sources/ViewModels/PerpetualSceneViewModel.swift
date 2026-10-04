@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemPerpetualButton
 import struct Gemstone.GemPerpetualDetails
@@ -47,10 +46,9 @@ public final class PerpetualSceneViewModel {
 
     let chart: PerpetualChartViewModel
 
-    public var isPresentingInfoSheet: GemInfoSheet?
+    public var isPresentingInfoSheet: InfoSheetModel?
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: PerpetualPositionData?
-    public var isPresentingAlertMessage: AlertMessage?
 
     public init(
         wallet: Wallet,
@@ -88,6 +86,15 @@ public final class PerpetualSceneViewModel {
     }
 
     public func onSelectButton(_ button: GemPerpetualButton) {
+        switch button {
+        case .long, .short, .modify, .increase, .reduce:
+            guard service.isAvailable() else {
+                isPresentingInfoSheet = InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)
+                return
+            }
+        case .close: break
+        }
+
         switch button {
         case .long: onOpenLongPosition()
         case .short: onOpenShortPosition()
@@ -144,7 +151,7 @@ public extension PerpetualSceneViewModel {
     }
 
     func onInfo(_ topic: GemInfoTopic) {
-        isPresentingInfoSheet = topic.infoSheet
+        isPresentingInfoSheet = InfoSheetModel(sheet: topic.infoSheet)
     }
 
     func onSelectAutoclose() {
@@ -159,7 +166,7 @@ public extension PerpetualSceneViewModel {
         do {
             try onTransferData?(service.closeTransfer(perpetual: perpetual.toGem(), asset: asset.toGem(), position: details.position))
         } catch {
-            isPresentingAlertMessage = AlertMessage(error: error)
+            isPresentingInfoSheet = InfoSheetModel(error: error)
         }
     }
 
@@ -210,7 +217,7 @@ private extension PerpetualSceneViewModel {
             let positionAction = try service.positionAction(perpetual: perpetual.toGem(), asset: asset.toGem(), position: details.position, kind: kind)
             onPerpetualPosition?(positionAction)
         } catch {
-            isPresentingAlertMessage = AlertMessage(error: error)
+            isPresentingInfoSheet = InfoSheetModel(error: error)
         }
     }
 

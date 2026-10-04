@@ -1,4 +1,4 @@
-CREATE TYPE feature AS ENUM ('buy', 'sell', 'swap', 'perpetuals', 'rewards');
+CREATE TYPE feature AS ENUM ('buy', 'sell', 'swap', 'perpetuals', 'rewards', 'staking');
 
 CREATE TABLE features (
     id feature NOT NULL,

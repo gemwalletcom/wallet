@@ -57,6 +57,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCandleChart
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
@@ -80,6 +81,8 @@ class PerpetualViewModel @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
+
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
 
     private companion object {
         const val SubscriptionGraceMillis = 5_000L
@@ -241,11 +244,23 @@ class PerpetualViewModel @Inject constructor(
 
     fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Open(direction.toGem()), amountAction)
 
+    fun modifyPosition(onModify: () -> Unit) {
+        if (!service.isAvailable()) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return
+        }
+        onModify()
+    }
+
     fun increasePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Increase, amountAction)
 
     fun reducePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Reduce, amountAction)
 
     private fun position(kind: GemPerpetualPositionKind, amountAction: AmountTransactionAction) {
+        if (!service.isAvailable()) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return
+        }
         val data = perpetual.value ?: return
         runCatching { service.positionAction(data.perpetual.toGem(), data.asset.toGem(), details.value?.position, kind) }
             .onSuccess { action -> amountAction(AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action)) }

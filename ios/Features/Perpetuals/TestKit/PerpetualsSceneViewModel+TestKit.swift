@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemPerpetualServiceProtocol
 import class Gemstone.GemRecentActivityService
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -13,6 +14,7 @@ import StoreTestKit
 public extension PerpetualsSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
+        onSelectAmount: ((AmountInput) -> Void)? = nil,
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
@@ -20,6 +22,7 @@ public extension PerpetualsSceneViewModel {
             service: perpetualService,
             observerService: PerpetualObserverMock(),
             recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),
+            onSelectAmount: onSelectAmount,
         )
     }
 }

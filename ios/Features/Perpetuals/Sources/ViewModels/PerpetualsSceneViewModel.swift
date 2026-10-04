@@ -4,6 +4,7 @@ import Assets
 import Components
 import Foundation
 import enum Gemstone.GemHeaderButtonAction
+import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemMarketsRefreshTrigger
 import struct Gemstone.GemPerpetualMarketCounts
 import enum Gemstone.GemPerpetualMarketSection
@@ -15,6 +16,7 @@ import struct Gemstone.GemValueHeader
 import func Gemstone.perpetualBalanceHeader
 import GemstonePrimitives
 import GemstoneServices
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -47,6 +49,7 @@ public final class PerpetualsSceneViewModel {
         perpetualBalanceHeader(balance: walletBalanceQuery.value?.balance.toGem(), walletType: wallet.type.toGem())
     }
 
+    var isPresentingInfoSheet: InfoSheetModel?
     var isSearchPresented: Bool = false
     private var session = GemPerpetualMarketSession(query: .empty, isSearching: false)
 
@@ -146,6 +149,10 @@ extension PerpetualsSceneViewModel {
     func onSelectHeaderAction(_ action: GemHeaderButtonAction) {
         switch action {
         case let .deposit(asset):
+            guard service.isAvailable() else {
+                isPresentingInfoSheet = InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)
+                return
+            }
             onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
         case let .withdraw(asset):
             onSelectAmount?(AmountInput(type: .withdraw, asset: asset.toPrimitives()))

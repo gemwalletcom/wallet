@@ -20,6 +20,21 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 **Feature symbol.** A screen or sheet that introduces one feature or asks for one decision shows one large symbol from the platform's own set, in the brand blue with no background, above a bold title and a short description, at the size of an info sheet. Every such screen uses this one look so the user recognizes it; a new one copies it rather than drawing an icon.
 
+## Feature availability
+
+If an action is unavailable, show the Not Available sheet and stop. Learn More opens [regional availability](https://docs.gemwallet.com/faq/feature-availability/).
+
+| Feature | Show the sheet when |
+|---|---|
+| Buy | Continue on the Buy screen, before opening the provider's checkout |
+| Sell | Continue on the Sell screen, before opening the provider's checkout |
+| Swap | Continue / Swap on the Swap screen, before preparing the trade |
+| Perpetuals | Deposit, Long, Short, Increase or Reduce before the amount screen; Modify before the options |
+| Staking | Stake on the staking screen, before opening the amount screen |
+| Rewards | Invite Friends, before opening the share sheet |
+
+Load config at startup and use the stored flags for actions. Features default to enabled until config is loaded. Keep quotes visible, and Withdraw and Close available.
+
 ## Areas
 
 - [Onboarding](product/onboarding.md) — create a wallet, import a wallet, and what happens right after

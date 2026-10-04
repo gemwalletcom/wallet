@@ -32,3 +32,5 @@ flowchart LR
 ## Rules
 
 - Earn (deposit with the best provider) sits behind the same screens but is behind a flag and not offered in the shipped apps.
+
+Regional feature restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table. Unstake, Withdraw and Claim Rewards remain available.

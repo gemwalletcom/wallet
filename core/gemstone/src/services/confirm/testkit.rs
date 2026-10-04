@@ -14,6 +14,7 @@ use crate::payment::GemPaymentService;
 use crate::services::assets::{GemAssetFilter, GemAssetStore, GemAssetsService};
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::balance::{GemAssetBalance, GemBalanceService};
+use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -106,6 +107,7 @@ impl ConfirmTestkit {
             preferences.clone(),
             session.clone(),
             primitives::Platform::IOS,
+            Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
         let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone()));

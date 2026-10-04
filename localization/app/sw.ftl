@@ -552,6 +552,8 @@ sell_title = Uza %@
 
 # Info
 
+info_region_unavailable_description = Kipengele hiki hakipatikani katika eneo lako. Upatikanaji hutegemea kanuni za eneo na masharti ya watoa huduma.
+
 info_network_fee_title = Ada ya Mtandao
 info_watch_wallet_title = Tazama Wallet
 info_watch_wallet_description = Mkoba ambao huna ufikiaji, lakini unaweza kutazama shughuli na harakati zake.

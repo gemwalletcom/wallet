@@ -720,7 +720,7 @@ public extension Gemstone.GemHeaderButtonAction {
 
 public extension Gemstone.GemInfoTopic {
     static func mock() -> Gemstone.GemInfoTopic {
-        .networkFee(asset: Primitives.Asset.mock().toGem())
+        .regionUnavailable
     }
 }
 

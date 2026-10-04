@@ -31,3 +31,5 @@ flowchart LR
 ## Platform differences
 
 None recorded.
+
+Regional feature restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table. Provider country restrictions still apply when requesting quotes.

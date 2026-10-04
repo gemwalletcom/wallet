@@ -552,6 +552,8 @@ sell_title = Ibenta %@
 
 # Info
 
+info_region_unavailable_description = Hindi available ang feature na ito sa iyong rehiyon. Nakadepende ang availability sa mga lokal na patakaran at mga kinakailangan ng mga provider.
+
 info_network_fee_title = Bayad sa Network
 info_watch_wallet_title = Wallet na Binabantayan
 info_watch_wallet_description = Isang wallet na wala kang access, ngunit maaari mong panoorin ang mga transaksyon at paggalaw nito.

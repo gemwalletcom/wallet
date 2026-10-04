@@ -921,6 +921,8 @@ private fun GemPriceAlertLabel.stringRes(): Int = when (this) {
 }
 
 fun GemInfoTitle.string(context: Context): String = when (this) {
+    GemInfoTitle.NotAvailable -> context.getString(R.string.common_not_available)
+
     GemInfoTitle.NetworkFee -> context.getString(R.string.info_network_fee_title)
 
     is GemInfoTitle.BalanceRequired -> context.getString(R.string.info_balance_required_title, symbol)
@@ -987,6 +989,8 @@ fun GemInfoTitle.string(context: Context): String = when (this) {
 }
 
 fun GemInfoDescription.string(context: Context): String = when (this) {
+    GemInfoDescription.RegionUnavailable -> context.getString(R.string.info_region_unavailable_description)
+
     is GemInfoDescription.NetworkFee -> context.getString(R.string.info_network_fee_description, network.bold(), symbol.bold())
 
     is GemInfoDescription.BalanceRequired -> context.getString(R.string.info_balance_required_description, required.bold(), available.bold(), shortfall.bold())

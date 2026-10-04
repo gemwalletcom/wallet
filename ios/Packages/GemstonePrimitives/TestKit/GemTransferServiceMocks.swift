@@ -44,6 +44,13 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
 }
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
+    public var isAvailableValue = true
+    public private(set) var quoteUrlRequests: [String] = []
+
+    public func isAvailable(quoteType _: Gemstone.FiatQuoteType) -> Bool {
+        isAvailableValue
+    }
+
     private let quotes: [Gemstone.FiatQuote]
 
     public init(quotes: [Gemstone.FiatQuote] = []) {
@@ -78,7 +85,8 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         GemFiatQuotesResult(request: request, quotes: quotes, error: nil)
     }
 
-    public func quoteUrl(assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
+    public func quoteUrl(assetId _: Gemstone.AssetId, quoteId: String) async throws -> Gemstone.FiatQuoteUrl {
+        quoteUrlRequests.append(quoteId)
         throw AnyError("not stubbed")
     }
 }
@@ -147,6 +155,12 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 }
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
+    public var isAvailableValue = true
+
+    public func isAvailable() -> Bool {
+        isAvailableValue
+    }
+
     private let claimable: Bool
     private let actions: [GemDelegationActionItem]
     private let validators: [Gemstone.DelegationValidator]

@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta conta %1$s pode ser controlada por outra pessoa. Não envie fundos para ela a menos que tenha certeza de que você a controla, ou poderá perder seus ativos permanentemente.</string>
   <string name="sell_title">Vender %1$s</string>
+  <string name="info_region_unavailable_description">Este recurso não está disponível na sua região. A disponibilidade depende das regras locais e dos requisitos dos provedores.</string>
   <string name="info_network_fee_title">Taxa de rede</string>
   <string name="info_watch_wallet_title">Assistir carteira</string>
   <string name="info_watch_wallet_description">Uma carteira à qual você não tem acesso, mas pode monitorar suas transações e movimentos.</string>

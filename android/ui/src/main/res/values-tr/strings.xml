@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">Onaylamak</string>
   <string name="warnings_externally_controlled_account">Bu %1$s hesabı başka biri tarafından kontrol ediliyor olabilir. Hesabı sizin kontrol ettiğinizden emin olmadıkça bu hesaba para göndermeyin, aksi takdirde varlıklarınızı kalıcı olarak kaybedebilirsiniz.</string>
   <string name="sell_title">%1$s sat</string>
+  <string name="info_region_unavailable_description">Bu özellik bölgenizde kullanılamıyor. Kullanılabilirlik, yerel kurallara ve sağlayıcıların gereksinimlerine bağlıdır.</string>
   <string name="info_network_fee_title">Ağ Ücreti</string>
   <string name="info_watch_wallet_title">Cüzdanı İzle</string>
   <string name="info_watch_wallet_description">Erişiminizin olmadığı, ancak işlemlerini ve hareketlerini izleyebileceğiniz bir cüzdan.</string>

@@ -552,6 +552,8 @@ sell_title = %@を売る
 
 # Info
 
+info_region_unavailable_description = この機能はお住まいの地域では利用できません。 利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。
+
 info_network_fee_title = ネットワーク手数料
 info_watch_wallet_title = ウォッチウォレット
 info_watch_wallet_description = 資産を操作する権限はありませんが、取引や資金の動きを確認できるウォレットです。

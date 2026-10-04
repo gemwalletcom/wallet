@@ -10,6 +10,7 @@ pub enum Feature {
     Swap,
     Perpetuals,
     Rewards,
+    Staking,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -20,9 +21,21 @@ pub struct Features {
     pub swap: bool,
     pub perpetuals: bool,
     pub rewards: bool,
+    pub staking: bool,
 }
 
 impl Features {
+    pub fn is_enabled(&self, feature: Feature) -> bool {
+        match feature {
+            Feature::Buy => self.buy,
+            Feature::Sell => self.sell,
+            Feature::Swap => self.swap,
+            Feature::Perpetuals => self.perpetuals,
+            Feature::Rewards => self.rewards,
+            Feature::Staking => self.staking,
+        }
+    }
+
     pub fn for_country(policies: &[FeaturePolicy], country_code: &str) -> Self {
         let enabled = |feature| policies.iter().filter(|policy| policy.feature == feature && policy.country_code == country_code).all(|policy| policy.is_enabled);
         Self {
@@ -31,6 +44,7 @@ impl Features {
             swap: enabled(Feature::Swap),
             perpetuals: enabled(Feature::Perpetuals),
             rewards: enabled(Feature::Rewards),
+            staking: enabled(Feature::Staking),
         }
     }
 }
@@ -55,7 +69,8 @@ mod tests {
                 sell: true,
                 swap: true,
                 perpetuals: true,
-                rewards: true
+                rewards: true,
+                staking: true
             }
         );
         let policies = vec![
@@ -69,6 +84,10 @@ mod tests {
                 feature: Feature::Rewards,
                 ..FeaturePolicy::mock()
             },
+            FeaturePolicy {
+                feature: Feature::Staking,
+                ..FeaturePolicy::mock()
+            },
         ];
         assert_eq!(
             Features::for_country(&policies, "FR"),
@@ -77,7 +96,8 @@ mod tests {
                 sell: true,
                 swap: true,
                 perpetuals: true,
-                rewards: false
+                rewards: false,
+                staking: false
             }
         );
         assert_eq!(
@@ -87,7 +107,8 @@ mod tests {
                 sell: false,
                 swap: true,
                 perpetuals: true,
-                rewards: true
+                rewards: true,
+                staking: true
             }
         );
         assert_eq!(
@@ -97,7 +118,8 @@ mod tests {
                 sell: true,
                 swap: true,
                 perpetuals: true,
-                rewards: true
+                rewards: true,
+                staking: true
             }
         );
         let policies = vec![FeaturePolicy { is_enabled: true, ..FeaturePolicy::mock() }];
@@ -108,7 +130,8 @@ mod tests {
                 sell: true,
                 swap: true,
                 perpetuals: true,
-                rewards: true
+                rewards: true,
+                staking: true
             }
         );
     }

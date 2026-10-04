@@ -12,6 +12,7 @@ import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -39,8 +40,11 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemStakeActionKind
+import uniffi.gemstone.GemStakeDestination
 import uniffi.gemstone.GemStakeInput
 import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemStakeViewState
@@ -54,11 +58,13 @@ class StakeViewModel @Inject constructor(
     private val getWalletAssets: GetWalletAssets,
     private val delegationsQuery: DelegationsQuery,
     private val validatorsQuery: ValidatorsQuery,
-    private val stakeService: GemStakeServiceInterface,
+    private val service: GemStakeServiceInterface,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
+
     private val initialAssetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
         ?: error("Missing assetId")
 
@@ -92,11 +98,11 @@ class StakeViewModel @Inject constructor(
         assetInfo.filterNotNull(),
         validators,
     ) { walletType, delegations, assetInfo, validators ->
-        stakeService.stakeViewState(
+        service.stakeViewState(
             GemStakeInput(
                 walletType = walletType.toGem(),
                 assetData = assetInfo.toGem(),
-                currency = stakeService.getCurrency(),
+                currency = service.getCurrency(),
                 validators = validators.map { it.toGem() },
                 delegations = delegations.map { it.toGem() },
             ),
@@ -120,7 +126,7 @@ class StakeViewModel @Inject constructor(
                 }
                 val assetInfo = assetInfo.filterNotNull().first()
                 emit(true)
-                val state = withContext(ioDispatcher) { stakeService.refresh(assetInfo.asset.id.chain.string, delegations.value.map { it.toGem() }) }
+                val state = withContext(ioDispatcher) { service.refresh(assetInfo.asset.id.chain.string, delegations.value.map { it.toGem() }) }
                 (state as? GemLoadState.Error)?.let { Log.e(TAG, "stake delegations sync failed", it.error) }
                 loadState.value = state
                 emit(false)
@@ -132,6 +138,21 @@ class StakeViewModel @Inject constructor(
 
     fun onRefresh() {
         sync.update { true }
+    }
+
+    fun onSelect(kind: GemStakeActionKind, destination: GemStakeDestination, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
+        when (kind) {
+            GemStakeActionKind.STAKE -> if (!service.isAvailable()) {
+                infoSheet.value = GemInfoTopic.RegionUnavailable
+                return
+            }
+
+            GemStakeActionKind.FREEZE, GemStakeActionKind.UNFREEZE, GemStakeActionKind.CLAIM_REWARDS -> Unit
+        }
+        when (destination) {
+            is GemStakeDestination.Amount -> onAmount(AmountParams.Stake(assetId.value, destination.input))
+            is GemStakeDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
+        }
     }
 
     fun onDelegation(delegation: Delegation, onOpenDetail: (String, String) -> Unit, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {

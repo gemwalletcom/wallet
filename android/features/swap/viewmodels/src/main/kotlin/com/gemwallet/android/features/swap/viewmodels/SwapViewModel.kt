@@ -26,6 +26,7 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,6 +59,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemButtonState
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemSlippageSelection
 import uniffi.gemstone.GemSlippageSession
@@ -83,11 +85,13 @@ class SwapViewModel @Inject constructor(
     private val getCurrentWalletId: GetCurrentWalletId,
     private val assetQuery: AssetQuery,
     private val savedStateHandle: SavedStateHandle,
-    private val swapQuoteService: GemSwapQuoteServiceInterface,
+    private val service: GemSwapQuoteServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val session = MutableStateFlow(swapQuoteService.newSession())
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
+
+    private val session = MutableStateFlow(service.newSession())
 
     val payValue: TextFieldState = TextFieldState()
     val receiveValue: TextFieldState = TextFieldState()
@@ -175,7 +179,7 @@ class SwapViewModel @Inject constructor(
         }
         .flowOn(ioDispatcher)
 
-    private val currency = swapQuoteService.getCurrency()
+    private val currency = service.getCurrency()
 
     val viewState: StateFlow<GemSwapViewState> = combine(session, payAsset, receiveAsset) { quoteSession, pay, receive ->
         quoteSession.viewState(pay?.toGem(), receive?.toGem(), currency)
@@ -184,7 +188,7 @@ class SwapViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            selectedSlippageBps.value = swapQuoteService.slippageBps()
+            selectedSlippageBps.value = service.slippageBps()
         }
         combine(payValueFlow, payAsset, receiveAsset, selectedSlippageBps) { text, pay, receive, slippageBps ->
             session.update { it.onInputChanged(text, pay?.asset?.toGem(), receive?.asset?.toGem(), pay?.balance?.available ?: BigInteger.ZERO, slippageBps, numberFormat()) }
@@ -208,13 +212,13 @@ class SwapViewModel @Inject constructor(
             return
         }
         val payAssetId = savedStateHandle.get<String?>(RouteArgument.FromAssetId.key)
-        val suggestion = swapQuoteService.suggestPair(payAssetId) ?: return
+        val suggestion = service.suggestPair(payAssetId) ?: return
         savedStateHandle[RouteArgument.FromAssetId.key] = suggestion.payAssetId
         savedStateHandle[RouteArgument.ToAssetId.key] = suggestion.receiveAssetId
     }
 
     fun onSelect(type: SwapItemType, assetId: AssetId) {
-        val selection = swapQuoteService.selectPairAsset(
+        val selection = service.selectPairAsset(
             GemSwapPairSelection(
                 payAssetId = payAsset.value?.asset?.id?.toIdentifier(),
                 receiveAssetId = receiveAsset.value?.asset?.id?.toIdentifier(),
@@ -270,14 +274,14 @@ class SwapViewModel @Inject constructor(
         }
         selectedSlippageBps.update { slippageBps }
         viewModelScope.launch(ioDispatcher) {
-            runCatchingCancellable { swapQuoteService.setSlippageBps(slippageBps) }
+            runCatchingCancellable { service.setSlippageBps(slippageBps) }
                 .onFailure { Log.e(TAG, "saving the slippage failed", it) }
         }
     }
 
     fun onSelectPercent(percent: Int) {
         val asset = payAsset.value ?: return
-        val value = swapQuoteService.amountForPercent(asset.balance.available, percent.toUInt())
+        val value = service.amountForPercent(asset.balance.available, percent.toUInt())
         val text = numberFormat().inputText(value.toString(), asset.asset.decimals.toUInt()) ?: return
         setPresetPayValue(text)
     }
@@ -296,6 +300,10 @@ class SwapViewModel @Inject constructor(
         when (val action = state.buttonAction) {
             GemSwapButtonAction.Swap -> {
                 if (state.details?.summary?.priceImpactRow?.warning != null) {
+                    if (!service.isAvailable()) {
+                        infoSheet.value = GemInfoTopic.RegionUnavailable
+                        return
+                    }
                     onShowPriceImpactWarning()
                 } else {
                     swap(onConfirm)
@@ -320,6 +328,10 @@ class SwapViewModel @Inject constructor(
     }
 
     fun swap(onConfirm: (ConfirmTransferInput) -> Unit) = viewModelScope.launch(ioDispatcher) {
+        if (!service.isAvailable()) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return@launch
+        }
         val quote = viewState.value.quote ?: return@launch
         val pay = payAsset.value ?: return@launch
         val receive = receiveAsset.value ?: return@launch
@@ -328,7 +340,7 @@ class SwapViewModel @Inject constructor(
         session.value = started
 
         try {
-            val params = swapQuoteService.getTransfer(quote)
+            val params = service.getTransfer(quote)
                 .transferData(pay.asset.toGem(), receive.asset.toGem())
             if (session.value.transferPhase != transfer) {
                 return@launch
@@ -337,13 +349,15 @@ class SwapViewModel @Inject constructor(
                 onConfirm(ConfirmTransferInput(params))
             }
             session.update { it.onTransferHandedOff(transfer) }
-        } catch (error: SwapperException) {
-            session.update { it.onTransferFailed(transfer, error) }
+        } catch (error: Throwable) {
+            if (error is CancellationException) throw error
+            val transferError = error as? SwapperException ?: SwapperException.TransactionException(error.message ?: error.toString())
+            session.update { it.onTransferFailed(transfer, transferError) }
         }
     }
 
     private suspend fun refreshPair(assetIds: List<String>) = withContext(ioDispatcher) {
-        runCatchingCancellable { swapQuoteService.refreshPair(assetIds) }
+        runCatchingCancellable { service.refreshPair(assetIds) }
             .getOrNull()
             ?.forEach { Log.e(TAG, "pair refresh failed at ${it.step}: ${it.message}") }
     }
@@ -355,7 +369,7 @@ class SwapViewModel @Inject constructor(
     }
 
     private suspend fun requestQuotes(params: SwapQuoteRequestParams): GemSwapQuotesResult = try {
-        val quotes = swapQuoteService.getQuotes(
+        val quotes = service.getQuotes(
             fromAsset = params.pay.asset.toGem(),
             toAsset = params.receive.asset.toGem(),
             value = params.input.request.value,

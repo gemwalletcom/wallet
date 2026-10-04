@@ -993,6 +993,7 @@ extension GemTriggerOrder {
 public extension GemInfoTitle {
     var text: String {
         switch self {
+        case .notAvailable: Localized.Common.notAvailable
         case .networkFee: Localized.Info.NetworkFee.title
         case let .balanceRequired(symbol): Localized.Info.balanceRequiredTitle(symbol)
         case let .transactionState(state): state.toPrimitives().statusTitle
@@ -1030,6 +1031,7 @@ public extension GemInfoTitle {
 public extension GemInfoDescription {
     var text: String {
         switch self {
+        case .regionUnavailable: Localized.Info.regionUnavailableDescription
         case let .networkFee(network, symbol):
             Localized.Info.NetworkFee.description(network.boldMarkdown(), symbol.boldMarkdown())
         case let .balanceRequired(required, available, shortfall):

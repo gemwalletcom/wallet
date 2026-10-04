@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">تایید کنید</string>
   <string name="warnings_externally_controlled_account">ممکن است شخص دیگری این حساب %1$s را کنترل کند. تا زمانی که مطمئن نیستید کنترل آن در دست شماست، وجهی به آن ارسال نکنید، وگرنه ممکن است دارایی‌های خود را برای همیشه از دست بدهید.</string>
   <string name="sell_title">فروش %1$s</string>
+  <string name="info_region_unavailable_description">این قابلیت در منطقه شما در دسترس نیست. دسترسی به قوانین محلی و الزامات ارائه‌دهندگان بستگی دارد.</string>
   <string name="info_network_fee_title">کارمزد شبکه</string>
   <string name="info_watch_wallet_title">کیف پول مشاهده‌ای</string>
   <string name="info_watch_wallet_description">کیف پولی که به آن دسترسی ندارید اما می توانید تراکنش ها و حرکات آن را تماشا کنید.</string>

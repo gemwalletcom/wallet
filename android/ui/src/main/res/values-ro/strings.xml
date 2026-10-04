@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">Confirmați</string>
   <string name="warnings_externally_controlled_account">Acest cont %1$s poate fi controlat de altcineva. Nu trimiteți fonduri în el decât dacă sunteți sigur că îl controlați, altfel vă puteți pierde definitiv bunurile.</string>
   <string name="sell_title">Vânzare %1$s</string>
+  <string name="info_region_unavailable_description">Această funcție nu este disponibilă în regiunea ta. Disponibilitatea depinde de regulile locale și de cerințele furnizorilor.</string>
   <string name="info_network_fee_title">Taxa de retea</string>
   <string name="info_watch_wallet_title">Portofel de monitorizare</string>
   <string name="info_watch_wallet_description">Un portofel la care nu ai acces, dar îi poți urmări tranzacțiile și mișcările.</string>

@@ -552,6 +552,8 @@ sell_title = למכור %@
 
 # Info
 
+info_region_unavailable_description = תכונה זו אינה זמינה באזור שלך. הזמינות תלויה בכללים המקומיים ובדרישות של ספקי השירות.
+
 info_network_fee_title = עמלת רשת
 info_watch_wallet_title = ארנק במעקב
 info_watch_wallet_description = ארנק שאין לך גישה אליו, אבל אתה יכול לצפות בעסקאות ובתנועות שלו.

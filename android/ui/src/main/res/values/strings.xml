@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">Confirm</string>
   <string name="warnings_externally_controlled_account">This %1$s account can be controlled by someone else. Do not send funds to it unless you are certain you control it, or you may permanently lose your assets.</string>
   <string name="sell_title">Sell %1$s</string>
+  <string name="info_region_unavailable_description">This feature is not available in your region. Availability depends on local rules and provider requirements.</string>
   <string name="info_network_fee_title">Network Fee</string>
   <string name="info_watch_wallet_title">Watch Wallet</string>
   <string name="info_watch_wallet_description">A wallet that you do not have access to, but you can watch its transactions and movements.</string>

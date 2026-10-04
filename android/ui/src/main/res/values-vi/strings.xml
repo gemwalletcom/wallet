@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">Xác nhận</string>
   <string name="warnings_externally_controlled_account">Tài khoản %1$s này có thể do người khác kiểm soát. Không gửi tiền vào tài khoản này trừ khi bạn chắc chắn mình kiểm soát nó, nếu không bạn có thể mất vĩnh viễn tài sản của mình.</string>
   <string name="sell_title">Bán %1$s</string>
+  <string name="info_region_unavailable_description">Tính năng này không khả dụng ở khu vực của bạn. Khả năng sử dụng phụ thuộc vào quy định địa phương và yêu cầu của nhà cung cấp.</string>
   <string name="info_network_fee_title">Phí mạng</string>
   <string name="info_watch_wallet_title">Ví đồng hồ</string>
   <string name="info_watch_wallet_description">Một ví mà bạn không thể truy cập nhưng bạn có thể theo dõi các giao dịch và biến động của nó.</string>

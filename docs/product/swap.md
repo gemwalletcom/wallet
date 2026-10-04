@@ -92,6 +92,7 @@ flowchart LR
 
 ## Rules
 
+- Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
 - A quote is never cached: every eligible provider is asked again for the live amount; cached routes are only hints and every quote uses live chain state.
 - Every eligible provider is awaited, so the slowest one decides how long a quote takes.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it loaded and showed.

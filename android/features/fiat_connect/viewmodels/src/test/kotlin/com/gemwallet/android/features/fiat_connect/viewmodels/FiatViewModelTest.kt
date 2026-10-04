@@ -44,7 +44,9 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -68,6 +70,7 @@ import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatQuotesResult
 import uniffi.gemstone.GemFiatSuggestedAmount
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.formattedCurrency
@@ -111,6 +114,7 @@ class FiatViewModelTest {
             }
             mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u))
         }
+        every { isAvailable(any()) } returns true
         every { randomAmount() } returns 500u
         coEvery { quotes(any(), any()) } returnsQuotes
             listOf(
@@ -406,7 +410,7 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            val result = viewModel.quoteUrl()
+            val result = viewModel.continueToProvider {}
             runCurrent()
 
             assertTrue(result.isFailure)
@@ -425,7 +429,9 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("https://provider.test/checkout", viewModel.quoteUrl().getOrThrow())
+            var redirect: String? = null
+            viewModel.continueToProvider { redirect = it }.getOrThrow()
+            assertEquals("https://provider.test/checkout", redirect)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -563,6 +569,54 @@ class FiatViewModelTest {
             coVerify(exactly = 1) { service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 75.0), any()) }
         } finally {
             viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `unavailable fiat keeps quotes but never requests a checkout url`() = runTest(testDispatcher) {
+        every { service.isAvailable(any()) } returns false
+        val subject = createViewModel()
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+            val quote = subject.viewState.value.selectedQuoteRow
+            assertNull(subject.infoSheet.value)
+
+            var redirects = 0
+            subject.continueToProvider { redirects += 1 }.getOrThrow()
+            assertEquals(0, redirects)
+            assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+            assertEquals(quote, subject.viewState.value.selectedQuoteRow)
+            coVerify(exactly = 0) { service.quoteUrl(any(), any()) }
+        } finally {
+            subject.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `switching fiat type while the checkout loads never opens the old checkout`() = runTest(testDispatcher) {
+        val checkout = CompletableDeferred<FiatQuoteUrl>()
+        coEvery { service.quoteUrl(any(), any()) } coAnswers { checkout.await() }
+        assetInfoFlow.value = requireNotNull(assetInfoFlow.value).copy(metadata = mockAssetMetaData(isSellEnabled = true))
+        val subject = createViewModel()
+        var redirects = 0
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+            val continuation = async { subject.continueToProvider { redirects += 1 } }
+            runCurrent()
+
+            subject.setType(FiatQuoteType.Sell)
+            runCurrent()
+            checkout.complete(FiatQuoteUrl(redirectUrl = "https://provider.test/checkout", providerTransactionId = null))
+            continuation.await().getOrThrow()
+
+            assertEquals(0, redirects)
+            assertNull(subject.infoSheet.value)
+            verify(exactly = 1) { service.isAvailable(FiatQuoteType.Buy.toGem()) }
+            coVerify(exactly = 1) { service.quoteUrl(any(), any()) }
+        } finally {
+            subject.viewModelScope.cancel()
         }
     }
 

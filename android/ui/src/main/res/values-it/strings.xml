@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">Confermare</string>
   <string name="warnings_externally_controlled_account">Questo account %1$s può essere controllato da qualcun altro. Non inviarvi fondi a meno che tu non sia certo di controllarlo, altrimenti potresti perdere definitivamente i tuoi beni.</string>
   <string name="sell_title">Vendi %1$s</string>
+  <string name="info_region_unavailable_description">Questa funzione non è disponibile nella tua regione. La disponibilità dipende dalle norme locali e dai requisiti dei fornitori.</string>
   <string name="info_network_fee_title">Commissione di rete</string>
   <string name="info_watch_wallet_title">Guarda Portafoglio</string>
   <string name="info_watch_wallet_description">Un portafoglio a cui non hai accesso, ma di cui puoi monitorare le transazioni e i movimenti.</string>

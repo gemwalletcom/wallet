@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">Bekræft</string>
   <string name="warnings_externally_controlled_account">Denne %1$s-konto kan være kontrolleret af en anden. Overfør ikke penge til den, medmindre du er sikker på, at du kontrollerer den, ellers kan du permanent miste dine aktiver.</string>
   <string name="sell_title">Sælg %1$s</string>
+  <string name="info_region_unavailable_description">Denne funktion er ikke tilgængelig i din region. Tilgængelighed afhænger af lokale regler og udbydernes krav.</string>
   <string name="info_network_fee_title">Netværksgebyr</string>
   <string name="info_watch_wallet_title">Overvågningstegnebog</string>
   <string name="info_watch_wallet_description">En tegnebog, som du ikke har adgang til, men du kan se dens transaktioner og bevægelser.</string>

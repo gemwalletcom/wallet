@@ -552,6 +552,8 @@ sell_title = बेचें %@
 
 # Info
 
+info_region_unavailable_description = यह सुविधा आपके क्षेत्र में उपलब्ध नहीं है। उपलब्धता स्थानीय नियमों और सेवा प्रदाताओं की आवश्यकताओं पर निर्भर करती है।
+
 info_network_fee_title = नेटवर्क शुल्क
 info_watch_wallet_title = वॉलेट देखें
 info_watch_wallet_description = एक वॉलेट जिस तक आपकी पहुंच नहीं है, लेकिन आप इसके लेनदेन और गतिविधियों पर नजर रख सकते हैं।

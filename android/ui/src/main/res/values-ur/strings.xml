@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">تصدیق کریں۔</string>
   <string name="warnings_externally_controlled_account">اس %1$s اکاؤنٹ کو کوئی اور کنٹرول کر سکتا ہے۔ جب تک آپ کو یقین نہ ہو کہ اس کا کنٹرول آپ کے پاس ہے، اس میں رقوم نہ بھیجیں، ورنہ آپ اپنے اثاثے مستقل طور پر کھو سکتے ہیں۔</string>
   <string name="sell_title">فروخت کریں %1$s</string>
+  <string name="info_region_unavailable_description">یہ خصوصیت آپ کے علاقے میں دستیاب نہیں ہے۔ دستیابی مقامی قواعد اور سروس فراہم کرنے والوں کی ضروریات پر منحصر ہے۔</string>
   <string name="info_network_fee_title">نیٹ ورک فیس</string>
   <string name="info_watch_wallet_title">والیٹ دیکھیں</string>
   <string name="info_watch_wallet_description">ایک والیٹ جس تک آپ کی رسائی نہیں ہے، لیکن آپ اس کے لین دین اور نقل و حرکت دیکھ سکتے ہیں۔</string>

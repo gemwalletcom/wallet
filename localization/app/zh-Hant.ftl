@@ -552,6 +552,8 @@ sell_title = 出售%@
 
 # Info
 
+info_region_unavailable_description = 此功能在您所在的地區無法使用。 可用性取決於當地規定和服務提供者的要求。
+
 info_network_fee_title = 網路手續費
 info_watch_wallet_title = 觀察錢包
 info_watch_wallet_description = 這是一個您無法操作的錢包，但可以查看它的交易和資產變動。

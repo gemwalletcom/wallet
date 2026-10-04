@@ -52,3 +52,5 @@ flowchart LR
 ## Platform differences
 
 None recorded.
+
+Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.

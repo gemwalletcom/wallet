@@ -552,6 +552,8 @@ sell_title = %@ sat
 
 # Info
 
+info_region_unavailable_description = Bu özellik bölgenizde kullanılamıyor. Kullanılabilirlik, yerel kurallara ve sağlayıcıların gereksinimlerine bağlıdır.
+
 info_network_fee_title = Ağ Ücreti
 info_watch_wallet_title = Cüzdanı İzle
 info_watch_wallet_description = Erişiminizin olmadığı, ancak işlemlerini ve hareketlerini izleyebileceğiniz bir cüzdan.

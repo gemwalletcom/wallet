@@ -552,6 +552,8 @@ sell_title = Prodat %@
 
 # Info
 
+info_region_unavailable_description = Tato funkce není ve vašem regionu k dispozici. Dostupnost závisí na místních pravidlech a požadavcích poskytovatelů.
+
 info_network_fee_title = Síťový poplatek
 info_watch_wallet_title = Sledovaná peněženka
 info_watch_wallet_description = Peněženka, ke které nemáte přístup, ale můžete sledovat její transakce a pohyby.

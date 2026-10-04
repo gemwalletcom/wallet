@@ -552,6 +552,8 @@ sell_title = Verkoop %@
 
 # Info
 
+info_region_unavailable_description = Deze functie is niet beschikbaar in je regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders.
+
 info_network_fee_title = Netwerkkosten
 info_watch_wallet_title = Kijk-portemonnee
 info_watch_wallet_description = Een portemonnee waar u geen toegang toe heeft, maar wel de transacties en bewegingen ervan kunt bekijken.

@@ -200,4 +200,21 @@ struct RewardsSceneViewModelTests {
 
         #expect(model.activatePendingButtonType == .primary(.disabled))
     }
+
+    @Test
+    func unavailableRewardsBlocksInvitingUntilAvailabilityChanges() async {
+        let service = GemRewardsServiceMock()
+        service.isAvailableValue = false
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first])
+        await model.refresh()
+        #expect(model.isPresentingSheet == nil)
+
+        model.onInviteFriends()
+        #expect(model.isPresentingSheet?.id == "info")
+
+        model.isPresentingSheet = nil
+        service.isAvailableValue = true
+        model.onInviteFriends()
+        #expect(model.isPresentingSheet?.id == RewardsSheetType.share.id)
+    }
 }

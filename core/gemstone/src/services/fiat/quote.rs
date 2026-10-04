@@ -1,8 +1,8 @@
-use super::model::GemFiatSuggestedAmount;
 use std::sync::Arc;
 
-use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl};
+use primitives::{AssetId, Feature, FiatQuote, FiatQuoteType, FiatQuoteUrl};
 
+use super::model::GemFiatSuggestedAmount;
 use super::session::{GemFiatQuoteRequest, GemFiatQuotesResult, GemFiatSession};
 use super::{GemFiatService, rules};
 use crate::config::fiat_config::get_fiat_config;
@@ -10,6 +10,7 @@ use crate::constants::FIAT_QUOTE_CURRENCY;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::state::GemLoadState;
 use crate::services::balance::GemBalanceService;
+use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -20,13 +21,28 @@ pub struct GemFiatQuoteService {
     balances: Arc<GemBalanceService>,
     session: Arc<GemWalletSessionService>,
     recent_activity: Arc<GemRecentActivityService>,
+    config: Arc<GemConfigService>,
 }
 
 #[uniffi::export]
 impl GemFiatQuoteService {
     #[uniffi::constructor]
-    pub fn new(fiat: Arc<GemFiatService>, balances: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>, recent_activity: Arc<GemRecentActivityService>) -> Self {
-        Self { fiat, balances, session, recent_activity }
+    pub fn new(fiat: Arc<GemFiatService>, balances: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>, recent_activity: Arc<GemRecentActivityService>, config: Arc<GemConfigService>) -> Self {
+        Self {
+            fiat,
+            balances,
+            session,
+            recent_activity,
+            config,
+        }
+    }
+
+    pub fn is_available(&self, quote_type: FiatQuoteType) -> bool {
+        let feature = match quote_type {
+            FiatQuoteType::Buy => Feature::Buy,
+            FiatQuoteType::Sell => Feature::Sell,
+        };
+        self.config.is_feature_enabled(feature)
     }
 
     pub fn suggested_amounts(&self) -> Vec<GemFiatSuggestedAmount> {

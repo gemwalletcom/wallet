@@ -552,6 +552,8 @@ sell_title = Продать %@
 
 # Info
 
+info_region_unavailable_description = Эта функция недоступна в вашем регионе. Доступность зависит от местных правил и требований провайдеров.
+
 info_network_fee_title = Сетевая плата
 info_watch_wallet_title = Смотреть кошелек
 info_watch_wallet_description = Кошелек, к которому у вас нет доступа, но вы можете следить за его транзакциями и движениями.

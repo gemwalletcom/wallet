@@ -3,6 +3,7 @@
 import Components
 import struct Gemstone.GemRewardsRedemption
 import enum Gemstone.GemServiceError
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -67,6 +68,7 @@ public struct RewardsScene: View {
         }
         .sheet(item: $model.isPresentingSheet) { sheet in
             switch sheet {
+            case let .info(info): InfoSheetScene(model: info)
             case .walletSelector:
                 if let walletSelectorModel = model.walletSelectorModel {
                     SelectableListNavigationStack(
@@ -153,7 +155,7 @@ public struct RewardsScene: View {
                 switch model.inviteAction {
                 case .share:
                     Button {
-                        model.isPresentingSheet = .share
+                        model.onInviteFriends()
                     } label: {
                         HStack(spacing: Spacing.small) {
                             Images.System.share
