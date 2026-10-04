@@ -1,9 +1,33 @@
 use std::error::Error;
+use std::sync::Arc;
 use std::time::Duration;
 
+use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
 use gem_tracing::error_fields;
 use primitives::{StreamEvent, unix_timestamp};
+
+#[async_trait]
+pub trait DeviceStreamStore: Send + Sync {
+    async fn take_events(&self, device_id: &str, retention: Duration) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>>;
+    async fn restore_events(&self, device_id: &str, retention: Duration, events: &[(String, f64)]) -> Result<(), Box<dyn Error + Send + Sync>>;
+}
+
+#[async_trait]
+impl DeviceStreamStore for CacherClient {
+    async fn take_events(&self, device_id: &str, retention: Duration) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>> {
+        self.take_sorted_set_with_scores(&events_key(device_id, retention).key()).await
+    }
+
+    async fn restore_events(&self, device_id: &str, retention: Duration, events: &[(String, f64)]) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.add_to_sorted_set_cached(events_key(device_id, retention), events).await?;
+        Ok(())
+    }
+}
+
+fn events_key(device_id: &str, retention: Duration) -> CacheKey<'_> {
+    CacheKey::DeviceStreamEvents(device_id, retention.as_secs())
+}
 
 pub struct PendingStreamEvent {
     value: String,
@@ -13,19 +37,19 @@ pub struct PendingStreamEvent {
 
 #[derive(Clone)]
 pub struct DeviceStreamClient {
-    cacher: CacherClient,
+    events: Arc<dyn DeviceStreamStore>,
     retention: Duration,
     history_limit: usize,
 }
 
 impl DeviceStreamClient {
-    pub fn new(cacher: CacherClient, retention: Duration, history_limit: usize) -> Self {
-        Self { cacher, retention, history_limit }
+    pub fn new(events: Arc<dyn DeviceStreamStore>, retention: Duration, history_limit: usize) -> Self {
+        Self { events, retention, history_limit }
     }
 
     pub async fn take_pending_events(&self, device_id: &str) -> Result<Vec<PendingStreamEvent>, Box<dyn Error + Send + Sync>> {
         let now = unix_timestamp() as f64;
-        let cached_events = self.cacher.take_sorted_set_with_scores(&self.cache_key(device_id).key()).await?;
+        let cached_events = self.events.take_events(device_id, self.retention).await?;
         let mut pending_events = cached_events
             .into_iter()
             .filter(|(_, expires_at)| *expires_at > now)
@@ -44,12 +68,7 @@ impl DeviceStreamClient {
 
     pub async fn restore_events(&self, device_id: &str, events: &[PendingStreamEvent]) -> Result<(), Box<dyn Error + Send + Sync>> {
         let entries = events.iter().map(|event| (event.value.clone(), event.expires_at)).collect::<Vec<_>>();
-        self.cacher.add_to_sorted_set_cached(self.cache_key(device_id), &entries).await?;
-        Ok(())
-    }
-
-    fn cache_key<'a>(&self, device_id: &'a str) -> CacheKey<'a> {
-        CacheKey::DeviceStreamEvents(device_id, self.retention.as_secs())
+        self.events.restore_events(device_id, self.retention, &entries).await
     }
 }
 

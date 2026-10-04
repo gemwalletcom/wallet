@@ -227,7 +227,7 @@ impl Services {
     }
 
     pub fn wallet_configuration(&self, cacher: CacherClient, user_agent: &str) -> WalletConfigurationClient {
-        WalletConfigurationClient::new(self.database(), self.chain_providers(user_agent), cacher)
+        WalletConfigurationClient::new(self.database(), self.chain_providers(user_agent), Arc::new(cacher))
     }
 
     pub fn notifications(&self) -> NotificationsClient {
@@ -307,7 +307,7 @@ impl Services {
     pub async fn device_stream(&self, cacher: CacherClient) -> Result<DeviceStreamClient, Box<dyn Error + Send + Sync>> {
         let config = self.config();
         Ok(DeviceStreamClient::new(
-            cacher,
+            Arc::new(cacher),
             config.get_duration(ConfigKey::DeviceStreamRetention).await?,
             config.get_usize(ConfigKey::DeviceStreamHistoryLimit).await?,
         ))

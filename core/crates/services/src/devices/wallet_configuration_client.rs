@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 use std::error::Error;
+use std::sync::Arc;
 
+use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
 use chain_providers::ChainProviders;
 use futures::future::join_all;
@@ -9,15 +11,32 @@ use storage::{Database, WalletsRepository};
 
 const ADDRESS_STATUS_CHAINS: [Chain; 7] = [Chain::Tron, Chain::Solana, Chain::Xrp, Chain::Stellar, Chain::Algorand, Chain::Aptos, Chain::Near];
 
+#[async_trait]
+pub trait AddressStatusStore: Send + Sync {
+    async fn address_statuses(&self, address: &ChainAddress) -> Result<Option<Vec<AddressStatus>>, Box<dyn Error + Send + Sync>>;
+    async fn set_address_statuses(&self, address: &ChainAddress, statuses: &[AddressStatus]) -> Result<(), Box<dyn Error + Send + Sync>>;
+}
+
+#[async_trait]
+impl AddressStatusStore for CacherClient {
+    async fn address_statuses(&self, address: &ChainAddress) -> Result<Option<Vec<AddressStatus>>, Box<dyn Error + Send + Sync>> {
+        self.get_cached_optional(cache_key(address)).await
+    }
+
+    async fn set_address_statuses(&self, address: &ChainAddress, statuses: &[AddressStatus]) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.set_cached(cache_key(address), &statuses).await
+    }
+}
+
 pub struct WalletConfigurationClient {
     database: Database,
     providers: ChainProviders,
-    cacher: CacherClient,
+    statuses: Arc<dyn AddressStatusStore>,
 }
 
 impl WalletConfigurationClient {
-    pub fn new(database: Database, providers: ChainProviders, cacher: CacherClient) -> Self {
-        Self { database, providers, cacher }
+    pub fn new(database: Database, providers: ChainProviders, statuses: Arc<dyn AddressStatusStore>) -> Self {
+        Self { database, providers, statuses }
     }
 
     pub async fn get_configuration(&self, device_id: i32, wallet_id: i32, wallet_identifier: WalletId, wallet_type: WalletType) -> Result<WalletConfigurationResult, Box<dyn Error + Send + Sync>> {
@@ -57,7 +76,7 @@ impl WalletConfigurationClient {
     }
 
     async fn get_statuses(&self, address: &ChainAddress) -> Option<Vec<AddressStatus>> {
-        if let Some(statuses) = self.cacher.get_cached_optional::<Vec<AddressStatus>>(cache_key(address)).await.ok().flatten().filter(|statuses| !statuses.is_empty()) {
+        if let Some(statuses) = self.statuses.address_statuses(address).await.ok().flatten().filter(|statuses| !statuses.is_empty()) {
             return Some(statuses);
         }
 
@@ -66,7 +85,7 @@ impl WalletConfigurationClient {
             return None;
         }
 
-        let _ = self.cacher.set_cached(cache_key(address), &statuses).await;
+        let _ = self.statuses.set_address_statuses(address, &statuses).await;
 
         Some(statuses)
     }
