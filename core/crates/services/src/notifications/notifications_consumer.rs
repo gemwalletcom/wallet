@@ -1,17 +1,18 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use gem_tracing::info_with_fields;
 use pusher::PusherClient;
-use streamer::{NotificationsFailedPayload, NotificationsPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
+use streamer::{NotificationsFailedPayload, NotificationsPayload, StreamProducerQueue, consumer::MessageConsumer};
 
 pub struct NotificationsConsumer {
     pub pusher: PusherClient,
-    pub stream_producer: StreamProducer,
+    pub stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl NotificationsConsumer {
-    pub fn new(pusher: PusherClient, stream_producer: StreamProducer) -> Self {
+    pub fn new(pusher: PusherClient, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { pusher, stream_producer }
     }
 }

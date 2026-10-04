@@ -6,16 +6,16 @@ use localizer::LanguageLocalizer;
 use primitives::{Asset, Chain};
 use push_notification::{GorushNotification, PushNotification};
 use storage::{Database, DatabaseError, DevicesRepository, WalletsRepository};
-use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
+use streamer::{NotificationsPayload, StreamProducerQueue};
 
 pub struct InactiveDevicesObserver {
     database: Database,
     throttle: Arc<dyn ThrottleCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl InactiveDevicesObserver {
-    pub fn new(database: Database, throttle: Arc<dyn ThrottleCacher>, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, throttle, stream_producer }
     }
 

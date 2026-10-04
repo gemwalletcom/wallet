@@ -11,7 +11,7 @@ use number_formatter::{BigNumberFormatter, ValueFormatter, ValueStyle};
 use primitives::{Asset, Chain, DelegationBase, DeviceSubscription, TransactionType};
 use push_notification::{GorushNotification, PushNotification};
 use storage::{Database, TransactionsRepository, WalletsRepository};
-use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
+use streamer::{NotificationsPayload, StreamProducerQueue};
 
 #[derive(Clone, Copy)]
 pub struct StakeRewardsConfig {
@@ -24,11 +24,11 @@ pub struct StakingRewardsNotifier {
     database: Database,
     config: StakeRewardsConfig,
     throttle: Arc<dyn ThrottleCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl StakingRewardsNotifier {
-    pub fn new(chain_providers: Arc<ChainProviders>, database: Database, config: StakeRewardsConfig, throttle: Arc<dyn ThrottleCacher>, stream_producer: StreamProducer) -> Self {
+    pub fn new(chain_providers: Arc<ChainProviders>, database: Database, config: StakeRewardsConfig, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self {
             chain_providers,
             database,

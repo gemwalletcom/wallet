@@ -37,7 +37,7 @@ pub struct AlerterJobs {
     price_alert_client: PriceAlertClient,
     chain_providers: Arc<ChainProviders>,
     stake_rewards_config: StakeRewardsConfig,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl AlerterJobs {
@@ -275,7 +275,7 @@ pub struct SystemJobs {
     database: Database,
     throttle: Arc<dyn ThrottleCacher>,
     cleanup_config: TransactionCleanupConfig,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl SystemJobs {
@@ -331,7 +331,7 @@ impl Services {
                 lookback: config.get_duration(ConfigKey::AlerterStakeRewardsLookback).await?,
             },
             config,
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         })
     }
 
@@ -426,7 +426,7 @@ impl Services {
                 address_limit: config.get_usize(ConfigKey::TransactionCleanupAddressLimit).await?,
                 lookback: config.get_duration(ConfigKey::TransactionCleanupLookback).await?,
             },
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         })
     }
 

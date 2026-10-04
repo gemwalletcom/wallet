@@ -148,7 +148,7 @@ impl Services {
     }
 
     pub async fn notifications_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<NotificationsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(NotificationsConsumer::new(self.pusher(), self.stream_producer(name, shutdown).await?))
+        Ok(NotificationsConsumer::new(self.pusher(), Arc::new(self.stream_producer(name, shutdown).await?)))
     }
 
     pub fn notifications_failed_consumer(&self) -> NotificationsFailedConsumer {
@@ -156,7 +156,7 @@ impl Services {
     }
 
     pub async fn in_app_notifications_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<InAppNotificationsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(InAppNotificationsConsumer::new(self.database(), self.stream_producer(name, shutdown).await?))
+        Ok(InAppNotificationsConsumer::new(self.database(), Arc::new(self.stream_producer(name, shutdown).await?)))
     }
 
     pub async fn rewards_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<RewardsConsumer, Box<dyn Error + Send + Sync>> {

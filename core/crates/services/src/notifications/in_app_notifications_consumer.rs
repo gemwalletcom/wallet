@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use localizer::LanguageLocalizer;
@@ -6,15 +7,15 @@ use number_formatter::{ValueFormatter, ValueStyle};
 use primitives::{Device, JsonDecode, NotificationRewardsRedeemMetadata, NotificationType, RewardEventType};
 use push_notification::{GorushNotification, PushNotification, PushNotificationReward, PushNotificationTypes};
 use storage::{AssetsRepository, Database, DatabaseError, NewNotification, NotificationsRepository, WalletsRepository};
-use streamer::{InAppNotificationPayload, NotificationsPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
+use streamer::{InAppNotificationPayload, NotificationsPayload, StreamProducerQueue, consumer::MessageConsumer};
 
 pub struct InAppNotificationsConsumer {
     database: Database,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl InAppNotificationsConsumer {
-    pub fn new(database: Database, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, stream_producer }
     }
 

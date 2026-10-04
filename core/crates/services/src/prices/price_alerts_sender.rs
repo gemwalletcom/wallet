@@ -4,16 +4,16 @@ use crate::ConfigCacher;
 use crate::prices::PriceAlertClient;
 use config_keys::ConfigKey;
 use prices::PriceAlertRules;
-use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
+use streamer::{NotificationsPayload, StreamProducerQueue};
 
 pub struct PriceAlertSender {
     config: Arc<ConfigCacher>,
     price_alert_client: PriceAlertClient,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PriceAlertSender {
-    pub fn new(config: Arc<ConfigCacher>, price_alert_client: PriceAlertClient, stream_producer: StreamProducer) -> Self {
+    pub fn new(config: Arc<ConfigCacher>, price_alert_client: PriceAlertClient, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { config, price_alert_client, stream_producer }
     }
 
