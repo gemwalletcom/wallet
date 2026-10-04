@@ -177,7 +177,7 @@ impl Services {
     pub async fn fiat_webhook_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<FiatWebhookConsumer, Box<dyn Error + Send + Sync>> {
         let stream_producer = self.stream_producer(&format!("{name}_producer"), shutdown).await?;
         let providers = self.fiat_providers(self.fiat_access_token_cacher().await?);
-        Ok(FiatWebhookConsumer::new(self.database(), providers, stream_producer))
+        Ok(FiatWebhookConsumer::new(self.database(), providers, Arc::new(stream_producer)))
     }
 
     pub async fn support_webhook_consumer(&self, shutdown: ShutdownReceiver) -> Result<SupportWebhookConsumer, Box<dyn Error + Send + Sync>> {

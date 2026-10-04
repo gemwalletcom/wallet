@@ -3,8 +3,8 @@ use std::error::Error;
 use primitives::{AssetId, Chain, NFTAssetId, TransactionId, TransactionIdRequest};
 
 use crate::{
-    ChainAddressPayload, ExchangeName, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, InAppNotificationPayload, NotificationsFailedPayload,
-    NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer, SupportWebhookPayload, TransactionsPayload, WalletStreamPayload,
+    ChainAddressPayload, ExchangeName, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, FiatWebhookPayload, InAppNotificationPayload,
+    NotificationsFailedPayload, NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer, SupportWebhookPayload, TransactionsPayload, WalletStreamPayload,
 };
 
 #[async_trait::async_trait]
@@ -35,6 +35,7 @@ pub trait StreamProducerQueue: Send + Sync {
     async fn publish_wallet_stream_events(&self, payload: Vec<WalletStreamPayload>) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_support_webhook(&self, payload: SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_pending_transaction(&self, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    async fn publish_fiat_webhook(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait::async_trait]
@@ -202,5 +203,9 @@ impl StreamProducerQueue for StreamProducer {
 
     async fn publish_pending_transaction(&self, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.publish(QueueName::StorePendingTransactions, &transaction_id).await
+    }
+
+    async fn publish_fiat_webhook(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.publish(QueueName::FiatOrderWebhooks, &payload).await
     }
 }

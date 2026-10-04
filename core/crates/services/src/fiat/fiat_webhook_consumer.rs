@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use fiat::FiatProvider;
@@ -8,18 +9,18 @@ use primitives::{Device, FiatTransactionStatus, FiatWebhook, TransactionId};
 use push_notification::{GorushNotification, PushNotification};
 use storage::{AssetsRepository, Database, DatabaseError, FiatRepository, FiatTransactionRecord, WalletsRepository};
 use streamer::consumer::MessageConsumer;
-use streamer::{FiatWebhookPayload, NotificationsPayload, QueueName, StreamProducer, StreamProducerQueue, WalletStreamEvent, WalletStreamPayload};
+use streamer::{FiatWebhookPayload, NotificationsPayload, StreamProducerQueue, WalletStreamEvent, WalletStreamPayload};
 
 use crate::notifications::Pusher;
 
 pub struct FiatWebhookConsumer {
     pub database: Database,
     pub providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
-    pub stream_producer: StreamProducer,
+    pub stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl FiatWebhookConsumer {
-    pub fn new(database: Database, providers: Vec<Box<dyn FiatProvider + Send + Sync>>, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, providers: Vec<Box<dyn FiatProvider + Send + Sync>>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, providers, stream_producer }
     }
 
@@ -114,7 +115,7 @@ impl MessageConsumer<FiatWebhookPayload, bool> for FiatWebhookConsumer {
         if updated.status == FiatTransactionStatus::Complete && !existing.is_some_and(|record| record.status == FiatTransactionStatus::Complete) {
             if let Some(hash) = &updated.transaction_hash {
                 let transaction_id = TransactionId::new(updated.asset_id.chain, hash.clone());
-                let _ = self.stream_producer.publish(QueueName::StorePendingTransactions, &transaction_id).await;
+                let _ = self.stream_producer.publish_pending_transaction(transaction_id.clone()).await;
                 info_with_fields!("published fiat transaction to pending", provider = provider_id, transaction_id = transaction_id.to_string());
             }
 

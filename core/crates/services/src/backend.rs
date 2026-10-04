@@ -123,7 +123,7 @@ impl Services {
             Arc::new(cacher),
             providers,
             self.ip_address_provider().await?,
-            stream_producer,
+            Arc::new(stream_producer),
         ))
     }
 

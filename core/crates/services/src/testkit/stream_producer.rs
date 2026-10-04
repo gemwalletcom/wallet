@@ -6,8 +6,8 @@ use primitives::{AssetId, Chain, NFTAssetId, TransactionId, TransactionIdRequest
 use serde::Serialize;
 use serde_json::Value;
 use streamer::{
-    ChainAddressPayload, ExchangeName, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, InAppNotificationPayload, NotificationsFailedPayload, NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload,
-    RewardsRedemptionPayload, StreamProducerQueue, SupportWebhookPayload, TransactionsPayload, WalletStreamPayload,
+    ChainAddressPayload, ExchangeName, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, FiatWebhookPayload, InAppNotificationPayload, NotificationsFailedPayload, NotificationsPayload, PricesPayload, QueueName,
+    RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducerQueue, SupportWebhookPayload, TransactionsPayload, WalletStreamPayload,
 };
 
 pub(crate) struct RecordingStreamProducer {
@@ -153,5 +153,9 @@ impl StreamProducerQueue for RecordingStreamProducer {
 
     async fn publish_pending_transaction(&self, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.record(QueueName::StorePendingTransactions, &transaction_id)
+    }
+
+    async fn publish_fiat_webhook(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.record(QueueName::FiatOrderWebhooks, &payload)
     }
 }

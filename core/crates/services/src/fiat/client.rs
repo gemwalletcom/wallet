@@ -15,7 +15,7 @@ use primitives::{
     FiatWebhook, RequestError,
 };
 use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, DevicesRepository, FiatRepository, WalletAddress, WalletsRepository};
-use streamer::{FiatWebhookPayload, QueueName, StreamProducer};
+use streamer::{FiatWebhookPayload, StreamProducerQueue};
 use uuid::Uuid;
 
 use crate::ConfigCacher;
@@ -27,7 +27,7 @@ pub struct FiatClient {
     rate_limiter: Arc<dyn RateLimitCacher>,
     providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
     ip_address_provider: Arc<dyn IpAddressProvider>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl FiatClient {
@@ -38,7 +38,7 @@ impl FiatClient {
         rate_limiter: Arc<dyn RateLimitCacher>,
         providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
         ip_address_provider: Arc<dyn IpAddressProvider>,
-        stream_producer: StreamProducer,
+        stream_producer: Arc<dyn StreamProducerQueue>,
     ) -> Self {
         Self {
             database,
@@ -109,7 +109,7 @@ impl FiatClient {
         let payload = FiatWebhookPayload::new(name, webhook_data, webhook);
         match payload.payload {
             FiatWebhook::OrderId(_) | FiatWebhook::Transaction(_) => {
-                self.stream_producer.publish(QueueName::FiatOrderWebhooks, &payload).await?;
+                self.stream_producer.publish_fiat_webhook(payload.clone()).await?;
                 info_with_fields!("published fiat webhook", provider = provider_id, transaction_id = transaction_id.as_str());
             }
             FiatWebhook::None => {
