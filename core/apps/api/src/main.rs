@@ -201,7 +201,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let scan_client = services.scan(providers, cacher_client.clone(), metrics.clone());
     let wallet_configuration_client = services.wallet_configuration(cacher_client.clone(), &user_agent);
     let assets_client = services.assets();
-    let search_client = services.search(price_client.clone()).await?;
+    let search_client = services.search(cacher_client.clone()).await?;
     let fee_estimates_client = services.fee_estimates(assets_client.clone(), price_client.clone(), cacher_client.clone(), &user_agent);
     let swap_client = services.swap();
     let fiat_client = services.fiat(stream_producer.clone()).await?;

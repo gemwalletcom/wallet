@@ -15,7 +15,6 @@ mod lists;
 mod perpetual_updater;
 pub(crate) mod repository;
 mod search_client;
-mod search_filter;
 mod search_request;
 mod staking_apy_updater;
 mod usage_rank_updater;

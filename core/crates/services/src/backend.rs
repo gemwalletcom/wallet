@@ -214,8 +214,8 @@ impl Services {
         AssetsClient::new(self.database(), self.config())
     }
 
-    pub async fn search(&self, price_client: PriceClient) -> Result<SearchClient, Box<dyn Error + Send + Sync>> {
-        Ok(SearchClient::new(self.search_index().await?, price_client))
+    pub async fn search(&self, cacher: CacherClient) -> Result<SearchClient, Box<dyn Error + Send + Sync>> {
+        Ok(SearchClient::new(Arc::new(self.search_index().await?), Arc::new(cacher)))
     }
 
     pub fn devices(&self) -> DevicesClient {

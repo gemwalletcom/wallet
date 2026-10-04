@@ -7321,6 +7321,7 @@ dependencies = [
 name = "search_index"
 version = "2.114.60"
 dependencies = [
+ "async-trait",
  "primitives",
  "reqwest",
  "serde",
