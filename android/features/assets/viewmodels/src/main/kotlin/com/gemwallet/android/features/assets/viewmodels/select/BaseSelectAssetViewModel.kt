@@ -12,7 +12,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
-import com.gemwallet.android.domains.asset.assetSections
+import com.gemwallet.android.domains.asset.assets
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.getAccount
@@ -61,7 +61,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemAssetSearchStep
-import uniffi.gemstone.GemAssetSectionCounts
+import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemAssetsFilterView
 import uniffi.gemstone.GemCopy
@@ -152,31 +152,29 @@ open class BaseSelectAssetViewModel(
         .flowOn(ioDispatcher)
         .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
-    private data class AssetSections(
-        val popular: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
-        val pinned: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
-        val unpinned: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
-    )
+    private data class AssetSections(val state: GemSelectAssetState, val popular: ImmutableList<AssetInfoDataAggregate>, val pinned: ImmutableList<AssetInfoDataAggregate>, val unpinned: ImmutableList<AssetInfoDataAggregate>)
 
-    private fun assetSections(items: List<AssetInfoDataAggregate>): AssetSections {
-        val sections = items.assetSections(
-            showsPopular = flow.popularSection,
-            assetId = { it.asset.id },
-            isPinned = { it.pinned },
+    private fun assetSections(items: List<AssetInfoDataAggregate>, isSearching: Boolean): AssetSections {
+        val view = flow.view(
+            assetIds = items.map { it.asset.id.toIdentifier() },
+            pinnedAssetIds = items.filter { it.pinned }.map { it.asset.id.toIdentifier() },
+            isSearching = isSearching,
         )
+        val section = { kind: GemAssetSectionKind -> items.assets(view.sections.firstOrNull { it.kind == kind }?.assetIds.orEmpty()) { it.asset.id }.toImmutableList() }
         return AssetSections(
-            popular = sections.popular.toImmutableList(),
-            pinned = sections.pinned.toImmutableList(),
-            unpinned = sections.unpinned.toImmutableList(),
+            state = view.state,
+            popular = section(GemAssetSectionKind.POPULAR),
+            pinned = section(GemAssetSectionKind.PINNED),
+            unpinned = section(GemAssetSectionKind.ASSETS),
         )
     }
 
     private val assets = assetsContent
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>())
 
-    private val sections = assets
-        .map(::assetSections)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, assetSections(assets.value))
+    private val sections = combine(assets, isSearching, ::assetSections)
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, assetSections(assets.value, isSearching.value))
 
     val popular = sections
         .map { it.popular }
@@ -205,14 +203,8 @@ open class BaseSelectAssetViewModel(
     val showsRecents: StateFlow<Boolean> = combine(snapshotFlow { queryState.text.isNotEmpty() }, recent) { hasQuery, recents -> flow.showsRecents(hasQuery, recents.isNotEmpty()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val uiState = combine(sections, isSearching) { sections, isSearching ->
-        val counts = GemAssetSectionCounts(
-            pinned = sections.pinned.size.toUInt(),
-            popular = sections.popular.size.toUInt(),
-            assets = sections.unpinned.size.toUInt(),
-        )
-        flow.state(counts, isSearching)
-    }
+    val uiState = sections
+        .map { it.state }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemSelectAssetState.IDLE)
 
     val isChainFilterAvailable = walletFlow
