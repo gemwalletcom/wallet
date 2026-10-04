@@ -1,12 +1,16 @@
+pub(crate) mod repository;
+
 use std::collections::HashMap;
 use std::hash::Hash;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
 use chrono::{DateTime, NaiveDateTime};
 use config_keys::{ConfigKey, ConfigParamKey, RateLimit, RateLimitKey, RateLimitWindow};
 use serde::de::DeserializeOwned;
-use storage::{ConfigRepository, Database, DatabaseError};
+use storage::DatabaseError;
+
+use self::repository::Repository;
 
 const DEFAULT_TTL_SECONDS: u64 = 60;
 
@@ -20,15 +24,15 @@ struct CachedValue {
 }
 
 pub struct ConfigCacher {
-    database: Database,
+    repository: Arc<dyn Repository>,
     cache: RwLock<HashMap<String, CachedValue>>,
     ttl: Duration,
 }
 
 impl ConfigCacher {
-    pub fn new(database: Database) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>) -> Self {
         Self {
-            database,
+            repository,
             cache: RwLock::new(HashMap::new()),
             ttl: Duration::from_secs(DEFAULT_TTL_SECONDS),
         }
@@ -57,7 +61,7 @@ impl ConfigCacher {
         if let Some(value) = self.get_cached(&cache_key) {
             return Ok(value);
         }
-        let value = self.database.run(move |client| client.get_config(key)).await?;
+        let value = self.repository.config_value(key).await?;
         self.set_cached(cache_key, value.clone());
         Ok(value)
     }
@@ -142,8 +146,7 @@ impl ConfigCacher {
 
     pub async fn set(&self, key: ConfigKey, value: &str) -> Result<usize, DatabaseError> {
         self.invalidate(&key);
-        let value = value.to_string();
-        self.database.run(move |client| client.set_config(key, &value)).await
+        self.repository.set_config_value(key, value.to_string()).await
     }
 
     fn invalidate(&self, key: &ConfigKey) {
@@ -158,7 +161,7 @@ impl ConfigCacher {
             return Ok(value);
         }
         let param = *param;
-        let value = self.database.run(move |client| param_value_or_default(client.get_config_param(param), &param)).await?;
+        let value = param_value_or_default(self.repository.config_param_value(param).await, &param)?;
         self.set_cached(key, value.clone());
         Ok(value)
     }
@@ -174,18 +177,60 @@ fn param_value_or_default(stored: Result<String, DatabaseError>, param: &ConfigP
 
 #[cfg(test)]
 mod tests {
-    use config_keys::{ConfigParamKey, RateLimitKey, RateLimitWindow};
+    use config_keys::{ConfigKey, ConfigParamKey, RateLimitKey, RateLimitWindow};
     use storage::DatabaseError;
 
-    use super::param_value_or_default;
+    use super::*;
+    use crate::testkit::MemoryConfigRepository;
 
     const PARAM: ConfigParamKey = ConfigParamKey::RateLimit(RateLimitKey::ReferralPerUserLimit, RateLimitWindow::Day);
 
-    #[test]
-    fn test_param_value_or_default() {
-        assert_eq!(param_value_or_default(Ok("7".to_string()), &PARAM).unwrap(), "7");
-        assert_eq!(param_value_or_default(Err(DatabaseError::not_found("Config", PARAM.key())), &PARAM).unwrap(), PARAM.default_value());
-        assert!(matches!(param_value_or_default(Err(DatabaseError::ConnectionPool), &PARAM), Err(DatabaseError::ConnectionPool)));
-        assert!(matches!(param_value_or_default(Err(DatabaseError::Error("timeout".to_string())), &PARAM), Err(DatabaseError::Error(_))));
+    fn config(repository: MemoryConfigRepository) -> ConfigCacher {
+        ConfigCacher::new(Arc::new(repository))
+    }
+
+    #[tokio::test]
+    async fn test_get_param_missing_row_uses_default() {
+        let config = config(MemoryConfigRepository::new());
+
+        assert_eq!(config.get_param_usize(&PARAM).await.unwrap(), PARAM.default_value().parse::<usize>().unwrap());
+    }
+
+    #[tokio::test]
+    async fn test_get_param_stored_row() {
+        let config = config(MemoryConfigRepository::new().with_value(&PARAM.key(), "7"));
+
+        assert_eq!(config.get_param_usize(&PARAM).await.unwrap(), 7);
+    }
+
+    #[tokio::test]
+    async fn test_failed_reads_propagate() {
+        let config = config(MemoryConfigRepository::unavailable());
+
+        assert!(matches!(config.get_param_usize(&PARAM).await, Err(DatabaseError::ConnectionPool)));
+        assert!(matches!(config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await, Err(DatabaseError::ConnectionPool)));
+    }
+
+    #[tokio::test]
+    async fn test_missing_key_is_not_found() {
+        let config = config(MemoryConfigRepository::new().without(ConfigKey::ReferralVerifiedMultiplier.as_ref()));
+
+        assert!(config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await.unwrap_err().is_not_found());
+    }
+
+    #[tokio::test]
+    async fn test_malformed_value() {
+        let config = config(MemoryConfigRepository::new().with_value(ConfigKey::ReferralVerifiedMultiplier.as_ref(), "two"));
+
+        assert!(config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn test_set_refreshes_cached_value() {
+        let config = config(MemoryConfigRepository::new());
+
+        assert_eq!(config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await.unwrap(), 2);
+        config.set(ConfigKey::ReferralVerifiedMultiplier, "4").await.unwrap();
+        assert_eq!(config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await.unwrap(), 4);
     }
 }

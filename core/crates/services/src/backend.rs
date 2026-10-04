@@ -62,7 +62,7 @@ pub struct Services {
 impl Services {
     pub fn new(settings: Arc<Settings>) -> Result<Self, DatabaseError> {
         let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
-        let config = Arc::new(ConfigCacher::new(database.clone()));
+        let config = Arc::new(ConfigCacher::new(Arc::new(crate::config::repository::PostgresRepository::new(database.clone()))));
         Ok(Self {
             settings,
             database,
