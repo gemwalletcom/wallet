@@ -1,30 +1,32 @@
 use std::error::Error;
+use std::sync::Arc;
 
-use cacher::{CacheKey, CacherClient};
 use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionIdRequest};
 use storage::{AssetsRepository, Database};
 use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducer, StreamProducerQueue};
 
+use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
+
 pub struct IndexerClient {
     database: Database,
-    cacher: CacherClient,
+    throttle: Arc<dyn FetchThrottle>,
     stream_producer: StreamProducer,
 }
 
 impl IndexerClient {
-    pub fn new(database: Database, cacher: CacherClient, stream_producer: StreamProducer) -> Self {
-        Self { database, cacher, stream_producer }
+    pub fn new(database: Database, throttle: Arc<dyn FetchThrottle>, stream_producer: StreamProducer) -> Self {
+        Self { database, throttle, stream_producer }
     }
 
     pub async fn refresh_addresses(&self, addresses: &[ChainAddress]) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let cache_keys = addresses.iter().flat_map(refresh_cache_keys).collect::<Vec<_>>();
-        self.cacher.delete_keys(&cache_keys).await?;
+        let fetches = addresses.iter().flat_map(address_fetches).collect::<Vec<_>>();
+        self.throttle.reset(&fetches).await?;
         self.stream_producer.publish_new_addresses(addresses.iter().cloned().map(ChainAddressPayload::from).collect()).await?;
         Ok(())
     }
 
     pub async fn refresh_asset(&self, asset_id: AssetId) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher.delete(&CacheKey::FetchAssets(&asset_id.to_string()).key()).await?;
+        self.throttle.reset(&[ThrottledFetch::Assets { asset_id: &asset_id.to_string() }]).await?;
         self.stream_producer.publish_fetch_assets(vec![asset_id]).await?;
         Ok(())
     }
@@ -56,24 +58,29 @@ impl IndexerClient {
     }
 
     pub async fn refresh_nft_asset(&self, asset_id: NFTAssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.cacher.delete(&CacheKey::FetchNftAsset(&asset_id.to_string()).key()).await?;
+        self.throttle.reset(&[ThrottledFetch::NftAsset { asset_id: &asset_id.to_string() }]).await?;
         self.fetch_nft_asset(asset_id).await
     }
 
     pub async fn refresh_transaction(&self, request: TransactionIdRequest) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher.delete(&CacheKey::FetchTransaction(request.chain.as_ref(), &request.hash).key()).await?;
+        self.throttle
+            .reset(&[ThrottledFetch::Transaction {
+                chain: request.chain.as_ref(),
+                hash: &request.hash,
+            }])
+            .await?;
         self.stream_producer.publish_fetch_transactions(vec![request]).await?;
         Ok(())
     }
 }
 
-fn refresh_cache_keys(address: &ChainAddress) -> [String; 4] {
-    let chain = address.chain.as_ref();
+fn address_fetches(address: &ChainAddress) -> [ThrottledFetch<'_>; 4] {
+    let (chain, address) = (address.chain.as_ref(), address.address.as_str());
     [
-        CacheKey::FetchCoinAddresses(chain, &address.address).key(),
-        CacheKey::FetchTokenAddresses(chain, &address.address).key(),
-        CacheKey::FetchNftAssetsAddresses(chain, &address.address).key(),
-        CacheKey::FetchAddressTransactions(chain, &address.address).key(),
+        ThrottledFetch::CoinAddresses { chain, address },
+        ThrottledFetch::TokenAddresses { chain, address },
+        ThrottledFetch::NftAssetsAddresses { chain, address },
+        ThrottledFetch::AddressTransactions { chain, address },
     ]
 }
 
@@ -81,19 +88,21 @@ fn refresh_cache_keys(address: &ChainAddress) -> [String; 4] {
 mod tests {
     use primitives::{Chain, ChainAddress};
 
-    use super::refresh_cache_keys;
+    use super::address_fetches;
+    use crate::fetch_throttle::ThrottledFetch;
 
     #[test]
-    fn test_refresh_cache_keys() {
+    fn test_address_fetches() {
         let address = ChainAddress::new(Chain::Ethereum, "0x123".to_string());
+        let (chain, address_value) = ("ethereum", "0x123");
 
         assert_eq!(
-            refresh_cache_keys(&address),
+            address_fetches(&address),
             [
-                "fetch:coin_addresses:ethereum:0x123",
-                "fetch:token_addresses:ethereum:0x123",
-                "fetch:nft_assets_addresses:ethereum:0x123",
-                "fetch:address_transactions:ethereum:0x123",
+                ThrottledFetch::CoinAddresses { chain, address: address_value },
+                ThrottledFetch::TokenAddresses { chain, address: address_value },
+                ThrottledFetch::NftAssetsAddresses { chain, address: address_value },
+                ThrottledFetch::AddressTransactions { chain, address: address_value },
             ]
         );
     }

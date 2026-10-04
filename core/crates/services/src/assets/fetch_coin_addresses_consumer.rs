@@ -1,29 +1,35 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
 use chain_providers::ChainProviders;
 use storage::Database;
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
 use super::addresses::update_coin_address;
+use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
 
 pub struct FetchCoinAddressesConsumer {
     pub provider: ChainProviders,
     pub database: Database,
-    pub cacher: CacherClient,
+    pub throttle: Arc<dyn FetchThrottle>,
 }
 
 impl FetchCoinAddressesConsumer {
-    pub fn new(provider: ChainProviders, database: Database, cacher: CacherClient) -> Self {
-        Self { provider, database, cacher }
+    pub fn new(provider: ChainProviders, database: Database, throttle: Arc<dyn FetchThrottle>) -> Self {
+        Self { provider, database, throttle }
     }
 }
 
 #[async_trait]
 impl MessageConsumer<ChainAddressPayload, String> for FetchCoinAddressesConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.cacher.can_process_cached(CacheKey::FetchCoinAddresses(payload.value.chain.as_ref(), &payload.value.address)).await
+        self.throttle
+            .try_start(ThrottledFetch::CoinAddresses {
+                chain: payload.value.chain.as_ref(),
+                address: &payload.value.address,
+            })
+            .await
     }
 
     async fn consume(&self, payload: ChainAddressPayload) -> Result<String, Box<dyn Error + Send + Sync>> {

@@ -2,30 +2,30 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
 use chain_providers::ChainProviders;
 use primitives::{Transaction, TransactionId, TransactionIdRequest};
 use storage::{Database, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 use swapper::{SwapResultRequest, swapper::GemSwapper};
 
+use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
 use crate::transactions::transaction_with_swap_result;
 
 pub struct FetchTransactionConsumer {
     pub providers: ChainProviders,
     pub swapper: Arc<GemSwapper>,
     pub producer: StreamProducer,
-    pub cacher: CacherClient,
+    pub throttle: Arc<dyn FetchThrottle>,
     pub database: Database,
 }
 
 impl FetchTransactionConsumer {
-    pub fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: StreamProducer, cacher: CacherClient, database: Database) -> Self {
+    pub fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: StreamProducer, throttle: Arc<dyn FetchThrottle>, database: Database) -> Self {
         Self {
             providers,
             swapper,
             producer,
-            cacher,
+            throttle,
             database,
         }
     }
@@ -40,7 +40,12 @@ impl FetchTransactionConsumer {
 #[async_trait]
 impl MessageConsumer<TransactionIdRequest, usize> for FetchTransactionConsumer {
     async fn should_consume(&self, payload: &TransactionIdRequest) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.cacher.can_process_cached(CacheKey::FetchTransaction(payload.chain.as_ref(), &payload.hash)).await
+        self.throttle
+            .try_start(ThrottledFetch::Transaction {
+                chain: payload.chain.as_ref(),
+                hash: &payload.hash,
+            })
+            .await
     }
 
     async fn consume(&self, payload: TransactionIdRequest) -> Result<usize, Box<dyn Error + Send + Sync>> {

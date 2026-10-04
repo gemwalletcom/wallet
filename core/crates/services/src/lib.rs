@@ -8,6 +8,7 @@ mod config;
 mod consumers;
 pub mod defi;
 pub mod devices;
+pub mod fetch_throttle;
 pub mod fiat;
 pub mod indexer;
 mod job_schedule;

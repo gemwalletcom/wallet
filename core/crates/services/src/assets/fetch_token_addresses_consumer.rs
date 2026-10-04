@@ -1,30 +1,41 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
 use chain_providers::ChainProviders;
 use storage::Database;
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
 
 use super::addresses::update_token_addresses;
+use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
 
 pub struct FetchTokenAddressesConsumer {
     pub provider: ChainProviders,
     pub database: Database,
     pub stream_producer: StreamProducer,
-    pub cacher: CacherClient,
+    pub throttle: Arc<dyn FetchThrottle>,
 }
 
 impl FetchTokenAddressesConsumer {
-    pub fn new(provider: ChainProviders, database: Database, stream_producer: StreamProducer, cacher: CacherClient) -> Self {
-        Self { provider, database, stream_producer, cacher }
+    pub fn new(provider: ChainProviders, database: Database, stream_producer: StreamProducer, throttle: Arc<dyn FetchThrottle>) -> Self {
+        Self {
+            provider,
+            database,
+            stream_producer,
+            throttle,
+        }
     }
 }
 
 #[async_trait]
 impl MessageConsumer<ChainAddressPayload, usize> for FetchTokenAddressesConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.cacher.can_process_cached(CacheKey::FetchTokenAddresses(payload.value.chain.as_ref(), &payload.value.address)).await
+        self.throttle
+            .try_start(ThrottledFetch::TokenAddresses {
+                chain: payload.value.chain.as_ref(),
+                address: &payload.value.address,
+            })
+            .await
     }
 
     async fn consume(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {

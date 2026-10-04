@@ -39,7 +39,7 @@ impl Services {
         Ok(FetchAssetsConsumer {
             database: self.database(),
             providers: self.chain_providers(user_agent),
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
             classification_rules: AssetClassificationRules::from_config(&self.config()).await?,
             stream_producer,
         })
@@ -73,29 +73,34 @@ impl Services {
     }
 
     pub async fn fetch_token_addresses_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchTokenAddressesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchTokenAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.database(), stream_producer, self.cacher().await?))
+        Ok(FetchTokenAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.database(), stream_producer, Arc::new(self.cacher().await?)))
     }
 
     pub async fn fetch_coin_addresses_consumer(&self, chain: Chain, user_agent: &str) -> Result<FetchCoinAddressesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchCoinAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.database(), self.cacher().await?))
+        Ok(FetchCoinAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.database(), Arc::new(self.cacher().await?)))
     }
 
     pub async fn fetch_nft_asset_consumer(&self) -> Result<FetchNftAssetConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchNftAssetConsumer {
             nft_client: self.nft(),
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
         })
     }
 
     pub async fn fetch_nft_assets_addresses_consumer(&self) -> Result<FetchNftAssetsAddressesConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchNftAssetsAddressesConsumer {
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
             nft_client: self.nft(),
         })
     }
 
     pub async fn fetch_address_transactions_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchAddressTransactionsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchAddressTransactionsConsumer::new(self.chain_providers_for(chain, user_agent), stream_producer, self.cacher().await?, self.config()))
+        Ok(FetchAddressTransactionsConsumer::new(
+            self.chain_providers_for(chain, user_agent),
+            stream_producer,
+            Arc::new(self.cacher().await?),
+            self.config(),
+        ))
     }
 
     pub async fn fetch_transaction_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchTransactionConsumer, Box<dyn Error + Send + Sync>> {
@@ -103,7 +108,7 @@ impl Services {
             self.chain_providers_for(chain, user_agent),
             self.swapper(),
             stream_producer,
-            self.cacher().await?,
+            Arc::new(self.cacher().await?),
             self.database(),
         ))
     }

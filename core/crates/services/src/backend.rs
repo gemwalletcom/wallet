@@ -259,7 +259,7 @@ impl Services {
     }
 
     pub fn indexer(&self, cacher: CacherClient, stream_producer: StreamProducer) -> IndexerClient {
-        IndexerClient::new(self.database(), cacher, stream_producer)
+        IndexerClient::new(self.database(), Arc::new(cacher), stream_producer)
     }
 
     pub fn access(&self) -> AccessClient {

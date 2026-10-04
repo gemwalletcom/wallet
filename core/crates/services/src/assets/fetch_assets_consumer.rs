@@ -1,18 +1,19 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use storage::{AssetsRepository, Database};
 use streamer::{FetchAssetsPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
 
 use crate::assets::AssetClassificationRules;
+use crate::fetch_throttle::{FetchThrottle, ThrottledFetch};
 
 pub struct FetchAssetsConsumer {
     pub database: Database,
     pub providers: ChainProviders,
-    pub cacher: CacherClient,
+    pub throttle: Arc<dyn FetchThrottle>,
     pub classification_rules: AssetClassificationRules,
     pub stream_producer: StreamProducer,
 }
@@ -20,7 +21,7 @@ pub struct FetchAssetsConsumer {
 #[async_trait]
 impl MessageConsumer<FetchAssetsPayload, usize> for FetchAssetsConsumer {
     async fn should_consume(&self, payload: &FetchAssetsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.cacher.can_process_cached(CacheKey::FetchAssets(&payload.asset_id.to_string())).await
+        self.throttle.try_start(ThrottledFetch::Assets { asset_id: &payload.asset_id.to_string() }).await
     }
 
     async fn consume(&self, payload: FetchAssetsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
