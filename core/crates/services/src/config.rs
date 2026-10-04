@@ -83,7 +83,7 @@ impl ConfigCacher {
     }
 
     pub async fn get_param_duration(&self, param: &ConfigParamKey) -> Result<Duration, DatabaseError> {
-        parse_duration(&self.get_param_value(param).await)
+        parse_duration(&self.get_param_value(param).await?)
     }
 
     pub async fn get_param_durations<T>(&self, values: impl IntoIterator<Item = T>, key: impl Fn(T) -> ConfigParamKey) -> Result<HashMap<T, Duration>, DatabaseError>
@@ -98,11 +98,11 @@ impl ConfigCacher {
     }
 
     pub async fn get_param_bool(&self, param: &ConfigParamKey) -> Result<bool, DatabaseError> {
-        Ok(self.get_param_value(param).await.parse()?)
+        Ok(self.get_param_value(param).await?.parse()?)
     }
 
     pub async fn get_param_usize(&self, param: &ConfigParamKey) -> Result<usize, DatabaseError> {
-        Ok(self.get_param_value(param).await.parse()?)
+        Ok(self.get_param_value(param).await?.parse()?)
     }
 
     pub async fn get_rate_limit(&self, key: RateLimitKey) -> Result<RateLimit, DatabaseError> {
@@ -152,15 +152,40 @@ impl ConfigCacher {
         }
     }
 
-    async fn get_param_value(&self, param: &ConfigParamKey) -> String {
+    async fn get_param_value(&self, param: &ConfigParamKey) -> Result<String, DatabaseError> {
         let key = param.key();
         if let Some(value) = self.get_cached(&key) {
-            return value;
+            return Ok(value);
         }
         let param = *param;
-        let stored = self.database.run(move |client| Ok::<_, DatabaseError>(client.get_config_param(param).ok())).await.ok().flatten();
-        let value = stored.unwrap_or_else(|| param.default_value());
+        let value = self.database.run(move |client| param_value_or_default(client.get_config_param(param), &param)).await?;
         self.set_cached(key, value.clone());
-        value
+        Ok(value)
+    }
+}
+
+fn param_value_or_default(stored: Result<String, DatabaseError>, param: &ConfigParamKey) -> Result<String, DatabaseError> {
+    match stored {
+        Ok(value) => Ok(value),
+        Err(error) if error.is_not_found() => Ok(param.default_value()),
+        Err(error) => Err(error),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use config_keys::{ConfigParamKey, RateLimitKey, RateLimitWindow};
+    use storage::DatabaseError;
+
+    use super::param_value_or_default;
+
+    const PARAM: ConfigParamKey = ConfigParamKey::RateLimit(RateLimitKey::ReferralPerUserLimit, RateLimitWindow::Day);
+
+    #[test]
+    fn test_param_value_or_default() {
+        assert_eq!(param_value_or_default(Ok("7".to_string()), &PARAM).unwrap(), "7");
+        assert_eq!(param_value_or_default(Err(DatabaseError::not_found("Config", PARAM.key())), &PARAM).unwrap(), PARAM.default_value());
+        assert!(matches!(param_value_or_default(Err(DatabaseError::ConnectionPool), &PARAM), Err(DatabaseError::ConnectionPool)));
+        assert!(matches!(param_value_or_default(Err(DatabaseError::Error("timeout".to_string())), &PARAM), Err(DatabaseError::Error(_))));
     }
 }

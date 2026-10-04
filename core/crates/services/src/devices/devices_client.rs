@@ -79,7 +79,7 @@ impl DevicesClient {
 
     pub async fn find_device_record(&self, device_id: &str) -> Result<Option<DeviceRecord>, DatabaseError> {
         let device_id = device_id.to_string();
-        self.database.run(move |client| Ok(client.get_device_record(&device_id).ok())).await
+        self.database.run(move |client| optional_record(client.get_device_record(&device_id))).await
     }
 
     pub async fn find_device_wallet(&self, device_id: &str, wallet_id: &str) -> Result<DeviceWalletLookup, DatabaseError> {
@@ -87,7 +87,7 @@ impl DevicesClient {
         let wallet_id = wallet_id.to_string();
         self.database
             .run(move |client| {
-                let Ok(device) = client.get_device_record(&device_id) else {
+                let Some(device) = optional_record(client.get_device_record(&device_id))? else {
                     return Ok(DeviceWalletLookup::DeviceNotFound);
                 };
                 Ok(match client.get_wallet_by_device_and_identifier(device.id, &wallet_id) {
@@ -97,5 +97,28 @@ impl DevicesClient {
                 })
             })
             .await
+    }
+}
+
+fn optional_record<T>(result: Result<T, DatabaseError>) -> Result<Option<T>, DatabaseError> {
+    match result {
+        Ok(record) => Ok(Some(record)),
+        Err(error) if error.is_not_found() => Ok(None),
+        Err(error) => Err(error),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use storage::DatabaseError;
+
+    use super::optional_record;
+
+    #[test]
+    fn test_optional_record() {
+        assert_eq!(optional_record(Ok(7)).unwrap(), Some(7));
+        assert_eq!(optional_record::<i32>(Err(DatabaseError::not_found("Device", "device_1"))).unwrap(), None);
+        assert!(matches!(optional_record::<i32>(Err(DatabaseError::ConnectionPool)), Err(DatabaseError::ConnectionPool)));
+        assert!(matches!(optional_record::<i32>(Err(DatabaseError::Error("timeout".to_string()))), Err(DatabaseError::Error(_))));
     }
 }
