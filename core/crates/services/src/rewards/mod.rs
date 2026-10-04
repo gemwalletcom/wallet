@@ -1,4 +1,5 @@
 mod config;
+mod error;
 mod ip_security_client;
 mod redemption;
 mod redemption_client;
@@ -15,6 +16,7 @@ mod username;
 #[cfg(test)]
 pub(crate) use config::AbuseDetectionConfig;
 pub use config::{ReferralVerificationConfig, username_rules};
+pub use error::RewardsServiceError;
 pub use ip_security_client::IpSecurityClient;
 pub use redemption::redeem_points;
 pub use redemption_client::RewardsRedemptionClient;

@@ -1,19 +1,17 @@
-use std::error::Error;
-
 use primitives::rewards::{RedemptionResponse, RedemptionResult, RewardRedemptionOption};
 use rewards::RewardsRedemptionError;
-use storage::{DatabaseClient, RewardsRedemptionsRepository};
+use storage::{DatabaseClient, DatabaseError, RewardsRedemptionsRepository};
 
-pub fn redeem_points(client: &mut DatabaseClient, username: &str, points: i32, option_id: &str, device_id: i32, wallet_id: i32) -> Result<RedemptionResponse, Box<dyn Error + Send + Sync>> {
+pub fn redeem_points(client: &mut DatabaseClient, username: &str, points: i32, option_id: &str, device_id: i32, wallet_id: i32) -> Result<Result<RedemptionResponse, RewardsRedemptionError>, DatabaseError> {
     if let Some(error) = redemption_rejection(points, &client.get_redemption_option(option_id)?) {
-        return Err(error.into());
+        return Ok(Err(error));
     }
     let redemption = client.add_redemption(username, option_id, device_id, wallet_id)?;
     let redemption_id = redemption.id;
-    Ok(RedemptionResponse {
+    Ok(Ok(RedemptionResponse {
         result: RedemptionResult { redemption },
         redemption_id,
-    })
+    }))
 }
 
 fn redemption_rejection(points: i32, option: &RewardRedemptionOption) -> Option<RewardsRedemptionError> {

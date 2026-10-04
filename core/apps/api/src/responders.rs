@@ -6,11 +6,12 @@ use gem_client::ClientError;
 use gem_tracing::error_fields;
 use localizer::LanguageLocalizer;
 use primitives::{RequestError, ResponseResult};
-use rewards::{RewardsError, RewardsRedemptionError, UsernameError};
 use rocket::response::{Responder, Response};
 use rocket::serde::json::Json;
 use rocket::{Request, http::Status};
 use serde::Serialize;
+use services::fiat::FiatServiceError;
+use services::rewards::RewardsServiceError;
 use services::{CacheError, DatabaseError};
 use strum::ParseError;
 
@@ -20,34 +21,16 @@ pub fn cache_error(req: &Request<'_>, message: &str) {
     req.local_cache(|| ErrorContext(message.to_string()));
 }
 
-pub fn localized_fiat_error(error: Box<dyn std::error::Error + Send + Sync>, locale: &str) -> ApiError {
+pub fn localized_fiat_error(error: FiatServiceError, locale: &str) -> ApiError {
     let localizer = LanguageLocalizer::new_with_language(locale);
-    if let Some(error) = error.downcast_ref::<RequestError>() {
-        return match error {
-            RequestError::LimitReached => ApiError::OkError(localizer.fiat_error_limit_reached()),
-            RequestError::Forbidden => ApiError::BadRequest(localizer.fiat_error_quote_unavailable()),
-        };
+    match error {
+        FiatServiceError::Request(RequestError::LimitReached) => ApiError::OkError(localizer.fiat_error_limit_reached()),
+        FiatServiceError::Request(RequestError::Forbidden) => ApiError::BadRequest(localizer.fiat_error_quote_unavailable()),
+        FiatServiceError::Quote(FiatQuoteError::RegionUnavailable) => ApiError::OkError(localizer.fiat_error_region_unavailable()),
+        FiatServiceError::Quote(FiatQuoteError::MinimumAmount(_) | FiatQuoteError::UnsupportedState(_) | FiatQuoteError::InvalidRequest(_) | FiatQuoteError::InvalidWebhook) => ApiError::BadRequest(localizer.errors_generic()),
+        FiatServiceError::Storage(error) => error.into(),
+        FiatServiceError::Internal(error) => ApiError::Internal(error.to_string()),
     }
-    if let Some(error) = error.downcast_ref::<FiatQuoteError>() {
-        return match error {
-            FiatQuoteError::RegionUnavailable => ApiError::OkError(localizer.fiat_error_region_unavailable()),
-            FiatQuoteError::MinimumAmount(_) | FiatQuoteError::UnsupportedState(_) | FiatQuoteError::InvalidRequest(_) | FiatQuoteError::InvalidWebhook => ApiError::BadRequest(localizer.errors_generic()),
-        };
-    }
-    ApiError::from(error)
-}
-
-fn ok_error_message(error: &(dyn std::error::Error + 'static)) -> Option<String> {
-    downcast_error_message::<RewardsError>(error)
-        .or_else(|| downcast_error_message::<RewardsRedemptionError>(error))
-        .or_else(|| downcast_error_message::<UsernameError>(error))
-}
-
-fn downcast_error_message<T>(error: &(dyn std::error::Error + 'static)) -> Option<String>
-where
-    T: std::error::Error + 'static,
-{
-    error.downcast_ref::<T>().map(ToString::to_string)
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -166,21 +149,24 @@ impl From<RequestError> for ApiError {
     }
 }
 
-impl From<RewardsError> for ApiError {
-    fn from(error: RewardsError) -> Self {
-        ApiError::OkError(error.to_string())
+impl From<FiatServiceError> for ApiError {
+    fn from(error: FiatServiceError) -> Self {
+        match error {
+            FiatServiceError::Request(error) => error.into(),
+            FiatServiceError::Quote(error) => error.into(),
+            FiatServiceError::Storage(error) => error.into(),
+            FiatServiceError::Internal(error) => ApiError::Internal(error.to_string()),
+        }
     }
 }
 
-impl From<RewardsRedemptionError> for ApiError {
-    fn from(error: RewardsRedemptionError) -> Self {
-        ApiError::OkError(error.to_string())
-    }
-}
-
-impl From<UsernameError> for ApiError {
-    fn from(error: UsernameError) -> Self {
-        ApiError::OkError(error.to_string())
+impl From<RewardsServiceError> for ApiError {
+    fn from(error: RewardsServiceError) -> Self {
+        match error {
+            RewardsServiceError::Rejected(error) => ApiError::OkError(error.to_string()),
+            RewardsServiceError::Storage(error) => error.into(),
+            RewardsServiceError::Internal(error) => ApiError::Internal(error.to_string()),
+        }
     }
 }
 
@@ -194,17 +180,8 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
             if let Some(db_error) = current_error.downcast_ref::<DatabaseError>() {
                 return db_error.clone().into();
             }
-            if let Some(request_error) = current_error.downcast_ref::<RequestError>() {
-                return (*request_error).into();
-            }
-            if let Some(fiat_error) = current_error.downcast_ref::<FiatQuoteError>() {
-                return fiat_error.clone().into();
-            }
             if let Some(ClientError::Http { status, body }) = current_error.downcast_ref::<ClientError>() {
                 return ApiError::Internal(format!("upstream status {status}: {}", String::from_utf8_lossy(body)));
-            }
-            if let Some(message) = ok_error_message(current_error) {
-                return ApiError::OkError(message);
             }
             match current_error.source() {
                 Some(source) => current_error = source,
@@ -236,26 +213,32 @@ mod tests {
     use fiat::error::FiatQuoteError;
     use gem_client::ClientError;
     use primitives::RequestError;
-    use rewards::{RewardsError, RewardsRedemptionError};
+    use rewards::RewardsError;
     use rocket::http::Status;
+    use services::fiat::FiatServiceError;
+    use services::rewards::RewardsServiceError;
     use services::{CacheError, DatabaseError};
 
     #[test]
     fn test_a_fiat_error_reads_in_the_device_language() {
-        let unavailable = super::localized_fiat_error(Box::new(FiatQuoteError::RegionUnavailable), "en");
+        let unavailable = super::localized_fiat_error(FiatServiceError::Quote(FiatQuoteError::RegionUnavailable), "en");
         assert_eq!(unavailable.public(), (Status::Ok, "Not available in your region.".to_string(), None));
-        let limited = super::localized_fiat_error(Box::new(RequestError::LimitReached), "de");
+        let limited = super::localized_fiat_error(FiatServiceError::Request(RequestError::LimitReached), "de");
         assert_eq!(limited, ApiError::OkError("Zu viele Angebotsanfragen. Bitte versuchen Sie es in ein paar Minuten erneut.".to_string()));
         assert_eq!(
-            super::localized_fiat_error(Box::new(RequestError::Forbidden), "en"),
+            super::localized_fiat_error(FiatServiceError::Request(RequestError::Forbidden), "en"),
             ApiError::BadRequest("This quote is no longer available. Please try again.".to_string()),
             "a quote that expired says so instead of a bare Forbidden"
         );
         assert_eq!(
-            super::localized_fiat_error(Box::new(fiat::error::FiatQuoteError::InvalidRequest("Missing network".to_string())), "en"),
+            super::localized_fiat_error(FiatServiceError::Quote(FiatQuoteError::InvalidRequest("Missing network".to_string())), "en"),
             ApiError::BadRequest("An unexpected error occurred. Please try again later.".to_string())
         );
-        assert_eq!(super::localized_fiat_error("connection refused".into(), "en"), ApiError::Internal("connection refused".to_string()));
+        assert_eq!(super::localized_fiat_error(FiatServiceError::Internal("connection refused".into()), "en"), ApiError::Internal("connection refused".to_string()));
+        assert_eq!(
+            super::localized_fiat_error(FiatServiceError::Storage(DatabaseError::not_found("Asset", "btc")), "en"),
+            ApiError::NotFound("Asset btc not found".to_string())
+        );
     }
 
     #[test]
@@ -277,15 +260,14 @@ mod tests {
     }
 
     #[test]
-    fn test_boxed_rewards_error_maps_to_ok_error() {
-        let error: Box<dyn std::error::Error + Send + Sync> = Box::new(RewardsError::Username("Daily username creation limit has been reached".to_string()));
-        assert_eq!(ApiError::from(error), ApiError::OkError("Daily username creation limit has been reached".to_string()));
-    }
-
-    #[test]
-    fn test_boxed_rewards_redemption_error_maps_to_ok_error() {
-        let error: Box<dyn std::error::Error + Send + Sync> = Box::new(RewardsRedemptionError::LimitReached);
-        assert_eq!(ApiError::from(error), ApiError::OkError("Redemption limit reached".to_string()));
+    fn test_rewards_service_error_mapping() {
+        let rejected = RewardsServiceError::Rejected(RewardsError::Username("Daily username creation limit has been reached".to_string()));
+        assert_eq!(ApiError::from(rejected), ApiError::OkError("Daily username creation limit has been reached".to_string()));
+        assert_eq!(
+            ApiError::from(RewardsServiceError::Storage(DatabaseError::not_found_internal("Rewards", "1"))),
+            ApiError::NotFound("Rewards not found".to_string())
+        );
+        assert_eq!(ApiError::from(RewardsServiceError::Internal("ip lookup failed".into())), ApiError::Internal("ip lookup failed".to_string()));
     }
 
     #[test]
@@ -342,8 +324,10 @@ mod tests {
     }
 
     #[test]
-    fn test_boxed_limit_reached_maps_to_ok_error() {
-        let error: Box<dyn std::error::Error + Send + Sync> = Box::new(RequestError::LimitReached);
-        assert_eq!(ApiError::from(error), ApiError::OkError("Rate limit reached".to_string()));
+    fn test_fiat_service_error_mapping() {
+        assert_eq!(ApiError::from(FiatServiceError::Request(RequestError::LimitReached)), ApiError::OkError("Rate limit reached".to_string()));
+        assert_eq!(ApiError::from(FiatServiceError::Request(RequestError::Forbidden)), ApiError::Forbidden);
+        assert_eq!(ApiError::from(FiatServiceError::Quote(FiatQuoteError::InvalidWebhook)), ApiError::BadRequest("Invalid webhook payload".to_string()));
+        assert_eq!(ApiError::from(FiatServiceError::Internal("provider down".into())), ApiError::Internal("provider down".to_string()));
     }
 }

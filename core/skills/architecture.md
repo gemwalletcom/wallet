@@ -35,6 +35,7 @@ Reference: `crates/gem_hypercore/src/provider/balances.rs` and `balances_mapper.
 - Consuming is transport and stays in the apps: RabbitMQ queues in daemon consumers (`streamer` readers and `run_consumer`, the one infra dependency the daemon keeps) and the api websocket's Redis pub/sub subscription. The consumer passed to `run_consumer` and all publishing come from `services`.
 - A database transaction closure is sync: fetch from providers first, then open the transaction.
 - Consumers receive narrow traits for the provider and infrastructure operations they use. Concrete adapters stay in the composition root; do not add a generic forwarding port that merely mirrors an infrastructure client.
+- A use case that rejects requests for business reasons returns a typed service error ([`FiatServiceError`](../crates/services/src/fiat/error.rs), [`RewardsServiceError`](../crates/services/src/rewards/error.rs)); the API maps each variant explicitly. The boxed `ApiError` fallback only maps storage, cache and upstream failures.
 
 ## Repository Pattern
 

@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use primitives::rewards::RewardStatus;
 use primitives::{Chain, RewardEvent, now};
 use rewards::{DeviceWallet, NewReferralVerification, Referral, ReferralError, ReferralUseFacts, ReferredRewards, new_referral_verification, referral_verification_delay};
@@ -48,7 +46,7 @@ pub fn use_or_verify_referral(
     device_id: i32,
     risk_signal_id: Option<i32>,
     verification_config: ReferralVerificationConfig,
-) -> Result<Vec<RewardEvent>, Box<dyn Error + Send + Sync>> {
+) -> Result<Result<Vec<RewardEvent>, ReferralError>, DatabaseError> {
     let referred_username = client.ensure_reward_identity(wallet_id)?.username;
     let verification = client.get_rewards_verification(&referred_username)?;
     let referred = ReferredRewards {
@@ -63,11 +61,13 @@ pub fn use_or_verify_referral(
 
     if let Some(record) = client.get_referral_by_referred_username(&referred_username)? {
         let referral_id = record.id;
-        referral(record).validate_confirmation(referrer_username, device_id).map_err(ReferralError::from)?;
-        if !can_verify {
-            return Ok(vec![]);
+        if let Err(error) = referral(record).validate_confirmation(referrer_username, device_id) {
+            return Ok(Err(error.into()));
         }
-        return Ok(client.verify_referral(referral_id, referrer_username, &referrer_status, &referred_username)?);
+        if !can_verify {
+            return Ok(Ok(vec![]));
+        }
+        return Ok(Ok(client.verify_referral(referral_id, referrer_username, &referrer_status, &referred_username)?));
     }
 
     let delay = referral_verification_delay(verification_config.base_delay, verification_config.verified_multiplier, referrer_status);
@@ -78,5 +78,5 @@ pub fn use_or_verify_referral(
             None
         }
     };
-    Ok(client.record_referral(referrer_username, &referred_username, device_id, risk_signal_id, verified_at, &referrer_status)?)
+    Ok(Ok(client.record_referral(referrer_username, &referred_username, device_id, risk_signal_id, verified_at, &referrer_status)?))
 }
