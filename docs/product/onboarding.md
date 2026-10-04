@@ -39,6 +39,7 @@ flowchart LR
 | The user types a Secret Phrase | word suggestions complete the last word, and a tap replaces it | |
 | The cursor is inside the phrase | no suggestions show | a tap never changes the wrong word |
 | An address is typed as a name | the resolved name becomes the wallet name | |
+| A `.sol` name is typed while SRS resolution is paused | not found | `.sol` is never guessed from `.sns`; the two names can have different owners |
 | The wallet already exists | it is simply opened | |
 
 ## App lock offer

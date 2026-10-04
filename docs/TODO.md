@@ -22,7 +22,7 @@ These need no further answer; work them in this order, one family per change.
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
 2. **Backend dependency cleanup:** AUD464 first, then CLN458 through CLN464, one consumer family per change. Build adapters in `Services`, preserve runtime behavior and verify the actual failure or dependency boundary each item changes.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173.
 
 ## Screen coverage and existing infrastructure
 
@@ -215,4 +215,5 @@ A feature module is one product area, and both apps give it the same name. iOS g
 - **X170** **S** Dynode's TON `/api/v2/runGetMethod` cache validation in [`proxy/service.rs`](../core/apps/dynode/src/proxy/service.rs) goes on 2027-01-01, together with the Dynode legacy wallet routes.
 - **X171** **S** The connection banner stays off (`CONNECTION_BANNER_ENABLED` in [`constants.rs`](../core/gemstone/src/constants.rs)) until it is polished; turning it on is the owner's call.
 - **X172** **S** `WidgetValueTone` ([`WidgetValueTone.swift`](../ios/GemPriceWidget/Types/WidgetValueTone.swift)) restates Core's `valueTone` because the widget extension cannot link Gemstone; a change of nothing stays neutral in both. The copy goes once the widget can reach Core, and until then the two change together.
+- **X173** **M** `.sol` resolution is paused until the Solana Record Service publishes a supported resolver. SNS resolves `.sns` only; when SRS support ships, add `.sol` as a distinct provider and preserve its ownership independently from `.sns`.
 - **X163** **M** iOS pins the `Gemstone` package to Swift 5 language mode. Re-tested on 2026-09-16 against uniffi 0.32.1: both `uniffiTraitInterfaceCallAsync` sites still fail with "passing closure as a 'sending' parameter" because the generated `Task { }` captures three `@escaping` non-`Sendable` parameters. Nothing to decide and nothing to do until a uniffi release changes that function; re-test then. Rechecked on 2026-09-22 with `cargo search uniffi`: 0.32.1 is still the latest uniffi release, and the fix is already merged upstream as uniffi #2929 (`694fda6a05`, 2026-07-15, marks the async trait-interface closures `@Sendable`) but is not in 0.32.1. Rechecked on 2026-10-04: 0.32.2 still lacks it (its Swift `Async.swift` template has no `@Sendable`). Bump uniffi to the first release that contains #2929, regenerate, and move the `Gemstone` package to Swift 6 mode.

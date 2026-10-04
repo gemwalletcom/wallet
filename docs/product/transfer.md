@@ -22,6 +22,7 @@ flowchart LR
 |---|---|---|
 | A typed name is registered for the network | it resolves while typing to that address | |
 | A typed name is not registered, or has no address for the network | not found | a name never becomes an empty or zero address |
+| A `.sol` name is typed while SRS resolution is paused | not found | `.sol` is never guessed from `.sns`; the two names can have different owners |
 | The name service cannot be reached | an error, not a missing name | |
 | The fee's coin has a price | Network Fee shows its value only: `$0.01` | the value is the number the user weighs |
 | The fee's coin has no price | the fee in that coin: `0.000021 ETH` | |
