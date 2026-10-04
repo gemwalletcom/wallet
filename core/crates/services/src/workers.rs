@@ -441,9 +441,17 @@ impl Services {
             stream_producer.clone(),
             SwapVaultAddressClient::new(cacher.clone()),
             metrics.clone(),
-            CheckSchedule::new(cacher.clone(), TransactionQueue::InTransit),
+            CheckSchedule::new(Arc::new(cacher.clone()), TransactionQueue::InTransit),
         );
-        let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer, database, pending_config, metrics, CheckSchedule::new(cacher.clone(), TransactionQueue::Pending));
+        let pending_updater = PendingTransactionsUpdater::new(
+            providers,
+            Arc::new(cacher.clone()),
+            stream_producer,
+            database,
+            pending_config,
+            metrics,
+            CheckSchedule::new(Arc::new(cacher.clone()), TransactionQueue::Pending),
+        );
         Ok(TransactionJobs {
             in_transit_updater: Arc::new(in_transit_updater),
             pending_updater: Arc::new(pending_updater),

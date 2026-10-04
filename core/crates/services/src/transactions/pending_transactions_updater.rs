@@ -4,8 +4,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::ConfigCacher;
-use crate::transactions::{CheckSchedule, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
-use cacher::{CacheKey, CacherClient};
+use crate::transactions::{CheckSchedule, PendingTransactionsStore, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
 use chain_providers::{ChainProviders, TransactionIdRequest};
 use chrono::{DateTime, Utc};
 use config_keys::{ConfigKey, ConfigParamKey};
@@ -43,7 +42,7 @@ impl PendingTransactionsUpdaterConfig {
 
 pub struct PendingTransactionsUpdater {
     providers: Arc<ChainProviders>,
-    cacher: CacherClient,
+    pending: Arc<dyn PendingTransactionsStore>,
     stream_producer: StreamProducer,
     database: Database,
     config: PendingTransactionsUpdaterConfig,
@@ -54,7 +53,7 @@ pub struct PendingTransactionsUpdater {
 impl PendingTransactionsUpdater {
     pub fn new(
         providers: Arc<ChainProviders>,
-        cacher: CacherClient,
+        pending: Arc<dyn PendingTransactionsStore>,
         stream_producer: StreamProducer,
         database: Database,
         config: PendingTransactionsUpdaterConfig,
@@ -63,7 +62,7 @@ impl PendingTransactionsUpdater {
     ) -> Self {
         Self {
             providers,
-            cacher,
+            pending,
             stream_producer,
             database,
             config,
@@ -87,10 +86,9 @@ impl PendingTransactionsUpdater {
     }
 
     async fn update_chain(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let pending_key = CacheKey::PendingTransactions(chain.as_ref());
         let pending = self
-            .cacher
-            .sorted_set_range_with_scores(&pending_key.key(), 0, -1)
+            .pending
+            .pending(chain)
             .await?
             .into_iter()
             .map(|(identifier, expires_at)| (TransactionId::new(chain, identifier), expires_at))
@@ -151,12 +149,11 @@ impl PendingTransactionsUpdater {
     }
 
     async fn remove_pending_transaction(&self, chain: Chain, identifier: &str) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        self.cacher.remove_from_sorted_set_cached(CacheKey::PendingTransactions(chain.as_ref()), &[identifier.to_string()]).await
+        self.pending.remove_pending(chain, identifier).await
     }
 
     async fn pending_count(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let pending_key = CacheKey::PendingTransactions(chain.as_ref());
-        Ok(self.cacher.sorted_set_card(&pending_key.key()).await? as usize)
+        self.pending.pending_count(chain).await
     }
 }
 

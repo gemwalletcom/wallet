@@ -136,7 +136,7 @@ impl Services {
     }
 
     pub async fn store_pending_transactions_consumer(&self) -> Result<StorePendingTransactionsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(StorePendingTransactionsConsumer::new(self.cacher().await?))
+        Ok(StorePendingTransactionsConsumer::new(Arc::new(self.cacher().await?)))
     }
 
     pub fn store_transactions_swaps_consumer(&self) -> StoreTransactionsSwapsConsumer {
