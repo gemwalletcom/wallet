@@ -31,8 +31,6 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.GemAcquireOption
-import uniffi.gemstone.GemAddressFormatStyle
-import uniffi.gemstone.GemAddressServiceInterface
 import uniffi.gemstone.GemAmountField
 import uniffi.gemstone.GemAmountKeyboard
 import uniffi.gemstone.GemAmountSymbol
@@ -286,8 +284,6 @@ fun GemNameIndicator.style(): ListItemTextStyle = when (this) {
     GemNameIndicator.ERROR -> ListItemTextStyle.Negative
     GemNameIndicator.LOADING, GemNameIndicator.SUCCESS -> ListItemTextStyle.Positive
 }
-
-fun GemAddressServiceInterface.formatShort(address: String, chain: String?): String = format(address, chain, GemAddressFormatStyle.Short)
 
 fun GemAmountField.amountSymbol(): AmountSymbolUIModel = AmountSymbolUIModel(
     symbol = when (val symbol = symbol) {
