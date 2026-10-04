@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
+use config_keys::RateLimitWindow;
 use primitives::Localize;
 use primitives::rewards::{RedemptionResult, Rewards};
 use primitives::{NaiveDateTimeExt, now};
@@ -9,9 +9,9 @@ use rewards::{RewardsError, RewardsRedemptionError};
 use storage::{Database, RewardsRedemptionsRepository, RewardsRepository};
 use streamer::{RewardsRedemptionPayload, StreamProducerQueue};
 
+use super::config::{RedemptionConfig, username_rules};
 use super::redemption::redeem_points;
 use super::summary::rewards_by_wallet_id;
-use super::username::username_rules;
 use crate::ConfigCacher;
 
 pub struct RewardsRedemptionClient {
@@ -52,12 +52,14 @@ impl RewardsRedemptionClient {
     async fn check_redemption_limits(&self, username: &str, rewards: &Rewards) -> Result<(), Box<dyn Error + Send + Sync>> {
         let current = now();
 
-        if rewards.created_at > current.ago(self.config.get_duration(ConfigKey::RedemptionMinAccountAge).await?) {
+        let config = RedemptionConfig::from_config(&self.config).await?;
+
+        if rewards.created_at > current.ago(config.min_account_age) {
             return Err(RewardsRedemptionError::AccountTooNew.into());
         }
 
-        let cooldown_since = current.ago(self.config.get_duration(ConfigKey::RedemptionCooldownAfterReferral).await?);
-        let limits = self.config.get_rate_limit(RateLimitKey::RedemptionPerUserLimit).await?;
+        let cooldown_since = current.ago(config.cooldown_after_referral);
+        let limits = config.limits;
         let username = username.to_string();
         self.database
             .run(move |client| -> Result<(), Box<dyn Error + Send + Sync>> {

@@ -5,7 +5,6 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use cacher::{AccessTokenCacherClient, CacherClient, SafeScanTarget, ScanSafeCacher};
-use config_keys::{ConfigKey, ConfigParamKey};
 use futures::future;
 use gem_client::ReqwestClient;
 use gem_tracing::{error_with_fields, info_with_fields};
@@ -17,6 +16,7 @@ use serde_json::json;
 use settings::Settings;
 use storage::{AssetsRepository, Database, DatabaseError, ScanAddressesRepository, ScanDetectionsRepository};
 
+use super::scan_config::ScanConfig;
 use crate::ConfigCacher;
 
 pub trait ScanMetrics: Send + Sync {
@@ -48,13 +48,14 @@ impl ScanClient {
     }
 
     pub async fn get_scan_transaction(&self, payload: ScanTransactionPayload) -> Result<ScanTransaction, Box<dyn Error + Send + Sync>> {
+        let config = ScanConfig::from_config(&self.config_cacher).await?;
         let subjects = scan_subjects(&payload);
-        let safe_targets = self.get_safe_targets(&subjects).await?;
+        let safe_targets = Self::safe_targets(&config, &subjects);
         let safe = self.get_cached_safe(&safe_targets).await;
-        let input = self.get_scan_input(payload, &subjects, safe).await?;
+        let input = self.get_scan_input(&config, payload, &subjects, safe).await?;
         let plan = plan_transaction_scan(&input);
         let checks = match &plan.targets {
-            Some(targets) => self.run_checks(targets).await?,
+            Some(targets) => self.run_checks(&config, targets).await?,
             None => Vec::new(),
         };
         let result = evaluate_transaction_scan(&input, plan, checks);
@@ -65,18 +66,12 @@ impl ScanClient {
         Ok(result.scan)
     }
 
-    async fn get_scan_input(&self, payload: ScanTransactionPayload, subjects: &[ScanSubject], safe: HashSet<ScanType>) -> Result<TransactionScanInput, Box<dyn Error + Send + Sync>> {
-        let mut enforced = HashSet::new();
-        for scan_type in ScanType::all() {
-            if self.config_cacher.get_param_bool(&ConfigParamKey::ScanTypeEnable(scan_type)).await? {
-                enforced.insert(scan_type);
-            }
-        }
+    async fn get_scan_input(&self, config: &ScanConfig, payload: ScanTransactionPayload, subjects: &[ScanSubject], safe: HashSet<ScanType>) -> Result<TransactionScanInput, Box<dyn Error + Send + Sync>> {
         let queries = [(payload.origin.asset_id.chain, payload.origin.address.clone()), (payload.target.asset_id.chain, payload.target.address.clone())];
         let asset_ids = token_asset_ids(&payload);
         let mut targets = subjects.iter().map(|subject| subject.target.clone()).collect::<Vec<_>>();
         targets.dedup();
-        let detection_max_age = if targets.is_empty() { None } else { Some(self.config_cacher.get_duration(ConfigKey::ScanDetectionMaxAge).await?) };
+        let detection_max_age = if targets.is_empty() { None } else { Some(config.detection_max_age) };
         let (addresses, assets, verdicts) = self
             .database
             .run(move |client| -> Result<_, DatabaseError> {
@@ -92,28 +87,28 @@ impl ScanClient {
             .await?;
         Ok(TransactionScanInput {
             payload,
-            enforced,
+            enforced: config.enforced.clone(),
             addresses,
             assets,
             verdicts,
             safe,
-            required_successes: self.config_cacher.get_usize(ConfigKey::ScanRequiredSuccesses).await?,
+            required_successes: config.required_successes,
         })
     }
 
-    async fn get_safe_targets(&self, subjects: &[ScanSubject]) -> Result<Vec<SafeScanTarget>, Box<dyn Error + Send + Sync>> {
-        let mut targets = Vec::new();
-        for subject in subjects.iter().filter(|subject| subject.scan_type.is_safe_cacheable()) {
-            let ttl = self.config_cacher.get_param_duration(&ConfigParamKey::ScanSafeCacheDuration(subject.scan_type)).await?.as_secs();
-            if ttl > 0 {
-                targets.push(SafeScanTarget {
+    fn safe_targets(config: &ScanConfig, subjects: &[ScanSubject]) -> Vec<SafeScanTarget> {
+        subjects
+            .iter()
+            .filter(|subject| subject.scan_type.is_safe_cacheable())
+            .filter_map(|subject| {
+                let ttl = config.safe_cache_ttl(subject.scan_type);
+                (ttl > 0).then(|| SafeScanTarget {
                     scan_type: subject.scan_type,
                     target: subject.cache_key(),
                     ttl,
-                });
-            }
-        }
-        Ok(targets)
+                })
+            })
+            .collect()
     }
 
     async fn get_cached_safe(&self, targets: &[SafeScanTarget]) -> HashSet<ScanType> {
@@ -137,14 +132,8 @@ impl ScanClient {
         self.safe_targets.add_safe(&new_safe).await
     }
 
-    async fn run_checks(&self, targets: &ScanTargets) -> Result<Vec<ProviderCheck>, Box<dyn Error + Send + Sync>> {
-        let mut enabled = Vec::new();
-        for provider in ScanProvider::all() {
-            if self.config_cacher.get_param_bool(&ConfigParamKey::ScanProviderEnable(provider)).await? {
-                enabled.push(provider);
-            }
-        }
-        let providers = self.providers.filter_enabled(&enabled);
+    async fn run_checks(&self, config: &ScanConfig, targets: &ScanTargets) -> Result<Vec<ProviderCheck>, Box<dyn Error + Send + Sync>> {
+        let providers = self.providers.filter_enabled(&config.enabled_providers);
         let (addresses, poisoning, websites) = future::join3(
             future::join_all(targets.address.iter().flat_map(|target| {
                 providers

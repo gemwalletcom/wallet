@@ -1,3 +1,4 @@
+mod config;
 mod ip_security_client;
 mod redemption;
 mod redemption_client;
@@ -11,12 +12,13 @@ mod risk;
 mod summary;
 mod username;
 
+#[cfg(test)]
+pub(crate) use config::AbuseDetectionConfig;
+pub use config::{ReferralVerificationConfig, username_rules};
 pub use ip_security_client::IpSecurityClient;
 pub use redemption::redeem_points;
 pub use redemption_client::RewardsRedemptionClient;
-pub use referral::{ReferralVerificationConfig, referral_use_facts, use_or_verify_referral};
-#[cfg(test)]
-pub(crate) use rewards_abuse_checker::AbuseDetectionConfig;
+pub use referral::{referral_use_facts, use_or_verify_referral};
 pub use rewards_abuse_checker::RewardsAbuseChecker;
 pub use rewards_client::RewardsClient;
 pub use rewards_consumer::RewardsConsumer;
@@ -24,4 +26,4 @@ pub use rewards_eligibility_checker::RewardsEligibilityChecker;
 pub use rewards_redemption_consumer::{RedemptionRetryConfig, RewardsRedemptionConsumer};
 pub use risk::{RiskAssessment, assess_referral_risk};
 pub use summary::rewards_by_wallet_id;
-pub use username::{create_username, username_rules};
+pub use username::create_username;

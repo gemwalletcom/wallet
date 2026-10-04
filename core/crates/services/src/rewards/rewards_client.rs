@@ -8,15 +8,16 @@ use localizer::LanguageLocalizer;
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
 use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, WalletId, WalletSource, WalletType, now};
 use pusher::PushProvider;
-use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoreConfig, RiskScoringInput, UsernameError};
+use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoringInput, UsernameError};
 use storage::{Database, DatabaseClient, DatabaseError, DeviceRecord, NewWallet, RewardsRedemptionsRepository, RewardsRepository, WalletRecord, WalletsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducerQueue};
 
+use super::config::{ReferralSecurityConfig, ReferralVerificationConfig, referrer_multiplier, risk_score_config, username_rules};
 use super::ip_security_client::IpSecurityClient;
-use super::referral::{ReferralVerificationConfig, referral_use_facts, use_or_verify_referral};
+use super::referral::{referral_use_facts, use_or_verify_referral};
 use super::risk::{RiskAssessment, assess_referral_risk};
 use super::summary::rewards_by_wallet_id;
-use super::username::{create_username, username_rules};
+use super::username::create_username;
 use crate::ConfigCacher;
 
 enum ReferralCodeUse {
@@ -28,19 +29,6 @@ enum ReferralProcessResult {
     Success { risk_signal_id: i32, referrer_status: RewardStatus },
     Failed(ReferralError),
     RiskScoreExceeded(i32, ReferralError),
-}
-
-struct ReferralSecurityConfig {
-    tor_allowed: bool,
-    ineligible_countries: Vec<String>,
-}
-
-async fn referrer_multiplier(config: &ConfigCacher, status: &RewardStatus) -> Result<i64, DatabaseError> {
-    if *status == RewardStatus::Trusted {
-        config.get_i64(ConfigKey::ReferralTrustedMultiplier).await
-    } else {
-        config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await
-    }
 }
 
 pub struct RewardsClient {
@@ -293,7 +281,7 @@ impl RewardsClient {
         }
 
         let ip_result = self.ip_security_client.check_ip(ip_address).await?;
-        let security_config = self.load_referral_security_config().await.map_err(ReferralError::internal)?;
+        let security_config = ReferralSecurityConfig::from_config(&self.config).await.map_err(ReferralError::internal)?;
         if !security_config.tor_allowed && ip_result.is_tor {
             return Err(ReferralError::IpTorNotAllowed);
         }
@@ -302,7 +290,7 @@ impl RewardsClient {
         }
         self.consume_referral_limits([(RateLimitKey::ReferralPerCountryLimit, ip_result.country_code.as_str())]).await?;
 
-        let risk_score_config = self.load_risk_score_config().await.map_err(ReferralError::internal)?;
+        let risk_score_config = risk_score_config(&self.config).await.map_err(ReferralError::internal)?;
         let since = now().ago(risk_score_config.lookback);
 
         let scoring_input = RiskScoringInput {
@@ -341,68 +329,6 @@ impl RewardsClient {
 
     async fn consume_rate_limit(&self, key: RateLimitKey, scope: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.rate_limiter.consume(key, scope, self.config.get_rate_limit(key).await?).await
-    }
-
-    async fn load_referral_security_config(&self) -> Result<ReferralSecurityConfig, DatabaseError> {
-        Ok(ReferralSecurityConfig {
-            tor_allowed: self.config.get_bool(ConfigKey::ReferralIpTorAllowed).await?,
-            ineligible_countries: self.config.get_vec_string(ConfigKey::ReferralIneligibleCountries).await?,
-        })
-    }
-
-    async fn load_risk_score_config(&self) -> Result<RiskScoreConfig, DatabaseError> {
-        Ok(RiskScoreConfig {
-            fingerprint_match_penalty_per_referrer: self.config.get_i64(ConfigKey::ReferralRiskScoreFingerprintMatchPerReferrer).await?,
-            fingerprint_match_max_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreFingerprintMatchMaxPenalty).await?,
-            ip_reuse_score: self.config.get_i64(ConfigKey::ReferralRiskScoreIpReuse).await?,
-            isp_model_match_score: self.config.get_i64(ConfigKey::ReferralRiskScoreIspModelMatch).await?,
-            device_id_reuse_penalty_per_referrer: self.config.get_i64(ConfigKey::ReferralRiskScoreDeviceIdReusePerReferrer).await?,
-            device_id_reuse_max_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreDeviceIdReuseMaxPenalty).await?,
-            ineligible_ip_type_score: self.config.get_i64(ConfigKey::ReferralRiskScoreIneligibleIpType).await?,
-            blocked_ip_types: self.config.get_vec(ConfigKey::ReferralBlockedIpTypes).await?,
-            blocked_ip_type_penalty: self.config.get_i64(ConfigKey::ReferralBlockedIpTypePenalty).await?,
-            max_abuse_score: self.config.get_i64(ConfigKey::ReferralMaxAbuseScore).await?,
-            penalty_isps: self.config.get_vec_string(ConfigKey::ReferralPenaltyIsps).await?,
-            isp_penalty_score: self.config.get_i64(ConfigKey::ReferralPenaltyIspsScore).await?,
-            verified_user_reduction: self.config.get_i64(ConfigKey::ReferralRiskScoreVerifiedUserReduction).await?,
-            early_referral_reduction_initial: self.config.get_i64(ConfigKey::ReferralRiskScoreEarlyReferralReductionInitial).await?,
-            early_referral_reduction_step: self.config.get_i64(ConfigKey::ReferralRiskScoreEarlyReferralReductionStep).await?,
-            max_allowed_score: self.config.get_i64(ConfigKey::ReferralRiskScoreMaxAllowed).await?,
-            same_referrer_pattern_threshold: self.config.get_i64(ConfigKey::ReferralRiskScoreSameReferrerPatternThreshold).await?,
-            same_referrer_pattern_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreSameReferrerPatternPenalty).await?,
-            same_referrer_fingerprint_threshold: self.config.get_i64(ConfigKey::ReferralRiskScoreSameReferrerFingerprintThreshold).await?,
-            same_referrer_fingerprint_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreSameReferrerFingerprintPenalty).await?,
-            same_referrer_device_model_threshold: self.config.get_i64(ConfigKey::ReferralRiskScoreSameReferrerDeviceModelThreshold).await?,
-            same_referrer_device_model_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreSameReferrerDeviceModelPenalty).await?,
-            device_model_ring_threshold: self.config.get_i64(ConfigKey::ReferralRiskScoreDeviceModelRingThreshold).await?,
-            device_model_ring_penalty_per_member: self.config.get_i64(ConfigKey::ReferralRiskScoreDeviceModelRingPenaltyPerMember).await?,
-            lookback: self.config.get_duration(ConfigKey::ReferralRiskScoreLookback).await?,
-            high_risk_platform_stores: self.config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskPlatformStores).await?,
-            high_risk_platform_store_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreHighRiskPlatformStorePenalty).await?,
-            high_risk_countries: self.config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskCountries).await?,
-            high_risk_country_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreHighRiskCountryPenalty).await?,
-            high_risk_locales: self.config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskLocales).await?,
-            high_risk_locale_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreHighRiskLocalePenalty).await?,
-            high_risk_device_models: self.config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskDeviceModels).await?,
-            high_risk_device_model_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreHighRiskDeviceModelPenalty).await?,
-            high_risk_user_agents: self.config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskUserAgents).await?,
-            high_risk_user_agent_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreHighRiskUserAgentPenalty).await?,
-            ip_history_penalty_per_abuser: self.config.get_i64(ConfigKey::ReferralRiskScoreIpHistoryPenaltyPerAbuser).await?,
-            ip_history_max_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreIpHistoryMaxPenalty).await?,
-            velocity_window: self.config.get_duration(ConfigKey::ReferralAbuseVelocityWindow).await?,
-            velocity_divisor: self.config.get_i64(ConfigKey::ReferralAbuseVelocityDivisor).await?,
-            velocity_penalty: self.config.get_i64(ConfigKey::ReferralAbuseVelocityPenaltyPerSignal).await?,
-            referral_per_user_daily: self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit).await?.get(RateLimitWindow::Day),
-            verified_multiplier: self.config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await?,
-            trusted_multiplier: self.config.get_i64(ConfigKey::ReferralTrustedMultiplier).await?,
-            cross_referrer_device_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreCrossReferrerDevicePenalty).await?,
-            cross_referrer_fingerprint_threshold: self.config.get_i64(ConfigKey::ReferralRiskScoreCrossReferrerFingerprintThreshold).await?,
-            cross_referrer_fingerprint_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreCrossReferrerFingerprintPenalty).await?,
-            country_diversity_threshold: self.config.get_i64(ConfigKey::ReferralRiskScoreCountryDiversityThreshold).await?,
-            country_diversity_penalty_per_country: self.config.get_i64(ConfigKey::ReferralRiskScoreCountryDiversityPenaltyPerCountry).await?,
-            device_farming_threshold: self.config.get_i64(ConfigKey::ReferralRiskScoreDeviceFarmingThreshold).await?,
-            device_farming_penalty_per_device: self.config.get_i64(ConfigKey::ReferralRiskScoreDeviceFarmingPenaltyPerDevice).await?,
-        })
     }
 
     async fn publish_events(&self, event_ids: Vec<i32>) -> Result<(), Box<dyn Error + Send + Sync>> {

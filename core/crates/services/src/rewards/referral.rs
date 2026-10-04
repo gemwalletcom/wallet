@@ -1,28 +1,11 @@
 use std::error::Error;
-use std::time::Duration;
 
-use config_keys::ConfigKey;
 use primitives::rewards::RewardStatus;
 use primitives::{Chain, RewardEvent, now};
 use rewards::{DeviceWallet, NewReferralVerification, Referral, ReferralError, ReferralUseFacts, ReferredRewards, new_referral_verification, referral_verification_delay};
 use storage::{DatabaseClient, DatabaseError, ReferralRecord, RewardsRepository, WalletsRepository};
 
-use crate::ConfigCacher;
-
-#[derive(Debug, Clone, Copy)]
-pub struct ReferralVerificationConfig {
-    base_delay: Duration,
-    verified_multiplier: i64,
-}
-
-impl ReferralVerificationConfig {
-    pub async fn from_config(config: &ConfigCacher) -> Result<Self, DatabaseError> {
-        Ok(Self {
-            base_delay: config.get_duration(ConfigKey::ReferralVerificationDelay).await?,
-            verified_multiplier: config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await?,
-        })
-    }
-}
+use super::config::ReferralVerificationConfig;
 
 fn referral(record: ReferralRecord) -> Referral {
     Referral {

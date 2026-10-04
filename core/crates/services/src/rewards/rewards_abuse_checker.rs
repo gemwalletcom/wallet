@@ -1,5 +1,5 @@
+use super::config::AbuseDetectionConfig;
 use crate::ConfigCacher;
-use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::info_with_fields;
 use primitives::rewards::RewardStatus;
 use primitives::{NaiveDateTimeExt, now};
@@ -7,28 +7,6 @@ use std::error::Error;
 use std::sync::Arc;
 use storage::{AbusePatterns, Database, DatabaseClient, DatabaseError, RewardsRepository, RiskSignalsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducerQueue};
-
-pub(crate) struct AbuseDetectionConfig {
-    pub(crate) disable_threshold: i64,
-    pub(crate) attempt_penalty: i64,
-    pub(crate) verified_threshold_multiplier: f64,
-    pub(crate) lookback: std::time::Duration,
-    pub(crate) min_referrals_to_evaluate: i64,
-    pub(crate) country_rotation_threshold: i64,
-    pub(crate) country_rotation_penalty: i64,
-    pub(crate) ring_referrers_per_device_threshold: i64,
-    pub(crate) ring_referrers_per_fingerprint_threshold: i64,
-    pub(crate) ring_penalty: i64,
-    pub(crate) device_farming_threshold: i64,
-    pub(crate) device_farming_penalty: i64,
-    pub(crate) velocity_window: std::time::Duration,
-    pub(crate) velocity_divisor: i64,
-    pub(crate) velocity_penalty: i64,
-    pub(crate) referral_per_user_daily: i64,
-    pub(crate) verified_multiplier: i64,
-    pub(crate) trusted_multiplier: i64,
-    pub(crate) disabled_referrer_penalty: i64,
-}
 
 struct AbuseEvaluation {
     username: String,
@@ -78,7 +56,7 @@ impl RewardsAbuseChecker {
     }
 
     pub async fn check(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let config = self.load_config().await?;
+        let config = AbuseDetectionConfig::from_config(&self.config).await?;
         let since = now().ago(config.lookback);
 
         let mut evaluations = self
@@ -224,30 +202,6 @@ impl RewardsAbuseChecker {
         let event_id = self.database.run(move |client| client.disable_rewards(&username, reason, &comment)).await?;
 
         Ok(Some(event_id))
-    }
-
-    async fn load_config(&self) -> Result<AbuseDetectionConfig, storage::DatabaseError> {
-        Ok(AbuseDetectionConfig {
-            disable_threshold: self.config.get_i64(ConfigKey::ReferralAbuseDisableThreshold).await?,
-            attempt_penalty: self.config.get_i64(ConfigKey::ReferralAbuseAttemptPenalty).await?,
-            verified_threshold_multiplier: self.config.get_f64(ConfigKey::ReferralAbuseVerifiedThresholdMultiplier).await?,
-            lookback: self.config.get_duration(ConfigKey::ReferralAbuseLookback).await?,
-            min_referrals_to_evaluate: self.config.get_i64(ConfigKey::ReferralAbuseMinReferralsToEvaluate).await?,
-            country_rotation_threshold: self.config.get_i64(ConfigKey::ReferralAbuseCountryRotationThreshold).await?,
-            country_rotation_penalty: self.config.get_i64(ConfigKey::ReferralAbuseCountryRotationPenalty).await?,
-            ring_referrers_per_device_threshold: self.config.get_i64(ConfigKey::ReferralAbuseRingReferrersPerDeviceThreshold).await?,
-            ring_referrers_per_fingerprint_threshold: self.config.get_i64(ConfigKey::ReferralAbuseRingReferrersPerFingerprintThreshold).await?,
-            ring_penalty: self.config.get_i64(ConfigKey::ReferralAbuseRingPenalty).await?,
-            device_farming_threshold: self.config.get_i64(ConfigKey::ReferralAbuseDeviceFarmingThreshold).await?,
-            device_farming_penalty: self.config.get_i64(ConfigKey::ReferralAbuseDeviceFarmingPenalty).await?,
-            velocity_window: self.config.get_duration(ConfigKey::ReferralAbuseVelocityWindow).await?,
-            velocity_divisor: self.config.get_i64(ConfigKey::ReferralAbuseVelocityDivisor).await?,
-            velocity_penalty: self.config.get_i64(ConfigKey::ReferralAbuseVelocityPenaltyPerSignal).await?,
-            referral_per_user_daily: self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit).await?.get(RateLimitWindow::Day),
-            verified_multiplier: self.config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await?,
-            trusted_multiplier: self.config.get_i64(ConfigKey::ReferralTrustedMultiplier).await?,
-            disabled_referrer_penalty: self.config.get_i64(ConfigKey::ReferralAbuseDisabledReferrerPenalty).await?,
-        })
     }
 }
 
