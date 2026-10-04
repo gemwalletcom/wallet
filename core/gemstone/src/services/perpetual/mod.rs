@@ -121,10 +121,7 @@ impl GemPerpetualService {
         };
         let chain = Chain::HyperCore;
         let address = account.address.clone();
-        let mode = match self.sync_positions(wallet.id.clone(), chain, address.clone()).await {
-            Ok(mode) => mode,
-            Err(_) => self.account_mode(wallet.id, chain, address.clone()).await?,
-        };
+        let mode = self.account_mode(wallet.id, chain, address.clone()).await?;
         Ok(Some(GemPerpetualConnection { address, mode }))
     }
 }
@@ -539,7 +536,7 @@ mod tests {
     }
 
     #[test]
-    fn test_connection_uses_hypercore_for_evm_accounts() {
+    fn test_connection_fetches_only_the_account_mode_before_opening_the_socket() {
         block_on(async {
             for chains in [[Chain::Arbitrum, Chain::HyperCore], [Chain::Hyperliquid, Chain::HyperCore], [Chain::HyperCore, Chain::Arbitrum]] {
                 let testkit = PerpetualTestkit::with_unified_balance().await;
@@ -551,12 +548,12 @@ mod tests {
                     connection,
                     Some(GemPerpetualConnection {
                         address: "0xc64c".to_string(),
-                        mode: PerpetualAccountMode::Unified
+                        mode: PerpetualAccountMode::Unified,
                     })
                 );
-                let stored = testkit.balances.balances.lock().unwrap();
-                assert_eq!(stored[&wallet.id][0].available.to_string(), "12093224");
-                assert_eq!(stored[&wallet.id][0].withdrawable.to_string(), "12093224");
+                assert_eq!(testkit.provider.requested_types(), vec!["userAbstraction"]);
+                assert!(testkit.store.position_writes.lock().unwrap().is_empty());
+                assert!(testkit.balances.balances.lock().unwrap().is_empty());
             }
         });
     }

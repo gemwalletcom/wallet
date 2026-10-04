@@ -29,6 +29,7 @@ flowchart LR
 |---|---|---|
 | The wallet is not Multi-Coin or has no Hyperliquid account, or the user has not switched Perpetuals on | Perpetuals are not offered | |
 | The user switches Perpetuals off | the markets, positions and every wallet's perpetual recents are removed | search must not offer a market the app no longer has |
+| The app launches or returns to the foreground | cached positions show immediately, then the Hyperliquid socket replaces them with its current account snapshot; the full REST position refresh does not delay opening the socket | the socket needs only the account mode required for the correct subscriptions |
 | A market's price moves while the list is open | its 24h change moves with it | the change next to the price must agree with it and with Hyperliquid |
 | The user long-presses a market | it is pinned | |
 | The user searches | positions and markets are filtered | |
