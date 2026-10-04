@@ -43,6 +43,6 @@ pub use store_transactions_swaps_consumer_config::StoreTransactionsSwapsConsumer
 pub use swap_state::{swap_result_metadata, swap_state_updates, transaction_with_swap_result};
 pub use transaction_queue_metrics::{TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
 pub use transactions_client::TransactionsClient;
-pub use vault_address::SwapVaultAddressClient;
+pub use vault_address::{SwapVaultAddressClient, SwapVaultAddressStore};
 pub use vault_addresses_updater::VaultAddressesUpdater;
 pub use wallet_stream_consumer::WalletStreamConsumer;

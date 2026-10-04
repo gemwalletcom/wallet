@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::CacherClient;
 use chain_providers::ChainProviders;
 use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
@@ -17,21 +16,24 @@ use swapper::swapper::GemSwapper;
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
 use crate::fiat::{FiatAssetsUpdater, FiatRatesUpdater};
 use crate::notifications::{StakeRewardsConfig, StakingRewardsNotifier};
-use crate::perpetuals::{PerpetualAddressRefresher, PerpetualPositionClassifier, PerpetualPositionClassifierConfig, PerpetualPositionObserver};
+use crate::perpetuals::{PerpetualAddressRefresher, PerpetualAddressStore, PerpetualPositionClassifier, PerpetualPositionClassifierConfig, PerpetualPositionObserver};
 use crate::prices::{
-    AssetsProviders, ChartsHistoryConfig, ChartsHistoryUpdater, ChartsUpdater, MarketsClient, MarketsUpdater, MissingPricesPublisher, ObservedPricesConfig, ObservedPricesUpdater, PriceAlertClient, PriceAlertSender, PriceClient,
-    PricesCleanupUpdater, PricesMetricsUpdater, PricesUpdater,
+    AssetsProviders, ChartsHistoryConfig, ChartsHistoryStore, ChartsHistoryUpdater, ChartsUpdater, MarketsClient, MarketsUpdater, MissingPricesPublisher, ObservedAssetsStore, ObservedPricesConfig, ObservedPricesUpdater, PriceAlertClient,
+    PriceAlertSender, PriceClient, PriceMetadataCooldowns, PricesCleanupUpdater, PricesMetricsUpdater, PricesUpdater,
 };
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
 use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater};
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
-use crate::transactions::{CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater};
+use crate::throttle::Throttle;
+use crate::transactions::{
+    CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, SwapVaultAddressStore, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater,
+};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
 
 #[derive(Clone)]
 pub struct AlerterJobs {
     database: Database,
-    cacher: CacherClient,
+    throttle: Arc<dyn Throttle>,
     config: Arc<ConfigCacher>,
     price_alert_client: PriceAlertClient,
     chain_providers: Arc<ChainProviders>,
@@ -45,7 +47,7 @@ impl AlerterJobs {
     }
 
     pub fn staking_rewards_notifier(&self) -> StakingRewardsNotifier {
-        StakingRewardsNotifier::new(self.chain_providers.clone(), self.database.clone(), self.stake_rewards_config, Arc::new(self.cacher.clone()), self.stream_producer.clone())
+        StakingRewardsNotifier::new(self.chain_providers.clone(), self.database.clone(), self.stake_rewards_config, self.throttle.clone(), self.stream_producer.clone())
     }
 }
 
@@ -108,7 +110,7 @@ impl FiatJobs {
 #[derive(Clone)]
 pub struct PerpetualJobs {
     database: Database,
-    cacher: CacherClient,
+    addresses: Arc<dyn PerpetualAddressStore>,
     config: Arc<ConfigCacher>,
     providers: Arc<ChainProviders>,
     classifier_config: PerpetualPositionClassifierConfig,
@@ -117,22 +119,24 @@ pub struct PerpetualJobs {
 
 impl PerpetualJobs {
     pub fn classifier(&self, chain: Chain) -> PerpetualPositionClassifier {
-        PerpetualPositionClassifier::new(chain, self.providers.clone(), Arc::new(self.cacher.clone()), self.classifier_config)
+        PerpetualPositionClassifier::new(chain, self.providers.clone(), self.addresses.clone(), self.classifier_config)
     }
 
     pub fn observer(&self, chain: Chain) -> PerpetualPositionObserver {
-        PerpetualPositionObserver::new(chain, self.providers.clone(), Arc::new(self.cacher.clone()), self.config.clone(), self.stream_producer.clone())
+        PerpetualPositionObserver::new(chain, self.providers.clone(), self.addresses.clone(), self.config.clone(), self.stream_producer.clone())
     }
 
     pub fn address_refresher(&self) -> PerpetualAddressRefresher {
-        PerpetualAddressRefresher::new(self.providers.clone(), self.database.clone(), Arc::new(self.cacher.clone()))
+        PerpetualAddressRefresher::new(self.providers.clone(), self.database.clone(), self.addresses.clone())
     }
 }
 
 #[derive(Clone)]
 pub struct PriceJobs {
     database: Database,
-    cacher: CacherClient,
+    metadata_cooldowns: Arc<dyn PriceMetadataCooldowns>,
+    observed_assets: Arc<dyn ObservedAssetsStore>,
+    charts_history: Arc<dyn ChartsHistoryStore>,
     config: Arc<ConfigCacher>,
     price_client: PriceClient,
     markets_client: MarketsClient,
@@ -165,7 +169,7 @@ impl PriceJobs {
     }
 
     pub async fn publish_assets_metadata(&self, kind: PriceProvider) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        self.assets_updater(kind).publish_assets_metadata(&self.cacher, &self.config).await
+        self.assets_updater(kind).publish_assets_metadata(self.metadata_cooldowns.as_ref(), &self.config).await
     }
 
     pub async fn update_observed_prices(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -175,7 +179,7 @@ impl PriceJobs {
             primary_price_max_age: self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?,
         };
         ObservedPricesUpdater::new(
-            Arc::new(self.cacher.clone()),
+            self.observed_assets.clone(),
             self.database.clone(),
             self.price_client.clone(),
             self.providers.clone(),
@@ -191,7 +195,7 @@ impl PriceJobs {
     }
 
     pub fn cleanup_updater(&self, kind: PriceProvider) -> PricesCleanupUpdater {
-        PricesCleanupUpdater::new(self.database.clone(), Arc::new(self.cacher.clone()), self.config.clone(), kind)
+        PricesCleanupUpdater::new(self.database.clone(), self.charts_history.clone(), self.config.clone(), kind)
     }
 
     pub fn metrics_updater(&self, kind: PriceProvider) -> PricesMetricsUpdater {
@@ -199,7 +203,7 @@ impl PriceJobs {
     }
 
     pub fn charts_history_updater(&self, kind: PriceProvider, config: ChartsHistoryConfig) -> ChartsHistoryUpdater {
-        ChartsHistoryUpdater::new(self.provider(kind), self.database.clone(), Arc::new(self.cacher.clone()), config)
+        ChartsHistoryUpdater::new(self.provider(kind), self.database.clone(), self.charts_history.clone(), config)
     }
 
     pub fn markets_updater(&self) -> MarketsUpdater {
@@ -270,7 +274,7 @@ impl SearchJobs {
 #[derive(Clone)]
 pub struct SystemJobs {
     database: Database,
-    cacher: CacherClient,
+    throttle: Arc<dyn Throttle>,
     cleanup_config: TransactionCleanupConfig,
     stream_producer: StreamProducer,
 }
@@ -285,7 +289,7 @@ impl SystemJobs {
     }
 
     pub fn inactive_devices_observer(&self) -> InactiveDevicesObserver {
-        InactiveDevicesObserver::new(self.database.clone(), Arc::new(self.cacher.clone()), self.stream_producer.clone())
+        InactiveDevicesObserver::new(self.database.clone(), self.throttle.clone(), self.stream_producer.clone())
     }
 
     pub fn version_updater(&self) -> VersionUpdater {
@@ -298,7 +302,7 @@ pub struct TransactionJobs {
     in_transit_updater: Arc<InTransitUpdater>,
     pending_updater: Arc<PendingTransactionsUpdater>,
     swapper: Arc<GemSwapper>,
-    cacher: CacherClient,
+    vault_addresses: Arc<dyn SwapVaultAddressStore>,
 }
 
 impl TransactionJobs {
@@ -311,7 +315,7 @@ impl TransactionJobs {
     }
 
     pub fn vault_addresses_updater(&self) -> VaultAddressesUpdater {
-        VaultAddressesUpdater::new(self.swapper.clone(), Arc::new(self.cacher.clone()))
+        VaultAddressesUpdater::new(self.swapper.clone(), self.vault_addresses.clone())
     }
 }
 
@@ -320,7 +324,7 @@ impl Services {
         let config = self.config();
         Ok(AlerterJobs {
             database: self.database(),
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
             price_alert_client: self.price_alerts(),
             chain_providers: Arc::new(self.chain_providers(&service_user_agent("daemon", Some("stake_rewards")))),
             stake_rewards_config: StakeRewardsConfig {
@@ -358,7 +362,7 @@ impl Services {
         let config = self.config();
         Ok(PerpetualJobs {
             database: self.database(),
-            cacher: self.cacher().await?,
+            addresses: Arc::new(self.cacher().await?),
             providers: Arc::new(self.chain_providers(&service_user_agent("daemon", Some("perpetual_observer")))),
             classifier_config: PerpetualPositionClassifierConfig {
                 trigger_bps: config.get_i64(ConfigKey::PerpetualPriorityTriggerBps).await?,
@@ -387,7 +391,9 @@ impl Services {
             coingecko: CoinGeckoClient::new(self.settings().prices.coingecko.remote_provider_config()),
             config: self.config(),
             database,
-            cacher,
+            metadata_cooldowns: Arc::new(cacher.clone()),
+            observed_assets: Arc::new(cacher.clone()),
+            charts_history: Arc::new(cacher),
             enabled_providers,
             assets_producer,
             prices_producer,
@@ -415,7 +421,7 @@ impl Services {
         let config = self.config();
         Ok(SystemJobs {
             database: self.database(),
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
             cleanup_config: TransactionCleanupConfig {
                 address_max_count: config.get_i64(ConfigKey::TransactionCleanupAddressMaxCount).await?,
                 address_limit: config.get_usize(ConfigKey::TransactionCleanupAddressLimit).await?,
@@ -463,7 +469,7 @@ impl Services {
             in_transit_updater: Arc::new(in_transit_updater),
             pending_updater: Arc::new(pending_updater),
             swapper,
-            cacher,
+            vault_addresses: Arc::new(cacher),
         })
     }
 }
