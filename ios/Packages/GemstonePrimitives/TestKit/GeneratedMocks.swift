@@ -590,16 +590,18 @@ public extension Gemstone.GemFeeRateRows {
         showsOptions: Bool = false,
         unitType: Gemstone.FeeUnitType = .satVb,
         unitDecimals: UInt32 = 0,
-        selectedTotal: BigInt? = nil,
-        normalTotal: BigInt? = nil,
+        selected: Gemstone.GasPriceType? = nil,
+        normal: Gemstone.GasPriceType? = nil,
+        baseFee: BigInt? = nil,
     ) -> Gemstone.GemFeeRateRows {
         Gemstone.GemFeeRateRows(
             rows: rows,
             showsOptions: showsOptions,
             unitType: unitType,
             unitDecimals: unitDecimals,
-            selectedTotal: selectedTotal,
-            normalTotal: normalTotal,
+            selected: selected,
+            normal: normal,
+            baseFee: baseFee,
         )
     }
 }

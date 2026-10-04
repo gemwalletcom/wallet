@@ -331,9 +331,6 @@ mod tests {
     fn test_bigint_to_string_conversion() {
         let value = BigInt::from(100_000_000u64);
         assert_eq!(value.to_string(), "100000000");
-
-        let min_priority = BigInt::from(primitives::EVMChain::Ethereum.min_priority_fee());
-        assert_eq!(min_priority.to_string(), "100000000");
     }
 
     #[test]

@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizat</string>
+  <string name="fee_rate_priority">Taxa de prioritate</string>
+  <string name="fee_rate_base">Taxa de bază</string>
   <string name="banner_account_activation_title">Taxa de activare a contului</string>
   <string name="banner_account_activation_description">Rețeaua %1$s necesită o taxă unică de %2$s.</string>
   <string name="banner_stake_title">Începeți miza %1$s</string>

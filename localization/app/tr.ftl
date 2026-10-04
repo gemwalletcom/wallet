@@ -476,6 +476,8 @@ fee_rates_normal = Normal
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Özel
+fee_rate_priority = Öncelik Ücreti
+fee_rate_base = Temel Ücret
 
 # Banner
 

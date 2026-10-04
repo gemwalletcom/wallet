@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Foundation
+import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemCustomFeeEstimate
+import struct Gemstone.GemCustomFeeField
+import struct Gemstone.GemCustomFeeFieldState
 import struct Gemstone.GemCustomFeeSession
 import GemstonePrimitives
 import Localization
@@ -15,17 +17,25 @@ import Primitives
 public final class NetworkFeeCustomViewModel {
     private var session: GemCustomFeeSession
     private var estimate: GemCustomFeeEstimate
-    private let onSelect: @MainActor (BigInt) -> Void
+    private let onSelect: @MainActor (GemConfirmFeeSelection) -> Void
 
-    public init(session: GemCustomFeeSession, onSelect: @escaping @MainActor (BigInt) -> Void) {
+    public init(
+        session: GemCustomFeeSession,
+        onSelect: @escaping @MainActor (GemConfirmFeeSelection) -> Void,
+    ) {
         self.session = session
         estimate = session.viewState()
         self.onSelect = onSelect
     }
 
     var input: String {
-        get { session.input }
+        get { session.rate.input }
         set { update(session.onInput(text: newValue)) }
+    }
+
+    var baseFeeInput: String {
+        get { session.baseFee?.input ?? "" }
+        set { update(session.onBaseFeeInput(text: newValue)) }
     }
 
     public var title: String { Localized.FeeRate.custom }
@@ -35,12 +45,17 @@ public final class NetworkFeeCustomViewModel {
 
     var networkFeeTitle: String { Localized.Transfer.networkFee }
 
-    var suffix: String {
-        session.rows.unitType.toPrimitives().suffix(symbol: session.feeAsset.symbol)
+    var rateField: NetworkFeeCustomFieldModel {
+        fieldModel(session.rate, estimate.rate)
     }
 
-    var placeholder: String {
-        estimate.placeholder?.text() ?? ""
+    var baseFeeField: NetworkFeeCustomFieldModel? {
+        guard let field = session.baseFee, let state = estimate.baseFee else { return nil }
+        return fieldModel(field, state)
+    }
+
+    var suffix: String {
+        session.rows.unitType.toPrimitives().suffix(symbol: session.feeAsset.symbol)
     }
 
     var value: String? {
@@ -51,21 +66,17 @@ public final class NetworkFeeCustomViewModel {
         estimate.fee?.fiat?.text()
     }
 
-    var errorText: String? {
-        estimate.check.errorText
-    }
-
     var isConfirmEnabled: Bool {
-        estimate.isValid
+        estimate.selection != nil
     }
 
     public func sanitize(_ text: String) -> String {
-        session.onInput(text: text).input
+        session.onInput(text: text).rate.input
     }
 
     func confirm() {
-        guard let rate = estimate.rate, estimate.isValid else { return }
-        onSelect(rate)
+        guard let selection = estimate.selection else { return }
+        onSelect(selection)
     }
 }
 
@@ -75,5 +86,13 @@ extension NetworkFeeCustomViewModel {
     private func update(_ session: GemCustomFeeSession) {
         self.session = session
         estimate = session.viewState()
+    }
+
+    private func fieldModel(_ field: GemCustomFeeField, _ state: GemCustomFeeFieldState) -> NetworkFeeCustomFieldModel {
+        NetworkFeeCustomFieldModel(
+            title: field.title.text,
+            placeholder: state.placeholder?.text() ?? "",
+            errorText: state.check.errorText,
+        )
     }
 }

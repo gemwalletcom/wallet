@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizado</string>
+  <string name="fee_rate_priority">Taxa de prioridade</string>
+  <string name="fee_rate_base">Taxa base</string>
   <string name="banner_account_activation_title">Taxa de ativação da conta</string>
   <string name="banner_account_activation_description">A rede %1$s exige uma taxa única de %2$s.</string>
   <string name="banner_stake_title">Comece staking %1$s</string>

@@ -13,6 +13,7 @@ import enum Gemstone.GemConfirmSection
 import struct Gemstone.GemConfirmViewState
 import struct Gemstone.GemFeeRateRows
 import enum Gemstone.GemInfoAction
+import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemPreferencesServiceProtocol

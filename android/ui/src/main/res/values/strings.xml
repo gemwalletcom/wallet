@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Custom</string>
+  <string name="fee_rate_priority">Priority Fee</string>
+  <string name="fee_rate_base">Base Fee</string>
   <string name="banner_account_activation_title">Account Activation Fee</string>
   <string name="banner_account_activation_description">The %1$s network requires a one time fee of %2$s.</string>
   <string name="banner_stake_title">Start staking %1$s</string>

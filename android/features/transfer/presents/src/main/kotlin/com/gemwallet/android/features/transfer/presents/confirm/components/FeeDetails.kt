@@ -31,6 +31,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
@@ -54,6 +55,8 @@ import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.sectionHeaderHorizontalPadding
+import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
@@ -73,16 +76,18 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemAssetItemTrailing
+import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemCustomFeeEstimate
+import uniffi.gemstone.GemCustomFeeField
+import uniffi.gemstone.GemCustomFeeFieldState
 import uniffi.gemstone.GemCustomFeeSession
 import uniffi.gemstone.GemFeeRateKind
 import uniffi.gemstone.GemFeeRateRow
 import uniffi.gemstone.GemNetworkFeeScreen
-import java.math.BigInteger
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, feeListItem: ListItemModel?, onSelectPriority: (FeePriority) -> Unit, onSelectCustom: (BigInteger) -> Unit, onSelectFeeAsset: (AssetId) -> Unit, onCancel: () -> Unit) {
+fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, feeListItem: ListItemModel?, onSelectPriority: (FeePriority) -> Unit, onSelectCustom: (GemConfirmFeeSelection) -> Unit, onSelectFeeAsset: (AssetId) -> Unit, onCancel: () -> Unit) {
     screen ?: return
     val context = LocalContext.current
     val feeAsset = remember(screen.feeAsset) { screen.feeAsset?.toFeeAssetUIModel() }
@@ -93,7 +98,7 @@ fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, feeListItem: Li
     val estimate = remember(custom) { custom?.viewState() }
     val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }
     val confirmCustomFee: () -> Unit = {
-        estimate?.rate?.let {
+        estimate?.selection?.let {
             onSelectCustom(it)
             onCancel()
         }
@@ -128,7 +133,7 @@ fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, feeListItem: Li
             ),
             onBack = onBack,
             onConfirm = onConfirm,
-            isConfirmEnabled = page != FeeDetailsPage.CustomFee || estimate?.isValid == true,
+            isConfirmEnabled = page != FeeDetailsPage.CustomFee || estimate?.selection != null,
         )
         when (page) {
             FeeDetailsPage.Details -> FeeRates(
@@ -151,6 +156,7 @@ fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, feeListItem: Li
                         custom = session,
                         estimate = it,
                         onInputChange = { text -> custom = session.onInput(text) },
+                        onBaseFeeInputChange = { text -> custom = session.onBaseFeeInput(text) },
                     )
                 }
             }
@@ -261,35 +267,51 @@ private fun FeeAssetRow(feeAsset: FeeAssetUIModel, isSelected: Boolean, listPosi
 }
 
 @Composable
-private fun ColumnScope.CustomFeeInput(custom: GemCustomFeeSession, estimate: GemCustomFeeEstimate, onInputChange: (String) -> Unit) {
+private fun ColumnScope.CustomFeeInput(custom: GemCustomFeeSession, estimate: GemCustomFeeEstimate, onInputChange: (String) -> Unit, onBaseFeeInputChange: (String) -> Unit) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
-    Row(
-        modifier = Modifier.fillMaxWidth().listItem(ListPosition.Single).padding(paddingDefault),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        ListItemTitleText(stringResource(R.string.fee_rate_custom))
-        SuffixTextField(
-            modifier = Modifier.weight(1f),
-            value = custom.input,
-            onValueChange = onInputChange,
-            suffix = feeUnitSuffix(custom.rows.unitType.toPrimitives(), custom.feeAsset.symbol),
-            placeholder = estimate.placeholder?.text().orEmpty(),
-            focusRequester = focusRequester,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        )
+    val suffix = feeUnitSuffix(custom.rows.unitType.toPrimitives(), custom.feeAsset.symbol)
+    val baseFee = custom.baseFee
+    val baseFeeState = estimate.baseFee
+    if (baseFee != null && baseFeeState != null) {
+        CustomFeeField(field = baseFee, state = baseFeeState, suffix = suffix, focusRequester = null, onInputChange = onBaseFeeInputChange)
     }
-    Text(
-        modifier = Modifier.padding(horizontal = paddingLarge, vertical = paddingHalfSmall),
-        text = estimate.check.errorText(context).orEmpty(),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.error,
-    )
+    CustomFeeField(field = custom.rate, state = estimate.rate, suffix = suffix, focusRequester = focusRequester, onInputChange = onInputChange)
     ListItem(
         model = estimate.fee.networkFeeListItem(context, custom.feeAsset.toPrimitives()),
         listPosition = ListPosition.Single,
     )
     LaunchedEffect(Unit) { runCatching { focusRequester.requestFocus() } }
+}
+
+@Composable
+private fun CustomFeeField(field: GemCustomFeeField, state: GemCustomFeeFieldState, suffix: String, focusRequester: FocusRequester?, onInputChange: (String) -> Unit) {
+    val context = LocalContext.current
+    Row(modifier = Modifier.sectionHeaderItem(), verticalAlignment = Alignment.CenterVertically) {
+        ListItemTitleText(
+            text = field.title.text(context),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+    }
+    SuffixTextField(
+        modifier = Modifier.fillMaxWidth().listItem(ListPosition.Single).padding(paddingDefault),
+        value = field.input,
+        onValueChange = onInputChange,
+        suffix = suffix,
+        placeholder = state.placeholder?.text().orEmpty(),
+        focusRequester = focusRequester,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        textAlign = TextAlign.Start,
+    )
+    state.check.errorText(context)?.let {
+        Text(
+            modifier = Modifier.padding(horizontal = sectionHeaderHorizontalPadding, vertical = paddingHalfSmall),
+            text = it,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
 }
 
 @Composable

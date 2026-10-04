@@ -1408,15 +1408,17 @@ fun mockGemFeeRateRows(
     showsOptions: Boolean = false,
     unitType: uniffi.gemstone.FeeUnitType = uniffi.gemstone.FeeUnitType.SAT_VB,
     unitDecimals: UInt = 0u,
-    selectedTotal: java.math.BigInteger? = null,
-    normalTotal: java.math.BigInteger? = null,
+    selected: uniffi.gemstone.GasPriceType? = null,
+    normal: uniffi.gemstone.GasPriceType? = null,
+    baseFee: java.math.BigInteger? = null,
 ) = uniffi.gemstone.GemFeeRateRows(
     rows = rows,
     showsOptions = showsOptions,
     unitType = unitType,
     unitDecimals = unitDecimals,
-    selectedTotal = selectedTotal,
-    normalTotal = normalTotal,
+    selected = selected,
+    normal = normal,
+    baseFee = baseFee,
 )
 
 fun mockGemFeeText(

@@ -48,6 +48,7 @@ pub enum GemNumberDisplay {
 pub enum GemNumberRounding {
     ToNearest,
     TowardZero,
+    AwayFromZero,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

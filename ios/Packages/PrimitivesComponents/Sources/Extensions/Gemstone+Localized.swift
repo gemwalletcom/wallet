@@ -869,6 +869,8 @@ public extension GemListRowTitle {
         case .normalFee: Localized.FeeRates.normal
         case .fastFee: Localized.FeeRates.fast
         case .customFee: Localized.FeeRate.custom
+        case .priorityFee: Localized.FeeRate.priority
+        case .baseFee: Localized.FeeRate.base
         case .payWith: Localized.Transfer.payWith
         case .validator: Localized.Stake.validator
         case .provider: Localized.Common.provider

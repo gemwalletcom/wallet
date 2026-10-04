@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">حسب ضرورت</string>
+  <string name="fee_rate_priority">ترجیحی فیس</string>
+  <string name="fee_rate_base">بنیادی فیس</string>
   <string name="banner_account_activation_title">اکاؤنٹ ایکٹیویشن فیس</string>
   <string name="banner_account_activation_description">%1$s نیٹ ورک کو %2$s کی ایک بار کی فیس درکار ہے۔</string>
   <string name="banner_stake_title">%1$s اسٹیکنگ شروع کریں</string>

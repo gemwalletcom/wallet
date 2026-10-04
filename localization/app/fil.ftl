@@ -476,6 +476,8 @@ fee_rates_normal = Normal
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Pasadya
+fee_rate_priority = Bayad sa Priyoridad
+fee_rate_base = Batayang Bayad
 
 # Banner
 
