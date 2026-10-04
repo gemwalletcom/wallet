@@ -1,21 +1,23 @@
-use primitives::asset_score::AssetRank;
 use std::error::Error;
-use storage::{AssetFilter, AssetUpdate, AssetsRepository, Database, DatabaseError};
+use std::sync::Arc;
+
+use primitives::asset_score::AssetRank;
 
 use crate::assets::AssetClassificationRules;
+use crate::assets::repository::{RankChange, Repository};
 
 pub struct AssetRankUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
     classification_rules: AssetClassificationRules,
 }
 
 impl AssetRankUpdater {
-    pub fn new(database: Database, classification_rules: AssetClassificationRules) -> Self {
-        AssetRankUpdater { database, classification_rules }
+    pub(crate) fn new(repository: Arc<dyn Repository>, classification_rules: AssetClassificationRules) -> Self {
+        AssetRankUpdater { repository, classification_rules }
     }
 
     pub async fn update_suspicious_assets(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let assets = self.database.run(|client| client.get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::RankLte(15)])).await?;
+        let assets = self.repository.enabled_assets_at_or_below(AssetRank::Trivial).await?;
         let risks = assets
             .into_iter()
             .filter_map(|asset| self.classification_rules.classify(asset.score.rank, &asset.asset.name, &asset.asset.symbol).map(|risk| (asset.asset.id, risk)))
@@ -24,12 +26,49 @@ impl AssetRankUpdater {
         let fraudulent = risks.into_iter().filter(|(_, rank)| *rank == AssetRank::Fraudulent).map(|(asset_id, _)| asset_id).collect();
 
         Ok(self
-            .database
-            .run(move |client| -> Result<usize, DatabaseError> {
-                let spam_count = client.update_assets(spam, vec![AssetUpdate::Rank(AssetRank::Spam.threshold()), AssetUpdate::IsEnabled(false)])?;
-                let fraudulent_count = client.update_assets(fraudulent, vec![AssetUpdate::Rank(AssetRank::Fraudulent.threshold()), AssetUpdate::IsEnabled(false)])?;
-                Ok(spam_count + fraudulent_count)
-            })
+            .repository
+            .disable_assets_with_ranks(vec![
+                RankChange { asset_ids: spam, rank: AssetRank::Spam },
+                RankChange {
+                    asset_ids: fraudulent,
+                    rank: AssetRank::Fraudulent,
+                },
+            ])
             .await?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use primitives::Asset;
+
+    use super::*;
+    use crate::testkit::MemoryAssetRepository;
+
+    #[tokio::test]
+    async fn test_update_suspicious_assets() {
+        let mut suspicious = Asset::mock_erc20().as_basic_primitive();
+        suspicious.asset.name = "www.example.com".to_string();
+        let suspicious_id = suspicious.asset.id.clone();
+        let repository = Arc::new(MemoryAssetRepository::new(vec![suspicious, Asset::mock_btc().as_basic_primitive()]));
+        let updater = AssetRankUpdater::new(repository.clone(), AssetClassificationRules::mock_with_spam_marker("www."));
+
+        let count = updater.update_suspicious_assets().await.unwrap();
+
+        assert_eq!(count, 1);
+        assert_eq!(repository.ranks(), vec![AssetRank::Trivial]);
+        assert_eq!(
+            repository.changes(),
+            vec![
+                RankChange {
+                    asset_ids: vec![suspicious_id],
+                    rank: AssetRank::Spam,
+                },
+                RankChange {
+                    asset_ids: vec![],
+                    rank: AssetRank::Fraudulent,
+                }
+            ]
+        );
     }
 }

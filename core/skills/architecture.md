@@ -34,11 +34,108 @@ Reference: `crates/gem_hypercore/src/provider/balances.rs` and `balances_mapper.
 - Infra crates (`storage`, `cacher`, `streamer`, `search_index`, `pusher`) reach Postgres, Redis, RabbitMQ, Meilisearch and Gorush with `primitives` in and out and no business rules. Only `services` depends on them; `just check-boundaries` enforces it.
 - Consuming is transport and stays in the apps: RabbitMQ queues in daemon consumers (`streamer` readers and `run_consumer`, the one infra dependency the daemon keeps) and the api websocket's Redis pub/sub subscription. The consumer passed to `run_consumer` and all publishing come from `services`.
 - A database transaction closure is sync: fetch from providers first, then open the transaction.
-- Traits define provider families (`FiatProvider`, `ListProvider`, chain providers), even while a family has one implementation; no ports around the database or our other infra.
+- Consumers receive narrow traits for the provider and infrastructure operations they use. Concrete adapters stay in the composition root; do not add a generic forwarding port that merely mirrors an infrastructure client.
 
 ## Repository Pattern
 
-Backend code reaches Postgres through `Database::run(|client| …)`, or `Database::transaction(|client| …)` when several writes must commit together. The closure runs on a blocking thread with one pooled connection, so async workers never block on diesel. Put the queries of one unit of work in one closure and keep network calls outside it. Repository traits are implemented on `DatabaseClient` and take and return `primitives` types; row models, `sql_types` wrappers and `schema` stay `pub(crate)` to `storage`. When no primitive fits (surrogate ids, partial projections), return a small plain struct from the repository module (`DeviceRecord`, `PriceAsset`). Resolve surrogate keys inside storage; business logic stays in the service that composes the repositories.
+PostgreSQL adapters reach the database through `Database::run(|client| …)`, or `Database::transaction(|client| …)` when several writes must commit together. The closure runs on a blocking thread with one pooled connection, so async workers never block on diesel. Put the queries of one unit of work in one closure and keep network calls outside it. Storage-level repository traits are implemented on `DatabaseClient` and take and return `primitives` types; row models, `sql_types` wrappers and `schema` stay `pub(crate)` to `storage`. When no primitive fits (surrogate ids, partial projections), return a small plain struct from the repository module (`DeviceRecord`, `PriceAsset`). Resolve surrogate keys inside storage; business logic stays in the service that composes the repositories.
+
+A service receives an async repository port for the operations it uses rather than holding `Database` or `DatabaseClient`. Its PostgreSQL adapter owns `Database`, imports the storage-level repository traits and preserves each existing `run` or `transaction` unit. One domain module has one `repository::Repository`; reuse and extend it only for operations with current consumers rather than making a forwarding trait per service. [`assets::repository`](../crates/services/src/assets/repository.rs) is the migration example. Existing direct database holdings are tracked by CLN464.
+
+### Repository injection example
+
+Keep the domain repository, service and shared test double in separate files:
+
+```text
+services/src/
+├── assets/
+│   ├── repository.rs
+│   └── asset_rank_updater.rs
+└── testkit/
+    └── asset_repository.rs
+```
+
+The domain's `repository.rs` owns one narrow async port and its PostgreSQL adapter. The port speaks primitives and use-case input records; only the adapter imports `Database`, `DatabaseClient` or storage-level repository traits:
+
+```rust
+#[async_trait]
+pub(crate) trait Repository: Send + Sync {
+    async fn enabled_assets_at_or_below(&self, rank: AssetRank) -> Result<Vec<AssetBasic>, DatabaseError>;
+    async fn disable_assets_with_ranks(&self, changes: Vec<RankChange>) -> Result<usize, DatabaseError>;
+}
+
+pub(crate) struct PostgresRepository {
+    database: Database,
+}
+
+#[async_trait]
+impl Repository for PostgresRepository {
+    async fn disable_assets_with_ranks(&self, changes: Vec<RankChange>) -> Result<usize, DatabaseError> {
+        self.database
+            .run(move |client| {
+                changes.into_iter().try_fold(0, |count, change| {
+                    let updated = client.update_assets(change.asset_ids, vec![AssetUpdate::Rank(change.rank.threshold()), AssetUpdate::IsEnabled(false)])?;
+                    Ok::<_, DatabaseError>(count + updated)
+                })
+            })
+            .await
+    }
+}
+```
+
+The service holds only the port, makes the domain decision and sends the resulting persistence changes through one repository call:
+
+```rust
+pub struct AssetRankUpdater {
+    repository: Arc<dyn Repository>,
+    classification_rules: AssetClassificationRules,
+}
+
+let count = self.repository.disable_assets_with_ranks(changes).await?;
+```
+
+The composition root builds the concrete adapter. A call site never constructs it:
+
+```rust
+AssetRankUpdater::new(
+    Arc::new(PostgresRepository::new(self.database.clone())),
+    self.classification_rules.clone(),
+)
+```
+
+The reusable double lives in the crate testkit beside the other doubles, not inside a service test. It records every write and any read input the test needs to verify:
+
+```rust
+pub(crate) struct MemoryAssetRepository {
+    candidates: Vec<AssetBasic>,
+    ranks: Mutex<Vec<AssetRank>>,
+    changes: Mutex<Vec<RankChange>>,
+}
+
+#[async_trait]
+impl Repository for MemoryAssetRepository {
+    async fn enabled_assets_at_or_below(&self, rank: AssetRank) -> Result<Vec<AssetBasic>, DatabaseError> {
+        self.ranks.lock().unwrap().push(rank);
+        Ok(self.candidates.clone())
+    }
+
+    async fn disable_assets_with_ranks(&self, changes: Vec<RankChange>) -> Result<usize, DatabaseError> {
+        let count = changes.iter().map(|change| change.asset_ids.len()).sum();
+        self.changes.lock().unwrap().extend(changes);
+        Ok(count)
+    }
+}
+```
+
+Register and re-export the double from `src/testkit/mod.rs`, then import that shared type in the service test:
+
+```rust
+mod asset_repository;
+
+pub(crate) use asset_repository::MemoryAssetRepository;
+```
+
+A service test supplies literal inputs, calls the real service and asserts the recorded repository interaction. A one-off double that delays or counts a single call may stay inline with that one test; a generally useful repository double belongs in `src/testkit`.
 
 Reference: `crates/storage/src/lib.rs` (`Database`).
 

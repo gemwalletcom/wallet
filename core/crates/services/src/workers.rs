@@ -13,6 +13,7 @@ use storage::{Database, PricesProvidersRepository};
 use streamer::StreamProducer;
 use swapper::swapper::GemSwapper;
 
+use crate::assets::repository::PostgresRepository;
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
 use crate::fiat::{FiatAssetsUpdater, FiatRatesUpdater};
 use crate::notifications::{StakeRewardsConfig, StakingRewardsNotifier};
@@ -62,7 +63,7 @@ pub struct AssetsJobs {
 
 impl AssetsJobs {
     pub fn asset_rank_updater(&self) -> AssetRankUpdater {
-        AssetRankUpdater::new(self.database.clone(), self.classification_rules.clone())
+        AssetRankUpdater::new(Arc::new(PostgresRepository::new(self.database.clone())), self.classification_rules.clone())
     }
 
     pub fn perpetual_updater(&self) -> PerpetualUpdater {

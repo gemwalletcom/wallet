@@ -13,6 +13,7 @@ mod fetch_list_consumer;
 mod fetch_token_addresses_consumer;
 mod lists;
 mod perpetual_updater;
+pub(crate) mod repository;
 mod search_client;
 mod search_filter;
 mod search_request;
