@@ -13,7 +13,7 @@ use futures::{StreamExt, TryStreamExt, future::try_join_all, stream};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::{Chain, JobConfiguration, TransactionId, chain_transaction_timeout};
 use storage::{Database, DatabaseError, TransactionsRepository};
-use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
+use streamer::{StreamProducerQueue, TransactionsPayload};
 
 pub struct PendingTransactionsUpdaterConfig {
     error_max_age_by_chain: HashMap<Chain, Duration>,
@@ -44,7 +44,7 @@ impl PendingTransactionsUpdaterConfig {
 pub struct PendingTransactionsUpdater {
     providers: Arc<ChainProviders>,
     pending: Arc<dyn PendingTransactionsCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
     database: Database,
     config: PendingTransactionsUpdaterConfig,
     metrics: Arc<dyn TransactionQueueMetrics>,
@@ -55,7 +55,7 @@ impl PendingTransactionsUpdater {
     pub fn new(
         providers: Arc<ChainProviders>,
         pending: Arc<dyn PendingTransactionsCacher>,
-        stream_producer: StreamProducer,
+        stream_producer: Arc<dyn StreamProducerQueue>,
         database: Database,
         config: PendingTransactionsUpdaterConfig,
         metrics: Arc<dyn TransactionQueueMetrics>,

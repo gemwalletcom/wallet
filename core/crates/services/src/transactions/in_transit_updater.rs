@@ -9,7 +9,7 @@ use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::swap::{SwapResult, SwapResultRequest, SwapStatus};
 use primitives::{Chain, JobConfiguration, Transaction, TransactionState, TransactionSwapMetadata};
 use storage::{Database, TransactionFilter, TransactionsRepository};
-use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
+use streamer::{StreamProducerQueue, TransactionsPayload};
 use swapper::cross_chain::{self, DepositAddressMap};
 use swapper::swapper::GemSwapper;
 
@@ -36,14 +36,22 @@ pub struct InTransitUpdater {
     database: Database,
     config: InTransitConfig,
     swapper: Arc<GemSwapper>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
     vault_client: SwapVaultAddressClient,
     metrics: Arc<dyn TransactionQueueMetrics>,
     schedule: CheckSchedule,
 }
 
 impl InTransitUpdater {
-    pub fn new(database: Database, config: InTransitConfig, swapper: Arc<GemSwapper>, stream_producer: StreamProducer, vault_client: SwapVaultAddressClient, metrics: Arc<dyn TransactionQueueMetrics>, schedule: CheckSchedule) -> Self {
+    pub fn new(
+        database: Database,
+        config: InTransitConfig,
+        swapper: Arc<GemSwapper>,
+        stream_producer: Arc<dyn StreamProducerQueue>,
+        vault_client: SwapVaultAddressClient,
+        metrics: Arc<dyn TransactionQueueMetrics>,
+        schedule: CheckSchedule,
+    ) -> Self {
         Self {
             database,
             config,

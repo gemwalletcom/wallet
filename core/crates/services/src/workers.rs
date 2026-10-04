@@ -113,7 +113,7 @@ pub struct PerpetualJobs {
     config: Arc<ConfigCacher>,
     providers: Arc<ChainProviders>,
     classifier_config: PerpetualPositionClassifierConfig,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PerpetualJobs {
@@ -369,7 +369,7 @@ impl Services {
                 concurrency: config.get_usize(ConfigKey::PerpetualClassifierConcurrency).await?,
             },
             config,
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         })
     }
 
@@ -434,6 +434,7 @@ impl Services {
         let config = self.config();
         let database = self.database();
         let cacher = self.cacher().await?;
+        let stream_producer: Arc<dyn StreamProducerQueue> = Arc::new(stream_producer);
         let in_transit_config = InTransitConfig {
             timeout: config.get_duration(ConfigKey::TransactionInTransitTimeout).await?,
             query_limit: config.get_i64(ConfigKey::TransactionInTransitQueryLimit).await?,

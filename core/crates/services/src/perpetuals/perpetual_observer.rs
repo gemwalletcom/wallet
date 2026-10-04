@@ -9,19 +9,19 @@ use chain_traits::TransactionsRequest;
 use config_keys::ConfigParamKey;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::Chain;
+use streamer::TransactionsPayload;
 use streamer::steam_producer_queue::StreamProducerQueue;
-use streamer::{StreamProducer, TransactionsPayload};
 
 pub struct PerpetualPositionObserver {
     chain: Chain,
     providers: Arc<ChainProviders>,
     addresses: Arc<dyn PerpetualAddressCacher>,
     config: Arc<ConfigCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PerpetualPositionObserver {
-    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressCacher>, config: Arc<ConfigCacher>, stream_producer: StreamProducer) -> Self {
+    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressCacher>, config: Arc<ConfigCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self {
             chain,
             providers,

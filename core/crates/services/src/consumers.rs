@@ -32,7 +32,7 @@ impl Services {
     }
 
     pub fn fetch_blocks_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> FetchBlocksConsumer {
-        FetchBlocksConsumer::new(self.chain_providers_for(chain, user_agent), stream_producer)
+        FetchBlocksConsumer::new(self.chain_providers_for(chain, user_agent), Arc::new(stream_producer))
     }
 
     pub async fn fetch_assets_consumer(&self, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchAssetsConsumer, Box<dyn Error + Send + Sync>> {
@@ -97,7 +97,7 @@ impl Services {
     pub async fn fetch_address_transactions_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchAddressTransactionsConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchAddressTransactionsConsumer::new(
             self.chain_providers_for(chain, user_agent),
-            stream_producer,
+            Arc::new(stream_producer),
             Arc::new(self.cacher().await?),
             self.config(),
         ))
@@ -107,7 +107,7 @@ impl Services {
         Ok(FetchTransactionConsumer::new(
             self.chain_providers_for(chain, user_agent),
             self.swapper(),
-            stream_producer,
+            Arc::new(stream_producer),
             Arc::new(self.cacher().await?),
             self.database(),
         ))
@@ -116,7 +116,7 @@ impl Services {
     pub async fn store_transactions_consumer(&self, stream_producer: StreamProducer) -> Result<StoreTransactionsConsumer, Box<dyn Error + Send + Sync>> {
         Ok(StoreTransactionsConsumer {
             database: self.database(),
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
             pusher: Pusher::new(self.database()),
             config: self.config(),
             vault_client: SwapVaultAddressClient::new(Arc::new(self.cacher().await?)),

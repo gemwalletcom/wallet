@@ -158,4 +158,8 @@ impl StreamProducerQueue for RecordingStreamProducer {
     async fn publish_fiat_webhook(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.record(QueueName::FiatOrderWebhooks, &payload)
     }
+
+    async fn publish_referral_transaction(&self, queue: QueueName, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.record(queue, &transaction_id)
+    }
 }

@@ -36,6 +36,7 @@ pub trait StreamProducerQueue: Send + Sync {
     async fn publish_support_webhook(&self, payload: SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_pending_transaction(&self, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fiat_webhook(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    async fn publish_referral_transaction(&self, queue: QueueName, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait::async_trait]
@@ -207,5 +208,9 @@ impl StreamProducerQueue for StreamProducer {
 
     async fn publish_fiat_webhook(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.publish(QueueName::FiatOrderWebhooks, &payload).await
+    }
+
+    async fn publish_referral_transaction(&self, queue: QueueName, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.publish(queue, &transaction_id).await
     }
 }

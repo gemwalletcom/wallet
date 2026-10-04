@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use futures::{StreamExt, TryStreamExt, stream};
 use primitives::{AssetAddress, AssetIdVecExt, AssetPriceMetadata, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
 use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, NftRepository, TransactionsRepository, WalletsRepository};
-use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
+use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 
 use super::StoreTransactionsConsumerConfig;
@@ -20,7 +20,7 @@ const CROSS_CHAIN_SOURCE_TYPES: [TransactionType; 3] = [TransactionType::Transfe
 
 pub struct StoreTransactionsConsumer {
     pub database: Database,
-    pub stream_producer: StreamProducer,
+    pub stream_producer: Arc<dyn StreamProducerQueue>,
     pub pusher: Pusher,
     pub config: Arc<ConfigCacher>,
     pub vault_client: SwapVaultAddressClient,
@@ -97,7 +97,7 @@ impl StoreTransactionsConsumer {
         let referrals = transactions.iter().filter_map(|transaction| Some((referral_queue(transaction)?, transaction.id.clone()))).collect::<Vec<_>>();
         self.upsert_transactions(transactions, config.batch_size).await?;
         for (queue, transaction_id) in referrals {
-            self.stream_producer.publish(queue, &transaction_id).await?;
+            self.stream_producer.publish_referral_transaction(queue, transaction_id).await?;
         }
         Ok(())
     }
