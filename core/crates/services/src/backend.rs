@@ -296,7 +296,7 @@ impl Services {
     }
 
     pub fn scan(&self, providers: TransactionScanProviders, cacher: CacherClient, metrics: Arc<dyn ScanMetrics>) -> ScanClient {
-        ScanClient::new(self.database(), self.config(), cacher, providers, metrics)
+        ScanClient::new(self.database(), self.config(), Arc::new(cacher), providers, metrics)
     }
 
     pub fn support_api(&self) -> SupportApiClient {
