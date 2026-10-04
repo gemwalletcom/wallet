@@ -188,7 +188,7 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Freshness
 
-- **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `core/crates/services/src/chain/fee_estimates_client.rs:73-76` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`:55-70`). Used by the website, not the apps. **Needs a decision (2026-09-24):** either the public route drops entries past the one-hour fresh key (the website loses chains nobody requested lately) or it refreshes them (a public route then triggers node calls).
+- **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `all_estimates` in `core/crates/services/src/chain/fee_estimates_client.rs` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`get_chain_fee_estimates` through `fresh_estimates`). Used by the website, not the apps. **Needs a decision (2026-09-24):** either the public route drops entries past the one-hour fresh key (the website loses chains nobody requested lately) or it refreshes them (a public route then triggers node calls).
 
 ## 10. Module layout and names
 

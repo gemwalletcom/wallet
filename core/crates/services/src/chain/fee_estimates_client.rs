@@ -1,6 +1,8 @@
 use std::collections::BTreeMap;
 use std::error::Error;
+use std::sync::Arc;
 
+use async_trait::async_trait;
 use cacher::{CacheKey, CacherClient};
 use chain_providers::{TransactionFeeEstimate, TransactionFeeEstimates};
 use number_formatter::{BigNumberFormatter, CryptoFiatConverter};
@@ -35,29 +37,56 @@ struct FeeEstimate {
     fiat_value: String,
 }
 
+#[async_trait]
+pub trait FeeEstimatesStore: Send + Sync {
+    async fn fresh_estimates(&self, chain: Chain) -> Result<Option<ChainFeeEstimates>, Box<dyn Error + Send + Sync>>;
+    async fn set_estimates(&self, chain: Chain, estimates: &ChainFeeEstimates) -> Result<(), Box<dyn Error + Send + Sync>>;
+    async fn all_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>>;
+}
+
+#[async_trait]
+impl FeeEstimatesStore for CacherClient {
+    async fn fresh_estimates(&self, chain: Chain) -> Result<Option<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
+        let (cached, fresh) = futures::try_join!(
+            self.get_cached_optional::<ChainFeeEstimates>(CacheKey::TransactionFeeEstimates(chain.as_ref())),
+            self.get_cached_optional::<()>(CacheKey::TransactionFeeEstimatesFresh(chain.as_ref())),
+        )?;
+        Ok(match (cached, fresh) {
+            (Some(estimates), Some(())) => Some(estimates),
+            _ => None,
+        })
+    }
+
+    async fn set_estimates(&self, chain: Chain, estimates: &ChainFeeEstimates) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.set_cached(CacheKey::TransactionFeeEstimates(chain.as_ref()), estimates).await?;
+        self.set_cached(CacheKey::TransactionFeeEstimatesFresh(chain.as_ref()), &()).await
+    }
+
+    async fn all_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
+        let keys = Chain::iter().map(|chain| CacheKey::TransactionFeeEstimates(chain.as_ref()).key()).collect();
+        self.get_values::<Vec<ChainFeeEstimates>, ChainFeeEstimates>(keys).await
+    }
+}
+
 pub struct FeeEstimatesClient {
     chain_client: ChainClient,
     assets_client: AssetsClient,
     price_client: PriceClient,
-    cacher: CacherClient,
+    store: Arc<dyn FeeEstimatesStore>,
 }
 
 impl FeeEstimatesClient {
-    pub fn new(chain_client: ChainClient, assets_client: AssetsClient, price_client: PriceClient, cacher: CacherClient) -> Self {
+    pub fn new(chain_client: ChainClient, assets_client: AssetsClient, price_client: PriceClient, store: Arc<dyn FeeEstimatesStore>) -> Self {
         Self {
             chain_client,
             assets_client,
             price_client,
-            cacher,
+            store,
         }
     }
 
     pub async fn get_chain_fee_estimates(&self, chain: Chain) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
-        let (cached, fresh) = futures::try_join!(
-            self.cacher.get_cached_optional::<ChainFeeEstimates>(CacheKey::TransactionFeeEstimates(chain.as_ref())),
-            self.cacher.get_cached_optional::<()>(CacheKey::TransactionFeeEstimatesFresh(chain.as_ref())),
-        )?;
-        if let (Some(estimates), Some(())) = (cached, fresh) {
+        if let Some(estimates) = self.store.fresh_estimates(chain).await? {
             return Ok(estimates);
         }
 
@@ -65,14 +94,12 @@ impl FeeEstimatesClient {
         let asset = self.assets_client.get_asset(&estimates.fee_asset).await?;
         let price = self.price_client.get_cache_price(&estimates.fee_asset).await?;
         let estimates = map_fee_estimates(asset, estimates, price.price.price)?;
-        self.cacher.set_cached(CacheKey::TransactionFeeEstimates(chain.as_ref()), &estimates).await?;
-        self.cacher.set_cached(CacheKey::TransactionFeeEstimatesFresh(chain.as_ref()), &()).await?;
+        self.store.set_estimates(chain, &estimates).await?;
         Ok(estimates)
     }
 
     pub async fn get_fee_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
-        let keys = Chain::iter().map(|chain| CacheKey::TransactionFeeEstimates(chain.as_ref()).key()).collect();
-        self.cacher.get_values::<Vec<ChainFeeEstimates>, ChainFeeEstimates>(keys).await
+        self.store.all_estimates().await
     }
 }
 
