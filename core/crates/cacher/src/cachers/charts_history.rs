@@ -16,16 +16,16 @@ pub trait ChartsHistoryCacher: Send + Sync {
 #[async_trait]
 impl ChartsHistoryCacher for CacherClient {
     async fn synced_prices(&self, provider: PriceProvider) -> Result<HashSet<String>, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_set_members_cached(vec![CacheKey::ChartsHistory(provider.id()).key()]).await?.into_iter().collect())
+        Ok(self.set_members(&[CacheKey::ChartsHistory(provider.id())]).await?.into_iter().flatten().collect())
     }
 
     async fn add_synced_price(&self, provider: PriceProvider, price_id: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.add_to_set_cached(CacheKey::ChartsHistory(provider.id()), &[price_id.to_string()]).await?;
+        self.add_to_set(CacheKey::ChartsHistory(provider.id()), &[price_id.to_string()]).await?;
         Ok(())
     }
 
     async fn remove_synced_prices(&self, provider: PriceProvider, price_ids: &[String]) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.remove_from_set_cached(CacheKey::ChartsHistory(provider.id()), price_ids).await?;
+        self.remove_from_set(CacheKey::ChartsHistory(provider.id()), price_ids).await?;
         Ok(())
     }
 }

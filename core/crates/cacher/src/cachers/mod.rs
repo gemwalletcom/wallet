@@ -1,3 +1,4 @@
+mod access_token;
 mod address_status;
 mod auth_nonce;
 mod charts_history;
@@ -19,6 +20,7 @@ mod scan_safe;
 mod swap_vault_address;
 mod throttle;
 
+pub use access_token::AccessTokenCacherClient;
 pub use address_status::AddressStatusCacher;
 pub use auth_nonce::AuthNonceCacher;
 pub use charts_history::ChartsHistoryCacher;

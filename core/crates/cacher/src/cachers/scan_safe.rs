@@ -26,12 +26,12 @@ pub trait ScanSafeCacher: Send + Sync {
 #[async_trait]
 impl ScanSafeCacher for CacherClient {
     async fn is_safe(&self, target: &SafeScanTarget) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_cached_optional::<bool>(target.cache_key()).await?.is_some())
+        Ok(self.get::<bool>(target.cache_key()).await?.is_some())
     }
 
     async fn add_safe(&self, targets: &[&SafeScanTarget]) -> Result<(), Box<dyn Error + Send + Sync>> {
         let entries = targets.iter().map(|target| (target.cache_key(), &true)).collect::<Vec<_>>();
-        self.set_values_cached(&entries).await?;
+        self.set_many(&entries).await?;
         Ok(())
     }
 }

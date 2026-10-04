@@ -41,8 +41,7 @@ impl MessageConsumer<WalletStreamPayload, usize> for WalletStreamConsumer {
             .run(move |client| -> Result<_, DatabaseError> { Ok((client.get_wallet_by_id(wallet_row_id)?, client.get_devices_by_wallet_id(wallet_row_id)?)) })
             .await?;
         let events = stream_events(wallet.wallet_id, payload.event);
-        let now = unix_timestamp();
-        let expires_at = now.saturating_add(self.retention.as_secs()) as f64;
+        let expires_at = unix_timestamp().saturating_add(self.retention.as_secs()) as f64;
 
         for device in &devices {
             let mut missed_events = Vec::new();
@@ -52,19 +51,6 @@ impl MessageConsumer<WalletStreamPayload, usize> for WalletStreamConsumer {
                     missed_events.push((serde_json::to_string(event)?, expires_at));
                 }
             }
-            if missed_events.is_empty() {
-                continue;
-            }
-
-            let expired_events = self
-                .device_stream
-                .events(&device.id, self.retention)
-                .await?
-                .into_iter()
-                .filter(|(_, score)| *score <= now as f64)
-                .map(|(event, _)| event)
-                .collect::<Vec<_>>();
-            self.device_stream.remove_events(&device.id, self.retention, &expired_events).await?;
             self.device_stream.add_events(&device.id, self.retention, &missed_events).await?;
         }
         Ok(devices.len() * events.len())

@@ -238,14 +238,15 @@ impl FiatClient {
         let (device_id, wallet_id, address_id) = (context.device_id, context.wallet_id, wallet_address.id);
         self.database.run(move |client| client.add_fiat_transaction(pending_transaction, device_id, wallet_id, address_id)).await?;
         let cached_quote = self.cached_quote(context, quote_id).await?;
-        self.quote_cacher.set_quote(context.device_id, context.wallet_id, quote_id, &CachedFiatQuote { url: Some(url.clone()), ..cached_quote }).await?;
+        let quote = CachedFiatQuote { url: Some(url.clone()), ..cached_quote };
+        self.quote_cacher.set_quotes(context.device_id, context.wallet_id, &[(quote_id.to_string(), quote)]).await?;
 
         Ok(url)
     }
 
     async fn add_quotes(&self, context: &FiatDeviceContext, quotes: Vec<CachedFiatQuote>) -> Result<Vec<FiatQuote>, Box<dyn Error + Send + Sync>> {
         let scoped_quotes: Vec<_> = quotes.into_iter().map(|quote| (Uuid::new_v4().to_string(), quote)).collect();
-        self.quote_cacher.add_quotes(context.device_id, context.wallet_id, &scoped_quotes).await?;
+        self.quote_cacher.set_quotes(context.device_id, context.wallet_id, &scoped_quotes).await?;
         Ok(scoped_quotes.into_iter().map(|(quote_id, cached_quote)| FiatQuote { id: quote_id, ..cached_quote.quote }).collect())
     }
 

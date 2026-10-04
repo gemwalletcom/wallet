@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Duration;
 
 use cacher::{CacheError, ObservedAssetsCacher, PriceCacher};
 use chrono::NaiveDateTime;
@@ -72,8 +73,8 @@ impl PriceClient {
         }
     }
 
-    pub async fn set_cache_prices(&self, prices: Vec<AssetPriceInfo>, ttl_seconds: i64) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        self.cache.set_prices(&prices, ttl_seconds).await
+    pub async fn set_cache_prices(&self, prices: Vec<AssetPriceInfo>, ttl: Duration) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        self.cache.set_prices(&prices, ttl).await
     }
 
     pub async fn get_cache_prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPriceInfo>, Box<dyn Error + Send + Sync>> {

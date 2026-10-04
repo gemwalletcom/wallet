@@ -42,12 +42,12 @@ pub trait ThrottleCacher: Send + Sync {
 #[async_trait]
 impl ThrottleCacher for CacherClient {
     async fn try_start(&self, task: ThrottledTask<'_>) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.can_process_cached(task.cache_key()).await
+        self.set_if_absent(task.cache_key()).await
     }
 
     async fn reset(&self, tasks: &[ThrottledTask<'_>]) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let keys = tasks.iter().map(|task| task.cache_key().key()).collect::<Vec<_>>();
-        self.delete_keys(&keys).await?;
+        let keys = tasks.iter().map(|task| task.cache_key()).collect::<Vec<_>>();
+        self.delete(&keys).await?;
         Ok(())
     }
 }

@@ -16,11 +16,12 @@ pub trait PriceMetadataCacher: Send + Sync {
 #[async_trait]
 impl PriceMetadataCacher for CacherClient {
     async fn cooling_down(&self, ids: &[PriceId]) -> Result<HashSet<PriceId>, Box<dyn Error + Send + Sync>> {
-        let keys = ids.iter().map(|id| CacheKey::PriceMetadata(&id.to_string(), 0).key()).collect();
-        self.get_values(keys).await
+        let ids = ids.iter().map(ToString::to_string).collect::<Vec<_>>();
+        let keys = ids.iter().map(|id| CacheKey::PriceMetadata(id, 0)).collect::<Vec<_>>();
+        Ok(self.get_many(&keys).await?.into_iter().collect())
     }
 
     async fn start_cooldown(&self, id: &PriceId, duration: Duration) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.set_cached(CacheKey::PriceMetadata(&id.to_string(), duration.as_secs()), id).await
+        self.set(CacheKey::PriceMetadata(&id.to_string(), duration.as_secs()), id).await
     }
 }

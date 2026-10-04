@@ -23,20 +23,19 @@ pub trait PerpetualAddressCacher: Send + Sync {
 #[async_trait]
 impl PerpetualAddressCacher for CacherClient {
     async fn addresses(&self, chain: Chain, tier: PerpetualAddressTier) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_cached_optional::<Vec<String>>(tier_key(&chain, tier)).await?.unwrap_or_default())
+        Ok(self.get::<Vec<String>>(tier_key(&chain, tier)).await?.unwrap_or_default())
     }
 
     async fn set_addresses(&self, chain: Chain, tier: PerpetualAddressTier, addresses: &[String]) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.set_cached(tier_key(&chain, tier), &addresses).await
+        self.set(tier_key(&chain, tier), &addresses).await
     }
 
     async fn checkpoint(&self, chain: Chain, address: &str) -> Result<Option<u64>, Box<dyn Error + Send + Sync>> {
-        self.get_value_optional(&CacheKey::PerpetualObserverCheckpoint(chain.as_ref(), address).key()).await
+        self.get(CacheKey::PerpetualObserverCheckpoint(chain.as_ref(), address)).await
     }
 
     async fn set_checkpoint(&self, chain: Chain, address: &str, timestamp: u64) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let checkpoint = CacheKey::PerpetualObserverCheckpoint(chain.as_ref(), address);
-        self.set_value_with_ttl(&checkpoint.key(), timestamp.to_string(), checkpoint.ttl()).await
+        self.set(CacheKey::PerpetualObserverCheckpoint(chain.as_ref(), address), &timestamp).await
     }
 }
 

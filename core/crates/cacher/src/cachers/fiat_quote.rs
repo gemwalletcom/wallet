@@ -19,24 +19,19 @@ pub struct CachedFiatQuote {
 
 #[async_trait]
 pub trait FiatQuoteCacher: Send + Sync {
-    async fn add_quotes(&self, device_id: i32, wallet_id: i32, quotes: &[(String, CachedFiatQuote)]) -> Result<(), Box<dyn Error + Send + Sync>>;
+    async fn set_quotes(&self, device_id: i32, wallet_id: i32, quotes: &[(String, CachedFiatQuote)]) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn quote(&self, device_id: i32, wallet_id: i32, quote_id: &str) -> Result<Option<CachedFiatQuote>, Box<dyn Error + Send + Sync>>;
-    async fn set_quote(&self, device_id: i32, wallet_id: i32, quote_id: &str, quote: &CachedFiatQuote) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
 impl FiatQuoteCacher for CacherClient {
-    async fn add_quotes(&self, device_id: i32, wallet_id: i32, quotes: &[(String, CachedFiatQuote)]) -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn set_quotes(&self, device_id: i32, wallet_id: i32, quotes: &[(String, CachedFiatQuote)]) -> Result<(), Box<dyn Error + Send + Sync>> {
         let entries = quotes.iter().map(|(quote_id, quote)| (CacheKey::FiatQuote(device_id, wallet_id, quote_id), quote)).collect::<Vec<_>>();
-        self.set_values_cached(&entries).await?;
+        self.set_many(&entries).await?;
         Ok(())
     }
 
     async fn quote(&self, device_id: i32, wallet_id: i32, quote_id: &str) -> Result<Option<CachedFiatQuote>, Box<dyn Error + Send + Sync>> {
-        self.get_cached_optional(CacheKey::FiatQuote(device_id, wallet_id, quote_id)).await
-    }
-
-    async fn set_quote(&self, device_id: i32, wallet_id: i32, quote_id: &str, quote: &CachedFiatQuote) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.set_cached(CacheKey::FiatQuote(device_id, wallet_id, quote_id), quote).await
+        self.get(CacheKey::FiatQuote(device_id, wallet_id, quote_id)).await
     }
 }

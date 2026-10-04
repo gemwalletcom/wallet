@@ -14,11 +14,11 @@ pub trait AddressStatusCacher: Send + Sync {
 #[async_trait]
 impl AddressStatusCacher for CacherClient {
     async fn address_statuses(&self, address: &ChainAddress) -> Result<Option<Vec<AddressStatus>>, Box<dyn Error + Send + Sync>> {
-        self.get_cached_optional(status_key(address)).await
+        self.get(status_key(address)).await
     }
 
     async fn set_address_statuses(&self, address: &ChainAddress, statuses: &[AddressStatus]) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.set_cached(status_key(address), &statuses).await
+        self.set(status_key(address), &statuses).await
     }
 }
 

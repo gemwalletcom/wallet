@@ -29,7 +29,7 @@ impl MessageConsumer<PricesPayload, usize> for StorePricesConsumer {
     async fn consume(&self, payload: PricesPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let prices = payload.prices;
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
-        let ttl_seconds = self.config.get_duration(ConfigKey::PriceOutdated).await?.as_secs() as i64;
+        let ttl = self.config.get_duration(ConfigKey::PriceOutdated).await?;
         let (count, cache_entries) = self
             .database
             .run(move |client| -> Result<_, DatabaseError> {
@@ -45,7 +45,7 @@ impl MessageConsumer<PricesPayload, usize> for StorePricesConsumer {
         if count == 0 {
             return Ok(0);
         }
-        self.price_client.set_cache_prices(cache_entries, ttl_seconds).await?;
+        self.price_client.set_cache_prices(cache_entries, ttl).await?;
 
         Ok(count)
     }

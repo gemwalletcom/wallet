@@ -14,10 +14,10 @@ pub trait IpCheckCacher: Send + Sync {
 #[async_trait]
 impl IpCheckCacher for CacherClient {
     async fn ip_check(&self, ip_address: &str) -> Result<Option<IpCheckResult>, Box<dyn Error + Send + Sync>> {
-        self.get_cached_optional(CacheKey::ReferralIpCheck(ip_address)).await
+        self.get(CacheKey::ReferralIpCheck(ip_address)).await
     }
 
     async fn add_ip_check(&self, ip_address: &str, result: &IpCheckResult) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.set_cached(CacheKey::ReferralIpCheck(ip_address), result).await
+        self.set(CacheKey::ReferralIpCheck(ip_address), result).await
     }
 }

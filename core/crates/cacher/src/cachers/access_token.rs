@@ -4,13 +4,13 @@ use gem_tracing::warn_with_fields;
 use primitives::{AccessTokenCacher, AccessTokenFuture};
 use tokio::sync::Semaphore;
 
-use crate::CacherClient;
+use crate::{CacheKey, CacherClient};
 
 const EXPIRATION_SAFETY_MARGIN: Duration = Duration::from_secs(60);
 
 pub struct AccessTokenCacherClient {
     cacher: CacherClient,
-    key: String,
+    provider: String,
     refresh: Semaphore,
 }
 
@@ -18,7 +18,7 @@ impl AccessTokenCacherClient {
     pub fn new(cacher: CacherClient, provider: &str) -> Self {
         Self {
             cacher,
-            key: format!("access_token:{provider}"),
+            provider: provider.to_string(),
             refresh: Semaphore::new(1),
         }
     }
@@ -27,14 +27,14 @@ impl AccessTokenCacherClient {
         match self.get().await {
             Ok(access_token) => access_token,
             Err(error) => {
-                warn_with_fields!("access token cache read failed", key = self.key.as_str(), error = error.as_ref());
+                warn_with_fields!("access token cache read failed", provider = self.provider.as_str(), error = error.as_ref());
                 None
             }
         }
     }
 
     async fn get(&self) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        self.cacher.get_value_optional::<String>(&self.key).await
+        self.cacher.get(CacheKey::AccessToken(&self.provider, 0)).await
     }
 
     async fn set(&self, access_token: &str, provider_ttl: Duration) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -43,7 +43,7 @@ impl AccessTokenCacherClient {
             return Ok(());
         }
 
-        self.cacher.set_value_with_ttl(&self.key, serde_json::to_string(access_token)?, ttl.as_secs()).await
+        self.cacher.set(CacheKey::AccessToken(&self.provider, ttl.as_secs()), &access_token).await
     }
 }
 
@@ -61,7 +61,7 @@ impl AccessTokenCacher for AccessTokenCacherClient {
 
             let (access_token, ttl) = refresh.await?;
             if let Err(error) = self.set(&access_token, ttl).await {
-                warn_with_fields!("access token cache write failed", key = self.key.as_str(), error = error.as_ref());
+                warn_with_fields!("access token cache write failed", provider = self.provider.as_str(), error = error.as_ref());
             }
             Ok(access_token)
         })

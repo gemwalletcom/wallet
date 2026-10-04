@@ -14,10 +14,10 @@ pub trait MarketsCacher: Send + Sync {
 #[async_trait]
 impl MarketsCacher for CacherClient {
     async fn markets(&self) -> Result<Option<Markets>, Box<dyn Error + Send + Sync>> {
-        self.get_cached_optional(CacheKey::Markets).await
+        self.get(CacheKey::Markets).await
     }
 
     async fn set_markets(&self, markets: &Markets) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.set_cached(CacheKey::Markets, markets).await
+        self.set(CacheKey::Markets, markets).await
     }
 }
