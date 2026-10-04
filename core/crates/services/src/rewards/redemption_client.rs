@@ -7,7 +7,7 @@ use primitives::rewards::{RedemptionResult, Rewards};
 use primitives::{NaiveDateTimeExt, now};
 use rewards::{RewardsError, RewardsRedemptionError};
 use storage::{Database, RewardsRedemptionsRepository, RewardsRepository};
-use streamer::{RewardsRedemptionPayload, StreamProducer, StreamProducerQueue};
+use streamer::{RewardsRedemptionPayload, StreamProducerQueue};
 
 use super::redemption::redeem_points;
 use super::summary::rewards_by_wallet_id;
@@ -17,11 +17,11 @@ use crate::ConfigCacher;
 pub struct RewardsRedemptionClient {
     database: Database,
     config: Arc<ConfigCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl RewardsRedemptionClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, config, stream_producer }
     }
 

@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use storage::{Database, DatabaseError, RedemptionUpdate, RewardsRedemptionsRepository, RewardsRepository};
 use streamer::consumer::MessageConsumer;
-use streamer::{InAppNotificationPayload, QueueName, RewardsRedemptionPayload, StreamProducer, StreamProducerQueue};
+use streamer::{InAppNotificationPayload, RewardsRedemptionPayload, StreamProducerQueue};
 
 pub struct RedemptionRetryConfig {
     pub max_retries: u32,
@@ -20,11 +20,11 @@ pub struct RewardsRedemptionConsumer<S: RedemptionService> {
     database: Database,
     redemption_service: Arc<S>,
     retry_config: RedemptionRetryConfig,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl<S: RedemptionService> RewardsRedemptionConsumer<S> {
-    pub fn new(database: Database, redemption_service: Arc<S>, retry_config: RedemptionRetryConfig, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, redemption_service: Arc<S>, retry_config: RedemptionRetryConfig, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self {
             database,
             redemption_service,
@@ -89,7 +89,7 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionS
 
                 if let Some(id) = &asset_id {
                     let pending_tx_id = TransactionId::new(id.chain, transaction_id.clone());
-                    if let Err(error) = self.stream_producer.publish(QueueName::StorePendingTransactions, &pending_tx_id).await {
+                    if let Err(error) = self.stream_producer.publish_pending_transaction(pending_tx_id.clone()).await {
                         info_with_fields!("failed to publish redemption transaction to pending", transaction_id = pending_tx_id.to_string(), error = error.to_string());
                     } else {
                         info_with_fields!("published redemption transaction to pending", transaction_id = pending_tx_id.to_string());

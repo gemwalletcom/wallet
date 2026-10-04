@@ -10,7 +10,7 @@ use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, Rewa
 use pusher::PusherClient;
 use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoreConfig, RiskScoringInput, UsernameError};
 use storage::{Database, DatabaseClient, DatabaseError, DeviceRecord, NewWallet, RewardsRedemptionsRepository, RewardsRepository, WalletRecord, WalletsRepository};
-use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};
+use streamer::{RewardsNotificationPayload, StreamProducerQueue};
 
 use super::ip_security_client::IpSecurityClient;
 use super::referral::{ReferralVerificationConfig, referral_use_facts, use_or_verify_referral};
@@ -47,13 +47,13 @@ pub struct RewardsClient {
     db: Database,
     config: Arc<ConfigCacher>,
     rate_limiter: Arc<dyn RateLimitCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
     ip_security_client: IpSecurityClient,
     pusher: PusherClient,
 }
 
 impl RewardsClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: Arc<dyn RateLimitCacher>, stream_producer: StreamProducer, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: Arc<dyn RateLimitCacher>, stream_producer: Arc<dyn StreamProducerQueue>, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
         Self {
             db: database,
             config,

@@ -11,7 +11,7 @@ use primitives::{AccessTokenCacher, Chain, ChartTimeframe, JobConfiguration};
 use search_index::SearchIndexClient;
 use settings::{Settings, service_user_agent};
 use storage::{Database, PricesProvidersRepository};
-use streamer::StreamProducer;
+use streamer::{StreamProducer, StreamProducerQueue};
 use swapper::swapper::GemSwapper;
 
 use crate::assets::repository::PostgresRepository;
@@ -232,7 +232,7 @@ fn charts_retention_key(timeframe: ChartTimeframe) -> ConfigKey {
 pub struct RewardsJobs {
     database: Database,
     config: Arc<ConfigCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl RewardsJobs {
@@ -403,7 +403,7 @@ impl Services {
         RewardsJobs {
             database: self.database(),
             config: self.config(),
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         }
     }
 

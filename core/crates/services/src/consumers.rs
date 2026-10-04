@@ -160,7 +160,7 @@ impl Services {
     }
 
     pub async fn rewards_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<RewardsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(RewardsConsumer::new(self.database(), self.stream_producer(name, shutdown).await?))
+        Ok(RewardsConsumer::new(self.database(), Arc::new(self.stream_producer(name, shutdown).await?)))
     }
 
     pub async fn rewards_redemption_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<RewardsRedemptionConsumer<TransferRedemptionService>, Box<dyn Error + Send + Sync>> {
@@ -171,7 +171,7 @@ impl Services {
             errors: config.get_vec_string(ConfigKey::RedemptionRetryErrors).await?,
         };
         let stream_producer = self.stream_producer(name, shutdown).await?;
-        Ok(RewardsRedemptionConsumer::new(self.database(), Arc::new(self.redemption_service()?), retry_config, stream_producer))
+        Ok(RewardsRedemptionConsumer::new(self.database(), Arc::new(self.redemption_service()?), retry_config, Arc::new(stream_producer)))
     }
 
     pub async fn fiat_webhook_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<FiatWebhookConsumer, Box<dyn Error + Send + Sync>> {

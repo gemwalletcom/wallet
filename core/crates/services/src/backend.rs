@@ -235,11 +235,11 @@ impl Services {
     }
 
     pub fn rewards(&self, cacher: CacherClient, stream_producer: StreamProducer, ip_security: IpSecurityClient) -> RewardsClient {
-        RewardsClient::new(self.database(), self.config(), Arc::new(cacher), stream_producer, ip_security, self.pusher())
+        RewardsClient::new(self.database(), self.config(), Arc::new(cacher), Arc::new(stream_producer), ip_security, self.pusher())
     }
 
     pub fn rewards_redemption(&self, stream_producer: StreamProducer) -> RewardsRedemptionClient {
-        RewardsRedemptionClient::new(self.database(), self.config(), stream_producer)
+        RewardsRedemptionClient::new(self.database(), self.config(), Arc::new(stream_producer))
     }
 
     pub fn portfolio(&self) -> PortfolioClient {

@@ -1,13 +1,14 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use primitives::{NotificationRewardsMetadata, NotificationType, RewardEvent, RewardEventType};
 use storage::{Database, DatabaseClient, DatabaseError, RewardsRepository};
-use streamer::{InAppNotificationPayload, RewardsNotificationPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
+use streamer::{InAppNotificationPayload, RewardsNotificationPayload, StreamProducerQueue, consumer::MessageConsumer};
 
 pub struct RewardsConsumer {
     database: Database,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 #[async_trait]
@@ -32,7 +33,7 @@ impl MessageConsumer<RewardsNotificationPayload, usize> for RewardsConsumer {
 }
 
 impl RewardsConsumer {
-    pub fn new(database: Database, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, stream_producer }
     }
 }

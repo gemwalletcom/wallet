@@ -6,16 +6,16 @@ use config_keys::ConfigKey;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{NaiveDateTimeExt, RewardStatus, now};
 use storage::{Database, DatabaseError, RewardsEligibilityConfig, RewardsFilter, RewardsRepository};
-use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};
+use streamer::{RewardsNotificationPayload, StreamProducerQueue};
 
 pub struct RewardsEligibilityChecker {
     database: Database,
     config: Arc<ConfigCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl RewardsEligibilityChecker {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, config, stream_producer }
     }
 

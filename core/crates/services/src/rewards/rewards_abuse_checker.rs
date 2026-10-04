@@ -6,7 +6,7 @@ use primitives::{NaiveDateTimeExt, now};
 use std::error::Error;
 use std::sync::Arc;
 use storage::{AbusePatterns, Database, DatabaseClient, DatabaseError, RewardsRepository, RiskSignalsRepository};
-use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};
+use streamer::{RewardsNotificationPayload, StreamProducerQueue};
 
 pub(crate) struct AbuseDetectionConfig {
     pub(crate) disable_threshold: i64,
@@ -69,11 +69,11 @@ impl PatternPenaltyBreakdown {
 pub struct RewardsAbuseChecker {
     database: Database,
     config: Arc<ConfigCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl RewardsAbuseChecker {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, config, stream_producer }
     }
 
