@@ -6328,6 +6328,7 @@ dependencies = [
 name = "pusher"
 version = "2.114.60"
 dependencies = [
+ "async-trait",
  "gem_client",
  "primitives",
  "push_notification",

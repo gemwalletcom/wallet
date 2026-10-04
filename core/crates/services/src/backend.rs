@@ -15,7 +15,7 @@ use gem_jsonrpc::JsonRpcClient;
 use lists::CoinGeckoListProvider;
 use nft::NFTProviderConfig;
 use primitives::{AccessTokenCacher, Chain, ChainType, EVMChain, FiatProviderName};
-use pusher::PusherClient;
+use pusher::{PushProvider, PusherClient};
 use rewards::{AbuseIPDBClient, EvmClientProvider, IpApiClient, IpCheckProvider, TransferRedemptionService, WalletConfig};
 use search_index::{SearchIndexClient, SearchIndexConfig};
 use security::TransactionScanProviders;
@@ -194,8 +194,8 @@ impl Services {
         Ok(TransferRedemptionService::new(wallets, client_provider))
     }
 
-    pub fn pusher(&self) -> PusherClient {
-        PusherClient::new(self.settings.pusher.url.clone(), self.settings.pusher.ios.topic.clone())
+    pub fn pusher(&self) -> Arc<dyn PushProvider> {
+        Arc::new(PusherClient::new(self.settings.pusher.url.clone(), self.settings.pusher.ios.topic.clone()))
     }
 
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {

@@ -1,8 +1,9 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use primitives::Device;
 use push_notification::{GorushNotification, PushNotification, PushNotificationTypes};
-use pusher::PusherClient;
+use pusher::PushProvider;
 use storage::{Database, DatabaseError, DeviceRecord, DevicesRepository, PriceAlertsRepository, WalletRecord, WalletsRepository};
 
 use super::admin_device::AdminDevice;
@@ -18,11 +19,11 @@ pub enum DeviceWalletLookup {
 #[derive(Clone)]
 pub struct DevicesClient {
     database: Database,
-    pusher: PusherClient,
+    pusher: Arc<dyn PushProvider>,
 }
 
 impl DevicesClient {
-    pub fn new(database: Database, pusher: PusherClient) -> Self {
+    pub fn new(database: Database, pusher: Arc<dyn PushProvider>) -> Self {
         Self { database, pusher }
     }
 

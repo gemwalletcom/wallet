@@ -7,7 +7,7 @@ use gem_tracing::error_with_fields;
 use localizer::LanguageLocalizer;
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
 use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, WalletId, WalletSource, WalletType, now};
-use pusher::PusherClient;
+use pusher::PushProvider;
 use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoreConfig, RiskScoringInput, UsernameError};
 use storage::{Database, DatabaseClient, DatabaseError, DeviceRecord, NewWallet, RewardsRedemptionsRepository, RewardsRepository, WalletRecord, WalletsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducerQueue};
@@ -49,11 +49,11 @@ pub struct RewardsClient {
     rate_limiter: Arc<dyn RateLimitCacher>,
     stream_producer: Arc<dyn StreamProducerQueue>,
     ip_security_client: IpSecurityClient,
-    pusher: PusherClient,
+    pusher: Arc<dyn PushProvider>,
 }
 
 impl RewardsClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: Arc<dyn RateLimitCacher>, stream_producer: Arc<dyn StreamProducerQueue>, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: Arc<dyn RateLimitCacher>, stream_producer: Arc<dyn StreamProducerQueue>, ip_security_client: IpSecurityClient, pusher: Arc<dyn PushProvider>) -> Self {
         Self {
             db: database,
             config,
