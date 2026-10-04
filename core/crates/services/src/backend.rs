@@ -99,7 +99,7 @@ impl Services {
 
     pub async fn support(&self, shutdown: ShutdownReceiver) -> Result<SupportClient, Box<dyn Error + Send + Sync>> {
         let stream_producer = self.stream_producer("daemon_support_producer", shutdown).await?;
-        Ok(SupportClient::new(self.database(), stream_producer, Arc::new(self.cacher().await?)))
+        Ok(SupportClient::new(self.database(), Arc::new(stream_producer), Arc::new(self.cacher().await?)))
     }
 
     pub async fn search_index(&self) -> Result<SearchIndexClient, Box<dyn Error + Send + Sync>> {
@@ -267,7 +267,7 @@ impl Services {
     }
 
     pub fn webhooks(&self, stream_producer: StreamProducer) -> WebhooksClient {
-        WebhooksClient::new(stream_producer, self.settings.support.webhook.key.secret.clone())
+        WebhooksClient::new(Arc::new(stream_producer), self.settings.support.webhook.key.secret.clone())
     }
 
     pub async fn app_config(&self) -> Result<ConfigClient, Box<dyn Error + Send + Sync>> {

@@ -6,7 +6,7 @@ use localizer::LanguageLocalizer;
 use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus};
 use push_notification::{GorushNotification, PushNotification, PushNotificationSupport, PushNotificationTypes};
 use storage::{Database, DevicesRepository};
-use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
+use streamer::{NotificationsPayload, StreamProducerQueue};
 use support::markdown_plain_text;
 
 use super::constants::{EVENT_CONVERSATION_TYPING_OFF, EVENT_CONVERSATION_TYPING_ON, EVENT_MESSAGE_CREATED};
@@ -20,12 +20,12 @@ pub struct SupportWebhookResult {
 
 pub struct SupportClient {
     database: Database,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
     device_stream: Arc<dyn DeviceStreamCacher>,
 }
 
 impl SupportClient {
-    pub fn new(database: Database, stream_producer: StreamProducer, device_stream: Arc<dyn DeviceStreamCacher>) -> Self {
+    pub fn new(database: Database, stream_producer: Arc<dyn StreamProducerQueue>, device_stream: Arc<dyn DeviceStreamCacher>) -> Self {
         Self { database, stream_producer, device_stream }
     }
 

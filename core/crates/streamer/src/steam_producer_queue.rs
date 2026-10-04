@@ -1,14 +1,14 @@
 use std::error::Error;
 
-use primitives::{AssetId, Chain, NFTAssetId, TransactionIdRequest};
+use primitives::{AssetId, Chain, NFTAssetId, TransactionId, TransactionIdRequest};
 
 use crate::{
     ChainAddressPayload, ExchangeName, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, InAppNotificationPayload, NotificationsFailedPayload,
-    NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer, TransactionsPayload, WalletStreamPayload,
+    NotificationsPayload, PricesPayload, QueueName, RewardsNotificationPayload, RewardsRedemptionPayload, StreamProducer, SupportWebhookPayload, TransactionsPayload, WalletStreamPayload,
 };
 
 #[async_trait::async_trait]
-pub trait StreamProducerQueue {
+pub trait StreamProducerQueue: Send + Sync {
     async fn publish_fetch_assets(&self, asset_ids: Vec<AssetId>) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_asset_status(&self, asset_id: AssetId) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_asset_associations(&self, payload: FetchAssetAssociationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
@@ -33,6 +33,8 @@ pub trait StreamProducerQueue {
     async fn publish_new_addresses(&self, payload: Vec<ChainAddressPayload>) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_in_app_notifications(&self, payload: Vec<InAppNotificationPayload>) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_wallet_stream_events(&self, payload: Vec<WalletStreamPayload>) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    async fn publish_support_webhook(&self, payload: SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    async fn publish_pending_transaction(&self, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait::async_trait]
@@ -192,5 +194,13 @@ impl StreamProducerQueue for StreamProducer {
             return Ok(true);
         }
         self.publish_batch(QueueName::WalletStreamEvents, &payload).await
+    }
+
+    async fn publish_support_webhook(&self, payload: SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.publish(QueueName::SupportWebhooks, &payload).await
+    }
+
+    async fn publish_pending_transaction(&self, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.publish(QueueName::StorePendingTransactions, &transaction_id).await
     }
 }
