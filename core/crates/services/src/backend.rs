@@ -99,7 +99,7 @@ impl Services {
 
     pub async fn support(&self, shutdown: ShutdownReceiver) -> Result<SupportClient, Box<dyn Error + Send + Sync>> {
         let stream_producer = self.stream_producer("daemon_support_producer", shutdown).await?;
-        Ok(SupportClient::new(self.database(), stream_producer, self.cacher().await?))
+        Ok(SupportClient::new(self.database(), stream_producer, Arc::new(self.cacher().await?)))
     }
 
     pub async fn search_index(&self) -> Result<SearchIndexClient, Box<dyn Error + Send + Sync>> {

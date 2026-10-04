@@ -1,8 +1,8 @@
 use std::error::Error;
+use std::sync::Arc;
 
-use cacher::CacherClient;
 use localizer::LanguageLocalizer;
-use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus, device_stream_channel};
+use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus};
 use push_notification::{GorushNotification, PushNotification, PushNotificationSupport, PushNotificationTypes};
 use storage::{Database, DevicesRepository};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
@@ -10,6 +10,7 @@ use support::markdown_plain_text;
 
 use super::constants::{EVENT_CONVERSATION_TYPING_OFF, EVENT_CONVERSATION_TYPING_ON, EVENT_MESSAGE_CREATED};
 use super::model::ChatwootWebhookPayload;
+use crate::devices::DeviceStreamStore;
 
 #[derive(Debug, Default)]
 pub struct SupportWebhookResult {
@@ -20,12 +21,12 @@ pub struct SupportWebhookResult {
 pub struct SupportClient {
     database: Database,
     stream_producer: StreamProducer,
-    cacher: CacherClient,
+    device_stream: Arc<dyn DeviceStreamStore>,
 }
 
 impl SupportClient {
-    pub fn new(database: Database, stream_producer: StreamProducer, cacher: CacherClient) -> Self {
-        Self { database, stream_producer, cacher }
+    pub fn new(database: Database, stream_producer: StreamProducer, device_stream: Arc<dyn DeviceStreamStore>) -> Self {
+        Self { database, stream_producer, device_stream }
     }
 
     pub async fn get_device(&self, device_id: &str) -> Result<Option<Device>, Box<dyn Error + Send + Sync>> {
@@ -103,7 +104,8 @@ impl SupportClient {
     }
 
     async fn publish_event(&self, device: &Device, event: StreamEvent) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher.publish(&device_stream_channel(&device.id), &event).await
+        self.device_stream.publish_event(&device.id, &event).await?;
+        Ok(())
     }
 }
 
