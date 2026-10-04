@@ -184,7 +184,7 @@ impl PriceJobs {
     }
 
     pub fn cleanup_updater(&self, kind: PriceProvider) -> PricesCleanupUpdater {
-        PricesCleanupUpdater::new(self.database.clone(), self.cacher.clone(), self.config.clone(), kind)
+        PricesCleanupUpdater::new(self.database.clone(), Arc::new(self.cacher.clone()), self.config.clone(), kind)
     }
 
     pub fn metrics_updater(&self, kind: PriceProvider) -> PricesMetricsUpdater {
@@ -192,7 +192,7 @@ impl PriceJobs {
     }
 
     pub fn charts_history_updater(&self, kind: PriceProvider, config: ChartsHistoryConfig) -> ChartsHistoryUpdater {
-        ChartsHistoryUpdater::new(self.provider(kind), self.database.clone(), self.cacher.clone(), config)
+        ChartsHistoryUpdater::new(self.provider(kind), self.database.clone(), Arc::new(self.cacher.clone()), config)
     }
 
     pub fn markets_updater(&self) -> MarketsUpdater {

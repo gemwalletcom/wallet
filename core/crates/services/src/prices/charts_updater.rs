@@ -1,10 +1,8 @@
-use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::prices::PriceClient;
-use cacher::{CacheKey, CacherClient};
+use crate::prices::{ChartsHistoryStore, PriceClient};
 use chrono::{DateTime, Utc};
 use gem_tracing::info_with_fields;
 use prices::PriceAssetsProvider;
@@ -38,20 +36,20 @@ pub struct ChartsHistoryConfig {
 pub struct ChartsHistoryUpdater {
     provider: Arc<dyn PriceAssetsProvider>,
     database: Database,
-    cacher: CacherClient,
+    history: Arc<dyn ChartsHistoryStore>,
     config: ChartsHistoryConfig,
 }
 
 impl ChartsHistoryUpdater {
-    pub fn new(provider: Arc<dyn PriceAssetsProvider>, database: Database, cacher: CacherClient, config: ChartsHistoryConfig) -> Self {
-        Self { provider, database, cacher, config }
+    pub fn new(provider: Arc<dyn PriceAssetsProvider>, database: Database, history: Arc<dyn ChartsHistoryStore>, config: ChartsHistoryConfig) -> Self {
+        Self { provider, database, history, config }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
         let provider_id = provider.id();
 
-        let synced: HashSet<String> = self.cacher.get_set_members_cached(vec![CacheKey::ChartsHistory(provider_id).key()]).await?.into_iter().collect();
+        let synced = self.history.synced_prices(provider).await?;
         let prices: Vec<PriceData> = self
             .database
             .run(move |client| client.get_prices_by_filter(vec![PriceFilter::Provider(provider)]))
@@ -82,7 +80,7 @@ impl ChartsHistoryUpdater {
                 0
             };
             if has_history {
-                self.cacher.add_to_set_cached(CacheKey::ChartsHistory(provider_id), std::slice::from_ref(&price_id)).await?;
+                self.history.add_synced_price(provider, &price_id).await?;
             }
             info_with_fields!(
                 "charts history sync finished",

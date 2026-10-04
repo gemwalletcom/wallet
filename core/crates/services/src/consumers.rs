@@ -66,7 +66,7 @@ impl Services {
     pub async fn fetch_prices_metadata_consumer(&self) -> Result<FetchPricesMetadataConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchPricesMetadataConsumer {
             database: self.database(),
-            cacher: self.cacher().await?,
+            cooldowns: Arc::new(self.cacher().await?),
             config: self.config(),
             providers: self.price_providers(PriceProvider::all()),
         })

@@ -1,5 +1,5 @@
 use crate::ConfigCacher;
-use cacher::{CacheKey, CacherClient};
+use crate::prices::ChartsHistoryStore;
 use chrono::Utc;
 use config_keys::ConfigKey;
 use primitives::PriceProvider;
@@ -9,14 +9,14 @@ use storage::{Database, DatabaseError, PriceFilter, PricesRepository};
 
 pub struct PricesCleanupUpdater {
     database: Database,
-    cacher: CacherClient,
+    history: Arc<dyn ChartsHistoryStore>,
     config: Arc<ConfigCacher>,
     provider: PriceProvider,
 }
 
 impl PricesCleanupUpdater {
-    pub fn new(database: Database, cacher: CacherClient, config: Arc<ConfigCacher>, provider: PriceProvider) -> Self {
-        Self { database, cacher, config, provider }
+    pub fn new(database: Database, history: Arc<dyn ChartsHistoryStore>, config: Arc<ConfigCacher>, provider: PriceProvider) -> Self {
+        Self { database, history, config, provider }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -40,7 +40,7 @@ impl PricesCleanupUpdater {
         if ids.is_empty() {
             return Ok(0);
         }
-        self.cacher.remove_from_set_cached(CacheKey::ChartsHistory(self.provider.id()), &ids).await?;
+        self.history.remove_synced_prices(self.provider, &ids).await?;
         Ok(deleted)
     }
 }

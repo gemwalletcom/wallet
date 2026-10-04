@@ -2,8 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
+use crate::prices::PriceMetadataCooldowns;
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
 use config_keys::{ConfigKey, ConfigParamKey};
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceMapping, PriceProviders};
@@ -13,7 +13,7 @@ use streamer::consumer::MessageConsumer;
 
 pub struct FetchPricesMetadataConsumer {
     pub database: Database,
-    pub cacher: CacherClient,
+    pub cooldowns: Arc<dyn PriceMetadataCooldowns>,
     pub config: Arc<ConfigCacher>,
     pub providers: PriceProviders,
 }
@@ -28,8 +28,8 @@ impl MessageConsumer<PriceId, usize> for FetchPricesMetadataConsumer {
     async fn consume(&self, price_id: PriceId) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.providers.get(&price_id.provider).ok_or_else(|| format!("Metadata provider unavailable: {}", price_id.provider))?;
         let id = price_id.to_string();
-        let retry = self.config.get_duration(ConfigKey::PriceMetadataRetryInterval).await?.as_secs();
-        self.cacher.set_cached(CacheKey::PriceMetadata(&id, retry), &price_id).await?;
+        let retry = self.config.get_duration(ConfigKey::PriceMetadataRetryInterval).await?;
+        self.cooldowns.start_cooldown(&price_id, retry).await?;
         let price_ids = vec![id.clone()];
         let mappings: Vec<_> = self
             .database
@@ -60,7 +60,7 @@ impl MessageConsumer<PriceId, usize> for FetchPricesMetadataConsumer {
         } else {
             self.config.get_param_duration(&ConfigParamKey::PriceProviderAssetsMetadataDuration(price_id.provider)).await?
         };
-        self.cacher.set_cached(CacheKey::PriceMetadata(&id, cooldown.as_secs()), &price_id).await?;
+        self.cooldowns.start_cooldown(&price_id, cooldown).await?;
         info_with_fields!("update price metadata", price_id = id, count = count);
         Ok(count)
     }

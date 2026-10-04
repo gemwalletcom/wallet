@@ -3,8 +3,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use crate::prices::PriceClient;
-use cacher::{CacheKey, CacherClient};
+use crate::prices::{PriceClient, PriceMetadataCooldowns};
 use config_keys::ConfigKey;
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset};
@@ -42,7 +41,7 @@ impl PricesUpdater {
         self.save_assets(self.provider.get_assets_new().await?).await
     }
 
-    pub async fn publish_assets_metadata(&self, cacher: &CacherClient, config: &ConfigCacher) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    pub async fn publish_assets_metadata(&self, cooldowns: &dyn PriceMetadataCooldowns, config: &ConfigCacher) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
         let (mappings, enabled) = self
             .database
@@ -53,15 +52,14 @@ impl PricesUpdater {
                 Ok((mappings, enabled))
             })
             .await?;
-        let retry = config.get_duration(ConfigKey::PriceMetadataRetryInterval).await?.as_secs();
+        let retry = config.get_duration(ConfigKey::PriceMetadataRetryInterval).await?;
         let mut ids: Vec<_> = mappings.into_iter().filter(|mapping| enabled.contains(&mapping.asset_id)).map(|mapping| mapping.price_id).collect();
         ids.sort_by_cached_key(PriceId::id);
         ids.dedup();
-        let keys = ids.iter().map(|id| CacheKey::PriceMetadata(&id.to_string(), retry).key()).collect();
-        let cooling_down: HashSet<PriceId> = cacher.get_values(keys).await?;
+        let cooling_down = cooldowns.cooling_down(&ids).await?;
         let ids: Vec<_> = ids.into_iter().filter(|id| !cooling_down.contains(id)).take(config.get_usize(ConfigKey::PriceMetadataBatchSize).await?).collect();
         for id in &ids {
-            cacher.set_cached(CacheKey::PriceMetadata(&id.to_string(), retry), id).await?;
+            cooldowns.start_cooldown(id, retry).await?;
             if !self.stream_producer.publish(QueueName::FetchPricesMetadata, id).await? {
                 return Err(format!("Metadata publish rejected for {id}").into());
             }
