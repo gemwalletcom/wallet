@@ -7,11 +7,11 @@ use primitives::{StreamEvent, StreamTransactionsUpdate, StreamWalletUpdate, Wall
 use storage::{Database, DatabaseError, WalletsRepository};
 use streamer::{WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 
-use crate::devices::DeviceStreamStore;
+use crate::devices::DeviceStreamCacher;
 
 pub struct WalletStreamConsumer {
     pub database: Database,
-    pub device_stream: Arc<dyn DeviceStreamStore>,
+    pub device_stream: Arc<dyn DeviceStreamCacher>,
     pub retention: Duration,
 }
 

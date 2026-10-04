@@ -6,7 +6,7 @@ use cacher::{CacheKey, CacherClient};
 use primitives::{AssetId, AssetPriceInfo, FiatRate, PriceProvider};
 
 #[async_trait]
-pub trait PriceCacheStore: Send + Sync {
+pub trait PriceCacher: Send + Sync {
     async fn set_fiat_rates(&self, rates: &[FiatRate]) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn fiat_rates(&self) -> Result<Option<Vec<FiatRate>>, Box<dyn Error + Send + Sync>>;
     async fn set_prices(&self, prices: &[AssetPriceInfo], ttl_seconds: i64) -> Result<usize, Box<dyn Error + Send + Sync>>;
@@ -17,7 +17,7 @@ pub trait PriceCacheStore: Send + Sync {
 }
 
 #[async_trait]
-impl PriceCacheStore for CacherClient {
+impl PriceCacher for CacherClient {
     async fn set_fiat_rates(&self, rates: &[FiatRate]) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.set_cached(CacheKey::FiatRates, &rates).await
     }

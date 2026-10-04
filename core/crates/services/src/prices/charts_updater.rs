@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::prices::{ChartsHistoryStore, PriceClient};
+use crate::prices::{ChartsHistoryCacher, PriceClient};
 use chrono::{DateTime, Utc};
 use gem_tracing::info_with_fields;
 use prices::PriceAssetsProvider;
@@ -36,12 +36,12 @@ pub struct ChartsHistoryConfig {
 pub struct ChartsHistoryUpdater {
     provider: Arc<dyn PriceAssetsProvider>,
     database: Database,
-    history: Arc<dyn ChartsHistoryStore>,
+    history: Arc<dyn ChartsHistoryCacher>,
     config: ChartsHistoryConfig,
 }
 
 impl ChartsHistoryUpdater {
-    pub fn new(provider: Arc<dyn PriceAssetsProvider>, database: Database, history: Arc<dyn ChartsHistoryStore>, config: ChartsHistoryConfig) -> Self {
+    pub fn new(provider: Arc<dyn PriceAssetsProvider>, database: Database, history: Arc<dyn ChartsHistoryCacher>, config: ChartsHistoryConfig) -> Self {
         Self { provider, database, history, config }
     }
 

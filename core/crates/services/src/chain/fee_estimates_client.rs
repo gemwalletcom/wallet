@@ -38,14 +38,14 @@ struct FeeEstimate {
 }
 
 #[async_trait]
-pub trait FeeEstimatesStore: Send + Sync {
+pub trait FeeEstimatesCacher: Send + Sync {
     async fn fresh_estimates(&self, chain: Chain) -> Result<Option<ChainFeeEstimates>, Box<dyn Error + Send + Sync>>;
     async fn set_estimates(&self, chain: Chain, estimates: &ChainFeeEstimates) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn all_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl FeeEstimatesStore for CacherClient {
+impl FeeEstimatesCacher for CacherClient {
     async fn fresh_estimates(&self, chain: Chain) -> Result<Option<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
         let (cached, fresh) = futures::try_join!(
             self.get_cached_optional::<ChainFeeEstimates>(CacheKey::TransactionFeeEstimates(chain.as_ref())),
@@ -72,21 +72,21 @@ pub struct FeeEstimatesClient {
     chain_client: ChainClient,
     assets_client: AssetsClient,
     price_client: PriceClient,
-    store: Arc<dyn FeeEstimatesStore>,
+    cacher: Arc<dyn FeeEstimatesCacher>,
 }
 
 impl FeeEstimatesClient {
-    pub fn new(chain_client: ChainClient, assets_client: AssetsClient, price_client: PriceClient, store: Arc<dyn FeeEstimatesStore>) -> Self {
+    pub fn new(chain_client: ChainClient, assets_client: AssetsClient, price_client: PriceClient, cacher: Arc<dyn FeeEstimatesCacher>) -> Self {
         Self {
             chain_client,
             assets_client,
             price_client,
-            store,
+            cacher,
         }
     }
 
     pub async fn get_chain_fee_estimates(&self, chain: Chain) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
-        if let Some(estimates) = self.store.fresh_estimates(chain).await? {
+        if let Some(estimates) = self.cacher.fresh_estimates(chain).await? {
             return Ok(estimates);
         }
 
@@ -94,12 +94,12 @@ impl FeeEstimatesClient {
         let asset = self.assets_client.get_asset(&estimates.fee_asset).await?;
         let price = self.price_client.get_cache_price(&estimates.fee_asset).await?;
         let estimates = map_fee_estimates(asset, estimates, price.price.price)?;
-        self.store.set_estimates(chain, &estimates).await?;
+        self.cacher.set_estimates(chain, &estimates).await?;
         Ok(estimates)
     }
 
     pub async fn get_fee_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
-        self.store.all_estimates().await
+        self.cacher.all_estimates().await
     }
 }
 

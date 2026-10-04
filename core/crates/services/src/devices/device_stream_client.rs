@@ -8,7 +8,7 @@ use gem_tracing::error_fields;
 use primitives::{StreamEvent, device_stream_channel, unix_timestamp};
 
 #[async_trait]
-pub trait DeviceStreamStore: Send + Sync {
+pub trait DeviceStreamCacher: Send + Sync {
     async fn publish_event(&self, device_id: &str, event: &StreamEvent) -> Result<usize, Box<dyn Error + Send + Sync>>;
     async fn events(&self, device_id: &str, retention: Duration) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>>;
     async fn take_events(&self, device_id: &str, retention: Duration) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>>;
@@ -17,7 +17,7 @@ pub trait DeviceStreamStore: Send + Sync {
 }
 
 #[async_trait]
-impl DeviceStreamStore for CacherClient {
+impl DeviceStreamCacher for CacherClient {
     async fn publish_event(&self, device_id: &str, event: &StreamEvent) -> Result<usize, Box<dyn Error + Send + Sync>> {
         self.publish(&device_stream_channel(device_id), event).await
     }
@@ -53,13 +53,13 @@ pub struct PendingStreamEvent {
 
 #[derive(Clone)]
 pub struct DeviceStreamClient {
-    events: Arc<dyn DeviceStreamStore>,
+    events: Arc<dyn DeviceStreamCacher>,
     retention: Duration,
     history_limit: usize,
 }
 
 impl DeviceStreamClient {
-    pub fn new(events: Arc<dyn DeviceStreamStore>, retention: Duration, history_limit: usize) -> Self {
+    pub fn new(events: Arc<dyn DeviceStreamCacher>, retention: Duration, history_limit: usize) -> Self {
         Self { events, retention, history_limit }
     }
 

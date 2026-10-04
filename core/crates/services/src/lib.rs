@@ -15,7 +15,7 @@ pub mod nft;
 pub mod notifications;
 pub mod perpetuals;
 pub mod prices;
-mod rate_limits;
+mod rate_limit_cacher;
 pub mod rewards;
 pub mod search;
 pub mod security;
@@ -26,7 +26,7 @@ pub mod swap;
 pub mod system;
 #[cfg(test)]
 mod testkit;
-pub mod throttle;
+pub mod throttle_cacher;
 pub mod transactions;
 pub mod webhooks;
 mod workers;

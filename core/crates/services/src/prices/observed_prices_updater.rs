@@ -3,7 +3,7 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::prices::{ObservedAssetsStore, PriceClient};
+use crate::prices::{ObservedAssetsCacher, PriceClient};
 use prices::AssetPriceMapping;
 use primitives::{AssetId, PriceProvider};
 use storage::{Database, PricesRepository};
@@ -19,7 +19,7 @@ pub struct ObservedPricesConfig {
 }
 
 pub struct ObservedPricesUpdater {
-    observed: Arc<dyn ObservedAssetsStore>,
+    observed: Arc<dyn ObservedAssetsCacher>,
     database: Database,
     price_client: PriceClient,
     providers: AssetsProviders,
@@ -28,7 +28,7 @@ pub struct ObservedPricesUpdater {
 }
 
 impl ObservedPricesUpdater {
-    pub fn new(observed: Arc<dyn ObservedAssetsStore>, database: Database, price_client: PriceClient, providers: AssetsProviders, stream_producer: StreamProducer, config: ObservedPricesConfig) -> Self {
+    pub fn new(observed: Arc<dyn ObservedAssetsCacher>, database: Database, price_client: PriceClient, providers: AssetsProviders, stream_producer: StreamProducer, config: ObservedPricesConfig) -> Self {
         Self {
             observed,
             database,

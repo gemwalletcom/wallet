@@ -11,14 +11,14 @@ use primitives::{JobConfiguration, TransactionId};
 use crate::transactions::TransactionQueue;
 
 #[async_trait]
-pub trait CheckScheduleStore: Send + Sync {
+pub trait CheckScheduleCacher: Send + Sync {
     async fn next_checks(&self, queue: TransactionQueue, ids: &[String]) -> Result<Vec<Option<f64>>, Box<dyn Error + Send + Sync>>;
     async fn set_next_check(&self, queue: TransactionQueue, id: String, next_check_at: f64) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn remove_check(&self, queue: TransactionQueue, id: String) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl CheckScheduleStore for CacherClient {
+impl CheckScheduleCacher for CacherClient {
     async fn next_checks(&self, queue: TransactionQueue, ids: &[String]) -> Result<Vec<Option<f64>>, Box<dyn Error + Send + Sync>> {
         self.sorted_set_scores(&schedule_key(queue).key(), ids).await
     }
@@ -39,28 +39,28 @@ fn schedule_key(queue: TransactionQueue) -> CacheKey<'static> {
 }
 
 pub struct CheckSchedule {
-    store: Arc<dyn CheckScheduleStore>,
+    cacher: Arc<dyn CheckScheduleCacher>,
     queue: TransactionQueue,
 }
 
 impl CheckSchedule {
-    pub fn new(store: Arc<dyn CheckScheduleStore>, queue: TransactionQueue) -> Self {
-        Self { store, queue }
+    pub fn new(cacher: Arc<dyn CheckScheduleCacher>, queue: TransactionQueue) -> Self {
+        Self { cacher, queue }
     }
 
     pub async fn due(&self, ids: &[TransactionId], now: DateTime<Utc>) -> Result<HashSet<TransactionId>, Box<dyn Error + Send + Sync>> {
         let members = ids.iter().map(ToString::to_string).collect::<Vec<_>>();
-        let scores = self.store.next_checks(self.queue, &members).await?;
+        let scores = self.cacher.next_checks(self.queue, &members).await?;
         Ok(ids.iter().zip(scores).filter(|(_, next_check_at)| is_due(*next_check_at, now)).map(|(id, _)| id.clone()).collect())
     }
 
     pub async fn schedule_next(&self, id: &TransactionId, configuration: &JobConfiguration, elapsed: Duration, now: DateTime<Utc>) -> Result<(), Box<dyn Error + Send + Sync>> {
         let next_check_at = now + configuration.next_check_interval(elapsed);
-        self.store.set_next_check(self.queue, id.to_string(), timestamp(next_check_at)).await
+        self.cacher.set_next_check(self.queue, id.to_string(), timestamp(next_check_at)).await
     }
 
     pub async fn remove(&self, id: &TransactionId) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.store.remove_check(self.queue, id.to_string()).await
+        self.cacher.remove_check(self.queue, id.to_string()).await
     }
 }
 

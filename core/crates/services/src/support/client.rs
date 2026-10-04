@@ -10,7 +10,7 @@ use support::markdown_plain_text;
 
 use super::constants::{EVENT_CONVERSATION_TYPING_OFF, EVENT_CONVERSATION_TYPING_ON, EVENT_MESSAGE_CREATED};
 use super::model::ChatwootWebhookPayload;
-use crate::devices::DeviceStreamStore;
+use crate::devices::DeviceStreamCacher;
 
 #[derive(Debug, Default)]
 pub struct SupportWebhookResult {
@@ -21,11 +21,11 @@ pub struct SupportWebhookResult {
 pub struct SupportClient {
     database: Database,
     stream_producer: StreamProducer,
-    device_stream: Arc<dyn DeviceStreamStore>,
+    device_stream: Arc<dyn DeviceStreamCacher>,
 }
 
 impl SupportClient {
-    pub fn new(database: Database, stream_producer: StreamProducer, device_stream: Arc<dyn DeviceStreamStore>) -> Self {
+    pub fn new(database: Database, stream_producer: StreamProducer, device_stream: Arc<dyn DeviceStreamCacher>) -> Self {
         Self { database, stream_producer, device_stream }
     }
 

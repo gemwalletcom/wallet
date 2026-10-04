@@ -2,7 +2,7 @@ mod client;
 mod fiat_assets_updater;
 mod fiat_rates_updater;
 mod fiat_webhook_consumer;
-mod quote_store;
+mod quote_cacher;
 
 pub use client::FiatClient;
 pub use fiat_assets_updater::FiatAssetsUpdater;

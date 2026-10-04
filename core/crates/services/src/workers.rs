@@ -16,24 +16,24 @@ use swapper::swapper::GemSwapper;
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
 use crate::fiat::{FiatAssetsUpdater, FiatRatesUpdater};
 use crate::notifications::{StakeRewardsConfig, StakingRewardsNotifier};
-use crate::perpetuals::{PerpetualAddressRefresher, PerpetualAddressStore, PerpetualPositionClassifier, PerpetualPositionClassifierConfig, PerpetualPositionObserver};
+use crate::perpetuals::{PerpetualAddressCacher, PerpetualAddressRefresher, PerpetualPositionClassifier, PerpetualPositionClassifierConfig, PerpetualPositionObserver};
 use crate::prices::{
-    AssetsProviders, ChartsHistoryConfig, ChartsHistoryStore, ChartsHistoryUpdater, ChartsUpdater, MarketsClient, MarketsUpdater, MissingPricesPublisher, ObservedAssetsStore, ObservedPricesConfig, ObservedPricesUpdater, PriceAlertClient,
-    PriceAlertSender, PriceClient, PriceMetadataCooldowns, PricesCleanupUpdater, PricesMetricsUpdater, PricesUpdater,
+    AssetsProviders, ChartsHistoryCacher, ChartsHistoryConfig, ChartsHistoryUpdater, ChartsUpdater, MarketsClient, MarketsUpdater, MissingPricesPublisher, ObservedAssetsCacher, ObservedPricesConfig, ObservedPricesUpdater, PriceAlertClient,
+    PriceAlertSender, PriceClient, PriceMetadataCacher, PricesCleanupUpdater, PricesMetricsUpdater, PricesUpdater,
 };
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
 use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater};
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
-use crate::throttle::Throttle;
+use crate::throttle_cacher::ThrottleCacher;
 use crate::transactions::{
-    CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, SwapVaultAddressStore, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater,
+    CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressCacher, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater,
 };
 use crate::{ConfigCacher, Services, StaticAssetsClient};
 
 #[derive(Clone)]
 pub struct AlerterJobs {
     database: Database,
-    throttle: Arc<dyn Throttle>,
+    throttle: Arc<dyn ThrottleCacher>,
     config: Arc<ConfigCacher>,
     price_alert_client: PriceAlertClient,
     chain_providers: Arc<ChainProviders>,
@@ -110,7 +110,7 @@ impl FiatJobs {
 #[derive(Clone)]
 pub struct PerpetualJobs {
     database: Database,
-    addresses: Arc<dyn PerpetualAddressStore>,
+    addresses: Arc<dyn PerpetualAddressCacher>,
     config: Arc<ConfigCacher>,
     providers: Arc<ChainProviders>,
     classifier_config: PerpetualPositionClassifierConfig,
@@ -134,9 +134,9 @@ impl PerpetualJobs {
 #[derive(Clone)]
 pub struct PriceJobs {
     database: Database,
-    metadata_cooldowns: Arc<dyn PriceMetadataCooldowns>,
-    observed_assets: Arc<dyn ObservedAssetsStore>,
-    charts_history: Arc<dyn ChartsHistoryStore>,
+    metadata_cooldowns: Arc<dyn PriceMetadataCacher>,
+    observed_assets: Arc<dyn ObservedAssetsCacher>,
+    charts_history: Arc<dyn ChartsHistoryCacher>,
     config: Arc<ConfigCacher>,
     price_client: PriceClient,
     markets_client: MarketsClient,
@@ -274,7 +274,7 @@ impl SearchJobs {
 #[derive(Clone)]
 pub struct SystemJobs {
     database: Database,
-    throttle: Arc<dyn Throttle>,
+    throttle: Arc<dyn ThrottleCacher>,
     cleanup_config: TransactionCleanupConfig,
     stream_producer: StreamProducer,
 }
@@ -302,7 +302,7 @@ pub struct TransactionJobs {
     in_transit_updater: Arc<InTransitUpdater>,
     pending_updater: Arc<PendingTransactionsUpdater>,
     swapper: Arc<GemSwapper>,
-    vault_addresses: Arc<dyn SwapVaultAddressStore>,
+    vault_addresses: Arc<dyn SwapVaultAddressCacher>,
 }
 
 impl TransactionJobs {

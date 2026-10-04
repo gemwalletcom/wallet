@@ -12,18 +12,18 @@ use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTi
 use storage::{AssetFilter, AssetsRepository, ChartsRepository, Database, DatabaseError, FiatRepository, PriceAsset, PricesRepository};
 
 use crate::ConfigCacher;
-use crate::prices::{ObservedAssetsStore, PriceCacheStore};
+use crate::prices::{ObservedAssetsCacher, PriceCacher};
 
 #[derive(Clone)]
 pub struct PriceClient {
     database: Database,
     config: Arc<ConfigCacher>,
-    cache: Arc<dyn PriceCacheStore>,
-    observed: Arc<dyn ObservedAssetsStore>,
+    cache: Arc<dyn PriceCacher>,
+    observed: Arc<dyn ObservedAssetsCacher>,
 }
 
 impl PriceClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, cache: Arc<dyn PriceCacheStore>, observed: Arc<dyn ObservedAssetsStore>) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, cache: Arc<dyn PriceCacher>, observed: Arc<dyn ObservedAssetsCacher>) -> Self {
         Self { database, config, cache, observed }
     }
 

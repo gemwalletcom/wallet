@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::ConfigCacher;
-use crate::transactions::{CheckSchedule, PendingTransactionsStore, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
+use crate::transactions::{CheckSchedule, PendingTransactionsCacher, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
 use chain_providers::{ChainProviders, TransactionIdRequest};
 use chrono::{DateTime, Utc};
 use config_keys::{ConfigKey, ConfigParamKey};
@@ -42,7 +42,7 @@ impl PendingTransactionsUpdaterConfig {
 
 pub struct PendingTransactionsUpdater {
     providers: Arc<ChainProviders>,
-    pending: Arc<dyn PendingTransactionsStore>,
+    pending: Arc<dyn PendingTransactionsCacher>,
     stream_producer: StreamProducer,
     database: Database,
     config: PendingTransactionsUpdaterConfig,
@@ -53,7 +53,7 @@ pub struct PendingTransactionsUpdater {
 impl PendingTransactionsUpdater {
     pub fn new(
         providers: Arc<ChainProviders>,
-        pending: Arc<dyn PendingTransactionsStore>,
+        pending: Arc<dyn PendingTransactionsCacher>,
         stream_producer: StreamProducer,
         database: Database,
         config: PendingTransactionsUpdaterConfig,

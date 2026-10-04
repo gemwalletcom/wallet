@@ -5,16 +5,16 @@ use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionIdRequest};
 use storage::{AssetsRepository, Database};
 use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducer, StreamProducerQueue};
 
-use crate::throttle::{Throttle, ThrottledTask};
+use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct IndexerClient {
     database: Database,
-    throttle: Arc<dyn Throttle>,
+    throttle: Arc<dyn ThrottleCacher>,
     stream_producer: StreamProducer,
 }
 
 impl IndexerClient {
-    pub fn new(database: Database, throttle: Arc<dyn Throttle>, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, throttle: Arc<dyn ThrottleCacher>, stream_producer: StreamProducer) -> Self {
         Self { database, throttle, stream_producer }
     }
 
@@ -89,7 +89,7 @@ mod tests {
     use primitives::{Chain, ChainAddress};
 
     use super::address_fetches;
-    use crate::throttle::ThrottledTask;
+    use crate::throttle_cacher::ThrottledTask;
 
     #[test]
     fn test_address_fetches() {

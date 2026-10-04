@@ -5,7 +5,7 @@ use cacher::{CacheKey, CacherClient};
 use primitives::Chain;
 
 #[async_trait]
-pub trait PendingTransactionsStore: Send + Sync {
+pub trait PendingTransactionsCacher: Send + Sync {
     async fn add_pending(&self, chain: Chain, hash: String, expires_at: f64) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn pending(&self, chain: Chain) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>>;
     async fn remove_pending(&self, chain: Chain, hash: &str) -> Result<usize, Box<dyn Error + Send + Sync>>;
@@ -13,7 +13,7 @@ pub trait PendingTransactionsStore: Send + Sync {
 }
 
 #[async_trait]
-impl PendingTransactionsStore for CacherClient {
+impl PendingTransactionsCacher for CacherClient {
     async fn add_pending(&self, chain: Chain, hash: String, expires_at: f64) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.add_to_sorted_set_cached(pending_key(&chain), &[(hash, expires_at)]).await?;
         Ok(())

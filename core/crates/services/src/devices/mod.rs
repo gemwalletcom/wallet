@@ -5,7 +5,7 @@ mod wallet_configuration_client;
 mod wallets_client;
 
 pub use admin_device::{AdminDevice, AdminWalletOverview};
-pub use device_stream_client::{DeviceStreamClient, DeviceStreamStore, PendingStreamEvent};
+pub use device_stream_client::{DeviceStreamCacher, DeviceStreamClient, PendingStreamEvent};
 pub use devices_client::{DeviceWalletLookup, DevicesClient};
 pub use storage::{DeviceRecord, WalletRecord};
 pub use wallet_configuration_client::WalletConfigurationClient;

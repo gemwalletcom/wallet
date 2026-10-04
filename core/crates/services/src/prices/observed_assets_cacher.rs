@@ -5,13 +5,13 @@ use cacher::{CacheKey, CacherClient};
 use primitives::AssetId;
 
 #[async_trait]
-pub trait ObservedAssetsStore: Send + Sync {
+pub trait ObservedAssetsCacher: Send + Sync {
     async fn track_observed_assets(&self, asset_ids: &[AssetId]) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn observed_assets(&self, min_observers: usize, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl ObservedAssetsStore for CacherClient {
+impl ObservedAssetsCacher for CacherClient {
     async fn track_observed_assets(&self, asset_ids: &[AssetId]) -> Result<(), Box<dyn Error + Send + Sync>> {
         let key = CacheKey::ObservedAssets;
         let ids: Vec<String> = asset_ids.iter().map(ToString::to_string).collect();

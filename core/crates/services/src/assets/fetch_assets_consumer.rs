@@ -8,12 +8,12 @@ use storage::{AssetsRepository, Database};
 use streamer::{FetchAssetsPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
 
 use crate::assets::AssetClassificationRules;
-use crate::throttle::{Throttle, ThrottledTask};
+use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct FetchAssetsConsumer {
     pub database: Database,
     pub providers: ChainProviders,
-    pub throttle: Arc<dyn Throttle>,
+    pub throttle: Arc<dyn ThrottleCacher>,
     pub classification_rules: AssetClassificationRules,
     pub stream_producer: StreamProducer,
 }

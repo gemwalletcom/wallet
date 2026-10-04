@@ -47,7 +47,7 @@ use crate::rewards::{RewardsClient, RewardsRedemptionClient};
 use crate::security::{ScanClient, ScanMetrics, scan_providers};
 use crate::support::SupportApiClient;
 use crate::support::SupportClient;
-use crate::swap::{NearIntentsProxyClient, SwapClient, SwapDepositAddressStore, SwapsXyzProxyClient};
+use crate::swap::{NearIntentsProxyClient, SwapClient, SwapDepositAddressCacher, SwapsXyzProxyClient};
 use crate::transactions::{AddressDetailsClient, AddressNamesClient, TransactionsClient};
 use crate::webhooks::WebhooksClient;
 
@@ -317,11 +317,11 @@ impl Services {
         SwapClient::new(self.database())
     }
 
-    pub fn near_intents(&self, deposit_addresses: Arc<dyn SwapDepositAddressStore>) -> NearIntentsProxyClient {
+    pub fn near_intents(&self, deposit_addresses: Arc<dyn SwapDepositAddressCacher>) -> NearIntentsProxyClient {
         NearIntentsProxyClient::new(self.settings.swap.nearintents.url.clone(), deposit_addresses)
     }
 
-    pub fn swaps_xyz(&self, deposit_addresses: Arc<dyn SwapDepositAddressStore>) -> SwapsXyzProxyClient {
+    pub fn swaps_xyz(&self, deposit_addresses: Arc<dyn SwapDepositAddressCacher>) -> SwapsXyzProxyClient {
         SwapsXyzProxyClient::new(self.settings.swap.swapsxyz.url.clone(), deposit_addresses)
     }
 }

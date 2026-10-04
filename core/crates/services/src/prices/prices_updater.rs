@@ -3,7 +3,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use crate::prices::{PriceClient, PriceMetadataCooldowns};
+use crate::prices::{PriceClient, PriceMetadataCacher};
 use config_keys::ConfigKey;
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset};
@@ -41,7 +41,7 @@ impl PricesUpdater {
         self.save_assets(self.provider.get_assets_new().await?).await
     }
 
-    pub async fn publish_assets_metadata(&self, cooldowns: &dyn PriceMetadataCooldowns, config: &ConfigCacher) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    pub async fn publish_assets_metadata(&self, cooldowns: &dyn PriceMetadataCacher, config: &ConfigCacher) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
         let (mappings, enabled) = self
             .database

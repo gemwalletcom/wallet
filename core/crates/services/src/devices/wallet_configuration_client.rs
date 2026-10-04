@@ -12,13 +12,13 @@ use storage::{Database, WalletsRepository};
 const ADDRESS_STATUS_CHAINS: [Chain; 7] = [Chain::Tron, Chain::Solana, Chain::Xrp, Chain::Stellar, Chain::Algorand, Chain::Aptos, Chain::Near];
 
 #[async_trait]
-pub trait AddressStatusStore: Send + Sync {
+pub trait AddressStatusCacher: Send + Sync {
     async fn address_statuses(&self, address: &ChainAddress) -> Result<Option<Vec<AddressStatus>>, Box<dyn Error + Send + Sync>>;
     async fn set_address_statuses(&self, address: &ChainAddress, statuses: &[AddressStatus]) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl AddressStatusStore for CacherClient {
+impl AddressStatusCacher for CacherClient {
     async fn address_statuses(&self, address: &ChainAddress) -> Result<Option<Vec<AddressStatus>>, Box<dyn Error + Send + Sync>> {
         self.get_cached_optional(cache_key(address)).await
     }
@@ -31,11 +31,11 @@ impl AddressStatusStore for CacherClient {
 pub struct WalletConfigurationClient {
     database: Database,
     providers: ChainProviders,
-    statuses: Arc<dyn AddressStatusStore>,
+    statuses: Arc<dyn AddressStatusCacher>,
 }
 
 impl WalletConfigurationClient {
-    pub fn new(database: Database, providers: ChainProviders, statuses: Arc<dyn AddressStatusStore>) -> Self {
+    pub fn new(database: Database, providers: ChainProviders, statuses: Arc<dyn AddressStatusCacher>) -> Self {
         Self { database, providers, statuses }
     }
 

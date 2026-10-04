@@ -7,13 +7,13 @@ use cacher::{CacheKey, CacherClient};
 use primitives::PriceId;
 
 #[async_trait]
-pub trait PriceMetadataCooldowns: Send + Sync {
+pub trait PriceMetadataCacher: Send + Sync {
     async fn cooling_down(&self, ids: &[PriceId]) -> Result<HashSet<PriceId>, Box<dyn Error + Send + Sync>>;
     async fn start_cooldown(&self, id: &PriceId, duration: Duration) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl PriceMetadataCooldowns for CacherClient {
+impl PriceMetadataCacher for CacherClient {
     async fn cooling_down(&self, ids: &[PriceId]) -> Result<HashSet<PriceId>, Box<dyn Error + Send + Sync>> {
         let keys = ids.iter().map(|id| CacheKey::PriceMetadata(&id.to_string(), 0).key()).collect();
         self.get_values(keys).await

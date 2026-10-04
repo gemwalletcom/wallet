@@ -16,13 +16,13 @@ pub enum SwapVaultAddressKind {
 }
 
 #[async_trait]
-pub trait SwapVaultAddressStore: Send + Sync {
+pub trait SwapVaultAddressCacher: Send + Sync {
     async fn add_vault_addresses(&self, provider: SwapProvider, kind: SwapVaultAddressKind, addresses: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>>;
     async fn vault_addresses(&self, providers: &[SwapProvider], kind: SwapVaultAddressKind) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl SwapVaultAddressStore for CacherClient {
+impl SwapVaultAddressCacher for CacherClient {
     async fn add_vault_addresses(&self, provider: SwapProvider, kind: SwapVaultAddressKind, addresses: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
         self.add_to_set_cached(vault_key(provider.as_ref(), kind), addresses).await
     }
@@ -42,12 +42,12 @@ fn vault_key(provider: &str, kind: SwapVaultAddressKind) -> CacheKey<'_> {
 
 #[derive(Clone)]
 pub struct SwapVaultAddressClient {
-    store: Arc<dyn SwapVaultAddressStore>,
+    cacher: Arc<dyn SwapVaultAddressCacher>,
 }
 
 impl SwapVaultAddressClient {
-    pub fn new(store: Arc<dyn SwapVaultAddressStore>) -> Self {
-        Self { store }
+    pub fn new(cacher: Arc<dyn SwapVaultAddressCacher>) -> Self {
+        Self { cacher }
     }
 
     pub async fn get_deposit_address_map(&self) -> Result<AddressMap, Box<dyn Error + Send + Sync>> {
@@ -60,7 +60,7 @@ impl SwapVaultAddressClient {
 
     async fn get_address_map(&self, kind: SwapVaultAddressKind) -> Result<AddressMap, Box<dyn Error + Send + Sync>> {
         let providers = SwapProvider::cross_chain_providers();
-        let results = self.store.vault_addresses(&providers, kind).await?;
+        let results = self.cacher.vault_addresses(&providers, kind).await?;
         Ok(providers.into_iter().zip(results).flat_map(|(provider, members)| members.into_iter().map(move |address| (address, provider))).collect())
     }
 }

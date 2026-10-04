@@ -33,13 +33,13 @@ impl<'a> ThrottledTask<'a> {
 }
 
 #[async_trait]
-pub trait Throttle: Send + Sync {
+pub trait ThrottleCacher: Send + Sync {
     async fn try_start(&self, task: ThrottledTask<'_>) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn reset(&self, tasks: &[ThrottledTask<'_>]) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl Throttle for CacherClient {
+impl ThrottleCacher for CacherClient {
     async fn try_start(&self, task: ThrottledTask<'_>) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.can_process_cached(task.cache_key()).await
     }

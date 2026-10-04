@@ -19,14 +19,14 @@ pub(crate) struct CachedFiatQuote {
 }
 
 #[async_trait]
-pub(crate) trait FiatQuoteStore: Send + Sync {
+pub(crate) trait FiatQuoteCacher: Send + Sync {
     async fn set_quotes(&self, context: &FiatDeviceContext, cached_quotes: Vec<CachedFiatQuote>) -> Result<Vec<FiatQuote>, Box<dyn Error + Send + Sync>>;
     async fn get_quote(&self, context: &FiatDeviceContext, quote_id: &str) -> Result<CachedFiatQuote, Box<dyn Error + Send + Sync>>;
     async fn set_quote_url(&self, context: &FiatDeviceContext, quote_id: &str, url: &FiatQuoteUrl) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl FiatQuoteStore for CacherClient {
+impl FiatQuoteCacher for CacherClient {
     async fn set_quotes(&self, context: &FiatDeviceContext, cached_quotes: Vec<CachedFiatQuote>) -> Result<Vec<FiatQuote>, Box<dyn Error + Send + Sync>> {
         let scoped_quotes: Vec<_> = cached_quotes.into_iter().map(|quote| (Uuid::new_v4().to_string(), quote)).collect();
         let entries: Vec<_> = scoped_quotes.iter().map(|(quote_id, quote)| (quote_key(context, quote_id), quote)).collect();

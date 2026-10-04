@@ -11,18 +11,18 @@ use primitives::Chain;
 use streamer::steam_producer_queue::StreamProducerQueue;
 use streamer::{StreamProducer, TransactionsPayload};
 
-use super::{PerpetualAddressStore, PerpetualAddressTier};
+use super::{PerpetualAddressCacher, PerpetualAddressTier};
 
 pub struct PerpetualPositionObserver {
     chain: Chain,
     providers: Arc<ChainProviders>,
-    addresses: Arc<dyn PerpetualAddressStore>,
+    addresses: Arc<dyn PerpetualAddressCacher>,
     config: Arc<ConfigCacher>,
     stream_producer: StreamProducer,
 }
 
 impl PerpetualPositionObserver {
-    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressStore>, config: Arc<ConfigCacher>, stream_producer: StreamProducer) -> Self {
+    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressCacher>, config: Arc<ConfigCacher>, stream_producer: StreamProducer) -> Self {
         Self {
             chain,
             providers,

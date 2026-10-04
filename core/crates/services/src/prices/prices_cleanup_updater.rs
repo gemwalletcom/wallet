@@ -1,5 +1,5 @@
 use crate::ConfigCacher;
-use crate::prices::ChartsHistoryStore;
+use crate::prices::ChartsHistoryCacher;
 use chrono::Utc;
 use config_keys::ConfigKey;
 use primitives::PriceProvider;
@@ -9,13 +9,13 @@ use storage::{Database, DatabaseError, PriceFilter, PricesRepository};
 
 pub struct PricesCleanupUpdater {
     database: Database,
-    history: Arc<dyn ChartsHistoryStore>,
+    history: Arc<dyn ChartsHistoryCacher>,
     config: Arc<ConfigCacher>,
     provider: PriceProvider,
 }
 
 impl PricesCleanupUpdater {
-    pub fn new(database: Database, history: Arc<dyn ChartsHistoryStore>, config: Arc<ConfigCacher>, provider: PriceProvider) -> Self {
+    pub fn new(database: Database, history: Arc<dyn ChartsHistoryCacher>, config: Arc<ConfigCacher>, provider: PriceProvider) -> Self {
         Self { database, history, config, provider }
     }
 

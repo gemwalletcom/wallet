@@ -42,13 +42,13 @@ impl SafeScanTarget {
 }
 
 #[async_trait]
-pub trait ScanSafeStore: Send + Sync {
+pub trait ScanSafeCacher: Send + Sync {
     async fn is_safe(&self, target: &SafeScanTarget) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn add_safe(&self, targets: &[&SafeScanTarget]) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl ScanSafeStore for CacherClient {
+impl ScanSafeCacher for CacherClient {
     async fn is_safe(&self, target: &SafeScanTarget) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(self.get_cached_optional::<bool>(target.cache_key()).await?.is_some())
     }
@@ -63,13 +63,13 @@ impl ScanSafeStore for CacherClient {
 pub struct ScanClient {
     database: Database,
     config_cacher: Arc<ConfigCacher>,
-    safe_targets: Arc<dyn ScanSafeStore>,
+    safe_targets: Arc<dyn ScanSafeCacher>,
     providers: TransactionScanProviders,
     metrics: Arc<dyn ScanMetrics>,
 }
 
 impl ScanClient {
-    pub fn new(database: Database, config_cacher: Arc<ConfigCacher>, safe_targets: Arc<dyn ScanSafeStore>, providers: TransactionScanProviders, metrics: Arc<dyn ScanMetrics>) -> Self {
+    pub fn new(database: Database, config_cacher: Arc<ConfigCacher>, safe_targets: Arc<dyn ScanSafeCacher>, providers: TransactionScanProviders, metrics: Arc<dyn ScanMetrics>) -> Self {
         Self {
             database,
             config_cacher,

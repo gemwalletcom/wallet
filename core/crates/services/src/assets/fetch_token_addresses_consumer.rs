@@ -7,17 +7,17 @@ use storage::Database;
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
 
 use super::addresses::update_token_addresses;
-use crate::throttle::{Throttle, ThrottledTask};
+use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct FetchTokenAddressesConsumer {
     pub provider: ChainProviders,
     pub database: Database,
     pub stream_producer: StreamProducer,
-    pub throttle: Arc<dyn Throttle>,
+    pub throttle: Arc<dyn ThrottleCacher>,
 }
 
 impl FetchTokenAddressesConsumer {
-    pub fn new(provider: ChainProviders, database: Database, stream_producer: StreamProducer, throttle: Arc<dyn Throttle>) -> Self {
+    pub fn new(provider: ChainProviders, database: Database, stream_producer: StreamProducer, throttle: Arc<dyn ThrottleCacher>) -> Self {
         Self {
             provider,
             database,

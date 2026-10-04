@@ -12,7 +12,7 @@ pub enum PerpetualAddressTier {
 }
 
 #[async_trait]
-pub trait PerpetualAddressStore: Send + Sync {
+pub trait PerpetualAddressCacher: Send + Sync {
     async fn addresses(&self, chain: Chain, tier: PerpetualAddressTier) -> Result<Vec<String>, Box<dyn Error + Send + Sync>>;
     async fn set_addresses(&self, chain: Chain, tier: PerpetualAddressTier, addresses: &[String]) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn checkpoint(&self, chain: Chain, address: &str) -> Result<Option<u64>, Box<dyn Error + Send + Sync>>;
@@ -20,7 +20,7 @@ pub trait PerpetualAddressStore: Send + Sync {
 }
 
 #[async_trait]
-impl PerpetualAddressStore for CacherClient {
+impl PerpetualAddressCacher for CacherClient {
     async fn addresses(&self, chain: Chain, tier: PerpetualAddressTier) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
         Ok(self.get_cached_optional::<Vec<String>>(tier_key(&chain, tier)).await?.unwrap_or_default())
     }

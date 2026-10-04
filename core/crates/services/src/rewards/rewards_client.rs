@@ -18,7 +18,7 @@ use super::risk::{RiskAssessment, assess_referral_risk};
 use super::summary::rewards_by_wallet_id;
 use super::username::{create_username, username_rules};
 use crate::ConfigCacher;
-use crate::rate_limits::RateLimits;
+use crate::rate_limit_cacher::RateLimitCacher;
 
 enum ReferralCodeUse {
     Applied(Vec<RewardEvent>),
@@ -47,14 +47,14 @@ async fn referrer_multiplier(config: &ConfigCacher, status: &RewardStatus) -> Re
 pub struct RewardsClient {
     db: Database,
     config: Arc<ConfigCacher>,
-    rate_limiter: Arc<dyn RateLimits>,
+    rate_limiter: Arc<dyn RateLimitCacher>,
     stream_producer: StreamProducer,
     ip_security_client: IpSecurityClient,
     pusher: PusherClient,
 }
 
 impl RewardsClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: Arc<dyn RateLimits>, stream_producer: StreamProducer, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
+    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: Arc<dyn RateLimitCacher>, stream_producer: StreamProducer, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
         Self {
             db: database,
             config,

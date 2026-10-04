@@ -8,13 +8,13 @@ use primitives::{AssetId, AssetTag, Markets, MarketsAssets, PriceId, PriceProvid
 use storage::{Database, DatabaseClient, DatabaseError, PricesRepository, TagRepository};
 
 #[async_trait]
-pub trait MarketsStore: Send + Sync {
+pub trait MarketsCacher: Send + Sync {
     async fn markets(&self) -> Result<Option<Markets>, Box<dyn Error + Send + Sync>>;
     async fn set_markets(&self, markets: &Markets) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl MarketsStore for CacherClient {
+impl MarketsCacher for CacherClient {
     async fn markets(&self) -> Result<Option<Markets>, Box<dyn Error + Send + Sync>> {
         self.get_cached_optional(CacheKey::Markets).await
     }
@@ -27,23 +27,23 @@ impl MarketsStore for CacherClient {
 #[derive(Clone)]
 pub struct MarketsClient {
     database: Database,
-    store: Arc<dyn MarketsStore>,
+    cacher: Arc<dyn MarketsCacher>,
 }
 
 impl MarketsClient {
-    pub fn new(database: Database, store: Arc<dyn MarketsStore>) -> Self {
-        Self { database, store }
+    pub fn new(database: Database, cacher: Arc<dyn MarketsCacher>) -> Self {
+        Self { database, cacher }
     }
 
     pub async fn get_markets(&self) -> Result<Markets, Box<dyn Error + Send + Sync>> {
-        match self.store.markets().await? {
+        match self.cacher.markets().await? {
             Some(markets) => Ok(markets),
             None => Err(Box::new(CacheError::not_found_resource("Markets"))),
         }
     }
 
     pub async fn set_markets(&self, markets: Markets) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.store.set_markets(&markets).await
+        self.cacher.set_markets(&markets).await
     }
 
     pub async fn get_asset_ids_for_provider_price_ids(&self, provider: PriceProvider, provider_price_ids: Vec<String>) -> Result<Vec<AssetId>, Box<dyn Error + Send + Sync>> {

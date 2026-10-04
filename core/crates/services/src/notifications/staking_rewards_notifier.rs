@@ -12,7 +12,7 @@ use push_notification::{GorushNotification, PushNotification};
 use storage::{Database, TransactionsRepository, WalletsRepository};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
 
-use crate::throttle::{Throttle, ThrottledTask};
+use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 #[derive(Clone, Copy)]
 pub struct StakeRewardsConfig {
@@ -24,12 +24,12 @@ pub struct StakingRewardsNotifier {
     chain_providers: Arc<ChainProviders>,
     database: Database,
     config: StakeRewardsConfig,
-    throttle: Arc<dyn Throttle>,
+    throttle: Arc<dyn ThrottleCacher>,
     stream_producer: StreamProducer,
 }
 
 impl StakingRewardsNotifier {
-    pub fn new(chain_providers: Arc<ChainProviders>, database: Database, config: StakeRewardsConfig, throttle: Arc<dyn Throttle>, stream_producer: StreamProducer) -> Self {
+    pub fn new(chain_providers: Arc<ChainProviders>, database: Database, config: StakeRewardsConfig, throttle: Arc<dyn ThrottleCacher>, stream_producer: StreamProducer) -> Self {
         Self {
             chain_providers,
             database,

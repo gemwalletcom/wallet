@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use crate::prices::PriceMetadataCooldowns;
+use crate::prices::PriceMetadataCacher;
 use async_trait::async_trait;
 use config_keys::{ConfigKey, ConfigParamKey};
 use gem_tracing::info_with_fields;
@@ -13,7 +13,7 @@ use streamer::consumer::MessageConsumer;
 
 pub struct FetchPricesMetadataConsumer {
     pub database: Database,
-    pub cooldowns: Arc<dyn PriceMetadataCooldowns>,
+    pub cooldowns: Arc<dyn PriceMetadataCacher>,
     pub config: Arc<ConfigCacher>,
     pub providers: PriceProviders,
 }

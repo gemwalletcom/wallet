@@ -7,13 +7,13 @@ use primitives::AuthNonce;
 use uuid::Uuid;
 
 #[async_trait]
-pub trait AuthNonceStore: Send + Sync {
+pub trait AuthNonceCacher: Send + Sync {
     async fn add_nonce(&self, device_id: &str, nonce: &AuthNonce) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn take_nonce(&self, device_id: &str, nonce: &str) -> Result<AuthNonce, Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl AuthNonceStore for CacherClient {
+impl AuthNonceCacher for CacherClient {
     async fn add_nonce(&self, device_id: &str, nonce: &AuthNonce) -> Result<(), Box<dyn Error + Send + Sync>> {
         let cache_key = CacheKey::AuthNonce(device_id, &nonce.nonce);
         self.set_value_with_ttl(&cache_key.key(), serde_json::to_string(nonce)?, cache_key.ttl()).await
@@ -25,11 +25,11 @@ impl AuthNonceStore for CacherClient {
 }
 
 pub struct AuthClient {
-    nonces: Arc<dyn AuthNonceStore>,
+    nonces: Arc<dyn AuthNonceCacher>,
 }
 
 impl AuthClient {
-    pub fn new(nonces: Arc<dyn AuthNonceStore>) -> Self {
+    pub fn new(nonces: Arc<dyn AuthNonceCacher>) -> Self {
         Self { nonces }
     }
 

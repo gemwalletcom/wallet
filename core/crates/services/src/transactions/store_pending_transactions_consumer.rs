@@ -7,14 +7,14 @@ use gem_tracing::info_with_fields;
 use primitives::{TransactionId, chain_transaction_timeout};
 use streamer::consumer::MessageConsumer;
 
-use super::pending_transactions_store::PendingTransactionsStore;
+use super::pending_transactions_cacher::PendingTransactionsCacher;
 
 pub struct StorePendingTransactionsConsumer {
-    pending: Arc<dyn PendingTransactionsStore>,
+    pending: Arc<dyn PendingTransactionsCacher>,
 }
 
 impl StorePendingTransactionsConsumer {
-    pub fn new(pending: Arc<dyn PendingTransactionsStore>) -> Self {
+    pub fn new(pending: Arc<dyn PendingTransactionsCacher>) -> Self {
         Self { pending }
     }
 }

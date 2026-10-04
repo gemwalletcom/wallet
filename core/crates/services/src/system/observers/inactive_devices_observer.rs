@@ -7,16 +7,16 @@ use push_notification::{GorushNotification, PushNotification};
 use storage::{Database, DatabaseError, DevicesRepository, WalletsRepository};
 use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
 
-use crate::throttle::{Throttle, ThrottledTask};
+use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct InactiveDevicesObserver {
     database: Database,
-    throttle: Arc<dyn Throttle>,
+    throttle: Arc<dyn ThrottleCacher>,
     stream_producer: StreamProducer,
 }
 
 impl InactiveDevicesObserver {
-    pub fn new(database: Database, throttle: Arc<dyn Throttle>, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, throttle: Arc<dyn ThrottleCacher>, stream_producer: StreamProducer) -> Self {
         Self { database, throttle, stream_producer }
     }
 

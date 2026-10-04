@@ -6,10 +6,10 @@ use async_trait::async_trait;
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
 use super::NFTClient;
-use crate::throttle::{Throttle, ThrottledTask};
+use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 
 pub struct FetchNftAssetsAddressesConsumer {
-    pub throttle: Arc<dyn Throttle>,
+    pub throttle: Arc<dyn ThrottleCacher>,
     pub nft_client: NFTClient,
 }
 

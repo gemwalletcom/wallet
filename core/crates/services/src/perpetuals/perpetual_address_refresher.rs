@@ -7,16 +7,16 @@ use gem_tracing::info_with_fields;
 use primitives::Chain;
 use storage::{Database, WalletsRepository};
 
-use super::{PerpetualAddressStore, PerpetualAddressTier};
+use super::{PerpetualAddressCacher, PerpetualAddressTier};
 
 pub struct PerpetualAddressRefresher {
     providers: Arc<ChainProviders>,
     database: Database,
-    addresses: Arc<dyn PerpetualAddressStore>,
+    addresses: Arc<dyn PerpetualAddressCacher>,
 }
 
 impl PerpetualAddressRefresher {
-    pub fn new(providers: Arc<ChainProviders>, database: Database, addresses: Arc<dyn PerpetualAddressStore>) -> Self {
+    pub fn new(providers: Arc<ChainProviders>, database: Database, addresses: Arc<dyn PerpetualAddressCacher>) -> Self {
         Self { providers, database, addresses }
     }
 

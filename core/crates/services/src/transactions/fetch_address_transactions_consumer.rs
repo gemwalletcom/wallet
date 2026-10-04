@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use crate::throttle::{Throttle, ThrottledTask};
+use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 use async_trait::async_trait;
 use chain_providers::{ChainProviders, TransactionsRequest, TransactionsResult};
 use config_keys::ConfigParamKey;
@@ -11,12 +11,12 @@ use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, Transac
 pub struct FetchAddressTransactionsConsumer {
     pub providers: ChainProviders,
     pub producer: StreamProducer,
-    pub throttle: Arc<dyn Throttle>,
+    pub throttle: Arc<dyn ThrottleCacher>,
     pub config: Arc<ConfigCacher>,
 }
 
 impl FetchAddressTransactionsConsumer {
-    pub fn new(providers: ChainProviders, producer: StreamProducer, throttle: Arc<dyn Throttle>, config: Arc<ConfigCacher>) -> Self {
+    pub fn new(providers: ChainProviders, producer: StreamProducer, throttle: Arc<dyn ThrottleCacher>, config: Arc<ConfigCacher>) -> Self {
         Self { providers, producer, throttle, config }
     }
 }

@@ -7,7 +7,7 @@ use futures::{StreamExt, stream};
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{Chain, PerpetualPosition};
 
-use super::{PerpetualAddressStore, PerpetualAddressTier};
+use super::{PerpetualAddressCacher, PerpetualAddressTier};
 
 #[derive(Clone, Copy)]
 pub struct PerpetualPositionClassifierConfig {
@@ -19,12 +19,12 @@ pub struct PerpetualPositionClassifierConfig {
 pub struct PerpetualPositionClassifier {
     chain: Chain,
     providers: Arc<ChainProviders>,
-    addresses: Arc<dyn PerpetualAddressStore>,
+    addresses: Arc<dyn PerpetualAddressCacher>,
     config: PerpetualPositionClassifierConfig,
 }
 
 impl PerpetualPositionClassifier {
-    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressStore>, config: PerpetualPositionClassifierConfig) -> Self {
+    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressCacher>, config: PerpetualPositionClassifierConfig) -> Self {
         Self { chain, providers, addresses, config }
     }
 

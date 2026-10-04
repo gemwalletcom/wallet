@@ -9,12 +9,12 @@ use reqwest::{Method, RequestBuilder};
 use serde::Serialize;
 
 #[async_trait]
-pub trait SwapDepositAddressStore: Send + Sync {
+pub trait SwapDepositAddressCacher: Send + Sync {
     async fn add_deposit_address(&self, provider: &SwapProvider, address: &str) -> Result<(), Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait]
-impl SwapDepositAddressStore for CacherClient {
+impl SwapDepositAddressCacher for CacherClient {
     async fn add_deposit_address(&self, provider: &SwapProvider, address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.add_to_set_cached(CacheKey::SwapDepositAddresses(provider.as_ref()), &[address.to_string()]).await.map(|_| ())
     }
@@ -22,13 +22,13 @@ impl SwapDepositAddressStore for CacherClient {
 
 pub(super) struct SwapProxyClient {
     client: ReqwestClient,
-    deposit_addresses: Arc<dyn SwapDepositAddressStore>,
+    deposit_addresses: Arc<dyn SwapDepositAddressCacher>,
     provider: SwapProvider,
     deposit_address_pointer: &'static str,
 }
 
 impl SwapProxyClient {
-    pub(super) fn new(url: String, deposit_addresses: Arc<dyn SwapDepositAddressStore>, provider: SwapProvider, deposit_address_pointer: &'static str) -> Self {
+    pub(super) fn new(url: String, deposit_addresses: Arc<dyn SwapDepositAddressCacher>, provider: SwapProvider, deposit_address_pointer: &'static str) -> Self {
         Self {
             client: ReqwestClient::new(url, gem_client::reqwest_client()),
             deposit_addresses,

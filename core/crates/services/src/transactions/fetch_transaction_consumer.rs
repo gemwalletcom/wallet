@@ -8,19 +8,19 @@ use storage::{Database, TransactionsRepository};
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 use swapper::{SwapResultRequest, swapper::GemSwapper};
 
-use crate::throttle::{Throttle, ThrottledTask};
+use crate::throttle_cacher::{ThrottleCacher, ThrottledTask};
 use crate::transactions::transaction_with_swap_result;
 
 pub struct FetchTransactionConsumer {
     pub providers: ChainProviders,
     pub swapper: Arc<GemSwapper>,
     pub producer: StreamProducer,
-    pub throttle: Arc<dyn Throttle>,
+    pub throttle: Arc<dyn ThrottleCacher>,
     pub database: Database,
 }
 
 impl FetchTransactionConsumer {
-    pub fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: StreamProducer, throttle: Arc<dyn Throttle>, database: Database) -> Self {
+    pub fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: StreamProducer, throttle: Arc<dyn ThrottleCacher>, database: Database) -> Self {
         Self {
             providers,
             swapper,

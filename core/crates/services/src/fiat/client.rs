@@ -16,15 +16,15 @@ use primitives::{
 use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, DevicesRepository, FiatRepository, WalletAddress, WalletsRepository};
 use streamer::{FiatWebhookPayload, QueueName, StreamProducer};
 
-use super::quote_store::{CachedFiatQuote, FiatQuoteStore};
+use super::quote_cacher::{CachedFiatQuote, FiatQuoteCacher};
 use crate::ConfigCacher;
-use crate::rate_limits::RateLimits;
+use crate::rate_limit_cacher::RateLimitCacher;
 
 pub struct FiatClient {
     database: Database,
     config: Arc<ConfigCacher>,
-    quote_store: Arc<dyn FiatQuoteStore>,
-    rate_limiter: Arc<dyn RateLimits>,
+    quote_cacher: Arc<dyn FiatQuoteCacher>,
+    rate_limiter: Arc<dyn RateLimitCacher>,
     providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
     ip_address_provider: Arc<dyn IpAddressProvider>,
     stream_producer: StreamProducer,
@@ -34,8 +34,8 @@ impl FiatClient {
     pub(crate) fn new(
         database: Database,
         config: Arc<ConfigCacher>,
-        quote_store: Arc<dyn FiatQuoteStore>,
-        rate_limiter: Arc<dyn RateLimits>,
+        quote_cacher: Arc<dyn FiatQuoteCacher>,
+        rate_limiter: Arc<dyn RateLimitCacher>,
         providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
         ip_address_provider: Arc<dyn IpAddressProvider>,
         stream_producer: StreamProducer,
@@ -43,7 +43,7 @@ impl FiatClient {
         Self {
             database,
             config,
-            quote_store,
+            quote_cacher,
             rate_limiter,
             providers,
             ip_address_provider,
@@ -137,7 +137,7 @@ impl FiatClient {
         }
         let (quotes, errors) = self.get_provider_quotes(&request, &asset, &context.ip_address).await?;
         Ok(FiatQuotes {
-            quotes: self.quote_store.set_quotes(context, quotes).await?,
+            quotes: self.quote_cacher.set_quotes(context, quotes).await?,
             errors,
         })
     }
@@ -145,7 +145,7 @@ impl FiatClient {
     pub async fn get_quote_url(&self, quote_id: &str, context: &FiatDeviceContext, locale: &str) -> Result<FiatQuoteUrl, Box<dyn Error + Send + Sync>> {
         context.validate_wallet()?;
         self.consume_limits(context, RateLimitKey::FiatQuoteUrlRequestPerDeviceLimit, RateLimitKey::FiatQuoteUrlRequestPerIpLimit).await?;
-        let cached_quote = self.quote_store.get_quote(context, quote_id).await?;
+        let cached_quote = self.quote_cacher.get_quote(context, quote_id).await?;
         if let Some(url) = cached_quote.url.clone() {
             return Ok(url);
         }
@@ -237,7 +237,7 @@ impl FiatClient {
         let pending_transaction = FiatTransaction::new_pending(&data, Some(country), url.provider_transaction_id.clone());
         let (device_id, wallet_id, address_id) = (context.device_id, context.wallet_id, wallet_address.id);
         self.database.run(move |client| client.add_fiat_transaction(pending_transaction, device_id, wallet_id, address_id)).await?;
-        self.quote_store.set_quote_url(context, quote_id, &url).await?;
+        self.quote_cacher.set_quote_url(context, quote_id, &url).await?;
 
         Ok(url)
     }
