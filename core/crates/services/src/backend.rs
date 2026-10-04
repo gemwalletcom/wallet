@@ -36,7 +36,7 @@ use crate::config::ConfigCacher;
 use crate::defi::DefiClient;
 use crate::devices::DeviceStreamClient;
 use crate::devices::{DevicesClient, WalletConfigurationClient, WalletsClient};
-use crate::fiat::{FiatCacherClient, FiatClient};
+use crate::fiat::FiatClient;
 use crate::indexer::IndexerClient;
 use crate::nft::NFTClient;
 use crate::notifications::NotificationsClient;
@@ -119,7 +119,7 @@ impl Services {
         Ok(FiatClient::new(
             self.database(),
             self.config(),
-            FiatCacherClient::new(cacher.clone()),
+            Arc::new(cacher.clone()),
             Arc::new(RateLimiter::new(cacher)),
             providers,
             self.ip_address_provider().await?,
