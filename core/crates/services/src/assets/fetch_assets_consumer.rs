@@ -6,7 +6,7 @@ use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use storage::{AssetsRepository, Database};
-use streamer::{FetchAssetsPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
+use streamer::{FetchAssetsPayload, StreamProducerQueue, consumer::MessageConsumer};
 
 use crate::assets::AssetClassificationRules;
 
@@ -15,7 +15,7 @@ pub struct FetchAssetsConsumer {
     pub providers: ChainProviders,
     pub throttle: Arc<dyn ThrottleCacher>,
     pub classification_rules: AssetClassificationRules,
-    pub stream_producer: StreamProducer,
+    pub stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 #[async_trait]

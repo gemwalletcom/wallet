@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use primitives::{AssetId, Chain, NFTAssetId, TransactionId, TransactionIdRequest};
+use primitives::{AssetId, Chain, NFTAssetId, PriceId, TransactionId, TransactionIdRequest};
 
 use crate::{
     ChainAddressPayload, ExchangeName, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload, FiatWebhookPayload, InAppNotificationPayload,
@@ -37,6 +37,7 @@ pub trait StreamProducerQueue: Send + Sync {
     async fn publish_pending_transaction(&self, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fiat_webhook(&self, payload: FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_referral_transaction(&self, queue: QueueName, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    async fn publish_fetch_prices_metadata(&self, price_id: PriceId) -> Result<bool, Box<dyn Error + Send + Sync>>;
 }
 
 #[async_trait::async_trait]
@@ -212,5 +213,9 @@ impl StreamProducerQueue for StreamProducer {
 
     async fn publish_referral_transaction(&self, queue: QueueName, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.publish(queue, &transaction_id).await
+    }
+
+    async fn publish_fetch_prices_metadata(&self, price_id: PriceId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.publish(QueueName::FetchPricesMetadata, &price_id).await
     }
 }

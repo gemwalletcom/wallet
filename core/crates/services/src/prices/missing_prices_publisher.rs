@@ -1,20 +1,21 @@
 use std::collections::HashSet;
 use std::error::Error;
+use std::sync::Arc;
 
 use gem_tracing::info_with_fields;
 use primitives::AssetId;
 use storage::{AssetsUsageRanksRepository, Database, DatabaseError, PricesRepository};
-use streamer::{StreamProducer, StreamProducerQueue};
+use streamer::StreamProducerQueue;
 
 const MAX_ASSETS_PER_RUN: usize = 1;
 
 pub struct MissingPricesPublisher {
     database: Database,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl MissingPricesPublisher {
-    pub fn new(database: Database, stream_producer: StreamProducer) -> Self {
+    pub fn new(database: Database, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { database, stream_producer }
     }
 

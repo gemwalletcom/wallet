@@ -142,8 +142,8 @@ pub struct PriceJobs {
     coingecko: CoinGeckoClient,
     providers: AssetsProviders,
     enabled_providers: Vec<PriceProvider>,
-    assets_producer: StreamProducer,
-    prices_producer: StreamProducer,
+    assets_producer: Arc<dyn StreamProducerQueue>,
+    prices_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PriceJobs {
@@ -394,8 +394,8 @@ impl Services {
             observed_assets: Arc::new(cacher.clone()),
             charts_history: Arc::new(cacher),
             enabled_providers,
-            assets_producer,
-            prices_producer,
+            assets_producer: Arc::new(assets_producer),
+            prices_producer: Arc::new(prices_producer),
         })
     }
 

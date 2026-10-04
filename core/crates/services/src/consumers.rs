@@ -41,7 +41,7 @@ impl Services {
             providers: self.chain_providers(user_agent),
             throttle: Arc::new(self.cacher().await?),
             classification_rules: AssetClassificationRules::from_config(&self.config()).await?,
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         })
     }
 
@@ -73,7 +73,12 @@ impl Services {
     }
 
     pub async fn fetch_token_addresses_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchTokenAddressesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchTokenAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.database(), stream_producer, Arc::new(self.cacher().await?)))
+        Ok(FetchTokenAddressesConsumer::new(
+            self.chain_providers_for(chain, user_agent),
+            self.database(),
+            Arc::new(stream_producer),
+            Arc::new(self.cacher().await?),
+        ))
     }
 
     pub async fn fetch_coin_addresses_consumer(&self, chain: Chain, user_agent: &str) -> Result<FetchCoinAddressesConsumer, Box<dyn Error + Send + Sync>> {

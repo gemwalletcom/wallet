@@ -8,7 +8,7 @@ use cacher::ObservedAssetsCacher;
 use prices::AssetPriceMapping;
 use primitives::{AssetId, PriceProvider};
 use storage::{Database, PricesRepository};
-use streamer::StreamProducer;
+use streamer::StreamProducerQueue;
 
 use super::{AssetsProviders, PricesUpdater};
 
@@ -24,12 +24,12 @@ pub struct ObservedPricesUpdater {
     database: Database,
     price_client: PriceClient,
     providers: AssetsProviders,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
     config: ObservedPricesConfig,
 }
 
 impl ObservedPricesUpdater {
-    pub fn new(observed: Arc<dyn ObservedAssetsCacher>, database: Database, price_client: PriceClient, providers: AssetsProviders, stream_producer: StreamProducer, config: ObservedPricesConfig) -> Self {
+    pub fn new(observed: Arc<dyn ObservedAssetsCacher>, database: Database, price_client: PriceClient, providers: AssetsProviders, stream_producer: Arc<dyn StreamProducerQueue>, config: ObservedPricesConfig) -> Self {
         Self {
             observed,
             database,

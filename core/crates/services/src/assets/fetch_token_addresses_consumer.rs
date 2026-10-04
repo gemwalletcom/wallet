@@ -5,19 +5,19 @@ use async_trait::async_trait;
 use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use storage::Database;
-use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
+use streamer::{ChainAddressPayload, StreamProducerQueue, consumer::MessageConsumer};
 
 use super::addresses::update_token_addresses;
 
 pub struct FetchTokenAddressesConsumer {
     pub provider: ChainProviders,
     pub database: Database,
-    pub stream_producer: StreamProducer,
+    pub stream_producer: Arc<dyn StreamProducerQueue>,
     pub throttle: Arc<dyn ThrottleCacher>,
 }
 
 impl FetchTokenAddressesConsumer {
-    pub fn new(provider: ChainProviders, database: Database, stream_producer: StreamProducer, throttle: Arc<dyn ThrottleCacher>) -> Self {
+    pub fn new(provider: ChainProviders, database: Database, stream_producer: Arc<dyn StreamProducerQueue>, throttle: Arc<dyn ThrottleCacher>) -> Self {
         Self {
             provider,
             database,

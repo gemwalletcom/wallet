@@ -10,7 +10,7 @@ use gem_tracing::info_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset};
 use primitives::{AssetId, PriceData, PriceId};
 use storage::{AssetFilter, AssetsRepository, Database, DatabaseClient, DatabaseError, PriceFilter, PricesRepository};
-use streamer::{PricesPayload, QueueName, StreamProducer, StreamProducerQueue};
+use streamer::{PricesPayload, StreamProducerQueue};
 
 const BATCH_SIZE: usize = 1000;
 
@@ -18,11 +18,11 @@ pub struct PricesUpdater {
     provider: Arc<dyn PriceAssetsProvider>,
     database: Database,
     price_client: PriceClient,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PricesUpdater {
-    pub fn new(provider: Arc<dyn PriceAssetsProvider>, database: Database, price_client: PriceClient, stream_producer: StreamProducer) -> Self {
+    pub fn new(provider: Arc<dyn PriceAssetsProvider>, database: Database, price_client: PriceClient, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self {
             provider,
             database,
@@ -61,7 +61,7 @@ impl PricesUpdater {
         let ids: Vec<_> = ids.into_iter().filter(|id| !cooling_down.contains(id)).take(config.get_usize(ConfigKey::PriceMetadataBatchSize).await?).collect();
         for id in &ids {
             cooldowns.start_cooldown(id, retry).await?;
-            if !self.stream_producer.publish(QueueName::FetchPricesMetadata, id).await? {
+            if !self.stream_producer.publish_fetch_prices_metadata(id.clone()).await? {
                 return Err(format!("Metadata publish rejected for {id}").into());
             }
         }

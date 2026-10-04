@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Mutex;
 
 use async_trait::async_trait;
-use primitives::{AssetId, Chain, NFTAssetId, TransactionId, TransactionIdRequest};
+use primitives::{AssetId, Chain, NFTAssetId, PriceId, TransactionId, TransactionIdRequest};
 use serde::Serialize;
 use serde_json::Value;
 use streamer::{
@@ -161,5 +161,9 @@ impl StreamProducerQueue for RecordingStreamProducer {
 
     async fn publish_referral_transaction(&self, queue: QueueName, transaction_id: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.record(queue, &transaction_id)
+    }
+
+    async fn publish_fetch_prices_metadata(&self, price_id: PriceId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.record(QueueName::FetchPricesMetadata, &price_id)
     }
 }
