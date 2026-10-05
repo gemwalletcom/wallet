@@ -37,8 +37,8 @@ import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionsFilterSession
 import uniffi.gemstone.GemTransactionsFilterView
 import uniffi.gemstone.GemTransactionsServiceInterface
+import uniffi.gemstone.listPhase
 import uniffi.gemstone.newTransactionsFilterSession
-import uniffi.gemstone.transactionListPhase
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -131,7 +131,7 @@ class TransactionsViewModel @Inject constructor(
         return job
     }
 
-    private fun phase(state: GemLoadState, rows: List<GemTransactionRow>?, view: GemTransactionsFilterView): GemListPhase? = rows?.let { transactionListPhase(it, state, view.emptyState) }
+    private fun phase(state: GemLoadState, rows: List<GemTransactionRow>?, view: GemTransactionsFilterView): GemListPhase? = rows?.let { listPhase(state, it.isNotEmpty(), view.emptyState) }
 
     fun setChainsFilter(chains: List<Chain>) {
         _filter.update { it.onChains(chains.map { chain -> chain.string }) }

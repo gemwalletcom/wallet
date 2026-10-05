@@ -1,8 +1,6 @@
 use chrono::{DateTime, Utc};
 use primitives::{AssetId, CoreListItemIcon, InAppNotification, OptionStringExt, UrlAction};
 
-use crate::models::state::{GemListPhase, GemLoadState};
-use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -42,11 +40,6 @@ fn destination(url: Option<&str>) -> Option<GemNotificationDestination> {
 #[uniffi::export]
 pub fn notification_rows(notifications: Vec<InAppNotification>) -> Vec<GemNotificationRow> {
     notifications.into_iter().map(notification_row).collect()
-}
-
-#[uniffi::export]
-pub fn notification_list_phase(rows: Vec<GemNotificationRow>, state: GemLoadState) -> GemListPhase {
-    GemListPhase::new(state, !rows.is_empty(), empty_state(GemEmptyStateKind::Notifications))
 }
 
 pub fn notification_row(notification: InAppNotification) -> GemNotificationRow {
@@ -103,35 +96,6 @@ mod tests {
         let row = notification_row(unread);
         assert_eq!(row.icon, Some(GemNotificationIcon::Emoji { glyph: "\u{1f381}".into() }));
         assert_eq!(row.title, "Reward", "the row carries the text the screen shows");
-    }
-
-    #[test]
-    fn test_notifications_show_their_rows_before_a_failed_sync_and_their_empty_state_without() {
-        let error = crate::services::error::GemServiceError::Gateway { msg: "offline".to_string() };
-        let notification = InAppNotification {
-            wallet_id: WalletId::Multicoin("wallet".into()),
-            read_at: None,
-            created_at: chrono::Utc::now(),
-            item: CoreListItem {
-                id: "one".into(),
-                title: "Reward".into(),
-                subtitle: None,
-                value: None,
-                subvalue: None,
-                icon: None,
-                badge: None,
-                url: None,
-            },
-        };
-
-        assert_eq!(notification_list_phase(notification_rows(vec![notification]), GemLoadState::Error { error: error.clone() }), GemListPhase::Rows);
-        assert_eq!(notification_list_phase(vec![], GemLoadState::Error { error: error.clone() }), GemListPhase::Error { error });
-        assert_eq!(
-            notification_list_phase(vec![], GemLoadState::Data),
-            GemListPhase::Empty {
-                state: empty_state(GemEmptyStateKind::Notifications)
-            }
-        );
     }
 
     #[test]

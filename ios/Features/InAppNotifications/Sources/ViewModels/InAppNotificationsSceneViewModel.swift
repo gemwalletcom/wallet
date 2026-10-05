@@ -2,12 +2,13 @@
 
 import Components
 import Foundation
+import func Gemstone.emptyState
 import enum Gemstone.GemListPhase
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemNotificationDestination
 import struct Gemstone.GemNotificationRow
 import protocol Gemstone.GemNotificationServiceProtocol
-import func Gemstone.notificationListPhase
+import func Gemstone.listPhase
 import func Gemstone.notificationRows
 import enum Gemstone.UrlAction
 import Localization
@@ -48,7 +49,7 @@ public final class InAppNotificationsSceneViewModel {
     }
 
     public func phase(_ rows: [GemNotificationRow]) -> GemListPhase {
-        notificationListPhase(rows: rows, state: loadState)
+        listPhase(state: loadState, hasRows: !rows.isEmpty, empty: emptyState(kind: .notifications))
     }
 
     public func sections(_ rows: [GemNotificationRow]) -> [ListSection<GemNotificationRow>] {

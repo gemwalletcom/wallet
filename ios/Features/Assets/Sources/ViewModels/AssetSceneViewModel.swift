@@ -19,7 +19,7 @@ import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemTransactionRow
-import func Gemstone.transactionListPhase
+import func Gemstone.listPhase
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
@@ -129,7 +129,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     func transactionsPhase(_ details: GemAssetDetails) -> GemListPhase {
-        transactionListPhase(rows: transactionSections.flatMap(\.values), state: transactionsState, emptyState: details.state.emptyState)
+        listPhase(state: transactionsState, hasRows: transactionSections.contains { !$0.values.isEmpty }, empty: details.state.emptyState)
     }
 
     func emptyContentModel(_ state: GemEmptyState) -> EmptyStateViewModel {

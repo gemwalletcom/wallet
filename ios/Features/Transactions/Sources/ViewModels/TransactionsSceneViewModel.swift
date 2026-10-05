@@ -7,7 +7,7 @@ import enum Gemstone.GemListPhase
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemTransactionRow
 import protocol Gemstone.GemTransactionsServiceProtocol
-import func Gemstone.transactionListPhase
+import func Gemstone.listPhase
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -52,7 +52,7 @@ public final class TransactionsSceneViewModel {
     }
 
     public var phase: GemListPhase {
-        transactionListPhase(rows: sections.flatMap(\.values), state: transactionsState, emptyState: filterModel.viewState.emptyState)
+        listPhase(state: transactionsState, hasRows: sections.contains { !$0.values.isEmpty }, empty: filterModel.viewState.emptyState)
     }
 
     public func emptyContentModel(_ state: GemEmptyState) -> EmptyStateViewModel {
