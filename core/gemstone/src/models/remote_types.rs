@@ -683,6 +683,7 @@ pub enum SwapProvider {
     Squid,
     Mayachain,
     SwapsXyz,
+    Bridgers,
 }
 
 #[uniffi::remote(Enum)]

@@ -155,6 +155,13 @@ impl Transaction {
         self.utxo_outputs.as_ref().map_or_else(Vec::new, |v| v.iter().map(|x| x.address.clone()).collect())
     }
 
+    pub fn sender_address(&self) -> Option<String> {
+        if !self.from.is_empty() {
+            return Some(self.from.clone());
+        }
+        self.input_addresses().into_iter().next()
+    }
+
     pub fn recipient_address(&self) -> Option<String> {
         if !self.to.is_empty() {
             return Some(self.to.clone());

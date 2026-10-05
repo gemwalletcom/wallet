@@ -12,6 +12,7 @@ mod swapper_trait;
 pub mod testkit;
 
 pub mod across;
+pub mod bridgers;
 pub mod cetus_clmm;
 pub mod chainflip;
 pub mod client_factory;
