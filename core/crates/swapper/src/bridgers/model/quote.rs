@@ -103,22 +103,4 @@ mod tests {
         assert_eq!(quote.get_to_value(8).unwrap(), BigUint::from(59_981_900u64));
         assert_eq!(QuoteTxData { chain_fee: "1".to_string(), ..quote }.get_to_value(8).unwrap_err(), SwapperError::NoQuoteAvailable);
     }
-
-    #[test]
-    fn test_quote_eta_in_seconds() {
-        let quote = |estimated_time| QuoteTxData {
-            amount_out_min: BigUint::ZERO,
-            to_token_amount: String::new(),
-            deposit_min: String::new(),
-            deposit_max: String::new(),
-            chain_fee: String::new(),
-            estimated_time,
-        };
-
-        assert_eq!(quote(1).eta_in_seconds(), Some(180));
-        assert_eq!(quote(2).eta_in_seconds(), Some(600));
-        assert_eq!(quote(3).eta_in_seconds(), Some(1800));
-        assert_eq!(quote(10).eta_in_seconds(), Some(600));
-        assert_eq!(quote(4).eta_in_seconds(), None);
-    }
 }

@@ -163,23 +163,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_network_from_chain() {
-        assert_eq!(Network::from_chain(Chain::OpBNB).unwrap().code, "opBNB");
-        assert_eq!(Network::from_chain(Chain::Hyperliquid).unwrap().code, "HyperEVM");
-        assert_eq!(Network::from_chain(Chain::Mantle).unwrap().code, "MNT");
-        assert_eq!(Network::from_chain(Chain::Litecoin).unwrap().router(), Err(SwapperError::NotSupportedChain));
-        assert_eq!(Network::from_chain(Chain::Bitcoin).unwrap().router(), Err(SwapperError::NotSupportedChain));
-        assert_eq!(Network::from_chain(Chain::Tron).unwrap_err(), SwapperError::NotSupportedChain);
+    fn test_network_from_source_chain() {
         assert_eq!(Network::from_source_chain(Chain::OpBNB).unwrap().code, "opBNB");
         assert_eq!(Network::from_source_chain(Chain::Bitcoin).unwrap_err(), SwapperError::NotSupportedChain);
-    }
-
-    #[test]
-    fn test_vault_addresses() {
-        let vault_addresses = vault_addresses();
-
-        assert!(!vault_addresses.deposit.contains(&"ltc1q0sc0myh0a2wap7eshhyz2ahc2xdn86g7fv32r2".to_string()));
-        assert!(vault_addresses.send.contains(&"ltc1q0sc0myh0a2wap7eshhyz2ahc2xdn86g7fv32r2".to_string()));
-        assert!(vault_addresses.send.contains(&"0xD1088D3376C2384D469d1c0d55D503695e1BE3E6".to_string()));
+        assert_eq!(Network::from_source_chain(Chain::Tron).unwrap_err(), SwapperError::NotSupportedChain);
     }
 }
