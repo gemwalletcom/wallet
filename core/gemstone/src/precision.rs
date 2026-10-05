@@ -62,7 +62,7 @@ impl GemCurrencyStyle {
     pub fn precision(&self, magnitude: f64) -> GemPrecision {
         match self {
             Self::Fiat => number_formatter::Precision::TWO_PLACES.into(),
-            Self::Currency | Self::Short | Self::Abbreviated => number_formatter::precision::adaptive(magnitude).into(),
+            Self::Currency | Self::Short | Self::Abbreviated => number_formatter::precision::currency(magnitude).into(),
         }
     }
 
@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn test_fiat_always_reads_in_two_places_and_only_abbreviated_compacts() {
         assert_eq!(GemCurrencyStyle::Fiat.precision(0.0001), GemPrecision::Fraction { min: 2, max: 2 });
-        assert_eq!(GemCurrencyStyle::Currency.precision(0.5), GemPrecision::Significant { max: 4 });
+        assert_eq!(GemCurrencyStyle::Currency.precision(0.5), GemPrecision::Fraction { min: 2, max: 4 });
 
         assert!(GemCurrencyStyle::Abbreviated.abbreviates(100_000.0));
         assert!(!GemCurrencyStyle::Abbreviated.abbreviates(99_999.0));
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_only_the_short_currency_style_reads_as_dust() {
-        assert_eq!(GemCurrencyStyle::Short.precision(0.5), GemPrecision::Significant { max: 4 });
+        assert_eq!(GemCurrencyStyle::Short.precision(0.5), GemPrecision::Fraction { min: 2, max: 4 });
         assert!(GemCurrencyStyle::Short.is_dust(0.00000783));
         assert!(!GemCurrencyStyle::Short.is_dust(0.0001));
         assert!(!GemCurrencyStyle::Short.is_dust(0.0));

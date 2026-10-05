@@ -1942,7 +1942,7 @@ mod tests {
         assert_eq!(
             tiny(GemCurrencyStyle::Currency),
             crate::formatted_number::GemNumberDisplay::Number {
-                precision: crate::precision::GemPrecision::Significant { max: 4 }
+                precision: crate::precision::GemPrecision::Fraction { min: 2, max: 9 }
             },
             "a detail row has the width for the digits"
         );

@@ -1,6 +1,6 @@
 # Product behavior
 
-This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: asset logos, the Network Fee, names, charts, secrets and feature availability. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
+This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: numbers, asset logos, the Network Fee, names, charts, secrets and feature availability. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
 
 Before changing how an area works, read its page. A change that breaks a rule written there is a product decision, not a cleanup: ask first, and update the page in the same change when the intent moves.
 
@@ -19,6 +19,43 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 ## Look
 
 **Feature symbol.** A screen or sheet that introduces one feature or asks for one decision shows one large symbol from the platform's own set, in the brand blue with no background, above a bold title and a short description, at the size of an info sheet. Every such screen uses this one look so the user recognizes it; a new one copies it rather than drawing an icon.
+
+## Numbers
+
+Both apps write every number the same way. The examples are in US English and US dollars; separators and where the currency symbol goes follow the user's locale.
+
+**Money**
+
+| When | Expected | Why |
+|---|---|---|
+| A value of $0.99 or more: a fee, a price, a balance's value | two places: `$1,234.50`, `$12.30`, `$1.00` | |
+| A value under $0.99 | at least two places, up to four significant digits: `$0.90`, `$0.50`, `$0.1235`, `$0.0039`, `$0.00000783` | money always shows its cents, so it never reads `$0.9`; a small price keeps the digits that tell it apart from zero |
+| A value of zero, or under $0.0000000001 | `$0.00` | |
+| A value with more digits than it shows | rounded to the nearest: `$1.89999` reads `$1.90` | |
+| A gain or a loss | with its sign: `+$5.00`, `-$1.20`, `+$0.90` | |
+| A price or value in a list row: the wallet's assets, an asset list, stake, perpetual markets | as above, and under $0.0001 `<$0.0001` | a row has no room for `$0.00000783` |
+| The wallet total and its gain or loss, a Buy or Sell amount, a perpetual's margin, the medium and large price widgets | always two places: `$1,234.56`, `$0.90`, and `$0.00` under half a cent | a total or a payment is counted in cents |
+| Market cap, fully diluted valuation, trading volume, the small price widget | from $100,000 shortened: `$1.24M`, `$2.45B`; under it as above: `$99,999.00` | |
+
+**Amounts**
+
+| When | Expected | Why |
+|---|---|---|
+| An amount of 1 or more | up to two places, without trailing zeros: `5.2 ATOM`, `1 ATOM`, `1,239,999 ATOM` | an amount is not money; `5.20 ATOM` adds nothing |
+| An amount under 1 | up to four significant digits: `0.1992 ATOM`, `0.09999 ATOM`, `0.00000546 ATOM` | |
+| An amount with more digits than it shows | cut, never rounded up: `0.099999 ATOM` reads `0.09999 ATOM` | the wallet never shows more than the user has |
+| A balance change or an approval amount on Confirm | every digit: `1,234.567891 ETH`, `0.000021 ETH` | the user sees exactly what they sign |
+| An amount in a list row: the wallet's assets, activity, stake, supply | from 0.1 up to two places: `5.2 BTC`, `0.5 BTC`; under 0.1 up to four places: `0.0345 BTC`; under 0.0001 `<0.0001 BTC`; from 100,000 shortened: `267.12K BTC` | a row has room for a short number only |
+
+**Percentages and other numbers**
+
+| When | Expected | Why |
+|---|---|---|
+| A change, a gain or a loss: price change, profit and loss, funding rate | two places with its sign: `+2.50%`, `-2.00%` | |
+| A rate: APR, slippage | two places: `5.00%`, `12.50%`, `0.08%` | |
+| A preset the user picks, such as a price alert step | up to two places: `5%`, `2.5%` | |
+| A gas price in Gwei, an exchange rate, a chart candle's price | two places from 0.99: `24.00`, `3,456.79`; under it up to four significant digits: `0.1235`, `0.0008382` | |
+| Leverage | up to two places: `5x`, `2.5x` | |
 
 ## Asset logos
 

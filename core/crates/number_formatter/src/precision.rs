@@ -52,6 +52,20 @@ pub fn adaptive(magnitude: f64) -> Precision {
     }
 }
 
+pub fn currency(magnitude: f64) -> Precision {
+    match adaptive(magnitude) {
+        Precision::Significant { max } => Precision::Fraction {
+            min: 2,
+            max: zeros_after_point(magnitude) + max,
+        },
+        fraction @ Precision::Fraction { .. } => fraction,
+    }
+}
+
+fn zeros_after_point(magnitude: f64) -> u32 {
+    (-magnitude.abs().log10().floor() - 1.0) as u32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -82,6 +96,20 @@ mod tests {
         assert!(!is_value_dust(ValueStyle::Short, 0.0001));
         assert!(!is_value_dust(ValueStyle::Short, 0.0));
         assert!(!is_value_dust(ValueStyle::Full, 0.00009));
+    }
+
+    #[test]
+    fn test_currency() {
+        assert_eq!(currency(0.9), Precision::Fraction { min: 2, max: 4 });
+        assert_eq!(currency(0.1), Precision::Fraction { min: 2, max: 4 });
+        assert_eq!(currency(-0.5), Precision::Fraction { min: 2, max: 4 });
+        assert_eq!(currency(0.0345), Precision::Fraction { min: 2, max: 5 });
+        assert_eq!(currency(0.000838216), Precision::Fraction { min: 2, max: 7 });
+        assert_eq!(currency(0.0000000002), Precision::Fraction { min: 2, max: 13 });
+        assert_eq!(currency(0.99), Precision::TWO_PLACES);
+        assert_eq!(currency(1193.0109), Precision::TWO_PLACES);
+        assert_eq!(currency(1e-11), Precision::TWO_PLACES);
+        assert_eq!(currency(0.0), Precision::TWO_PLACES);
     }
 
     #[test]
