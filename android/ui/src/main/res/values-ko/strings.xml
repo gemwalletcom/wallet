@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">사용자 지정</string>
+  <string name="fee_rate_priority">우선순위 수수료</string>
+  <string name="fee_rate_base">기본 수수료</string>
   <string name="banner_account_activation_title">계정 활성화 수수료</string>
   <string name="banner_account_activation_description">%1$s 네트워크에는 %2$s 의 일회성 수수료가 필요합니다.</string>
   <string name="banner_stake_title">스테이킹 시작 %1$s</string>

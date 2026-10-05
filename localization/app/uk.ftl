@@ -476,6 +476,8 @@ fee_rates_normal = Нормальний
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Свій
+fee_rate_priority = Плата за пріоритет
+fee_rate_base = Базова плата
 
 # Banner
 

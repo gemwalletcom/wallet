@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Tilpasset</string>
+  <string name="fee_rate_priority">Prioritetsgebyr</string>
+  <string name="fee_rate_base">Basisgebyr</string>
   <string name="banner_account_activation_title">Kontoaktiveringsgebyr</string>
   <string name="banner_account_activation_description">%1$s netværket kræver et engangsgebyr på %2$s.</string>
   <string name="banner_stake_title">Begynd at satse %1$s</string>

@@ -1,12 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Primitives
 import Style
 import SwiftUI
 
 struct NetworkFeeCustomScene: View {
     private enum Field: Hashable {
-        case input
+        case baseFee
+        case rate
     }
 
     @State private var model: NetworkFeeCustomViewModel
@@ -20,26 +22,15 @@ struct NetworkFeeCustomScene: View {
 
     var body: some View {
         List {
-            Section {
-                HStack(spacing: .small) {
-                    Text(model.title)
-                    SuffixTextField(
-                        placeholder: model.placeholder,
-                        suffix: model.suffix,
-                        sanitizer: model.sanitize,
-                        text: $model.input,
-                        field: Field.input,
-                        focusedField: $focusedField,
-                    )
-                }
-            } footer: {
-                if let error = model.errorText {
-                    Text(error)
-                        .foregroundStyle(Colors.red)
-                }
+            if let baseFeeField = model.baseFeeField {
+                fieldSection(baseFeeField, text: $model.baseFeeInput, field: .baseFee)
             }
+            fieldSection(model.rateField, text: $model.input, field: .rate)
 
-            ListItemView(model: model.networkFeeListItem)
+            Section {
+                ListItemView(model: model.networkFeeListItem)
+            }
+            .listSectionSpacing(.custom(.medium))
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
@@ -55,7 +46,29 @@ struct NetworkFeeCustomScene: View {
             }
         }
         .onAppear {
-            focusedField = .input
+            focusedField = .rate
+        }
+    }
+
+    private func fieldSection(_ fieldModel: NetworkFeeCustomFieldModel, text: Binding<String>, field: Field) -> some View {
+        Section {
+            SuffixTextField(
+                placeholder: fieldModel.placeholder,
+                suffix: model.suffix,
+                sanitizer: model.sanitize,
+                alignment: .leading,
+                text: text,
+                field: field,
+                focusedField: $focusedField,
+            )
+            .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
+
+            if let error = fieldModel.errorText {
+                Text(error)
+                    .textStyle(TextStyle(font: .footnote, color: Colors.red))
+            }
+        } header: {
+            Text(fieldModel.title)
         }
     }
 }

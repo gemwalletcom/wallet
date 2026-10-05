@@ -476,6 +476,8 @@ fee_rates_normal = Biasa
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Tersuai
+fee_rate_priority = Yuran Keutamaan
+fee_rate_base = Yuran Asas
 
 # Banner
 

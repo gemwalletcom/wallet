@@ -476,6 +476,8 @@ fee_rates_normal = Biasa
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Kustom
+fee_rate_priority = Biaya Prioritas
+fee_rate_base = Biaya Dasar
 
 # Banner
 

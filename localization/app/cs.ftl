@@ -476,6 +476,8 @@ fee_rates_normal = Normální
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Vlastní
+fee_rate_priority = Prioritní poplatek
+fee_rate_base = Základní poplatek
 
 # Banner
 

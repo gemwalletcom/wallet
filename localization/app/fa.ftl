@@ -476,6 +476,8 @@ fee_rates_normal = عادی
 fee_rate_satvB = ساتوشی بر بایت
 fee_rate_gwei = gwei
 fee_rate_custom = سفارشی
+fee_rate_priority = کارمزد اولویت
+fee_rate_base = کارمزد پایه
 
 # Banner
 

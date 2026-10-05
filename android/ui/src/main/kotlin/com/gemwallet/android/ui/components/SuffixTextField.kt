@@ -35,6 +35,7 @@ fun SuffixTextField(
     placeholder: String = "",
     focusRequester: FocusRequester? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    textAlign: TextAlign = TextAlign.End,
 ) {
     var textFieldValue by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
     if (textFieldValue.text != value) {
@@ -61,12 +62,12 @@ fun SuffixTextField(
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyLarge.copy(
                 color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.End,
+                textAlign = textAlign,
             ),
             keyboardOptions = keyboardOptions,
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             decorationBox = { innerTextField ->
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = if (textAlign == TextAlign.Start) Alignment.CenterStart else Alignment.CenterEnd) {
                     if (textFieldValue.text.isEmpty() && placeholder.isNotEmpty()) {
                         Text(
                             text = placeholder,
