@@ -104,6 +104,7 @@ impl DiscoveryTestkit {
                 gateway,
                 Arc::new(GemStaticApiClient::new(provider.clone())),
                 Arc::new(UnusedStakeStore),
+                assets.clone(),
                 names,
                 Arc::new(GemExplorerService::new(preferences.clone())),
                 preferences.clone(),

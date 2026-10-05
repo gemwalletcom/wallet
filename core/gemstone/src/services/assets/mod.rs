@@ -14,7 +14,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, AssetProperties, Chain, ConfigVersions, FiatAssets, FiatQuoteType, Wallet, WalletId};
 
 pub use add::GemAddAssetService;
 pub use details::GemAssetDetailsService;
@@ -166,6 +166,10 @@ impl GemAssetsService {
 
     pub async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         self.store.get_assets(asset_ids).await
+    }
+
+    pub async fn asset_properties(&self, asset_id: AssetId) -> Result<Option<AssetProperties>, GemServiceError> {
+        Ok(self.store.get_asset_basics(vec![asset_id]).await?.into_iter().next().map(|basic| basic.properties))
     }
 
     pub async fn get_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemApiError> {

@@ -11,24 +11,6 @@ public struct StakeStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func getStakeApr(assetId: AssetId) throws -> Double? {
-        try db.read { db in
-            try AssetRecord
-                .filter(key: assetId.identifier)
-                .fetchOne(db)
-                .map(\.stakingApr) ?? .none
-        }
-    }
-
-    public func getEarnApr(assetId: AssetId) throws -> Double? {
-        try db.read { db in
-            try AssetRecord
-                .filter(key: assetId.identifier)
-                .fetchOne(db)
-                .map(\.earnApr) ?? .none
-        }
-    }
-
     public func updateAndDelete(walletId: WalletId, delegations: [DelegationBase], deleteIds: [String]) throws {
         try db.write { db in
             for delegation in delegations {
