@@ -89,6 +89,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     public var isPerpetualEnabled = true
     public var connects = true
+    public var enablementError: Error?
     public private(set) var syncMarketsCount = 0
     public private(set) var syncPositionsCount = 0
     public private(set) var clearMarketsCount = 0
@@ -105,13 +106,16 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt
     }
 
-    public func syncEnablement(wallet _: Gemstone.Wallet?, trigger: Gemstone.GemPerpetualEnablementTrigger) async throws -> Bool {
+    public func syncEnablement(wallet _: Gemstone.Wallet?) async throws -> Bool {
+        if let enablementError {
+            throw enablementError
+        }
         guard isPerpetualEnabled else {
             try await clearMarkets()
             return false
         }
-        if trigger != .foreground {
-            _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: .scheduled)
+        if updatedAt == nil {
+            try await syncMarkets(chain: "hypercore")
         }
         return connects
     }

@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
@@ -50,6 +51,7 @@ pub struct MemoryPerpetualStore {
     pub perpetual_writes: Mutex<Vec<Vec<PerpetualData>>>,
     pub pin_writes: Mutex<Vec<(Vec<PerpetualId>, bool)>>,
     pub stored: Mutex<Vec<Perpetual>>,
+    pub rejects_positions: AtomicBool,
 }
 
 #[async_trait]
@@ -77,6 +79,11 @@ impl GemPerpetualStore for MemoryPerpetualStore {
         Ok(self.positions.lock().unwrap().iter().map(|position| position.id.clone()).collect())
     }
     async fn update_positions(&self, _: WalletId, positions: Vec<PerpetualPosition>, delete_ids: Vec<String>) -> Result<(), GemServiceError> {
+        if self.rejects_positions.load(Ordering::SeqCst) {
+            return Err(GemServiceError::Store {
+                msg: "FOREIGN KEY constraint failed".to_string(),
+            });
+        }
         self.position_writes.lock().unwrap().push((positions, delete_ids));
         Ok(())
     }

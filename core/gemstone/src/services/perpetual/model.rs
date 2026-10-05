@@ -324,13 +324,6 @@ pub enum GemMarketsRefreshTrigger {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemPerpetualEnablementTrigger {
-    Foreground,
-    WalletChanged,
-    PreferenceChanged,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPerpetualRefreshStep {
     Positions,
     Markets,

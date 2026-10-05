@@ -41,8 +41,8 @@ pub use autoclose::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify}
 pub use candles::{GemCandleRequest, GemCandleResult, GemCandleSession, GemCandleViewState};
 pub use details::GemPerpetualDetailsService;
 pub use model::{
-    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDetails, GemPerpetualEnablementTrigger, GemPerpetualMarketCounts, GemPerpetualMarketView, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind,
-    GemPerpetualSection, GemPerpetualSocketUpdate, GemPerpetualTransferData,
+    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketView, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualSection,
+    GemPerpetualSocketUpdate, GemPerpetualTransferData,
 };
 pub use store::GemPerpetualStore;
 
@@ -107,13 +107,13 @@ impl GemPerpetualService {
         failures
     }
 
-    pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemPerpetualEnablementTrigger) -> Result<bool, GemServiceError> {
+    pub async fn sync_enablement(&self, wallet: Option<Wallet>) -> Result<bool, GemServiceError> {
         if !self.preferences.is_perpetual_enabled() {
             self.clear_markets().await?;
             return Ok(false);
         }
-        if trigger != GemPerpetualEnablementTrigger::Foreground {
-            self.sync_markets_if_needed(Chain::HyperCore, GemMarketsRefreshTrigger::Scheduled).await?;
+        if self.preferences.get_perpetual_markets_updated_at().is_none() {
+            self.sync_markets(Chain::HyperCore).await?;
         }
         Ok(self.should_connect_perpetuals(wallet))
     }
@@ -182,12 +182,12 @@ impl GemPerpetualService {
         let message = parse_websocket_data(&data, mode).map_err(GemServiceError::core)?;
         match message {
             HyperliquidSocketMessage::AccountState { balance, positions } => {
+                if let Some(balance) = balance {
+                    self.update_balance(wallet_id.clone(), balance).await?;
+                }
                 let existing = self.store.get_positions(wallet_id.clone(), PerpetualProvider::Hypercore).await?;
                 let diff = diff_clearinghouse_positions(positions, existing);
-                self.store.update_positions(wallet_id.clone(), diff.positions, diff.delete_position_ids).await?;
-                if let Some(balance) = balance {
-                    self.update_balance(wallet_id, balance).await?;
-                }
+                self.store.update_positions(wallet_id, diff.positions, diff.delete_position_ids).await?;
                 Ok(GemPerpetualSocketUpdate::Applied)
             }
             HyperliquidSocketMessage::SpotState { balance } => {
@@ -224,10 +224,10 @@ impl GemPerpetualService {
     pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
         let PerpetualAccountPositions { mode, summary } = self.gateway.get_positions(chain, address).await?;
         self.wallet_preferences.set_perpetual_account_mode(wallet_id.clone(), mode)?;
+        self.update_balance(wallet_id.clone(), summary.balance).await?;
         let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
         let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
-        self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
-        self.update_balance(wallet_id, summary.balance).await?;
+        self.store.update_positions(wallet_id, summary.positions, delete_ids).await?;
         Ok(mode)
     }
 
@@ -283,6 +283,8 @@ fn provider(chain: Chain) -> Result<PerpetualProvider, GemServiceError> {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::atomic::Ordering;
+
     use futures::executor::block_on;
     use primitives::Account;
 
@@ -424,6 +426,34 @@ mod tests {
     }
 
     #[test]
+    fn test_an_account_snapshot_keeps_its_balance_when_its_positions_cannot_be_stored() {
+        block_on(async {
+            let testkit = PerpetualTestkit::with_unified_balance().await;
+            testkit.store.rejects_positions.store(true, Ordering::SeqCst);
+            let snapshot = include_bytes!("../../../../crates/gem_hypercore/testdata/ws_clearinghouse_state.json");
+
+            let update = testkit.service.on_socket_message(testkit.wallet_id.clone(), PerpetualAccountMode::Standard, snapshot.to_vec()).await;
+
+            assert!(update.is_err());
+            assert_eq!(testkit.balances.balances.lock().unwrap()[&testkit.wallet_id][0].available.to_string(), "14400000000");
+        })
+    }
+
+    #[test]
+    fn test_a_position_refresh_keeps_its_balance_when_its_positions_cannot_be_stored() {
+        block_on(async {
+            let testkit = PerpetualTestkit::with_unified_balance().await;
+            let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
+            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
+            testkit.service.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            testkit.store.rejects_positions.store(true, Ordering::SeqCst);
+
+            assert!(testkit.service.sync_current_positions().await.is_err());
+            assert_eq!(testkit.balances.balances.lock().unwrap()[&wallet.id][0].available.to_string(), "12093224");
+        })
+    }
+
+    #[test]
     fn test_a_payload_that_is_not_a_socket_message_is_an_error() {
         let testkit = PerpetualTestkit::new();
 
@@ -438,7 +468,7 @@ mod tests {
             let testkit = PerpetualTestkit::new();
             testkit.preferences.set_perpetual_enabled(false).unwrap();
 
-            assert!(!testkit.service.sync_enablement(None, GemPerpetualEnablementTrigger::PreferenceChanged).await.unwrap());
+            assert!(!testkit.service.sync_enablement(None).await.unwrap());
 
             assert_eq!(*testkit.store.deleted.lock().unwrap(), 1);
             assert_eq!(
@@ -468,7 +498,7 @@ mod tests {
             testkit.recents.add(another_wallets_recent, WalletId::Multicoin("other".to_string())).await.unwrap();
             testkit.preferences.set_perpetual_enabled(false).unwrap();
 
-            testkit.service.sync_enablement(None, GemPerpetualEnablementTrigger::PreferenceChanged).await.unwrap();
+            testkit.service.sync_enablement(None).await.unwrap();
 
             let kept: Vec<RecentActivityType> = testkit.recents.added.lock().unwrap().iter().map(|(activity, _)| activity.activity_type.clone()).collect();
             assert_eq!(kept, vec![RecentActivityType::Search]);
@@ -476,13 +506,27 @@ mod tests {
     }
 
     #[test]
-    fn test_returning_to_the_foreground_decides_the_connection_without_refreshing_markets() {
+    fn test_stale_markets_do_not_hold_up_the_connection() {
         block_on(async {
             let testkit = PerpetualTestkit::new();
             testkit.preferences.set_perpetual_enabled(true).unwrap();
+            testkit.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp() - 24 * 60 * 60)).unwrap();
+            let hypercore = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
 
-            assert!(!testkit.service.sync_enablement(None, GemPerpetualEnablementTrigger::Foreground).await.unwrap(), "no wallet, nothing to connect");
-            assert!(testkit.provider.requested_paths().is_empty(), "the foreground leaves the markets to the other triggers");
+            assert!(testkit.service.sync_enablement(Some(hypercore)).await.unwrap());
+            assert!(testkit.provider.requested_paths().is_empty());
+        })
+    }
+
+    #[test]
+    fn test_markets_that_were_never_synced_load_before_the_connection() {
+        block_on(async {
+            let testkit = PerpetualTestkit::new();
+            testkit.preferences.set_perpetual_enabled(true).unwrap();
+            let hypercore = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
+
+            assert!(testkit.service.sync_enablement(Some(hypercore)).await.is_err(), "positions cannot be stored before their markets");
+            assert!(!testkit.provider.requested_paths().is_empty());
         })
     }
 
