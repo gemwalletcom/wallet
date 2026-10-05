@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.StakeDao
 import com.gemwallet.android.data.services.store.database.entities.toDTO
 import com.gemwallet.android.data.services.store.database.entities.toRecord
@@ -8,20 +7,11 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.DelegationBase
-import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.first
 import uniffi.gemstone.GemStakeStore
 
-class GemstoneStakeStore(private val stakeDao: StakeDao, private val assetsDao: AssetsDao) : GemStakeStore {
-
-    override suspend fun getApr(assetId: String, providerType: uniffi.gemstone.StakeProviderType): Double? {
-        val asset = assetsDao.getAsset(assetId).first() ?: return null
-        return when (providerType.toPrimitives()) {
-            StakeProviderType.Stake -> asset.stakingApr
-            StakeProviderType.Earn -> asset.earnApr
-        }
-    }
+class GemstoneStakeStore(private val stakeDao: StakeDao) : GemStakeStore {
 
     override suspend fun getValidators(assetId: String, providerType: uniffi.gemstone.StakeProviderType): List<uniffi.gemstone.DelegationValidator> =
         stakeDao.getValidators(AssetId(assetId), providerType.toPrimitives()).first().toDTO().map {
