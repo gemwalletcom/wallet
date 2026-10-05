@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 
-use nft::{NFTProviderClient, NFTProviderConfig, map_nft_data};
+use nft::{NFTProviderClient, map_nft_data};
 use primitives::nft::NFTAssetData;
 use primitives::{AssetId, Chain, ImageFormatter, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTData};
 use storage::{Database, DatabaseClient, DatabaseError, NftCollectionFilter, NftRepository, WalletsRepository};
@@ -15,10 +15,6 @@ pub struct NFTClient {
 impl NFTClient {
     pub fn new(database: Database, provider_client: NFTProviderClient, assets_url: String) -> Self {
         Self { database, provider_client, assets_url }
-    }
-
-    pub fn from_config(database: Database, config: NFTProviderConfig, assets_url: String) -> Self {
-        Self::new(database, NFTProviderClient::new(config), assets_url)
     }
 
     pub async fn update_collection(&self, collection_id: NFTCollectionId) -> Result<bool, Box<dyn Error + Send + Sync>> {

@@ -9,7 +9,7 @@ use config_keys::ConfigKey;
 use prices::{FiatRatesProvider, PriceAssetsProvider, PriceProvider};
 use primitives::{AccessTokenCacher, Chain, ChartTimeframe, JobConfiguration};
 use search_index::SearchIndexClient;
-use settings::{Settings, service_user_agent};
+use settings::service_user_agent;
 use storage::{Database, PricesProvidersRepository};
 use streamer::{StreamProducer, StreamProducerQueue};
 use swapper::swapper::GemSwapper;
@@ -24,7 +24,7 @@ use crate::prices::{
     PricesCleanupUpdater, PricesMetricsUpdater, PricesUpdater,
 };
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
-use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater};
+use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater, SearchSyncClient};
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
 use crate::transactions::{CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
@@ -53,7 +53,6 @@ impl AlerterJobs {
 #[derive(Clone)]
 pub struct AssetsJobs {
     database: Database,
-    settings: Arc<Settings>,
     classification_rules: AssetClassificationRules,
     usage_rank_config: UsageRankUpdaterConfig,
     static_assets_client: StaticAssetsClient,
@@ -64,8 +63,8 @@ impl AssetsJobs {
         AssetRankUpdater::new(Arc::new(PostgresRepository::new(self.database.clone())), self.classification_rules.clone())
     }
 
-    pub fn perpetual_updater(&self) -> PerpetualUpdater {
-        PerpetualUpdater::new(self.settings.as_ref().clone(), self.database.clone())
+    pub fn perpetual_updater(&self, providers: Arc<ChainProviders>) -> PerpetualUpdater {
+        PerpetualUpdater::new(providers, self.database.clone())
     }
 
     pub fn usage_rank_updater(&self) -> UsageRankUpdater {
@@ -85,7 +84,7 @@ impl AssetsJobs {
     }
 
     pub fn validator_scanner(&self, providers: Arc<ChainProviders>) -> ValidatorScanner {
-        ValidatorScanner::new(providers, self.database.clone())
+        ValidatorScanner::new(providers, self.static_assets_client.clone(), self.database.clone())
     }
 }
 
@@ -254,19 +253,23 @@ pub struct SearchJobs {
 
 impl SearchJobs {
     pub fn assets_index_updater(&self) -> AssetsIndexUpdater {
-        AssetsIndexUpdater::new(self.database.clone(), self.config.clone(), &self.search_index)
+        AssetsIndexUpdater::new(self.database.clone(), self.config.clone(), self.sync_client())
     }
 
     pub fn asset_lists_index_updater(&self) -> AssetListsIndexUpdater {
-        AssetListsIndexUpdater::new(self.database.clone(), &self.search_index)
+        AssetListsIndexUpdater::new(self.database.clone(), self.search_index.clone())
     }
 
     pub fn perpetuals_index_updater(&self) -> PerpetualsIndexUpdater {
-        PerpetualsIndexUpdater::new(self.database.clone(), self.config.clone(), &self.search_index)
+        PerpetualsIndexUpdater::new(self.database.clone(), self.sync_client())
     }
 
     pub fn nfts_index_updater(&self) -> NftsIndexUpdater {
-        NftsIndexUpdater::new(self.database.clone(), self.config.clone(), &self.search_index)
+        NftsIndexUpdater::new(self.database.clone(), self.sync_client())
+    }
+
+    fn sync_client(&self) -> SearchSyncClient {
+        SearchSyncClient::new(self.config.clone(), self.search_index.clone())
     }
 }
 
@@ -337,15 +340,13 @@ impl Services {
 
     pub async fn assets_jobs(&self) -> Result<AssetsJobs, Box<dyn Error + Send + Sync>> {
         let config = self.config();
-        let settings = self.settings();
         Ok(AssetsJobs {
             database: self.database(),
             classification_rules: AssetClassificationRules::from_config(&config).await?,
             usage_rank_config: UsageRankUpdaterConfig {
                 batch_size: config.get_usize(ConfigKey::AssetsUsageRankBatchSize).await?,
             },
-            static_assets_client: StaticAssetsClient::new(&settings.assets.url),
-            settings,
+            static_assets_client: StaticAssetsClient::new(&self.settings().assets.url),
         })
     }
 

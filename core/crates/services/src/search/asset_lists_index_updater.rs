@@ -10,11 +10,8 @@ pub struct AssetListsIndexUpdater {
 }
 
 impl AssetListsIndexUpdater {
-    pub fn new(database: Database, search_index: &SearchIndexClient) -> Self {
-        Self {
-            database,
-            search_index: search_index.clone(),
-        }
+    pub fn new(database: Database, search_index: SearchIndexClient) -> Self {
+        Self { database, search_index }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {

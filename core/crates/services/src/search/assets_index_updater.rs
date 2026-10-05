@@ -4,7 +4,7 @@ use std::sync::Arc;
 use super::sync::{SearchSyncClient, SearchSyncResult};
 use crate::ConfigCacher;
 use config_keys::ConfigKey;
-use search_index::{ASSETS_INDEX_NAME, AssetDocument, SearchIndexClient, sanitize_index_primary_id};
+use search_index::{ASSETS_INDEX_NAME, AssetDocument, sanitize_index_primary_id};
 use storage::{AssetTagLink, AssetWithMarket, AssetsUsageRanksRepository, AssetsWithPricesFilter, Database, DatabaseError, PricesRepository, TagRepository};
 
 pub struct AssetsIndexUpdater {
@@ -14,12 +14,8 @@ pub struct AssetsIndexUpdater {
 }
 
 impl AssetsIndexUpdater {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, search_index: &SearchIndexClient) -> Self {
-        Self {
-            sync_client: SearchSyncClient::new(config.clone(), search_index),
-            database,
-            config,
-        }
+    pub fn new(database: Database, config: Arc<ConfigCacher>, sync_client: SearchSyncClient) -> Self {
+        Self { sync_client, database, config }
     }
 
     pub async fn update(&self) -> Result<SearchSyncResult, Box<dyn std::error::Error + Send + Sync>> {

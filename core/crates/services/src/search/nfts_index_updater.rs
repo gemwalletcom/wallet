@@ -1,10 +1,7 @@
-use std::sync::Arc;
-
 use super::sync::{SearchSyncClient, SearchSyncResult};
-use crate::ConfigCacher;
 use config_keys::ConfigKey;
 use primitives::NFTCollection;
-use search_index::{NFTDocument, NFTS_INDEX_NAME, SearchIndexClient};
+use search_index::{NFTDocument, NFTS_INDEX_NAME};
 use storage::{Database, NftCollectionFilter, NftRepository};
 
 pub struct NftsIndexUpdater {
@@ -13,11 +10,8 @@ pub struct NftsIndexUpdater {
 }
 
 impl NftsIndexUpdater {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, search_index: &SearchIndexClient) -> Self {
-        Self {
-            sync_client: SearchSyncClient::new(config, search_index),
-            database,
-        }
+    pub fn new(database: Database, sync_client: SearchSyncClient) -> Self {
+        Self { database, sync_client }
     }
 
     pub async fn update(&self) -> Result<SearchSyncResult, Box<dyn std::error::Error + Send + Sync>> {

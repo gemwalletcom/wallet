@@ -13,7 +13,7 @@ use gem_client::ReqwestClient;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::JsonRpcClient;
 use lists::CoinGeckoListProvider;
-use nft::NFTProviderConfig;
+use nft::{NFTProviderClient, NFTProviderConfig};
 use primitives::{AccessTokenCacher, Chain, ChainType, EVMChain, FiatProviderName};
 use pusher::{PushProvider, PusherClient};
 use rewards::{AbuseIPDBClient, EvmClientProvider, IpApiClient, IpCheckProvider, TransferRedemptionService, WalletConfig};
@@ -45,8 +45,7 @@ use crate::prices::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
 use crate::rewards::IpSecurityClient;
 use crate::rewards::{RewardsClient, RewardsRedemptionClient};
 use crate::security::{ScanClient, ScanMetrics, scan_providers};
-use crate::support::SupportApiClient;
-use crate::support::SupportClient;
+use crate::support::{ChatwootClient, ChatwootWebhookVerifier, SupportApiClient, SupportClient};
 use crate::swap::{NearIntentsProxyClient, SwapClient, SwapsXyzProxyClient};
 use crate::transactions::{AddressDetailsClient, AddressNamesClient, TransactionsClient};
 use crate::webhooks::WebhooksClient;
@@ -141,7 +140,7 @@ impl Services {
     }
 
     pub fn nft(&self) -> NFTClient {
-        NFTClient::from_config(self.database(), NFTProviderConfig::from_settings(&self.settings), self.settings.nft.url.clone())
+        NFTClient::new(self.database(), NFTProviderClient::new(NFTProviderConfig::from_settings(&self.settings)), self.settings.nft.url.clone())
     }
 
     pub fn prices(&self, cacher: CacherClient) -> PriceClient {
@@ -267,7 +266,7 @@ impl Services {
     }
 
     pub fn webhooks(&self, stream_producer: StreamProducer) -> WebhooksClient {
-        WebhooksClient::new(Arc::new(stream_producer), self.settings.support.webhook.key.secret.clone())
+        WebhooksClient::new(Arc::new(stream_producer), ChatwootWebhookVerifier::new(self.settings.support.webhook.key.secret.clone()))
     }
 
     pub async fn app_config(&self) -> Result<ConfigClient, Box<dyn Error + Send + Sync>> {
@@ -301,7 +300,11 @@ impl Services {
 
     pub fn support_api(&self) -> SupportApiClient {
         let support = &self.settings.support;
-        SupportApiClient::new(support.url.clone(), support.widget.ios.clone(), support.widget.android.clone(), self.database())
+        SupportApiClient::new(
+            ChatwootClient::new(support.url.clone(), support.widget.ios.clone()),
+            ChatwootClient::new(support.url.clone(), support.widget.android.clone()),
+            self.database(),
+        )
     }
 
     pub async fn device_stream(&self, cacher: CacherClient) -> Result<DeviceStreamClient, Box<dyn Error + Send + Sync>> {

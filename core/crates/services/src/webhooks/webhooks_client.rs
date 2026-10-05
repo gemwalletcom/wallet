@@ -32,11 +32,8 @@ pub struct WebhooksClient {
 }
 
 impl WebhooksClient {
-    pub fn new(stream_producer: Arc<dyn StreamProducerQueue>, support_webhook_secret: String) -> Self {
-        Self {
-            stream_producer,
-            chatwoot_webhook_verifier: ChatwootWebhookVerifier::new(support_webhook_secret),
-        }
+    pub fn new(stream_producer: Arc<dyn StreamProducerQueue>, chatwoot_webhook_verifier: ChatwootWebhookVerifier) -> Self {
+        Self { stream_producer, chatwoot_webhook_verifier }
     }
 
     pub async fn publish_support_webhook(&self, raw_body: &str, headers: &HashMap<String, String>) -> Result<(), SupportWebhookError> {
@@ -83,7 +80,7 @@ mod tests {
     #[tokio::test]
     async fn test_publish_support_webhook() {
         let producer = Arc::new(RecordingStreamProducer::new());
-        let client = WebhooksClient::new(producer.clone(), SECRET.to_string());
+        let client = WebhooksClient::new(producer.clone(), ChatwootWebhookVerifier::new(SECRET.to_string()));
 
         client.publish_support_webhook(BODY, &signed_headers(BODY)).await.unwrap();
         assert!(matches!(client.publish_support_webhook(BODY, &HashMap::new()).await, Err(SupportWebhookError::Rejected(_))));
@@ -93,7 +90,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_publish_support_webhook_failure() {
-        let client = WebhooksClient::new(Arc::new(RecordingStreamProducer::failing("broker unavailable")), SECRET.to_string());
+        let client = WebhooksClient::new(Arc::new(RecordingStreamProducer::failing("broker unavailable")), ChatwootWebhookVerifier::new(SECRET.to_string()));
 
         let result = client.publish_support_webhook(BODY, &signed_headers(BODY)).await;
 
@@ -103,7 +100,7 @@ mod tests {
     #[tokio::test]
     async fn test_publish_broadcast_webhook() {
         let producer = Arc::new(RecordingStreamProducer::new());
-        let client = WebhooksClient::new(producer.clone(), SECRET.to_string());
+        let client = WebhooksClient::new(producer.clone(), ChatwootWebhookVerifier::new(SECRET.to_string()));
 
         client.publish_broadcast_webhook(TransactionId::new(Chain::Ethereum, "0x123".to_string())).await.unwrap();
 

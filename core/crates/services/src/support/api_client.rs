@@ -14,12 +14,8 @@ pub struct SupportApiClient {
 }
 
 impl SupportApiClient {
-    pub fn new(url: String, ios_widget_public_token: String, android_widget_public_token: String, database: Database) -> Self {
-        Self {
-            chatwoot_ios: ChatwootClient::new(url.clone(), ios_widget_public_token),
-            chatwoot_android: ChatwootClient::new(url, android_widget_public_token),
-            database,
-        }
+    pub fn new(chatwoot_ios: ChatwootClient, chatwoot_android: ChatwootClient, database: Database) -> Self {
+        Self { chatwoot_ios, chatwoot_android, database }
     }
 
     pub async fn messages(&self, device: &DeviceRecord, from_timestamp: Option<u64>) -> Result<Vec<SupportMessage>, Box<dyn Error + Send + Sync>> {

@@ -1,19 +1,19 @@
 use std::error::Error;
+use std::sync::Arc;
 
-use chain_providers::ProviderFactory;
+use chain_providers::ChainProviders;
 use gem_tracing::error_with_fields;
 use primitives::{Chain, asset_score::AssetRank};
-use settings::{Settings, service_user_agent};
 use storage::{AssetUpdate, AssetsRepository, Database, DatabaseError, PerpetualsRepository};
 
 pub struct PerpetualUpdater {
-    settings: Settings,
+    providers: Arc<ChainProviders>,
     database: Database,
 }
 
 impl PerpetualUpdater {
-    pub fn new(settings: Settings, database: Database) -> Self {
-        Self { settings, database }
+    pub fn new(providers: Arc<ChainProviders>, database: Database) -> Self {
+        Self { providers, database }
     }
 
     pub fn chains() -> &'static [Chain] {
@@ -21,8 +21,7 @@ impl PerpetualUpdater {
     }
 
     pub async fn update_chain(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let provider = ProviderFactory::new_from_settings_with_user_agent(chain, &self.settings, &service_user_agent("daemon", Some("perpetual_updater")));
-        let perpetuals_data = provider.get_perpetuals_data().await?;
+        let perpetuals_data = self.providers.get_perpetuals_data(chain).await?;
 
         let assets = perpetuals_data.iter().map(|x| x.asset.clone()).collect::<Vec<_>>();
         let asset_ids = assets.iter().map(|x| x.id.clone()).collect::<Vec<_>>();
