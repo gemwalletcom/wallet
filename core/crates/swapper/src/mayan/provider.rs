@@ -1,7 +1,7 @@
 use super::{
     asset::{supported_assets as mayan_supported_assets, token_id_for_asset},
     client::MayanClient,
-    constants::{MAYAN_DEPOSIT_CONTRACTS, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_SEND_CONTRACTS},
+    constants::{MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_DEPOSIT_CONTRACTS, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_SEND_CONTRACTS},
     mapper::map_swap_result,
     model::{MayanChain, MayanQuote, MayanTransactionResult, QuoteParams, SwiftVersion},
     tx_builder::{fast_mctp, mctp, mono_chain, swift},
@@ -287,6 +287,7 @@ mod tests {
 
         assert_eq!(addresses.deposit.iter().filter(|address| *address == &api_address).count(), 1);
         assert_eq!(addresses.send.iter().filter(|address| *address == &api_address).count(), 1);
+        assert!(addresses.deposit.iter().any(|address| address == MAYAN_CPI_PROXY_PROGRAM_ID));
         assert!(addresses.send.iter().any(|address| address == "0xD78D199f8C402e7B5Cc2abE278dF0412400a3BAe"));
         assert!(!addresses.deposit.iter().chain(&addresses.send).any(|address| address == EVM_ZERO_ADDRESS));
     }
