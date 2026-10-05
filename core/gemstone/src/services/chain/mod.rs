@@ -3,7 +3,9 @@ pub mod rules;
 use primitives::{Chain, ChainAsset};
 
 use crate::config::chain::icon_chain;
+use crate::models::state::GemListPhase;
 use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
+use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
 
 use crate::wallet_connect::{wallet_connect_namespace, wallet_connect_reference};
@@ -14,6 +16,12 @@ pub struct GemChainRow {
     pub title: String,
     pub standard: Option<GemLocalizedText>,
     pub icon: GemAssetIcon,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemChainList {
+    pub rows: Vec<GemChainRow>,
+    pub phase: GemListPhase,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -52,6 +60,14 @@ impl GemChainService {
 
     pub fn chain_rows(&self, chains: Option<Vec<Chain>>, query: String) -> Vec<GemChainRow> {
         rules::matching_chains(chains.unwrap_or_else(rules::chains_by_rank), &query).into_iter().map(chain_row).collect()
+    }
+
+    pub fn chain_list(&self, chains: Option<Vec<Chain>>, query: String) -> GemChainList {
+        let rows = self.chain_rows(chains, query);
+        GemChainList {
+            phase: GemListPhase::local(!rows.is_empty(), empty_state(GemEmptyStateKind::SearchNetworks)),
+            rows,
+        }
     }
 
     pub fn import_wallet_types(&self, query: String) -> GemImportWalletTypes {
@@ -93,6 +109,19 @@ mod tests {
         assert_eq!(offered.iter().map(|row| row.chain).collect::<Vec<_>>(), vec![Chain::Solana, Chain::Bitcoin], "offered chains keep their order");
         assert_eq!(service.chain_rows(Some(vec![Chain::Solana, Chain::Bitcoin]), "bitcoin".to_string()), vec![chain_row(Chain::Bitcoin)]);
         assert!(service.chain_rows(None, "zzz-no-chain".to_string()).is_empty());
+    }
+
+    #[test]
+    fn test_a_network_search_that_matches_nothing_shows_the_search_empty_state() {
+        let service = GemChainService::new();
+
+        assert_eq!(service.chain_list(None, "bitcoin".to_string()).phase, GemListPhase::Rows);
+        assert_eq!(
+            service.chain_list(None, "zzz-no-chain".to_string()).phase,
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::SearchNetworks)
+            }
+        );
     }
 
     #[test]
