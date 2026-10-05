@@ -67,10 +67,10 @@ public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Send
     }
 }
 
-final class StubAlienProvider: AlienProvider, @unchecked Sendable {
-    init() {}
+public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
+    public init() {}
 
-    func request(target _: AlienTarget) async throws -> AlienResponse {
+    public func request(target _: AlienTarget) async throws -> AlienResponse {
         throw AnyError("StubAlienProvider does not perform requests")
     }
 }

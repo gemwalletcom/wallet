@@ -7,16 +7,20 @@ use std::sync::Arc;
 use chrono::Utc;
 
 use crate::services::localization::GemLocalizedText;
-use primitives::{Asset, AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
+use primitives::{Asset, AssetFiatValue, AssetId, Banner, Currency, NFTData, TotalFiatValue, Wallet, WalletId, WalletListItem};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
 use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderSubtitleIcon};
+use crate::services::assets::rules::asset_sections;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
 use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerRow, GemBannerService};
 use crate::services::error::GemServiceError;
+use crate::services::nft::model::{GemNftEntry, GemNftList};
+use crate::services::nft::rules as nft_rules;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::toast::GemToast;
+use crate::services::wallet::model::GemWalletRow;
 use crate::services::wallet::rules as wallet_rules;
 use crate::services::wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -24,10 +28,14 @@ pub use rules::GemPerpetualCollateral;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletHomeViewState {
+    pub wallet_row: GemWalletRow,
     pub header: GemValueHeader,
     pub show_collections: bool,
+    pub collections: Vec<GemNftEntry>,
     pub shows_perpetuals: bool,
     pub banner: Option<GemBannerRow>,
+    pub pinned_asset_ids: Vec<AssetId>,
+    pub asset_ids: Vec<AssetId>,
 }
 
 #[derive(uniffi::Object)]
@@ -65,15 +73,29 @@ impl GemWalletHomeService {
         self.preferences.get_currency()
     }
 
-    pub fn view_state(&self, wallet: Wallet, balances: Vec<AssetFiatValue>, perpetual: Option<GemPerpetualCollateral>, banners: Vec<Banner>) -> GemWalletHomeViewState {
+    pub fn view_state(
+        &self,
+        wallet: Wallet,
+        balances: Vec<AssetFiatValue>,
+        perpetual: Option<GemPerpetualCollateral>,
+        banners: Vec<Banner>,
+        asset_ids: Vec<AssetId>,
+        pinned_asset_ids: Vec<AssetId>,
+        nfts: Vec<NFTData>,
+    ) -> GemWalletHomeViewState {
         let chains = wallet.chains();
         let wallet_type = wallet.wallet_type;
+        let wallet_row = wallet_rules::row(&WalletListItem::from(&wallet));
         let is_wallet_empty = balances.iter().all(|balance| balance.amount == 0.0);
         let total_value = self.total_fiat_value(wallet.id.clone(), balances, perpetual);
         let visible_banners = self.banners.visible_banners(&GemBannerContext::wallet(wallet, is_wallet_empty), banners);
         let currency = self.preferences.get_currency();
         let header = balance_rules::total_header(&total_value, currency);
+        let sections = asset_sections(asset_ids, pinned_asset_ids, false, Vec::new());
+        let show_collections = self.preferences.show_collections(wallet_type, chains.clone());
+        let collections = if show_collections { nft_rules::entries(nft_rules::list_items(nfts, GemNftList::Collections)) } else { Vec::new() };
         GemWalletHomeViewState {
+            wallet_row,
             header: GemValueHeader {
                 icon: None,
                 title: GemLocalizedText::Number { number: header.total },
@@ -81,9 +103,12 @@ impl GemWalletHomeService {
                 subtitle: header.pnl.map(|text| GemRowText { text, tone: header.pnl_tone }),
                 actions: Some(rules::header_actions(wallet_type, &chains, rules::header_buttons_enabled(&visible_banners))),
             },
-            show_collections: self.preferences.show_collections(wallet_type, chains.clone()),
+            show_collections,
+            collections,
             shows_perpetuals: self.preferences.show_perpetuals(wallet_type, chains),
             banner: visible_banners.into_iter().next(),
+            pinned_asset_ids: sections.pinned,
+            asset_ids: sections.assets,
         }
     }
 
@@ -141,13 +166,13 @@ mod tests {
     use super::testkit::WalletHomeTestkit;
     use crate::services::assets::model::GemHeaderActions;
     use crate::services::wallet_preferences::GemDiscoveryStep;
-    use primitives::{AssetFiatValue, Banner, BannerEvent, BannerState, Wallet, WalletSource};
+    use primitives::{AssetFiatValue, Banner, BannerEvent, BannerState, NFTData, VerificationStatus, Wallet, WalletSource, WalletType};
 
     #[test]
     fn test_the_home_state_answers_whether_perpetuals_show() {
         let testkit = WalletHomeTestkit::with_status(200);
 
-        let state = testkit.service.view_state(Wallet::mock(), vec![], None, vec![]);
+        let state = testkit.service.view_state(Wallet::mock(), vec![], None, vec![], vec![], vec![], vec![]);
 
         assert_eq!(
             state.shows_perpetuals,
@@ -160,13 +185,28 @@ mod tests {
     fn test_the_header_buttons_follow_the_banners_the_screen_shows() {
         let testkit = WalletHomeTestkit::with_status(200);
         let warning = |state| Banner::mock(BannerEvent::AccountBlockedMultiSignature, state);
-        let buttons_enabled = |banners: Vec<Banner>| match testkit.service.view_state(Wallet::mock(), vec![], None, banners).header.actions {
+        let buttons_enabled = |banners: Vec<Banner>| match testkit.service.view_state(Wallet::mock(), vec![], None, banners, vec![], vec![], vec![]).header.actions {
             Some(GemHeaderActions::Buttons { buttons }) => buttons.iter().all(|button| button.is_enabled),
             Some(GemHeaderActions::WatchOnly) | None => true,
         };
 
         assert!(!buttons_enabled(vec![warning(BannerState::AlwaysActive)]));
         assert!(buttons_enabled(vec![warning(BannerState::Cancelled)]), "a warning the screen does not show cannot block the buttons");
+    }
+
+    #[test]
+    fn test_the_home_state_lists_pinned_assets_apart_and_no_popular_section() {
+        let testkit = WalletHomeTestkit::with_status(200);
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let ethereum = AssetId::from_chain(Chain::Ethereum);
+        let tron = AssetId::from_chain(Chain::Tron);
+
+        let state = testkit
+            .service
+            .view_state(Wallet::mock(), vec![], None, vec![], vec![bitcoin.clone(), tron.clone(), ethereum.clone()], vec![tron.clone()], vec![]);
+
+        assert_eq!(state.pinned_asset_ids, vec![tron]);
+        assert_eq!(state.asset_ids, vec![bitcoin, ethereum], "popular assets stay in the wallet's own order");
     }
 
     #[test]
@@ -181,10 +221,31 @@ mod tests {
             price: 1.0,
             price_change_percentage_24h: 0.0,
         };
-        let shown = |balances: Vec<AssetFiatValue>| testkit.service.view_state(Wallet::mock(), balances, None, vec![onboarding.clone()]).banner.is_some();
+        let shown = |balances: Vec<AssetFiatValue>| testkit.service.view_state(Wallet::mock(), balances, None, vec![onboarding.clone()], vec![], vec![], vec![]).banner.is_some();
 
         assert!(shown(vec![value(0.0)]));
         assert!(!shown(vec![value(0.0), value(2.0)]));
+    }
+
+    #[test]
+    fn test_the_home_previews_verified_collections_only_where_collections_show() {
+        let testkit = WalletHomeTestkit::with_status(200);
+        let nfts = vec![NFTData::mock_with("verified", VerificationStatus::Verified, 2), NFTData::mock_with("spam", VerificationStatus::Unverified, 2)];
+        let titles = |wallet: Wallet| {
+            testkit
+                .service
+                .view_state(wallet, vec![], None, vec![], vec![], vec![], nfts.clone())
+                .collections
+                .into_iter()
+                .map(|entry| entry.row.title)
+                .collect::<Vec<_>>()
+        };
+
+        assert_eq!(titles(Wallet::mock()), vec!["verified"]);
+        assert!(
+            titles(Wallet::mock_with_type(WalletType::Single, &[Chain::Bitcoin])).is_empty(),
+            "a wallet whose chain has no NFTs shows no collections section"
+        );
     }
 
     #[test]

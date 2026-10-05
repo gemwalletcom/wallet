@@ -9,44 +9,44 @@ pub mod stream;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use crate::services::error::GemServiceError;
-use crate::services::failures::record;
-use futures::lock::Mutex;
-use model::{GemPerpetualConnection, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use chrono::Utc;
+use futures::lock::Mutex;
 use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::perpetual::{PerpetualAccountPositions, PerpetualBalance, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
-use primitives::{Asset, AssetId, Chain, ChartPeriod, PerpetualAccountMode, PerpetualId, PerpetualProvider, RecentActivityType, Wallet, WalletId};
-use std::collections::HashMap;
+use primitives::{Asset, AssetId, Chain, ChartPeriod, Feature, PerpetualAccountMode, PerpetualId, PerpetualProvider, RecentActivityType, Wallet, WalletId};
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
-use crate::services::clock::is_outdated;
-use crate::services::preferences::GemPreferencesService;
-
-pub use autoclose::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify};
-pub use candles::{GemCandleRequest, GemCandleResult, GemCandleSession, GemCandleViewState};
-pub use details::GemPerpetualDetailsService;
-pub use model::{
-    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDepositTarget, GemPerpetualDetails, GemPerpetualEnablementTrigger, GemPerpetualMarketCounts, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind,
-    GemPerpetualSection, GemPerpetualSocketUpdate, GemPerpetualTransferData,
-};
-pub use store::GemPerpetualStore;
-
 use crate::gateway::GemGateway;
 use crate::models::custom_types::GemBigUint;
 use crate::models::perpetual::GemChartCandleStick;
 use crate::perpetual::GemPerpetual;
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
+use crate::services::clock::is_outdated;
+use crate::services::config::GemConfigService;
+use crate::services::error::GemServiceError;
+use crate::services::failures::record;
+use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use crate::services::stream::rules::hyperliquid_account;
 use crate::services::transfer::{GemRecentActivityScope, GemRecentActivityService};
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
+use model::{GemPerpetualConnection, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
+
+pub use autoclose::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify};
+pub use candles::{GemCandleRequest, GemCandleResult, GemCandleSession, GemCandleViewState};
+pub use details::GemPerpetualDetailsService;
+pub use model::{
+    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDepositTarget, GemPerpetualDetails, GemPerpetualEnablementTrigger, GemPerpetualMarketCounts, GemPerpetualMarketView, GemPerpetualPositionAction, GemPerpetualPositionDetailRow,
+    GemPerpetualPositionKind, GemPerpetualSection, GemPerpetualSocketUpdate, GemPerpetualTransferData,
+};
+pub use store::GemPerpetualStore;
 
 #[derive(uniffi::Object)]
 pub struct GemPerpetualService {
@@ -59,6 +59,7 @@ pub struct GemPerpetualService {
     wallet_preferences: Arc<GemWalletPreferencesService>,
     session: Arc<GemWalletSessionService>,
     recent_activity: Arc<GemRecentActivityService>,
+    config: Arc<GemConfigService>,
     writes: Mutex<()>,
 }
 
@@ -75,6 +76,7 @@ impl GemPerpetualService {
         wallet_preferences: Arc<GemWalletPreferencesService>,
         session: Arc<GemWalletSessionService>,
         recent_activity: Arc<GemRecentActivityService>,
+        config: Arc<GemConfigService>,
     ) -> Self {
         Self {
             gateway,
@@ -86,8 +88,13 @@ impl GemPerpetualService {
             wallet_preferences,
             session,
             recent_activity,
+            config,
             writes: Mutex::new(()),
         }
+    }
+
+    pub fn is_available(&self) -> bool {
+        self.config.is_feature_enabled(Feature::Perpetuals)
     }
 
     pub async fn add_recent(&self, action: GemAssetAction, asset: Asset) -> Result<(), GemServiceError> {
@@ -133,10 +140,7 @@ impl GemPerpetualService {
         };
         let chain = Chain::HyperCore;
         let address = account.address.clone();
-        let mode = match self.sync_positions(wallet.id.clone(), chain, address.clone()).await {
-            Ok(mode) => mode,
-            Err(_) => self.account_mode(wallet.id, chain, address.clone()).await?,
-        };
+        let mode = self.account_mode(wallet.id, chain, address.clone()).await?;
         Ok(Some(GemPerpetualConnection { address, mode }))
     }
 }
@@ -271,10 +275,6 @@ impl GemPerpetualService {
         self.store.clear_perpetuals(rules::collateral_asset_ids()).await?;
         self.recent_activity.clear_in(GemRecentActivityScope::AllWallets, vec![RecentActivityType::Perpetual]).await?;
         self.preferences.set_perpetual_markets_updated_at(None)
-    }
-
-    pub fn collateral_asset_id(&self, chain: Chain) -> Option<AssetId> {
-        rules::collateral_asset_id(chain)
     }
 }
 
@@ -565,7 +565,7 @@ mod tests {
     }
 
     #[test]
-    fn test_connection_uses_hypercore_for_evm_accounts() {
+    fn test_connection_fetches_only_the_account_mode_before_opening_the_socket() {
         block_on(async {
             for chains in [[Chain::Arbitrum, Chain::HyperCore], [Chain::Hyperliquid, Chain::HyperCore], [Chain::HyperCore, Chain::Arbitrum]] {
                 let testkit = PerpetualTestkit::with_unified_balance().await;
@@ -577,12 +577,12 @@ mod tests {
                     connection,
                     Some(GemPerpetualConnection {
                         address: "0xc64c".to_string(),
-                        mode: PerpetualAccountMode::Unified
+                        mode: PerpetualAccountMode::Unified,
                     })
                 );
-                let stored = testkit.balances.balances.lock().unwrap();
-                assert_eq!(stored[&wallet.id][0].available.to_string(), "12093224");
-                assert_eq!(stored[&wallet.id][0].withdrawable.to_string(), "12093224");
+                assert_eq!(testkit.provider.requested_types(), vec!["userAbstraction"]);
+                assert!(testkit.store.position_writes.lock().unwrap().is_empty());
+                assert!(testkit.balances.balances.lock().unwrap().is_empty());
             }
         });
     }

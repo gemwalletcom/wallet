@@ -17,7 +17,6 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The terms were already accepted on this install | they are not asked again; the security reminder still shows on every create | |
-| The user copies the Secret Phrase | the copy expires after one minute | |
 
 ## Import wallet
 
@@ -40,6 +39,9 @@ flowchart LR
 | The cursor is inside the phrase | no suggestions show | a tap never changes the wrong word |
 | An address is typed as a name | the resolved name becomes the wallet name | |
 | The wallet already exists | it is simply opened | |
+| An import fails | its error shows under the input after every failed attempt, and clears as soon as the input changes | a retry with the same mistake must not look like nothing happened |
+
+Names follow the shared [Names](../PRODUCT.md#names) section.
 
 ## App lock offer
 
@@ -58,6 +60,7 @@ flowchart LR
 | The authentication prompt is cancelled or fails | the offer stays open | |
 | The user taps Skip or goes back | the wallet screen opens | Settings → Security still turns it on |
 | The offer was shown once on this install | it is not shown again, whatever was chosen | |
+| The phone rotates, or the theme or language changes, while the offer is open | the offer stays open over the wallet | the wallet is already created; going back to the welcome screen would offer to create it again |
 | App authentication is already on, or the device has no biometrics or passcode | no offer | |
 
 ## After create and import
@@ -87,10 +90,9 @@ flowchart TD
 | When | iOS | Android | Expected |
 |---|---|---|---|
 | The user types an invalid word while importing a Secret Phrase | no per-word highlight | highlights the invalid word | Intentional: a one-sided feature, added to iOS only when required |
-| The user takes a screenshot of the Secret Phrase or private key screen | the screenshot is detected and the user is warned | the screenshot is blocked | Intentional |
 | The app lock offer opens on a device with biometrics | Face ID, Touch ID or Optic ID, with that symbol | Passcode, with a lock | Intentional: Android has no single name for its unlock methods, and its Security settings already call it Passcode |
 
 ## Rules
 
 - The Secret Phrase never leaves the device and is never written to a log.
-- The Secret Phrase and private key screens hide their content during screen recording and whenever the app is not active.
+- Showing and copying a Secret Phrase or private key follow the shared [Secrets](../PRODUCT.md#secrets) section.

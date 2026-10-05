@@ -476,6 +476,8 @@ fee_rates_normal = Biasa
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Kustom
+fee_rate_priority = Biaya Prioritas
+fee_rate_base = Biaya Dasar
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = Buka kunci
 lock_privacy_lock = Kunci Privasi
 lock_footer = Lindungi akses ke aplikasi ini di perangkat Anda
 lock_passcode = Kode Sandi
+lock_passcode_off_title = Kode sandi perangkat nonaktif
+lock_passcode_off_description = Gem dikunci dengan kode sandi perangkat Anda. Aktifkan kode sandi di pengaturan perangkat untuk membuka Gem. Dompet Anda aman.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Akun %@ ini dapat dikendalikan oleh ora
 sell_title = Jual %@
 
 # Info
+
+info_region_unavailable_description = Fitur ini tidak tersedia di wilayah Anda. Ketersediaan bergantung pada aturan setempat dan persyaratan penyedia.
 
 info_network_fee_title = Biaya Jaringan
 info_watch_wallet_title = Dompet Pantau

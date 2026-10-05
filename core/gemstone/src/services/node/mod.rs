@@ -86,12 +86,6 @@ impl GemNodeService {
 }
 
 impl GemNodeService {
-    pub fn sorted_nodes(&self, chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
-        rules::sorted_nodes(chain, nodes)
-    }
-}
-
-impl GemNodeService {
     pub(crate) fn node_url(&self, chain: Chain) -> String {
         self.selected_node(chain).url
     }

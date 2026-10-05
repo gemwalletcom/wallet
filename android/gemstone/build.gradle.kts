@@ -84,6 +84,7 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     outputs.dir(outputDir)
     outputs.upToDateWhen { false }
     doFirst { outputDir.deleteRecursively() }
+    environment("CARGO_PROFILE_RELEASE_STRIP", "debuginfo")
     commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} rustc --lib --crate-type cdylib $cargoBuildFlag")
 }
 

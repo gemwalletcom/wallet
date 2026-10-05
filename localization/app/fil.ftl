@@ -476,6 +476,8 @@ fee_rates_normal = Normal
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Pasadya
+fee_rate_priority = Bayad sa Priyoridad
+fee_rate_base = Batayang Bayad
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = I-unlock
 lock_privacy_lock = Privacy Lock
 lock_footer = Protektahan ang access sa app na ito sa iyong device
 lock_passcode = Passcode
+lock_passcode_off_title = Naka-off ang passcode ng device
+lock_passcode_off_description = Naka-lock ang Gem gamit ang passcode ng iyong device. I-on ang passcode sa mga setting ng device para mabuksan ang Gem. Ligtas ang iyong mga wallet.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Maaaring kontrolado ng ibang tao ang %@
 sell_title = Ibenta %@
 
 # Info
+
+info_region_unavailable_description = Hindi available ang feature na ito sa iyong rehiyon. Nakadepende ang availability sa mga lokal na patakaran at mga kinakailangan ng mga provider.
 
 info_network_fee_title = Bayad sa Network
 info_watch_wallet_title = Wallet na Binabantayan

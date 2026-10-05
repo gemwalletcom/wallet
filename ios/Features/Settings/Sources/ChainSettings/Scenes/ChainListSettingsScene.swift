@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemChainRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -18,7 +17,8 @@ public struct ChainListSettingsScene: View {
     }
 
     public var body: some View {
-        List {
+        let chainList = model.chainList(for: searchQuery)
+        return List {
             Section {
                 NavigationLink(value: Scenes.ServiceStatus()) {
                     ListItemView(model: model.serviceStatusListItem)
@@ -26,7 +26,7 @@ public struct ChainListSettingsScene: View {
             }
 
             Section(Localized.Settings.Networks.title) {
-                ForEach(chainRows, id: \.chain) { row in
+                ForEach(chainList.rows, id: \.chain) { row in
                     NavigationLink(value: Scenes.ChainSettings(chain: Chain(core: row.chain))) {
                         ChainView(model: row)
                     }
@@ -43,22 +43,14 @@ public struct ChainListSettingsScene: View {
         .autocorrectionDisabled(true)
         .scrollDismissesKeyboard(.interactively)
         .overlay {
-            if chainRows.isEmpty {
+            if case let .empty(state) = chainList.phase {
                 ContentUnavailableView {
-                    EmptyContentView(model: model.emptyContent)
+                    EmptyContentView(model: EmptyStateViewModel(state: state))
                 }
                 .background(UIColor.systemGroupedBackground.color)
             }
         }
         .navigationTitle(Localized.Settings.Networks.title)
         .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-// MARK: - Private
-
-extension ChainListSettingsScene {
-    private var chainRows: [GemChainRow] {
-        model.chainRows(for: searchQuery)
     }
 }

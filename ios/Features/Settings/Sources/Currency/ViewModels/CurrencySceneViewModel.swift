@@ -3,7 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.Currency
-import struct Gemstone.GemCurrencySection
+import struct Gemstone.GemCurrencyList
 import protocol Gemstone.GemCurrencyServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -18,7 +18,7 @@ public final class CurrencySceneViewModel {
 
     var isPresentingAlertMessage: AlertMessage?
     var searchQuery = ""
-    private(set) var sections: [GemCurrencySection]?
+    private(set) var list: GemCurrencyList?
 
     public init(preferences: ObservablePreferences, service: any GemCurrencyServiceProtocol) {
         self.preferences = preferences
@@ -31,7 +31,7 @@ public final class CurrencySceneViewModel {
 
     func refreshSections() async {
         do {
-            sections = try await service.sections(
+            list = try await service.list(
                 currency: preferences.currency.toGem(),
                 locale: Locale.current.currency.flatMap { Primitives.Currency(rawValue: $0.identifier) }?.toGem(),
                 query: searchQuery,

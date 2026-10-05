@@ -25,12 +25,4 @@ impl Platform {
             Platform::Android => 2,
         }
     }
-
-    pub fn new(s: &str) -> Option<Platform> {
-        match s {
-            "ios" => Some(Platform::IOS),
-            "android" => Some(Platform::Android),
-            _ => None,
-        }
-    }
 }

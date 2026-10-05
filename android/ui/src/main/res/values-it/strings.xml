@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizzato</string>
+  <string name="fee_rate_priority">Commissione di priorità</string>
+  <string name="fee_rate_base">Commissione base</string>
   <string name="banner_account_activation_title">Commissione di attivazione del conto</string>
   <string name="banner_account_activation_description">La rete %1$s richiede una tariffa una tantum di %2$s.</string>
   <string name="banner_stake_title">Inizia a puntare %1$s</string>
@@ -442,9 +444,12 @@
   <string name="lock_privacy_lock">Blocco privacy</string>
   <string name="lock_footer">Proteggi l\'accesso a questa app sul tuo dispositivo</string>
   <string name="lock_passcode">Codice di accesso</string>
+  <string name="lock_passcode_off_title">Il codice del dispositivo è disattivato</string>
+  <string name="lock_passcode_off_description">Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi wallet sono al sicuro.</string>
   <string name="verify_phrase_title">Confermare</string>
   <string name="warnings_externally_controlled_account">Questo account %1$s può essere controllato da qualcun altro. Non inviarvi fondi a meno che tu non sia certo di controllarlo, altrimenti potresti perdere definitivamente i tuoi beni.</string>
   <string name="sell_title">Vendi %1$s</string>
+  <string name="info_region_unavailable_description">Questa funzione non è disponibile nella tua regione. La disponibilità dipende dalle norme locali e dai requisiti dei fornitori.</string>
   <string name="info_network_fee_title">Commissione di rete</string>
   <string name="info_watch_wallet_title">Guarda Portafoglio</string>
   <string name="info_watch_wallet_description">Un portafoglio a cui non hai accesso, ma di cui puoi monitorare le transazioni e i movimenti.</string>

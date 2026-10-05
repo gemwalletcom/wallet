@@ -433,10 +433,10 @@ impl GemSwapSession {
                 .filter(|_| quote.is_some())
                 .map(|receive| self.provider_rows(&receive.asset, price_value(receive), &currency))
                 .unwrap_or_default(),
-            details: pay.zip(receive).zip(quote).map(|((pay, receive), quote)| {
-                let has_selected_slippage = self.current_request().is_some_and(|request| request.slippage_bps.is_some());
-                quote_details(rules::swap_quote(quote), pay.asset.clone(), receive.asset.clone(), price_value(&pay), price_value(&receive), &currency, has_selected_slippage)
-            }),
+            details: pay
+                .zip(receive)
+                .zip(quote)
+                .map(|((pay, receive), quote)| quote_details(rules::swap_quote(quote), pay.asset.clone(), receive.asset.clone(), price_value(&pay), price_value(&receive), &currency)),
             quote: quote.cloned(),
         }
     }
@@ -1018,27 +1018,5 @@ mod tests {
         assert!(shown.receive_amount.is_some() && shown.receive.fiat.is_some());
         assert!(refreshing.is_receive_loading);
         assert_eq!((refreshing.receive_amount, refreshing.receive.fiat, refreshing.receive.amount_placeholder.as_str()), (None, None, ""));
-    }
-
-    #[test]
-    fn test_the_details_name_the_slippage_only_when_one_was_chosen() {
-        use crate::models::list::{GemListRow, GemListRowTitle};
-        let manual = GemSwapRequest {
-            slippage_bps: Some(100),
-            ..GemSwapRequest::mock()
-        };
-        let chosen = GemSwapSession::default().on_request_changed(Some(manual.clone())).on_quote_results(GemSwapQuotesResult {
-            request: manual,
-            ..GemSwapQuotesResult::mock(vec![SwapperQuote::mock_with_provider(SwapperProvider::Okx, "10")])
-        });
-        let slippage = |session: &GemSwapSession| {
-            view(session, 1000).details.unwrap().rows.into_iter().find_map(|row| match row {
-                GemListRow::Label { title: GemListRowTitle::Slippage, text, .. } => Some(text),
-                _ => None,
-            })
-        };
-
-        assert!(matches!(slippage(&chosen), Some(GemLocalizedText::Number { .. })));
-        assert_eq!(slippage(&GemSwapSession::mock_ready()), Some(GemLocalizedText::SlippageAuto));
     }
 }

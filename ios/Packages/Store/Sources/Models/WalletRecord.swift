@@ -35,6 +35,18 @@ struct WalletRecord: Codable, TableRecord, FetchableRecord, PersistableRecord {
     static let connection = hasOne(WalletConnectionRecord.self).forKey("connection")
 }
 
+extension WalletRecord {
+    func toWalletListItem() -> WalletListItem {
+        WalletListItem(
+            id: id,
+            name: name,
+            index: index.asInt32,
+            isPinned: isPinned,
+            imageUrl: imageUrl,
+        )
+    }
+}
+
 extension WalletRecord: CreateTable {
     static func create(db: Database) throws {
         try db.create(table: databaseTableName) {

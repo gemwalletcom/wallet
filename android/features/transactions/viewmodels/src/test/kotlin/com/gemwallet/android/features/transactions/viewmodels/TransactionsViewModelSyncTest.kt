@@ -18,11 +18,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemTransactionRow
@@ -51,44 +50,44 @@ class TransactionsViewModelSyncTest {
     @Test
     fun `failed sync is retried on the next screen entry and shows the error while nothing is stored`() = runBlocking {
         val offline = GemServiceException.Gateway("offline")
-        coEvery { service.refresh(null, false) } returns GemLoadState.Error(offline)
+        coEvery { service.refresh(null) } returns GemLoadState.Error(offline)
         val viewModel = createViewModel()
 
         viewModel.syncIfNeeded()?.join()
         viewModel.syncIfNeeded()?.join()
 
-        coVerify(exactly = 2) { service.refresh(null, false) }
-        assertEquals(offline.message, (viewModel.errorRow.value as GemListRow.Error).error.message)
+        coVerify(exactly = 2) { service.refresh(null) }
+        assertEquals(offline.message, (viewModel.phase.value as GemListPhase.Error).error.message)
     }
 
     @Test
     fun `successful sync is not repeated for the same wallet`() = runBlocking {
-        coEvery { service.refresh(null, any()) } returns GemLoadState.Data
+        coEvery { service.refresh(null) } returns GemLoadState.Data
         val viewModel = createViewModel()
 
         viewModel.syncIfNeeded()?.join()
         viewModel.syncIfNeeded()?.join()
 
-        coVerify(exactly = 1) { service.refresh(null, any()) }
+        coVerify(exactly = 1) { service.refresh(null) }
     }
 
     @Test
     fun `wallet switch syncs the new wallet`() = runBlocking {
-        coEvery { service.refresh(null, any()) } returns GemLoadState.Data
+        coEvery { service.refresh(null) } returns GemLoadState.Data
         val viewModel = createViewModel()
 
         viewModel.syncIfNeeded()?.join()
         session.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
         viewModel.syncIfNeeded()?.join()
 
-        coVerify(exactly = 2) { service.refresh(null, any()) }
+        coVerify(exactly = 2) { service.refresh(null) }
     }
 
     @Test
     fun `a late failure for the previous wallet does not replace the new wallet's result`() = runBlocking {
         val first = CompletableDeferred<GemLoadState>()
         var calls = 0
-        coEvery { service.refresh(null, any()) } coAnswers {
+        coEvery { service.refresh(null) } coAnswers {
             calls++
             if (calls == 1) first.await() else GemLoadState.Data
         }
@@ -100,7 +99,7 @@ class TransactionsViewModelSyncTest {
         first.complete(GemLoadState.Error(GemServiceException.Gateway("offline")))
         previous?.join()
 
-        assertNull(viewModel.errorRow.value)
+        assertTrue(viewModel.phase.value is GemListPhase.Empty)
     }
 
     @Test
@@ -108,7 +107,7 @@ class TransactionsViewModelSyncTest {
         val first = CompletableDeferred<GemLoadState>()
         val second = CompletableDeferred<GemLoadState>()
         var calls = 0
-        coEvery { service.refresh(null, any()) } coAnswers {
+        coEvery { service.refresh(null) } coAnswers {
             calls++
             if (calls == 1) first.await() else second.await()
         }

@@ -28,7 +28,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemEmptyStateAction
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListPhase
 
 @Composable
 fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> Unit, onCancel: () -> Unit, viewModel: NetworkAssetsViewModel = hiltViewModel()) {
@@ -67,10 +67,10 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
                 item { SubheaderItem(R.string.common_hidden) }
                 networkAssetRows(hidden, onSelectAsset, longPressedAsset, hiddenActions)
             }
-            if (sections.showsEmpty) {
+            (sections.phase as? GemListPhase.Empty)?.let { empty ->
                 item {
                     EmptyContentView(
-                        kind = GemEmptyStateKind.NETWORK_ASSETS,
+                        state = empty.state,
                         onAction = { action ->
                             when (action) {
                                 GemEmptyStateAction.MANAGE_TOKEN_LIST -> onManageAssets()

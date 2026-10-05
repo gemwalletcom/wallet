@@ -27,6 +27,7 @@ class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveApp
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
     val downloadState = _downloadState.asStateFlow()
     private var downloadJob: Job? = null
+    private var downloadedVersion: String? = null
 
     init {
         viewModelScope.launch {
@@ -45,15 +46,19 @@ class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveApp
         val apkUrl = update.apkUrl ?: return
 
         downloadJob = viewModelScope.launch {
+            downloadedVersion = null
             _downloadState.value = DownloadState.Preparing
             try {
                 updateService.download(apkUrl, update.version) { progress ->
                     _downloadState.value = DownloadState.Progress(progress)
                 }
+                downloadedVersion = update.version
                 tryInstall()
             } catch (_: CancellationException) {
+                downloadedVersion = null
                 _downloadState.value = DownloadState.Canceled
             } catch (_: Throwable) {
+                downloadedVersion = null
                 _downloadState.value = DownloadState.Error
             } finally {
                 downloadJob = null
@@ -62,22 +67,36 @@ class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveApp
     }
 
     private fun tryInstall() {
-        val update = updateAvailable.value ?: return
+        val update = updateAvailable.value
+        if (update == null || downloadedVersion != update.version) {
+            downloadedVersion = null
+            _downloadState.value = DownloadState.Error
+            return
+        }
         if (!updateService.canRequestPackageInstalls()) {
             _downloadState.value = DownloadState.PermissionRequired
             return
         }
+        _downloadState.value = DownloadState.Preparing
         viewModelScope.launch {
             try {
                 updateService.installDownloadedUpdate(update.version)
                 _downloadState.value = DownloadState.Success
+            } catch (cancellation: CancellationException) {
+                throw cancellation
             } catch (_: Throwable) {
                 _downloadState.value = DownloadState.Error
             }
         }
     }
 
+    fun onInstallPermissionResult() {
+        if (_downloadState.value != DownloadState.PermissionRequired || !updateService.canRequestPackageInstalls()) return
+        tryInstall()
+    }
+
     fun dismissPermissionPrompt() {
+        downloadedVersion = null
         _downloadState.value = DownloadState.Idle
     }
 
@@ -90,6 +109,7 @@ class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveApp
     }
 
     fun cancel() {
+        downloadedVersion = null
         downloadJob?.cancel()
         updateService.cancel()
     }

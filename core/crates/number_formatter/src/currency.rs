@@ -384,11 +384,10 @@ impl Formatter {
         let currency = money.currency();
 
         let decimal_places = params.rounding.unwrap_or(currency.decimal_places);
-        let explicit_rounding = params.rounding.is_some();
 
         let rounded = amount.round_dp(decimal_places.into());
 
-        let amount_str = Self::format_decimal(rounded, decimal_places, explicit_rounding);
+        let amount_str = Self::format_decimal(rounded, decimal_places);
 
         let formatted_amount = add_thousands_separator(&amount_str, params.thousands_separator.unwrap_or(','), params.decimal_separator.unwrap_or('.'));
 
@@ -396,7 +395,7 @@ impl Formatter {
         format!("{}{}", symbol, formatted_amount)
     }
 
-    fn format_decimal(decimal: Decimal, max_decimal_places: u8, _explicit_rounding: bool) -> String {
+    fn format_decimal(decimal: Decimal, max_decimal_places: u8) -> String {
         let formatted = format!("{:.prec$}", decimal, prec = max_decimal_places as usize);
 
         if max_decimal_places == 2 {

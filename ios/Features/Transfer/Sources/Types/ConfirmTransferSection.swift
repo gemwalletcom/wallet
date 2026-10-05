@@ -55,7 +55,7 @@ public enum ConfirmTransferItemModel {
     case perpetualDetails(PerpetualDetailsViewModel)
     case perpetualModifyPosition(GemListRow)
     case warnings([GemListRow])
-    case payload([SimulationPayloadFieldViewModel])
+    case payload([GemListRow])
     case error(title: String, error: Error, onInfoAction: VoidAction)
     case empty
 }

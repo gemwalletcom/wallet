@@ -108,10 +108,6 @@ impl GemAssetSelectionService {
         self.search.search(self.session.require_current_wallet().await?, query, scope).await
     }
 
-    pub fn search_key(&self, query: String, scope: GemSearchScope) -> String {
-        scope.search_key(query.trim())
-    }
-
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
         self.balances.set_assets_enabled(self.session.current_wallet_id()?, asset_ids, enabled).await
     }

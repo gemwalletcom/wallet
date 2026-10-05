@@ -14,8 +14,8 @@ import StoreTestKit
 public extension PerpetualsSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
-        perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         onSelectAmount: ((AmountInput) -> Void)? = nil,
+        perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(

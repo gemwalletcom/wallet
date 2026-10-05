@@ -1,5 +1,7 @@
 use primitives::Currency;
 
+use crate::models::state::GemListPhase;
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCurrencyRow {
     pub currency: Currency,
@@ -17,4 +19,10 @@ pub enum GemCurrencySectionKind {
 pub struct GemCurrencySection {
     pub kind: GemCurrencySectionKind,
     pub rows: Vec<GemCurrencyRow>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCurrencyList {
+    pub sections: Vec<GemCurrencySection>,
+    pub phase: GemListPhase,
 }

@@ -312,14 +312,6 @@ class Migration_71_72Test {
         )
     }
 
-    private fun SupportSQLiteDatabase.longForQuery(query: String): Long {
-        val cursor = query(query)
-        return cursor.use {
-            assertTrue(it.moveToFirst())
-            it.getLong(0)
-        }
-    }
-
     private fun SupportSQLiteDatabase.stringForQuery(query: String): String {
         val cursor = query(query)
         return cursor.use {
@@ -333,23 +325,6 @@ class Migration_71_72Test {
         return cursor.use { it.moveToFirst() }
     }
 
-    private fun SupportSQLiteDatabase.hasTable(name: String): Boolean {
-        val cursor = query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '$name'")
-        return cursor.use { it.moveToFirst() }
-    }
-
-    private fun SupportSQLiteDatabase.hasColumn(table: String, column: String): Boolean {
-        val cursor = query("PRAGMA table_info($table)")
-        return cursor.use {
-            while (it.moveToNext()) {
-                if (it.getString(1) == column) {
-                    return@use true
-                }
-            }
-            false
-        }
-    }
-
     private fun SupportSQLiteDatabase.primaryKeyColumns(table: String): List<String> {
         val cursor = query("PRAGMA table_info($table)")
         return cursor.use {
@@ -361,30 +336,6 @@ class Migration_71_72Test {
                     }
                 }
             }.sortedBy { it.first }.map { it.second }
-        }
-    }
-
-    private fun SupportSQLiteDatabase.hasIndex(table: String, name: String): Boolean {
-        val cursor = query("PRAGMA index_list($table)")
-        return cursor.use {
-            while (it.moveToNext()) {
-                if (it.getString(1) == name) {
-                    return@use true
-                }
-            }
-            false
-        }
-    }
-
-    private fun SupportSQLiteDatabase.hasForeignKey(table: String, from: String, toTable: String, to: String): Boolean {
-        val cursor = query("PRAGMA foreign_key_list($table)")
-        return cursor.use {
-            while (it.moveToNext()) {
-                if (it.getString(2) == toTable && it.getString(3) == from && it.getString(4) == to) {
-                    return@use true
-                }
-            }
-            false
         }
     }
 

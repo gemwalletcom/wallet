@@ -34,8 +34,8 @@ impl GemNotificationService {
         Self { api, store, preferences, session }
     }
 
-    pub async fn refresh(&self, has_notifications: bool) -> GemLoadState {
-        GemLoadState::refreshed(self.open().await, has_notifications)
+    pub async fn refresh(&self) -> GemLoadState {
+        GemLoadState::of(&self.open().await)
     }
 }
 

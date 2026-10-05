@@ -1,100 +1,75 @@
-use std::error::Error;
 use std::sync::Arc;
 
-use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
-use primitives::Localize;
+use config_keys::RateLimitWindow;
 use primitives::rewards::{RedemptionResult, Rewards};
 use primitives::{NaiveDateTimeExt, now};
-use rewards::{RewardsError, RewardsRedemptionError};
-use storage::{Database, RewardsRedemptionsRepository, RewardsRepository};
-use streamer::{RewardsRedemptionPayload, StreamProducer, StreamProducerQueue};
+use rewards::RewardsRedemptionError;
+use storage::DatabaseError;
+use streamer::{RewardsRedemptionPayload, StreamProducerQueue};
 
-use super::redemption::redeem_points;
-use super::summary::rewards_by_wallet_id;
-use super::username::username_rules;
+use super::config::{RedemptionConfig, username_rules};
+use super::error::RewardsServiceError;
+use super::repository::Repository;
 use crate::ConfigCacher;
 
 pub struct RewardsRedemptionClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: Arc<ConfigCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl RewardsRedemptionClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, stream_producer: StreamProducer) -> Self {
-        Self { database, config, stream_producer }
+    pub(crate) fn new(repository: Arc<dyn Repository>, config: Arc<ConfigCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+        Self { repository, config, stream_producer }
     }
 
-    pub async fn redeem_by_wallet_id(&self, wallet_id: i32, id: &str, device_id: i32, locale: &str) -> Result<RedemptionResult, Box<dyn Error + Send + Sync>> {
-        self.redeem(wallet_id, id, device_id).await.map_err(|error| localized_redemption_error(error, locale))
-    }
-
-    async fn redeem(&self, wallet_id: i32, id: &str, device_id: i32) -> Result<RedemptionResult, Box<dyn Error + Send + Sync>> {
+    pub async fn redeem_by_wallet_id(&self, wallet_id: i32, id: &str, device_id: i32, locale: &str) -> Result<RedemptionResult, RewardsServiceError> {
         let rules = username_rules(&self.config).await?;
-        let rewards = self.database.run(move |client| rewards_by_wallet_id(client, wallet_id, &rules)).await?;
+        let rewards = self.repository.rewards(wallet_id, rules).await?;
 
         if !rewards.status.is_verified() {
-            return Err(RewardsRedemptionError::NotEligible.into());
+            return Err(RewardsServiceError::redemption(RewardsRedemptionError::NotEligible, locale));
         }
 
-        let username = rewards.code.clone().ok_or(RewardsRedemptionError::NoUsername)?;
+        let username = rewards.code.clone().ok_or_else(|| RewardsServiceError::redemption(RewardsRedemptionError::NoUsername, locale))?;
 
-        self.check_redemption_limits(&username, &rewards).await?;
+        self.check_redemption_limits(&username, &rewards).await?.map_err(|error| RewardsServiceError::redemption(error, locale))?;
 
-        let option_id = id.to_string();
-        let points = rewards.points;
-        let response = self.database.run(move |client| redeem_points(client, &username, points, &option_id, device_id, wallet_id)).await?;
+        let response = self
+            .repository
+            .redeem_points(username, rewards.points, id.to_string(), device_id, wallet_id)
+            .await?
+            .map_err(|error| RewardsServiceError::redemption(error, locale))?;
         self.stream_producer.publish_rewards_redemption(RewardsRedemptionPayload::new(response.redemption_id)).await?;
 
         Ok(response.result)
     }
 
-    async fn check_redemption_limits(&self, username: &str, rewards: &Rewards) -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn check_redemption_limits(&self, username: &str, rewards: &Rewards) -> Result<Result<(), RewardsRedemptionError>, DatabaseError> {
         let current = now();
 
-        if rewards.created_at > current.ago(self.config.get_duration(ConfigKey::RedemptionMinAccountAge).await?) {
-            return Err(RewardsRedemptionError::AccountTooNew.into());
+        let config = RedemptionConfig::from_config(&self.config).await?;
+
+        if rewards.created_at > current.ago(config.min_account_age) {
+            return Ok(Err(RewardsRedemptionError::AccountTooNew));
         }
 
-        let cooldown_since = current.ago(self.config.get_duration(ConfigKey::RedemptionCooldownAfterReferral).await?);
-        let limits = self.config.get_rate_limit(RateLimitKey::RedemptionPerUserLimit).await?;
-        let username = username.to_string();
-        self.database
-            .run(move |client| -> Result<(), Box<dyn Error + Send + Sync>> {
-                if client.count_referrals_since(&username, cooldown_since)? > 0 {
-                    return Err(RewardsRedemptionError::CooldownNotElapsed.into());
-                }
-
-                for window in RateLimitWindow::ALL {
-                    let count = client.count_redemptions_since(&username, current.ago(window.duration()))?;
-                    if count >= limits.get(window) {
-                        return Err(RewardsRedemptionError::LimitReached.into());
-                    }
-                }
-
-                Ok(())
-            })
-            .await
-    }
-}
-
-fn localized_redemption_error(error: Box<dyn Error + Send + Sync>, locale: &str) -> Box<dyn Error + Send + Sync> {
-    match error.downcast::<RewardsRedemptionError>() {
-        Ok(error) => RewardsError::Redemption(error.localize(locale)).into(),
-        Err(error) => error,
+        let window_limits = RateLimitWindow::ALL.iter().map(|window| (current.ago(window.duration()), config.limits.get(*window))).collect();
+        self.repository.check_redemption_limits(username.to_string(), current.ago(config.cooldown_after_referral), window_limits).await
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use rewards::RewardsError;
+
     use super::*;
 
     #[test]
-    fn test_a_rejected_redemption_reads_in_the_device_language_and_other_errors_pass_through() {
-        let rejected = localized_redemption_error(RewardsRedemptionError::NotEnoughPoints.into(), "es");
-        assert!(rejected.downcast_ref::<RewardsError>().is_some());
-        assert_eq!(rejected.to_string(), "No tienes suficientes puntos para esta recompensa.");
+    fn test_a_rejected_redemption_reads_in_the_device_language() {
+        let rejected = RewardsServiceError::redemption(RewardsRedemptionError::NotEnoughPoints, "es");
 
-        assert_eq!(localized_redemption_error("connection refused".into(), "es").to_string(), "connection refused");
+        assert!(matches!(&rejected, RewardsServiceError::Rejected(RewardsError::Redemption(_))));
+        assert_eq!(rejected.to_string(), "No tienes suficientes puntos para esta recompensa.");
     }
 }

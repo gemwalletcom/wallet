@@ -181,6 +181,37 @@ mod tests {
     }
 
     #[test]
+    fn test_fiat_history_shows_its_rows_before_a_failed_sync_and_the_activity_empty_state_without() {
+        use crate::models::state::{GemListPhase, GemLoadState};
+        use crate::services::empty_state::{GemEmptyStateKind, empty_state};
+        use crate::services::error::GemServiceError;
+        use crate::services::fiat::model::fiat_transaction_list_phase;
+
+        let error = GemServiceError::Gateway { msg: "offline".to_string() };
+        let row = transaction_row(&FiatTransactionAssetData {
+            id: "1".to_string(),
+            asset: Asset::from_chain(Chain::Ethereum),
+            transaction_type: FiatQuoteType::Buy,
+            provider: FiatProviderName::MoonPay,
+            status: FiatTransactionStatus::Complete,
+            fiat_amount: 25.0,
+            fiat_currency: "USD".to_string(),
+            value: BigUint::from(1u64),
+            created_at: chrono::Utc::now(),
+            details_url: None,
+        });
+
+        assert_eq!(fiat_transaction_list_phase(vec![row], GemLoadState::Error { error: error.clone() }), GemListPhase::Rows);
+        assert_eq!(fiat_transaction_list_phase(vec![], GemLoadState::Error { error: error.clone() }), GemListPhase::Error { error });
+        assert_eq!(
+            fiat_transaction_list_phase(vec![], GemLoadState::Data),
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::Activity)
+            }
+        );
+    }
+
+    #[test]
     fn test_row_prices_a_buy_off_the_asset_price_and_a_sell_off_the_quote() {
         let buy = FiatQuote {
             crypto_amount: 2.0,

@@ -47,8 +47,8 @@ public struct NetworkAssetsScene: View {
         .scrollContentBackground(.hidden)
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .overlay {
-            if groups.sections.showsEmpty {
-                EmptyContentView(model: model.emptyModel)
+            if case let .empty(state) = groups.sections.phase {
+                EmptyContentView(model: model.emptyModel(state))
             }
         }
         .bindQuery(model.activeQuery, model.hiddenQuery)

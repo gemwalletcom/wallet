@@ -10,6 +10,7 @@ import Primitives
 public final class BiometryAuthenticationMock: BiometryAuthenticatable, @unchecked Sendable {
     public var requiresAuthentication: Bool
     public var availableAuthentication: KeystoreAuthentication
+    public var isPasscodeSet: Bool
     public var lockPeriod: GemLockPeriod
     public var isPrivacyLockEnabled: Bool
 
@@ -29,11 +30,13 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
     public init(
         requiresAuthentication: Bool = true,
         availableAuthentication: KeystoreAuthentication = .biometrics,
+        isPasscodeSet: Bool = true,
         lockPeriod: GemLockPeriod = .default,
         isPrivacyLockEnabled: Bool = false,
     ) {
         self.requiresAuthentication = requiresAuthentication
         self.availableAuthentication = availableAuthentication
+        self.isPasscodeSet = isPasscodeSet
         self.lockPeriod = lockPeriod
         self.isPrivacyLockEnabled = isPrivacyLockEnabled
     }

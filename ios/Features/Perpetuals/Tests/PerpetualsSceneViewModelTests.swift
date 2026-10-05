@@ -1,8 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.emptyState
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import Localization
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
@@ -24,6 +26,19 @@ struct PerpetualsSceneViewModelTests {
 
         await model.load(source: .user)
         #expect(perpetuals.syncMarketsCount == 2)
+    }
+
+    @Test
+    func aSearchThatMatchesNothingShowsTheSearchEmptyState() {
+        let model = PerpetualsSceneViewModel.mock()
+
+        #expect(model.marketView.sections == [.header])
+        #expect(model.marketView.phase == .rows)
+
+        model.isSearching = true
+
+        #expect(model.marketView.sections.isEmpty)
+        #expect(model.marketView.phase == .empty(state: emptyState(kind: .searchPerpetuals)))
     }
 
     @Test
@@ -52,10 +67,34 @@ struct PerpetualsSceneViewModelTests {
         let perpetuals = GemPerpetualServiceMock()
         perpetuals.depositTargetValue = .amount(asset: Asset.mock().toGem())
         var selected: AmountInput?
-        let model = PerpetualsSceneViewModel.mock(perpetualService: perpetuals, onSelectAmount: { selected = $0 })
+        let model = PerpetualsSceneViewModel.mock(onSelectAmount: { selected = $0 }, perpetualService: perpetuals)
 
         await model.onSelectDeposit()
 
         #expect(selected == AmountInput(type: .deposit, asset: .mock()))
+    }
+
+    @Test
+    func unavailablePerpetualsBlocksDepositButKeepsWithdrawal() async {
+        let service = GemPerpetualServiceMock()
+        service.isAvailableValue = false
+        service.depositTargetValue = .amount(asset: Asset.mock().toGem())
+        var amounts: [AmountInput] = []
+        let model = PerpetualsSceneViewModel.mock(onSelectAmount: { amounts.append($0) }, perpetualService: service)
+
+        #expect(model.isPresentingInfoSheet == nil)
+        await model.onSelectDeposit()
+        #expect(amounts.isEmpty)
+        #expect(model.isPresentingInfoSheet?.description == Localized.Info.regionUnavailableDescription)
+
+        model.isPresentingInfoSheet = nil
+        model.onSelectHeaderAction(.withdraw(asset: Asset.mock().toGem()))
+        #expect(amounts.count == 1)
+        #expect(model.isPresentingInfoSheet == nil)
+        #expect(service.availabilityCheckCount == 1)
+
+        service.isAvailableValue = true
+        await model.onSelectDeposit()
+        #expect(amounts.count == 2)
     }
 }

@@ -7,12 +7,13 @@ import PrimitivesTestKit
 
 public extension FiatSceneViewModel {
     static func mock(
+        service: GemFiatQuoteServiceMock = GemFiatQuoteServiceMock(),
         assetAddress: AssetAddress = .mock(),
         type: FiatQuoteType = .buy,
         amount: Int? = nil,
     ) -> FiatSceneViewModel {
         FiatSceneViewModel(
-            service: GemFiatQuoteServiceMock(),
+            service: service,
             assetAddress: assetAddress,
             wallet: .mock(),
             type: type,

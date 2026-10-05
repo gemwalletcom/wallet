@@ -11,11 +11,11 @@ import com.gemwallet.android.ui.models.actions.CancelAction
 fun FiatTransactionsScreen(onClose: CancelAction, viewModel: FiatTransactionsViewModel = hiltViewModel()) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
+    val phase by viewModel.phase.collectAsStateWithLifecycle()
 
     FiatTransactionsScene(
         transactions = transactions,
-        errorRow = errorRow,
+        phase = phase,
         isRefreshing = isRefreshing,
         onClose = { onClose() },
         onRefresh = viewModel::refresh,

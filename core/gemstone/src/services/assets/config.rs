@@ -1,7 +1,6 @@
-use primitives::{Asset, AssetBasic, AssetId, AssetType, Chain, ChainAsset};
+use primitives::{Asset, AssetBasic, AssetType, Chain, ChainAsset};
 
-use super::model::GemAssetSection;
-use super::rules::{asset_sections, default_asset_basic, popular_asset_ids};
+use super::rules::default_asset_basic;
 use crate::models::asset::chain_asset_wrapper;
 
 #[derive(Default, uniffi::Object)]
@@ -24,10 +23,6 @@ impl GemAssetConfigService {
 
     pub fn chain_asset(&self, chain: Chain) -> ChainAsset {
         chain_asset_wrapper(chain)
-    }
-
-    pub fn asset_sections(&self, ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular: bool) -> Vec<GemAssetSection> {
-        asset_sections(ids, pinned_ids, shows_popular, popular_asset_ids()).sections()
     }
 }
 

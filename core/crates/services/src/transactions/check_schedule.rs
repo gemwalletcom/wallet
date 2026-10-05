@@ -1,42 +1,37 @@
 use std::collections::HashSet;
 use std::error::Error;
+use std::sync::Arc;
 use std::time::Duration;
 
-use cacher::{CacheKey, CacherClient};
+use cacher::CheckScheduleCacher;
 use chrono::{DateTime, Utc};
 use primitives::{JobConfiguration, TransactionId};
 
 use crate::transactions::TransactionQueue;
 
 pub struct CheckSchedule {
-    cacher: CacherClient,
+    cacher: Arc<dyn CheckScheduleCacher>,
     queue: TransactionQueue,
 }
 
 impl CheckSchedule {
-    pub fn new(cacher: CacherClient, queue: TransactionQueue) -> Self {
+    pub fn new(cacher: Arc<dyn CheckScheduleCacher>, queue: TransactionQueue) -> Self {
         Self { cacher, queue }
     }
 
     pub async fn due(&self, ids: &[TransactionId], now: DateTime<Utc>) -> Result<HashSet<TransactionId>, Box<dyn Error + Send + Sync>> {
         let members = ids.iter().map(ToString::to_string).collect::<Vec<_>>();
-        let scores = self.cacher.sorted_set_scores(&self.key().key(), &members).await?;
+        let scores = self.cacher.next_checks(self.queue.into(), &members).await?;
         Ok(ids.iter().zip(scores).filter(|(_, next_check_at)| is_due(*next_check_at, now)).map(|(id, _)| id.clone()).collect())
     }
 
     pub async fn schedule_next(&self, id: &TransactionId, configuration: &JobConfiguration, elapsed: Duration, now: DateTime<Utc>) -> Result<(), Box<dyn Error + Send + Sync>> {
         let next_check_at = now + configuration.next_check_interval(elapsed);
-        self.cacher.add_to_sorted_set_cached(self.key(), &[(id.to_string(), timestamp(next_check_at))]).await?;
-        Ok(())
+        self.cacher.set_next_check(self.queue.into(), id.to_string(), timestamp(next_check_at)).await
     }
 
     pub async fn remove(&self, id: &TransactionId) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher.remove_from_sorted_set_cached(self.key(), &[id.to_string()]).await?;
-        Ok(())
-    }
-
-    fn key(&self) -> CacheKey<'static> {
-        CacheKey::TransactionCheckSchedule(self.queue.into())
+        self.cacher.remove_check(self.queue.into(), id.to_string()).await
     }
 }
 

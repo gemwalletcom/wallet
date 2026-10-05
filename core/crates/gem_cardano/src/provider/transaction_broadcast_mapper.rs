@@ -3,10 +3,9 @@ use std::error::Error;
 use primitives::graphql::GraphqlData;
 
 use crate::models::transaction::TransactionBroadcast;
-use crate::provider::transactions_mapper::map_transaction_broadcast;
 
-pub(crate) fn map_transaction_broadcast_response(response: String) -> Result<String, Box<dyn Error + Sync + Send>> {
-    map_transaction_broadcast(response)
+pub(crate) fn map_transaction_broadcast_response(hash: String) -> Result<String, Box<dyn Error + Sync + Send>> {
+    if hash.is_empty() { Err("Empty transaction hash".into()) } else { Ok(hash) }
 }
 
 pub fn map_transaction_broadcast_response_from_str(response: &str) -> Result<String, Box<dyn Error + Sync + Send>> {
@@ -22,4 +21,15 @@ pub fn map_transaction_broadcast_response_from_str(response: &str) -> Result<Str
         .ok_or("Failed to broadcast transaction")?;
 
     map_transaction_broadcast_response(hash)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_map_transaction_broadcast_response() {
+        assert_eq!(map_transaction_broadcast_response("test_hash_123".to_string()).unwrap(), "test_hash_123");
+        assert!(map_transaction_broadcast_response(String::new()).is_err());
+    }
 }

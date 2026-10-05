@@ -1,7 +1,7 @@
 use primitives::rewards::RewardStatus;
-use primitives::{IpUsageType, Platform, PlatformStore};
+use primitives::{IpCheckResult, IpUsageType, Platform, PlatformStore};
 
-use crate::{IpCheckResult, Referral, ReferralUseFacts, RewardIdentity, RiskScoringInput, RiskSignalInput, UsernameRules};
+use crate::{Referral, ReferralUseFacts, RewardIdentity, RiskScoringInput, RiskSignalInput, UsernameRules};
 
 impl RiskScoringInput {
     pub fn mock() -> Self {

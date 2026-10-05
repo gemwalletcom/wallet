@@ -60,22 +60,29 @@ impl GemPriceAlertService {
         self.preferences.get_currency()
     }
 
-    pub async fn enable_price_alert(&self, alert: PriceAlert) -> Result<(), GemServiceError> {
-        self.add_price_alerts(vec![alert]).await?;
-        self.set_enabled(true).await
-    }
-
-    pub async fn set_auto_alert(&self, asset: Asset, enabled: bool) -> Result<GemToast, GemServiceError> {
-        let alert = PriceAlert::new_auto(asset.id, self.get_currency());
-        match enabled {
-            true => self.enable_price_alert(alert).await?,
-            false => self.delete_price_alerts(vec![alert]).await?,
+    pub async fn enable_price_alert(&self, alert: PriceAlert) -> Result<bool, GemServiceError> {
+        self.set_enabled(true).await?;
+        if !self.is_enabled() {
+            return Ok(false);
         }
-        Ok(GemToast::price_alerts(asset.name, enabled))
+        self.add_price_alerts(vec![alert]).await?;
+        Ok(true)
     }
 
-    pub async fn refresh(&self, asset_id: Option<AssetId>, has_alerts: bool) -> GemLoadState {
-        GemLoadState::refreshed(self.sync(asset_id).await, has_alerts)
+    pub async fn set_auto_alert(&self, asset: Asset, enabled: bool) -> Result<Option<GemToast>, GemServiceError> {
+        let alert = PriceAlert::new_auto(asset.id, self.get_currency());
+        let changed = match enabled {
+            true => self.enable_price_alert(alert).await?,
+            false => {
+                self.delete_price_alerts(vec![alert]).await?;
+                true
+            }
+        };
+        Ok(changed.then(|| GemToast::price_alerts(asset.name, enabled)))
+    }
+
+    pub async fn refresh(&self, asset_id: Option<AssetId>) -> GemLoadState {
+        GemLoadState::of(&self.sync(asset_id).await)
     }
 
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
@@ -139,7 +146,7 @@ mod tests {
     use crate::services::price_alert::store::GemPriceAlertStore;
     use crate::testkit::TestAlienProvider;
     use futures::executor::block_on;
-    use primitives::{Chain, PriceAlert};
+    use primitives::{Asset, Chain, PriceAlert};
     use std::sync::Arc;
 
     #[test]
@@ -152,6 +159,21 @@ mod tests {
         let denied = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(DeniedNotificationPermissions));
         assert_eq!(block_on(denied.service.set_enabled(true)), Ok(()));
         assert!(!denied.service.is_enabled());
+    }
+
+    #[test]
+    fn test_an_alert_is_enabled_only_after_notifications_are_allowed() {
+        let asset = Asset::from_chain(Chain::Bitcoin);
+
+        let denied = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::with_json(200, "{}")), Arc::new(DeniedNotificationPermissions));
+        assert_eq!(block_on(denied.service.set_auto_alert(asset.clone(), true)), Ok(None));
+        assert!(denied.store.identifiers().is_empty(), "a refused permission keeps no alert");
+        assert!(denied.provider.requested_paths().is_empty());
+
+        let granted = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::with_json(200, "{}")), Arc::new(GrantedNotificationPermissions));
+        assert!(block_on(granted.service.set_auto_alert(asset, true)).unwrap().is_some());
+        assert!(granted.service.is_enabled());
+        assert_eq!(granted.store.identifiers().len(), 1);
     }
 
     #[test]

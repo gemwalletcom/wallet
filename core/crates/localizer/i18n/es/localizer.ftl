@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = El código de referencia ha alca
 errors_generic = Se produjo un error inesperado. Inténtelo de nuevo más tarde.
 fiat_error_limit_reached = Demasiadas solicitudes de cotización. Inténtalo de nuevo en unos minutos.
 fiat_error_quote_unavailable = Esta cotización ya no está disponible. Inténtalo de nuevo.
+fiat_error_region_unavailable = No disponible en tu región.
 rewards_error_referral_country_ineligible = Las referencias no están disponibles actualmente para tu país: {$value}.
 notification_rewards_disabled_title = Código de referencia desactivado
 notification_rewards_disabled_description = Este código de referencia ha sido deshabilitado debido a repetidas violaciones de los términos de nuestro programa de referencia.

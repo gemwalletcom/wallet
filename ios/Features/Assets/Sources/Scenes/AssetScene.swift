@@ -66,17 +66,18 @@ public struct AssetScene: View {
                 }
             }
 
-            if model.showTransactions {
+            switch model.transactionsPhase(details) {
+            case .rows:
                 TransactionsList(sections: model.transactionSections)
                     .listRowInsets(.assetListRowInsets)
-            } else if let error = model.transactionsError {
+            case let .error(error):
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                 }
-            } else {
+            case let .empty(state):
                 Section {
                     Spacer()
-                    EmptyContentView(model: model.emptyContentModel(details))
+                    EmptyContentView(model: model.emptyContentModel(state))
                         .padding(.bottom, .extraLarge)
                 }
                 .cleanListRow()

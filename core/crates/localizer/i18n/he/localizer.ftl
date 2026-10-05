@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = קוד ההפניה הגיע ל�
 errors_generic = אירעה שגיאה בלתי צפויה. אנא נסה שוב מאוחר יותר.
 fiat_error_limit_reached = יותר מדי בקשות להצעות מחיר. אנא נסה שוב בעוד כמה דקות.
 fiat_error_quote_unavailable = הצעת המחיר הזו כבר לא זמינה. אנא נסה שוב.
+fiat_error_region_unavailable = לא זמין באזור שלך.
 rewards_error_referral_country_ineligible = הפניות אינן זמינות כעת עבור המדינה שלך: {$value}.
 notification_rewards_disabled_title = קוד ההפניה הושבת
 notification_rewards_disabled_description = קוד הפניה זה הושבת עקב הפרות חוזרות ונשנות של תנאי תוכנית ההפניות שלנו.

@@ -161,3 +161,15 @@ impl DevicesRepository for DatabaseClient {
         Ok(query.select(DeviceRow::as_select()).load(&mut self.connection)?.into_iter().map(|x| x.as_primitive()).collect())
     }
 }
+
+#[cfg(all(test, feature = "database_integration_tests"))]
+mod database_integration_tests {
+    use crate::{Database, DevicesRepository};
+
+    #[tokio::test]
+    async fn test_get_device_record_missing_row_is_not_found() {
+        let error = Database::mock().run(|client| client.get_device_record("missing-device")).await.unwrap_err();
+
+        assert!(error.is_not_found());
+    }
+}

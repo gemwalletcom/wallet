@@ -8,7 +8,6 @@ use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState
 pub struct GemBannerContext {
     pub wallet: Option<Wallet>,
     pub asset: Option<Asset>,
-    pub is_stakeable: bool,
     pub has_stake_balance: bool,
     pub has_available_balance: bool,
     pub is_asset_activated: bool,
@@ -41,7 +40,6 @@ impl GemBannerContext {
     pub fn asset(wallet: Option<Wallet>, asset: Asset, metadata: &AssetMetaData, balance: &GemAssetBalance) -> Self {
         Self {
             wallet,
-            is_stakeable: metadata.is_stake_enabled,
             has_stake_balance: balance.staked_value(asset.chain()) > GemBigUint::ZERO,
             has_available_balance: balance.available > GemBigUint::ZERO,
             is_asset_activated: balance.is_active,
@@ -55,7 +53,6 @@ impl GemBannerContext {
         Self {
             wallet: Some(wallet),
             asset: None,
-            is_stakeable: false,
             has_stake_balance: false,
             has_available_balance: false,
             is_asset_activated: true,
@@ -214,11 +211,7 @@ mod tests {
     #[test]
     fn test_asset_context_decides_the_balance_facts_itself() {
         let asset = Asset::from_chain(Chain::Ethereum);
-        let metadata = AssetMetaData {
-            is_stake_enabled: true,
-            rank_score: 42,
-            ..AssetMetaData::mock()
-        };
+        let metadata = AssetMetaData { rank_score: 42, ..AssetMetaData::mock() };
         let empty = GemAssetBalance { is_active: false, ..GemAssetBalance::mock() };
         let funded = GemAssetBalance {
             staked: GemBigUint::from(5u32),
@@ -227,7 +220,6 @@ mod tests {
         };
 
         let context = GemBannerContext::asset(None, asset.clone(), &metadata, &empty);
-        assert!(context.is_stakeable);
         assert!(!context.has_stake_balance);
         assert!(!context.has_available_balance);
         assert!(!context.is_asset_activated);

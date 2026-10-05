@@ -8,6 +8,7 @@ import Primitives
 public protocol BiometryAuthenticatable: Sendable {
     var requiresAuthentication: Bool { get }
     var availableAuthentication: KeystoreAuthentication { get }
+    var isPasscodeSet: Bool { get }
     var lockPeriod: GemLockPeriod { get }
     var isPrivacyLockEnabled: Bool { get }
 

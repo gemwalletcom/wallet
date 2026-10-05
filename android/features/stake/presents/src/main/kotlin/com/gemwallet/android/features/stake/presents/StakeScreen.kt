@@ -5,19 +5,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.features.stake.viewmodels.StakeViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 
 @Composable
 fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransactionAction, onDelegation: (String, String) -> Unit, onCancel: () -> Unit, viewModel: StakeViewModel = hiltViewModel()) {
+    val infoSheet by viewModel.infoSheet.collectAsStateWithLifecycle()
+    InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
-    val loadError by viewModel.loadError.collectAsStateWithLifecycle()
 
     val stakeAssetInfo = assetInfo
     val state = viewState
@@ -31,12 +33,10 @@ fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransac
             inSync = inSync,
             assetInfo = stakeAssetInfo,
             state = state,
-            loadError = loadError,
-            amountAction = amountAction,
             onAction = { action ->
                 when (action) {
                     StakeAction.Refresh -> viewModel.onRefresh()
-                    is StakeAction.Confirm -> onConfirm(ConfirmTransferInput(action.transfer))
+                    is StakeAction.Open -> viewModel.onSelect(action.kind, action.destination, amountAction, onConfirm)
                     is StakeAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, amountAction, onConfirm)
                     StakeAction.Cancel -> onCancel()
                 }

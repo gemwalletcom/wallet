@@ -61,12 +61,13 @@ import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemBannerKey
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemRefreshKind
+import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.feeAssetId
-import uniffi.gemstone.loadError
+import uniffi.gemstone.transactionListPhase
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -124,10 +125,6 @@ class AssetViewModel @Inject constructor(
         return ChainAssetData(assetInfo, feeInfo)
     }
 
-    val transactionsErrorRow: StateFlow<GemListRow?> = combine(transactionsState, transactions) { state, items ->
-        loadError(state, items.isNotEmpty())?.let { GemListRow.Error(it) }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     private val banners = chainAssetInfo.filterNotNull()
         .map { it.assetData.asset }
         .distinctUntilChanged()
@@ -140,6 +137,9 @@ class AssetViewModel @Inject constructor(
     val details: StateFlow<GemAssetDetails?> = combine(chainAssetInfo, session, banners, priceAlerts, ::details)
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val transactionsPhase: StateFlow<GemListPhase?> = combine(transactionsState, transactions, details, ::transactionsPhase)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, transactionsPhase(transactionsState.value, transactions.value, details.value))
 
     val asset: StateFlow<Asset?> = chainAssetInfo
         .map { it?.assetData?.asset }
@@ -159,6 +159,8 @@ class AssetViewModel @Inject constructor(
             ),
         )
     }
+
+    private fun transactionsPhase(state: GemLoadState, rows: List<GemTransactionRow>, details: GemAssetDetails?): GemListPhase? = details?.let { transactionListPhase(rows, state, it.state.emptyState) }
 
     fun refresh() {
         if (syncJob?.isActive == true) {
@@ -185,7 +187,7 @@ class AssetViewModel @Inject constructor(
     }
 
     private suspend fun syncAssetDetails() {
-        val refresh = assetDetailsService.refresh(assetId.toIdentifier(), transactions.value.isNotEmpty())
+        val refresh = assetDetailsService.refresh(assetId.toIdentifier())
         transactionsState.value = refresh.transactions
         refresh.failures.forEach { Log.e(TAG, "asset refresh ${it.step} failed: ${it.message}") }
     }
@@ -208,7 +210,7 @@ class AssetViewModel @Inject constructor(
         val current = details.value?.state?.priceAlert ?: return@launch
         val asset = chainAssetInfo.value?.assetData?.asset ?: return@launch
         runCatchingCancellable { assetDetailsService.setPriceAlert(asset.toGem(), current.toggled() == GemPriceAlertToggle.ENABLED) }
-            .onSuccess { emitToast(it.message(context)) }
+            .onSuccess { toast -> toast?.let { emitToast(it.message(context)) } }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 

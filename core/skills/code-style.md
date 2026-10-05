@@ -31,6 +31,7 @@ Line length 180 (`rustfmt.toml`), 4-space indentation, imports reordered by rust
 - **Avoid `mut`**: Prefer immutable bindings; use `mut` only when truly necessary
 - **No `#[allow(dead_code)]`**: Remove dead code instead of suppressing warnings
 - **Avoid `#[serde(default)]`**: Only use when the field is genuinely optional in the API response; if the field is always present, omit it
+- **Fields a response may omit are `Option<T>`**: when adding a field to a struct that parses a provider or RPC response, make it `Option<T>` unless the provider documents it as always present. Only the path that needs the field returns an error when it is `None`, never a default; every other path keeps working
 - **Enum accessors**: Reuse existing typed accessors for repeated extraction. Implement variant-dependent behavior with exhaustive matching; add an accessor only for a current domain operation
 - **No `assert!` with `contains`**: Use `assert_eq!` with concrete values; `assert!(x.contains(...))` gives useless failure messages
 - **No fallback, fail fast**: Follow [Defensive Programming](defensive-programming.md); propagate errors with `?` rather than masking them with a default.

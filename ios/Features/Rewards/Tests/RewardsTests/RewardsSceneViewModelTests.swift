@@ -33,7 +33,7 @@ struct RewardsSceneViewModelTests {
         await model.refresh()
 
         #expect(model.wallet?.id == first.id)
-        #expect(model.walletSelectorModel?.selectedItems.map(\.id) == [first.id.id])
+        #expect(model.walletSelectorModel?.selectedItems.map(\.id) == [first.id])
         #expect(model.wallet?.canChoose == true)
     }
 
@@ -63,7 +63,7 @@ struct RewardsSceneViewModelTests {
         await model.refresh()
         #expect(service.rewardsCalls == [first.id])
 
-        model.selectWallet(id: second.id.id)
+        model.selectWallet(id: second.id)
         await model.refresh()
 
         #expect(service.rewardsCalls.last == second.id)
@@ -199,5 +199,22 @@ struct RewardsSceneViewModelTests {
         await model.refresh()
 
         #expect(model.activatePendingButtonType == .primary(.disabled))
+    }
+
+    @Test
+    func unavailableRewardsBlocksInvitingUntilAvailabilityChanges() async {
+        let service = GemRewardsServiceMock()
+        service.isAvailableValue = false
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first])
+        await model.refresh()
+        #expect(model.isPresentingSheet == nil)
+
+        model.onInviteFriends()
+        #expect(model.isPresentingSheet?.id == "info")
+
+        model.isPresentingSheet = nil
+        service.isAvailableValue = true
+        model.onInviteFriends()
+        #expect(model.isPresentingSheet?.id == RewardsSheetType.share.id)
     }
 }

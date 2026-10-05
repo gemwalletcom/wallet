@@ -57,12 +57,4 @@ class Migration_98_99Test {
         "INSERT INTO transactions (id, walletId, hash, assetId, feeAssetId, owner, recipient, state, type, blockNumber, sequence, fee, value, direction, createdAt, updatedAt) " +
             "VALUES ('$id', '$walletId', 'hash', '$assetId', '$assetId', 'owner', 'recipient', 'Confirmed', '$type', '1', '1', '1', '1', 'outgoing', 0, 0)",
     )
-
-    private fun SupportSQLiteDatabase.rows(query: String): List<List<String?>> = query(query).use { cursor ->
-        buildList {
-            while (cursor.moveToNext()) {
-                add((0 until cursor.columnCount).map { cursor.getString(it) })
-            }
-        }
-    }
 }

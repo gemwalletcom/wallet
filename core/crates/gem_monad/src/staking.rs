@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::error::Error;
 
 use async_trait::async_trait;
@@ -10,7 +9,7 @@ use num_bigint::BigInt;
 use num_traits::Zero;
 use primitives::{AssetBalance, AssetId, Balance, Chain, DelegationBase, DelegationValidator, StakeType};
 
-use crate::constants::{STAKING_LENS_CONTRACT, VALIDATOR_NAMES};
+use crate::constants::STAKING_LENS_CONTRACT;
 use crate::encode::{decode_apys, decode_balance, decode_delegations, decode_validators, encode_apys, encode_balance, encode_delegations, encode_stake, encode_validators};
 use crate::mapper::{map_delegation, map_validator};
 use crate::parser::MonadParser;
@@ -36,18 +35,16 @@ impl<C: Client + Clone> MonadStakingClient<C> {
 #[async_trait]
 impl<C: Client + Clone> EvmStakingClient for MonadStakingClient<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
-        let result = self.call_lens(encode_apys(&[])).await?;
+        let result = self.call_lens(encode_apys()).await?;
         Ok(decode_apys(&result)?.into_iter().max().filter(|apy_bps| *apy_bps > 0).map(|apy_bps| apy_bps as f64 / 100.0))
     }
 
     async fn get_staking_validators(&self, _apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
-        let validator_names: HashMap<u64, &str> = VALIDATOR_NAMES.iter().copied().collect();
-        let validator_ids = VALIDATOR_NAMES.iter().map(|(id, _)| *id).collect::<Vec<_>>();
-        let result = self.call_lens(encode_validators(&validator_ids)).await?;
+        let result = self.call_lens(encode_validators()).await?;
         let (validators, network_apy_bps) = decode_validators(&result)?;
         let network_apy = network_apy_bps as f64 / 100.0;
 
-        Ok(validators.into_iter().map(|validator| map_validator(&validator, &validator_names, network_apy)).collect())
+        Ok(validators.iter().map(|validator| map_validator(validator, network_apy)).collect())
     }
 
     async fn get_staking_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
@@ -91,6 +88,7 @@ impl<C: Client + Clone> EvmFeeCalculator for MonadStakingClient<C> {}
 
 #[cfg(test)]
 mod tests {
+    use alloy_primitives::U256;
     use alloy_primitives::hex::encode_prefixed;
     use alloy_sol_types::SolCall;
     use gem_client::ClientError;
@@ -136,6 +134,33 @@ mod tests {
         let client = MonadStakingClient::new(EthereumClient::new(empty_client, EVMChain::Monad));
 
         assert_eq!(client.get_staking_delegations(TEST_ADDRESS).await.unwrap(), Vec::<DelegationBase>::new());
+    }
+
+    #[tokio::test]
+    async fn test_get_staking_validators_asks_the_lens_for_the_full_validator_set() {
+        let rpc_client = mock_jsonrpc_client(|request_method, params| {
+            assert_eq!(request_method, method::ETH_CALL);
+            assert_eq!(params[0]["data"], json!(encode_prefixed(encode_validators())));
+            let validator = |validator_id: u64, is_active: bool| IMonadStakingLens::ValidatorInfo {
+                validatorId: validator_id,
+                stake: U256::from(1u32),
+                commission: U256::ZERO,
+                apyBps: 1_082,
+                isActive: is_active,
+            };
+            Ok(json!(encode_prefixed(IMonadStakingLens::getValidatorsCall::abi_encode_returns(&IMonadStakingLens::getValidatorsReturn {
+                validators: vec![validator(5, true), validator(7, true), validator(1, false)],
+                networkApyBps: 1_273,
+            }))))
+        });
+        let client = MonadStakingClient::new(EthereumClient::new(rpc_client, EVMChain::Monad));
+
+        let validators = client.get_staking_validators(None).await.unwrap();
+
+        assert_eq!(
+            validators.iter().map(|validator| (validator.id.as_str(), validator.is_active)).collect::<Vec<_>>(),
+            vec![("5", true), ("7", true), ("1", false)]
+        );
     }
 
     #[tokio::test]

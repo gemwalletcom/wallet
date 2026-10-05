@@ -19,6 +19,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "InfoSheet", path: "../../Packages/InfoSheet"),
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Components", path: "../../Packages/Components"),
@@ -31,6 +32,7 @@ let package = Package(
         .target(
             name: "Rewards",
             dependencies: [
+                "InfoSheet",
                 "Gemstone",
                 "Primitives",
                 "Components",

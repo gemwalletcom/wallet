@@ -12,7 +12,7 @@ use gem_ton::address::base64_to_hex_address;
 use gem_ton::signer::{TonSignDataResponse, TonSignMessageData, TonSignResult, TonSigner};
 use primitives::hex::encode_with_0x;
 use primitives::unix_seconds;
-use signer::{SIGNATURE_LENGTH, Signer, ensure_ethereum_signature_recovery_id_offset};
+use signer::Signer;
 use sui_types::PersonalMessage;
 
 use super::{
@@ -146,23 +146,6 @@ impl MessageSigner {
 }
 
 impl MessageSigner {
-    pub fn get_result(&self, data: &[u8]) -> String {
-        match &self.message.sign_type {
-            SignDigestType::Eip191 | SignDigestType::Eip712 | SignDigestType::Siwe | SignDigestType::TronPersonal => {
-                if data.len() < SIGNATURE_LENGTH {
-                    return encode_with_0x(data);
-                }
-                let mut signature = data.to_vec();
-                ensure_ethereum_signature_recovery_id_offset(&mut signature);
-                encode_with_0x(&signature)
-            }
-            SignDigestType::SuiPersonal | SignDigestType::TonPersonal => BASE64.encode(data),
-            SignDigestType::Base58 => bs58::encode(data).into_string(),
-        }
-    }
-}
-
-impl MessageSigner {
     pub fn sign(&self, private_key: Zeroizing<Vec<u8>>) -> Result<String, GemstoneError> {
         match &self.message.sign_type {
             SignDigestType::SuiPersonal => {
@@ -230,14 +213,15 @@ impl MessageSigner {
 mod tests {
     use super::*;
     use crate::message::{
-        eip712::{GemEIP712Section, GemEIP712Value, GemEIP712ValueType},
+        eip712::{GemEIP712Section, GemEIP712Value},
         sign_type::MessageType,
     };
-    use crate::services::simulation::GemSimulationPayloadTitle;
+    use crate::models::list::GemListRow;
+    use crate::services::localization::GemLocalizedText;
     use crate::signer::ChainTransactionSigner;
     use gem_evm::EIP712Domain;
-    use primitives::Address;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
+    use primitives::{Address, SimulationPayloadFieldType};
     use signer::Ed25519KeyPair;
 
     fn explorer_link(chain: Chain, address: String) -> BlockExplorerLink {
@@ -331,43 +315,6 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
     }
 
     #[test]
-    fn test_get_result_eip191() {
-        let data = hex::decode("d80c5ffe75fcbac0706c5c5d3b8884ae3588c30065a95075e07fa6ebc24e56433e5030992ef438b1d23437ec8d66d3197b1ad92f85222af1624d8f295907a65800").expect("Invalid hex string");
-        let decoder = MessageSigner::new(SignMessage {
-            chain: Chain::Ethereum,
-            sign_type: SignDigestType::Eip191,
-            data: data.clone(),
-        });
-        let result = decoder.get_result(data.as_slice());
-        assert_eq!(result, "0xd80c5ffe75fcbac0706c5c5d3b8884ae3588c30065a95075e07fa6ebc24e56433e5030992ef438b1d23437ec8d66d3197b1ad92f85222af1624d8f295907a6581b");
-    }
-
-    #[test]
-    fn test_get_result_recovery_id_conversion() {
-        let decoder = MessageSigner::new(SignMessage {
-            chain: Chain::Ethereum,
-            sign_type: SignDigestType::Eip191,
-            data: b"test".to_vec(),
-        });
-
-        // Raw recovery ID 0 -> 27 (0x1b)
-        let mut sig = vec![0u8; 65];
-        sig[64] = 0;
-        assert!(decoder.get_result(&sig).ends_with("1b"));
-
-        // Raw recovery ID 1 -> 28 (0x1c)
-        sig[64] = 1;
-        assert!(decoder.get_result(&sig).ends_with("1c"));
-
-        // Already converted IDs stay unchanged
-        sig[64] = 27;
-        assert!(decoder.get_result(&sig).ends_with("1b"));
-
-        sig[64] = 28;
-        assert!(decoder.get_result(&sig).ends_with("1c"));
-    }
-
-    #[test]
     fn test_sui_personal_message_hash() {
         let data = b"Hello, world!".to_vec();
         let decoder = MessageSigner::new(SignMessage {
@@ -379,17 +326,6 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let hash = decoder.hash().unwrap();
         let expected_hash = PersonalMessage(Cow::Owned(data)).signing_digest().to_vec();
         assert_eq!(hash, expected_hash);
-
-        let decoder = MessageSigner::new(SignMessage {
-            chain: Chain::Sui,
-            sign_type: SignDigestType::SuiPersonal,
-            data: b"Hello, world!".to_vec(),
-        });
-        let mut signature = vec![0u8; 97];
-        signature[0] = 0;
-        signature[96] = 1;
-        let expected = BASE64.encode(&signature);
-        assert_eq!(decoder.get_result(&signature), expected);
     }
 
     #[test]
@@ -411,11 +347,6 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         assert_eq!(hex::encode(&hash), "5468697320697320616e206578616d706c65206d65737361676520746f206265207369676e6564202d2031373437313235373539303630");
 
         assert_eq!(decoder.payload_preview(vec![], explorer_link).unwrap(), None);
-
-        let result_data = b"StV1DL6CwTryKyV"; // Data to pass to get_result, mimicking Swift test
-        let result = decoder.get_result(result_data);
-
-        assert_eq!(result, "3LRFsmWKLfsR7G5PqjytR");
     }
 
     #[test]
@@ -489,47 +420,47 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
                         GemEIP712Value {
                             name: "offerer".to_string(),
                             value: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".to_string(),
-                            value_type: GemEIP712ValueType::Address,
+                            value_type: SimulationPayloadFieldType::Address,
                         },
                         GemEIP712Value {
                             name: "zone".to_string(),
                             value: "0x004C00500000aD104D7DBd00e3ae0A5C00560C00".to_string(),
-                            value_type: GemEIP712ValueType::Address,
+                            value_type: SimulationPayloadFieldType::Address,
                         },
                         GemEIP712Value {
                             name: "offer.token".to_string(),
                             value: "0xA604060890923Ff400e8c6f5290461A83AEDACec".to_string(),
-                            value_type: GemEIP712ValueType::Address,
+                            value_type: SimulationPayloadFieldType::Address,
                         },
                         GemEIP712Value {
                             name: "startTime".to_string(),
                             value: "1658645591".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "endTime".to_string(),
                             value: "1659250386".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "zoneHash".to_string(),
                             value: "0x0000000000000000000000000000000000000000000000000000000000000000".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "salt".to_string(),
                             value: "16178208897136618".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "conduitKey".to_string(),
                             value: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "counter".to_string(),
                             value: "0".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                     ],
                 }],
@@ -576,22 +507,22 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
                         GemEIP712Value {
                             name: "address".to_string(),
                             value: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-                            value_type: GemEIP712ValueType::Address,
+                            value_type: SimulationPayloadFieldType::Address,
                         },
                         GemEIP712Value {
                             name: "timestamp".to_string(),
                             value: "1752326774".to_string(),
-                            value_type: GemEIP712ValueType::Timestamp,
+                            value_type: SimulationPayloadFieldType::Timestamp,
                         },
                         GemEIP712Value {
                             name: "nonce".to_string(),
                             value: "0".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "message".to_string(),
                             value: "This message attests that I control the given wallet".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                     ],
                 }],
@@ -709,8 +640,15 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let payload_preview = decoder.payload_preview(vec![], explorer_link).unwrap().expect("expected SIWE payload preview");
         assert_eq!(payload_preview.message_type, MessageType::Siwe);
         assert_eq!(payload_preview.primary.len(), 2);
-        assert_eq!(payload_preview.primary[0].title, GemSimulationPayloadTitle::Custom { label: "domain".to_string() });
-        assert_eq!(payload_preview.primary[1].title, GemSimulationPayloadTitle::Custom { label: "address".to_string() });
+        let titles = payload_preview
+            .primary
+            .iter()
+            .map(|row| match row {
+                GemListRow::Field { title, .. } => Some(title.clone()),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(titles, vec![Some(GemLocalizedText::Text { text: "domain".to_string() }), Some(GemLocalizedText::Text { text: "address".to_string() })]);
     }
 
     #[test]

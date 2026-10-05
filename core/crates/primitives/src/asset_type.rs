@@ -1,8 +1,8 @@
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
+use strum::{AsRefStr, EnumString};
 
-#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Model)]
+#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, PartialEq, Model)]
 #[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
@@ -21,12 +21,6 @@ pub enum AssetType {
     ASA,
     PERPETUAL,
     SPOT,
-}
-
-impl AssetType {
-    pub fn all() -> Vec<Self> {
-        Self::iter().collect::<Vec<_>>()
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Model)]

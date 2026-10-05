@@ -82,6 +82,7 @@ class BaseSelectAssetViewModelTest {
         every { recents } returns true
         every { networkSearch } returns false
         every { filterSession(any()) } answers { GemAssetsFilterSession(filters = emptyList(), balanceFilter = true, selectedChains = firstArg(), hasBalance = false) }
+        every { view(any(), any(), any()) } answers { GemSelectAssetType.Send.flow().view(firstArg(), secondArg(), thirdArg()) }
     }
 
     private fun viewModel(

@@ -16,12 +16,12 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemChainRow
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemChainList
+import uniffi.gemstone.GemListPhase
 
 @Composable
 fun SelectChain(
-    rows: List<GemChainRow>,
+    list: GemChainList?,
     chainFilter: TextFieldState,
     listState: LazyListState = rememberLazyListState(),
     title: String = stringResource(id = R.string.settings_networks_title),
@@ -39,20 +39,21 @@ fun SelectChain(
                 SearchBar(query = chainFilter)
             }
             listHeader()
-            if (rows.isEmpty()) {
-                item {
+            when (val phase = list?.phase) {
+                is GemListPhase.Empty -> item {
                     EmptyContentView(
-                        kind = GemEmptyStateKind.SEARCH_NETWORKS,
+                        state = phase.state,
                         modifier = Modifier.fillParentMaxSize(),
                     )
                 }
-            } else {
-                val size = rows.size
-                itemsIndexed(rows) { index, row ->
+
+                is GemListPhase.Error, null -> Unit
+
+                GemListPhase.Rows -> itemsIndexed(list.rows) { index, row ->
                     val chain = row.chain.requireChain()
                     ChainItem(
                         row = row,
-                        listPosition = ListPosition.getPosition(index, size),
+                        listPosition = ListPosition.getPosition(index, list.rows.size),
                         trailing = trailing?.let { t -> @Composable { t(chain) } },
                         onClick = { onSelect(chain) },
                     )

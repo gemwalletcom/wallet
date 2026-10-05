@@ -19,7 +19,7 @@ import kotlinx.serialization.Serializable
 data object SwapRoute : NavKey
 
 @Serializable
-data class SwapPairRoute(val from: AssetId, val to: AssetId?) : NavKey
+data class SwapPairRoute(val from: AssetId?, val to: AssetId?) : NavKey
 
 @Serializable
 data class SwapSelectRoute(val itemType: SwapItemType, val payAssetId: AssetId?, val receiveAssetId: AssetId?) : NavKey

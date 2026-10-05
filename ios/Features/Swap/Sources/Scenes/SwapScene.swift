@@ -46,7 +46,7 @@ public struct SwapScene: View {
                         Button(
                             model.buttonViewModel.title,
                             role: .destructive,
-                            action: model.onSelectSwapConfirmation,
+                            action: { Task { await model.onSelectSwapConfirmation() } },
                         )
                     },
                     message: {

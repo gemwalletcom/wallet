@@ -23,6 +23,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemAvatarList
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletSecretKind
@@ -156,7 +158,7 @@ class WalletDetailViewModelTest {
     fun `an avatar Core refuses shows an error until it is cleared`() = runTest(dispatcher) {
         val service: GemWalletServiceInterface = mockk {
             coEvery { setAvatarImageUrl(any(), any()) } throws IllegalStateException("no image")
-            every { avatarItems(any()) } returns emptyList()
+            every { avatarList(any()) } returns GemAvatarList(emptyList(), GemListPhase.Rows)
         }
         val nfts: NFTQuery = mockk { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList()) }
         val model = WalletImageViewModel(walletQuery, nfts, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }

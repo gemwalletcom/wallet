@@ -35,20 +35,22 @@ use primitives::{Chain, ChainAsset, NFTData, Wallet, WalletId, WalletSource, Wal
 
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
+use crate::models::state::GemListPhase;
 use crate::services::avatar::GemAvatarService;
+use crate::services::empty_state::{GemEmptyStateKind, screen_empty_state};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
 use crate::services::localization::GemLocalizedText;
 use crate::services::name::GemNameService;
-use crate::services::nft::model::{GemNftEntry, GemNftList};
+use crate::services::nft::model::GemNftList;
 use crate::services::nft::rules as nft_rules;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportRequest, GemWalletImportResult, GemWalletImportScreen, GemWalletImportType, GemWalletSecret};
+pub use model::{GemAvatarList, GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportRequest, GemWalletImportResult, GemWalletImportScreen, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 pub use verify_phrase::{GemVerifyPhraseSession, GemVerifyPhraseSetup};
@@ -148,9 +150,7 @@ impl GemWalletService {
     }
 
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
-        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet {} not found", wallet_id.id()),
-        })?;
+        let wallet = self.wallet(wallet_id.clone()).await?;
         if wallet.wallet_type != WalletType::View {
             self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?;
         }
@@ -172,9 +172,7 @@ impl GemWalletService {
     }
 
     pub async fn export_secret(&self, wallet_id: WalletId) -> Result<GemWalletSecret, GemServiceError> {
-        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet {} not found", wallet_id.id()),
-        })?;
+        let wallet = self.wallet(wallet_id.clone()).await?;
         let keystore_id = keystore_id_for_wallet(wallet.id.id());
         let password = decode_password(&self.password.get_password(false)?);
         match rules::secret_export(&wallet) {
@@ -234,8 +232,12 @@ impl GemWalletService {
         self.avatar.set_image_url(wallet_id, url).await
     }
 
-    pub fn avatar_items(&self, data: Vec<NFTData>) -> Vec<GemNftEntry> {
-        nft_rules::entries(nft_rules::list_items(data, GemNftList::Avatar))
+    pub fn avatar_list(&self, data: Vec<NFTData>) -> GemAvatarList {
+        let items = nft_rules::entries(nft_rules::list_items(data, GemNftList::Avatar));
+        GemAvatarList {
+            phase: GemListPhase::local(!items.is_empty(), screen_empty_state(GemEmptyStateKind::Nfts, false, &[])),
+            items,
+        }
     }
 
     pub async fn remove_avatar_image(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -246,11 +248,15 @@ impl GemWalletService {
         if name.trim().is_empty() {
             return Ok(());
         }
-        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet {} not found", wallet_id.id()),
-        })?;
+        let wallet = self.wallet(wallet_id.clone()).await?;
         self.store.set_name(wallet_id, name.clone()).await?;
         self.names.save_names(rules::wallet_address_names(&Wallet { name, ..wallet })).await
+    }
+
+    pub async fn wallet(&self, wallet_id: WalletId) -> Result<Wallet, GemServiceError> {
+        self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
+            msg: format!("wallet {} not found", wallet_id.id()),
+        })
     }
 
     pub async fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
@@ -400,6 +406,19 @@ mod tests {
         let details = testkit.service.wallet_details(multiple);
 
         assert!(details.address.is_none(), "no single address means no link");
+    }
+
+    #[test]
+    fn test_an_avatar_picker_without_nfts_shows_the_nft_empty_state() {
+        let testkit = WalletTestkit::new();
+
+        assert_eq!(testkit.service.avatar_list(vec![NFTData::mock()]).phase, GemListPhase::Rows);
+        assert_eq!(
+            testkit.service.avatar_list(vec![]).phase,
+            GemListPhase::Empty {
+                state: screen_empty_state(GemEmptyStateKind::Nfts, false, &[])
+            }
+        );
     }
     use std::fs;
 

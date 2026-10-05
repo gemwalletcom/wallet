@@ -8,7 +8,7 @@ pub(crate) mod testkit;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{Asset, Banner, BannerEvent, BannerState, Platform, Wallet};
+use primitives::{Banner, BannerState, Platform, Wallet};
 
 pub use model::{GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerRow, GemBannerStyle, GemBannerTitle};
 pub use permissions::GemNotificationPermissions;
@@ -44,10 +44,6 @@ impl GemBannerService {
         self.store.set_state(key, state).await
     }
 
-    pub fn banner_content(&self, event: BannerEvent, asset: Option<Asset>, state: BannerState) -> GemBannerContent {
-        rules::banner_content(event, asset.as_ref(), state, self.platform)
-    }
-
     pub fn visible_banners(&self, context: &GemBannerContext, stored: Vec<Banner>) -> Vec<GemBannerRow> {
         context.visible_banners(stored, self.platform)
     }
@@ -75,7 +71,7 @@ mod tests {
     use super::testkit::MemoryBannerStore;
     use super::*;
     use futures::executor::block_on;
-    use primitives::{Chain, WalletSource};
+    use primitives::{BannerEvent, Chain, WalletSource};
 
     #[test]
     fn test_wallet_setup_writes_its_banners_once() {

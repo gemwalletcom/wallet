@@ -1,14 +1,12 @@
 use gem_hypercore::{models::websocket::HyperliquidSubscription, perpetual_formatter::PerpetualFormatter};
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
-use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
+use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::services::error::GemServiceError;
-use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
-use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
 
@@ -79,12 +77,6 @@ impl GemPerpetual {
         }
     }
 
-    pub fn order(&self, input: GemPerpetualOrderInput) -> PerpetualType {
-        perpetual_rules::order(self.provider.clone(), input)
-    }
-    pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
-        perpetual_rules::close_order(self.provider.clone(), input)
-    }
     pub fn transfer_data(&self, asset: GemAsset, perpetual_type: PerpetualType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
         GemTransferData {
             input_type: TransactionInputType::Perpetual { asset, perpetual_type },

@@ -26,6 +26,10 @@ pub mod sql_types {
     pub struct DeviceLocale;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "feature"))]
+    pub struct Feature;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "fiat_rate_provider"))]
     pub struct FiatRateProvider;
 
@@ -301,6 +305,13 @@ diesel::table! {
 }
 
 diesel::table! {
+    countries (alpha2) {
+        #[max_length = 2]
+        alpha2 -> Varchar,
+    }
+}
+
+diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::Platform;
     use super::sql_types::PlatformStore;
@@ -328,6 +339,18 @@ diesel::table! {
         os -> Varchar,
         #[max_length = 128]
         model -> Varchar,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Feature;
+
+    features (id, alpha2) {
+        id -> Feature,
+        #[max_length = 2]
+        alpha2 -> Varchar,
+        is_enabled -> Bool,
     }
 }
 
@@ -383,8 +406,9 @@ diesel::table! {
         #[max_length = 128]
         provider -> Varchar,
         #[max_length = 32]
-        alpha2 -> Varchar,
+        country -> Varchar,
         is_allowed -> Bool,
+        is_enabled -> Bool,
         updated_at -> Timestamp,
         created_at -> Timestamp,
     }
@@ -1082,8 +1106,10 @@ diesel::joinable!(charts -> prices (coin_id));
 diesel::joinable!(charts_daily -> prices (coin_id));
 diesel::joinable!(charts_hourly -> prices (coin_id));
 diesel::joinable!(devices -> fiat_rates (currency));
+diesel::joinable!(features -> countries (alpha2));
 diesel::joinable!(fiat_assets -> assets (asset_id));
 diesel::joinable!(fiat_assets -> fiat_providers (provider));
+diesel::joinable!(fiat_providers_countries -> countries (country));
 diesel::joinable!(fiat_providers_countries -> fiat_providers (provider));
 diesel::joinable!(fiat_transactions -> assets (asset_id));
 diesel::joinable!(fiat_transactions -> devices (device_id));
@@ -1160,7 +1186,9 @@ diesel::allow_tables_to_appear_in_same_query!(
     charts_daily,
     charts_hourly,
     config,
+    countries,
     devices,
+    features,
     fiat_assets,
     fiat_providers,
     fiat_providers_countries,

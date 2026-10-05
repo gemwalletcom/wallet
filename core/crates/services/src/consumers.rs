@@ -26,28 +26,28 @@ use crate::transactions::{
 impl Services {
     pub fn fetch_asset_associations_consumer(&self) -> FetchAssetAssociationsConsumer {
         FetchAssetAssociationsConsumer {
-            database: self.database(),
+            repository: self.assets_repository(),
             providers: self.price_providers(PriceProvider::all()),
         }
     }
 
     pub fn fetch_blocks_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> FetchBlocksConsumer {
-        FetchBlocksConsumer::new(self.chain_providers_for(chain, user_agent), stream_producer)
+        FetchBlocksConsumer::new(self.chain_providers_for(chain, user_agent), Arc::new(stream_producer))
     }
 
     pub async fn fetch_assets_consumer(&self, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchAssetsConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchAssetsConsumer {
-            database: self.database(),
+            repository: self.assets_repository(),
             providers: self.chain_providers(user_agent),
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
             classification_rules: AssetClassificationRules::from_config(&self.config()).await?,
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         })
     }
 
     pub async fn fetch_asset_status_consumer(&self) -> Result<FetchAssetStatusConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchAssetStatusConsumer {
-            database: self.database(),
+            repository: self.assets_repository(),
             providers: self.token_scan_providers().await?,
         })
     }
@@ -65,97 +65,107 @@ impl Services {
 
     pub async fn fetch_prices_metadata_consumer(&self) -> Result<FetchPricesMetadataConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchPricesMetadataConsumer {
-            database: self.database(),
-            cacher: self.cacher().await?,
+            repository: self.prices_repository(),
+            cooldowns: Arc::new(self.cacher().await?),
             config: self.config(),
             providers: self.price_providers(PriceProvider::all()),
         })
     }
 
     pub async fn fetch_token_addresses_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchTokenAddressesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchTokenAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.database(), stream_producer, self.cacher().await?))
+        Ok(FetchTokenAddressesConsumer::new(
+            self.chain_providers_for(chain, user_agent),
+            self.assets_repository(),
+            Arc::new(stream_producer),
+            Arc::new(self.cacher().await?),
+        ))
     }
 
     pub async fn fetch_coin_addresses_consumer(&self, chain: Chain, user_agent: &str) -> Result<FetchCoinAddressesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchCoinAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.database(), self.cacher().await?))
+        Ok(FetchCoinAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.assets_repository(), Arc::new(self.cacher().await?)))
     }
 
     pub async fn fetch_nft_asset_consumer(&self) -> Result<FetchNftAssetConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchNftAssetConsumer {
             nft_client: self.nft(),
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
         })
     }
 
     pub async fn fetch_nft_assets_addresses_consumer(&self) -> Result<FetchNftAssetsAddressesConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchNftAssetsAddressesConsumer {
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
             nft_client: self.nft(),
         })
     }
 
     pub async fn fetch_address_transactions_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchAddressTransactionsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchAddressTransactionsConsumer::new(self.chain_providers_for(chain, user_agent), stream_producer, self.cacher().await?, self.config()))
+        Ok(FetchAddressTransactionsConsumer::new(
+            self.chain_providers_for(chain, user_agent),
+            Arc::new(stream_producer),
+            Arc::new(self.cacher().await?),
+            self.config(),
+        ))
     }
 
     pub async fn fetch_transaction_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchTransactionConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchTransactionConsumer::new(
             self.chain_providers_for(chain, user_agent),
             self.swapper(),
-            stream_producer,
-            self.cacher().await?,
-            self.database(),
+            Arc::new(stream_producer),
+            Arc::new(self.cacher().await?),
+            self.transactions_repository(),
         ))
     }
 
     pub async fn store_transactions_consumer(&self, stream_producer: StreamProducer) -> Result<StoreTransactionsConsumer, Box<dyn Error + Send + Sync>> {
         Ok(StoreTransactionsConsumer {
-            database: self.database(),
-            stream_producer,
-            pusher: Pusher::new(self.database()),
+            repository: self.transactions_repository(),
+            stream_producer: Arc::new(stream_producer),
+            pusher: Pusher::new(self.notifications_repository()),
             config: self.config(),
-            vault_client: SwapVaultAddressClient::new(self.cacher().await?),
+            vault_client: SwapVaultAddressClient::new(Arc::new(self.cacher().await?)),
         })
     }
 
     pub async fn store_prices_consumer(&self) -> Result<StorePricesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(StorePricesConsumer::new(self.database(), self.prices(self.cacher().await?), self.config()))
+        Ok(StorePricesConsumer::new(self.prices_repository(), self.prices(self.cacher().await?), self.config()))
     }
 
     pub async fn wallet_stream_consumer(&self) -> Result<WalletStreamConsumer, Box<dyn Error + Send + Sync>> {
         Ok(WalletStreamConsumer {
-            database: self.database(),
-            cacher_client: self.cacher().await?,
+            repository: self.transactions_repository(),
+            device_stream: Arc::new(self.cacher().await?),
             retention: self.config().get_duration(ConfigKey::DeviceStreamRetention).await?,
         })
     }
 
     pub async fn store_pending_transactions_consumer(&self) -> Result<StorePendingTransactionsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(StorePendingTransactionsConsumer::new(self.cacher().await?))
+        Ok(StorePendingTransactionsConsumer::new(Arc::new(self.cacher().await?)))
     }
 
     pub fn store_transactions_swaps_consumer(&self) -> StoreTransactionsSwapsConsumer {
-        StoreTransactionsSwapsConsumer::new(self.database(), self.config())
+        StoreTransactionsSwapsConsumer::new(self.transactions_repository(), self.config())
     }
 
     pub fn store_transactions_perpetuals_consumer(&self) -> StoreTransactionsPerpetualsConsumer {
-        StoreTransactionsPerpetualsConsumer::new(self.database())
+        StoreTransactionsPerpetualsConsumer::new(self.transactions_repository())
     }
 
     pub async fn notifications_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<NotificationsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(NotificationsConsumer::new(self.pusher(), self.stream_producer(name, shutdown).await?))
+        Ok(NotificationsConsumer::new(self.pusher(), Arc::new(self.stream_producer(name, shutdown).await?)))
     }
 
     pub fn notifications_failed_consumer(&self) -> NotificationsFailedConsumer {
-        NotificationsFailedConsumer::new(self.database())
+        NotificationsFailedConsumer::new(self.notifications_repository())
     }
 
     pub async fn in_app_notifications_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<InAppNotificationsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(InAppNotificationsConsumer::new(self.database(), self.stream_producer(name, shutdown).await?))
+        Ok(InAppNotificationsConsumer::new(self.notifications_repository(), Arc::new(self.stream_producer(name, shutdown).await?)))
     }
 
     pub async fn rewards_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<RewardsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(RewardsConsumer::new(self.database(), self.stream_producer(name, shutdown).await?))
+        Ok(RewardsConsumer::new(self.rewards_repository(), Arc::new(self.stream_producer(name, shutdown).await?)))
     }
 
     pub async fn rewards_redemption_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<RewardsRedemptionConsumer<TransferRedemptionService>, Box<dyn Error + Send + Sync>> {
@@ -163,16 +173,16 @@ impl Services {
         let retry_config = RedemptionRetryConfig {
             max_retries: config.get_i64(ConfigKey::RedemptionRetryMaxRetries).await? as u32,
             delay: config.get_duration(ConfigKey::RedemptionRetryDelay).await?,
-            errors: config.get_vec_string(ConfigKey::RedemptionRetryErrors).await?,
+            errors: config.get_json(ConfigKey::RedemptionRetryErrors).await?,
         };
         let stream_producer = self.stream_producer(name, shutdown).await?;
-        Ok(RewardsRedemptionConsumer::new(self.database(), Arc::new(self.redemption_service()?), retry_config, stream_producer))
+        Ok(RewardsRedemptionConsumer::new(self.rewards_repository(), Arc::new(self.redemption_service()?), retry_config, Arc::new(stream_producer)))
     }
 
     pub async fn fiat_webhook_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<FiatWebhookConsumer, Box<dyn Error + Send + Sync>> {
         let stream_producer = self.stream_producer(&format!("{name}_producer"), shutdown).await?;
         let providers = self.fiat_providers(self.fiat_access_token_cacher().await?);
-        Ok(FiatWebhookConsumer::new(self.database(), providers, stream_producer))
+        Ok(FiatWebhookConsumer::new(self.fiat_repository(), providers, Arc::new(stream_producer)))
     }
 
     pub async fn support_webhook_consumer(&self, shutdown: ShutdownReceiver) -> Result<SupportWebhookConsumer, Box<dyn Error + Send + Sync>> {

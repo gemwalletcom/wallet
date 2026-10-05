@@ -11,11 +11,12 @@ import protocol Gemstone.GemFiatQuoteServiceProtocol
 import struct Gemstone.GemFiatSession
 import struct Gemstone.GemFiatSuggestedAmount
 import struct Gemstone.GemFiatViewState
+import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemProviderRow
 import enum Gemstone.GemSelectAssetType
-import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import GemstoneServices
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -40,9 +41,9 @@ public final class FiatSceneViewModel {
     }
 
     var session: GemFiatSession
-    var urlState: StateViewType<Void> = .noData
+    var isUrlLoading = false
     var isPresentingFiatProvider: Bool = false
-    var isPresentingAlertMessage: AlertMessage?
+    var isPresentingInfoSheet: InfoSheetModel?
     var loadTrigger: FiatLoadTrigger?
 
     public init(
@@ -70,7 +71,7 @@ public final class FiatSceneViewModel {
     }
 
     var viewState: GemFiatViewState {
-        session.viewState(assetPrice: priceUsdQuery.value, isUrlLoading: urlState.isLoading, isSellEnabled: assetData.metadata.isSellEnabled)
+        session.viewState(assetPrice: priceUsdQuery.value, isUrlLoading: isUrlLoading, isSellEnabled: assetData.metadata.isSellEnabled)
     }
 
     var amount: String {
@@ -191,10 +192,10 @@ extension FiatSceneViewModel {
         }
     }
 
-    func onSelectContinue() {
+    func onSelectContinue() async {
         switch viewState.buttonAction {
-        case .retryQuote: Task { await load() }
-        case .continue: openQuoteUrl()
+        case .retryQuote: await load()
+        case .continue: await openQuoteUrl()
         }
     }
 
@@ -234,31 +235,20 @@ extension FiatSceneViewModel {
         loadTrigger = FiatLoadTrigger(session: session, isImmediate: isImmediate)
     }
 
-    private func openQuoteUrl() {
-        guard let quote = viewState.selectedQuoteRow else { return }
-
-        Task {
-            urlState = .loading
-
-            do {
-                guard let url = try await service.quoteUrl(assetId: asset.id, quoteId: quote.quoteId).redirectUrl.asURL else {
-                    urlState = .noData
-                    return
-                }
-
-                urlState = .data(())
-                await UIApplication.shared.open(url, options: [:])
-            } catch let error as GemServiceError {
-                urlState = .error(error)
-                isPresentingAlertMessage = AlertMessage(
-                    title: Localized.Errors.errorOccurred,
-                    message: error.localizedDescription,
-                )
-                debugLog("FiatSceneViewModel get quote URL error: \(error)")
-            } catch {
-                urlState = .error(error)
-                debugLog("FiatSceneViewModel get quote URL error: \(error)")
-            }
+    private func openQuoteUrl() async {
+        guard !isUrlLoading, let quote = viewState.selectedQuoteRow, let request = session.quoteRequest() else { return }
+        guard service.isAvailable(quoteType: request.quoteType) else {
+            isPresentingInfoSheet = InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)
+            return
+        }
+        isUrlLoading = true
+        defer { isUrlLoading = false }
+        do {
+            guard let url = try await service.quoteUrl(assetId: asset.id, quoteId: quote.quoteId).redirectUrl.asURL else { return }
+            guard session.quoteRequest() == request else { return }
+            await UIApplication.shared.open(url, options: [:])
+        } catch {
+            isPresentingInfoSheet = InfoSheetModel(error: error)
         }
     }
 }

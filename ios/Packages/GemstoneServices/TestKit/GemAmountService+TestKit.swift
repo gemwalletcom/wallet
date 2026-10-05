@@ -2,6 +2,9 @@
 
 import Foundation
 import class Gemstone.GemAmountService
+import class Gemstone.GemApiClient
+import class Gemstone.GemAssetsService
+import class Gemstone.GemConfigService
 import class Gemstone.GemNameService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemStaticApiClient
@@ -18,10 +21,12 @@ public extension GemAmountService {
             stake: GatewayService.mock().stakeService(
                 staticApi: GemStaticApiClient(provider: NativeProvider()),
                 store: GemstoneStakeStore(store: .mock()),
+                assets: .mock(),
                 names: .mock(),
                 explorer: .mock(),
                 preferences: preferences,
                 session: .mock(),
+                config: GemConfigService(api: GemApiClient(provider: StubAlienProvider()), preferences: preferences),
             ),
             preferences: preferences,
             session: session,

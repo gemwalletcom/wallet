@@ -15,14 +15,15 @@ public struct InAppNotificationsScene: View {
     }
 
     public var body: some View {
-        let sections = model.sections
+        let rows = model.rows
+        let phase = model.phase(rows)
         return List {
-            if let error = model.loadError {
+            if case let .error(error) = phase {
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                 }
             }
-            ForEach(sections) { section in
+            ForEach(model.sections(rows)) { section in
                 Section(header: section.title.map { Text($0) }) {
                     ForEach(section.values) { row in
                         notificationRow(row)
@@ -33,8 +34,8 @@ public struct InAppNotificationsScene: View {
         }
         .listSectionSpacing(.compact)
         .overlay {
-            if sections.isEmpty, model.loadError == nil {
-                EmptyContentView(model: model.emptyContentModel)
+            if case let .empty(state) = phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
             }
         }
         .navigationTitle(model.title)

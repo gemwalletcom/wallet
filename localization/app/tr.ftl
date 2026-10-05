@@ -476,6 +476,8 @@ fee_rates_normal = Normal
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Özel
+fee_rate_priority = Öncelik Ücreti
+fee_rate_base = Temel Ücret
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = Kilidi aç
 lock_privacy_lock = Gizlilik Kilidi
 lock_footer = Cihazınızda bu uygulamaya erişimi koruyun
 lock_passcode = Şifre
+lock_passcode_off_title = Cihaz parolası kapalı
+lock_passcode_off_description = Gem, cihazınızın parolasıyla kilitli. Gem'i açmak için cihaz ayarlarından bir parola açın. Cüzdanlarınız güvende.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Bu %@ hesabı başka biri tarafından k
 sell_title = %@ sat
 
 # Info
+
+info_region_unavailable_description = Bu özellik bölgenizde kullanılamıyor. Kullanılabilirlik, yerel kurallara ve sağlayıcıların gereksinimlerine bağlıdır.
 
 info_network_fee_title = Ağ Ücreti
 info_watch_wallet_title = Cüzdanı İzle

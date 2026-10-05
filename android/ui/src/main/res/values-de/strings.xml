@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Benutzerdefiniert</string>
+  <string name="fee_rate_priority">Prioritätsgebühr</string>
+  <string name="fee_rate_base">Grundgebühr</string>
   <string name="banner_account_activation_title">Kontoaktivierungsgebühr</string>
   <string name="banner_account_activation_description">Das %1$s Netzwerk erfordert eine einmalige Gebühr von %2$s.</string>
   <string name="banner_stake_title">Starten Sie mit %1$s Staking</string>
@@ -442,9 +444,12 @@
   <string name="lock_privacy_lock">Datenschutzsperre</string>
   <string name="lock_footer">Schützen Sie den Zugriff auf diese App auf Ihrem Gerät</string>
   <string name="lock_passcode">Passcode</string>
+  <string name="lock_passcode_off_title">Gerätecode ist deaktiviert</string>
+  <string name="lock_passcode_off_description">Gem ist mit dem Code Ihres Geräts gesperrt. Aktivieren Sie einen Code in den Geräteeinstellungen, um Gem zu öffnen. Ihre Wallets sind sicher.</string>
   <string name="verify_phrase_title">Bestätigen</string>
   <string name="warnings_externally_controlled_account">Dieses %1$s-Konto kann von jemand anderem kontrolliert werden. Senden Sie kein Geld darauf, es sei denn, Sie sind sicher, dass Sie es kontrollieren, sonst könnten Sie Ihr Vermögen dauerhaft verlieren.</string>
   <string name="sell_title">Verkaufen %1$s</string>
+  <string name="info_region_unavailable_description">Diese Funktion ist in deiner Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab.</string>
   <string name="info_network_fee_title">Netzwerk-Gebühr</string>
   <string name="info_watch_wallet_title">Beobachtungs-Wallet</string>
   <string name="info_watch_wallet_description">Eine Wallet, auf die Sie keinen Zugriff haben, deren Transaktionen und Bewegungen Sie jedoch beobachten können.</string>

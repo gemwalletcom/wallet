@@ -43,16 +43,13 @@ public struct WalletsScene: View {
             ForEach(model.sections, id: \.kind) { section in
                 Section {
                     ForEach(section.rows) { row in
-                        if let wallet = model.wallet(for: row) {
-                            WalletListItemView(
-                                wallet: wallet,
-                                row: row,
-                                onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
-                                onEdit: model.onEdit,
-                                onPin: { wallet in Task { await model.onPin(wallet: wallet) } },
-                                onDelete: model.onDelete,
-                            )
-                        }
+                        WalletListItemView(
+                            row: row,
+                            onSelect: { model.onSelect(row: $0, dismiss: dismiss) },
+                            onEdit: { row in Task { await model.onEdit(row: row) } },
+                            onPin: { row in Task { await model.onPin(row: row) } },
+                            onDelete: model.onDelete,
+                        )
                     }
                 } header: {
                     if let title = section.kind.title {
@@ -70,16 +67,22 @@ public struct WalletsScene: View {
             model.walletDeletePrompt,
             presenting: $model.walletDelete,
             sensoryFeedback: .warning,
-            actions: { wallet in
+            actions: { row in
                 Button(
                     Localized.Common.delete,
                     role: .destructive,
-                    action: { Task { await model.onDeleteConfirmed(wallet: wallet) } },
+                    action: { Task { await model.onDeleteConfirmed(row: row) } },
                 )
             },
         )
         .navigationBarTitle(model.title)
         .bindQuery(model.walletsQuery)
+        .onChange(of: model.walletsQuery.value, initial: true) {
+            model.updateSections()
+        }
+        .onChange(of: model.currentWalletId) {
+            model.updateSections()
+        }
         .onChange(of: model.hasWallets) {
             model.onChangeWallets(dismiss: dismiss)
         }

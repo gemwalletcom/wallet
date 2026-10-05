@@ -14,7 +14,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.theme.WalletTheme
 import uniffi.gemstone.DelegationValidator
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemStakeValidatorOptions
 import uniffi.gemstone.GemValidatorRow
@@ -29,9 +29,9 @@ fun ValidatorSelectScene(selection: GemStakeValidatorOptions, selectedValidatorI
         onClose = onCancel,
     ) {
         LazyColumn {
-            if (selection.sections.isEmpty()) {
+            (selection.phase as? GemListPhase.Empty)?.let { empty ->
                 item {
-                    EmptyContentView(kind = GemEmptyStateKind.VALIDATORS, modifier = Modifier.fillParentMaxSize())
+                    EmptyContentView(state = empty.state, modifier = Modifier.fillParentMaxSize())
                 }
             }
             selection.sections.forEach { section ->
@@ -67,6 +67,7 @@ fun PreviewValidatorSelectScene() {
                         ),
                     ),
                 ),
+                phase = GemListPhase.Rows,
             ),
             selectedValidatorId = "some_validator_id_1",
             onCancel = {},

@@ -40,6 +40,7 @@ import org.junit.Test
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemEarnInput
 import uniffi.gemstone.GemEarnView
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemStakeDelegationItem
@@ -72,7 +73,7 @@ class EarnViewModelTest {
                 depositRow = GemListRow.Action(GemListRowTitle.DEPOSIT, null, null),
                 depositProvider = input.providers.firstOrNull().takeIf { input.walletType != uniffi.gemstone.WalletType.VIEW },
                 positions = listOf(GemStakeDelegationItem(funded.toGem(), delegationListRows(listOf(funded.toGem()), input.asset, null, input.currency).first(), destination)),
-                showsEmpty = false,
+                positionsPhase = GemListPhase.Rows,
             )
         }
     }
