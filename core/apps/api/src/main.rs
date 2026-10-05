@@ -194,7 +194,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let address_names_client = services.address_names();
     let address_details_client = services.address_details(&user_agent);
     let stream_producer = services.stream_producer("api", services::no_shutdown()).await?;
-    let wallets_client = services.wallets(stream_producer.clone());
+    let wallets_client = services.wallets(stream_producer.clone(), cacher_client.clone());
 
     let providers = services.scan_providers(cacher_client.clone()).await?;
     let metrics = Arc::new(metrics::Metrics::new(&providers));

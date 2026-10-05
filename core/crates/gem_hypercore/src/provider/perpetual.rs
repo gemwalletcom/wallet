@@ -194,7 +194,7 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
         Ok(merge_perpetual_portfolios(portfolios, account_summary))
     }
 
-    async fn get_perpetual_referred_addresses(&self) -> Result<Vec<String>, Box<dyn Error + Sync + Send>> {
+    async fn get_perpetual_referral_addresses(&self) -> Result<Vec<String>, Box<dyn Error + Sync + Send>> {
         let config = HypercoreConfig::default();
         let referral = self.get_referral(&config.builder_address).await?;
         let referral_states = referral.referrer_state.and_then(|s| s.data).and_then(|d| d.referral_states).unwrap_or_default();

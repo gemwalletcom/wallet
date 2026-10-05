@@ -119,12 +119,14 @@ impl Services {
     }
 
     pub async fn store_transactions_consumer(&self, stream_producer: StreamProducer) -> Result<StoreTransactionsConsumer, Box<dyn Error + Send + Sync>> {
+        let cacher = self.cacher().await?;
         Ok(StoreTransactionsConsumer {
             repository: self.transactions_repository(),
             stream_producer: Arc::new(stream_producer),
             pusher: Pusher::new(self.notifications_repository()),
             config: self.config(),
-            vault_client: SwapVaultAddressClient::new(Arc::new(self.cacher().await?)),
+            vault_client: SwapVaultAddressClient::new(Arc::new(cacher.clone())),
+            subscription_lookup: self.subscription_lookup(cacher),
         })
     }
 

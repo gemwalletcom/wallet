@@ -3,9 +3,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{
-    Asset, AssetAddress, AssetBasic, AssetId, AssetPriceMetadata, Chain, ChainAddress, Device, DeviceSubscription, MAX_QUERY_LIMIT, NFTAssetId, PriceData, ScanAddress, ScanVerdict, Transaction, TransactionId, TransactionsResponse,
-};
+use primitives::{Asset, AssetAddress, AssetBasic, AssetId, AssetPriceMetadata, Chain, ChainAddress, Device, MAX_QUERY_LIMIT, NFTAssetId, PriceData, ScanAddress, ScanVerdict, Transaction, TransactionId, TransactionsResponse};
 use storage::{
     AssetFilter, AssetsAddressesRepository, AssetsRepository, ChartResult, Database, DatabaseError, DevicesRepository, NftRepository, ParserState, ParserStateRepository, PricesRepository, ScanAddressesRepository, ScanDetectionsRepository,
     TransactionFilter, TransactionPerpetualRecord, TransactionSwapRecord, TransactionUpdate, TransactionsPerpetualsRepository, TransactionsRepository, TransactionsSwapsRepository, WalletRecord, WalletsRepository,
@@ -47,7 +45,6 @@ pub(crate) trait Repository: Send + Sync {
     async fn set_parser_current_block(&self, chain: Chain, block: i64) -> Result<usize, DatabaseError>;
     async fn set_parser_latest_block(&self, chain: Chain, block: i64) -> Result<usize, DatabaseError>;
     async fn wallet_with_devices(&self, wallet_row_id: i32) -> Result<(WalletRecord, Vec<Device>), DatabaseError>;
-    async fn subscriptions_for_addresses(&self, chain: Chain, addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError>;
     async fn asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError>;
     async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
     async fn assets_with_prices(&self, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError>;
@@ -159,10 +156,6 @@ impl Repository for PostgresRepository {
 
     async fn wallet_with_devices(&self, wallet_row_id: i32) -> Result<(WalletRecord, Vec<Device>), DatabaseError> {
         self.database.run(move |client| Ok((client.get_wallet_by_id(wallet_row_id)?, client.get_devices_by_wallet_id(wallet_row_id)?))).await
-    }
-
-    async fn subscriptions_for_addresses(&self, chain: Chain, addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError> {
-        self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await
     }
 
     async fn asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError> {

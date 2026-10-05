@@ -13,6 +13,8 @@ use primitives::{Asset, Chain, DelegationBase, DeviceSubscription, TransactionTy
 use push_notification::{GorushNotification, PushNotification};
 use streamer::{NotificationsPayload, StreamProducerQueue};
 
+use crate::subscriptions::SubscriptionLookup;
+
 #[derive(Clone, Copy)]
 pub struct StakeRewardsConfig {
     pub threshold: f64,
@@ -25,16 +27,25 @@ pub struct StakingRewardsNotifier {
     config: StakeRewardsConfig,
     throttle: Arc<dyn ThrottleCacher>,
     stream_producer: Arc<dyn StreamProducerQueue>,
+    subscription_lookup: Arc<SubscriptionLookup>,
 }
 
 impl StakingRewardsNotifier {
-    pub(crate) fn new(chain_providers: Arc<ChainProviders>, repository: Arc<dyn Repository>, config: StakeRewardsConfig, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+    pub(crate) fn new(
+        chain_providers: Arc<ChainProviders>,
+        repository: Arc<dyn Repository>,
+        config: StakeRewardsConfig,
+        throttle: Arc<dyn ThrottleCacher>,
+        stream_producer: Arc<dyn StreamProducerQueue>,
+        subscription_lookup: Arc<SubscriptionLookup>,
+    ) -> Self {
         Self {
             chain_providers,
             repository,
             config,
             throttle,
             stream_producer,
+            subscription_lookup,
         }
     }
 
@@ -59,7 +70,7 @@ impl StakingRewardsNotifier {
     }
 
     async fn notify_address(&self, chain: Chain, address: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let subscriptions = self.repository.subscriptions_for_addresses(chain, vec![address.to_string()]).await?;
+        let subscriptions = self.subscription_lookup.get(chain, vec![address.to_string()]).await?;
         if subscriptions.is_empty() {
             return Ok(false);
         }

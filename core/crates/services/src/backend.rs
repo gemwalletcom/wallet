@@ -45,6 +45,7 @@ use crate::prices::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
 use crate::rewards::IpSecurityClient;
 use crate::rewards::{RewardsClient, RewardsRedemptionClient};
 use crate::security::{ScanClient, ScanMetrics, scan_providers};
+use crate::subscriptions::SubscriptionLookup;
 use crate::support::{ChatwootClient, ChatwootWebhookVerifier, SupportApiClient, SupportClient};
 use crate::swap::{NearIntentsProxyClient, SwapClient, SwapsXyzProxyClient};
 use crate::transactions::{AddressDetailsClient, AddressNamesClient, TransactionsClient};
@@ -97,6 +98,10 @@ impl Services {
             })
             .await?;
         Ok(client.clone())
+    }
+
+    pub(crate) fn subscription_lookup(&self, cacher: CacherClient) -> Arc<SubscriptionLookup> {
+        Arc::new(SubscriptionLookup::new(Arc::new(crate::subscriptions::repository::PostgresRepository::new(self.database())), Arc::new(cacher), self.config()))
     }
 
     pub async fn auth(&self) -> Result<AuthClient, Box<dyn Error + Send + Sync>> {
@@ -278,8 +283,8 @@ impl Services {
         DevicesClient::new(self.devices_repository(), self.pusher())
     }
 
-    pub fn wallets(&self, stream_producer: StreamProducer) -> WalletsClient {
-        WalletsClient::new(self.devices_repository(), Arc::new(stream_producer))
+    pub fn wallets(&self, stream_producer: StreamProducer, cacher: CacherClient) -> WalletsClient {
+        WalletsClient::new(self.devices_repository(), Arc::new(stream_producer), self.subscription_lookup(cacher))
     }
 
     pub fn wallet_configuration(&self, cacher: CacherClient, user_agent: &str) -> WalletConfigurationClient {

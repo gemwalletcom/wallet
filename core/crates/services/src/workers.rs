@@ -25,6 +25,7 @@ use crate::prices::{
 };
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
 use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater, SearchSyncClient};
+use crate::subscriptions::SubscriptionLookup;
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
 use crate::transactions::{CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
@@ -38,6 +39,7 @@ pub struct AlerterJobs {
     chain_providers: Arc<ChainProviders>,
     stake_rewards_config: StakeRewardsConfig,
     stream_producer: Arc<dyn StreamProducerQueue>,
+    subscription_lookup: Arc<SubscriptionLookup>,
 }
 
 impl AlerterJobs {
@@ -52,6 +54,7 @@ impl AlerterJobs {
             self.stake_rewards_config,
             self.throttle.clone(),
             self.stream_producer.clone(),
+            self.subscription_lookup.clone(),
         )
     }
 }
@@ -118,12 +121,12 @@ impl FiatJobs {
 
 #[derive(Clone)]
 pub struct PerpetualJobs {
-    database: Database,
     addresses: Arc<dyn PerpetualAddressCacher>,
     config: Arc<ConfigCacher>,
     providers: Arc<ChainProviders>,
     classifier_config: PerpetualPositionClassifierConfig,
     stream_producer: Arc<dyn StreamProducerQueue>,
+    subscription_lookup: Arc<SubscriptionLookup>,
 }
 
 impl PerpetualJobs {
@@ -136,7 +139,7 @@ impl PerpetualJobs {
     }
 
     pub fn address_refresher(&self) -> PerpetualAddressRefresher {
-        PerpetualAddressRefresher::new(self.providers.clone(), Arc::new(crate::perpetuals::repository::PostgresRepository::new(self.database.clone())), self.addresses.clone())
+        PerpetualAddressRefresher::new(self.providers.clone(), self.subscription_lookup.clone(), self.addresses.clone())
     }
 }
 
@@ -351,9 +354,10 @@ impl TransactionJobs {
 impl Services {
     pub async fn alerter_jobs(&self, stream_producer: StreamProducer) -> Result<AlerterJobs, Box<dyn Error + Send + Sync>> {
         let config = self.config();
+        let cacher = self.cacher().await?;
         Ok(AlerterJobs {
             database: self.database(),
-            throttle: Arc::new(self.cacher().await?),
+            throttle: Arc::new(cacher.clone()),
             price_alert_client: self.price_alerts(),
             chain_providers: Arc::new(self.chain_providers(&service_user_agent("daemon", Some("stake_rewards")))),
             stake_rewards_config: StakeRewardsConfig {
@@ -362,6 +366,7 @@ impl Services {
             },
             config,
             stream_producer: Arc::new(stream_producer),
+            subscription_lookup: self.subscription_lookup(cacher),
         })
     }
 
@@ -389,9 +394,9 @@ impl Services {
 
     pub async fn perpetual_jobs(&self, stream_producer: StreamProducer) -> Result<PerpetualJobs, Box<dyn Error + Send + Sync>> {
         let config = self.config();
+        let cacher = self.cacher().await?;
         Ok(PerpetualJobs {
-            database: self.database(),
-            addresses: Arc::new(self.cacher().await?),
+            addresses: Arc::new(cacher.clone()),
             providers: Arc::new(self.chain_providers(&service_user_agent("daemon", Some("perpetual_observer")))),
             classifier_config: PerpetualPositionClassifierConfig {
                 trigger_bps: config.get_i64(ConfigKey::PerpetualPriorityTriggerBps).await?,
@@ -400,6 +405,7 @@ impl Services {
             },
             config,
             stream_producer: Arc::new(stream_producer),
+            subscription_lookup: self.subscription_lookup(cacher),
         })
     }
 

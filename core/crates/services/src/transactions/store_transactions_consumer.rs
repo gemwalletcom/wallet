@@ -15,6 +15,7 @@ use super::SwapVaultAddressClient;
 use super::repository::Repository;
 use crate::config::ConfigCacher;
 use crate::notifications::Pusher;
+use crate::subscriptions::SubscriptionLookup;
 
 const CROSS_CHAIN_SOURCE_TYPES: [TransactionType; 3] = [TransactionType::Transfer, TransactionType::SmartContractCall, TransactionType::Swap];
 
@@ -24,6 +25,7 @@ pub struct StoreTransactionsConsumer {
     pub pusher: Pusher,
     pub config: Arc<ConfigCacher>,
     pub vault_client: SwapVaultAddressClient,
+    pub(crate) subscription_lookup: Arc<SubscriptionLookup>,
 }
 
 #[async_trait]
@@ -103,7 +105,7 @@ impl StoreTransactionsConsumer {
 
     async fn get_subscriptions(&self, chain: Chain, transactions: &[Transaction]) -> Result<Vec<DeviceSubscription>, Box<dyn Error + Send + Sync>> {
         let addresses: Vec<_> = transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
-        Ok(self.repository.subscriptions_for_addresses(chain, addresses).await?)
+        self.subscription_lookup.get(chain, addresses).await
     }
 
     fn subscribed_transactions_for_storage(
