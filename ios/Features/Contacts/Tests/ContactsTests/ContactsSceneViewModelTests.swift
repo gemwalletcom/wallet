@@ -34,10 +34,18 @@ struct ContactsSceneViewModelTests {
     }
 
     @Test
+    func noContactsShowsTheContactsEmptyState() {
+        let model = ContactsSceneViewModel.mock()
+
+        #expect(model.list.phase == .empty(state: emptyState(kind: .contacts)))
+    }
+
+    @Test
     func aRowReadsItsTitleAndSubtitleFromCore() {
         let model = ContactsSceneViewModel.mock()
         model.query.value = [.mock(contact: .mock(name: "Satoshi"), addresses: [.mock()])]
 
-        #expect(model.items.map(\.listItem.title) == ["Satoshi"])
+        #expect(model.items(model.list).map(\.listItem.title) == ["Satoshi"])
+        #expect(model.list.phase == .rows)
     }
 }
