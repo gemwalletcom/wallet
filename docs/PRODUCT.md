@@ -24,38 +24,104 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 Both apps write every number the same way. The examples are in US English and US dollars; separators and where the currency symbol goes follow the user's locale.
 
-**Money**
+### Money
 
-| When | Expected | Why |
+Fees, prices, balances and every other value in money. Money always shows its cents, so it never reads `$0.9`, and it is rounded to the nearest.
+
+| Value | Shows as | Rule |
 |---|---|---|
-| A value of $0.99 or more: a fee, a price, a balance's value | two places: `$1,234.50`, `$12.30`, `$1.00` | |
-| A value under $0.99 | at least two places, up to four significant digits: `$0.90`, `$0.50`, `$0.1235`, `$0.0039`, `$0.00000783` | money always shows its cents, so it never reads `$0.9`; a small price keeps the digits that tell it apart from zero |
-| A value of zero, or under $0.0000000001 | `$0.00` | |
-| A value with more digits than it shows | rounded to the nearest: `$1.89999` reads `$1.90` | |
-| A gain or a loss | with its sign: `+$5.00`, `-$1.20`, `+$0.90` | |
-| A price or value in a list row: the wallet's assets, an asset list, stake, perpetual markets | as above, and under $0.0001 `<$0.0001` | a row has no room for `$0.00000783` |
-| The wallet total and its gain or loss, a Buy or Sell amount, a perpetual's margin, the medium and large price widgets | always two places: `$1,234.56`, `$0.90`, and `$0.00` under half a cent | a total or a payment is counted in cents |
-| Market cap, fully diluted valuation, trading volume, the small price widget | from $100,000 shortened: `$1.24M`, `$2.45B`; under it as above: `$99,999.00` | |
+| 1234.5 | `$1,234.50` | two places from $0.99 |
+| 1 | `$1.00` | |
+| 1.89999 | `$1.90` | rounded to the nearest |
+| 0.9 | `$0.90` | under $0.99, at least two places |
+| 0.5 | `$0.50` | |
+| 0.1235 | `$0.1235` | and up to four significant digits |
+| 0.0039 | `$0.0039` | |
+| 0.00000783 | `$0.00000783` | |
+| 0 | `$0.00` | also anything under $0.0000000001 |
+| 5 | `+$5.00` | a gain or a loss shows its sign |
+| -1.2 | `-$1.20` | |
 
-**Amounts**
+**In list rows:** the wallet's assets, asset lists, stake and perpetual markets. A row has no room for `$0.00000783`.
 
-| When | Expected | Why |
+| Value | Shows as | Rule |
 |---|---|---|
-| An amount of 1 or more | up to two places, without trailing zeros: `5.2 ATOM`, `1 ATOM`, `1,239,999 ATOM` | an amount is not money; `5.20 ATOM` adds nothing |
-| An amount under 1 | up to four significant digits: `0.1992 ATOM`, `0.09999 ATOM`, `0.00000546 ATOM` | |
-| An amount with more digits than it shows | cut, never rounded up: `0.099999 ATOM` reads `0.09999 ATOM` | the wallet never shows more than the user has |
-| A balance change or an approval amount on Confirm | every digit: `1,234.567891 ETH`, `0.000021 ETH` | the user sees exactly what they sign |
-| An amount in a list row: the wallet's assets, activity, stake, supply | from 0.1 up to two places: `5.2 BTC`, `0.5 BTC`; under 0.1 up to four places: `0.0345 BTC`; under 0.0001 `<0.0001 BTC`; from 100,000 shortened: `267.12K BTC` | a row has room for a short number only |
+| 0.0345 | `$0.0345` | as above |
+| 0.00000783 | `<$0.0001` | under $0.0001 |
 
-**Percentages and other numbers**
+**Totals and payments:** the wallet total and its gain or loss, Buy and Sell amounts, a perpetual's margin, and the medium and large price widgets. They are counted in cents.
 
-| When | Expected | Why |
+| Value | Shows as | Rule |
 |---|---|---|
-| A change, a gain or a loss: price change, profit and loss, funding rate | two places with its sign: `+2.50%`, `-2.00%` | |
-| A rate: APR, slippage | two places: `5.00%`, `12.50%`, `0.08%` | |
-| A preset the user picks, such as a price alert step | up to two places: `5%`, `2.5%` | |
-| A gas price in Gwei, an exchange rate, a chart candle's price | two places from 0.99: `24.00`, `3,456.79`; under it up to four significant digits: `0.1235`, `0.0008382` | |
-| Leverage | up to two places: `5x`, `2.5x` | |
+| 1234.56 | `$1,234.56` | always two places |
+| 0.9 | `$0.90` | |
+| 0.004 | `$0.00` | |
+
+**Large values:** market cap, fully diluted valuation, trading volume and the small price widget.
+
+| Value | Shows as | Rule |
+|---|---|---|
+| 1235999 | `$1.24M` | shortened from $100,000 |
+| 2450000000 | `$2.45B` | |
+| 99999 | `$99,999.00` | under it, as money |
+
+### Amounts
+
+Coin and token amounts. An amount is cut, never rounded up, so the wallet never shows more than the user has. It drops trailing zeros: an amount is not money, and `5.20 ATOM` adds nothing.
+
+| Value | Shows as | Rule |
+|---|---|---|
+| 1239999 | `1,239,999 ATOM` | from 1, up to two places |
+| 5.205516 | `5.2 ATOM` | |
+| 1 | `1 ATOM` | |
+| 0.1992 | `0.1992 ATOM` | under 1, up to four significant digits |
+| 0.099999 | `0.09999 ATOM` | cut, not rounded up |
+| 0.00000546 | `0.00000546 ATOM` | |
+
+**Exact:** balance changes and approval amounts on Confirm, so the user sees exactly what they sign.
+
+| Value | Shows as | Rule |
+|---|---|---|
+| 1234.567891 | `1,234.567891 ETH` | every digit |
+| 0.000021 | `0.000021 ETH` | |
+
+**In list rows:** the wallet's assets, activity, stake and supply.
+
+| Value | Shows as | Rule |
+|---|---|---|
+| 267123.456 | `267.12K BTC` | shortened from 100,000 |
+| 5.205516 | `5.2 BTC` | from 0.1, up to two places |
+| 0.0345678 | `0.0345 BTC` | under 0.1, up to four places |
+| 0.00001 | `<0.0001 BTC` | under 0.0001 |
+
+### Percentages
+
+| Value | Shows as | Used for |
+|---|---|---|
+| 2.5 | `+2.50%` | a change: price change, profit and loss, funding rate |
+| -2 | `-2.00%` | |
+| 5 | `5.00%` | a rate: APR, slippage |
+| 0.08 | `0.08%` | |
+| 5 | `5%` | a preset the user picks, such as a price alert step |
+| 2.5 | `2.5%` | |
+
+### Other numbers
+
+**Gas prices in Gwei, exchange rates and chart candle prices**
+
+| Value | Shows as | Rule |
+|---|---|---|
+| 3456.789 | `3,456.79` | two places from 0.99 |
+| 24 | `24.00` | |
+| 0.123456789 | `0.1235` | under 0.99, up to four significant digits |
+| 0.000838216 | `0.0008382` | |
+
+**Leverage**
+
+| Value | Shows as | Rule |
+|---|---|---|
+| 5 | `5x` | up to two places |
+| 2.5 | `2.5x` | |
 
 ## Asset logos
 
