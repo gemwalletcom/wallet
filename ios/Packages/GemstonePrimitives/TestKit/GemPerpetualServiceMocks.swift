@@ -96,6 +96,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public var connectionFailures = 0
     public var connectionGate: (@Sendable (Gemstone.Wallet) async -> Void)?
     public private(set) var connectionCount = 0
+    public var depositTargetValue: Gemstone.GemPerpetualDepositTarget = .selectAsset
     private var updatedAt: Int64?
 
     public init(marketsUpdatedAt: Int64? = nil) {
@@ -140,6 +141,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     private func syncCurrentPositions() async throws {
         syncPositionsCount += 1
+    }
+
+    public func depositTarget() async throws -> Gemstone.GemPerpetualDepositTarget {
+        depositTargetValue
     }
 
     public func refresh(trigger: Gemstone.GemMarketsRefreshTrigger) async -> [Gemstone.GemPerpetualRefreshFailure] {

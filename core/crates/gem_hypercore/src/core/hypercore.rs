@@ -74,6 +74,11 @@ pub fn send_spot_token_to_address_typed_data(spot_send: SpotSend) -> Result<Stri
     spot_send_typed_data(spot_send)
 }
 
+pub fn usd_class_transfer_typed_data(usd_class_transfer: UsdClassTransfer) -> Result<String, String> {
+    let action_value = serde_json::to_value(&usd_class_transfer).map_err(|error| error.to_string())?;
+    eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:UsdClassTransfer", eip712::usd_class_transfer_types())
+}
+
 // User signed payload
 pub fn c_deposit_typed_data(c_deposit: CDeposit) -> Result<String, String> {
     let action_value = serde_json::to_value(&c_deposit).map_err(|error| error.to_string())?;

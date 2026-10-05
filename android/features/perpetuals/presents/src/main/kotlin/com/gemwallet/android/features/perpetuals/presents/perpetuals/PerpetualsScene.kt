@@ -130,7 +130,7 @@ internal fun PerpetualsScene(
                                 ) {
                                     AssetHeadActions(balanceHeader.actions ?: return@ValueListHead) { action ->
                                         when (action) {
-                                            is GemHeaderButtonAction.Deposit -> onAction(PerpetualsAction.Deposit(action.asset.toPrimitives().id))
+                                            GemHeaderButtonAction.Deposit -> onAction(PerpetualsAction.Deposit)
 
                                             is GemHeaderButtonAction.Withdraw -> onAction(PerpetualsAction.Withdraw(action.asset.toPrimitives().id))
 

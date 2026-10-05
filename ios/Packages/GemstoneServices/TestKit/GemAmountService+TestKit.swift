@@ -8,13 +8,14 @@ import class Gemstone.GemConfigService
 import class Gemstone.GemNameService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemStaticApiClient
+import class Gemstone.GemWalletSessionService
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import NativeProviderService
 import StoreTestKit
 
 public extension GemAmountService {
-    static func mock() -> GemAmountService {
+    static func mock(session: GemWalletSessionService = .mock()) -> GemAmountService {
         let preferences = GemPreferencesService(store: GemPreferencesStoreMock())
         return GemAmountService(
             stake: GatewayService.mock().stakeService(
@@ -28,7 +29,7 @@ public extension GemAmountService {
                 config: GemConfigService(api: GemApiClient(provider: StubAlienProvider()), preferences: preferences),
             ),
             preferences: preferences,
-            session: .mock(),
+            session: session,
         )
     }
 }

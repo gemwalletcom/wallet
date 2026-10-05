@@ -711,7 +711,7 @@ pub enum GemHeaderButtonAction {
     Receive { asset_id: Option<AssetId> },
     Buy { asset_id: Option<AssetId> },
     Swap { pay_asset_id: Option<AssetId>, receive_asset_id: Option<AssetId> },
-    Deposit { asset: Asset },
+    Deposit,
     Withdraw { asset: Asset },
     SendCollectible,
     CollectibleMenu,
@@ -724,7 +724,7 @@ impl GemHeaderButtonAction {
             Self::Receive { .. } => GemHeaderButtonKind::Receive,
             Self::Buy { .. } => GemHeaderButtonKind::Buy,
             Self::Swap { .. } => GemHeaderButtonKind::Swap,
-            Self::Deposit { .. } => GemHeaderButtonKind::Deposit,
+            Self::Deposit => GemHeaderButtonKind::Deposit,
             Self::Withdraw { .. } => GemHeaderButtonKind::Withdraw,
             Self::CollectibleMenu => GemHeaderButtonKind::More,
         }

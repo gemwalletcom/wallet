@@ -16,6 +16,7 @@ public extension PerpetualsSceneViewModel {
         wallet: Wallet = .mock(),
         onSelectAmount: ((AmountInput) -> Void)? = nil,
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
+        onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
             wallet: wallet,
@@ -23,6 +24,7 @@ public extension PerpetualsSceneViewModel {
             observerService: PerpetualObserverMock(),
             recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),
             onSelectAmount: onSelectAmount,
+            onSelectAssetType: onSelectAssetType,
         )
     }
 }

@@ -32,6 +32,8 @@ import com.gemwallet.android.ui.navigation.routes.ChartRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualDepositSelectRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.RewardsRoute
@@ -488,6 +490,21 @@ class WalletNavigatorTest {
             ),
             navigator.backStack.toList(),
         )
+    }
+
+    @Test
+    fun popConfirmFlow_popsPerpetualDepositFlowToPerpetuals() {
+        val navigator = navigatorWith(
+            WalletRootRoute,
+            PerpetualsRoute,
+            PerpetualDepositSelectRoute,
+            AmountRoute("amount"),
+            ConfirmTransferRoute("confirm"),
+        )
+
+        navigator.popConfirmFlow()
+
+        assertEquals(listOf(WalletRootRoute, PerpetualsRoute), navigator.backStack.toList())
     }
 
     @Test

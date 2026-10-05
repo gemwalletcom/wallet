@@ -26,6 +26,9 @@ pub enum ExchangeAction {
         wei: u64,
         is_undelegate: bool,
     },
+    UsdClassTransfer {
+        to_perp: bool,
+    },
     #[serde(other)]
     Other,
 }
@@ -34,7 +37,7 @@ impl ExchangeAction {
     pub fn places_orders(&self) -> bool {
         match self {
             Self::Order => true,
-            Self::CDeposit { .. } | Self::CWithdraw { .. } | Self::TokenDelegate { .. } | Self::Other => false,
+            Self::CDeposit { .. } | Self::CWithdraw { .. } | Self::TokenDelegate { .. } | Self::UsdClassTransfer { .. } | Self::Other => false,
         }
     }
 }

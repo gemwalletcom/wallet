@@ -3,8 +3,8 @@ use std::str::FromStr;
 
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::{
-    Asset, AssetBasic, AssetData, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, BalanceMetadata, BannerEvent, BlockExplorerLink, Chain, ChainAsset, ConfigVersions, Currency, PerpetualProvider, PriceAlert,
-    StakeChain, VerificationStatus, Wallet, WalletType,
+    Asset, AssetBasic, AssetData, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, BalanceMetadata, BannerEvent, BlockExplorerLink, Chain, ChainAsset, ConfigVersions, Currency, PerpetualAccountMode,
+    PerpetualProvider, PriceAlert, StakeChain, VerificationStatus, Wallet, WalletType,
 };
 
 use super::model::{
@@ -36,7 +36,6 @@ use crate::services::price::rules::has_price;
 use crate::services::price_alert::rules::{displayed_price_alert_ids, price_alert_toggle};
 use crate::services::swap::GemSwapPairSuggestion;
 use number_formatter::CryptoFiatConverter;
-use swapper::AssetList as SwapAssetList;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use crate::services::collections::{missing_by, unique, unique_by};
@@ -341,7 +340,7 @@ fn select_asset_section(select_type: &GemSelectAssetType) -> GemSelectAssetSecti
     }
 }
 
-pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: Option<SwapAssetList>) -> GemSelectAssetFlow {
+pub fn select_asset_flow(select_type: GemSelectAssetType, assets: Option<GemAssetFilter>) -> GemSelectAssetFlow {
     let style = |shows_symbol: bool, subtitle: GemAssetSubtitleStyle, trailing: GemAssetTrailingStyle| GemAssetRowStyle {
         title: GemAssetTitleStyle::CanonicalAsset,
         shows_symbol,
@@ -410,7 +409,7 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
                 recents: true,
                 ..flow(GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive))
             },
-            swap_receive_assets.map(GemAssetFilter::from),
+            assets,
         ),
         GemSelectAssetType::Payment { asset_ids } => with_filter(flow(GemSelectRowAction::Select, None), Some(GemAssetFilter::asset_ids(asset_ids))),
         GemSelectAssetType::Manage => with_filter(
@@ -436,8 +435,11 @@ pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: O
             Some(GemAssetFilter::Enabled),
         ),
         GemSelectAssetType::Deposit => with_filter(
-            flow(GemSelectRowAction::Navigate, None),
-            Some(GemAssetFilter::asset_ids(vec![GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset().id])),
+            GemSelectAssetFlow {
+                filters: vec![GemAssetFilter::HasAvailableBalance],
+                ..flow(GemSelectRowAction::Navigate, None)
+            },
+            Some(assets.unwrap_or_else(|| GemAssetFilter::asset_ids(GemPerpetual::new(PerpetualProvider::Hypercore).deposit_assets(PerpetualAccountMode::Unified).into_iter().map(|asset| asset.id).collect()))),
         ),
         GemSelectAssetType::Withdraw => with_filter(
             GemSelectAssetFlow {
@@ -1044,6 +1046,7 @@ mod tests {
     use crate::services::assets::model::GemHeaderButtonKind;
     use crate::services::price_alert::rules::GemPriceAlertToggle;
     use crate::services::search::GemSearchScope;
+    use swapper::AssetList as SwapAssetList;
 
     #[test]
     fn test_each_select_flow_decides_its_row_action_and_recent_activity() {
@@ -1162,10 +1165,13 @@ mod tests {
             rows(GemSelectAssetType::Deposit),
             (
                 GemSelectAssetScope::Wallet,
-                vec![GemAssetFilter::ChainsOrAssetIds {
-                    chains: Vec::new(),
-                    asset_ids: vec![AssetId::from_token(Chain::Arbitrum, "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")]
-                }]
+                vec![
+                    GemAssetFilter::HasAvailableBalance,
+                    GemAssetFilter::ChainsOrAssetIds {
+                        chains: Vec::new(),
+                        asset_ids: vec![AssetId::from_token(Chain::Arbitrum, "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")]
+                    }
+                ]
             )
         );
         assert_eq!(
@@ -1190,7 +1196,7 @@ mod tests {
             asset_ids: vec![AssetId::from_token(Chain::SmartChain, "0x123")],
         };
 
-        let flow = select_asset_flow(GemSelectAssetType::SwapReceive { pay_asset_id: Some(pay_asset_id) }, Some(universe.clone()));
+        let flow = select_asset_flow(GemSelectAssetType::SwapReceive { pay_asset_id: Some(pay_asset_id) }, Some(GemAssetFilter::from(universe.clone())));
 
         assert_eq!(
             flow.filters,

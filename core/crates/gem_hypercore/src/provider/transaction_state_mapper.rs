@@ -156,14 +156,14 @@ fn ledger_match_delta(update: &LedgerUpdate, action_id: &HyperCoreActionId, nonc
                     action_history_time_delta(update.time, nonce)
                 }
             }
-            HyperCoreActionId::Order(_) | HyperCoreActionId::CDeposit { .. } | HyperCoreActionId::CWithdraw { .. } | HyperCoreActionId::TokenDelegate { .. } => None,
+            HyperCoreActionId::Order(_) | HyperCoreActionId::CDeposit { .. } | HyperCoreActionId::CWithdraw { .. } | HyperCoreActionId::TokenDelegate { .. } | HyperCoreActionId::UsdClassTransfer { .. } => None,
         },
         LedgerDelta::CStakingTransfer { token, amount, is_deposit } => {
             let (wei, expected_deposit) = match action_id {
                 HyperCoreActionId::CDeposit { wei, .. } => (*wei, true),
                 HyperCoreActionId::CWithdraw { wei, .. } => (*wei, false),
                 HyperCoreActionId::TokenDelegate { wei, is_undelegate, .. } => (*wei, !*is_undelegate),
-                HyperCoreActionId::Nonce(_) | HyperCoreActionId::Order(_) => return None,
+                HyperCoreActionId::Nonce(_) | HyperCoreActionId::Order(_) | HyperCoreActionId::UsdClassTransfer { .. } => return None,
             };
 
             if token != HYPERCORE_HYPE.symbol.as_str() || *is_deposit != expected_deposit {
@@ -172,6 +172,10 @@ fn ledger_match_delta(update: &LedgerUpdate, action_id: &HyperCoreActionId, nonc
 
             action_history_time_delta(update.time, nonce).filter(|_| amount_matches_wei(amount, wei))
         }
+        LedgerDelta::AccountClassTransfer { to_perp } => match action_id {
+            HyperCoreActionId::UsdClassTransfer { to_perp: expected_to_perp, .. } => action_history_time_delta(update.time, nonce).filter(|_| to_perp == expected_to_perp),
+            HyperCoreActionId::Nonce(_) | HyperCoreActionId::Order(_) | HyperCoreActionId::CDeposit { .. } | HyperCoreActionId::CWithdraw { .. } | HyperCoreActionId::TokenDelegate { .. } => None,
+        },
         LedgerDelta::Send { .. } | LedgerDelta::SpotTransfer { .. } | LedgerDelta::Other => None,
     }
 }
@@ -432,6 +436,29 @@ mod tests {
             map_transaction_state_action(updates, staking_action, "action:cDeposit:9000000:1777960893092".to_string()),
             TransactionUpdate::new_state(TransactionState::Pending)
         );
+    }
+
+    #[test]
+    fn test_map_transaction_state_action_confirms_usd_class_transfer() {
+        let updates: Vec<LedgerUpdate> = serde_json::from_str(include_str!("../../testdata/user_non_funding_ledger_updates_account_class_transfer.json")).unwrap();
+        let request_id = "action:usdClassTransfer:perp:1740542456000".to_string();
+
+        assert_eq!(
+            map_transaction_state_action(updates.clone(), HyperCoreActionId::UsdClassTransfer { to_perp: true, nonce: 1740542456000 }, request_id.clone()),
+            TransactionUpdate::new(
+                TransactionState::Confirmed,
+                vec![TransactionChange::HashChange {
+                    old: request_id,
+                    new: "0xc8a08ea1c51e64e7d78f041e7b05cd01c900bb6536fcf01776376153482be9e5".to_string(),
+                }]
+            )
+        );
+        for action_id in [HyperCoreActionId::UsdClassTransfer { to_perp: false, nonce: 1740542456000 }, HyperCoreActionId::Nonce(1740542456000)] {
+            assert_eq!(
+                map_transaction_state_action(updates.clone(), action_id, "action:1740542456000".to_string()),
+                TransactionUpdate::new_state(TransactionState::Pending)
+            );
+        }
     }
 
     #[test]

@@ -15,11 +15,11 @@ flowchart LR
 5. Confirm shows the position ("Long 5x"), the size, the price with `2%` slippage, and the take profit and stop loss prices.
 6. After a position is opened, closed, increased, reduced or modified, a message confirms what was done ("Open Long", "Close position").
 7. A position shows its PnL with percent, Auto Close, Size, Entry Price, Liquidation price, Margin and Funding Payments; Modify increases or reduces it.
-8. Deposit moves USDC from the wallet's Arbitrum account, at least `5 USDC`; Withdraw moves the withdrawable balance back, at least `2 USDC`, plus Hyperliquid's `1 USDC` network fee.
+8. Deposit moves USDC from the wallet's Arbitrum account, at least `5 USDC`, or, on a standard Hyperliquid account, from its HyperCore spot USDC; Withdraw moves the withdrawable balance back, at least `2 USDC`, plus Hyperliquid's `1 USDC` network fee.
 
 ```mermaid
 flowchart LR
-    A[Perpetual balance] --> B[Deposit from the wallet's Arbitrum USDC] --> C[Confirm] --> D[Available balance]
+    A[Perpetual balance] --> B[Deposit from the wallet's Arbitrum USDC or HyperCore spot USDC] --> C[Confirm] --> D[Available balance]
     A --> E[Withdraw the withdrawable balance] --> C
 ```
 
@@ -49,6 +49,9 @@ flowchart LR
 | A position has paid funding | Funding Payments shows it as a negative cost, for a long and a short alike | a short must see when funding costs money, the same as on Hyperliquid |
 | The user withdraws | the amount is what arrives on Arbitrum, the Network Fee shows Hyperliquid's `1 USDC`, and Max leaves the fee out | Hyperliquid takes the fee out of every withdrawal, so the screen shows what actually arrives |
 | The wallet's currency is not dollars | every perpetual value is still in dollars | the collateral is USDC |
+| The user taps Deposit on a standard Hyperliquid account | a choice between the Arbitrum USDC and the HyperCore spot USDC when both hold USDC, otherwise straight to the amount of the one that does, even when it is not in the wallet list | spot and perpetual balances are separate there, spot USDC often arrives from outside the wallet, and a choice of one is no choice |
+| The user taps Deposit on a unified Hyperliquid account | straight to the Arbitrum USDC amount | the spot USDC already is the perpetual balance |
+| The user taps Deposit with no USDC to deposit | straight to the Arbitrum USDC amount, which shows the zero balance | the Arbitrum USDC deposits on every account |
 | A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen | one rule decides which screen an asset opens, for both apps |
 
 Pinching and touching the chart follow the shared [Charts](../PRODUCT.md#charts) section.

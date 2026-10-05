@@ -97,7 +97,8 @@ impl ChainTransactionSigner {
         let transaction_type = input.input_type.transaction_type();
         match &input.input.input_type {
             TransactionInputType::Withdrawal { .. } => self.one(input, private_key, transaction_type, "withdrawal", |signer, i, key| signer.sign_withdrawal(i, key)),
-            TransactionInputType::Transfer { asset } | TransactionInputType::Deposit { asset } => {
+            TransactionInputType::Deposit { .. } => self.one(input, private_key, transaction_type, "deposit", |signer, i, key| signer.sign_deposit(i, key)),
+            TransactionInputType::Transfer { asset } => {
                 if asset.id.is_token() {
                     self.one(input, private_key, transaction_type, "token transfer", |signer, i, key| signer.sign_token_transfer(i, key))
                 } else {
@@ -235,7 +236,9 @@ fn unsupported_error(chain: Chain, action: &str) -> GemstoneError {
 mod tests {
     use super::*;
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
-    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_PRIVATE_KEY};
+    use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
+    use primitives::known_assets::HYPERCORE_SPOT_USDC;
+    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS};
     use primitives::{
         ApplicationMetadata, DelegationValidator, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputType, contract_call_data::ContractCallData, nft::NFTAsset,
     };
@@ -333,6 +336,9 @@ mod tests {
 
         let token: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer { asset: Asset::mock_erc20() }, "1000000", 65000).into();
         assert_eq!(sign_one(token.clone()), signed(vec![signer.sign_token_transfer(token, key.clone()).unwrap()], TransactionType::Transfer));
+
+        let deposit: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Deposit { asset: Asset::mock_erc20() }, "5000000", 65000).into();
+        assert_eq!(sign_one(deposit.clone()), signed(vec![signer.sign_token_transfer(deposit, key.clone()).unwrap()], TransactionType::Transfer));
 
         // TokenApprove must route to sign_token_approval, not sign_token_transfer (the resolved iOS divergence).
         let approve: GemSignerInput = SignerInput::mock_evm(
@@ -461,6 +467,23 @@ mod tests {
         let withdrawal: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Withdrawal { asset: Asset::mock() }, "0", 21000).into();
         let crossed: SignerInput = withdrawal.into();
         assert!(matches!(crossed.input.input_type, TransactionInputType::Withdrawal { .. }), "a withdrawal keeps its variant across the FFI model");
+    }
+
+    #[test]
+    fn test_sign_input_hypercore_deposit() {
+        let input: GemSignerInput = SignerInput::mock_with_input_type(
+            TransactionInputType::Deposit { asset: HYPERCORE_SPOT_USDC.clone() },
+            TEST_PRIVATE_KEY_ETHEREUM_ADDRESS,
+            HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS,
+            "150000000",
+            TransactionLoadMetadata::Hyperliquid { order: None },
+        )
+        .into();
+
+        let transactions = ChainTransactionSigner::new(Chain::HyperCore).sign_input(input, Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap();
+        let request: serde_json::Value = serde_json::from_str(&transactions[0].data).unwrap();
+
+        assert_eq!(request["action"]["type"], "usdClassTransfer", "a HyperCore deposit never signs a spotSend to the bridge address");
     }
 
     #[test]
