@@ -442,9 +442,12 @@
   <string name="lock_privacy_lock">Zámek soukromí</string>
   <string name="lock_footer">Chraňte přístup k této aplikaci na svém zařízení</string>
   <string name="lock_passcode">Přístupový kód</string>
+  <string name="lock_passcode_off_title">Kód zařízení je vypnutý</string>
+  <string name="lock_passcode_off_description">Gem je zamčený kódem zařízení. Abyste Gem otevřeli, zapněte kód v nastavení zařízení. Vaše peněženky jsou v bezpečí.</string>
   <string name="verify_phrase_title">Potvrdit</string>
   <string name="warnings_externally_controlled_account">Tento účet %1$s může ovládat někdo jiný. Neposílejte na něj prostředky, pokud si nejste jisti, že ho ovládáte vy, jinak můžete o svá aktiva trvale přijít.</string>
   <string name="sell_title">Prodat %1$s</string>
+  <string name="info_region_unavailable_description">Tato funkce není ve vašem regionu k dispozici. Dostupnost závisí na místních pravidlech a požadavcích poskytovatelů.</string>
   <string name="info_network_fee_title">Síťový poplatek</string>
   <string name="info_watch_wallet_title">Sledovaná peněženka</string>
   <string name="info_watch_wallet_description">Peněženka, ke které nemáte přístup, ale můžete sledovat její transakce a pohyby.</string>

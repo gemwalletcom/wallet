@@ -4,6 +4,7 @@ import Components
 import Gemstone
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import Localization
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
@@ -100,7 +101,7 @@ struct PerpetualSceneViewModelTests {
         model.onSelectButton(.long)
 
         #expect(actions.isEmpty)
-        #expect(model.isPresentingAlertMessage?.message == "no margin")
+        #expect(model.isPresentingInfoSheet?.description == "no margin")
     }
 
     @Test
@@ -112,7 +113,7 @@ struct PerpetualSceneViewModelTests {
         model.onSelectButton(.close)
 
         #expect(transfers.count == 1)
-        #expect(model.isPresentingAlertMessage == nil)
+        #expect(model.isPresentingInfoSheet == nil)
     }
 
     @Test
@@ -125,7 +126,7 @@ struct PerpetualSceneViewModelTests {
         model.onSelectButton(.close)
 
         #expect(transfers.isEmpty)
-        #expect(model.isPresentingAlertMessage?.message == "position is gone")
+        #expect(model.isPresentingInfoSheet?.description == "position is gone")
     }
 
     @Test
@@ -164,6 +165,40 @@ struct PerpetualSceneViewModelTests {
 
         await model.load()
 
-        #expect(model.isPresentingAlertMessage == nil)
+        #expect(model.isPresentingInfoSheet == nil)
+    }
+
+    @Test(arguments: [GemPerpetualButton.long, .short, .modify, .increase, .reduce])
+    func unavailablePerpetualsStopsPositionActions(button: GemPerpetualButton) {
+        let service = GemPerpetualDetailsServiceMock()
+        service.isAvailableValue = false
+        let model = PerpetualSceneViewModel.mock(service: service)
+
+        #expect(model.isPresentingInfoSheet == nil)
+        model.onSelectButton(button)
+        #expect(service.positionKinds.isEmpty)
+        #expect(model.isPresentingModifyAlert != true)
+        #expect(model.isPresentingInfoSheet?.description == Localized.Info.regionUnavailableDescription)
+
+        model.isPresentingInfoSheet = nil
+        service.isAvailableValue = true
+        model.onSelectButton(button)
+        #expect(service.positionKinds.count == (button == .modify ? 0 : 1))
+        #expect((model.isPresentingModifyAlert == true) == (button == .modify))
+        #expect(model.isPresentingInfoSheet == nil)
+    }
+
+    @Test
+    func unavailablePerpetualsKeepsCloseAvailable() {
+        let service = GemPerpetualDetailsServiceMock()
+        service.isAvailableValue = false
+        var transfers: [GemTransferData] = []
+        let model = PerpetualSceneViewModel.mock(service: service, onTransferData: { transfers.append($0) })
+
+        model.onSelectButton(.close)
+
+        #expect(service.positionKinds.isEmpty)
+        #expect(transfers.count == 1)
+        #expect(model.isPresentingInfoSheet == nil)
     }
 }

@@ -52,6 +52,18 @@ public class LockSceneViewModel {
         state == .lockedCanceled
     }
 
+    var isPasscodeOff: Bool {
+        state == .passcodeOff
+    }
+
+    var passcodeOffTitle: String {
+        Localized.Lock.passcodeOffTitle
+    }
+
+    var passcodeOffDescription: String {
+        Localized.Lock.passcodeOffDescription
+    }
+
     var shouldLock: Bool {
         guard let backgroundedAt else { return false }
         return service.shouldRelock(elapsedMilliseconds: (ContinuousClock.now - backgroundedAt).milliseconds)
@@ -75,7 +87,7 @@ public class LockSceneViewModel {
         if isPrivacyLockEnabled {
             return state != .unlocked || showPlaceholderPreview
         } else {
-            return state == .locked || state == .lockedCanceled || shouldLock
+            return state == .locked || state == .lockedCanceled || state == .passcodeOff || shouldLock
         }
     }
 }
@@ -105,7 +117,7 @@ extension LockSceneViewModel {
             if case let .unlocking(attempt) = state, attempt.isInvalidated {
                 state = .locked
             }
-            if state == .locked {
+            if state == .locked || state == .passcodeOff {
                 startUnlock()
             }
         case .inactive:
@@ -122,9 +134,13 @@ extension LockSceneViewModel {
             return attempt.task
         case .unlocked:
             return nil
-        case .locked, .lockedCanceled:
+        case .locked, .lockedCanceled, .passcodeOff:
             guard isAutoLockEnabled else {
                 resetLockState()
+                return nil
+            }
+            guard service.isPasscodeSet else {
+                state = .passcodeOff
                 return nil
             }
             let context = LAContext()

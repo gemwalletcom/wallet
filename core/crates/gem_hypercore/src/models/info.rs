@@ -3,6 +3,7 @@ use serde::Serialize;
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase", rename_all_fields = "camelCase")]
 pub enum InfoRequest {
+    AllMids,
     ValidatorSummaries,
     Delegations {
         user: String,

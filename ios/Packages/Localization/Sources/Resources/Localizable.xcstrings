@@ -44504,6 +44504,197 @@
         }
       }
     },
+    "info.region_unavailable_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذه الميزة غير متاحة في منطقتك. يعتمد التوفر على القواعد المحلية ومتطلبات مزودي الخدمة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই বৈশিষ্ট্যটি আপনার অঞ্চলে উপলব্ধ নয়। উপলব্ধতা স্থানীয় নিয়ম এবং পরিষেবা প্রদানকারীর শর্তের ওপর নির্ভর করে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tato funkce není ve vašem regionu k dispozici. Dostupnost závisí na místních pravidlech a požadavcích poskytovatelů."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne funktion er ikke tilgængelig i din region. Tilgængelighed afhænger af lokale regler og udbydernes krav."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Funktion ist in deiner Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This feature is not available in your region. Availability depends on local rules and provider requirements."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta función no está disponible en tu región. La disponibilidad depende de las normas locales y de los requisitos de los proveedores."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "این قابلیت در منطقه شما در دسترس نیست. دسترسی به قوانین محلی و الزامات ارائه‌دهندگان بستگی دارد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi available ang feature na ito sa iyong rehiyon. Nakadepende ang availability sa mga lokal na patakaran at mga kinakailangan ng mga provider."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette fonctionnalité n’est pas disponible dans votre région. La disponibilité dépend des règles locales et des exigences des prestataires."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wannan fasalin ba ya samuwa a yankinku. Samuwarsa ya dogara da dokokin yankin da ka’idojin masu samar da sabis."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תכונה זו אינה זמינה באזור שלך. הזמינות תלויה בכללים המקומיים ובדרישות של ספקי השירות."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह सुविधा आपके क्षेत्र में उपलब्ध नहीं है। उपलब्धता स्थानीय नियमों और सेवा प्रदाताओं की आवश्यकताओं पर निर्भर करती है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fitur ini tidak tersedia di wilayah Anda. Ketersediaan bergantung pada aturan setempat dan persyaratan penyedia."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa funzione non è disponibile nella tua regione. La disponibilità dipende dalle norme locali e dai requisiti dei fornitori."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この機能はお住まいの地域では利用できません。 利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기능은 회원님의 지역에서 사용할 수 없습니다. 이용 가능 여부는 지역 규정과 서비스 제공업체의 요건에 따라 달라집니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciri ini tidak tersedia di rantau anda. Ketersediaan bergantung pada peraturan setempat dan syarat penyedia."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze functie is niet beschikbaar in je regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta funkcja nie jest dostępna w Twoim regionie. Dostępność zależy od lokalnych przepisów i wymagań dostawców."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este recurso não está disponível na sua região. A disponibilidade depende das regras locais e dos requisitos dos provedores."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Această funcție nu este disponibilă în regiunea ta. Disponibilitatea depinde de regulile locale și de cerințele furnizorilor."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эта функция недоступна в вашем регионе. Доступность зависит от местных правил и требований провайдеров."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kipengele hiki hakipatikani katika eneo lako. Upatikanaji hutegemea kanuni za eneo na masharti ya watoa huduma."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ฟีเจอร์นี้ไม่พร้อมให้บริการในภูมิภาคของคุณ ความพร้อมให้บริการขึ้นอยู่กับกฎในท้องถิ่นและข้อกำหนดของผู้ให้บริการ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu özellik bölgenizde kullanılamıyor. Kullanılabilirlik, yerel kurallara ve sağlayıcıların gereksinimlerine bağlıdır."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ця функція недоступна у вашому регіоні. Доступність залежить від місцевих правил і вимог провайдерів."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یہ خصوصیت آپ کے علاقے میں دستیاب نہیں ہے۔ دستیابی مقامی قواعد اور سروس فراہم کرنے والوں کی ضروریات پر منحصر ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tính năng này không khả dụng ở khu vực của bạn. Khả năng sử dụng phụ thuộc vào quy định địa phương và yêu cầu của nhà cung cấp."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此功能在您所在的地区不可用。 可用性取决于当地规定和服务提供商的要求。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此功能在您所在的地區無法使用。 可用性取決於當地規定和服務提供者的要求。"
+          }
+        }
+      }
+    },
     "info.slippage.description": {
       "extractionState": "manual",
       "localizations": {
@@ -48702,6 +48893,388 @@
           "stringUnit": {
             "state": "translated",
             "value": "密碼"
+          }
+        }
+      }
+    },
+    "lock.passcode_off_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem مقفل برمز مرور جهازك. فعّل رمز المرور من إعدادات جهازك لفتح Gem. محافظك آمنة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem আপনার ডিভাইসের পাসকোড দিয়ে লক করা। Gem খুলতে ডিভাইসের সেটিংসে পাসকোড চালু করুন। আপনার ওয়ালেটগুলো নিরাপদ আছে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem je zamčený kódem zařízení. Abyste Gem otevřeli, zapněte kód v nastavení zařízení. Vaše peněženky jsou v bezpečí."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine wallets er i sikkerhed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem ist mit dem Code Ihres Geräts gesperrt. Aktivieren Sie einen Code in den Geräteeinstellungen, um Gem zu öffnen. Ihre Wallets sind sicher."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem está bloqueado con el código de su dispositivo. Active un código en los ajustes del dispositivo para abrir Gem. Sus billeteras están a salvo."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem با رمز عبور دستگاه شما قفل شده است. برای باز کردن Gem، رمز عبور را در تنظیمات دستگاه روشن کنید. کیف پول‌های شما امن هستند."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naka-lock ang Gem gamit ang passcode ng iyong device. I-on ang passcode sa mga setting ng device para mabuksan ang Gem. Ligtas ang iyong mga wallet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem est verrouillé par le code de votre appareil. Activez un code dans les réglages de l'appareil pour ouvrir Gem. Vos portefeuilles sont en sécurité."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An kulle Gem da lambar sirrin na'urarka. Kunna lambar sirri a cikin saitunan na'urar don buɗe Gem. Walat ɗinka suna cikin aminci."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem נעול באמצעות קוד הגישה של המכשיר. הפעל קוד גישה בהגדרות המכשיר כדי לפתוח את Gem. הארנקים שלך בטוחים."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem आपके डिवाइस पासकोड से लॉक है। Gem खोलने के लिए डिवाइस सेटिंग्स में पासकोड चालू करें। आपके वॉलेट सुरक्षित हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem dikunci dengan kode sandi perangkat Anda. Aktifkan kode sandi di pengaturan perangkat untuk membuka Gem. Dompet Anda aman."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi wallet sono al sicuro."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem はデバイスのパスコードでロックされています。Gem を開くには、デバイスの設定でパスコードをオンにしてください。ウォレットは安全です。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem은 기기 암호로 잠겨 있습니다. Gem을 열려면 기기 설정에서 암호를 켜세요. 지갑은 안전합니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem dikunci dengan kod laluan peranti anda. Hidupkan kod laluan dalam tetapan peranti untuk membuka Gem. Dompet anda selamat."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem is vergrendeld met de toegangscode van je apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Je portemonnees zijn veilig."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem jest zablokowany kodem urządzenia. Włącz kod w ustawieniach urządzenia, aby otworzyć Gem. Twoje portfele są bezpieczne."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Gem está bloqueado com o código do seu dispositivo. Ative um código nos ajustes do dispositivo para abrir o Gem. Suas carteiras estão seguras."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem este blocat cu codul dispozitivului. Activați un cod din setările dispozitivului pentru a deschide Gem. Portofelele dvs. sunt în siguranță."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem защищён паролем устройства. Включите пароль в настройках устройства, чтобы открыть Gem. Ваши кошельки в безопасности."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem imefungwa kwa nambari ya siri ya kifaa chako. Washa nambari ya siri kwenye mipangilio ya kifaa ili kufungua Gem. Pochi zako ziko salama."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem ถูกล็อกด้วยรหัสผ่านอุปกรณ์ของคุณ เปิดรหัสผ่านในการตั้งค่าอุปกรณ์เพื่อเปิด Gem กระเป๋าเงินของคุณปลอดภัย"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem, cihazınızın parolasıyla kilitli. Gem'i açmak için cihaz ayarlarından bir parola açın. Cüzdanlarınız güvende."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem захищено паролем пристрою. Увімкніть пароль у налаштуваннях пристрою, щоб відкрити Gem. Ваші гаманці в безпеці."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem آپ کی ڈیوائس کے پاس کوڈ سے لاک ہے۔ Gem کھولنے کے لیے ڈیوائس کی ترتیبات میں پاس کوڈ آن کریں۔ آپ کے والیٹس محفوظ ہیں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem được khóa bằng mật mã thiết bị của bạn. Hãy bật mật mã trong cài đặt thiết bị để mở Gem. Ví của bạn vẫn an toàn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。钱包仍然安全。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。錢包仍然安全。"
+          }
+        }
+      }
+    },
+    "lock.passcode_off_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "رمز مرور الجهاز متوقف"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডিভাইসের পাসকোড বন্ধ আছে"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kód zařízení je vypnutý"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enhedens adgangskode er slået fra"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerätecode ist deaktiviert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device passcode is off"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El código del dispositivo está desactivado"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "رمز عبور دستگاه خاموش است"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naka-off ang passcode ng device"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le code de l'appareil est désactivé"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An kashe lambar sirrin na'ura"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "קוד הגישה של המכשיר כבוי"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिवाइस पासकोड बंद है"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kode sandi perangkat nonaktif"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il codice del dispositivo è disattivato"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスのパスコードがオフです"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기기 암호가 꺼져 있습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kod laluan peranti dimatikan"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toegangscode van apparaat staat uit"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kod urządzenia jest wyłączony"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O código do dispositivo está desativado"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codul dispozitivului este dezactivat"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пароль устройства отключён"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nambari ya siri ya kifaa imezimwa"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รหัสผ่านอุปกรณ์ปิดอยู่"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cihaz parolası kapalı"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пароль пристрою вимкнено"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ڈیوائس کا پاس کوڈ بند ہے"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mật mã thiết bị đang tắt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备密码已关闭"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置密碼已關閉"
           }
         }
       }

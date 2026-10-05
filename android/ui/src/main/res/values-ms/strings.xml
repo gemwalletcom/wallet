@@ -442,9 +442,12 @@
   <string name="lock_privacy_lock">Kunci Privasi</string>
   <string name="lock_footer">Lindungi akses kepada apl ini pada peranti anda</string>
   <string name="lock_passcode">Kod Laluan</string>
+  <string name="lock_passcode_off_title">Kod laluan peranti dimatikan</string>
+  <string name="lock_passcode_off_description">Gem dikunci dengan kod laluan peranti anda. Hidupkan kod laluan dalam tetapan peranti untuk membuka Gem. Dompet anda selamat.</string>
   <string name="verify_phrase_title">Sahkan</string>
   <string name="warnings_externally_controlled_account">Akaun %1$s ini mungkin dikawal oleh orang lain. Jangan hantar dana ke akaun ini melainkan anda pasti anda yang mengawalnya, atau anda mungkin kehilangan aset anda secara kekal.</string>
   <string name="sell_title">Jual %1$s</string>
+  <string name="info_region_unavailable_description">Ciri ini tidak tersedia di rantau anda. Ketersediaan bergantung pada peraturan setempat dan syarat penyedia.</string>
   <string name="info_network_fee_title">Yuran Rangkaian</string>
   <string name="info_watch_wallet_title">Tonton Wallet</string>
   <string name="info_watch_wallet_description">Dompet yang anda tidak mempunyai akses, tetapi anda boleh menonton transaksi dan pergerakannya.</string>

@@ -39,7 +39,9 @@ public struct SignMessageScene: View {
 
             if model.hasPayloadFields {
                 Section {
-                    SimulationPayloadFieldsContent(models: model.fieldModels(for: model.primaryPayloadFields))
+                    ForEach(Array(model.primaryPayloadFields.enumerated()), id: \.offset) {
+                        GemListRowView(row: $0.element, onSelectAddress: model.onSelectPayloadAddress)
+                    }
 
                     if !model.secondaryPayloadFields.isEmpty {
                         NavigationCustomLink(with: ListItemView(model: model.payloadDetailsListItem)) {

@@ -55,11 +55,13 @@ public struct CollectionsScene: View {
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if let error = model.loadError(screen) {
+            switch screen.phase {
+            case .rows: EmptyView()
+            case let .error(error):
                 ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                     .padding(.horizontal, .medium)
-            } else if !screen.hasContent {
-                EmptyContentView(model: model.emptyContentModel)
+            case let .empty(state):
+                EmptyContentView(model: model.emptyContentModel(state))
             }
         }
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }

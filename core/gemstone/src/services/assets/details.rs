@@ -96,13 +96,13 @@ impl GemAssetDetailsService {
         }
     }
 
-    pub async fn refresh(&self, asset_id: AssetId, has_transactions: bool) -> GemAssetRefresh {
+    pub async fn refresh(&self, asset_id: AssetId) -> GemAssetRefresh {
         let mut failures = Vec::new();
         let wallet_id = match self.session.current_wallet_id() {
             Ok(wallet_id) => wallet_id,
             Err(error) => {
                 return GemAssetRefresh {
-                    transactions: GemLoadState::refreshed(Err(error.clone()), has_transactions),
+                    transactions: GemLoadState::Error { error: error.clone() },
                     failures: vec![GemAssetRefreshFailure::new(GemAssetRefreshStep::UpdateBalances, error.to_string())],
                 };
             }
@@ -120,7 +120,7 @@ impl GemAssetDetailsService {
         record_result(&mut failures, GemAssetRefreshStep::UpdateBalances, balances);
         record_result(&mut failures, GemAssetRefreshStep::SyncTransactions, transactions.clone());
         GemAssetRefresh {
-            transactions: GemLoadState::refreshed(transactions, has_transactions),
+            transactions: GemLoadState::of(&transactions),
             failures,
         }
     }
@@ -220,7 +220,7 @@ mod tests {
         block_on(async {
             let testkit = AssetDetailsTestkit::with_status(503);
 
-            let refresh = testkit.service.refresh(Chain::Ethereum.as_asset_id(), false).await;
+            let refresh = testkit.service.refresh(Chain::Ethereum.as_asset_id()).await;
             let failures = refresh.failures;
 
             let steps: Vec<GemAssetRefreshStep> = failures.iter().map(|failure| failure.step).collect();
@@ -228,12 +228,7 @@ mod tests {
             assert!(steps.contains(&GemAssetRefreshStep::SyncPriceAlerts), "{failures:?}");
             assert!(steps.contains(&GemAssetRefreshStep::UpdateBalances), "{failures:?}");
             assert!(steps.contains(&GemAssetRefreshStep::SyncTransactions), "{failures:?}");
-            assert!(matches!(refresh.transactions, GemLoadState::Error { .. }), "a failed sync with nothing stored shows the error");
-            assert_eq!(
-                testkit.service.refresh(Chain::Ethereum.as_asset_id(), true).await.transactions,
-                GemLoadState::Data,
-                "a failed sync keeps the transactions already shown"
-            );
+            assert!(matches!(refresh.transactions, GemLoadState::Error { .. }), "the list phase decides whether stored rows hide the failure");
         })
     }
 
@@ -243,7 +238,7 @@ mod tests {
             let testkit = AssetDetailsTestkit::with_status(503);
             testkit.discovery.session.set_current_wallet_id(None).unwrap();
 
-            let failures = testkit.service.refresh(Chain::Ethereum.as_asset_id(), true).await.failures;
+            let failures = testkit.service.refresh(Chain::Ethereum.as_asset_id()).await.failures;
 
             assert_eq!(failures.len(), 1);
             assert_eq!(failures[0].step, GemAssetRefreshStep::UpdateBalances);
@@ -257,7 +252,7 @@ mod tests {
             let asset = serde_json::to_string(&primitives::AssetFull::mock()).unwrap();
             let testkit = AssetDetailsTestkit::with_bodies(200, &[("assets/", &asset)]);
 
-            let failures = testkit.service.refresh(Chain::Ethereum.as_asset_id(), true).await.failures;
+            let failures = testkit.service.refresh(Chain::Ethereum.as_asset_id()).await.failures;
 
             let steps: Vec<GemAssetRefreshStep> = failures.iter().map(|failure| failure.step).collect();
             assert!(!steps.contains(&GemAssetRefreshStep::SyncAsset), "{failures:?}");

@@ -148,9 +148,7 @@ impl GemWalletService {
     }
 
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
-        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet {} not found", wallet_id.id()),
-        })?;
+        let wallet = self.wallet(wallet_id.clone()).await?;
         if wallet.wallet_type != WalletType::View {
             self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?;
         }
@@ -172,9 +170,7 @@ impl GemWalletService {
     }
 
     pub async fn export_secret(&self, wallet_id: WalletId) -> Result<GemWalletSecret, GemServiceError> {
-        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet {} not found", wallet_id.id()),
-        })?;
+        let wallet = self.wallet(wallet_id.clone()).await?;
         let keystore_id = keystore_id_for_wallet(wallet.id.id());
         let password = decode_password(&self.password.get_password(false)?);
         match rules::secret_export(&wallet) {
@@ -246,11 +242,15 @@ impl GemWalletService {
         if name.trim().is_empty() {
             return Ok(());
         }
-        let wallet = self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
-            msg: format!("wallet {} not found", wallet_id.id()),
-        })?;
+        let wallet = self.wallet(wallet_id.clone()).await?;
         self.store.set_name(wallet_id, name.clone()).await?;
         self.names.save_names(rules::wallet_address_names(&Wallet { name, ..wallet })).await
+    }
+
+    pub async fn wallet(&self, wallet_id: WalletId) -> Result<Wallet, GemServiceError> {
+        self.store.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound {
+            msg: format!("wallet {} not found", wallet_id.id()),
+        })
     }
 
     pub async fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {

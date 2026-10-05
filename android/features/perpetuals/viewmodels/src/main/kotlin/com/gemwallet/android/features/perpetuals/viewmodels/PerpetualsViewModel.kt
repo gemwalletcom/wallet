@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetAction
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualMarketCounts
 import uniffi.gemstone.GemPerpetualMarketSection
@@ -70,10 +71,20 @@ class PerpetualsViewModel @Inject constructor(
     private val observeRefreshInterval: ObserveRefreshInterval,
 ) : ViewModel() {
 
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
+
     private val session = MutableStateFlow(GemPerpetualMarketSession(query = "", isSearching = false))
 
     val isSearching: StateFlow<Boolean> = session.map { it.isSearching }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    fun deposit(onDeposit: () -> Unit) {
+        if (!service.isAvailable()) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return
+        }
+        onDeposit()
+    }
 
     fun setSearching(searching: Boolean) {
         session.update { it.onSearchingChanged(searching) }

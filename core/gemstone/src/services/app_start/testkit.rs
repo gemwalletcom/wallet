@@ -55,7 +55,6 @@ impl AppStartTestkit {
             Arc::new(GemDeviceService::new(
                 device_api.clone(),
                 Arc::new(GemSubscriptionService::new(device_api.clone(), discovery.session.clone())),
-                discovery.session.clone(),
                 Arc::new(MemoryDevicePlatform),
                 preferences,
             )),

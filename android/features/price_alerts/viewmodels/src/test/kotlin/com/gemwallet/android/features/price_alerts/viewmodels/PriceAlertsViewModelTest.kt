@@ -26,6 +26,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPriceAlertService
@@ -108,6 +109,20 @@ class PriceAlertsViewModelTest {
         }
     }
 
+    @Test
+    fun `a failed refresh with no alerts shows the error instead of the empty state`() = runTest {
+        val service = service(enabled = true)
+        coEvery { service.refresh(any()) } returns GemLoadState.Error(GemServiceException.Gateway("offline"))
+        listOf(null, assetId).forEach { assetId ->
+            val viewModel = viewModel(service, assetId)
+            try {
+                assertEquals("offline", ((viewModel.phase.first { it != null } as GemListPhase.Error).error as GemServiceException.Gateway).msg)
+            } finally {
+                viewModel.viewModelScope.cancel()
+            }
+        }
+    }
+
     private fun viewModel(service: GemPriceAlertService, assetId: AssetId? = null) = PriceAlertsViewModel(
         priceAlertsQuery = mockk<PriceAlertsQuery> {
             every { this@mockk(any()) } returns flowOf(emptyList())
@@ -130,7 +145,7 @@ class PriceAlertsViewModelTest {
                 state = firstArg()
                 Unit
             }
-            coEvery { refresh(any(), any()) } returns GemLoadState.Data
+            coEvery { refresh(any()) } returns GemLoadState.Data
         }
     }
 }

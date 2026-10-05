@@ -5,9 +5,11 @@ edition = { workspace = true }
 
 [dependencies]
 blake2b_simd = { workspace = true }
-hex = { workspace = true }
 hmac = { workspace = true }
 ripemd = { workspace = true }
 sha2 = { workspace = true }
 sha3 = { workspace = true }
 zeroize = { workspace = true }
+
+[dev-dependencies]
+hex = { workspace = true }

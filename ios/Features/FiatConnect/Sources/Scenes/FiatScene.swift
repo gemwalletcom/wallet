@@ -1,6 +1,7 @@
 import Components
 import struct Gemstone.GemFiatViewState
 import GemstonePrimitives
+import InfoSheet
 import Primitives
 import PrimitivesComponents
 import Store
@@ -31,7 +32,7 @@ struct FiatScene: View {
             StateButton(
                 text: viewState.buttonAction.title,
                 type: .primary(viewState.buttonState.state),
-                action: model.onSelectContinue,
+                action: { Task { await model.onSelectContinue() } },
             )
         }
         .contentMargins([.top], .zero, for: .scrollContent)
@@ -43,7 +44,7 @@ struct FiatScene: View {
         .onTimer(every: GemConstants.fiatQuoteRefreshInterval.timeInterval, id: model.loadTrigger) {
             await model.refreshQuotes()
         }
-        .alertSheet($model.isPresentingAlertMessage)
+        .sheet(item: $model.isPresentingInfoSheet) { InfoSheetScene(model: $0) }
     }
 }
 

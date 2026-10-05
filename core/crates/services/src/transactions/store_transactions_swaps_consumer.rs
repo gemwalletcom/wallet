@@ -6,11 +6,12 @@ use chrono::{Duration, NaiveDateTime};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{AssetId, DAY, PriceData, SwapProvider, Transaction, TransactionId, TransactionType, swap::SwapStatus};
-use storage::{AssetsRepository, Database, DatabaseError, PricesRepository, TransactionSwapRecord, TransactionsRepository, TransactionsSwapsRepository};
+use storage::TransactionSwapRecord;
 use streamer::consumer::MessageConsumer;
 
 use crate::ConfigCacher;
 use crate::transactions::StoreTransactionsSwapsConsumerConfig;
+use crate::transactions::repository::{AssetPriceHistory, Repository};
 
 struct AssetValue {
     amount: f64,
@@ -19,13 +20,13 @@ struct AssetValue {
 }
 
 pub struct StoreTransactionsSwapsConsumer {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: Arc<ConfigCacher>,
 }
 
 impl StoreTransactionsSwapsConsumer {
-    pub fn new(database: Database, config: Arc<ConfigCacher>) -> Self {
-        Self { database, config }
+    pub(crate) fn new(repository: Arc<dyn Repository>, config: Arc<ConfigCacher>) -> Self {
+        Self { repository, config }
     }
 
     async fn swap_record(&self, config: &StoreTransactionsSwapsConsumerConfig, transaction: &Transaction) -> Result<Option<TransactionSwapRecord>, Box<dyn Error + Send + Sync>> {
@@ -65,11 +66,7 @@ impl StoreTransactionsSwapsConsumer {
     }
 
     async fn asset_value(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<AssetValue, Box<dyn Error + Send + Sync>> {
-        let lookup_id = asset_id.clone();
-        let (assets, price, prices) = self
-            .database
-            .run(move |client| Ok::<_, DatabaseError>((client.get_assets_basic(vec![lookup_id.clone()])?, client.get_price_at(&lookup_id, at)?, client.get_prices_for_asset(&lookup_id)?)))
-            .await?;
+        let AssetPriceHistory { assets, price_at: price, prices } = self.repository.asset_price_history(asset_id.clone(), at).await?;
         let asset = assets.into_iter().next().ok_or_else(|| format!("asset {asset_id} not found"))?;
         let amount = BigNumberFormatter::value_as_f64(&value.to_string(), asset.asset.decimals as u32)?;
         let max_age = Duration::from_std(DAY)?;
@@ -86,13 +83,12 @@ impl MessageConsumer<TransactionId, usize> for StoreTransactionsSwapsConsumer {
     }
 
     async fn consume(&self, payload: TransactionId) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let id = payload.clone();
-        let transaction = self.database.run(move |client| client.get_transaction_by_id(&id, vec![])).await?;
+        let transaction = self.repository.transaction(payload.clone()).await?;
         let config = StoreTransactionsSwapsConsumerConfig::read(&self.config).await?;
         let Some(record) = self.swap_record(&config, &transaction).await? else {
             return Ok(0);
         };
-        Ok(self.database.run(move |client| client.upsert_transaction_swap(&payload, record)).await?)
+        Ok(self.repository.upsert_transaction_swap(payload, record).await?)
     }
 }
 

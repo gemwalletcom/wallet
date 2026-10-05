@@ -78,7 +78,7 @@ extension StakeScene {
                 .enabled(false)
         case let .open(destination):
             NavigationCustomLink(with: GemListRowView(row: item.row)) {
-                model.onSelect(destination: destination)
+                model.onSelect(kind: item.kind, destination: destination)
             }
         }
     }

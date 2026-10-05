@@ -1,7 +1,7 @@
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
-use crate::PlatformStore;
+use crate::{Features, PlatformStore};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -9,6 +9,7 @@ pub struct ConfigResponse {
     pub releases: Vec<Release>,
     pub versions: ConfigVersions,
     pub swap: SwapConfig,
+    pub features: Features,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

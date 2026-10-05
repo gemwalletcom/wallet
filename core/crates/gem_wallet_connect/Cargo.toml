@@ -7,7 +7,6 @@ version = { workspace = true }
 testkit = []
 
 [dependencies]
-num-bigint = { workspace = true }
 primitives = { path = "../primitives" }
 gem_evm = { path = "../gem_evm" }
 gem_solana = { path = "../gem_solana" }
@@ -21,5 +20,6 @@ url = { workspace = true }
 
 [dev-dependencies]
 bs58 = { workspace = true }
+num-bigint = { workspace = true }
 primitives = { path = "../primitives", features = ["testkit"] }
 gem_evm = { path = "../gem_evm", features = ["testkit"] }

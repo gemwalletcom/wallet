@@ -18,9 +18,10 @@ public struct TransactionsScene: View {
     @Environment(\.connectionStatus) private var connectionStatus
 
     public var body: some View {
+        let phase = model.phase
         VStack {
             List {
-                if let error = model.loadError {
+                if case let .error(error) = phase {
                     Section {
                         ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                     }
@@ -36,8 +37,8 @@ public struct TransactionsScene: View {
         }
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .overlay {
-            if model.sections.isEmpty, model.loadError == nil {
-                EmptyContentView(model: model.emptyContentModel)
+            if case let .empty(state) = phase {
+                EmptyContentView(model: model.emptyContentModel(state))
                     .padding(.horizontal, .medium)
             }
         }

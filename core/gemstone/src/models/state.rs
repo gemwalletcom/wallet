@@ -1,3 +1,4 @@
+use crate::services::empty_state::GemEmptyState;
 use crate::services::error::GemServiceError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -49,11 +50,28 @@ impl<T: Clone + Default> GemLoad<T> {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemListPhase {
+    Rows,
+    Empty { state: GemEmptyState },
+    Error { error: GemServiceError },
+}
+
 #[uniffi::export]
 pub fn load_error(state: GemLoadState, has_rows: bool) -> Option<GemServiceError> {
     match state {
         GemLoadState::Error { error } if !has_rows => Some(error),
         _ => None,
+    }
+}
+
+impl GemListPhase {
+    pub fn new(state: GemLoadState, has_rows: bool, empty: GemEmptyState) -> Self {
+        match (has_rows, state) {
+            (true, _) => Self::Rows,
+            (false, GemLoadState::Error { error }) => Self::Error { error },
+            (false, GemLoadState::NoData | GemLoadState::Loading | GemLoadState::Data) => Self::Empty { state: empty },
+        }
     }
 }
 
@@ -87,6 +105,7 @@ impl GemLoadState {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 
     #[test]
     fn test_data_keeps_the_value_the_screen_already_shows() {
@@ -111,13 +130,18 @@ mod tests {
     }
 
     #[test]
-    fn test_only_a_screen_with_nothing_to_show_reports_its_failure() {
+    fn test_only_a_list_with_nothing_to_show_reports_its_failure() {
         let error = GemServiceError::Gateway { msg: "offline".to_string() };
+        let empty = empty_state(GemEmptyStateKind::Activity);
 
-        assert_eq!(load_error(GemLoadState::Error { error: error.clone() }, false), Some(error.clone()));
-        assert_eq!(load_error(GemLoadState::Error { error }, true), None, "rows on screen stand in for the error");
-        assert_eq!(load_error(GemLoadState::Loading, false), None);
-        assert_eq!(load_error(GemLoadState::Data, false), None);
+        assert_eq!(GemListPhase::new(GemLoadState::Error { error: error.clone() }, false, empty.clone()), GemListPhase::Error { error: error.clone() });
+        assert_eq!(GemListPhase::new(GemLoadState::Error { error }, true, empty.clone()), GemListPhase::Rows, "rows on screen stand in for the error");
+        assert_eq!(
+            GemListPhase::new(GemLoadState::Loading, false, empty.clone()),
+            GemListPhase::Empty { state: empty.clone() },
+            "a first load shows the empty state, not a spinner"
+        );
+        assert_eq!(GemListPhase::new(GemLoadState::Data, false, empty.clone()), GemListPhase::Empty { state: empty });
     }
 
     #[test]

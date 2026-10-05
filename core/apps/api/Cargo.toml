@@ -3,9 +3,6 @@ name = "api"
 edition = { workspace = true }
 version = { workspace = true }
 
-[lib]
-path = "src/lib.rs"
-
 [dependencies]
 num-bigint = { workspace = true }
 rocket = { workspace = true }

@@ -535,6 +535,8 @@ lock_unlock = Buɗe
 lock_privacy_lock = Kulle Sirri
 lock_footer = Kare damar shiga wannan app akan na'urarka
 lock_passcode = Lambar wucewa
+lock_passcode_off_title = An kashe lambar sirrin na'ura
+lock_passcode_off_description = An kulle Gem da lambar sirrin na'urarka. Kunna lambar sirri a cikin saitunan na'urar don buɗe Gem. Walat ɗinka suna cikin aminci.
 
 # Verify
 
@@ -549,6 +551,8 @@ warnings_externally_controlled_account = Wani na iya sarrafa wannan asusun %@. K
 sell_title = Saya %@
 
 # Info
+
+info_region_unavailable_description = Wannan fasalin ba ya samuwa a yankinku. Samuwarsa ya dogara da dokokin yankin da ka’idojin masu samar da sabis.
 
 info_network_fee_title = Kudin hanyar sadarwa
 info_watch_wallet_title = Kalli Wallet

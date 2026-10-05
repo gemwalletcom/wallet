@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockGemWalletRow
-import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -46,18 +45,19 @@ class WalletsViewModelTest {
     }
 
     @Test
-    fun `a pin toggles the wallet Core listed`() = runTest(dispatcher) {
+    fun `a pin flips the pinned state the row carries`() = runTest(dispatcher) {
         val pinned = mockGemWalletRow(id = "pinned", name = "Pinned", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin, isPinned = true)
-        wallets.value = listOf(GemWalletSection(GemWalletSectionKind.PINNED, listOf(pinned)))
+        val unpinned = mockGemWalletRow(id = "unpinned", name = "Unpinned", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin)
+        wallets.value = listOf(GemWalletSection(GemWalletSectionKind.PINNED, listOf(pinned)), GemWalletSection(GemWalletSectionKind.WALLETS, listOf(unpinned)))
         val service: GemWalletServiceInterface = mockk(relaxed = true)
         val model = viewModel(service)
 
-        model.togglePin(WalletId("pinned")).join()
-        model.togglePin(WalletId("gone")).join()
+        model.togglePin(pinned).join()
+        model.togglePin(unpinned).join()
 
         assertEquals(wallets.value, model.sections.value)
         coVerify(exactly = 1) { service.setPinned("pinned", false) }
-        coVerify(exactly = 0) { service.setPinned("gone", any()) }
+        coVerify(exactly = 1) { service.setPinned("unpinned", true) }
     }
 
     @Test
@@ -66,7 +66,7 @@ class WalletsViewModelTest {
         val onSelected = mockk<() -> Unit>(relaxed = true)
         val model = viewModel(service)
 
-        model.selectWallet(WalletId("second"), onSelected).join()
+        model.selectWallet(mockGemWalletRow(id = "second"), onSelected).join()
 
         verifyOrder {
             service.setCurrentWalletId("second")
@@ -81,7 +81,7 @@ class WalletsViewModelTest {
         }
         val onBoard = mockk<() -> Unit>(relaxed = true)
 
-        viewModel(service).deleteWallet(WalletId("wallet-1"), onBoard).join()
+        viewModel(service).deleteWallet(mockGemWalletRow(id = "wallet-1"), onBoard).join()
 
         coVerify(exactly = 1) { service.deleteWallet("wallet-1") }
         verify(exactly = 0) { onBoard() }
@@ -94,7 +94,7 @@ class WalletsViewModelTest {
         }
         val onBoard = mockk<() -> Unit>(relaxed = true)
 
-        viewModel(service).deleteWallet(WalletId("wallet-1"), onBoard).join()
+        viewModel(service).deleteWallet(mockGemWalletRow(id = "wallet-1"), onBoard).join()
 
         verify(exactly = 1) { onBoard() }
     }
@@ -107,7 +107,7 @@ class WalletsViewModelTest {
         val onBoard = mockk<() -> Unit>(relaxed = true)
         val model = viewModel(service)
 
-        model.deleteWallet(WalletId("wallet-1"), onBoard).join()
+        model.deleteWallet(mockGemWalletRow(id = "wallet-1"), onBoard).join()
 
         assertEquals("keystore delete failed", model.error.value)
         verify(exactly = 0) { onBoard() }

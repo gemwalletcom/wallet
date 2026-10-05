@@ -1,8 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import InfoSheet
 
-enum RewardsSheetType: Identifiable, Sendable {
+enum RewardsSheetType: Identifiable {
+    case info(InfoSheetModel)
     case walletSelector
     case share
     case createCode
@@ -11,6 +13,7 @@ enum RewardsSheetType: Identifiable, Sendable {
 
     var id: String {
         switch self {
+        case .info: "info"
         case .walletSelector: "walletSelector"
         case .share: "share"
         case .createCode: "createCode"

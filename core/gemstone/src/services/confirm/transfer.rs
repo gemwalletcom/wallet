@@ -2,11 +2,10 @@ use crate::services::simulation::warning_rows;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet, WalletId};
+use primitives::{Asset, Chain, SimulationResult, Wallet, WalletId};
 
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::GemListRow;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::{GemPaymentError, GemPaymentService};
 use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee, submit_message};
@@ -14,7 +13,6 @@ use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad,
 use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
-use crate::services::perpetual::rules::autoclose_row;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::swap::GemSwapService;
 use crate::services::transfer::rules::TransferInput;
@@ -92,9 +90,6 @@ impl GemConfirmTransferService {
     }
     pub(super) fn authentication(&self) -> GemKeystoreAuthentication {
         self.password.authentication().unwrap_or(GemKeystoreAuthentication::None)
-    }
-    pub(super) fn autoclose_row(&self, data: PerpetualModifyConfirmData) -> Option<GemListRow> {
-        autoclose_row(&data)
     }
     pub(super) fn payment(&self) -> &GemPaymentService {
         &self.payment

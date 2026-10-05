@@ -535,6 +535,8 @@ lock_unlock = ロック解除
 lock_privacy_lock = プライバシーロック
 lock_footer = デバイス上のこのアプリへのアクセスを保護する
 lock_passcode = パスコード
+lock_passcode_off_title = デバイスのパスコードがオフです
+lock_passcode_off_description = Gem はデバイスのパスコードでロックされています。Gem を開くには、デバイスの設定でパスコードをオンにしてください。ウォレットは安全です。
 
 # Verify
 
@@ -549,6 +551,8 @@ warnings_externally_controlled_account = この%@アカウントは他の人が�
 sell_title = %@を売る
 
 # Info
+
+info_region_unavailable_description = この機能はお住まいの地域では利用できません。 利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。
 
 info_network_fee_title = ネットワーク手数料
 info_watch_wallet_title = ウォッチウォレット

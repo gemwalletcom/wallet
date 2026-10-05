@@ -16,11 +16,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemNotificationRow
 import uniffi.gemstone.GemNotificationServiceInterface
-import uniffi.gemstone.loadError
+import uniffi.gemstone.notificationListPhase
 import uniffi.gemstone.notificationRows
 import javax.inject.Inject
 
@@ -35,13 +35,12 @@ class InAppNotificationsViewModel @Inject constructor(getCurrentWalletId: GetCur
         .map { notifications -> notificationRows(notifications.map { it.toGem() }) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val errorRow: StateFlow<GemListRow?> = combine(loadState, notifications) { state, items ->
-        loadError(state, items.isNotEmpty())?.let { GemListRow.Error(it) }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val phase: StateFlow<GemListPhase> = combine(notifications, loadState, ::notificationListPhase)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, notificationListPhase(notifications.value, loadState.value))
 
     init {
         viewModelScope.launch {
-            loadState.update { notificationService.refresh(notifications.value.isNotEmpty()) }
+            loadState.update { notificationService.refresh() }
         }
     }
 }

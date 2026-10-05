@@ -1,11 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
+import InfoSheet
 import Observation
 import Primitives
 import PrimitivesTestKit
@@ -171,7 +173,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func loadTriggerIsImmediate() {
+    func loadTriggerIsImmediate() async {
         let model = SwapSceneViewModel.mock()
 
         model.loadTrigger = nil
@@ -194,28 +196,28 @@ struct SwapSceneViewModelTests {
 
         model.loadTrigger = nil
         model.session = .mock(quotePhase: .failed(request: .mock(), error: .NoQuoteAvailable), input: .mock())
-        model.buttonViewModel.action()
+        await model.onSelectActionButton()
 
         #expect(model.loadTrigger?.isImmediate == true)
 
         model.loadTrigger = nil
         model.session = .mock(quotePhase: .failed(request: .mock(), error: .InputAmountError(minAmount: "1000000000000000000")), input: .mock())
-        model.buttonViewModel.action()
+        await model.onSelectActionButton()
 
         #expect(model.loadTrigger?.isImmediate == true)
     }
 
     @Test
-    func retryQuoteUpdatesLoadTrigger() {
+    func retryQuoteUpdatesLoadTrigger() async {
         let model = SwapSceneViewModel.mock()
 
         model.session = .mock(quotePhase: .failed(request: .mock(), error: .NoQuoteAvailable), input: .mock())
-        model.buttonViewModel.action()
+        await model.onSelectActionButton()
         let firstRetry = model.loadTrigger
         #expect(model.viewState.isQuoteLoading)
 
         model.session = .mock(quotePhase: .failed(request: .mock(), error: .NoQuoteAvailable), input: .mock())
-        model.buttonViewModel.action()
+        await model.onSelectActionButton()
 
         #expect(model.loadTrigger != firstRetry)
     }
@@ -282,5 +284,35 @@ struct SwapSceneViewModelTests {
         await model.onAssetIdsChange(assetIds: model.assetIds)
         #expect(service.priceSubscriptions.count == 2)
         #expect(service.balanceUpdates.count == 2)
+    }
+
+    @Test
+    func unexpectedTransferErrorReleasesLoading() async {
+        let service = GemSwapQuoteServiceMock()
+        service.transferError = AnyError("offline")
+        let model = SwapSceneViewModel.mock(service: service)
+        await model.load()
+
+        await model.onSelectSwapConfirmation()
+
+        #expect(model.viewState.isTransferLoading == false)
+        #expect(model.viewState.buttonAction == .retryTransfer)
+    }
+
+    @Test
+    func unavailableSwapKeepsQuotesAndDoesNotPrepareATransfer() async {
+        let service = GemSwapQuoteServiceMock()
+        service.isAvailableValue = false
+        let model = SwapSceneViewModel.mock(service: service)
+        await model.load()
+        let quote = model.viewState.quote
+        #expect(quote != nil)
+        #expect(model.isPresentingInfoSheet == nil)
+
+        await model.onSelectSwapConfirmation()
+
+        #expect(model.isPresentingInfoSheet?.id == SwapSheetType.info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)).id)
+        #expect(model.viewState.quote == quote)
+        #expect(model.session.transferPhase == .idle)
     }
 }

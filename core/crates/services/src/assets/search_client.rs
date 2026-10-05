@@ -1,34 +1,32 @@
 use std::collections::HashMap;
 use std::error::Error;
+use std::sync::Arc;
 
+use cacher::PriceCacher;
 use primitives::{AssetBasic, AssetId, AssetList, NFTCollection, PerpetualSearchData};
-use search_index::{ASSET_LISTS_INDEX_NAME, ASSETS_INDEX_NAME, AssetListDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient};
+use search_index::SearchProvider;
 
-use super::search_filter::{build_assets_filters, build_filter, build_perpetuals_filters};
 use super::search_request::SearchRequest;
-use crate::prices::PriceClient;
 
 pub struct SearchClient {
-    client: SearchIndexClient,
-    price_client: PriceClient,
+    search: Arc<dyn SearchProvider>,
+    prices: Arc<dyn PriceCacher>,
 }
 
 impl SearchClient {
-    pub fn new(client: SearchIndexClient, price_client: PriceClient) -> Self {
-        Self { client, price_client }
+    pub fn new(search: Arc<dyn SearchProvider>, prices: Arc<dyn PriceCacher>) -> Self {
+        Self { search, prices }
     }
 
     pub async fn get_assets_search(&self, request: &SearchRequest) -> Result<Vec<AssetBasic>, Box<dyn Error + Send + Sync>> {
-        let filters = build_assets_filters(request);
-
-        let assets: Vec<AssetBasic> = self.client.search(ASSETS_INDEX_NAME, &request.query, &build_filter(filters), [].as_ref(), request.limit, request.offset).await?;
+        let assets = self.search.search_assets(&request.search_query(), request.rank_threshold()).await?;
 
         if assets.is_empty() {
             return Ok(vec![]);
         }
 
         let asset_ids: Vec<AssetId> = assets.iter().map(|asset| asset.asset.id.clone()).collect();
-        let prices: HashMap<AssetId, _> = self.price_client.get_cache_prices(asset_ids).await?.into_iter().map(|price| (price.asset_id.clone(), price.as_price_primitive())).collect();
+        let prices: HashMap<AssetId, _> = self.prices.prices(&asset_ids).await?.into_iter().map(|price| (price.asset_id.clone(), price.as_price_primitive())).collect();
 
         Ok(assets
             .into_iter()
@@ -40,22 +38,65 @@ impl SearchClient {
     }
 
     pub async fn get_asset_lists_search(&self, request: &SearchRequest) -> Result<Vec<AssetList>, Box<dyn Error + Send + Sync>> {
-        let lists: Vec<AssetListDocument> = self.client.search(ASSET_LISTS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset).await?;
-
-        Ok(lists.iter().filter_map(|list| list.as_primitive(&request.chains)).collect())
+        self.search.search_asset_lists(&request.search_query()).await
     }
 
     pub async fn get_perpetuals_search(&self, request: &SearchRequest) -> Result<Vec<PerpetualSearchData>, Box<dyn Error + Send + Sync>> {
-        let filters = build_perpetuals_filters(request);
-
-        let perpetuals: Vec<PerpetualDocument> = self.client.search(PERPETUALS_INDEX_NAME, &request.query, &build_filter(filters), [].as_ref(), request.limit, request.offset).await?;
-
-        Ok(perpetuals.into_iter().map(Into::into).collect())
+        self.search.search_perpetuals(&request.search_query()).await
     }
 
     pub async fn get_nfts_search(&self, request: &SearchRequest) -> Result<Vec<NFTCollection>, Box<dyn Error + Send + Sync>> {
-        let nfts: Vec<NFTDocument> = self.client.search(NFTS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset).await?;
+        self.search.search_nfts(&request.search_query()).await
+    }
+}
 
-        Ok(nfts.into_iter().map(|nft| nft.collection).collect())
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use primitives::{Asset, AssetMarket, AssetPriceInfo, Chain, MAX_QUERY_LIMIT, Price, PriceProvider};
+
+    use super::*;
+    use crate::testkit::{MemoryPriceCacher, MemorySearchProvider};
+
+    fn price_info(chain: Chain, price: f64) -> AssetPriceInfo {
+        AssetPriceInfo {
+            asset_id: AssetId::from_chain(chain),
+            price: Price::new(price, 1.0, Utc::now(), PriceProvider::Coingecko),
+            market: AssetMarket::mock(),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_assets_search_adds_cached_prices() {
+        let search = Arc::new(MemorySearchProvider::new(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive(), Asset::from_chain(Chain::Bitcoin).as_basic_primitive()]));
+        let client = SearchClient::new(search.clone(), Arc::new(MemoryPriceCacher::new(vec![price_info(Chain::Ethereum, 2000.0)])));
+        let request = SearchRequest::new("ethereum contract", Some("ethereum"), None, MAX_QUERY_LIMIT, None);
+
+        let assets = client.get_assets_search(&request).await.unwrap();
+
+        assert_eq!(assets.iter().map(|asset| asset.price.map(|price| price.price)).collect::<Vec<_>>(), vec![Some(2000.0), None]);
+        assert_eq!(search.asset_queries(), vec![(request.search_query(), 5)]);
+    }
+
+    #[tokio::test]
+    async fn test_get_assets_search_without_results_skips_prices() {
+        let prices = Arc::new(MemoryPriceCacher::new(vec![]));
+        let client = SearchClient::new(Arc::new(MemorySearchProvider::new(vec![])), prices.clone());
+
+        let assets = client.get_assets_search(&SearchRequest::new("BTC", None, None, MAX_QUERY_LIMIT, None)).await.unwrap();
+
+        assert!(assets.is_empty());
+        assert!(prices.requests().is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_get_assets_search_failure() {
+        let prices = Arc::new(MemoryPriceCacher::new(vec![]));
+        let client = SearchClient::new(Arc::new(MemorySearchProvider::failing("meilisearch unavailable")), prices.clone());
+
+        let error = client.get_assets_search(&SearchRequest::new("BTC", None, None, MAX_QUERY_LIMIT, None)).await.unwrap_err();
+
+        assert_eq!(error.to_string(), "meilisearch unavailable");
+        assert!(prices.requests().is_empty());
     }
 }

@@ -3,8 +3,6 @@
 import Foundation
 import struct Gemstone.ChartCandleStick
 import struct Gemstone.GemCandleChart
-import struct Gemstone.GemFormattedNumber
-import func Gemstone.perpetualChartLevels
 import Style
 
 struct CandlestickPlot {
@@ -38,10 +36,6 @@ struct CandlestickPlot {
 
     var hasVolume: Bool {
         volumeRange.upperBound > 0
-    }
-
-    var levels: [GemFormattedNumber] {
-        perpetualChartLevels(priceLow: priceRange.lowerBound, priceHigh: priceRange.upperBound, currentPrice: chart.layout.currentPrice.value)
     }
 
     var showsCurrentPrice: Bool {

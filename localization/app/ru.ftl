@@ -535,6 +535,8 @@ lock_unlock = Разблокировать
 lock_privacy_lock = Блокировка конфиденциальности
 lock_footer = Защитите доступ к этому приложению на вашем устройстве
 lock_passcode = Пароль
+lock_passcode_off_title = Пароль устройства отключён
+lock_passcode_off_description = Gem защищён паролем устройства. Включите пароль в настройках устройства, чтобы открыть Gem. Ваши кошельки в безопасности.
 
 # Verify
 
@@ -549,6 +551,8 @@ warnings_externally_controlled_account = Этот аккаунт %@ может �
 sell_title = Продать %@
 
 # Info
+
+info_region_unavailable_description = Эта функция недоступна в вашем регионе. Доступность зависит от местных правил и требований провайдеров.
 
 info_network_fee_title = Сетевая плата
 info_watch_wallet_title = Смотреть кошелек

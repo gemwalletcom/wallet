@@ -30,8 +30,8 @@ impl GemRewardsSession {
         }
     }
 
-    pub fn on_select_wallet(&self, row_id: String) -> Self {
-        match self.wallet.as_ref().and_then(|wallet| wallet.selecting(&row_id)) {
+    pub fn on_select_wallet(&self, wallet_id: WalletId) -> Self {
+        match self.wallet.as_ref().and_then(|wallet| wallet.selecting(&wallet_id)) {
             Some(selected) if self.wallet_id().as_ref() != Some(&selected.id) => self.selected(selected),
             _ => self.clone(),
         }
@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_a_result_for_a_wallet_that_is_no_longer_shown_is_dropped() {
-        let shown = opened(&["0x1", "0x2"], None).on_select_wallet(id("0x2").id());
+        let shown = opened(&["0x1", "0x2"], None).on_select_wallet(id("0x2"));
 
         assert_eq!(shown.on_result(loaded("0x1", GemLoadState::Data, Some(invited()))), shown, "the wallet moved on before the answer arrived");
     }
@@ -202,16 +202,16 @@ mod tests {
     fn test_selecting_another_wallet_starts_over_and_reselecting_the_same_one_does_not() {
         let shown = opened(&["0x1", "0x2"], None);
 
-        assert_eq!(shown.on_select_wallet(id("0x1").id()), shown);
-        assert_eq!(shown.on_select_wallet(id("0x3").id()), shown, "a wallet the screen does not offer cannot be chosen");
-        let switched = shown.on_select_wallet(id("0x2").id());
+        assert_eq!(shown.on_select_wallet(id("0x1")), shown);
+        assert_eq!(shown.on_select_wallet(id("0x3")), shown, "a wallet the screen does not offer cannot be chosen");
+        let switched = shown.on_select_wallet(id("0x2"));
         assert_eq!(switched.view_state(now()).state, GemLoadState::Loading);
-        assert_eq!(switched.view_state(now()).wallet.map(|wallet| (wallet.id, wallet.row.id)), Some((id("0x2"), id("0x2").id())));
+        assert_eq!(switched.view_state(now()).wallet.map(|wallet| (wallet.id, wallet.row.id)), Some((id("0x2"), id("0x2"))));
     }
 
     #[test]
     fn test_a_fresh_wallet_list_keeps_the_chosen_wallet_and_its_rewards_without_a_reload() {
-        let chosen = opened(&["0x1", "0x2"], None).on_select_wallet(id("0x2").id()).on_result(loaded("0x2", GemLoadState::Data, Some(invited())));
+        let chosen = opened(&["0x1", "0x2"], None).on_select_wallet(id("0x2")).on_result(loaded("0x2", GemLoadState::Data, Some(invited())));
         let mut renamed = wallets(&["0x1", "0x2"]);
         renamed[1].name = "Renamed".to_string();
 
@@ -290,7 +290,7 @@ mod tests {
 
     #[test]
     fn test_a_code_answer_for_a_wallet_that_is_no_longer_shown_is_dropped() {
-        let shown = opened(&["0x1", "0x2"], None).on_select_wallet(id("0x2").id());
+        let shown = opened(&["0x1", "0x2"], None).on_select_wallet(id("0x2"));
         let used = Rewards {
             used_referral_code: Some("friend".to_string()),
             ..invited()

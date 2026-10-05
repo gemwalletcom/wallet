@@ -30,7 +30,7 @@ impl NumberFormatter {
         Some(Formatter::format(&money, params))
     }
 
-    pub fn percent(&self, value: f64, _locale: &str) -> String {
+    pub fn percent(&self, value: f64) -> String {
         format!("{value:.2}%")
     }
 }
@@ -65,8 +65,8 @@ mod tests {
     #[test]
     fn test_number() {
         let formatter = NumberFormatter::new();
-        assert_eq!(formatter.percent(0.12, "en"), "0.12%");
-        assert_eq!(formatter.percent(-6.12, "en"), "-6.12%");
-        assert_eq!(formatter.percent(129.99, "en"), "129.99%");
+        assert_eq!(formatter.percent(0.12), "0.12%");
+        assert_eq!(formatter.percent(-6.12), "-6.12%");
+        assert_eq!(formatter.percent(129.99), "129.99%");
     }
 }

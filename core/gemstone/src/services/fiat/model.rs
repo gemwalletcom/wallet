@@ -1,5 +1,7 @@
 use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::state::{GemListPhase, GemLoadState};
+use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::swap::GemAssetRate;
 use primitives::{FiatProviderName, FiatQuoteType, FiatTransactionAssetData};
 
@@ -81,4 +83,9 @@ pub struct GemFiatTransactionRow {
 #[uniffi::export]
 pub fn fiat_transaction_rows(data: Vec<FiatTransactionAssetData>) -> Vec<GemFiatTransactionRow> {
     data.iter().map(rules::transaction_row).collect()
+}
+
+#[uniffi::export]
+pub fn fiat_transaction_list_phase(rows: Vec<GemFiatTransactionRow>, state: GemLoadState) -> GemListPhase {
+    GemListPhase::new(state, !rows.is_empty(), empty_state(GemEmptyStateKind::Activity))
 }

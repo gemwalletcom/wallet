@@ -63,14 +63,14 @@ class AssetsResultsViewModel @Inject constructor(
     getSession,
     recentActivityQuery,
     service,
-    selectSearchOf(savedStateHandle, assetsQuery, walletSearchQuery, service),
+    selectSearchOf(savedStateHandle, assetsQuery, walletSearchQuery),
     GemSelectAssetType.WalletSearchResults,
     ioDispatcher,
     context,
 ) {
 
     private val scope: WalletSearchTag = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
-    private val searchKey: String = searchKeyOf(savedStateHandle, service)
+    private val searchKey: String = searchKeyOf(savedStateHandle)
     val title: String = savedStateHandle.get<String?>(RouteArgument.Title.key)
         ?: context.getString(R.string.assets_title)
 
@@ -124,17 +124,15 @@ class AssetsResultsViewModel @Inject constructor(
             }
         }
     }
-
 }
 
-private fun searchKeyOf(savedStateHandle: SavedStateHandle, service: GemAssetSelectionServiceInterface): String {
+private fun searchKeyOf(savedStateHandle: SavedStateHandle): String {
     val query = savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty()
     val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
-    return service.searchKey(query, scope.toGem())
+    return scope.toGem().searchKey(query)
 }
 
-private fun selectSearchOf(savedStateHandle: SavedStateHandle, assetsQuery: AssetsQuery, walletSearchQuery: WalletSearchQuery, service: GemAssetSelectionServiceInterface): SelectSearch =
-    when (walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
-        is WalletSearchTag.List -> ListSelectSearch(walletSearchQuery, searchKeyOf(savedStateHandle, service))
-        WalletSearchTag.All -> BaseSelectSearch(assetsQuery)
-    }
+private fun selectSearchOf(savedStateHandle: SavedStateHandle, assetsQuery: AssetsQuery, walletSearchQuery: WalletSearchQuery): SelectSearch = when (walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
+    is WalletSearchTag.List -> ListSelectSearch(walletSearchQuery, searchKeyOf(savedStateHandle))
+    WalletSearchTag.All -> BaseSelectSearch(assetsQuery)
+}

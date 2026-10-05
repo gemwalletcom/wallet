@@ -34,6 +34,10 @@ impl GemPerpetualDetailsService {
         }
     }
 
+    pub fn is_available(&self) -> bool {
+        self.perpetuals.is_available()
+    }
+
     pub fn details(&self, perpetual: Perpetual, asset: Asset, positions: Vec<PerpetualPosition>) -> GemPerpetualDetails {
         rules::details(&perpetual, &asset, positions)
     }

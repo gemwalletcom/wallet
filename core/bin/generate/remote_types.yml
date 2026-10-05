@@ -97,6 +97,7 @@ remote:
   - Platform
   - PlatformStore
   - Wallet
+  - WalletListItem
   - WalletType
   - WalletSource
   - TpslType
@@ -333,6 +334,7 @@ mocks:
   - GemWalletConnectAuthAccount
   - GemWalletConnectMessageRequest
   - GemWalletConnectTransactionRequest
+  - GemWalletHomeViewState
   - GemWalletRow
   - GemWalletSearchResultsView
   - GemWalletSearchState
@@ -398,6 +400,7 @@ mocks:
   - TransactionSwapMetadata
   - TransferDataExtra
   - Wallet
+  - WalletListItem
   - WalletConnection
   - WalletConnectionSession
   - WalletConnectionSessionProposal
@@ -454,6 +457,7 @@ conversions:
 # Aliases gemstone uses from other crates, which UniFFI resolves to the aliased type.
 aliases:
   SwapperProvider: SwapProvider
+  SwapperSlippageMode: SlippageMode
 declared:
   NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt

@@ -27,6 +27,7 @@ import uniffi.gemstone.GemAvatar
 import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemLatencyStatus
+import uniffi.gemstone.GemListFieldValue
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
@@ -170,6 +171,8 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
         address = address,
     )
 
+    is GemListRow.Field -> value.uiModel(context, title.string(context))
+
     is GemListRow.Explorer -> GemListRowUIModel.Item(ListItemModel(title = title.string(context)), url = url)
 
     is GemListRow.Error -> GemListRowUIModel.Notice(title = GemListRowTitle.ERROR.text(context), message = error.errorText().text(context), kind = GemNoticeKind.ERROR)
@@ -197,6 +200,19 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
     is GemListRow.Social -> GemListRowUIModel.Social(links)
 
     GemListRow.Loading -> GemListRowUIModel.Loading
+}
+
+private fun GemListFieldValue.uiModel(context: Context, title: String): GemListRowUIModel.Item = when (this) {
+    is GemListFieldValue.Text -> GemListRowUIModel.Item(ListItemModel(title = title, subtitle = text))
+
+    is GemListFieldValue.Date -> GemListRowUIModel.Item(ListItemModel(title = title, subtitle = context.rowDateFormatter().row(date, ZoneId.systemDefault(), Locale.getDefault())))
+
+    is GemListFieldValue.Address -> GemListRowUIModel.Item(
+        ListItemModel(title = title, subtitle = display),
+        url = explorer.link,
+        menu = menu.map { it.uiModel(context) },
+        address = copy.value,
+    )
 }
 
 fun GemConnectionRow.listItem(): ListItemModel = ListItemModel(

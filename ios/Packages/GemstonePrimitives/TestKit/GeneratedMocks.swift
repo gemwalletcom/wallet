@@ -466,8 +466,8 @@ public extension Gemstone.GemConfirmScreen {
 
 public extension Gemstone.GemConfirmSimulation {
     static func mock(
-        primaryFields: [Gemstone.GemSimulationPayloadRow] = [],
-        secondaryFields: [Gemstone.GemSimulationPayloadRow] = [],
+        primaryFields: [Gemstone.GemListRow] = [],
+        secondaryFields: [Gemstone.GemListRow] = [],
         header: Gemstone.GemSimulationValue? = nil,
         balanceChanges: [Gemstone.GemListRow] = [],
         hasCriticalWarning: Bool = false,
@@ -720,7 +720,7 @@ public extension Gemstone.GemHeaderButtonAction {
 
 public extension Gemstone.GemInfoTopic {
     static func mock() -> Gemstone.GemInfoTopic {
-        .networkFee(asset: Primitives.Asset.mock().toGem())
+        .regionUnavailable
     }
 }
 
@@ -790,7 +790,7 @@ public extension Gemstone.GemNodeCheck {
     static func mock(
         url: String = "",
         chainId: String? = nil,
-        latestBlockNumber: UInt64 = 0,
+        latestBlockNumber: UInt64? = nil,
         isInSync: Bool = false,
         latency: Gemstone.Latency = Primitives.Latency.mock().toGem(),
     ) -> Gemstone.GemNodeCheck {
@@ -948,8 +948,8 @@ public extension Gemstone.GemSignMessagePreview {
     static func mock(
         title: Gemstone.GemLocalizedText = .mock(),
         text: String = "",
-        primaryFields: [Gemstone.GemSimulationPayloadRow] = [],
-        secondaryFields: [Gemstone.GemSimulationPayloadRow] = [],
+        primaryFields: [Gemstone.GemListRow] = [],
+        secondaryFields: [Gemstone.GemListRow] = [],
         hasCriticalWarning: Bool = false,
         header: Gemstone.GemSimulationValue? = nil,
         rows: [Gemstone.GemListRow] = [],
@@ -1346,9 +1346,31 @@ public extension Gemstone.GemWalletConnectTransactionRequest {
     }
 }
 
+public extension Gemstone.GemWalletHomeViewState {
+    static func mock(
+        walletRow: Gemstone.GemWalletRow = .mock(),
+        header: Gemstone.GemValueHeader = .mock(),
+        showCollections: Bool = false,
+        showsPerpetuals: Bool = false,
+        banner: Gemstone.GemBannerRow? = nil,
+        pinnedAssetIds: [Primitives.AssetId] = [],
+        assetIds: [Primitives.AssetId] = [],
+    ) -> Gemstone.GemWalletHomeViewState {
+        Gemstone.GemWalletHomeViewState(
+            walletRow: walletRow,
+            header: header,
+            showCollections: showCollections,
+            showsPerpetuals: showsPerpetuals,
+            banner: banner,
+            pinnedAssetIds: pinnedAssetIds,
+            assetIds: assetIds,
+        )
+    }
+}
+
 public extension Gemstone.GemWalletRow {
     static func mock(
-        id: String = "",
+        id: Primitives.WalletId = .mock(),
         name: String = "",
         subtitle: Gemstone.GemWalletSubtitle = .multicoin,
         placeholder: Gemstone.GemWalletPlaceholder = .multicoin,
@@ -1851,6 +1873,7 @@ public extension Gemstone.SwapQuote {
         toValue: BigUInt = 0,
         providerData: Gemstone.SwapProviderData = .mock(),
         slippageBps: UInt32 = 0,
+        slippageMode: Gemstone.SwapperSlippageMode = .auto,
         etaInSeconds: UInt32? = nil,
         useMaxAmount: Bool? = nil,
     ) -> Gemstone.SwapQuote {
@@ -1862,6 +1885,7 @@ public extension Gemstone.SwapQuote {
             toValue: toValue,
             providerData: providerData,
             slippageBps: slippageBps,
+            slippageMode: slippageMode,
             etaInSeconds: etaInSeconds,
             useMaxAmount: useMaxAmount,
         )

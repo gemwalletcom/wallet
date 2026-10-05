@@ -535,6 +535,8 @@ lock_unlock = Mở khóa
 lock_privacy_lock = Khóa riêng tư
 lock_footer = Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn
 lock_passcode = Mật mã
+lock_passcode_off_title = Mật mã thiết bị đang tắt
+lock_passcode_off_description = Gem được khóa bằng mật mã thiết bị của bạn. Hãy bật mật mã trong cài đặt thiết bị để mở Gem. Ví của bạn vẫn an toàn.
 
 # Verify
 
@@ -549,6 +551,8 @@ warnings_externally_controlled_account = Tài khoản %@ này có thể do ngư�
 sell_title = Bán %@
 
 # Info
+
+info_region_unavailable_description = Tính năng này không khả dụng ở khu vực của bạn. Khả năng sử dụng phụ thuộc vào quy định địa phương và yêu cầu của nhà cung cấp.
 
 info_network_fee_title = Phí mạng
 info_watch_wallet_title = Ví đồng hồ

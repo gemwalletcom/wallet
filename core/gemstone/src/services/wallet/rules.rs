@@ -1,5 +1,5 @@
 use gem_keystore::Mnemonic;
-use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, OptionStringExt, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, OptionStringExt, VerificationStatus, Wallet, WalletId, WalletListItem, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
 use super::model::{
@@ -156,9 +156,9 @@ pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -
     }
 }
 
-pub fn row(wallet: &Wallet) -> GemWalletRow {
+pub fn row(wallet: &WalletListItem) -> GemWalletRow {
     let common = |subtitle, placeholder, shows_watch_badge| GemWalletRow {
-        id: wallet.id.id(),
+        id: wallet.id.clone(),
         name: wallet.name.clone(),
         subtitle,
         placeholder,
@@ -181,7 +181,7 @@ pub fn row(wallet: &Wallet) -> GemWalletRow {
     }
 }
 
-pub fn sections(wallets: Vec<Wallet>, current_wallet_id: Option<&WalletId>) -> Vec<GemWalletSection> {
+pub fn sections(wallets: Vec<WalletListItem>, current_wallet_id: Option<&WalletId>) -> Vec<GemWalletSection> {
     let (pinned, rest): (Vec<GemWalletRow>, Vec<GemWalletRow>) = sorted_wallets(wallets)
         .iter()
         .map(|wallet| GemWalletRow {
@@ -198,7 +198,7 @@ pub fn sections(wallets: Vec<Wallet>, current_wallet_id: Option<&WalletId>) -> V
 
 pub fn details(wallet: &Wallet, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemWalletDetails {
     GemWalletDetails {
-        row: row(wallet),
+        row: row(&WalletListItem::from(wallet)),
         secret_kind: secret_kind(wallet),
         show_secret: secret_kind(wallet).map(|kind| GemLocalizedText::ShowSecret { kind }),
         address: match wallet.accounts.as_slice() {
@@ -268,10 +268,14 @@ pub fn wallets_missing_chains(wallets: Vec<Wallet>, chains: &[Chain]) -> Vec<(Wa
         .collect()
 }
 
-fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
+fn sorted_wallets(wallets: Vec<WalletListItem>) -> Vec<WalletListItem> {
     let mut sorted = wallets;
-    sorted.sort_by_key(|wallet| (wallet.wallet_type.rank(), wallet.index));
+    sorted.sort_by_key(|wallet| wallet_order(&wallet.id, wallet.index));
     sorted
+}
+
+fn wallet_order(wallet_id: &WalletId, index: i32) -> (u8, i32) {
+    (wallet_id.wallet_type().rank(), index)
 }
 
 pub fn show_collections(wallet_type: WalletType, chains: &[Chain]) -> bool {
@@ -297,7 +301,7 @@ pub fn wallet_address_names(wallet: &Wallet) -> Vec<AddressName> {
 }
 
 pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
-    wallets.iter().min_by_key(|wallet| (wallet.wallet_type.rank(), wallet.index)).map(|wallet| wallet.id.clone())
+    wallets.iter().min_by_key(|wallet| wallet_order(&wallet.id, wallet.index)).map(|wallet| wallet.id.clone())
 }
 
 pub fn legacy_keystore_id(wallet: &Wallet) -> String {
@@ -314,11 +318,8 @@ mod tests {
 
     #[test]
     fn test_pinned_wallets_get_their_own_section_first() {
-        let pinned = Wallet { is_pinned: true, ..Wallet::mock() };
-        let plain = Wallet {
-            id: primitives::WalletId::Multicoin("plain".into()),
-            ..Wallet::mock()
-        };
+        let pinned = WalletListItem { is_pinned: true, ..WalletListItem::mock() };
+        let plain = WalletListItem::mock_with_id(WalletId::Multicoin("plain".into()));
 
         let sections = sections(vec![plain.clone(), pinned.clone()], Some(&plain.id));
         assert_eq!(sections.iter().map(|section| section.kind).collect::<Vec<_>>(), vec![GemWalletSectionKind::Pinned, GemWalletSectionKind::Wallets]);
@@ -528,7 +529,7 @@ mod tests {
 
         let link = |_: Chain, address: String| BlockExplorerLink::mock_with_address(&address);
         let single_details = details(&single, link);
-        assert_eq!(single_details.row.id, single.id.id());
+        assert_eq!(single_details.row.id, single.id);
         assert_eq!(single_details.secret_kind, Some(GemWalletSecretKind::Phrase));
         assert_eq!(single_details.show_secret, Some(GemLocalizedText::ShowSecret { kind: GemWalletSecretKind::Phrase }));
         assert_eq!(single_details.address.map(|row| (row.chain, row.address)), Some((Chain::Ethereum, "address".to_string())));
@@ -537,12 +538,12 @@ mod tests {
 
     #[test]
     fn test_row_comes_from_the_wallet_id() {
-        let multicoin = row(&Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum]));
+        let multicoin = row(&WalletListItem::mock_with_id(WalletId::Multicoin("0x1".to_string())));
         assert_eq!(multicoin.subtitle, GemWalletSubtitle::Multicoin);
         assert_eq!(multicoin.placeholder, GemWalletPlaceholder::Multicoin);
         assert!(!multicoin.shows_watch_badge);
 
-        let view = row(&Wallet::mock_with_id(WalletId::View(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]));
+        let view = row(&WalletListItem::mock_with_id(WalletId::View(Chain::Ethereum, "0x2".to_string())));
         assert_eq!(
             view.subtitle,
             GemWalletSubtitle::Address {
@@ -552,7 +553,7 @@ mod tests {
         assert_eq!(view.placeholder, GemWalletPlaceholder::Chain { chain: Chain::Ethereum });
         assert!(view.shows_watch_badge);
 
-        let single = row(&Wallet::mock_with_id(WalletId::Single(Chain::Bitcoin, "bc1".to_string()), &[Chain::Bitcoin]));
+        let single = row(&WalletListItem::mock_with_id(WalletId::Single(Chain::Bitcoin, "bc1".to_string())));
         assert!(!single.shows_watch_badge);
         assert_eq!(single.delete_prompt, GemLocalizedText::DeleteConfirmation { name: single.name.clone() }, "deleting asks about the wallet by name");
     }
@@ -625,12 +626,18 @@ mod tests {
 
     #[test]
     fn test_wallets_sort_by_type_then_index() {
-        let mut watch = Wallet::mock_with_id(WalletId::View(Chain::Ethereum, "0xv".to_string()), &[Chain::Ethereum]);
-        watch.index = 0;
-        let mut second = Wallet::mock_with_id(WalletId::Multicoin("0x2".to_string()), &[Chain::Ethereum]);
-        second.index = 2;
-        let mut first = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum]);
-        first.index = 1;
+        let watch = WalletListItem {
+            index: 0,
+            ..WalletListItem::mock_with_id(WalletId::View(Chain::Ethereum, "0xv".to_string()))
+        };
+        let second = WalletListItem {
+            index: 2,
+            ..WalletListItem::mock_with_id(WalletId::Multicoin("0x2".to_string()))
+        };
+        let first = WalletListItem {
+            index: 1,
+            ..WalletListItem::mock_with_id(WalletId::Multicoin("0x1".to_string()))
+        };
 
         let sorted = sorted_wallets(vec![watch.clone(), second.clone(), first.clone()]);
 

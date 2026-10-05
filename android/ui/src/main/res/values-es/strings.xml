@@ -442,9 +442,12 @@
   <string name="lock_privacy_lock">Bloqueo de privacidad</string>
   <string name="lock_footer">Proteger el acceso a esta aplicación en su dispositivo</string>
   <string name="lock_passcode">Código de acceso</string>
+  <string name="lock_passcode_off_title">El código del dispositivo está desactivado</string>
+  <string name="lock_passcode_off_description">Gem está bloqueado con el código de su dispositivo. Active un código en los ajustes del dispositivo para abrir Gem. Sus billeteras están a salvo.</string>
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta cuenta de %1$s puede estar controlada por otra persona. No envíe fondos a ella a menos que esté seguro de que la controla, o podría perder sus activos de forma permanente.</string>
   <string name="sell_title">Vender %1$s</string>
+  <string name="info_region_unavailable_description">Esta función no está disponible en tu región. La disponibilidad depende de las normas locales y de los requisitos de los proveedores.</string>
   <string name="info_network_fee_title">Tarifa de red</string>
   <string name="info_watch_wallet_title">Billetera de observación</string>
   <string name="info_watch_wallet_description">Una billetera a la que no tienes acceso, pero puedes observar sus transacciones y movimientos.</string>

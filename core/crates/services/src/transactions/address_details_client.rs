@@ -3,35 +3,27 @@ use std::sync::Arc;
 
 use config_keys::ConfigKey;
 use gem_tracing::error_with_fields;
-use primitives::{AddressDetails, AddressDetailsBalances, AddressType, Asset, AssetId, ChainAddress, ScanAddress, ScanType, ScanVerdict, VerificationStatus};
-use storage::{AssetsRepository, Database, DatabaseError, ScanAddressesRepository, ScanDetectionsRepository};
+use primitives::{AddressDetails, AddressDetailsBalances, AddressType, Asset, ChainAddress, ScanAddress, ScanType, ScanVerdict, VerificationStatus};
+
+use super::repository::{AddressRecords, Repository};
 
 use crate::ConfigCacher;
 use crate::chain::ChainClient;
 
 pub struct AddressDetailsClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: Arc<ConfigCacher>,
     chain: ChainClient,
 }
 
 impl AddressDetailsClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, chain: ChainClient) -> Self {
-        Self { database, config, chain }
+    pub(crate) fn new(repository: Arc<dyn Repository>, config: Arc<ConfigCacher>, chain: ChainClient) -> Self {
+        Self { repository, config, chain }
     }
 
     pub async fn get_address_details(&self, request: ChainAddress) -> Result<AddressDetails, Box<dyn Error + Send + Sync>> {
         let detection_max_age = self.config.get_duration(ConfigKey::ScanDetectionMaxAge).await?;
-        let query = request.clone();
-        let (assets, scan_addresses, verdicts) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let assets = client.get_assets(vec![AssetId::from(query.chain, Some(query.address.clone()))])?;
-                let scan_addresses = client.get_scan_addresses(&[(query.chain, query.address.as_str())])?;
-                let verdicts = client.get_scan_detections(vec![query.address.clone()], detection_max_age)?;
-                Ok((assets, scan_addresses, verdicts))
-            })
-            .await?;
+        let AddressRecords { assets, scan_addresses, verdicts } = self.repository.address_records(request.clone(), detection_max_age).await?;
         let details = map_address_details(request, assets.into_iter().next(), scan_addresses.into_iter().next(), &verdicts);
         let balances = match details.address_type {
             AddressType::Address => self.get_balances(&details).await,

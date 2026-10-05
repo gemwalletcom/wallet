@@ -18,7 +18,7 @@ fun TransactionsScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Uni
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val filterView by viewModel.filterView.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
-    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
+    val phase by viewModel.phase.collectAsStateWithLifecycle()
 
     LaunchedEffect(walletId) {
         viewModel.syncIfNeeded()
@@ -30,7 +30,7 @@ fun TransactionsScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Uni
     TransactionsScene(
         isRefreshing = isRefreshing,
         transactions = transactions,
-        errorRow = errorRow,
+        phase = phase,
         filter = filter,
         filterView = filterView,
         listState = listState,

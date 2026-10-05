@@ -32,7 +32,6 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.AssetData
@@ -43,7 +42,7 @@ import uniffi.gemstone.GemStakeSection
 import uniffi.gemstone.GemStakeViewState
 
 @Composable
-internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeViewState, loadError: GemServiceException?, amountAction: AmountTransactionAction, onAction: (StakeAction) -> Unit) {
+internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeViewState, loadError: GemServiceException?, onAction: (StakeAction) -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -78,9 +77,7 @@ internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeVi
                     when (section) {
                         GemStakeSection.MANAGE -> stakeActions(
                             actions = state.actions,
-                            assetId = assetInfo.asset.id,
-                            amountAction = amountAction,
-                            onConfirm = { onAction(StakeAction.Confirm(it)) },
+                            onOpen = { kind, destination -> onAction(StakeAction.Open(kind, destination)) },
                         )
 
                         GemStakeSection.RESOURCES -> itemsIndexed(state.resourceRows) { index, row ->

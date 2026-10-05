@@ -4,7 +4,7 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-clap = { version = "4.6.1", features = ["derive"] }
+clap = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true, features = ["time"] }
 

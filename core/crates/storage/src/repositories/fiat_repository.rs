@@ -111,7 +111,7 @@ fn add_fiat_providers_countries(client: &mut DatabaseClient, values: Vec<FiatPro
         .values(values)
         .on_conflict(id)
         .do_update()
-        .set((alpha2.eq(excluded(alpha2)), is_allowed.eq(excluded(is_allowed))))
+        .set((country.eq(excluded(country)), is_allowed.eq(excluded(is_allowed))))
         .execute(&mut client.connection)
 }
 
@@ -475,15 +475,15 @@ mod database_integration_tests {
         let countries = database
             .run(|client| -> Result<_, DatabaseError> {
                 client.add_fiat_providers(vec![PROVIDER])?;
-                client.sync_fiat_providers_countries(PROVIDER, vec![country("XA"), country("XB")])?;
-                client.sync_fiat_providers_countries(PROVIDER, vec![country("XA")])?;
+                client.sync_fiat_providers_countries(PROVIDER, vec![country("FR"), country("DE")])?;
+                client.sync_fiat_providers_countries(PROVIDER, vec![country("FR")])?;
                 client.get_fiat_providers_countries()
             })
             .await
             .unwrap();
 
         let allowed = |alpha2: &str| countries.iter().find(|country| country.provider == PROVIDER && country.alpha2 == alpha2).map(|country| country.is_allowed);
-        assert_eq!(allowed("XA"), Some(true));
-        assert_eq!(allowed("XB"), Some(false));
+        assert_eq!(allowed("FR"), Some(true));
+        assert_eq!(allowed("DE"), Some(false));
     }
 }

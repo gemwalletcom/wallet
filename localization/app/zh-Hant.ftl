@@ -535,6 +535,8 @@ lock_unlock = 解鎖
 lock_privacy_lock = 隱私鎖
 lock_footer = 保護此裝置上的 App 存取安全
 lock_passcode = 密碼
+lock_passcode_off_title = 裝置密碼已關閉
+lock_passcode_off_description = Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。錢包仍然安全。
 
 # Verify
 
@@ -549,6 +551,8 @@ warnings_externally_controlled_account = 此 %@ 帳戶可能由他人控制。�
 sell_title = 出售%@
 
 # Info
+
+info_region_unavailable_description = 此功能在您所在的地區無法使用。 可用性取決於當地規定和服務提供者的要求。
 
 info_network_fee_title = 網路手續費
 info_watch_wallet_title = 觀察錢包

@@ -15,6 +15,7 @@ import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWa
 import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletTypeRoute
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsRoute
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
@@ -59,6 +60,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -69,8 +72,8 @@ import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationServiceInterface
-import uniffi.gemstone.GemNavigationTarget
 import uniffi.gemstone.GemNavigationTab
+import uniffi.gemstone.GemNavigationTarget
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
@@ -346,17 +349,13 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun openSwapTo_opensSwapWithReceiveAssetSelection() {
+    fun openGetAsset_swapWithoutPayAssetOpensWithTheMissingAssetToReceive() {
         val navigator = navigatorWith(WalletRootRoute)
         val receiveAssetId = mockAssetId(Chain.Tron)
 
-        navigator.openSwapTo(receiveAssetId)
+        navigator.openGetAsset(GetAssetAction.Swap(payAssetId = null), receiveAssetId)
 
-        assertEquals(listOf(WalletRootRoute, SwapRoute), navigator.backStack.toList())
-        assertEquals(
-            SwapSelection(itemType = SwapItemType.Receive, assetId = receiveAssetId),
-            navigator.swapSelection(SwapRoute),
-        )
+        assertEquals(listOf(WalletRootRoute, SwapPairRoute(from = null, to = receiveAssetId)), navigator.backStack.toList())
     }
 
     @Test
@@ -529,6 +528,29 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(WalletRootRoute, WalletConnectorRequestRoute("request/topic/1"), ReceiveRoute(mockAssetId(Chain.Tron)))
 
         navigator.showWalletConnectorRequest(null)
+
+        assertEquals(listOf(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron))), navigator.backStack.toList())
+    }
+
+    @Test
+    fun aWalletChangeUnderAWalletConnectRequestReturnsToTheWalletWithTheRequestOnTop() = runTest(UnconfinedTestDispatcher()) {
+        val session = MutableStateFlow<Session?>(mockSession(wallet = mockWallet(id = WalletId("current"))))
+        val request = WalletConnectorRequestRoute("request/topic/1")
+        val navigator = navigatorWith(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron)), request, session = session)
+        backgroundScope.launch { navigator.observeCurrentWallet() }
+
+        session.value = mockSession(wallet = mockWallet(id = WalletId("requested")))
+
+        assertEquals(listOf(WalletRootRoute, request), navigator.backStack.toList())
+    }
+
+    @Test
+    fun aWalletChangeWithoutAWalletConnectRequestLeavesNavigationToTheScreenThatChangedIt() = runTest(UnconfinedTestDispatcher()) {
+        val session = MutableStateFlow<Session?>(mockSession(wallet = mockWallet(id = WalletId("current"))))
+        val navigator = navigatorWith(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron)), session = session)
+        backgroundScope.launch { navigator.observeCurrentWallet() }
+
+        session.value = mockSession(wallet = mockWallet(id = WalletId("other")))
 
         assertEquals(listOf(WalletRootRoute, ReceiveRoute(mockAssetId(Chain.Tron))), navigator.backStack.toList())
     }

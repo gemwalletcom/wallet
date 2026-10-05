@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.emptyState
 import enum Gemstone.GemErrorText
 import struct Gemstone.GemPushState
 import GemstonePrimitivesTestKit
@@ -31,7 +32,7 @@ struct SupportChatSceneViewModelTests {
     func anEmptyChatSaysSo() {
         let model = SupportChatSceneViewModel.mock()
 
-        #expect(model.isEmpty)
+        #expect(model.phase == .empty(state: emptyState(kind: .support)))
         #expect(model.days.isEmpty)
     }
 
@@ -40,7 +41,7 @@ struct SupportChatSceneViewModelTests {
         let model = SupportChatSceneViewModel.mock()
         model.query.value = [.mock(id: "a"), .mock(id: "b")]
 
-        #expect(model.isEmpty == false)
+        #expect(model.phase == .rows)
         #expect(model.days.count == 1)
     }
 
@@ -78,7 +79,7 @@ struct SupportChatSceneViewModelTests {
 
         await model.load()
 
-        #expect(model.loadError != nil, "an empty chat that failed to load is not an empty chat")
+        #expect(model.phase == .error(error: .Api(msg: "offline")), "an empty chat that failed to load is not an empty chat")
         #expect(model.isPresentingAlertMessage == nil)
     }
 
@@ -91,7 +92,7 @@ struct SupportChatSceneViewModelTests {
 
         await model.load()
 
-        #expect(model.loadError == nil)
+        #expect(model.phase == .rows)
     }
 
     @Test

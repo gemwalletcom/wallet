@@ -1,0 +1,94 @@
+[
+  {
+    "chain": "ADA",
+    "pub_key": "mayapub1addwnpepq24t2hk53nz9k5rkcs0vaqn5crc08rmznlpmgvsx670wxdd7htw8225yt4w",
+    "address": "addr1vxgk23974e6ssyygtzmpkv4pnht0k0fw9k0904543ncc5tqxkspm6",
+    "halted": false,
+    "observed_fee_rate": "488",
+    "gas_rate": "732",
+    "gas_rate_units": "lovelace",
+    "outbound_tx_size": "350",
+    "outbound_fee": "44222100",
+    "dust_threshold": "100000000"
+  },
+  {
+    "chain": "ARB",
+    "pub_key": "mayapub1addwnpepq24t2hk53nz9k5rkcs0vaqn5crc08rmznlpmgvsx670wxdd7htw8225yt4w",
+    "address": "0x728ac02dbfe50554a1ad7a9e5a1cbd4937e5cbfb",
+    "router": "0x700E97ef07219440487840Dc472E7120A7FF11F4",
+    "halted": false,
+    "observed_fee_rate": "10",
+    "gas_rate": "15",
+    "gas_rate_units": "centigwei",
+    "outbound_tx_size": "500000",
+    "outbound_fee": "4472",
+    "dust_threshold": "0"
+  },
+  {
+    "chain": "BTC",
+    "pub_key": "mayapub1addwnpepq24t2hk53nz9k5rkcs0vaqn5crc08rmznlpmgvsx670wxdd7htw8225yt4w",
+    "address": "bc1qs0dw6qhqqwxfu6ls9gwc4kc9was7z5zpjh9ngf",
+    "halted": false,
+    "observed_fee_rate": "4",
+    "gas_rate": "6",
+    "gas_rate_units": "satsperbyte",
+    "outbound_tx_size": "1000",
+    "outbound_fee": "300",
+    "dust_threshold": "10000"
+  },
+  {
+    "chain": "DASH",
+    "pub_key": "mayapub1addwnpepq24t2hk53nz9k5rkcs0vaqn5crc08rmznlpmgvsx670wxdd7htw8225yt4w",
+    "address": "Xni2cchJh9bDFQsipmy9ANVyrYzna6PWic",
+    "halted": false,
+    "observed_fee_rate": "8",
+    "gas_rate": "12",
+    "gas_rate_units": "satsperbyte",
+    "outbound_tx_size": "451",
+    "outbound_fee": "167042",
+    "dust_threshold": "10000"
+  },
+  {
+    "chain": "ETH",
+    "pub_key": "mayapub1addwnpepq24t2hk53nz9k5rkcs0vaqn5crc08rmznlpmgvsx670wxdd7htw8225yt4w",
+    "address": "0x728ac02dbfe50554a1ad7a9e5a1cbd4937e5cbfb",
+    "router": "0xe3985E6b61b814F7Cdb188766562ba71b446B46d",
+    "halted": false,
+    "observed_fee_rate": "1",
+    "gas_rate": "1",
+    "gas_rate_units": "gwei",
+    "outbound_tx_size": "100000",
+    "outbound_fee": "3648",
+    "dust_threshold": "0"
+  },
+  {
+    "chain": "THOR",
+    "pub_key": "mayapub1addwnpepq24t2hk53nz9k5rkcs0vaqn5crc08rmznlpmgvsx670wxdd7htw8225yt4w",
+    "address": "thor1s0dw6qhqqwxfu6ls9gwc4kc9was7z5zpz2zrem",
+    "halted": false,
+    "observed_fee_rate": "2000000",
+    "gas_rate": "2000000",
+    "gas_rate_units": "rune",
+    "outbound_tx_size": "1",
+    "outbound_fee": "12663541",
+    "dust_threshold": "0"
+  },
+  {
+    "chain": "ZEC",
+    "pub_key": "mayapub1addwnpepq24t2hk53nz9k5rkcs0vaqn5crc08rmznlpmgvsx670wxdd7htw8225yt4w",
+    "address": "t1VtnnhTYhmADh7L2uKU3Sev7GscBHT6HfE",
+    "halted": false,
+    "observed_fee_rate": "60000",
+    "gas_rate": "90000",
+    "gas_rate_units": "satsperbyte",
+    "outbound_tx_size": "1",
+    "outbound_fee": "34602",
+    "dust_threshold": "10000",
+    "shielded_memo_config": {
+      "unified_address": "u1fcwchlpy2u0t9hdl8wcku8dmvrhwz6lk0jwj2z56ylxhacpn9jnx5sgftx8kv7s97ay37gclcm495panxkz0pyq5479s7vnr90a03sdppp4mupw6vmesh7sf2ym99f4gjl9utaw4eyup53vn7hthu7shms0ct79876xtjk7r8qg4p582",
+      "uivk": "uivk14t7zl2cjk305csrpkw9j529f9ka55uprav27maykhmmypmx76ek4pgfklw3ydzg9lcp7u73uwpwdmarrp089c3xte90yks0z5q79psu53zcfzdqgg5erpxl4q4gtne4c6t3puzwt9kegexu79t6yvg9dmnk08293upzm963l70sag5nnr2waftt2ssdpmvxumeqew085lpzfv463m5j3jtfk838ppux67vpd679jrhl2y293ut2",
+      "enabled": true,
+      "trial_decryption_enabled": true
+    }
+  }
+]

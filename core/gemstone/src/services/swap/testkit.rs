@@ -12,6 +12,7 @@ use super::store::GemSwapStore;
 use crate::gem_swapper::GemSwapper;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::assets::GemAssetFilter;
+use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
 use crate::services::node::GemNodeService;
 use crate::services::stream::testkit::{MemoryStreamConnection, SubscriptionTestkit};
@@ -126,7 +127,7 @@ pub struct SwapQuoteTestkit {
 impl SwapQuoteTestkit {
     pub fn with_status(status: u16) -> Self {
         let provider = Arc::new(TestAlienProvider::with_status(status));
-        let discovery = DiscoveryTestkit::with_provider(provider, Wallet::mock());
+        let discovery = DiscoveryTestkit::with_provider(provider.clone(), Wallet::mock());
         let subscription = SubscriptionTestkit::new(&[], &[]);
         let connection = subscription.connection.clone();
         let service = GemSwapQuoteService::new(
@@ -135,6 +136,7 @@ impl SwapQuoteTestkit {
             discovery.balance.clone(),
             Arc::new(subscription.service),
             discovery.session.clone(),
+            Arc::new(GemConfigService::mock(provider)),
         );
         Self { service, discovery, connection }
     }

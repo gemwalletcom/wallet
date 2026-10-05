@@ -2,8 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use cacher::CacheKey;
-use cacher::CacherClient;
+use super::repository::Repository;
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use localizer::LanguageLocalizer;
@@ -11,8 +11,7 @@ use num_bigint::BigUint;
 use number_formatter::{BigNumberFormatter, ValueFormatter, ValueStyle};
 use primitives::{Asset, Chain, DelegationBase, DeviceSubscription, TransactionType};
 use push_notification::{GorushNotification, PushNotification};
-use storage::{Database, TransactionsRepository, WalletsRepository};
-use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
+use streamer::{NotificationsPayload, StreamProducerQueue};
 
 #[derive(Clone, Copy)]
 pub struct StakeRewardsConfig {
@@ -22,19 +21,19 @@ pub struct StakeRewardsConfig {
 
 pub struct StakingRewardsNotifier {
     chain_providers: Arc<ChainProviders>,
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: StakeRewardsConfig,
-    cacher: CacherClient,
-    stream_producer: StreamProducer,
+    throttle: Arc<dyn ThrottleCacher>,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl StakingRewardsNotifier {
-    pub fn new(chain_providers: Arc<ChainProviders>, database: Database, config: StakeRewardsConfig, cacher: CacherClient, stream_producer: StreamProducer) -> Self {
+    pub(crate) fn new(chain_providers: Arc<ChainProviders>, repository: Arc<dyn Repository>, config: StakeRewardsConfig, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self {
             chain_providers,
-            database,
+            repository,
             config,
-            cacher,
+            throttle,
             stream_producer,
         }
     }
@@ -42,7 +41,7 @@ impl StakingRewardsNotifier {
     pub async fn check_chain(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let since = chrono::Utc::now().naive_utc() - chrono::Duration::from_std(self.config.lookback)?;
         let kinds = TransactionType::staking_types();
-        let addresses = self.database.run(move |client| client.get_addresses_by_chain_and_kind(chain.as_ref(), kinds, since)).await?;
+        let addresses = self.repository.addresses_with_transactions(chain, kinds, since).await?;
 
         let mut notified = 0;
         for address in &addresses {
@@ -60,13 +59,12 @@ impl StakingRewardsNotifier {
     }
 
     async fn notify_address(&self, chain: Chain, address: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let addresses = vec![address.to_string()];
-        let subscriptions = self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?;
+        let subscriptions = self.repository.subscriptions_for_addresses(chain, vec![address.to_string()]).await?;
         if subscriptions.is_empty() {
             return Ok(false);
         }
 
-        if !self.cacher.can_process_cached(CacheKey::AlerterStakeRewards(chain.as_ref(), address)).await? {
+        if !self.throttle.try_start(ThrottledTask::StakeRewardsAlert { chain: chain.as_ref(), address }).await? {
             return Ok(false);
         }
 

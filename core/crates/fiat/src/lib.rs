@@ -24,7 +24,7 @@ pub use model::FiatDeviceContext;
 fn request_client(timeout: Duration) -> reqwest::Client {
     gem_client::builder().timeout(timeout).build().expect("fiat HTTP client configuration is valid")
 }
-pub use ip_check_client::{IPAddressInfo, IPCheckClient};
+pub use ip_check_client::{IPCheckClient, IpAddressProvider};
 pub use transaction_info_mapper::fiat_transaction_info;
 
 #[cfg(any(test, feature = "testkit"))]

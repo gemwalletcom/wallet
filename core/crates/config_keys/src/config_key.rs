@@ -139,6 +139,7 @@ pub enum ConfigKey {
     AssetsUsageRankBatchSize,
     AssetsTimerUpdateImages,
     AssetsTimerUpdateHasPrice,
+    AssetsCatalogCacheDuration,
 
     ListsTimerUpdateLists,
 
@@ -307,8 +308,8 @@ impl ConfigKey {
             Self::PriceTimerHighMarketCap => "5m",
             Self::PriceTimerLowMarketCap => "15m",
             Self::PriceTimerFiatRates => "12h",
-            Self::PriceTimerChartsHourly => "60s",
-            Self::PriceTimerChartsDaily => "6m",
+            Self::PriceTimerChartsHourly => "1h",
+            Self::PriceTimerChartsDaily => "1d",
             Self::PriceTimerMarkets => "1h",
             Self::PriceTimerPrices => "60s",
             Self::PriceTimerMetrics => "5m",
@@ -337,6 +338,7 @@ impl ConfigKey {
             Self::AssetsUsageRankBatchSize => "1000",
             Self::AssetsTimerUpdateImages => "8h",
             Self::AssetsTimerUpdateHasPrice => "1h",
+            Self::AssetsCatalogCacheDuration => "15m",
             Self::ListsTimerUpdateLists => "1d",
             Self::FiatTimerUpdateAssets => "1h",
             Self::FiatTimerUpdateProviderCountries => "1h",

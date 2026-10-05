@@ -54,6 +54,7 @@ import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemFiatViewState
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemSelectAssetType
 import javax.inject.Inject
@@ -69,6 +70,8 @@ class FiatViewModel @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
 
     private val currency = GemConstants.fiatQuoteCurrency
     private val assetId: AssetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
@@ -199,12 +202,20 @@ class FiatViewModel @Inject constructor(
         refreshEnabled.value = isEnabled
     }
 
-    suspend fun quoteUrl(): Result<String> {
+    suspend fun continueToProvider(onUrl: (String) -> Unit): Result<Unit> {
+        val request = session.value.quoteRequest() ?: return Result.success(Unit)
+        if (!service.isAvailable(request.quoteType)) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return Result.success(Unit)
+        }
         val quoteId = requireNotNull(viewState.value.selectedQuoteRow).quoteId
         isUrlLoading.value = true
-        try {
-            return runCatchingCancellable { service.quoteUrl(assetId.toIdentifier(), quoteId).redirectUrl }
-                .onFailure { Log.e(TAG, "fiat quote url request failed", it) }
+        return try {
+            runCatchingCancellable {
+                val url = withContext(ioDispatcher) { service.quoteUrl(assetId.toIdentifier(), quoteId) }
+                if (session.value.quoteRequest() != request) return@runCatchingCancellable
+                onUrl(url.redirectUrl)
+            }.onFailure { Log.e(TAG, "fiat continuation failed", it) }
         } finally {
             isUrlLoading.value = false
         }

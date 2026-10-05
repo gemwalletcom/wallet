@@ -34,25 +34,25 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.support.viewmodels.SupportChatViewModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.empty.EmptyStateView
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.components.screen.showSnackbar
-import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemListRow
 
 @Composable
 fun SupportChatScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCancel: () -> Unit, viewModel: SupportChatViewModel = hiltViewModel()) {
     val days by viewModel.days.collectAsStateWithLifecycle()
-    val isEmpty by viewModel.isEmpty.collectAsStateWithLifecycle()
     val typingAgentName by viewModel.typingAgentName.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
-    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
+    val phase by viewModel.phase.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     val context = LocalContext.current
     LaunchedEffect(message) {
@@ -100,18 +100,16 @@ fun SupportChatScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCanc
                     onImageClick = { previewUrl = it },
                     onRetry = viewModel::retry,
                 )
-                when (val row = errorRow) {
-                    null -> if (isEmpty) {
-                        EmptyStateView(
-                            title = stringResource(R.string.support_state_empty_title),
-                            description = stringResource(R.string.support_state_empty_description),
-                            iconVector = AppIcons.Article,
-                            modifier = Modifier.align(Alignment.Center).padding(paddingDefault),
-                        )
-                    }
+                when (val current = phase) {
+                    GemListPhase.Rows -> Unit
 
-                    else -> GemListRowView(
-                        row = row,
+                    is GemListPhase.Empty -> EmptyContentView(
+                        state = current.state,
+                        modifier = Modifier.align(Alignment.Center).padding(paddingDefault),
+                    )
+
+                    is GemListPhase.Error -> GemListRowView(
+                        row = GemListRow.Error(current.error),
                         listPosition = ListPosition.Single,
                         modifier = Modifier.align(Alignment.Center).padding(paddingDefault),
                     )

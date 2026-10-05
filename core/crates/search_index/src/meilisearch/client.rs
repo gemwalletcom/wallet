@@ -125,7 +125,7 @@ impl SearchIndexClient {
         Ok(())
     }
 
-    pub async fn search<T: DeserializeOwned + Send + Sync + 'static>(&self, index: &str, query: &str, filter: &str, sort: &[&str], limit: usize, offset: usize) -> Result<Vec<T>, Box<dyn Error + Send + Sync>> {
+    pub(crate) async fn search<T: DeserializeOwned + Send + Sync + 'static>(&self, index: &str, query: &str, filter: &str, sort: &[&str], limit: usize, offset: usize) -> Result<Vec<T>, Box<dyn Error + Send + Sync>> {
         let request = SearchRequest { query, filter, sort, limit, offset };
         let response = self.request(Method::POST, &format!("indexes/{index}/search")).json(&request);
         Ok(self.send(response, StatusCode::OK).await?.json::<SearchResponse<T>>().await?.hits)

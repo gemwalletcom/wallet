@@ -70,6 +70,7 @@ public extension GemEmptyStateImage {
         case .walletConnect: Images.EmptyContent.walletConnect
         case .notifications: Images.System.bell
         case .search: Images.EmptyContent.search
+        case .support: Image(systemName: SystemImage.bubbleLeftAndBubbleRight)
         }
     }
 }

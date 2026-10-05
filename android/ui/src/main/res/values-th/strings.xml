@@ -442,9 +442,12 @@
   <string name="lock_privacy_lock">ล็อคความเป็นส่วนตัว</string>
   <string name="lock_footer">ป้องกันการเข้าถึงแอปนี้บนอุปกรณ์ของคุณ</string>
   <string name="lock_passcode">รหัสผ่าน</string>
+  <string name="lock_passcode_off_title">รหัสผ่านอุปกรณ์ปิดอยู่</string>
+  <string name="lock_passcode_off_description">Gem ถูกล็อกด้วยรหัสผ่านอุปกรณ์ของคุณ เปิดรหัสผ่านในการตั้งค่าอุปกรณ์เพื่อเปิด Gem กระเป๋าเงินของคุณปลอดภัย</string>
   <string name="verify_phrase_title">ยืนยัน</string>
   <string name="warnings_externally_controlled_account">บัญชี %1$s นี้อาจถูกควบคุมโดยผู้อื่น อย่าส่งเงินไปยังบัญชีนี้ เว้นแต่คุณจะแน่ใจว่าคุณเป็นผู้ควบคุม มิฉะนั้นคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร</string>
   <string name="sell_title">ขาย %1$s</string>
+  <string name="info_region_unavailable_description">ฟีเจอร์นี้ไม่พร้อมให้บริการในภูมิภาคของคุณ ความพร้อมให้บริการขึ้นอยู่กับกฎในท้องถิ่นและข้อกำหนดของผู้ให้บริการ</string>
   <string name="info_network_fee_title">ค่าธรรมเนียมเครือข่าย</string>
   <string name="info_watch_wallet_title">ดูกระเป๋าเงิน</string>
   <string name="info_watch_wallet_description">กระเป๋าเงินที่คุณไม่สามารถเข้าถึงได้แต่คุณสามารถดูธุรกรรมและการเคลื่อนไหวได้</string>

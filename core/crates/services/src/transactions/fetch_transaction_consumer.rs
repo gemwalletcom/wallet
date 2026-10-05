@@ -1,12 +1,12 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use super::repository::Repository;
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use primitives::{Transaction, TransactionId, TransactionIdRequest};
-use storage::{Database, TransactionsRepository};
-use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
+use streamer::{StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 use swapper::{SwapResultRequest, swapper::GemSwapper};
 
 use crate::transactions::transaction_with_swap_result;
@@ -14,25 +14,24 @@ use crate::transactions::transaction_with_swap_result;
 pub struct FetchTransactionConsumer {
     pub providers: ChainProviders,
     pub swapper: Arc<GemSwapper>,
-    pub producer: StreamProducer,
-    pub cacher: CacherClient,
-    pub database: Database,
+    pub producer: Arc<dyn StreamProducerQueue>,
+    pub throttle: Arc<dyn ThrottleCacher>,
+    pub(crate) repository: Arc<dyn Repository>,
 }
 
 impl FetchTransactionConsumer {
-    pub fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: StreamProducer, cacher: CacherClient, database: Database) -> Self {
+    pub(crate) fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: Arc<dyn StreamProducerQueue>, throttle: Arc<dyn ThrottleCacher>, repository: Arc<dyn Repository>) -> Self {
         Self {
             providers,
             swapper,
             producer,
-            cacher,
-            database,
+            throttle,
+            repository,
         }
     }
 
     async fn stored_transaction(&self, id: TransactionId) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
-        let hash = id.hash.clone();
-        let transactions = self.database.run(move |client| client.get_transactions_by_hash(&hash)).await?;
+        let transactions = self.repository.transactions_by_hash(id.hash.clone()).await?;
         Ok(transactions.into_iter().find(|transaction| transaction.id == id))
     }
 }
@@ -40,7 +39,12 @@ impl FetchTransactionConsumer {
 #[async_trait]
 impl MessageConsumer<TransactionIdRequest, usize> for FetchTransactionConsumer {
     async fn should_consume(&self, payload: &TransactionIdRequest) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.cacher.can_process_cached(CacheKey::FetchTransaction(payload.chain.as_ref(), &payload.hash)).await
+        self.throttle
+            .try_start(ThrottledTask::FetchTransaction {
+                chain: payload.chain.as_ref(),
+                hash: &payload.hash,
+            })
+            .await
     }
 
     async fn consume(&self, payload: TransactionIdRequest) -> Result<usize, Box<dyn Error + Send + Sync>> {

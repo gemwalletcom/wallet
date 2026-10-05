@@ -19,8 +19,9 @@ SELECT diesel_manage_updated_at('fiat_providers');
 CREATE TABLE fiat_providers_countries (
     id VARCHAR(32) PRIMARY KEY NOT NULL,
     provider VARCHAR(128) NOT NULL REFERENCES fiat_providers (id) ON DELETE CASCADE,
-    alpha2 VARCHAR(32) NOT NULL,
+    country VARCHAR(32) NOT NULL REFERENCES countries (alpha2),
     is_allowed BOOLEAN NOT NULL,
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE,
     updated_at timestamp NOT NULL default current_timestamp,
     created_at timestamp NOT NULL default current_timestamp
 );

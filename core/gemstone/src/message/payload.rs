@@ -4,17 +4,18 @@ use primitives::{BlockExplorerLink, Chain, SimulationPayloadField, SimulationPay
 use std::borrow::Cow;
 use std::collections::HashSet;
 
-use crate::message::eip712::{GemEIP712Message, GemEIP712Value, GemEIP712ValueType};
+use crate::message::eip712::{GemEIP712Message, GemEIP712Value};
 use crate::message::sign_type::MessageType;
+use crate::models::list::GemListRow;
 use crate::services::localization::GemLocalizedText;
-use crate::services::simulation::{GemSimulationPayloadRow, payload_rows};
+use crate::services::simulation::payload_rows;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct MessagePayloadPreview {
     pub message_type: MessageType,
     pub title: GemLocalizedText,
-    pub primary: Vec<GemSimulationPayloadRow>,
-    pub secondary: Vec<GemSimulationPayloadRow>,
+    pub primary: Vec<GemListRow>,
+    pub secondary: Vec<GemListRow>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -221,11 +222,7 @@ fn primary_type_payload_field(message: &GemEIP712Message) -> MessagePayloadField
 }
 
 fn payload_field_from_eip712_value(field: &GemEIP712Value) -> MessagePayloadField {
-    let field_type = match field.value_type {
-        GemEIP712ValueType::Address => SimulationPayloadFieldType::Address,
-        GemEIP712ValueType::Timestamp => SimulationPayloadFieldType::Timestamp,
-        GemEIP712ValueType::Text => SimulationPayloadFieldType::Text,
-    };
+    let field_type = field.value_type.clone();
 
     match canonical_payload_label(&field.name) {
         Some(CanonicalPayloadLabel::Kind(kind)) => MessagePayloadField::standard(kind, field.value.clone(), field_type, SimulationPayloadFieldDisplay::Secondary),
@@ -369,7 +366,7 @@ impl PayloadMergeKey {
 #[cfg(test)]
 mod tests {
     use super::MessagePayloadFields;
-    use crate::message::eip712::{GemEIP712Message, GemEIP712Section, GemEIP712Value, GemEIP712ValueType};
+    use crate::message::eip712::{GemEIP712Message, GemEIP712Section, GemEIP712Value};
     use crate::message::sign_type::MessageType;
     use gem_evm::EIP712Domain;
     use gem_evm::siwe::SiweMessage;
@@ -446,12 +443,12 @@ mod tests {
                     GemEIP712Value {
                         name: "spender".into(),
                         value: "0xSpender".into(),
-                        value_type: GemEIP712ValueType::Address,
+                        value_type: SimulationPayloadFieldType::Address,
                     },
                     GemEIP712Value {
                         name: "amount".into(),
                         value: "100".into(),
-                        value_type: GemEIP712ValueType::Text,
+                        value_type: SimulationPayloadFieldType::Text,
                     },
                 ],
             }],
@@ -486,7 +483,7 @@ mod tests {
                 values: vec![GemEIP712Value {
                     name: "amount".into(),
                     value: "100".into(),
-                    value_type: GemEIP712ValueType::Text,
+                    value_type: SimulationPayloadFieldType::Text,
                 }],
             }],
         }

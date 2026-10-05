@@ -3,19 +3,19 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
+use cacher::JobStatusCacher;
 use job_runner::{JobContext, JobError, JobSchedule, RunDecision};
 
 use crate::Services;
 
 struct CacherJobTracker {
-    cacher: CacherClient,
+    statuses: Arc<dyn JobStatusCacher>,
     service: String,
 }
 
 impl CacherJobTracker {
-    fn new(cacher: CacherClient, service: &str) -> Self {
-        Self { cacher, service: service.to_string() }
+    fn new(statuses: Arc<dyn JobStatusCacher>, service: &str) -> Self {
+        Self { statuses, service: service.to_string() }
     }
 
     fn job_key(&self, job_name: &str) -> String {
@@ -23,9 +23,7 @@ impl CacherJobTracker {
     }
 
     async fn get_last_success(&self, job_name: &str) -> Option<u64> {
-        let key = self.job_key(job_name);
-        let cache_key = CacheKey::JobStatus(&key);
-        self.cacher.get_value(&cache_key.key()).await.ok()
+        self.statuses.last_success(&self.job_key(job_name)).await.ok().flatten()
     }
 }
 
@@ -47,14 +45,12 @@ impl JobSchedule for CacherJobTracker {
 
     async fn mark_success(&self, job_name: &str, timestamp: SystemTime) -> Result<(), JobError> {
         let seconds = timestamp.duration_since(UNIX_EPOCH).map_err(|error| Box::new(error) as JobError)?.as_secs();
-        let key = self.job_key(job_name);
-        let cache_key = CacheKey::JobStatus(&key);
-        self.cacher.set_cached(cache_key, &seconds).await
+        self.statuses.set_last_success(&self.job_key(job_name), seconds).await
     }
 }
 
 impl Services {
     pub async fn job_schedule(&self, service: &str) -> Result<Arc<dyn JobSchedule>, Box<dyn Error + Send + Sync>> {
-        Ok(Arc::new(CacherJobTracker::new(self.cacher().await?, service)))
+        Ok(Arc::new(CacherJobTracker::new(Arc::new(self.cacher().await?), service)))
     }
 }

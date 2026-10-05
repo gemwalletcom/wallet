@@ -442,9 +442,12 @@
   <string name="lock_privacy_lock">Privacy Lock</string>
   <string name="lock_footer">Protektahan ang access sa app na ito sa iyong device</string>
   <string name="lock_passcode">Passcode</string>
+  <string name="lock_passcode_off_title">Naka-off ang passcode ng device</string>
+  <string name="lock_passcode_off_description">Naka-lock ang Gem gamit ang passcode ng iyong device. I-on ang passcode sa mga setting ng device para mabuksan ang Gem. Ligtas ang iyong mga wallet.</string>
   <string name="verify_phrase_title">Kumpirmahin</string>
   <string name="warnings_externally_controlled_account">Maaaring kontrolado ng ibang tao ang %1$s account na ito. Huwag magpadala ng pondo rito maliban kung sigurado kang ikaw ang may kontrol dito, o maaari mong permanenteng mawala ang iyong mga asset.</string>
   <string name="sell_title">Ibenta %1$s</string>
+  <string name="info_region_unavailable_description">Hindi available ang feature na ito sa iyong rehiyon. Nakadepende ang availability sa mga lokal na patakaran at mga kinakailangan ng mga provider.</string>
   <string name="info_network_fee_title">Bayad sa Network</string>
   <string name="info_watch_wallet_title">Wallet na Binabantayan</string>
   <string name="info_watch_wallet_description">Isang wallet na wala kang access, ngunit maaari mong panoorin ang mga transaksyon at paggalaw nito.</string>

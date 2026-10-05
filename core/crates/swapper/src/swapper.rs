@@ -262,7 +262,7 @@ mod tests {
         Options, SwapperChainAsset, SwapperProvider, SwapperQuoteAsset,
         alien::reqwest_provider::NativeProvider,
         testkit::{MockSwapper, mock_quote},
-        uniswap::default::{new_pancakeswap, new_uniswap_v3},
+        uniswap::universal_router::{new_pancakeswap, new_uniswap_v3},
     };
 
     #[test]

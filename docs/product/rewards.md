@@ -48,4 +48,5 @@ None recorded.
 
 ## Rules
 
+- Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
 - Rewards belong to one Multi-Coin wallet: the one the user chose on the screen, otherwise the current wallet, otherwise the first Multi-Coin wallet.

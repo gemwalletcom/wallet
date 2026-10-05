@@ -196,11 +196,11 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
         .map { UInt64(max($0.createdAt.timeIntervalSince1970, 0)) } ?? 0
     }
 
-    public func refresh(fromTimestamp: UInt64, hasMessages: Bool) async -> GemLoadState {
+    public func refresh(fromTimestamp: UInt64) async -> GemLoadState {
         syncedTimestamps.append(fromTimestamp)
         guard let syncError else {
             return .data
         }
-        return hasMessages ? .data : .error(error: .Api(msg: syncError.localizedDescription))
+        return .error(error: .Api(msg: syncError.localizedDescription))
     }
 }

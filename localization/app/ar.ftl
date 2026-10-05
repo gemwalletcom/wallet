@@ -535,6 +535,8 @@ lock_unlock = فتح
 lock_privacy_lock = قفل الخصوصية
 lock_footer = حماية الوصول إلى هذا التطبيق على جهازك
 lock_passcode = رمز المرور
+lock_passcode_off_title = رمز مرور الجهاز متوقف
+lock_passcode_off_description = Gem مقفل برمز مرور جهازك. فعّل رمز المرور من إعدادات جهازك لفتح Gem. محافظك آمنة.
 
 # Verify
 
@@ -549,6 +551,8 @@ warnings_externally_controlled_account = قد يتحكم شخص آخر في حس
 sell_title = بيع %@
 
 # Info
+
+info_region_unavailable_description = هذه الميزة غير متاحة في منطقتك. يعتمد التوفر على القواعد المحلية ومتطلبات مزودي الخدمة.
 
 info_network_fee_title = رسوم الشبكة
 info_watch_wallet_title = شاهد المحفظة

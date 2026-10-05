@@ -8,6 +8,7 @@ mod in_transit_updater;
 mod parser_plan;
 mod parser_state;
 mod pending_transactions_updater;
+pub(crate) mod repository;
 mod store_pending_transactions_consumer;
 mod store_transactions_consumer;
 mod store_transactions_consumer_config;

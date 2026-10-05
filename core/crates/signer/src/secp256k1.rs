@@ -26,9 +26,12 @@ pub(crate) fn sign_ethereum_digest(digest: &[u8], private_key: &[u8]) -> Result<
 }
 
 pub(crate) fn recover_ethereum_address(digest: &[u8; 32], signature: &[u8]) -> Result<String, SignerError> {
-    let signature = EthereumSignature::try_from(signature).map_err(SignerError::from_display)?.normalized_s();
+    let signature = EthereumSignature::try_from(signature).map_err(SignerError::from_display)?;
     let recovery_id = RecoveryId::new(signature.v(), false);
     let signature = SecpSignature::from_scalars(signature.r().to_be_bytes(), signature.s().to_be_bytes()).map_err(|_| SignerError::invalid_input("Invalid Ethereum signature"))?;
+    if signature.normalize_s() != signature {
+        return Err(SignerError::invalid_input("Ethereum signature is not low-S"));
+    }
     let verifying_key = VerifyingKey::recover_from_prehash(digest, &signature, recovery_id).map_err(|_| SignerError::invalid_input("Invalid Ethereum signature"))?;
     let public_key = verifying_key.to_sec1_point(false);
     Ok(Address::from_raw_public_key(&public_key.as_bytes()[1..]).to_checksum(None))
@@ -60,6 +63,7 @@ mod tests {
     use super::{ETHEREUM_RECOVERY_ID_OFFSET, RECOVERY_ID_INDEX, SecpSigningKey, ensure_ethereum_signature_recovery_id_offset, recover_ethereum_address, sign_digest, sign_ethereum_digest, uncompressed_public_key_from_private};
     use crate::testkit::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS};
     use k256::ecdsa::{RecoveryId, Signature, VerifyingKey};
+    use primitives::SignerError;
     const DIGEST: [u8; 32] = [7u8; 32];
 
     #[test]
@@ -99,13 +103,22 @@ mod tests {
     }
 
     #[test]
-    fn recover_ethereum_address_normalizes_high_s_signature() {
+    fn recover_ethereum_address_rejects_high_s_signature() {
+        let private_key = hex::decode(TEST_PRIVATE_KEY).unwrap();
+        let (rs, recovery_id) = sign_digest(&DIGEST, &private_key).unwrap();
+        let signature = Signature::try_from(rs.as_slice()).unwrap();
+        let (r, s) = signature.split_scalars();
+        let forged = Signature::from_scalars(r.to_bytes(), (-*s.as_ref()).to_bytes()).unwrap();
+        let forged_signature = [forged.to_bytes().to_vec(), vec![recovery_id ^ 1]].concat();
+        assert_ne!(forged.normalize_s(), forged);
+
+        assert_eq!(recover_ethereum_address(&DIGEST, &[rs, vec![recovery_id]].concat()).unwrap(), TEST_PRIVATE_KEY_ETHEREUM_ADDRESS);
+        assert_eq!(recover_ethereum_address(&DIGEST, &forged_signature).unwrap_err(), SignerError::invalid_input("Ethereum signature is not low-S"));
+
         // Source: https://github.com/alloy-rs/core/blob/v1.6.1/crates/primitives/src/signature/sig.rs#L579-L583
         let digest = hex::decode("5eb4f5a33c621f32a8622d5f943b6b102994dfe4e5aebbefe69bb1b2aa0fc93e").unwrap().try_into().unwrap();
-        let signature = hex::decode("48b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353efffd310ac743f371de3b9f7f9cb56c0b28ad43601b4ab949f53faa07bd2c8041b").unwrap();
-        let expected = "0x0f65FE9276Bc9A24aE7083aE28E2660Ef72Df99e";
-
-        assert_eq!(recover_ethereum_address(&digest, &signature).unwrap(), expected);
+        let high_s = hex::decode("48b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353efffd310ac743f371de3b9f7f9cb56c0b28ad43601b4ab949f53faa07bd2c8041b").unwrap();
+        assert!(recover_ethereum_address(&digest, &high_s).is_err());
     }
 
     #[test]

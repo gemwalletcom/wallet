@@ -2,11 +2,12 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemListPhase
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemNotificationDestination
 import struct Gemstone.GemNotificationRow
 import protocol Gemstone.GemNotificationServiceProtocol
-import func Gemstone.loadError
+import func Gemstone.notificationListPhase
 import func Gemstone.notificationRows
 import enum Gemstone.UrlAction
 import Localization
@@ -42,16 +43,16 @@ public final class InAppNotificationsSceneViewModel {
         Localized.Settings.Notifications.title
     }
 
-    public var loadError: Error? {
-        Gemstone.loadError(state: loadState, hasRows: !notifications.isEmpty)
+    public var rows: [GemNotificationRow] {
+        notificationRows(notifications: notifications.map { $0.toGem() })
     }
 
-    public var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .notifications)
+    public func phase(_ rows: [GemNotificationRow]) -> GemListPhase {
+        notificationListPhase(rows: rows, state: loadState)
     }
 
-    public var sections: [ListSection<GemNotificationRow>] {
-        DateSectionBuilder(items: notificationRows(notifications: notifications.map { $0.toGem() }), dateKeyPath: \.createdAt).build()
+    public func sections(_ rows: [GemNotificationRow]) -> [ListSection<GemNotificationRow>] {
+        DateSectionBuilder(items: rows, dateKeyPath: \.createdAt).build()
     }
 }
 
@@ -59,7 +60,7 @@ public final class InAppNotificationsSceneViewModel {
 
 public extension InAppNotificationsSceneViewModel {
     func load() async {
-        loadState = await service.refresh(hasNotifications: notifications.isNotEmpty)
+        loadState = await service.refresh()
     }
 
     func open(destination: GemNotificationDestination) {

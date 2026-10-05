@@ -442,9 +442,12 @@
   <string name="lock_privacy_lock">پرائیویسی لاک</string>
   <string name="lock_footer">اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔</string>
   <string name="lock_passcode">پاس کوڈ</string>
+  <string name="lock_passcode_off_title">ڈیوائس کا پاس کوڈ بند ہے</string>
+  <string name="lock_passcode_off_description">Gem آپ کی ڈیوائس کے پاس کوڈ سے لاک ہے۔ Gem کھولنے کے لیے ڈیوائس کی ترتیبات میں پاس کوڈ آن کریں۔ آپ کے والیٹس محفوظ ہیں۔</string>
   <string name="verify_phrase_title">تصدیق کریں۔</string>
   <string name="warnings_externally_controlled_account">اس %1$s اکاؤنٹ کو کوئی اور کنٹرول کر سکتا ہے۔ جب تک آپ کو یقین نہ ہو کہ اس کا کنٹرول آپ کے پاس ہے، اس میں رقوم نہ بھیجیں، ورنہ آپ اپنے اثاثے مستقل طور پر کھو سکتے ہیں۔</string>
   <string name="sell_title">فروخت کریں %1$s</string>
+  <string name="info_region_unavailable_description">یہ خصوصیت آپ کے علاقے میں دستیاب نہیں ہے۔ دستیابی مقامی قواعد اور سروس فراہم کرنے والوں کی ضروریات پر منحصر ہے۔</string>
   <string name="info_network_fee_title">نیٹ ورک فیس</string>
   <string name="info_watch_wallet_title">والیٹ دیکھیں</string>
   <string name="info_watch_wallet_description">ایک والیٹ جس تک آپ کی رسائی نہیں ہے، لیکن آپ اس کے لین دین اور نقل و حرکت دیکھ سکتے ہیں۔</string>

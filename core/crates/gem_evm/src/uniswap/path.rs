@@ -113,7 +113,7 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::Ink => "0xF1815bd50389c46847f0Bda824eC8da914045D14",
         EVMChain::Monad => MONAD_USDC_TOKEN_ID,
         EVMChain::SeiEvm => SEIEVM_USDC_TOKEN_ID,
-        EVMChain::XLayer => XLAYER_USDC_TOKEN_ID,
+        EVMChain::XLayer => XLAYER_USDC_E_TOKEN_ID,
         EVMChain::Robinhood => ROBINHOOD_USDG_TOKEN_ID,
         EVMChain::OpBNB | EVMChain::Plasma | EVMChain::Arc => "",
         EVMChain::Stable => "0x8a2b28364102bea189d99a475c494330ef2bdd0b",

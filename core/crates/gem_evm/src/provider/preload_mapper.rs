@@ -43,7 +43,7 @@ pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHisto
         .collect())
 }
 
-pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
+pub fn get_transaction_params(input: &TransactionLoadInput) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
     let value = input.value_as_bigint();
 
     match &input.input_type {
@@ -162,12 +162,12 @@ mod tests {
         let payment = |approval| TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra { approval, ..TransferDataExtra::mock() });
 
         assert_eq!(
-            get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(Some(approval.clone())), "1000"))?,
+            get_transaction_params(&TransactionLoadInput::mock_evm(payment(Some(approval.clone())), "1000"))?,
             TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?),
             "a payment that still needs an approval sends the approval"
         );
         assert_eq!(
-            get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(None), "1000"))?,
+            get_transaction_params(&TransactionLoadInput::mock_evm(payment(None), "1000"))?,
             TransactionParams::new(TEST_EVM_RECIPIENT, vec![], BigInt::from(1000)),
             "a payment paid by a transaction sends what the gateway built"
         );

@@ -4,11 +4,6 @@ use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_u64_from_str};
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct TransactionBroadcast {
-    pub hash: String,
-}
-
 #[derive(Debug, Clone, Deserialize)]
 pub struct BlockHeader {
     #[serde(deserialize_with = "deserialize_u64_from_str")]
