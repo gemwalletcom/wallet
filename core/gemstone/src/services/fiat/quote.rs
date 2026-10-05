@@ -9,6 +9,7 @@ use crate::config::fiat_config::get_fiat_config;
 use crate::constants::FIAT_QUOTE_CURRENCY;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::state::GemLoadState;
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::balance::GemBalanceService;
 use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
@@ -56,8 +57,8 @@ impl GemFiatQuoteService {
             .collect()
     }
 
-    pub fn new_session(&self, quote_type: FiatQuoteType, amount: Option<u32>) -> GemFiatSession {
-        GemFiatSession::new(quote_type, amount)
+    pub fn new_session(&self, quote_type: FiatQuoteType, amount: Option<u32>, format: GemNumberFormat) -> GemFiatSession {
+        GemFiatSession::new(quote_type, amount, format)
     }
 
     pub fn random_amount(&self) -> u32 {

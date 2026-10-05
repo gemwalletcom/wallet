@@ -226,7 +226,7 @@ final class FiatSceneViewModelTests {
         model.amount = "0"
         #expect(model.amountError(model.viewState) == nil)
 
-        model.amount = "."
+        model.amount = "12.5"
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Errors.invalidAmount)
 
         model.amount = "4"

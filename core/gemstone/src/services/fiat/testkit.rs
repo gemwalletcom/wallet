@@ -3,9 +3,10 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use primitives::{Asset, AssetBasic, AssetProperties, AssetScore, FiatQuote, FiatQuoteType, FiatTransactionData, Wallet, WalletId};
 
-use super::{GemFiatQuoteRequest, GemFiatQuoteService, GemFiatQuotesResult, GemFiatService, GemFiatStore};
+use super::{GemFiatQuoteRequest, GemFiatQuoteService, GemFiatQuotesResult, GemFiatService, GemFiatSession, GemFiatStore};
 use crate::api::{GemApiClient, GemDeviceApiClient};
 use crate::gateway::GemGateway;
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::GemBalanceService;
@@ -22,6 +23,12 @@ use crate::services::transfer::testkit::MemoryRecentActivityStore;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
+
+impl GemFiatSession {
+    pub fn mock(quote_type: FiatQuoteType, amount: Option<u32>) -> Self {
+        Self::new(quote_type, amount, GemNumberFormat { decimal_separator: ".".to_string() })
+    }
+}
 
 impl GemFiatQuotesResult {
     pub fn mock(quotes: Vec<FiatQuote>) -> Self {

@@ -105,14 +105,14 @@ class FiatViewModelTest {
     }
     private val service = mockk<GemFiatQuoteServiceInterface> {
         every { suggestedAmounts() } returns listOf(GemFiatSuggestedAmount(100u, mockGemFormattedNumber(value = 100.0)), GemFiatSuggestedAmount(250u, mockGemFormattedNumber(value = 250.0)))
-        every { newSession(any(), any()) } answers {
+        every { newSession(any(), any(), any()) } answers {
             val quoteType = firstArg<uniffi.gemstone.FiatQuoteType>()
             val amount = secondArg<UInt?>()
             val operation = { type: uniffi.gemstone.FiatQuoteType, default: UInt ->
                 val value = amount?.takeIf { type == quoteType } ?: default
                 mockGemFiatOperation(quoteType = type, amount = value.toString(), phase = GemFiatQuotePhase.Loading(value.toDouble()))
             }
-            mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u))
+            mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u), format = thirdArg())
         }
         every { isAvailable(any()) } returns true
         every { randomAmount() } returns 500u
