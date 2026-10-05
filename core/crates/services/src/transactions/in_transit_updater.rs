@@ -8,7 +8,9 @@ use futures::{StreamExt, TryStreamExt, stream};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::swap::{SwapResult, SwapResultRequest, SwapStatus};
 use primitives::{Chain, JobConfiguration, Transaction, TransactionState, TransactionSwapMetadata};
-use storage::{Database, TransactionFilter, TransactionsRepository};
+use storage::TransactionFilter;
+
+use super::repository::Repository;
 use streamer::{StreamProducerQueue, TransactionsPayload};
 use swapper::cross_chain::{self, DepositAddressMap};
 use swapper::swapper::GemSwapper;
@@ -33,7 +35,7 @@ impl InTransitConfig {
 }
 
 pub struct InTransitUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: InTransitConfig,
     swapper: Arc<GemSwapper>,
     stream_producer: Arc<dyn StreamProducerQueue>,
@@ -43,8 +45,8 @@ pub struct InTransitUpdater {
 }
 
 impl InTransitUpdater {
-    pub fn new(
-        database: Database,
+    pub(crate) fn new(
+        repository: Arc<dyn Repository>,
         config: InTransitConfig,
         swapper: Arc<GemSwapper>,
         stream_producer: Arc<dyn StreamProducerQueue>,
@@ -53,7 +55,7 @@ impl InTransitUpdater {
         schedule: CheckSchedule,
     ) -> Self {
         Self {
-            database,
+            repository,
             config,
             swapper,
             stream_producer,
@@ -65,10 +67,7 @@ impl InTransitUpdater {
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let scan_limit = self.config.scan_limit();
-        let transactions = self
-            .database
-            .run(move |client| client.get_transactions_by_filter(vec![TransactionFilter::States(vec![TransactionState::InTransit])], scan_limit))
-            .await?;
+        let transactions = self.repository.transactions(vec![TransactionFilter::States(vec![TransactionState::InTransit])], scan_limit).await?;
         let vault_addresses = self.vault_client.get_deposit_address_map().await?;
         self.metrics.record_queue(TransactionQueue::InTransit, in_transit_counts(&transactions, &vault_addresses));
 
@@ -133,8 +132,7 @@ impl InTransitUpdater {
 
     async fn save_and_publish(&self, chain: Chain, transaction: &Transaction, state: TransactionState, metadata: Option<serde_json::Value>) -> Result<(), Box<dyn Error + Send + Sync>> {
         let updates = swap_state_updates(state, metadata.as_ref());
-        let hash = transaction.id.hash.clone();
-        self.database.run(move |client| client.update_transaction(chain.as_ref(), &hash, updates)).await?;
+        self.repository.update_transaction(chain, transaction.id.hash.clone(), updates).await?;
 
         let transaction = transaction.clone().with_swap_state(state, metadata.clone());
         self.stream_producer.publish_transactions(TransactionsPayload::new_state_change_with_notify(chain, vec![transaction])).await?;

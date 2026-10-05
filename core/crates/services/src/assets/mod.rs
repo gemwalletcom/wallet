@@ -20,7 +20,6 @@ mod staking_apy_updater;
 mod usage_rank_updater;
 mod validator_scanner;
 
-pub use addresses::add_transaction_addresses;
 pub use asset_rank_updater::AssetRankUpdater;
 pub use assets_client::AssetsClient;
 pub use assets_has_price_updater::AssetsHasPriceUpdater;

@@ -1,11 +1,11 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use super::repository::Repository;
 use async_trait::async_trait;
 use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
 use primitives::{Transaction, TransactionId, TransactionIdRequest};
-use storage::{Database, TransactionsRepository};
 use streamer::{StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 use swapper::{SwapResultRequest, swapper::GemSwapper};
 
@@ -16,23 +16,22 @@ pub struct FetchTransactionConsumer {
     pub swapper: Arc<GemSwapper>,
     pub producer: Arc<dyn StreamProducerQueue>,
     pub throttle: Arc<dyn ThrottleCacher>,
-    pub database: Database,
+    pub(crate) repository: Arc<dyn Repository>,
 }
 
 impl FetchTransactionConsumer {
-    pub fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: Arc<dyn StreamProducerQueue>, throttle: Arc<dyn ThrottleCacher>, database: Database) -> Self {
+    pub(crate) fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: Arc<dyn StreamProducerQueue>, throttle: Arc<dyn ThrottleCacher>, repository: Arc<dyn Repository>) -> Self {
         Self {
             providers,
             swapper,
             producer,
             throttle,
-            database,
+            repository,
         }
     }
 
     async fn stored_transaction(&self, id: TransactionId) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
-        let hash = id.hash.clone();
-        let transactions = self.database.run(move |client| client.get_transactions_by_hash(&hash)).await?;
+        let transactions = self.repository.transactions_by_hash(id.hash.clone()).await?;
         Ok(transactions.into_iter().find(|transaction| transaction.id == id))
     }
 }

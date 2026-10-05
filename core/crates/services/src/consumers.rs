@@ -114,13 +114,13 @@ impl Services {
             self.swapper(),
             Arc::new(stream_producer),
             Arc::new(self.cacher().await?),
-            self.database(),
+            self.transactions_repository(),
         ))
     }
 
     pub async fn store_transactions_consumer(&self, stream_producer: StreamProducer) -> Result<StoreTransactionsConsumer, Box<dyn Error + Send + Sync>> {
         Ok(StoreTransactionsConsumer {
-            database: self.database(),
+            repository: self.transactions_repository(),
             stream_producer: Arc::new(stream_producer),
             pusher: Pusher::new(self.database()),
             config: self.config(),
@@ -145,11 +145,11 @@ impl Services {
     }
 
     pub fn store_transactions_swaps_consumer(&self) -> StoreTransactionsSwapsConsumer {
-        StoreTransactionsSwapsConsumer::new(self.database(), self.config())
+        StoreTransactionsSwapsConsumer::new(self.transactions_repository(), self.config())
     }
 
     pub fn store_transactions_perpetuals_consumer(&self) -> StoreTransactionsPerpetualsConsumer {
-        StoreTransactionsPerpetualsConsumer::new(self.database())
+        StoreTransactionsPerpetualsConsumer::new(self.transactions_repository())
     }
 
     pub async fn notifications_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<NotificationsConsumer, Box<dyn Error + Send + Sync>> {

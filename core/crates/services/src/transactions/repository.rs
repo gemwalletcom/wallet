@@ -1,9 +1,15 @@
+use std::collections::HashSet;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{Asset, AssetId, Chain, ChainAddress, Device, MAX_QUERY_LIMIT, ScanAddress, ScanVerdict, Transaction, TransactionId, TransactionsResponse};
-use storage::{AssetsRepository, Database, DatabaseError, DevicesRepository, ParserState, ParserStateRepository, ScanAddressesRepository, ScanDetectionsRepository, TransactionsRepository, WalletRecord, WalletsRepository};
+use primitives::{
+    Asset, AssetAddress, AssetBasic, AssetId, AssetPriceMetadata, Chain, ChainAddress, Device, DeviceSubscription, MAX_QUERY_LIMIT, NFTAssetId, PriceData, ScanAddress, ScanVerdict, Transaction, TransactionId, TransactionsResponse,
+};
+use storage::{
+    AssetFilter, AssetsAddressesRepository, AssetsRepository, ChartResult, Database, DatabaseError, DevicesRepository, NftRepository, ParserState, ParserStateRepository, PricesRepository, ScanAddressesRepository, ScanDetectionsRepository,
+    TransactionFilter, TransactionPerpetualRecord, TransactionSwapRecord, TransactionUpdate, TransactionsPerpetualsRepository, TransactionsRepository, TransactionsSwapsRepository, WalletRecord, WalletsRepository,
+};
 
 pub(crate) struct WalletTransactionsQuery {
     pub(crate) device_id: String,
@@ -13,6 +19,12 @@ pub(crate) struct WalletTransactionsQuery {
     pub(crate) since: Option<NaiveDateTime>,
     pub(crate) limit: usize,
     pub(crate) offset: usize,
+}
+
+pub(crate) struct AssetPriceHistory {
+    pub(crate) assets: Vec<AssetBasic>,
+    pub(crate) price_at: Option<ChartResult>,
+    pub(crate) prices: Vec<PriceData>,
 }
 
 pub(crate) struct AddressRecords {
@@ -35,6 +47,19 @@ pub(crate) trait Repository: Send + Sync {
     async fn set_parser_current_block(&self, chain: Chain, block: i64) -> Result<usize, DatabaseError>;
     async fn set_parser_latest_block(&self, chain: Chain, block: i64) -> Result<usize, DatabaseError>;
     async fn wallet_with_devices(&self, wallet_row_id: i32) -> Result<(WalletRecord, Vec<Device>), DatabaseError>;
+    async fn subscriptions_for_addresses(&self, chain: Chain, addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError>;
+    async fn asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError>;
+    async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
+    async fn assets_with_prices(&self, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError>;
+    async fn asset_price_history(&self, asset_id: AssetId, at: NaiveDateTime) -> Result<AssetPriceHistory, DatabaseError>;
+    async fn nft_asset_ids(&self, identifiers: Vec<String>) -> Result<Vec<NFTAssetId>, DatabaseError>;
+    async fn upsert_transactions(&self, transactions: Vec<Transaction>, batch_size: usize) -> Result<HashSet<TransactionId>, DatabaseError>;
+    async fn add_asset_addresses(&self, addresses: Vec<AssetAddress>) -> Result<usize, DatabaseError>;
+    async fn transactions(&self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<Transaction>, DatabaseError>;
+    async fn update_transaction(&self, chain: Chain, hash: String, updates: Vec<TransactionUpdate>) -> Result<usize, DatabaseError>;
+    async fn transaction_exists(&self, id: TransactionId) -> Result<bool, DatabaseError>;
+    async fn upsert_transaction_swap(&self, id: TransactionId, record: TransactionSwapRecord) -> Result<usize, DatabaseError>;
+    async fn upsert_transaction_perpetual(&self, id: TransactionId, record: TransactionPerpetualRecord) -> Result<usize, DatabaseError>;
 }
 
 pub(crate) struct PostgresRepository {
@@ -134,6 +159,73 @@ impl Repository for PostgresRepository {
 
     async fn wallet_with_devices(&self, wallet_row_id: i32) -> Result<(WalletRecord, Vec<Device>), DatabaseError> {
         self.database.run(move |client| Ok((client.get_wallet_by_id(wallet_row_id)?, client.get_devices_by_wallet_id(wallet_row_id)?))).await
+    }
+
+    async fn subscriptions_for_addresses(&self, chain: Chain, addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError> {
+        self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await
+    }
+
+    async fn asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError> {
+        self.database.run(move |client| client.get_asset(&asset_id)).await
+    }
+
+    async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError> {
+        self.database.run(move |client| client.get_assets(asset_ids)).await
+    }
+
+    async fn assets_with_prices(&self, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
+        self.database.run(move |client| client.get_assets_with_prices(filters, price_max_age)).await
+    }
+
+    async fn asset_price_history(&self, asset_id: AssetId, at: NaiveDateTime) -> Result<AssetPriceHistory, DatabaseError> {
+        self.database
+            .run(move |client| {
+                Ok(AssetPriceHistory {
+                    assets: client.get_assets_basic(vec![asset_id.clone()])?,
+                    price_at: client.get_price_at(&asset_id, at)?,
+                    prices: client.get_prices_for_asset(&asset_id)?,
+                })
+            })
+            .await
+    }
+
+    async fn nft_asset_ids(&self, identifiers: Vec<String>) -> Result<Vec<NFTAssetId>, DatabaseError> {
+        self.database.run(move |client| client.get_nft_asset_ids(identifiers)).await
+    }
+
+    async fn upsert_transactions(&self, transactions: Vec<Transaction>, batch_size: usize) -> Result<HashSet<TransactionId>, DatabaseError> {
+        self.database
+            .run(move |client| {
+                transactions.chunks(batch_size).try_fold(HashSet::new(), |inserted_ids, chunk| {
+                    let chunk_inserted_ids = client.upsert_transactions(chunk.to_vec())?;
+                    Ok(inserted_ids.into_iter().chain(chunk_inserted_ids).collect())
+                })
+            })
+            .await
+    }
+
+    async fn add_asset_addresses(&self, addresses: Vec<AssetAddress>) -> Result<usize, DatabaseError> {
+        self.database.run(move |client| client.add_assets_addresses(addresses)).await
+    }
+
+    async fn transactions(&self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<Transaction>, DatabaseError> {
+        self.database.run(move |client| client.get_transactions_by_filter(filters, limit)).await
+    }
+
+    async fn update_transaction(&self, chain: Chain, hash: String, updates: Vec<TransactionUpdate>) -> Result<usize, DatabaseError> {
+        self.database.run(move |client| client.update_transaction(chain.as_ref(), &hash, updates)).await
+    }
+
+    async fn transaction_exists(&self, id: TransactionId) -> Result<bool, DatabaseError> {
+        self.database.run(move |client| client.get_transaction_exists(&id)).await
+    }
+
+    async fn upsert_transaction_swap(&self, id: TransactionId, record: TransactionSwapRecord) -> Result<usize, DatabaseError> {
+        self.database.run(move |client| client.upsert_transaction_swap(&id, record)).await
+    }
+
+    async fn upsert_transaction_perpetual(&self, id: TransactionId, record: TransactionPerpetualRecord) -> Result<usize, DatabaseError> {
+        self.database.run(move |client| client.upsert_transaction_perpetual(&id, record)).await
     }
 }
 

@@ -445,7 +445,7 @@ impl Services {
 
     pub async fn transaction_jobs(&self, stream_producer: StreamProducer, metrics: Arc<dyn TransactionQueueMetrics>) -> Result<TransactionJobs, Box<dyn Error + Send + Sync>> {
         let config = self.config();
-        let database = self.database();
+        let repository = self.transactions_repository();
         let cacher = self.cacher().await?;
         let stream_producer: Arc<dyn StreamProducerQueue> = Arc::new(stream_producer);
         let in_transit_config = InTransitConfig {
@@ -461,7 +461,7 @@ impl Services {
         let providers = Arc::new(self.chain_providers(&service_user_agent("daemon", Some("transactions"))));
         let swapper = self.swapper();
         let in_transit_updater = InTransitUpdater::new(
-            database.clone(),
+            repository.clone(),
             in_transit_config,
             swapper.clone(),
             stream_producer.clone(),
@@ -473,7 +473,7 @@ impl Services {
             providers,
             Arc::new(cacher.clone()),
             stream_producer,
-            database,
+            repository,
             pending_config,
             metrics,
             CheckSchedule::new(Arc::new(cacher.clone()), TransactionQueue::Pending),

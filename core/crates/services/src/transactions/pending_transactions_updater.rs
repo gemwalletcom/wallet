@@ -12,7 +12,9 @@ use config_keys::{ConfigKey, ConfigParamKey};
 use futures::{StreamExt, TryStreamExt, future::try_join_all, stream};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::{Chain, JobConfiguration, TransactionId, chain_transaction_timeout};
-use storage::{Database, DatabaseError, TransactionsRepository};
+use storage::DatabaseError;
+
+use super::repository::Repository;
 use streamer::{StreamProducerQueue, TransactionsPayload};
 
 pub struct PendingTransactionsUpdaterConfig {
@@ -45,18 +47,18 @@ pub struct PendingTransactionsUpdater {
     providers: Arc<ChainProviders>,
     pending: Arc<dyn PendingTransactionsCacher>,
     stream_producer: Arc<dyn StreamProducerQueue>,
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: PendingTransactionsUpdaterConfig,
     metrics: Arc<dyn TransactionQueueMetrics>,
     schedule: CheckSchedule,
 }
 
 impl PendingTransactionsUpdater {
-    pub fn new(
+    pub(crate) fn new(
         providers: Arc<ChainProviders>,
         pending: Arc<dyn PendingTransactionsCacher>,
         stream_producer: Arc<dyn StreamProducerQueue>,
-        database: Database,
+        repository: Arc<dyn Repository>,
         config: PendingTransactionsUpdaterConfig,
         metrics: Arc<dyn TransactionQueueMetrics>,
         schedule: CheckSchedule,
@@ -65,7 +67,7 @@ impl PendingTransactionsUpdater {
             providers,
             pending,
             stream_producer,
-            database,
+            repository,
             config,
             metrics,
             schedule,
@@ -125,7 +127,7 @@ impl PendingTransactionsUpdater {
             return Ok(true);
         }
 
-        if self.database.run(move |client| client.get_transaction_exists(&transaction_id)).await? {
+        if self.repository.transaction_exists(transaction_id).await? {
             info_with_fields!("pending exists", chain = chain.as_ref(), identifier = identifier);
             return Ok(true);
         }
