@@ -178,6 +178,9 @@ data class ImportWalletUIState(
 
     val input: ImportInputUIModel
         get() = importType.kind.inputUiModel()
+
+    val showsScan: Boolean
+        get() = importType.chain != null
 }
 
 data class ImportTabUIModel(val type: ImportType, @StringRes val title: Int, val isSelected: Boolean)

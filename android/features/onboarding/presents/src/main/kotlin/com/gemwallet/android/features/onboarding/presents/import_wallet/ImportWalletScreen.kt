@@ -25,6 +25,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +46,7 @@ import com.gemwallet.android.features.onboarding.presents.import_wallet.componen
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportInputUIModel
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportTabUIModel
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportWalletViewModel
+import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
@@ -66,6 +68,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.QRScanType
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemWalletImportKind
@@ -89,6 +92,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
     val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
     val inputState = remember { mutableStateOf(TextFieldValue()) }
+    var isScanning by remember { mutableStateOf(false) }
 
     ImportWalletScene(
         inputState = inputState,
@@ -102,6 +106,11 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
         buttonState = buttonState(loading = uiState.loading),
         onImport = { viewModel.import(onImported) },
         onInput = viewModel::onInput,
+        onScan = if (uiState.showsScan) {
+            { isScanning = true }
+        } else {
+            null
+        },
         onTypeChange = viewModel::importKind,
         suggestions = suggestions,
         onSelectSuggestion = viewModel::selectSuggestion,
@@ -125,6 +134,16 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
             }
         }
     }
+    QRScannerModal(
+        isVisible = isScanning,
+        scanType = uiState.importType.kind.scanType(),
+        onDismissRequest = { isScanning = false },
+        onResult = { code ->
+            isScanning = false
+            inputState.value = TextFieldValue(text = code, selection = TextRange(code.length))
+            viewModel.onInput(code, code.length)
+        },
+    )
     uiState.existingWalletName?.let { walletName ->
         InfoBottomSheet(
             item = GemInfoTopic.ExistingWalletImported(walletName).infoSheet {
@@ -153,6 +172,7 @@ private fun ImportWalletScene(
     buttonState: ButtonState,
     onImport: () -> Unit,
     onInput: (String, Int) -> Unit,
+    onScan: (() -> Unit)?,
     onTypeChange: (ImportType) -> Unit,
     suggestions: List<String>,
     onSelectSuggestion: (String) -> String,
@@ -185,7 +205,7 @@ private fun ImportWalletScene(
                         onTypeChange(type)
                         inputState.value = TextFieldValue()
                     }
-                    DataInput(input, inputState, nameResolveIndicator, suggestions, onSelectSuggestion, onInput)
+                    DataInput(input, inputState, nameResolveIndicator, suggestions, onSelectSuggestion, onScan, onInput)
                     ErrorMessage(dataError)
                 }
             }
@@ -207,11 +227,20 @@ private fun ImportWalletScene(
 }
 
 @Composable
-private fun DataInput(input: ImportInputUIModel, inputState: MutableState<TextFieldValue>, nameResolveIndicator: GemNameIndicator?, suggestions: List<String>, onSelectSuggestion: (String) -> String, onInput: (String, Int) -> Unit) {
+private fun DataInput(
+    input: ImportInputUIModel,
+    inputState: MutableState<TextFieldValue>,
+    nameResolveIndicator: GemNameIndicator?,
+    suggestions: List<String>,
+    onSelectSuggestion: (String) -> String,
+    onScan: (() -> Unit)?,
+    onInput: (String, Int) -> Unit,
+) {
     ImportInput(
         inputState = inputState.value,
         input = input,
         indicator = nameResolveIndicator,
+        onScan = onScan,
         onValueChange = { query ->
             inputState.value = query
             onInput(query.text, query.selection.start)
@@ -261,6 +290,12 @@ private fun ErrorMessage(error: String?) {
     Text(text = error, color = MaterialTheme.colorScheme.error)
 }
 
+private fun GemWalletImportKind.scanType(): QRScanType = when (this) {
+    GemWalletImportKind.PHRASE -> QRScanType.SecretPhrase
+    GemWalletImportKind.PRIVATE_KEY -> QRScanType.PrivateKey
+    GemWalletImportKind.ADDRESS -> QRScanType.Address
+}
+
 @Composable
 @Preview(device = Devices.NEXUS_6)
 @Preview(device = Devices.NEXUS_7)
@@ -290,6 +325,7 @@ fun PreviewImportAddress() {
                 buttonState = ButtonState.Enabled,
                 onImport = {},
                 onInput = { _, _ -> },
+                onScan = {},
                 onTypeChange = {},
                 suggestions = emptyList(),
                 onSelectSuggestion = { "" },
