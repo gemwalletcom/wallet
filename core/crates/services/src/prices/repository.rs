@@ -258,14 +258,15 @@ impl Repository for PostgresRepository {
     async fn portfolio_prices(&self, asset_ids: Vec<AssetId>, period: ChartPeriod, price_max_age: Duration) -> Result<Vec<Option<PortfolioPrice>>, DatabaseError> {
         self.database
             .run(move |client| {
+                let assets: HashMap<AssetId, Asset> = client.get_assets(asset_ids.clone())?.into_iter().map(|asset| (asset.id.clone(), asset)).collect();
+                let prices: HashMap<AssetId, PriceData> = client.get_primary_prices(&asset_ids, price_max_age)?.into_iter().collect();
                 Ok(asset_ids
                     .iter()
                     .map(|asset_id| {
-                        let asset = client.get_asset(asset_id).ok()?;
-                        let price_id = client.get_primary_price_key(asset_id, price_max_age).ok()?.id();
-                        let price = client.get_price_by_id(&price_id).map(|price| price.price).unwrap_or_default();
-                        let charts = client.get_charts(&price_id, &period).unwrap_or_default();
-                        Some(PortfolioPrice { asset, price, charts })
+                        let asset = assets.get(asset_id)?.clone();
+                        let price = prices.get(asset_id)?;
+                        let charts = client.get_charts(&price.id.id(), &period).unwrap_or_default();
+                        Some(PortfolioPrice { asset, price: price.price, charts })
                     })
                     .collect())
             })
