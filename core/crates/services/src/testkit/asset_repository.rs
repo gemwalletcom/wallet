@@ -1,12 +1,20 @@
+use std::collections::HashSet;
 use std::sync::Mutex;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{Asset, AssetAssociation, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, ScanAddress, asset_score::AssetRank};
-use storage::{AssetFilter, AssetUpdate, DatabaseError};
+use primitives::{Asset, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank};
+use storage::{AssetFilter, AssetUpdate, DatabaseError, Tag};
 
-use crate::assets::repository::{RankChange, Repository};
+use crate::assets::repository::{RankChange, Repository, TokenAddressesUpdate};
+
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct ListAssets {
+    pub(crate) tag_id: String,
+    pub(crate) asset_ids: Vec<AssetId>,
+    pub(crate) is_new_tag: bool,
+}
 
 pub(crate) struct MemoryAssetRepository {
     candidates: Vec<AssetBasic>,
@@ -15,6 +23,8 @@ pub(crate) struct MemoryAssetRepository {
     price_queries: Mutex<Vec<(Vec<AssetFilter>, Duration)>>,
     updates: Mutex<Vec<(Vec<AssetId>, Vec<AssetUpdate>)>>,
     added: Mutex<Vec<AssetBasic>>,
+    tags: Vec<Tag>,
+    list_assets: Mutex<Vec<ListAssets>>,
 }
 
 impl MemoryAssetRepository {
@@ -26,7 +36,17 @@ impl MemoryAssetRepository {
             price_queries: Mutex::new(Vec::new()),
             updates: Mutex::new(Vec::new()),
             added: Mutex::new(Vec::new()),
+            tags: Vec::new(),
+            list_assets: Mutex::new(Vec::new()),
         }
+    }
+
+    pub(crate) fn with_tags(self, tags: Vec<Tag>) -> Self {
+        Self { tags, ..self }
+    }
+
+    pub(crate) fn list_assets(&self) -> Vec<ListAssets> {
+        self.list_assets.lock().unwrap().clone()
     }
 
     pub(crate) fn ranks(&self) -> Vec<AssetRank> {
@@ -109,5 +129,43 @@ impl Repository for MemoryAssetRepository {
 
     async fn add_scan_addresses(&self, addresses: Vec<ScanAddress>) -> Result<usize, DatabaseError> {
         Ok(addresses.len())
+    }
+
+    async fn update_coin_address(&self, _chain_address: ChainAddress, _balance: AssetBalance) -> Result<(), DatabaseError> {
+        Ok(())
+    }
+
+    async fn update_token_addresses(&self, _chain_address: ChainAddress, _balances: Vec<AssetBalance>) -> Result<TokenAddressesUpdate, DatabaseError> {
+        Ok(TokenAddressesUpdate { added: 0, unknown_asset_ids: vec![] })
+    }
+
+    async fn update_image_flags(&self, _chain: Chain, _asset_ids: HashSet<AssetId>) -> Result<(usize, usize), DatabaseError> {
+        Ok((0, 0))
+    }
+
+    async fn update_price_flags(&self) -> Result<(usize, usize), DatabaseError> {
+        Ok((0, 0))
+    }
+
+    async fn update_usage_ranks(&self, _windows: Vec<(NaiveDateTime, i64)>, _retain_since: NaiveDateTime, _batch_size: usize) -> Result<usize, DatabaseError> {
+        Ok(0)
+    }
+
+    async fn update_perpetuals(&self, _assets: Vec<Asset>, _asset_updates: Vec<AssetUpdate>, perpetuals: Vec<Perpetual>) -> Result<Result<usize, DatabaseError>, DatabaseError> {
+        Ok(Ok(perpetuals.len()))
+    }
+
+    async fn list_tag(&self, tag_id: String) -> Result<Option<Tag>, DatabaseError> {
+        Ok(self.tags.iter().find(|tag| tag.id == tag_id).cloned())
+    }
+
+    async fn list_tags(&self) -> Result<Vec<Tag>, DatabaseError> {
+        Ok(self.tags.clone())
+    }
+
+    async fn set_list_assets(&self, tag_id: String, _list_name: String, _list_id: ListId, asset_ids: Vec<AssetId>, is_new_tag: bool) -> Result<Option<usize>, DatabaseError> {
+        let count = asset_ids.len();
+        self.list_assets.lock().unwrap().push(ListAssets { tag_id, asset_ids, is_new_tag });
+        Ok(Some(count))
     }
 }

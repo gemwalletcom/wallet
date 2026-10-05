@@ -4,20 +4,19 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
-use storage::Database;
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
-use super::addresses::update_coin_address;
+use crate::assets::repository::Repository;
 
 pub struct FetchCoinAddressesConsumer {
     pub provider: ChainProviders,
-    pub database: Database,
+    pub(crate) repository: Arc<dyn Repository>,
     pub throttle: Arc<dyn ThrottleCacher>,
 }
 
 impl FetchCoinAddressesConsumer {
-    pub fn new(provider: ChainProviders, database: Database, throttle: Arc<dyn ThrottleCacher>) -> Self {
-        Self { provider, database, throttle }
+    pub(crate) fn new(provider: ChainProviders, repository: Arc<dyn Repository>, throttle: Arc<dyn ThrottleCacher>) -> Self {
+        Self { provider, repository, throttle }
     }
 }
 
@@ -36,7 +35,7 @@ impl MessageConsumer<ChainAddressPayload, String> for FetchCoinAddressesConsumer
         let chain_address = payload.value;
         let balance = self.provider.get_balance_coin(chain_address.chain, chain_address.address.clone()).await?;
         let balance_value = balance.balance.available.to_string();
-        self.database.run(move |client| update_coin_address(client, &chain_address, balance)).await?;
+        self.repository.update_coin_address(chain_address, balance).await?;
         Ok(balance_value)
     }
 }

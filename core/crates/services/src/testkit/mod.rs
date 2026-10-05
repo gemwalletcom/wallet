@@ -8,7 +8,7 @@ mod search_provider;
 pub mod store_transactions_consumer_config_mock;
 mod stream_producer;
 
-pub(crate) use asset_repository::MemoryAssetRepository;
+pub(crate) use asset_repository::{ListAssets, MemoryAssetRepository};
 pub(crate) use config_repository::MemoryConfigRepository;
 pub(crate) use price_cacher::MemoryPriceCacher;
 pub(crate) use push_provider::RecordingPushProvider;

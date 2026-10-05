@@ -75,14 +75,14 @@ impl Services {
     pub async fn fetch_token_addresses_consumer(&self, chain: Chain, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchTokenAddressesConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchTokenAddressesConsumer::new(
             self.chain_providers_for(chain, user_agent),
-            self.database(),
+            self.assets_repository(),
             Arc::new(stream_producer),
             Arc::new(self.cacher().await?),
         ))
     }
 
     pub async fn fetch_coin_addresses_consumer(&self, chain: Chain, user_agent: &str) -> Result<FetchCoinAddressesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchCoinAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.database(), Arc::new(self.cacher().await?)))
+        Ok(FetchCoinAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.assets_repository(), Arc::new(self.cacher().await?)))
     }
 
     pub async fn fetch_nft_asset_consumer(&self) -> Result<FetchNftAssetConsumer, Box<dyn Error + Send + Sync>> {

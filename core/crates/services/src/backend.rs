@@ -136,7 +136,7 @@ impl Services {
 
     pub fn lists(&self) -> ListsClient {
         let coingecko = CoinGeckoClient::new(self.settings.coingecko.remote_provider_config());
-        ListsClient::new(self.database(), vec![Arc::new(CoinGeckoListProvider::new(coingecko))])
+        ListsClient::new(self.assets_repository(), vec![Arc::new(CoinGeckoListProvider::new(coingecko))])
     }
 
     pub fn nft(&self) -> NFTClient {

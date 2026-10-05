@@ -68,19 +68,19 @@ impl AssetsJobs {
     }
 
     pub fn perpetual_updater(&self, providers: Arc<ChainProviders>) -> PerpetualUpdater {
-        PerpetualUpdater::new(providers, self.database.clone())
+        PerpetualUpdater::new(providers, self.assets_repository())
     }
 
     pub fn usage_rank_updater(&self) -> UsageRankUpdater {
-        UsageRankUpdater::new(self.database.clone(), self.usage_rank_config)
+        UsageRankUpdater::new(self.assets_repository(), self.usage_rank_config)
     }
 
     pub fn assets_images_updater(&self) -> AssetsImagesUpdater {
-        AssetsImagesUpdater::new(self.static_assets_client.clone(), self.database.clone())
+        AssetsImagesUpdater::new(self.static_assets_client.clone(), self.assets_repository())
     }
 
     pub fn assets_has_price_updater(&self) -> AssetsHasPriceUpdater {
-        AssetsHasPriceUpdater::new(self.database.clone())
+        AssetsHasPriceUpdater::new(self.assets_repository())
     }
 
     pub fn stake_apy_updater(&self, providers: Arc<ChainProviders>) -> StakeApyUpdater {

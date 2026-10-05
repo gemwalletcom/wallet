@@ -1,7 +1,13 @@
-use primitives::AssetId;
 use std::collections::HashMap;
 use std::error::Error;
-use storage::{AssetsUsageRanksRepository, Database, DatabaseError, TransactionsRepository};
+use std::sync::Arc;
+
+use chrono::{Duration, NaiveDateTime, Utc};
+use primitives::AssetId;
+
+use crate::assets::repository::Repository;
+
+const RETENTION_DAYS: i64 = 30;
 
 #[derive(Clone, Copy)]
 pub struct UsageRankUpdaterConfig {
@@ -9,62 +15,40 @@ pub struct UsageRankUpdaterConfig {
 }
 
 pub struct UsageRankUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: UsageRankUpdaterConfig,
 }
 
 impl UsageRankUpdater {
-    pub fn new(database: Database, config: UsageRankUpdaterConfig) -> Self {
-        UsageRankUpdater { database, config }
+    pub(crate) fn new(repository: Arc<dyn Repository>, config: UsageRankUpdaterConfig) -> Self {
+        UsageRankUpdater { repository, config }
     }
 
     pub async fn update_usage_ranks(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let now = chrono::Utc::now().naive_utc();
-        let thirty_days_ago = now - chrono::Duration::days(30);
-        let batch_size = self.config.batch_size;
-
-        Ok(self
-            .database
-            .run(move |client| -> Result<usize, DatabaseError> {
-                let mut raw_scores: HashMap<AssetId, i64> = HashMap::new();
-                add_weighted_counts(&mut raw_scores, client.get_asset_usage_counts(now - chrono::Duration::hours(1))?, 250);
-                add_weighted_counts(&mut raw_scores, client.get_asset_usage_counts(now - chrono::Duration::days(1))?, 100);
-                add_weighted_counts(&mut raw_scores, client.get_asset_usage_counts(now - chrono::Duration::days(7))?, 10);
-                add_weighted_counts(&mut raw_scores, client.get_asset_usage_counts(thirty_days_ago)?, 1);
-
-                let rows = usage_ranks_from_scores(raw_scores);
-
-                client.delete_usage_ranks_before(thirty_days_ago)?;
-                rows.chunks(batch_size).try_fold(0, |total, batch| Ok(total + client.upsert_usage_ranks(batch)?))
-            })
-            .await?)
+        let now = Utc::now().naive_utc();
+        let retain_since = now - Duration::days(RETENTION_DAYS);
+        Ok(self.repository.update_usage_ranks(usage_windows(now), retain_since, self.config.batch_size).await?)
     }
 }
 
-fn add_weighted_counts(raw_scores: &mut HashMap<AssetId, i64>, counts: Vec<(AssetId, i64)>, weight: i64) {
-    for (asset_id, count) in counts {
-        *raw_scores.entry(asset_id).or_insert(0) += count * weight;
+fn usage_windows(now: NaiveDateTime) -> Vec<(NaiveDateTime, i64)> {
+    vec![(now - Duration::hours(1), 250), (now - Duration::days(1), 100), (now - Duration::days(7), 10), (now - Duration::days(RETENTION_DAYS), 1)]
+}
+
+pub(crate) fn usage_ranks(weighted_counts: Vec<(Vec<(AssetId, i64)>, i64)>) -> Vec<(AssetId, i32)> {
+    let mut raw_scores: HashMap<AssetId, i64> = HashMap::new();
+    for (counts, weight) in weighted_counts {
+        for (asset_id, count) in counts {
+            *raw_scores.entry(asset_id).or_insert(0) += count * weight;
+        }
     }
+    usage_ranks_from_scores(raw_scores)
 }
 
 #[cfg(test)]
 fn calculate_usage_ranks(counts_1h: &[(AssetId, i64)], counts_24h: &[(AssetId, i64)], counts_7d: &[(AssetId, i64)], counts_30d: &[(AssetId, i64)]) -> Vec<(AssetId, i32)> {
-    let mut raw_scores: HashMap<AssetId, i64> = HashMap::new();
-
-    for (asset_id, count) in counts_1h {
-        *raw_scores.entry(asset_id.clone()).or_insert(0) += count * 250;
-    }
-    for (asset_id, count) in counts_24h {
-        *raw_scores.entry(asset_id.clone()).or_insert(0) += count * 100;
-    }
-    for (asset_id, count) in counts_7d {
-        *raw_scores.entry(asset_id.clone()).or_insert(0) += count * 10;
-    }
-    for (asset_id, count) in counts_30d {
-        *raw_scores.entry(asset_id.clone()).or_insert(0) += count;
-    }
-
-    usage_ranks_from_scores(raw_scores)
+    let counts = [counts_1h, counts_24h, counts_7d, counts_30d].map(<[(AssetId, i64)]>::to_vec);
+    usage_ranks(counts.into_iter().zip(usage_windows(Utc::now().naive_utc())).map(|(counts, (_, weight))| (counts, weight)).collect())
 }
 
 fn usage_ranks_from_scores(raw_scores: HashMap<AssetId, i64>) -> Vec<(AssetId, i32)> {
