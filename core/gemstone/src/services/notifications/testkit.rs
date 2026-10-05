@@ -26,8 +26,7 @@ impl GemNotificationsService {
         let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
         let device = Arc::new(GemDeviceService::new(
             device_api.clone(),
-            Arc::new(GemSubscriptionService::new(device_api, session.clone())),
-            session,
+            Arc::new(GemSubscriptionService::new(device_api, session)),
             Arc::new(MemoryDevicePlatform),
             preferences.clone(),
         ));

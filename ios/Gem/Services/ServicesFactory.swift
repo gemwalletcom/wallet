@@ -40,7 +40,6 @@ struct ServicesFactory {
         let deviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
             subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, session: walletSessionService),
-            session: walletSessionService,
             platform: devicePlatform,
             preferences: preferencesService,
         )

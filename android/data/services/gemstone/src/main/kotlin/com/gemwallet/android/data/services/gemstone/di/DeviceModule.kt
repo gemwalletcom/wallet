@@ -42,10 +42,9 @@ object DeviceModule {
     fun provideGemDeviceService(
         @Named("registration") apiClient: GemDeviceApiClient,
         subscriptionService: GemSubscriptionService,
-        walletSessionService: GemWalletSessionService,
         platform: GemstoneDevicePlatform,
         preferencesService: GemPreferencesService,
-    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, walletSessionService, platform, preferencesService)
+    ): GemDeviceService = GemDeviceService(apiClient, subscriptionService, platform, preferencesService)
 
     @Provides
     @Singleton
