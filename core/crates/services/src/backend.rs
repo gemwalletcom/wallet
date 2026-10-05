@@ -220,6 +220,10 @@ impl Services {
         Arc::new(crate::fiat::repository::PostgresRepository::new(self.database()))
     }
 
+    pub(crate) fn setup_repository(&self) -> Arc<dyn crate::setup::repository::Repository> {
+        Arc::new(crate::setup::repository::PostgresRepository::new(self.database()))
+    }
+
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {
         ChainProviders::from_settings(&self.settings, user_agent)
     }

@@ -8,11 +8,12 @@ use gem_evm::{
 };
 use gem_tracing::info_with_fields;
 use primitives::{Chain, ScanAddress, SwapProvider};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::error::Error;
-use storage::{Database, DatabaseError, ScanAddressesRepository};
 
-pub async fn setup_scan_addresses(database: &Database) -> Result<(), Box<dyn Error + Send + Sync>> {
+use super::repository::Repository;
+
+pub(super) async fn setup_scan_addresses(repository: &dyn Repository) -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut values = HashMap::new();
 
     for chain in Chain::all() {
@@ -59,18 +60,7 @@ pub async fn setup_scan_addresses(database: &Database) -> Result<(), Box<dyn Err
     }
 
     let count = values.len();
-    let inserted = database
-        .run(move |client| -> Result<_, DatabaseError> {
-            let addresses = values.keys().map(|(_, address)| address.clone()).collect();
-            let existing = client
-                .get_scan_addresses_by_addresses(addresses)?
-                .into_iter()
-                .map(|scan_address| (scan_address.chain, scan_address.address))
-                .collect::<HashSet<_>>();
-            let values = values.into_iter().filter_map(|(key, value)| (!existing.contains(&key)).then_some(value)).collect::<Vec<_>>();
-            if values.is_empty() { Ok(0) } else { client.add_scan_addresses(values) }
-        })
-        .await?;
+    let inserted = repository.add_missing_scan_addresses(values).await?;
 
     info_with_fields!("setup", step = "scan addresses", count = count, inserted = inserted);
     Ok(())
