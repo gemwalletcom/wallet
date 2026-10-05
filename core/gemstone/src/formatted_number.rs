@@ -85,7 +85,7 @@ impl GemFormattedNumber {
                 GemValueStyle::Full => number_formatter::BigNumberFormatter::plain_value(value.magnitude(), asset.decimals as u32).ok(),
                 GemValueStyle::Short | GemValueStyle::Auto => None,
             },
-            ..Self::amount(asset_value(value, asset.decimals), Some(asset.symbol.clone()), style)
+            ..Self::amount(number_formatter::BigNumberFormatter::f64_value(value, asset.decimals as u32), Some(asset.symbol.clone()), style)
         }
     }
 
@@ -254,10 +254,6 @@ fn value_display(value: f64, style: GemValueStyle) -> GemNumberDisplay {
         };
     }
     GemNumberDisplay::Number { precision: style.precision(value) }
-}
-
-fn asset_value(value: &num_bigint::BigInt, decimals: i32) -> f64 {
-    number_formatter::BigNumberFormatter::value(&value.to_string(), decimals).ok().and_then(|text| text.parse::<f64>().ok()).unwrap_or_default()
 }
 
 #[cfg(test)]

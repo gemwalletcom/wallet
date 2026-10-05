@@ -56,7 +56,7 @@ fn params(input: &SignerInput, private_key: &[u8]) -> Result<XrpTransactionParam
 
 fn token_amount(input: &SignerInput, value: &str) -> Result<XrpAmount, SignerError> {
     let asset = input.input_type.get_asset();
-    let value = BigNumberFormatter::value(value, asset.decimals).map_err(SignerError::from_display)?;
+    let value = BigNumberFormatter::value(value, asset.decimals as u32).map_err(SignerError::from_display)?;
     XrpAmount::issued(&value, &asset.symbol, asset.id.get_token_id()?)
 }
 

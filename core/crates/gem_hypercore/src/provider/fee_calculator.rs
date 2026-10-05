@@ -38,7 +38,7 @@ fn calculate_spot_usdc_value(swap_data: &SwapData, from_asset: &Asset, to_asset:
 }
 
 fn quote_value(value: &str, decimals: i32) -> Result<f64, Box<dyn Error + Send + Sync>> {
-    Ok(BigNumberFormatter::value(value, decimals)?.parse::<f64>()?)
+    Ok(BigNumberFormatter::value_as_f64(value, decimals as u32)?)
 }
 
 fn spot_usdc_decimals(from_asset: &Asset, to_asset: &Asset) -> Result<i32, Box<dyn Error + Send + Sync>> {

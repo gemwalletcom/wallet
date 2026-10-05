@@ -77,8 +77,7 @@ impl Swapper for HyperCoreBridge {
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         match quote.request.from_asset.asset_id().chain {
             Chain::HyperCore => {
-                let decimals: i32 = quote.request.from_asset.decimals.try_into().map_err(SwapperError::transaction_error)?;
-                let amount = BigNumberFormatter::value(&quote.request.value.to_string(), decimals)?;
+                let amount = BigNumberFormatter::value(&quote.request.value, quote.request.from_asset.decimals)?;
                 let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis() as u64;
 
                 let spot_send = SpotSend::new(amount, HYPERCORE_SYSTEM_ADDRESS.to_string(), timestamp, HYPERCORE_CORE_HYPE_TOKEN_ID.to_string());

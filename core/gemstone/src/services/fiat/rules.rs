@@ -107,7 +107,7 @@ pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow
         subtitle: format!("{} ({})", data.asset.name, data.provider.name()),
         value: GemFormattedNumber {
             tone: status.tone,
-            ..GemFormattedNumber::amount(BigNumberFormatter::f64_value(data.value.to_string(), data.asset.decimals as u32), Some(data.asset.symbol.clone()), GemValueStyle::Short)
+            ..GemFormattedNumber::amount(BigNumberFormatter::f64_value(&data.value, data.asset.decimals as u32), Some(data.asset.symbol.clone()), GemValueStyle::Short)
         },
         fiat_value: GemFormattedNumber::currency_code(data.fiat_amount, data.fiat_currency.clone(), GemCurrencyStyle::Fiat),
         badge: status.badge,

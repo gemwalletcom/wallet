@@ -68,7 +68,7 @@ impl StoreTransactionsSwapsConsumer {
     async fn asset_value(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<AssetValue, Box<dyn Error + Send + Sync>> {
         let AssetPriceHistory { assets, price_at: price, prices } = self.repository.asset_price_history(asset_id.clone(), at).await?;
         let asset = assets.into_iter().next().ok_or_else(|| format!("asset {asset_id} not found"))?;
-        let amount = BigNumberFormatter::value_as_f64(&value.to_string(), asset.asset.decimals as u32)?;
+        let amount = BigNumberFormatter::value_as_f64(value, asset.asset.decimals as u32)?;
         let max_age = Duration::from_std(DAY)?;
         let is_enabled = asset.properties.is_enabled;
         let amount_usd = price.filter(|(price_at, _)| is_enabled && at - *price_at <= max_age && is_within_supply(amount, &prices)).map(|(_, price)| amount * price);

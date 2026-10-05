@@ -125,7 +125,7 @@ impl Swapper for HyperCoreSpot {
         let from_token = self.spot_token(&meta, &request.from_asset)?;
         let to_token = self.spot_token(&meta, &request.to_asset)?;
 
-        let amount_in = BigNumberFormatter::big_decimal_value(&request.value.to_string(), request.from_asset.decimals)?;
+        let amount_in = BigNumberFormatter::big_decimal_value(&request.value, request.from_asset.decimals)?;
         if amount_in <= BigDecimal::zero() {
             return Err(SwapperError::ComputeQuoteError("amount must be greater than zero".into()));
         }
@@ -175,7 +175,7 @@ impl Swapper for HyperCoreSpot {
             .try_into()
             .map_err(|_| SwapperError::ComputeQuoteError(format!("{} precision: {}", INVALID_AMOUNT, to_token.wei_decimals)))?;
 
-        let token_units = BigNumberFormatter::value_from_amount_biguint(&format_decimal(&output_amount), token_decimals).map_err(|error| SwapperError::ComputeQuoteError(format!("{}: {error}", INVALID_AMOUNT)))?;
+        let token_units = BigNumberFormatter::value_from_amount_biguint(format_decimal(&output_amount), token_decimals).map_err(|error| SwapperError::ComputeQuoteError(format!("{}: {error}", INVALID_AMOUNT)))?;
         let scaled_units = scale_units(token_units, token_decimals, request.to_asset.decimals)?;
         let to_value = scaled_units;
 
@@ -279,7 +279,6 @@ mod swap_integration_tests {
     use super::*;
     use crate::{hyperliquid::provider::spot::math::SPOT_ASSET_OFFSET, testkit::mock_quote};
     use primitives::swap::SwapQuoteDataType;
-    use std::str::FromStr;
 
     async fn assert_spot_quote(from_asset: &primitives::Asset, to_asset: &primitives::Asset) {
         let spot = HyperCoreSpot::new(Arc::new(crate::NativeProvider::new()));
@@ -301,8 +300,8 @@ mod swap_integration_tests {
         assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
 
-        let from_amount = BigDecimal::from_str(&BigNumberFormatter::value(&quote.from_value.to_string(), quote.request.from_asset.decimals as i32).unwrap()).unwrap();
-        let to_amount = BigDecimal::from_str(&BigNumberFormatter::value(&quote.to_value.to_string(), quote.request.to_asset.decimals as i32).unwrap()).unwrap();
+        let from_amount = BigNumberFormatter::big_decimal_value(&quote.from_value, quote.request.from_asset.decimals).unwrap();
+        let to_amount = BigNumberFormatter::big_decimal_value(&quote.to_value, quote.request.to_asset.decimals).unwrap();
 
         assert!(!from_amount.is_zero());
         assert!(!to_amount.is_zero());

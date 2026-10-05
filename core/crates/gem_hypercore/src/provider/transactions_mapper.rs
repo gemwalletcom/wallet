@@ -145,7 +145,7 @@ fn amount_to_value(amount: f64, decimals: i32) -> Option<BigUint> {
         return None;
     }
     let precision: usize = decimals.try_into().ok()?;
-    BigNumberFormatter::value_from_amount_biguint(&format!("{:.precision$}", amount.max(0.0)), precision as u32).ok()
+    BigNumberFormatter::value_from_amount_biguint(format!("{:.precision$}", amount.max(0.0)), precision as u32).ok()
 }
 
 fn build_fill_transaction(address: &str, last_fill: &UserFill, asset_id: AssetId, transaction_type: TransactionType, fee: BigUint, fee_asset_id: AssetId, value: BigUint, metadata: serde_json::Value) -> Option<Transaction> {

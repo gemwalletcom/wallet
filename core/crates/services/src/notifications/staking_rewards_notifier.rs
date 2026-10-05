@@ -92,7 +92,7 @@ impl StakingRewardsNotifier {
         }
 
         let asset = Asset::from_chain(chain);
-        let rewards_value = ValueFormatter::format(ValueStyle::Auto, &total_rewards.to_string(), asset.decimals)?;
+        let rewards_value = ValueFormatter::format(ValueStyle::Auto, total_rewards, asset.decimals as u32)?;
 
         let notifications: Vec<_> = subscriptions.into_iter().filter_map(|sub| Self::create_notification(sub, &rewards_value, &asset)).collect();
 

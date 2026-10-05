@@ -129,10 +129,7 @@ fn equivalent(value: Option<&BigInt>, asset: &Asset, price: Option<f64>, input_t
     let value = value.cloned().unwrap_or_default();
     match input_type {
         GemAmountInputType::Asset => {
-            let amount = valid_price(price)
-                .and_then(|price| CryptoFiatConverter::to_fiat(&value.to_string(), asset.decimals as u32, price).ok())
-                .and_then(|fiat| fiat.parse().ok())
-                .unwrap_or(0.0);
+            let amount = valid_price(price).and_then(|price| CryptoFiatConverter::to_fiat_as_f64(&value, asset.decimals as u32, price).ok()).unwrap_or(0.0);
             GemFormattedNumber::currency(amount, currency, GemCurrencyStyle::Currency)
         }
         GemAmountInputType::Fiat => GemFormattedNumber::asset_amount(&value, asset, GemValueStyle::Auto),
@@ -1094,7 +1091,7 @@ mod tests {
         assert_eq!(max.input_type, GemAmountInputType::Asset);
         assert_eq!(max.value, BigInt::from(available - config.reserved_for_fees));
 
-        let max_text = BigNumberFormatter::value(&max.value.to_string(), cosmos.decimals).unwrap();
+        let max_text = BigNumberFormatter::value(&max.value, cosmos.decimals as u32).unwrap();
         let at_max = stake.entry(&cosmos, &input, Some(10.0), GemAmountInputType::Asset, max_text, Currency::USD);
         assert!(at_max.is_max);
         assert_eq!(

@@ -82,7 +82,7 @@ impl PortfolioClient {
     }
 
     fn resolved_asset(input: PortfolioAsset, price: PortfolioPrice) -> Option<ResolvedAsset> {
-        let balance = BigNumberFormatter::value_as_f64(&input.value.to_string(), price.asset.decimals as u32).ok()?;
+        let balance = BigNumberFormatter::value_as_f64(&input.value, price.asset.decimals as u32).ok()?;
         Some(ResolvedAsset {
             asset: input,
             balance,

@@ -1,5 +1,6 @@
-use bigdecimal::{BigDecimal, RoundingMode, ToPrimitive, num_bigint::BigInt};
+use bigdecimal::{BigDecimal, RoundingMode, ToPrimitive};
 use num_bigint::BigUint;
+use std::fmt::Display;
 use std::str::FromStr;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -28,68 +29,67 @@ impl From<NumberFormatterError> for String {
 pub struct BigNumberFormatter {}
 
 impl BigNumberFormatter {
-    pub fn big_decimal_value(value: &str, decimals: u32) -> Result<BigDecimal, NumberFormatterError> {
-        let mut decimal = BigDecimal::from_str(value).map_err(|error| NumberFormatterError::InvalidNumber(error.to_string()))?;
-        let exp = BigInt::from(10).pow(decimals);
-        decimal = decimal / BigDecimal::from(exp);
-        Ok(decimal)
+    pub(crate) fn scaled_value(value: impl Display, decimals: u32) -> Result<BigDecimal, NumberFormatterError> {
+        let (digits, scale) = BigDecimal::from_str(&value.to_string()).map_err(|error| NumberFormatterError::InvalidNumber(error.to_string()))?.into_bigint_and_exponent();
+        Ok(BigDecimal::new(digits, scale + i64::from(decimals)))
     }
 
-    pub fn value_as_f64(value: &str, decimals: u32) -> Result<f64, NumberFormatterError> {
+    pub fn big_decimal_value(value: impl Display, decimals: u32) -> Result<BigDecimal, NumberFormatterError> {
+        let decimal = Self::scaled_value(value, decimals)?.normalized();
+        Ok(if decimal.fractional_digit_count() < 0 { decimal.with_scale(0) } else { decimal })
+    }
+
+    pub fn value(value: impl Display, decimals: u32) -> Result<String, NumberFormatterError> {
+        Ok(Self::big_decimal_value(value, decimals)?.to_string())
+    }
+
+    pub fn plain_value(value: impl Display, decimals: u32) -> Result<String, NumberFormatterError> {
+        Ok(Self::big_decimal_value(value, decimals)?.normalized().to_plain_string())
+    }
+
+    pub fn value_as_f64(value: impl Display, decimals: u32) -> Result<f64, NumberFormatterError> {
         Self::big_decimal_value(value, decimals)?.to_f64().ok_or_else(|| NumberFormatterError::ConversionError("Cannot convert to f64".to_string()))
     }
 
-    pub fn f64_value(value: impl std::fmt::Display, decimals: u32) -> f64 {
-        Self::big_decimal_value(&value.to_string(), decimals).ok().and_then(|value| value.to_f64()).unwrap_or_default()
+    pub fn f64_value(value: impl Display, decimals: u32) -> f64 {
+        Self::value_as_f64(value, decimals).unwrap_or_default()
     }
 
-    pub fn plain_value(value: &BigUint, decimals: u32) -> Result<String, NumberFormatterError> {
-        Ok(Self::big_decimal_value(&value.to_string(), decimals)?.normalized().to_plain_string())
-    }
-
-    pub fn value_as_u64(value: &str, decimals: u32) -> Result<u64, NumberFormatterError> {
+    pub fn value_as_u64(value: impl Display, decimals: u32) -> Result<u64, NumberFormatterError> {
         Self::big_decimal_value(value, decimals)?.to_u64().ok_or_else(|| NumberFormatterError::ConversionError("Cannot convert to u64".to_string()))
     }
 
-    pub fn value(value: &str, decimals: i32) -> Result<String, NumberFormatterError> {
-        let decimal = Self::big_decimal_value(value, decimals as u32)?;
-        Ok(decimal.to_string())
+    fn amount_scaled(amount: impl Display, decimals: u32) -> Result<BigDecimal, NumberFormatterError> {
+        let text = amount.to_string();
+        let (digits, scale) = BigDecimal::from_str(&text).map_err(|_| NumberFormatterError::InvalidNumber(text))?.into_bigint_and_exponent();
+        Ok(BigDecimal::new(digits, scale - i64::from(decimals)))
     }
 
-    pub fn value_from_amount(amount: &str, decimals: u32) -> Result<String, NumberFormatterError> {
-        let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
-        let multiplier = BigInt::from(10).pow(decimals);
-        let multiplier_decimal = BigDecimal::from(multiplier);
-        let scaled_value = big_decimal * multiplier_decimal;
-        Ok(scaled_value.with_scale(0).to_string())
+    pub fn value_from_amount(amount: impl Display, decimals: u32) -> Result<String, NumberFormatterError> {
+        Ok(Self::amount_scaled(amount, decimals)?.with_scale(0).to_string())
     }
 
-    pub fn value_from_amount_truncated(amount: &str, decimals: u32) -> Result<String, NumberFormatterError> {
-        let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
+    pub fn value_from_amount_truncated(amount: impl Display, decimals: u32) -> Result<String, NumberFormatterError> {
+        let text = amount.to_string();
+        let big_decimal = BigDecimal::from_str(&text).map_err(|_| NumberFormatterError::InvalidNumber(text.clone()))?;
         if big_decimal < 0 {
-            return Err(NumberFormatterError::InvalidNumber(amount.to_string()));
+            return Err(NumberFormatterError::InvalidNumber(text));
         }
-        let truncated = big_decimal.with_scale_round(i64::from(decimals), RoundingMode::Down);
-        Self::value_from_amount(&truncated.to_string(), decimals)
+        Self::value_from_amount(big_decimal.with_scale_round(i64::from(decimals), RoundingMode::Down), decimals)
     }
 
-    pub fn value_from_amount_exact(amount: &str, decimals: u32) -> Result<BigUint, NumberFormatterError> {
-        let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
-        let multiplier = BigDecimal::from(BigInt::from(10).pow(decimals));
-        let scaled_value = big_decimal * multiplier;
+    pub fn value_from_amount_exact(amount: impl Display, decimals: u32) -> Result<BigUint, NumberFormatterError> {
+        let text = amount.to_string();
+        let scaled_value = Self::amount_scaled(&text, decimals)?;
         if !scaled_value.is_integer() {
-            return Err(NumberFormatterError::InvalidNumber(amount.to_string()));
+            return Err(NumberFormatterError::InvalidNumber(text));
         }
         let scaled_string = scaled_value.with_scale(0).to_string();
         scaled_string.parse::<BigUint>().map_err(|_| NumberFormatterError::ConversionError(scaled_string))
     }
 
-    pub fn value_from_amount_biguint(amount: &str, decimals: u32) -> Result<BigUint, NumberFormatterError> {
-        let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
-        let multiplier = BigInt::from(10).pow(decimals);
-        let multiplier_decimal = BigDecimal::from(multiplier);
-        let scaled_value = big_decimal * multiplier_decimal;
-        let scaled_string = scaled_value.with_scale(0).to_string();
+    pub fn value_from_amount_biguint(amount: impl Display, decimals: u32) -> Result<BigUint, NumberFormatterError> {
+        let scaled_string = Self::value_from_amount(amount, decimals)?;
         scaled_string.parse::<BigUint>().map_err(|_| NumberFormatterError::ConversionError(scaled_string))
     }
 
@@ -111,7 +111,7 @@ impl BigNumberFormatter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bigdecimal::BigDecimal;
+    use bigdecimal::{BigDecimal, num_bigint::BigInt};
     use std::str::FromStr;
 
     #[test]
@@ -127,11 +127,11 @@ mod tests {
 
     #[test]
     fn test_plain_value_keeps_every_digit() {
-        assert_eq!(BigNumberFormatter::plain_value(&BigUint::from(1u32), 18).unwrap(), "0.000000000000000001");
-        assert_eq!(BigNumberFormatter::plain_value(&BigUint::from(1_500_000u32), 6).unwrap(), "1.5");
-        assert_eq!(BigNumberFormatter::plain_value(&BigUint::from(1_000u32), 0).unwrap(), "1000");
+        assert_eq!(BigNumberFormatter::plain_value(BigUint::from(1u32), 18).unwrap(), "0.000000000000000001");
+        assert_eq!(BigNumberFormatter::plain_value(BigUint::from(1_500_000u32), 6).unwrap(), "1.5");
+        assert_eq!(BigNumberFormatter::plain_value(BigUint::from(1_000u32), 0).unwrap(), "1000");
         assert_eq!(BigNumberFormatter::plain_value(&BigUint::ZERO, 18).unwrap(), "0");
-        assert_eq!(BigNumberFormatter::plain_value(&BigUint::from_str("123456789012345678901234567890").unwrap(), 18).unwrap(), "123456789012.34567890123456789");
+        assert_eq!(BigNumberFormatter::plain_value(BigUint::from_str("123456789012345678901234567890").unwrap(), 18).unwrap(), "123456789012.34567890123456789");
     }
 
     #[test]

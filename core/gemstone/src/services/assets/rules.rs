@@ -613,7 +613,7 @@ pub fn fiat_amount_of(asset: &Asset, value: &num_bigint::BigUint, price: Option<
 }
 
 fn fiat_amount(asset: &Asset, value: &GemBigUint, price: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> Option<GemFormattedNumber> {
-    let value: f64 = CryptoFiatConverter::to_fiat(&value.to_string(), asset.decimals as u32, price?).ok()?.parse().ok()?;
+    let value = CryptoFiatConverter::to_fiat_as_f64(value, asset.decimals as u32, price?).ok()?;
     (value > 0.0).then(|| GemFormattedNumber::currency(value, currency, style))
 }
 

@@ -257,8 +257,8 @@ impl<C: Client> TronClient<C> {
         match &input.input_type {
             TransactionInputType::Stake { asset, stake_type } => {
                 let account = self.get_account(&input.sender_address).await?;
-                let raw_amount = BigNumberFormatter::value_as_u64(&input.value.to_string(), 0)?;
-                let vote_amount = BigNumberFormatter::value_as_u64(&input.value.to_string(), asset.decimals as u32)?;
+                let raw_amount = BigNumberFormatter::value_as_u64(&input.value, 0)?;
+                let vote_amount = BigNumberFormatter::value_as_u64(&input.value, asset.decimals as u32)?;
                 map_stake_data(&account, stake_type, raw_amount, vote_amount)
             }
             _ => Ok(TronStakeData::Votes { votes: vec![] }),

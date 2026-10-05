@@ -138,7 +138,7 @@ impl Swapper for Bridgers {
             from_address: request.wallet_address.clone(),
             to_address: request.destination_address.clone(),
             amount_out_min: route.amount_out_min,
-            slippage: BigNumberFormatter::value(&quote.data.slippage_bps.to_string(), 4)?,
+            slippage: BigNumberFormatter::value(quote.data.slippage_bps, 4)?,
         };
         match network.chain.chain_type() {
             ChainType::Ethereum => self.get_evm_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,

@@ -391,7 +391,7 @@ impl GemMarketsRefreshTrigger {
 
 pub fn balance_update(balance: &PerpetualBalance) -> Result<GemBalanceUpdate, NumberFormatterError> {
     let asset = &*HYPERCORE_PERPETUAL_USDC;
-    let value = |amount: f64| BigNumberFormatter::value_from_amount_biguint(&amount.to_string(), asset.decimals as u32);
+    let value = |amount: f64| BigNumberFormatter::value_from_amount_biguint(amount, asset.decimals as u32);
     Ok(GemBalanceUpdate {
         asset_id: asset.id.clone(),
         update_type: GemBalanceUpdateType::Perpetual {
