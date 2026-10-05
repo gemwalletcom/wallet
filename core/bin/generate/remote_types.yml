@@ -337,6 +337,7 @@ mocks:
   - GemWalletConnectAuthAccount
   - GemWalletConnectMessageRequest
   - GemWalletConnectTransactionRequest
+  - GemWalletDetails
   - GemWalletHomeViewState
   - GemWalletRow
   - GemWalletSearchResultsView

@@ -1999,6 +1999,18 @@ fun mockGemWalletConnectTransactionRequest(
     action = action,
 )
 
+fun mockGemWalletDetails(
+    row: uniffi.gemstone.GemWalletRow = mockGemWalletRow(),
+    secretKind: uniffi.gemstone.GemWalletSecretKind? = null,
+    showSecret: uniffi.gemstone.GemLocalizedText? = null,
+    address: uniffi.gemstone.GemAddressRow? = null,
+) = uniffi.gemstone.GemWalletDetails(
+    row = row,
+    secretKind = secretKind,
+    showSecret = showSecret,
+    address = address,
+)
+
 fun mockGemWalletHomeViewState(
     walletRow: uniffi.gemstone.GemWalletRow = mockGemWalletRow(),
     header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),

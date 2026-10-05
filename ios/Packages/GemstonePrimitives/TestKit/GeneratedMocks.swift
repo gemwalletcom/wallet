@@ -1388,6 +1388,22 @@ public extension Gemstone.GemWalletConnectTransactionRequest {
     }
 }
 
+public extension Gemstone.GemWalletDetails {
+    static func mock(
+        row: Gemstone.GemWalletRow = .mock(),
+        secretKind: Gemstone.GemWalletSecretKind? = nil,
+        showSecret: Gemstone.GemLocalizedText? = nil,
+        address: Gemstone.GemAddressRow? = nil,
+    ) -> Gemstone.GemWalletDetails {
+        Gemstone.GemWalletDetails(
+            row: row,
+            secretKind: secretKind,
+            showSecret: showSecret,
+            address: address,
+        )
+    }
+}
+
 public extension Gemstone.GemWalletHomeViewState {
     static func mock(
         walletRow: Gemstone.GemWalletRow = .mock(),

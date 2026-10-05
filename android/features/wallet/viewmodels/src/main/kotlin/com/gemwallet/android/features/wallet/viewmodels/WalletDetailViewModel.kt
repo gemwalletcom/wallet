@@ -19,7 +19,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -49,10 +53,16 @@ class WalletDetailViewModel @Inject constructor(
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
 
-    fun setWalletName(name: String) = viewModelScope.launch(ioDispatcher) {
-        runCatchingCancellable { service.rename(walletId.id, name) }
-            .onFailure(::showError)
+    private val typedName = MutableStateFlow<String?>(null)
+
+    init {
+        typedName.filterNotNull()
+            .onEach { name -> runCatchingCancellable { service.rename(walletId.id, name) }.onFailure(::showError) }
+            .flowOn(ioDispatcher)
+            .launchIn(viewModelScope)
     }
+
+    fun setWalletName(name: String) = typedName.update { name }
 
     fun delete(onBoard: () -> Unit, onComplete: () -> Unit) = viewModelScope.launch {
         runCatchingCancellable {
