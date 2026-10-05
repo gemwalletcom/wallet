@@ -583,11 +583,9 @@ mod tests {
         let signed = HyperCoreSigner
             .sign_serialized_action(UsdClassTransfer::new("1.5".to_string(), true, nonce), nonce, &TEST_PRIVATE_KEY, usd_class_transfer_typed_data, "usd class transfer")
             .unwrap();
+        let expected: serde_json::Value = serde_json::from_str(include_str!("../../testdata/hl_action_usd_class_transfer.json")).unwrap();
 
-        assert_eq!(
-            signed,
-            r#"{"action":{"type":"usdClassTransfer","amount":"1.5","toPerp":true,"nonce":1759100000000,"signatureChainId":"0xa4b1","hyperliquidChain":"Mainnet"},"signature":{"r":"0x66dc63b5e6eb154f0d9b6ff9d9afbecb6dea4ebd31c12de3b068b93b95a8690d","s":"0x7e95df98367cec4b7bd2e5dd16c78fe936bce782eaff3c406f14c80d8d81edcb","v":28},"nonce":1759100000000,"isFrontend":true}"#
-        );
+        assert_eq!(serde_json::from_str::<serde_json::Value>(&signed).unwrap(), expected);
     }
 
     #[test]
