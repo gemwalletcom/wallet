@@ -346,11 +346,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use primitives::Chain;
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
     use gem_client::testkit::MockClient;
     use primitives::AssetId;
+    use primitives::Chain;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[test]
@@ -746,9 +746,9 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
-    use primitives::Chain;
     use super::*;
     use crate::{NativeProvider, Options, SwapperQuoteAsset};
+    use primitives::Chain;
     use primitives::{
         AssetId,
         asset_constants::TRON_USDT_TOKEN_ID,

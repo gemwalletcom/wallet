@@ -226,8 +226,8 @@ fn min_value(dust_threshold: &BigInt) -> BigInt {
 
 #[cfg(test)]
 mod tests {
-    use primitives::Chain;
     use num_bigint::BigUint;
+    use primitives::Chain;
     use std::sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
@@ -413,10 +413,10 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
-    use primitives::Chain;
     use super::*;
     use crate::{SwapperProvider, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
     use num_bigint::BigUint;
+    use primitives::Chain;
     use primitives::swap::SwapStatus;
     use std::sync::Arc;
 
