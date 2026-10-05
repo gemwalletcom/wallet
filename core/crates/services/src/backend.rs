@@ -156,7 +156,7 @@ impl Services {
     }
 
     pub fn price_alerts(&self) -> PriceAlertClient {
-        PriceAlertClient::new(self.database())
+        PriceAlertClient::new(self.prices_repository())
     }
 
     pub async fn ip_security(&self) -> Result<IpSecurityClient, Box<dyn Error + Send + Sync>> {
@@ -250,7 +250,7 @@ impl Services {
     }
 
     pub fn portfolio(&self) -> PortfolioClient {
-        PortfolioClient::new(self.database(), self.config())
+        PortfolioClient::new(self.prices_repository(), self.config())
     }
 
     pub fn transactions(&self) -> TransactionsClient {

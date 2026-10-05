@@ -4,18 +4,19 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use prices::{AssetPriceMapping, PriceProviderAssetMetadata};
+use prices::{AssetPriceMapping, PriceAlertNotification, PriceAlertRules, PriceProviderAssetMetadata};
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceProvider};
+use primitives::{AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceProvider};
 use storage::{AssetFilter, ChartPoint, ChartResult, DatabaseError, PriceAsset, PriceFilter, PriceProviderConfig};
 
-use crate::prices::repository::{ChartData, Repository};
+use crate::prices::repository::{ChartData, PortfolioPrice, Repository};
 
 #[derive(Default)]
 pub(crate) struct MemoryPricesRepository {
     fiat_rates: Vec<FiatRate>,
     charts: Vec<ChartResult>,
     price_assets: Vec<PriceAsset>,
+    portfolio: Mutex<Vec<Option<PortfolioPrice>>>,
     saved: Mutex<Vec<(Vec<PriceData>, Vec<PriceAsset>)>>,
 }
 
@@ -30,6 +31,10 @@ impl MemoryPricesRepository {
 
     pub(crate) fn with_price_assets(self, price_assets: Vec<PriceAsset>) -> Self {
         Self { price_assets, ..self }
+    }
+
+    pub(crate) fn with_portfolio(self, portfolio: Vec<Option<PortfolioPrice>>) -> Self {
+        Self { portfolio: Mutex::new(portfolio), ..self }
     }
 
     fn rate(&self, currency: &Currency) -> Result<FiatRate, DatabaseError> {
@@ -152,5 +157,25 @@ impl Repository for MemoryPricesRepository {
 
     async fn update_assets_metadata(&self, _metadata: Vec<PriceProviderAssetMetadata>) -> Result<(), DatabaseError> {
         Ok(())
+    }
+
+    async fn portfolio_prices(&self, _asset_ids: Vec<AssetId>, _period: ChartPeriod, _price_max_age: Duration) -> Result<Vec<Option<PortfolioPrice>>, DatabaseError> {
+        Ok(std::mem::take(&mut *self.portfolio.lock().unwrap()))
+    }
+
+    async fn device_price_alerts(&self, _device_id: String, _asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, DatabaseError> {
+        Ok(vec![])
+    }
+
+    async fn add_price_alerts(&self, _device_id: String, price_alerts: PriceAlerts) -> Result<usize, DatabaseError> {
+        Ok(price_alerts.len())
+    }
+
+    async fn delete_price_alerts(&self, _device_id: String, ids: Vec<String>) -> Result<usize, DatabaseError> {
+        Ok(ids.len())
+    }
+
+    async fn notify_price_alerts(&self, _rules: PriceAlertRules, _notified_before: NaiveDateTime, _now: NaiveDateTime, _price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError> {
+        Ok(vec![])
     }
 }

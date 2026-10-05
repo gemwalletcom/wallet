@@ -3,15 +3,21 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use prices::{AssetPriceMapping, PriceProviderAssetMetadata};
+use prices::{AssetPriceMapping, PriceAlertNotification, PriceAlertRules, PriceProviderAssetMetadata};
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceProvider};
+use primitives::{Asset, AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceProvider};
 use storage::{
-    AssetFilter, AssetUpdate, AssetsLinksRepository, AssetsRepository, AssetsUsageRanksRepository, ChartFilter, ChartPoint, ChartResult, ChartsRepository, Database, DatabaseClient, DatabaseError, FiatRepository, PriceAsset, PriceFilter,
-    PriceProviderConfig, PriceUpdate, PricesProvidersRepository, PricesRepository, TagRepository,
+    AssetFilter, AssetUpdate, AssetsLinksRepository, AssetsRepository, AssetsUsageRanksRepository, ChartFilter, ChartPoint, ChartResult, ChartsRepository, Database, DatabaseClient, DatabaseError, FiatRepository, PriceAlertsRepository,
+    PriceAsset, PriceFilter, PriceProviderConfig, PriceUpdate, PricesProvidersRepository, PricesRepository, TagRepository,
 };
 
 use super::prices_metrics_updater::price_changes;
+
+pub(crate) struct PortfolioPrice {
+    pub(crate) asset: Asset,
+    pub(crate) price: f64,
+    pub(crate) charts: Vec<ChartResult>,
+}
 
 pub(crate) struct ChartData {
     pub(crate) base_rate: FiatRate,
@@ -46,6 +52,11 @@ pub(crate) trait Repository: Send + Sync {
     async fn usage_ranks_and_priced_assets(&self) -> Result<(Vec<(AssetId, i32)>, HashSet<AssetId>), DatabaseError>;
     async fn price_providers(&self) -> Result<Vec<PriceProviderConfig>, DatabaseError>;
     async fn update_assets_metadata(&self, metadata: Vec<PriceProviderAssetMetadata>) -> Result<(), DatabaseError>;
+    async fn portfolio_prices(&self, asset_ids: Vec<AssetId>, period: ChartPeriod, price_max_age: Duration) -> Result<Vec<Option<PortfolioPrice>>, DatabaseError>;
+    async fn device_price_alerts(&self, device_id: String, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, DatabaseError>;
+    async fn add_price_alerts(&self, device_id: String, price_alerts: PriceAlerts) -> Result<usize, DatabaseError>;
+    async fn delete_price_alerts(&self, device_id: String, ids: Vec<String>) -> Result<usize, DatabaseError>;
+    async fn notify_price_alerts(&self, rules: PriceAlertRules, notified_before: NaiveDateTime, now: NaiveDateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError>;
 }
 
 pub(crate) struct PostgresRepository {
@@ -240,6 +251,58 @@ impl Repository for PostgresRepository {
                     client.add_assets_links(&asset.asset_id, asset.links)?;
                 }
                 Ok(())
+            })
+            .await
+    }
+
+    async fn portfolio_prices(&self, asset_ids: Vec<AssetId>, period: ChartPeriod, price_max_age: Duration) -> Result<Vec<Option<PortfolioPrice>>, DatabaseError> {
+        self.database
+            .run(move |client| {
+                Ok(asset_ids
+                    .iter()
+                    .map(|asset_id| {
+                        let asset = client.get_asset(asset_id).ok()?;
+                        let price_id = client.get_primary_price_key(asset_id, price_max_age).ok()?.id();
+                        let price = client.get_price_by_id(&price_id).map(|price| price.price).unwrap_or_default();
+                        let charts = client.get_charts(&price_id, &period).unwrap_or_default();
+                        Some(PortfolioPrice { asset, price, charts })
+                    })
+                    .collect())
+            })
+            .await
+    }
+
+    async fn device_price_alerts(&self, device_id: String, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, DatabaseError> {
+        self.database
+            .run(move |client| Ok(client.get_price_alerts_for_device_id(&device_id, asset_id.as_ref())?.into_iter().map(|row| row.price_alert).collect()))
+            .await
+    }
+
+    async fn add_price_alerts(&self, device_id: String, price_alerts: PriceAlerts) -> Result<usize, DatabaseError> {
+        self.database.run(move |client| client.add_price_alerts(&device_id, price_alerts)).await
+    }
+
+    async fn delete_price_alerts(&self, device_id: String, ids: Vec<String>) -> Result<usize, DatabaseError> {
+        self.database.run(move |client| client.delete_price_alerts(&device_id, ids)).await
+    }
+
+    async fn notify_price_alerts(&self, rules: PriceAlertRules, notified_before: NaiveDateTime, now: NaiveDateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError> {
+        self.database
+            .run(move |client| {
+                let price_alerts = client.get_price_alerts(notified_before, price_max_age)?;
+                let rates = client.get_fiat_rates()?;
+                let mut notifications = Vec::new();
+                let mut notified_ids = HashSet::new();
+                for (price_alert, price_data, device) in price_alerts {
+                    let Some(trigger) = rules.evaluate(&price_alert, &device, &price_data, &rates) else {
+                        continue;
+                    };
+                    notified_ids.insert(price_alert.id());
+                    let asset = client.get_asset(&price_alert.asset_id)?;
+                    notifications.push(PriceAlertNotification::new(device, asset, price_alert, &price_data, trigger));
+                }
+                client.update_price_alerts_set_notified_at(notified_ids.into_iter().collect(), now)?;
+                Ok(notifications)
             })
             .await
     }
