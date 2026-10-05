@@ -273,6 +273,7 @@ fun GemEmptyStateImage.image(): EmptyStateImage = when (this) {
     GemEmptyStateImage.NOTIFICATIONS -> EmptyStateImage.Drawable(R.drawable.empty_notifications)
     GemEmptyStateImage.SEARCH -> EmptyStateImage.Vector(R.drawable.ic_search)
     GemEmptyStateImage.WALLET -> EmptyStateImage.Vector(R.drawable.ic_wallet)
+    GemEmptyStateImage.SUPPORT -> EmptyStateImage.Vector(R.drawable.ic_article)
 }
 
 fun GemNameIndicator.symbol(): ListItemSymbol = when (this) {

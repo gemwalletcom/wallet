@@ -579,6 +579,8 @@ fun GemEmptyStateText.text(context: Context, symbol: String): String = when (thi
     GemEmptyStateText.SEARCH_PERPETUALS_TITLE -> context.getString(R.string.perpetuals_empty_state_no_markets_found)
     GemEmptyStateText.REWARDS_TITLE -> context.getString(R.string.rewards_state_empty_title)
     GemEmptyStateText.REWARDS_DESCRIPTION -> context.getString(R.string.rewards_state_empty_description)
+    GemEmptyStateText.SUPPORT_TITLE -> context.getString(R.string.support_state_empty_title)
+    GemEmptyStateText.SUPPORT_DESCRIPTION -> context.getString(R.string.support_state_empty_description)
 }
 
 @StringRes

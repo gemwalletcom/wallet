@@ -118,9 +118,9 @@ The target for every item below: a model that only renames or regroups a Core re
 ### Shared components, second round
 
 - **VM262** **M** **Screens count their own lists so Core can pick the phase.**
-  - **iOS:** `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the support and collections screens.
-  - **Android:** `PerpetualsViewModel`, and `loadError(state, hasRows)` in the support, collections and perpetual candle view models.
-  - **Expected:** the screen hands the rows it observed and its load state to one pure Core call, which returns the rows or sections with a `GemListPhase` (rows, the empty state to show, or the error of a load that left nothing to show); refresh calls take no `hasRows` and the counting goes. Activity, the asset screen's transactions, fiat history, price alerts and notifications already do (`transaction_list_phase`, `fiat_transaction_list_phase`, `PriceAlertFormatter.list`, `asset_alerts`, `notification_list_phase`).
+  - **iOS:** `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the collections screen.
+  - **Android:** `PerpetualsViewModel`, and `loadError(state, hasRows)` in the collections and perpetual candle view models.
+  - **Expected:** the screen hands the rows it observed and its load state to one pure Core call, which returns the rows or sections with a `GemListPhase` (rows, the empty state to show, or the error of a load that left nothing to show); refresh calls take no `hasRows` and the counting goes. Activity, the asset screen's transactions, fiat history, price alerts, notifications and support already do (`transaction_list_phase`, `fiat_transaction_list_phase`, `PriceAlertFormatter.list`, `asset_alerts`, `notification_list_phase`, `support_list_phase`).
 - **VM269** **S** **Banner destinations are routed per screen.**
   - **iOS:** `WalletSceneViewModel` opens only URL banners and ignores stake, activate and perpetual destinations; `AssetSceneViewModel` handles all four; both map banner buttons to header actions.
   - **Android:** `WalletScene` ignores the same three; `BannerItem` handles all four.
