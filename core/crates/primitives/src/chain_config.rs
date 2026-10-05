@@ -1368,7 +1368,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Native,
                 is_ethereum_layer2: false,
-                native_currency: EvmNativeCurrency::Wrapped("0x779Ded0c9e1022225f8E0630b35a9b54bE713736"),
+                native_currency: EvmNativeCurrency::Wrapped(USDT0_OFT_TOKEN_ID),
             }),
             stake: None,
         },

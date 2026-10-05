@@ -173,7 +173,7 @@ impl Services {
         let retry_config = RedemptionRetryConfig {
             max_retries: config.get_i64(ConfigKey::RedemptionRetryMaxRetries).await? as u32,
             delay: config.get_duration(ConfigKey::RedemptionRetryDelay).await?,
-            errors: config.get_vec_string(ConfigKey::RedemptionRetryErrors).await?,
+            errors: config.get_json(ConfigKey::RedemptionRetryErrors).await?,
         };
         let stream_producer = self.stream_producer(name, shutdown).await?;
         Ok(RewardsRedemptionConsumer::new(self.rewards_repository(), Arc::new(self.redemption_service()?), retry_config, Arc::new(stream_producer)))

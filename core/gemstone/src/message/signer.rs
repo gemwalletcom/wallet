@@ -12,7 +12,7 @@ use gem_ton::address::base64_to_hex_address;
 use gem_ton::signer::{TonSignDataResponse, TonSignMessageData, TonSignResult, TonSigner};
 use primitives::hex::encode_with_0x;
 use primitives::unix_seconds;
-use signer::{SIGNATURE_LENGTH, Signer, ensure_ethereum_signature_recovery_id_offset};
+use signer::Signer;
 use sui_types::PersonalMessage;
 
 use super::{
@@ -141,23 +141,6 @@ impl MessageSigner {
                 let value: serde_json::Value = serde_json::from_slice(&self.message.data).unwrap_or_default();
                 serde_json::to_string_pretty(&value).unwrap_or_default()
             }
-        }
-    }
-}
-
-impl MessageSigner {
-    pub fn get_result(&self, data: &[u8]) -> String {
-        match &self.message.sign_type {
-            SignDigestType::Eip191 | SignDigestType::Eip712 | SignDigestType::Siwe | SignDigestType::TronPersonal => {
-                if data.len() < SIGNATURE_LENGTH {
-                    return encode_with_0x(data);
-                }
-                let mut signature = data.to_vec();
-                ensure_ethereum_signature_recovery_id_offset(&mut signature);
-                encode_with_0x(&signature)
-            }
-            SignDigestType::SuiPersonal | SignDigestType::TonPersonal => BASE64.encode(data),
-            SignDigestType::Base58 => bs58::encode(data).into_string(),
         }
     }
 }
@@ -332,43 +315,6 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
     }
 
     #[test]
-    fn test_get_result_eip191() {
-        let data = hex::decode("d80c5ffe75fcbac0706c5c5d3b8884ae3588c30065a95075e07fa6ebc24e56433e5030992ef438b1d23437ec8d66d3197b1ad92f85222af1624d8f295907a65800").expect("Invalid hex string");
-        let decoder = MessageSigner::new(SignMessage {
-            chain: Chain::Ethereum,
-            sign_type: SignDigestType::Eip191,
-            data: data.clone(),
-        });
-        let result = decoder.get_result(data.as_slice());
-        assert_eq!(result, "0xd80c5ffe75fcbac0706c5c5d3b8884ae3588c30065a95075e07fa6ebc24e56433e5030992ef438b1d23437ec8d66d3197b1ad92f85222af1624d8f295907a6581b");
-    }
-
-    #[test]
-    fn test_get_result_recovery_id_conversion() {
-        let decoder = MessageSigner::new(SignMessage {
-            chain: Chain::Ethereum,
-            sign_type: SignDigestType::Eip191,
-            data: b"test".to_vec(),
-        });
-
-        // Raw recovery ID 0 -> 27 (0x1b)
-        let mut sig = vec![0u8; 65];
-        sig[64] = 0;
-        assert!(decoder.get_result(&sig).ends_with("1b"));
-
-        // Raw recovery ID 1 -> 28 (0x1c)
-        sig[64] = 1;
-        assert!(decoder.get_result(&sig).ends_with("1c"));
-
-        // Already converted IDs stay unchanged
-        sig[64] = 27;
-        assert!(decoder.get_result(&sig).ends_with("1b"));
-
-        sig[64] = 28;
-        assert!(decoder.get_result(&sig).ends_with("1c"));
-    }
-
-    #[test]
     fn test_sui_personal_message_hash() {
         let data = b"Hello, world!".to_vec();
         let decoder = MessageSigner::new(SignMessage {
@@ -380,17 +326,6 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let hash = decoder.hash().unwrap();
         let expected_hash = PersonalMessage(Cow::Owned(data)).signing_digest().to_vec();
         assert_eq!(hash, expected_hash);
-
-        let decoder = MessageSigner::new(SignMessage {
-            chain: Chain::Sui,
-            sign_type: SignDigestType::SuiPersonal,
-            data: b"Hello, world!".to_vec(),
-        });
-        let mut signature = vec![0u8; 97];
-        signature[0] = 0;
-        signature[96] = 1;
-        let expected = BASE64.encode(&signature);
-        assert_eq!(decoder.get_result(&signature), expected);
     }
 
     #[test]
@@ -412,11 +347,6 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         assert_eq!(hex::encode(&hash), "5468697320697320616e206578616d706c65206d65737361676520746f206265207369676e6564202d2031373437313235373539303630");
 
         assert_eq!(decoder.payload_preview(vec![], explorer_link).unwrap(), None);
-
-        let result_data = b"StV1DL6CwTryKyV"; // Data to pass to get_result, mimicking Swift test
-        let result = decoder.get_result(result_data);
-
-        assert_eq!(result, "3LRFsmWKLfsR7G5PqjytR");
     }
 
     #[test]

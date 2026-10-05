@@ -132,14 +132,6 @@ impl ConfigCacher {
         self.set(key, &ts.to_string()).await
     }
 
-    pub async fn get_vec_string(&self, key: ConfigKey) -> Result<Vec<String>, DatabaseError> {
-        self.get_vec(key).await
-    }
-
-    pub async fn get_vec<T: DeserializeOwned>(&self, key: ConfigKey) -> Result<Vec<T>, DatabaseError> {
-        self.get_json(key).await
-    }
-
     pub async fn get_json<T: DeserializeOwned>(&self, key: ConfigKey) -> Result<T, DatabaseError> {
         Ok(serde_json::from_str(&self.get(key).await?)?)
     }

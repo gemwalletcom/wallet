@@ -18,7 +18,7 @@ use gem_hypercore::models::websocket::HyperliquidSocketMessage;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::perpetual::{PerpetualAccountPositions, PerpetualBalance, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
-use primitives::{Asset, AssetId, Chain, ChartPeriod, Feature, PerpetualAccountMode, PerpetualId, PerpetualProvider, RecentActivityType, Wallet, WalletId};
+use primitives::{Asset, Chain, ChartPeriod, Feature, PerpetualAccountMode, PerpetualId, PerpetualProvider, RecentActivityType, Wallet, WalletId};
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::gateway::GemGateway;
@@ -251,10 +251,6 @@ impl GemPerpetualService {
         self.store.clear_perpetuals(rules::collateral_asset_ids()).await?;
         self.recent_activity.clear_in(GemRecentActivityScope::AllWallets, vec![RecentActivityType::Perpetual]).await?;
         self.preferences.set_perpetual_markets_updated_at(None)
-    }
-
-    pub fn collateral_asset_id(&self, chain: Chain) -> Option<AssetId> {
-        rules::collateral_asset_id(chain)
     }
 }
 

@@ -2,8 +2,6 @@ use alloy_primitives::{Address, Signature as EthereumSignature};
 use k256::ecdsa::{RecoveryId, Signature as SecpSignature, SigningKey as SecpSigningKey, VerifyingKey};
 use primitives::SignerError;
 
-pub const SIGNATURE_LENGTH: usize = 65;
-pub const RECOVERY_ID_INDEX: usize = SIGNATURE_LENGTH - 1;
 const ETHEREUM_RECOVERY_ID_OFFSET: u8 = 27;
 
 /// Returns (signature_bytes, recovery_id) where recovery_id ∈ {0, 1}.
@@ -47,24 +45,14 @@ pub fn uncompressed_public_key_from_private(private_key: &[u8]) -> Result<Vec<u8
     Ok(signing_key.verifying_key().to_sec1_point(false).as_bytes().to_vec())
 }
 
-/// Ensure a 65-byte signature uses Ethereum's 27/28 recovery id convention.
-pub fn ensure_ethereum_signature_recovery_id_offset(signature: &mut [u8]) {
-    if signature.len() != 65 {
-        return;
-    }
-    let v = &mut signature[64];
-    if *v < ETHEREUM_RECOVERY_ID_OFFSET {
-        *v += ETHEREUM_RECOVERY_ID_OFFSET;
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{ETHEREUM_RECOVERY_ID_OFFSET, RECOVERY_ID_INDEX, SecpSigningKey, ensure_ethereum_signature_recovery_id_offset, recover_ethereum_address, sign_digest, sign_ethereum_digest, uncompressed_public_key_from_private};
+    use super::{ETHEREUM_RECOVERY_ID_OFFSET, SecpSigningKey, recover_ethereum_address, sign_digest, sign_ethereum_digest, uncompressed_public_key_from_private};
     use crate::testkit::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS};
     use k256::ecdsa::{RecoveryId, Signature, VerifyingKey};
     use primitives::SignerError;
     const DIGEST: [u8; 32] = [7u8; 32];
+    const RECOVERY_ID_INDEX: usize = 64;
 
     #[test]
     fn sign_digest_matches_compatibility_vector_and_recovers_key() {
@@ -143,22 +131,5 @@ mod tests {
             "04a73ac47eb0f40940f30eb5444a6471de077a1a1c60ab7a533b82ffdf2d86a4f9a0aad8509e3a1fdda6514b1125cc4ab532a7a6ab58c529fed6a3854e1827f426",
         );
         assert!(uncompressed_public_key_from_private(&[0u8; 16]).is_err());
-    }
-
-    #[test]
-    fn ensure_ethereum_signature_recovery_id_offset_is_idempotent() {
-        let mut sig = vec![0u8; 65];
-
-        sig[64] = 0;
-        ensure_ethereum_signature_recovery_id_offset(&mut sig);
-        assert_eq!(sig[64], ETHEREUM_RECOVERY_ID_OFFSET);
-        ensure_ethereum_signature_recovery_id_offset(&mut sig);
-        assert_eq!(sig[64], ETHEREUM_RECOVERY_ID_OFFSET);
-
-        sig[64] = 1;
-        ensure_ethereum_signature_recovery_id_offset(&mut sig);
-        assert_eq!(sig[64], 1 + ETHEREUM_RECOVERY_ID_OFFSET);
-        ensure_ethereum_signature_recovery_id_offset(&mut sig);
-        assert_eq!(sig[64], 1 + ETHEREUM_RECOVERY_ID_OFFSET);
     }
 }

@@ -78,7 +78,7 @@ mod tests {
                 features: Features {
                     buy: true,
                     sell: true,
-                    swap: request % 2 == 0,
+                    swap: request.is_multiple_of(2),
                     perpetuals: true,
                     rewards: true,
                     staking: true,
@@ -132,12 +132,12 @@ mod tests {
         let service = GemConfigService::mock(provider.clone());
         futures::executor::block_on(async {
             service.update_config().await.unwrap();
-            assert_eq!(service.is_feature_enabled(Feature::Swap), true);
-            assert_eq!(service.is_feature_enabled(Feature::Swap), true);
+            assert!(service.is_feature_enabled(Feature::Swap));
+            assert!(service.is_feature_enabled(Feature::Swap));
             assert_eq!(provider.requests.load(Ordering::SeqCst), 1);
             service.update_config().await.unwrap();
-            assert_eq!(service.is_feature_enabled(Feature::Swap), false);
-            assert_eq!(service.is_feature_enabled(Feature::Swap), false);
+            assert!(!service.is_feature_enabled(Feature::Swap));
+            assert!(!service.is_feature_enabled(Feature::Swap));
         });
         assert_eq!(provider.requests.load(Ordering::SeqCst), 2);
     }
@@ -147,7 +147,7 @@ mod tests {
         let provider = Arc::new(ConfigProvider::default());
         let service = GemConfigService::mock(provider.clone());
         for feature in [Feature::Buy, Feature::Sell, Feature::Swap, Feature::Perpetuals, Feature::Rewards, Feature::Staking] {
-            assert_eq!(service.is_feature_enabled(feature), true);
+            assert!(service.is_feature_enabled(feature));
         }
         assert_eq!(provider.requests.load(Ordering::SeqCst), 0);
     }
