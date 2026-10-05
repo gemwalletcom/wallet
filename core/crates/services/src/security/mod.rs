@@ -1,3 +1,4 @@
+pub(crate) mod repository;
 mod scan_client;
 mod scan_config;
 

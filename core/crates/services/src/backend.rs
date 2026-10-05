@@ -109,14 +109,17 @@ impl Services {
     }
 
     pub fn defi(&self) -> DefiClient {
-        DefiClient::new(self.database(), DefiProviderClient::new(DefiProviderConfig::from_settings(&self.settings)))
+        DefiClient::new(
+            Arc::new(crate::defi::repository::PostgresRepository::new(self.database())),
+            DefiProviderClient::new(DefiProviderConfig::from_settings(&self.settings)),
+        )
     }
 
     pub async fn fiat(&self, stream_producer: StreamProducer) -> Result<FiatClient, Box<dyn Error + Send + Sync>> {
         let cacher = self.cacher().await?;
         let providers = self.fiat_providers(fiat_access_token_cacher(cacher.clone()));
         Ok(FiatClient::new(
-            self.database(),
+            self.fiat_repository(),
             self.config(),
             Arc::new(cacher.clone()),
             Arc::new(cacher),
@@ -140,7 +143,11 @@ impl Services {
     }
 
     pub fn nft(&self) -> NFTClient {
-        NFTClient::new(self.database(), NFTProviderClient::new(NFTProviderConfig::from_settings(&self.settings)), self.settings.nft.url.clone())
+        NFTClient::new(
+            Arc::new(crate::nft::repository::PostgresRepository::new(self.database())),
+            NFTProviderClient::new(NFTProviderConfig::from_settings(&self.settings)),
+            self.settings.nft.url.clone(),
+        )
     }
 
     pub fn prices(&self, cacher: CacherClient) -> PriceClient {
@@ -209,6 +216,10 @@ impl Services {
         Arc::new(crate::transactions::repository::PostgresRepository::new(self.database()))
     }
 
+    pub(crate) fn fiat_repository(&self) -> Arc<dyn crate::fiat::repository::Repository> {
+        Arc::new(crate::fiat::repository::PostgresRepository::new(self.database()))
+    }
+
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {
         ChainProviders::from_settings(&self.settings, user_agent)
     }
@@ -270,7 +281,7 @@ impl Services {
     }
 
     pub fn indexer(&self, cacher: CacherClient, stream_producer: StreamProducer) -> IndexerClient {
-        IndexerClient::new(self.database(), Arc::new(cacher), Arc::new(stream_producer))
+        IndexerClient::new(self.assets_repository(), Arc::new(cacher), Arc::new(stream_producer))
     }
 
     pub fn access(&self) -> AccessClient {
@@ -307,7 +318,7 @@ impl Services {
     }
 
     pub fn scan(&self, providers: TransactionScanProviders, cacher: CacherClient, metrics: Arc<dyn ScanMetrics>) -> ScanClient {
-        ScanClient::new(self.database(), self.config(), Arc::new(cacher), providers, metrics)
+        ScanClient::new(Arc::new(crate::security::repository::PostgresRepository::new(self.database())), self.config(), Arc::new(cacher), providers, metrics)
     }
 
     pub fn support_api(&self) -> SupportApiClient {

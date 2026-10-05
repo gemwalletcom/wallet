@@ -3,18 +3,19 @@ use std::sync::Arc;
 
 use cacher::{ThrottleCacher, ThrottledTask};
 use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionIdRequest};
-use storage::{AssetsRepository, Database};
 use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducerQueue};
 
+use crate::assets::repository::Repository;
+
 pub struct IndexerClient {
-    database: Database,
+    assets: Arc<dyn Repository>,
     throttle: Arc<dyn ThrottleCacher>,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl IndexerClient {
-    pub fn new(database: Database, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
-        Self { database, throttle, stream_producer }
+    pub(crate) fn new(assets: Arc<dyn Repository>, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+        Self { assets, throttle, stream_producer }
     }
 
     pub async fn refresh_addresses(&self, addresses: &[ChainAddress]) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -36,8 +37,7 @@ impl IndexerClient {
     }
 
     pub async fn fetch_asset_status(&self, asset_id: AssetId) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let lookup_id = asset_id.clone();
-        self.database.run(move |client| client.get_asset(&lookup_id)).await?;
+        self.assets.asset(asset_id.clone()).await?;
         self.stream_producer.publish_fetch_asset_status(asset_id).await?;
         Ok(())
     }

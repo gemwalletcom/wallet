@@ -5,37 +5,28 @@ use async_trait::async_trait;
 use fiat::FiatProvider;
 use gem_tracing::{error_with_fields, info_with_fields};
 use localizer::LanguageLocalizer;
-use primitives::{Device, FiatTransactionStatus, FiatWebhook, TransactionId};
+use primitives::{FiatTransactionStatus, FiatWebhook, TransactionId};
 use push_notification::{GorushNotification, PushNotification};
-use storage::{AssetsRepository, Database, DatabaseError, FiatRepository, FiatTransactionRecord, WalletsRepository};
+use storage::FiatTransactionRecord;
 use streamer::consumer::MessageConsumer;
 use streamer::{FiatWebhookPayload, NotificationsPayload, StreamProducerQueue, WalletStreamEvent, WalletStreamPayload};
 
+use super::repository::{NotificationContext, Repository};
 use crate::notifications::Pusher;
 
 pub struct FiatWebhookConsumer {
-    pub database: Database,
+    pub(crate) repository: Arc<dyn Repository>,
     pub providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
     pub stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl FiatWebhookConsumer {
-    pub fn new(database: Database, providers: Vec<Box<dyn FiatProvider + Send + Sync>>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
-        Self { database, providers, stream_producer }
+    pub(crate) fn new(repository: Arc<dyn Repository>, providers: Vec<Box<dyn FiatProvider + Send + Sync>>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+        Self { repository, providers, stream_producer }
     }
 
     async fn send_fiat_notification(&self, updated: &FiatTransactionRecord) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let asset_id = updated.asset_id.clone();
-        let wallet_row_id = updated.wallet_id;
-        let (asset, wallet_id, devices) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let asset = client.get_asset(&asset_id)?;
-                let wallet_id = client.get_wallet_by_id(wallet_row_id)?.wallet_id;
-                let devices: Vec<Device> = client.get_devices_by_wallet_id(wallet_row_id)?;
-                Ok((asset, wallet_id, devices))
-            })
-            .await?;
+        let NotificationContext { asset, wallet_id, devices } = self.repository.notification_context(updated.asset_id.clone(), updated.wallet_id).await?;
 
         let Some(crypto_value) = updated.value.as_deref() else {
             return Ok(());
@@ -94,14 +85,7 @@ impl MessageConsumer<FiatWebhookPayload, bool> for FiatWebhookConsumer {
             }
         };
 
-        let (existing, updated) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let existing = client.get_fiat_transaction(provider_name, &transaction_update.transaction_id)?;
-                let updated = client.update_fiat_transaction(provider_name, transaction_update)?;
-                Ok((existing, updated))
-            })
-            .await?;
+        let (existing, updated) = self.repository.update_fiat_transaction(provider_name, transaction_update).await?;
 
         info_with_fields!(
             "processed webhook",

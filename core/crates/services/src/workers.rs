@@ -105,7 +105,7 @@ impl FiatJobs {
     }
 
     pub fn assets_updater(&self) -> FiatAssetsUpdater {
-        FiatAssetsUpdater::new(self.services.database(), self.services.fiat_providers(self.access_token_cacher.clone()))
+        FiatAssetsUpdater::new(self.services.fiat_repository(), self.services.fiat_providers(self.access_token_cacher.clone()))
     }
 }
 

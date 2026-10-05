@@ -14,15 +14,16 @@ use primitives::{
     Asset, AssetId, Chain, FiatAsset, FiatAssetSymbol, FiatAssets, FiatQuote, FiatQuoteError as ProviderQuoteError, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatQuotes, FiatTransaction, FiatTransactionData,
     FiatWebhook, RequestError,
 };
-use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, DevicesRepository, FiatRepository, WalletAddress, WalletsRepository};
+use storage::{AssetFilter, DatabaseError, WalletAddress};
 use streamer::{FiatWebhookPayload, StreamProducerQueue};
 use uuid::Uuid;
 
 use super::error::FiatServiceError;
+use super::repository::{QuoteContext, Repository};
 use crate::ConfigCacher;
 
 pub struct FiatClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: Arc<ConfigCacher>,
     quote_cacher: Arc<dyn FiatQuoteCacher>,
     rate_limiter: Arc<dyn RateLimitCacher>,
@@ -33,7 +34,7 @@ pub struct FiatClient {
 
 impl FiatClient {
     pub(crate) fn new(
-        database: Database,
+        repository: Arc<dyn Repository>,
         config: Arc<ConfigCacher>,
         quote_cacher: Arc<dyn FiatQuoteCacher>,
         rate_limiter: Arc<dyn RateLimitCacher>,
@@ -42,7 +43,7 @@ impl FiatClient {
         stream_producer: Arc<dyn StreamProducerQueue>,
     ) -> Self {
         Self {
-            database,
+            repository,
             config,
             quote_cacher,
             rate_limiter,
@@ -68,19 +69,12 @@ impl FiatClient {
     }
 
     pub async fn get_transactions_by_device_wallet_id(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<FiatTransactionData>, Box<dyn Error + Send + Sync>> {
-        let transactions = self.database.run(move |client| client.get_fiat_transactions_by_device_and_wallet_id(device_row_id, wallet_id)).await?;
+        let transactions = self.repository.wallet_fiat_transactions(device_row_id, wallet_id).await?;
         Ok(transactions.into_iter().map(fiat::fiat_transaction_info).collect())
     }
 
     pub async fn get_transactions_by_device_id(&self, device_id: &str) -> Result<Vec<FiatTransactionData>, Box<dyn Error + Send + Sync>> {
-        let device_id = device_id.to_string();
-        let transactions = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let device_row_id = client.get_device_row_id(&device_id)?;
-                client.get_fiat_transactions_by_device_id(device_row_id)
-            })
-            .await?;
+        let transactions = self.repository.device_fiat_transactions(device_id.to_string()).await?;
         Ok(transactions.into_iter().map(fiat::fiat_transaction_info).collect())
     }
 
@@ -163,16 +157,16 @@ impl FiatClient {
     }
 
     async fn get_assets(&self, filter: AssetFilter) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
-        let assets = self.database.run(move |client| client.get_assets_by_filter(vec![AssetFilter::IsEnabled(true), filter])).await?;
+        let assets = self.repository.assets(vec![AssetFilter::IsEnabled(true), filter]).await?;
         Ok(FiatAssets::new(assets.into_iter().map(|asset| asset.asset.id.to_string()).collect()))
     }
 
     async fn get_provider_quotes(&self, request: &FiatQuoteRequest, asset: &Asset, ip_address: &str) -> Result<(Vec<CachedFiatQuote>, Vec<ProviderQuoteError>), FiatServiceError> {
-        let asset_id = asset.id.clone();
-        let (providers_countries, fiat_assets, db_providers) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> { Ok((client.get_fiat_providers_countries()?, client.get_fiat_assets_for_asset_id(&asset_id)?, client.get_fiat_providers()?)) })
-            .await?;
+        let QuoteContext {
+            countries: providers_countries,
+            fiat_assets,
+            providers: db_providers,
+        } = self.repository.quote_context(asset.id.clone()).await?;
         let ip_address_info = self
             .ip_address_provider
             .get_ip_address(ip_address)
@@ -241,8 +235,7 @@ impl FiatClient {
             None => self.ip_address_provider.get_ip_address(&context.ip_address).await?.alpha2,
         };
         let pending_transaction = FiatTransaction::new_pending(&data, Some(country), url.provider_transaction_id.clone());
-        let (device_id, wallet_id, address_id) = (context.device_id, context.wallet_id, wallet_address.id);
-        self.database.run(move |client| client.add_fiat_transaction(pending_transaction, device_id, wallet_id, address_id)).await?;
+        self.repository.add_fiat_transaction(pending_transaction, context.device_id, context.wallet_id, wallet_address.id).await?;
         let cached_quote = self.cached_quote(context, quote_id).await?;
         let quote = CachedFiatQuote { url: Some(url.clone()), ..cached_quote };
         self.quote_cacher.set_quotes(context.device_id, context.wallet_id, &[(quote_id.to_string(), quote)]).await?;
@@ -264,13 +257,11 @@ impl FiatClient {
     }
 
     async fn get_asset(&self, asset_id: &AssetId) -> Result<Asset, DatabaseError> {
-        let asset_id = asset_id.clone();
-        self.database.run(move |client| client.get_asset(&asset_id)).await
+        self.repository.asset(asset_id.clone()).await
     }
 
     async fn subscription_address(&self, context: &FiatDeviceContext, chain: Chain) -> Result<WalletAddress, FiatServiceError> {
-        let (device_id, wallet_id) = (context.device_id, context.wallet_id);
-        match self.database.run(move |client| client.subscriptions_wallet_address_for_chain(device_id, wallet_id, chain)).await {
+        match self.repository.subscription_address(context.device_id, context.wallet_id, chain).await {
             Ok(address) => Ok(address),
             Err(error) if error.is_not_found() => Err(RequestError::Forbidden.into()),
             Err(error) => Err(error.into()),

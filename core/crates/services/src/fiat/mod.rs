@@ -3,6 +3,7 @@ mod error;
 mod fiat_assets_updater;
 mod fiat_rates_updater;
 mod fiat_webhook_consumer;
+pub(crate) mod repository;
 
 pub use client::FiatClient;
 pub use error::FiatServiceError;

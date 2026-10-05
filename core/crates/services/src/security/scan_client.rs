@@ -14,8 +14,8 @@ use security::transaction_scan::{ProviderCheck, ScanSubject, ScanTargets, Transa
 use security::{ScanProviderConfig, ScanProviderFactory, ScanResult, TransactionScanProviders};
 use serde_json::json;
 use settings::Settings;
-use storage::{AssetsRepository, Database, DatabaseError, ScanAddressesRepository, ScanDetectionsRepository};
 
+use super::repository::{Repository, ScanRecords};
 use super::scan_config::ScanConfig;
 use crate::ConfigCacher;
 
@@ -29,7 +29,7 @@ pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Durati
 }
 
 pub struct ScanClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config_cacher: Arc<ConfigCacher>,
     safe_targets: Arc<dyn ScanSafeCacher>,
     providers: TransactionScanProviders,
@@ -37,9 +37,9 @@ pub struct ScanClient {
 }
 
 impl ScanClient {
-    pub fn new(database: Database, config_cacher: Arc<ConfigCacher>, safe_targets: Arc<dyn ScanSafeCacher>, providers: TransactionScanProviders, metrics: Arc<dyn ScanMetrics>) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>, config_cacher: Arc<ConfigCacher>, safe_targets: Arc<dyn ScanSafeCacher>, providers: TransactionScanProviders, metrics: Arc<dyn ScanMetrics>) -> Self {
         Self {
-            database,
+            repository,
             config_cacher,
             safe_targets,
             providers,
@@ -67,24 +67,12 @@ impl ScanClient {
     }
 
     async fn get_scan_input(&self, config: &ScanConfig, payload: ScanTransactionPayload, subjects: &[ScanSubject], safe: HashSet<ScanType>) -> Result<TransactionScanInput, Box<dyn Error + Send + Sync>> {
-        let queries = [(payload.origin.asset_id.chain, payload.origin.address.clone()), (payload.target.asset_id.chain, payload.target.address.clone())];
+        let addresses = vec![(payload.origin.asset_id.chain, payload.origin.address.clone()), (payload.target.asset_id.chain, payload.target.address.clone())];
         let asset_ids = token_asset_ids(&payload);
         let mut targets = subjects.iter().map(|subject| subject.target.clone()).collect::<Vec<_>>();
         targets.dedup();
         let detection_max_age = if targets.is_empty() { None } else { Some(config.detection_max_age) };
-        let (addresses, assets, verdicts) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let queries = queries.iter().map(|(chain, address)| (*chain, address.as_str())).collect::<Vec<_>>();
-                let addresses = client.get_scan_addresses(&queries)?;
-                let assets = client.get_assets_basic(asset_ids)?;
-                let verdicts = match detection_max_age {
-                    Some(max_age) => client.get_scan_detections(targets, max_age)?,
-                    None => Vec::new(),
-                };
-                Ok((addresses, assets, verdicts))
-            })
-            .await?;
+        let ScanRecords { addresses, assets, verdicts } = self.repository.scan_records(addresses, asset_ids, targets, detection_max_age).await?;
         Ok(TransactionScanInput {
             payload,
             enforced: config.enforced.clone(),
@@ -126,8 +114,7 @@ impl ScanClient {
     }
 
     async fn save(&self, safe_targets: &[SafeScanTarget], result: &TransactionScanResult) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let verdicts = result.new_verdicts.clone();
-        self.database.run(move |client| client.add_scan_detections(verdicts)).await?;
+        self.repository.add_scan_detections(result.new_verdicts.clone()).await?;
         let new_safe = safe_targets.iter().filter(|target| result.new_safe.contains(&target.scan_type)).collect::<Vec<_>>();
         self.safe_targets.add_safe(&new_safe).await
     }
