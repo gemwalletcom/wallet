@@ -17,7 +17,7 @@ use primitives::{
     SimulationWarningApproval, SimulationWarningType, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData,
     SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType, Transaction, TransactionDirection, TransactionExtended, TransactionInputType,
     TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnection,
-    WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType, YieldProvider,
+    WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletListItem, WalletSource, WalletType, YieldProvider,
 };
 use std::str::FromStr;
 
@@ -1848,4 +1848,13 @@ pub struct WalletConnectionSessionProposal {
     pub default_wallet: Wallet,
     pub wallets: Vec<Wallet>,
     pub metadata: ApplicationMetadata,
+}
+
+#[uniffi::remote(Record)]
+pub struct WalletListItem {
+    pub id: primitives::WalletId,
+    pub name: String,
+    pub index: i32,
+    pub is_pinned: bool,
+    pub image_url: Option<String>,
 }

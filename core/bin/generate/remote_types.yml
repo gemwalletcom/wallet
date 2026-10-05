@@ -97,6 +97,7 @@ remote:
   - Platform
   - PlatformStore
   - Wallet
+  - WalletListItem
   - WalletType
   - WalletSource
   - TpslType
@@ -399,6 +400,7 @@ mocks:
   - TransactionSwapMetadata
   - TransferDataExtra
   - Wallet
+  - WalletListItem
   - WalletConnection
   - WalletConnectionSession
   - WalletConnectionSessionProposal

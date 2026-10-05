@@ -203,6 +203,8 @@ pub mod image_type;
 pub use self::image_type::{ImageType, MIME_TYPE_PNG};
 pub mod wallet_id;
 pub use self::wallet_id::WalletId;
+pub mod wallet_list_item;
+pub use self::wallet_list_item::WalletListItem;
 pub mod wallet_connector;
 pub use self::wallet_connector::{WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus};
 pub mod nft;

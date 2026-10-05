@@ -7,7 +7,7 @@ use std::sync::Arc;
 use chrono::Utc;
 
 use crate::services::localization::GemLocalizedText;
-use primitives::{Asset, AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId};
+use primitives::{Asset, AssetFiatValue, AssetId, Banner, Currency, TotalFiatValue, Wallet, WalletId, WalletListItem};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
 use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderSubtitleIcon};
@@ -73,7 +73,7 @@ impl GemWalletHomeService {
     pub fn view_state(&self, wallet: Wallet, balances: Vec<AssetFiatValue>, perpetual: Option<GemPerpetualCollateral>, banners: Vec<Banner>, asset_ids: Vec<AssetId>, pinned_asset_ids: Vec<AssetId>) -> GemWalletHomeViewState {
         let chains = wallet.chains();
         let wallet_type = wallet.wallet_type;
-        let wallet_row = wallet_rules::row(&wallet);
+        let wallet_row = wallet_rules::row(&WalletListItem::from(&wallet));
         let is_wallet_empty = balances.iter().all(|balance| balance.amount == 0.0);
         let total_value = self.total_fiat_value(wallet.id.clone(), balances, perpetual);
         let visible_banners = self.banners.visible_banners(&GemBannerContext::wallet(wallet, is_wallet_empty), banners);
