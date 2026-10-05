@@ -5,6 +5,7 @@ use crate::config::image::GemImage;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSectionTitle, GemRowAction};
+use crate::models::state::GemListPhase;
 use crate::services::balance::GemAssetBalanceRow;
 use crate::services::banner::GemBannerRow;
 use crate::services::empty_state::GemEmptyState;
@@ -509,15 +510,15 @@ pub struct GemSelectAssetView {
     pub state: GemSelectAssetState,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNetworkAssetSections {
     pub shows_pinned: bool,
     pub shows_unpinned: bool,
     pub shows_hidden: bool,
-    pub shows_empty: bool,
+    pub phase: GemListPhase,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNetworkAssetIds {
     pub pinned: Vec<AssetId>,
     pub unpinned: Vec<AssetId>,

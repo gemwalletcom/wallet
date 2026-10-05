@@ -22,6 +22,7 @@ pub const ASSET_UPDATE_INTERVAL_SECONDS: u32 = 3_600;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle, GemRowAction};
+use crate::models::state::GemListPhase;
 use crate::percentage::GemPercentageStyle;
 use crate::perpetual::GemPerpetual;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
@@ -472,7 +473,10 @@ pub fn network_asset_sections(active: Vec<AssetId>, pinned: &[AssetId], hidden: 
         shows_pinned: !pinned.is_empty(),
         shows_unpinned: !unpinned.is_empty(),
         shows_hidden: !hidden.is_empty(),
-        shows_empty: pinned.is_empty() && unpinned.is_empty() && hidden.is_empty(),
+        phase: GemListPhase::local(
+            !pinned.is_empty() || !unpinned.is_empty() || !hidden.is_empty(),
+            screen_empty_state(GemEmptyStateKind::NetworkAssets, false, &[GemEmptyStateAction::ManageTokenList]),
+        ),
     };
     GemNetworkAssetIds { pinned, unpinned, hidden, sections }
 }
@@ -1222,17 +1226,22 @@ mod tests {
         let ids = network_asset_sections(vec![coin.clone(), usdc.clone(), pinned.clone()], &[coin.clone(), pinned.clone()], vec![coin, hidden.clone()]);
 
         assert_eq!((ids.pinned, ids.unpinned, ids.hidden), (vec![pinned], vec![usdc], vec![hidden]));
-        assert!(ids.sections.shows_pinned && ids.sections.shows_unpinned && ids.sections.shows_hidden && !ids.sections.shows_empty);
+        assert!(ids.sections.shows_pinned && ids.sections.shows_unpinned && ids.sections.shows_hidden);
+        assert_eq!(ids.sections.phase, GemListPhase::Rows);
     }
 
     #[test]
     fn test_network_assets_are_empty_only_when_every_section_is() {
         let token = AssetId::from_token(Chain::Ethereum, "0xtoken");
 
-        assert!(network_asset_sections(vec![], &[], vec![]).sections.shows_empty);
-        assert!(network_asset_sections(vec![AssetId::from_chain(Chain::Ethereum)], &[], vec![]).sections.shows_empty, "the coin alone leaves the screen empty");
+        let empty = GemListPhase::Empty {
+            state: screen_empty_state(GemEmptyStateKind::NetworkAssets, false, &[GemEmptyStateAction::ManageTokenList]),
+        };
+        assert_eq!(network_asset_sections(vec![], &[], vec![]).sections.phase, empty);
+        assert_eq!(network_asset_sections(vec![AssetId::from_chain(Chain::Ethereum)], &[], vec![]).sections.phase, empty, "the coin alone leaves the screen empty");
         let hidden_only = network_asset_sections(vec![], &[], vec![token]).sections;
-        assert!(hidden_only.shows_hidden && !hidden_only.shows_empty && !hidden_only.shows_pinned && !hidden_only.shows_unpinned);
+        assert!(hidden_only.shows_hidden && !hidden_only.shows_pinned && !hidden_only.shows_unpinned);
+        assert_eq!(hidden_only.phase, GemListPhase::Rows);
     }
 
     #[test]
