@@ -1,20 +1,22 @@
 use gem_client::{ClientExt, ReqwestClient};
-use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_IOS_BUNDLE_ID, PlatformStore, config::Release};
+use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_IOS_BUNDLE_ID, PlatformStore};
 use std::error::Error;
-use storage::{Database, DatabaseError, ReleasesRepository};
+use std::sync::Arc;
+
+use super::repository::Repository;
 
 use super::model::{FdroidPackageResponse, GitHubRepository, HuaweiStoreResponse, ITunesLookupResponse, SamsungStoreDetail, SolanaStoreRelease};
 use super::store_target::{HuaweiAppRequest, StoreTarget};
 
 pub struct VersionUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
     client: reqwest::Client,
 }
 
 impl VersionUpdater {
-    pub fn new(database: Database) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>) -> Self {
         Self {
-            database,
+            repository,
             client: gem_client::reqwest_client(),
         }
     }
@@ -31,21 +33,12 @@ impl VersionUpdater {
     }
 
     pub async fn update_store(&self, store: PlatformStore) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        if !self.database.run(move |client| client.is_update_enabled(store)).await? {
+        if !self.repository.is_update_enabled(store).await? {
             return Ok(None);
         }
 
         let version = self.get_store_version(store).await?;
-        let release_version = version.clone();
-        self.database
-            .run(move |client| -> Result<(), DatabaseError> {
-                let current = client.get_releases()?.into_iter().find(|release| release.store == store).map(|release| release.version);
-                if current.as_ref() != Some(&release_version) {
-                    client.update_release(Release::new(store, release_version, false))?;
-                }
-                Ok(())
-            })
-            .await?;
+        self.repository.set_release_version(store, version.clone()).await?;
 
         Ok(Some(version))
     }

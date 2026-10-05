@@ -294,20 +294,24 @@ pub struct SystemJobs {
 }
 
 impl SystemJobs {
+    fn system_repository(&self) -> Arc<dyn crate::system::repository::Repository> {
+        Arc::new(crate::system::repository::PostgresRepository::new(self.database.clone()))
+    }
+
     pub fn transaction_cleanup(&self) -> TransactionCleanup {
-        TransactionCleanup::new(self.database.clone(), self.cleanup_config.clone())
+        TransactionCleanup::new(self.system_repository(), self.cleanup_config.clone())
     }
 
     pub fn device_updater(&self) -> DeviceUpdater {
-        DeviceUpdater::new(self.database.clone())
+        DeviceUpdater::new(self.system_repository())
     }
 
     pub fn inactive_devices_observer(&self) -> InactiveDevicesObserver {
-        InactiveDevicesObserver::new(self.database.clone(), self.throttle.clone(), self.stream_producer.clone())
+        InactiveDevicesObserver::new(self.system_repository(), self.throttle.clone(), self.stream_producer.clone())
     }
 
     pub fn version_updater(&self) -> VersionUpdater {
-        VersionUpdater::new(self.database.clone())
+        VersionUpdater::new(self.system_repository())
     }
 }
 

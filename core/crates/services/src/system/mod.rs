@@ -1,6 +1,7 @@
 mod device_updater;
 mod model;
 mod observers;
+pub(crate) mod repository;
 mod store_target;
 mod transaction_cleanup;
 mod version_updater;

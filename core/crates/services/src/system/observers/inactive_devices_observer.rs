@@ -1,35 +1,28 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::system::repository::Repository;
 use cacher::{ThrottleCacher, ThrottledTask};
 use localizer::LanguageLocalizer;
 use primitives::{Asset, Chain};
 use push_notification::{GorushNotification, PushNotification};
-use storage::{Database, DatabaseError, DevicesRepository, WalletsRepository};
 use streamer::{NotificationsPayload, StreamProducerQueue};
 
 pub struct InactiveDevicesObserver {
-    database: Database,
+    repository: Arc<dyn Repository>,
     throttle: Arc<dyn ThrottleCacher>,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl InactiveDevicesObserver {
-    pub fn new(database: Database, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
-        Self { database, throttle, stream_producer }
+    pub(crate) fn new(repository: Arc<dyn Repository>, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+        Self { repository, throttle, stream_producer }
     }
 
     pub async fn observe(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let devices = self.database.run(|client| client.devices_inactive_days(10, 14, Some(true))).await?;
+        let devices = self.repository.inactive_devices(10, 14, Some(true)).await?;
         for device in &devices {
-            let device_id = device.id.clone();
-            let subscriptions = self
-                .database
-                .run(move |client| -> Result<_, DatabaseError> {
-                    let device_row_id = client.get_device_row_id(&device_id)?;
-                    client.get_subscriptions(device_row_id)
-                })
-                .await?;
+            let subscriptions = self.repository.device_subscriptions(device.id.clone()).await?;
             if subscriptions.is_empty() {
                 continue;
             }

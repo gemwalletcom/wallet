@@ -285,7 +285,7 @@ impl Services {
     }
 
     pub fn access(&self) -> AccessClient {
-        AccessClient::new(self.database())
+        AccessClient::new(Arc::new(crate::access::repository::PostgresRepository::new(self.database())))
     }
 
     pub fn webhooks(&self, stream_producer: StreamProducer) -> WebhooksClient {
@@ -293,7 +293,7 @@ impl Services {
     }
 
     pub async fn app_config(&self) -> Result<ConfigClient, Box<dyn Error + Send + Sync>> {
-        Ok(ConfigClient::new(self.database(), self.ip_address_provider().await?))
+        Ok(ConfigClient::new(Arc::new(crate::app::repository::PostgresRepository::new(self.database())), self.ip_address_provider().await?))
     }
 
     async fn ip_address_provider(&self) -> Result<Arc<dyn IpAddressProvider>, Box<dyn Error + Send + Sync>> {
