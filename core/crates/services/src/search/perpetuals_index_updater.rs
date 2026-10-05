@@ -1,39 +1,33 @@
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
+use super::repository::{PerpetualsIndexData, Repository};
 use super::sync::{SearchSyncClient, SearchSyncResult};
 use config_keys::ConfigKey;
 use primitives::{Asset, Perpetual};
 use search_index::{PERPETUALS_INDEX_NAME, PerpetualDocument, sanitize_index_primary_id};
-use storage::{AssetsRepository, Database, DatabaseError, PerpetualsRepository, TagRepository};
 
 pub struct PerpetualsIndexUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
     sync_client: SearchSyncClient,
 }
 
 impl PerpetualsIndexUpdater {
-    pub fn new(database: Database, sync_client: SearchSyncClient) -> Self {
-        Self { database, sync_client }
+    pub(crate) fn new(repository: Arc<dyn Repository>, sync_client: SearchSyncClient) -> Self {
+        Self { repository, sync_client }
     }
 
     pub async fn update(&self) -> Result<SearchSyncResult, Box<dyn std::error::Error + Send + Sync>> {
         let sync = self.sync_client.for_key(ConfigKey::SearchPerpetualsLastUpdatedAt).await?;
-        let (perpetuals, public_tag_ids, perpetuals_tags) = self
-            .database
-            .run(|client| -> Result<_, DatabaseError> {
-                let perpetuals = client.get_perpetuals()?;
-                let public_tag_ids = client.get_perpetual_list_tags()?.into_iter().filter_map(|tag| tag.is_public().then_some(tag.id)).collect::<HashSet<_>>();
-                let perpetuals_tags = client.get_perpetuals_tags()?;
-                Ok((perpetuals, public_tag_ids, perpetuals_tags))
-            })
-            .await?;
+        let PerpetualsIndexData { perpetuals, list_tags, perpetuals_tags } = self.repository.perpetuals().await?;
+        let public_tag_ids = list_tags.into_iter().filter_map(|tag| tag.is_public().then_some(tag.id)).collect::<HashSet<_>>();
 
         if perpetuals.is_empty() {
             return sync.write(PERPETUALS_INDEX_NAME, Vec::<PerpetualDocument>::new()).await;
         }
 
         let asset_ids = perpetuals.iter().map(|p| p.asset_id.clone()).collect::<Vec<_>>();
-        let assets = self.database.run(move |client| client.get_assets(asset_ids)).await?;
+        let assets = self.repository.assets(asset_ids).await?;
 
         let assets_map: HashMap<String, Asset> = assets.into_iter().map(|a| (a.id.to_string(), a)).collect();
         let perpetuals_tags_map: HashMap<String, Vec<String>> = perpetuals_tags.into_iter().filter(|tag| public_tag_ids.contains(&tag.tag_id)).fold(HashMap::new(), |mut acc, tag| {

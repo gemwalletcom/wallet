@@ -1,43 +1,33 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+use std::sync::Arc;
 
-use primitives::{AssetId, Chain, asset_score::AssetRank};
+use primitives::{Chain, asset_score::AssetRank};
 use search_index::{ASSET_LISTS_INDEX_NAME, AssetListDocument, SearchIndexClient};
-use storage::{AssetFilter, AssetTagLink, AssetsRepository, Database, DatabaseClient, DatabaseError, PerpetualTagLink, Tag, TagRepository};
+use storage::{AssetFilter, AssetTagLink, PerpetualTagLink, Tag};
+
+use super::repository::{AssetListsIndexData, Repository};
 
 pub struct AssetListsIndexUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
     search_index: SearchIndexClient,
 }
 
 impl AssetListsIndexUpdater {
-    pub fn new(database: Database, search_index: SearchIndexClient) -> Self {
-        Self { database, search_index }
+    pub(crate) fn new(repository: Arc<dyn Repository>, search_index: SearchIndexClient) -> Self {
+        Self { repository, search_index }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-        let (tags, assets_tags, perpetuals_tags) = self
-            .database
-            .run(|client| -> Result<_, DatabaseError> {
-                let tags = [client.get_asset_list_tags()?, client.get_perpetual_list_tags()?].concat();
-                let assets_tags = client.get_assets_tags()?;
-                let assets_tags = Self::searchable_assets_tags(client, assets_tags)?;
-                let perpetuals_tags = client.get_perpetuals_tags()?;
-                Ok((tags, assets_tags, perpetuals_tags))
-            })
-            .await?;
+        let AssetListsIndexData {
+            tags,
+            assets_tags,
+            searchable_asset_ids,
+            perpetuals_tags,
+        } = self.repository.asset_lists(vec![AssetFilter::IsEnabled(true), AssetFilter::RankGt(AssetRank::Trivial.threshold())]).await?;
+        let assets_tags = assets_tags.into_iter().filter(|tag| searchable_asset_ids.contains(&tag.asset_id)).collect::<Vec<_>>();
         let documents = Self::build_documents(tags, &assets_tags, &perpetuals_tags);
 
         self.search_index.replace_documents(ASSET_LISTS_INDEX_NAME, documents).await
-    }
-
-    fn searchable_assets_tags(client: &mut DatabaseClient, assets_tags: Vec<AssetTagLink>) -> Result<Vec<AssetTagLink>, DatabaseError> {
-        let filters = vec![
-            AssetFilter::Ids(assets_tags.iter().map(|tag| tag.asset_id.to_string()).collect()),
-            AssetFilter::IsEnabled(true),
-            AssetFilter::RankGt(AssetRank::Trivial.threshold()),
-        ];
-        let searchable_asset_ids: HashSet<AssetId> = client.get_asset_ids_by_filter(filters)?.into_iter().collect();
-        Ok(assets_tags.into_iter().filter(|tag| searchable_asset_ids.contains(&tag.asset_id)).collect())
     }
 
     fn build_documents(tags: Vec<Tag>, assets_tags: &[AssetTagLink], perpetuals_tags: &[PerpetualTagLink]) -> Vec<AssetListDocument> {
@@ -63,7 +53,7 @@ impl AssetListsIndexUpdater {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{PerpetualId, PerpetualProvider, TagVisibility};
+    use primitives::{AssetId, PerpetualId, PerpetualProvider, TagVisibility};
 
     fn asset_tag(asset_id: AssetId, tag_id: &str) -> AssetTagLink {
         AssetTagLink { asset_id, tag_id: tag_id.to_string() }

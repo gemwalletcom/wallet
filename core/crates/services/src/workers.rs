@@ -257,19 +257,23 @@ pub struct SearchJobs {
 
 impl SearchJobs {
     pub fn assets_index_updater(&self) -> AssetsIndexUpdater {
-        AssetsIndexUpdater::new(self.database.clone(), self.config.clone(), self.sync_client())
+        AssetsIndexUpdater::new(self.search_repository(), self.config.clone(), self.sync_client())
     }
 
     pub fn asset_lists_index_updater(&self) -> AssetListsIndexUpdater {
-        AssetListsIndexUpdater::new(self.database.clone(), self.search_index.clone())
+        AssetListsIndexUpdater::new(self.search_repository(), self.search_index.clone())
     }
 
     pub fn perpetuals_index_updater(&self) -> PerpetualsIndexUpdater {
-        PerpetualsIndexUpdater::new(self.database.clone(), self.sync_client())
+        PerpetualsIndexUpdater::new(self.search_repository(), self.sync_client())
     }
 
     pub fn nfts_index_updater(&self) -> NftsIndexUpdater {
-        NftsIndexUpdater::new(self.database.clone(), self.sync_client())
+        NftsIndexUpdater::new(self.search_repository(), self.sync_client())
+    }
+
+    fn search_repository(&self) -> Arc<dyn crate::search::repository::Repository> {
+        Arc::new(crate::search::repository::PostgresRepository::new(self.database.clone()))
     }
 
     fn sync_client(&self) -> SearchSyncClient {

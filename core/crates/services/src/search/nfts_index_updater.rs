@@ -2,22 +2,26 @@ use super::sync::{SearchSyncClient, SearchSyncResult};
 use config_keys::ConfigKey;
 use primitives::NFTCollection;
 use search_index::{NFTDocument, NFTS_INDEX_NAME};
-use storage::{Database, NftCollectionFilter, NftRepository};
+use std::sync::Arc;
+
+use storage::NftCollectionFilter;
+
+use super::repository::Repository;
 
 pub struct NftsIndexUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
     sync_client: SearchSyncClient,
 }
 
 impl NftsIndexUpdater {
-    pub fn new(database: Database, sync_client: SearchSyncClient) -> Self {
-        Self { database, sync_client }
+    pub(crate) fn new(repository: Arc<dyn Repository>, sync_client: SearchSyncClient) -> Self {
+        Self { repository, sync_client }
     }
 
     pub async fn update(&self) -> Result<SearchSyncResult, Box<dyn std::error::Error + Send + Sync>> {
         let sync = self.sync_client.for_key(ConfigKey::SearchNftsLastUpdatedAt).await?;
         let filters = sync.since().map(NftCollectionFilter::UpdatedSince).into_iter().collect();
-        let collections = self.database.run(move |client| client.get_nft_collections(filters)).await?;
+        let collections = self.repository.nft_collections(filters).await?;
 
         let documents = Self::build_documents(collections);
 
