@@ -309,10 +309,10 @@ impl PricesRepository for DatabaseClient {
                 client.update_prices(vec![id], updates)?;
             }
 
-            let chart_price_ids: Vec<String> = current_prices.iter().map(|price| price.id.to_string()).collect();
+            let chart_updates: Vec<(String, NaiveDateTime)> = current_prices.iter().map(|price| (price.id.to_string(), price.last_updated_at)).collect();
             let charts: Vec<ChartRow> = current_prices.iter().cloned().map(ChartRow::from_price).collect();
             insert_chart_rows(client, ChartTimeframe::Raw, charts)?;
-            aggregate_chart_rows(client, &chart_price_ids)?;
+            aggregate_chart_rows(client, chart_updates)?;
 
             Ok(mappings.into_iter().map(|m| m.asset_id.0).collect::<HashSet<_>>().into_iter().collect())
         })
