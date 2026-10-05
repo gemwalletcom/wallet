@@ -2085,6 +2085,16 @@ fun com.wallet.core.primitives.Wallet.toGem(): uniffi.gemstone.Wallet = uniffi.g
     source = source.toGem(),
 )
 
+fun uniffi.gemstone.WalletAddressItem.toPrimitives(): com.wallet.core.primitives.WalletAddressItem = com.wallet.core.primitives.WalletAddressItem(
+    wallet = wallet.toPrimitives(),
+    address = address,
+)
+
+fun com.wallet.core.primitives.WalletAddressItem.toGem(): uniffi.gemstone.WalletAddressItem = uniffi.gemstone.WalletAddressItem(
+    wallet = wallet.toGem(),
+    address = address,
+)
+
 fun uniffi.gemstone.WalletConnection.toPrimitives(): com.wallet.core.primitives.WalletConnection = com.wallet.core.primitives.WalletConnection(
     session = session.toPrimitives(),
     wallet = wallet.toPrimitives(),

@@ -96,6 +96,7 @@ import com.wallet.core.primitives.TransactionsFilter
 import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WCPairingProposal
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletAddressItem
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletConnectionSession
 import com.wallet.core.primitives.WalletConnectionSessionProposal
@@ -898,6 +899,14 @@ fun mockWallet(
     isPinned = isPinned,
     imageUrl = imageUrl,
     source = source,
+)
+
+fun mockWalletAddressItem(
+    wallet: WalletListItem = mockWalletListItem(),
+    address: String = "",
+) = WalletAddressItem(
+    wallet = wallet,
+    address = address,
 )
 
 fun mockWalletConnection(
