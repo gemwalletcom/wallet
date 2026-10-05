@@ -46,7 +46,13 @@ impl AlerterJobs {
     }
 
     pub fn staking_rewards_notifier(&self) -> StakingRewardsNotifier {
-        StakingRewardsNotifier::new(self.chain_providers.clone(), self.database.clone(), self.stake_rewards_config, self.throttle.clone(), self.stream_producer.clone())
+        StakingRewardsNotifier::new(
+            self.chain_providers.clone(),
+            Arc::new(crate::notifications::repository::PostgresRepository::new(self.database.clone())),
+            self.stake_rewards_config,
+            self.throttle.clone(),
+            self.stream_producer.clone(),
+        )
     }
 }
 

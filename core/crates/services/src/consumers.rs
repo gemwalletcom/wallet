@@ -122,7 +122,7 @@ impl Services {
         Ok(StoreTransactionsConsumer {
             repository: self.transactions_repository(),
             stream_producer: Arc::new(stream_producer),
-            pusher: Pusher::new(self.database()),
+            pusher: Pusher::new(self.notifications_repository()),
             config: self.config(),
             vault_client: SwapVaultAddressClient::new(Arc::new(self.cacher().await?)),
         })
@@ -157,11 +157,11 @@ impl Services {
     }
 
     pub fn notifications_failed_consumer(&self) -> NotificationsFailedConsumer {
-        NotificationsFailedConsumer::new(self.database())
+        NotificationsFailedConsumer::new(self.notifications_repository())
     }
 
     pub async fn in_app_notifications_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<InAppNotificationsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(InAppNotificationsConsumer::new(self.database(), Arc::new(self.stream_producer(name, shutdown).await?)))
+        Ok(InAppNotificationsConsumer::new(self.notifications_repository(), Arc::new(self.stream_producer(name, shutdown).await?)))
     }
 
     pub async fn rewards_consumer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<RewardsConsumer, Box<dyn Error + Send + Sync>> {

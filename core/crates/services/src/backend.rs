@@ -98,7 +98,7 @@ impl Services {
 
     pub async fn support(&self, shutdown: ShutdownReceiver) -> Result<SupportClient, Box<dyn Error + Send + Sync>> {
         let stream_producer = self.stream_producer("daemon_support_producer", shutdown).await?;
-        Ok(SupportClient::new(self.database(), Arc::new(stream_producer), Arc::new(self.cacher().await?)))
+        Ok(SupportClient::new(self.support_repository(), Arc::new(stream_producer), Arc::new(self.cacher().await?)))
     }
 
     pub async fn search_index(&self) -> Result<SearchIndexClient, Box<dyn Error + Send + Sync>> {
@@ -228,6 +228,14 @@ impl Services {
         Arc::new(crate::devices::repository::PostgresRepository::new(self.database()))
     }
 
+    pub(crate) fn notifications_repository(&self) -> Arc<dyn crate::notifications::repository::Repository> {
+        Arc::new(crate::notifications::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn support_repository(&self) -> Arc<dyn crate::support::repository::Repository> {
+        Arc::new(crate::support::repository::PostgresRepository::new(self.database()))
+    }
+
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {
         ChainProviders::from_settings(&self.settings, user_agent)
     }
@@ -261,7 +269,7 @@ impl Services {
     }
 
     pub fn notifications(&self) -> NotificationsClient {
-        NotificationsClient::new(self.database())
+        NotificationsClient::new(self.notifications_repository())
     }
 
     pub fn rewards(&self, cacher: CacherClient, stream_producer: StreamProducer, ip_security: IpSecurityClient) -> RewardsClient {
@@ -334,7 +342,7 @@ impl Services {
         SupportApiClient::new(
             ChatwootClient::new(support.url.clone(), support.widget.ios.clone()),
             ChatwootClient::new(support.url.clone(), support.widget.android.clone()),
-            self.database(),
+            self.support_repository(),
         )
     }
 

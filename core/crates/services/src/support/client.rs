@@ -1,11 +1,11 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use super::repository::Repository;
 use cacher::DeviceStreamCacher;
 use localizer::LanguageLocalizer;
 use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus};
 use push_notification::{GorushNotification, PushNotification, PushNotificationSupport, PushNotificationTypes};
-use storage::{Database, DevicesRepository};
 use streamer::{NotificationsPayload, StreamProducerQueue};
 use support::markdown_plain_text;
 
@@ -19,26 +19,18 @@ pub struct SupportWebhookResult {
 }
 
 pub struct SupportClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
     stream_producer: Arc<dyn StreamProducerQueue>,
     device_stream: Arc<dyn DeviceStreamCacher>,
 }
 
 impl SupportClient {
-    pub fn new(database: Database, stream_producer: Arc<dyn StreamProducerQueue>, device_stream: Arc<dyn DeviceStreamCacher>) -> Self {
-        Self { database, stream_producer, device_stream }
+    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>, device_stream: Arc<dyn DeviceStreamCacher>) -> Self {
+        Self { repository, stream_producer, device_stream }
     }
 
     pub async fn get_device(&self, device_id: &str) -> Result<Option<Device>, Box<dyn Error + Send + Sync>> {
-        let device_id = device_id.to_string();
-        Ok(self
-            .database
-            .run(move |client| match client.get_device(&device_id) {
-                Ok(device) => Ok(Some(device)),
-                Err(error) if error.is_not_found() => Ok(None),
-                Err(error) => Err(error),
-            })
-            .await?)
+        Ok(self.repository.device(device_id.to_string()).await?)
     }
 
     pub async fn publish_webhook(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {

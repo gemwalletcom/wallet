@@ -1,21 +1,23 @@
 use std::error::Error;
 use std::future::Future;
+use std::sync::Arc;
 
 use primitives::{Device, Platform, SupportAction, SupportMessage, SupportMessageInput};
-use storage::{Database, DeviceRecord, SupportSessionsRepository};
+use storage::DeviceRecord;
 
 use super::chatwoot::ChatwootClient;
 use super::model::ChatwootSession;
+use super::repository::Repository;
 
 pub struct SupportApiClient {
     chatwoot_ios: ChatwootClient,
     chatwoot_android: ChatwootClient,
-    database: Database,
+    repository: Arc<dyn Repository>,
 }
 
 impl SupportApiClient {
-    pub fn new(chatwoot_ios: ChatwootClient, chatwoot_android: ChatwootClient, database: Database) -> Self {
-        Self { chatwoot_ios, chatwoot_android, database }
+    pub(crate) fn new(chatwoot_ios: ChatwootClient, chatwoot_android: ChatwootClient, repository: Arc<dyn Repository>) -> Self {
+        Self { chatwoot_ios, chatwoot_android, repository }
     }
 
     pub async fn messages(&self, device: &DeviceRecord, from_timestamp: Option<u64>) -> Result<Vec<SupportMessage>, Box<dyn Error + Send + Sync>> {
@@ -78,7 +80,7 @@ impl SupportApiClient {
     }
 
     async fn get_session(&self, device_id: i32) -> Result<Option<ChatwootSession>, Box<dyn Error + Send + Sync>> {
-        let auth_token = self.database.run(move |client| client.get_support_session_token(device_id)).await?;
+        let auth_token = self.repository.session_token(device_id).await?;
         Ok(auth_token.map(|auth_token| ChatwootSession { auth_token }))
     }
 
@@ -89,8 +91,7 @@ impl SupportApiClient {
     }
 
     async fn set_session(&self, device_id: i32, session: &ChatwootSession) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let auth_token = session.auth_token.clone();
-        self.database.run(move |client| client.set_support_session_token(device_id, &auth_token)).await?;
+        self.repository.set_session_token(device_id, session.auth_token.clone()).await?;
         Ok(())
     }
 }

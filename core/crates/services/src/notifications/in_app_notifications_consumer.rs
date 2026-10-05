@@ -6,17 +6,19 @@ use localizer::LanguageLocalizer;
 use number_formatter::{ValueFormatter, ValueStyle};
 use primitives::{Device, JsonDecode, NotificationRewardsRedeemMetadata, NotificationType, RewardEventType};
 use push_notification::{GorushNotification, PushNotification, PushNotificationReward, PushNotificationTypes};
-use storage::{AssetsRepository, Database, DatabaseError, NewNotification, NotificationsRepository, WalletsRepository};
+use storage::NewNotification;
 use streamer::{InAppNotificationPayload, NotificationsPayload, StreamProducerQueue, consumer::MessageConsumer};
 
+use super::repository::Repository;
+
 pub struct InAppNotificationsConsumer {
-    database: Database,
+    repository: Arc<dyn Repository>,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl InAppNotificationsConsumer {
-    pub fn new(database: Database, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
-        Self { database, stream_producer }
+    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+        Self { repository, stream_producer }
     }
 
     fn create_push_notification(&self, device: &Device, notification_type: NotificationType, wallet_id: i32, points: i32, reward_value: Option<&str>) -> Option<GorushNotification> {
@@ -39,7 +41,7 @@ impl MessageConsumer<InAppNotificationPayload, usize> for InAppNotificationsCons
     async fn consume(&self, payload: InAppNotificationPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let redeem: Option<NotificationRewardsRedeemMetadata> = payload.metadata.decode();
         let redeem_asset = match (&redeem, payload.asset_id.clone()) {
-            (Some(_), Some(asset_id)) => self.database.run(move |client| client.get_asset(&asset_id)).await.ok(),
+            (Some(_), Some(asset_id)) => self.repository.asset(asset_id).await.ok(),
             _ => None,
         };
         let reward_value = redeem
@@ -54,14 +56,7 @@ impl MessageConsumer<InAppNotificationPayload, usize> for InAppNotificationsCons
             notification_type: payload.notification_type,
             metadata: payload.metadata.clone(),
         };
-        let wallet_id = payload.wallet_id;
-        let devices: Vec<Device> = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                client.create_notifications(vec![notification])?;
-                client.get_devices_by_wallet_id(wallet_id)
-            })
-            .await?;
+        let devices: Vec<Device> = self.repository.create_notification(notification).await?;
 
         let notifications: Vec<GorushNotification> = devices
             .iter()
