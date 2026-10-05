@@ -191,6 +191,7 @@ internal fun WalletScene(
                 if (homeState?.showCollections == true) {
                     item(key = CollectionsSectionItemKey) {
                         CollectionsPreviewSection(
+                            collections = homeState.collections,
                             onAction = { action ->
                                 when (action) {
                                     CollectionsPreviewAction.OpenCollections -> onAction(WalletAction.OpenCollections)

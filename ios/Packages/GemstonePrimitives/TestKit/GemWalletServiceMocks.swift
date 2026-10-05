@@ -279,7 +279,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
     }
 
     public func viewState(wallet: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.GemPerpetualCollateral?, banners: [Gemstone.Banner], assetIds: [Gemstone.AssetId],
-                          pinnedAssetIds: [Gemstone.AssetId]) -> GemWalletHomeViewState
+                          pinnedAssetIds: [Gemstone.AssetId], nfts _: [Gemstone.NftData]) -> GemWalletHomeViewState
     {
         let collateral: Double = perpetual.map { ($0.balance.available + $0.balance.reserved) * $0.price } ?? 0
         let value = balances.reduce(0.0) { $0 + $1.amount * $1.price } + collateral
@@ -300,6 +300,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
                 actions: .buttons(buttons: [GemHeaderButtonKind.send, .receive, .buy].map { GemHeaderButton.mock(kind: $0, isEnabled: isEnabled) }),
             ),
             showCollections: false,
+            collections: [],
             showsPerpetuals: false,
             banner: nil,
             pinnedAssetIds: pinnedAssetIds,
