@@ -53,33 +53,42 @@ struct FiatScene: View {
 extension FiatScene {
     private var amountSelectorSection: some View {
         Section {
-            AssetBalanceView(
-                image: model.assetImage,
-                title: model.assetTitle,
-                balance: model.assetBalance,
-                secondary: {
-                    HStack(spacing: .space10) {
-                        ForEach(model.suggestedAmounts, id: \.amount) { suggestion in
-                            Button(suggestion.value.text()) {
-                                model.onSelect(amount: Int(suggestion.amount))
-                            }
-                            .font(.subheadline.weight(.semibold))
-                            .buttonStyle(.amount())
-                        }
-
-                        Button(model.typeAmountButtonTitle) {
-                            model.onSelectRandomAmount()
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .buttonStyle(.listEmpty())
-                        .overlay {
-                            RandomOverlayView()
-                        }
-                    }
-                    .fixedSize()
-                },
-            )
+            ViewThatFits(in: .horizontal) {
+                assetBalanceView(isCompact: false)
+                assetBalanceView(isCompact: true)
+            }
         }
+    }
+
+    private func assetBalanceView(isCompact: Bool) -> some View {
+        let font: Font = isCompact ? .footnote.weight(.semibold) : .subheadline.weight(.semibold)
+        let padding: CGFloat = isCompact ? .space6 : .small
+        return AssetBalanceView(
+            image: model.assetImage,
+            title: model.assetTitle,
+            balance: model.assetBalance,
+            secondary: {
+                HStack(spacing: isCompact ? .small : .space10) {
+                    ForEach(model.suggestedAmounts, id: \.amount) { suggestion in
+                        Button(suggestion.value.text()) {
+                            model.onSelect(amount: Int(suggestion.amount))
+                        }
+                        .font(font)
+                        .buttonStyle(.amount(paddingHorizontal: padding))
+                    }
+
+                    Button(model.typeAmountButtonTitle) {
+                        model.onSelectRandomAmount()
+                    }
+                    .font(font)
+                    .buttonStyle(.listEmpty(paddingHorizontal: padding))
+                    .overlay {
+                        RandomOverlayView()
+                    }
+                }
+                .fixedSize()
+            },
+        )
     }
 
     private func providerSection(_ viewState: GemFiatViewState) -> some View {
