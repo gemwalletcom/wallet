@@ -8,7 +8,7 @@ use cacher::{AccessTokenCacherClient, CacherClient, SafeScanTarget, ScanSafeCach
 use futures::future;
 use gem_client::ReqwestClient;
 use gem_tracing::{error_with_fields, info_with_fields};
-use primitives::{ScanOutcome, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload, ScanType};
+use primitives::{ScanOutcome, ScanProvider, ScanTransaction, ScanTransactionPayload, ScanType};
 use security::providers::goplus::GoPlusProvider;
 use security::transaction_scan::{ProviderCheck, ScanSubject, ScanTargets, TransactionScanInput, TransactionScanResult, evaluate_transaction_scan, plan_transaction_scan, scan_subjects, token_asset_ids, website_host};
 use security::{ScanProviderConfig, ScanProviderFactory, ScanResult, TransactionScanProviders};
@@ -170,9 +170,9 @@ impl ScanClient {
         let scan_types = format!("|{}|", scan_types.iter().map(AsRef::as_ref).collect::<Vec<_>>().join("|"));
         let providers = ScanProvider::all()
             .into_iter()
-            .filter(|provider| result.checks.iter().any(|check| check.provider == *provider) || result.detections.iter().any(|detection| detection.provider == Some(*provider)))
+            .filter(|provider| result.checks.iter().any(|check| check.provider == *provider) || result.detections.iter().any(|detection| detection.provider == *provider))
             .collect::<Vec<_>>();
-        let scan_providers = (result.source == ScanSource::Local).then_some("internal").into_iter().chain(providers.iter().map(AsRef::as_ref)).collect::<Vec<_>>().join("|");
+        let scan_providers = providers.iter().map(AsRef::as_ref).collect::<Vec<_>>().join("|");
         let scan_providers = format!("|{scan_providers}|");
         let website_host = website_host(payload);
         let target = if payload.target.address.is_empty() {
@@ -202,7 +202,7 @@ impl ScanClient {
                 chain = chain,
                 scan_type = detection.scan_type.as_ref(),
                 target = format!("{:?}", detection.target),
-                provider = detection.provider.as_ref().map_or("internal", |provider| provider.as_ref()),
+                provider = detection.provider.as_ref(),
                 reason = format!("{:?}", detection.reason.as_deref().unwrap_or_default()),
                 enforced = detection.is_enforced,
                 cached = detection.is_cached

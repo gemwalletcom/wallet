@@ -29,12 +29,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPushResult
 import uniffi.gemstone.GemSupportServiceInterface
-import uniffi.gemstone.supportListPhase
+import uniffi.gemstone.emptyState
+import uniffi.gemstone.listPhase
 import javax.inject.Inject
 
 @HiltViewModel
@@ -65,8 +67,8 @@ class SupportChatViewModel @Inject constructor(
 
     private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
-    val phase: StateFlow<GemListPhase> = combine(messages, loadState) { messages, state -> supportListPhase(messages.map { it.toGem() }, state) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, supportListPhase(emptyList(), loadState.value))
+    val phase: StateFlow<GemListPhase> = combine(messages, loadState) { messages, state -> listPhase(state, messages.isNotEmpty(), emptyState(GemEmptyStateKind.SUPPORT)) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, listPhase(loadState.value, false, emptyState(GemEmptyStateKind.SUPPORT)))
 
     init {
         viewModelScope.launch(ioDispatcher) {

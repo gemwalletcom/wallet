@@ -24,7 +24,7 @@ impl ScanConfig {
             }
         }
         let mut enabled_providers = Vec::new();
-        for provider in ScanProvider::all() {
+        for provider in ScanProvider::remote() {
             if config.get_param_bool(&ConfigParamKey::ScanProviderEnable(provider)).await? {
                 enabled_providers.push(provider);
             }
@@ -68,7 +68,7 @@ mod tests {
         }
         assert_eq!(
             scan.enabled_providers.len(),
-            ScanProvider::all().into_iter().filter(|provider| ConfigParamKey::ScanProviderEnable(*provider).default_value() == "true").count()
+            ScanProvider::remote().into_iter().filter(|provider| ConfigParamKey::ScanProviderEnable(*provider).default_value() == "true").count()
         );
     }
 
@@ -87,7 +87,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_from_config_malformed_value() {
-        let repository = MemoryConfigRepository::new().with_value(&ConfigParamKey::ScanProviderEnable(ScanProvider::all()[0]).key(), "maybe");
+        let repository = MemoryConfigRepository::new().with_value(&ConfigParamKey::ScanProviderEnable(ScanProvider::remote()[0]).key(), "maybe");
 
         assert!(ScanConfig::from_config(&config(repository)).await.is_err());
     }

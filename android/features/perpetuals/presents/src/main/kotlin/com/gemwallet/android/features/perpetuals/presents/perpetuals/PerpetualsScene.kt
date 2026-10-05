@@ -165,7 +165,7 @@ internal fun PerpetualsScene(
                                 Spacer16()
                                 AssetSectionHeaderItem(GemAssetSectionKind.PINNED)
                             }
-                            itemsPositioned(pinnedPerpetuals) { position, item ->
+                            itemsPositioned(pinnedPerpetuals, key = { _, item -> "pinned-${item.data.perpetual.id}" }) { position, item ->
                                 PerpetualListItem(
                                     item = item,
                                     listPosition = position,
@@ -178,7 +178,7 @@ internal fun PerpetualsScene(
 
                         GemPerpetualMarketSection.MARKETS -> {
                             section.stringRes()?.let { title -> item { SubheaderItem(title) } }
-                            itemsPositioned(unpinnedPerpetuals) { position, item ->
+                            itemsPositioned(unpinnedPerpetuals, key = { _, item -> "markets-${item.data.perpetual.id}" }) { position, item ->
                                 PerpetualListItem(
                                     item = item,
                                     listPosition = position,

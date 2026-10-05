@@ -68,7 +68,8 @@ fn scan_transaction(detections: &[ScanDetection], is_memo_required: bool, is_sca
 mod tests {
     use std::collections::HashSet;
 
-    use primitives::{AssetId, Chain, ChainAddress, ScanProvider, ScanTransactionPayload, ScanVerdict, TransactionType};
+    use primitives::asset_score::AssetRank;
+    use primitives::{AssetBasic, AssetId, Chain, ChainAddress, ScanProvider, ScanTransactionPayload, ScanVerdict, TransactionType};
 
     use super::*;
     use crate::transaction_scan::plan_transaction_scan;
@@ -176,6 +177,24 @@ mod tests {
         assert!(result.scan.is_scan_complete);
         assert_eq!(result.scan.is_malicious, Some(false));
         assert_eq!(result.source, ScanSource::Local);
+    }
+
+    #[test]
+    fn test_internal_fraudulent_asset_is_blocked() {
+        let token = AssetId::from_token(Chain::SmartChain, "0x123");
+        let mut input = TransactionScanInput::mock(ScanTransactionPayload::mock_with_assets(token.clone(), token.clone()));
+        let mut asset = AssetBasic::mock_with_price(Chain::SmartChain, 1.0, 0.0);
+        asset.asset.id = token.clone();
+        asset.score.rank = AssetRank::Fraudulent.threshold();
+        input.assets = vec![asset];
+
+        let result = evaluate(&input, vec![]);
+
+        assert_eq!(result.scan.is_malicious, Some(true));
+        assert_eq!(result.scan.malicious_assets, Some(vec![token]));
+        assert_eq!(result.detections[0].provider, ScanProvider::Internal);
+        assert_eq!(result.source, ScanSource::Local);
+        assert!(result.new_verdicts.is_empty());
     }
 
     #[test]

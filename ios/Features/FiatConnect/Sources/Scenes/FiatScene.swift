@@ -58,22 +58,13 @@ extension FiatScene {
                 title: model.assetTitle,
                 balance: model.assetBalance,
                 secondary: {
-                    HStack(spacing: .space10) {
+                    HStack(spacing: .small) {
                         ForEach(model.suggestedAmounts, id: \.amount) { suggestion in
                             Button(suggestion.value.text()) {
                                 model.onSelect(amount: Int(suggestion.amount))
                             }
                             .font(.subheadline.weight(.semibold))
                             .buttonStyle(.amount())
-                        }
-
-                        Button(model.typeAmountButtonTitle) {
-                            model.onSelectRandomAmount()
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .buttonStyle(.listEmpty())
-                        .overlay {
-                            RandomOverlayView()
                         }
                     }
                     .fixedSize()

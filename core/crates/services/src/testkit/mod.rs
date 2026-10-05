@@ -9,6 +9,7 @@ mod push_provider;
 mod search_provider;
 pub mod store_transactions_consumer_config_mock;
 mod stream_producer;
+mod subscription_lookup;
 mod transactions_repository;
 
 pub(crate) use asset_repository::{ListAssets, MemoryAssetRepository};
@@ -19,4 +20,5 @@ pub(crate) use prices_repository::MemoryPricesRepository;
 pub(crate) use push_provider::RecordingPushProvider;
 pub(crate) use search_provider::MemorySearchProvider;
 pub(crate) use stream_producer::RecordingStreamProducer;
+pub(crate) use subscription_lookup::{MemorySubscriptionAddressCacher, MemorySubscriptionRepository};
 pub(crate) use transactions_repository::MemoryTransactionsRepository;

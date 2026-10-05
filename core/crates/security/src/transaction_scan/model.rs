@@ -27,19 +27,19 @@ pub struct ScanDetection {
     pub scan_type: ScanType,
     pub finding: ScanFinding,
     pub target: String,
-    pub provider: Option<ScanProvider>,
+    pub provider: ScanProvider,
     pub reason: Option<String>,
     pub is_enforced: bool,
     pub is_cached: bool,
 }
 
 impl ScanDetection {
-    pub fn local(scan_type: ScanType, finding: ScanFinding, target: String, reason: &str, is_enforced: bool) -> Self {
+    pub fn internal(scan_type: ScanType, finding: ScanFinding, target: String, reason: &str, is_enforced: bool) -> Self {
         Self {
             scan_type,
             finding,
             target,
-            provider: None,
+            provider: ScanProvider::Internal,
             reason: Some(reason.to_string()),
             is_enforced,
             is_cached: false,
@@ -51,7 +51,7 @@ impl ScanDetection {
             scan_type: subject.scan_type,
             finding: subject.finding.clone(),
             target: subject.target.clone(),
-            provider: Some(provider),
+            provider,
             reason,
             is_enforced,
             is_cached,

@@ -44,6 +44,16 @@ impl<C: Client> HyperCoreClient<C> {
     }
 }
 
+fn perpetual_fee_fiat_value(perpetual_type: &PerpetualType) -> Result<f64, Box<dyn Error + Send + Sync>> {
+    let data = match perpetual_type {
+        PerpetualType::Open { data } | PerpetualType::Close { data } | PerpetualType::Increase { data } => data,
+        PerpetualType::Reduce { data } => &data.data,
+        PerpetualType::Modify { .. } => return Ok(0.0),
+    };
+
+    Ok(data.size.parse::<f64>()?.abs() * data.market_price)
+}
+
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
     fn transaction_fee_estimate_units(&self, _operation: TransactionFeeOperation) -> Option<u64> {
@@ -81,11 +91,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
                 })
             }
             TransactionInputType::Perpetual { perpetual_type, .. } => {
-                let fiat_value = match perpetual_type {
-                    PerpetualType::Open { data } | PerpetualType::Increase { data } | PerpetualType::Close { data } => data.fiat_value,
-                    PerpetualType::Reduce { data } => data.data.fiat_value,
-                    PerpetualType::Modify { .. } => 0.0,
-                };
+                let fiat_value = perpetual_fee_fiat_value(perpetual_type)?;
                 let fee_asset = perpetual_type.base_asset().id.clone();
                 let (order, fee_rates) = self.get_order(&input.sender_address).await?;
                 let fee_amount = calculate_perpetual_fee_amount(fiat_value, fee_rates.perpetual_cross, order.builder_fee_bps);
@@ -107,7 +113,22 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
+    use primitives::{PerpetualConfirmData, PerpetualDirection, known_assets::HYPERCORE_PERPETUAL_USDC};
+
+    #[test]
+    fn test_perpetual_fee_fiat_value_uses_signed_size_at_market_price() {
+        let data = PerpetualConfirmData {
+            size: "1.259".to_string(),
+            market_price: 794.14,
+            fiat_value: 1_000.0,
+            ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)
+        };
+
+        let fiat_value = perpetual_fee_fiat_value(&PerpetualType::Close { data }).unwrap();
+
+        assert!((fiat_value - 999.82226).abs() < 1e-9);
+        assert_eq!(calculate_perpetual_fee_amount(fiat_value, 0.000432, 45), BigInt::from(881_843));
+    }
 
     #[tokio::test]
     async fn test_get_transaction_load_withdrawal() {

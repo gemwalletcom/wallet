@@ -188,17 +188,6 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func loadTriggerOnSelectRandomAmountIsImmediate() {
-        let model = FiatSceneViewModel.mock()
-        model.amount = "123"
-
-        model.onSelectRandomAmount()
-
-        #expect(model.loadTrigger?.request == GemFiatQuoteRequest(quoteType: .buy, amount: 50))
-        #expect(model.loadTrigger?.isImmediate == true)
-    }
-
-    @Test
     func presetSelectionDoesNotScheduleSecondDebouncedFetch() {
         let model = FiatSceneViewModel.mock()
         model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 50), error: .Api(msg: "offline")))

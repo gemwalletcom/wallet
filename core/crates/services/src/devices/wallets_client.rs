@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::error::Error;
 use std::sync::Arc;
 
@@ -7,16 +7,22 @@ use streamer::{ChainAddressPayload, StreamProducerQueue};
 
 use super::admin_device::AdminWalletOverview;
 use super::repository::Repository;
+use crate::subscriptions::SubscriptionLookup;
 
 #[derive(Clone)]
 pub struct WalletsClient {
     repository: Arc<dyn Repository>,
     stream_producer: Arc<dyn StreamProducerQueue>,
+    subscription_lookup: Arc<SubscriptionLookup>,
 }
 
 impl WalletsClient {
-    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
-        Self { repository, stream_producer }
+    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>, subscription_lookup: Arc<SubscriptionLookup>) -> Self {
+        Self {
+            repository,
+            stream_producer,
+            subscription_lookup,
+        }
     }
 
     pub async fn get_subscriptions(&self, device_row_id: i32) -> Result<Vec<WalletSubscriptionChains>, Box<dyn Error + Send + Sync>> {
@@ -79,6 +85,14 @@ impl WalletsClient {
             .flat_map(WalletSubscription::chain_addresses)
             .map(ChainAddressPayload::from)
             .collect();
+        let addresses = wallet_subscriptions
+            .iter()
+            .flat_map(WalletSubscription::chain_addresses)
+            .map(|address| (address.chain, address.address))
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        self.subscription_lookup.cache_subscribed(&addresses).await?;
         let count = self.repository.add_subscriptions(device_row_id, wallet_subscriptions).await?;
 
         if !payload.is_empty() {

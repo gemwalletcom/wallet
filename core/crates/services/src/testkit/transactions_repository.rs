@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{Asset, AssetAddress, AssetId, AssetPriceMetadata, Chain, ChainAddress, Device, DeviceSubscription, NFTAssetId, ScanAddress, Transaction, TransactionId, TransactionsResponse};
+use primitives::{Asset, AssetAddress, AssetId, AssetPriceMetadata, Chain, ChainAddress, Device, NFTAssetId, ScanAddress, Transaction, TransactionId, TransactionsResponse};
 use storage::{AssetFilter, DatabaseError, ParserState, TransactionFilter, TransactionPerpetualRecord, TransactionSwapRecord, TransactionUpdate, WalletRecord};
 
 use crate::transactions::repository::{AddressRecords, AssetPriceHistory, Repository, WalletTransactionsQuery};
@@ -82,10 +82,6 @@ impl Repository for MemoryTransactionsRepository {
 
     async fn wallet_with_devices(&self, wallet_row_id: i32) -> Result<(WalletRecord, Vec<Device>), DatabaseError> {
         Err(Self::not_found("Wallet", wallet_row_id))
-    }
-
-    async fn subscriptions_for_addresses(&self, _chain: Chain, _addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError> {
-        Ok(vec![])
     }
 
     async fn asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError> {

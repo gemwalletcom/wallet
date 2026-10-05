@@ -1,14 +1,17 @@
+use std::collections::HashMap;
+
+use chrono::{NaiveDate, NaiveDateTime, Timelike};
+use diesel::dsl::sql;
+use diesel::prelude::*;
+use diesel::sql_types::{Array, Timestamp, VarChar};
+use primitives::{ChartPeriod, ChartTimeframe};
+
 use crate::models::chart::{ChartRow, DailyChartRow, HourlyChartRow};
 use crate::models::min_max::{DataPoint, MinMax};
 use crate::schema::charts::dsl::{charts, coin_id as raw_coin_id, created_at as raw_created_at, price as raw_price};
 use crate::schema::charts_daily::dsl::{charts_daily, coin_id as daily_coin_id, created_at as daily_created_at, price as daily_price};
 use crate::schema::charts_hourly::dsl::{charts_hourly, coin_id as hourly_coin_id, created_at as hourly_created_at, price as hourly_price};
 use crate::{DatabaseClient, DatabaseError};
-use chrono::NaiveDateTime;
-use diesel::dsl::sql;
-use diesel::prelude::*;
-use diesel::sql_types::{Array, VarChar};
-use primitives::{ChartPeriod, ChartTimeframe};
 
 enum ChartGranularity {
     Minute,
@@ -51,9 +54,21 @@ pub(crate) fn insert_chart_rows(client: &mut DatabaseClient, timeframe: ChartTim
     }
 }
 
-pub(crate) fn aggregate_chart_rows(client: &mut DatabaseClient, price_ids: &[String]) -> Result<(), diesel::result::Error> {
-    diesel::sql_query("SELECT aggregate_hourly_charts($1)").bind::<Array<VarChar>, _>(price_ids).execute(&mut client.connection)?;
-    diesel::sql_query("SELECT aggregate_daily_charts($1)").bind::<Array<VarChar>, _>(price_ids).execute(&mut client.connection)?;
+pub(crate) fn aggregate_chart_rows(client: &mut DatabaseClient, values: Vec<(String, NaiveDateTime)>) -> Result<(), diesel::result::Error> {
+    let mut buckets = HashMap::<(NaiveDate, u32), (NaiveDateTime, Vec<String>)>::new();
+    for (price_id, created_at) in values {
+        buckets.entry((created_at.date(), created_at.hour())).or_insert_with(|| (created_at, Vec::new())).1.push(price_id);
+    }
+    for (created_at, price_ids) in buckets.into_values() {
+        diesel::sql_query("SELECT aggregate_hourly_charts($1, $2)")
+            .bind::<Array<VarChar>, _>(&price_ids)
+            .bind::<Timestamp, _>(created_at)
+            .execute(&mut client.connection)?;
+        diesel::sql_query("SELECT aggregate_daily_charts($1, $2)")
+            .bind::<Array<VarChar>, _>(&price_ids)
+            .bind::<Timestamp, _>(created_at)
+            .execute(&mut client.connection)?;
+    }
     Ok(())
 }
 

@@ -82,12 +82,13 @@ fun GemListRowView(
     onToggle: ((GemRowAction, Boolean) -> Unit)? = null,
     onSelect: ((GemRowAction) -> Unit)? = null,
     onSelectAddress: ((String) -> Unit)? = null,
-    action: GemRowAction? = row.action(),
+    action: GemRowAction? = null,
     accessory: (@Composable () -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val clipboardManager = context.clipboardManager()
+    val selectAction = onSelect?.let { action ?: row.action() }
 
     when (val row = row.uiModel(context)) {
         is GemListRowUIModel.Notice -> WarningItem(
@@ -110,7 +111,7 @@ fun GemListRowView(
         }
 
         is GemListRowUIModel.Item -> GemListRowMenu(items = row.menu) { menuModifier ->
-            val selects = onSelect != null && action != null && row.url == null
+            val selects = selectAction != null && row.url == null
             val openAddress = row.address?.let { address -> onSelectAddress?.let { select -> { select(address) } } }
             ListItem(
                 model = row.model,
@@ -119,7 +120,7 @@ fun GemListRowView(
                     when {
                         openAddress != null -> Modifier.clickable(onClick = openAddress)
                         row.url != null -> Modifier.clickable { uriHandler.open(context, row.url) }
-                        selects -> Modifier.clickable { action?.let(onSelect) }
+                        selects -> Modifier.clickable { selectAction?.let { onSelect?.invoke(it) } }
                         else -> Modifier
                     },
                 ),

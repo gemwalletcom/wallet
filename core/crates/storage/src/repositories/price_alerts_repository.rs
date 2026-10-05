@@ -28,6 +28,7 @@ impl PriceAlertsRepository for DatabaseClient {
             price_alerts
                 .filter((price_direction.is_not_null().and(last_notified_at.is_null())).or(price_direction.is_null().and(last_notified_at.lt(after_notified_at).or(last_notified_at.is_null()))))
                 .inner_join(devices::table.on(device_id.eq(devices::id)))
+                .filter(devices::is_push_enabled.eq(true).and(devices::is_price_alerts_enabled.eq(true)).and(devices::token.ne("")))
                 .select((PriceAlertRow::as_select(), DeviceRow::as_select()))
                 .load(&mut self.connection)?
         };

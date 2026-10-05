@@ -78,6 +78,11 @@ impl GemListPhase {
     }
 }
 
+#[uniffi::export]
+pub fn list_phase(state: GemLoadState, has_rows: bool, empty: GemEmptyState) -> GemListPhase {
+    GemListPhase::new(state, has_rows, empty)
+}
+
 impl GemLoadState {
     pub fn of<T>(value: &Result<T, GemServiceError>) -> Self {
         match value {

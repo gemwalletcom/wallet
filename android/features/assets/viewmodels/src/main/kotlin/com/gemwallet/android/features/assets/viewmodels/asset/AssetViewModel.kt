@@ -67,7 +67,7 @@ import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.feeAssetId
-import uniffi.gemstone.transactionListPhase
+import uniffi.gemstone.listPhase
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -160,7 +160,7 @@ class AssetViewModel @Inject constructor(
         )
     }
 
-    private fun transactionsPhase(state: GemLoadState, rows: List<GemTransactionRow>, details: GemAssetDetails?): GemListPhase? = details?.let { transactionListPhase(rows, state, it.state.emptyState) }
+    private fun transactionsPhase(state: GemLoadState, rows: List<GemTransactionRow>, details: GemAssetDetails?): GemListPhase? = details?.let { listPhase(state, rows.isNotEmpty(), it.state.emptyState) }
 
     fun refresh() {
         if (syncJob?.isActive == true) {

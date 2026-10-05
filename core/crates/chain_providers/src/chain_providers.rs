@@ -126,8 +126,8 @@ impl ChainProviders {
         self.get_provider(chain)?.get_perpetuals_data().await
     }
 
-    pub async fn get_perpetual_referred_addresses(&self, chain: Chain) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        self.get_provider(chain)?.get_perpetual_referred_addresses().await
+    pub async fn get_perpetual_referral_addresses(&self, chain: Chain) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_perpetual_referral_addresses().await
     }
 
     pub async fn get_address_status(&self, chain: Chain, address: String) -> Result<Vec<AddressStatus>, Box<dyn Error + Send + Sync>> {

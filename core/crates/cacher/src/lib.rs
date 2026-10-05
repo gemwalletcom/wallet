@@ -16,6 +16,13 @@ pub struct CacherClient {
     connection: ConnectionManager,
 }
 
+#[derive(Clone, Copy)]
+enum WriteMode {
+    Set,
+    SetIfAbsent,
+    SetAndPublish,
+}
+
 impl CacherClient {
     pub async fn new(redis_url: &str) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let client = Client::open(redis_url)?;
@@ -29,11 +36,15 @@ impl CacherClient {
     }
 
     pub(crate) async fn get_many<T: DeserializeOwned>(&self, keys: &[CacheKey<'_>]) -> Result<Vec<T>, Box<dyn Error + Send + Sync>> {
+        Ok(self.get_many_optional(keys).await?.into_iter().flatten().collect())
+    }
+
+    pub(crate) async fn get_many_optional<T: DeserializeOwned>(&self, keys: &[CacheKey<'_>]) -> Result<Vec<Option<T>>, Box<dyn Error + Send + Sync>> {
         if keys.is_empty() {
             return Ok(vec![]);
         }
         let values: Vec<Option<String>> = self.connection.clone().mget(keys.iter().map(CacheKey::key).collect::<Vec<_>>()).await?;
-        Ok(values.into_iter().flatten().map(|value| serde_json::from_str(&value)).collect::<Result<_, _>>()?)
+        Ok(values.into_iter().map(|value| value.map(|value| serde_json::from_str(&value)).transpose()).collect::<Result<_, _>>()?)
     }
 
     pub(crate) async fn take<T: DeserializeOwned>(&self, key: CacheKey<'_>) -> Result<T, Box<dyn Error + Send + Sync>> {
@@ -52,12 +63,18 @@ impl CacherClient {
 
     pub(crate) async fn set_many<T: Serialize>(&self, entries: &[(CacheKey<'_>, &T)]) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let values = entries.iter().map(|(key, value)| Ok((key.key(), serde_json::to_string(value)?, key.ttl()))).collect::<Result<Vec<_>, serde_json::Error>>()?;
-        self.write_values(values, false).await
+        self.write_values(values, WriteMode::Set).await
+    }
+
+    pub(crate) async fn set_many_if_absent<T: Serialize>(&self, entries: &[(CacheKey<'_>, &T)]) -> Result<(), Box<dyn Error + Send + Sync>> {
+        let values = entries.iter().map(|(key, value)| Ok((key.key(), serde_json::to_string(value)?, key.ttl()))).collect::<Result<Vec<_>, serde_json::Error>>()?;
+        self.write_values(values, WriteMode::SetIfAbsent).await?;
+        Ok(())
     }
 
     pub(crate) async fn set_many_and_publish<T: Serialize>(&self, entries: &[(CacheKey<'_>, &T)], ttl_seconds: u64) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let values = entries.iter().map(|(key, value)| Ok((key.key(), serde_json::to_string(value)?, ttl_seconds))).collect::<Result<Vec<_>, serde_json::Error>>()?;
-        self.write_values(values, true).await
+        self.write_values(values, WriteMode::SetAndPublish).await
     }
 
     pub(crate) async fn set_if_absent(&self, key: CacheKey<'_>) -> Result<bool, Box<dyn Error + Send + Sync>> {
@@ -187,15 +204,25 @@ impl CacherClient {
         Ok(self.connection.clone().publish(channel, serde_json::to_string(value)?).await?)
     }
 
-    async fn write_values(&self, values: Vec<(String, String, u64)>, publish: bool) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn write_values(&self, values: Vec<(String, String, u64)>, mode: WriteMode) -> Result<usize, Box<dyn Error + Send + Sync>> {
         if values.is_empty() {
             return Ok(0);
         }
         let mut pipe = redis::pipe();
         for (key, value, ttl_seconds) in &values {
-            pipe.cmd("SET").arg(key).arg(value).arg("EX").arg(ttl_seconds).ignore();
-            if publish {
-                pipe.cmd("PUBLISH").arg(key).arg(value).ignore();
+            let command = pipe.cmd("SET");
+            command.arg(key).arg(value).arg("EX").arg(ttl_seconds);
+            match mode {
+                WriteMode::Set => {
+                    command.ignore();
+                }
+                WriteMode::SetIfAbsent => {
+                    command.arg("NX").ignore();
+                }
+                WriteMode::SetAndPublish => {
+                    command.ignore();
+                    pipe.cmd("PUBLISH").arg(key).arg(value).ignore();
+                }
             }
         }
         pipe.query_async::<()>(&mut self.connection.clone()).await?;

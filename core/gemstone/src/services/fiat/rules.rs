@@ -1,7 +1,6 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{Currency, FiatProviderName, FiatQuote, FiatQuoteType, FiatTransactionAssetData, FiatTransactionStatus};
-use rand::RngExt;
 
 use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge, GemFiatTransactionRow, GemFiatTransactionStatus};
 use crate::config::fiat_config::FiatConfig;
@@ -16,10 +15,6 @@ pub fn default_amount(config: &FiatConfig, quote_type: FiatQuoteType) -> u32 {
         FiatQuoteType::Buy => config.default_buy_amount as u32,
         FiatQuoteType::Sell => config.default_sell_amount as u32,
     }
-}
-
-pub fn random_amount(config: &FiatConfig) -> u32 {
-    rand::rng().random_range(config.default_buy_amount as u32..config.random_max_amount as u32)
 }
 
 pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64, quote: Option<&FiatQuote>, available: &BigUint, currency: Currency) -> GemFiatAmountCheck {
@@ -182,37 +177,6 @@ mod tests {
     }
 
     #[test]
-    fn test_fiat_history_shows_its_rows_before_a_failed_sync_and_the_activity_empty_state_without() {
-        use crate::models::state::{GemListPhase, GemLoadState};
-        use crate::services::empty_state::{GemEmptyStateKind, empty_state};
-        use crate::services::error::GemServiceError;
-        use crate::services::fiat::model::fiat_transaction_list_phase;
-
-        let error = GemServiceError::Gateway { msg: "offline".to_string() };
-        let row = transaction_row(&FiatTransactionAssetData {
-            id: "1".to_string(),
-            asset: Asset::from_chain(Chain::Ethereum),
-            transaction_type: FiatQuoteType::Buy,
-            provider: FiatProviderName::MoonPay,
-            status: FiatTransactionStatus::Complete,
-            fiat_amount: 25.0,
-            fiat_currency: "USD".to_string(),
-            value: BigUint::from(1u64),
-            created_at: chrono::Utc::now(),
-            details_url: None,
-        });
-
-        assert_eq!(fiat_transaction_list_phase(vec![row], GemLoadState::Error { error: error.clone() }), GemListPhase::Rows);
-        assert_eq!(fiat_transaction_list_phase(vec![], GemLoadState::Error { error: error.clone() }), GemListPhase::Error { error });
-        assert_eq!(
-            fiat_transaction_list_phase(vec![], GemLoadState::Data),
-            GemListPhase::Empty {
-                state: empty_state(GemEmptyStateKind::Activity)
-            }
-        );
-    }
-
-    #[test]
     fn test_row_prices_a_buy_off_the_asset_price_and_a_sell_off_the_quote() {
         let buy = FiatQuote {
             crypto_amount: 2.0,
@@ -338,11 +302,9 @@ mod tests {
     }
 
     #[test]
-    fn test_default_and_random_amounts_follow_the_config() {
+    fn test_default_amounts_follow_the_config() {
         let config = get_fiat_config();
         assert_eq!(default_amount(&config, FiatQuoteType::Buy), 50);
         assert_eq!(default_amount(&config, FiatQuoteType::Sell), 100);
-        let random = random_amount(&config);
-        assert!((50..1000).contains(&random));
     }
 }

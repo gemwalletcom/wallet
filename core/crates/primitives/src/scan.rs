@@ -17,12 +17,17 @@ pub enum ScanSource {
 pub enum ScanProvider {
     GoPlus,
     HashDit,
+    Internal,
     Tronscan,
 }
 
 impl ScanProvider {
     pub fn all() -> Vec<Self> {
         Self::iter().collect()
+    }
+
+    pub fn remote() -> Vec<Self> {
+        vec![Self::GoPlus, Self::HashDit, Self::Tronscan]
     }
 }
 

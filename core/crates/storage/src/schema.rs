@@ -1006,6 +1006,7 @@ diesel::table! {
         kind -> TransactionType,
         direction -> PerpetualDirection,
         size_usd -> Float8,
+        pnl_usd -> Float8,
         referral_fee_amount_usd -> Float8,
         updated_at -> Timestamp,
         created_at -> Timestamp,
