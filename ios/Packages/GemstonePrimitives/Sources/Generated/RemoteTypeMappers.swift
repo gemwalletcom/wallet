@@ -3095,6 +3095,24 @@ public extension Primitives.Wallet {
     }
 }
 
+public extension Gemstone.WalletAddressItem {
+    func toPrimitives() -> Primitives.WalletAddressItem {
+        Primitives.WalletAddressItem(
+            wallet: wallet.toPrimitives(),
+            address: address,
+        )
+    }
+}
+
+public extension Primitives.WalletAddressItem {
+    func toGem() -> Gemstone.WalletAddressItem {
+        Gemstone.WalletAddressItem(
+            wallet: wallet.toGem(),
+            address: address,
+        )
+    }
+}
+
 public extension Gemstone.WalletConnection {
     func toPrimitives() -> Primitives.WalletConnection {
         Primitives.WalletConnection(

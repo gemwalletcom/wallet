@@ -1007,6 +1007,18 @@ public extension Wallet {
     }
 }
 
+public extension WalletAddressItem {
+    static func mock(
+        wallet: WalletListItem = .mock(),
+        address: String = "",
+    ) -> WalletAddressItem {
+        WalletAddressItem(
+            wallet: wallet,
+            address: address,
+        )
+    }
+}
+
 public extension WalletConnection {
     static func mock(
         session: WalletConnectionSession = .mock(),

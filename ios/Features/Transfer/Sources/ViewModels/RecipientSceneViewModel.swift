@@ -42,7 +42,8 @@ public final class RecipientSceneViewModel {
         contactsQuery.value
     }
 
-    public let walletsQuery = ObservableQuery(WalletsQuery(), initialValue: [Wallet]())
+    public let walletsQuery: ObservableQuery<WalletAddressItemsQuery>
+    private(set) var recipientSections: [ListItemValueSection<GemRecipient>] = []
 
     public init(
         asset: Asset,
@@ -60,6 +61,7 @@ public final class RecipientSceneViewModel {
         addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: nameService, placeholder: recipientField)
 
         contactsQuery = ObservableQuery(ContactsQuery(chain: asset.chain), initialValue: [])
+        walletsQuery = ObservableQuery(WalletAddressItemsQuery(chain: asset.chain), initialValue: [])
 
         if let recipient {
             update(from: recipient)
@@ -104,8 +106,8 @@ public final class RecipientSceneViewModel {
         ListItemModel(title: item.title ?? item.value.name, subtitle: item.subtitle)
     }
 
-    var recipientSections: [ListItemValueSection<GemRecipient>] {
-        service.recipientSections(wallets: walletsQuery.value.map { $0.toGem() }, chain: asset.chain.rawValue, contacts: contacts.map { $0.toGem() })
+    func updateRecipientSections() {
+        recipientSections = service.recipientSections(wallets: walletsQuery.value.map { $0.toGem() }, chain: asset.chain.rawValue, contacts: contacts.map { $0.toGem() })
             .map {
                 ListItemValueSection(
                     section: $0.kind.title,
