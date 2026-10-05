@@ -36,11 +36,12 @@ class EncryptedKeysetTest {
     }
 
     @Test
-    fun failedCommitDoesNotReturnKeyset() {
+    fun failedCommitReturnsNoKeyset() {
         val master = KeysetHandle.generateNew(template).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
         val editor = mockk<SharedPreferences.Editor>()
         every { preferences.edit() } returns editor
         every { editor.putString("keyset", any()) } returns editor
+        every { editor.remove("keyset") } returns editor
         every { editor.commit() } returns false
 
         assertThrows(IllegalStateException::class.java) { encryptedKeyset(preferences, "keyset", master, template) }

@@ -69,6 +69,53 @@ class SecureStorageFailureInstrumentedTest {
     }
 
     @Test
+    fun plaintextKeysetIsRewrappedWithoutChangingKeysOnceTheWriteReachesDisk() {
+        AeadConfig.register()
+        val handle = AndroidKeysetManager.Builder()
+            .withSharedPref(context, config.keysetName, config.keysetPreferencesFileName)
+            .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
+            .doNotUseKeystore()
+            .build().keysetHandle
+        val preferences = context.getSharedPreferences(config.keysetPreferencesFileName, Context.MODE_PRIVATE)
+        val plaintext = preferences.getString(config.keysetName, null)!!
+        val directory = preferencesFile(config.keysetPreferencesFileName).parentFile!!
+        assertTrue(directory.setWritable(false, false))
+        try {
+            assertThrows(IllegalStateException::class.java) { TinkAeadProvider(context, config).get() }
+            assertEquals(plaintext, preferences.getString(config.keysetName, null))
+        } finally {
+            assertTrue(directory.setWritable(true, true))
+        }
+
+        TinkAeadProvider(context, config).get()
+        val encrypted = preferences.getString(config.keysetName, null)!!
+        val onDisk = preferencesFile(config.keysetPreferencesFileName).readText()
+        assertTrue(onDisk.contains(encrypted))
+        assertFalse(onDisk.contains(plaintext))
+        val masterAead = AndroidKeystoreKmsClient().getAead("android-keystore://${config.masterKeyAlias}")
+        assertTrue(handle.equalsKeyset(TinkProtoKeysetFormat.parseEncryptedKeyset(encrypted.fromHex(), masterAead, byteArrayOf())))
+        assertThrows(GeneralSecurityException::class.java) { TinkProtoKeysetFormat.parseKeyset(encrypted.fromHex(), InsecureSecretKeyAccess.get()) }
+    }
+
+    @Test
+    fun failedPasswordWriteIsNotServedFromMemory() {
+        val store = TinkEncryptedKeyValueStore.create(context, config)
+        store.putString("other", "other-password")
+        val directory = preferencesFile(name).parentFile!!
+        assertTrue(directory.setWritable(false, false))
+        try {
+            assertThrows(IllegalStateException::class.java) { store.putString("wallet", "password") }
+            assertEquals(null, store.getString("wallet"))
+            assertEquals("other-password", store.getString("other"))
+        } finally {
+            assertTrue(directory.setWritable(true, true))
+        }
+
+        store.putString("wallet", "password")
+        assertEquals("password", TinkEncryptedKeyValueStore.create(context, config).getString("wallet"))
+    }
+
+    @Test
     fun unreadableValuesAreNotTreatedAsMissing() {
         val file = preferencesFile(name)
         file.writeText("<map />")
@@ -115,30 +162,6 @@ class SecureStorageFailureInstrumentedTest {
         assertThrows(GeneralSecurityException::class.java) { store.putString("wallet", "password") }
         assertTrue(context.getSharedPreferences(config.keysetPreferencesFileName, Context.MODE_PRIVATE).all.isEmpty())
         assertTrue(context.getSharedPreferences(name, Context.MODE_PRIVATE).all.isEmpty())
-    }
-
-    @Test
-    fun plaintextKeysetIsRewrappedWithoutChangingKeys() {
-        AeadConfig.register()
-        val handle = AndroidKeysetManager.Builder()
-            .withSharedPref(context, config.keysetName, config.keysetPreferencesFileName)
-            .withKeyTemplate(AesGcmKeyManager.aes256GcmTemplate())
-            .doNotUseKeystore()
-            .build().keysetHandle
-        val preferences = context.getSharedPreferences(config.keysetPreferencesFileName, Context.MODE_PRIVATE)
-        val plaintext = preferences.getString(config.keysetName, null)!!
-        TinkAeadProvider(context, config).get()
-        val encrypted = preferences.getString(config.keysetName, null)!!.fromHex()
-        val masterAead = AndroidKeystoreKmsClient().getAead("android-keystore://${config.masterKeyAlias}")
-        assertTrue(handle.equalsKeyset(TinkProtoKeysetFormat.parseEncryptedKeyset(encrypted, masterAead, byteArrayOf())))
-        assertThrows(GeneralSecurityException::class.java) { TinkProtoKeysetFormat.parseKeyset(encrypted, InsecureSecretKeyAccess.get()) }
-        assertFalse(plaintext == preferences.getString(config.keysetName, null))
-    }
-
-    @Test
-    fun encryptedValuesSurviveReopening() {
-        TinkEncryptedKeyValueStore.create(context, config).putString("wallet", "existing-password")
-        assertEquals("existing-password", TinkEncryptedKeyValueStore.create(context, config).getString("wallet"))
     }
 
     @Test

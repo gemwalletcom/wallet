@@ -30,3 +30,10 @@ private fun isEmptyPreferences(file: File): Boolean? {
         parser.nextTag() == XmlPullParser.END_TAG
     }
 }
+
+internal fun SharedPreferences.putStringDurably(key: String, value: String): Boolean {
+    val previous = getString(key, null)
+    if (edit().putString(key, value).commit()) return true
+    edit().apply { if (previous == null) remove(key) else putString(key, previous) }.commit()
+    return false
+}
