@@ -49077,13 +49077,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。你的钱包是安全的。"
+            "value": "Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。钱包仍然安全。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。你的錢包是安全的。"
+            "value": "Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。錢包仍然安全。"
           }
         }
       }

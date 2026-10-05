@@ -536,7 +536,7 @@ lock_privacy_lock = 隐私锁
 lock_footer = 保护此设备上的应用访问安全
 lock_passcode = 密码
 lock_passcode_off_title = 设备密码已关闭
-lock_passcode_off_description = Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。你的钱包是安全的。
+lock_passcode_off_description = Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。钱包仍然安全。
 
 # Verify
 
