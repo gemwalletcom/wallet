@@ -16,7 +16,38 @@ Core owns domain logic and orchestration; apps own rendering, observation, and n
 6. **Keep scrolling stable.** Use lazy lists, bounded pages, stable row IDs, and fixed image placeholders. Preserve scroll position and focus during updates. Reuse formatters, downsample images, and avoid full-list sorting on every price tick. Value changes (prices, balances, fiat totals) keep their numeric-text animation: it is intended product behavior, not a cost to remove; animate only the changed value, never the whole list or row layout.
 7. **Stop obsolete work.** Cancel old requests and release screen observers. Reject late results for a previous wallet, asset, amount, or quote even when cancellation is unavailable. Keep required transaction tracking alive through its service after the screen closes.
 8. **Reuse existing refresh and cache policies.** Avoid duplicate requests, unnecessary writes, and new polling timers. Bound caches and invalidate derived values when their inputs change. For swap, cached routes are hints only; quotes, prices, balances, approvals and transaction data are never cached, and every quote uses the current amount and live chain state.
-9. **Preserve correctness.** Performance changes must retain amount, recipient, chain, fee, simulation, approval, authentication, and signing checks. Prevent duplicate sends and stale selectable quotes. Return after broadcast and recording the pending transaction; track chain finality in the background.
+9. **Build for speed at a sensible size.** Release builds compile Core from one release profile that both apps read, so neither app ships a slower Core than the other. The profile saves size only where that costs no noticeable speed; when the two conflict, speed wins. Local debug builds optimize for build time instead.
+10. **Preserve correctness.** Performance changes must retain amount, recipient, chain, fee, simulation, approval, authentication, and signing checks. Prevent duplicate sends and stale selectable quotes. Return after broadcast and recording the pending transaction; track chain finality in the background.
+
+## Build profile
+
+Core runs every row, number, quote and signature in both apps, so how it is compiled sets a floor under every screen. Debug and release aim at different things on purpose:
+
+| | Debug (local work) | Release (shipped apps) |
+|---|---|---|
+| Goal | Build time | Speed of use at a sensible size |
+| Optimization | none, except the key-derivation crates, so unlocking a wallet stays usable | balanced (`opt-level = "s"`): smaller than `z`, close to `3` in speed |
+| Link-time optimization | off, incremental | `fat`, one codegen unit |
+| Debug info | line tables only | none |
+| Defined in | `[profile.dev]` in [`core/Cargo.toml`](../core/Cargo.toml) | [`core/gemstone/.cargo/config.toml`](../core/gemstone/.cargo/config.toml) |
+| Same on both apps | yes, the workspace manifest applies wherever Cargo runs | yes, both build scripts run Cargo from `core/gemstone` |
+
+Cargo reads `.cargo/config.toml` from the directory it is started in, not from the manifest it builds. Until 2026-10-05 the iOS script started Cargo from `ios/`, so iOS shipped Core at full optimization (`3`) while Android shipped it at the smallest size (`z`). Any new build path for Core must start Cargo from `core/gemstone` too.
+
+Why release uses `s`, measured on 2026-10-05 on an Android arm64 emulator (median of 3 runs) with the shipped settings and only the optimization level changed. The first three rows are the app's own Core calls; a mid-range phone takes roughly 3–5× longer than these figures.
+
+| | Smallest (`z`, Android until then) | Balanced (`s`, chosen) | Fastest (`3`, iOS until then) |
+|---|---|---|---|
+| Activity: build 1,000 transaction rows | 2.66 ms | 1.16 ms (2.3× faster) | 1.11 ms |
+| Wallet import: derive 57 chain accounts | 13.4 ms | 9.1 ms (32% faster) | 8.2 ms |
+| Wallet unlock: decrypt the secret | 16.2 ms | 14.7 ms (10% faster) | 12.8 ms |
+| JSON parse and serialize, 385 KB × 200 | 176 ms | 131 ms (26% faster) | 114 ms |
+| Amount formatting, 400k values | 572 ms | 327 ms (43% faster) | 319 ms |
+| Core library, installed | 23.7 MB | 22.1 MB (−7%) | 26.7 MB |
+| Core library, compressed download | 8.4 MB | 8.1 MB (−4%) | 10.3 MB |
+| Release build of Core | 205 s | 236 s | 297 s |
+
+`s` keeps nearly all of `3`'s speed where it matters most (Activity rows, formatting) and is smaller than `z`; `3` would add 2.2 MB to the download for at most a further 10–15% on key derivation and parsing. `z` is never worth it: it is both the slowest and, with the symbol table Android keeps, not even the smallest.
 
 ## Primary screen checks
 

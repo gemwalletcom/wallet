@@ -60,10 +60,8 @@ build_ios_static_libraries() {
 
     echo "note: Building Gemstone iOS static libraries ($PROFILE: $TARGETS)"
     for rust_target in $TARGETS; do
-        CARGO_PROFILE_RELEASE_LTO=fat \
-            CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 \
-            IPHONEOS_DEPLOYMENT_TARGET="$(read_deployment_target)" \
-            cargo rustc --manifest-path "$STONE_DIR/Cargo.toml" --target "$rust_target" --lib ${BUILD_FLAG} --crate-type staticlib
+        (cd "$STONE_DIR" && IPHONEOS_DEPLOYMENT_TARGET="$(read_deployment_target)" \
+            cargo rustc --target "$rust_target" --lib ${BUILD_FLAG} --crate-type staticlib)
     done
 }
 
