@@ -942,6 +942,30 @@ public extension Gemstone.GemPrecision {
     }
 }
 
+public extension Gemstone.GemProviderKind {
+    static func mock() -> Gemstone.GemProviderKind {
+        .swap(provider: .uniswapV3)
+    }
+}
+
+public extension Gemstone.GemProviderRow {
+    static func mock(
+        kind: Gemstone.GemProviderKind = .mock(),
+        name: String = "",
+        amount: Gemstone.GemFormattedNumber = .mock(),
+        fiat: Gemstone.GemFormattedNumber? = nil,
+        isSelected: Bool = false,
+    ) -> Gemstone.GemProviderRow {
+        Gemstone.GemProviderRow(
+            kind: kind,
+            name: name,
+            amount: amount,
+            fiat: fiat,
+            isSelected: isSelected,
+        )
+    }
+}
+
 public extension Gemstone.GemRecipient {
     static func mock(
         address: String = "",

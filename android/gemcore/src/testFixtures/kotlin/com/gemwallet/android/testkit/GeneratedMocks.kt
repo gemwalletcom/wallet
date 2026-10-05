@@ -1657,6 +1657,22 @@ fun mockGemPerpetualTransferData(
 
 fun mockGemPrecision(): uniffi.gemstone.GemPrecision = uniffi.gemstone.GemPrecision.Fraction(min = 0u, max = 0u)
 
+fun mockGemProviderKind(): uniffi.gemstone.GemProviderKind = uniffi.gemstone.GemProviderKind.Swap(provider = uniffi.gemstone.SwapProvider.UNISWAP_V3)
+
+fun mockGemProviderRow(
+    kind: uniffi.gemstone.GemProviderKind = mockGemProviderKind(),
+    name: String = "",
+    amount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    fiat: uniffi.gemstone.GemFormattedNumber? = null,
+    isSelected: Boolean = false,
+) = uniffi.gemstone.GemProviderRow(
+    kind = kind,
+    name = name,
+    amount = amount,
+    fiat = fiat,
+    isSelected = isSelected,
+)
+
 fun mockGemRecipient(
     address: String = "",
     name: String? = null,

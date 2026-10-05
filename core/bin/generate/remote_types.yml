@@ -311,6 +311,8 @@ mocks:
   - GemPerpetualDetails
   - GemPerpetualTransferData
   - GemPrecision
+  - GemProviderKind
+  - GemProviderRow
   - GemRecipient
   - GemRewardsResult
   - GemRowText
