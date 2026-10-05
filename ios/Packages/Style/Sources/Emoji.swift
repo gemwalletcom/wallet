@@ -5,7 +5,6 @@ import SwiftUI
 public enum Emoji {
     public static let checkmark = "✅"
     public static let reject = "❌"
-    public static let random = "🎲"
 
     public enum WalletAvatar: String {
         case gem = "💎"
@@ -23,7 +22,6 @@ public enum Emoji {
     let symbols = [
         (Emoji.checkmark, "Checkmark"),
         (Emoji.reject, "Reject"),
-        (Emoji.random, "Random"),
     ]
 
     return List {

@@ -1,7 +1,6 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{Currency, FiatProviderName, FiatQuote, FiatQuoteType, FiatTransactionAssetData, FiatTransactionStatus};
-use rand::RngExt;
 
 use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge, GemFiatTransactionRow, GemFiatTransactionStatus};
 use crate::config::fiat_config::FiatConfig;
@@ -16,10 +15,6 @@ pub fn default_amount(config: &FiatConfig, quote_type: FiatQuoteType) -> u32 {
         FiatQuoteType::Buy => config.default_buy_amount as u32,
         FiatQuoteType::Sell => config.default_sell_amount as u32,
     }
-}
-
-pub fn random_amount(config: &FiatConfig) -> u32 {
-    rand::rng().random_range(config.default_buy_amount as u32..config.random_max_amount as u32)
 }
 
 pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64, quote: Option<&FiatQuote>, available: &BigUint, currency: Currency) -> GemFiatAmountCheck {
@@ -338,11 +333,9 @@ mod tests {
     }
 
     #[test]
-    fn test_default_and_random_amounts_follow_the_config() {
+    fn test_default_amounts_follow_the_config() {
         let config = get_fiat_config();
         assert_eq!(default_amount(&config, FiatQuoteType::Buy), 50);
         assert_eq!(default_amount(&config, FiatQuoteType::Sell), 100);
-        let random = random_amount(&config);
-        assert!((50..1000).contains(&random));
     }
 }

@@ -10,7 +10,7 @@ flowchart LR
 ```
 
 1. The user taps Buy on the wallet screen, an asset or the welcome banner and picks an asset; the screen opens as "Buy X", with a Buy | Sell switch when the asset can be sold.
-2. The amount is in US dollars, with `$100`, `$250` and a random preset.
+2. The amount is in US dollars, with `$100` and `$250` presets.
 3. Shortly after typing stops, every provider (MoonPay, Mercuryo, Transak, Banxa, Paybis, Cash App) is asked at once; the Provider row shows the best one with its Rate and about how much crypto that is.
 4. Continue opens the provider's page.
 5. The activity icon lists every buy and sell with its provider, amounts and status; a row opens the provider's order page.
@@ -23,7 +23,7 @@ flowchart LR
 | The user types an amount | whole dollars between `$5` and `$10,000` | |
 | The user types the amount with their keyboard's own digits (Arabic, Persian, Devanagari, …) | it reads as the same amount, so `٥٠` asks for `$50` quotes | the field accepts those digits, so rejecting them leaves the user with only the preset amounts |
 | Gem disables a provider for a country | the provider receives no new quote requests there; the screen shows a localized region-unavailable message when no provider serves the country; provider country syncs preserve the block | Gem controls availability independently of provider-reported coverage |
-| The asset row has no room for the balance next to every preset | the presets get smaller and stay on the right, and the whole balance shows with its symbol | the balance is what the user checks before buying or selling; no preset is lost |
+| The asset row | the asset and its balance with the symbol on the left, and the `$100` and `$250` presets on the right | the balance is what the user checks before buying or selling, so the row holds nothing else |
 | More than one provider quoted | the user can pick another; the choice survives refreshes | |
 | The screen stays open | quotes refresh every `5 minutes` | |
 | Quotes refresh while the provider list is open | the list keeps the providers it opened with until it is closed | a refresh never blanks a list the user is reading |

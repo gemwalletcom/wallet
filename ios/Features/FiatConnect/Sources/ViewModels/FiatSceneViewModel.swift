@@ -122,10 +122,6 @@ public final class FiatSceneViewModel {
         asset.name
     }
 
-    var typeAmountButtonTitle: String {
-        Emoji.random
-    }
-
     var asset: Asset {
         assetAddress.asset
     }
@@ -201,10 +197,6 @@ extension FiatSceneViewModel {
 
     func onSelect(amount: Int) {
         setAmount(String(amount), isImmediate: true)
-    }
-
-    func onSelectRandomAmount() {
-        setAmount(String(service.randomAmount()), isImmediate: true)
     }
 
     func onSelectFiatProviders() {

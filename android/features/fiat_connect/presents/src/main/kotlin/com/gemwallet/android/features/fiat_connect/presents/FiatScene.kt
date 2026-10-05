@@ -30,7 +30,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.buttons.RandomGradientButton
 import com.gemwallet.android.ui.components.fields.AmountField
 import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
@@ -50,9 +49,6 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.WindowDimension
-import com.gemwallet.android.ui.theme.iconSize
-import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space1
@@ -87,7 +83,6 @@ fun FiatScene(
     snackbar: SnackbarHostState,
     titleContent: @Composable () -> Unit,
     onLotSelect: (GemFiatSuggestedAmount) -> Unit,
-    onRandomAmount: () -> Unit,
     onAmount: (String) -> Unit,
     onProviderSelect: (FiatProviderName) -> Unit,
     onRetry: () -> Unit,
@@ -95,11 +90,6 @@ fun FiatScene(
     onBuy: () -> Unit,
 ) {
     val isShowProviders = remember { mutableStateOf(false) }
-    val isCompactWidth = isCompactDimension(WindowDimension.Width)
-    val assetRowSuggestions = visibleSuggestedAmountsInAssetRow(
-        suggestedAmounts = suggestedAmounts,
-        isCompactWidth = isCompactWidth,
-    )
     Scene(
         titleContent = titleContent,
         onClose = { cancelAction() },
@@ -142,10 +132,8 @@ fun FiatScene(
             support = { ListItemSupportText(assetInfo?.row?.trailingValue?.text?.string(LocalContext.current) ?: " ") },
             trailing = {
                 FiatSuggestionRow(
-                    suggestedAmounts = assetRowSuggestions,
-                    showsRandom = !isCompactWidth || assetRowSuggestions.isEmpty(),
+                    suggestedAmounts = suggestedAmounts,
                     onLotSelect = onLotSelect,
-                    onRandomAmount = onRandomAmount,
                 )
             },
         )
@@ -206,23 +194,11 @@ fun FiatScene(
 }
 
 @Composable
-private fun FiatSuggestionRow(suggestedAmounts: List<GemFiatSuggestedAmount>, showsRandom: Boolean, onLotSelect: (GemFiatSuggestedAmount) -> Unit, onRandomAmount: () -> Unit) {
+private fun FiatSuggestionRow(suggestedAmounts: List<GemFiatSuggestedAmount>, onLotSelect: (GemFiatSuggestedAmount) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(paddingSmall),
     ) {
         suggestedAmounts.forEach { suggestion -> LotButton(suggestion, onLotSelect) }
-        if (showsRandom) {
-            RandomGradientButton(
-                size = iconSize,
-                borderWidth = 2f,
-                onClick = onRandomAmount,
-            )
-        }
     }
-}
-
-internal fun visibleSuggestedAmountsInAssetRow(suggestedAmounts: List<GemFiatSuggestedAmount>, isCompactWidth: Boolean): List<GemFiatSuggestedAmount> = when (isCompactWidth) {
-    true -> suggestedAmounts.take(1)
-    false -> suggestedAmounts
 }

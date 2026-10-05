@@ -74,10 +74,6 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         return GemFiatSession(quoteType: quoteType, buy: operation(.buy), sell: operation(.sell), available: 0, format: format)
     }
 
-    public func randomAmount() -> UInt32 {
-        50
-    }
-
     public func refreshTransactions() async -> GemLoadState {
         refreshTransactionsState
     }

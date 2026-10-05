@@ -115,7 +115,6 @@ class FiatViewModelTest {
             mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u), format = thirdArg())
         }
         every { isAvailable(any()) } returns true
-        every { randomAmount() } returns 500u
         coEvery { quotes(any(), any()) } returnsQuotes
             listOf(
                 mockFiatQuote(
@@ -478,22 +477,6 @@ class FiatViewModelTest {
             coVerify(exactly = 1) {
                 service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 25.0), asset.id.toIdentifier())
             }
-        } finally {
-            viewModel.viewModelScope.cancel()
-        }
-    }
-
-    @Test
-    fun `random amount remains valid when current amount is at maximum`() = runTest(testDispatcher) {
-        val viewModel = createViewModel()
-
-        try {
-            viewModel.updateAmount("1000")
-
-            viewModel.selectRandomAmount()
-            runCurrent()
-
-            assertEquals("500", viewModel.amount.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }
