@@ -177,6 +177,8 @@ impl PricesRepository for DatabaseClient {
 
     fn set_prices_assets(&mut self, values: Vec<PriceAsset>) -> Result<usize, DatabaseError> {
         use crate::schema::prices_assets::dsl::*;
+        use diesel::query_dsl::methods::FilterDsl;
+
         if values.is_empty() {
             return Ok(0);
         }
@@ -186,6 +188,7 @@ impl PricesRepository for DatabaseClient {
             .on_conflict((asset_id, provider))
             .do_update()
             .set(price_id.eq(excluded(price_id)))
+            .filter(price_id.ne(excluded(price_id)))
             .execute(&mut self.connection)?)
     }
 
