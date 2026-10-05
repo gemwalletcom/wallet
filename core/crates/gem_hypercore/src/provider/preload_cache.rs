@@ -8,9 +8,31 @@ use std::error::Error;
 use std::future::Future;
 use std::sync::Arc;
 
+#[derive(Clone, Copy)]
 pub(crate) struct UserFeeRates {
     pub(crate) perpetual_cross: f64,
     pub(crate) spot_cross: f64,
+}
+
+impl UserFeeRates {
+    fn discounted(user_fees: &UserFee, discount: f64) -> Self {
+        let discount = 1.0 - discount;
+        Self {
+            perpetual_cross: user_fees.user_cross_rate * discount,
+            spot_cross: user_fees.user_spot_cross_rate * discount,
+        }
+    }
+}
+
+pub(crate) struct UserFeeRateOptions {
+    current: UserFeeRates,
+    referral: UserFeeRates,
+}
+
+impl UserFeeRateOptions {
+    pub(crate) fn current(&self) -> UserFeeRates {
+        self.current
+    }
 }
 
 pub(crate) struct HyperCoreCache {
@@ -26,6 +48,8 @@ impl HyperCoreCache {
     const AGENT_VALID_UNTIL_KEY: &'static str = "agent_valid_until";
     const USER_PERPETUAL_FEE_RATE_KEY: &'static str = "user_perpetual_fee_rate";
     const USER_SPOT_FEE_RATE_KEY: &'static str = "user_spot_fee_rate";
+    const USER_REFERRAL_PERPETUAL_FEE_RATE_KEY: &'static str = "user_referral_perpetual_fee_rate";
+    const USER_REFERRAL_SPOT_FEE_RATE_KEY: &'static str = "user_referral_spot_fee_rate";
     const USER_FEES_TTL: u64 = 86_400 * 7;
     const USER_FEE_RATE_SCALE: f64 = 1_000_000_000.0;
 
@@ -98,34 +122,51 @@ impl HyperCoreCache {
         Ok(needs_approval)
     }
 
-    pub(crate) async fn get_user_fee_rates<F>(&self, address: &str, fetcher: F) -> Result<UserFeeRates, Box<dyn Error + Send + Sync>>
+    fn get_cached_fee_rates(&self, address: &str, perpetual_key: &str, spot_key: &str) -> Result<Option<UserFeeRates>, Box<dyn Error + Send + Sync>> {
+        let perpetual_cache_key = self.cache_key(address, perpetual_key);
+        let spot_cache_key = self.cache_key(address, spot_key);
+        let (Some(perpetual_cross), Some(spot_cross)) = (
+            self.preferences.get_i64_with_ttl(&perpetual_cache_key, Self::USER_FEES_TTL)?,
+            self.preferences.get_i64_with_ttl(&spot_cache_key, Self::USER_FEES_TTL)?,
+        ) else {
+            return Ok(None);
+        };
+        Ok(Some(UserFeeRates {
+            perpetual_cross: perpetual_cross as f64 / Self::USER_FEE_RATE_SCALE,
+            spot_cross: spot_cross as f64 / Self::USER_FEE_RATE_SCALE,
+        }))
+    }
+
+    fn set_cached_fee_rates(&self, address: &str, perpetual_key: &str, spot_key: &str, fee_rates: UserFeeRates) -> Result<(), Box<dyn Error + Send + Sync>> {
+        let perpetual_cache_key = self.cache_key(address, perpetual_key);
+        let spot_cache_key = self.cache_key(address, spot_key);
+        self.preferences
+            .set_i64_with_ttl(&perpetual_cache_key, (fee_rates.perpetual_cross * Self::USER_FEE_RATE_SCALE).round() as i64, Self::USER_FEES_TTL)?;
+        self.preferences.set_i64_with_ttl(&spot_cache_key, (fee_rates.spot_cross * Self::USER_FEE_RATE_SCALE).round() as i64, Self::USER_FEES_TTL)
+    }
+
+    pub(crate) async fn get_user_fee_rates<F>(&self, address: &str, fetcher: F) -> Result<UserFeeRateOptions, Box<dyn Error + Send + Sync>>
     where
         F: Future<Output = Result<UserFee, Box<dyn Error + Send + Sync>>>,
     {
-        let perpetual_cache_key = self.cache_key(address, Self::USER_PERPETUAL_FEE_RATE_KEY);
-        let spot_cache_key = self.cache_key(address, Self::USER_SPOT_FEE_RATE_KEY);
-
-        if let (Some(perpetual_cross), Some(spot_cross)) = (
-            self.preferences.get_i64_with_ttl(&perpetual_cache_key, Self::USER_FEES_TTL)?,
-            self.preferences.get_i64_with_ttl(&spot_cache_key, Self::USER_FEES_TTL)?,
+        if let (Some(current), Some(referral)) = (
+            self.get_cached_fee_rates(address, Self::USER_PERPETUAL_FEE_RATE_KEY, Self::USER_SPOT_FEE_RATE_KEY)?,
+            self.get_cached_fee_rates(address, Self::USER_REFERRAL_PERPETUAL_FEE_RATE_KEY, Self::USER_REFERRAL_SPOT_FEE_RATE_KEY)?,
         ) {
-            return Ok(UserFeeRates {
-                perpetual_cross: perpetual_cross as f64 / Self::USER_FEE_RATE_SCALE,
-                spot_cross: spot_cross as f64 / Self::USER_FEE_RATE_SCALE,
-            });
+            return Ok(UserFeeRateOptions { current, referral });
         }
 
         let user_fees = fetcher.await?;
-        let discount = 1.0 - user_fees.active_referral_discount;
-        let perpetual_cross = (user_fees.user_cross_rate * discount * Self::USER_FEE_RATE_SCALE).round() as i64;
-        let spot_cross = (user_fees.user_spot_cross_rate * discount * Self::USER_FEE_RATE_SCALE).round() as i64;
+        let current = UserFeeRates::discounted(&user_fees, user_fees.active_referral_discount);
+        let referral = UserFeeRates::discounted(&user_fees, user_fees.fee_schedule.referral_discount);
+        self.set_cached_fee_rates(address, Self::USER_PERPETUAL_FEE_RATE_KEY, Self::USER_SPOT_FEE_RATE_KEY, current)?;
+        self.set_cached_fee_rates(address, Self::USER_REFERRAL_PERPETUAL_FEE_RATE_KEY, Self::USER_REFERRAL_SPOT_FEE_RATE_KEY, referral)?;
+        Ok(UserFeeRateOptions { current, referral })
+    }
 
-        self.preferences.set_i64_with_ttl(&perpetual_cache_key, perpetual_cross, Self::USER_FEES_TTL)?;
-        self.preferences.set_i64_with_ttl(&spot_cache_key, spot_cross, Self::USER_FEES_TTL)?;
-        Ok(UserFeeRates {
-            perpetual_cross: perpetual_cross as f64 / Self::USER_FEE_RATE_SCALE,
-            spot_cross: spot_cross as f64 / Self::USER_FEE_RATE_SCALE,
-        })
+    pub(crate) fn activate_referral_fee_rates(&self, address: &str, fee_rates: &UserFeeRateOptions) -> Result<UserFeeRates, Box<dyn Error + Send + Sync>> {
+        self.set_cached_fee_rates(address, Self::USER_PERPETUAL_FEE_RATE_KEY, Self::USER_SPOT_FEE_RATE_KEY, fee_rates.referral)?;
+        Ok(fee_rates.referral)
     }
 
     pub(crate) async fn manage_agent<F>(&self, sender_address: &str, secure_preferences: Arc<dyn primitives::Preferences>, get_agents: F) -> Result<AgentApproval, Box<dyn Error + Send + Sync>>
@@ -188,7 +229,29 @@ impl HyperCoreCache {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::user::UserFeeSchedule;
     use primitives::InMemoryPreferences;
+
+    #[tokio::test]
+    async fn test_activate_referral_fee_rates() {
+        let cache = HyperCoreCache::mock();
+        let user_fees = UserFee {
+            user_cross_rate: 0.00045,
+            user_spot_cross_rate: 0.0007,
+            active_referral_discount: 0.0,
+            fee_schedule: UserFeeSchedule { referral_discount: 0.04 },
+        };
+
+        let fee_rates = cache.get_user_fee_rates("0xsender", async { Ok(user_fees) }).await.unwrap();
+        let referral_fee_rates = cache.activate_referral_fee_rates("0xsender", &fee_rates).unwrap();
+
+        assert_eq!(referral_fee_rates.perpetual_cross, 0.000432);
+        assert_eq!(referral_fee_rates.spot_cross, 0.000672);
+
+        let cached_fee_rates = cache.get_user_fee_rates("0xsender", async { Err::<UserFee, Box<dyn Error + Send + Sync>>("must use cached fee rates".into()) }).await.unwrap();
+        assert_eq!(cached_fee_rates.current().perpetual_cross, 0.000432);
+        assert_eq!(cached_fee_rates.current().spot_cross, 0.000672);
+    }
 
     #[tokio::test]
     async fn test_manage_agent_replaces_oldest_named_session_at_limit() {

@@ -69,6 +69,14 @@ pub struct UserFee {
     pub user_spot_cross_rate: f64,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub active_referral_discount: f64,
+    pub fee_schedule: UserFeeSchedule,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserFeeSchedule {
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub referral_discount: f64,
 }
 
 #[derive(Debug, Clone, Deserialize)]
