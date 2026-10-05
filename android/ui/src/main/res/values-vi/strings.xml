@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Tùy chỉnh</string>
+  <string name="fee_rate_priority">Phí ưu tiên</string>
+  <string name="fee_rate_base">Phí cơ bản</string>
   <string name="banner_account_activation_title">Phí kích hoạt tài khoản</string>
   <string name="banner_account_activation_description">Mạng %1$s yêu cầu một khoản phí một lần là %2$s.</string>
   <string name="banner_stake_title">Bắt đầu đặt cược %1$s</string>
@@ -442,9 +444,12 @@
   <string name="lock_privacy_lock">Khóa riêng tư</string>
   <string name="lock_footer">Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn</string>
   <string name="lock_passcode">Mật mã</string>
+  <string name="lock_passcode_off_title">Mật mã thiết bị đang tắt</string>
+  <string name="lock_passcode_off_description">Gem được khóa bằng mật mã thiết bị của bạn. Hãy bật mật mã trong cài đặt thiết bị để mở Gem. Ví của bạn vẫn an toàn.</string>
   <string name="verify_phrase_title">Xác nhận</string>
   <string name="warnings_externally_controlled_account">Tài khoản %1$s này có thể do người khác kiểm soát. Không gửi tiền vào tài khoản này trừ khi bạn chắc chắn mình kiểm soát nó, nếu không bạn có thể mất vĩnh viễn tài sản của mình.</string>
   <string name="sell_title">Bán %1$s</string>
+  <string name="info_region_unavailable_description">Tính năng này không khả dụng ở khu vực của bạn. Khả năng sử dụng phụ thuộc vào quy định địa phương và yêu cầu của nhà cung cấp.</string>
   <string name="info_network_fee_title">Phí mạng</string>
   <string name="info_watch_wallet_title">Ví đồng hồ</string>
   <string name="info_watch_wallet_description">Một ví mà bạn không thể truy cập nhưng bạn có thể theo dõi các giao dịch và biến động của nó.</string>

@@ -5,6 +5,7 @@ import Components
 import Foundation
 import class Gemstone.Config
 import func Gemstone.formattedPercentage
+import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemProviderRow
 import enum Gemstone.GemSlippageSelection
 import enum Gemstone.GemSwapButtonAction
@@ -143,7 +144,7 @@ public final class SwapSceneViewModel {
         SwapButtonViewModel(
             state: viewState,
             fromAsset: fromAsset,
-            onAction: onSelectActionButton,
+            onAction: { Task { await self.onSelectActionButton() } },
         )
     }
 
@@ -176,7 +177,7 @@ public final class SwapSceneViewModel {
             return nil
         }
         return VoidAction { [weak self] in
-            self?.isPresentingInfoSheet = .info(topic.infoSheet)
+            self?.isPresentingInfoSheet = .info(InfoSheetModel(sheet: topic.infoSheet))
         }
     }
 
@@ -247,8 +248,8 @@ extension SwapSceneViewModel {
         setLoadTrigger(isImmediate: true)
     }
 
-    func onSelectSwapConfirmation() {
-        swap()
+    func onSelectSwapConfirmation() async {
+        await swap()
     }
 
     func onAssetIdsChange(assetIds: Set<AssetId>) async {
@@ -351,28 +352,24 @@ extension SwapSceneViewModel {
         loadTrigger = SwapLoadTrigger(input: input, isImmediate: isImmediate)
     }
 
-    private func swap() {
-        guard let fromAsset, let toAsset, let started = session.startTransfer(), let quote = started.quote() else {
+    private func swap() async {
+        guard service.isAvailable() else {
+            isPresentingInfoSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
             return
         }
+        guard let fromAsset, let toAsset, let started = session.startTransfer(), let quote = started.quote() else { return }
         let transfer = started.transferPhase
         session = started
-
-        Task {
-            do {
-                let transferData = try await service.getTransfer(quote: quote).transferData(
-                    fromAsset: fromAsset.asset.toGem(),
-                    toAsset: toAsset.asset.toGem(),
-                )
-                guard session.transferPhase == transfer else { return }
-                onSwap?(transferData)
-                session = session.onTransferHandedOff(transfer: transfer)
-            } catch let error as SwapperError {
-                session = session.onTransferFailed(transfer: transfer, error: error)
-                debugLog("SwapScene get swap data error: \(error)")
-            } catch {
-                debugLog("SwapScene get swap data error: \(error)")
-            }
+        do {
+            let transferData = try await service.getTransfer(quote: quote).transferData(
+                fromAsset: fromAsset.asset.toGem(),
+                toAsset: toAsset.asset.toGem(),
+            )
+            guard session.transferPhase == transfer else { return }
+            onSwap?(transferData)
+            session = session.onTransferHandedOff(transfer: transfer)
+        } catch {
+            session = session.onTransferFailed(transfer: transfer, error: error as? SwapperError ?? .TransactionError(error.localizedDescription))
         }
     }
 
@@ -402,22 +399,26 @@ extension SwapSceneViewModel {
         }
     }
 
-    private func onSelectActionButton() {
+    func onSelectActionButton() async {
         switch viewState.buttonAction {
         case .retryQuote:
             if let input = session.input {
                 session = session.onRefreshRequested(request: input.request)
             }
             setLoadTrigger(isImmediate: true)
-        case .retryTransfer: swap()
+        case .retryTransfer: await swap()
         case .insufficientBalance: break
         case .useMinimumAmount: setMinimumAmount()
         case .swap:
             if let warningText = viewState.details?.priceImpactWarning {
+                guard service.isAvailable() else {
+                    isPresentingInfoSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
+                    return
+                }
                 isPresentingPriceImpactConfirmation = warningText
                 return
             }
-            swap()
+            await swap()
         }
     }
 }

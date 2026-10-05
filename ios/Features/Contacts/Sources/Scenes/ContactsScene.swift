@@ -16,8 +16,9 @@ struct ContactsScene: View {
     }
 
     var body: some View {
-        List {
-            ForEach(model.items, id: \.contact.id) { contact, listItem in
+        let list = model.list
+        return List {
+            ForEach(model.items(list), id: \.contact.id) { contact, listItem in
                 let item = ListItemView(model: listItem)
                 switch model.rowAction {
                 case .navigate:
@@ -37,8 +38,8 @@ struct ContactsScene: View {
         .scrollContentBackground(.hidden)
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .overlay {
-            if model.contacts.isEmpty {
-                EmptyContentView(model: model.emptyContent)
+            if case let .empty(state) = list.phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
             }
         }
         .alertSheet($model.isPresentingAlertMessage)

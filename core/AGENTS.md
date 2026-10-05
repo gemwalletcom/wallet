@@ -45,7 +45,7 @@ Before finishing a task:
 1. **Run the two cleanup rounds** from `skills/task-workflow.md` — reduce duplication, extract helpers only when they earn their keep, consolidate modules, remove dead code, and match the crate's conventions; then re-read the final diff as a reviewer
 2. **Keep changes minimal** — code must be concise and focused; reviewers cannot realistically review thousands of lines per PR, so only include what is necessary for the task
 3. **Run tests**: `just test` or `just test <CRATE>`
-4. **Run clippy**: `cargo clippy -p <crate> --all-features -- -D warnings` (most crates gate modules behind features; without them clippy compiles nothing from those modules, see `skills/development-commands.md`)
+4. **Run CI lint locally**: `just lint` before committing or pushing Core changes. It includes the repository's extra clippy lints; a plain `cargo clippy -- -D warnings` does not replace it. Also run `cargo clippy -p <crate> --all-features -- -D warnings` for affected feature-gated code (see `skills/development-commands.md`).
 5. **Format**: `just format`
 
 Regenerate bindings and build iOS or Android only when the change affects UniFFI interfaces, generated models, platform build inputs, or app-side integration. Do not run mobile generation or builds for internal Core implementation changes that preserve those contracts.

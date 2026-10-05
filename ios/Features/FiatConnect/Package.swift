@@ -19,6 +19,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "InfoSheet", path: "../../Packages/InfoSheet"),
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Style", path: "../../Packages/Style"),
@@ -34,6 +35,7 @@ let package = Package(
         .target(
             name: "FiatConnect",
             dependencies: [
+                "InfoSheet",
                 "Gemstone",
                 "Primitives",
                 "Style",
@@ -66,6 +68,7 @@ let package = Package(
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "BigInt", package: "BigInt"),
                 "Gemstone",
+                "GemstonePrimitives",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Localization",
                 "Primitives",

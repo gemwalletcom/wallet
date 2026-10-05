@@ -28,9 +28,7 @@ import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.features.settings.viewmodels.lock.LockViewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.AppViewModel
-import com.gemwallet.android.ui.LocalAddressService
 import com.gemwallet.android.ui.LocalChainService
-import com.gemwallet.android.ui.LocalConnectionStatus
 import com.gemwallet.android.ui.LocalDeeplinkService
 import com.gemwallet.android.ui.LocalNavigationService
 import com.gemwallet.android.ui.LocalStreamConnected
@@ -46,7 +44,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemDeeplinkService
@@ -69,8 +66,6 @@ class MainActivity :
     @Inject lateinit var notificationPermissionRequests: NotificationPermissionRequests
 
     @Inject lateinit var activeWalletConnectRequest: ActiveWalletConnectRequest
-
-    @Inject lateinit var addressService: GemAddressService
 
     @Inject lateinit var deeplinkService: GemDeeplinkService
 
@@ -140,9 +135,7 @@ class MainActivity :
 
             CompositionLocalProvider(
                 LocalConnectionBannerState provides connectionBannerState,
-                LocalConnectionStatus provides connectionStatusObserver.status,
                 LocalStreamConnected provides streamConnected,
-                LocalAddressService provides addressService,
                 LocalDeeplinkService provides deeplinkService,
                 LocalNavigationService provides navigationService,
                 LocalChainService provides chainService,
@@ -186,7 +179,9 @@ class MainActivity :
     }
 
     override fun onDestroy() {
-        systemAuthenticator.cancel()
+        if (!isChangingConfigurations) {
+            systemAuthenticator.cancel()
+        }
         super.onDestroy()
     }
 

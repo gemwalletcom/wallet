@@ -90,13 +90,13 @@ mod tests {
         let client = NameClient::new(
             vec![
                 Box::new(MockNameResolver::new(NameProvider::Ud, vec!["crypto"], vec![Chain::Ethereum], Ok("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"))),
-                Box::new(MockNameResolver::new(NameProvider::Sns, vec!["sol"], vec![Chain::Solana], Ok("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"))),
+                Box::new(MockNameResolver::new(NameProvider::Sns, vec!["sns"], vec![Chain::Solana], Ok("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"))),
             ],
             NameConfig { max_name_length: 20 },
         );
 
         let ethereum = client.resolve("example.crypto", Chain::Ethereum).await.unwrap().unwrap();
-        let solana = client.resolve("example.sol", Chain::Solana).await.unwrap().unwrap();
+        let solana = client.resolve("example.sns", Chain::Solana).await.unwrap().unwrap();
 
         assert_eq!(ethereum.address, "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
         assert_eq!(solana.address, "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2");
@@ -120,14 +120,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_long_sns_names() {
-        for name in [
-            "fatherstretchmyhandspt2.sol",
-            "fatherstretchmyhandspt2.sns",
-            "abcdefghijklmnopqrst.sol",
-            "abcdefghijklmnopqrstu.sol",
-            "abcdefghijklmnopqrstu.sns",
-            "sub.fatherstretchmyhandspt2.sns",
-        ] {
+        for name in ["fatherstretchmyhandspt2.sns", "abcdefghijklmnopqrstu.sns", "sub.fatherstretchmyhandspt2.sns"] {
             let transport = MockClient::new().with_get(move |path| {
                 assert_eq!(path, format!("/resolve/{name}"));
                 Ok(br#"{"s":"ok","result":"GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"}"#.to_vec())
@@ -156,7 +149,7 @@ mod tests {
         });
         let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))], NameConfig { max_name_length: 20 });
 
-        assert_eq!(client.resolve("fatherstretchmyhandspt2.sol", Chain::Solana).await.unwrap(), None);
+        assert_eq!(client.resolve("fatherstretchmyhandspt2.sns", Chain::Solana).await.unwrap(), None);
     }
 
     #[tokio::test]
@@ -164,25 +157,25 @@ mod tests {
         let transport = MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: vec![] }));
         let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))], NameConfig { max_name_length: 20 });
 
-        assert!(client.resolve("bonfida.sol", Chain::Solana).await.is_err());
+        assert!(client.resolve("bonfida.sns", Chain::Solana).await.is_err());
     }
 
     #[tokio::test]
     async fn test_resolve_long_sns_name_preserves_provider_error() {
         let transport = MockClient::new().with_get(|path| {
-            assert_eq!(path, "/resolve/fatherstretchmyhandspt2.sol");
+            assert_eq!(path, "/resolve/fatherstretchmyhandspt2.sns");
             Ok(br#"{"s":"error","result":"Domain not found"}"#.to_vec())
         });
         let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))], NameConfig { max_name_length: 20 });
 
-        let error = client.resolve("fatherstretchmyhandspt2.sol", Chain::Solana).await.unwrap_err();
+        let error = client.resolve("fatherstretchmyhandspt2.sns", Chain::Solana).await.unwrap_err();
 
         assert_eq!(error.to_string(), "SNS request failed with status: error");
     }
 
     #[tokio::test]
     async fn test_resolve_sns_bsc_record() {
-        for name in ["fatherstretchmyhandspt2.sol", "fatherstretchmyhandspt2.sns", "sub.fatherstretchmyhandspt2.sns"] {
+        for name in ["fatherstretchmyhandspt2.sns", "sub.fatherstretchmyhandspt2.sns"] {
             let transport = MockClient::new().with_get(move |path| {
                 let domain = name.rsplit_once('.').unwrap().0;
                 assert_eq!(path, format!("/record-v2/{domain}/BSC"));
@@ -200,6 +193,13 @@ mod tests {
                 })
             );
         }
+    }
+
+    #[tokio::test]
+    async fn test_resolve_sns_rejects_paused_sol_names() {
+        let client = NameClient::new(vec![Box::new(SnsProvider::new(MockClient::new()))], NameConfig { max_name_length: 20 });
+
+        assert_eq!(client.resolve("bonfida.sol", Chain::Solana).await.unwrap(), None);
     }
 
     #[tokio::test]

@@ -3,7 +3,7 @@ use crate::precision::GemValueStyle;
 use crate::services::assets::icon::asset_icon;
 use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
-use primitives::{CoreEmoji, OptionStringExt, RewardRedemptionOption, RewardStatus, Rewards, Wallet, WalletId};
+use primitives::{CoreEmoji, OptionStringExt, RewardRedemptionOption, RewardStatus, Rewards, Wallet, WalletId, WalletListItem};
 
 use super::model::{GemIncomingCode, GemRewardsInviteAction, GemRewardsPendingReferral, GemRewardsRedemption, GemRewardsState, GemRewardsWallet};
 use crate::config::rewards::get_referral_url;
@@ -27,9 +27,9 @@ pub fn wallet(wallets: Vec<Wallet>, requested: Option<&WalletId>, current: Optio
     let selected = session_rules::rewards_wallet(&wallets, requested, current)?;
     Some(GemRewardsWallet {
         id: selected.id.clone(),
-        row: wallet_rules::row(selected),
+        row: wallet_rules::row(&WalletListItem::from(selected)),
         can_choose: session_rules::can_choose_wallet(&wallets),
-        sections: wallet_rules::sections(wallets, None),
+        sections: wallet_rules::sections(wallets.iter().map(WalletListItem::from).collect(), None),
     })
 }
 

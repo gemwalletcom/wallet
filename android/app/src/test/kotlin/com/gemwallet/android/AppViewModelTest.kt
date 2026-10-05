@@ -3,7 +3,7 @@ package com.gemwallet.android
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.WalletPasswordProtection
-import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.assets.cases.GetWalletHomeState
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
@@ -73,7 +73,7 @@ class AppViewModelTest {
             every { shouldRequestReview() } returns false
         }
         val sync: SyncAppUpdate = mockk { coEvery { syncAppUpdate() } returns update }
-        val summary: GetWalletSummary = mockk { every { getWalletSummary() } returns flowOf(null) }
+        val walletHomeState: GetWalletHomeState = mockk { every { walletHomeState() } returns MutableStateFlow(null) }
         return AppViewModel(
             session,
             config,
@@ -83,7 +83,7 @@ class AppViewModelTest {
             mockk(relaxed = true),
             mockk<GemAppStartServiceInterface>(relaxed = true),
             walletSession,
-            summary,
+            walletHomeState,
             dispatcher,
         ).also { models.add(it) }
     }

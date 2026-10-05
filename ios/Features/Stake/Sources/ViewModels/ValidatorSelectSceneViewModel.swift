@@ -4,6 +4,7 @@ import Components
 import Foundation
 import enum Gemstone.GemStakeAmountInput
 import protocol Gemstone.GemStakeServiceProtocol
+import struct Gemstone.GemStakeValidatorOptions
 import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import Localization
@@ -41,12 +42,12 @@ public final class ValidatorSelectSceneViewModel {
         Localized.Stake.validators
     }
 
-    var emptyContent: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .validators)
+    var options: GemStakeValidatorOptions {
+        service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() })
     }
 
-    var list: [ListItemValueSection<GemValidatorRow>] {
-        service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() }).sections.map {
+    func list(_ options: GemStakeValidatorOptions) -> [ListItemValueSection<GemValidatorRow>] {
+        options.sections.map {
             ListItemValueSection(section: $0.kind.title, values: $0.rows.map { ListItemValue(value: $0) })
         }
     }

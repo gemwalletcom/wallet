@@ -24,11 +24,12 @@ struct PerpetualsPreviewView: View {
 
     var body: some View {
         Group {
-            if viewModel.hasNoPositions {
+            switch viewModel.preview {
+            case let .trade(balance):
                 NavigationLink(value: Scenes.Perpetuals()) {
-                    tradePerpetualsItem
+                    tradePerpetualsItem(balance: balance.text())
                 }
-            } else {
+            case .positions:
                 PerpetualPositionsList(
                     positions: viewModel.positions,
                     showBalancePrivacy: $showBalancePrivacy,
@@ -41,7 +42,7 @@ struct PerpetualsPreviewView: View {
         }
     }
 
-    private var tradePerpetualsItem: some View {
+    private func tradePerpetualsItem(balance: String) -> some View {
         HStack {
             Text(viewModel.tradePerpetualsTitle)
                 .textStyle(ListItemModel.StyleDefaults.titleStyle)
@@ -50,7 +51,7 @@ struct PerpetualsPreviewView: View {
 
             Spacer(minLength: .extraSmall)
 
-            PrivacyText(viewModel.tradePerpetualsSubtitle, isEnabled: $showBalancePrivacy)
+            PrivacyText(balance, isEnabled: $showBalancePrivacy)
                 .textStyle(ListItemModel.StyleDefaults.subtitleStyle)
                 .multilineTextAlignment(.trailing)
                 .lineLimit(1)

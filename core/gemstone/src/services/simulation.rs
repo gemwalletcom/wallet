@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use ::simulation::evm::SimulationClient;
 use chain_traits::ChainSimulation;
+use chrono::{DateTime, Utc};
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::grpc::AlienGrpcTransport;
@@ -18,7 +19,7 @@ use primitives::{
 
 use crate::models::copy::{GemCopy, address_copy};
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::{GemListRow, GemListRowTitle, GemNoticeKind, suspicious_address_title};
+use crate::models::list::{GemListFieldValue, GemListRow, GemListRowTitle, GemNoticeKind, GemRowMenuItem, suspicious_address_title};
 use crate::services::localization::GemLocalizedText;
 use crate::{
     GemstoneError,
@@ -214,93 +215,87 @@ impl GemSimulationFormatter {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
-pub enum GemSimulationPayloadTitle {
-    Contract,
-    Method,
-    Token,
-    Spender,
-    Value,
-    Expiration,
-    Custom { label: String },
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
-pub enum GemSimulationPayloadValue {
-    Text { text: String },
-    Address { display: String, copy: GemCopy, explorer: BlockExplorerLink },
-    Timestamp { unix_ms: i64 },
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
-pub struct GemSimulationPayloadRow {
-    pub title: GemSimulationPayloadTitle,
-    pub value: GemSimulationPayloadValue,
-}
-
-pub fn payload_rows(fields: &[SimulationPayloadField], chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Vec<GemSimulationPayloadRow> {
+pub fn payload_rows(fields: &[SimulationPayloadField], chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Vec<GemListRow> {
     fields.iter().map(|field| payload_row(field, chain, &address_url)).collect()
 }
 
-pub fn named_payload_rows(rows: Vec<GemSimulationPayloadRow>, names: &[AddressName]) -> Vec<GemSimulationPayloadRow> {
+pub fn named_payload_rows(rows: Vec<GemListRow>, names: &[AddressName]) -> Vec<GemListRow> {
     rows.into_iter()
-        .map(|row| GemSimulationPayloadRow {
-            value: match row.value {
-                GemSimulationPayloadValue::Address { copy, explorer, .. } => address_value(copy, names, explorer),
-                GemSimulationPayloadValue::Text { .. } | GemSimulationPayloadValue::Timestamp { .. } => row.value,
+        .map(|row| match row {
+            GemListRow::Field {
+                title,
+                value: GemListFieldValue::Address { copy, explorer, .. },
+            } => GemListRow::Field {
+                title,
+                value: address_value(copy, names, explorer),
             },
-            title: row.title,
+            row => row,
         })
         .collect()
 }
 
-pub fn address_requests(rows: &[GemSimulationPayloadRow], chain: Chain) -> Vec<ChainAddress> {
+pub fn address_requests(rows: &[GemListRow], chain: Chain) -> Vec<ChainAddress> {
     rows.iter()
-        .filter_map(|row| match &row.value {
-            GemSimulationPayloadValue::Address { copy, .. } => Some(ChainAddress::new(chain, copy.value.clone())),
-            GemSimulationPayloadValue::Text { .. } | GemSimulationPayloadValue::Timestamp { .. } => None,
+        .filter_map(|row| match row {
+            GemListRow::Field {
+                value: GemListFieldValue::Address { copy, .. },
+                ..
+            } => Some(ChainAddress::new(chain, copy.value.clone())),
+            _ => None,
         })
         .collect()
 }
 
-fn payload_row(field: &SimulationPayloadField, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemSimulationPayloadRow {
-    GemSimulationPayloadRow {
-        title: match field.kind {
-            SimulationPayloadFieldKind::Contract => GemSimulationPayloadTitle::Contract,
-            SimulationPayloadFieldKind::Method => GemSimulationPayloadTitle::Method,
-            SimulationPayloadFieldKind::Token => GemSimulationPayloadTitle::Token,
-            SimulationPayloadFieldKind::Spender => GemSimulationPayloadTitle::Spender,
-            SimulationPayloadFieldKind::Value => GemSimulationPayloadTitle::Value,
-            SimulationPayloadFieldKind::Expiration => GemSimulationPayloadTitle::Expiration,
-            SimulationPayloadFieldKind::Custom => GemSimulationPayloadTitle::Custom {
-                label: field.label.clone().unwrap_or_default(),
-            },
-        },
+fn payload_row(field: &SimulationPayloadField, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemListRow {
+    GemListRow::Field {
+        title: payload_title(field),
         value: match field.field_type {
-            SimulationPayloadFieldType::Text => GemSimulationPayloadValue::Text { text: field.value.clone() },
+            SimulationPayloadFieldType::Text => GemListFieldValue::Text { text: field.value.clone() },
             SimulationPayloadFieldType::Address => address_value(address_copy(chain, field.value.clone()), &[], address_url(chain, field.value.clone())),
-            SimulationPayloadFieldType::Timestamp => match timestamp_unix_ms(&field.value) {
-                Some(unix_ms) => GemSimulationPayloadValue::Timestamp { unix_ms },
-                None => GemSimulationPayloadValue::Text { text: field.value.clone() },
+            SimulationPayloadFieldType::Timestamp => match timestamp(&field.value) {
+                Some(date) => GemListFieldValue::Date { date },
+                None => GemListFieldValue::Text { text: field.value.clone() },
             },
         },
     }
 }
 
-fn address_value(copy: GemCopy, names: &[AddressName], explorer: BlockExplorerLink) -> GemSimulationPayloadValue {
+fn payload_title(field: &SimulationPayloadField) -> GemLocalizedText {
+    let title = match field.kind {
+        SimulationPayloadFieldKind::Contract => GemListRowTitle::Contract,
+        SimulationPayloadFieldKind::Method => GemListRowTitle::Method,
+        SimulationPayloadFieldKind::Token => GemListRowTitle::Token,
+        SimulationPayloadFieldKind::Spender => GemListRowTitle::Spender,
+        SimulationPayloadFieldKind::Value => GemListRowTitle::Value,
+        SimulationPayloadFieldKind::Expiration => GemListRowTitle::Expiration,
+        SimulationPayloadFieldKind::Custom => {
+            return GemLocalizedText::Text {
+                text: field.label.clone().unwrap_or_default(),
+            };
+        }
+    };
+    GemLocalizedText::RowTitle { title }
+}
+
+fn address_value(copy: GemCopy, names: &[AddressName], explorer: BlockExplorerLink) -> GemListFieldValue {
     let display = names
         .iter()
         .find(|name| name.address.eq_ignore_ascii_case(&copy.value) && !name.name.is_empty() && !name.name.eq_ignore_ascii_case(&copy.value))
         .map(|name| format!("{} ({})", name.name, copy.display))
         .unwrap_or_else(|| copy.display.clone());
-    GemSimulationPayloadValue::Address { display, copy, explorer }
+    GemListFieldValue::Address {
+        display,
+        menu: vec![GemRowMenuItem::Copy { copy: copy.clone() }, GemRowMenuItem::view_on(&explorer)],
+        copy,
+        explorer,
+    }
 }
 
-fn timestamp_unix_ms(value: &str) -> Option<i64> {
+fn timestamp(value: &str) -> Option<DateTime<Utc>> {
     if let Ok(seconds) = value.parse::<f64>() {
-        return Some((seconds * 1000.0) as i64);
+        return DateTime::from_timestamp_millis((seconds * 1000.0) as i64);
     }
-    chrono::DateTime::parse_from_rfc3339(value).ok().map(|date| date.timestamp_millis())
+    DateTime::parse_from_rfc3339(value).ok().map(|date| date.with_timezone(&Utc))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -534,28 +529,31 @@ mod tests {
         let rows = payload_rows(&fields, Chain::Ethereum, link);
 
         assert_ne!(copy.display, address, "the row shows the short address");
+        let explorer = link(Chain::Ethereum, address.to_string());
+        let date = |unix_ms| DateTime::from_timestamp_millis(unix_ms).unwrap();
         assert_eq!(
             rows,
             vec![
-                GemSimulationPayloadRow {
-                    title: GemSimulationPayloadTitle::Spender,
-                    value: GemSimulationPayloadValue::Address {
+                GemListRow::Field {
+                    title: GemLocalizedText::RowTitle { title: GemListRowTitle::Spender },
+                    value: GemListFieldValue::Address {
                         display: copy.display.clone(),
+                        menu: vec![GemRowMenuItem::Copy { copy: copy.clone() }, GemRowMenuItem::view_on(&explorer)],
                         copy,
-                        explorer: link(Chain::Ethereum, address.to_string()),
+                        explorer,
                     },
                 },
-                GemSimulationPayloadRow {
-                    title: GemSimulationPayloadTitle::Expiration,
-                    value: GemSimulationPayloadValue::Timestamp { unix_ms: 1_662_714_817_000 },
+                GemListRow::Field {
+                    title: GemLocalizedText::RowTitle { title: GemListRowTitle::Expiration },
+                    value: GemListFieldValue::Date { date: date(1_662_714_817_000) },
                 },
-                GemSimulationPayloadRow {
-                    title: GemSimulationPayloadTitle::Custom { label: "issuedAt".to_string() },
-                    value: GemSimulationPayloadValue::Timestamp { unix_ms: 1_704_164_645_123 },
+                GemListRow::Field {
+                    title: GemLocalizedText::Text { text: "issuedAt".to_string() },
+                    value: GemListFieldValue::Date { date: date(1_704_164_645_123) },
                 },
-                GemSimulationPayloadRow {
-                    title: GemSimulationPayloadTitle::Custom { label: "statement".to_string() },
-                    value: GemSimulationPayloadValue::Text { text: "Sign in".to_string() },
+                GemListRow::Field {
+                    title: GemLocalizedText::Text { text: "statement".to_string() },
+                    value: GemListFieldValue::Text { text: "Sign in".to_string() },
                 },
             ]
         );
@@ -584,24 +582,19 @@ mod tests {
 
         let named = named_payload_rows(rows, &[name(&address.to_lowercase(), "Hyperliquid"), name(other, other)]);
 
+        let displays = named
+            .iter()
+            .map(|row| match row {
+                GemListRow::Field {
+                    value: GemListFieldValue::Address { display, .. },
+                    ..
+                } => Some(display.clone()),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
         let copy = address_copy(Chain::Ethereum, address.to_string());
-        assert_eq!(
-            named[0].value,
-            GemSimulationPayloadValue::Address {
-                display: format!("Hyperliquid ({})", copy.display),
-                copy,
-                explorer: link(Chain::Ethereum, address.to_string()),
-            }
-        );
         let other_copy = address_copy(Chain::Ethereum, other.to_string());
-        assert_eq!(
-            named[1].value,
-            GemSimulationPayloadValue::Address {
-                display: other_copy.display.clone(),
-                copy: other_copy,
-                explorer: link(Chain::Ethereum, other.to_string()),
-            }
-        );
+        assert_eq!(displays, vec![Some(format!("Hyperliquid ({})", copy.display)), Some(other_copy.display)]);
         assert_eq!(
             address_requests(&named, Chain::Ethereum),
             vec![ChainAddress::new(Chain::Ethereum, address.to_string()), ChainAddress::new(Chain::Ethereum, other.to_string())]

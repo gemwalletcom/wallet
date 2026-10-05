@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemIncomingCode
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRewardsIntroItem
@@ -50,6 +51,16 @@ class RewardsViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
+
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
+
+    fun inviteFriends(onInvite: () -> Unit) {
+        if (!service.isAvailable()) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return
+        }
+        onInvite()
+    }
 
     private val session = MutableStateFlow(rewardsSession(savedStateHandle.get<String>(RouteArgument.Code.key)))
 

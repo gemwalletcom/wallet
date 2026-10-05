@@ -69,7 +69,10 @@ mod tests {
         let output = serde_json::to_value([
             NodeStatusResult {
                 region: NodeRegion::Us,
-                status: Some(NodeStatus { latest_block_number: 100, latency_ms: 20 }),
+                status: Some(NodeStatus {
+                    latest_block_number: Some(100),
+                    latency_ms: 20,
+                }),
                 error: None,
             },
             NodeStatusResult {

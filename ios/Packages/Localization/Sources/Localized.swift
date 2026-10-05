@@ -533,10 +533,14 @@ public enum Localized {
     }
   }
   public enum FeeRate {
+    /// Base Fee
+    public static let base = Localized.tr("Localizable", "fee_rate.base", fallback: "Base Fee")
     /// Custom
     public static let custom = Localized.tr("Localizable", "fee_rate.custom", fallback: "Custom")
     /// gwei
     public static let gwei = Localized.tr("Localizable", "fee_rate.gwei", fallback: "gwei")
+    /// Priority Fee
+    public static let priority = Localized.tr("Localizable", "fee_rate.priority", fallback: "Priority Fee")
     /// sat/vB
     public static let satvB = Localized.tr("Localizable", "fee_rate.satvB", fallback: "sat/vB")
   }
@@ -575,6 +579,8 @@ public enum Localized {
     public static let paymentVerificationDescription = Localized.tr("Localizable", "info.payment_verification_description", fallback: "The merchant requires additional information before the payment.")
     /// Payment Verification
     public static let paymentVerificationTitle = Localized.tr("Localizable", "info.payment_verification_title", fallback: "Payment Verification")
+    /// This feature is not available in your region. Availability depends on local rules and provider requirements.
+    public static let regionUnavailableDescription = Localized.tr("Localizable", "info.region_unavailable_description", fallback: "This feature is not available in your region. Availability depends on local rules and provider requirements.")
     /// Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.
     public static let stakeFrozenRequiredDescription = Localized.tr("Localizable", "info.stake_frozen_required_description", fallback: "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.")
     /// Freeze TRX to Stake
@@ -747,6 +753,10 @@ public enum Localized {
     public static let oneMinute = Localized.tr("Localizable", "lock.one_minute", fallback: "1 minute")
     /// Passcode
     public static let passcode = Localized.tr("Localizable", "lock.passcode", fallback: "Passcode")
+    /// Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe.
+    public static let passcodeOffDescription = Localized.tr("Localizable", "lock.passcode_off_description", fallback: "Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe.")
+    /// Device passcode is off
+    public static let passcodeOffTitle = Localized.tr("Localizable", "lock.passcode_off_title", fallback: "Device passcode is off")
     /// Privacy Lock
     public static let privacyLock = Localized.tr("Localizable", "lock.privacy_lock", fallback: "Privacy Lock")
     /// Require authentication

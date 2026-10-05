@@ -78,7 +78,7 @@ public struct NetworkFeeSceneViewModel {
     @MainActor
     func customFeeModel() -> NetworkFeeCustomViewModel? {
         screen?.custom.map { session in
-            NetworkFeeCustomViewModel(session: session, onSelect: { onSelect?(.custom(gasPrice: $0)) })
+            NetworkFeeCustomViewModel(session: session, onSelect: { onSelect?($0) })
         }
     }
 

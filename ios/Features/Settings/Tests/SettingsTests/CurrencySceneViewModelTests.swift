@@ -21,13 +21,14 @@ struct CurrencySceneViewModelTests {
             GemCurrencySection(kind: .all, rows: [GemCurrencyRow(currency: Currency.ars.toGem(), title: "ARS", isSelected: false)]),
         ]
 
-        #expect(viewModel.sections == nil)
+        #expect(viewModel.list == nil)
         viewModel.searchQuery = " arS "
         await viewModel.refreshSections()
-        #expect(viewModel.sections == service.sectionsValue)
+        #expect(viewModel.list?.sections == service.sectionsValue)
+        #expect(viewModel.list?.phase == .rows)
         viewModel.searchQuery = ""
         await viewModel.refreshSections()
-        #expect(viewModel.sections == service.sectionsValue)
+        #expect(viewModel.list?.sections == service.sectionsValue)
         #expect(service.queries == [" arS ", ""])
     }
 

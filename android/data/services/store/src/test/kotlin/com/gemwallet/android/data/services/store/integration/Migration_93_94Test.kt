@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.services.store.integration
 
 import androidx.room.testing.MigrationTestHelper
-import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -69,14 +68,6 @@ class Migration_93_94Test {
             assertEquals(emptyList<List<String?>>(), database.rows("SELECT id FROM nft_assets"))
             database.execSQL("DELETE FROM asset WHERE id = 'bitcoin'")
             assertEquals(emptyList<List<String?>>(), database.rows("PRAGMA foreign_key_check"))
-        }
-    }
-
-    private fun SupportSQLiteDatabase.rows(query: String): List<List<String?>> = query(query).use { cursor ->
-        buildList {
-            while (cursor.moveToNext()) {
-                add((0 until cursor.columnCount).map { if (cursor.isNull(it)) null else cursor.getString(it) })
-            }
         }
     }
 }

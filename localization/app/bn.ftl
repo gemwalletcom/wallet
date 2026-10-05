@@ -476,6 +476,8 @@ fee_rates_normal = স্বাভাবিক
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = কাস্টম
+fee_rate_priority = অগ্রাধিকার ফি
+fee_rate_base = বেস ফি
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = আনলক করুন
 lock_privacy_lock = গোপনীয়তা লক
 lock_footer = আপনার ডিভাইসে এই অ্যাপের অ্যাক্সেস সুরক্ষিত করুন
 lock_passcode = পাসকোড
+lock_passcode_off_title = ডিভাইসের পাসকোড বন্ধ আছে
+lock_passcode_off_description = Gem আপনার ডিভাইসের পাসকোড দিয়ে লক করা। Gem খুলতে ডিভাইসের সেটিংসে পাসকোড চালু করুন। আপনার ওয়ালেটগুলো নিরাপদ আছে।
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = এই %@ অ্যাকাউন্�
 sell_title = %@ বিক্রি করুন
 
 # Info
+
+info_region_unavailable_description = এই বৈশিষ্ট্যটি আপনার অঞ্চলে উপলব্ধ নয়। উপলব্ধতা স্থানীয় নিয়ম এবং পরিষেবা প্রদানকারীর শর্তের ওপর নির্ভর করে।
 
 info_network_fee_title = নেটওয়ার্ক ফি
 info_watch_wallet_title = ওয়ালেট দেখুন

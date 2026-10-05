@@ -32,8 +32,9 @@ public actor GatewayService: Sendable {
         explorer: GemExplorerService,
         preferences: GemPreferencesService,
         session: GemWalletSessionService,
+        config: GemConfigService,
     ) -> GemStakeService {
-        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, names: names, explorer: explorer, preferences: preferences, session: session, platform: .ios)
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, names: names, explorer: explorer, preferences: preferences, session: session, platform: .ios, config: config)
     }
 
     public nonisolated func transactionStateService(
@@ -73,6 +74,7 @@ public actor GatewayService: Sendable {
         walletPreferences: GemWalletPreferencesService,
         session: GemWalletSessionService,
         recentActivity: GemRecentActivityService,
+        config: GemConfigService,
     ) -> GemPerpetualService {
         GemPerpetualService(
             gateway: gateway,
@@ -84,6 +86,7 @@ public actor GatewayService: Sendable {
             walletPreferences: walletPreferences,
             session: session,
             recentActivity: recentActivity,
+            config: config,
         )
     }
 

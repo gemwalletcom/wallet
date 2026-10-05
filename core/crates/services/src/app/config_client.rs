@@ -1,37 +1,38 @@
 use std::error::Error;
+use std::sync::Arc;
 
-use primitives::{AssetBasic, ConfigResponse, ConfigVersions, FiatAssets, SwapConfig, SwapProvider};
-use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, ReleasesRepository};
+use fiat::IpAddressProvider;
+use primitives::{ConfigResponse, ConfigVersions, Features, Release, SwapConfig, SwapProvider};
+
+use super::repository::Repository;
+use crate::assets::AssetCatalogClient;
 
 #[derive(Clone)]
 pub struct ConfigClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
+    ip_address_provider: Arc<dyn IpAddressProvider>,
+    asset_catalog: Arc<AssetCatalogClient>,
 }
 
 impl ConfigClient {
-    pub fn new(database: Database) -> Self {
-        Self { database }
+    pub(crate) fn new(repository: Arc<dyn Repository>, ip_address_provider: Arc<dyn IpAddressProvider>, asset_catalog: Arc<AssetCatalogClient>) -> Self {
+        Self {
+            repository,
+            ip_address_provider,
+            asset_catalog,
+        }
     }
 
-    pub async fn get_config(&self) -> Result<ConfigResponse, Box<dyn Error + Send + Sync>> {
-        let (fiat_on_ramp_assets, fiat_off_ramp_assets, swap_assets, releases) = self
-            .database
-            .run(|client| -> Result<_, DatabaseError> {
-                Ok((
-                    client.get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsBuyable(true)])?,
-                    client.get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)])?,
-                    client.get_swap_assets()?,
-                    client.get_releases()?,
-                ))
-            })
-            .await?;
+    pub async fn get_config(&self, ip_address: &str) -> Result<ConfigResponse, Box<dyn Error + Send + Sync>> {
+        let (features, releases, catalog) = tokio::try_join!(self.get_features(ip_address), self.get_releases(), self.asset_catalog.get())?;
 
         let response = ConfigResponse {
+            features,
             releases,
             versions: ConfigVersions {
-                fiat_on_ramp_assets: Self::version(fiat_on_ramp_assets),
-                fiat_off_ramp_assets: Self::version(fiat_off_ramp_assets),
-                swap_assets: FiatAssets::version(&swap_assets) as i32,
+                fiat_on_ramp_assets: catalog.fiat_on_ramp_assets.version as i32,
+                fiat_off_ramp_assets: catalog.fiat_off_ramp_assets.version as i32,
+                swap_assets: catalog.swap_assets.version as i32,
             },
             swap: SwapConfig {
                 enabled_providers: SwapProvider::all().iter().map(|provider| provider.as_ref().to_string()).collect(),
@@ -40,7 +41,13 @@ impl ConfigClient {
         Ok(response)
     }
 
-    fn version(assets: Vec<AssetBasic>) -> i32 {
-        FiatAssets::version(&assets.into_iter().map(|asset| asset.asset.id.to_string()).collect::<Vec<String>>()) as i32
+    async fn get_features(&self, ip_address: &str) -> Result<Features, Box<dyn Error + Send + Sync>> {
+        let country = self.ip_address_provider.get_ip_address(ip_address).await?;
+        let policies = self.repository.features().await?;
+        Ok(Features::for_country(&policies, &country.alpha2))
+    }
+
+    async fn get_releases(&self) -> Result<Vec<Release>, Box<dyn Error + Send + Sync>> {
+        Ok(self.repository.releases().await?)
     }
 }

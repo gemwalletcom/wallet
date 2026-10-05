@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemChainRow
+import struct Gemstone.GemChainList
 import class Gemstone.GemChainService
 import GemstonePrimitives
 import Localization
@@ -15,12 +15,8 @@ import Style
 public final class ChainListSettingsSceneViewModel {
     public init() {}
 
-    var emptyContent: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .searchNetworks)
-    }
-
-    func chainRows(for query: String) -> [GemChainRow] {
-        GemChainService.shared.chainRows(chains: nil, query: query)
+    func chainList(for query: String) -> GemChainList {
+        GemChainService.shared.chainList(chains: nil, query: query)
     }
 
     var serviceStatusListItem: ListItemModel {

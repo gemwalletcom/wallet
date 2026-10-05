@@ -277,7 +277,7 @@ impl CetusClmm {
 
     async fn inspect_pool_id(&self, coin_a: &str, coin_b: &str, tick_spacing: u32) -> Result<Option<String>, SwapperError> {
         let transaction = tx_builder::build_pool_id_inspect(coin_a, coin_b, tick_spacing)?;
-        let result = self.sui_client.inspect_transaction_block(EMPTY_ADDRESS, &transaction, None).await.map_err(SwapperError::compute_quote_error)?;
+        let result = self.sui_client.inspect_transaction_block(EMPTY_ADDRESS, &transaction).await.map_err(SwapperError::compute_quote_error)?;
         if let Some(error) = result.error.as_deref() {
             return if is_missing_pool_error(error) {
                 Ok(None)
@@ -314,7 +314,7 @@ impl CetusClmm {
     }
 
     async fn inspect_quote(&self, transaction: Vec<u8>) -> Result<InspectResult, SwapperError> {
-        let result = self.sui_client.inspect_transaction_block(EMPTY_ADDRESS, &transaction, None).await.map_err(SwapperError::compute_quote_error)?;
+        let result = self.sui_client.inspect_transaction_block(EMPTY_ADDRESS, &transaction).await.map_err(SwapperError::compute_quote_error)?;
         if let Some(error) = result.error.as_deref() {
             return Err(SwapperError::ComputeQuoteError(format!("Cetus CLMM quote simulation failed: {error}")));
         }

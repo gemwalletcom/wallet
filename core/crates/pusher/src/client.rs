@@ -1,7 +1,10 @@
-use crate::model::{PushResult, Response};
-use crate::target::PusherTarget;
+use async_trait::async_trait;
 use gem_client::{ClientError, ClientExt, ReqwestClient};
 use push_notification::{GorushNotification, GorushNotifications};
+
+use crate::PushProvider;
+use crate::model::{PushResult, Response};
+use crate::target::PusherTarget;
 
 #[derive(Clone, Debug)]
 pub struct PusherClient {
@@ -17,7 +20,18 @@ impl PusherClient {
         }
     }
 
-    pub async fn push_notifications(&self, notifications: Vec<GorushNotification>) -> Result<PushResult, ClientError> {
+    fn get_topic(&self, platform: i32) -> Option<String> {
+        match platform {
+            1 => Some(self.topic.clone()),
+            2 => None,
+            _ => None,
+        }
+    }
+}
+
+#[async_trait]
+impl PushProvider for PusherClient {
+    async fn push_notifications(&self, notifications: Vec<GorushNotification>) -> Result<PushResult, ClientError> {
         let notifications: Vec<GorushNotification> = notifications
             .into_iter()
             .filter(|n| !n.tokens.is_empty() && n.tokens.iter().all(|t| !t.is_empty()))
@@ -40,19 +54,24 @@ impl PusherClient {
         Ok(PushResult { response, notifications })
     }
 
-    pub async fn is_device_token_valid(&self, token: &str, platform: i32) -> Result<bool, ClientError> {
+    async fn is_device_token_valid(&self, token: &str, platform: i32) -> Result<bool, ClientError> {
         let notification = GorushNotification::for_token_validation(token.to_string(), platform);
         let result = self.push_notifications(vec![notification]).await?;
 
         let has_invalid_token = result.response.logs.iter().any(push_notification::PushErrorLog::is_device_invalid);
         Ok(!has_invalid_token)
     }
+}
 
-    fn get_topic(&self, platform: i32) -> Option<String> {
-        match platform {
-            1 => Some(self.topic.clone()),
-            2 => None,
-            _ => None,
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_topic() {
+        let client = PusherClient::new("http://localhost".to_string(), "com.gemwallet.ios".to_string());
+
+        assert_eq!(client.get_topic(1), Some("com.gemwallet.ios".to_string()));
+        assert_eq!(client.get_topic(2), None);
     }
 }

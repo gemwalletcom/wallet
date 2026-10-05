@@ -17,6 +17,8 @@ pub mod contact_mock;
 pub mod contract_call_data_mock;
 pub mod delegation_mock;
 pub mod device_mock;
+pub mod feature_policy_mock;
+pub mod fee_rate_mock;
 pub mod fiat_mock;
 pub mod job_configuration_mock;
 pub mod json;

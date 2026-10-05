@@ -57,12 +57,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCandleChart
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.candleSession
-import uniffi.gemstone.loadError
 import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
@@ -80,6 +80,8 @@ class PerpetualViewModel @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
+
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
 
     private companion object {
         const val SubscriptionGraceMillis = 5_000L
@@ -143,15 +145,11 @@ class PerpetualViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val chart: StateFlow<StateViewType<GemCandleChart>> = combine(candles, position) { session, position ->
-        val state = session.viewState()
-        when (val error = loadError(state.state, state.candles.isNotEmpty())) {
-            null -> when (state.state) {
-                GemLoadState.Loading -> StateViewType.Loading
-                GemLoadState.NoData -> StateViewType.NoData
-                else -> session.chart(position?.toGem(), ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds)?.let { StateViewType.Data(it) } ?: StateViewType.NoData
-            }
-
-            else -> StateViewType.Error(error.errorText().text(context))
+        when (val state = session.viewState().state) {
+            GemLoadState.Loading -> StateViewType.Loading
+            GemLoadState.NoData -> StateViewType.NoData
+            is GemLoadState.Error -> StateViewType.Error(state.error.errorText().text(context))
+            GemLoadState.Data -> session.chart(position?.toGem(), ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds)?.let { StateViewType.Data(it) } ?: StateViewType.NoData
         }
     }
         .flowOn(ioDispatcher)
@@ -241,11 +239,23 @@ class PerpetualViewModel @Inject constructor(
 
     fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Open(direction.toGem()), amountAction)
 
+    fun modifyPosition(onModify: () -> Unit) {
+        if (!service.isAvailable()) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return
+        }
+        onModify()
+    }
+
     fun increasePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Increase, amountAction)
 
     fun reducePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Reduce, amountAction)
 
     private fun position(kind: GemPerpetualPositionKind, amountAction: AmountTransactionAction) {
+        if (!service.isAvailable()) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return
+        }
         val data = perpetual.value ?: return
         runCatching { service.positionAction(data.perpetual.toGem(), data.asset.toGem(), details.value?.position, kind) }
             .onSuccess { action -> amountAction(AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action)) }

@@ -95,7 +95,6 @@ impl FiatProvider for MercuryoClient {
             data.wallet_address,
             data.ip_address,
             data.asset_symbol.symbol,
-            data.quote.fiat_currency,
             amount,
             data.quote.quote_type,
             network,

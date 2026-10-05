@@ -1,56 +1,68 @@
-use chrono::{Duration, Utc};
-use primitives::PriceProvider;
 use std::collections::HashMap;
 use std::error::Error;
-use storage::{ChartFilter, ChartsRepository, Database, DatabaseError, PriceFilter, PriceUpdate, PricesRepository};
+use std::sync::Arc;
+
+use chrono::{Duration, Utc};
+use primitives::{PriceData, PriceProvider};
+
+use super::repository::Repository;
 
 pub struct PricesMetricsUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
     provider: PriceProvider,
 }
 
 impl PricesMetricsUpdater {
-    pub fn new(database: Database, provider: PriceProvider) -> Self {
-        Self { database, provider }
+    pub(crate) fn new(repository: Arc<dyn Repository>, provider: PriceProvider) -> Self {
+        Self { repository, provider }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         if self.provider.supports_price_change_24h() {
             return Ok(0);
         }
-        let provider = self.provider;
-        Ok(self
-            .database
-            .run(move |client| -> Result<usize, DatabaseError> {
-                let rows = client.get_prices_by_filter(vec![PriceFilter::Provider(provider)])?;
-                if rows.is_empty() {
-                    return Ok(0);
-                }
+        let now = Utc::now();
+        let from = (now - Duration::hours(25)).naive_utc();
+        let until = (now - Duration::hours(24)).naive_utc();
+        Ok(self.repository.update_price_changes(self.provider, from, until).await?)
+    }
+}
 
-                let now = Utc::now();
-                let upper = (now - Duration::hours(24)).naive_utc();
-                let lower = (now - Duration::hours(25)).naive_utc();
-                let price_ids: Vec<String> = rows.iter().map(|p| p.id.to_string()).collect();
-                let prices_24h_ago: HashMap<String, f64> = client
-                    .get_charts_by_filter(vec![ChartFilter::CreatedBefore(upper), ChartFilter::CreatedAfter(lower), ChartFilter::PriceIds(price_ids)])?
-                    .into_iter()
-                    .collect();
+pub(crate) fn price_changes(prices: &[PriceData], previous: &HashMap<String, f64>) -> Vec<(String, f64)> {
+    prices
+        .iter()
+        .filter(|price| price.price != 0.0)
+        .filter_map(|price| {
+            let price_id = price.id.to_string();
+            let prev = previous.get(&price_id).copied().unwrap_or(0.0);
+            (prev != 0.0).then(|| (price_id, (price.price - prev) / prev * 100.0))
+        })
+        .collect()
+}
 
-                let mut updated = 0;
-                for row in rows {
-                    if row.price == 0.0 {
-                        continue;
-                    }
-                    let price_id = row.id.to_string();
-                    let prev = prices_24h_ago.get(&price_id).copied().unwrap_or(0.0);
-                    if prev == 0.0 {
-                        continue;
-                    }
-                    let change = (row.price - prev) / prev * 100.0;
-                    updated += client.update_prices(vec![price_id], vec![PriceUpdate::PriceChangePercentage24h(change)])?;
-                }
-                Ok(updated)
-            })
-            .await?)
+#[cfg(test)]
+mod tests {
+    use primitives::PriceId;
+
+    use super::*;
+
+    fn price(id: &str, price: f64) -> PriceData {
+        PriceData {
+            id: PriceId::new(PriceProvider::Coingecko, id.to_string()),
+            price,
+            ..PriceData::mock()
+        }
+    }
+
+    #[test]
+    fn test_price_changes() {
+        let prices = [price("up", 110.0), price("zero", 0.0), price("new", 50.0), price("flat", 10.0)];
+        let previous = HashMap::from([("coingecko_up".to_string(), 100.0), ("coingecko_zero".to_string(), 5.0), ("coingecko_flat".to_string(), 0.0)]);
+
+        let changes = price_changes(&prices, &previous);
+
+        assert_eq!(changes.len(), 1);
+        assert_eq!(changes[0].0, "coingecko_up");
+        assert!((changes[0].1 - 10.0).abs() < 1e-9);
     }
 }

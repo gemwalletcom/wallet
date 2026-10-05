@@ -2,22 +2,17 @@ package com.gemwallet.android.features.nft.presents
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.nft.viewmodels.CollectionsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.NftListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemTarget
 import com.gemwallet.android.ui.models.target
+import uniffi.gemstone.GemNftEntry
 
 @Composable
-fun CollectionsPreviewSection(onAction: (CollectionsPreviewAction) -> Unit, viewModel: CollectionsViewModel = hiltViewModel()) {
-    val collections by viewModel.collections.collectAsStateWithLifecycle()
-
+fun CollectionsPreviewSection(collections: List<GemNftEntry>, onAction: (CollectionsPreviewAction) -> Unit) {
     Column {
         SubheaderItem(
             stringResource(R.string.nft_collections),

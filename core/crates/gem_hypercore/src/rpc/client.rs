@@ -1,3 +1,10 @@
+use std::{
+    collections::HashMap,
+    error::Error,
+    sync::Arc,
+    time::{Duration, Instant},
+};
+
 use crate::models::{
     balance::{Balances, DelegationBalance, StakeBalance, Validator},
     candlestick::Candlestick,
@@ -10,16 +17,18 @@ use crate::models::{
     spot::{OrderbookResponse, SpotMeta},
     user::{AgentSession, DelegatorHistoryUpdate, LedgerUpdate, UserAbstractionMode, UserFee, UserRole},
 };
-use chain_traits::{ChainSimulation, ChainTraits};
+use async_trait::async_trait;
+use chain_traits::{
+    ChainSimulation, ChainTraits,
+    node_check::{NodeCheckReport, NodeCheckRequest, NodeCheckResult, NodeCheckStatus},
+};
 use gem_client::{Client, ClientExt};
-use primitives::InMemoryPreferences;
+use primitives::{Chain, InMemoryPreferences, NodeStatus, NodeSyncStatus, Preferences};
 use serde::de::DeserializeOwned;
-use std::{error::Error, sync::Arc};
 
 use crate::config::HypercoreConfig;
 use crate::models::info::{CandleSnapshotRequest, InfoRequest};
 use crate::rpc::target::HyperCoreTarget;
-use primitives::{Chain, Preferences};
 
 pub(crate) const AGENT_OWNER_CACHE_PREFIX: &str = "hypercore_agent_owner_";
 
@@ -74,6 +83,10 @@ impl<C: Client> HyperCoreClient<C> {
         T: DeserializeOwned + Send,
     {
         Ok(self.client.post(HyperCoreTarget::Info, &request).await?)
+    }
+
+    async fn get_all_mids(&self) -> Result<HashMap<String, String>, Box<dyn Error + Send + Sync>> {
+        self.info(InfoRequest::AllMids).await
     }
 
     pub async fn exchange(&self, payload: serde_json::Value) -> Result<serde_json::Value, Box<dyn Error + Send + Sync>> {
@@ -205,7 +218,29 @@ impl<C: Client> HyperCoreClient<C> {
     }
 }
 
-impl<C: Client> ChainTraits for HyperCoreClient<C> {}
+#[async_trait]
+impl<C: Client> ChainTraits for HyperCoreClient<C> {
+    async fn check_node(&self, _request: &NodeCheckRequest, _status: &NodeSyncStatus, _status_latency: Duration) -> NodeCheckReport {
+        let started_at = Instant::now();
+        let status = match self.get_all_mids().await {
+            Ok(_) => NodeCheckStatus::Passed { result: "available".to_string() },
+            Err(error) => NodeCheckStatus::Failed { error: error.to_string() },
+        };
+        NodeCheckReport {
+            checks: vec![NodeCheckResult::new("all_mids", status, started_at.elapsed())],
+        }
+    }
+
+    async fn get_nodes_status(&self) -> Result<NodeStatus, Box<dyn Error + Send + Sync>> {
+        let started_at = Instant::now();
+        self.get_all_mids().await?;
+
+        Ok(NodeStatus {
+            latest_block_number: None,
+            latency_ms: started_at.elapsed().as_millis() as u64,
+        })
+    }
+}
 
 impl<C: Client> ChainSimulation for HyperCoreClient<C> {}
 
@@ -220,6 +255,26 @@ mod tests {
     use super::*;
     use gem_client::testkit::MockClient;
     use serde_json::json;
+
+    #[tokio::test]
+    async fn test_get_nodes_status_uses_info_request() {
+        let client = MockClient::new().with_post(|path, body| {
+            assert_eq!(path, "/info");
+            assert_eq!(serde_json::from_slice::<serde_json::Value>(body).unwrap(), json!({ "type": "allMids" }));
+            Ok(br#"{"BTC":"100000.0"}"#.to_vec())
+        });
+
+        let provider = HyperCoreClient::new(client);
+        let status = provider.get_nodes_status().await.unwrap();
+
+        assert_eq!(status.latest_block_number, None);
+
+        let report = provider.check_node(&NodeCheckRequest::Basic, &NodeSyncStatus::in_sync(), Duration::ZERO).await;
+
+        assert_eq!(report.checks.len(), 1);
+        assert_eq!(report.checks[0].method, "all_mids");
+        assert_eq!(report.checks[0].status, NodeCheckStatus::Passed { result: "available".to_string() });
+    }
 
     #[tokio::test]
     async fn test_get_user_abstraction() {

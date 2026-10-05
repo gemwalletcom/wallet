@@ -1,6 +1,6 @@
 mod api_clients;
-mod database;
 mod production;
+pub(crate) mod repository;
 mod scan_addresses;
 mod setup_dev;
 

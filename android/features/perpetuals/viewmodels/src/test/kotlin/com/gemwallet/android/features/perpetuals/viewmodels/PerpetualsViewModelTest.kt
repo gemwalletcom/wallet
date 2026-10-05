@@ -41,10 +41,12 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButtonKind
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemValueHeader
@@ -109,6 +111,26 @@ class PerpetualsViewModelTest {
         assertEquals(1, collections.get())
         assertEquals(listOf(pinned.perpetual.id.toIdentifier()), subject.pinnedPerpetuals.value.map { it.data.perpetual.id })
         assertEquals(listOf(unpinned.perpetual.id.toIdentifier()), subject.unpinnedPerpetuals.value.map { it.data.perpetual.id })
+    }
+
+    @Test
+    fun `deposit uses cached availability and can retry after it changes`() = runTest(dispatcher) {
+        val service = mockk<GemPerpetualServiceInterface>(relaxed = true)
+        every { service.isAvailable() } returns false
+        val subject = viewModel(service)
+        var deposits = 0
+        advanceUntilIdle()
+        assertNull(subject.infoSheet.value)
+
+        subject.deposit { deposits += 1 }
+        assertEquals(0, deposits)
+        assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+
+        subject.infoSheet.value = null
+        every { service.isAvailable() } returns true
+        subject.deposit { deposits += 1 }
+        assertEquals(1, deposits)
+        assertNull(subject.infoSheet.value)
     }
 
     private fun viewModel(

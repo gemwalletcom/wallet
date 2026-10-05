@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemEmptyState
 import struct Gemstone.GemNetworkAssetSections
 import struct Gemstone.GemToast
 import protocol Gemstone.GemWalletHomeServiceProtocol
@@ -70,8 +71,8 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         return NetworkAssetGroups(pinned: rows.assets(ids: ids.pinned), unpinned: rows.assets(ids: ids.unpinned), hidden: rows.assets(ids: ids.hidden), sections: ids.sections)
     }
 
-    var emptyModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .networkAssets) { [onManageAssetsAction] action in
+    func emptyModel(_ state: GemEmptyState) -> EmptyStateViewModel {
+        EmptyStateViewModel(state: state) { [onManageAssetsAction] action in
             switch action {
             case .manageTokenList: onManageAssetsAction()
             case .buy, .swap, .receive, .addCustomToken, .clearFilters: break

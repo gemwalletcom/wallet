@@ -39,7 +39,7 @@ public final class AssetsResultsSceneViewModel: SearchResultActions {
         self.service = service
         self.title = title
         var request = request
-        request.searchKey = service.searchKey(query: request.searchBy, scope: request.scope.gemScope)
+        request.searchKey = request.scope.gemScope.searchKey(query: request.searchBy)
         request.limit = Int(service.walletSearchLimits(query: request.searchBy).results)
         searchQuery = ObservableQuery(request, initialValue: .empty)
         onSelectAssetAction = onSelectAsset

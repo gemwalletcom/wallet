@@ -1,5 +1,6 @@
+use primitives::ChainFeeEstimates;
 use rocket::{State, get};
-use services::chain::{ChainFeeEstimates, FeeEstimatesClient};
+use services::chain::FeeEstimatesClient;
 
 use crate::api_clients::PermissionChainRead;
 use crate::params::ChainParam;

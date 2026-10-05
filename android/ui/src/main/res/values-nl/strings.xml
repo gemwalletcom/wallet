@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Aangepast</string>
+  <string name="fee_rate_priority">Prioriteitskosten</string>
+  <string name="fee_rate_base">Basiskosten</string>
   <string name="banner_account_activation_title">Accountactivatiekosten</string>
   <string name="banner_account_activation_description">Voor het %1$s-netwerk is een eenmalige vergoeding van %2$s vereist.</string>
   <string name="banner_stake_title">Begin met uitzetten %1$s</string>
@@ -442,9 +444,12 @@
   <string name="lock_privacy_lock">Privacyslot</string>
   <string name="lock_footer">Beveilig de toegang tot deze app op uw apparaat</string>
   <string name="lock_passcode">Toegangscode</string>
+  <string name="lock_passcode_off_title">Toegangscode van apparaat staat uit</string>
+  <string name="lock_passcode_off_description">Gem is vergrendeld met de toegangscode van je apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Je portemonnees zijn veilig.</string>
   <string name="verify_phrase_title">Bevestig</string>
   <string name="warnings_externally_controlled_account">Dit %1$s-account kan door iemand anders worden beheerd. Stuur er geen geld naartoe, tenzij u zeker weet dat u het zelf beheert, anders kunt u uw bezittingen permanent kwijtraken.</string>
   <string name="sell_title">Verkoop %1$s</string>
+  <string name="info_region_unavailable_description">Deze functie is niet beschikbaar in je regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders.</string>
   <string name="info_network_fee_title">Netwerkkosten</string>
   <string name="info_watch_wallet_title">Kijk-portemonnee</string>
   <string name="info_watch_wallet_description">Een portemonnee waar u geen toegang toe heeft, maar wel de transacties en bewegingen ervan kunt bekijken.</string>

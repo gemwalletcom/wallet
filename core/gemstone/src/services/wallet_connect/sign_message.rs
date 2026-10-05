@@ -15,7 +15,7 @@ use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::localization::GemLocalizedText;
 use crate::services::name::GemNameService;
-use crate::services::simulation::{GemSimulationFormatter, GemSimulationPayloadRow, address_requests, named_payload_rows, warning_rows};
+use crate::services::simulation::{GemSimulationFormatter, address_requests, named_payload_rows, warning_rows};
 use crate::services::wallet::GemKeystorePassword;
 use crate::services::wallet::model::wallet_row;
 use crate::services::wallet_connect::model::GemWalletConnectMessageRequest;
@@ -25,8 +25,8 @@ use primitives::BlockExplorerLink;
 pub struct GemSignMessagePreview {
     pub title: GemLocalizedText,
     pub text: String,
-    pub primary_fields: Vec<GemSimulationPayloadRow>,
-    pub secondary_fields: Vec<GemSimulationPayloadRow>,
+    pub primary_fields: Vec<GemListRow>,
+    pub secondary_fields: Vec<GemListRow>,
     pub has_critical_warning: bool,
     pub header: Option<GemSimulationValue>,
     pub rows: Vec<GemListRow>,

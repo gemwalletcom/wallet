@@ -1,6 +1,7 @@
 use primitives::{Asset, Currency, Price, PriceAlert, PriceAlertData};
 
-use crate::services::price_alert::rules::{self, GemAssetPriceAlerts, GemPriceAlertListSection};
+use crate::models::state::GemLoadState;
+use crate::services::price_alert::rules::{self, GemAssetPriceAlerts, GemPriceAlertList};
 
 #[derive(Default, uniffi::Object)]
 pub struct PriceAlertFormatter {}
@@ -16,11 +17,11 @@ impl PriceAlertFormatter {
         alert.id()
     }
 
-    pub fn sections(&self, alerts: Vec<PriceAlertData>, price_currency: Currency) -> Vec<GemPriceAlertListSection> {
-        rules::price_alert_list_sections(alerts, price_currency)
+    pub fn list(&self, alerts: Vec<PriceAlertData>, price_currency: Currency, state: GemLoadState) -> GemPriceAlertList {
+        rules::price_alert_list(alerts, price_currency, state)
     }
 
-    pub fn asset_alerts(&self, asset: Asset, price: Option<Price>, alerts: Vec<PriceAlertData>, price_currency: Currency) -> GemAssetPriceAlerts {
-        rules::asset_price_alerts(asset, price, alerts, price_currency)
+    pub fn asset_alerts(&self, asset: Asset, price: Option<Price>, alerts: Vec<PriceAlertData>, price_currency: Currency, state: GemLoadState) -> GemAssetPriceAlerts {
+        rules::asset_price_alerts(asset, price, alerts, price_currency, state)
     }
 }

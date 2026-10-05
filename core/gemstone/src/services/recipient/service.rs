@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::{Chain, ContactData, Wallet};
+use primitives::{Chain, ContactData, WalletAddressItem};
 
 use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientSection, GemRecipientType};
 use super::rules::{contact_recipients, recipient_sections, scan_route, select_step};
@@ -22,9 +22,9 @@ impl GemRecipientService {
         Self { payments, session }
     }
 
-    pub fn recipient_sections(&self, wallets: Vec<Wallet>, chain: Chain, contacts: Vec<ContactData>) -> Vec<GemRecipientSection> {
+    pub fn recipient_sections(&self, wallets: Vec<WalletAddressItem>, chain: Chain, contacts: Vec<ContactData>) -> Vec<GemRecipientSection> {
         let current = self.session.get_current_wallet_id().unwrap_or_default();
-        let others = wallets.into_iter().filter(|wallet| Some(&wallet.id) != current.as_ref()).collect();
+        let others = wallets.into_iter().filter(|item| Some(&item.wallet.id) != current.as_ref()).collect();
         recipient_sections(others, chain, contact_recipients(contacts, chain))
     }
 

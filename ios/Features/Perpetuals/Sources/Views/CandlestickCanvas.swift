@@ -24,7 +24,7 @@ struct CandlestickCanvas: View {
 
     var body: some View {
         Canvas { context, _ in
-            let levels = plot.levels
+            let levels = plot.chart.layout.levels
             drawGrid(levels, in: &context)
             drawVolumes(in: &context)
             drawCandles(in: &context)

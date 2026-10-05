@@ -40,7 +40,6 @@ struct ServicesFactory {
         let deviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
             subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, session: walletSessionService),
-            session: walletSessionService,
             platform: devicePlatform,
             preferences: preferencesService,
         )
@@ -57,6 +56,7 @@ struct ServicesFactory {
             ],
         )
         let apiClient = Gemstone.GemApiClient(provider: nativeProvider)
+        let configService = Gemstone.GemConfigService(api: apiClient, preferences: preferencesService)
         let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider)
         let priceService = Gemstone.GemPriceService(
             store: GemstonePriceStore(priceStore: stores.priceStore),
@@ -132,6 +132,7 @@ struct ServicesFactory {
             explorer: explorerService,
             preferences: preferencesService,
             session: walletSessionService,
+            config: configService,
         )
         let nftService = Gemstone.GemNftService(api: deviceApiClient, store: GemstoneNftStore(store: stores.nftStore), session: walletSessionService)
         let transactionStateStore = GemstoneTransactionStateStore(store: stores.transactionStore)
@@ -167,6 +168,7 @@ struct ServicesFactory {
             walletPreferences: walletPreferencesService,
             session: walletSessionService,
             recentActivity: recentAssetsService,
+            config: configService,
         )
         let portfolioService = Gemstone.GemPortfolioService(
             api: deviceApiClient,
@@ -264,7 +266,6 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
         )
 
-        let configService = Gemstone.GemConfigService(api: apiClient, preferences: preferencesService)
         let appUpdateService = Gemstone.GemAppUpdateService(config: configService, preferences: preferencesService)
         let rateService = RateService(preferencesService: preferencesService)
 
@@ -307,6 +308,7 @@ struct ServicesFactory {
             ),
             balance: balanceService,
             session: walletSessionService,
+            config: configService,
         )
         let toastPresenter = ToastPresenter()
         let pushNotificationService = Gemstone.GemPushNotificationService()
@@ -323,6 +325,7 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
         )
         let searchService = Gemstone.GemSearchService(
+            api: apiClient,
             assets: assetsService,
             balance: balanceService,
             price: priceService,
@@ -373,6 +376,7 @@ struct ServicesFactory {
             avatarService: avatarService,
             bannerService: bannerService,
             balanceService: balanceService,
+            configService: configService,
             confirmTransferService: confirmTransferService,
             contactService: contactService,
             contactEditorService: Gemstone.GemContactEditorService(

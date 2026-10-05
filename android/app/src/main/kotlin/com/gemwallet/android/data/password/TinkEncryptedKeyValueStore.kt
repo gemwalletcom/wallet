@@ -27,7 +27,7 @@ internal class TinkEncryptedKeyValueStore(context: Context, private val config: 
     override fun putString(key: String, value: String): Unit = synchronized(secureStorageLock) {
         val encryptedValue = aeadProvider().encrypt(value.toByteArray(UTF_8), associatedData(key))
         val encodedValue = Base64.getEncoder().encodeToString(encryptedValue)
-        if (!sharedPreferences.edit().putString(storageKey(key), encodedValue).commit()) {
+        if (!sharedPreferences.putStringDurably(storageKey(key), encodedValue)) {
             throw IllegalStateException("Secure value write failed")
         }
     }

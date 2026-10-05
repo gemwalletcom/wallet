@@ -29,6 +29,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.space0
 import uniffi.gemstone.GemEmptyStateAction
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionsFilterSession
@@ -39,7 +40,7 @@ import uniffi.gemstone.GemTransactionsFilterView
 internal fun TransactionsScene(
     isRefreshing: Boolean,
     transactions: List<GemTransactionRow>?,
-    errorRow: GemListRow?,
+    phase: GemListPhase?,
     filter: GemTransactionsFilterSession,
     filterView: GemTransactionsFilterView,
     listState: LazyListState = rememberLazyListState(),
@@ -69,17 +70,17 @@ internal fun TransactionsScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(TransactionsAction.Refresh) },
         ) {
-            when {
-                transactions == null -> Unit
+            when (phase) {
+                null -> Unit
 
-                errorRow != null -> LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    item { GemListRowView(row = errorRow, listPosition = ListPosition.Single) }
+                is GemListPhase.Error -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item { GemListRowView(row = GemListRow.Error(phase.error), listPosition = ListPosition.Single) }
                 }
 
-                transactions.isEmpty() -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                is GemListPhase.Empty -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         EmptyContentView(
-                            state = filterView.emptyState,
+                            state = phase.state,
                             onAction = { action ->
                                 when (action) {
                                     GemEmptyStateAction.BUY -> onAction(TransactionsAction.Buy)
@@ -93,7 +94,7 @@ internal fun TransactionsScene(
                     }
                 }
 
-                else -> LazyColumn(
+                GemListPhase.Rows -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
                 ) {

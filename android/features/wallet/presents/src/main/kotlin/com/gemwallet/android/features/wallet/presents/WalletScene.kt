@@ -31,7 +31,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.wallet.aggregates.WalletSummary
 import com.gemwallet.android.features.assets.presents.banner.Banner
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewAction
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
@@ -51,7 +50,7 @@ import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerKey
-import uniffi.gemstone.GemBannerRow
+import uniffi.gemstone.GemWalletHomeViewState
 
 private const val WalletHeaderItemKey = "assets_head"
 private const val InAppUpdateBannerItemKey = "in_app_update_banner"
@@ -65,13 +64,12 @@ private const val AssetsListTag = "assets_list"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WalletScene(
-    walletSummary: WalletSummary?,
+    homeState: GemWalletHomeViewState?,
+    isBalanceHidden: Boolean,
     importing: Boolean,
     pinnedAssets: List<AssetInfoDataAggregate>,
     unpinnedAssets: List<AssetInfoDataAggregate>,
-    bannerRow: GemBannerRow?,
     isRefreshing: Boolean,
-    collectionsAvailable: Boolean,
     snackbar: SnackbarHostState,
     listState: LazyListState,
     assetActions: AssetContextActions,
@@ -87,7 +85,7 @@ internal fun WalletScene(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             WalletTopBar(
-                walletSummary = walletSummary,
+                walletRow = homeState?.walletRow,
                 onShowWallets = { onAction(WalletAction.ShowWallets) },
                 onSearch = { onAction(WalletAction.Search) },
                 onScan = { onAction(WalletAction.Scan) },
@@ -111,7 +109,8 @@ internal fun WalletScene(
             ) {
                 item(key = WalletHeaderItemKey) {
                     WalletHeader(
-                        walletSummary = walletSummary,
+                        header = homeState?.header,
+                        isBalanceHidden = isBalanceHidden,
                         onSendClick = { onAction(WalletAction.Send) },
                         onReceiveClick = { onAction(WalletAction.Receive) },
                         onBuyClick = { onAction(WalletAction.Buy) },
@@ -123,7 +122,7 @@ internal fun WalletScene(
                 item(key = InAppUpdateBannerItemKey) {
                     InAppUpdateBanner()
                 }
-                bannerRow?.let { banner ->
+                homeState?.banner?.let { banner ->
                     item(key = BannersItemKey) {
                         Banner(
                             banner = banner,
@@ -167,7 +166,7 @@ internal fun WalletScene(
                         }
                     }
                 }
-                if (walletSummary?.state?.showsPerpetuals == true) {
+                if (homeState?.showsPerpetuals == true) {
                     item(key = PerpetualsSectionItemKey) {
                         PerpetualsPreviewSection(
                             onOpenPerpetuals = { onAction(WalletAction.Perpetuals) },
@@ -189,9 +188,10 @@ internal fun WalletScene(
                     onAssetClick = { onAction(WalletAction.OpenAsset(it)) },
                     actions = assetActions,
                 )
-                if (collectionsAvailable) {
+                if (homeState?.showCollections == true) {
                     item(key = CollectionsSectionItemKey) {
                         CollectionsPreviewSection(
+                            collections = homeState.collections,
                             onAction = { action ->
                                 when (action) {
                                     CollectionsPreviewAction.OpenCollections -> onAction(WalletAction.OpenCollections)

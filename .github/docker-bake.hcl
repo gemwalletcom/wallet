@@ -26,8 +26,8 @@ target "core" {
     "ghcr.io/gemwalletcom/wallet/core:latest",
     "ghcr.io/gemwalletcom/wallet/core:${GITHUB_SHA}",
   ]
-  cache-from = ["type=gha,scope=core"]
-  cache-to = ["type=gha,mode=max,scope=core"]
+  cache-from = ["type=gha,version=2,scope=core"]
+  cache-to = ["type=gha,version=2,mode=max,scope=core"]
 }
 
 target "dynode" {
@@ -37,6 +37,6 @@ target "dynode" {
     "ghcr.io/gemwalletcom/wallet/dynode:latest",
     "ghcr.io/gemwalletcom/wallet/dynode:${GITHUB_SHA}",
   ]
-  cache-from = ["type=gha,scope=dynode"]
-  cache-to = ["type=gha,mode=max,scope=dynode"]
+  cache-from = ["type=gha,version=2,scope=dynode"]
+  cache-to = ["type=gha,version=2,mode=max,scope=dynode"]
 }

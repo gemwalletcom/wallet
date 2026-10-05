@@ -1,9 +1,11 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::error::Error;
 use std::time::Duration;
 
 use chrono::Utc;
-use storage::{Database, DatabaseError, TransactionsRepository, WalletsRepository};
+use std::sync::Arc;
+
+use super::repository::{Repository, TransactionCleanupResult};
 
 #[derive(Clone)]
 pub struct TransactionCleanupConfig {
@@ -14,13 +16,13 @@ pub struct TransactionCleanupConfig {
 
 #[derive(Clone)]
 pub struct TransactionCleanup {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: TransactionCleanupConfig,
 }
 
 impl TransactionCleanup {
-    pub fn new(database: Database, config: TransactionCleanupConfig) -> Self {
-        Self { database, config }
+    pub(crate) fn new(repository: Arc<dyn Repository>, config: TransactionCleanupConfig) -> Self {
+        Self { repository, config }
     }
 
     pub async fn cleanup(&self) -> Result<HashMap<String, usize>, Box<dyn Error + Send + Sync>> {
@@ -28,31 +30,18 @@ impl TransactionCleanup {
         let address_max_count = self.config.address_max_count;
         let address_limit = self.config.address_limit as i64;
 
-        Ok(self
-            .database
-            .run(move |client| -> Result<HashMap<String, usize>, DatabaseError> {
-                let heavy_addresses = client.get_transactions_addresses(address_max_count, address_limit, since)?;
-
-                if heavy_addresses.is_empty() {
-                    return Ok(HashMap::new());
-                }
-
-                client.add_subscriptions_exclude_addresses(heavy_addresses.clone())?;
-
-                let total_addresses = heavy_addresses.len();
-
-                let affected_transaction_ids = client.delete_transactions_addresses(heavy_addresses)?;
-                let total_transactions_addresses = affected_transaction_ids.len();
-
-                let unique_ids: Vec<i64> = affected_transaction_ids.into_iter().collect::<HashSet<_>>().into_iter().collect();
-                let total_deleted_transactions = client.delete_orphaned_transactions(unique_ids)?;
-
-                Ok(HashMap::from([
-                    ("addresses".to_string(), total_addresses),
-                    ("transactions_addresses".to_string(), total_transactions_addresses),
-                    ("transactions_deleted".to_string(), total_deleted_transactions),
-                ]))
-            })
-            .await?)
+        let Some(TransactionCleanupResult {
+            addresses,
+            transactions_addresses,
+            transactions_deleted,
+        }) = self.repository.cleanup_heavy_addresses(address_max_count, address_limit, since).await?
+        else {
+            return Ok(HashMap::new());
+        };
+        Ok(HashMap::from([
+            ("addresses".to_string(), addresses),
+            ("transactions_addresses".to_string(), transactions_addresses),
+            ("transactions_deleted".to_string(), transactions_deleted),
+        ]))
     }
 }

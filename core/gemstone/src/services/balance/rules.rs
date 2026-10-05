@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use crate::services::collections::{missing, unique};
-
 use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, BalanceMetadata, Chain, TotalFiatValue};
 
 use super::model::{GemAssetBalance, GemAssetConfiguration, GemBalanceRecord, GemBalanceUpdate, GemBalanceUpdateType};
@@ -182,14 +180,6 @@ pub fn enabled_configuration(enabled: bool) -> GemAssetConfiguration {
 
 pub fn pinned_configuration(pinned: bool) -> GemAssetConfiguration {
     GemAssetConfiguration { is_enabled: None, is_pinned: Some(pinned) }
-}
-
-pub fn missing_asset_ids(requested: &[AssetId], stored: &[AssetId]) -> Vec<AssetId> {
-    missing(requested.iter().cloned(), stored.iter().cloned())
-}
-
-pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
-    unique(asset_ids)
 }
 
 pub fn exclude_native_mirrors(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
@@ -388,15 +378,6 @@ mod tests {
         assert_eq!(records[0].available.value, BigUint::from(1_500_000_000_000_000_000u64));
         assert_eq!(records[0].available.amount, 1.5);
         assert_eq!(records[0].staked.amount, 0.0);
-    }
-
-    #[test]
-    fn test_enable_asset_rules() {
-        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
-        let ethereum = AssetId::from_chain(Chain::Ethereum);
-
-        assert_eq!(unique_asset_ids(vec![bitcoin.clone(), ethereum.clone(), bitcoin.clone()]), vec![bitcoin.clone(), ethereum.clone()]);
-        assert_eq!(missing_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
     }
 
     #[test]

@@ -49,6 +49,10 @@ class ConnectionsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Companion.Lazily, emptyList())
 
+    val phase = view
+        .map { it?.phase }
+        .stateIn(viewModelScope, SharingStarted.Companion.Lazily, null)
+
     val docsUrl = view
         .map { it?.docsUrl }
         .stateIn(viewModelScope, SharingStarted.Companion.Lazily, null)

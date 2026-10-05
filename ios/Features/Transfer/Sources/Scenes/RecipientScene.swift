@@ -114,6 +114,8 @@ public struct RecipientScene: View {
         }
         .bindQuery(model.contactsQuery)
         .bindQuery(model.walletsQuery)
+        .onChange(of: model.walletsQuery.value, initial: true) { model.updateRecipientSections() }
+        .onChange(of: model.contactsQuery.value) { model.updateRecipientSections() }
         .onChange(of: model.addressInputModel.text, model.onChangeAddressText)
     }
 }

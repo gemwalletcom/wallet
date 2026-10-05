@@ -2,14 +2,16 @@ package com.gemwallet.android.features.wallet.viewmodels
 
 import android.util.Log
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
-import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.assets.cases.GetWalletHomeState
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetInfoDataAggregate
+import com.gemwallet.android.testkit.mockGemWalletHomeViewState
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
@@ -24,7 +26,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -37,6 +38,7 @@ import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletHomeServiceInterface
+import uniffi.gemstone.GemWalletHomeViewState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WalletViewModelTest {
@@ -57,8 +59,14 @@ class WalletViewModelTest {
     private val getActiveAssetsInfo = object : GetActiveAssetsInfo {
         override fun assetsInfo(): StateFlow<List<AssetInfoDataAggregate>> = activeAssetsFlow
     }
-    private val getWalletSummary = mockk<GetWalletSummary>(relaxed = true) {
-        every { getWalletSummary() } returns flowOf(null)
+    private val homeState = MutableStateFlow<GemWalletHomeViewState?>(
+        mockGemWalletHomeViewState(
+            pinnedAssetIds = listOf(mockAssetId(chain = Chain.Solana).toIdentifier()),
+            assetIds = listOf(mockAssetId(chain = Chain.Ethereum).toIdentifier()),
+        ),
+    )
+    private val getWalletHomeState = object : GetWalletHomeState {
+        override fun walletHomeState(): StateFlow<GemWalletHomeViewState?> = homeState
     }
     private val session = MutableStateFlow<Session?>(null)
     private val getSession = object : GetSession {
@@ -77,30 +85,26 @@ class WalletViewModelTest {
     }
 
     @Test
-    fun `pinned and unpinned assets replay current wallet assets`() = runTest(testDispatcher) {
+    fun `the first frame already shows the home state's sections`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
-
-        assertEquals("the first frame is already grouped", listOf(activeAssetsFlow.value[0]), viewModel.pinnedAssets.value)
-        assertEquals(listOf(activeAssetsFlow.value[1]), viewModel.unpinnedAssets.value)
-
-        advanceUntilIdle()
 
         assertEquals(listOf(activeAssetsFlow.value[0]), viewModel.pinnedAssets.value)
         assertEquals(listOf(activeAssetsFlow.value[1]), viewModel.unpinnedAssets.value)
     }
 
     @Test
-    fun `a pin change moves the asset between the sections in one update`() = runTest(testDispatcher) {
+    fun `the sections follow the ids of a new home state`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         advanceUntilIdle()
-        val solana = mockAssetInfoDataAggregate(asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9))
-        val ethereum = mockAssetInfoDataAggregate(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), pinned = true)
 
-        activeAssetsFlow.value = listOf(solana, ethereum)
+        homeState.value = mockGemWalletHomeViewState(
+            pinnedAssetIds = listOf(mockAssetId(chain = Chain.Ethereum).toIdentifier()),
+            assetIds = listOf(mockAssetId(chain = Chain.Solana).toIdentifier()),
+        )
         advanceUntilIdle()
 
-        assertEquals(listOf(ethereum), viewModel.pinnedAssets.value)
-        assertEquals(listOf(solana), viewModel.unpinnedAssets.value)
+        assertEquals(listOf(activeAssetsFlow.value[1]), viewModel.pinnedAssets.value)
+        assertEquals(listOf(activeAssetsFlow.value[0]), viewModel.unpinnedAssets.value)
     }
 
     @Test
@@ -165,7 +169,7 @@ class WalletViewModelTest {
     private fun createViewModel() = WalletViewModel(
         service = service,
         getActiveAssetsInfo = getActiveAssetsInfo,
-        getWalletSummary = getWalletSummary,
+        getWalletHomeState = getWalletHomeState,
         getSession = getSession,
         preferences = mockk(relaxed = true),
         ioDispatcher = testDispatcher,

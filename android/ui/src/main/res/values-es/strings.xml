@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizado</string>
+  <string name="fee_rate_priority">Tarifa de prioridad</string>
+  <string name="fee_rate_base">Tarifa base</string>
   <string name="banner_account_activation_title">Tarifa de activación de cuenta</string>
   <string name="banner_account_activation_description">La red %1$s requiere una tarifa única de %2$s.</string>
   <string name="banner_stake_title">Empezar a hacer stake de %1$s</string>
@@ -442,9 +444,12 @@
   <string name="lock_privacy_lock">Bloqueo de privacidad</string>
   <string name="lock_footer">Proteger el acceso a esta aplicación en su dispositivo</string>
   <string name="lock_passcode">Código de acceso</string>
+  <string name="lock_passcode_off_title">El código del dispositivo está desactivado</string>
+  <string name="lock_passcode_off_description">Gem está bloqueado con el código de su dispositivo. Active un código en los ajustes del dispositivo para abrir Gem. Sus billeteras están a salvo.</string>
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta cuenta de %1$s puede estar controlada por otra persona. No envíe fondos a ella a menos que esté seguro de que la controla, o podría perder sus activos de forma permanente.</string>
   <string name="sell_title">Vender %1$s</string>
+  <string name="info_region_unavailable_description">Esta función no está disponible en tu región. La disponibilidad depende de las normas locales y de los requisitos de los proveedores.</string>
   <string name="info_network_fee_title">Tarifa de red</string>
   <string name="info_watch_wallet_title">Billetera de observación</string>
   <string name="info_watch_wallet_description">Una billetera a la que no tienes acceso, pero puedes observar sus transacciones y movimientos.</string>

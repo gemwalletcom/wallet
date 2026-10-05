@@ -476,6 +476,8 @@ fee_rates_normal = Normální
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Vlastní
+fee_rate_priority = Prioritní poplatek
+fee_rate_base = Základní poplatek
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = Odemknout
 lock_privacy_lock = Zámek soukromí
 lock_footer = Chraňte přístup k této aplikaci na svém zařízení
 lock_passcode = Přístupový kód
+lock_passcode_off_title = Kód zařízení je vypnutý
+lock_passcode_off_description = Gem je zamčený kódem zařízení. Abyste Gem otevřeli, zapněte kód v nastavení zařízení. Vaše peněženky jsou v bezpečí.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Tento účet %@ může ovládat někdo 
 sell_title = Prodat %@
 
 # Info
+
+info_region_unavailable_description = Tato funkce není ve vašem regionu k dispozici. Dostupnost závisí na místních pravidlech a požadavcích poskytovatelů.
 
 info_network_fee_title = Síťový poplatek
 info_watch_wallet_title = Sledovaná peněženka

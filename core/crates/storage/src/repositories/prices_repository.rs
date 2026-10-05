@@ -11,7 +11,7 @@ use crate::error::ResourceName;
 use crate::models::min_max::MinMax;
 use crate::models::{ChartRow, PriceAssetRow, PriceProviderConfigRow, PriceRow, price::NewPriceRow, price::PricesChangeset};
 use crate::repositories::assets_repository::{all_asset_ids, asset_ids_updated_since, asset_rows};
-use crate::repositories::charts_repository::{ChartResult, chart_extremes, chart_price_at, insert_chart_rows};
+use crate::repositories::charts_repository::{ChartResult, aggregate_chart_rows, chart_extremes, chart_price_at, insert_chart_rows};
 use crate::repositories::prices_providers_repository::price_provider_rows;
 use crate::sql_types::PriceProviderRow;
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
@@ -280,35 +280,39 @@ impl PricesRepository for DatabaseClient {
         if prices.is_empty() {
             return Ok(vec![]);
         }
-        let prices: Vec<PriceRow> = prices.into_iter().map(PriceRow::from_price_data).collect();
-        let price_ids: Vec<String> = prices.iter().map(|p| p.id.to_string()).collect();
-        let mappings = price_assets_for_price_ids(self, price_ids)?;
-        let mapped_ids: HashSet<String> = mappings.iter().map(|m| m.price_id.to_string()).collect();
-        let to_store: Vec<PriceRow> = prices.into_iter().filter(|p| mapped_ids.contains(&p.id.to_string())).collect();
-        if to_store.is_empty() {
-            return Ok(vec![]);
-        }
-        let ids: Vec<String> = to_store.iter().map(|p| p.id.to_string()).collect();
-        let incoming_by_id: HashMap<String, PriceRow> = to_store.iter().cloned().map(|p| (p.id.to_string(), p)).collect();
-        upsert_prices(self, to_store)?;
+        self.transaction(move |client| {
+            let prices: Vec<PriceRow> = prices.into_iter().map(PriceRow::from_price_data).collect();
+            let price_ids: Vec<String> = prices.iter().map(|p| p.id.to_string()).collect();
+            let mappings = price_assets_for_price_ids(client, price_ids)?;
+            let mapped_ids: HashSet<String> = mappings.iter().map(|m| m.price_id.to_string()).collect();
+            let to_store: Vec<PriceRow> = prices.into_iter().filter(|p| mapped_ids.contains(&p.id.to_string())).collect();
+            if to_store.is_empty() {
+                return Ok(vec![]);
+            }
+            let ids: Vec<String> = to_store.iter().map(|p| p.id.to_string()).collect();
+            let incoming_by_id: HashMap<String, PriceRow> = to_store.iter().cloned().map(|p| (p.id.to_string(), p)).collect();
+            upsert_prices(client, to_store)?;
 
-        let current_prices = prices_by_filter(self, vec![PriceFilter::Ids(ids)])?;
-        let extreme_updates: Vec<(String, Vec<PriceUpdate>)> = current_prices
-            .iter()
-            .filter_map(|price| {
-                let id = price.id.to_string();
-                let updates = price.merge_extremes(incoming_by_id.get(&id));
-                (!updates.is_empty()).then_some((id, updates))
-            })
-            .collect();
-        for (id, updates) in extreme_updates {
-            self.update_prices(vec![id], updates)?;
-        }
+            let current_prices = prices_by_filter(client, vec![PriceFilter::Ids(ids)])?;
+            let extreme_updates: Vec<(String, Vec<PriceUpdate>)> = current_prices
+                .iter()
+                .filter_map(|price| {
+                    let id = price.id.to_string();
+                    let updates = price.merge_extremes(incoming_by_id.get(&id));
+                    (!updates.is_empty()).then_some((id, updates))
+                })
+                .collect();
+            for (id, updates) in extreme_updates {
+                client.update_prices(vec![id], updates)?;
+            }
 
-        let charts: Vec<ChartRow> = current_prices.iter().cloned().map(ChartRow::from_price).collect();
-        insert_chart_rows(self, ChartTimeframe::Raw, charts)?;
+            let chart_price_ids: Vec<String> = current_prices.iter().map(|price| price.id.to_string()).collect();
+            let charts: Vec<ChartRow> = current_prices.iter().cloned().map(ChartRow::from_price).collect();
+            insert_chart_rows(client, ChartTimeframe::Raw, charts)?;
+            aggregate_chart_rows(client, &chart_price_ids)?;
 
-        Ok(mappings.into_iter().map(|m| m.asset_id.0).collect::<HashSet<_>>().into_iter().collect())
+            Ok(mappings.into_iter().map(|m| m.asset_id.0).collect::<HashSet<_>>().into_iter().collect())
+        })
     }
 
     fn get_assets_markets(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError> {

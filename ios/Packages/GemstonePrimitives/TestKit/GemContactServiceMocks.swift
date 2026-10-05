@@ -66,7 +66,11 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     }
 
     public func connectionsView(connections _: [Gemstone.WalletConnection]) -> GemConnectionsView {
-        GemConnectionsView(sections: connectionSectionsValue, docsUrl: "https://docs.gemwallet.com/guides/walletconnect/")
+        GemConnectionsView(
+            sections: connectionSectionsValue,
+            phase: connectionSectionsValue.isEmpty ? .empty(state: emptyState(kind: .walletConnect)) : .rows,
+            docsUrl: "https://docs.gemwallet.com/guides/walletconnect/",
+        )
     }
 
     public func deleteSession(sessionId: String) async throws {
@@ -196,11 +200,11 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
         .map { UInt64(max($0.createdAt.timeIntervalSince1970, 0)) } ?? 0
     }
 
-    public func refresh(fromTimestamp: UInt64, hasMessages: Bool) async -> GemLoadState {
+    public func refresh(fromTimestamp: UInt64) async -> GemLoadState {
         syncedTimestamps.append(fromTimestamp)
         guard let syncError else {
             return .data
         }
-        return hasMessages ? .data : .error(error: .Api(msg: syncError.localizedDescription))
+        return .error(error: .Api(msg: syncError.localizedDescription))
     }
 }

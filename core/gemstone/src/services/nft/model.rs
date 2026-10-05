@@ -4,8 +4,8 @@ use primitives::{NFTAssetData, NFTData, VerificationStatus};
 
 use crate::config::social::GemSocialLink;
 use crate::models::list::{GemListRow, GemListSectionTitle};
+use crate::models::state::GemListPhase;
 use crate::services::assets::model::GemHeaderActions;
-use crate::services::empty_state::GemEmptyState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemNftList {
@@ -37,7 +37,7 @@ pub struct GemNftEntry {
 pub struct GemNftListScreen {
     pub title: GemLocalizedText,
     pub offers_receive: bool,
-    pub empty_state: GemEmptyState,
+    pub phase: GemListPhase,
     pub syncs_on_appear: bool,
     pub items: Vec<GemNftEntry>,
     pub unverified_row: Option<GemNftUnverifiedRow>,

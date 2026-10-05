@@ -1,11 +1,9 @@
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use num_traits::{ToPrimitive, Zero};
 use primitives::{AssetId, Chain, DelegationBase, DelegationState, DelegationValidator};
 
-use crate::constants::COMMISSION_SCALE;
+use crate::constants::{COMMISSION_SCALE, VALIDATOR_NAMES};
 use crate::contracts::IMonadStakingLens;
 use crate::model::{LensDelegation, LensValidator};
 
@@ -13,13 +11,13 @@ fn delegation_id(address: &str, validator_id: u64, state: DelegationState, withd
     format!("{}:{}:{}:{}", address, validator_id, state.as_ref(), withdraw_id)
 }
 
-pub fn map_validator(validator: &LensValidator, validator_names: &HashMap<u64, &str>, network_apy: f64) -> DelegationValidator {
-    let validator_name = validator_names.get(&validator.validator_id).map(|name| (*name).to_string()).unwrap_or_else(|| validator.validator_id.to_string());
+pub fn map_validator(validator: &LensValidator, network_apy: f64) -> DelegationValidator {
+    let name = VALIDATOR_NAMES.iter().find(|(id, _)| *id == validator.validator_id).map(|(_, name)| name.to_string()).unwrap_or_default();
 
     DelegationValidator::stake(
         Chain::Monad,
         validator.validator_id.to_string(),
-        validator_name,
+        name,
         validator.is_active,
         validator.commission.to_f64().unwrap_or(0.0) / COMMISSION_SCALE,
         if validator.apy_bps > 0 { validator.apy_bps as f64 / 100.0 } else { network_apy },
@@ -70,6 +68,22 @@ mod tests {
         assert_ne!(everstake, stakin_withdraw);
         assert_ne!(stakin_withdraw, stakin_active);
         assert_eq!(everstake, format!("{TEST_ADDRESS}:9:awaitingwithdrawal:1"));
+    }
+
+    #[test]
+    fn test_map_validator_names_only_the_validators_gem_lists() {
+        let validator = |validator_id: u64| LensValidator {
+            validator_id,
+            commission: BigUint::zero(),
+            apy_bps: 1_146,
+            is_active: true,
+        };
+
+        let listed = map_validator(&validator(5), 12.73);
+        let unlisted = map_validator(&validator(7), 12.73);
+
+        assert_eq!((listed.name.as_str(), listed.apr), ("Alchemy", 11.46));
+        assert_eq!((unlisted.name.as_str(), unlisted.apr), ("", 11.46));
     }
 
     #[test]

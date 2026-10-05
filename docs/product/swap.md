@@ -76,10 +76,11 @@ flowchart LR
 | The user picks another provider | the choice survives refreshes | |
 | A chosen Slippage is `3%` or more | a warning | |
 | Slippage is Auto, including Solana's `3%` | no warning | |
+| Slippage is Auto and the provider picks its own: OKX, Squid | Minimum Receive is priced with the most OKX may take, and with the slippage Squid picked | the minimum shown is one the trade keeps |
 | The user changes Slippage | the choice is kept for later swaps | |
 | The price impact is `10%` or more | "High Price Impact" asks first | |
 | The swap needs a spending approval | the approval is signed together with the swap, with one fee for both | |
-| The confirmation screen loads or refreshes and the quote on screen is older than `1 minute` on one network, or `5 minutes` across networks | the chosen provider is asked again for the same amount and slippage, and You Receive shows its new answer | a quote left on the screen never goes stale, and a cross-network provider is not asked for a new deposit every minute |
+| The confirmation screen loads or refreshes and the quote on screen is older than `1 minute` on one network, or `5 minutes` across networks | the chosen provider is asked again for the same amount and slippage, Auto staying Auto, and You Receive shows its new answer | a quote left on the screen never goes stale, and a cross-network provider is not asked for a new deposit every minute |
 | The quote is younger than that | it stays; only the fee and balances are refreshed | |
 | The chosen provider no longer answers | the error row with Retry; the provider is never switched behind the user | |
 | The user taps Confirm | the trade the screen loaded is signed with one authentication | the amounts signed are the amounts shown |
@@ -91,6 +92,8 @@ flowchart LR
 
 ## Rules
 
+- Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
 - A quote is never cached: every eligible provider is asked again for the live amount; cached routes are only hints and every quote uses live chain state.
 - Every eligible provider is awaited, so the slowest one decides how long a quote takes.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it loaded and showed.
+- The Slippage row reads Auto on both screens until the user picks a value.

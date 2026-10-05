@@ -1,6 +1,8 @@
 use gem_wallet_connect::SignDigestType;
 use primitives::Chain;
 
+pub use gem_wallet_connect::sign_type::SignMessage;
+
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
 pub enum MessageType {
     Text,
@@ -20,7 +22,7 @@ pub enum SignDigestType {
     TronPersonal,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[uniffi::remote(Record)]
 pub struct SignMessage {
     pub chain: Chain,
     pub sign_type: SignDigestType,

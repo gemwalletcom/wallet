@@ -69,6 +69,7 @@ let package = Package(
             dependencies: [
                 "Perpetuals",
                 "PerpetualsTestKit",
+                "Localization",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 "Components",
                 "Gemstone",

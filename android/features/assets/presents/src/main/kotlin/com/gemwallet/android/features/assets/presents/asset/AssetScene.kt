@@ -38,6 +38,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemEmptyStateAction
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemTransactionRow
 
@@ -47,7 +48,7 @@ internal fun AssetScene(
     details: GemAssetDetails,
     asset: Asset,
     transactions: List<GemTransactionRow>,
-    transactionsErrorRow: GemListRow?,
+    transactionsPhase: GemListPhase?,
     isRefreshing: Boolean,
     snackBar: SnackbarHostState = remember { SnackbarHostState() },
     onAction: (AssetAction) -> Unit,
@@ -111,19 +112,26 @@ internal fun AssetScene(
                         AssetDetailRowItem(row = row, action = row.detailsAction(asset.id, network), listPosition = position, onAction = onAction)
                     }
                 }
-                item {
-                    transactionsErrorRow?.let { GemListRowView(row = it, listPosition = ListPosition.Single) } ?: EmptyTransactionsItem(
-                        size = transactions.size,
-                        symbol = asset.symbol,
-                        state = detailsState.emptyState,
-                        onAction = { action ->
-                            when (action) {
-                                GemEmptyStateAction.BUY -> onAction(AssetAction.Buy(asset.id))
-                                GemEmptyStateAction.SWAP -> swapAction()
-                                GemEmptyStateAction.RECEIVE, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.MANAGE_TOKEN_LIST, GemEmptyStateAction.CLEAR_FILTERS -> Unit
-                            }
-                        },
-                    )
+                when (transactionsPhase) {
+                    is GemListPhase.Error -> item {
+                        GemListRowView(row = GemListRow.Error(transactionsPhase.error), listPosition = ListPosition.Single)
+                    }
+
+                    is GemListPhase.Empty -> item {
+                        EmptyTransactionsItem(
+                            symbol = asset.symbol,
+                            state = transactionsPhase.state,
+                            onAction = { action ->
+                                when (action) {
+                                    GemEmptyStateAction.BUY -> onAction(AssetAction.Buy(asset.id))
+                                    GemEmptyStateAction.SWAP -> swapAction()
+                                    GemEmptyStateAction.RECEIVE, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.MANAGE_TOKEN_LIST, GemEmptyStateAction.CLEAR_FILTERS -> Unit
+                                }
+                            },
+                        )
+                    }
+
+                    GemListPhase.Rows, null -> Unit
                 }
                 transactionsList(transactionSections) { onAction(AssetAction.OpenTransaction(it)) }
             }

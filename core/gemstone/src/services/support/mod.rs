@@ -63,8 +63,8 @@ impl GemSupportService {
         rules::sync_from_timestamp(messages)
     }
 
-    pub async fn refresh(&self, from_timestamp: u64, has_messages: bool) -> GemLoadState {
-        GemLoadState::refreshed(self.sync_messages(from_timestamp).await, has_messages)
+    pub async fn refresh(&self, from_timestamp: u64) -> GemLoadState {
+        GemLoadState::of(&self.sync_messages(from_timestamp).await)
     }
 
     pub async fn send_text(&self, content: String) -> Result<(), GemServiceError> {

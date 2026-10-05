@@ -93,7 +93,7 @@ pub trait ChainTraits:
         let latest_block_number = self.get_block_latest_number().await?;
 
         Ok(NodeStatus {
-            latest_block_number,
+            latest_block_number: Some(latest_block_number),
             latency_ms: started_at.elapsed().as_millis() as u64,
         })
     }

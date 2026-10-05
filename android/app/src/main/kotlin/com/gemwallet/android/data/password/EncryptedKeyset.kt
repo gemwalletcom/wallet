@@ -26,6 +26,6 @@ internal fun encryptedKeyset(preferences: SharedPreferences, name: String, maste
         }
     }
     val encrypted = TinkProtoKeysetFormat.serializeEncryptedKeyset(handle, masterAead, byteArrayOf())
-    check(preferences.edit().putString(name, encrypted.hex).commit()) { "Secure keyset write failed" }
+    check(preferences.putStringDurably(name, encrypted.hex)) { "Secure keyset write failed" }
     handle
 }

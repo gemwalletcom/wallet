@@ -17,9 +17,9 @@ public struct FiatTransactionsScene: View {
 
     public var body: some View {
         let sections = model.sections
-        let loadError = model.loadError
+        let phase = model.phase
         return List {
-            if let error = loadError {
+            if case let .error(error) = phase {
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                 }
@@ -45,8 +45,8 @@ public struct FiatTransactionsScene: View {
             .listRowInsets(.assetListRowInsets)
         }
         .overlay {
-            if sections.isEmpty, loadError == nil {
-                EmptyContentView(model: model.emptyContentModel)
+            if case let .empty(state) = phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
                     .padding(.horizontal, .medium)
             }
         }

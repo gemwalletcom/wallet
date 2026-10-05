@@ -2,6 +2,7 @@
 
 import Components
 import struct Gemstone.GemCurrencyRow
+import PrimitivesComponents
 import SwiftUI
 
 public struct CurrencyScene: View {
@@ -13,8 +14,8 @@ public struct CurrencyScene: View {
     }
 
     public var body: some View {
-        let sections = model.sections ?? []
-        List(sections, id: \.kind) { section in
+        let list = model.list
+        return List(list?.sections ?? [], id: \.kind) { section in
             Section(section.kind.title) {
                 ForEach(section.rows, id: \.currency) { row in
                     ListItemSelectionView(
@@ -33,8 +34,8 @@ public struct CurrencyScene: View {
         .textInputAutocapitalization(.never)
         .scrollDismissesKeyboard(.interactively)
         .overlay {
-            if model.sections?.isEmpty == true {
-                ContentUnavailableView.search(text: model.searchQuery)
+            if case let .empty(state) = list?.phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
             }
         }
         .task(id: model.searchQuery) {

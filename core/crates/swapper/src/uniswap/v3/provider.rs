@@ -253,7 +253,7 @@ mod tests {
     #[test]
     fn test_robinhood_supported() {
         let provider = Arc::new(ProviderMock::new("{}".to_string()));
-        let swapper = uniswap::default::new_uniswap_v3(provider);
+        let swapper = uniswap::universal_router::new_uniswap_v3(provider);
 
         assert!(swapper.support_chain(&Chain::Robinhood));
         assert!(swapper.supported_assets().contains(&SwapperChainAsset::All(Chain::Robinhood)));
@@ -262,7 +262,7 @@ mod tests {
     #[test]
     fn test_robinhood_pancakeswap_supported() {
         let provider = Arc::new(ProviderMock::new("{}".to_string()));
-        let swapper = uniswap::default::new_pancakeswap(provider);
+        let swapper = uniswap::universal_router::new_pancakeswap(provider);
 
         assert!(swapper.support_chain(&Chain::Robinhood));
         assert!(swapper.supported_assets().contains(&SwapperChainAsset::All(Chain::Robinhood)));

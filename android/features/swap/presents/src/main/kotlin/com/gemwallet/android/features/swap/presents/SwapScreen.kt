@@ -13,6 +13,8 @@ import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.presents.dialogs.PriceImpactWarningDialog
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.ui.ObserveStartedState
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapSlippageBottomSheet
@@ -28,6 +30,8 @@ fun SwapScreen(
     onConfirm: (ConfirmTransferInput) -> Unit,
     onCancel: () -> Unit,
 ) {
+    val infoSheet by viewModel.infoSheet.collectAsStateWithLifecycle()
+    InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val pay by viewModel.payAsset.collectAsStateWithLifecycle()
     val receive by viewModel.receiveAsset.collectAsStateWithLifecycle()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()

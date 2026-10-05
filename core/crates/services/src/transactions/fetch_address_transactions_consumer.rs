@@ -3,28 +3,33 @@ use std::sync::Arc;
 
 use crate::ConfigCacher;
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::{ChainProviders, TransactionsRequest, TransactionsResult};
 use config_keys::ConfigParamKey;
-use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
+use streamer::{ChainAddressPayload, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 
 pub struct FetchAddressTransactionsConsumer {
     pub providers: ChainProviders,
-    pub producer: StreamProducer,
-    pub cacher: CacherClient,
+    pub producer: Arc<dyn StreamProducerQueue>,
+    pub throttle: Arc<dyn ThrottleCacher>,
     pub config: Arc<ConfigCacher>,
 }
 
 impl FetchAddressTransactionsConsumer {
-    pub fn new(providers: ChainProviders, producer: StreamProducer, cacher: CacherClient, config: Arc<ConfigCacher>) -> Self {
-        Self { providers, producer, cacher, config }
+    pub fn new(providers: ChainProviders, producer: Arc<dyn StreamProducerQueue>, throttle: Arc<dyn ThrottleCacher>, config: Arc<ConfigCacher>) -> Self {
+        Self { providers, producer, throttle, config }
     }
 }
 
 #[async_trait]
 impl MessageConsumer<ChainAddressPayload, usize> for FetchAddressTransactionsConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.cacher.can_process_cached(CacheKey::FetchAddressTransactions(payload.value.chain.as_ref(), &payload.value.address)).await
+        self.throttle
+            .try_start(ThrottledTask::FetchAddressTransactions {
+                chain: payload.value.chain.as_ref(),
+                address: &payload.value.address,
+            })
+            .await
     }
     async fn consume(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let chain = payload.value.chain;

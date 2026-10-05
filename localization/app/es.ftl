@@ -476,6 +476,8 @@ fee_rates_normal = Normales
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Personalizado
+fee_rate_priority = Tarifa de prioridad
+fee_rate_base = Tarifa base
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = Desbloquear
 lock_privacy_lock = Bloqueo de privacidad
 lock_footer = Proteger el acceso a esta aplicación en su dispositivo
 lock_passcode = Código de acceso
+lock_passcode_off_title = El código del dispositivo está desactivado
+lock_passcode_off_description = Gem está bloqueado con el código de su dispositivo. Active un código en los ajustes del dispositivo para abrir Gem. Sus billeteras están a salvo.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Esta cuenta de %@ puede estar controlad
 sell_title = Vender %@
 
 # Info
+
+info_region_unavailable_description = Esta función no está disponible en tu región. La disponibilidad depende de las normas locales y de los requisitos de los proveedores.
 
 info_network_fee_title = Tarifa de red
 info_watch_wallet_title = Billetera de observación

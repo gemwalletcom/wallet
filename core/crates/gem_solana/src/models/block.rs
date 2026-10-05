@@ -17,12 +17,6 @@ pub struct VoteAccount {
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Block {
-    pub blockhash: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct EpochInfo {
     pub epoch: u64,
     pub slots_in_epoch: u64,

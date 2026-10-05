@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemNftEntry
+import uniffi.gemstone.GemAvatarList
 import uniffi.gemstone.GemWalletDetails
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
@@ -51,9 +51,9 @@ class WalletImageViewModel @Inject constructor(
 
     val emojis: List<String> = AvatarEmoji.all
 
-    val nftImages: StateFlow<List<GemNftEntry>> = nftQuery(walletId.id)
-        .map { data -> walletService.avatarItems(data.map { it.toGem() }) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val avatars: StateFlow<GemAvatarList?> = nftQuery(walletId.id)
+        .map { data -> walletService.avatarList(data.map { it.toGem() }) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()

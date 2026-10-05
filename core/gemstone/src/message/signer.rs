@@ -230,14 +230,15 @@ impl MessageSigner {
 mod tests {
     use super::*;
     use crate::message::{
-        eip712::{GemEIP712Section, GemEIP712Value, GemEIP712ValueType},
+        eip712::{GemEIP712Section, GemEIP712Value},
         sign_type::MessageType,
     };
-    use crate::services::simulation::GemSimulationPayloadTitle;
+    use crate::models::list::GemListRow;
+    use crate::services::localization::GemLocalizedText;
     use crate::signer::ChainTransactionSigner;
     use gem_evm::EIP712Domain;
-    use primitives::Address;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
+    use primitives::{Address, SimulationPayloadFieldType};
     use signer::Ed25519KeyPair;
 
     fn explorer_link(chain: Chain, address: String) -> BlockExplorerLink {
@@ -489,47 +490,47 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
                         GemEIP712Value {
                             name: "offerer".to_string(),
                             value: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".to_string(),
-                            value_type: GemEIP712ValueType::Address,
+                            value_type: SimulationPayloadFieldType::Address,
                         },
                         GemEIP712Value {
                             name: "zone".to_string(),
                             value: "0x004C00500000aD104D7DBd00e3ae0A5C00560C00".to_string(),
-                            value_type: GemEIP712ValueType::Address,
+                            value_type: SimulationPayloadFieldType::Address,
                         },
                         GemEIP712Value {
                             name: "offer.token".to_string(),
                             value: "0xA604060890923Ff400e8c6f5290461A83AEDACec".to_string(),
-                            value_type: GemEIP712ValueType::Address,
+                            value_type: SimulationPayloadFieldType::Address,
                         },
                         GemEIP712Value {
                             name: "startTime".to_string(),
                             value: "1658645591".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "endTime".to_string(),
                             value: "1659250386".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "zoneHash".to_string(),
                             value: "0x0000000000000000000000000000000000000000000000000000000000000000".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "salt".to_string(),
                             value: "16178208897136618".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "conduitKey".to_string(),
                             value: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "counter".to_string(),
                             value: "0".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                     ],
                 }],
@@ -576,22 +577,22 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
                         GemEIP712Value {
                             name: "address".to_string(),
                             value: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-                            value_type: GemEIP712ValueType::Address,
+                            value_type: SimulationPayloadFieldType::Address,
                         },
                         GemEIP712Value {
                             name: "timestamp".to_string(),
                             value: "1752326774".to_string(),
-                            value_type: GemEIP712ValueType::Timestamp,
+                            value_type: SimulationPayloadFieldType::Timestamp,
                         },
                         GemEIP712Value {
                             name: "nonce".to_string(),
                             value: "0".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                         GemEIP712Value {
                             name: "message".to_string(),
                             value: "This message attests that I control the given wallet".to_string(),
-                            value_type: GemEIP712ValueType::Text,
+                            value_type: SimulationPayloadFieldType::Text,
                         },
                     ],
                 }],
@@ -709,8 +710,15 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let payload_preview = decoder.payload_preview(vec![], explorer_link).unwrap().expect("expected SIWE payload preview");
         assert_eq!(payload_preview.message_type, MessageType::Siwe);
         assert_eq!(payload_preview.primary.len(), 2);
-        assert_eq!(payload_preview.primary[0].title, GemSimulationPayloadTitle::Custom { label: "domain".to_string() });
-        assert_eq!(payload_preview.primary[1].title, GemSimulationPayloadTitle::Custom { label: "address".to_string() });
+        let titles = payload_preview
+            .primary
+            .iter()
+            .map(|row| match row {
+                GemListRow::Field { title, .. } => Some(title.clone()),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(titles, vec![Some(GemLocalizedText::Text { text: "domain".to_string() }), Some(GemLocalizedText::Text { text: "address".to_string() })]);
     }
 
     #[test]

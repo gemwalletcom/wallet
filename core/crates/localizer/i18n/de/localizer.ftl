@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = Der maximale Betrag an Empfehlun
 errors_generic = Es ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es später erneut.
 fiat_error_limit_reached = Zu viele Angebotsanfragen. Bitte versuchen Sie es in ein paar Minuten erneut.
 fiat_error_quote_unavailable = Dieses Angebot ist nicht mehr verfügbar. Bitte versuchen Sie es erneut.
+fiat_error_region_unavailable = In deiner Region nicht verfügbar.
 rewards_error_referral_country_ineligible = Für Ihr Land sind derzeit keine Überweisungen möglich: {$value}Die
 notification_rewards_disabled_title = Empfehlungscode deaktiviert
 notification_rewards_disabled_description = Dieser Empfehlungscode wurde aufgrund wiederholter Verstöße gegen die Bedingungen unseres Empfehlungsprogramms deaktiviert.

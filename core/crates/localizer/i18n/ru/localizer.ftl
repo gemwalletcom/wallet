@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = Реферальный код и
 errors_generic = Произошла непредвиденная ошибка. Пожалуйста, попробуйте позже.
 fiat_error_limit_reached = Слишком много запросов котировок. Пожалуйста, попробуйте через несколько минут.
 fiat_error_quote_unavailable = Эта котировка больше недоступна. Пожалуйста, попробуйте снова.
+fiat_error_region_unavailable = Недоступно в вашем регионе.
 rewards_error_referral_country_ineligible = В настоящее время реферальные программы недоступны для вашей страны: {$value}.
 notification_rewards_disabled_title = Реферальный код деактивирован
 notification_rewards_disabled_description = Данный реферальный код отключен из-за неоднократных нарушений условий нашей реферальной программы.

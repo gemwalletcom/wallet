@@ -12,7 +12,6 @@ use crate::worker::jobs::WorkerJob;
 
 pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
     let services = context.services();
-    let settings = services.settings();
     let config = services.config();
     let assets = services.assets_jobs().await?;
 
@@ -25,12 +24,17 @@ pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<
                 async move { updater.update_suspicious_assets().await }
             }
         })
-        .jobs(WorkerJob::UpdatePerpetuals, PerpetualUpdater::chains(), |chain, _| {
-            let chain = *chain;
+        .jobs(WorkerJob::UpdatePerpetuals, PerpetualUpdater::chains(), {
+            let services = services.clone();
             let assets = assets.clone();
-            move |_| {
-                let updater = assets.perpetual_updater();
-                async move { updater.update_chain(chain).await }
+            move |chain, _| {
+                let chain = *chain;
+                let providers = Arc::new(services.chain_providers_for(chain, &service_user_agent("daemon", Some("perpetual_updater"))));
+                let assets = assets.clone();
+                move |_| {
+                    let updater = assets.perpetual_updater(providers.clone());
+                    async move { updater.update_chain(chain).await }
+                }
             }
         })
         .job(WorkerJob::UpdateUsageRanks, {
@@ -83,12 +87,10 @@ pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<
             let assets = assets.clone();
             move |chain, _| {
                 let providers = Arc::new(services.chain_providers_for(chain, &service_user_agent("daemon", Some("scan_static_assets"))));
-                let assets_url = settings.assets.url.clone();
                 let assets = assets.clone();
                 move |_| {
                     let scanner = assets.validator_scanner(providers.clone());
-                    let assets_url = assets_url.clone();
-                    async move { scanner.update_validators_from_static_assets_for_chain(chain, &assets_url).await }
+                    async move { scanner.update_validators_from_static_assets_for_chain(chain).await }
                 }
             }
         })
