@@ -364,7 +364,7 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
         filterChainsValue
     }
 
-    public func refresh(assetId: Gemstone.AssetId?, hasTransactions _: Bool) async -> GemLoadState {
+    public func refresh(assetId: Gemstone.AssetId?) async -> GemLoadState {
         syncedAssetIds.append(assetId)
         return refreshState
     }

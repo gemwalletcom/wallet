@@ -133,11 +133,11 @@ class AssetViewModelTest {
     fun `the sync the screen starts while it is built reads only state that is already set`() = runTest(testDispatcher) {
         val immediate = UnconfinedTestDispatcher(testScheduler)
         Dispatchers.setMain(immediate)
-        coEvery { service.refresh(any(), any()) } returns GemAssetRefresh(transactions = GemLoadState.Data, failures = emptyList())
+        coEvery { service.refresh(any()) } returns GemAssetRefresh(transactions = GemLoadState.Data, failures = emptyList())
 
         createViewModel(ioDispatcher = immediate)
 
-        coVerify { service.refresh(asset.id.toIdentifier(), false) }
+        coVerify { service.refresh(asset.id.toIdentifier()) }
     }
 
     private fun createViewModel(ioDispatcher: CoroutineDispatcher = testDispatcher): AssetViewModel = AssetViewModel(

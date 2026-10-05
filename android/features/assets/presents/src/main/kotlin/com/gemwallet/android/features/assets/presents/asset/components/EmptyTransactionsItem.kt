@@ -10,10 +10,7 @@ import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
 
 @Composable
-internal fun EmptyTransactionsItem(size: Int, symbol: String, state: GemEmptyState, onAction: (GemEmptyStateAction) -> Unit, modifier: Modifier = Modifier) {
-    if (size > 0) {
-        return
-    }
+internal fun EmptyTransactionsItem(symbol: String, state: GemEmptyState, onAction: (GemEmptyStateAction) -> Unit, modifier: Modifier = Modifier) {
     EmptyContentView(
         state = state,
         symbol = symbol,

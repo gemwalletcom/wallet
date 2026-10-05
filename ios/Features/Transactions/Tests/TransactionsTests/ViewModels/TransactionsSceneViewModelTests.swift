@@ -37,12 +37,12 @@ struct TransactionsSceneViewModelTests {
         let model = TransactionsSceneViewModel.mock(service: service)
 
         await model.load()
-        #expect(model.loadError == nil)
+        #expect(model.phase == .empty(state: model.filterModel.viewState.emptyState))
 
         service.refreshState = .error(error: .Gateway(msg: "offline"))
         await model.load()
 
-        #expect(model.loadError != nil)
+        #expect(model.phase == .error(error: .Gateway(msg: "offline")))
         #expect(model.isPresentingToastMessage == nil)
     }
 
@@ -59,10 +59,11 @@ struct TransactionsSceneViewModelTests {
     func theEmptyStateChangesOnceAFilterIsOn() {
         let service = GemTransactionsServiceMock(filterChains: [Chain.bitcoin.rawValue])
         let model = TransactionsSceneViewModel.mock(service: service)
-        let unfiltered = model.emptyContentModel.title
+        let unfiltered = model.phase
 
         _ = model.filterModel.onFinishChainsSelection(SelectionResult(items: [.bitcoin], isConfirmed: true))
 
-        #expect(model.emptyContentModel.title != unfiltered)
+        #expect(model.phase != unfiltered)
+        #expect(model.phase == .empty(state: model.filterModel.viewState.emptyState))
     }
 }

@@ -76,8 +76,8 @@ impl GemTransactionsService {
         chain_rules::wallet_chains_by_rank(&wallet)
     }
 
-    pub async fn refresh(&self, asset_id: Option<AssetId>, has_transactions: bool) -> GemLoadState {
-        GemLoadState::refreshed(self.sync(asset_id).await, has_transactions)
+    pub async fn refresh(&self, asset_id: Option<AssetId>) -> GemLoadState {
+        GemLoadState::of(&self.sync(asset_id).await)
     }
 }
 

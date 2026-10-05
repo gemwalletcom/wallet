@@ -499,9 +499,18 @@ impl<T: Clone + Default> GemLoad<T> {
 
 `data` is the decision: a fetch that succeeds replaces the value, a fetch that fails keeps a value already on screen, and only a screen with nothing to keep shows the error. A screen therefore hands its record back for the next load — `refresh(details)`, not `refresh(chain, address)` — so Core decides what survives a failure. Never re-derive the previous value from the sections the app is rendering: that is the same decision read backwards out of the UI.
 
-A screen whose rows come from a store query rather than a Core record — the stake delegations, the asset transactions, the activity list — tells its refresh what it shows (`GemStakeService::refresh` takes the delegations, `GemAssetDetailsService::refresh` and `GemTransactionsService::refresh` take `has_transactions`), and Core answers with `GemLoadState::refreshed`. An `Error` state takes the place of the empty state and is drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS); rows already on screen stay, with no error. Which failure earns that row is `load_error(state, has_rows)`, not a `case .error` each screen writes for itself.
+A list whose rows come from a store query rather than a Core record — the activity list, the asset transactions — hands the rows it observed and its load state to one pure Core call, which returns a `GemListPhase`: `Rows`, `Empty { state }` with the empty state to show, or `Error { error }` when the load left nothing to show (`transaction_list_phase(rows, state, empty_state)`). Its refresh is told nothing about the screen and returns the sync's own outcome (`GemLoadState::of`): rows already on screen stay, with no error, and an error takes the place of the empty state, drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS). The scene switches over the phase; it never tests emptiness or the load state itself. The lists VM262 has not moved yet still pass `has_rows` to their refresh and to `load_error`.
 
-`GemLoadState` is the only shape for these four answers. A screen that needs `Loading | Data | Failed` has not found a fifth case, it has restated this enum, and the four ways it crosses are all on `GemLoadState`: `of` builds it from a `Result`, `into_result` reads it back, `refreshed` folds a sync into what the screen shows, and `data` on `GemLoad<T>` makes the transition. Each app turns it into the state its views already take, once: `GemLoadState.stateViewType(_:)` on iOS, `loadError` plus the row builders on Android.
+```rust
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemListPhase {
+    Rows,
+    Empty { state: GemEmptyState },
+    Error { error: GemServiceError },
+}
+```
+
+`GemLoadState` is the only shape for these four answers. A screen that needs `Loading | Data | Failed` has not found a fifth case, it has restated this enum, and the four ways it crosses are all on `GemLoadState`: `of` builds it from a `Result`, `into_result` reads it back, `refreshed` folds a sync into what the screen shows, and `data` on `GemLoad<T>` makes the transition. Each app turns it into the state its views already take, once: `GemLoadState.stateViewType(_:)` on iOS, the row builders on Android; a list takes its `GemListPhase` instead.
 
 ### One copy model for every address, phrase and key
 
