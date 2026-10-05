@@ -63,7 +63,8 @@ public struct WalletImageScene: View {
     }
 
     private var collectionsView: some View {
-        let items = model.nftAssetItems
+        let list = model.avatarList
+        let items = model.nftAssetItems(list)
         return ScrollView {
             LazyVGrid(
                 columns: model.nftColumns,
@@ -75,8 +76,8 @@ public struct WalletImageScene: View {
             .padding(.horizontal, .medium)
         }
         .overlay {
-            if items.isEmpty {
-                EmptyContentView(model: model.emptyContentModel)
+            if case let .empty(state) = list.phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
             }
         }
     }

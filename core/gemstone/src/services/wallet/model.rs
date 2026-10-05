@@ -5,6 +5,8 @@ use crate::services::localization::GemLocalizedText;
 use primitives::{Chain, NameRecord, Wallet, WalletId, WalletListItem, WalletSource};
 
 use super::rules;
+use crate::models::state::GemListPhase;
+use crate::services::nft::model::GemNftEntry;
 
 #[derive(Clone, uniffi::Enum)]
 pub enum GemWalletImportType {
@@ -230,4 +232,10 @@ mod secret_debug_tests {
 
         assert!(!printed.contains("abandon") && !printed.contains("ability") && !printed.contains("secretkey"), "{printed}");
     }
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemAvatarList {
+    pub items: Vec<GemNftEntry>,
+    pub phase: GemListPhase,
 }

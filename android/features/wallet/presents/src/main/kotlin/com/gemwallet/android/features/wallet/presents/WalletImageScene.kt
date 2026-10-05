@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.EmojiPickerGrid
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.image.toImageSource
@@ -41,6 +42,8 @@ import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.secondaryFaded
+import uniffi.gemstone.GemAvatarList
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemNftEntry
 import uniffi.gemstone.GemWalletDetails
 
@@ -49,7 +52,7 @@ private const val NFT_COLUMNS = 2
 private enum class WalletImageTab { EMOJI, COLLECTIONS }
 
 @Composable
-internal fun WalletImageScene(wallet: GemWalletDetails?, emojis: List<String>, nftImages: List<GemNftEntry>, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
+internal fun WalletImageScene(wallet: GemWalletDetails?, emojis: List<String>, avatars: GemAvatarList?, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
     wallet ?: return
     var selectedTab by remember { mutableStateOf(WalletImageTab.EMOJI) }
     val emojiBackground = MaterialTheme.colorScheme.secondaryFaded
@@ -100,20 +103,20 @@ internal fun WalletImageScene(wallet: GemWalletDetails?, emojis: List<String>, n
                 when (selectedTab) {
                     WalletImageTab.EMOJI -> EmojiPickerGrid(emojis = emojis, onSelect = onEmoji, background = emojiBackground)
 
-                    WalletImageTab.COLLECTIONS -> if (nftImages.isEmpty()) {
-                        Text(
-                            text = stringResource(id = R.string.nft_state_empty_title),
-                            color = MaterialTheme.colorScheme.secondary,
-                            textAlign = TextAlign.Center,
+                    WalletImageTab.COLLECTIONS -> when (val phase = avatars?.phase) {
+                        is GemListPhase.Empty -> EmptyContentView(
+                            state = phase.state,
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .padding(paddingDefault),
                         )
-                    } else {
-                        NftGrid(
-                            nftImages = nftImages,
+
+                        GemListPhase.Rows -> NftGrid(
+                            nftImages = avatars?.items.orEmpty(),
                             onNftImage = { onAction(WalletImageAction.SetNftImage(it)) },
                         )
+
+                        is GemListPhase.Error, null -> Unit
                     }
                 }
             }

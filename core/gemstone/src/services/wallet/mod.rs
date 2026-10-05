@@ -35,20 +35,22 @@ use primitives::{Chain, ChainAsset, NFTData, Wallet, WalletId, WalletSource, Wal
 
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
+use crate::models::state::GemListPhase;
 use crate::services::avatar::GemAvatarService;
+use crate::services::empty_state::{GemEmptyStateKind, screen_empty_state};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
 use crate::services::localization::GemLocalizedText;
 use crate::services::name::GemNameService;
-use crate::services::nft::model::{GemNftEntry, GemNftList};
+use crate::services::nft::model::GemNftList;
 use crate::services::nft::rules as nft_rules;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportRequest, GemWalletImportResult, GemWalletImportScreen, GemWalletImportType, GemWalletSecret};
+pub use model::{GemAvatarList, GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportRequest, GemWalletImportResult, GemWalletImportScreen, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 pub use verify_phrase::{GemVerifyPhraseSession, GemVerifyPhraseSetup};
@@ -230,8 +232,12 @@ impl GemWalletService {
         self.avatar.set_image_url(wallet_id, url).await
     }
 
-    pub fn avatar_items(&self, data: Vec<NFTData>) -> Vec<GemNftEntry> {
-        nft_rules::entries(nft_rules::list_items(data, GemNftList::Avatar))
+    pub fn avatar_list(&self, data: Vec<NFTData>) -> GemAvatarList {
+        let items = nft_rules::entries(nft_rules::list_items(data, GemNftList::Avatar));
+        GemAvatarList {
+            phase: GemListPhase::local(!items.is_empty(), screen_empty_state(GemEmptyStateKind::Nfts, false, &[])),
+            items,
+        }
     }
 
     pub async fn remove_avatar_image(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -400,6 +406,19 @@ mod tests {
         let details = testkit.service.wallet_details(multiple);
 
         assert!(details.address.is_none(), "no single address means no link");
+    }
+
+    #[test]
+    fn test_an_avatar_picker_without_nfts_shows_the_nft_empty_state() {
+        let testkit = WalletTestkit::new();
+
+        assert_eq!(testkit.service.avatar_list(vec![NFTData::mock()]).phase, GemListPhase::Rows);
+        assert_eq!(
+            testkit.service.avatar_list(vec![]).phase,
+            GemListPhase::Empty {
+                state: screen_empty_state(GemEmptyStateKind::Nfts, false, &[])
+            }
+        );
     }
     use std::fs;
 

@@ -136,9 +136,9 @@ The target for every item below: a model that only renames or regroups a Core re
 ### Scenes
 
 - **VM290** **M** **Empty states are decided scene by scene.**
-  - **iOS:** `WalletImageScene` checks emptiness itself; `PerpetualsPreviewViewModel.hasNoPositions` decides it in the model.
-  - **Android:** `WalletImageScene` and `PerpetualsPreviewSection` do the same.
-  - **Expected:** each list screen's Core projection returns a `GemListPhase` that says it is empty and which empty state to show, as the activity, alert, notification, support, NFT, perpetual market, WalletConnect, contact, stake, earn, validator and network asset lists and the network, currency and import type searches already do; the scenes render the phase.
+  - **iOS:** `PerpetualsPreviewViewModel.hasNoPositions` decides it in the model.
+  - **Android:** `PerpetualsPreviewSection` does the same.
+  - **Expected:** each list screen's Core projection returns a `GemListPhase` that says it is empty and which empty state to show, as the activity, alert, notification, support, NFT, perpetual market, WalletConnect, contact, stake, earn, validator, network asset and avatar lists and the network, currency and import type searches already do; the scenes render the phase.
 - **VM294** **S** **Secret phrase rows are filled with words in the apps.**
   - **iOS:** `SecretPhraseRow` and `GemSecretPhraseRow+PrimitivesComponents` map Core's index rows to words.
   - **Android:** `PhraseWord.phraseRows` does the same.
