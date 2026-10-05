@@ -42,10 +42,9 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemMarketsRefreshTrigger
-import uniffi.gemstone.GemPerpetualMarketCounts
-import uniffi.gemstone.GemPerpetualMarketSection
 import uniffi.gemstone.GemPerpetualMarketSections
 import uniffi.gemstone.GemPerpetualMarketSession
+import uniffi.gemstone.GemPerpetualMarketView
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemRefreshKind
@@ -137,16 +136,14 @@ class PerpetualsViewModel @Inject constructor(
         .map { items -> items.map { it.asset } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val sections: StateFlow<List<GemPerpetualMarketSection>> = combine(positions, pinnedPerpetuals, unpinnedPerpetuals, recent, session) { positions, pinned, markets, recents, session ->
-        session.sections(
-            GemPerpetualMarketCounts(
-                positions = positions.size.toUInt(),
-                pinned = pinned.size.toUInt(),
-                markets = markets.size.toUInt(),
-                recents = recents.size.toUInt(),
-            ),
+    val marketView: StateFlow<GemPerpetualMarketView> = combine(positions, perpetualSections, recent, session) { positions, markets, recents, session ->
+        session.view(
+            positionIds = positions.map { it.position.id },
+            pinnedIds = markets.pinned.map { it.data.perpetual.id },
+            marketIds = markets.markets.map { it.data.perpetual.id },
+            recentAssetIds = recents.map { it.id.toIdentifier() },
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, session.value.view(emptyList(), emptyList(), emptyList(), emptyList()))
 
     fun onRefresh() {
         isRefreshing.value = true

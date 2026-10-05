@@ -57,14 +57,6 @@ pub enum GemListPhase {
     Error { error: GemServiceError },
 }
 
-#[uniffi::export]
-pub fn load_error(state: GemLoadState, has_rows: bool) -> Option<GemServiceError> {
-    match state {
-        GemLoadState::Error { error } if !has_rows => Some(error),
-        _ => None,
-    }
-}
-
 impl GemListPhase {
     pub fn new(state: GemLoadState, has_rows: bool, empty: GemEmptyState) -> Self {
         match (has_rows, state) {

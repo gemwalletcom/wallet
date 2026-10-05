@@ -2,6 +2,7 @@ use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSection};
+use crate::models::state::GemListPhase;
 use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemPriceRow, GemRowText, GemValueHeader};
 use crate::services::chart::candlestick_header;
 use crate::services::chart::model::{GemChartDateStyle, GemChartHeader, GemChartSelection};
@@ -11,7 +12,7 @@ use crate::services::localization::GemLocalizedText;
 use chrono::{DateTime, Utc};
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualPositionData};
-use primitives::{Asset, AssetId, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
+use primitives::{Asset, AssetId, PerpetualAccountMode, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -450,15 +451,20 @@ pub enum GemPerpetualMarketSection {
     Recents,
     Pinned,
     Markets,
-    Empty,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GemPerpetualMarketCounts {
-    pub positions: u32,
-    pub pinned: u32,
-    pub markets: u32,
-    pub recents: u32,
+    pub positions: usize,
+    pub pinned: usize,
+    pub markets: usize,
+    pub recents: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualMarketView {
+    pub sections: Vec<GemPerpetualMarketSection>,
+    pub phase: GemListPhase,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, uniffi::Record)]
@@ -493,8 +499,14 @@ impl GemPerpetualMarketSession {
         self.query.trim().to_string()
     }
 
-    pub fn sections(&self, counts: GemPerpetualMarketCounts) -> Vec<GemPerpetualMarketSection> {
-        super::rules::market_sections(&counts, self.is_searching, self.search_query().is_empty())
+    pub fn view(&self, position_ids: Vec<String>, pinned_ids: Vec<PerpetualId>, market_ids: Vec<PerpetualId>, recent_asset_ids: Vec<AssetId>) -> GemPerpetualMarketView {
+        let counts = GemPerpetualMarketCounts {
+            positions: position_ids.len(),
+            pinned: pinned_ids.len(),
+            markets: market_ids.len(),
+            recents: recent_asset_ids.len(),
+        };
+        super::rules::market_view(&counts, self.is_searching, self.search_query().is_empty())
     }
 }
 

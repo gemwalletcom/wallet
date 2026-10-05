@@ -63,7 +63,6 @@ import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.candleSession
-import uniffi.gemstone.loadError
 import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
@@ -146,15 +145,11 @@ class PerpetualViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val chart: StateFlow<StateViewType<GemCandleChart>> = combine(candles, position) { session, position ->
-        val state = session.viewState()
-        when (val error = loadError(state.state, state.candles.isNotEmpty())) {
-            null -> when (state.state) {
-                GemLoadState.Loading -> StateViewType.Loading
-                GemLoadState.NoData -> StateViewType.NoData
-                else -> session.chart(position?.toGem(), ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds)?.let { StateViewType.Data(it) } ?: StateViewType.NoData
-            }
-
-            else -> StateViewType.Error(error.errorText().text(context))
+        when (val state = session.viewState().state) {
+            GemLoadState.Loading -> StateViewType.Loading
+            GemLoadState.NoData -> StateViewType.NoData
+            is GemLoadState.Error -> StateViewType.Error(state.error.errorText().text(context))
+            GemLoadState.Data -> session.chart(position?.toGem(), ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds)?.let { StateViewType.Data(it) } ?: StateViewType.NoData
         }
     }
         .flowOn(ioDispatcher)

@@ -36,7 +36,7 @@ fun PerpetualsScreen(
     val positions by viewModel.positionRows.collectAsStateWithLifecycle()
     val balanceHeader by viewModel.balanceHeader.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val marketView by viewModel.marketView.collectAsStateWithLifecycle()
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
     val query = rememberTextFieldState()
 
@@ -64,7 +64,7 @@ fun PerpetualsScreen(
         positions = positions,
         recent = recent,
         query = query,
-        sections = sections,
+        marketView = marketView,
         isSearching = isSearching,
         onAction = { action ->
             when (action) {

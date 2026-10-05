@@ -1412,7 +1412,7 @@ fun GemPerpetualMarketSection.stringRes(): Int? = when (this) {
     GemPerpetualMarketSection.POSITIONS -> R.string.perpetual_positions
     GemPerpetualMarketSection.PINNED -> R.string.common_pinned
     GemPerpetualMarketSection.MARKETS -> R.string.perpetuals_markets
-    GemPerpetualMarketSection.HEADER, GemPerpetualMarketSection.RECENTS, GemPerpetualMarketSection.EMPTY -> null
+    GemPerpetualMarketSection.HEADER, GemPerpetualMarketSection.RECENTS -> null
 }
 
 @StringRes

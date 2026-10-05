@@ -499,7 +499,7 @@ impl<T: Clone + Default> GemLoad<T> {
 
 `data` is the decision: a fetch that succeeds replaces the value, a fetch that fails keeps a value already on screen, and only a screen with nothing to keep shows the error. A screen therefore hands its record back for the next load — `refresh(details)`, not `refresh(chain, address)` — so Core decides what survives a failure. Never re-derive the previous value from the sections the app is rendering: that is the same decision read backwards out of the UI.
 
-A list whose rows come from a store query rather than a Core record — the activity list, the asset transactions — hands the rows it observed and its load state to one pure Core call, which returns a `GemListPhase`: `Rows`, `Empty { state }` with the empty state to show, or `Error { error }` when the load left nothing to show (`transaction_list_phase(rows, state, empty_state)`). Its refresh is told nothing about the screen and returns the sync's own outcome (`GemLoadState::of`): rows already on screen stay, with no error, and an error takes the place of the empty state, drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS). The scene switches over the phase; it never tests emptiness or the load state itself. The lists VM262 has not moved yet still pass `has_rows` to their refresh and to `load_error`.
+A list whose rows come from a store query rather than a Core record — the activity list, the asset transactions — hands the rows it observed and its load state to one pure Core call, which returns a `GemListPhase`: `Rows`, `Empty { state }` with the empty state to show, or `Error { error }` when the load left nothing to show (`transaction_list_phase(rows, state, empty_state)`). Its refresh is told nothing about the screen and returns the sync's own outcome (`GemLoadState::of`): rows already on screen stay, with no error, and an error takes the place of the empty state, drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS). The scene switches over the phase; it never tests emptiness or the load state itself.
 
 ```rust
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -627,12 +627,12 @@ First derive once and pass the result down. Reuse a list projection until its so
 
 A row is not the only choice a screen makes, and the other three recur often enough to have the same answer.
 
-**Which sections show, and which empty state.** A screen that splits one list into positions, pinned, recents and results decides that split from counts and whether a search is running. Left in the apps it becomes four booleans on each side that drift one at a time.
+**Which sections show, and which empty state.** A screen that splits one list into positions, pinned, recents and results decides that split from the rows it observed and whether a search is running, and returns the sections with the list's phase. Left in the apps it becomes four booleans on each side that drift one at a time. The app hands the rows' ids, not their counts, so nothing is counted twice.
 
 ```rust
 #[uniffi::export]
 impl GemPerpetualMarketSession {
-    pub fn sections(&self, counts: GemPerpetualMarketCounts) -> Vec<GemPerpetualMarketSection> { ... }
+    pub fn view(&self, position_ids: Vec<String>, pinned_ids: Vec<PerpetualId>, market_ids: Vec<PerpetualId>, recent_asset_ids: Vec<AssetId>) -> GemPerpetualMarketView { ... }
 }
 ```
 

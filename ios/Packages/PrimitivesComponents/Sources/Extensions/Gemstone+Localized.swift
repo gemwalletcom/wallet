@@ -1282,7 +1282,7 @@ public extension GemPerpetualMarketSection {
         case .positions: Localized.Perpetual.positions
         case .pinned: Localized.Common.pinned
         case .markets: Localized.Perpetuals.markets
-        case .header, .recents, .empty: .empty
+        case .header, .recents: .empty
         }
     }
 }

@@ -61,18 +61,18 @@ struct PerpetualsScene: View {
     }
 
     var list: some View {
-        let marketSections = model.marketSectionList
+        let marketView = model.marketView
         return List {
-            ForEach(marketSections, id: \.self) { section in
+            ForEach(marketView.sections, id: \.self) { section in
                 marketSection(section)
             }
         }
-        .if(marketSections.contains(.header)) {
+        .if(marketView.sections.contains(.header)) {
             $0.contentMargins([.top], .space12, for: .scrollContent)
         }
         .overlay {
-            if marketSections.contains(.empty) {
-                EmptyContentView(model: model.emptyContentModel)
+            if case let .empty(state) = marketView.phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
             }
         }
     }
@@ -136,8 +136,6 @@ extension PerpetualsScene {
                 Text(section.title)
             }
             .listRowInsets(.assetListRowInsets)
-        case .empty:
-            EmptyView()
         }
     }
 }

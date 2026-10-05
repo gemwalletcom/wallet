@@ -62,10 +62,11 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemAssetSectionKind
-import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemHeaderButtonAction
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemPerpetualMarketItem
 import uniffi.gemstone.GemPerpetualMarketSection
+import uniffi.gemstone.GemPerpetualMarketView
 import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.PerpetualBalance
 import uniffi.gemstone.perpetualBalanceHeader
@@ -79,7 +80,7 @@ internal fun PerpetualsScene(
     pinnedPerpetuals: List<GemPerpetualMarketItem>,
     recent: List<Asset> = emptyList(),
     query: TextFieldState,
-    sections: List<GemPerpetualMarketSection>,
+    marketView: GemPerpetualMarketView,
     isSearching: Boolean,
     onAction: (PerpetualsAction) -> Unit,
 ) {
@@ -119,7 +120,7 @@ internal fun PerpetualsScene(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                sections.forEach { section ->
+                marketView.sections.forEach { section ->
                     when (section) {
                         GemPerpetualMarketSection.HEADER -> if (balanceHeader != null) {
                             item {
@@ -187,15 +188,16 @@ internal fun PerpetualsScene(
                                 )
                             }
                         }
-
-                        GemPerpetualMarketSection.EMPTY -> item {
-                            EmptyContentView(
-                                kind = GemEmptyStateKind.SEARCH_PERPETUALS,
-                                modifier = Modifier
-                                    .animateItem()
-                                    .fillParentMaxSize(),
-                            )
-                        }
+                    }
+                }
+                (marketView.phase as? GemListPhase.Empty)?.let { empty ->
+                    item {
+                        EmptyContentView(
+                            state = empty.state,
+                            modifier = Modifier
+                                .animateItem()
+                                .fillParentMaxSize(),
+                        )
                     }
                 }
             }
@@ -243,7 +245,7 @@ fun PreviewPerpetualsScene() {
         PerpetualsScene(
             isRefreshing = false,
             query = androidx.compose.foundation.text.input.TextFieldState(),
-            sections = emptyList(),
+            marketView = GemPerpetualMarketView(sections = emptyList(), phase = GemListPhase.Rows),
             isSearching = false,
             balanceHeader = perpetualBalanceHeader(
                 PerpetualBalance(available = 45_000.0, reserved = 92_000.0, withdrawable = 42_000.0),

@@ -41,8 +41,8 @@ pub use autoclose::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify}
 pub use candles::{GemCandleRequest, GemCandleResult, GemCandleSession, GemCandleViewState};
 pub use details::GemPerpetualDetailsService;
 pub use model::{
-    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDetails, GemPerpetualEnablementTrigger, GemPerpetualMarketCounts, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualSection,
-    GemPerpetualSocketUpdate, GemPerpetualTransferData,
+    GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualDetails, GemPerpetualEnablementTrigger, GemPerpetualMarketCounts, GemPerpetualMarketView, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind,
+    GemPerpetualSection, GemPerpetualSocketUpdate, GemPerpetualTransferData,
 };
 pub use store::GemPerpetualStore;
 

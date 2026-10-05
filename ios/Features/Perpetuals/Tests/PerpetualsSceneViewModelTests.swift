@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.emptyState
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Localization
@@ -25,6 +26,19 @@ struct PerpetualsSceneViewModelTests {
 
         await model.load(source: .user)
         #expect(perpetuals.syncMarketsCount == 2)
+    }
+
+    @Test
+    func aSearchThatMatchesNothingShowsTheSearchEmptyState() {
+        let model = PerpetualsSceneViewModel.mock()
+
+        #expect(model.marketView.sections == [.header])
+        #expect(model.marketView.phase == .rows)
+
+        model.isSearching = true
+
+        #expect(model.marketView.sections.isEmpty)
+        #expect(model.marketView.phase == .empty(state: emptyState(kind: .searchPerpetuals)))
     }
 
     @Test

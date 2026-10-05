@@ -14,7 +14,7 @@ use strum::IntoEnumIterator;
 
 use super::model::{
     GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput,
-    GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualOrderAction, GemPerpetualOrderInput,
+    GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualMarketView, GemPerpetualOrderAction, GemPerpetualOrderInput,
     GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData, PerpetualMarketLine, PerpetualOpenLine,
     PerpetualPositionLine,
 };
@@ -22,9 +22,11 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone, value_tone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle};
 use crate::models::placeholder::EMPTY_VALUE;
+use crate::models::state::{GemListPhase, GemLoadState};
 use crate::perpetual::GemPerpetual;
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemRowText, GemValueHeader};
 use crate::services::clock::is_outdated;
+use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::error::GemServiceError;
 use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTriggerOrder};
 use crate::services::transfer::GemTransferData;
@@ -651,21 +653,25 @@ pub fn market_query(search: String) -> GemPerpetualMarketQuery {
     }
 }
 
-pub fn market_sections(counts: &GemPerpetualMarketCounts, is_searching: bool, is_query_empty: bool) -> Vec<GemPerpetualMarketSection> {
+pub fn market_view(counts: &GemPerpetualMarketCounts, is_searching: bool, is_query_empty: bool) -> GemPerpetualMarketView {
     let shows_positions = counts.positions > 0;
     let shows_pinned = counts.pinned > 0;
     let shows_markets = counts.markets > 0;
-    [
+    let sections = [
         (!is_searching, GemPerpetualMarketSection::Header),
         (is_searching && is_query_empty && counts.recents > 0, GemPerpetualMarketSection::Recents),
         (shows_positions, GemPerpetualMarketSection::Positions),
         (shows_pinned, GemPerpetualMarketSection::Pinned),
         (shows_markets, GemPerpetualMarketSection::Markets),
-        (is_searching && !shows_positions && !shows_pinned && !shows_markets, GemPerpetualMarketSection::Empty),
     ]
     .into_iter()
     .filter_map(|(shows, section)| shows.then_some(section))
-    .collect()
+    .collect();
+    let has_rows = !is_searching || shows_positions || shows_pinned || shows_markets;
+    GemPerpetualMarketView {
+        sections,
+        phase: GemListPhase::new(GemLoadState::Data, has_rows, empty_state(GemEmptyStateKind::SearchPerpetuals)),
+    }
 }
 
 pub fn candle_tooltip(candle: &ChartCandleStick) -> GemCandleTooltip {
@@ -1024,10 +1030,26 @@ mod tests {
             markets: 0,
             recents: 2,
         };
+        let empty = GemListPhase::Empty {
+            state: empty_state(GemEmptyStateKind::SearchPerpetuals),
+        };
 
-        assert_eq!(market_sections(&counts, true, true), vec![GemPerpetualMarketSection::Recents, GemPerpetualMarketSection::Empty]);
-        assert_eq!(market_sections(&counts, true, false), vec![GemPerpetualMarketSection::Empty]);
-        assert_eq!(market_sections(&counts, false, true), vec![GemPerpetualMarketSection::Header], "the balance header shows only outside a search");
+        assert_eq!(
+            market_view(&counts, true, true),
+            GemPerpetualMarketView {
+                sections: vec![GemPerpetualMarketSection::Recents],
+                phase: empty.clone()
+            }
+        );
+        assert_eq!(market_view(&counts, true, false), GemPerpetualMarketView { sections: vec![], phase: empty });
+        assert_eq!(
+            market_view(&counts, false, true),
+            GemPerpetualMarketView {
+                sections: vec![GemPerpetualMarketSection::Header],
+                phase: GemListPhase::Rows
+            },
+            "the balance header shows only outside a search, and nothing there is empty"
+        );
 
         let listed = GemPerpetualMarketCounts {
             positions: 1,
@@ -1036,26 +1058,31 @@ mod tests {
             recents: 0,
         };
         assert_eq!(
-            market_sections(&listed, true, true),
-            vec![GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets]
+            market_view(&listed, true, true),
+            GemPerpetualMarketView {
+                sections: vec![GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets],
+                phase: GemListPhase::Rows
+            }
         );
     }
 
     #[test]
     fn test_market_session_trims_the_query_and_keeps_recents_until_one_is_typed() {
-        let counts = GemPerpetualMarketCounts {
-            positions: 0,
-            pinned: 0,
-            markets: 0,
-            recents: 2,
-        };
+        let recents = || vec![AssetId::from_chain(Chain::Bitcoin), AssetId::from_chain(Chain::Ethereum)];
+        let view = |session: &GemPerpetualMarketSession| session.view(vec![], vec![], vec![], recents());
         let searching = GemPerpetualMarketSession::default().on_searching_changed(true);
 
-        assert_eq!(searching.sections(counts), vec![GemPerpetualMarketSection::Recents, GemPerpetualMarketSection::Empty]);
-        assert_eq!(searching.on_query_changed("  ".to_string()).sections(counts), searching.sections(counts));
+        assert_eq!(view(&searching).sections, vec![GemPerpetualMarketSection::Recents]);
+        assert!(matches!(view(&searching).phase, GemListPhase::Empty { .. }));
+        assert_eq!(view(&searching.on_query_changed("  ".to_string())), view(&searching));
         assert_eq!(searching.on_query_changed(" btc ".to_string()).search_query(), "btc");
-        assert_eq!(searching.on_query_changed(" btc ".to_string()).sections(counts), vec![GemPerpetualMarketSection::Empty]);
-        assert_eq!(GemPerpetualMarketSession::default().sections(counts), vec![GemPerpetualMarketSection::Header]);
+        assert_eq!(view(&searching.on_query_changed(" btc ".to_string())).sections, Vec::<GemPerpetualMarketSection>::new());
+        assert_eq!(view(&GemPerpetualMarketSession::default()).sections, vec![GemPerpetualMarketSection::Header]);
+        assert_eq!(
+            searching.view(vec!["position".to_string()], vec![], vec![primitives::Perpetual::mock().id], vec![]).sections,
+            vec![GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Markets],
+            "each list the screen observed counts once"
+        );
     }
 
     #[test]
@@ -2036,27 +2063,26 @@ mod tests {
         };
 
         assert_eq!(
-            market_sections(&counts, false, true),
+            market_view(&counts, false, true).sections,
             vec![GemPerpetualMarketSection::Header, GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets]
         );
         assert_eq!(
-            market_sections(&counts, true, true),
+            market_view(&counts, true, true).sections,
             vec![GemPerpetualMarketSection::Recents, GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets],
             "an empty search query offers the recents above the rest"
         );
-        assert_eq!(
-            market_sections(
-                &GemPerpetualMarketCounts {
-                    positions: 0,
-                    pinned: 0,
-                    markets: 0,
-                    recents: 0
-                },
-                true,
-                false
-            ),
-            vec![GemPerpetualMarketSection::Empty]
+        let nothing = market_view(
+            &GemPerpetualMarketCounts {
+                positions: 0,
+                pinned: 0,
+                markets: 0,
+                recents: 0,
+            },
+            true,
+            false,
         );
+        assert!(nothing.sections.is_empty());
+        assert!(matches!(nothing.phase, GemListPhase::Empty { .. }));
     }
 
     #[test]
