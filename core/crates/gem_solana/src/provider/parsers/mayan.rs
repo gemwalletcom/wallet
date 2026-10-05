@@ -1,14 +1,16 @@
 use hex_lit::hex;
-use num_bigint::Sign;
+use num_bigint::{BigInt, Sign};
 use primitives::{AssetId, Chain, Transaction};
 
-use crate::{MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_SWIFT_V2_PROGRAM_ID, models::Instruction};
+use crate::{MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_SWIFT_V2_PROGRAM_ID, WSOL_TOKEN_ADDRESS, models::Instruction};
 
 use super::{ParseContext, ParseContextExt, TransactionParser};
 
 const INIT_ORDER_DISCRIMINATOR: [u8; 8] = hex!("204c290c27a284db");
 const SWIFT_PROGRAM_ACCOUNT_INDEX: usize = 0;
 const TRADER_ACCOUNT_INDEX: usize = 1;
+const ORDER_STATE_ACCOUNT_INDEX: usize = 3;
+const ORDER_TOKEN_ACCOUNT_INDEX: usize = 4;
 
 pub(super) struct MayanParser;
 
@@ -20,7 +22,7 @@ impl TransactionParser<ParseContext<'_>, Transaction> for MayanParser {
     fn parse(&self, context: &ParseContext<'_>) -> Option<Transaction> {
         let instruction = context.transaction.transaction.message.instructions.iter().find(|instruction| is_init_order(context, instruction))?;
         let trader = instruction.accounts.get(TRADER_ACCOUNT_INDEX).and_then(|index| context.transaction.account_key(*index as usize))?.clone();
-        let (asset_id, value) = source_debit(context, &trader)?;
+        let (asset_id, value) = source_debit(context, instruction, &trader)?;
 
         context.make_swap_transaction(trader, MAYAN_CPI_PROXY_PROGRAM_ID, asset_id, value)
     }
@@ -37,7 +39,7 @@ fn is_init_order(context: &ParseContext<'_>, instruction: &Instruction) -> bool 
     bs58::decode(&instruction.data).into_vec().is_ok_and(|data| data.starts_with(&INIT_ORDER_DISCRIMINATOR))
 }
 
-fn source_debit(context: &ParseContext<'_>, trader: &str) -> Option<(AssetId, num_bigint::BigUint)> {
+fn source_debit(context: &ParseContext<'_>, instruction: &Instruction, trader: &str) -> Option<(AssetId, num_bigint::BigUint)> {
     let token_debits = context
         .transaction
         .meta
@@ -52,7 +54,32 @@ fn source_debit(context: &ParseContext<'_>, trader: &str) -> Option<(AssetId, nu
     }
 
     let native = context.transaction.get_balance_changes_by_owner(trader);
-    (native.amount.sign() == Sign::Minus).then(|| (Chain::Solana.as_asset_id(), native.amount.magnitude().clone()))
+    let amount = native.amount + created_order_accounts_rent(context, instruction);
+    (amount.sign() == Sign::Minus).then(|| (Chain::Solana.as_asset_id(), amount.magnitude().clone()))
+}
+
+fn created_order_accounts_rent(context: &ParseContext<'_>, instruction: &Instruction) -> BigInt {
+    [ORDER_STATE_ACCOUNT_INDEX, ORDER_TOKEN_ACCOUNT_INDEX]
+        .into_iter()
+        .filter_map(|account_position| instruction.accounts.get(account_position).copied())
+        .map(|account_index| {
+            let index = account_index as usize;
+            let pre = context.transaction.meta.pre_balances.get(index).copied().unwrap_or(0);
+            let post = context.transaction.meta.post_balances.get(index).copied().unwrap_or(0);
+            if pre != 0 || post <= pre {
+                return BigInt::from(0);
+            }
+
+            let wrapped_sol = context
+                .transaction
+                .meta
+                .get_post_token_balance(i64::from(account_index))
+                .filter(|balance| balance.mint == WSOL_TOKEN_ADDRESS)
+                .map(|balance| BigInt::from(balance.get_amount()))
+                .unwrap_or_default();
+            BigInt::from(post - pre) - wrapped_sol
+        })
+        .sum()
 }
 
 #[cfg(test)]
@@ -98,6 +125,6 @@ mod tests {
         assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
         assert_eq!(transaction.from, "BnPkG7QaDZQ4k4m2sPYb5mVEA2GgpphY9kgzWAHxjtvC");
         assert_eq!(transaction.to, MAYAN_CPI_PROXY_PROGRAM_ID);
-        assert_eq!(transaction.value, BigUint::from(12_189_480u64));
+        assert_eq!(transaction.value, BigUint::from(10_000_000u64));
     }
 }

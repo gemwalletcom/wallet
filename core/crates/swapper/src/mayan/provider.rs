@@ -1,7 +1,7 @@
 use super::{
     asset::{supported_assets as mayan_supported_assets, token_id_for_asset},
     client::MayanClient,
-    constants::{MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_DEPOSIT_CONTRACTS, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_SEND_CONTRACTS},
+    constants::{MAYAN_DEPOSIT_CONTRACTS, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_SEND_CONTRACTS},
     mapper::map_swap_result,
     model::{MayanChain, MayanQuote, MayanTransactionResult, QuoteParams, SwiftVersion},
     tx_builder::{fast_mctp, mctp, mono_chain, swift},
@@ -259,7 +259,10 @@ mod tests {
         assert_eq!(map_quote_error(error, 6), SwapperError::InputAmountError { min_amount: Some("1234500000".to_string()) });
         assert_eq!(map_quote_error(SwapperError::NoQuoteAvailable, 6), SwapperError::NoQuoteAvailable);
     }
-    use crate::mayan::model::{MayanFastMctpQuote, MayanMctpQuote};
+    use crate::mayan::{
+        constants::MAYAN_CPI_PROXY_PROGRAM_ID,
+        model::{MayanFastMctpQuote, MayanMctpQuote},
+    };
     use crate::models::Options;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
     use gem_client::testkit::MockClient;
