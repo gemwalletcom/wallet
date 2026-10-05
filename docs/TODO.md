@@ -21,7 +21,7 @@ These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173.
 
 ## Screen coverage and existing infrastructure
 
@@ -153,6 +153,8 @@ The target for every item below: a model that only renames or regroups a Core re
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
 - **VM79** **S** **The root scene stops reading the wallet store.** iOS [`RootSceneViewModel`](../ios/Gem/ViewModels/RootSceneViewModel.swift) reads `stores.walletStore.getWallet` directly; the session service answers the current wallet. Blocked on a synchronous answer: `GemWalletSessionService::get_current_wallet` is async (the wallet store port is async), and the root view needs the wallet on its first render or it flashes onboarding at every launch; either the port gains a synchronous read or the root keeps a stored wallet it can seed before first render.
+
+- **VM296** **S** **One device-sync trigger driven by Core's subscriptions version.** Core already bumps `subscriptions_version` on wallet import, delete and chain setup, and the device sync compares only that version, yet each app re-derives "wallets changed" from its own table observer. **iOS:** [`SubscriptionsObserver`](../ios/Packages/Store/Sources/Observers/SubscriptionsObserver.swift) re-reads every account on any accounts-table change and skips the first value. **Android:** [`DeviceObserverService`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/device/DeviceObserverService.kt) re-reads the wallets-joined-with-accounts query on any wallet or account change, including pin, rename and avatar, and runs on the first value. **Expected:** both apps delete their table observer and call `synchronizeIfNeeded` when Core changes `subscriptions_version`, through the preference observation each app already registers; Core stays without a runtime, so the trigger stays in the app. **Review before building:** whether `set_subscriptions_version` already reaches `GemPreferencesObserver` or needs a `notify()`, and that deleting the last wallet still syncs, since no wallet-scoped request follows it.
 
 ## 7. Rows and taps
 
