@@ -129,7 +129,7 @@ impl PerpetualJobs {
     }
 
     pub fn address_refresher(&self) -> PerpetualAddressRefresher {
-        PerpetualAddressRefresher::new(self.providers.clone(), self.database.clone(), self.addresses.clone())
+        PerpetualAddressRefresher::new(self.providers.clone(), Arc::new(crate::perpetuals::repository::PostgresRepository::new(self.database.clone())), self.addresses.clone())
     }
 }
 

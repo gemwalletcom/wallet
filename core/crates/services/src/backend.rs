@@ -205,6 +205,10 @@ impl Services {
         Arc::new(crate::prices::repository::PostgresRepository::new(self.database()))
     }
 
+    pub(crate) fn transactions_repository(&self) -> Arc<dyn crate::transactions::repository::Repository> {
+        Arc::new(crate::transactions::repository::PostgresRepository::new(self.database()))
+    }
+
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {
         ChainProviders::from_settings(&self.settings, user_agent)
     }
@@ -254,15 +258,15 @@ impl Services {
     }
 
     pub fn transactions(&self) -> TransactionsClient {
-        TransactionsClient::new(self.database())
+        TransactionsClient::new(self.transactions_repository())
     }
 
     pub fn address_names(&self) -> AddressNamesClient {
-        AddressNamesClient::new(self.database())
+        AddressNamesClient::new(self.transactions_repository())
     }
 
     pub fn address_details(&self, user_agent: &str) -> AddressDetailsClient {
-        AddressDetailsClient::new(self.database(), self.config(), self.chain(user_agent))
+        AddressDetailsClient::new(self.transactions_repository(), self.config(), self.chain(user_agent))
     }
 
     pub fn indexer(&self, cacher: CacherClient, stream_producer: StreamProducer) -> IndexerClient {
@@ -325,7 +329,7 @@ impl Services {
     }
 
     pub fn swap(&self) -> SwapClient {
-        SwapClient::new(self.database())
+        SwapClient::new(Arc::new(crate::swap::repository::PostgresRepository::new(self.database())))
     }
 
     pub fn near_intents(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> NearIntentsProxyClient {

@@ -5,11 +5,12 @@ use std::time::Duration;
 use async_trait::async_trait;
 use cacher::DeviceStreamCacher;
 use primitives::{StreamEvent, StreamTransactionsUpdate, StreamWalletUpdate, WalletId, unix_timestamp};
-use storage::{Database, DatabaseError, WalletsRepository};
+
+use super::repository::Repository;
 use streamer::{WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 
 pub struct WalletStreamConsumer {
-    pub database: Database,
+    pub(crate) repository: Arc<dyn Repository>,
     pub device_stream: Arc<dyn DeviceStreamCacher>,
     pub retention: Duration,
 }
@@ -36,10 +37,7 @@ impl MessageConsumer<WalletStreamPayload, usize> for WalletStreamConsumer {
 
     async fn consume(&self, payload: WalletStreamPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let wallet_row_id = payload.wallet_id;
-        let (wallet, devices) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> { Ok((client.get_wallet_by_id(wallet_row_id)?, client.get_devices_by_wallet_id(wallet_row_id)?)) })
-            .await?;
+        let (wallet, devices) = self.repository.wallet_with_devices(wallet_row_id).await?;
         let events = stream_events(wallet.wallet_id, payload.event);
         let expires_at = unix_timestamp().saturating_add(self.retention.as_secs()) as f64;
 

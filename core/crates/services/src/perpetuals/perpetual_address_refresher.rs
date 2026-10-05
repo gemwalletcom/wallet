@@ -6,17 +6,18 @@ use cacher::{PerpetualAddressCacher, PerpetualAddressTier};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use primitives::Chain;
-use storage::{Database, WalletsRepository};
+
+use super::repository::Repository;
 
 pub struct PerpetualAddressRefresher {
     providers: Arc<ChainProviders>,
-    database: Database,
+    repository: Arc<dyn Repository>,
     addresses: Arc<dyn PerpetualAddressCacher>,
 }
 
 impl PerpetualAddressRefresher {
-    pub fn new(providers: Arc<ChainProviders>, database: Database, addresses: Arc<dyn PerpetualAddressCacher>) -> Self {
-        Self { providers, database, addresses }
+    pub(crate) fn new(providers: Arc<ChainProviders>, repository: Arc<dyn Repository>, addresses: Arc<dyn PerpetualAddressCacher>) -> Self {
+        Self { providers, repository, addresses }
     }
 
     pub async fn update(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -26,8 +27,8 @@ impl PerpetualAddressRefresher {
         let tracked_addresses: Vec<String> = if referred_addresses.is_empty() {
             vec![]
         } else {
-            self.database
-                .run(move |client| client.get_subscriptions_by_chain_addresses(chain, referred_addresses))
+            self.repository
+                .subscriptions_for_addresses(chain, referred_addresses)
                 .await?
                 .into_iter()
                 .map(|s| s.address)

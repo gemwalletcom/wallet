@@ -134,7 +134,7 @@ impl Services {
 
     pub async fn wallet_stream_consumer(&self) -> Result<WalletStreamConsumer, Box<dyn Error + Send + Sync>> {
         Ok(WalletStreamConsumer {
-            database: self.database(),
+            repository: self.transactions_repository(),
             device_stream: Arc::new(self.cacher().await?),
             retention: self.config().get_duration(ConfigKey::DeviceStreamRetention).await?,
         })
