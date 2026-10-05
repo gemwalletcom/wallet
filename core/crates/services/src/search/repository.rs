@@ -1,8 +1,8 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use primitives::{Asset, AssetId, NFTCollection, Perpetual};
+use primitives::{Asset, AssetId, NFTCollection, Perpetual, PerpetualId};
 use storage::{
     AssetFilter, AssetTagLink, AssetWithMarket, AssetsRepository, AssetsUsageRanksRepository, AssetsWithPricesFilter, Database, DatabaseError, NftCollectionFilter, NftRepository, PerpetualTagLink, PerpetualsRepository, PricesRepository,
     Tag, TagRepository,
@@ -19,6 +19,7 @@ pub(crate) struct PerpetualsIndexData {
     pub(crate) perpetuals: Vec<Perpetual>,
     pub(crate) list_tags: Vec<Tag>,
     pub(crate) perpetuals_tags: Vec<PerpetualTagLink>,
+    pub(crate) associated_asset_ids: HashMap<PerpetualId, AssetId>,
 }
 
 #[async_trait]
@@ -76,6 +77,7 @@ impl Repository for PostgresRepository {
                     perpetuals: client.get_perpetuals()?,
                     list_tags: client.get_perpetual_list_tags()?,
                     perpetuals_tags: client.get_perpetuals_tags()?,
+                    associated_asset_ids: client.get_associated_asset_ids()?,
                 })
             })
             .await

@@ -610,6 +610,8 @@ diesel::table! {
         provider -> PerpetualProvider,
         #[max_length = 256]
         asset_id -> Varchar,
+        #[max_length = 256]
+        associated_asset_id -> Nullable<Varchar>,
         #[max_length = 128]
         identifier -> Varchar,
         price -> Float8,
@@ -619,18 +621,6 @@ diesel::table! {
         funding -> Float8,
         leverage -> Array<Nullable<Int4>>,
         is_isolated_only -> Bool,
-        updated_at -> Timestamp,
-        created_at -> Timestamp,
-    }
-}
-
-diesel::table! {
-    perpetuals_assets (id) {
-        id -> Int4,
-        #[max_length = 128]
-        perpetual_id -> Varchar,
-        #[max_length = 256]
-        asset_id -> Varchar,
         updated_at -> Timestamp,
         created_at -> Timestamp,
     }
@@ -1128,9 +1118,6 @@ diesel::joinable!(nft_reports -> nft_collections (collection_id));
 diesel::joinable!(notifications -> assets (asset_id));
 diesel::joinable!(notifications -> wallets (wallet_id));
 diesel::joinable!(parser_state -> chains (chain));
-diesel::joinable!(perpetuals -> assets (asset_id));
-diesel::joinable!(perpetuals_assets -> assets (asset_id));
-diesel::joinable!(perpetuals_assets -> perpetuals (perpetual_id));
 diesel::joinable!(perpetuals_tags -> perpetuals (perpetual_id));
 diesel::joinable!(perpetuals_tags -> tags (tag_id));
 diesel::joinable!(price_alerts -> assets (asset_id));
@@ -1202,7 +1189,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     notifications,
     parser_state,
     perpetuals,
-    perpetuals_assets,
     perpetuals_tags,
     price_alerts,
     prices,

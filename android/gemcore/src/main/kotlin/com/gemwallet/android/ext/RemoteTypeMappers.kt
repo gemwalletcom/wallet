@@ -1060,6 +1060,7 @@ fun uniffi.gemstone.AssetFull.toPrimitives(): com.wallet.core.primitives.AssetFu
     links = links.map { it.toPrimitives() },
     associations = associations.map { it.toPrimitives() },
     perpetuals = perpetuals.map { it.toPrimitives() },
+    associatedAssetId = associatedAssetId?.let { com.wallet.core.primitives.AssetId(it) },
     price = price?.let { it.toPrimitives() },
     market = market?.let { it.toPrimitives() },
 )
@@ -1072,6 +1073,7 @@ fun com.wallet.core.primitives.AssetFull.toGem(): uniffi.gemstone.AssetFull = un
     links = links.map { it.toGem() },
     associations = associations.map { it.toGem() },
     perpetuals = perpetuals.map { it.toGem() },
+    associatedAssetId = associatedAssetId?.let { it.toIdentifier() },
     price = price?.let { it.toGem() },
     market = market?.let { it.toGem() },
 )
