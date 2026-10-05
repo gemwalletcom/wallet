@@ -7,10 +7,12 @@ use primitives::{Asset, AssetId, Currency, Price, PriceAlert, PriceAlertData, Pr
 
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::placeholder::EMPTY_VALUE;
+use crate::models::state::{GemListPhase, GemLoadState};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
 use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemRowText};
 use crate::services::collections::stale;
+use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -142,11 +144,17 @@ pub struct GemPriceAlertListSection {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
+pub struct GemPriceAlertList {
+    pub sections: Vec<GemPriceAlertListSection>,
+    pub phase: GemListPhase,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetPriceAlerts {
     pub auto_alert: GemPriceAlertToggle,
     pub auto_row: GemPriceAlertRow,
     pub alerts: Vec<GemPriceAlertItem>,
-    pub shows_empty: bool,
+    pub phase: GemListPhase,
 }
 
 fn text(number: Option<GemFormattedNumber>) -> GemPriceAlertText {
@@ -231,7 +239,15 @@ pub fn price_alert_list_sections(alerts: Vec<PriceAlertData>, price_currency: Cu
         .collect()
 }
 
-pub fn asset_price_alerts(asset: Asset, price: Option<Price>, alerts: Vec<PriceAlertData>, price_currency: Currency) -> GemAssetPriceAlerts {
+pub fn price_alert_list(alerts: Vec<PriceAlertData>, price_currency: Currency, state: GemLoadState) -> GemPriceAlertList {
+    let sections = price_alert_list_sections(alerts, price_currency);
+    GemPriceAlertList {
+        phase: GemListPhase::new(state, !sections.is_empty(), empty_state(GemEmptyStateKind::PriceAlerts)),
+        sections,
+    }
+}
+
+pub fn asset_price_alerts(asset: Asset, price: Option<Price>, alerts: Vec<PriceAlertData>, price_currency: Currency, state: GemLoadState) -> GemAssetPriceAlerts {
     let sections = price_alert_list_sections(alerts, price_currency.clone());
     let auto_alert = match sections.iter().any(|section| section.kind == GemPriceAlertSectionKind::Auto) {
         true => GemPriceAlertToggle::Enabled,
@@ -249,7 +265,7 @@ pub fn asset_price_alerts(asset: Asset, price: Option<Price>, alerts: Vec<PriceA
         rank_score: 0,
     };
     GemAssetPriceAlerts {
-        shows_empty: auto_alert == GemPriceAlertToggle::Disabled && alerts.is_empty(),
+        phase: GemListPhase::new(state, auto_alert == GemPriceAlertToggle::Enabled || !alerts.is_empty(), empty_state(GemEmptyStateKind::PriceAlerts)),
         auto_alert,
         auto_row: price_alert_row(&auto, price_currency),
         alerts,
@@ -390,6 +406,7 @@ mod tests {
     }
 
     use super::*;
+    use crate::services::error::GemServiceError;
     use primitives::{AssetId, Chain, currency::Currency};
 
     use crate::formatted_number::GemNumberUnit;
@@ -471,15 +488,46 @@ mod tests {
         let auto = PriceAlertData::mock(PriceAlert::new_auto(bitcoin.clone(), Currency::USD), None, None);
         let over = PriceAlertData::mock(PriceAlert::new_price(bitcoin, Currency::USD, 100.0, PriceAlertDirection::Up), None, None);
 
-        let both = asset_price_alerts(asset.clone(), None, vec![over.clone(), auto], Currency::USD);
+        let failed = || GemLoadState::Error {
+            error: GemServiceError::Gateway { msg: "offline".to_string() },
+        };
+        let both = asset_price_alerts(asset.clone(), None, vec![over.clone(), auto.clone()], Currency::USD, failed());
         assert_eq!(both.auto_alert, GemPriceAlertToggle::Enabled);
         assert_eq!(both.alerts.iter().map(|item| item.id.clone()).collect::<Vec<_>>(), vec![over.price_alert.id()], "the auto alert is the toggle, not a row");
-        assert!(!both.shows_empty);
+        assert_eq!(both.phase, GemListPhase::Rows, "stored alerts hide a failed sync");
         assert_eq!(both.auto_row.kind, GemPriceAlertKind::Auto);
 
-        let none = asset_price_alerts(asset, None, vec![], Currency::USD);
+        let auto_only = asset_price_alerts(asset.clone(), None, vec![auto], Currency::USD, failed());
+        assert_eq!(auto_only.phase, GemListPhase::Rows, "an enabled auto alert is something to show");
+
+        let none = asset_price_alerts(asset.clone(), None, vec![], Currency::USD, GemLoadState::Data);
         assert_eq!(none.auto_alert, GemPriceAlertToggle::Disabled);
-        assert!(none.shows_empty);
+        assert_eq!(
+            none.phase,
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::PriceAlerts)
+            }
+        );
+        assert!(matches!(asset_price_alerts(asset, None, vec![], Currency::USD, failed()).phase, GemListPhase::Error { .. }));
+    }
+
+    #[test]
+    fn test_the_alert_list_shows_its_rows_before_a_failed_sync_and_its_empty_state_without() {
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let over = PriceAlertData::mock(PriceAlert::new_price(bitcoin, Currency::USD, 100.0, PriceAlertDirection::Up), None, None);
+        let failed = || GemLoadState::Error {
+            error: GemServiceError::Gateway { msg: "offline".to_string() },
+        };
+
+        let listed = price_alert_list(vec![over], Currency::USD, failed());
+        assert_eq!((listed.sections.len(), listed.phase), (1, GemListPhase::Rows));
+        assert!(matches!(price_alert_list(vec![], Currency::USD, failed()).phase, GemListPhase::Error { .. }));
+        assert_eq!(
+            price_alert_list(vec![], Currency::USD, GemLoadState::Loading).phase,
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::PriceAlerts)
+            }
+        );
     }
 
     #[test]

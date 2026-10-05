@@ -4,10 +4,10 @@ import Components
 import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemPriceAlertItem
+import struct Gemstone.GemPriceAlertList
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import enum Gemstone.GemRowAction
 import enum Gemstone.GemServiceError
-import func Gemstone.loadError
 import class Gemstone.PriceAlertFormatter
 import func Gemstone.priceAlertsToggleRow
 import GemstonePrimitives
@@ -53,20 +53,16 @@ public final class PriceAlertsSceneViewModel: Sendable {
         priceAlertsToggleRow(enabled: isPriceAlertsEnabled)
     }
 
-    var loadError: Error? {
-        Gemstone.loadError(state: loadState, hasRows: !priceAlerts.isEmpty)
-    }
-
-    var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .priceAlerts)
-    }
-
     func chart(_ item: GemPriceAlertItem) -> Scenes.Chart {
         Scenes.Chart(asset: item.data.asset.toPrimitives())
     }
 
-    var sections: [ListItemValueSection<GemPriceAlertItem>] {
-        PriceAlertFormatter.shared.sections(alerts: priceAlerts.map { $0.toGem() }, priceCurrency: currency.toGem()).map { section in
+    var list: GemPriceAlertList {
+        PriceAlertFormatter.shared.list(alerts: priceAlerts.map { $0.toGem() }, priceCurrency: currency.toGem(), state: loadState)
+    }
+
+    func sections(_ list: GemPriceAlertList) -> [ListItemValueSection<GemPriceAlertItem>] {
+        list.sections.map { section in
             ListItemValueSection(
                 section: section.kind.title,
                 footer: section.kind.footer,
@@ -80,7 +76,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
 extension PriceAlertsSceneViewModel {
     public func load() async {
-        loadState = await service.refresh(assetId: nil, hasAlerts: priceAlerts.isNotEmpty)
+        loadState = await service.refresh(assetId: nil)
     }
 
     func deletePriceAlert(priceAlert: PriceAlert) async {

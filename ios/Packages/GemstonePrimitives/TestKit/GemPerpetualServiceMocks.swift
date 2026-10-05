@@ -15,6 +15,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
     private var enabled: Bool
     private let setEnabledError: Error?
     private let allowsNotifications: Bool
+    public var refreshState: GemLoadState = .data
 
     public init(enabled: Bool = false, setEnabledError: Error? = .none, allowsNotifications: Bool = true) {
         self.enabled = enabled
@@ -47,8 +48,8 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         lock.withLock { self.enabled = enabled }
     }
 
-    public func refresh(assetId _: Gemstone.AssetId?, hasAlerts _: Bool) async -> GemLoadState {
-        .data
+    public func refresh(assetId _: Gemstone.AssetId?) async -> GemLoadState {
+        refreshState
     }
 
     public func enablePriceAlert(alert _: Gemstone.PriceAlert) async throws -> Bool {

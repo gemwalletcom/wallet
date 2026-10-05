@@ -118,9 +118,9 @@ The target for every item below: a model that only renames or regroups a Core re
 ### Shared components, second round
 
 - **VM262** **M** **Screens count their own lists so Core can pick the phase.**
-  - **iOS:** `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the price alerts, asset price alerts, notifications, support and collections screens.
-  - **Android:** `PerpetualsViewModel`, and `loadError(state, hasRows)` in the price alerts, notifications, support, collections and perpetual candle view models.
-  - **Expected:** the screen hands the rows it observed and its load state to one pure Core call, which returns the rows or sections with a `GemListPhase` (rows, the empty state to show, or the error of a load that left nothing to show); refresh calls take no `hasRows` and the counting goes. Activity, the asset screen's transactions and fiat history already do (`transaction_list_phase`, `fiat_transaction_list_phase`).
+  - **iOS:** `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the notifications, support and collections screens.
+  - **Android:** `PerpetualsViewModel`, and `loadError(state, hasRows)` in the notifications, support, collections and perpetual candle view models.
+  - **Expected:** the screen hands the rows it observed and its load state to one pure Core call, which returns the rows or sections with a `GemListPhase` (rows, the empty state to show, or the error of a load that left nothing to show); refresh calls take no `hasRows` and the counting goes. Activity, the asset screen's transactions, fiat history and price alerts already do (`transaction_list_phase`, `fiat_transaction_list_phase`, `PriceAlertFormatter.list` and `asset_alerts`).
 - **VM269** **S** **Banner destinations are routed per screen.**
   - **iOS:** `WalletSceneViewModel` opens only URL banners and ignores stake, activate and perpetual destinations; `AssetSceneViewModel` handles all four; both map banner buttons to header actions.
   - **Android:** `WalletScene` ignores the same three; `BannerItem` handles all four.
@@ -140,8 +140,8 @@ The target for every item below: a model that only renames or regroups a Core re
 ### Scenes
 
 - **VM290** **M** **Empty states are decided scene by scene.**
-  - **iOS:** `InAppNotificationsScene` and `PriceAlertsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsSceneViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
-  - **Android:** `ConnectionsScreen`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrencyScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertsScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
+  - **iOS:** `InAppNotificationsScene` shows the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
+  - **Android:** `ConnectionsScreen`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrencyScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
   - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM294** **S** **Secret phrase rows are filled with words in the apps.**
   - **iOS:** `SecretPhraseRow` and `GemSecretPhraseRow+PrimitivesComponents` map Core's index rows to words.

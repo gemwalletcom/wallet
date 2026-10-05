@@ -53,7 +53,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetPriceAlerts
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPriceAlertItem
 import uniffi.gemstone.GemPriceAlertToggle
@@ -64,9 +64,8 @@ import uniffi.gemstone.priceAlertsToggleRow
 internal fun PriceAlertsScene(
     asset: AssetInfoDataAggregate? = null,
     sections: List<ListSection<GemPriceAlertItem>>,
-    errorRow: GemListRow?,
+    phase: GemListPhase?,
     assetAlerts: GemAssetPriceAlerts?,
-    showsEmpty: Boolean,
     enabled: Boolean,
     syncState: Boolean,
     isAssetView: Boolean,
@@ -97,10 +96,10 @@ internal fun PriceAlertsScene(
             onRefresh = { onAction(PriceAlertsAction.Refresh) },
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                errorRow?.let { row -> item { GemListRowView(row = row, listPosition = ListPosition.Single) } }
+                (phase as? GemListPhase.Error)?.let { item { GemListRowView(row = GemListRow.Error(it.error), listPosition = ListPosition.Single) } }
                 if (isAssetView) {
                     autoAlertToggle(asset, assetAlerts) { onAction(PriceAlertsAction.ToggleAutoAlert(it)) }
-                    emptyAlertingAssets(showsEmpty)
+                    emptyAlertingAssets(phase)
                     assets(
                         revealable = revealable,
                         sections = sections,
@@ -121,7 +120,7 @@ internal fun PriceAlertsScene(
                             color = MaterialTheme.colorScheme.secondary,
                         )
                     }
-                    emptyAlertingAssets(showsEmpty)
+                    emptyAlertingAssets(phase)
                     assets(
                         revealable = revealable,
                         sections = sections,
@@ -153,13 +152,13 @@ private fun LazyListScope.autoAlertToggle(asset: AssetInfoDataAggregate?, assetA
     }
 }
 
-private fun LazyListScope.emptyAlertingAssets(empty: Boolean) {
-    if (!empty) {
+private fun LazyListScope.emptyAlertingAssets(phase: GemListPhase?) {
+    if (phase !is GemListPhase.Empty) {
         return
     }
     item {
         EmptyContentView(
-            kind = GemEmptyStateKind.PRICE_ALERTS,
+            state = phase.state,
             modifier = Modifier.fillParentMaxHeight(0.5f),
         )
     }
