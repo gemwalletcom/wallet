@@ -93,7 +93,7 @@ impl Services {
             .asset_catalog
             .get_or_try_init(|| async {
                 let cacher: Arc<dyn AssetCatalogCacher> = Arc::new(self.cacher().await?);
-                Ok::<_, Box<dyn Error + Send + Sync>>(Arc::new(AssetCatalogClient::new(self.database(), cacher, self.config())))
+                Ok::<_, Box<dyn Error + Send + Sync>>(Arc::new(AssetCatalogClient::new(self.assets_repository(), cacher, self.config())))
             })
             .await?;
         Ok(client.clone())

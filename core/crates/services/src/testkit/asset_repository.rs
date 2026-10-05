@@ -1,10 +1,11 @@
 use std::collections::HashSet;
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{Asset, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank};
+use primitives::{Asset, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank, fiat_assets::AssetCatalog};
 use storage::{AssetFilter, AssetUpdate, DatabaseError, Tag};
 
 use crate::assets::repository::{RankChange, Repository, TokenAddressesUpdate};
@@ -25,6 +26,8 @@ pub(crate) struct MemoryAssetRepository {
     added: Mutex<Vec<AssetBasic>>,
     tags: Vec<Tag>,
     list_assets: Mutex<Vec<ListAssets>>,
+    catalog: AssetCatalog,
+    catalog_reads: AtomicUsize,
 }
 
 impl MemoryAssetRepository {
@@ -38,7 +41,17 @@ impl MemoryAssetRepository {
             added: Mutex::new(Vec::new()),
             tags: Vec::new(),
             list_assets: Mutex::new(Vec::new()),
+            catalog: AssetCatalog::new(vec![], vec![], vec![]),
+            catalog_reads: AtomicUsize::new(0),
         }
+    }
+
+    pub(crate) fn with_catalog(self, catalog: AssetCatalog) -> Self {
+        Self { catalog, ..self }
+    }
+
+    pub(crate) fn catalog_reads(&self) -> usize {
+        self.catalog_reads.load(Ordering::Relaxed)
     }
 
     pub(crate) fn with_tags(self, tags: Vec<Tag>) -> Self {
@@ -153,6 +166,11 @@ impl Repository for MemoryAssetRepository {
 
     async fn update_perpetuals(&self, _assets: Vec<Asset>, _asset_updates: Vec<AssetUpdate>, perpetuals: Vec<Perpetual>) -> Result<Result<usize, DatabaseError>, DatabaseError> {
         Ok(Ok(perpetuals.len()))
+    }
+
+    async fn asset_catalog(&self) -> Result<AssetCatalog, DatabaseError> {
+        self.catalog_reads.fetch_add(1, Ordering::Relaxed);
+        Ok(self.catalog.clone())
     }
 
     async fn list_tag(&self, tag_id: String) -> Result<Option<Tag>, DatabaseError> {
