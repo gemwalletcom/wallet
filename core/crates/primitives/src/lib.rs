@@ -205,6 +205,8 @@ pub mod wallet_id;
 pub use self::wallet_id::WalletId;
 pub mod wallet_list_item;
 pub use self::wallet_list_item::WalletListItem;
+pub mod wallet_address_item;
+pub use self::wallet_address_item::WalletAddressItem;
 pub mod wallet_connector;
 pub use self::wallet_connector::{WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus};
 pub mod nft;

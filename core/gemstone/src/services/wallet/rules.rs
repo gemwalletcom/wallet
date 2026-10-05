@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, OptionStringExt, VerificationStatus, Wallet, WalletId, WalletListItem, WalletSource, WalletType};
 
@@ -182,7 +184,7 @@ pub fn row(wallet: &WalletListItem) -> GemWalletRow {
 }
 
 pub fn sections(wallets: Vec<WalletListItem>, current_wallet_id: Option<&WalletId>) -> Vec<GemWalletSection> {
-    let (pinned, rest): (Vec<GemWalletRow>, Vec<GemWalletRow>) = sorted_wallets(wallets)
+    let (pinned, rest): (Vec<GemWalletRow>, Vec<GemWalletRow>) = sorted_by_wallet_order(wallets, |wallet| wallet)
         .iter()
         .map(|wallet| GemWalletRow {
             is_current: current_wallet_id == Some(&wallet.id),
@@ -268,10 +270,16 @@ pub fn wallets_missing_chains(wallets: Vec<Wallet>, chains: &[Chain]) -> Vec<(Wa
         .collect()
 }
 
-fn sorted_wallets(wallets: Vec<WalletListItem>) -> Vec<WalletListItem> {
-    let mut sorted = wallets;
-    sorted.sort_by_key(|wallet| wallet_order(&wallet.id, wallet.index));
-    sorted
+pub fn sorted_by_wallet_order<T>(items: Vec<T>, wallet: impl Fn(&T) -> &WalletListItem) -> Vec<T> {
+    let sorted: BTreeMap<((u8, i32), usize), T> = items
+        .into_iter()
+        .enumerate()
+        .map(|(position, item)| {
+            let order = wallet_order(&wallet(&item).id, wallet(&item).index);
+            ((order, position), item)
+        })
+        .collect();
+    sorted.into_values().collect()
 }
 
 fn wallet_order(wallet_id: &WalletId, index: i32) -> (u8, i32) {
@@ -639,7 +647,7 @@ mod tests {
             ..WalletListItem::mock_with_id(WalletId::Multicoin("0x1".to_string()))
         };
 
-        let sorted = sorted_wallets(vec![watch.clone(), second.clone(), first.clone()]);
+        let sorted = sorted_by_wallet_order(vec![watch.clone(), second.clone(), first.clone()], |wallet| wallet);
 
         assert_eq!(sorted.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(), vec![first.id, second.id, watch.id]);
     }

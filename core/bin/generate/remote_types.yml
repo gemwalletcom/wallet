@@ -98,6 +98,7 @@ remote:
   - PlatformStore
   - Wallet
   - WalletListItem
+  - WalletAddressItem
   - WalletType
   - WalletSource
   - TpslType
@@ -401,6 +402,7 @@ mocks:
   - TransferDataExtra
   - Wallet
   - WalletListItem
+  - WalletAddressItem
   - WalletConnection
   - WalletConnectionSession
   - WalletConnectionSessionProposal

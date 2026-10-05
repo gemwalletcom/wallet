@@ -1,4 +1,4 @@
-use crate::{Account, Chain, Wallet, WalletId, WalletListItem, WalletSource, WalletType};
+use crate::{Account, Chain, Wallet, WalletAddressItem, WalletId, WalletListItem, WalletSource, WalletType};
 
 impl Wallet {
     pub fn mock() -> Self {
@@ -46,5 +46,11 @@ impl WalletListItem {
 
     pub fn mock_with_id(id: WalletId) -> Self {
         Self::from(&Wallet::mock_with_id(id, &[]))
+    }
+}
+
+impl WalletAddressItem {
+    pub fn mock(wallet: WalletListItem, address: &str) -> Self {
+        Self { wallet, address: address.to_string() }
     }
 }

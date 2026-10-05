@@ -16,7 +16,7 @@ use primitives::{
     Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
     SimulationWarningApproval, SimulationWarningType, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData,
     SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType, Transaction, TransactionDirection, TransactionExtended, TransactionInputType,
-    TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnection,
+    TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletAddressItem, WalletConnection,
     WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletListItem, WalletSource, WalletType, YieldProvider,
 };
 use std::str::FromStr;
@@ -1824,6 +1824,12 @@ pub struct Wallet {
     pub is_pinned: bool,
     pub image_url: Option<String>,
     pub source: WalletSource,
+}
+
+#[uniffi::remote(Record)]
+pub struct WalletAddressItem {
+    pub wallet: WalletListItem,
+    pub address: String,
 }
 
 #[uniffi::remote(Record)]
