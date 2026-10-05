@@ -82,7 +82,7 @@ mod tests {
             (vec![ScanProvider::GoPlus, ScanProvider::Tronscan], vec![ScanProvider::GoPlus, ScanProvider::Tronscan], false),
             (vec![ScanProvider::HashDit], vec![ScanProvider::HashDit], true),
             (vec![], vec![], false),
-            (ScanProvider::all(), ScanProvider::all(), true),
+            (ScanProvider::remote(), ScanProvider::remote(), true),
         ] {
             let filtered = providers.filter_enabled(&enabled);
             assert_eq!(filtered.addresses.iter().map(|provider| provider.provider()).collect::<Vec<_>>(), addresses);
