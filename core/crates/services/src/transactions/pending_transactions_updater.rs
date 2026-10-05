@@ -20,6 +20,7 @@ use streamer::{StreamProducerQueue, TransactionsPayload};
 pub struct PendingTransactionsUpdaterConfig {
     error_max_age_by_chain: HashMap<Chain, Duration>,
     check_interval: JobConfiguration,
+    chain_concurrency: usize,
 }
 
 impl PendingTransactionsUpdaterConfig {
@@ -31,6 +32,7 @@ impl PendingTransactionsUpdaterConfig {
                 max_interval_ms: config.get_duration(ConfigKey::TransactionPendingMaxCheckInterval).await?.as_millis() as u32,
                 step_factor: config.get_f64(ConfigKey::TransactionPendingCheckIntervalFactor).await? as f32,
             },
+            chain_concurrency: config.get_usize(ConfigKey::TransactionPendingChainConcurrency).await?.max(1),
         })
     }
 
@@ -80,7 +82,11 @@ impl PendingTransactionsUpdater {
         let groups = pending_counts.into_iter().map(|(chain, count)| (TransactionQueueGroup::new(chain, None), count)).collect();
         self.metrics.record_queue(TransactionQueue::Pending, groups);
 
-        stream::iter(chains).then(|chain| self.update_chain(chain)).try_fold(0, |total, count| async move { Ok(total + count) }).await
+        stream::iter(chains)
+            .map(|chain| self.update_chain(chain))
+            .buffer_unordered(self.config.chain_concurrency)
+            .try_fold(0, |total, count| async move { Ok(total + count) })
+            .await
     }
 
     async fn pending_counts(&self) -> Result<BTreeMap<Chain, usize>, Box<dyn Error + Send + Sync>> {
