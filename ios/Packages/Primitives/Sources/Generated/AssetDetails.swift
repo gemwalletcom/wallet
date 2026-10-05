@@ -58,10 +58,11 @@ public struct AssetFull: Codable, Sendable {
 	public let links: [AssetLink]
 	public let associations: [AssetAssociation]
 	public let perpetuals: [PerpetualBasic]
+	public let associatedAssetId: AssetId?
 	public let price: Price?
 	public let market: AssetMarket?
 
-	public init(asset: Asset, properties: AssetProperties, score: AssetScore, tags: [String], links: [AssetLink], associations: [AssetAssociation], perpetuals: [PerpetualBasic], price: Price?, market: AssetMarket?) {
+	public init(asset: Asset, properties: AssetProperties, score: AssetScore, tags: [String], links: [AssetLink], associations: [AssetAssociation], perpetuals: [PerpetualBasic], associatedAssetId: AssetId?, price: Price?, market: AssetMarket?) {
 		self.asset = asset
 		self.properties = properties
 		self.score = score
@@ -69,6 +70,7 @@ public struct AssetFull: Codable, Sendable {
 		self.links = links
 		self.associations = associations
 		self.perpetuals = perpetuals
+		self.associatedAssetId = associatedAssetId
 		self.price = price
 		self.market = market
 	}

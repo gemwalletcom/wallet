@@ -273,6 +273,7 @@ pub struct GemCandleChart {
     pub end: DateTime<Utc>,
     pub body_width: f64,
     pub x_ticks: Vec<GemCandleTick>,
+    pub is_zoomed: bool,
 }
 
 #[uniffi::export]
@@ -320,13 +321,6 @@ pub struct GemCandleTooltip {
 pub enum GemMarketsRefreshTrigger {
     Scheduled,
     UserRequested,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemPerpetualEnablementTrigger {
-    Foreground,
-    WalletChanged,
-    PreferenceChanged,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

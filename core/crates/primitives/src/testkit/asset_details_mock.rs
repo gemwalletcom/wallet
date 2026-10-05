@@ -22,6 +22,7 @@ impl AssetFull {
             links: vec![],
             associations: vec![],
             perpetuals: vec![],
+            associated_asset_id: None,
             price: None,
             market: None,
         }

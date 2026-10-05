@@ -89,8 +89,8 @@ fun SwapScreen(
 
     SwapDetailsBottomSheet(
         isVisible = isShowDetails,
-        isLoading = viewState.isQuoteLoading && viewState.details == null,
         details = viewState.details,
+        quotesState = viewState.quotesState,
         providers = viewState.providers,
         isProviderSelectable = viewState.allowsProviderSelection,
         onDismiss = { isShowDetails = false },

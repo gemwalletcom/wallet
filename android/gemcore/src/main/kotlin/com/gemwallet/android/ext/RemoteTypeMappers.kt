@@ -747,6 +747,7 @@ fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.Swap
     uniffi.gemstone.SwapProvider.SQUID -> com.wallet.core.primitives.SwapProvider.Squid
     uniffi.gemstone.SwapProvider.MAYACHAIN -> com.wallet.core.primitives.SwapProvider.Mayachain
     uniffi.gemstone.SwapProvider.SWAPS_XYZ -> com.wallet.core.primitives.SwapProvider.SwapsXyz
+    uniffi.gemstone.SwapProvider.BRIDGERS -> com.wallet.core.primitives.SwapProvider.Bridgers
 }
 
 fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvider = when (this) {
@@ -772,6 +773,7 @@ fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvide
     com.wallet.core.primitives.SwapProvider.Squid -> uniffi.gemstone.SwapProvider.SQUID
     com.wallet.core.primitives.SwapProvider.Mayachain -> uniffi.gemstone.SwapProvider.MAYACHAIN
     com.wallet.core.primitives.SwapProvider.SwapsXyz -> uniffi.gemstone.SwapProvider.SWAPS_XYZ
+    com.wallet.core.primitives.SwapProvider.Bridgers -> uniffi.gemstone.SwapProvider.BRIDGERS
 }
 
 fun uniffi.gemstone.TpslType.toPrimitives(): com.wallet.core.primitives.TpslType = when (this) {
@@ -1058,6 +1060,7 @@ fun uniffi.gemstone.AssetFull.toPrimitives(): com.wallet.core.primitives.AssetFu
     links = links.map { it.toPrimitives() },
     associations = associations.map { it.toPrimitives() },
     perpetuals = perpetuals.map { it.toPrimitives() },
+    associatedAssetId = associatedAssetId?.let { com.wallet.core.primitives.AssetId(it) },
     price = price?.let { it.toPrimitives() },
     market = market?.let { it.toPrimitives() },
 )
@@ -1070,6 +1073,7 @@ fun com.wallet.core.primitives.AssetFull.toGem(): uniffi.gemstone.AssetFull = un
     links = links.map { it.toGem() },
     associations = associations.map { it.toGem() },
     perpetuals = perpetuals.map { it.toGem() },
+    associatedAssetId = associatedAssetId?.let { it.toIdentifier() },
     price = price?.let { it.toGem() },
     market = market?.let { it.toGem() },
 )

@@ -61,7 +61,7 @@ public final class FiatSceneViewModel {
         self.wallet = wallet
         assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
         priceUsdQuery = ObservableQuery(PriceUsdQuery(assetId: assetAddress.asset.id), initialValue: nil)
-        session = service.newSession(quoteType: type.toGem(), amount: amount.map { UInt32($0) })
+        session = service.newSession(quoteType: type.toGem(), amount: amount.map { UInt32($0) }, format: NumberInput.format(locale))
         loadTrigger = FiatLoadTrigger(session: session, isImmediate: true)
     }
 

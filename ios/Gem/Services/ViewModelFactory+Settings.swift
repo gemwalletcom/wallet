@@ -89,7 +89,7 @@ public extension ViewModelFactory {
 
     @MainActor
     func inAppNotificationsScene() -> InAppNotificationsSceneViewModel? {
-        currentWallet(in: currentWallets()).map {
+        currentWallet().map {
             InAppNotificationsSceneViewModel(wallet: $0, service: inAppNotificationService) { action in
                 Task { await AppResolver.main.services.navigationRouter.open(action: action) }
             }
@@ -133,11 +133,10 @@ public extension ViewModelFactory {
 
     @MainActor
     func rewardsScene(activateCode: String?) -> RewardsSceneViewModel {
-        let wallets = currentWallets()
-        return RewardsSceneViewModel(
+        RewardsSceneViewModel(
             service: rewardsService,
-            wallets: wallets,
-            currentWallet: currentWallet(in: wallets),
+            wallets: currentWallets(),
+            currentWallet: currentWallet(),
             activateCode: activateCode,
         )
     }

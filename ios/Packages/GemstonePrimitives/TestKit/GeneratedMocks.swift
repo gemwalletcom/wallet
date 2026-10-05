@@ -326,6 +326,7 @@ public extension Gemstone.GemChartData {
         dateStyle: Gemstone.GemChartDateStyle = .relative,
         start: Date = Date(timeIntervalSince1970: 0),
         end: Date = Date(timeIntervalSince1970: 0),
+        isZoomed: Bool = false,
     ) -> Gemstone.GemChartData {
         Gemstone.GemChartData(
             valueType: valueType,
@@ -338,6 +339,7 @@ public extension Gemstone.GemChartData {
             dateStyle: dateStyle,
             start: start,
             end: end,
+            isZoomed: isZoomed,
         )
     }
 }
@@ -512,6 +514,42 @@ public extension Gemstone.GemConnectionRow {
     }
 }
 
+public extension Gemstone.GemCustomFeeField {
+    static func mock(
+        title: Gemstone.GemListRowTitle = .api,
+        input: String = "",
+    ) -> Gemstone.GemCustomFeeField {
+        Gemstone.GemCustomFeeField(
+            title: title,
+            input: input,
+        )
+    }
+}
+
+public extension Gemstone.GemCustomFeeSession {
+    static func mock(
+        feeAsset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        format: Gemstone.GemNumberFormat = .mock(),
+        rows: Gemstone.GemFeeRateRows = .mock(),
+        loadedFee: BigInt? = nil,
+        price: Double? = nil,
+        currency: Gemstone.Currency = .mxn,
+        baseFee: Gemstone.GemCustomFeeField? = nil,
+        rate: Gemstone.GemCustomFeeField = .mock(),
+    ) -> Gemstone.GemCustomFeeSession {
+        Gemstone.GemCustomFeeSession(
+            feeAsset: feeAsset,
+            format: format,
+            rows: rows,
+            loadedFee: loadedFee,
+            price: price,
+            currency: currency,
+            baseFee: baseFee,
+            rate: rate,
+        )
+    }
+}
+
 public extension Gemstone.GemEmptyState {
     static func mock(
         title: Gemstone.GemEmptyStateText = .nftsTitle,
@@ -668,12 +706,14 @@ public extension Gemstone.GemFiatSession {
         buy: Gemstone.GemFiatOperation = .mock(),
         sell: Gemstone.GemFiatOperation = .mock(),
         available: BigUInt = 0,
+        format: Gemstone.GemNumberFormat = .mock(),
     ) -> Gemstone.GemFiatSession {
         Gemstone.GemFiatSession(
             quoteType: quoteType,
             buy: buy,
             sell: sell,
             available: available,
+            format: format,
         )
     }
 }
@@ -901,6 +941,30 @@ public extension Gemstone.GemPerpetualTransferData {
 public extension Gemstone.GemPrecision {
     static func mock() -> Gemstone.GemPrecision {
         .fraction(min: 0, max: 0)
+    }
+}
+
+public extension Gemstone.GemProviderKind {
+    static func mock() -> Gemstone.GemProviderKind {
+        .swap(provider: .uniswapV3)
+    }
+}
+
+public extension Gemstone.GemProviderRow {
+    static func mock(
+        kind: Gemstone.GemProviderKind = .mock(),
+        name: String = "",
+        amount: Gemstone.GemFormattedNumber = .mock(),
+        fiat: Gemstone.GemFormattedNumber? = nil,
+        isSelected: Bool = false,
+    ) -> Gemstone.GemProviderRow {
+        Gemstone.GemProviderRow(
+            kind: kind,
+            name: name,
+            amount: amount,
+            fiat: fiat,
+            isSelected: isSelected,
+        )
     }
 }
 
@@ -1346,6 +1410,22 @@ public extension Gemstone.GemWalletConnectTransactionRequest {
             simulation: simulation,
             transfer: transfer,
             action: action,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletDetails {
+    static func mock(
+        row: Gemstone.GemWalletRow = .mock(),
+        secretKind: Gemstone.GemWalletSecretKind? = nil,
+        showSecret: Gemstone.GemLocalizedText? = nil,
+        address: Gemstone.GemAddressRow? = nil,
+    ) -> Gemstone.GemWalletDetails {
+        Gemstone.GemWalletDetails(
+            row: row,
+            secretKind: secretKind,
+            showSecret: showSecret,
+            address: address,
         )
     }
 }

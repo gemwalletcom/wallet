@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.onboarding.presents.import_wallet.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,11 +34,12 @@ import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.NameResolveIndicator
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space8
 import uniffi.gemstone.GemNameIndicator
 
 @Composable
-internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, indicator: GemNameIndicator?, onValueChange: (TextFieldValue) -> Unit) {
+internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, indicator: GemNameIndicator?, onScan: (() -> Unit)?, onValueChange: (TextFieldValue) -> Unit) {
     val clipboardManager = LocalContext.current.clipboardManager()
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -82,13 +84,12 @@ internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, 
             }
         }
         Spacer16()
-        Box(
+        Row(
             modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.CenterHorizontally),
         ) {
             FieldBottomAction(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .testTag("paste"),
+                modifier = Modifier.testTag("paste"),
                 imageVector = AppIcons.ContentPaste,
                 text = stringResource(id = R.string.common_paste),
             ) {
@@ -103,6 +104,14 @@ internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, 
                 if (input.protectsInput) {
                     clipboardManager.clear()
                 }
+            }
+            if (onScan != null) {
+                FieldBottomAction(
+                    modifier = Modifier.testTag("scan"),
+                    imageVector = AppIcons.QrCodeScanner,
+                    text = stringResource(id = R.string.wallet_scan),
+                    onClick = onScan,
+                )
             }
         }
     }

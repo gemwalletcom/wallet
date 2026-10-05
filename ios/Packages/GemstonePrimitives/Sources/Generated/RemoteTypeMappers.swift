@@ -1103,6 +1103,7 @@ public extension Gemstone.SwapProvider {
         case .squid: .squid
         case .mayachain: .mayachain
         case .swapsXyz: .swapsXyz
+        case .bridgers: .bridgers
         }
     }
 }
@@ -1132,6 +1133,7 @@ public extension Primitives.SwapProvider {
         case .squid: .squid
         case .mayachain: .mayachain
         case .swapsXyz: .swapsXyz
+        case .bridgers: .bridgers
         }
     }
 }
@@ -1566,6 +1568,7 @@ public extension Gemstone.AssetFull {
             links: links.map { $0.toPrimitives() },
             associations: associations.map { $0.toPrimitives() },
             perpetuals: perpetuals.map { $0.toPrimitives() },
+            associatedAssetId: associatedAssetId,
             price: price.map { $0.toPrimitives() },
             market: market.map { $0.toPrimitives() },
         )
@@ -1582,6 +1585,7 @@ public extension Primitives.AssetFull {
             links: links.map { $0.toGem() },
             associations: associations.map { $0.toGem() },
             perpetuals: perpetuals.map { $0.toGem() },
+            associatedAssetId: associatedAssetId,
             price: price.map { $0.toGem() },
             market: market.map { $0.toGem() },
         )

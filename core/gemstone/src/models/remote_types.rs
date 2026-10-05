@@ -683,6 +683,7 @@ pub enum SwapProvider {
     Squid,
     Mayachain,
     SwapsXyz,
+    Bridgers,
 }
 
 #[uniffi::remote(Enum)]
@@ -897,6 +898,7 @@ pub struct AssetFull {
     pub links: Vec<AssetLink>,
     pub associations: Vec<AssetAssociation>,
     pub perpetuals: Vec<PerpetualBasic>,
+    pub associated_asset_id: Option<primitives::AssetId>,
     pub price: Option<Price>,
     pub market: Option<AssetMarket>,
 }

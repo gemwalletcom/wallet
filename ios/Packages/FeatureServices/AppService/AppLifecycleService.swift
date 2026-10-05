@@ -3,7 +3,6 @@
 import ConnectionStatusService
 import Foundation
 import protocol Gemstone.GemDeviceServiceProtocol
-import enum Gemstone.GemPerpetualEnablementTrigger
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
@@ -57,13 +56,17 @@ public actor AppLifecycleService: Sendable {
     }
 
     public func updateWalletConnections() async {
-        async let perpetual: () = syncPerpetual(trigger: .walletChanged)
+        async let perpetual: () = syncPerpetual()
         async let stream: () = streamObserverService.updateSession()
         _ = await (perpetual, stream)
     }
 
     public func updatePerpetualConnection() async {
-        await syncPerpetual(trigger: .preferenceChanged)
+        await syncPerpetual()
+    }
+
+    public func updateStreamSession() async {
+        await streamObserverService.updateSession()
     }
 
     public func onScenePhase(_ phase: ScenePhase) async {
@@ -112,7 +115,7 @@ extension AppLifecycleService {
     private func connectObservers() async {
         async let connection: () = connectionStatusObserver.start()
         async let stream: () = streamObserverService.connect()
-        async let perpetual: () = syncPerpetual(trigger: .foreground)
+        async let perpetual: () = syncPerpetual()
         async let pending: () = trackPendingTransactions()
         _ = await (connection, stream, perpetual, pending)
     }
@@ -125,14 +128,16 @@ extension AppLifecycleService {
         }
     }
 
-    private func syncPerpetual(trigger: GemPerpetualEnablementTrigger) async {
+    private func syncPerpetual() async {
         let wallet = await (try? walletSessionService.getCurrentWallet())?.toPrimitives()
+        let connect: Bool
         do {
-            let connect = try await perpetualService.syncEnablement(wallet: wallet?.toGem(), trigger: trigger)
-            await updatePerpetualObserver(wallet: wallet, connect: connect)
+            connect = try await perpetualService.syncEnablement(wallet: wallet?.toGem())
         } catch {
             debugLog("AppLifecycleService perpetual enablement error: \(error)")
+            connect = false
         }
+        await updatePerpetualObserver(wallet: wallet, connect: connect)
     }
 
     private func updatePerpetualObserver(wallet: Wallet?, connect: Bool) async {

@@ -6,6 +6,7 @@ use super::rules;
 use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemListRow, GemListRowTitle, GemProviderKind, GemProviderRow};
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 
@@ -76,6 +77,7 @@ pub struct GemFiatSession {
     pub buy: GemFiatOperation,
     pub sell: GemFiatOperation,
     pub available: GemBigUint,
+    pub format: GemNumberFormat,
 }
 
 impl GemFiatSession {
@@ -136,7 +138,7 @@ impl GemFiatSession {
 
     fn amount_check(&self) -> GemFiatAmountCheck {
         let operation = self.current();
-        match operation.parsed_amount() {
+        match operation.parsed_amount(&self.format) {
             Some(amount) => rules::amount_check(&get_fiat_config(), operation.quote_type, amount, operation.selected_quote().as_ref(), &self.available, crate::constants::FIAT_QUOTE_CURRENCY),
             None => GemFiatAmountCheck::Valid,
         }
@@ -149,18 +151,19 @@ impl GemFiatSession {
         }
     }
 
-    pub fn new(quote_type: FiatQuoteType, amount: Option<u32>) -> Self {
+    pub fn new(quote_type: FiatQuoteType, amount: Option<u32>, format: GemNumberFormat) -> Self {
         let config = get_fiat_config();
         let operation = |operation_type: FiatQuoteType| {
             let default = rules::default_amount(&config, operation_type);
             let initial = amount.filter(|_| operation_type == quote_type).unwrap_or(default);
-            GemFiatOperation::new(operation_type, initial.to_string())
+            GemFiatOperation::new(operation_type, initial.to_string(), &format)
         };
         Self {
             quote_type,
             buy: operation(FiatQuoteType::Buy),
             sell: operation(FiatQuoteType::Sell),
             available: GemBigUint::default(),
+            format,
         }
     }
 
@@ -225,13 +228,13 @@ impl GemFiatSession {
         }
         GemFiatSession {
             quote_type: FiatQuoteType::Buy,
-            buy: self.buy.on_amount_changed(self.sell.amount.clone()),
+            buy: self.buy.on_amount_changed(self.sell.amount.clone(), &self.format),
             ..self.clone()
         }
     }
 
     pub fn on_amount_changed(&self, amount: String) -> GemFiatSession {
-        self.with_operation(self.current().on_amount_changed(amount))
+        self.with_operation(self.current().on_amount_changed(amount, &self.format))
     }
 
     pub fn on_balance_changed(&self, available: GemBigUint) -> GemFiatSession {
@@ -239,7 +242,7 @@ impl GemFiatSession {
     }
 
     pub fn quote_request(&self) -> Option<GemFiatQuoteRequest> {
-        self.current().quote_request()
+        self.current().quote_request(&self.format)
     }
 
     pub fn refreshes_quotes(&self, is_screen_active: bool) -> bool {
@@ -247,7 +250,7 @@ impl GemFiatSession {
     }
 
     pub fn on_fetch_started(&self, request: GemFiatQuoteRequest) -> GemFiatSession {
-        self.with_operation(self.operation(request.quote_type).on_fetch_started(&request))
+        self.with_operation(self.operation(request.quote_type).on_fetch_started(&request, &self.format))
     }
 
     pub fn on_quote_results(&self, results: GemFiatQuotesResult) -> GemFiatSession {
@@ -260,18 +263,18 @@ impl GemFiatSession {
 }
 
 impl GemFiatOperation {
-    fn new(quote_type: FiatQuoteType, amount: String) -> Self {
+    fn new(quote_type: FiatQuoteType, amount: String, format: &GemNumberFormat) -> Self {
         Self {
             quote_type,
-            phase: Self::input_phase(quote_type, &amount),
+            phase: Self::input_phase(quote_type, &amount, format),
             amount,
             quotes: vec![],
             selected_provider: None,
         }
     }
 
-    fn input_phase(quote_type: FiatQuoteType, amount: &str) -> GemFiatQuotePhase {
-        match rules::parse_amount(amount) {
+    fn input_phase(quote_type: FiatQuoteType, amount: &str, format: &GemNumberFormat) -> GemFiatQuotePhase {
+        match rules::parse_amount(&format.decimal_separator, amount) {
             rules::FiatAmountInput::Empty => GemFiatQuotePhase::NoInput,
             rules::FiatAmountInput::Invalid => GemFiatQuotePhase::InvalidInput,
             rules::FiatAmountInput::Value(value) => match rules::amount_check(&get_fiat_config(), quote_type, value, None, &Default::default(), crate::constants::FIAT_QUOTE_CURRENCY) {
@@ -281,35 +284,35 @@ impl GemFiatOperation {
         }
     }
 
-    fn parsed_amount(&self) -> Option<f64> {
-        match rules::parse_amount(&self.amount) {
+    fn parsed_amount(&self, format: &GemNumberFormat) -> Option<f64> {
+        match rules::parse_amount(&format.decimal_separator, &self.amount) {
             rules::FiatAmountInput::Value(value) => Some(value),
             rules::FiatAmountInput::Empty | rules::FiatAmountInput::Invalid => None,
         }
     }
 
-    fn on_amount_changed(&self, amount: String) -> Self {
-        if amount == self.amount {
-            return self.clone();
+    fn on_amount_changed(&self, amount: String, format: &GemNumberFormat) -> Self {
+        if rules::parse_amount(&format.decimal_separator, &amount) == rules::parse_amount(&format.decimal_separator, &self.amount) {
+            return Self { amount, ..self.clone() };
         }
         Self {
             selected_provider: self.selected_provider,
-            ..Self::new(self.quote_type, amount)
+            ..Self::new(self.quote_type, amount, format)
         }
     }
 
-    fn quote_request(&self) -> Option<GemFiatQuoteRequest> {
+    fn quote_request(&self, format: &GemNumberFormat) -> Option<GemFiatQuoteRequest> {
         match self.phase {
             GemFiatQuotePhase::NoInput | GemFiatQuotePhase::InvalidInput | GemFiatQuotePhase::Invalid { .. } => None,
             GemFiatQuotePhase::Loading { .. } | GemFiatQuotePhase::Ready | GemFiatQuotePhase::NoQuotes | GemFiatQuotePhase::Failed { .. } => Some(GemFiatQuoteRequest {
                 quote_type: self.quote_type,
-                amount: self.parsed_amount()?,
+                amount: self.parsed_amount(format)?,
             }),
         }
     }
 
-    fn on_fetch_started(&self, request: &GemFiatQuoteRequest) -> Self {
-        if self.parsed_amount() != Some(request.amount) {
+    fn on_fetch_started(&self, request: &GemFiatQuoteRequest, format: &GemNumberFormat) -> Self {
+        if self.parsed_amount(format) != Some(request.amount) {
             return self.clone();
         }
         Self {
@@ -354,7 +357,7 @@ mod tests {
 
     #[test]
     fn test_a_new_session_starts_each_type_on_its_default_and_the_initial_amount_on_its_type() {
-        let session = GemFiatSession::new(FiatQuoteType::Sell, Some(25));
+        let session = GemFiatSession::mock(FiatQuoteType::Sell, Some(25));
 
         assert_eq!(session.quote_type, FiatQuoteType::Sell);
         assert_eq!(session.buy.amount, "50");
@@ -371,11 +374,11 @@ mod tests {
 
     #[test]
     fn test_the_amount_decides_the_phase_and_whether_a_quote_is_requested() {
-        let session = GemFiatSession::new(FiatQuoteType::Buy, None);
+        let session = GemFiatSession::mock(FiatQuoteType::Buy, None);
 
         assert_eq!(session.on_amount_changed(String::new()).current().phase, GemFiatQuotePhase::NoInput);
         assert_eq!(session.on_amount_changed("0".to_string()).current().phase, GemFiatQuotePhase::NoInput);
-        assert_eq!(session.on_amount_changed("abc".to_string()).current().phase, GemFiatQuotePhase::InvalidInput);
+        assert_eq!(session.on_amount_changed("abc".to_string()).current().phase, GemFiatQuotePhase::NoInput);
         assert_eq!(
             session.on_amount_changed("4".to_string()).current().phase,
             GemFiatQuotePhase::Invalid {
@@ -385,19 +388,25 @@ mod tests {
             }
         );
         assert_eq!(session.on_amount_changed("4".to_string()).quote_request(), None);
-        assert_eq!(session.on_amount_changed("12,5".to_string()).current().phase, GemFiatQuotePhase::InvalidInput);
+        assert_eq!(session.on_amount_changed("12.5".to_string()).current().phase, GemFiatQuotePhase::InvalidInput);
         assert_eq!(session.on_amount_changed("12".to_string()).current().phase, GemFiatQuotePhase::Loading { amount: 12.0 });
         assert_eq!(session.on_amount_changed("4".to_string()).button_state(false), GemButtonState::Disabled);
     }
 
     #[test]
-    fn test_changing_the_amount_clears_quotes_and_keeps_the_same_amount_untouched() {
-        let session = GemFiatSession::new(FiatQuoteType::Buy, None).on_quote_results(GemFiatQuotesResult::mock(vec![FiatQuote {
+    fn test_changing_the_amount_clears_quotes_and_text_for_the_same_amount_keeps_them() {
+        let session = GemFiatSession::mock(FiatQuoteType::Buy, None).on_quote_results(GemFiatQuotesResult::mock(vec![FiatQuote {
             crypto_amount: 1.0,
             ..FiatQuote::mock(FiatProviderName::Transak)
         }]));
 
         assert_eq!(session.on_amount_changed("50".to_string()), session);
+        for same in ["050", "50\\", "٥٠"] {
+            let retyped = session.on_amount_changed(same.to_string());
+            assert_eq!(retyped.current().amount, same);
+            assert_eq!(retyped.current().phase, GemFiatQuotePhase::Ready, "{same} asks for the quotes already shown");
+            assert_eq!(retyped.current().quotes, session.current().quotes);
+        }
         let changed = session.on_amount_changed("75".to_string());
         assert!(changed.current().quotes.is_empty());
         assert_eq!(changed.current().phase, GemFiatQuotePhase::Loading { amount: 75.0 });
@@ -407,7 +416,7 @@ mod tests {
 
     #[test]
     fn test_quote_results_only_apply_to_the_amount_still_loading() {
-        let session = GemFiatSession::new(FiatQuoteType::Buy, None);
+        let session = GemFiatSession::mock(FiatQuoteType::Buy, None);
         let stale = session.on_quote_results(GemFiatQuotesResult {
             request: GemFiatQuoteRequest {
                 quote_type: FiatQuoteType::Buy,
@@ -447,7 +456,7 @@ mod tests {
 
     #[test]
     fn test_empty_quotes_and_failures_are_distinct_and_only_a_failure_offers_a_retry() {
-        let session = GemFiatSession::new(FiatQuoteType::Buy, None);
+        let session = GemFiatSession::mock(FiatQuoteType::Buy, None);
 
         let empty = session.on_quote_results(GemFiatQuotesResult::mock(vec![]));
         assert_eq!(empty.current().phase, GemFiatQuotePhase::NoQuotes);
@@ -476,7 +485,7 @@ mod tests {
 
     #[test]
     fn test_the_chosen_provider_survives_a_refresh_and_an_unknown_one_is_ignored() {
-        let session = GemFiatSession::new(FiatQuoteType::Buy, None).on_quote_results(GemFiatQuotesResult::mock(vec![
+        let session = GemFiatSession::mock(FiatQuoteType::Buy, None).on_quote_results(GemFiatQuotesResult::mock(vec![
             FiatQuote {
                 crypto_amount: 1.0,
                 ..FiatQuote::mock(FiatProviderName::Transak)
@@ -530,7 +539,7 @@ mod tests {
             crypto_amount: 1.0,
             ..FiatQuote::mock(FiatProviderName::Transak)
         };
-        let session = GemFiatSession::new(FiatQuoteType::Sell, None).on_quote_results(GemFiatQuotesResult {
+        let session = GemFiatSession::mock(FiatQuoteType::Sell, None).on_quote_results(GemFiatQuotesResult {
             request: GemFiatQuoteRequest {
                 quote_type: FiatQuoteType::Sell,
                 amount: 100.0,
@@ -552,9 +561,9 @@ mod tests {
 
     #[test]
     fn test_the_amount_error_follows_the_phase() {
-        let error = |amount: &str| GemFiatSession::new(FiatQuoteType::Buy, None).on_amount_changed(amount.to_string()).view_state(None, false, false).amount_error;
+        let error = |amount: &str| GemFiatSession::mock(FiatQuoteType::Buy, None).on_amount_changed(amount.to_string()).view_state(None, false, false).amount_error;
 
-        assert_eq!(error("abc"), Some(GemFiatAmountError::InvalidAmount));
+        assert_eq!(error("12.5"), Some(GemFiatAmountError::InvalidAmount));
         assert!(matches!(error("1"), Some(GemFiatAmountError::BelowMinimum { .. })));
         assert_eq!(error(""), None);
         assert_eq!(error("100"), None, "a loading amount has no error yet");
@@ -562,7 +571,7 @@ mod tests {
 
     #[test]
     fn test_losing_sell_support_moves_to_buy_with_the_sell_amount() {
-        let session = GemFiatSession::new(FiatQuoteType::Sell, Some(25));
+        let session = GemFiatSession::mock(FiatQuoteType::Sell, Some(25));
 
         assert_eq!(session.on_sell_enabled_changed(true), session);
         let buy = session.on_sell_enabled_changed(false);
@@ -575,12 +584,12 @@ mod tests {
                 amount: 25.0
             })
         );
-        assert_eq!(GemFiatSession::new(FiatQuoteType::Buy, None).on_sell_enabled_changed(false).quote_type, FiatQuoteType::Buy);
+        assert_eq!(GemFiatSession::mock(FiatQuoteType::Buy, None).on_sell_enabled_changed(false).quote_type, FiatQuoteType::Buy);
     }
 
     #[test]
     fn test_view_state_carries_the_rows_selection_and_button_at_once() {
-        let session = GemFiatSession::new(FiatQuoteType::Buy, Some(100))
+        let session = GemFiatSession::mock(FiatQuoteType::Buy, Some(100))
             .on_fetch_started(GemFiatQuoteRequest {
                 quote_type: FiatQuoteType::Buy,
                 amount: 100.0,
@@ -662,7 +671,7 @@ mod tests {
 
     #[test]
     fn test_a_failed_quote_stops_the_clock_and_an_off_screen_session_never_polls() {
-        let session = GemFiatSession::new(FiatQuoteType::Buy, Some(50));
+        let session = GemFiatSession::mock(FiatQuoteType::Buy, Some(50));
         let request = session.quote_request().unwrap();
 
         assert!(session.refreshes_quotes(true));
@@ -680,7 +689,7 @@ mod tests {
 
     #[test]
     fn test_the_other_side_of_the_session_keeps_its_own_clock() {
-        let session = GemFiatSession::new(FiatQuoteType::Buy, Some(50));
+        let session = GemFiatSession::mock(FiatQuoteType::Buy, Some(50));
         let request = session.quote_request().unwrap();
         let failed = session.on_fetch_started(request.clone()).on_quote_results(GemFiatQuotesResult {
             request,

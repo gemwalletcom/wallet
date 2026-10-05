@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import uniffi.gemstone.GemPerpetualEnablementTrigger
 import uniffi.gemstone.GemPerpetualServiceInterface
 import javax.inject.Inject
 
@@ -27,7 +26,7 @@ class ObservePerpetualWallet @Inject constructor(
         getSession().map { it?.wallet }.distinctUntilChanged(),
         userConfig.isPerpetualEnabled(),
     ) { wallet, _ ->
-        val connects = runCatchingCancellable { perpetualService.syncEnablement(wallet?.toGem(), GemPerpetualEnablementTrigger.WALLET_CHANGED) }
+        val connects = runCatchingCancellable { perpetualService.syncEnablement(wallet?.toGem()) }
             .onFailure { Log.e(TAG, "perpetual enablement failed", it) }
             .getOrDefault(false)
         wallet?.takeIf { connects }

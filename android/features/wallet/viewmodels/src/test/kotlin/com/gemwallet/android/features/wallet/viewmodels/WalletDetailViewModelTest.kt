@@ -13,9 +13,12 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -56,9 +59,30 @@ class WalletDetailViewModelTest {
         val service: GemWalletServiceInterface = mockk(relaxed = true)
         val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
-        model.setWalletName("Savings").join()
+        model.setWalletName("Savings")
+        advanceUntilIdle()
 
         coVerify { service.rename(walletId, "Savings") }
+    }
+
+    @Test
+    fun `renames are saved in the order the name was typed`() = runTest(dispatcher) {
+        val saved = mutableListOf<String>()
+        val service: GemWalletServiceInterface = mockk(relaxed = true) {
+            coEvery { rename(walletId, "Sa") } coAnswers {
+                delay(100)
+                saved.add("Sa")
+            }
+            coEvery { rename(walletId, "Sav") } coAnswers { saved.add("Sav") }
+        }
+        val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
+
+        model.setWalletName("Sa")
+        runCurrent()
+        model.setWalletName("Sav")
+        advanceUntilIdle()
+
+        assertEquals(listOf("Sa", "Sav"), saved)
     }
 
     @Test
@@ -68,7 +92,8 @@ class WalletDetailViewModelTest {
         }
         val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
-        model.setWalletName("Savings").join()
+        model.setWalletName("Savings")
+        advanceUntilIdle()
 
         assertEquals("taken", model.error.value)
         model.clearError()

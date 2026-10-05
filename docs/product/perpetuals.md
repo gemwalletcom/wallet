@@ -29,7 +29,9 @@ flowchart LR
 |---|---|---|
 | The wallet is not Multi-Coin or has no Hyperliquid account, or the user has not switched Perpetuals on | Perpetuals are not offered | |
 | The user switches Perpetuals off | the markets, positions and every wallet's perpetual recents are removed | search must not offer a market the app no longer has |
-| The app launches or returns to the foreground | cached positions show immediately, then the Hyperliquid socket replaces them with its current account snapshot; the full REST position refresh does not delay opening the socket | the socket needs only the account mode required for the correct subscriptions |
+| The user switches Perpetuals on | the markets load before the Hyperliquid socket subscribes; if they cannot load, the next launch or return to the foreground tries again | a position is stored against its market, so the first account snapshot needs the markets |
+| The app launches, returns to the foreground or switches wallet | cached positions show immediately, then the Hyperliquid socket replaces them with its current account snapshot; neither the REST position refresh, the account mode lookup, a markets refresh nor the wallet's balance setup delays opening the socket | only the account subscriptions need the mode, so the lookup runs during the socket handshake; stored markets refresh when Perpetuals opens |
+| A position's market is not stored yet | the balance still updates; the position appears once the markets refresh | a balance never waits on a position |
 | A market's price moves while the list is open | its 24h change moves with it | the change next to the price must agree with it and with Hyperliquid |
 | The user long-presses a market | it is pinned | |
 | The user searches | positions and markets are filtered | |
@@ -52,7 +54,7 @@ flowchart LR
 | The user taps Deposit with no USDC to deposit | straight to the Arbitrum USDC amount, which shows the zero balance | the Arbitrum USDC deposits on every account |
 | A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen | one rule decides which screen an asset opens, for both apps |
 
-Pinching the chart follows the shared [Charts](../PRODUCT.md#charts) section.
+Pinching and touching the chart follow the shared [Charts](../PRODUCT.md#charts) section.
 
 ## Platform differences
 

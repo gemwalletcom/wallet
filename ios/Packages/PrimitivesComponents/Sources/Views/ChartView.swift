@@ -46,7 +46,7 @@ public struct ChartView: View {
             priceHeader
             chartView
         }
-        .sensoryFeedback(.selection, trigger: selectedElement?.date) { _, date in date != nil }
+        .sensoryFeedback(.selection, trigger: selectedElement?.date) { previous, date in previous != nil && date != nil }
     }
 }
 
@@ -117,6 +117,7 @@ extension ChartView {
                     Color.clear
                         .chartGestures(
                             in: geometry[plotFrame],
+                            isZoomed: chart.isZoomed,
                             isPinching: $isPinching,
                             onScrub: { selectedIndex = chart.indexAt(fraction: $0).map(Int.init) },
                             onScrubEnd: { selectedIndex = nil },

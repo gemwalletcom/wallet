@@ -24,6 +24,7 @@ impl SwapResult {
 pub struct SwapResultRequest {
     pub chain: Chain,
     pub transaction_hash: String,
+    pub from_address: Option<String>,
     pub deposit_address: Option<String>,
     pub deposit_memo: Option<String>,
 }
@@ -33,6 +34,7 @@ impl SwapResultRequest {
         Self {
             chain,
             transaction_hash: transaction_hash.to_string(),
+            from_address: None,
             deposit_address: None,
             deposit_memo: None,
         }
@@ -44,6 +46,7 @@ impl From<&Transaction> for SwapResultRequest {
         Self {
             chain: transaction.id.chain,
             transaction_hash: transaction.id.hash.clone(),
+            from_address: transaction.sender_address(),
             deposit_address: transaction.recipient_address(),
             deposit_memo: transaction.memo.clone().filter(|memo| !memo.is_empty()),
         }
@@ -66,6 +69,7 @@ mod tests {
         let request = SwapResultRequest::from(&transaction);
         assert_eq!(request.chain, transaction.id.chain);
         assert_eq!(request.transaction_hash, transaction.id.hash);
+        assert_eq!(request.from_address, Some(transaction.from.clone()));
         assert_eq!(request.deposit_address.as_deref(), Some("deposit"));
         assert_eq!(request.deposit_memo.as_deref(), Some("memo"));
 
@@ -82,11 +86,13 @@ mod tests {
             value: BigUint::from(value),
         };
         let request = SwapResultRequest::from(&Transaction {
+            from: String::new(),
             to: String::new(),
             utxo_inputs: Some(vec![input("sender", 166_576)]),
             utxo_outputs: Some(vec![input("sender", 66_432), input("deposit", 100_000)]),
             ..Transaction::mock()
         });
+        assert_eq!(request.from_address.as_deref(), Some("sender"));
         assert_eq!(request.deposit_address.as_deref(), Some("deposit"));
     }
 }

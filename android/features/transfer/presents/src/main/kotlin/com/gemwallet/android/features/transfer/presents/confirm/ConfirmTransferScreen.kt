@@ -395,7 +395,6 @@ private fun ConfirmDetailsRow(item: GemConfirmDetails, listPosition: ListPositio
 private fun ConfirmDetailsSheet(item: GemConfirmDetails?, onDismiss: () -> Unit) {
     SwapDetailsBottomSheet(
         isVisible = item is GemConfirmDetails.Swap,
-        isLoading = false,
         details = (item as? GemConfirmDetails.Swap)?.details,
         onDismiss = onDismiss,
     )

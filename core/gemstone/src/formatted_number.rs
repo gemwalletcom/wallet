@@ -304,14 +304,14 @@ mod tests {
         assert_eq!(
             GemFormattedNumber::currency(0.0001, Currency::USD, GemCurrencyStyle::Short).display,
             GemNumberDisplay::Number {
-                precision: GemPrecision::Significant { max: 4 }
+                precision: GemPrecision::Fraction { min: 2, max: 7 }
             },
             "the threshold itself still reads as a number"
         );
         assert_eq!(
             GemFormattedNumber::currency(0.00000783, Currency::USD, GemCurrencyStyle::Currency).display,
             GemNumberDisplay::Number {
-                precision: GemPrecision::Significant { max: 4 }
+                precision: GemPrecision::Fraction { min: 2, max: 9 }
             },
             "a chart or alert price keeps its digits"
         );

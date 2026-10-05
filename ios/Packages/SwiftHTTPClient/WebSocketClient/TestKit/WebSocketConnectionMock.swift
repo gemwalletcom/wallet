@@ -7,11 +7,13 @@ public actor WebSocketConnectionMock: WebSocketConnectable {
     private var continuation: AsyncStream<WebSocketEvent>.Continuation?
     private var sentData: [Data] = []
     private let onConnect: @Sendable () -> Void
+    private let onDisconnect: @Sendable () -> Void
 
     public private(set) var state: WebSocketState = .disconnected
 
-    public init(onConnect: @escaping @Sendable () -> Void = {}) {
+    public init(onConnect: @escaping @Sendable () -> Void = {}, onDisconnect: @escaping @Sendable () -> Void = {}) {
         self.onConnect = onConnect
+        self.onDisconnect = onDisconnect
     }
 
     // MARK: - WebSocketConnectable
@@ -29,6 +31,7 @@ public actor WebSocketConnectionMock: WebSocketConnectable {
         continuation?.yield(.disconnected(nil))
         continuation?.finish()
         continuation = nil
+        onDisconnect()
     }
 
     public func ping() async throws -> TimeInterval {

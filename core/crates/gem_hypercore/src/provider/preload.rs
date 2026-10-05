@@ -27,6 +27,7 @@ impl<C: Client> HyperCoreClient<C> {
             cache.needs_builder_fee_approval(sender_address, self.get_builder_fee(sender_address, &self.config.builder_address)),
             cache.get_user_fee_rates(sender_address, self.get_user_fees(sender_address)),
         )?;
+        let fee_rates = if referral_required { cache.activate_referral_fee_rates(sender_address, &fee_rates)? } else { fee_rates.current() };
 
         Ok((
             HyperliquidOrder {

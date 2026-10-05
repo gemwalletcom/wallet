@@ -218,6 +218,7 @@ impl AssetsRepository for DatabaseClient {
         let tags = asset_tag_ids(self, asset_id)?;
         let perpetuals = self.get_perpetuals_for_asset(asset_id)?;
         let perpetuals = perpetuals.into_iter().map(|x| x.as_basic()).collect();
+        let associated_asset_id = self.get_associated_asset_id(asset_id)?;
 
         Ok(AssetFull {
             price,
@@ -229,6 +230,7 @@ impl AssetsRepository for DatabaseClient {
             associations,
             tags,
             perpetuals,
+            associated_asset_id,
         })
     }
 

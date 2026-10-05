@@ -28,13 +28,26 @@ flowchart LR
 ```
 
 1. The user taps Import Wallet and picks Multi-Coin or a network.
-2. The user enters a Secret Phrase, a private key or an address.
+2. The user types, pastes or scans a Secret Phrase, a private key or an address, and taps Import.
 3. The wallet is imported, named and selected in one step, and the wallet screen opens.
+
+The Import screen, top to bottom:
+
+| Part | Multi-Coin | A single network |
+|---|---|---|
+| Title | Multi-Coin | the network, such as Ethereum |
+| Picker | none | Phrase, Private Key where the network supports one, and Address |
+| Input | the Secret Phrase | the picked kind |
+| Buttons under the input | Paste | Paste and Scan, side by side |
+| Note under the input | none | with Address, the view-only warning |
+| Main button | Import | Import |
 
 | When | Expected | Why |
 |---|---|---|
 | The user picks Multi-Coin | it takes a Secret Phrase | |
 | The user picks a single network | it takes a Secret Phrase, a private key where the network supports one, or an address for a watch-only wallet | |
+| The user taps Paste | the copied text fills the input; a pasted Secret Phrase or private key is then cleared from the clipboard | a secret must not stay on the clipboard |
+| The user taps Scan | the scanner opens for the picked kind, and the scanned code fills the input | |
 | The user types a Secret Phrase | word suggestions complete the last word, and a tap replaces it | |
 | The cursor is inside the phrase | no suggestions show | a tap never changes the wrong word |
 | An address is typed as a name | the resolved name becomes the wallet name | |

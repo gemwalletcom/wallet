@@ -15,7 +15,7 @@ import SwiftUI
 
 public struct SwapDetailsView: View {
     @Environment(\.dismiss) private var dismiss
-    private let details: GemSwapDetails
+    private let details: GemSwapDetails?
     private let providers: StateViewType<[GemProviderRow]>
     private let allowSelectProvider: Bool
     private let onSelectProvider: ((SwapProvider) -> Void)?
@@ -25,7 +25,7 @@ public struct SwapDetailsView: View {
     @State private var infoSheet: GemInfoSheet?
 
     public init(
-        details: GemSwapDetails,
+        details: GemSwapDetails?,
         providers: StateViewType<[GemProviderRow]> = .data([]),
         allowSelectProvider: Bool = false,
         onSelectProvider: ((SwapProvider) -> Void)? = nil,
@@ -39,7 +39,10 @@ public struct SwapDetailsView: View {
     public var body: some View {
         VStack {
             switch providers {
-            case .data: listView
+            case .data:
+                if let details {
+                    listView(details)
+                }
             case let .error(error): List { ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error) }
             case .loading: LoadingView()
             case .noData: List { ListItemErrorView(errorTitle: nil, error: AnyError(Localized.Errors.errorOccurred)) }
@@ -71,7 +74,7 @@ public struct SwapDetailsView: View {
         }
     }
 
-    private var listView: some View {
+    private func listView(_ details: GemSwapDetails) -> some View {
         List {
             Section {
                 let view = ListItemView(model: details.provider.listItem)

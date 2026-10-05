@@ -1212,6 +1212,7 @@ fun mockGemChartData(
     dateStyle: uniffi.gemstone.GemChartDateStyle = uniffi.gemstone.GemChartDateStyle.RELATIVE,
     start: Long = 0L,
     end: Long = 0L,
+    isZoomed: Boolean = false,
 ) = uniffi.gemstone.GemChartData(
     valueType = valueType,
     base = base,
@@ -1223,6 +1224,7 @@ fun mockGemChartData(
     dateStyle = dateStyle,
     start = start,
     end = end,
+    isZoomed = isZoomed,
 )
 
 fun mockGemConfirmFee(
@@ -1351,6 +1353,34 @@ fun mockGemConnectionRow(
     iconUrl = iconUrl,
 )
 
+fun mockGemCustomFeeField(
+    title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
+    input: String = "",
+) = uniffi.gemstone.GemCustomFeeField(
+    title = title,
+    input = input,
+)
+
+fun mockGemCustomFeeSession(
+    feeAsset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    format: uniffi.gemstone.GemNumberFormat = mockGemNumberFormat(),
+    rows: uniffi.gemstone.GemFeeRateRows = mockGemFeeRateRows(),
+    loadedFee: java.math.BigInteger? = null,
+    price: Double? = null,
+    currency: uniffi.gemstone.Currency = uniffi.gemstone.Currency.MXN,
+    baseFee: uniffi.gemstone.GemCustomFeeField? = null,
+    rate: uniffi.gemstone.GemCustomFeeField = mockGemCustomFeeField(),
+) = uniffi.gemstone.GemCustomFeeSession(
+    feeAsset = feeAsset,
+    format = format,
+    rows = rows,
+    loadedFee = loadedFee,
+    price = price,
+    currency = currency,
+    baseFee = baseFee,
+    rate = rate,
+)
+
 fun mockGemEmptyState(
     title: uniffi.gemstone.GemEmptyStateText = uniffi.gemstone.GemEmptyStateText.NFTS_TITLE,
     description: uniffi.gemstone.GemEmptyStateText? = null,
@@ -1466,11 +1496,13 @@ fun mockGemFiatSession(
     buy: uniffi.gemstone.GemFiatOperation = mockGemFiatOperation(),
     sell: uniffi.gemstone.GemFiatOperation = mockGemFiatOperation(),
     available: java.math.BigInteger = java.math.BigInteger.ZERO,
+    format: uniffi.gemstone.GemNumberFormat = mockGemNumberFormat(),
 ) = uniffi.gemstone.GemFiatSession(
     quoteType = quoteType,
     buy = buy,
     sell = sell,
     available = available,
+    format = format,
 )
 
 fun mockGemFormattedNumber(
@@ -1626,6 +1658,22 @@ fun mockGemPerpetualTransferData(
 )
 
 fun mockGemPrecision(): uniffi.gemstone.GemPrecision = uniffi.gemstone.GemPrecision.Fraction(min = 0u, max = 0u)
+
+fun mockGemProviderKind(): uniffi.gemstone.GemProviderKind = uniffi.gemstone.GemProviderKind.Swap(provider = uniffi.gemstone.SwapProvider.UNISWAP_V3)
+
+fun mockGemProviderRow(
+    kind: uniffi.gemstone.GemProviderKind = mockGemProviderKind(),
+    name: String = "",
+    amount: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    fiat: uniffi.gemstone.GemFormattedNumber? = null,
+    isSelected: Boolean = false,
+) = uniffi.gemstone.GemProviderRow(
+    kind = kind,
+    name = name,
+    amount = amount,
+    fiat = fiat,
+    isSelected = isSelected,
+)
 
 fun mockGemRecipient(
     address: String = "",
@@ -1967,6 +2015,18 @@ fun mockGemWalletConnectTransactionRequest(
     simulation = simulation,
     transfer = transfer,
     action = action,
+)
+
+fun mockGemWalletDetails(
+    row: uniffi.gemstone.GemWalletRow = mockGemWalletRow(),
+    secretKind: uniffi.gemstone.GemWalletSecretKind? = null,
+    showSecret: uniffi.gemstone.GemLocalizedText? = null,
+    address: uniffi.gemstone.GemAddressRow? = null,
+) = uniffi.gemstone.GemWalletDetails(
+    row = row,
+    secretKind = secretKind,
+    showSecret = showSecret,
+    address = address,
 )
 
 fun mockGemWalletHomeViewState(

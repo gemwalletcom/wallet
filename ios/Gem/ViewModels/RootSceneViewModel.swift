@@ -170,10 +170,13 @@ extension RootSceneViewModel {
 extension RootSceneViewModel {
     private func setup(wallet: Wallet) {
         Task {
+            await appLifecycleService.updatePerpetualConnection()
+        }
+        Task {
             for failure in await appStartService.setupWallet(wallet: wallet.toGem()) {
                 debugLog("wallet start \(failure.step) failed: \(failure.message)")
             }
-            await appLifecycleService.updateWalletConnections()
+            await appLifecycleService.updateStreamSession()
         }
     }
 

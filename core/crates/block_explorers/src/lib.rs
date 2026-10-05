@@ -5,9 +5,9 @@ use std::str::FromStr;
 use primitives::{Chain, EVMChain, SwapProvider};
 
 use crate::explorers::{
-    AcrossScan, AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, Cardanocan, ChainflipScan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, MayanScan, Metadata, NearBlocks,
-    NearIntents, OkxExplorer, RelayScan, RouteScan, RuneScan, SkipExplorer, SubScan, SwapsXyzScan, TempoExplorer, TonScan, TronScan, Viewblock, XrpScan, ZkSync, aptos, blockchair, mempool, mintscan, solana, stellar_expert, sui, threexpl,
-    ton,
+    AcrossScan, AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, BridgersScan, Cardanocan, ChainflipScan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, MayanScan, Metadata,
+    NearBlocks, NearIntents, OkxExplorer, RelayScan, RouteScan, RuneScan, SkipExplorer, SubScan, SwapsXyzScan, TempoExplorer, TonScan, TronScan, Viewblock, XrpScan, ZkSync, aptos, blockchair, mempool, mintscan, solana, stellar_expert, sui,
+    threexpl, ton,
 };
 
 #[derive(Debug, Default, Clone)]
@@ -142,6 +142,7 @@ pub fn swap_explorer(provider: SwapProvider, chain: Chain) -> Option<Box<dyn Blo
         SwapProvider::Relay => Some(RelayScan::boxed()),
         SwapProvider::Squid => Some(SkipExplorer::boxed(chain)),
         SwapProvider::SwapsXyz => Some(SwapsXyzScan::boxed()),
+        SwapProvider::Bridgers => Some(BridgersScan::boxed()),
         SwapProvider::UniswapV3
         | SwapProvider::UniswapV4
         | SwapProvider::PancakeswapV3

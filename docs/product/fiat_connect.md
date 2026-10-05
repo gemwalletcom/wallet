@@ -21,9 +21,11 @@ flowchart LR
 |---|---|---|
 | The screen opens | the amount starts at `$50` for Buy and `$100` for Sell | |
 | The user types an amount | whole dollars between `$5` and `$10,000` | |
+| The user types the amount with their keyboard's own digits (Arabic, Persian, Devanagari, …) | it reads as the same amount, so `٥٠` asks for `$50` quotes | the field accepts those digits, so rejecting them leaves the user with only the preset amounts |
 | Gem disables a provider for a country | the provider receives no new quote requests there; the screen shows a localized region-unavailable message when no provider serves the country; provider country syncs preserve the block | Gem controls availability independently of provider-reported coverage |
 | More than one provider quoted | the user can pick another; the choice survives refreshes | |
 | The screen stays open | quotes refresh every `5 minutes` | |
+| Quotes refresh while the provider list is open | the list keeps the providers it opened with until it is closed | a refresh never blanks a list the user is reading |
 | The user comes back to the screen after a refresh was due | quotes are fetched again at once, unless the last request failed | a quote kept while the app was away could expire before Continue |
 | A shown quote is up to `15 minutes` old, even after a network change | it stays usable on the device that asked for it | Buy never fails just because the refresh came late |
 | The user taps Continue | the asset is already switched on in the wallet | the coins are visible on return |

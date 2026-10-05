@@ -82,6 +82,15 @@ struct FormattedNumberTests {
     }
 
     @Test
+    func aCurrencyBelowOneKeepsTwoPlaces() {
+        let prices: [(Double, String)] = [(0.9, "$0.90"), (0.1, "$0.10"), (0.123456, "$0.1235"), (0.0345, "$0.0345"), (0.000123456, "$0.0001235"), (1.5, "$1.50")]
+
+        for (value, text) in prices {
+            #expect(formattedCurrency(value: value, code: "USD", style: .currency).text(locale: .US) == text)
+        }
+    }
+
+    @Test
     func anAmountReadsWithTheAutoStyle() throws {
         let amounts: [(Double, String)] = [(5.205516, "5.2 ATOM"), (0.099999, "0.09999 ATOM"), (0.1992, "0.1992 ATOM"), (1_239_999, "1,239,999 ATOM"), (0.00000546, "0.00000546 ATOM")]
 

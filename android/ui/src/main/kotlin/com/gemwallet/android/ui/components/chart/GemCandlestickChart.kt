@@ -168,6 +168,7 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
         val selectionChanged by rememberUpdatedState(onSelectionChanged)
         val zoom by rememberUpdatedState(onZoom)
         val pan by rememberUpdatedState(onPan)
+        val zoomed by rememberUpdatedState(chart.isZoomed)
 
         Canvas(
             modifier = Modifier
@@ -175,6 +176,7 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
                 .chartGestures(
                     plotLeft = frame.left,
                     plotWidth = frame.width,
+                    isZoomed = { zoomed },
                     indexAt = { candleIndex(it) },
                     onSelectionChanged = { selectionChanged(it) },
                     onZoom = { magnification, anchor -> zoom(magnification, anchor) },
