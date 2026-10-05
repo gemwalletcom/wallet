@@ -985,9 +985,11 @@ public extension Gemstone.GemSocialLink {
 public extension Gemstone.GemStakeValidatorOptions {
     static func mock(
         sections: [Gemstone.GemValidatorSection] = [],
+        phase: Gemstone.GemListPhase = .rows,
     ) -> Gemstone.GemStakeValidatorOptions {
         Gemstone.GemStakeValidatorOptions(
             sections: sections,
+            phase: phase,
         )
     }
 }

@@ -203,6 +203,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
                     rows: validators.map { Gemstone.GemValidatorRow.mock(validator: $0, name: $0.name, imageUrl: "https://assets.gemwallet.com/validator.png", placeholder: String($0.name.prefix(1)), apr: .apr(value: nil)) },
                 ),
             ].filter(\.rows.isNotEmpty),
+            phase: validators.isEmpty ? .empty(state: emptyState(kind: .validators)) : .rows,
         )
     }
 

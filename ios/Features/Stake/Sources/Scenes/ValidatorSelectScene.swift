@@ -17,8 +17,9 @@ public struct ValidatorSelectScene: View {
     }
 
     public var body: some View {
-        List {
-            ForEach(model.list) { section in
+        let options = model.options
+        return List {
+            ForEach(model.list(options)) { section in
                 Section(section.section) {
                     ForEach(section.values) { value in
                         ValidatorSelectionView(row: value.value, isSelected: model.isSelected(value.value)) {
@@ -33,8 +34,8 @@ public struct ValidatorSelectScene: View {
             }
         }
         .overlay {
-            if model.list.isEmpty {
-                EmptyContentView(model: model.emptyContent)
+            if case let .empty(state) = options.phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
             }
         }
         .bindQuery(model.validatorsQuery)

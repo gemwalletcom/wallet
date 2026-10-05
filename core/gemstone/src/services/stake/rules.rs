@@ -669,8 +669,10 @@ pub fn validator_options(chain: Chain, input: &GemStakeAmountInput, validators: 
             rows: validators.iter().map(validator_row).collect(),
         })
     };
+    let sections: Vec<GemValidatorSection> = [section(GemValidatorSectionKind::Recommended, recommended), section(GemValidatorSectionKind::Active, options)].into_iter().flatten().collect();
     GemStakeValidatorOptions {
-        sections: [section(GemValidatorSectionKind::Recommended, recommended), section(GemValidatorSectionKind::Active, options)].into_iter().flatten().collect(),
+        phase: GemListPhase::local(!sections.is_empty(), empty_state(GemEmptyStateKind::Validators)),
+        sections,
     }
 }
 
@@ -1690,8 +1692,17 @@ mod tests {
         );
         assert_eq!(ids(&rewards, GemValidatorSectionKind::Active), vec!["current", "second"], "rewards are claimed from the delegations, not the network list");
 
+        assert_eq!(stake.phase, GemListPhase::Rows);
+
         let freeze = options(GemStakeAmountInput::Freeze { resource: Resource::Bandwidth });
         assert!(freeze.sections.is_empty());
+        assert_eq!(
+            freeze.phase,
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::Validators)
+            },
+            "nothing to pick shows the validators empty state"
+        );
     }
 
     #[test]

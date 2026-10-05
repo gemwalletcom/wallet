@@ -1687,8 +1687,10 @@ fun mockGemSocialLink(
 
 fun mockGemStakeValidatorOptions(
     sections: List<uniffi.gemstone.GemValidatorSection> = emptyList(),
+    phase: uniffi.gemstone.GemListPhase = uniffi.gemstone.GemListPhase.Rows,
 ) = uniffi.gemstone.GemStakeValidatorOptions(
     sections = sections,
+    phase = phase,
 )
 
 fun mockGemSwapPairSuggestion(

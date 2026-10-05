@@ -199,6 +199,7 @@ pub struct GemValidatorSection {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemStakeValidatorOptions {
     pub sections: Vec<GemValidatorSection>,
+    pub phase: GemListPhase,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

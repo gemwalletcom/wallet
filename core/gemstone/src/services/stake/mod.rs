@@ -96,6 +96,7 @@ impl GemStakeService {
                     ..section
                 })
                 .collect(),
+            phase: options.phase,
         }
     }
 
