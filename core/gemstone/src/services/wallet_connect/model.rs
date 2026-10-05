@@ -1,6 +1,7 @@
 use crate::application::GemConnectionRow;
 use crate::formatted_number::GemValueTone;
 use crate::models::list::{GemListRow, GemListRowTitle};
+use crate::models::state::GemListPhase;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
@@ -210,6 +211,7 @@ pub struct GemConnectionSection {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConnectionsView {
     pub sections: Vec<GemConnectionSection>,
+    pub phase: GemListPhase,
     pub docs_url: String,
 }
 

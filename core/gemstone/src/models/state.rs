@@ -65,6 +65,10 @@ impl GemListPhase {
             (false, GemLoadState::NoData | GemLoadState::Loading | GemLoadState::Data) => Self::Empty { state: empty },
         }
     }
+
+    pub fn local(has_rows: bool, empty: GemEmptyState) -> Self {
+        Self::new(GemLoadState::Data, has_rows, empty)
+    }
 }
 
 impl GemLoadState {

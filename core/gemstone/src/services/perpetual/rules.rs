@@ -22,7 +22,7 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone, value_tone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle};
 use crate::models::placeholder::EMPTY_VALUE;
-use crate::models::state::{GemListPhase, GemLoadState};
+use crate::models::state::GemListPhase;
 use crate::perpetual::GemPerpetual;
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction, GemRowText, GemValueHeader};
 use crate::services::clock::is_outdated;
@@ -670,7 +670,7 @@ pub fn market_view(counts: &GemPerpetualMarketCounts, is_searching: bool, is_que
     let has_rows = !is_searching || shows_positions || shows_pinned || shows_markets;
     GemPerpetualMarketView {
         sections,
-        phase: GemListPhase::new(GemLoadState::Data, has_rows, empty_state(GemEmptyStateKind::SearchPerpetuals)),
+        phase: GemListPhase::local(has_rows, empty_state(GemEmptyStateKind::SearchPerpetuals)),
     }
 }
 

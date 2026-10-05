@@ -66,7 +66,11 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     }
 
     public func connectionsView(connections _: [Gemstone.WalletConnection]) -> GemConnectionsView {
-        GemConnectionsView(sections: connectionSectionsValue, docsUrl: "https://docs.gemwallet.com/guides/walletconnect/")
+        GemConnectionsView(
+            sections: connectionSectionsValue,
+            phase: connectionSectionsValue.isEmpty ? .empty(state: emptyState(kind: .walletConnect)) : .rows,
+            docsUrl: "https://docs.gemwallet.com/guides/walletconnect/",
+        )
     }
 
     public func deleteSession(sessionId: String) async throws {

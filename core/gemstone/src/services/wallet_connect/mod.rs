@@ -17,8 +17,10 @@ use primitives::{Account, ApplicationMetadata, Chain, Platform, Wallet, WalletCo
 use crate::application;
 use crate::config::docs::DocsUrl;
 use crate::message::sign_type::SignMessage;
+use crate::models::state::GemListPhase;
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
+use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::scan::rules::{self as scan_rules, SignMessageVerdict};
@@ -164,14 +166,16 @@ impl GemWalletConnectService {
     }
 
     pub fn connections_view(&self, connections: Vec<WalletConnection>) -> GemConnectionsView {
+        let sections: Vec<GemConnectionSection> = rules::connection_groups(connections)
+            .into_iter()
+            .map(|(wallet, connections)| GemConnectionSection {
+                title: wallet.name,
+                connections: connections.into_iter().map(|connection| self.gem_connection(connection)).collect(),
+            })
+            .collect();
         GemConnectionsView {
-            sections: rules::connection_groups(connections)
-                .into_iter()
-                .map(|(wallet, connections)| GemConnectionSection {
-                    title: wallet.name,
-                    connections: connections.into_iter().map(|connection| self.gem_connection(connection)).collect(),
-                })
-                .collect(),
+            phase: GemListPhase::local(!sections.is_empty(), empty_state(GemEmptyStateKind::WalletConnect)),
+            sections,
             docs_url: DocsUrl::WalletConnect.url_for(self.platform),
         }
     }
@@ -389,6 +393,13 @@ mod tests {
             let view = service.connections_view(vec![]);
 
             assert!(view.sections.is_empty());
+            assert_eq!(
+                view.phase,
+                GemListPhase::Empty {
+                    state: empty_state(GemEmptyStateKind::WalletConnect)
+                },
+                "no connections shows the walletconnect empty state"
+            );
             assert_eq!(view.docs_url, DocsUrl::WalletConnect.url_for(Platform::IOS));
         });
     }

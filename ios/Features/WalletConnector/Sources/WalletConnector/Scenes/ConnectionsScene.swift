@@ -56,8 +56,8 @@ public struct ConnectionsScene: View {
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if sections.isEmpty {
-                EmptyContentView(model: model.emptyContentModel)
+            if case let .empty(state) = view.phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
                     .padding(.horizontal, .medium)
             }
         }

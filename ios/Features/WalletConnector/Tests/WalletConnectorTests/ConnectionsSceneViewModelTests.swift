@@ -25,6 +25,7 @@ struct ConnectionsSceneViewModelTests {
 
         #expect(model.view.sections.map(\.title) == ["Active"])
         #expect(model.view.sections.first?.connections.count == 1)
+        #expect(model.view.phase == .rows)
     }
 
     @Test
@@ -32,6 +33,7 @@ struct ConnectionsSceneViewModelTests {
         let model = ConnectionsSceneViewModel.mock()
 
         #expect(model.view.sections.isEmpty)
+        #expect(model.view.phase == .empty(state: emptyState(kind: .walletConnect)))
         #expect(model.connections.isEmpty)
     }
 
