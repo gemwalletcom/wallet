@@ -64,8 +64,8 @@ impl GemFiatQuoteService {
         rules::random_amount(&get_fiat_config())
     }
 
-    pub async fn refresh_transactions(&self, has_transactions: bool) -> GemLoadState {
-        GemLoadState::refreshed(self.sync_transactions().await, has_transactions)
+    pub async fn refresh_transactions(&self) -> GemLoadState {
+        GemLoadState::of(&self.sync_transactions().await)
     }
 
     pub async fn quotes(&self, request: GemFiatQuoteRequest, asset_id: AssetId) -> GemFiatQuotesResult {

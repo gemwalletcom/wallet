@@ -45,6 +45,7 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
     public var isAvailableValue = true
+    public var refreshTransactionsState: GemLoadState = .data
     public private(set) var quoteUrlRequests: [String] = []
 
     public func isAvailable(quoteType _: Gemstone.FiatQuoteType) -> Bool {
@@ -77,8 +78,8 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         50
     }
 
-    public func refreshTransactions(hasTransactions _: Bool) async -> GemLoadState {
-        .data
+    public func refreshTransactions() async -> GemLoadState {
+        refreshTransactionsState
     }
 
     public func quotes(request: GemFiatQuoteRequest, assetId _: Gemstone.AssetId) async -> GemFiatQuotesResult {
