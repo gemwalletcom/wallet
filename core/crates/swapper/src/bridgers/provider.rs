@@ -1,9 +1,11 @@
-use std::{fmt::Debug, str::FromStr, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
-use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
-use gem_evm::{constants::TOKEN_TRANSFER_GAS_LIMIT, u256::u256_to_biguint};
+use gem_evm::{
+    constants::TOKEN_TRANSFER_GAS_LIMIT,
+    u256::{biguint_to_u256, u256_to_biguint},
+};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
@@ -61,7 +63,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Bridgers<C> {
         let Some(token_id) = &from_asset.token_id else {
             return Ok(None);
         };
-        let amount = U256::from_str(&swap.quote.from_token_amount)?;
+        let amount = biguint_to_u256(&swap.quote.from_token_amount).ok_or(SwapperError::InvalidRoute)?;
         match check_approval_erc20(swap.from_address.clone(), token_id.clone(), router.to_string(), amount, self.rpc_provider.clone(), &network.chain).await? {
             ApprovalType::Approve(data) => Ok(Some(data)),
             ApprovalType::Permit2(_) | ApprovalType::None => Ok(None),
@@ -92,7 +94,7 @@ fn get_quote_request(request: &QuoteRequest, value: &BigUint) -> Result<Bridgers
         source_flag: DEFAULT_REFERRER.to_string(),
         from_token_address: get_token_address(&from_asset),
         to_token_address: get_token_address(&to_asset),
-        from_token_amount: value.to_string(),
+        from_token_amount: value.clone(),
         from_token_chain: from_network.code.to_string(),
         to_token_chain: Network::from_chain(request.to_asset.chain())?.code.to_string(),
     })

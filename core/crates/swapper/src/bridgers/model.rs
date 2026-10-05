@@ -28,7 +28,8 @@ pub(super) struct QuoteRequest {
     pub source_flag: String,
     pub from_token_address: String,
     pub to_token_address: String,
-    pub from_token_amount: String,
+    #[serde(with = "serde_serializers::biguint::string")]
+    pub from_token_amount: BigUint,
     pub from_token_chain: String,
     pub to_token_chain: String,
 }
@@ -42,7 +43,8 @@ pub(super) struct QuoteData {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct QuoteTxData {
-    pub amount_out_min: String,
+    #[serde(with = "serde_serializers::biguint::string")]
+    pub amount_out_min: BigUint,
     pub to_token_amount: String,
     pub deposit_min: String,
     pub deposit_max: String,
@@ -68,7 +70,8 @@ pub(super) struct SwapRequest {
     pub quote: QuoteRequest,
     pub from_address: String,
     pub to_address: String,
-    pub amount_out_min: String,
+    #[serde(with = "serde_serializers::biguint::string")]
+    pub amount_out_min: BigUint,
     pub slippage: String,
 }
 
@@ -87,7 +90,8 @@ pub(super) struct EvmTransaction {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(super) struct RouteData {
-    pub amount_out_min: String,
+    #[serde(with = "serde_serializers::biguint::string")]
+    pub amount_out_min: BigUint,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -164,7 +168,7 @@ mod tests {
     #[test]
     fn test_quote_eta_in_seconds() {
         let quote = |estimated_time| QuoteTxData {
-            amount_out_min: String::new(),
+            amount_out_min: BigUint::ZERO,
             to_token_amount: String::new(),
             deposit_min: String::new(),
             deposit_max: String::new(),

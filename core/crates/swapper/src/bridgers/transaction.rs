@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use alloy_primitives::{Address, U256, hex};
 use alloy_sol_types::{SolCall, sol};
+use gem_evm::u256::biguint_to_u256;
 
 use primitives::AssetId;
 
@@ -27,8 +28,10 @@ pub(super) fn get_transaction_value(transaction: &EvmTransaction, router: &str, 
     }
     let value = U256::from_str(&transaction.value).map_err(|_| SwapperError::InvalidRoute)?;
     let data = hex::decode(&transaction.data).map_err(|_| SwapperError::InvalidRoute)?;
-    let call = get_swap_call(&data, value, from_asset, U256::from_str(&swap.quote.from_token_amount)?)?;
-    if call.destination != swap.to_address || call.min_return_amount != U256::from_str(&swap.amount_out_min)? || !is_valid_to_token(&call.to_token, to_code, &swap.slippage) {
+    let from_amount = biguint_to_u256(&swap.quote.from_token_amount).ok_or(SwapperError::InvalidRoute)?;
+    let min_return_amount = biguint_to_u256(&swap.amount_out_min).ok_or(SwapperError::InvalidRoute)?;
+    let call = get_swap_call(&data, value, from_asset, from_amount)?;
+    if call.destination != swap.to_address || call.min_return_amount != min_return_amount || !is_valid_to_token(&call.to_token, to_code, &swap.slippage) {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(value)
@@ -70,6 +73,7 @@ fn get_swap_call(data: &[u8], value: U256, from_asset: &AssetId, from_amount: U2
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use primitives::{Chain, asset_constants::BASE_USDC_ASSET_ID};
 
     use super::*;
@@ -87,20 +91,20 @@ mod tests {
         let bnb = AssetId::from_chain(Chain::OpBNB);
         let native_swap = SwapRequest {
             quote: QuoteRequest {
-                from_token_amount: "100000000000000000".to_string(),
+                from_token_amount: BigUint::from(100_000_000_000_000_000u64),
                 ..Default::default()
             },
             to_address: TEST_EVM_WALLET.to_string(),
-            amount_out_min: "77563731000000000000".to_string(),
+            amount_out_min: BigUint::from(77_563_731_000_000_000_000u128),
             slippage: "0.005".to_string(),
             ..Default::default()
         };
         let token_swap = SwapRequest {
             quote: QuoteRequest {
-                from_token_amount: "100000000".to_string(),
+                from_token_amount: BigUint::from(100_000_000u64),
                 ..Default::default()
             },
-            amount_out_min: "99213808000000000000".to_string(),
+            amount_out_min: BigUint::from(99_213_808_000_000_000_000u128),
             ..native_swap.clone()
         };
         let other_destination = SwapRequest {
