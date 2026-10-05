@@ -3,8 +3,11 @@ use std::fmt::Debug;
 use gem_client::{Client, ClientExt, Target};
 use serde::de::DeserializeOwned;
 
-use super::model::{BridgersResponse, QuoteData, QuoteRequest, RecordsData, RecordsRequest, SwapData, SwapRequest, response_code};
+use super::model::{BridgersResponse, QuoteData, QuoteRequest, RecordsData, RecordsRequest, SwapData, SwapRequest};
 use crate::SwapperError;
+
+const SUCCESS_CODE: u64 = 100;
+const QUOTE_FAIL_CODE: u64 = 412;
 
 #[derive(Clone, Debug)]
 enum BridgersTarget {
@@ -53,8 +56,8 @@ where
 
     fn data<T: DeserializeOwned>(response: BridgersResponse) -> Result<T, SwapperError> {
         match response.res_code {
-            response_code::SUCCESS => serde_json::from_value(response.data).map_err(SwapperError::compute_quote_error),
-            response_code::QUOTE_FAIL => Err(SwapperError::NoQuoteAvailable),
+            SUCCESS_CODE => serde_json::from_value(response.data).map_err(SwapperError::compute_quote_error),
+            QUOTE_FAIL_CODE => Err(SwapperError::NoQuoteAvailable),
             _ => Err(SwapperError::ComputeQuoteError(response.res_msg)),
         }
     }

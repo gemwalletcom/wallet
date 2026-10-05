@@ -8,11 +8,6 @@ use serde_serializers::deserialize_u64_from_str_or_int;
 use super::asset::get_asset_id;
 use crate::SwapperProvider;
 
-pub(super) mod response_code {
-    pub const SUCCESS: u64 = 100;
-    pub const QUOTE_FAIL: u64 = 412;
-}
-
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct BridgersResponse {
