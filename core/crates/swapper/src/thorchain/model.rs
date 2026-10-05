@@ -59,19 +59,16 @@ pub struct TransactionStatusTx {
 pub struct TransactionCoin {
     pub asset: String,
     pub amount: String,
-    pub decimals: Option<i32>,
+    pub decimals: Option<u32>,
 }
 
 impl TransactionCoin {
     pub fn native_value(&self, network: THORChainNetwork) -> Option<BigUint> {
-        let decimals = match self.decimals {
-            Some(decimals) => decimals,
-            None => self.asset_decimals(network)?,
-        };
+        let decimals = self.decimals.or_else(|| self.asset_decimals(network))?;
         Some(value_to(&self.amount, decimals).magnitude().clone())
     }
 
-    fn asset_decimals(&self, network: THORChainNetwork) -> Option<i32> {
+    fn asset_decimals(&self, network: THORChainNetwork) -> Option<u32> {
         let asset_id = self.asset_id(network)?;
         if asset_id.token_id.is_none() {
             return Some(Asset::from_chain(asset_id.chain).decimals);

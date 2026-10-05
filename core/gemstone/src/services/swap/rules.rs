@@ -60,7 +60,7 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
 }
 
 pub fn pay_value(pay_asset: &Asset, value: &str, format: &GemNumberFormat) -> Option<BigUint> {
-    value_from_input(&format.decimal_separator, value, pay_asset.decimals as u32).ok()?.to_biguint().filter(|value| *value > BigUint::ZERO)
+    value_from_input(&format.decimal_separator, value, pay_asset.decimals).ok()?.to_biguint().filter(|value| *value > BigUint::ZERO)
 }
 
 pub fn quote_input(pay_asset: &Asset, receive_asset: &Asset, value: &str, available_value: &BigInt, slippage_bps: Option<u32>, format: &GemNumberFormat) -> Option<GemSwapQuoteInput> {
@@ -159,17 +159,12 @@ pub fn requote_request(wallet: &Wallet, transfer: &GemTransferData, value: &BigI
 }
 
 pub fn swap_rate(from_asset: &Asset, from_value: &BigUint, to_asset: &Asset, to_value: &BigUint) -> Option<GemSwapRate> {
-    let from_amount = amount(from_value, from_asset.decimals)?;
-    let to_amount = amount(to_value, to_asset.decimals)?;
+    let from_amount = BigNumberFormatter::f64_value(from_value, from_asset.decimals);
+    let to_amount = BigNumberFormatter::f64_value(to_value, to_asset.decimals);
     (from_amount > 0.0 && to_amount > 0.0).then(|| GemSwapRate {
         direct: asset_rate(from_asset, to_asset, to_amount / from_amount),
         inverse: asset_rate(to_asset, from_asset, from_amount / to_amount),
     })
-}
-
-fn amount(value: &BigUint, decimals: i32) -> Option<f64> {
-    let decimals = u32::try_from(decimals).ok()?;
-    Some(BigNumberFormatter::f64_value(value, decimals))
 }
 
 fn asset_rate(base: &Asset, quote: &Asset, value: f64) -> GemAssetRate {
@@ -225,7 +220,7 @@ fn quote_asset(asset: &Asset) -> SwapperQuoteAsset {
     SwapperQuoteAsset {
         id: asset.id.to_string(),
         symbol: asset.symbol.clone(),
-        decimals: asset.decimals as u32,
+        decimals: asset.decimals,
         asset_type: asset.asset_type.clone(),
     }
 }

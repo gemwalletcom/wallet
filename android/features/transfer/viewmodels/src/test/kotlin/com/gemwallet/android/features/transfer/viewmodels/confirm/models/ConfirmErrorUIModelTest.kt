@@ -25,7 +25,7 @@ import java.math.BigInteger
 import java.util.Locale
 
 class ConfirmErrorUIModelTest {
-    private val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
 
     private val defaultLocale = Locale.getDefault()
 

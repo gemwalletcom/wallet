@@ -124,7 +124,7 @@ impl<C: Client> TonClient<C> {
         let indexed_metadata = indexed_info.and_then(|info| info.name.as_ref().zip(info.symbol.as_ref()));
         let (name, symbol) = inline_metadata.or(indexed_metadata).ok_or("invalid jetton metadata")?;
         let decimals = master.jetton_content.decimals.or_else(|| indexed_info.and_then(|info| info.extra.as_ref()?.decimals)).unwrap_or(9);
-        let decimals = i32::from(u8::try_from(decimals).map_err(|_| "invalid jetton decimals")?);
+        let decimals = u32::from(u8::try_from(decimals).map_err(|_| "invalid jetton decimals")?);
 
         Ok(Asset::new(AssetId::from_token(Chain::Ton, &token_id), name.clone(), symbol.clone(), decimals, AssetType::JETTON))
     }

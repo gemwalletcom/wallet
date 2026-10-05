@@ -56,7 +56,7 @@ where
         Ok(addresses)
     }
 
-    fn map_quote_error(&self, error: SwapperError, decimals: i32) -> SwapperError {
+    fn map_quote_error(&self, error: SwapperError, decimals: u32) -> SwapperError {
         match error {
             SwapperError::InputAmountError { min_amount: Some(min) } => SwapperError::InputAmountError {
                 min_amount: Some(value_to(&min, decimals).to_string()),
@@ -127,7 +127,7 @@ where
         let from_asset = THORChainAsset::from_asset_id(self.network, &request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let to_asset = THORChainAsset::from_asset_id(self.network, &request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
 
-        let value = super::asset::value_from(&request.value.to_string(), from_asset.decimals as i32);
+        let value = super::asset::value_from(&request.value.to_string(), from_asset.decimals);
         let inbound_addresses = self.get_inbound_addresses().await?;
         let from_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &from_asset)?;
         let to_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &to_asset)?;
@@ -140,7 +140,7 @@ where
             let min_value = min_value(&address.dust_threshold);
             if min_value > value {
                 return Err(SwapperError::InputAmountError {
-                    min_amount: Some(value_to(&min_value.to_string(), from_asset.decimals as i32).to_string()),
+                    min_amount: Some(value_to(&min_value.to_string(), from_asset.decimals).to_string()),
                 });
             }
         }
@@ -150,15 +150,15 @@ where
             .client
             .get_quote(from_asset.clone(), to_asset.clone(), value.to_string(), QUOTE_INTERVAL, QUOTE_QUANTITY, fee.address, fee.bps.into())
             .await
-            .map_err(|error| self.map_quote_error(error, from_asset.decimals as i32))?;
+            .map_err(|error| self.map_quote_error(error, from_asset.decimals))?;
 
         if quote.recommended_min_amount_in > value {
             return Err(SwapperError::InputAmountError {
-                min_amount: Some(value_to(&quote.recommended_min_amount_in.to_string(), from_asset.decimals as i32).to_string()),
+                min_amount: Some(value_to(&quote.recommended_min_amount_in.to_string(), from_asset.decimals).to_string()),
             });
         }
 
-        let to_value = super::asset::value_to(&quote.expected_amount_out, to_asset.decimals as i32);
+        let to_value = super::asset::value_to(&quote.expected_amount_out, to_asset.decimals);
         let inbound_address = RouteData::get_inbound_address(self.network, &from_asset, quote.inbound_address.clone())?;
         let route_data = RouteData {
             router_address: quote.router.clone(),

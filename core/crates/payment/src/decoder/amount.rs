@@ -11,14 +11,14 @@ pub(crate) fn decimal(value: &str) -> Option<String> {
 }
 
 pub(crate) fn exact(value: &str, chain: Chain) -> Option<String> {
-    let decimals = u32::try_from(Asset::from_chain(chain).decimals).ok()?;
+    let decimals = Asset::from_chain(chain).decimals;
     let amount = Amount::parse(value)?;
 
     (amount.significant_decimals() <= decimals).then(|| amount.to_string())
 }
 
 pub(crate) fn exact_from_atomic(value: &str, chain: Chain) -> Option<String> {
-    let decimals = u32::try_from(Asset::from_chain(chain).decimals).ok()?;
+    let decimals = Asset::from_chain(chain).decimals;
     let atomic = Amount::parse_atomic(value)?;
 
     Some(Amount { decimals, ..atomic }.to_string())

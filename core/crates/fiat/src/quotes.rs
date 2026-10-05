@@ -84,7 +84,7 @@ pub async fn get_provider_quote(provider: &(dyn FiatProvider + Send + Sync), req
 
 fn quote_value(asset: &Asset, crypto_amount: f64) -> Result<BigUint, Box<dyn Error + Send + Sync>> {
     let amount = format!("{crypto_amount:.precision$}", precision = asset.decimals as usize);
-    Ok(BigNumberFormatter::value_from_amount_biguint(&amount, asset.decimals as u32)?)
+    Ok(BigNumberFormatter::value_from_amount_biguint(&amount, asset.decimals)?)
 }
 
 #[cfg(test)]

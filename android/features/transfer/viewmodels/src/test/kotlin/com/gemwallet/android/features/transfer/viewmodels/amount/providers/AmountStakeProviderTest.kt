@@ -37,7 +37,7 @@ import java.math.BigInteger
 
 class AmountStakeProviderTest {
 
-    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6u)
     private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v1")
     private val otherValidator = mockDelegationValidator(chain = asset.id.chain, id = "v2")
     private val delegation =

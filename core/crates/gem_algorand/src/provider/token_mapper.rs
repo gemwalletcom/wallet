@@ -13,7 +13,7 @@ pub fn map_asset(asset: AssetDetails) -> Asset {
         AssetId::from_token(Chain::Algorand, &asset.index.to_string()),
         asset.params.name,
         asset.params.unit_name,
-        asset.params.decimals as i32,
+        asset.params.decimals as u32,
         AssetType::TOKEN,
     )
 }

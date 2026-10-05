@@ -28,7 +28,7 @@ pub(super) fn format_decimal(value: &BigDecimal) -> String {
 }
 
 pub(super) fn round_size_down(amount: &BigDecimal, decimals: u32) -> BigDecimal {
-    amount.with_scale_round(decimals as i64, bigdecimal::RoundingMode::Down)
+    amount.with_scale_round(i64::from(decimals), bigdecimal::RoundingMode::Down)
 }
 
 pub(super) fn format_order_size(amount: &BigDecimal, decimals: u32) -> String {

@@ -47,7 +47,7 @@ impl FeeEstimatesClient {
 
 fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd: f64) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
     let rate_unit = asset.chain().fee_unit_type();
-    let asset_decimals = asset.decimals as u32;
+    let asset_decimals = asset.decimals;
     let rate_decimals = match rate_unit {
         FeeUnitType::Native => asset_decimals,
         FeeUnitType::SatVb | FeeUnitType::Gwei => rate_unit.decimals(),

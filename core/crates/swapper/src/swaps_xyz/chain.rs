@@ -71,6 +71,6 @@ impl SwapsXyzChain {
     }
 
     pub(super) fn decimals(self) -> u32 {
-        Asset::from_chain(self.chain).decimals as u32
+        Asset::from_chain(self.chain).decimals
     }
 }

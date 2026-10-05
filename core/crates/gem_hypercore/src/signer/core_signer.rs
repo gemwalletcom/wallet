@@ -336,7 +336,7 @@ impl ChainSigner for HyperCoreSigner {
 
     fn sign_withdrawal(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let fee = BigUint::try_from(&input.fee.fee).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
-        let amount = BigNumberFormatter::plain_value(&(&input.value + fee), input.input_type.get_asset().decimals as u32).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let amount = BigNumberFormatter::plain_value(&(&input.value + fee), input.input_type.get_asset().decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
         let timestamp = Self::timestamp_ms();
 
         let withdrawal_request = WithdrawalRequest::new(amount, timestamp, input.destination_address.clone());
@@ -348,8 +348,8 @@ impl ChainSigner for HyperCoreSigner {
         if asset.id != HYPERCORE_SPOT_USDC.id {
             return Err(SignerError::InvalidInput(format!("Unsupported HyperCore deposit asset: {}", asset.id)));
         }
-        let decimals = HYPERCORE_PERPETUAL_USDC.decimals as u32;
-        let value = &input.value / BigUint::from(10u32).pow(asset.decimals as u32 - decimals);
+        let decimals = HYPERCORE_PERPETUAL_USDC.decimals;
+        let value = &input.value / BigUint::from(10u32).pow(asset.decimals - decimals);
         let amount = BigNumberFormatter::plain_value(&value, decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
         let nonce = Self::timestamp_ms();
 
@@ -363,7 +363,7 @@ impl ChainSigner for HyperCoreSigner {
 }
 
 fn input_amount(input: &SignerInput) -> SignerResult<String> {
-    BigNumberFormatter::plain_value(&input.value, input.input_type.get_asset().decimals as u32).map_err(|err| SignerError::InvalidInput(err.to_string()))
+    BigNumberFormatter::plain_value(&input.value, input.input_type.get_asset().decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))
 }
 
 fn get_builder(builder: &str, fee: i32) -> Result<Builder, SignerError> {

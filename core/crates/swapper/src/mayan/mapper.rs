@@ -67,9 +67,9 @@ impl MayanTransactionResult {
 
 fn asset_decimals(asset_id: &AssetId) -> Option<u32> {
     if asset_id.is_native() {
-        return Some(Asset::from_chain(asset_id.chain).decimals as u32);
+        return Some(Asset::from_chain(asset_id.chain).decimals);
     }
-    (*asset_id == HYPERCORE_SPOT_USDC.id).then_some(HYPERCORE_SPOT_USDC.decimals as u32)
+    (*asset_id == HYPERCORE_SPOT_USDC.id).then_some(HYPERCORE_SPOT_USDC.decimals)
 }
 
 fn amount_value(amount: Option<&str>, amount64: Option<&str>, decimals: Option<u32>) -> Option<BigUint> {

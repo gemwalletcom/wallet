@@ -69,8 +69,8 @@ class GemstoneWalletStoreTest {
         mockkStatic("com.gemwallet.android.ext.ChainKt")
         mockkStatic("uniffi.gemstone.GemstoneKt")
 
-        every { Chain.Ethereum.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
-        every { Chain.Solana.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
+        every { Chain.Ethereum.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
+        every { Chain.Solana.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9u)
     }
 
     private class RecordingStoreTransactionRunner : StoreTransactionRunner {

@@ -38,7 +38,7 @@ impl GemAmountType {
 
 impl GemAmountType {
     pub fn entry(&self, asset: &Asset, input: &GemAmountInput, price: Option<f64>, input_type: GemAmountInputType, text: String, currency: Currency) -> GemAmountEntry {
-        let decimals = asset.decimals as u32;
+        let decimals = asset.decimals;
         let (value, error) = match entry_value(&text, decimals, price, input_type) {
             Ok(Some(value)) => {
                 let error = validate(asset, &value, &input.available_value, &minimum_value(self, asset)).err();
@@ -129,7 +129,7 @@ fn equivalent(value: Option<&BigInt>, asset: &Asset, price: Option<f64>, input_t
     let value = value.cloned().unwrap_or_default();
     match input_type {
         GemAmountInputType::Asset => {
-            let amount = valid_price(price).and_then(|price| CryptoFiatConverter::to_fiat_as_f64(&value, asset.decimals as u32, price).ok()).unwrap_or(0.0);
+            let amount = valid_price(price).and_then(|price| CryptoFiatConverter::to_fiat_as_f64(&value, asset.decimals, price).ok()).unwrap_or(0.0);
             GemFormattedNumber::currency(amount, currency, GemCurrencyStyle::Currency)
         }
         GemAmountInputType::Fiat => GemFormattedNumber::asset_amount(&value, asset, GemValueStyle::Auto),
@@ -225,7 +225,7 @@ pub fn transfer_display_asset(transfer: &GemAmountTransfer, asset: Asset) -> Ass
 pub fn transfer_input(transfer: &GemAmountTransfer, asset: &Asset, balance: &GemAssetBalance) -> GemAmountInput {
     let input = transfer_amount_type(transfer).input(asset, balance);
     let requested = match transfer {
-        GemAmountTransfer::Send { payment } => payment.amount.as_deref().and_then(|amount| BigNumberFormatter::value_from_amount(amount, asset.decimals as u32).ok()),
+        GemAmountTransfer::Send { payment } => payment.amount.as_deref().and_then(|amount| BigNumberFormatter::value_from_amount(amount, asset.decimals).ok()),
         GemAmountTransfer::Deposit | GemAmountTransfer::Withdraw => None,
     };
     let prefill = requested.and_then(|value| GemBigInt::from_str(&value).ok()).map(|value| GemAmountMaxEntry {
@@ -1091,7 +1091,7 @@ mod tests {
         assert_eq!(max.input_type, GemAmountInputType::Asset);
         assert_eq!(max.value, BigInt::from(available - config.reserved_for_fees));
 
-        let max_text = BigNumberFormatter::value(&max.value, cosmos.decimals as u32).unwrap();
+        let max_text = BigNumberFormatter::value(&max.value, cosmos.decimals).unwrap();
         let at_max = stake.entry(&cosmos, &input, Some(10.0), GemAmountInputType::Asset, max_text, Currency::USD);
         assert!(at_max.is_max);
         assert_eq!(

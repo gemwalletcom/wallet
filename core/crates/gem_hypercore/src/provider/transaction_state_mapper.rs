@@ -192,7 +192,7 @@ fn delegator_history_match_delta(update: &DelegatorHistoryUpdate, action_id: &Hy
 }
 
 fn amount_matches_wei(amount: &str, wei: u64) -> bool {
-    match BigNumberFormatter::value_from_amount(amount, HYPERCORE_HYPE.decimals as u32) {
+    match BigNumberFormatter::value_from_amount(amount, HYPERCORE_HYPE.decimals) {
         Ok(update_wei) => update_wei == wei.to_string(),
         Err(_) => false,
     }

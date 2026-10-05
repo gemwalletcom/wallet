@@ -196,7 +196,7 @@ pub struct GemAutocloseSession {
     pub submit_attempted: bool,
     pub prices: GemAutoclosePrices,
     pub provider: PerpetualProvider,
-    pub decimals: i32,
+    pub decimals: u32,
     pub position_row: Option<GemPerpetualPositionRow>,
     pub estimate: GemAutocloseEstimate,
     pub take_profit_text: String,
@@ -250,7 +250,7 @@ impl GemAutocloseSession {
 }
 
 impl GemAutocloseSession {
-    pub fn new(modify: GemAutocloseModify, policy: GemAutocloseConfirmPolicy, prices: GemAutoclosePrices, provider: PerpetualProvider, decimals: i32, position_row: Option<GemPerpetualPositionRow>, estimate: GemAutocloseEstimate) -> Self {
+    pub fn new(modify: GemAutocloseModify, policy: GemAutocloseConfirmPolicy, prices: GemAutoclosePrices, provider: PerpetualProvider, decimals: u32, position_row: Option<GemPerpetualPositionRow>, estimate: GemAutocloseEstimate) -> Self {
         Self {
             estimate,
             modify,
@@ -364,7 +364,7 @@ pub fn autoclose_session(perpetual: Perpetual, asset: Asset, position: Perpetual
 }
 
 #[uniffi::export]
-pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, size: f64, leverage: u8, decimals: i32, provider: PerpetualProvider, format: GemNumberFormat) -> GemAutocloseSession {
+pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, size: f64, leverage: u8, decimals: u32, provider: PerpetualProvider, format: GemNumberFormat) -> GemAutocloseSession {
     let empty = |tpsl_type: TpslType| GemAutocloseField {
         tpsl_type,
         price: None,

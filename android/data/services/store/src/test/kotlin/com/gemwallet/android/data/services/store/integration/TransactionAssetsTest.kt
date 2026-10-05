@@ -32,7 +32,7 @@ class TransactionAssetsTest {
     private lateinit var database: GemDatabase
     private val wallet = mockWallet()
     private val bitcoin = mockAsset()
-    private val usdt = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20)
+    private val usdt = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6u, type = AssetType.ERC20)
     private val swap = mockTransaction(type = TransactionType.Swap)
 
     @Before
@@ -42,7 +42,7 @@ class TransactionAssetsTest {
             GemDatabase::class.java,
         ).build()
         database.walletsDao().insert(wallet.toRecord())
-        database.assetsDao().insert(listOf(bitcoin, mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18), usdt).map { it.toRecord() })
+        database.assetsDao().insert(listOf(bitcoin, mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u), usdt).map { it.toRecord() })
         database.pricesDao().insert(DbPrice(assetId = usdt.id.toIdentifier(), value = 1.0, dayChanged = 0.5, currency = Currency.USD))
         database.transactionsDao().insert(listOf(swap.toRecord(wallet.id)))
         database.transactionsDao().replaceTransactionAssets(mapOf(swap.id.identifier to listOf(bitcoin.id.toIdentifier(), usdt.id.toIdentifier())))
@@ -73,6 +73,6 @@ class TransactionAssetsTest {
         val transactions = database.transactionsDao()
 
         assertEquals(1, transactions.getTransactionListItems(wallet.id, mockTransactionsFilter(assetId = usdt.id), 100).first().size)
-        assertEquals(0, transactions.getTransactionListItems(wallet.id, mockTransactionsFilter(assetId = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).id), 100).first().size)
+        assertEquals(0, transactions.getTransactionListItems(wallet.id, mockTransactionsFilter(assetId = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u).id), 100).first().size)
     }
 }

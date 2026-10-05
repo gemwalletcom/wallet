@@ -168,7 +168,7 @@ private fun TransactionStatusBadge(row: GemTransactionRow) {
 @Composable
 @Preview
 fun PreviewTransactionItem() {
-    val asset = Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE)
+    val asset = Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u, type = AssetType.NATIVE)
     MaterialTheme {
         TransactionItem(
             data = previewRow(
@@ -190,7 +190,7 @@ fun PreviewTransactionItem() {
 @Composable
 @Preview
 fun PreviewSwapTransactionItem() {
-    val asset = Asset(id = AssetId(Chain.SmartChain), name = "SmartChain", symbol = "BNB", decimals = 18, type = AssetType.NATIVE)
+    val asset = Asset(id = AssetId(Chain.SmartChain), name = "SmartChain", symbol = "BNB", decimals = 18u, type = AssetType.NATIVE)
     MaterialTheme {
         TransactionItem(
             data = previewRow(

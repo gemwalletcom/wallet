@@ -46,7 +46,7 @@ import java.math.BigInteger
 class ConfirmTransferViewModelRequestTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
-    private val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
     private val account = mockAccount(chain = Chain.Ethereum)
     private val confirmation = mockk<GemConfirmation>(relaxed = true).stubViewState()
 

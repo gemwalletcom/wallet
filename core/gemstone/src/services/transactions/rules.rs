@@ -376,7 +376,7 @@ fn row_value(item: &TransactionListItem, value: GemTransactionValue) -> GemTrans
         GemTransactionValue::SwapReceived => swap_value(SwapLeg::To, GemAmountSign::Incoming),
         GemTransactionValue::SwapSpent => swap_value(SwapLeg::From, GemAmountSign::Outgoing),
         GemTransactionValue::PerpetualNotional => perpetual_collateral_asset()
-            .map(|asset| BigNumberFormatter::f64_value(&transaction.value, asset.decimals as u32))
+            .map(|asset| BigNumberFormatter::f64_value(&transaction.value, asset.decimals))
             .map_or(GemTransactionRowValue::None, |value| GemTransactionRowValue::Number { number: GemFormattedNumber::usd(value) }),
         GemTransactionValue::PerpetualPnl { value } => GemTransactionRowValue::Number {
             number: GemFormattedNumber::signed_usd(value),

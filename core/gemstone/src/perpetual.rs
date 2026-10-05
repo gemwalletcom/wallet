@@ -22,13 +22,13 @@ impl GemPerpetual {
         Self { provider }
     }
 
-    pub fn format_price(&self, price: f64, decimals: i32) -> String {
+    pub fn format_price(&self, price: f64, decimals: u32) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_price(price, decimals),
         }
     }
 
-    pub fn format_input_price(&self, price: f64, decimals: i32, decimal_separator: String) -> String {
+    pub fn format_input_price(&self, price: f64, decimals: u32, decimal_separator: String) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_input_price(price, decimals, decimal_separator.chars().next().unwrap_or('.')),
         }
@@ -71,7 +71,7 @@ impl GemPerpetual {
         }
     }
 
-    pub fn format_size(&self, size: f64, decimals: i32) -> String {
+    pub fn format_size(&self, size: f64, decimals: u32) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
         }

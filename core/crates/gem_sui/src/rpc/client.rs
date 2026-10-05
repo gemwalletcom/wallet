@@ -140,7 +140,7 @@ impl SuiClient {
         let response: GetCoinInfoResponse = self.grpc_unary("/sui.rpc.v2.StateService/GetCoinInfo", request).await?;
         let metadata = response.metadata.ok_or("missing Sui coin metadata")?;
         Ok(SuiCoinMetadata {
-            decimals: metadata.decimals.unwrap_or_default() as i32,
+            decimals: metadata.decimals.unwrap_or_default(),
             name: metadata.name.unwrap_or_default(),
             symbol: metadata.symbol.unwrap_or_default(),
         })

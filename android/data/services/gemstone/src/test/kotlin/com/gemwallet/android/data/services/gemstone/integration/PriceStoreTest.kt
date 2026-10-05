@@ -62,7 +62,7 @@ class PriceStoreTest {
     fun failedConversionRollsBackTheTickAndIdenticalRetryCommitsIt() = runBlocking(Dispatchers.IO) {
         val conversion = FiatRate(Currency.EUR, 0.9).toGem()
         val rates = listOf(conversion, FiatRate(Currency.GBP, 0.7).toGem())
-        val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).id.toIdentifier()
+        val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u).id.toIdentifier()
         val prices = listOf(GemPriceUpdate(assetId = ethereum, price = 180.0, priceUsd = 200.0, priceChangePercentage24h = 1.0, updatedAt = 43))
 
         val failure = runCatching { store.saveRatesAndPrices(Currency.EUR.toGem(), rates, conversion, prices) }.exceptionOrNull()

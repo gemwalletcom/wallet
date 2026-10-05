@@ -84,7 +84,7 @@ class FiatViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule(testDispatcher)
 
-    private val asset = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8)
+    private val asset = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8u)
     private val assetInfoFlow = MutableStateFlow<AssetData?>(mockAssetData(asset = asset, price = mockPrice(price = 100.0)))
 
     private val wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Bitcoin)))

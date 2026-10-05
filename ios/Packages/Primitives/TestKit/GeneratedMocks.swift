@@ -64,7 +64,7 @@ public extension Asset {
         id: AssetId = .mock(),
         name: String = "",
         symbol: String = "",
-        decimals: Int32 = 0,
+        decimals: UInt32 = 0,
         type: AssetType = .native,
     ) -> Asset {
         Asset(

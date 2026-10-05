@@ -13,7 +13,7 @@ import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
 
 fun mockDbTransactionExtended(type: TransactionType = TransactionType.Transfer, priceValue: Double? = null, assets: List<Asset> = emptyList(), prices: List<DbPrice> = emptyList()): DbTransactionExtended {
-    val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
     val id = TransactionId(asset.id.chain, "0xhash")
     return DbTransactionExtended(
         transaction = DbTransaction(
@@ -52,6 +52,6 @@ private fun Asset.toDbAssetProjection() = DbAssetProjection(
     id = id.toIdentifier(),
     name = name,
     symbol = symbol,
-    decimals = decimals,
+    decimals = decimals.toInt(),
     type = type,
 )

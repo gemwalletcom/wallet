@@ -108,7 +108,7 @@ pub struct SimulationBalanceChange {
     pub asset_id: AssetId,
     #[serde(serialize_with = "serde_serializers::serialize_bigint", deserialize_with = "serde_serializers::deserialize_bigint_from_str")]
     pub value: BigInt,
-    pub decimals: i32,
+    pub decimals: u32,
     pub name: Option<String>,
     pub symbol: Option<String>,
 }

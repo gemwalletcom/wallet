@@ -41,7 +41,7 @@ pub struct GemPerpetualOrderInput {
     pub asset_index: i32,
     pub price: f64,
     pub usdc_value: GemBigInt,
-    pub usdc_decimals: i32,
+    pub usdc_decimals: u32,
     pub leverage: u8,
     pub slippage: Option<f64>,
     pub take_profit: Option<String>,

@@ -68,7 +68,7 @@ impl StoreTransactionsConsumerConfig {
 
     pub fn is_transaction_insufficient_amount(&self, transaction: &Transaction, asset: &Asset, price: Option<Price>, min_amount: f64) -> bool {
         if transaction.transaction_type == TransactionType::Transfer
-            && let Ok(amount) = BigNumberFormatter::value_as_f64(&transaction.value, asset.decimals as u32)
+            && let Ok(amount) = BigNumberFormatter::value_as_f64(&transaction.value, asset.decimals)
             && let Some(price) = price
         {
             return amount * price.price <= min_amount;

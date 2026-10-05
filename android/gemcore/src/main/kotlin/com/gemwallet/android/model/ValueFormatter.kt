@@ -13,7 +13,7 @@ import java.util.Locale
 
 class ValueFormatter(private val style: GemValueStyle, private val locale: Locale = Locale.getDefault()) {
 
-    fun string(value: BigInteger, asset: Asset): String = string(value, decimals = asset.decimals, currency = asset.symbol)
+    fun string(value: BigInteger, asset: Asset): String = string(value, decimals = asset.decimals.toInt(), currency = asset.symbol)
 
     fun string(value: BigInteger, decimals: Int, currency: String = ""): String = string(BigDecimal(value).movePointLeft(decimals), currency)
 

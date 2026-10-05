@@ -41,7 +41,7 @@ import uniffi.gemstone.GemServiceException
 class AddAssetViewModelTest {
 
     private val wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Ethereum)))
-    private val token = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0x1"), name = "Token", symbol = "TKN", decimals = 18, type = AssetType.ERC20)
+    private val token = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0x1"), name = "Token", symbol = "TKN", decimals = 18u, type = AssetType.ERC20)
     private val service = mockk<GemAddAssetServiceInterface> {
         every { newSession(any()) } answers {
             GemAddAssetSession(chain = firstArg(), address = "", asset = null, isLoading = false, isAdding = false, failed = false)

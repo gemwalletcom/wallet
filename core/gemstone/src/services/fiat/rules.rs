@@ -107,7 +107,7 @@ pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow
         subtitle: format!("{} ({})", data.asset.name, data.provider.name()),
         value: GemFormattedNumber {
             tone: status.tone,
-            ..GemFormattedNumber::amount(BigNumberFormatter::f64_value(&data.value, data.asset.decimals as u32), Some(data.asset.symbol.clone()), GemValueStyle::Short)
+            ..GemFormattedNumber::amount(BigNumberFormatter::f64_value(&data.value, data.asset.decimals), Some(data.asset.symbol.clone()), GemValueStyle::Short)
         },
         fiat_value: GemFormattedNumber::currency_code(data.fiat_amount, data.fiat_currency.clone(), GemCurrencyStyle::Fiat),
         badge: status.badge,
@@ -117,7 +117,7 @@ pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow
 
 fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
     let amount = format!("{:.precision$}", quote.crypto_amount, precision = quote.asset.decimals as usize);
-    BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals as u32).ok()
+    BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals).ok()
 }
 
 #[cfg(test)]

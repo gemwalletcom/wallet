@@ -846,7 +846,7 @@ pub struct Asset {
     pub id: primitives::AssetId,
     pub name: String,
     pub symbol: String,
-    pub decimals: i32,
+    pub decimals: u32,
     pub asset_type: AssetType,
 }
 
@@ -1605,7 +1605,7 @@ pub struct Rewards {
 pub struct SimulationBalanceChange {
     pub asset_id: primitives::AssetId,
     pub value: GemBigInt,
-    pub decimals: i32,
+    pub decimals: u32,
     pub name: Option<String>,
     pub symbol: Option<String>,
 }

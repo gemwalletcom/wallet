@@ -339,7 +339,7 @@ fn stake_info_rows(asset: &Asset, staking_apr: Option<f64>) -> Vec<GemListRow> {
             info: Some(GemInfoTopic::StakeLockTime { chain }),
             estimate: false,
         }),
-        (minimum > BigInt::ZERO).then(|| BigNumberFormatter::f64_value(&minimum, asset.decimals as u32)).map(|value| GemListRow::Amount {
+        (minimum > BigInt::ZERO).then(|| BigNumberFormatter::f64_value(&minimum, asset.decimals)).map(|value| GemListRow::Amount {
             title: GemListRowTitle::MinimumAmount,
             amount: GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Auto),
             info: None,
@@ -498,7 +498,7 @@ fn action_title(action: GemStakeActionKind) -> GemListRowTitle {
 
 fn rewards_amount(chain: Chain, rewards: &BigUint) -> GemFormattedNumber {
     let asset = Asset::from_chain(chain);
-    GemFormattedNumber::amount(BigNumberFormatter::f64_value(rewards, asset.decimals as u32), Some(asset.symbol), GemValueStyle::Auto)
+    GemFormattedNumber::amount(BigNumberFormatter::f64_value(rewards, asset.decimals), Some(asset.symbol), GemValueStyle::Auto)
 }
 
 fn claim_destination(chain: Chain, delegations: Vec<Delegation>) -> Option<GemStakeDestination> {

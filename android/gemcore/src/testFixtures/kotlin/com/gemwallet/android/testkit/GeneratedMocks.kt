@@ -153,7 +153,7 @@ fun mockAsset(
     id: AssetId = mockAssetId(),
     name: String = "",
     symbol: String = "",
-    decimals: Int = 0,
+    decimals: UInt = 0u,
     type: AssetType = AssetType.NATIVE,
 ) = Asset(
     id = id,

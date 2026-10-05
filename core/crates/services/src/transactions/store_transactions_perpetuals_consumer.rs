@@ -28,7 +28,7 @@ impl StoreTransactionsPerpetualsConsumer {
         let (Some(referral_fee), Some(provider)) = (metadata.referral_fee, metadata.provider) else {
             return Ok(None);
         };
-        let decimals = self.repository.asset(referral_fee.asset_id).await?.decimals as u32;
+        let decimals = self.repository.asset(referral_fee.asset_id).await?.decimals;
         Ok(Some(TransactionPerpetualRecord {
             provider,
             asset_id: transaction.asset_id.clone(),
