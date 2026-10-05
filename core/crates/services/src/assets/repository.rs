@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{Asset, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, AssetVecExt, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank};
+use primitives::{Asset, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, AssetVecExt, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank, fiat_assets::AssetCatalog};
 use storage::{
     AssetFilter, AssetUpdate, AssetsAddressesRepository, AssetsRepository, AssetsUsageRanksRepository, Database, DatabaseClient, DatabaseError, PerpetualsRepository, PricesRepository, ScanAddressesRepository, Tag, TagRepository,
     TransactionsRepository, WalletsRepository,
@@ -38,6 +38,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn update_price_flags(&self) -> Result<(usize, usize), DatabaseError>;
     async fn update_usage_ranks(&self, windows: Vec<(NaiveDateTime, i64)>, retain_since: NaiveDateTime, batch_size: usize) -> Result<usize, DatabaseError>;
     async fn update_perpetuals(&self, assets: Vec<Asset>, asset_updates: Vec<AssetUpdate>, perpetuals: Vec<Perpetual>) -> Result<Result<usize, DatabaseError>, DatabaseError>;
+    async fn asset_catalog(&self) -> Result<AssetCatalog, DatabaseError>;
     async fn list_tag(&self, tag_id: String) -> Result<Option<Tag>, DatabaseError>;
     async fn list_tags(&self) -> Result<Vec<Tag>, DatabaseError>;
     async fn set_list_assets(&self, tag_id: String, list_name: String, list_id: ListId, asset_ids: Vec<AssetId>, is_new_tag: bool) -> Result<Option<usize>, DatabaseError>;
@@ -183,6 +184,10 @@ impl Repository for PostgresRepository {
                 Ok(client.perpetuals_update(perpetuals))
             })
             .await
+    }
+
+    async fn asset_catalog(&self) -> Result<AssetCatalog, DatabaseError> {
+        self.database.run(AssetsRepository::get_asset_catalog).await
     }
 
     async fn list_tag(&self, tag_id: String) -> Result<Option<Tag>, DatabaseError> {

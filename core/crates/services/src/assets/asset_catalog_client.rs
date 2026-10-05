@@ -1,30 +1,13 @@
 use std::{error::Error, sync::Arc};
 
-use async_trait::async_trait;
 use cacher::AssetCatalogCacher;
 use config_keys::ConfigKey;
 use gem_tracing::warn_with_fields;
 use primitives::fiat_assets::AssetCatalog;
-use storage::{AssetsRepository, Database, DatabaseError};
 use tokio::sync::Semaphore;
 
+use super::repository::Repository;
 use crate::ConfigCacher;
-
-#[async_trait]
-trait Repository: Send + Sync {
-    async fn asset_catalog(&self) -> Result<AssetCatalog, DatabaseError>;
-}
-
-struct PostgresRepository {
-    database: Database,
-}
-
-#[async_trait]
-impl Repository for PostgresRepository {
-    async fn asset_catalog(&self) -> Result<AssetCatalog, DatabaseError> {
-        self.database.run(AssetsRepository::get_asset_catalog).await
-    }
-}
 
 pub struct AssetCatalogClient {
     repository: Arc<dyn Repository>,
@@ -34,11 +17,7 @@ pub struct AssetCatalogClient {
 }
 
 impl AssetCatalogClient {
-    pub(crate) fn new(database: Database, cacher: Arc<dyn AssetCatalogCacher>, config: Arc<ConfigCacher>) -> Self {
-        Self::new_with_repository(Arc::new(PostgresRepository { database }), cacher, config)
-    }
-
-    fn new_with_repository(repository: Arc<dyn Repository>, cacher: Arc<dyn AssetCatalogCacher>, config: Arc<ConfigCacher>) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>, cacher: Arc<dyn AssetCatalogCacher>, config: Arc<ConfigCacher>) -> Self {
         Self {
             repository,
             cacher,
@@ -83,10 +62,7 @@ impl AssetCatalogClient {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{
-        Arc, Mutex,
-        atomic::{AtomicUsize, Ordering},
-    };
+    use std::sync::{Arc, Mutex};
     use std::time::Duration;
 
     use async_trait::async_trait;
@@ -94,20 +70,7 @@ mod tests {
     use primitives::fiat_assets::AssetCatalog;
 
     use super::*;
-    use crate::testkit::MemoryConfigRepository;
-
-    struct MemoryRepository {
-        catalog: AssetCatalog,
-        reads: AtomicUsize,
-    }
-
-    #[async_trait]
-    impl Repository for MemoryRepository {
-        async fn asset_catalog(&self) -> Result<AssetCatalog, DatabaseError> {
-            self.reads.fetch_add(1, Ordering::Relaxed);
-            Ok(self.catalog.clone())
-        }
-    }
+    use crate::testkit::{MemoryAssetRepository, MemoryConfigRepository};
 
     #[derive(Default)]
     struct MemoryCacher {
@@ -136,16 +99,13 @@ mod tests {
     #[tokio::test]
     async fn caches_catalog_after_first_database_read() {
         let catalog = AssetCatalog::new(vec!["bitcoin".into()], vec!["ethereum".into()], vec!["solana".into()]);
-        let repository = Arc::new(MemoryRepository {
-            catalog: catalog.clone(),
-            reads: AtomicUsize::new(0),
-        });
+        let repository = Arc::new(MemoryAssetRepository::new(vec![]).with_catalog(catalog.clone()));
         let cacher = Arc::new(MemoryCacher::default());
-        let client = AssetCatalogClient::new_with_repository(repository.clone(), cacher.clone(), Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new()))));
+        let client = AssetCatalogClient::new(repository.clone(), cacher.clone(), Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new()))));
 
         assert_eq!(client.get().await.unwrap(), catalog);
         assert_eq!(client.get().await.unwrap(), catalog);
-        assert_eq!(repository.reads.load(Ordering::Relaxed), 1);
+        assert_eq!(repository.catalog_reads(), 1);
         assert_eq!(*cacher.ttl.lock().unwrap(), Some(Duration::from_secs(15 * 60)));
     }
 }
