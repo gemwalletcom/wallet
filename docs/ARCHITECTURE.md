@@ -739,7 +739,7 @@ val chartUIState = combine(loaded, price) { session, price -> session.viewState(
 }
 ```
 
-The chart data carries its bounds, date style and plotted window (`start` to `end`, the room after the newest point included), `GemChartData.index_at(fraction)` answers which point a finger is on, and `GemChartData.selection(index)` answers the header and date for it, so neither view keeps a chart model of its own. The candle chart answers the same two questions and labels each time tick with its own format, so an app maps the window onto the plot width, reports every gesture as a fraction of that width, and turns a tick into text.
+The chart data carries its bounds, date style and plotted window (`start` to `end`, the room after the newest point included), `GemChartData.index_at(fraction)` answers which point a finger is on, and `GemChartData.selection(index)` answers the header and date for it, so neither view keeps a chart model of its own. The candle chart answers the same two questions, carries its settled price-axis levels and labels each time tick with its own format, so an app maps the window onto the plot width, reports every gesture as a fraction of that width, and renders without deriving axis values through FFI on each frame.
 
 Four rules keep the collapse honest:
 
