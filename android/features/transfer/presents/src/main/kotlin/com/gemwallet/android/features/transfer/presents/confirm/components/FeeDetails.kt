@@ -87,14 +87,22 @@ import uniffi.gemstone.GemNetworkFeeScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, feeListItem: ListItemModel?, onSelectPriority: (FeePriority) -> Unit, onSelectCustom: (GemConfirmFeeSelection) -> Unit, onSelectFeeAsset: (AssetId) -> Unit, onCancel: () -> Unit) {
+fun FeeDetails(
+    isVisible: Boolean,
+    screen: GemNetworkFeeScreen?,
+    feeListItem: ListItemModel?,
+    onSelectPriority: (FeePriority) -> Unit,
+    onSelectCustom: (GemConfirmFeeSelection) -> Unit,
+    onSelectFeeAsset: (AssetId) -> Unit,
+    onCancel: () -> Unit,
+) {
     screen ?: return
     val context = LocalContext.current
     val feeAsset = remember(screen.feeAsset) { screen.feeAsset?.toFeeAssetUIModel() }
     val feeAssets = remember(screen.feeAssets) { screen.feeAssets.map { it.toFeeAssetUIModel() } }
 
     var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
-    var custom by remember(page, screen.custom) { mutableStateOf(screen.custom) }
+    var custom by remember(page) { mutableStateOf(screen.custom) }
     val estimate = remember(custom) { custom?.viewState() }
     val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }
     val confirmCustomFee: () -> Unit = {

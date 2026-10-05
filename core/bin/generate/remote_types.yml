@@ -279,6 +279,8 @@ mocks:
   - GemConfirmSimulation
   - GemConfirmSimulationState
   - GemConnectionRow
+  - GemCustomFeeField
+  - GemCustomFeeSession
   - GemEmptyState
   - GemFeeAmount
   - GemFeeAsset

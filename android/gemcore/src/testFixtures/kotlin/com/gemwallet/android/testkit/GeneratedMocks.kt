@@ -1351,6 +1351,34 @@ fun mockGemConnectionRow(
     iconUrl = iconUrl,
 )
 
+fun mockGemCustomFeeField(
+    title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
+    input: String = "",
+) = uniffi.gemstone.GemCustomFeeField(
+    title = title,
+    input = input,
+)
+
+fun mockGemCustomFeeSession(
+    feeAsset: uniffi.gemstone.Asset = mockAsset().toGem(),
+    format: uniffi.gemstone.GemNumberFormat = mockGemNumberFormat(),
+    rows: uniffi.gemstone.GemFeeRateRows = mockGemFeeRateRows(),
+    loadedFee: java.math.BigInteger? = null,
+    price: Double? = null,
+    currency: uniffi.gemstone.Currency = uniffi.gemstone.Currency.MXN,
+    baseFee: uniffi.gemstone.GemCustomFeeField? = null,
+    rate: uniffi.gemstone.GemCustomFeeField = mockGemCustomFeeField(),
+) = uniffi.gemstone.GemCustomFeeSession(
+    feeAsset = feeAsset,
+    format = format,
+    rows = rows,
+    loadedFee = loadedFee,
+    price = price,
+    currency = currency,
+    baseFee = baseFee,
+    rate = rate,
+)
+
 fun mockGemEmptyState(
     title: uniffi.gemstone.GemEmptyStateText = uniffi.gemstone.GemEmptyStateText.NFTS_TITLE,
     description: uniffi.gemstone.GemEmptyStateText? = null,

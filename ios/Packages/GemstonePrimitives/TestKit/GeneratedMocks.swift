@@ -512,6 +512,42 @@ public extension Gemstone.GemConnectionRow {
     }
 }
 
+public extension Gemstone.GemCustomFeeField {
+    static func mock(
+        title: Gemstone.GemListRowTitle = .api,
+        input: String = "",
+    ) -> Gemstone.GemCustomFeeField {
+        Gemstone.GemCustomFeeField(
+            title: title,
+            input: input,
+        )
+    }
+}
+
+public extension Gemstone.GemCustomFeeSession {
+    static func mock(
+        feeAsset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
+        format: Gemstone.GemNumberFormat = .mock(),
+        rows: Gemstone.GemFeeRateRows = .mock(),
+        loadedFee: BigInt? = nil,
+        price: Double? = nil,
+        currency: Gemstone.Currency = .mxn,
+        baseFee: Gemstone.GemCustomFeeField? = nil,
+        rate: Gemstone.GemCustomFeeField = .mock(),
+    ) -> Gemstone.GemCustomFeeSession {
+        Gemstone.GemCustomFeeSession(
+            feeAsset: feeAsset,
+            format: format,
+            rows: rows,
+            loadedFee: loadedFee,
+            price: price,
+            currency: currency,
+            baseFee: baseFee,
+            rate: rate,
+        )
+    }
+}
+
 public extension Gemstone.GemEmptyState {
     static func mock(
         title: Gemstone.GemEmptyStateText = .nftsTitle,
