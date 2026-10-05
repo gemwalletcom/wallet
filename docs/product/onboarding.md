@@ -17,7 +17,6 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The terms were already accepted on this install | they are not asked again; the security reminder still shows on every create | |
-| The user copies the Secret Phrase | the copy expires after one minute | |
 
 ## Import wallet
 
@@ -39,8 +38,9 @@ flowchart LR
 | The user types a Secret Phrase | word suggestions complete the last word, and a tap replaces it | |
 | The cursor is inside the phrase | no suggestions show | a tap never changes the wrong word |
 | An address is typed as a name | the resolved name becomes the wallet name | |
-| A `.sol` name is typed while SRS resolution is paused | not found | `.sol` is never guessed from `.sns`; the two names can have different owners |
 | The wallet already exists | it is simply opened | |
+
+Names follow the shared [Names](../PRODUCT.md#names) section.
 
 ## App lock offer
 
@@ -88,10 +88,9 @@ flowchart TD
 | When | iOS | Android | Expected |
 |---|---|---|---|
 | The user types an invalid word while importing a Secret Phrase | no per-word highlight | highlights the invalid word | Intentional: a one-sided feature, added to iOS only when required |
-| The user takes a screenshot of the Secret Phrase or private key screen | the screenshot is detected and the user is warned | the screenshot is blocked | Intentional |
 | The app lock offer opens on a device with biometrics | Face ID, Touch ID or Optic ID, with that symbol | Passcode, with a lock | Intentional: Android has no single name for its unlock methods, and its Security settings already call it Passcode |
 
 ## Rules
 
 - The Secret Phrase never leaves the device and is never written to a log.
-- The Secret Phrase and private key screens hide their content during screen recording and whenever the app is not active.
+- Showing and copying a Secret Phrase or private key follow the shared [Secrets](../PRODUCT.md#secrets) section.
