@@ -77,6 +77,7 @@ class ImportWalletViewModel @Inject constructor(
 
     fun onInput(value: String, cursor: Int) {
         input.value = value
+        clearError()
         isTypingLastWord.value = cursor >= value.length
         val importType = state.value.importType
         if (importType.kind.resolvesNames()) {
@@ -88,7 +89,12 @@ class ImportWalletViewModel @Inject constructor(
 
     fun selectSuggestion(word: String): String {
         isTypingLastWord.value = true
+        clearError()
         return input.updateAndGet { it.dropLast(it.lastWord().length) + word + " " }
+    }
+
+    private fun clearError() {
+        state.update { it.copy(dataError = null) }
     }
 
     fun clearInput() {
@@ -119,6 +125,7 @@ class ImportWalletViewModel @Inject constructor(
             return
         }
         val nameRecord = nameRecordController.state.value.record()
+        clearError()
         isImporting.value = true
         val data = input.value
 
@@ -126,7 +133,6 @@ class ImportWalletViewModel @Inject constructor(
             try {
                 val importType = state.value.importType
                 val imported = service.importWallet(importType.kind, importType.chain, data, nameRecord, WalletSource.Import, context)
-                state.update { it.copy(dataError = null) }
                 isImporting.value = false
                 withContext(Dispatchers.Main) {
                     when (imported) {
