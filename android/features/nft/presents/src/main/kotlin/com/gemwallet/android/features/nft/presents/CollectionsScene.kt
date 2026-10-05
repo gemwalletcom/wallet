@@ -34,8 +34,8 @@ import com.gemwallet.android.ui.models.NftItemTarget
 import com.gemwallet.android.ui.models.target
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemNftEntry
 
@@ -45,11 +45,10 @@ private val collectibleCellMinSize = 150.dp
 internal fun CollectionsScene(
     items: List<GemNftEntry>,
     isRefreshing: Boolean,
-    errorRow: GemListRow?,
     unverifiedListItem: ListItemModel?,
     title: String,
     showReceiveAction: Boolean,
-    emptyState: GemEmptyState,
+    phase: GemListPhase,
     listState: LazyGridState = rememberLazyGridState(),
     snackbar: SnackbarHostState? = null,
     onAction: (CollectionsAction) -> Unit,
@@ -74,62 +73,61 @@ internal fun CollectionsScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(CollectionsAction.Refresh) },
         ) {
-            if (items.isEmpty() && unverifiedListItem == null) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+            when (phase) {
+                is GemListPhase.Empty -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
-                        if (errorRow == null) {
-                            EmptyContentView(
-                                state = emptyState,
-                                onAction = { action ->
-                                    when (action) {
-                                        GemEmptyStateAction.RECEIVE -> onAction(CollectionsAction.Receive)
-                                        GemEmptyStateAction.BUY, GemEmptyStateAction.SWAP, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.MANAGE_TOKEN_LIST, GemEmptyStateAction.CLEAR_FILTERS -> Unit
-                                    }
-                                },
-                                modifier = Modifier.fillParentMaxSize(),
-                            )
-                        } else {
-                            GemListRowView(row = errorRow, listPosition = ListPosition.Single)
-                        }
+                        EmptyContentView(
+                            state = phase.state,
+                            onAction = { action ->
+                                when (action) {
+                                    GemEmptyStateAction.RECEIVE -> onAction(CollectionsAction.Receive)
+                                    GemEmptyStateAction.BUY, GemEmptyStateAction.SWAP, GemEmptyStateAction.ADD_CUSTOM_TOKEN, GemEmptyStateAction.MANAGE_TOKEN_LIST, GemEmptyStateAction.CLEAR_FILTERS -> Unit
+                                }
+                            },
+                            modifier = Modifier.fillParentMaxSize(),
+                        )
                     }
                 }
-                return@PullToRefreshBox
-            }
 
-            Column(modifier = Modifier.fillMaxSize().padding(top = paddingDefault)) {
-                if (items.isNotEmpty()) {
-                    LazyVerticalGrid(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        columns = GridCells.Adaptive(minSize = collectibleCellMinSize),
-                        state = listState,
-                        contentPadding = PaddingValues(
-                            start = paddingSmall,
-                            end = paddingSmall,
-                            bottom = paddingDefault,
-                        ),
-                    ) {
-                        items(items) { item ->
-                            NftItem(
-                                row = item.row,
-                                onClick = {
-                                    when (val target = item.target) {
-                                        is NftItemTarget.Collection -> onAction(CollectionsAction.OpenCollection(target.id))
-                                        is NftItemTarget.Asset -> onAction(CollectionsAction.OpenAsset(target.id))
-                                    }
-                                },
-                            )
+                is GemListPhase.Error -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item { GemListRowView(row = GemListRow.Error(phase.error), listPosition = ListPosition.Single) }
+                }
+
+                GemListPhase.Rows -> Column(modifier = Modifier.fillMaxSize().padding(top = paddingDefault)) {
+                    if (items.isNotEmpty()) {
+                        LazyVerticalGrid(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            columns = GridCells.Adaptive(minSize = collectibleCellMinSize),
+                            state = listState,
+                            contentPadding = PaddingValues(
+                                start = paddingSmall,
+                                end = paddingSmall,
+                                bottom = paddingDefault,
+                            ),
+                        ) {
+                            items(items) { item ->
+                                NftItem(
+                                    row = item.row,
+                                    onClick = {
+                                        when (val target = item.target) {
+                                            is NftItemTarget.Collection -> onAction(CollectionsAction.OpenCollection(target.id))
+                                            is NftItemTarget.Asset -> onAction(CollectionsAction.OpenAsset(target.id))
+                                        }
+                                    },
+                                )
+                            }
                         }
                     }
-                }
-                unverifiedListItem?.let { model ->
-                    ListItem(
-                        model = model,
-                        listPosition = ListPosition.Single,
-                        modifier = Modifier.clickable { onAction(CollectionsAction.OpenUnverified) },
-                        accessory = { DataBadgeChevron() },
-                    )
+                    unverifiedListItem?.let { model ->
+                        ListItem(
+                            model = model,
+                            listPosition = ListPosition.Single,
+                            modifier = Modifier.clickable { onAction(CollectionsAction.OpenUnverified) },
+                            accessory = { DataBadgeChevron() },
+                        )
+                    }
                 }
             }
         }

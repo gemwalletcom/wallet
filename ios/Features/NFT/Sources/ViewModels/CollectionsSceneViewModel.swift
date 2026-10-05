@@ -2,11 +2,11 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemEmptyState
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemNftList
 import struct Gemstone.GemNftListScreen
 import protocol Gemstone.GemNftServiceProtocol
-import func Gemstone.loadError
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -38,24 +38,20 @@ public final class CollectionsSceneViewModel: Sendable {
     }
 
     public var screen: GemNftListScreen {
-        service.listScreen(data: query.value.map { $0.toGem() }, list: list)
+        service.listScreen(data: query.value.map { $0.toGem() }, list: list, state: loadState)
     }
 
     public var columns: [GridItem] {
         Array(repeating: GridItem(spacing: .medium), count: 2)
     }
 
-    public var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(state: screen.emptyState) { [weak self] action in
+    public func emptyContentModel(_ state: GemEmptyState) -> EmptyStateViewModel {
+        EmptyStateViewModel(state: state) { [weak self] action in
             switch action {
             case .receive: self?.onSelectReceive()
             case .buy, .swap, .addCustomToken, .manageTokenList, .clearFilters: break
             }
         }
-    }
-
-    public func loadError(_ screen: GemNftListScreen) -> Error? {
-        Gemstone.loadError(state: loadState, hasRows: screen.hasContent)
     }
 
     public func load() async {
