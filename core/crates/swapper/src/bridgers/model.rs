@@ -6,8 +6,8 @@ use primitives::{TransactionSwapMetadata, swap::SwapStatus};
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_u64_from_str_or_int;
 
-use super::asset::get_asset_id;
-use crate::{SwapperError, SwapperProvider};
+use super::asset::{Network, get_asset_id, get_token_address};
+use crate::{SwapperError, SwapperProvider, fees::DEFAULT_REFERRER};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,6 +28,19 @@ pub(super) struct QuoteRequest {
     pub from_token_amount: BigUint,
     pub from_token_chain: String,
     pub to_token_chain: String,
+}
+
+impl QuoteRequest {
+    pub fn new(request: &crate::QuoteRequest, from_token_amount: BigUint) -> Result<Self, SwapperError> {
+        Ok(Self {
+            source_flag: DEFAULT_REFERRER.to_string(),
+            from_token_address: get_token_address(&request.from_asset.asset_id())?,
+            to_token_address: get_token_address(&request.to_asset.asset_id())?,
+            from_token_amount,
+            from_token_chain: Network::from_source_chain(request.from_asset.chain())?.code.to_string(),
+            to_token_chain: Network::from_chain(request.to_asset.chain())?.code.to_string(),
+        })
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]

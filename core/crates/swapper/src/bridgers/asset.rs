@@ -72,6 +72,10 @@ impl Network {
     pub fn from_chain(chain: Chain) -> Result<Self, SwapperError> {
         NETWORKS.iter().find(|network| network.chain == chain).copied().ok_or(SwapperError::NotSupportedChain)
     }
+
+    pub fn from_source_chain(chain: Chain) -> Result<Self, SwapperError> {
+        Some(Self::from_chain(chain)?).filter(|network| network.router.is_some()).ok_or(SwapperError::NotSupportedChain)
+    }
 }
 
 static TOKENS: LazyLock<Vec<(AssetId, &'static str)>> = LazyLock::new(|| {
@@ -122,13 +126,17 @@ pub(super) fn get_token_code(asset_id: &AssetId) -> Result<&'static str, Swapper
     TOKENS.iter().find(|(id, _)| id == asset_id).map(|(_, code)| *code).ok_or(SwapperError::NotSupportedAsset)
 }
 
-pub(super) fn get_token_address(asset_id: &AssetId) -> String {
+pub(super) fn get_token_address(asset_id: &AssetId) -> Result<String, SwapperError> {
+    TOKENS.iter().find(|(id, _)| id == asset_id).map(|(id, _)| token_address(id)).ok_or(SwapperError::NotSupportedAsset)
+}
+
+fn token_address(asset_id: &AssetId) -> String {
     asset_id.token_id.clone().unwrap_or_else(|| EVM_NATIVE_TOKEN_ADDRESS.to_lowercase())
 }
 
 pub(super) fn get_asset_id(code: &str, address: &str) -> Option<AssetId> {
     let chain = NETWORKS.iter().find(|network| network.code == code)?.chain;
-    TOKENS.iter().map(|(id, _)| id).find(|id| id.chain == chain && get_token_address(id) == address).cloned()
+    TOKENS.iter().map(|(id, _)| id).find(|id| id.chain == chain && token_address(id) == address).cloned()
 }
 
 pub(super) fn supported_assets() -> Vec<SwapperChainAsset> {
@@ -162,6 +170,8 @@ mod tests {
         assert_eq!(Network::from_chain(Chain::Litecoin).unwrap().router(), Err(SwapperError::NotSupportedChain));
         assert_eq!(Network::from_chain(Chain::Bitcoin).unwrap().router(), Err(SwapperError::NotSupportedChain));
         assert_eq!(Network::from_chain(Chain::Tron).unwrap_err(), SwapperError::NotSupportedChain);
+        assert_eq!(Network::from_source_chain(Chain::OpBNB).unwrap().code, "opBNB");
+        assert_eq!(Network::from_source_chain(Chain::Bitcoin).unwrap_err(), SwapperError::NotSupportedChain);
     }
 
     #[test]

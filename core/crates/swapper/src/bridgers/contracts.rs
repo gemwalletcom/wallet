@@ -19,6 +19,26 @@ pub(super) struct SwapCall {
     pub min_return_amount: U256,
 }
 
+impl From<IBridgers::swapEthCall> for SwapCall {
+    fn from(call: IBridgers::swapEthCall) -> Self {
+        Self {
+            to_token: call.toToken,
+            destination: call.destination,
+            min_return_amount: call.minReturnAmount,
+        }
+    }
+}
+
+impl From<IBridgers::swapCall> for SwapCall {
+    fn from(call: IBridgers::swapCall) -> Self {
+        Self {
+            to_token: call.toToken,
+            destination: call.destination,
+            min_return_amount: call.minReturnAmount,
+        }
+    }
+}
+
 pub(super) fn get_swap_call(data: &[u8], value: U256, from_asset: &AssetId, from_amount: U256) -> Result<SwapCall, SwapperError> {
     match &from_asset.token_id {
         None => {
@@ -26,22 +46,14 @@ pub(super) fn get_swap_call(data: &[u8], value: U256, from_asset: &AssetId, from
             if value != from_amount {
                 return Err(SwapperError::InvalidRoute);
             }
-            Ok(SwapCall {
-                to_token: call.toToken,
-                destination: call.destination,
-                min_return_amount: call.minReturnAmount,
-            })
+            Ok(call.into())
         }
         Some(token_id) => {
             let call = IBridgers::swapCall::abi_decode(data).map_err(|_| SwapperError::InvalidRoute)?;
             if call.fromToken != Address::from_str(token_id).map_err(|_| SwapperError::InvalidRoute)? || call.fromAmount != from_amount || value != U256::ZERO {
                 return Err(SwapperError::InvalidRoute);
             }
-            Ok(SwapCall {
-                to_token: call.toToken,
-                destination: call.destination,
-                min_return_amount: call.minReturnAmount,
-            })
+            Ok(call.into())
         }
     }
 }

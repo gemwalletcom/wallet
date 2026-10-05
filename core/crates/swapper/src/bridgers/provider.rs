@@ -1,7 +1,6 @@
-use std::{fmt::Debug, sync::Arc};
+use std::sync::Arc;
 
 use async_trait::async_trait;
-use gem_client::Client;
 use gem_evm::{
     constants::TOKEN_TRANSFER_GAS_LIMIT,
     u256::{biguint_to_u256, u256_to_biguint},
@@ -14,7 +13,7 @@ use primitives::{
 };
 
 use super::{
-    asset::{Network, get_token_address, get_token_code, supported_assets, vault_addresses},
+    asset::{Network, get_token_code, supported_assets, vault_addresses},
     client::BridgersClient,
     model::{QuoteRequest as BridgersQuoteRequest, QuoteTxData, Record, RecordsRequest, RouteData, SwapRequest},
     transaction::get_transaction_value,
@@ -24,18 +23,17 @@ use crate::{
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
-    fees::DEFAULT_REFERRER,
     models::ApprovalType,
 };
 
 #[derive(Debug)]
-pub struct Bridgers<C: Client + Clone + Send + Sync + Debug + 'static> {
+pub struct Bridgers {
     provider: ProviderType,
-    client: BridgersClient<C>,
+    client: BridgersClient<RpcClient>,
     rpc_provider: Arc<dyn RpcProvider>,
 }
 
-impl Bridgers<RpcClient> {
+impl Bridgers {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
         Self {
             provider: ProviderType::new(SwapperProvider::Bridgers),
@@ -43,9 +41,7 @@ impl Bridgers<RpcClient> {
             rpc_provider,
         }
     }
-}
 
-impl<C: Client + Clone + Send + Sync + Debug + 'static> Bridgers<C> {
     async fn get_evm_quote_data(&self, network: Network, from_asset: &AssetId, to_code: &str, swap: &SwapRequest) -> Result<SwapperQuoteData, SwapperError> {
         let transaction = self.client.get_swap(swap).await?.tx_data;
         let router = network.router()?;
@@ -78,25 +74,8 @@ fn get_min_from_value(quote: &QuoteTxData, request: &QuoteRequest) -> Result<Big
     Ok(min_value)
 }
 
-fn get_quote_request(request: &QuoteRequest, value: &BigUint) -> Result<BridgersQuoteRequest, SwapperError> {
-    let from_network = Network::from_chain(request.from_asset.chain())?;
-    from_network.router()?;
-    let from_asset = request.from_asset.asset_id();
-    let to_asset = request.to_asset.asset_id();
-    get_token_code(&from_asset)?;
-    get_token_code(&to_asset)?;
-    Ok(BridgersQuoteRequest {
-        source_flag: DEFAULT_REFERRER.to_string(),
-        from_token_address: get_token_address(&from_asset),
-        to_token_address: get_token_address(&to_asset),
-        from_token_amount: value.clone(),
-        from_token_chain: from_network.code.to_string(),
-        to_token_chain: Network::from_chain(request.to_asset.chain())?.code.to_string(),
-    })
-}
-
 #[async_trait]
-impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> {
+impl Swapper for Bridgers {
     fn provider(&self) -> &ProviderType {
         &self.provider
     }
@@ -110,7 +89,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let quote = self.client.get_quote(&get_quote_request(request, &request.value)?).await?.tx_data;
+        let quote = self.client.get_quote(&BridgersQuoteRequest::new(request, request.value.clone())?).await?.tx_data;
 
         let min_value = get_min_from_value(&quote, request)?;
         let to_value = quote.get_to_value(request.to_asset.decimals)?;
@@ -155,7 +134,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
         let to_code = get_token_code(&request.to_asset.asset_id())?;
         let route: RouteData = serde_json::from_str(&quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?.route_data).map_err(|_| SwapperError::InvalidRoute)?;
         let swap = SwapRequest {
-            quote: get_quote_request(request, &quote.from_value)?,
+            quote: BridgersQuoteRequest::new(request, quote.from_value.clone())?,
             from_address: request.wallet_address.clone(),
             to_address: request.destination_address.clone(),
             amount_out_min: route.amount_out_min,
