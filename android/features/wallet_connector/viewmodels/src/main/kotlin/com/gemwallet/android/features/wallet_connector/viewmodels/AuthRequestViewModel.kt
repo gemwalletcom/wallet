@@ -10,6 +10,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticat
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.listItem
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -225,11 +226,12 @@ class AuthRequestViewModel @Inject constructor(
             validation = verifyContext.map(),
         )
         val selectedWallet = prepared.proposal.defaultWallet.toPrimitives()
+        val availableWallets = prepared.proposal.wallets.map { it.toPrimitives() }
         return AuthRequestUIState.Request(
             texts = ReviewTexts(context),
             peer = applicationConnectionRow(prepared.proposal.metadata),
-            availableWallets = prepared.proposal.wallets.map { it.toPrimitives() },
-            availableWalletSections = walletSections(prepared.proposal.wallets, null),
+            availableWallets = availableWallets,
+            availableWalletSections = walletSections(availableWallets.map { it.listItem.toGem() }, null),
             canChooseWallet = prepared.canChooseWallet,
             selectedWallet = selectedWallet,
             approval = buildApproval(request, selectedWallet),

@@ -5,14 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
-import com.gemwallet.android.data.services.store.queries.WalletsQuery
+import com.gemwallet.android.data.services.store.queries.WalletListItemsQuery
 import com.gemwallet.android.features.settings.viewmodels.models.settingsAction
 import com.gemwallet.android.testkit.MainDispatcherRule
-import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockWalletListItem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.actions.SettingsAction
-import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletType
+import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletListItem
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -57,8 +57,8 @@ class SettingsViewModelTest {
     val mainDispatcherRule = MainDispatcherRule(testDispatcher)
 
     private val preferences = mockk<ObservablePreferences>(relaxed = true)
-    private val wallets = MutableStateFlow<List<Wallet>>(emptyList())
-    private val walletsQuery = mockk<WalletsQuery>(relaxed = true) {
+    private val wallets = MutableStateFlow<List<WalletListItem>>(emptyList())
+    private val walletListItemsQuery = mockk<WalletListItemsQuery>(relaxed = true) {
         every { this@mockk() } returns wallets
     }
     private val switchPushEnabled = mockk<SwitchPushEnabled>(relaxed = true)
@@ -124,14 +124,14 @@ class SettingsViewModelTest {
     @Test
     fun `the rows follow core's answer for the loaded wallets`() = runTest(testDispatcher) {
         every { settingsService.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets))
-        wallets.value = listOf(mockWallet(type = WalletType.Single))
+        wallets.value = listOf(mockWalletListItem(id = WalletId("single_ethereum_0x1")))
         viewModel = createViewModel()
         advanceUntilIdle()
 
         assertEquals(listOf(SettingsAction.Wallets), viewModel.actions().first { it.isNotEmpty() })
 
         every { settingsService.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets, GemListRowTitle.REWARDS to GemRowAction.Rewards))
-        wallets.value = listOf(mockWallet(type = WalletType.Multicoin))
+        wallets.value = listOf(mockWalletListItem())
         advanceUntilIdle()
 
         assertEquals(
@@ -154,7 +154,7 @@ class SettingsViewModelTest {
 
     private fun createViewModel() = SettingsViewModel(
         preferences = preferences,
-        walletsQuery = walletsQuery,
+        walletListItemsQuery = walletListItemsQuery,
         switchPushEnabled = switchPushEnabled,
         getPushEnabled = getPushEnabled,
         notificationsAvailable = true,

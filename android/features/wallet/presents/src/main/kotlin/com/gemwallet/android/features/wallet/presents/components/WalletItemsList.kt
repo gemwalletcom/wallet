@@ -19,26 +19,31 @@ import com.gemwallet.android.ui.components.list_item.WalletItem
 import com.gemwallet.android.ui.components.list_item.pinnedHeader
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSection
 import uniffi.gemstone.GemWalletSectionKind
 
-internal fun LazyListScope.wallets(section: GemWalletSection, longPressedWallet: MutableState<String>, onEdit: (WalletId) -> Unit, onSelectWallet: (WalletId) -> Unit, onDeleteWallet: (WalletId) -> Unit, onTogglePin: (WalletId) -> Unit) {
+internal fun LazyListScope.wallets(
+    section: GemWalletSection,
+    longPressedWallet: MutableState<String>,
+    onEdit: (GemWalletRow) -> Unit,
+    onSelectWallet: (GemWalletRow) -> Unit,
+    onDeleteWallet: (GemWalletRow) -> Unit,
+    onTogglePin: (GemWalletRow) -> Unit,
+) {
     if (section.kind == GemWalletSectionKind.PINNED) {
         pinnedHeader()
     }
     itemsIndexed(items = section.rows, key = { _, row -> row.id }) { index, row ->
-        val walletId = WalletId(row.id)
-
         DropDownContextItem(
-            isExpanded = longPressedWallet.value == walletId.id,
+            isExpanded = longPressedWallet.value == row.id,
             onDismiss = { longPressedWallet.value = "" },
             content = {
                 WalletItem(
                     row = row,
                     isCurrent = row.isCurrent,
                     listPosition = ListPosition.getPosition(index, section.rows.size),
-                    onEdit = { onEdit(walletId) },
+                    onEdit = { onEdit(row) },
                     modifier = it,
                 )
             },
@@ -47,20 +52,20 @@ internal fun LazyListScope.wallets(section: GemWalletSection, longPressedWallet:
                     if (row.isPinned) R.string.common_unpin else R.string.common_pin,
                     if (row.isPinned) R.drawable.keep_off else AppIcons.PushPin,
                 ) {
-                    onTogglePin(walletId)
+                    onTogglePin(row)
                     longPressedWallet.value = ""
                 }
                 WalletDropDownItem(R.string.common_wallet, AppIcons.Settings) {
-                    onEdit(walletId)
+                    onEdit(row)
                     longPressedWallet.value = ""
                 }
                 WalletDropDownItem(R.string.common_delete, AppIcons.Delete, MaterialTheme.colorScheme.error) {
-                    onDeleteWallet(walletId)
+                    onDeleteWallet(row)
                     longPressedWallet.value = ""
                 }
             },
-            onLongClick = { longPressedWallet.value = walletId.id },
-        ) { onSelectWallet(walletId) }
+            onLongClick = { longPressedWallet.value = row.id },
+        ) { onSelectWallet(row) }
     }
 }
 

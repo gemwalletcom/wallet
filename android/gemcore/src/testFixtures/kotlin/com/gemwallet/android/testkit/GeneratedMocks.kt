@@ -102,6 +102,7 @@ import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.wallet.core.primitives.WalletConnectionState
 import com.wallet.core.primitives.WalletConnectionVerificationStatus
 import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletListItem
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 
@@ -933,6 +934,20 @@ fun mockWalletConnectionSessionProposal(
     defaultWallet = defaultWallet,
     wallets = wallets,
     metadata = metadata,
+)
+
+fun mockWalletListItem(
+    id: WalletId = mockWalletId(),
+    name: String = "",
+    index: Int = 0,
+    isPinned: Boolean = false,
+    imageUrl: String? = null,
+) = WalletListItem(
+    id = id,
+    name = name,
+    index = index,
+    isPinned = isPinned,
+    imageUrl = imageUrl,
 )
 
 fun mockApprovalData(
@@ -1960,7 +1975,7 @@ fun mockGemWalletHomeViewState(
 )
 
 fun mockGemWalletRow(
-    id: String = "",
+    id: String = mockWalletId().id,
     name: String = "",
     subtitle: uniffi.gemstone.GemWalletSubtitle = uniffi.gemstone.GemWalletSubtitle.Multicoin,
     placeholder: uniffi.gemstone.GemWalletPlaceholder = uniffi.gemstone.GemWalletPlaceholder.Multicoin,
