@@ -14,7 +14,7 @@ use storage::{Database, PricesProvidersRepository};
 use streamer::{StreamProducer, StreamProducerQueue};
 use swapper::swapper::GemSwapper;
 
-use crate::assets::repository::PostgresRepository;
+use crate::assets::repository::{PostgresRepository, Repository};
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
 use crate::fiat::{FiatAssetsUpdater, FiatRatesUpdater};
 use crate::notifications::{StakeRewardsConfig, StakingRewardsNotifier};
@@ -60,7 +60,11 @@ pub struct AssetsJobs {
 
 impl AssetsJobs {
     pub fn asset_rank_updater(&self) -> AssetRankUpdater {
-        AssetRankUpdater::new(Arc::new(PostgresRepository::new(self.database.clone())), self.classification_rules.clone())
+        AssetRankUpdater::new(self.assets_repository(), self.classification_rules.clone())
+    }
+
+    fn assets_repository(&self) -> Arc<dyn Repository> {
+        Arc::new(PostgresRepository::new(self.database.clone()))
     }
 
     pub fn perpetual_updater(&self, providers: Arc<ChainProviders>) -> PerpetualUpdater {
@@ -80,11 +84,11 @@ impl AssetsJobs {
     }
 
     pub fn stake_apy_updater(&self, providers: Arc<ChainProviders>) -> StakeApyUpdater {
-        StakeApyUpdater::new(providers, self.database.clone())
+        StakeApyUpdater::new(providers, self.assets_repository())
     }
 
     pub fn validator_scanner(&self, providers: Arc<ChainProviders>) -> ValidatorScanner {
-        ValidatorScanner::new(providers, self.static_assets_client.clone(), self.database.clone())
+        ValidatorScanner::new(providers, self.static_assets_client.clone(), self.assets_repository())
     }
 }
 

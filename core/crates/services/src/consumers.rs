@@ -26,7 +26,7 @@ use crate::transactions::{
 impl Services {
     pub fn fetch_asset_associations_consumer(&self) -> FetchAssetAssociationsConsumer {
         FetchAssetAssociationsConsumer {
-            database: self.database(),
+            repository: self.assets_repository(),
             providers: self.price_providers(PriceProvider::all()),
         }
     }
@@ -37,7 +37,7 @@ impl Services {
 
     pub async fn fetch_assets_consumer(&self, user_agent: &str, stream_producer: StreamProducer) -> Result<FetchAssetsConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchAssetsConsumer {
-            database: self.database(),
+            repository: self.assets_repository(),
             providers: self.chain_providers(user_agent),
             throttle: Arc::new(self.cacher().await?),
             classification_rules: AssetClassificationRules::from_config(&self.config()).await?,
@@ -47,7 +47,7 @@ impl Services {
 
     pub async fn fetch_asset_status_consumer(&self) -> Result<FetchAssetStatusConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchAssetStatusConsumer {
-            database: self.database(),
+            repository: self.assets_repository(),
             providers: self.token_scan_providers().await?,
         })
     }

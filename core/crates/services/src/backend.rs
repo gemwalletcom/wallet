@@ -197,6 +197,10 @@ impl Services {
         Arc::new(PusherClient::new(self.settings.pusher.url.clone(), self.settings.pusher.ios.topic.clone()))
     }
 
+    pub(crate) fn assets_repository(&self) -> Arc<dyn crate::assets::repository::Repository> {
+        Arc::new(crate::assets::repository::PostgresRepository::new(self.database()))
+    }
+
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {
         ChainProviders::from_settings(&self.settings, user_agent)
     }
@@ -210,7 +214,7 @@ impl Services {
     }
 
     pub fn assets(&self) -> AssetsClient {
-        AssetsClient::new(self.database(), self.config())
+        AssetsClient::new(self.assets_repository(), self.config())
     }
 
     pub async fn search(&self, cacher: CacherClient) -> Result<SearchClient, Box<dyn Error + Send + Sync>> {

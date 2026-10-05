@@ -3,20 +3,21 @@ use chain_providers::ChainProviders;
 use primitives::{Chain, StakeValidator};
 use std::error::Error;
 use std::sync::Arc;
-use storage::{Database, ScanAddressesRepository};
+
+use crate::assets::repository::Repository;
 
 pub struct ValidatorScanner {
     chain_providers: Arc<ChainProviders>,
     static_assets_client: StaticAssetsClient,
-    database: Database,
+    repository: Arc<dyn Repository>,
 }
 
 impl ValidatorScanner {
-    pub fn new(chain_providers: Arc<ChainProviders>, static_assets_client: StaticAssetsClient, database: Database) -> Self {
+    pub(crate) fn new(chain_providers: Arc<ChainProviders>, static_assets_client: StaticAssetsClient, repository: Arc<dyn Repository>) -> Self {
         Self {
             chain_providers,
             static_assets_client,
-            database,
+            repository,
         }
     }
 
@@ -24,7 +25,7 @@ impl ValidatorScanner {
         let validators = self.chain_providers.get_validators(chain).await?;
         let addresses: Vec<_> = validators.into_iter().filter_map(|v| v.as_scan_address(chain)).collect();
         let count = addresses.len();
-        self.database.run(move |client| client.add_scan_addresses(addresses)).await?;
+        self.repository.add_scan_addresses(addresses).await?;
         Ok(count)
     }
 
@@ -32,7 +33,7 @@ impl ValidatorScanner {
         let static_validators = self.static_assets_client.get_validators(chain).await?;
         let addresses: Vec<_> = static_validators.into_iter().map(|v| StakeValidator::new(v.id, v.name)).filter_map(|v| v.as_scan_address(chain)).collect();
         let count = addresses.len();
-        self.database.run(move |client| client.add_scan_addresses(addresses)).await?;
+        self.repository.add_scan_addresses(addresses).await?;
         Ok(count)
     }
 }
