@@ -27,6 +27,8 @@ internal fun ConfirmErrorInfo(
     onGetAsset: (GetAssetAction, AssetId) -> Unit,
 ) {
     var isShowInfoSheet by remember { mutableStateOf(false) }
+    var info by remember { mutableStateOf(error?.info) }
+    if (error != null) info = error.info
 
     LaunchedEffect(acquireRequest) {
         val request = acquireRequest ?: return@LaunchedEffect
@@ -48,6 +50,11 @@ internal fun ConfirmErrorInfo(
         },
     )
 
+    InfoBottomSheet(item = info.takeIf { isShowInfoSheet || isShowBottomSheetInfo }) {
+        isShowInfoSheet = false
+        onDismissBottomSheetInfo()
+    }
+
     error ?: return
 
     WarningItem(
@@ -57,11 +64,4 @@ internal fun ConfirmErrorInfo(
         position = ListPosition.Single,
         onClick = error.info?.let { { isShowInfoSheet = true } },
     )
-
-    if (isShowInfoSheet || isShowBottomSheetInfo) {
-        InfoBottomSheet(item = error.info) {
-            isShowInfoSheet = false
-            onDismissBottomSheetInfo()
-        }
-    }
 }
