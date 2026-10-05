@@ -61,10 +61,6 @@ impl GemFiatQuoteService {
         GemFiatSession::new(quote_type, amount, format)
     }
 
-    pub fn random_amount(&self) -> u32 {
-        rules::random_amount(&get_fiat_config())
-    }
-
     pub async fn refresh_transactions(&self) -> GemLoadState {
         GemLoadState::of(&self.sync_transactions().await)
     }

@@ -181,10 +181,6 @@ class FiatViewModel @Inject constructor(
         updateAmount(suggestion.amount.toString())
     }
 
-    fun selectRandomAmount() {
-        updateAmount(service.randomAmount().toString())
-    }
-
     fun setProvider(provider: FiatProviderName) {
         session.update { it.onProviderSelected(provider.toGem()) }
     }

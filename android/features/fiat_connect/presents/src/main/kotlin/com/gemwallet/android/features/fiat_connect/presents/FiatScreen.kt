@@ -92,7 +92,6 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
         },
         onAmount = viewModel::updateAmount,
         onLotSelect = viewModel::selectAmount,
-        onRandomAmount = viewModel::selectRandomAmount,
         onProviderSelect = viewModel::setProvider,
         onRetry = viewModel::retry,
         onFiatTransactions = onFiatTransactions,
