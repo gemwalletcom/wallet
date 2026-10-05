@@ -5,7 +5,7 @@ CREATE TABLE perpetuals (
     name VARCHAR(128) NOT NULL,
     provider perpetual_provider NOT NULL,
     asset_id VARCHAR(256) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
-    associated_asset_id VARCHAR(256) REFERENCES assets (id) ON DELETE SET NULL,
+    associated_asset_id VARCHAR(256) REFERENCES assets (id) ON DELETE CASCADE,
     identifier VARCHAR(128) NOT NULL,
     price DOUBLE PRECISION NOT NULL,
     price_percent_change_24h DOUBLE PRECISION NOT NULL,
