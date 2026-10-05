@@ -25,9 +25,7 @@ CREATE INDEX IF NOT EXISTS idx_charts_hourly_created_at ON charts_hourly (create
 CREATE INDEX IF NOT EXISTS idx_charts_daily_created_at ON charts_daily (created_at);
 
 -- functions
-DROP FUNCTION IF EXISTS aggregate_hourly_charts();
-DROP FUNCTION IF EXISTS aggregate_hourly_charts(VARCHAR[]);
-CREATE OR REPLACE FUNCTION aggregate_hourly_charts(_price_ids VARCHAR[] DEFAULT NULL, _created_at TIMESTAMP DEFAULT NULL) RETURNS VOID AS $$
+CREATE FUNCTION aggregate_hourly_charts(_price_ids VARCHAR[] DEFAULT NULL, _created_at TIMESTAMP DEFAULT NULL) RETURNS VOID AS $$
 BEGIN
     INSERT INTO charts_hourly (coin_id, created_at, price)
     SELECT
@@ -44,9 +42,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS aggregate_daily_charts();
-DROP FUNCTION IF EXISTS aggregate_daily_charts(VARCHAR[]);
-CREATE OR REPLACE FUNCTION aggregate_daily_charts(_price_ids VARCHAR[] DEFAULT NULL, _created_at TIMESTAMP DEFAULT NULL) RETURNS VOID AS $$
+CREATE FUNCTION aggregate_daily_charts(_price_ids VARCHAR[] DEFAULT NULL, _created_at TIMESTAMP DEFAULT NULL) RETURNS VOID AS $$
 BEGIN
     INSERT INTO charts_daily (coin_id, created_at, price)
     SELECT
