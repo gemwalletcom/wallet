@@ -154,6 +154,10 @@ impl PriceJobs {
         self.config.clone()
     }
 
+    fn prices_repository(&self) -> Arc<dyn crate::prices::repository::Repository> {
+        Arc::new(crate::prices::repository::PostgresRepository::new(self.database.clone()))
+    }
+
     pub fn enabled_providers(&self) -> &[PriceProvider] {
         &self.enabled_providers
     }
@@ -205,7 +209,7 @@ impl PriceJobs {
     }
 
     pub fn charts_history_updater(&self, kind: PriceProvider, config: ChartsHistoryConfig) -> ChartsHistoryUpdater {
-        ChartsHistoryUpdater::new(self.provider(kind), self.database.clone(), self.charts_history.clone(), config)
+        ChartsHistoryUpdater::new(self.provider(kind), self.prices_repository(), self.charts_history.clone(), config)
     }
 
     pub fn markets_updater(&self) -> MarketsUpdater {

@@ -14,6 +14,7 @@ mod prices_cleanup_updater;
 mod prices_metrics_updater;
 mod prices_updater;
 mod providers;
+pub(crate) mod repository;
 mod store_prices_consumer;
 
 pub type AssetsProviders = Arc<PriceProviders>;

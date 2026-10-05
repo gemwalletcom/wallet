@@ -21,7 +21,7 @@ pub use self::repositories::{
     assets_repository::{AssetFilter, AssetUpdate, AssetsRepository},
     assets_usage_ranks_repository::AssetsUsageRanksRepository,
     chains_repository::ChainsRepository,
-    charts_repository::{ChartFilter, ChartPoint, ChartsRepository},
+    charts_repository::{ChartFilter, ChartPoint, ChartResult, ChartsRepository},
     config_repository::ConfigRepository,
     devices_repository::{DeviceFieldUpdate, DeviceRecord, DevicesRepository},
     features_repository::FeaturesRepository,

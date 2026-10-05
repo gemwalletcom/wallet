@@ -10,25 +10,27 @@ use gem_tracing::error_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviders};
 use primitives::currency::Currency;
 use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider};
-use storage::{AssetFilter, AssetsRepository, ChartsRepository, Database, DatabaseError, FiatRepository, PriceAsset, PricesRepository};
+use storage::{AssetFilter, PriceAsset};
+
+use super::repository::Repository;
 
 use crate::ConfigCacher;
 
 #[derive(Clone)]
 pub struct PriceClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: Arc<ConfigCacher>,
     cache: Arc<dyn PriceCacher>,
     observed: Arc<dyn ObservedAssetsCacher>,
 }
 
 impl PriceClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, cache: Arc<dyn PriceCacher>, observed: Arc<dyn ObservedAssetsCacher>) -> Self {
-        Self { database, config, cache, observed }
+    pub(crate) fn new(repository: Arc<dyn Repository>, config: Arc<ConfigCacher>, cache: Arc<dyn PriceCacher>, observed: Arc<dyn ObservedAssetsCacher>) -> Self {
+        Self { repository, config, cache, observed }
     }
 
     pub async fn set_fiat_rates(&self, provider: FiatRateProvider, rates: Vec<FiatRate>) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let (count, rates) = self.database.run(move |client| -> Result<_, DatabaseError> { Ok((client.set_fiat_rates(provider, rates)?, client.get_fiat_rates()?)) }).await?;
+        let (count, rates) = self.repository.set_fiat_rates(provider, rates).await?;
 
         self.set_cache_fiat_rates(rates).await?;
 
@@ -36,25 +38,17 @@ impl PriceClient {
     }
 
     pub async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
-        Ok(self.database.run(FiatRepository::get_fiat_rates).await?)
+        Ok(self.repository.fiat_rates().await?)
     }
 
     pub async fn get_fiat_rate(&self, currency: &Currency) -> Result<FiatRate, Box<dyn Error + Send + Sync>> {
-        let currency = currency.clone();
-        Ok(self.database.run(move |client| client.get_fiat_rate(&currency)).await?)
+        Ok(self.repository.fiat_rate(currency.clone()).await?)
     }
 
     pub async fn get_asset_price(&self, asset_id: &AssetId, currency: &Currency) -> Result<AssetMarketPrice, Box<dyn Error + Send + Sync>> {
         let rate = self.get_fiat_rate(currency).await?.rate;
         let price = self.get_cache_price(asset_id).await?;
-        let price_asset_id = asset_id.clone();
-        let prices = self
-            .database
-            .run(move |client| client.get_prices_for_asset(&price_asset_id))
-            .await?
-            .into_iter()
-            .map(|price| price.as_price().with_rate(rate))
-            .collect();
+        let prices = self.repository.prices_for_asset(asset_id.clone()).await?.into_iter().map(|price| price.as_price().with_rate(rate)).collect();
         Ok(AssetMarketPrice {
             price: Some(price.as_price_primitive_with_rate(rate)),
             market: Some(price.as_market_with_rate(rate)),
@@ -96,11 +90,11 @@ impl PriceClient {
     }
 
     pub async fn aggregate_charts(&self, timeframe: ChartTimeframe) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        Ok(self.database.run(move |client| client.aggregate_charts(timeframe)).await?)
+        Ok(self.repository.aggregate_charts(timeframe).await?)
     }
 
     pub async fn delete_charts(&self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        Ok(self.database.run(move |client| client.delete_charts(timeframe, before)).await?)
+        Ok(self.repository.delete_charts(timeframe, before).await?)
     }
 
     pub async fn track_observed_assets(&self, asset_ids: &[AssetId]) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -168,7 +162,7 @@ impl PriceClient {
             return Ok(vec![]);
         }
         let asset_ids = mappings.iter().map(|mapping| mapping.asset_id.to_string()).collect();
-        let existing: HashSet<AssetId> = self.database.run(move |client| client.get_asset_ids_by_filter(vec![AssetFilter::Ids(asset_ids)])).await?.into_iter().collect();
+        let existing: HashSet<AssetId> = self.repository.asset_ids(vec![AssetFilter::Ids(asset_ids)]).await?.into_iter().collect();
         Ok(mappings.into_iter().filter(|m| existing.contains(&m.asset_id)).collect())
     }
 
@@ -188,12 +182,7 @@ impl PriceClient {
                 price_id: PriceId::new(provider, price.mapping.provider_price_id.clone()),
             })
             .collect();
-        self.database
-            .run(move |client| -> Result<_, DatabaseError> {
-                client.add_prices(new_prices)?;
-                client.set_prices_assets(price_assets)
-            })
-            .await?;
+        self.repository.save_prices(new_prices, price_assets).await?;
         Ok(prices.len())
     }
 }

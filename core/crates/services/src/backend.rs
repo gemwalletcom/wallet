@@ -144,15 +144,15 @@ impl Services {
     }
 
     pub fn prices(&self, cacher: CacherClient) -> PriceClient {
-        PriceClient::new(self.database(), self.config(), Arc::new(cacher.clone()), Arc::new(cacher))
+        PriceClient::new(self.prices_repository(), self.config(), Arc::new(cacher.clone()), Arc::new(cacher))
     }
 
     pub fn charts(&self) -> ChartClient {
-        ChartClient::new(self.database(), self.config())
+        ChartClient::new(self.prices_repository(), self.config())
     }
 
     pub fn markets(&self, cacher: CacherClient) -> MarketsClient {
-        MarketsClient::new(self.database(), Arc::new(cacher))
+        MarketsClient::new(self.prices_repository(), Arc::new(cacher))
     }
 
     pub fn price_alerts(&self) -> PriceAlertClient {
@@ -199,6 +199,10 @@ impl Services {
 
     pub(crate) fn assets_repository(&self) -> Arc<dyn crate::assets::repository::Repository> {
         Arc::new(crate::assets::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn prices_repository(&self) -> Arc<dyn crate::prices::repository::Repository> {
+        Arc::new(crate::prices::repository::PostgresRepository::new(self.database()))
     }
 
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {
