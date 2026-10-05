@@ -128,6 +128,7 @@ struct ServicesFactory {
         let stakeService = gatewayService.stakeService(
             staticApi: staticApiClient,
             store: GemstoneStakeStore(store: stores.stakeStore),
+            assets: assetsService,
             names: nameService,
             explorer: explorerService,
             preferences: preferencesService,

@@ -28,13 +28,14 @@ public actor GatewayService: Sendable {
     public nonisolated func stakeService(
         staticApi: GemStaticApiClient,
         store: any GemStakeStore,
+        assets: GemAssetsService,
         names: GemNameService,
         explorer: GemExplorerService,
         preferences: GemPreferencesService,
         session: GemWalletSessionService,
         config: GemConfigService,
     ) -> GemStakeService {
-        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, names: names, explorer: explorer, preferences: preferences, session: session, platform: .ios, config: config)
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, assets: assets, names: names, explorer: explorer, preferences: preferences, session: session, platform: .ios, config: config)
     }
 
     public nonisolated func transactionStateService(

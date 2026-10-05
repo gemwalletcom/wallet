@@ -102,6 +102,7 @@ impl ConfirmTestkit {
             gateway.clone(),
             Arc::new(GemStaticApiClient::new(provider.clone())),
             Arc::new(UnusedStakeStore),
+            assets.clone(),
             names.clone(),
             explorer.clone(),
             preferences.clone(),

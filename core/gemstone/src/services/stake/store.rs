@@ -5,7 +5,6 @@ use primitives::{AssetId, DelegationBase, DelegationValidator, StakeProviderType
 #[uniffi::export(rust, foreign)]
 #[async_trait]
 pub trait GemStakeStore: Send + Sync {
-    async fn get_apr(&self, asset_id: AssetId, provider_type: StakeProviderType) -> Result<Option<f64>, GemServiceError>;
     async fn get_validators(&self, asset_id: AssetId, provider_type: StakeProviderType) -> Result<Vec<DelegationValidator>, GemServiceError>;
     async fn save_validators(&self, validators: Vec<DelegationValidator>) -> Result<(), GemServiceError>;
     async fn deactivate_validators(&self, asset_id: AssetId, validator_ids: Vec<String>) -> Result<(), GemServiceError>;
