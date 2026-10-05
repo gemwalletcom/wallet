@@ -168,8 +168,8 @@ public final class RewardsSceneViewModel: Sendable {
         isPresentingSheet = .share
     }
 
-    func selectWallet(id: String) {
-        session = session.onSelectWallet(rowId: id)
+    func selectWallet(id: WalletId) {
+        session = session.onSelectWallet(walletId: id)
         Task { await refresh() }
     }
 

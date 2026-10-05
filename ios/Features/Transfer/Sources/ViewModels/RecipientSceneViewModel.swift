@@ -42,7 +42,7 @@ public final class RecipientSceneViewModel {
         contactsQuery.value
     }
 
-    public let walletsQuery = ObservableQuery(WalletsQuery(isPinned: .none), initialValue: [Wallet]())
+    public let walletsQuery = ObservableQuery(WalletsQuery(), initialValue: [Wallet]())
 
     public init(
         asset: Asset,

@@ -1370,7 +1370,7 @@ public extension Gemstone.GemWalletHomeViewState {
 
 public extension Gemstone.GemWalletRow {
     static func mock(
-        id: String = "",
+        id: Primitives.WalletId = .mock(),
         name: String = "",
         subtitle: Gemstone.GemWalletSubtitle = .multicoin,
         placeholder: Gemstone.GemWalletPlaceholder = .multicoin,

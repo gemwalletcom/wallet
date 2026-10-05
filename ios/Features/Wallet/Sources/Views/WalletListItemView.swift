@@ -10,19 +10,18 @@ import Style
 import SwiftUI
 
 struct WalletListItemView: View {
-    let wallet: Wallet
     let row: GemWalletRow
 
-    let onSelect: (Wallet) -> Void
-    let onEdit: (Wallet) -> Void
-    let onPin: (Wallet) -> Void
-    let onDelete: (Wallet) -> Void
+    let onSelect: (GemWalletRow) -> Void
+    let onEdit: (GemWalletRow) -> Void
+    let onPin: (GemWalletRow) -> Void
+    let onDelete: (GemWalletRow) -> Void
 
     var body: some View {
         ZStack {
             NavigationCustomLink(
                 with: EmptyView(),
-                action: { onSelect(wallet) },
+                action: { onSelect(row) },
             )
             .opacity(0)
 
@@ -36,7 +35,7 @@ struct WalletListItemView: View {
                 }
 
                 Button(
-                    action: { onEdit(wallet) },
+                    action: { onEdit(row) },
                     label: {
                         Images.System.settings
                             .padding(.vertical, .small)
@@ -51,18 +50,18 @@ struct WalletListItemView: View {
                 .custom(
                     title: Localized.Settings.title,
                     systemImage: SystemImage.settings,
-                    action: { onEdit(wallet) },
+                    action: { onEdit(row) },
                 ),
                 .pin(
                     isPinned: row.isPinned,
-                    onPin: { onPin(wallet) },
+                    onPin: { onPin(row) },
                 ),
-                .delete { onDelete(wallet) },
+                .delete { onDelete(row) },
             ],
         )
         .swipeActions {
             Button(
-                action: { onEdit(wallet) },
+                action: { onEdit(row) },
                 label: {
                     Label("", systemImage: SystemImage.settings)
                 },
@@ -70,7 +69,7 @@ struct WalletListItemView: View {
             .tint(Colors.gray)
             Button(
                 Localized.Common.delete,
-                action: { onDelete(wallet) },
+                action: { onDelete(row) },
             )
             .tint(Colors.red)
         }

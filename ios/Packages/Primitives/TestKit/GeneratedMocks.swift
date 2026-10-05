@@ -1054,3 +1054,21 @@ public extension WalletConnectionSessionProposal {
         )
     }
 }
+
+public extension WalletListItem {
+    static func mock(
+        id: WalletId = .mock(),
+        name: String = "",
+        index: Int32 = 0,
+        isPinned: Bool = false,
+        imageUrl: String? = nil,
+    ) -> WalletListItem {
+        WalletListItem(
+            id: id,
+            name: name,
+            index: index,
+            isPinned: isPinned,
+            imageUrl: imageUrl,
+        )
+    }
+}

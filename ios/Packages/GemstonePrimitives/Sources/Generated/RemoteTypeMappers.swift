@@ -3160,3 +3160,27 @@ public extension Primitives.WalletConnectionSessionProposal {
         )
     }
 }
+
+public extension Gemstone.WalletListItem {
+    func toPrimitives() -> Primitives.WalletListItem {
+        Primitives.WalletListItem(
+            id: id,
+            name: name,
+            index: index,
+            isPinned: isPinned,
+            imageUrl: imageUrl,
+        )
+    }
+}
+
+public extension Primitives.WalletListItem {
+    func toGem() -> Gemstone.WalletListItem {
+        Gemstone.WalletListItem(
+            id: id,
+            name: name,
+            index: index,
+            isPinned: isPinned,
+            imageUrl: imageUrl,
+        )
+    }
+}

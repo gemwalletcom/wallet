@@ -33,7 +33,7 @@ struct RewardsSceneViewModelTests {
         await model.refresh()
 
         #expect(model.wallet?.id == first.id)
-        #expect(model.walletSelectorModel?.selectedItems.map(\.id) == [first.id.id])
+        #expect(model.walletSelectorModel?.selectedItems.map(\.id) == [first.id])
         #expect(model.wallet?.canChoose == true)
     }
 
@@ -63,7 +63,7 @@ struct RewardsSceneViewModelTests {
         await model.refresh()
         #expect(service.rewardsCalls == [first.id])
 
-        model.selectWallet(id: second.id.id)
+        model.selectWallet(id: second.id)
         await model.refresh()
 
         #expect(service.rewardsCalls.last == second.id)

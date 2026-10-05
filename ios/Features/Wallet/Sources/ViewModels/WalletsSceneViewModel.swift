@@ -3,7 +3,6 @@ import Foundation
 import struct Gemstone.GemWalletRow
 import struct Gemstone.GemWalletSection
 import protocol Gemstone.GemWalletServiceProtocol
-import func Gemstone.walletRow
 import func Gemstone.walletSections
 import GemstonePrimitives
 import GemstoneServices
@@ -23,13 +22,14 @@ public final class WalletsSceneViewModel {
     private let navigationPath: Binding<NavigationPath>
 
     var isPresentingAlertMessage: AlertMessage?
-    var walletDelete: Wallet?
+    var walletDelete: GemWalletRow?
+    private(set) var sections: [GemWalletSection] = []
 
     var currentWalletId: WalletId? {
         try? service.currentWalletId()
     }
 
-    let walletsQuery: ObservableQuery<WalletsQuery>
+    let walletsQuery: ObservableQuery<WalletListItemsQuery>
 
     var hasWallets: Bool { walletsQuery.value.isNotEmpty }
 
@@ -47,50 +47,30 @@ public final class WalletsSceneViewModel {
         walletDelete = nil
         self.isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
         self.isPresentingImportWalletSheet = isPresentingImportWalletSheet
-        walletsQuery = ObservableQuery(WalletsQuery(isPinned: nil), initialValue: [])
+        walletsQuery = ObservableQuery(WalletListItemsQuery(), initialValue: [])
     }
 
     var title: String {
         Localized.Wallets.title
     }
 
-    var sections: [GemWalletSection] {
-        walletSections(wallets: walletsQuery.value.map { $0.toGem() }, currentWalletId: currentWalletId)
-    }
-
-    func wallet(for row: GemWalletRow) -> Wallet? {
-        walletsQuery.value.first { $0.id.id == row.id }
-    }
-
     var walletDeletePrompt: String {
-        walletDelete.map { walletRow(wallet: $0.toGem()).deletePrompt.text } ?? ""
+        walletDelete?.deletePrompt.text ?? ""
     }
 }
 
 // MARK: - Business Logic
 
 extension WalletsSceneViewModel {
+    func updateSections() {
+        sections = walletSections(wallets: walletsQuery.value.map { $0.toGem() }, currentWalletId: currentWalletId)
+    }
+
     func setCurrent(_ walletId: WalletId) {
         do {
             try service.setCurrentWalletId(walletId: walletId)
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
-        }
-    }
-
-    func onEdit(wallet: Wallet) {
-        navigationPath.wrappedValue.append(Scenes.WalletDetail(wallet: wallet))
-    }
-
-    private func delete(_ wallet: Wallet) async throws {
-        _ = try await service.deleteWallet(walletId: wallet.id)
-    }
-
-    private func pin(_ wallet: Wallet) async throws {
-        if wallet.isPinned {
-            try await service.setPinned(walletId: wallet.id, pinned: false)
-        } else {
-            try await service.setPinned(walletId: wallet.id, pinned: true)
         }
     }
 }
@@ -106,8 +86,8 @@ extension WalletsSceneViewModel {
         isPresentingImportWalletSheet.wrappedValue.toggle()
     }
 
-    func onSelect(wallet: Wallet, dismiss: DismissAction) {
-        setCurrent(wallet.id)
+    func onSelect(row: GemWalletRow, dismiss: DismissAction) {
+        setCurrent(row.id)
         dismiss()
     }
 
@@ -116,24 +96,33 @@ extension WalletsSceneViewModel {
         dismiss()
     }
 
-    func onDelete(wallet: Wallet) {
-        walletDelete = wallet
-    }
-
-    func onPin(wallet: Wallet) async {
+    func onEdit(row: GemWalletRow) async {
         do {
-            try await pin(wallet)
+            let wallet = try await service.wallet(walletId: row.id)
+            navigationPath.wrappedValue.append(Scenes.WalletDetail(wallet: wallet.toPrimitives()))
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
-    func onDeleteConfirmed(wallet: Wallet) async {
+    func onDelete(row: GemWalletRow) {
+        walletDelete = row
+    }
+
+    func onPin(row: GemWalletRow) async {
+        do {
+            try await service.setPinned(walletId: row.id, pinned: !row.isPinned)
+        } catch {
+            isPresentingAlertMessage = AlertMessage(error: error)
+        }
+    }
+
+    func onDeleteConfirmed(row: GemWalletRow) async {
         do {
             guard try await biometry.authenticateIfRequired(reason: Localized.Settings.Security.authentication) else {
                 return
             }
-            try await delete(wallet)
+            _ = try await service.deleteWallet(walletId: row.id)
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
