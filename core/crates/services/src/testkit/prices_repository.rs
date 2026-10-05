@@ -1,11 +1,13 @@
+use std::collections::HashSet;
 use std::sync::Mutex;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
+use prices::{AssetPriceMapping, PriceProviderAssetMetadata};
 use primitives::currency::Currency;
-use primitives::{AssetId, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceData};
-use storage::{AssetFilter, ChartPoint, ChartResult, DatabaseError, PriceAsset, PriceFilter};
+use primitives::{AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceProvider};
+use storage::{AssetFilter, ChartPoint, ChartResult, DatabaseError, PriceAsset, PriceFilter, PriceProviderConfig};
 
 use crate::prices::repository::{ChartData, Repository};
 
@@ -101,5 +103,54 @@ impl Repository for MemoryPricesRepository {
 
     async fn update_extremes_for_price(&self, _price_id: String) -> Result<usize, DatabaseError> {
         Ok(0)
+    }
+
+    async fn provider_price_assets(&self, _provider: PriceProvider, _asset_filters: Vec<AssetFilter>) -> Result<(Vec<PriceAsset>, HashSet<AssetId>), DatabaseError> {
+        Ok((self.price_assets.clone(), self.price_assets.iter().map(|price_asset| price_asset.asset_id.clone()).collect()))
+    }
+
+    async fn price_asset_ids(&self, price_id: String, _asset_filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
+        Ok(self
+            .price_assets
+            .iter()
+            .filter(|price_asset| price_asset.price_id.to_string() == price_id)
+            .map(|price_asset| price_asset.asset_id.clone())
+            .collect())
+    }
+
+    async fn price_mappings(&self, _provider: PriceProvider, _window: Option<(usize, usize)>) -> Result<Vec<AssetPriceMapping>, DatabaseError> {
+        Ok(self
+            .price_assets
+            .iter()
+            .map(|price_asset| AssetPriceMapping::new(price_asset.asset_id.clone(), price_asset.price_id.provider_price_id.clone()))
+            .collect())
+    }
+
+    async fn primary_prices(&self, _asset_ids: Vec<AssetId>, _price_max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError> {
+        Ok(vec![])
+    }
+
+    async fn store_prices(&self, _prices: Vec<PriceData>, _price_max_age: Duration) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
+        Ok(vec![])
+    }
+
+    async fn update_price_changes(&self, _provider: PriceProvider, _from: NaiveDateTime, _until: NaiveDateTime) -> Result<usize, DatabaseError> {
+        Ok(0)
+    }
+
+    async fn delete_prices(&self, _filters: Vec<PriceFilter>) -> Result<(Vec<String>, usize), DatabaseError> {
+        Ok((vec![], 0))
+    }
+
+    async fn usage_ranks_and_priced_assets(&self) -> Result<(Vec<(AssetId, i32)>, HashSet<AssetId>), DatabaseError> {
+        Ok((vec![], HashSet::new()))
+    }
+
+    async fn price_providers(&self) -> Result<Vec<PriceProviderConfig>, DatabaseError> {
+        Ok(vec![])
+    }
+
+    async fn update_assets_metadata(&self, _metadata: Vec<PriceProviderAssetMetadata>) -> Result<(), DatabaseError> {
+        Ok(())
     }
 }

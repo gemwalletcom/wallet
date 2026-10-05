@@ -65,7 +65,7 @@ impl Services {
 
     pub async fn fetch_prices_metadata_consumer(&self) -> Result<FetchPricesMetadataConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchPricesMetadataConsumer {
-            database: self.database(),
+            repository: self.prices_repository(),
             cooldowns: Arc::new(self.cacher().await?),
             config: self.config(),
             providers: self.price_providers(PriceProvider::all()),
@@ -129,7 +129,7 @@ impl Services {
     }
 
     pub async fn store_prices_consumer(&self) -> Result<StorePricesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(StorePricesConsumer::new(self.database(), self.prices(self.cacher().await?), self.config()))
+        Ok(StorePricesConsumer::new(self.prices_repository(), self.prices(self.cacher().await?), self.config()))
     }
 
     pub async fn wallet_stream_consumer(&self) -> Result<WalletStreamConsumer, Box<dyn Error + Send + Sync>> {

@@ -9,23 +9,25 @@ use config_keys::ConfigKey;
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviderAsset};
 use primitives::{AssetId, PriceData, PriceId};
-use storage::{AssetFilter, AssetsRepository, Database, DatabaseClient, DatabaseError, PriceFilter, PricesRepository};
+use storage::AssetFilter;
 use streamer::{PricesPayload, StreamProducerQueue};
+
+use super::repository::Repository;
 
 const BATCH_SIZE: usize = 1000;
 
 pub struct PricesUpdater {
     provider: Arc<dyn PriceAssetsProvider>,
-    database: Database,
+    repository: Arc<dyn Repository>,
     price_client: PriceClient,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PricesUpdater {
-    pub fn new(provider: Arc<dyn PriceAssetsProvider>, database: Database, price_client: PriceClient, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+    pub(crate) fn new(provider: Arc<dyn PriceAssetsProvider>, repository: Arc<dyn Repository>, price_client: PriceClient, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self {
             provider,
-            database,
+            repository,
             price_client,
             stream_producer,
         }
@@ -44,15 +46,7 @@ impl PricesUpdater {
 
     pub async fn publish_assets_metadata(&self, cooldowns: &dyn PriceMetadataCacher, config: &ConfigCacher) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
-        let (mappings, enabled) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let mappings = client.get_prices_assets_by_provider(provider)?;
-                let asset_ids = mappings.iter().map(|mapping| mapping.asset_id.to_string()).collect();
-                let enabled: HashSet<_> = client.get_asset_ids_by_filter(vec![AssetFilter::Ids(asset_ids), AssetFilter::IsEnabled(true)])?.into_iter().collect();
-                Ok((mappings, enabled))
-            })
-            .await?;
+        let (mappings, enabled) = self.repository.provider_price_assets(provider, vec![AssetFilter::IsEnabled(true)]).await?;
         let retry = config.get_duration(ConfigKey::PriceMetadataRetryInterval).await?;
         let mut ids: Vec<_> = mappings.into_iter().filter(|mapping| enabled.contains(&mapping.asset_id)).map(|mapping| mapping.price_id).collect();
         ids.sort_by_cached_key(PriceId::id);
@@ -71,25 +65,13 @@ impl PricesUpdater {
 
     pub async fn update_prices_all(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
-        let mappings = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let prices = client.get_prices_by_filter(vec![PriceFilter::Provider(provider)])?;
-                asset_price_mappings(client, prices)
-            })
-            .await?;
+        let mappings = self.repository.price_mappings(provider, None).await?;
         self.update_prices(mappings).await
     }
 
     pub async fn update_prices_window(&self, offset: usize, limit: usize) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
-        let mappings = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let prices: Vec<PriceData> = client.get_prices_by_filter(vec![PriceFilter::Provider(provider)])?.into_iter().skip(offset).take(limit).collect();
-                asset_price_mappings(client, prices)
-            })
-            .await?;
+        let mappings = self.repository.price_mappings(provider, Some((offset, limit))).await?;
         self.update_prices(mappings).await
     }
 
@@ -107,12 +89,7 @@ impl PricesUpdater {
 
         for chunk in assets.chunks(BATCH_SIZE) {
             let asset_ids: Vec<AssetId> = chunk.iter().map(|a| a.mapping.asset_id.clone()).collect();
-            let existing: HashSet<AssetId> = self
-                .database
-                .run(move |client| client.get_asset_ids_by_filter(vec![AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect())]))
-                .await?
-                .into_iter()
-                .collect();
+            let existing: HashSet<AssetId> = self.repository.asset_ids(vec![AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect())]).await?.into_iter().collect();
             let (known, missing): (Vec<&PriceProviderAsset>, Vec<&PriceProviderAsset>) = chunk.iter().partition(|asset| existing.contains(&asset.mapping.asset_id));
 
             if !missing.is_empty() {
@@ -147,17 +124,4 @@ impl PricesUpdater {
         info_with_fields!("update prices", provider = provider.id(), count = count);
         Ok(count)
     }
-}
-
-fn asset_price_mappings(client: &mut DatabaseClient, prices: Vec<PriceData>) -> Result<Vec<AssetPriceMapping>, DatabaseError> {
-    if prices.is_empty() {
-        return Ok(vec![]);
-    }
-
-    let price_ids = prices.into_iter().map(|price| price.id.to_string()).collect();
-    Ok(client
-        .get_prices_assets_for_price_ids(price_ids)?
-        .into_iter()
-        .map(|mapping| AssetPriceMapping::new(mapping.asset_id, mapping.price_id.provider_price_id))
-        .collect())
 }

@@ -4,30 +4,25 @@ use std::sync::Arc;
 
 use gem_tracing::info_with_fields;
 use primitives::AssetId;
-use storage::{AssetsUsageRanksRepository, Database, DatabaseError, PricesRepository};
+
+use super::repository::Repository;
 use streamer::StreamProducerQueue;
 
 const MAX_ASSETS_PER_RUN: usize = 1;
 
 pub struct MissingPricesPublisher {
-    database: Database,
+    repository: Arc<dyn Repository>,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl MissingPricesPublisher {
-    pub fn new(database: Database, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
-        Self { database, stream_producer }
+    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+        Self { repository, stream_producer }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let asset_ids: Vec<AssetId> = self
-            .database
-            .run(|client| -> Result<Vec<AssetId>, DatabaseError> {
-                let ranks = client.get_all_usage_ranks()?;
-                let priced: HashSet<AssetId> = client.get_prices_asset_ids()?.into_iter().collect();
-                Ok(missing_assets(ranks, &priced).into_iter().take(MAX_ASSETS_PER_RUN).collect())
-            })
-            .await?;
+        let (ranks, priced) = self.repository.usage_ranks_and_priced_assets().await?;
+        let asset_ids: Vec<AssetId> = missing_assets(ranks, &priced).into_iter().take(MAX_ASSETS_PER_RUN).collect();
         let count = asset_ids.len();
         self.stream_producer.publish_fetch_prices_assets(asset_ids.clone()).await?;
         for asset_id in &asset_ids {

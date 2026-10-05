@@ -167,11 +167,11 @@ impl PriceJobs {
     }
 
     pub fn assets_updater(&self, kind: PriceProvider) -> PricesUpdater {
-        PricesUpdater::new(self.provider(kind), self.database.clone(), self.price_client.clone(), self.assets_producer.clone())
+        PricesUpdater::new(self.provider(kind), self.prices_repository(), self.price_client.clone(), self.assets_producer.clone())
     }
 
     pub fn prices_updater(&self, kind: PriceProvider) -> PricesUpdater {
-        PricesUpdater::new(self.provider(kind), self.database.clone(), self.price_client.clone(), self.prices_producer.clone())
+        PricesUpdater::new(self.provider(kind), self.prices_repository(), self.price_client.clone(), self.prices_producer.clone())
     }
 
     pub async fn publish_assets_metadata(&self, kind: PriceProvider) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -186,7 +186,7 @@ impl PriceJobs {
         };
         ObservedPricesUpdater::new(
             self.observed_assets.clone(),
-            self.database.clone(),
+            self.prices_repository(),
             self.price_client.clone(),
             self.providers.clone(),
             self.prices_producer.clone(),
@@ -197,15 +197,15 @@ impl PriceJobs {
     }
 
     pub fn missing_prices_publisher(&self) -> MissingPricesPublisher {
-        MissingPricesPublisher::new(self.database.clone(), self.prices_producer.clone())
+        MissingPricesPublisher::new(self.prices_repository(), self.prices_producer.clone())
     }
 
     pub fn cleanup_updater(&self, kind: PriceProvider) -> PricesCleanupUpdater {
-        PricesCleanupUpdater::new(self.database.clone(), self.charts_history.clone(), self.config.clone(), kind)
+        PricesCleanupUpdater::new(self.prices_repository(), self.charts_history.clone(), self.config.clone(), kind)
     }
 
     pub fn metrics_updater(&self, kind: PriceProvider) -> PricesMetricsUpdater {
-        PricesMetricsUpdater::new(self.database.clone(), kind)
+        PricesMetricsUpdater::new(self.prices_repository(), kind)
     }
 
     pub fn charts_history_updater(&self, kind: PriceProvider, config: ChartsHistoryConfig) -> ChartsHistoryUpdater {

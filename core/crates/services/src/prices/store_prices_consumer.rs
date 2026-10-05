@@ -4,19 +4,19 @@ use async_trait::async_trait;
 use std::error::Error;
 use std::sync::Arc;
 
+use super::repository::Repository;
 use config_keys::ConfigKey;
-use storage::{Database, DatabaseError, PricesRepository};
 use streamer::{PricesPayload, consumer::MessageConsumer};
 
 pub struct StorePricesConsumer {
-    pub database: Database,
+    pub(crate) repository: Arc<dyn Repository>,
     pub price_client: PriceClient,
     pub config: Arc<ConfigCacher>,
 }
 
 impl StorePricesConsumer {
-    pub fn new(database: Database, price_client: PriceClient, config: Arc<ConfigCacher>) -> Self {
-        Self { database, price_client, config }
+    pub(crate) fn new(repository: Arc<dyn Repository>, price_client: PriceClient, config: Arc<ConfigCacher>) -> Self {
+        Self { repository, price_client, config }
     }
 }
 
@@ -30,18 +30,8 @@ impl MessageConsumer<PricesPayload, usize> for StorePricesConsumer {
         let prices = payload.prices;
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let ttl = self.config.get_duration(ConfigKey::PriceOutdated).await?;
-        let (count, cache_entries) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let asset_ids = client.set_prices(prices)?;
-                if asset_ids.is_empty() {
-                    return Ok((0, Vec::new()));
-                }
-
-                let cache_entries = client.get_primary_price_infos(&asset_ids, primary_price_max_age)?;
-                Ok((cache_entries.len(), cache_entries))
-            })
-            .await?;
+        let cache_entries = self.repository.store_prices(prices, primary_price_max_age).await?;
+        let count = cache_entries.len();
         if count == 0 {
             return Ok(0);
         }
