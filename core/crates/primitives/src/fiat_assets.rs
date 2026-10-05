@@ -5,11 +5,29 @@ use serde::{Deserialize, Serialize};
 use crate::currency::Currency;
 use crate::{AssetId, FiatProviderName, PaymentType};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FiatAssets {
     pub version: u32,
     pub asset_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetCatalog {
+    pub fiat_on_ramp_assets: FiatAssets,
+    pub fiat_off_ramp_assets: FiatAssets,
+    pub swap_assets: FiatAssets,
+}
+
+impl AssetCatalog {
+    pub fn new(fiat_on_ramp_asset_ids: Vec<String>, fiat_off_ramp_asset_ids: Vec<String>, swap_asset_ids: Vec<String>) -> Self {
+        Self {
+            fiat_on_ramp_assets: FiatAssets::new(fiat_on_ramp_asset_ids),
+            fiat_off_ramp_assets: FiatAssets::new(fiat_off_ramp_asset_ids),
+            swap_assets: FiatAssets::new(swap_asset_ids),
+        }
+    }
 }
 
 impl FiatAssets {

@@ -23,6 +23,7 @@ pub(crate) enum CacheKey<'a> {
     FiatRates,
     FiatQuote(i32, i32, &'a str),
     FiatIpCheck(&'a str),
+    AssetCatalog(u64),
 
     RateLimit(RateLimitKey, &'a str, RateLimitWindow),
 
@@ -76,6 +77,7 @@ impl CacheKey<'_> {
             Self::FiatRates => "fiat:rates".to_string(),
             Self::FiatQuote(device_id, wallet_id, quote_id) => format!("fiat:quote:{}:{}:{}", device_id, wallet_id, quote_id),
             Self::FiatIpCheck(ip_address) => format!("fiat:ip_check:{}", ip_address),
+            Self::AssetCatalog(_) => "assets:catalog".to_string(),
             Self::RateLimit(key, scope, window) => format!("rate_limit:{}:{}:{}", key.as_ref(), window.as_ref(), scope),
             Self::AuthNonce(device_id, nonce) => format!("auth:nonce:{}:{}", device_id, nonce),
             Self::AccessToken(provider, _) => format!("access_token:{}", provider),
@@ -116,6 +118,7 @@ impl CacheKey<'_> {
             Self::FiatRates => SECONDS_PER_DAY,
             Self::FiatQuote(_, _, _) => 15 * SECONDS_PER_MINUTE,
             Self::FiatIpCheck(_) => SECONDS_PER_DAY,
+            Self::AssetCatalog(ttl) => *ttl,
             Self::RateLimit(_, _, window) => window.duration().as_secs(),
             Self::AuthNonce(_, _) => 5 * SECONDS_PER_MINUTE,
             Self::AccessToken(_, ttl) => *ttl,

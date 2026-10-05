@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
 use fiat::model::FiatProviderAsset;
-use primitives::{Asset, AssetBasic, AssetId, Chain, Device, FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatTransaction, FiatTransactionUpdate, WalletId};
+use primitives::{Asset, AssetId, Chain, Device, FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatTransaction, FiatTransactionUpdate, WalletId};
 use storage::{AssetFilter, AssetUpdate, AssetsRepository, Database, DatabaseError, DevicesRepository, FiatAssetFilter, FiatRepository, FiatTransactionRecord, TagRepository, WalletAddress, WalletsRepository};
 
 pub(crate) struct QuoteContext {
@@ -20,7 +20,6 @@ pub(crate) struct NotificationContext {
 pub(crate) trait Repository: Send + Sync {
     async fn wallet_fiat_transactions(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<FiatTransaction>, DatabaseError>;
     async fn device_fiat_transactions(&self, device_id: String) -> Result<Vec<FiatTransaction>, DatabaseError>;
-    async fn assets(&self, filters: Vec<AssetFilter>) -> Result<Vec<AssetBasic>, DatabaseError>;
     async fn asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError>;
     async fn quote_context(&self, asset_id: AssetId) -> Result<QuoteContext, DatabaseError>;
     async fn add_fiat_transaction(&self, transaction: FiatTransaction, device_id: i32, wallet_id: i32, address_id: i32) -> Result<usize, DatabaseError>;
@@ -59,10 +58,6 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn assets(&self, filters: Vec<AssetFilter>) -> Result<Vec<AssetBasic>, DatabaseError> {
-        self.database.run(move |client| client.get_assets_by_filter(filters)).await
-    }
-
     async fn asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError> {
         self.database.run(move |client| client.get_asset(&asset_id)).await
     }
@@ -91,7 +86,7 @@ impl Repository for PostgresRepository {
         self.database
             .run(move |client| {
                 let enabled_asset_ids = client.get_fiat_asset_ids_by_filter(fiat_filters)?;
-                let flagged_asset_ids = client.get_assets_by_filter(asset_filters)?.into_iter().map(|asset| asset.asset.id).collect::<Vec<AssetId>>();
+                let flagged_asset_ids = client.get_asset_ids_by_filter(asset_filters)?;
                 let result = primitives::Diff::compare(flagged_asset_ids, enabled_asset_ids);
                 client.update_assets(result.missing.clone(), vec![flag(true)])?;
                 client.update_assets(result.different.clone(), vec![flag(false)])?;

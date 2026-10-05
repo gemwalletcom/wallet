@@ -14,13 +14,14 @@ use primitives::{
     Asset, AssetId, Chain, FiatAsset, FiatAssetSymbol, FiatAssets, FiatQuote, FiatQuoteError as ProviderQuoteError, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatQuotes, FiatTransaction, FiatTransactionData,
     FiatWebhook, RequestError,
 };
-use storage::{AssetFilter, DatabaseError, WalletAddress};
+use storage::{DatabaseError, WalletAddress};
 use streamer::{FiatWebhookPayload, StreamProducerQueue};
 use uuid::Uuid;
 
 use super::error::FiatServiceError;
 use super::repository::{QuoteContext, Repository};
 use crate::ConfigCacher;
+use crate::assets::AssetCatalogClient;
 
 pub struct FiatClient {
     repository: Arc<dyn Repository>,
@@ -30,6 +31,7 @@ pub struct FiatClient {
     providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
     ip_address_provider: Arc<dyn IpAddressProvider>,
     stream_producer: Arc<dyn StreamProducerQueue>,
+    asset_catalog: Arc<AssetCatalogClient>,
 }
 
 impl FiatClient {
@@ -41,6 +43,7 @@ impl FiatClient {
         providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
         ip_address_provider: Arc<dyn IpAddressProvider>,
         stream_producer: Arc<dyn StreamProducerQueue>,
+        asset_catalog: Arc<AssetCatalogClient>,
     ) -> Self {
         Self {
             repository,
@@ -50,15 +53,16 @@ impl FiatClient {
             providers,
             ip_address_provider,
             stream_producer,
+            asset_catalog,
         }
     }
 
     pub async fn get_on_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
-        self.get_assets(AssetFilter::IsBuyable(true)).await
+        Ok(self.asset_catalog.get().await?.fiat_on_ramp_assets)
     }
 
     pub async fn get_off_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
-        self.get_assets(AssetFilter::IsSellable(true)).await
+        Ok(self.asset_catalog.get().await?.fiat_off_ramp_assets)
     }
 
     pub async fn get_quote_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
@@ -154,11 +158,6 @@ impl FiatClient {
             .find(|provider| provider.name().id() == provider_name)
             .map(AsRef::as_ref)
             .ok_or_else(|| FiatServiceError::Internal(format!("Provider {provider_name} not found").into()))
-    }
-
-    async fn get_assets(&self, filter: AssetFilter) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
-        let assets = self.repository.assets(vec![AssetFilter::IsEnabled(true), filter]).await?;
-        Ok(FiatAssets::new(assets.into_iter().map(|asset| asset.asset.id.to_string()).collect()))
     }
 
     async fn get_provider_quotes(&self, request: &FiatQuoteRequest, asset: &Asset, ip_address: &str) -> Result<(Vec<CachedFiatQuote>, Vec<ProviderQuoteError>), FiatServiceError> {

@@ -203,7 +203,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let assets_client = services.assets();
     let search_client = services.search(cacher_client.clone()).await?;
     let fee_estimates_client = services.fee_estimates(assets_client.clone(), price_client.clone(), cacher_client.clone(), &user_agent);
-    let swap_client = services.swap();
+    let swap_client = services.swap().await?;
     let fiat_client = services.fiat(stream_producer.clone()).await?;
     let nft_config = NFTProviderConfig::from_settings(&settings);
     let nft_client = services.nft();

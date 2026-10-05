@@ -1,6 +1,5 @@
 mod near_intents_client;
 mod proxy_client;
-pub(crate) mod repository;
 mod swap_client;
 mod swaps_xyz_client;
 

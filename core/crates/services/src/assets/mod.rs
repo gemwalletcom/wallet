@@ -1,5 +1,6 @@
 mod address_changes;
 mod addresses;
+mod asset_catalog_client;
 mod asset_rank_updater;
 mod assets_client;
 mod assets_has_price_updater;
@@ -20,6 +21,7 @@ mod staking_apy_updater;
 mod usage_rank_updater;
 mod validator_scanner;
 
+pub use asset_catalog_client::AssetCatalogClient;
 pub use asset_rank_updater::AssetRankUpdater;
 pub use assets_client::AssetsClient;
 pub use assets_has_price_updater::AssetsHasPriceUpdater;

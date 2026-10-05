@@ -139,6 +139,7 @@ pub enum ConfigKey {
     AssetsUsageRankBatchSize,
     AssetsTimerUpdateImages,
     AssetsTimerUpdateHasPrice,
+    AssetsCatalogCacheDuration,
 
     ListsTimerUpdateLists,
 
@@ -337,6 +338,7 @@ impl ConfigKey {
             Self::AssetsUsageRankBatchSize => "1000",
             Self::AssetsTimerUpdateImages => "8h",
             Self::AssetsTimerUpdateHasPrice => "1h",
+            Self::AssetsCatalogCacheDuration => "15m",
             Self::ListsTimerUpdateLists => "1d",
             Self::FiatTimerUpdateAssets => "1h",
             Self::FiatTimerUpdateProviderCountries => "1h",

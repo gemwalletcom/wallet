@@ -1,6 +1,7 @@
+use cacher::AssetCatalogCacher;
 use chrono::{Duration, Utc};
 use fiat::{FiatProvider, model::FiatProviderAsset};
-use gem_tracing::info_with_fields;
+use gem_tracing::{info_with_fields, warn_with_fields};
 use primitives::{AssetId, AssetTag, FiatProviderName, currency::Currency};
 use std::sync::Arc;
 
@@ -17,21 +18,34 @@ enum FiatAssetDirection {
 pub struct FiatAssetsUpdater {
     repository: Arc<dyn Repository>,
     providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
+    asset_catalog: Arc<dyn AssetCatalogCacher>,
 }
 
 impl FiatAssetsUpdater {
-    pub(crate) fn new(repository: Arc<dyn Repository>, providers: Vec<Box<dyn FiatProvider + Send + Sync>>) -> Self {
-        Self { repository, providers }
+    pub(crate) fn new(repository: Arc<dyn Repository>, providers: Vec<Box<dyn FiatProvider + Send + Sync>>, asset_catalog: Arc<dyn AssetCatalogCacher>) -> Self {
+        Self { repository, providers, asset_catalog }
     }
 
     pub async fn update_buyable_assets(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
         let asset_filters = vec![AssetFilter::IsEnabled(true), AssetFilter::IsBuyable(true)];
-        Ok(self.repository.sync_asset_flag(Self::fiat_asset_filters(FiatAssetDirection::Buy), asset_filters, AssetUpdate::IsBuyable).await?)
+        let updated = self.repository.sync_asset_flag(Self::fiat_asset_filters(FiatAssetDirection::Buy), asset_filters, AssetUpdate::IsBuyable).await?;
+        self.invalidate_catalog(updated).await;
+        Ok(updated)
     }
 
     pub async fn update_sellable_assets(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
         let asset_filters = vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)];
-        Ok(self.repository.sync_asset_flag(Self::fiat_asset_filters(FiatAssetDirection::Sell), asset_filters, AssetUpdate::IsSellable).await?)
+        let updated = self.repository.sync_asset_flag(Self::fiat_asset_filters(FiatAssetDirection::Sell), asset_filters, AssetUpdate::IsSellable).await?;
+        self.invalidate_catalog(updated).await;
+        Ok(updated)
+    }
+
+    async fn invalidate_catalog(&self, updated: usize) {
+        if updated > 0
+            && let Err(error) = self.asset_catalog.delete_asset_catalog().await
+        {
+            warn_with_fields!("asset catalog cache invalidation failed", error = error.as_ref());
+        }
     }
 
     fn fiat_asset_filters(direction: FiatAssetDirection) -> Vec<FiatAssetFilter> {

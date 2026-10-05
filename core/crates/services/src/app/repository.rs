@@ -1,17 +1,10 @@
 use async_trait::async_trait;
-use primitives::{AssetBasic, FeaturePolicy, Release};
-use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, FeaturesRepository, ReleasesRepository};
-
-pub(crate) struct ConfigRecords {
-    pub(crate) fiat_on_ramp_assets: Vec<AssetBasic>,
-    pub(crate) fiat_off_ramp_assets: Vec<AssetBasic>,
-    pub(crate) swap_assets: Vec<String>,
-    pub(crate) releases: Vec<Release>,
-}
+use primitives::{FeaturePolicy, Release};
+use storage::{Database, DatabaseError, FeaturesRepository, ReleasesRepository};
 
 #[async_trait]
 pub(crate) trait Repository: Send + Sync {
-    async fn config_records(&self, on_ramp_filters: Vec<AssetFilter>, off_ramp_filters: Vec<AssetFilter>) -> Result<ConfigRecords, DatabaseError>;
+    async fn releases(&self) -> Result<Vec<Release>, DatabaseError>;
     async fn features(&self) -> Result<Vec<FeaturePolicy>, DatabaseError>;
 }
 
@@ -27,17 +20,8 @@ impl PostgresRepository {
 
 #[async_trait]
 impl Repository for PostgresRepository {
-    async fn config_records(&self, on_ramp_filters: Vec<AssetFilter>, off_ramp_filters: Vec<AssetFilter>) -> Result<ConfigRecords, DatabaseError> {
-        self.database
-            .run(move |client| {
-                Ok(ConfigRecords {
-                    fiat_on_ramp_assets: client.get_assets_by_filter(on_ramp_filters)?,
-                    fiat_off_ramp_assets: client.get_assets_by_filter(off_ramp_filters)?,
-                    swap_assets: client.get_swap_assets()?,
-                    releases: client.get_releases()?,
-                })
-            })
-            .await
+    async fn releases(&self) -> Result<Vec<Release>, DatabaseError> {
+        self.database.run(ReleasesRepository::get_releases).await
     }
 
     async fn features(&self) -> Result<Vec<FeaturePolicy>, DatabaseError> {

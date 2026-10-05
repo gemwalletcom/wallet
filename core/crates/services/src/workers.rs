@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{ChartsHistoryCacher, ObservedAssetsCacher, PerpetualAddressCacher, PriceMetadataCacher, SwapVaultAddressCacher, ThrottleCacher};
+use cacher::{AssetCatalogCacher, ChartsHistoryCacher, ObservedAssetsCacher, PerpetualAddressCacher, PriceMetadataCacher, SwapVaultAddressCacher, ThrottleCacher};
 use chain_providers::ChainProviders;
 use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
@@ -103,6 +103,7 @@ pub struct FiatJobs {
     services: Services,
     price_client: PriceClient,
     access_token_cacher: Arc<dyn AccessTokenCacher>,
+    asset_catalog: Arc<dyn AssetCatalogCacher>,
 }
 
 impl FiatJobs {
@@ -111,7 +112,7 @@ impl FiatJobs {
     }
 
     pub fn assets_updater(&self) -> FiatAssetsUpdater {
-        FiatAssetsUpdater::new(self.services.fiat_repository(), self.services.fiat_providers(self.access_token_cacher.clone()))
+        FiatAssetsUpdater::new(self.services.fiat_repository(), self.services.fiat_providers(self.access_token_cacher.clone()), self.asset_catalog.clone())
     }
 }
 
@@ -377,10 +378,12 @@ impl Services {
     }
 
     pub async fn fiat_jobs(&self) -> Result<FiatJobs, Box<dyn Error + Send + Sync>> {
+        let cacher = self.cacher().await?;
         Ok(FiatJobs {
             services: self.clone(),
-            price_client: self.prices(self.cacher().await?),
+            price_client: self.prices(cacher.clone()),
             access_token_cacher: self.fiat_access_token_cacher().await?,
+            asset_catalog: Arc::new(cacher),
         })
     }
 

@@ -1,5 +1,6 @@
 mod access_token;
 mod address_status;
+mod asset_catalog;
 mod auth_nonce;
 mod charts_history;
 mod check_schedule;
@@ -22,6 +23,7 @@ mod throttle;
 
 pub use access_token::AccessTokenCacherClient;
 pub use address_status::AddressStatusCacher;
+pub use asset_catalog::AssetCatalogCacher;
 pub use auth_nonce::AuthNonceCacher;
 pub use charts_history::ChartsHistoryCacher;
 pub use check_schedule::CheckScheduleCacher;

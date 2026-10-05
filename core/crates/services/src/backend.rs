@@ -3,7 +3,7 @@ use std::error::Error;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use cacher::{AccessTokenCacherClient, CacherClient, SwapVaultAddressCacher};
+use cacher::{AccessTokenCacherClient, AssetCatalogCacher, CacherClient, SwapVaultAddressCacher};
 use chain_providers::{ChainProviders, ProviderFactory};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
@@ -29,7 +29,7 @@ use tokio::sync::OnceCell;
 use crate::access::AccessClient;
 use crate::app::{CachedIpAddressProvider, ConfigClient};
 use crate::assets::ListsClient;
-use crate::assets::{AssetsClient, SearchClient};
+use crate::assets::{AssetCatalogClient, AssetsClient, SearchClient};
 use crate::auth::AuthClient;
 use crate::chain::{ChainClient, FeeEstimatesClient, NodesStatusClient};
 use crate::config::ConfigCacher;
@@ -56,6 +56,7 @@ pub struct Services {
     database: Database,
     config: Arc<ConfigCacher>,
     cacher: Arc<OnceCell<CacherClient>>,
+    asset_catalog: Arc<OnceCell<Arc<AssetCatalogClient>>>,
 }
 
 impl Services {
@@ -67,6 +68,7 @@ impl Services {
             database,
             config,
             cacher: Arc::new(OnceCell::new()),
+            asset_catalog: Arc::new(OnceCell::new()),
         })
     }
 
@@ -84,6 +86,17 @@ impl Services {
 
     pub async fn cacher(&self) -> Result<CacherClient, Box<dyn Error + Send + Sync>> {
         Ok(self.cacher.get_or_try_init(|| CacherClient::new(&self.settings.redis.url)).await?.clone())
+    }
+
+    async fn asset_catalog(&self) -> Result<Arc<AssetCatalogClient>, Box<dyn Error + Send + Sync>> {
+        let client = self
+            .asset_catalog
+            .get_or_try_init(|| async {
+                let cacher: Arc<dyn AssetCatalogCacher> = Arc::new(self.cacher().await?);
+                Ok::<_, Box<dyn Error + Send + Sync>>(Arc::new(AssetCatalogClient::new(self.database(), cacher, self.config())))
+            })
+            .await?;
+        Ok(client.clone())
     }
 
     pub async fn auth(&self) -> Result<AuthClient, Box<dyn Error + Send + Sync>> {
@@ -126,6 +139,7 @@ impl Services {
             providers,
             self.ip_address_provider().await?,
             Arc::new(stream_producer),
+            self.asset_catalog().await?,
         ))
     }
 
@@ -313,7 +327,11 @@ impl Services {
     }
 
     pub async fn app_config(&self) -> Result<ConfigClient, Box<dyn Error + Send + Sync>> {
-        Ok(ConfigClient::new(Arc::new(crate::app::repository::PostgresRepository::new(self.database())), self.ip_address_provider().await?))
+        Ok(ConfigClient::new(
+            Arc::new(crate::app::repository::PostgresRepository::new(self.database())),
+            self.ip_address_provider().await?,
+            self.asset_catalog().await?,
+        ))
     }
 
     async fn ip_address_provider(&self) -> Result<Arc<dyn IpAddressProvider>, Box<dyn Error + Send + Sync>> {
@@ -359,8 +377,8 @@ impl Services {
         ))
     }
 
-    pub fn swap(&self) -> SwapClient {
-        SwapClient::new(Arc::new(crate::swap::repository::PostgresRepository::new(self.database())))
+    pub async fn swap(&self) -> Result<SwapClient, Box<dyn Error + Send + Sync>> {
+        Ok(SwapClient::new(self.asset_catalog().await?))
     }
 
     pub fn near_intents(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> NearIntentsProxyClient {
