@@ -224,6 +224,10 @@ impl Services {
         Arc::new(crate::setup::repository::PostgresRepository::new(self.database()))
     }
 
+    pub(crate) fn devices_repository(&self) -> Arc<dyn crate::devices::repository::Repository> {
+        Arc::new(crate::devices::repository::PostgresRepository::new(self.database()))
+    }
+
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {
         ChainProviders::from_settings(&self.settings, user_agent)
     }
@@ -245,15 +249,15 @@ impl Services {
     }
 
     pub fn devices(&self) -> DevicesClient {
-        DevicesClient::new(self.database(), self.pusher())
+        DevicesClient::new(self.devices_repository(), self.pusher())
     }
 
     pub fn wallets(&self, stream_producer: StreamProducer) -> WalletsClient {
-        WalletsClient::new(self.database(), Arc::new(stream_producer))
+        WalletsClient::new(self.devices_repository(), Arc::new(stream_producer))
     }
 
     pub fn wallet_configuration(&self, cacher: CacherClient, user_agent: &str) -> WalletConfigurationClient {
-        WalletConfigurationClient::new(self.database(), self.chain_providers(user_agent), Arc::new(cacher))
+        WalletConfigurationClient::new(self.devices_repository(), self.chain_providers(user_agent), Arc::new(cacher))
     }
 
     pub fn notifications(&self) -> NotificationsClient {

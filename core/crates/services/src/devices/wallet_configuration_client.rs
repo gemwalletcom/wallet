@@ -2,23 +2,23 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
+use super::repository::Repository;
 use cacher::AddressStatusCacher;
 use chain_providers::ChainProviders;
 use futures::future::join_all;
 use primitives::{AddressStatus, Chain, ChainAddress, WalletConfiguration, WalletConfigurationResult, WalletId, WalletType};
-use storage::{Database, WalletsRepository};
 
 const ADDRESS_STATUS_CHAINS: [Chain; 7] = [Chain::Tron, Chain::Solana, Chain::Xrp, Chain::Stellar, Chain::Algorand, Chain::Aptos, Chain::Near];
 
 pub struct WalletConfigurationClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
     providers: ChainProviders,
     statuses: Arc<dyn AddressStatusCacher>,
 }
 
 impl WalletConfigurationClient {
-    pub fn new(database: Database, providers: ChainProviders, statuses: Arc<dyn AddressStatusCacher>) -> Self {
-        Self { database, providers, statuses }
+    pub(crate) fn new(repository: Arc<dyn Repository>, providers: ChainProviders, statuses: Arc<dyn AddressStatusCacher>) -> Self {
+        Self { repository, providers, statuses }
     }
 
     pub async fn get_configuration(&self, device_id: i32, wallet_id: i32, wallet_identifier: WalletId, wallet_type: WalletType) -> Result<WalletConfigurationResult, Box<dyn Error + Send + Sync>> {
@@ -53,7 +53,7 @@ impl WalletConfigurationClient {
     }
 
     async fn subscribed_addresses(&self, device_id: i32, wallet_id: i32) -> Result<HashSet<ChainAddress>, Box<dyn Error + Send + Sync>> {
-        let subscriptions = self.database.run(move |client| client.get_subscriptions_by_wallet_id(device_id, wallet_id)).await?;
+        let subscriptions = self.repository.wallet_subscriptions(device_id, wallet_id).await?;
         Ok(subscriptions.into_iter().filter(|subscription| ADDRESS_STATUS_CHAINS.contains(&subscription.chain)).collect())
     }
 

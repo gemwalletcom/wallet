@@ -1,6 +1,7 @@
 mod admin_device;
 mod device_stream_client;
 mod devices_client;
+pub(crate) mod repository;
 mod wallet_configuration_client;
 mod wallets_client;
 
