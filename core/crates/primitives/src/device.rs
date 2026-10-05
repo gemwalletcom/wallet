@@ -25,10 +25,6 @@ impl Device {
     pub fn can_receive_push_notification(&self) -> bool {
         self.is_push_enabled && !self.token.is_empty()
     }
-
-    pub fn can_receive_price_alerts(&self) -> bool {
-        self.can_receive_push_notification() && self.is_price_alerts_enabled == Some(true)
-    }
 }
 
 #[cfg(test)]
@@ -40,14 +36,5 @@ mod tests {
         assert!(Device::mock().can_receive_push_notification());
         assert!(!Device::mock_with(false, "token".to_string(), Some(true)).can_receive_push_notification());
         assert!(!Device::mock_with(true, String::new(), Some(true)).can_receive_push_notification());
-    }
-
-    #[test]
-    fn can_receive_price_alerts() {
-        assert!(Device::mock().can_receive_price_alerts());
-        assert!(!Device::mock_with(true, "token".to_string(), Some(false)).can_receive_price_alerts());
-        assert!(!Device::mock_with(true, "token".to_string(), None).can_receive_price_alerts());
-        assert!(!Device::mock_with(false, "token".to_string(), Some(true)).can_receive_price_alerts());
-        assert!(!Device::mock_with(true, String::new(), Some(true)).can_receive_price_alerts());
     }
 }
