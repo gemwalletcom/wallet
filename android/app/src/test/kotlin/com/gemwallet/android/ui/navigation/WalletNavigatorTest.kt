@@ -9,6 +9,7 @@ import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.onboarding.presents.authentication.EnableAuthenticationRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletSecurityReminderRoute
 import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletRoute
@@ -194,6 +195,18 @@ class WalletNavigatorTest {
 
         assertEquals(listOf(WalletRootRoute), createNavigator.backStack.toList())
         assertEquals(listOf(WalletRootRoute), importNavigator.backStack.toList())
+    }
+
+    @Test
+    fun openEnableAuthentication_offersOverTheWalletSoARestoreKeepsTheOffer() {
+        val navigator = navigatorWith(OnboardingRoute, CreateWalletRoute)
+
+        navigator.openEnableAuthentication()
+
+        val stack = navigator.backStack.toList()
+        assertEquals(listOf(WalletRootRoute, EnableAuthenticationRoute), stack)
+        assertEquals(stack, stack.dropNonRestorableRoutes(OnboardingRoute))
+        assertEquals(stack, stack.dropNonRestorableRoutes(WalletRootRoute))
     }
 
     @Test

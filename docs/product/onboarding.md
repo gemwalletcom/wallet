@@ -60,6 +60,7 @@ flowchart LR
 | The authentication prompt is cancelled or fails | the offer stays open | |
 | The user taps Skip or goes back | the wallet screen opens | Settings → Security still turns it on |
 | The offer was shown once on this install | it is not shown again, whatever was chosen | |
+| The phone rotates, or the theme or language changes, while the offer is open | the offer stays open over the wallet | the wallet is already created; going back to the welcome screen would offer to create it again |
 | App authentication is already on, or the device has no biometrics or passcode | no offer | |
 
 ## After create and import

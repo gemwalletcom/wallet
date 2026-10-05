@@ -187,7 +187,8 @@ class WalletNavigator(
     }
 
     fun openEnableAuthentication() {
-        resetTo(EnableAuthenticationRoute)
+        resetToWallet()
+        push(EnableAuthenticationRoute)
     }
 
     private fun resetTo(route: NavKey) {
