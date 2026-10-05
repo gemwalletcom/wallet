@@ -81,8 +81,8 @@ impl GemPriceAlertService {
         Ok(changed.then(|| GemToast::price_alerts(asset.name, enabled)))
     }
 
-    pub async fn refresh(&self, asset_id: Option<AssetId>, has_alerts: bool) -> GemLoadState {
-        GemLoadState::refreshed(self.sync(asset_id).await, has_alerts)
+    pub async fn refresh(&self, asset_id: Option<AssetId>) -> GemLoadState {
+        GemLoadState::of(&self.sync(asset_id).await)
     }
 
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {

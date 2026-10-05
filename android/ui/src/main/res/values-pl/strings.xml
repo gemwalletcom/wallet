@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">Potwierdź</string>
   <string name="warnings_externally_controlled_account">To konto %1$s może być kontrolowane przez kogoś innego. Nie wysyłaj na nie środków, chyba że masz pewność, że to Ty je kontrolujesz, w przeciwnym razie możesz trwale utracić swoje aktywa.</string>
   <string name="sell_title">Sprzedaj %1$s</string>
+  <string name="info_region_unavailable_description">Ta funkcja nie jest dostępna w Twoim regionie. Dostępność zależy od lokalnych przepisów i wymagań dostawców.</string>
   <string name="info_network_fee_title">Opłata sieciowa</string>
   <string name="info_watch_wallet_title">Portfel obserwowany</string>
   <string name="info_watch_wallet_description">Portfel, do którego nie masz dostępu, ale możesz śledzić zawarte w nim transakcje i ruchy.</string>

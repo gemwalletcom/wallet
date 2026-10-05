@@ -552,6 +552,8 @@ sell_title = Jual %@
 
 # Info
 
+info_region_unavailable_description = Ciri ini tidak tersedia di rantau anda. Ketersediaan bergantung pada peraturan setempat dan syarat penyedia.
+
 info_network_fee_title = Yuran Rangkaian
 info_watch_wallet_title = Tonton Wallet
 info_watch_wallet_description = Dompet yang anda tidak mempunyai akses, tetapi anda boleh menonton transaksi dan pergerakannya.

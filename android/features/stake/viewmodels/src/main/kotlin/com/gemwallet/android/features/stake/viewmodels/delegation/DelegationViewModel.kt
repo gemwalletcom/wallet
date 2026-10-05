@@ -11,7 +11,6 @@ import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.toAmountParams
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction

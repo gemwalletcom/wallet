@@ -1,17 +1,19 @@
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
+use std::sync::Arc;
 
 use primitives::{AddressName, AddressType, Asset, AssetId, ChainAddress, VerificationStatus};
-use storage::{AssetsRepository, Database, DatabaseError, ScanAddressesRepository};
+
+use super::repository::Repository;
 
 #[derive(Clone)]
 pub struct AddressNamesClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
 }
 
 impl AddressNamesClient {
-    pub fn new(database: Database) -> Self {
-        Self { database }
+    pub(crate) fn new(repository: Arc<dyn Repository>) -> Self {
+        Self { repository }
     }
 
     pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, Box<dyn Error + Send + Sync>> {
@@ -20,15 +22,8 @@ impl AddressNamesClient {
             return Ok(vec![]);
         }
 
-        let addresses = requests.clone();
         let asset_ids = requests.iter().map(|request| AssetId::from(request.chain, Some(request.address.clone()))).collect::<Vec<_>>();
-        let (scan_rows, assets) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let queries = addresses.iter().map(|request| (request.chain, request.address.as_str())).collect::<Vec<_>>();
-                Ok((client.get_scan_addresses(&queries)?, client.get_assets(asset_ids)?))
-            })
-            .await?;
+        let (scan_rows, assets) = self.repository.address_name_records(requests.clone(), asset_ids).await?;
         let scan_names = scan_rows
             .into_iter()
             .filter_map(|scan_address| scan_address.address_name())

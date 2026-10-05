@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">पुष्टि करना</string>
   <string name="warnings_externally_controlled_account">इस %1$s खाते को कोई और नियंत्रित कर सकता है। जब तक आप सुनिश्चित न हों कि इसका नियंत्रण आपके पास है, इसमें धनराशि न भेजें, वरना आप अपनी संपत्ति हमेशा के लिए खो सकते हैं।</string>
   <string name="sell_title">बेचें %1$s</string>
+  <string name="info_region_unavailable_description">यह सुविधा आपके क्षेत्र में उपलब्ध नहीं है। उपलब्धता स्थानीय नियमों और सेवा प्रदाताओं की आवश्यकताओं पर निर्भर करती है।</string>
   <string name="info_network_fee_title">नेटवर्क शुल्क</string>
   <string name="info_watch_wallet_title">वॉलेट देखें</string>
   <string name="info_watch_wallet_description">एक वॉलेट जिस तक आपकी पहुंच नहीं है, लेकिन आप इसके लेनदेन और गतिविधियों पर नजर रख सकते हैं।</string>

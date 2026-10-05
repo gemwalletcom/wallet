@@ -1,34 +1,13 @@
+use super::config::AbuseDetectionConfig;
+use super::repository::{AbuseFacts, Repository};
 use crate::ConfigCacher;
-use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::info_with_fields;
 use primitives::rewards::RewardStatus;
 use primitives::{NaiveDateTimeExt, now};
 use std::error::Error;
 use std::sync::Arc;
-use storage::{AbusePatterns, Database, DatabaseClient, DatabaseError, RewardsRepository, RiskSignalsRepository};
-use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};
-
-pub(crate) struct AbuseDetectionConfig {
-    pub(crate) disable_threshold: i64,
-    pub(crate) attempt_penalty: i64,
-    pub(crate) verified_threshold_multiplier: f64,
-    pub(crate) lookback: std::time::Duration,
-    pub(crate) min_referrals_to_evaluate: i64,
-    pub(crate) country_rotation_threshold: i64,
-    pub(crate) country_rotation_penalty: i64,
-    pub(crate) ring_referrers_per_device_threshold: i64,
-    pub(crate) ring_referrers_per_fingerprint_threshold: i64,
-    pub(crate) ring_penalty: i64,
-    pub(crate) device_farming_threshold: i64,
-    pub(crate) device_farming_penalty: i64,
-    pub(crate) velocity_window: std::time::Duration,
-    pub(crate) velocity_divisor: i64,
-    pub(crate) velocity_penalty: i64,
-    pub(crate) referral_per_user_daily: i64,
-    pub(crate) verified_multiplier: i64,
-    pub(crate) trusted_multiplier: i64,
-    pub(crate) disabled_referrer_penalty: i64,
-}
+use storage::AbusePatterns;
+use streamer::{RewardsNotificationPayload, StreamProducerQueue};
 
 struct AbuseEvaluation {
     username: String,
@@ -67,27 +46,22 @@ impl PatternPenaltyBreakdown {
 }
 
 pub struct RewardsAbuseChecker {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: Arc<ConfigCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl RewardsAbuseChecker {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, stream_producer: StreamProducer) -> Self {
-        Self { database, config, stream_producer }
+    pub(crate) fn new(repository: Arc<dyn Repository>, config: Arc<ConfigCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+        Self { repository, config, stream_producer }
     }
 
     pub async fn check(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let config = self.load_config().await?;
+        let config = AbuseDetectionConfig::from_config(&self.config).await?;
         let since = now().ago(config.lookback);
 
-        let mut evaluations = self
-            .database
-            .run(move |client| -> Result<Vec<AbuseEvaluation>, DatabaseError> {
-                let usernames = client.get_referrer_usernames_with_referrals(since, config.min_referrals_to_evaluate)?;
-                Ok(usernames.iter().filter_map(|username| Self::evaluate_user(client, username, &config).ok()).collect())
-            })
-            .await?;
+        let facts = self.repository.abuse_facts(since, config.min_referrals_to_evaluate, config.velocity_window.as_secs() as i64).await?;
+        let mut evaluations: Vec<AbuseEvaluation> = facts.into_iter().map(|facts| Self::evaluate_user(facts, &config)).collect();
 
         evaluations.sort_by(|a, b| b.abuse_percent.partial_cmp(&a.abuse_percent).unwrap_or(std::cmp::Ordering::Equal));
 
@@ -115,33 +89,26 @@ impl RewardsAbuseChecker {
         Ok(disabled_count)
     }
 
-    fn evaluate_user(client: &mut DatabaseClient, username: &str, config: &AbuseDetectionConfig) -> Result<AbuseEvaluation, DatabaseError> {
-        let status = client.get_status_by_username(username)?;
-        let since = now().ago(config.lookback);
-        let velocity_window_secs = config.velocity_window.as_secs() as i64;
-
-        let referral_count = client.count_referrals_since(username, since)?;
-        let attempt_count = client.count_attempts_for_referrer(username, since)?;
-        let risk_score_sum = client.sum_risk_scores_for_referrer(username, since)?;
-
-        let patterns = client.get_abuse_patterns_for_referrer(username, since, velocity_window_secs)?;
+    fn evaluate_user(facts: AbuseFacts, config: &AbuseDetectionConfig) -> AbuseEvaluation {
+        let AbuseFacts {
+            username,
+            status,
+            referral_count,
+            attempt_count,
+            risk_score_sum,
+            patterns,
+            referrer_disabled,
+        } = facts;
         let score = calculate_abuse_score_breakdown(risk_score_sum, attempt_count, referral_count, config);
         let pattern_penalty = calculate_pattern_penalty_breakdown(&patterns, config, &status);
-
-        let referrer_disabled = client
-            .get_referrer_username(username)
-            .ok()
-            .flatten()
-            .and_then(|referrer| client.get_status_by_username(&referrer).ok())
-            .is_some_and(|s| s == RewardStatus::Disabled);
         let disabled_referrer_penalty = if referrer_disabled { config.disabled_referrer_penalty as f64 } else { 0.0 };
 
         let abuse_score = score.base_score + pattern_penalty.total() + disabled_referrer_penalty;
         let threshold = calculate_abuse_threshold(config, &status);
         let abuse_percent = (abuse_score / threshold * 100.0).min(100.0);
 
-        Ok(AbuseEvaluation {
-            username: username.to_string(),
+        AbuseEvaluation {
+            username,
             status,
             referrals: referral_count,
             attempts: attempt_count,
@@ -154,7 +121,7 @@ impl RewardsAbuseChecker {
             threshold,
             abuse_score,
             abuse_percent,
-        })
+        }
     }
 
     fn log_evaluation(eval: &AbuseEvaluation) {
@@ -220,34 +187,9 @@ impl RewardsAbuseChecker {
             eval.patterns.signals_in_velocity_window,
             eval.referrer_disabled
         );
-        let username = eval.username.clone();
-        let event_id = self.database.run(move |client| client.disable_rewards(&username, reason, &comment)).await?;
+        let event_id = self.repository.disable_rewards(eval.username.clone(), reason.to_string(), comment).await?;
 
         Ok(Some(event_id))
-    }
-
-    async fn load_config(&self) -> Result<AbuseDetectionConfig, storage::DatabaseError> {
-        Ok(AbuseDetectionConfig {
-            disable_threshold: self.config.get_i64(ConfigKey::ReferralAbuseDisableThreshold).await?,
-            attempt_penalty: self.config.get_i64(ConfigKey::ReferralAbuseAttemptPenalty).await?,
-            verified_threshold_multiplier: self.config.get_f64(ConfigKey::ReferralAbuseVerifiedThresholdMultiplier).await?,
-            lookback: self.config.get_duration(ConfigKey::ReferralAbuseLookback).await?,
-            min_referrals_to_evaluate: self.config.get_i64(ConfigKey::ReferralAbuseMinReferralsToEvaluate).await?,
-            country_rotation_threshold: self.config.get_i64(ConfigKey::ReferralAbuseCountryRotationThreshold).await?,
-            country_rotation_penalty: self.config.get_i64(ConfigKey::ReferralAbuseCountryRotationPenalty).await?,
-            ring_referrers_per_device_threshold: self.config.get_i64(ConfigKey::ReferralAbuseRingReferrersPerDeviceThreshold).await?,
-            ring_referrers_per_fingerprint_threshold: self.config.get_i64(ConfigKey::ReferralAbuseRingReferrersPerFingerprintThreshold).await?,
-            ring_penalty: self.config.get_i64(ConfigKey::ReferralAbuseRingPenalty).await?,
-            device_farming_threshold: self.config.get_i64(ConfigKey::ReferralAbuseDeviceFarmingThreshold).await?,
-            device_farming_penalty: self.config.get_i64(ConfigKey::ReferralAbuseDeviceFarmingPenalty).await?,
-            velocity_window: self.config.get_duration(ConfigKey::ReferralAbuseVelocityWindow).await?,
-            velocity_divisor: self.config.get_i64(ConfigKey::ReferralAbuseVelocityDivisor).await?,
-            velocity_penalty: self.config.get_i64(ConfigKey::ReferralAbuseVelocityPenaltyPerSignal).await?,
-            referral_per_user_daily: self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit).await?.get(RateLimitWindow::Day),
-            verified_multiplier: self.config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await?,
-            trusted_multiplier: self.config.get_i64(ConfigKey::ReferralTrustedMultiplier).await?,
-            disabled_referrer_penalty: self.config.get_i64(ConfigKey::ReferralAbuseDisabledReferrerPenalty).await?,
-        })
     }
 }
 

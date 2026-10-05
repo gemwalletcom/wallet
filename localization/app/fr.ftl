@@ -552,6 +552,8 @@ sell_title = Vendre %@
 
 # Info
 
+info_region_unavailable_description = Cette fonctionnalité n’est pas disponible dans votre région. La disponibilité dépend des règles locales et des exigences des prestataires.
+
 info_network_fee_title = Frais de réseau
 info_watch_wallet_title = Portefeuille en lecture seule
 info_watch_wallet_description = Un portefeuille auquel vous n'avez pas accès, mais dont vous pouvez surveiller les transactions et les mouvements.

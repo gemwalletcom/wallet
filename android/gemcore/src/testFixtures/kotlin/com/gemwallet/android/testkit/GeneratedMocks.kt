@@ -102,6 +102,7 @@ import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.wallet.core.primitives.WalletConnectionState
 import com.wallet.core.primitives.WalletConnectionVerificationStatus
 import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletListItem
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 
@@ -935,6 +936,20 @@ fun mockWalletConnectionSessionProposal(
     metadata = metadata,
 )
 
+fun mockWalletListItem(
+    id: WalletId = mockWalletId(),
+    name: String = "",
+    index: Int = 0,
+    isPinned: Boolean = false,
+    imageUrl: String? = null,
+) = WalletListItem(
+    id = id,
+    name = name,
+    index = index,
+    isPinned = isPinned,
+    imageUrl = imageUrl,
+)
+
 fun mockApprovalData(
     token: String = "",
     spender: String = "",
@@ -1292,8 +1307,8 @@ fun mockGemConfirmScreen(
 )
 
 fun mockGemConfirmSimulation(
-    primaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
-    secondaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
+    primaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
+    secondaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
     header: uniffi.gemstone.GemSimulationValue? = null,
     balanceChanges: List<uniffi.gemstone.GemListRow> = emptyList(),
     hasCriticalWarning: Boolean = false,
@@ -1477,7 +1492,7 @@ fun mockGemHeaderButton(
 
 fun mockGemHeaderButtonAction(): uniffi.gemstone.GemHeaderButtonAction = uniffi.gemstone.GemHeaderButtonAction.Send(assetId = null)
 
-fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.NetworkFee(asset = mockAsset().toGem())
+fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.RegionUnavailable
 
 fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.GemLocalizedText.WalletDefaultName(index = 0)
 
@@ -1524,7 +1539,7 @@ fun mockGemNftRow(
 fun mockGemNodeCheck(
     url: String = "",
     chainId: String? = null,
-    latestBlockNumber: ULong = 0u,
+    latestBlockNumber: ULong? = null,
     isInSync: Boolean = false,
     latency: uniffi.gemstone.Latency = mockLatency().toGem(),
 ) = uniffi.gemstone.GemNodeCheck(
@@ -1634,8 +1649,8 @@ fun mockGemRowText(
 fun mockGemSignMessagePreview(
     title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     text: String = "",
-    primaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
-    secondaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
+    primaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
+    secondaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
     hasCriticalWarning: Boolean = false,
     header: uniffi.gemstone.GemSimulationValue? = null,
     rows: List<uniffi.gemstone.GemListRow> = emptyList(),
@@ -1941,8 +1956,26 @@ fun mockGemWalletConnectTransactionRequest(
     action = action,
 )
 
+fun mockGemWalletHomeViewState(
+    walletRow: uniffi.gemstone.GemWalletRow = mockGemWalletRow(),
+    header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
+    showCollections: Boolean = false,
+    showsPerpetuals: Boolean = false,
+    banner: uniffi.gemstone.GemBannerRow? = null,
+    pinnedAssetIds: List<String> = emptyList(),
+    assetIds: List<String> = emptyList(),
+) = uniffi.gemstone.GemWalletHomeViewState(
+    walletRow = walletRow,
+    header = header,
+    showCollections = showCollections,
+    showsPerpetuals = showsPerpetuals,
+    banner = banner,
+    pinnedAssetIds = pinnedAssetIds,
+    assetIds = assetIds,
+)
+
 fun mockGemWalletRow(
-    id: String = "",
+    id: String = mockWalletId().id,
     name: String = "",
     subtitle: uniffi.gemstone.GemWalletSubtitle = uniffi.gemstone.GemWalletSubtitle.Multicoin,
     placeholder: uniffi.gemstone.GemWalletPlaceholder = uniffi.gemstone.GemWalletPlaceholder.Multicoin,

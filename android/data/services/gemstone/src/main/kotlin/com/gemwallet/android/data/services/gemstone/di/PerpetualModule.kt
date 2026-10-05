@@ -20,6 +20,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemNodeServiceInterface
@@ -57,6 +58,7 @@ object PerpetualModule {
         walletPreferencesService: GemWalletPreferencesService,
         walletSessionService: GemWalletSessionService,
         recentActivityService: GemRecentActivityService,
+        configService: GemConfigService,
     ): GemPerpetualService = GemPerpetualService(
         gateway,
         priceService,
@@ -67,6 +69,7 @@ object PerpetualModule {
         walletPreferencesService,
         walletSessionService,
         recentActivityService,
+        configService,
     )
 
     @Provides

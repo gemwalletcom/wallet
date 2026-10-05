@@ -267,29 +267,28 @@ mod tests {
         AssetId, AssetType,
         asset_constants::{ARBITRUM_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
     };
-    use std::collections::BTreeSet;
 
     #[tokio::test]
     async fn test_get_vault_addresses() {
         let price_client = MockClient::new().with_get(|path| {
             assert_eq!(path, "/chains");
             Ok(br#"[
-                    {"mayanAddress":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
-                    {"mayanAddress":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
-                    {"mayanAddress":""},
-                    {"chainId":1}
+                    {"mayanContractAddress":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+                    {"mayanContractAddress":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+                    {"mayanContractAddress":""},
+                    {"mayanContractAddress":"0x0000000000000000000000000000000000000000"}
                 ]"#
             .to_vec())
         });
         let provider = Mayan::with_clients(MayanClient::new(price_client), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
 
         let addresses = provider.get_vault_addresses(None).await.unwrap();
-        let api_address = gem_evm::ethereum_address_checksum("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").unwrap();
-        let expected_deposit = MAYAN_DEPOSIT_CONTRACTS.iter().map(ToString::to_string).chain([api_address.clone()]).collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
-        let expected_send = MAYAN_SEND_CONTRACTS.iter().map(ToString::to_string).chain([api_address]).collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
+        let api_address = "0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa".to_string();
 
-        assert_eq!(addresses.deposit, expected_deposit);
-        assert_eq!(addresses.send, expected_send);
+        assert_eq!(addresses.deposit.iter().filter(|address| *address == &api_address).count(), 1);
+        assert_eq!(addresses.send.iter().filter(|address| *address == &api_address).count(), 1);
+        assert!(addresses.send.iter().any(|address| address == "0xD78D199f8C402e7B5Cc2abE278dF0412400a3BAe"));
+        assert!(!addresses.deposit.iter().chain(&addresses.send).any(|address| address == EVM_ZERO_ADDRESS));
     }
 
     #[tokio::test]

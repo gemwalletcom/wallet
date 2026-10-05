@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">يتأكد</string>
   <string name="warnings_externally_controlled_account">قد يتحكم شخص آخر في حساب %1$s هذا. لا ترسل أموالًا إليه إلا إذا كنت متأكدًا من أنك تتحكم فيه، وإلا فقد تفقد أصولك بشكل دائم.</string>
   <string name="sell_title">بيع %1$s</string>
+  <string name="info_region_unavailable_description">هذه الميزة غير متاحة في منطقتك. يعتمد التوفر على القواعد المحلية ومتطلبات مزودي الخدمة.</string>
   <string name="info_network_fee_title">رسوم الشبكة</string>
   <string name="info_watch_wallet_title">شاهد المحفظة</string>
   <string name="info_watch_wallet_description">محفظة لا يمكنك الوصول إليها، ولكن يمكنك مشاهدة معاملاتها وحركاتها.</string>

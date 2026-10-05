@@ -120,7 +120,7 @@ pub fn latency_status(state: &GemNodeStatusState) -> GemLatencyStatus {
 
 pub fn node_status_state(status: Option<NodeStatus>) -> GemNodeStatusState {
     match status {
-        Some(status) if status.latest_block_number > 0 => GemNodeStatusState::Result {
+        Some(status) if status.latest_block_number.is_none_or(|value| value > 0) => GemNodeStatusState::Result {
             latest_block_number: status.latest_block_number,
             latency: Latency::from_milliseconds(status.latency_ms),
         },
@@ -141,7 +141,7 @@ mod tests {
     fn test_latency_status_keeps_the_latency_and_drops_the_block_number() {
         let latency = primitives::Latency::from_milliseconds(440);
         let result = GemNodeStatusState::Result {
-            latest_block_number: 12,
+            latest_block_number: Some(12),
             latency: latency.clone(),
         };
         assert_eq!(latency_status(&result), GemLatencyStatus::Result { latency });
@@ -262,18 +262,26 @@ mod tests {
     }
 
     #[test]
-    fn test_a_node_that_reports_no_block_is_an_error_not_a_result() {
+    fn test_node_status_state_accepts_an_absent_block_but_rejects_block_zero() {
         let reachable = NodeStatus {
-            latest_block_number: 21_000_000,
+            latest_block_number: Some(21_000_000),
             latency_ms: 120,
         };
-        let stalled = NodeStatus { latest_block_number: 0, latency_ms: 5 };
+        let blockless = NodeStatus { latest_block_number: None, latency_ms: 80 };
+        let stalled = NodeStatus { latest_block_number: Some(0), latency_ms: 5 };
 
         assert_eq!(
             node_status_state(Some(reachable)),
             GemNodeStatusState::Result {
-                latest_block_number: 21_000_000,
+                latest_block_number: Some(21_000_000),
                 latency: Latency::from_milliseconds(120),
+            }
+        );
+        assert_eq!(
+            node_status_state(Some(blockless)),
+            GemNodeStatusState::Result {
+                latest_block_number: None,
+                latency: Latency::from_milliseconds(80),
             }
         );
         assert_eq!(node_status_state(Some(stalled)), GemNodeStatusState::Error, "a node at block zero has nothing to serve");

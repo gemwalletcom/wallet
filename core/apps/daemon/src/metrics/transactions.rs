@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::sync::Mutex;
 use std::time::Duration;
 
+use primitives::Chain;
 use prometheus_client::encoding::EncodeLabelSet;
 use prometheus_client::metrics::family::Family;
 use prometheus_client::metrics::gauge::Gauge;
@@ -28,9 +29,16 @@ impl QueueLabels {
     }
 }
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+struct QueueCompletionLabels {
+    #[prometheus(flatten)]
+    queue: QueueLabels,
+    to_chain: String,
+}
+
 pub struct TransactionMetrics {
     queues: Mutex<BTreeMap<TransactionQueue, BTreeMap<TransactionQueueGroup, usize>>>,
-    completion: Family<QueueLabels, Histogram, fn() -> Histogram>,
+    completion: Family<QueueCompletionLabels, Histogram, fn() -> Histogram>,
 }
 
 impl Default for TransactionMetrics {
@@ -47,8 +55,12 @@ impl TransactionQueueMetrics for TransactionMetrics {
         super::locked(&self.queues).insert(queue, counts);
     }
 
-    fn record_completion(&self, queue: TransactionQueue, group: TransactionQueueGroup, elapsed: Duration) {
-        self.completion.get_or_create(&QueueLabels::new(queue, &group)).observe(elapsed.as_secs_f64());
+    fn record_completion(&self, queue: TransactionQueue, group: TransactionQueueGroup, to_chain: Option<Chain>, elapsed: Duration) {
+        let labels = QueueCompletionLabels {
+            queue: QueueLabels::new(queue, &group),
+            to_chain: to_chain.map(|chain| chain.as_ref().to_string()).unwrap_or_default(),
+        };
+        self.completion.get_or_create(&labels).observe(elapsed.as_secs_f64());
     }
 }
 
@@ -78,7 +90,7 @@ mod tests {
         metrics.record_queue(TransactionQueue::Pending, BTreeMap::from([(TransactionQueueGroup::new(Chain::HyperCore, None), 2)]));
         metrics.record_queue(TransactionQueue::InTransit, BTreeMap::from([(near_intents, 3)]));
         metrics.record_queue(TransactionQueue::Pending, BTreeMap::from([(TransactionQueueGroup::new(Chain::Solana, None), 1)]));
-        metrics.record_completion(TransactionQueue::InTransit, near_intents, Duration::from_secs(90));
+        metrics.record_completion(TransactionQueue::InTransit, near_intents, Some(Chain::Ethereum), Duration::from_secs(90));
 
         let mut registry = MetricsRegistry::new();
         metrics.register(registry.registry_mut());
@@ -87,7 +99,7 @@ mod tests {
         assert!(output.contains(r#"transactions_queue_size{queue="pending",chain="solana",provider=""} 1"#));
         assert!(output.contains(r#"transactions_queue_size{queue="in_transit",chain="near",provider="near_intents"} 3"#));
         assert!(!output.contains(r#"chain="hypercore""#));
-        assert!(output.contains(r#"transactions_queue_completion_seconds_count{queue="in_transit",chain="near",provider="near_intents"} 1"#));
-        assert!(output.contains(r#"transactions_queue_completion_seconds_sum{queue="in_transit",chain="near",provider="near_intents"} 90.0"#));
+        assert!(output.contains(r#"transactions_queue_completion_seconds_count{queue="in_transit",chain="near",provider="near_intents",to_chain="ethereum"} 1"#));
+        assert!(output.contains(r#"transactions_queue_completion_seconds_sum{queue="in_transit",chain="near",provider="near_intents",to_chain="ethereum"} 90.0"#));
     }
 }

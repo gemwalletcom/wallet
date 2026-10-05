@@ -552,6 +552,8 @@ sell_title = %@ বিক্রি করুন
 
 # Info
 
+info_region_unavailable_description = এই বৈশিষ্ট্যটি আপনার অঞ্চলে উপলব্ধ নয়। উপলব্ধতা স্থানীয় নিয়ম এবং পরিষেবা প্রদানকারীর শর্তের ওপর নির্ভর করে।
+
 info_network_fee_title = নেটওয়ার্ক ফি
 info_watch_wallet_title = ওয়ালেট দেখুন
 info_watch_wallet_description = একটি মানিব্যাগ যা আপনার অ্যাক্সেস নেই, তবে আপনি এটির লেনদেন এবং গতিবিধি দেখতে পারেন।

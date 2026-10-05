@@ -39,6 +39,7 @@ rewards_error_referral_referrer_limit_reached = 邀请码已达到使用上限�
 errors_generic = 发生意外错误，请稍后重试。
 fiat_error_limit_reached = 报价请求过多，请几分钟后再试。
 fiat_error_quote_unavailable = 此报价已失效，请重试。
+fiat_error_region_unavailable = 您所在的地区暂不支持。
 rewards_error_referral_country_ineligible = 所在国家/地区暂不支持邀请积分：{$value}。
 notification_rewards_disabled_title = 邀请码已停用
 notification_rewards_disabled_description = 由于多次违反邀请积分计划条款，此邀请码已被停用。

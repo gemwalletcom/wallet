@@ -21,13 +21,6 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | A typed name is registered for the network | it resolves while typing to that address | |
-| A typed name is not registered, or has no address for the network | not found | a name never becomes an empty or zero address |
-| The name service cannot be reached | an error, not a missing name | |
-| The fee's coin has a price | Network Fee shows its value only: `$0.01` | the value is the number the user weighs |
-| The fee's coin has no price | the fee in that coin: `0.000021 ETH` | |
-| There is not enough of the coin that pays the fee | the fee in that coin above its value: `0.0000129 BNB` over `$0.01` | that is the amount the user has to add |
-| The user can pick which asset pays the fee | its value and the asset: `$0.01` with `USDC` | |
-| The user taps Network Fee | the fee in its coin above its value, and faster, slower or custom fees where the network allows | |
 | The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
 | The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
 | The recipient is flagged | a "Suspicious address" warning with one line on why, under the amount; Confirm stays disabled | |
@@ -40,6 +33,8 @@ flowchart LR
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |
 | The network rejects the sent transaction | the network's own reason | it is often the only explanation there is |
 | A Dash payment is sent | Pending until the transaction is mined | the network may lock it with InstantSend, but the provider does not report that lock yet |
+
+Names and the Network Fee follow the shared [Names](../PRODUCT.md#names) and [Network Fee](../PRODUCT.md#network-fee) sections.
 
 ## Scanned codes and payment links
 

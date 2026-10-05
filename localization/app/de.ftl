@@ -552,6 +552,8 @@ sell_title = Verkaufen %@
 
 # Info
 
+info_region_unavailable_description = Diese Funktion ist in deiner Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab.
+
 info_network_fee_title = Netzwerk-Gebühr
 info_watch_wallet_title = Beobachtungs-Wallet
 info_watch_wallet_description = Eine Wallet, auf die Sie keinen Zugriff haben, deren Transaktionen und Bewegungen Sie jedoch beobachten können.

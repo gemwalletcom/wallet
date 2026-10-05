@@ -1,16 +1,19 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
-use storage::{Database, DeviceFieldUpdate, DevicesRepository};
+use storage::DeviceFieldUpdate;
 use streamer::{NotificationsFailedPayload, consumer::MessageConsumer};
 
+use super::repository::Repository;
+
 pub struct NotificationsFailedConsumer {
-    pub database: Database,
+    pub(crate) repository: Arc<dyn Repository>,
 }
 
 impl NotificationsFailedConsumer {
-    pub fn new(database: Database) -> Self {
-        Self { database }
+    pub(crate) fn new(repository: Arc<dyn Repository>) -> Self {
+        Self { repository }
     }
 }
 
@@ -27,6 +30,47 @@ impl MessageConsumer<NotificationsFailedPayload, usize> for NotificationsFailedC
             return Ok(0);
         }
 
-        Ok(self.database.run(move |client| client.update_device_fields(device_ids, vec![DeviceFieldUpdate::IsPushEnabled(false)])).await?)
+        Ok(self.repository.update_device_fields(device_ids, vec![DeviceFieldUpdate::IsPushEnabled(false)]).await?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use primitives::Device;
+    use push_notification::{FailedNotification, GorushNotification, PushErrorLog, PushNotification, PushNotificationTypes};
+
+    use super::*;
+    use crate::testkit::MemoryNotificationsRepository;
+
+    fn failure(device_id: &str, error: &str) -> FailedNotification {
+        let device = Device { id: device_id.to_string(), ..Device::mock() };
+        let data = PushNotification {
+            notification_type: PushNotificationTypes::Test,
+            data: None,
+        };
+        FailedNotification {
+            notification: GorushNotification::from_device(device, "title".to_string(), "message".to_string(), data).unwrap(),
+            error: PushErrorLog {
+                token: "token".to_string(),
+                error: error.to_string(),
+            },
+        }
+    }
+
+    #[tokio::test]
+    async fn test_disables_push_only_for_invalid_tokens() {
+        let repository = Arc::new(MemoryNotificationsRepository::default());
+        let consumer = NotificationsFailedConsumer::new(repository.clone());
+
+        let count = consumer
+            .consume(NotificationsFailedPayload::new(vec![failure("invalid", "BadDeviceToken"), failure("throttled", "TooManyRequests")]))
+            .await
+            .unwrap();
+
+        assert_eq!(count, 1);
+        let updates = repository.device_updates();
+        assert_eq!(updates.len(), 1);
+        assert_eq!(updates[0].0, vec!["invalid".to_string()]);
+        assert!(matches!(updates[0].1.as_slice(), [DeviceFieldUpdate::IsPushEnabled(false)]));
     }
 }

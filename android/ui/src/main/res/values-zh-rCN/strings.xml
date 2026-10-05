@@ -443,10 +443,11 @@
   <string name="lock_footer">保护此设备上的应用访问安全</string>
   <string name="lock_passcode">密码</string>
   <string name="lock_passcode_off_title">设备密码已关闭</string>
-  <string name="lock_passcode_off_description">Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。你的钱包是安全的。</string>
+  <string name="lock_passcode_off_description">Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。钱包仍然安全。</string>
   <string name="verify_phrase_title">确认</string>
   <string name="warnings_externally_controlled_account">此 %1$s 账户可能由他人控制。除非确定该账户由您掌控，切勿向其转入资金，以免永久损失资产。</string>
   <string name="sell_title">出售%1$s</string>
+  <string name="info_region_unavailable_description">此功能在您所在的地区不可用。 可用性取决于当地规定和服务提供商的要求。</string>
   <string name="info_network_fee_title">网络费用</string>
   <string name="info_watch_wallet_title">观察钱包</string>
   <string name="info_watch_wallet_description">这是一个您无法操作的钱包，但可以查看它的交易和资产变动。</string>

@@ -5,7 +5,6 @@ use crate::fee::GemCustomFeeSession;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
-use crate::models::gateway::GemFeeRate;
 use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::precision::GemValueStyle;
@@ -16,13 +15,13 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::model::GemPerpetualConfirmDetails;
-use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
+use crate::services::simulation::{address_requests, named_payload_rows};
 use crate::services::swap::model::{GemSwapDetails, GemSwapPairSelection};
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmTitle;
 use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
-use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
+use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeRate, FeeUnitType, SimulationResult, Wallet};
 use primitives::{AssetPrice, Currency, PaymentVerification};
 use swapper::Quote;
 
@@ -95,7 +94,7 @@ pub struct GemConfirmData {
     pub fee: GemTransactionLoadFee,
     pub selected_priority: FeePriority,
     pub fee_selection: GemConfirmFeeSelection,
-    pub fee_rates: Vec<GemFeeRate>,
+    pub fee_rates: Vec<FeeRate>,
     pub metadata: GemTransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
 }
@@ -379,8 +378,8 @@ impl GemSimulationValue {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulation {
-    pub primary_fields: Vec<GemSimulationPayloadRow>,
-    pub secondary_fields: Vec<GemSimulationPayloadRow>,
+    pub primary_fields: Vec<GemListRow>,
+    pub secondary_fields: Vec<GemListRow>,
     pub header: Option<GemSimulationValue>,
     pub balance_changes: Vec<GemListRow>,
     pub has_critical_warning: bool,
@@ -492,7 +491,7 @@ pub enum GemConfirmSection {
     Notice { row: GemListRow },
     Details { rows: Vec<GemConfirmRowContent> },
     Warnings { rows: Vec<GemListRow> },
-    Payload { primary: Vec<GemSimulationPayloadRow>, secondary: Vec<GemSimulationPayloadRow> },
+    Payload { primary: Vec<GemListRow>, secondary: Vec<GemListRow> },
     BalanceChanges { rows: Vec<GemListRow> },
     NetworkFee,
     Verification,
@@ -560,7 +559,7 @@ mod tests {
                 ..GemConfirmLoad::mock()
             },
             confirm_data: Some(GemConfirmData {
-                fee_rates: vec![GemFeeRate::mock(FeePriority::Normal, 10), GemFeeRate::mock(FeePriority::Fast, 25)],
+                fee_rates: vec![FeeRate::mock(FeePriority::Normal, 10), FeeRate::mock(FeePriority::Fast, 25)],
                 fee_selection,
                 ..GemConfirmData::mock(chain, primitives::TransactionInputType::Transfer { asset: Asset::from_chain(chain) })
             }),

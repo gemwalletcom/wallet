@@ -61,9 +61,8 @@ public struct PerpetualScene: View {
         .scrollDisabled(model.chart.isPinching)
         .navigationTitle(details.title)
         .navigationBarTitleDisplayMode(.inline)
-        .alertSheet($model.isPresentingAlertMessage)
         .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(sheet: $0)
+            InfoSheetScene(model: $0)
         }
         .alert(
             model.modifyTitle,

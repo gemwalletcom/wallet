@@ -44,16 +44,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetPriceAlerts
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertItem
+import uniffi.gemstone.GemPriceAlertList
 import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemToast
 import uniffi.gemstone.PriceAlertFormatter
-import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -71,6 +71,7 @@ class PriceAlertsViewModel @Inject constructor(
 
     private val refreshState = MutableStateFlow(false)
     private val alertsEnabled = MutableStateFlow(service.isEnabled())
+    private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
     val assetId = savedStateHandle.getStateFlow<String?>(RouteArgument.AssetId.key, null)
         .mapLatest { it?.toAssetId() }
@@ -88,19 +89,18 @@ class PriceAlertsViewModel @Inject constructor(
     private val alerts = assetId.flatMapLatest { priceAlertsQuery(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val assetAlerts: StateFlow<GemAssetPriceAlerts?> = combine(assetInfo, alerts) { info, alerts ->
+    val assetAlerts: StateFlow<GemAssetPriceAlerts?> = combine(assetInfo, alerts, loadState) { info, alerts, state ->
         info ?: return@combine null
-        priceAlertFormatter.assetAlerts(info.asset.toGem(), info.price?.toGem(), alerts.map { it.toGem() }, service.getCurrency())
+        priceAlertFormatter.assetAlerts(info.asset.toGem(), info.price?.toGem(), alerts.map { it.toGem() }, service.getCurrency(), state)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val grouped = alerts.map { alerts ->
-        priceAlertFormatter.sections(alerts.map { it.toGem() }, service.getCurrency())
-            .map { section -> section.kind to section.items }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val list: StateFlow<GemPriceAlertList?> = combine(alerts, loadState) { alerts, state ->
+        priceAlertFormatter.list(alerts.map { it.toGem() }, service.getCurrency(), state)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val sections: StateFlow<List<ListSection<GemPriceAlertItem>>> = combine(grouped, assetAlerts, assetId) { grouped, assetAlerts, assetId ->
+    val sections: StateFlow<List<ListSection<GemPriceAlertItem>>> = combine(list, assetAlerts, assetId) { list, assetAlerts, assetId ->
         when (assetId) {
-            null -> grouped.map { (kind, items) -> ListSection(id = kind.sectionId(), title = kind.title(), items = items, footer = kind.footer(context)) }
+            null -> list?.sections.orEmpty().map { section -> ListSection(id = section.kind.sectionId(), title = section.kind.title(), items = section.items, footer = section.kind.footer(context)) }
 
             else -> assetAlerts?.alerts.orEmpty().takeIf { it.isNotEmpty() }?.let { alerts ->
                 listOf(ListSection(id = assetId.toIdentifier(), title = context.getString(R.string.stake_active), items = alerts))
@@ -119,15 +119,9 @@ class PriceAlertsViewModel @Inject constructor(
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
 
-    private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
-
-    val errorRow: StateFlow<GemListRow?> = combine(loadState, sections) { state, shown ->
-        loadError(state, shown.isNotEmpty())?.let { GemListRow.Error(it) }
+    val phase: StateFlow<GemListPhase?> = combine(assetId, list, assetAlerts) { assetId, list, assetAlerts ->
+        if (assetId == null) list?.phase else assetAlerts?.phase
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val showsEmpty: StateFlow<Boolean> = combine(assetId, assetAlerts, sections, errorRow) { assetId, assetAlerts, sections, errorRow ->
-        errorRow == null && if (assetId == null) sections.isEmpty() else assetAlerts?.showsEmpty == true
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         val initialAssetId = savedStateHandle.get<String?>(RouteArgument.AssetId.key)?.toAssetId()
@@ -148,7 +142,7 @@ class PriceAlertsViewModel @Inject constructor(
     }
 
     private suspend fun sync(assetId: String?) {
-        loadState.update { service.refresh(assetId, sections.value.isNotEmpty()) }
+        loadState.update { service.refresh(assetId) }
     }
 
     fun isAssetManage(): Boolean = assetId.value != null
@@ -165,7 +159,7 @@ class PriceAlertsViewModel @Inject constructor(
     }
 
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(ioDispatcher) {
-        val alert = grouped.value.flatMap { (_, items) -> items }.firstOrNull { it.id == priceAlertId } ?: return@launch
+        val alert = list.value?.sections.orEmpty().flatMap { it.items }.firstOrNull { it.id == priceAlertId } ?: return@launch
         runCatchingCancellable { service.deletePriceAlerts(listOf(alert.data.priceAlert)) }
             .onFailure { errorState.value = it.errorText().text(context) }
     }

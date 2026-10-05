@@ -72,7 +72,6 @@ import enum Gemstone.GemRewardsIntroItem
 import enum Gemstone.GemSecurityReminderItem
 import enum Gemstone.GemSelectAssetSection
 import enum Gemstone.GemSelectAssetTitle
-import enum Gemstone.GemSimulationPayloadTitle
 import enum Gemstone.GemSlippageFooter
 import enum Gemstone.GemStakeSection
 import enum Gemstone.GemSwapButtonAction
@@ -425,20 +424,6 @@ public extension Resource {
         switch self {
         case .bandwidth: Localized.Stake.Resource.bandwidth
         case .energy: Localized.Stake.Resource.energy
-        }
-    }
-}
-
-public extension GemSimulationPayloadTitle {
-    var text: String {
-        switch self {
-        case .contract: Localized.Asset.contract
-        case .method: Localized.Common.method
-        case .token: Localized.Common.token
-        case .spender: Localized.Transfer.to
-        case .value: Localized.Perpetual.value
-        case .expiration: Localized.Common.expiration
-        case let .custom(label): label
         }
     }
 }
@@ -945,6 +930,11 @@ public extension GemListRowTitle {
         case .transfer: Localized.Transfer.title
         case .swap: Localized.Wallet.swap
         case .contract: Localized.Asset.contract
+        case .method: Localized.Common.method
+        case .token: Localized.Common.token
+        case .spender: Localized.Transfer.to
+        case .value: Localized.Perpetual.value
+        case .expiration: Localized.Common.expiration
         case .tokenId: Localized.Asset.tokenId
         case .collection: Localized.Nft.collection
         }
@@ -993,6 +983,7 @@ extension GemTriggerOrder {
 public extension GemInfoTitle {
     var text: String {
         switch self {
+        case .notAvailable: Localized.Common.notAvailable
         case .networkFee: Localized.Info.NetworkFee.title
         case let .balanceRequired(symbol): Localized.Info.balanceRequiredTitle(symbol)
         case let .transactionState(state): state.toPrimitives().statusTitle
@@ -1030,6 +1021,7 @@ public extension GemInfoTitle {
 public extension GemInfoDescription {
     var text: String {
         switch self {
+        case .regionUnavailable: Localized.Info.regionUnavailableDescription
         case let .networkFee(network, symbol):
             Localized.Info.NetworkFee.description(network.boldMarkdown(), symbol.boldMarkdown())
         case let .balanceRequired(required, available, shortfall):

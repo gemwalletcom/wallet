@@ -118,7 +118,7 @@ public extension ViewModelFactory {
         amount: Int? = nil,
     ) -> FiatSceneViewModel {
         FiatSceneViewModel(
-            service: GemFiatQuoteService(fiat: fiatService, balances: balanceService, session: walletSessionService, recentActivity: recentAssetsService),
+            service: GemFiatQuoteService(fiat: fiatService, balances: balanceService, session: walletSessionService, recentActivity: recentAssetsService, config: configService),
             assetAddress: assetAddress,
             wallet: wallet,
             type: type,
@@ -138,6 +138,7 @@ public extension ViewModelFactory {
                 balances: balanceService,
                 stream: streamSubscriptionService,
                 session: walletSessionService,
+                config: configService,
             ),
             input: input,
             onSwap: onSwap,

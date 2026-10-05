@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">Tabbatar</string>
   <string name="warnings_externally_controlled_account">Wani na iya sarrafa wannan asusun %1$s. Kada ku tura kuɗi zuwa gare shi sai dai idan kun tabbata kuna sarrafa shi, in ba haka ba kuna iya rasa kadarorin ku na dindindin.</string>
   <string name="sell_title">Saya %1$s</string>
+  <string name="info_region_unavailable_description">Wannan fasalin ba ya samuwa a yankinku. Samuwarsa ya dogara da dokokin yankin da ka’idojin masu samar da sabis.</string>
   <string name="info_network_fee_title">Kudin hanyar sadarwa</string>
   <string name="info_watch_wallet_title">Kalli Wallet</string>
   <string name="info_watch_wallet_description">Wallet wanda ba ku da damar yin amfani da shi, amma kuna iya kallon ma\'amaloli da motsinsa.</string>

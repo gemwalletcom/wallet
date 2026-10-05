@@ -1,16 +1,17 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use chain_providers::ChainProviders;
-use streamer::{FetchBlocksPayload, StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
+use streamer::{FetchBlocksPayload, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 
 pub struct FetchBlocksConsumer {
     pub providers: ChainProviders,
-    pub stream_producer: StreamProducer,
+    pub stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl FetchBlocksConsumer {
-    pub fn new(providers: ChainProviders, stream_producer: StreamProducer) -> Self {
+    pub fn new(providers: ChainProviders, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { providers, stream_producer }
     }
 }

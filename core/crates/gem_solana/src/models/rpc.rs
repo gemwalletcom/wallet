@@ -22,9 +22,3 @@ pub struct Info<T> {
 }
 
 pub type AccountData = ValueData<Vec<String>>;
-
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Status {
-    pub ok: Option<String>,
-}

@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = Реферальний код д
 errors_generic = Сталася неочікувана помилка. Будь ласка, спробуйте пізніше.
 fiat_error_limit_reached = Забагато запитів котирувань. Будь ласка, спробуйте за кілька хвилин.
 fiat_error_quote_unavailable = Це котирування більше недоступне. Будь ласка, спробуйте ще раз.
+fiat_error_region_unavailable = Недоступно у вашому регіоні.
 rewards_error_referral_country_ineligible = Наразі реферали для вашої країни недоступні: {$value}.
 notification_rewards_disabled_title = Реферальний код деактивовано
 notification_rewards_disabled_description = Цей реферальний код було вимкнено через неодноразові порушення умов нашої реферальної програми.

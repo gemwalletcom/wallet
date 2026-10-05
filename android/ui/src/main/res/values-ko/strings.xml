@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">확인하다</string>
   <string name="warnings_externally_controlled_account">이 %1$s 계정은 다른 사람이 제어할 수 있습니다. 본인이 제어하고 있다는 확신이 없다면 이 계정으로 자금을 보내지 마십시오. 그렇지 않으면 자산을 영구적으로 잃을 수 있습니다.</string>
   <string name="sell_title">%1$s 판매</string>
+  <string name="info_region_unavailable_description">이 기능은 회원님의 지역에서 사용할 수 없습니다. 이용 가능 여부는 지역 규정과 서비스 제공업체의 요건에 따라 달라집니다.</string>
   <string name="info_network_fee_title">네트워크 수수료</string>
   <string name="info_watch_wallet_title">시계 지갑</string>
   <string name="info_watch_wallet_description">접근할 수는 없지만 거래 및 이동을 볼 수 있는 지갑입니다.</string>

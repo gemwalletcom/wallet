@@ -298,6 +298,7 @@ pub fn chart_layout(candles: &[ChartCandleStick], current: &ChartCandleStick, po
     GemPerpetualChartLayout {
         price_low,
         price_high,
+        levels: chart_levels(price_low, price_high, current.close),
         lines,
         current_price: GemFormattedNumber::adaptive(current.close, None),
         current_tone: value_tone(current.close - current.open),
@@ -306,7 +307,7 @@ pub fn chart_layout(candles: &[ChartCandleStick], current: &ChartCandleStick, po
     }
 }
 
-pub fn chart_levels(price_low: f64, price_high: f64, current_price: f64) -> Vec<GemFormattedNumber> {
+fn chart_levels(price_low: f64, price_high: f64, current_price: f64) -> Vec<GemFormattedNumber> {
     let span = price_high - price_low;
     let padding = span * CHART_RANGE_PADDING_FRACTION / (1.0 + 2.0 * CHART_RANGE_PADDING_FRACTION);
     let clearance = span * CHART_CURRENT_PRICE_CLEARANCE_FRACTION;
@@ -1191,11 +1192,7 @@ mod tests {
         assert_eq!(values(chart_levels(0.0, 33.0, 12.0)), vec![1.5, 21.5, 31.5]);
         let candles = [ChartCandleStick::mock_range(10.0, 20.0)];
         let layout = chart_layout(&candles, &candles[0], None);
-        assert_eq!(
-            values(chart_levels(layout.price_low, layout.price_high, 30.0)),
-            vec![10.0, 13.333333, 16.666667, 20.0],
-            "settled, the levels land on the candle range the way the axis always has"
-        );
+        assert_eq!(values(layout.levels), vec![10.0, 13.333333, 16.666667], "the layout carries the settled levels so drawing needs no callback into core");
     }
 
     #[test]

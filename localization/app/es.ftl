@@ -552,6 +552,8 @@ sell_title = Vender %@
 
 # Info
 
+info_region_unavailable_description = Esta función no está disponible en tu región. La disponibilidad depende de las normas locales y de los requisitos de los proveedores.
+
 info_network_fee_title = Tarifa de red
 info_watch_wallet_title = Billetera de observación
 info_watch_wallet_description = Una billetera a la que no tienes acceso, pero puedes observar sus transacciones y movimientos.

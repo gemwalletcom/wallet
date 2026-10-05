@@ -21,12 +21,12 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.listItemImage
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemNotificationRow
 
 @Composable
-fun InAppNotificationsScene(notifications: List<GemNotificationRow>, errorRow: GemListRow?, snackbar: SnackbarHostState, onAction: (InAppNotificationsAction) -> Unit) {
+fun InAppNotificationsScene(notifications: List<GemNotificationRow>, phase: GemListPhase, snackbar: SnackbarHostState, onAction: (InAppNotificationsAction) -> Unit) {
     Scene(
         title = stringResource(R.string.settings_notifications_title),
         onClose = { onAction(InAppNotificationsAction.Cancel) },
@@ -34,17 +34,15 @@ fun InAppNotificationsScene(notifications: List<GemNotificationRow>, errorRow: G
     ) {
         val context = LocalContext.current
         val sections = rememberDateSections(notifications) { it.createdAt }
-        if (notifications.isEmpty()) {
-            when (val row = errorRow) {
-                null -> EmptyContentView(
-                    kind = GemEmptyStateKind.NOTIFICATIONS,
-                    modifier = Modifier.fillMaxSize(),
-                )
+        when (phase) {
+            is GemListPhase.Empty -> EmptyContentView(
+                state = phase.state,
+                modifier = Modifier.fillMaxSize(),
+            )
 
-                else -> GemListRowView(row = row, listPosition = ListPosition.Single)
-            }
-        } else {
-            LazyColumn {
+            is GemListPhase.Error -> GemListRowView(row = GemListRow.Error(phase.error), listPosition = ListPosition.Single)
+
+            GemListPhase.Rows -> LazyColumn {
                 dateSectionedList(
                     sections = sections,
                     key = { _, notification -> notification.id },

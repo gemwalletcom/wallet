@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = Le nombre de codes de parrainage
 errors_generic = Une erreur inattendue s'est produite. Veuillez réessayer plus tard.
 fiat_error_limit_reached = Trop de demandes de devis. Veuillez réessayer dans quelques minutes.
 fiat_error_quote_unavailable = Ce devis n'est plus disponible. Veuillez réessayer.
+fiat_error_region_unavailable = Indisponible dans votre région.
 rewards_error_referral_country_ineligible = Les parrainages ne sont actuellement pas disponibles pour votre pays : {$value}.
 notification_rewards_disabled_title = Code de parrainage désactivé
 notification_rewards_disabled_description = Ce code de parrainage a été désactivé en raison de violations répétées des conditions de notre programme de parrainage.

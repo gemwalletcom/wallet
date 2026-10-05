@@ -46,6 +46,7 @@ A real fix is not deferred into a plan item. Adding the correct change to [Open 
 - Tests protect an independent contract: a business rule, failure boundary, or required wire/signing format. For a new or changed domain rule, invert it temporarily, run the targeted test, confirm failure, and restore it. A test that mocks the defect's owner proves nothing about that defect
 - For a high-impact bug with a deterministic seam, add the smallest test that materially reduces regression risk and write it before the fix; skip trivial, framework, formatting-only, and purely visual coverage unless asked or already cheap
 - "Tests pass" is not a green light if any were skipped, marked expected-failure, or gated behind features you did not run. Report what you executed
+- Do not add tests that only prove unchanged persistence mechanics, such as an upsert preserving a column omitted from its update list. Verify straightforward schema and operator-flag changes with focused database checks instead; a new regression test must protect independent behavior rather than restate the SQL or field mapping
 - Unit tests never spin up ad hoc HTTP/TCP servers. Use the platform testkit fixtures, pure mappers and parsers, or injected clients; when network behavior matters, use the gated integration tests
 
 Review criteria live in `skills/code-review.md`; this file is for writing code.

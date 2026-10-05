@@ -38,11 +38,10 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val assetAlerts by viewModel.assetAlerts.collectAsStateWithLifecycle()
-    val showsEmpty by viewModel.showsEmpty.collectAsStateWithLifecycle()
     val asset by viewModel.asset.collectAsStateWithLifecycle()
     val priceAlertEnabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
+    val phase by viewModel.phase.collectAsStateWithLifecycle()
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
         when (selecting) {
@@ -60,11 +59,10 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
             )
 
             false -> PriceAlertsScene(
-                errorRow = errorRow,
+                phase = phase,
                 asset = asset,
                 sections = sections,
                 assetAlerts = assetAlerts,
-                showsEmpty = showsEmpty,
                 enabled = priceAlertEnabled == true,
                 syncState = isRefreshing,
                 isAssetView = viewModel.isAssetManage(),

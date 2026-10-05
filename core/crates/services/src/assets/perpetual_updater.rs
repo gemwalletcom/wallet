@@ -1,19 +1,21 @@
 use std::error::Error;
+use std::sync::Arc;
 
-use chain_providers::ProviderFactory;
+use chain_providers::ChainProviders;
 use gem_tracing::error_with_fields;
 use primitives::{Chain, asset_score::AssetRank};
-use settings::{Settings, service_user_agent};
-use storage::{AssetUpdate, AssetsRepository, Database, DatabaseError, PerpetualsRepository};
+use storage::AssetUpdate;
+
+use crate::assets::repository::Repository;
 
 pub struct PerpetualUpdater {
-    settings: Settings,
-    database: Database,
+    providers: Arc<ChainProviders>,
+    repository: Arc<dyn Repository>,
 }
 
 impl PerpetualUpdater {
-    pub fn new(settings: Settings, database: Database) -> Self {
-        Self { settings, database }
+    pub(crate) fn new(providers: Arc<ChainProviders>, repository: Arc<dyn Repository>) -> Self {
+        Self { providers, repository }
     }
 
     pub fn chains() -> &'static [Chain] {
@@ -21,31 +23,19 @@ impl PerpetualUpdater {
     }
 
     pub async fn update_chain(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let provider = ProviderFactory::new_from_settings_with_user_agent(chain, &self.settings, &service_user_agent("daemon", Some("perpetual_updater")));
-        let perpetuals_data = provider.get_perpetuals_data().await?;
+        let perpetuals_data = self.providers.get_perpetuals_data(chain).await?;
 
         let assets = perpetuals_data.iter().map(|x| x.asset.clone()).collect::<Vec<_>>();
-        let asset_ids = assets.iter().map(|x| x.id.clone()).collect::<Vec<_>>();
         let perpetuals = perpetuals_data.into_iter().map(|data| data.perpetual).collect::<Vec<_>>();
         let count = perpetuals.len();
-
-        let perpetuals_update = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                client.upsert_assets(assets)?;
-                client.update_assets(
-                    asset_ids,
-                    vec![
-                        AssetUpdate::Rank(AssetRank::Unknown.threshold()),
-                        AssetUpdate::IsEnabled(false),
-                        AssetUpdate::IsSwappable(false),
-                        AssetUpdate::IsBuyable(false),
-                        AssetUpdate::IsSellable(false),
-                    ],
-                )?;
-                Ok(client.perpetuals_update(perpetuals))
-            })
-            .await?;
+        let asset_updates = vec![
+            AssetUpdate::Rank(AssetRank::Unknown.threshold()),
+            AssetUpdate::IsEnabled(false),
+            AssetUpdate::IsSwappable(false),
+            AssetUpdate::IsBuyable(false),
+            AssetUpdate::IsSellable(false),
+        ];
+        let perpetuals_update = self.repository.update_perpetuals(assets, asset_updates, perpetuals).await?;
 
         if let Err(error) = perpetuals_update {
             error_with_fields!("failed perpetuals update", &error, chain = chain.as_ref());

@@ -22,9 +22,16 @@ import GemstonePrimitivesTestKit
 import Primitives
 
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
+    public var isAvailableValue = true
+
+    public func isAvailable() -> Bool {
+        isAvailableValue
+    }
+
     private let quotes: @Sendable (BigInt) async throws -> [SwapperQuote]
     private let quoteData: Gemstone.SwapQuoteData
     private let quotesError: Error?
+    public var transferError: Error?
     private let pairSuggestion: GemSwapPairSuggestion?
     public private(set) var storedSlippageBps: UInt32?
     public private(set) var priceSubscriptions: [[AssetId]] = []
@@ -101,7 +108,8 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     }
 
     public func getTransfer(quote: SwapperQuote) async throws -> GemSwapTransfer {
-        GemSwapTransfer(
+        if let transferError { throw transferError }
+        return GemSwapTransfer(
             quote: quote.swapQuote,
             data: quoteData,
             recipient: quote.request.destinationAddress,

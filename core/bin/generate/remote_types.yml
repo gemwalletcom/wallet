@@ -97,6 +97,7 @@ remote:
   - Platform
   - PlatformStore
   - Wallet
+  - WalletListItem
   - WalletType
   - WalletSource
   - TpslType
@@ -333,6 +334,7 @@ mocks:
   - GemWalletConnectAuthAccount
   - GemWalletConnectMessageRequest
   - GemWalletConnectTransactionRequest
+  - GemWalletHomeViewState
   - GemWalletRow
   - GemWalletSearchResultsView
   - GemWalletSearchState
@@ -398,6 +400,7 @@ mocks:
   - TransactionSwapMetadata
   - TransferDataExtra
   - Wallet
+  - WalletListItem
   - WalletConnection
   - WalletConnectionSession
   - WalletConnectionSessionProposal

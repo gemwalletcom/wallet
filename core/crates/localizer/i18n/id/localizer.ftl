@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = Kode referensi telah mencapai ba
 errors_generic = Terjadi kesalahan yang tidak terduga. Silakan coba lagi nanti.
 fiat_error_limit_reached = Terlalu banyak permintaan penawaran. Silakan coba lagi dalam beberapa menit.
 fiat_error_quote_unavailable = Penawaran ini sudah tidak tersedia. Silakan coba lagi.
+fiat_error_region_unavailable = Tidak tersedia di wilayah Anda.
 rewards_error_referral_country_ineligible = Saat ini, program rujukan tidak tersedia untuk negara Anda: {$value}.
 notification_rewards_disabled_title = Kode referensi dinonaktifkan
 notification_rewards_disabled_description = Kode referensi ini telah dinonaktifkan karena pelanggaran berulang terhadap ketentuan program referensi kami.

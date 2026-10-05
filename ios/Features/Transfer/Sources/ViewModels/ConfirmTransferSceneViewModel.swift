@@ -16,7 +16,6 @@ import enum Gemstone.GemInfoAction
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemPreferencesServiceProtocol
-import struct Gemstone.GemSimulationPayloadRow
 import enum Gemstone.GemSubmitResult
 import struct Gemstone.GemTransferData
 import struct Gemstone.SimulationResult
@@ -96,11 +95,11 @@ public final class ConfirmTransferSceneViewModel {
         }.first ?? []
     }
 
-    public var primaryPayloadFields: [GemSimulationPayloadRow] { payload.primary }
-    public var secondaryPayloadFields: [GemSimulationPayloadRow] { payload.secondary }
+    public var primaryPayloadFields: [GemListRow] { payload.primary }
+    public var secondaryPayloadFields: [GemListRow] { payload.secondary }
 
-    private var payload: (primary: [GemSimulationPayloadRow], secondary: [GemSimulationPayloadRow]) {
-        viewState.sections.lazy.compactMap { section -> ([GemSimulationPayloadRow], [GemSimulationPayloadRow])? in
+    private var payload: (primary: [GemListRow], secondary: [GemListRow]) {
+        viewState.sections.lazy.compactMap { section -> ([GemListRow], [GemListRow])? in
             guard case let .payload(primary, secondary) = section else { return nil }
             return (primary, secondary)
         }.first ?? ([], [])
@@ -190,7 +189,7 @@ extension ConfirmTransferSceneViewModel {
         case .details:
             detailsItemModel
         case .payload:
-            .payload(fieldModels(for: primaryPayloadFields))
+            .payload(primaryPayloadFields)
         case let .balanceChange(index):
             .row(balanceChangeRows[index])
         case .networkFee:
@@ -242,14 +241,8 @@ extension ConfirmTransferSceneViewModel {
         onSelectGetAsset(asset.toPrimitives(), acquire: acquire)
     }
 
-    public func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
-        SimulationPayloadFieldViewModel.models(
-            for: fields,
-            onSelectAddress: { [weak self] address in
-                guard let self else { return }
-                onSelectAddress(ChainAddress(chain: request.data.chain, address: address))
-            },
-        )
+    public func onSelectPayloadAddress(_ address: String) {
+        onSelectAddress(ChainAddress(chain: request.data.chain, address: address))
     }
 
     func onSelectPayloadDetails() {

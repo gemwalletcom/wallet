@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::CacherClient;
+use cacher::{ChartsHistoryCacher, ObservedAssetsCacher, PerpetualAddressCacher, PriceMetadataCacher, SwapVaultAddressCacher, ThrottleCacher};
 use chain_providers::ChainProviders;
 use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
@@ -9,11 +9,12 @@ use config_keys::ConfigKey;
 use prices::{FiatRatesProvider, PriceAssetsProvider, PriceProvider};
 use primitives::{AccessTokenCacher, Chain, ChartTimeframe, JobConfiguration};
 use search_index::SearchIndexClient;
-use settings::{Settings, service_user_agent};
+use settings::service_user_agent;
 use storage::{Database, PricesProvidersRepository};
-use streamer::StreamProducer;
+use streamer::{StreamProducer, StreamProducerQueue};
 use swapper::swapper::GemSwapper;
 
+use crate::assets::repository::{PostgresRepository, Repository};
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
 use crate::fiat::{FiatAssetsUpdater, FiatRatesUpdater};
 use crate::notifications::{StakeRewardsConfig, StakingRewardsNotifier};
@@ -23,7 +24,7 @@ use crate::prices::{
     PricesCleanupUpdater, PricesMetricsUpdater, PricesUpdater,
 };
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
-use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater};
+use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater, SearchSyncClient};
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
 use crate::transactions::{CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
@@ -31,12 +32,12 @@ use crate::{ConfigCacher, Services, StaticAssetsClient};
 #[derive(Clone)]
 pub struct AlerterJobs {
     database: Database,
-    cacher: CacherClient,
+    throttle: Arc<dyn ThrottleCacher>,
     config: Arc<ConfigCacher>,
     price_alert_client: PriceAlertClient,
     chain_providers: Arc<ChainProviders>,
     stake_rewards_config: StakeRewardsConfig,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl AlerterJobs {
@@ -45,14 +46,19 @@ impl AlerterJobs {
     }
 
     pub fn staking_rewards_notifier(&self) -> StakingRewardsNotifier {
-        StakingRewardsNotifier::new(self.chain_providers.clone(), self.database.clone(), self.stake_rewards_config, self.cacher.clone(), self.stream_producer.clone())
+        StakingRewardsNotifier::new(
+            self.chain_providers.clone(),
+            Arc::new(crate::notifications::repository::PostgresRepository::new(self.database.clone())),
+            self.stake_rewards_config,
+            self.throttle.clone(),
+            self.stream_producer.clone(),
+        )
     }
 }
 
 #[derive(Clone)]
 pub struct AssetsJobs {
     database: Database,
-    settings: Arc<Settings>,
     classification_rules: AssetClassificationRules,
     usage_rank_config: UsageRankUpdaterConfig,
     static_assets_client: StaticAssetsClient,
@@ -60,31 +66,35 @@ pub struct AssetsJobs {
 
 impl AssetsJobs {
     pub fn asset_rank_updater(&self) -> AssetRankUpdater {
-        AssetRankUpdater::new(self.database.clone(), self.classification_rules.clone())
+        AssetRankUpdater::new(self.assets_repository(), self.classification_rules.clone())
     }
 
-    pub fn perpetual_updater(&self) -> PerpetualUpdater {
-        PerpetualUpdater::new(self.settings.as_ref().clone(), self.database.clone())
+    fn assets_repository(&self) -> Arc<dyn Repository> {
+        Arc::new(PostgresRepository::new(self.database.clone()))
+    }
+
+    pub fn perpetual_updater(&self, providers: Arc<ChainProviders>) -> PerpetualUpdater {
+        PerpetualUpdater::new(providers, self.assets_repository())
     }
 
     pub fn usage_rank_updater(&self) -> UsageRankUpdater {
-        UsageRankUpdater::new(self.database.clone(), self.usage_rank_config)
+        UsageRankUpdater::new(self.assets_repository(), self.usage_rank_config)
     }
 
     pub fn assets_images_updater(&self) -> AssetsImagesUpdater {
-        AssetsImagesUpdater::new(self.static_assets_client.clone(), self.database.clone())
+        AssetsImagesUpdater::new(self.static_assets_client.clone(), self.assets_repository())
     }
 
     pub fn assets_has_price_updater(&self) -> AssetsHasPriceUpdater {
-        AssetsHasPriceUpdater::new(self.database.clone())
+        AssetsHasPriceUpdater::new(self.assets_repository())
     }
 
     pub fn stake_apy_updater(&self, providers: Arc<ChainProviders>) -> StakeApyUpdater {
-        StakeApyUpdater::new(providers, self.database.clone())
+        StakeApyUpdater::new(providers, self.assets_repository())
     }
 
     pub fn validator_scanner(&self, providers: Arc<ChainProviders>) -> ValidatorScanner {
-        ValidatorScanner::new(providers, self.database.clone())
+        ValidatorScanner::new(providers, self.static_assets_client.clone(), self.assets_repository())
     }
 }
 
@@ -101,51 +111,57 @@ impl FiatJobs {
     }
 
     pub fn assets_updater(&self) -> FiatAssetsUpdater {
-        FiatAssetsUpdater::new(self.services.database(), self.services.fiat_providers(self.access_token_cacher.clone()))
+        FiatAssetsUpdater::new(self.services.fiat_repository(), self.services.fiat_providers(self.access_token_cacher.clone()))
     }
 }
 
 #[derive(Clone)]
 pub struct PerpetualJobs {
     database: Database,
-    cacher: CacherClient,
+    addresses: Arc<dyn PerpetualAddressCacher>,
     config: Arc<ConfigCacher>,
     providers: Arc<ChainProviders>,
     classifier_config: PerpetualPositionClassifierConfig,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PerpetualJobs {
     pub fn classifier(&self, chain: Chain) -> PerpetualPositionClassifier {
-        PerpetualPositionClassifier::new(chain, self.providers.clone(), self.cacher.clone(), self.classifier_config)
+        PerpetualPositionClassifier::new(chain, self.providers.clone(), self.addresses.clone(), self.classifier_config)
     }
 
     pub fn observer(&self, chain: Chain) -> PerpetualPositionObserver {
-        PerpetualPositionObserver::new(chain, self.providers.clone(), self.cacher.clone(), self.config.clone(), self.stream_producer.clone())
+        PerpetualPositionObserver::new(chain, self.providers.clone(), self.addresses.clone(), self.config.clone(), self.stream_producer.clone())
     }
 
     pub fn address_refresher(&self) -> PerpetualAddressRefresher {
-        PerpetualAddressRefresher::new(self.providers.clone(), self.database.clone(), self.cacher.clone())
+        PerpetualAddressRefresher::new(self.providers.clone(), Arc::new(crate::perpetuals::repository::PostgresRepository::new(self.database.clone())), self.addresses.clone())
     }
 }
 
 #[derive(Clone)]
 pub struct PriceJobs {
     database: Database,
-    cacher: CacherClient,
+    metadata_cooldowns: Arc<dyn PriceMetadataCacher>,
+    observed_assets: Arc<dyn ObservedAssetsCacher>,
+    charts_history: Arc<dyn ChartsHistoryCacher>,
     config: Arc<ConfigCacher>,
     price_client: PriceClient,
     markets_client: MarketsClient,
     coingecko: CoinGeckoClient,
     providers: AssetsProviders,
     enabled_providers: Vec<PriceProvider>,
-    assets_producer: StreamProducer,
-    prices_producer: StreamProducer,
+    assets_producer: Arc<dyn StreamProducerQueue>,
+    prices_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PriceJobs {
     pub fn config(&self) -> Arc<ConfigCacher> {
         self.config.clone()
+    }
+
+    fn prices_repository(&self) -> Arc<dyn crate::prices::repository::Repository> {
+        Arc::new(crate::prices::repository::PostgresRepository::new(self.database.clone()))
     }
 
     pub fn enabled_providers(&self) -> &[PriceProvider] {
@@ -157,15 +173,15 @@ impl PriceJobs {
     }
 
     pub fn assets_updater(&self, kind: PriceProvider) -> PricesUpdater {
-        PricesUpdater::new(self.provider(kind), self.database.clone(), self.price_client.clone(), self.assets_producer.clone())
+        PricesUpdater::new(self.provider(kind), self.prices_repository(), self.price_client.clone(), self.assets_producer.clone())
     }
 
     pub fn prices_updater(&self, kind: PriceProvider) -> PricesUpdater {
-        PricesUpdater::new(self.provider(kind), self.database.clone(), self.price_client.clone(), self.prices_producer.clone())
+        PricesUpdater::new(self.provider(kind), self.prices_repository(), self.price_client.clone(), self.prices_producer.clone())
     }
 
     pub async fn publish_assets_metadata(&self, kind: PriceProvider) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        self.assets_updater(kind).publish_assets_metadata(&self.cacher, &self.config).await
+        self.assets_updater(kind).publish_assets_metadata(self.metadata_cooldowns.as_ref(), &self.config).await
     }
 
     pub async fn update_observed_prices(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -174,25 +190,32 @@ impl PriceJobs {
             min_observers: self.config.get_usize(ConfigKey::PriceObservedMinObservers).await?,
             primary_price_max_age: self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?,
         };
-        ObservedPricesUpdater::new(self.cacher.clone(), self.database.clone(), self.price_client.clone(), self.providers.clone(), self.prices_producer.clone(), observed_config)
-            .update()
-            .await
+        ObservedPricesUpdater::new(
+            self.observed_assets.clone(),
+            self.prices_repository(),
+            self.price_client.clone(),
+            self.providers.clone(),
+            self.prices_producer.clone(),
+            observed_config,
+        )
+        .update()
+        .await
     }
 
     pub fn missing_prices_publisher(&self) -> MissingPricesPublisher {
-        MissingPricesPublisher::new(self.database.clone(), self.prices_producer.clone())
+        MissingPricesPublisher::new(self.prices_repository(), self.prices_producer.clone())
     }
 
     pub fn cleanup_updater(&self, kind: PriceProvider) -> PricesCleanupUpdater {
-        PricesCleanupUpdater::new(self.database.clone(), self.cacher.clone(), self.config.clone(), kind)
+        PricesCleanupUpdater::new(self.prices_repository(), self.charts_history.clone(), self.config.clone(), kind)
     }
 
     pub fn metrics_updater(&self, kind: PriceProvider) -> PricesMetricsUpdater {
-        PricesMetricsUpdater::new(self.database.clone(), kind)
+        PricesMetricsUpdater::new(self.prices_repository(), kind)
     }
 
     pub fn charts_history_updater(&self, kind: PriceProvider, config: ChartsHistoryConfig) -> ChartsHistoryUpdater {
-        ChartsHistoryUpdater::new(self.provider(kind), self.database.clone(), self.cacher.clone(), config)
+        ChartsHistoryUpdater::new(self.provider(kind), self.prices_repository(), self.charts_history.clone(), config)
     }
 
     pub fn markets_updater(&self) -> MarketsUpdater {
@@ -222,16 +245,20 @@ fn charts_retention_key(timeframe: ChartTimeframe) -> ConfigKey {
 pub struct RewardsJobs {
     database: Database,
     config: Arc<ConfigCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl RewardsJobs {
+    fn rewards_repository(&self) -> Arc<dyn crate::rewards::repository::Repository> {
+        Arc::new(crate::rewards::repository::PostgresRepository::new(self.database.clone()))
+    }
+
     pub fn abuse_checker(&self) -> RewardsAbuseChecker {
-        RewardsAbuseChecker::new(self.database.clone(), self.config.clone(), self.stream_producer.clone())
+        RewardsAbuseChecker::new(self.rewards_repository(), self.config.clone(), self.stream_producer.clone())
     }
 
     pub fn eligibility_checker(&self) -> RewardsEligibilityChecker {
-        RewardsEligibilityChecker::new(self.database.clone(), self.config.clone(), self.stream_producer.clone())
+        RewardsEligibilityChecker::new(self.rewards_repository(), self.config.clone(), self.stream_producer.clone())
     }
 }
 
@@ -244,45 +271,57 @@ pub struct SearchJobs {
 
 impl SearchJobs {
     pub fn assets_index_updater(&self) -> AssetsIndexUpdater {
-        AssetsIndexUpdater::new(self.database.clone(), self.config.clone(), &self.search_index)
+        AssetsIndexUpdater::new(self.search_repository(), self.config.clone(), self.sync_client())
     }
 
     pub fn asset_lists_index_updater(&self) -> AssetListsIndexUpdater {
-        AssetListsIndexUpdater::new(self.database.clone(), &self.search_index)
+        AssetListsIndexUpdater::new(self.search_repository(), self.search_index.clone())
     }
 
     pub fn perpetuals_index_updater(&self) -> PerpetualsIndexUpdater {
-        PerpetualsIndexUpdater::new(self.database.clone(), self.config.clone(), &self.search_index)
+        PerpetualsIndexUpdater::new(self.search_repository(), self.sync_client())
     }
 
     pub fn nfts_index_updater(&self) -> NftsIndexUpdater {
-        NftsIndexUpdater::new(self.database.clone(), self.config.clone(), &self.search_index)
+        NftsIndexUpdater::new(self.search_repository(), self.sync_client())
+    }
+
+    fn search_repository(&self) -> Arc<dyn crate::search::repository::Repository> {
+        Arc::new(crate::search::repository::PostgresRepository::new(self.database.clone()))
+    }
+
+    fn sync_client(&self) -> SearchSyncClient {
+        SearchSyncClient::new(self.config.clone(), self.search_index.clone())
     }
 }
 
 #[derive(Clone)]
 pub struct SystemJobs {
     database: Database,
-    cacher: CacherClient,
+    throttle: Arc<dyn ThrottleCacher>,
     cleanup_config: TransactionCleanupConfig,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl SystemJobs {
+    fn system_repository(&self) -> Arc<dyn crate::system::repository::Repository> {
+        Arc::new(crate::system::repository::PostgresRepository::new(self.database.clone()))
+    }
+
     pub fn transaction_cleanup(&self) -> TransactionCleanup {
-        TransactionCleanup::new(self.database.clone(), self.cleanup_config.clone())
+        TransactionCleanup::new(self.system_repository(), self.cleanup_config.clone())
     }
 
     pub fn device_updater(&self) -> DeviceUpdater {
-        DeviceUpdater::new(self.database.clone())
+        DeviceUpdater::new(self.system_repository())
     }
 
     pub fn inactive_devices_observer(&self) -> InactiveDevicesObserver {
-        InactiveDevicesObserver::new(self.database.clone(), self.cacher.clone(), self.stream_producer.clone())
+        InactiveDevicesObserver::new(self.system_repository(), self.throttle.clone(), self.stream_producer.clone())
     }
 
     pub fn version_updater(&self) -> VersionUpdater {
-        VersionUpdater::new(self.database.clone())
+        VersionUpdater::new(self.system_repository())
     }
 }
 
@@ -291,7 +330,7 @@ pub struct TransactionJobs {
     in_transit_updater: Arc<InTransitUpdater>,
     pending_updater: Arc<PendingTransactionsUpdater>,
     swapper: Arc<GemSwapper>,
-    cacher: CacherClient,
+    vault_addresses: Arc<dyn SwapVaultAddressCacher>,
 }
 
 impl TransactionJobs {
@@ -304,7 +343,7 @@ impl TransactionJobs {
     }
 
     pub fn vault_addresses_updater(&self) -> VaultAddressesUpdater {
-        VaultAddressesUpdater::new(self.swapper.clone(), self.cacher.clone())
+        VaultAddressesUpdater::new(self.swapper.clone(), self.vault_addresses.clone())
     }
 }
 
@@ -313,7 +352,7 @@ impl Services {
         let config = self.config();
         Ok(AlerterJobs {
             database: self.database(),
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
             price_alert_client: self.price_alerts(),
             chain_providers: Arc::new(self.chain_providers(&service_user_agent("daemon", Some("stake_rewards")))),
             stake_rewards_config: StakeRewardsConfig {
@@ -321,21 +360,19 @@ impl Services {
                 lookback: config.get_duration(ConfigKey::AlerterStakeRewardsLookback).await?,
             },
             config,
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         })
     }
 
     pub async fn assets_jobs(&self) -> Result<AssetsJobs, Box<dyn Error + Send + Sync>> {
         let config = self.config();
-        let settings = self.settings();
         Ok(AssetsJobs {
             database: self.database(),
             classification_rules: AssetClassificationRules::from_config(&config).await?,
             usage_rank_config: UsageRankUpdaterConfig {
                 batch_size: config.get_usize(ConfigKey::AssetsUsageRankBatchSize).await?,
             },
-            static_assets_client: StaticAssetsClient::new(&settings.assets.url),
-            settings,
+            static_assets_client: StaticAssetsClient::new(&self.settings().assets.url),
         })
     }
 
@@ -351,7 +388,7 @@ impl Services {
         let config = self.config();
         Ok(PerpetualJobs {
             database: self.database(),
-            cacher: self.cacher().await?,
+            addresses: Arc::new(self.cacher().await?),
             providers: Arc::new(self.chain_providers(&service_user_agent("daemon", Some("perpetual_observer")))),
             classifier_config: PerpetualPositionClassifierConfig {
                 trigger_bps: config.get_i64(ConfigKey::PerpetualPriorityTriggerBps).await?,
@@ -359,7 +396,7 @@ impl Services {
                 concurrency: config.get_usize(ConfigKey::PerpetualClassifierConcurrency).await?,
             },
             config,
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         })
     }
 
@@ -380,10 +417,12 @@ impl Services {
             coingecko: CoinGeckoClient::new(self.settings().prices.coingecko.remote_provider_config()),
             config: self.config(),
             database,
-            cacher,
+            metadata_cooldowns: Arc::new(cacher.clone()),
+            observed_assets: Arc::new(cacher.clone()),
+            charts_history: Arc::new(cacher),
             enabled_providers,
-            assets_producer,
-            prices_producer,
+            assets_producer: Arc::new(assets_producer),
+            prices_producer: Arc::new(prices_producer),
         })
     }
 
@@ -391,7 +430,7 @@ impl Services {
         RewardsJobs {
             database: self.database(),
             config: self.config(),
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         }
     }
 
@@ -408,20 +447,21 @@ impl Services {
         let config = self.config();
         Ok(SystemJobs {
             database: self.database(),
-            cacher: self.cacher().await?,
+            throttle: Arc::new(self.cacher().await?),
             cleanup_config: TransactionCleanupConfig {
                 address_max_count: config.get_i64(ConfigKey::TransactionCleanupAddressMaxCount).await?,
                 address_limit: config.get_usize(ConfigKey::TransactionCleanupAddressLimit).await?,
                 lookback: config.get_duration(ConfigKey::TransactionCleanupLookback).await?,
             },
-            stream_producer,
+            stream_producer: Arc::new(stream_producer),
         })
     }
 
     pub async fn transaction_jobs(&self, stream_producer: StreamProducer, metrics: Arc<dyn TransactionQueueMetrics>) -> Result<TransactionJobs, Box<dyn Error + Send + Sync>> {
         let config = self.config();
-        let database = self.database();
+        let repository = self.transactions_repository();
         let cacher = self.cacher().await?;
+        let stream_producer: Arc<dyn StreamProducerQueue> = Arc::new(stream_producer);
         let in_transit_config = InTransitConfig {
             timeout: config.get_duration(ConfigKey::TransactionInTransitTimeout).await?,
             query_limit: config.get_i64(ConfigKey::TransactionInTransitQueryLimit).await?,
@@ -435,20 +475,28 @@ impl Services {
         let providers = Arc::new(self.chain_providers(&service_user_agent("daemon", Some("transactions"))));
         let swapper = self.swapper();
         let in_transit_updater = InTransitUpdater::new(
-            database.clone(),
+            repository.clone(),
             in_transit_config,
             swapper.clone(),
             stream_producer.clone(),
-            SwapVaultAddressClient::new(cacher.clone()),
+            SwapVaultAddressClient::new(Arc::new(cacher.clone())),
             metrics.clone(),
-            CheckSchedule::new(cacher.clone(), TransactionQueue::InTransit),
+            CheckSchedule::new(Arc::new(cacher.clone()), TransactionQueue::InTransit),
         );
-        let pending_updater = PendingTransactionsUpdater::new(providers, cacher.clone(), stream_producer, database, pending_config, metrics, CheckSchedule::new(cacher.clone(), TransactionQueue::Pending));
+        let pending_updater = PendingTransactionsUpdater::new(
+            providers,
+            Arc::new(cacher.clone()),
+            stream_producer,
+            repository,
+            pending_config,
+            metrics,
+            CheckSchedule::new(Arc::new(cacher.clone()), TransactionQueue::Pending),
+        );
         Ok(TransactionJobs {
             in_transit_updater: Arc::new(in_transit_updater),
             pending_updater: Arc::new(pending_updater),
             swapper,
-            cacher,
+            vault_addresses: Arc::new(cacher),
         })
     }
 }

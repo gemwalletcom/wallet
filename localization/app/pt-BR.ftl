@@ -552,6 +552,8 @@ sell_title = Vender %@
 
 # Info
 
+info_region_unavailable_description = Este recurso não está disponível na sua região. A disponibilidade depende das regras locais e dos requisitos dos provedores.
+
 info_network_fee_title = Taxa de rede
 info_watch_wallet_title = Assistir carteira
 info_watch_wallet_description = Uma carteira à qual você não tem acesso, mas pode monitorar suas transações e movimentos.

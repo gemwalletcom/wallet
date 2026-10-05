@@ -6,6 +6,7 @@ pub enum FiatQuoteError {
     UnsupportedState(String),
     InvalidRequest(String),
     InvalidWebhook,
+    RegionUnavailable,
 }
 
 impl fmt::Display for FiatQuoteError {
@@ -15,6 +16,7 @@ impl fmt::Display for FiatQuoteError {
             Self::UnsupportedState(state) => write!(f, "Unsupported state: {}", state),
             Self::InvalidRequest(msg) => write!(f, "Invalid request: {}", msg),
             Self::InvalidWebhook => write!(f, "Invalid webhook payload"),
+            Self::RegionUnavailable => write!(f, "Not available in your region"),
         }
     }
 }

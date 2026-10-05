@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = Yönlendirme kodu limitine ulaş
 errors_generic = Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.
 fiat_error_limit_reached = Çok fazla fiyat teklifi isteği. Lütfen birkaç dakika sonra tekrar deneyin.
 fiat_error_quote_unavailable = Bu fiyat teklifi artık geçerli değil. Lütfen tekrar deneyin.
+fiat_error_region_unavailable = Bölgenizde kullanılamıyor.
 rewards_error_referral_country_ineligible = Şu anda ülkeniz için yönlendirme hizmeti mevcut değil: {$value}.
 notification_rewards_disabled_title = Yönlendirme kodu devre dışı bırakıldı.
 notification_rewards_disabled_description = Bu yönlendirme kodu, yönlendirme programı şartlarımızın tekrar tekrar ihlal edilmesi nedeniyle devre dışı bırakılmıştır.

@@ -17,7 +17,7 @@ public final class SettingsSceneViewModel {
     private let service: any GemSettingsServiceProtocol
     private let observablePreferences: ObservablePreferences
 
-    public let walletsQuery = ObservableQuery(WalletsQuery(isPinned: .none), initialValue: [Wallet]())
+    public let walletsQuery = ObservableQuery(WalletListItemsQuery(), initialValue: [WalletListItem]())
 
     public init(
         service: any GemSettingsServiceProtocol,

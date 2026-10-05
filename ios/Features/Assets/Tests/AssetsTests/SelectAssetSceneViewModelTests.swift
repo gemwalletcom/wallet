@@ -26,16 +26,16 @@ struct SelectAssetSceneViewModelTests {
 
     @Test
     func showEmpty() {
-        #expect(listState(SelectAssetSceneViewModel.mock(assets: [])) != .idle)
-        #expect(listState(SelectAssetSceneViewModel.mock(assets: [AssetData.mock(metadata: .mock(isPinned: true))])) == .idle)
-        #expect(listState(SelectAssetSceneViewModel.mock(assets: [AssetData.mock(metadata: .mock(isPinned: false))])) == .idle)
+        #expect(SelectAssetSceneViewModel.mock(assets: []).view.state != .idle)
+        #expect(SelectAssetSceneViewModel.mock(assets: [AssetData.mock(metadata: .mock(isPinned: true))]).view.state == .idle)
+        #expect(SelectAssetSceneViewModel.mock(assets: [AssetData.mock(metadata: .mock(isPinned: false))]).view.state == .idle)
     }
 
     @Test
     func showLoading() {
         let pinnedAsset = AssetData.mock(metadata: .mock(isPinned: true))
-        #expect(listState(SelectAssetSceneViewModel.mock(assets: [], state: .loading)) == .loading)
-        #expect(listState(SelectAssetSceneViewModel.mock(assets: [pinnedAsset], state: .loading)) != .loading)
+        #expect(SelectAssetSceneViewModel.mock(assets: [], state: .loading).view.state == .loading)
+        #expect(SelectAssetSceneViewModel.mock(assets: [pinnedAsset], state: .loading).view.state != .loading)
     }
 
     @Test
@@ -81,9 +81,5 @@ struct SelectAssetSceneViewModelTests {
         await model.setAssetEnabled(assetId: .mock(), enabled: true)
 
         #expect(model.isPresentingToastMessage != nil)
-    }
-
-    private func listState(_ model: SelectAssetSceneViewModel) -> GemSelectAssetState {
-        model.listState(model.sections)
     }
 }

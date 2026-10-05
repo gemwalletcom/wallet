@@ -44504,6 +44504,197 @@
         }
       }
     },
+    "info.region_unavailable_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذه الميزة غير متاحة في منطقتك. يعتمد التوفر على القواعد المحلية ومتطلبات مزودي الخدمة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই বৈশিষ্ট্যটি আপনার অঞ্চলে উপলব্ধ নয়। উপলব্ধতা স্থানীয় নিয়ম এবং পরিষেবা প্রদানকারীর শর্তের ওপর নির্ভর করে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tato funkce není ve vašem regionu k dispozici. Dostupnost závisí na místních pravidlech a požadavcích poskytovatelů."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne funktion er ikke tilgængelig i din region. Tilgængelighed afhænger af lokale regler og udbydernes krav."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Funktion ist in deiner Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This feature is not available in your region. Availability depends on local rules and provider requirements."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta función no está disponible en tu región. La disponibilidad depende de las normas locales y de los requisitos de los proveedores."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "این قابلیت در منطقه شما در دسترس نیست. دسترسی به قوانین محلی و الزامات ارائه‌دهندگان بستگی دارد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi available ang feature na ito sa iyong rehiyon. Nakadepende ang availability sa mga lokal na patakaran at mga kinakailangan ng mga provider."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette fonctionnalité n’est pas disponible dans votre région. La disponibilité dépend des règles locales et des exigences des prestataires."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wannan fasalin ba ya samuwa a yankinku. Samuwarsa ya dogara da dokokin yankin da ka’idojin masu samar da sabis."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תכונה זו אינה זמינה באזור שלך. הזמינות תלויה בכללים המקומיים ובדרישות של ספקי השירות."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह सुविधा आपके क्षेत्र में उपलब्ध नहीं है। उपलब्धता स्थानीय नियमों और सेवा प्रदाताओं की आवश्यकताओं पर निर्भर करती है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fitur ini tidak tersedia di wilayah Anda. Ketersediaan bergantung pada aturan setempat dan persyaratan penyedia."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa funzione non è disponibile nella tua regione. La disponibilità dipende dalle norme locali e dai requisiti dei fornitori."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この機能はお住まいの地域では利用できません。 利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기능은 회원님의 지역에서 사용할 수 없습니다. 이용 가능 여부는 지역 규정과 서비스 제공업체의 요건에 따라 달라집니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciri ini tidak tersedia di rantau anda. Ketersediaan bergantung pada peraturan setempat dan syarat penyedia."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze functie is niet beschikbaar in je regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta funkcja nie jest dostępna w Twoim regionie. Dostępność zależy od lokalnych przepisów i wymagań dostawców."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este recurso não está disponível na sua região. A disponibilidade depende das regras locais e dos requisitos dos provedores."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Această funcție nu este disponibilă în regiunea ta. Disponibilitatea depinde de regulile locale și de cerințele furnizorilor."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эта функция недоступна в вашем регионе. Доступность зависит от местных правил и требований провайдеров."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kipengele hiki hakipatikani katika eneo lako. Upatikanaji hutegemea kanuni za eneo na masharti ya watoa huduma."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ฟีเจอร์นี้ไม่พร้อมให้บริการในภูมิภาคของคุณ ความพร้อมให้บริการขึ้นอยู่กับกฎในท้องถิ่นและข้อกำหนดของผู้ให้บริการ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu özellik bölgenizde kullanılamıyor. Kullanılabilirlik, yerel kurallara ve sağlayıcıların gereksinimlerine bağlıdır."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ця функція недоступна у вашому регіоні. Доступність залежить від місцевих правил і вимог провайдерів."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یہ خصوصیت آپ کے علاقے میں دستیاب نہیں ہے۔ دستیابی مقامی قواعد اور سروس فراہم کرنے والوں کی ضروریات پر منحصر ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tính năng này không khả dụng ở khu vực của bạn. Khả năng sử dụng phụ thuộc vào quy định địa phương và yêu cầu của nhà cung cấp."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此功能在您所在的地区不可用。 可用性取决于当地规定和服务提供商的要求。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此功能在您所在的地區無法使用。 可用性取決於當地規定和服務提供者的要求。"
+          }
+        }
+      }
+    },
     "info.slippage.description": {
       "extractionState": "manual",
       "localizations": {
@@ -48886,13 +49077,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。你的钱包是安全的。"
+            "value": "Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。钱包仍然安全。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。你的錢包是安全的。"
+            "value": "Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。錢包仍然安全。"
           }
         }
       }

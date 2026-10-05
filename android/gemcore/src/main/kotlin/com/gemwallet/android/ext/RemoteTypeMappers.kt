@@ -2126,3 +2126,19 @@ fun com.wallet.core.primitives.WalletConnectionSessionProposal.toGem(): uniffi.g
     wallets = wallets.map { it.toGem() },
     metadata = metadata.toGem(),
 )
+
+fun uniffi.gemstone.WalletListItem.toPrimitives(): com.wallet.core.primitives.WalletListItem = com.wallet.core.primitives.WalletListItem(
+    id = com.wallet.core.primitives.WalletId(id),
+    name = name,
+    index = index,
+    isPinned = isPinned,
+    imageUrl = imageUrl,
+)
+
+fun com.wallet.core.primitives.WalletListItem.toGem(): uniffi.gemstone.WalletListItem = uniffi.gemstone.WalletListItem(
+    id = id.toIdentifier(),
+    name = name,
+    index = index,
+    isPinned = isPinned,
+    imageUrl = imageUrl,
+)

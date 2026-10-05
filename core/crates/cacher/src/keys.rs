@@ -3,7 +3,7 @@ use primitives::{SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE};
 
 const SECONDS_PER_YEAR: u64 = 365 * SECONDS_PER_DAY;
 
-pub enum CacheKey<'a> {
+pub(crate) enum CacheKey<'a> {
     ReferralIpCheck(&'a str),
 
     InactiveDeviceObserver(&'a str),
@@ -27,6 +27,7 @@ pub enum CacheKey<'a> {
     RateLimit(RateLimitKey, &'a str, RateLimitWindow),
 
     AuthNonce(&'a str, &'a str),
+    AccessToken(&'a str, u64),
 
     AddressStatus(&'a str, &'a str),
 
@@ -57,7 +58,7 @@ pub enum CacheKey<'a> {
 }
 
 impl CacheKey<'_> {
-    pub fn key(&self) -> String {
+    pub(crate) fn key(&self) -> String {
         match self {
             Self::ReferralIpCheck(ip_address) => format!("referral:ip_check:{}", ip_address),
             Self::InactiveDeviceObserver(device_id) => format!("device:inactive_observer:{}", device_id),
@@ -77,6 +78,7 @@ impl CacheKey<'_> {
             Self::FiatIpCheck(ip_address) => format!("fiat:ip_check:{}", ip_address),
             Self::RateLimit(key, scope, window) => format!("rate_limit:{}:{}:{}", key.as_ref(), window.as_ref(), scope),
             Self::AuthNonce(device_id, nonce) => format!("auth:nonce:{}:{}", device_id, nonce),
+            Self::AccessToken(provider, _) => format!("access_token:{}", provider),
             Self::AddressStatus(chain, address) => format!("address:status:{}:{}", chain, address),
             Self::JobStatus(name) => format!("jobs:status:{}", name),
             Self::Markets => "markets:markets".to_string(),
@@ -97,7 +99,7 @@ impl CacheKey<'_> {
         }
     }
 
-    pub fn ttl(&self) -> u64 {
+    pub(crate) fn ttl(&self) -> u64 {
         match self {
             Self::ReferralIpCheck(_) => SECONDS_PER_DAY,
             Self::InactiveDeviceObserver(_) => 30 * SECONDS_PER_DAY,
@@ -116,6 +118,7 @@ impl CacheKey<'_> {
             Self::FiatIpCheck(_) => SECONDS_PER_DAY,
             Self::RateLimit(_, _, window) => window.duration().as_secs(),
             Self::AuthNonce(_, _) => 5 * SECONDS_PER_MINUTE,
+            Self::AccessToken(_, ttl) => *ttl,
             Self::AddressStatus(_, _) => SECONDS_PER_YEAR,
             Self::JobStatus(_) => 7 * SECONDS_PER_DAY,
             Self::Markets => SECONDS_PER_DAY,

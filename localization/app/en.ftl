@@ -1009,6 +1009,8 @@ sell_title = Sell %@
 
 # Info
 
+info_region_unavailable_description = This feature is not available in your region. Availability depends on local rules and provider requirements.
+
 # Used in Info bottom sheets for the network fee title.
 info_network_fee_title = Network Fee
 # Used in Info bottom sheets for the watch wallet title.

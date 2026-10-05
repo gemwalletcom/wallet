@@ -1,19 +1,14 @@
 mod admin;
-mod api_clients;
-mod assets;
 mod auth;
 mod catchers;
-mod chain;
 mod config;
 mod devices;
 mod markets;
 mod metrics;
 mod model;
 mod nft;
-mod params;
 mod prices;
 mod referral;
-mod responders;
 mod status;
 mod support;
 mod swap;
@@ -30,6 +25,7 @@ use strum::IntoEnumIterator;
 
 use ::defi::{DefiProviderClient, DefiProviderConfig};
 use ::nft::{NFTProviderClient, NFTProviderConfig};
+use api::{api_clients, assets, chain, params, responders};
 use chain_providers::ProviderFactory;
 use model::APIService;
 use name_resolver::{NameClient, NameConfig, NameProviderFactory};
@@ -178,7 +174,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
 
     let price_client = services.prices(cacher_client.clone());
     let charts_client = services.charts();
-    let config_client = services.app_config();
+    let config_client = services.app_config().await?;
     let price_alert_client = services.price_alerts();
     let name_config = NameConfig {
         max_name_length: settings_clone.name.max_name_length,
@@ -205,7 +201,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let scan_client = services.scan(providers, cacher_client.clone(), metrics.clone());
     let wallet_configuration_client = services.wallet_configuration(cacher_client.clone(), &user_agent);
     let assets_client = services.assets();
-    let search_client = services.search(price_client.clone()).await?;
+    let search_client = services.search(cacher_client.clone()).await?;
     let fee_estimates_client = services.fee_estimates(assets_client.clone(), price_client.clone(), cacher_client.clone(), &user_agent);
     let swap_client = services.swap();
     let fiat_client = services.fiat(stream_producer.clone()).await?;

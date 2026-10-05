@@ -4,35 +4,33 @@ use std::sync::Arc;
 use super::sync::{SearchSyncClient, SearchSyncResult};
 use crate::ConfigCacher;
 use config_keys::ConfigKey;
-use search_index::{ASSETS_INDEX_NAME, AssetDocument, SearchIndexClient, sanitize_index_primary_id};
-use storage::{AssetTagLink, AssetWithMarket, AssetsUsageRanksRepository, AssetsWithPricesFilter, Database, DatabaseError, PricesRepository, TagRepository};
+use search_index::{ASSETS_INDEX_NAME, AssetDocument, sanitize_index_primary_id};
+use storage::{AssetTagLink, AssetWithMarket, AssetsWithPricesFilter};
+
+use super::repository::Repository;
 
 pub struct AssetsIndexUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
     sync_client: SearchSyncClient,
     config: Arc<ConfigCacher>,
 }
 
 impl AssetsIndexUpdater {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, search_index: &SearchIndexClient) -> Self {
-        Self {
-            sync_client: SearchSyncClient::new(config.clone(), search_index),
-            database,
-            config,
-        }
+    pub(crate) fn new(repository: Arc<dyn Repository>, config: Arc<ConfigCacher>, sync_client: SearchSyncClient) -> Self {
+        Self { repository, sync_client, config }
     }
 
     pub async fn update(&self) -> Result<SearchSyncResult, Box<dyn std::error::Error + Send + Sync>> {
         let sync = self.sync_client.for_key(ConfigKey::SearchAssetsLastUpdatedAt).await?;
         let filters = sync.since().map(AssetsWithPricesFilter::UpdatedSince).into_iter().collect();
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
-        let assets = self.database.run(move |client| client.get_assets_markets(filters, primary_price_max_age)).await?;
+        let assets = self.repository.assets_markets(filters, primary_price_max_age).await?;
 
         if assets.is_empty() {
             return sync.write(ASSETS_INDEX_NAME, Vec::<AssetDocument>::new()).await;
         }
 
-        let (usage_ranks, assets_tags) = self.database.run(|client| -> Result<_, DatabaseError> { Ok((client.get_all_usage_ranks()?, client.get_assets_tags()?)) }).await?;
+        let (usage_ranks, assets_tags) = self.repository.usage_ranks_and_assets_tags().await?;
         let assets_tags_map = Self::asset_tags_by_asset(assets_tags);
         let usage_ranks_map: HashMap<String, i32> = usage_ranks.into_iter().map(|(asset_id, usage_rank)| (asset_id.to_string(), usage_rank)).collect();
 

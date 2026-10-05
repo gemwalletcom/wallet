@@ -1,5 +1,5 @@
 use super::api_clients::setup_api_client_grants;
-use super::database::run_migrations;
+use super::repository::{Repository, SetupSeed};
 use super::scan_addresses::setup_scan_addresses;
 use crate::Services;
 use config_keys::{ConfigKey, ConfigParamKey};
@@ -7,20 +7,19 @@ use gem_tracing::info_with_fields;
 use primitives::{Asset, AssetTag, Chain, FiatProviderName, NFTChain, PlatformStore as PrimitivePlatformStore, PriceProvider, Release};
 use search_index::{INDEX_CONFIGS, INDEX_PRIMARY_KEY};
 use settings::Settings;
-use std::collections::HashSet;
 use std::sync::Arc;
-use storage::{ApiClientsRepository, AssetsRepository, ChainsRepository, ConfigRepository, Database, DatabaseError, FiatRepository, ParserStateRepository, PricesProvidersRepository, ReleasesRepository, TagRepository};
 use streamer::{ExchangeKind, ExchangeName, QueueName};
 
 pub async fn run_setup(settings: Settings) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     info_with_fields!("setup", step = "init");
 
     let services = Services::new(Arc::new(settings))?;
-    let database = services.database();
-    run_migrations(&database, "setup").await?;
+    let repository = services.setup_repository();
+    repository.run_migrations().await?;
+    info_with_fields!("setup", step = "postgres migrations complete");
 
-    setup_database(&database).await?;
-    setup_scan_addresses(&database).await?;
+    seed_database(repository.as_ref()).await?;
+    setup_scan_addresses(repository.as_ref()).await?;
     setup_search_index(&services).await?;
     setup_queues(&services).await?;
 
@@ -28,57 +27,20 @@ pub async fn run_setup(settings: Settings) -> Result<(), Box<dyn std::error::Err
     Ok(())
 }
 
-pub(super) async fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    database
-        .run(|client| -> Result<_, DatabaseError> {
-            let chains = Chain::all();
-            info_with_fields!("setup", step = "chains", chains = format!("{:?}", chains));
-
-            info_with_fields!("setup", step = "add chains");
-            let _ = client.add_chains(chains.clone());
-
-            info_with_fields!("setup", step = "parser state");
-            for chain in chains.iter().copied() {
-                let _ = client.add_parser_state(chain, chain.block_time() as i32);
-            }
-
-            info_with_fields!("setup", step = "assets");
-            let assets = chains.into_iter().map(|x| Asset::from_chain(x).as_basic_primitive()).collect::<Vec<_>>();
-            let _ = client.add_assets(assets);
-
-            info_with_fields!("setup", step = "fiat providers");
-            let _ = client.add_fiat_providers(FiatProviderName::all());
-
-            info_with_fields!("setup", step = "api clients");
-            let _ = client.add_api_client_grants(setup_api_client_grants());
-
-            info_with_fields!("setup", step = "releases");
-            let releases = PrimitivePlatformStore::all().into_iter().map(|store| Release::new(store, "1.0.0".to_string(), false)).collect::<Vec<_>>();
-            let _ = client.add_releases(releases);
-
-            info_with_fields!("setup", step = "assets tags");
-            let _ = client.add_tags(AssetTag::all());
-
-            info_with_fields!("setup", step = "prices providers");
-            let _ = client.add_prices_providers(PriceProvider::all());
-
-            info_with_fields!("setup", step = "config");
-            let _ = client.add_config_keys(ConfigKey::all());
-
-            info_with_fields!("setup", step = "param config");
-            let _ = client.add_config_params(ConfigParamKey::all());
-
-            info_with_fields!("setup", step = "cleanup stale config keys");
-            let valid: HashSet<String> = ConfigKey::all().into_iter().map(|k| k.as_ref().to_string()).chain(ConfigParamKey::all().into_iter().map(|k| k.key())).collect();
-            let stale: Vec<String> = client.get_config_keys()?.into_iter().filter(|k| !valid.contains(k)).collect();
-            if !stale.is_empty() {
-                info_with_fields!("setup", step = "delete stale config keys", count = stale.len(), keys = format!("{:?}", stale));
-                let _ = client.delete_keys(stale);
-            }
-
-            Ok(())
-        })
-        .await?;
+pub(super) async fn seed_database(repository: &dyn Repository) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let chains = Chain::all();
+    let seed = SetupSeed {
+        assets: chains.iter().map(|chain| Asset::from_chain(*chain).as_basic_primitive()).collect(),
+        chains,
+        fiat_providers: FiatProviderName::all(),
+        api_client_grants: setup_api_client_grants(),
+        releases: PrimitivePlatformStore::all().into_iter().map(|store| Release::new(store, "1.0.0".to_string(), false)).collect(),
+        tags: AssetTag::all(),
+        price_providers: PriceProvider::all(),
+        config_keys: ConfigKey::all(),
+        config_params: ConfigParamKey::all(),
+    };
+    repository.seed(seed).await?;
     Ok(())
 }
 

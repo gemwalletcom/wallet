@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = Il codice di riferimento ha ragg
 errors_generic = Si è verificato un errore imprevisto. Riprova più tardi.
 fiat_error_limit_reached = Troppe richieste di preventivo. Riprova tra qualche minuto.
 fiat_error_quote_unavailable = Questo preventivo non è più disponibile. Riprova.
+fiat_error_region_unavailable = Non disponibile nella tua regione.
 rewards_error_referral_country_ineligible = Al momento i referral non sono disponibili per il tuo Paese: {$value}.
 notification_rewards_disabled_title = Codice di riferimento disattivato
 notification_rewards_disabled_description = Questo codice di riferimento è stato disattivato a causa di ripetute violazioni dei termini del nostro programma di riferimento.

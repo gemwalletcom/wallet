@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::models::list::GemAddressRow;
 use crate::services::localization::GemLocalizedText;
-use primitives::{Chain, NameRecord, Wallet, WalletId, WalletSource};
+use primitives::{Chain, NameRecord, Wallet, WalletId, WalletListItem, WalletSource};
 
 use super::rules;
 
@@ -158,7 +158,7 @@ pub enum GemWalletPlaceholder {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletRow {
-    pub id: String,
+    pub id: WalletId,
     pub name: String,
     pub subtitle: GemWalletSubtitle,
     pub placeholder: GemWalletPlaceholder,
@@ -172,7 +172,7 @@ pub struct GemWalletRow {
 
 #[uniffi::export]
 pub fn wallet_row(wallet: Wallet) -> GemWalletRow {
-    rules::row(&wallet)
+    rules::row(&WalletListItem::from(&wallet))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -188,7 +188,7 @@ pub struct GemWalletSection {
 }
 
 #[uniffi::export]
-pub fn wallet_sections(wallets: Vec<Wallet>, current_wallet_id: Option<WalletId>) -> Vec<GemWalletSection> {
+pub fn wallet_sections(wallets: Vec<WalletListItem>, current_wallet_id: Option<WalletId>) -> Vec<GemWalletSection> {
     rules::sections(wallets, current_wallet_id.as_ref())
 }
 

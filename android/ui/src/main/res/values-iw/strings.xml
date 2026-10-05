@@ -447,6 +447,7 @@
   <string name="verify_phrase_title">לְאַשֵׁר</string>
   <string name="warnings_externally_controlled_account">ייתכן שמישהו אחר שולט בחשבון %1$s זה. אל תשלח אליו כספים אלא אם אתה בטוח שאתה שולט בו, אחרת אתה עלול לאבד את הנכסים שלך לצמיתות.</string>
   <string name="sell_title">למכור %1$s</string>
+  <string name="info_region_unavailable_description">תכונה זו אינה זמינה באזור שלך. הזמינות תלויה בכללים המקומיים ובדרישות של ספקי השירות.</string>
   <string name="info_network_fee_title">עמלת רשת</string>
   <string name="info_watch_wallet_title">ארנק במעקב</string>
   <string name="info_watch_wallet_description">ארנק שאין לך גישה אליו, אבל אתה יכול לצפות בעסקאות ובתנועות שלו.</string>

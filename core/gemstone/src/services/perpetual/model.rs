@@ -215,11 +215,6 @@ pub struct GemPerpetualMarketSections {
 }
 
 #[uniffi::export]
-pub fn perpetual_chart_levels(price_low: f64, price_high: f64, current_price: f64) -> Vec<GemFormattedNumber> {
-    rules::chart_levels(price_low, price_high, current_price)
-}
-
-#[uniffi::export]
 pub fn perpetual_market_sections(markets: Vec<PerpetualData>) -> GemPerpetualMarketSections {
     let (pinned, markets): (Vec<_>, Vec<_>) = perpetual_market_items(markets).into_iter().partition(|item| item.data.metadata.is_pinned);
     GemPerpetualMarketSections { pinned, markets }
@@ -245,6 +240,7 @@ pub struct GemPerpetualChartLine {
 pub struct GemPerpetualChartLayout {
     pub price_low: f64,
     pub price_high: f64,
+    pub levels: Vec<GemFormattedNumber>,
     pub lines: Vec<GemPerpetualChartLine>,
     pub current_price: GemFormattedNumber,
     pub current_tone: GemValueTone,

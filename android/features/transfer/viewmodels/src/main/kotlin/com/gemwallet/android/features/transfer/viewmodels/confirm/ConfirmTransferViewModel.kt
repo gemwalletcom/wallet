@@ -21,7 +21,6 @@ import com.gemwallet.android.features.transfer.viewmodels.confirm.models.Confirm
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.listItem
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.verificationListItem
 import com.gemwallet.android.math.numberFormat
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.ListItemModel

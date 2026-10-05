@@ -3,6 +3,7 @@
 import Assets
 import Components
 import enum Gemstone.GemPerpetualMarketSection
+import InfoSheet
 import Primitives
 import PrimitivesComponents
 import Store
@@ -31,6 +32,7 @@ struct PerpetualsScene: View {
         )
         .onChange(of: model.searchQuery, model.onSearchQueryChange)
         .onChange(of: model.isSearchPresented, model.onSearchPresentedChange)
+        .sheet(item: $model.isPresentingInfoSheet) { InfoSheetScene(model: $0) }
         .navigationTitle(model.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

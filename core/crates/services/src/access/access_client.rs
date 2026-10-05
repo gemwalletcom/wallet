@@ -1,23 +1,26 @@
+use std::sync::Arc;
+
 use primitives::WebhookKind;
-use storage::{ApiClientResource, ApiClientScope, ApiClientsRepository, Database, DatabaseError};
+use storage::{ApiClientResource, ApiClientScope, DatabaseError};
+
+use super::repository::Repository;
 
 pub struct AccessClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
 }
 
 impl AccessClient {
-    pub fn new(database: Database) -> Self {
-        Self { database }
+    pub(crate) fn new(repository: Arc<dyn Repository>) -> Self {
+        Self { repository }
     }
 
     pub async fn is_api_client_allowed(&self, secret: &str, scope: ApiClientScope) -> Result<bool, DatabaseError> {
-        let secret = secret.to_string();
-        self.database.run(move |client| client.has_enabled_api_client(&secret, scope, ApiClientResource::Global)).await
+        self.repository.has_enabled_api_client(secret.to_string(), scope, ApiClientResource::Global).await
     }
 
     pub async fn is_webhook_sender_allowed(&self, secret: &str, kind: WebhookKind, sender: &str) -> Result<bool, DatabaseError> {
-        let secret = secret.to_string();
-        let resource = ApiClientResource::WebhookSender(sender.to_string());
-        self.database.run(move |client| client.has_enabled_api_client(&secret, ApiClientScope::webhook(kind), resource)).await
+        self.repository
+            .has_enabled_api_client(secret.to_string(), ApiClientScope::webhook(kind), ApiClientResource::WebhookSender(sender.to_string()))
+            .await
     }
 }

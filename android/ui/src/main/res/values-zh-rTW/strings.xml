@@ -443,10 +443,11 @@
   <string name="lock_footer">保護此裝置上的 App 存取安全</string>
   <string name="lock_passcode">密碼</string>
   <string name="lock_passcode_off_title">裝置密碼已關閉</string>
-  <string name="lock_passcode_off_description">Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。你的錢包是安全的。</string>
+  <string name="lock_passcode_off_description">Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。錢包仍然安全。</string>
   <string name="verify_phrase_title">確認</string>
   <string name="warnings_externally_controlled_account">此 %1$s 帳戶可能由他人控制。除非確定該帳戶由您掌控，請勿將資金轉入，以免永久失去資產。</string>
   <string name="sell_title">出售%1$s</string>
+  <string name="info_region_unavailable_description">此功能在您所在的地區無法使用。 可用性取決於當地規定和服務提供者的要求。</string>
   <string name="info_network_fee_title">網路手續費</string>
   <string name="info_watch_wallet_title">觀察錢包</string>
   <string name="info_watch_wallet_description">這是一個您無法操作的錢包，但可以查看它的交易和資產變動。</string>

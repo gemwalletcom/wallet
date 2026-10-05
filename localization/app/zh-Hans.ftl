@@ -536,7 +536,7 @@ lock_privacy_lock = 隐私锁
 lock_footer = 保护此设备上的应用访问安全
 lock_passcode = 密码
 lock_passcode_off_title = 设备密码已关闭
-lock_passcode_off_description = Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。你的钱包是安全的。
+lock_passcode_off_description = Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。钱包仍然安全。
 
 # Verify
 
@@ -551,6 +551,8 @@ warnings_externally_controlled_account = 此 %@ 账户可能由他人控制。�
 sell_title = 出售%@
 
 # Info
+
+info_region_unavailable_description = 此功能在您所在的地区不可用。 可用性取决于当地规定和服务提供商的要求。
 
 info_network_fee_title = 网络费用
 info_watch_wallet_title = 观察钱包

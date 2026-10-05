@@ -4,6 +4,7 @@ mod chatwoot_target;
 mod client;
 mod constants;
 mod model;
+pub(crate) mod repository;
 mod support_webhook_consumer;
 mod webhook;
 

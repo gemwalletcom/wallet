@@ -552,6 +552,8 @@ sell_title = Sælg %@
 
 # Info
 
+info_region_unavailable_description = Denne funktion er ikke tilgængelig i din region. Tilgængelighed afhænger af lokale regler og udbydernes krav.
+
 info_network_fee_title = Netværksgebyr
 info_watch_wallet_title = Overvågningstegnebog
 info_watch_wallet_description = En tegnebog, som du ikke har adgang til, men du kan se dens transaktioner og bevægelser.

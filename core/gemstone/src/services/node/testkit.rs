@@ -63,7 +63,7 @@ impl GemNodeSelection {
 impl GemNodeStatusState {
     pub fn mock_result(latest_block_number: u64) -> Self {
         Self::Result {
-            latest_block_number,
+            latest_block_number: Some(latest_block_number),
             latency: Latency::from_milliseconds(10),
         }
     }
@@ -74,7 +74,7 @@ impl GemNodeCheck {
         Self {
             url: "https://node".to_string(),
             chain_id: None,
-            latest_block_number: 1,
+            latest_block_number: Some(1),
             is_in_sync: true,
             latency: Latency::from_milliseconds(10),
         }

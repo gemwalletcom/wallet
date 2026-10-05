@@ -548,8 +548,12 @@ mod tests {
             | GemListRow::Memo { title, .. } => Some(*title),
             GemListRow::Toggle {
                 label: GemLocalizedText::RowTitle { title }, ..
+            }
+            | GemListRow::Field {
+                title: GemLocalizedText::RowTitle { title }, ..
             } => Some(*title),
             GemListRow::Toggle { .. }
+            | GemListRow::Field { .. }
             | GemListRow::Social { .. }
             | GemListRow::Icon { .. }
             | GemListRow::AssetChange { .. }

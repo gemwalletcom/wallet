@@ -13,14 +13,13 @@ mod fetch_list_consumer;
 mod fetch_token_addresses_consumer;
 mod lists;
 mod perpetual_updater;
+pub(crate) mod repository;
 mod search_client;
-mod search_filter;
 mod search_request;
 mod staking_apy_updater;
 mod usage_rank_updater;
 mod validator_scanner;
 
-pub use addresses::add_transaction_addresses;
 pub use asset_rank_updater::AssetRankUpdater;
 pub use assets_client::AssetsClient;
 pub use assets_has_price_updater::AssetsHasPriceUpdater;

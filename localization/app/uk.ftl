@@ -552,6 +552,8 @@ sell_title = Продати %@
 
 # Info
 
+info_region_unavailable_description = Ця функція недоступна у вашому регіоні. Доступність залежить від місцевих правил і вимог провайдерів.
+
 info_network_fee_title = Мережева плата
 info_watch_wallet_title = Watch Wallet
 info_watch_wallet_description = Гаманець, до якого у вас немає доступу, але ви можете спостерігати за його транзакціями та рухами.

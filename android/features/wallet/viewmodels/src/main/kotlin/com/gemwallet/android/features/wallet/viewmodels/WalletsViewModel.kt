@@ -8,7 +8,6 @@ import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ui.localization.text
-import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -19,6 +18,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemWalletDeletion
+import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSection
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
@@ -36,15 +36,15 @@ class WalletsViewModel @Inject constructor(
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
 
-    fun selectWallet(walletId: WalletId, onSelected: () -> Unit) = viewModelScope.launch {
-        runCatchingCancellable { withContext(ioDispatcher) { service.setCurrentWalletId(walletId.id) } }
+    fun selectWallet(row: GemWalletRow, onSelected: () -> Unit) = viewModelScope.launch {
+        runCatchingCancellable { withContext(ioDispatcher) { service.setCurrentWalletId(row.id) } }
             .onSuccess { onSelected() }
             .onFailure(::showError)
     }
 
-    fun deleteWallet(walletId: WalletId, onBoard: () -> Unit) = viewModelScope.launch {
+    fun deleteWallet(row: GemWalletRow, onBoard: () -> Unit) = viewModelScope.launch {
         runCatchingCancellable {
-            when (withContext(ioDispatcher) { service.deleteWallet(walletId.id) }) {
+            when (withContext(ioDispatcher) { service.deleteWallet(row.id) }) {
                 GemWalletDeletion.WALLETS_REMAINING -> Unit
                 GemWalletDeletion.LAST_WALLET_DELETED -> onBoard()
             }
@@ -52,9 +52,8 @@ class WalletsViewModel @Inject constructor(
             .onFailure(::showError)
     }
 
-    fun togglePin(walletId: WalletId) = viewModelScope.launch(ioDispatcher) {
-        val row = sections.value.flatMap { it.rows }.firstOrNull { it.id == walletId.id } ?: return@launch
-        runCatchingCancellable { service.setPinned(walletId.id, !row.isPinned) }
+    fun togglePin(row: GemWalletRow) = viewModelScope.launch(ioDispatcher) {
+        runCatchingCancellable { service.setPinned(row.id, !row.isPinned) }
             .onFailure(::showError)
     }
 

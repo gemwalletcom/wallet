@@ -27,6 +27,9 @@ interface WalletsDao {
     )
     suspend fun getAllNow(): Map<DbWallet, List<DbAccount>>
 
+    @Query("SELECT * FROM wallets")
+    fun getWallets(): Flow<List<DbWallet>>
+
     @Query("SELECT * FROM wallets WHERE id = :id")
     fun getById(id: String): Flow<DbWallet?>
 

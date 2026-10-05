@@ -13,13 +13,13 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsContent
 import com.gemwallet.android.ui.models.ListPosition
-import uniffi.gemstone.GemSimulationPayloadRow
+import uniffi.gemstone.GemListRow
 
 @Composable
 internal fun SignMessagePayloadDetailsSheet(
     isVisible: Boolean,
-    primaryFields: List<GemSimulationPayloadRow>,
-    secondaryFields: List<GemSimulationPayloadRow>,
+    primaryFields: List<GemListRow>,
+    secondaryFields: List<GemListRow>,
     onAddressClick: (String) -> Unit,
     onViewFullMessage: () -> Unit,
     onDismissRequest: () -> Unit,

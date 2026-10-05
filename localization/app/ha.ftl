@@ -552,6 +552,8 @@ sell_title = Saya %@
 
 # Info
 
+info_region_unavailable_description = Wannan fasalin ba ya samuwa a yankinku. Samuwarsa ya dogara da dokokin yankin da ka’idojin masu samar da sabis.
+
 info_network_fee_title = Kudin hanyar sadarwa
 info_watch_wallet_title = Kalli Wallet
 info_watch_wallet_description = Wallet wanda ba ku da damar yin amfani da shi, amma kuna iya kallon ma'amaloli da motsinsa.

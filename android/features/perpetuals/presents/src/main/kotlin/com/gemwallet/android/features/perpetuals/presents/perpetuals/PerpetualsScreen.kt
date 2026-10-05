@@ -12,7 +12,9 @@ import com.gemwallet.android.features.assets.presents.select.RecentsScreen
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
 import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualsViewModel
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.RefreshOnTimer
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.wallet.core.primitives.RecentActivityType
@@ -26,6 +28,8 @@ fun PerpetualsScreen(
     viewModel: PerpetualsViewModel = hiltViewModel(),
     recentsViewModel: RecentsViewModel = hiltViewModel(),
 ) {
+    val infoSheet by viewModel.infoSheet.collectAsStateWithLifecycle()
+    InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val unpinnedPerpetuals by viewModel.unpinnedPerpetuals.collectAsStateWithLifecycle()
     val pinnedPerpetuals by viewModel.pinnedPerpetuals.collectAsStateWithLifecycle()
@@ -72,7 +76,7 @@ fun PerpetualsScreen(
 
                 is PerpetualsAction.Withdraw -> amountAction(AmountParams.Withdraw(action.assetId))
 
-                is PerpetualsAction.Deposit -> amountAction(AmountParams.Deposit(action.assetId))
+                is PerpetualsAction.Deposit -> viewModel.deposit { amountAction(AmountParams.Deposit(action.assetId)) }
 
                 PerpetualsAction.OpenPortfolio -> onOpenPortfolio()
 

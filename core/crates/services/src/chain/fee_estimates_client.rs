@@ -1,49 +1,24 @@
-use std::collections::BTreeMap;
 use std::error::Error;
+use std::sync::Arc;
 
-use cacher::{CacheKey, CacherClient};
+use cacher::FeeEstimatesCacher;
 use chain_providers::{TransactionFeeEstimate, TransactionFeeEstimates};
 use number_formatter::{BigNumberFormatter, CryptoFiatConverter};
-use primitives::{Asset, Chain, FeePriority, FeeUnitType};
-use serde::{Deserialize, Serialize};
-use strum::IntoEnumIterator;
+use primitives::{Asset, Chain, ChainFeeEstimates, FeeEstimate, FeeEstimatesByPriority, FeeUnitType};
 
 use super::chain_client::ChainClient;
 use crate::assets::AssetsClient;
 use crate::prices::PriceClient;
 
-type EstimatesByPriority = BTreeMap<FeePriority, FeeEstimate>;
-
-#[derive(Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ChainFeeEstimates {
-    asset: Asset,
-    rate_unit: FeeUnitType,
-    transfer: EstimatesByPriority,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    token_transfer: Option<EstimatesByPriority>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    swap: Option<EstimatesByPriority>,
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct FeeEstimate {
-    base: String,
-    priority_fee: String,
-    value: String,
-    fiat_value: String,
-}
-
 pub struct FeeEstimatesClient {
     chain_client: ChainClient,
     assets_client: AssetsClient,
     price_client: PriceClient,
-    cacher: CacherClient,
+    cacher: Arc<dyn FeeEstimatesCacher>,
 }
 
 impl FeeEstimatesClient {
-    pub fn new(chain_client: ChainClient, assets_client: AssetsClient, price_client: PriceClient, cacher: CacherClient) -> Self {
+    pub fn new(chain_client: ChainClient, assets_client: AssetsClient, price_client: PriceClient, cacher: Arc<dyn FeeEstimatesCacher>) -> Self {
         Self {
             chain_client,
             assets_client,
@@ -53,11 +28,7 @@ impl FeeEstimatesClient {
     }
 
     pub async fn get_chain_fee_estimates(&self, chain: Chain) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
-        let (cached, fresh) = futures::try_join!(
-            self.cacher.get_cached_optional::<ChainFeeEstimates>(CacheKey::TransactionFeeEstimates(chain.as_ref())),
-            self.cacher.get_cached_optional::<()>(CacheKey::TransactionFeeEstimatesFresh(chain.as_ref())),
-        )?;
-        if let (Some(estimates), Some(())) = (cached, fresh) {
+        if let Some(estimates) = self.cacher.fresh_estimates(chain).await? {
             return Ok(estimates);
         }
 
@@ -65,14 +36,12 @@ impl FeeEstimatesClient {
         let asset = self.assets_client.get_asset(&estimates.fee_asset).await?;
         let price = self.price_client.get_cache_price(&estimates.fee_asset).await?;
         let estimates = map_fee_estimates(asset, estimates, price.price.price)?;
-        self.cacher.set_cached(CacheKey::TransactionFeeEstimates(chain.as_ref()), &estimates).await?;
-        self.cacher.set_cached(CacheKey::TransactionFeeEstimatesFresh(chain.as_ref()), &()).await?;
+        self.cacher.set_estimates(chain, &estimates).await?;
         Ok(estimates)
     }
 
     pub async fn get_fee_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
-        let keys = Chain::iter().map(|chain| CacheKey::TransactionFeeEstimates(chain.as_ref()).key()).collect();
-        self.cacher.get_values::<Vec<ChainFeeEstimates>, ChainFeeEstimates>(keys).await
+        self.cacher.all_estimates().await
     }
 }
 
@@ -93,7 +62,7 @@ fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd
     })
 }
 
-fn map_estimates_by_priority(estimates: Vec<TransactionFeeEstimate>, rate_decimals: i32, asset_decimals: i32, price_usd: f64) -> Result<EstimatesByPriority, Box<dyn Error + Send + Sync>> {
+fn map_estimates_by_priority(estimates: Vec<TransactionFeeEstimate>, rate_decimals: i32, asset_decimals: i32, price_usd: f64) -> Result<FeeEstimatesByPriority, Box<dyn Error + Send + Sync>> {
     estimates
         .into_iter()
         .map(|estimate| {
