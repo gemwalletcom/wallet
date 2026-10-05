@@ -99,7 +99,7 @@ public struct WalletScene: View {
 
             if state.showCollections {
                 Section {
-                    CollectionsPreviewView(entries: model.collections)
+                    CollectionsPreviewView(entries: state.collections)
                 } header: {
                     HeaderNavigationLinkView(title: model.collectionsTitle, destination: Scenes.Collections())
                 } footer: {

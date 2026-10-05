@@ -51,7 +51,7 @@ struct WalletNavigationView: View {
             model.bannersQuery,
             model.fiatValuesQuery,
             model.perpetualBalanceQuery,
-            model.collectionsModel.query,
+            model.nftQuery,
         )
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

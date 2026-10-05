@@ -13,6 +13,7 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.store.queries.AssetFiatValuesQuery
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.BannersQuery
+import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import dagger.Module
 import dagger.Provides
@@ -47,6 +48,7 @@ object AssetModule {
         assetFiatValuesQuery: AssetFiatValuesQuery,
         perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,
         bannersQuery: BannersQuery,
+        nftQuery: NFTQuery,
         userConfig: UserConfig,
         walletHomeService: GemWalletHomeServiceInterface,
     ): GetWalletHomeState = GetWalletHomeStateImpl(
@@ -55,6 +57,7 @@ object AssetModule {
         assetFiatValuesQuery = assetFiatValuesQuery,
         perpetualWalletBalanceQuery = perpetualWalletBalanceQuery,
         bannersQuery = bannersQuery,
+        nftQuery = nftQuery,
         userConfig = userConfig,
         walletHomeService = walletHomeService,
     )

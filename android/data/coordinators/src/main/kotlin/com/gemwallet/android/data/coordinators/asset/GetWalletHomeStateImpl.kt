@@ -6,6 +6,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.store.queries.AssetFiatValuesQuery
 import com.gemwallet.android.data.services.store.queries.BannersQuery
+import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.HypercoreUSDC
@@ -33,6 +34,7 @@ class GetWalletHomeStateImpl(
     private val assetFiatValuesQuery: AssetFiatValuesQuery,
     private val perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,
     private val bannersQuery: BannersQuery,
+    private val nftQuery: NFTQuery,
     private val userConfig: UserConfig,
     private val walletHomeService: GemWalletHomeServiceInterface,
     scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
@@ -41,13 +43,18 @@ class GetWalletHomeStateImpl(
     private val walletHomeState = getSession().flatMapLatest { session ->
         val wallet = session?.wallet ?: return@flatMapLatest flowOf(null)
 
+        val perpetualCollateral = combine(
+            perpetualWalletBalanceQuery(wallet.id, HypercoreUSDC.id),
+            userConfig.isPerpetualEnabled(),
+        ) { balance, _ -> balance?.let { GemPerpetualCollateral(balance = it.balance.toGem(), price = it.price) } }
+
         combine(
             assetFiatValuesQuery(wallet.id),
-            perpetualWalletBalanceQuery(wallet.id, HypercoreUSDC.id).map { it?.let { GemPerpetualCollateral(balance = it.balance.toGem(), price = it.price) } },
+            perpetualCollateral,
             bannersQuery(wallet.id.id, GemConstants.walletBannerEvents),
             getActiveAssetsInfo.assetsInfo(),
-            userConfig.isPerpetualEnabled(),
-        ) { balances, perpetualBalance, banners, assets, _ ->
+            nftQuery(wallet.id.id),
+        ) { balances, perpetualBalance, banners, assets, nfts ->
             walletHomeService.viewState(
                 wallet = wallet.toGem(),
                 balances = balances.map { it.toGem() },
@@ -55,6 +62,7 @@ class GetWalletHomeStateImpl(
                 banners = banners.map { it.toGem() },
                 assetIds = assets.map { it.asset.id.toIdentifier() },
                 pinnedAssetIds = assets.filter { it.pinned }.map { it.asset.id.toIdentifier() },
+                nfts = nfts.map { it.toGem() },
             )
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
