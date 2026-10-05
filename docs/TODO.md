@@ -20,7 +20,6 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
-2. **Backend dependency cleanup:** CLN464, one consumer family per change. Build adapters in `Services`, preserve runtime behavior and verify the actual failure or dependency boundary each item changes.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173.
 
@@ -157,10 +156,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
-- **CLN464** **L** **Backend services receive repository ports instead of `Database`.** Migrate the remaining 11 files with direct `Database` and `DatabaseClient` touchpoints one domain family at a time. Give each domain module one async `repository::Repository` for the operations its current consumers use, keep Diesel repository traits and the database handle in its `PostgresRepository`, and build that adapter in `Services` or the owning job factory. Follow [`assets::repository`](../core/crates/services/src/assets/repository.rs): the service owns the decision, the adapter preserves each existing `Database::run` or `Database::transaction` unit, and `MemoryAssetRepository` in the shared testkit records repository inputs and writes without PostgreSQL. Do not split an atomic unit across repositories, move business rules into adapters or add methods without current consumers.
-  - **Batch 4, rewards (11):** keep referral, username, redemption, risk and summary rules in services/domain code; preserve the existing multi-table transaction boundaries and distinguish missing records from failures, as `DevicesClient` does.
-  - **For every batch:** inventory the existing closures and callers first; add only currently used port methods; inject the completed adapter; move reusable doubles to `src/testkit/<domain>_repository.rs` as `Memory<Domain>Repository`; test meaningful orchestration and error propagation; remove superseded imports, helpers and duplicate query paths; run the affected service tests, API and daemon compilation, database integration tests for changed queries or transactions, clippy and `just check-boundaries`.
-  - **Completion:** only `repository.rs` adapters and composition roots may import `Database`, `DatabaseClient` or storage-level repository traits. Add an exact `just check-boundaries` rule, rerun the census at zero outside those paths, and update this architecture example if the completed migration found a better shared shape.
 - **VM79** **S** **The root scene stops reading the wallet store.** iOS [`RootSceneViewModel`](../ios/Gem/ViewModels/RootSceneViewModel.swift) reads `stores.walletStore.getWallet` directly; the session service answers the current wallet. Blocked on a synchronous answer: `GemWalletSessionService::get_current_wallet` is async (the wallet store port is async), and the root view needs the wallet on its first render or it flashes onboarding at every launch; either the port gains a synchronous read or the root keeps a stored wallet it can seed before first render.
 
 ## 7. Rows and taps

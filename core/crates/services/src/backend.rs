@@ -236,6 +236,10 @@ impl Services {
         Arc::new(crate::support::repository::PostgresRepository::new(self.database()))
     }
 
+    pub(crate) fn rewards_repository(&self) -> Arc<dyn crate::rewards::repository::Repository> {
+        Arc::new(crate::rewards::repository::PostgresRepository::new(self.database()))
+    }
+
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {
         ChainProviders::from_settings(&self.settings, user_agent)
     }
@@ -273,11 +277,11 @@ impl Services {
     }
 
     pub fn rewards(&self, cacher: CacherClient, stream_producer: StreamProducer, ip_security: IpSecurityClient) -> RewardsClient {
-        RewardsClient::new(self.database(), self.config(), Arc::new(cacher), Arc::new(stream_producer), ip_security, self.pusher())
+        RewardsClient::new(self.rewards_repository(), self.config(), Arc::new(cacher), Arc::new(stream_producer), ip_security, self.pusher())
     }
 
     pub fn rewards_redemption(&self, stream_producer: StreamProducer) -> RewardsRedemptionClient {
-        RewardsRedemptionClient::new(self.database(), self.config(), Arc::new(stream_producer))
+        RewardsRedemptionClient::new(self.rewards_repository(), self.config(), Arc::new(stream_producer))
     }
 
     pub fn portfolio(&self) -> PortfolioClient {

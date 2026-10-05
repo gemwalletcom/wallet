@@ -2,12 +2,12 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use primitives::{NotificationRewardsMetadata, NotificationType, RewardEvent, RewardEventType};
-use storage::{Database, DatabaseClient, DatabaseError, RewardsRepository};
-use streamer::{InAppNotificationPayload, RewardsNotificationPayload, StreamProducerQueue, consumer::MessageConsumer};
+use streamer::{RewardsNotificationPayload, StreamProducerQueue, consumer::MessageConsumer};
+
+use super::repository::Repository;
 
 pub struct RewardsConsumer {
-    database: Database,
+    repository: Arc<dyn Repository>,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
@@ -18,14 +18,7 @@ impl MessageConsumer<RewardsNotificationPayload, usize> for RewardsConsumer {
     }
 
     async fn consume(&self, payload: RewardsNotificationPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let event_id = payload.event_id;
-        let notifications = self
-            .database
-            .run(move |client| {
-                let event = client.get_reward_event(event_id)?;
-                create_in_app_notification_payloads(client, &event)
-            })
-            .await?;
+        let notifications = self.repository.event_notifications(payload.event_id).await?;
         let count = notifications.len();
         self.stream_producer.publish_in_app_notifications(notifications).await?;
         Ok(count)
@@ -33,45 +26,7 @@ impl MessageConsumer<RewardsNotificationPayload, usize> for RewardsConsumer {
 }
 
 impl RewardsConsumer {
-    pub fn new(database: Database, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
-        Self { database, stream_producer }
-    }
-}
-
-fn create_in_app_notification_payloads(client: &mut DatabaseClient, event: &RewardEvent) -> Result<Vec<InAppNotificationPayload>, DatabaseError> {
-    let metadata = NotificationRewardsMetadata {
-        username: Some(event.username.clone()),
-        points: (event.points > 0).then_some(event.points),
-    };
-    let metadata_value = serde_json::to_value(metadata).ok();
-
-    match event.event {
-        RewardEventType::CreateUsername => {
-            let wallet_id = client.get_wallet_id_by_username(&event.username)?;
-            Ok(vec![InAppNotificationPayload::new(wallet_id, NotificationType::RewardsCreateUsername, metadata_value)])
-        }
-        RewardEventType::InvitePending | RewardEventType::InviteNew => {
-            let wallet_id = client.get_wallet_id_by_username(&event.username)?;
-            Ok(vec![InAppNotificationPayload::new(wallet_id, NotificationType::RewardsInvite, metadata_value)])
-        }
-        RewardEventType::Joined => {
-            let Some(referrer) = client.get_referrer_username(&event.username)? else {
-                return Ok(vec![]);
-            };
-            let wallet_id = client.get_wallet_id_by_username(&referrer)?;
-            Ok(vec![InAppNotificationPayload::new(wallet_id, NotificationType::ReferralJoined, metadata_value)])
-        }
-        RewardEventType::Enabled => {
-            let wallet_id = client.get_wallet_id_by_username(&event.username)?;
-            Ok(vec![InAppNotificationPayload::new(wallet_id, NotificationType::RewardsEnabled, metadata_value)])
-        }
-        RewardEventType::Disabled => {
-            let wallet_id = client.get_wallet_id_by_username(&event.username)?;
-            Ok(vec![InAppNotificationPayload::new(wallet_id, NotificationType::RewardsCodeDisabled, metadata_value)])
-        }
-        RewardEventType::Redeemed => {
-            let wallet_id = client.get_wallet_id_by_username(&event.username)?;
-            Ok(vec![InAppNotificationPayload::new(wallet_id, NotificationType::RewardsRedeemed, metadata_value)])
-        }
+    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+        Self { repository, stream_producer }
     }
 }

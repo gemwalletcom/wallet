@@ -249,12 +249,16 @@ pub struct RewardsJobs {
 }
 
 impl RewardsJobs {
+    fn rewards_repository(&self) -> Arc<dyn crate::rewards::repository::Repository> {
+        Arc::new(crate::rewards::repository::PostgresRepository::new(self.database.clone()))
+    }
+
     pub fn abuse_checker(&self) -> RewardsAbuseChecker {
-        RewardsAbuseChecker::new(self.database.clone(), self.config.clone(), self.stream_producer.clone())
+        RewardsAbuseChecker::new(self.rewards_repository(), self.config.clone(), self.stream_producer.clone())
     }
 
     pub fn eligibility_checker(&self) -> RewardsEligibilityChecker {
-        RewardsEligibilityChecker::new(self.database.clone(), self.config.clone(), self.stream_producer.clone())
+        RewardsEligibilityChecker::new(self.rewards_repository(), self.config.clone(), self.stream_producer.clone())
     }
 }
 

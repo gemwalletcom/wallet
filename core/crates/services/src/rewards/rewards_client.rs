@@ -6,25 +6,18 @@ use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::error_with_fields;
 use localizer::LanguageLocalizer;
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
-use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, WalletId, WalletSource, WalletType, now};
+use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, now};
 use pusher::PushProvider;
 use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoringInput, UsernameError};
-use storage::{Database, DatabaseClient, DatabaseError, DeviceRecord, NewWallet, RewardsRedemptionsRepository, RewardsRepository, WalletRecord, WalletsRepository};
+use storage::{DatabaseError, DeviceRecord, WalletRecord};
 use streamer::{RewardsNotificationPayload, StreamProducerQueue};
 
 use super::config::{ReferralSecurityConfig, ReferralVerificationConfig, referrer_multiplier, risk_score_config, username_rules};
 use super::error::RewardsServiceError;
 use super::ip_security_client::IpSecurityClient;
-use super::referral::{referral_use_facts, use_or_verify_referral};
-use super::risk::{RiskAssessment, assess_referral_risk};
-use super::summary::rewards_by_wallet_id;
-use super::username::create_username;
+use super::repository::{ReferralCodeRequest, ReferralCodeUse, ReferralUseCheck, Repository};
+use super::risk::RiskAssessment;
 use crate::ConfigCacher;
-
-enum ReferralCodeUse {
-    Applied(Vec<RewardEvent>),
-    NeedsScoring(String),
-}
 
 enum ReferralProcessResult {
     Success { risk_signal_id: i32, referrer_status: RewardStatus },
@@ -33,7 +26,7 @@ enum ReferralProcessResult {
 }
 
 pub struct RewardsClient {
-    db: Database,
+    repository: Arc<dyn Repository>,
     config: Arc<ConfigCacher>,
     rate_limiter: Arc<dyn RateLimitCacher>,
     stream_producer: Arc<dyn StreamProducerQueue>,
@@ -42,9 +35,16 @@ pub struct RewardsClient {
 }
 
 impl RewardsClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>, rate_limiter: Arc<dyn RateLimitCacher>, stream_producer: Arc<dyn StreamProducerQueue>, ip_security_client: IpSecurityClient, pusher: Arc<dyn PushProvider>) -> Self {
+    pub(crate) fn new(
+        repository: Arc<dyn Repository>,
+        config: Arc<ConfigCacher>,
+        rate_limiter: Arc<dyn RateLimitCacher>,
+        stream_producer: Arc<dyn StreamProducerQueue>,
+        ip_security_client: IpSecurityClient,
+        pusher: Arc<dyn PushProvider>,
+    ) -> Self {
         Self {
-            db: database,
+            repository,
             config,
             rate_limiter,
             stream_producer,
@@ -63,16 +63,7 @@ impl RewardsClient {
     pub async fn get_rewards_by_wallet_id(&self, device: &DeviceRecord, wallet_id: i32, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
         let rules = username_rules(&self.config).await?;
         let eligibility_days = self.referral_eligibility_days().await?;
-        let (device_id, device_created_at) = (device.id, device.created_at);
-        let summary = move |client: &mut DatabaseClient| -> Result<Rewards, DatabaseError> {
-            let rewards = rewards_by_wallet_id(client, wallet_id, &rules)?;
-            let facts = referral_use_facts(client, wallet_id, device_id)?;
-            Ok(Rewards {
-                use_referral_code_until: Some(facts.eligibility_ends_at(device_created_at, eligibility_days).and_utc()),
-                ..rewards
-            })
-        };
-        match self.db.run(summary).await {
+        match self.repository.wallet_rewards(wallet_id, device.id, device.created_at, rules, eligibility_days).await {
             Ok(rewards) => Ok(Rewards {
                 disable_reason: rewards.disable_reason.map(|_| LanguageLocalizer::new_with_language(locale).notification_rewards_disabled_description()),
                 ..rewards
@@ -83,16 +74,15 @@ impl RewardsClient {
     }
 
     pub async fn get_rewards_events_by_wallet_id(&self, wallet_id: i32) -> Result<Vec<RewardEvent>, Box<dyn Error + Send + Sync>> {
-        Ok(self.db.run(move |client| client.get_reward_events_by_wallet_id(wallet_id)).await?)
+        Ok(self.repository.reward_events(wallet_id).await?)
     }
 
     pub async fn get_rewards_leaderboard(&self) -> Result<ReferralLeaderboard, Box<dyn Error + Send + Sync>> {
-        Ok(self.db.run(RewardsRepository::get_rewards_leaderboard).await?)
+        Ok(self.repository.leaderboard().await?)
     }
 
     pub async fn get_rewards_redemption_option(&self, code: &str) -> Result<RewardRedemptionOption, Box<dyn Error + Send + Sync>> {
-        let code = code.to_string();
-        Ok(self.db.run(move |client| client.get_redemption_option(&code)).await?)
+        Ok(self.repository.redemption_option(code.to_string()).await?)
     }
 
     pub async fn create_username(&self, address: &str, code: &str, device_id: i32, ip_address: &str, locale: &str) -> Result<Rewards, RewardsServiceError> {
@@ -106,12 +96,10 @@ impl RewardsClient {
             .await
             .map_err(|error| self.map_username_error(error, locale))?;
 
-        let username = code.to_string();
         let rules = username_rules(&self.config).await?;
-        let wallet_id = wallet.id;
         let (rewards, event_id) = self
-            .db
-            .run(move |client| create_username(client, wallet_id, &username, &rules))
+            .repository
+            .create_username(wallet.id, code.to_string(), rules)
             .await
             .map_err(|error| self.map_username_error(UsernameError::internal(error), locale))?
             .map_err(|error| RewardsError::Username(UsernameError::Validation(error).localize(locale)))?;
@@ -120,16 +108,7 @@ impl RewardsClient {
     }
 
     async fn multicoin_wallet(&self, address: &str) -> Result<WalletRecord, DatabaseError> {
-        let wallet_id = WalletId::Multicoin(address.to_string());
-        self.db
-            .run(move |client| {
-                client.get_or_create_wallet(NewWallet {
-                    wallet_id,
-                    wallet_type: WalletType::Multicoin,
-                    source: WalletSource::Import,
-                })
-            })
-            .await
+        self.repository.multicoin_wallet(address.to_string()).await
     }
 
     async fn consume_username_creation_limits(&self, ip_address: &str, device_id: i32) -> Result<(), UsernameError> {
@@ -158,37 +137,15 @@ impl RewardsClient {
 
         let wallet_id = wallet.id;
         let device_id = device.id;
-        let device_created_at = device.created_at;
-        let code = code.to_string();
-        let referral_locale = locale.to_string();
         let verification_config = ReferralVerificationConfig::from_config(&self.config).await?;
-        let referral = self
-            .db
-            .run(move |client| -> Result<_, RewardsServiceError> {
-                let referrer_username = client
-                    .get_referral_code(&code)?
-                    .ok_or_else(|| RewardsServiceError::referral(ReferralValidationError::CodeDoesNotExist.into(), &referral_locale))?;
-
-                let referrer_info = client.get_referrer_info(&referrer_username)?;
-                let facts = referral_use_facts(client, wallet_id, device_id).map_err(|error| RewardsServiceError::referral(ReferralError::internal(error), &referral_locale))?;
-                if facts.is_pending_referral(&referrer_username) {
-                    if !referrer_info.status.is_verified() && referrer_info.status != RewardStatus::Attribution {
-                        return Err(RewardsServiceError::referral(ReferralValidationError::RewardsNotEnabled(referrer_username.clone()).into(), &referral_locale));
-                    }
-                    let events = use_or_verify_referral(client, &referrer_username, referrer_info.status, wallet_id, device_id, None, verification_config)?.map_err(|error| RewardsServiceError::referral(error, &referral_locale))?;
-                    return Ok(ReferralCodeUse::Applied(events));
-                }
-
-                if referrer_info.status == RewardStatus::Attribution {
-                    facts
-                        .validate_use(&referrer_username, referrer_info.wallet_id, device_created_at, None, now())
-                        .map_err(|error| RewardsServiceError::referral(error.into(), &referral_locale))?;
-                    let events = use_or_verify_referral(client, &referrer_username, referrer_info.status, wallet_id, device_id, None, verification_config)?.map_err(|error| RewardsServiceError::referral(error, &referral_locale))?;
-                    return Ok(ReferralCodeUse::Applied(events));
-                }
-                Ok(ReferralCodeUse::NeedsScoring(referrer_username))
-            })
-            .await?;
+        let request = ReferralCodeRequest {
+            code: code.to_string(),
+            wallet_id,
+            device_id,
+            device_created_at: device.created_at,
+            verification_config,
+        };
+        let referral = self.repository.apply_referral_code(request).await?.map_err(|error| RewardsServiceError::referral(error, locale))?;
 
         let referrer_username = match referral {
             ReferralCodeUse::Applied(events) => return Ok(events),
@@ -198,20 +155,20 @@ impl RewardsClient {
         match self.validate_and_score_referral(device, wallet_id, &referrer_username, ip_address, user_agent).await {
             ReferralProcessResult::Success { risk_signal_id, referrer_status } => {
                 let events = self
-                    .db
-                    .run(move |client| use_or_verify_referral(client, &referrer_username, referrer_status, wallet_id, device_id, Some(risk_signal_id), verification_config))
+                    .repository
+                    .verify_referral(referrer_username, referrer_status, wallet_id, device_id, Some(risk_signal_id), verification_config)
                     .await?
                     .map_err(|error| RewardsServiceError::referral(error, locale))?;
                 Ok(events)
             }
             ReferralProcessResult::Failed(error) => {
                 let reason = error.to_string();
-                let _ = self.db.run(move |client| client.add_referral_attempt(&referrer_username, wallet_id, device_id, None, &reason)).await;
+                let _ = self.repository.add_referral_attempt(referrer_username, wallet_id, device_id, None, reason).await;
                 Err(RewardsServiceError::referral(error, locale))
             }
             ReferralProcessResult::RiskScoreExceeded(risk_signal_id, error) => {
                 let reason = error.to_string();
-                let _ = self.db.run(move |client| client.add_referral_attempt(&referrer_username, wallet_id, device_id, Some(risk_signal_id), &reason)).await;
+                let _ = self.repository.add_referral_attempt(referrer_username, wallet_id, device_id, Some(risk_signal_id), reason).await;
                 Err(RewardsServiceError::referral(error, locale))
             }
         }
@@ -237,8 +194,7 @@ impl RewardsClient {
         ])
         .await?;
 
-        let username = referrer_username.to_string();
-        let referrer_info = self.db.run(move |client| client.get_referrer_info(&username)).await.map_err(ReferralError::internal)?;
+        let referrer_info = self.repository.referrer_info(referrer_username.to_string()).await.map_err(ReferralError::internal)?;
         if !referrer_info.status.is_verified() {
             return Err(ReferralValidationError::RewardsNotEnabled(referrer_username.to_string()).into());
         }
@@ -249,27 +205,17 @@ impl RewardsClient {
         let limits = self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit).await.map_err(ReferralError::internal)?;
         let eligibility_days = self.referral_eligibility_days().await.map_err(ReferralError::internal)?;
 
-        let username = referrer_username.to_string();
-        let referrer_wallet_id = referrer_info.wallet_id;
-        let device_id = device.id;
-        let device_created_at = device.created_at;
-        self.db
-            .run(move |client| -> Result<Result<(), ReferralError>, DatabaseError> {
-                for window in RateLimitWindow::ALL {
-                    if client.count_referrals_since(&username, current.ago(window.duration()))? >= limits.get(window) * multiplier {
-                        return Ok(Err(ReferralError::ReferrerLimitReached));
-                    }
-                }
-
-                if client.count_referrals_since(&username, current.ago(cooldown))? >= 1 {
-                    return Ok(Err(ReferralError::ReferrerLimitReached));
-                }
-
-                let facts = referral_use_facts(client, wallet_id, device_id)?;
-                Ok(facts.validate_use(&username, referrer_wallet_id, device_created_at, Some(eligibility_days), now()).map_err(ReferralError::from))
-            })
-            .await
-            .map_err(ReferralError::internal)??;
+        let check = ReferralUseCheck {
+            referrer_username: referrer_username.to_string(),
+            referrer_wallet_id: referrer_info.wallet_id,
+            wallet_id,
+            device_id: device.id,
+            device_created_at: device.created_at,
+            window_limits: RateLimitWindow::ALL.iter().map(|window| (current.ago(window.duration()), limits.get(*window) * multiplier)).collect(),
+            cooldown_since: current.ago(cooldown),
+            eligibility_days,
+        };
+        self.repository.check_referral_use(check).await.map_err(ReferralError::internal)??;
 
         if device.device.platform == Platform::Android {
             match self.pusher.is_device_token_valid(&device.device.token, device.device.platform.as_i32()).await {
@@ -307,7 +253,7 @@ impl RewardsClient {
             user_agent: user_agent.to_string(),
         };
         let referrer_status = referrer_info.status;
-        let assessment = self.db.run(move |client| assess_referral_risk(client, &scoring_input, &risk_score_config, since)).await.map_err(ReferralError::internal)??;
+        let assessment = self.repository.assess_referral_risk(scoring_input, risk_score_config, since).await.map_err(ReferralError::internal)??;
 
         Ok(match assessment {
             RiskAssessment::Allowed { risk_signal_id } => ReferralProcessResult::Success { risk_signal_id, referrer_status },

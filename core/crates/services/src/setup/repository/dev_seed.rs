@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::rewards::create_username;
+use crate::rewards::repository::create_username;
 use crate::setup::api_clients::{SETUP_DEV_API_CLIENT_NAME, SETUP_DEV_API_CLIENT_SECRET, api_client_access_grants};
 use chrono::Utc;
 use gem_tracing::info_with_fields;
