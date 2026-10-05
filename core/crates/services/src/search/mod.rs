@@ -2,6 +2,7 @@ mod asset_lists_index_updater;
 mod assets_index_updater;
 mod nfts_index_updater;
 mod perpetuals_index_updater;
+pub(crate) mod repository;
 mod sync;
 
 pub use asset_lists_index_updater::AssetListsIndexUpdater;

@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemListRow
+import enum Gemstone.GemListRowTitle
 import struct Gemstone.GemSimulationValue
 import struct Gemstone.GemWalletConnectMessageRequest
 import struct Gemstone.SimulationHeader
@@ -200,8 +202,8 @@ struct SignMessageSceneViewModelTests {
         #expect(!viewModel.isButtonDisabled)
         #expect(viewModel.hasPayloadFields)
         #expect(viewModel.primaryPayloadFields.contains { row in
-            guard case let .address(_, copy, _) = row.value else { return false }
-            return row.title == .spender && copy.value == "0x3333333333333333333333333333333333333333"
+            guard case let .field(.rowTitle(.spender), .address(_, copy, _, _)) = row else { return false }
+            return copy.value == "0x3333333333333333333333333333333333333333"
         })
     }
 
@@ -271,7 +273,7 @@ struct SignMessageSceneViewModelTests {
 
         #expect(viewModel.headerData?.asset == asset.toGem())
         #expect(viewModel.headerData?.value == .unlimited)
-        #expect(!(viewModel.primaryPayloadFields + viewModel.secondaryPayloadFields).contains { $0.title == .value })
+        #expect(!(viewModel.primaryPayloadFields + viewModel.secondaryPayloadFields).contains { $0.fieldTitle == .value })
     }
 
     @Test
@@ -290,6 +292,13 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
         #expect(viewModel.headerData == nil)
-        #expect((viewModel.primaryPayloadFields + viewModel.secondaryPayloadFields).contains { $0.title == .value })
+        #expect((viewModel.primaryPayloadFields + viewModel.secondaryPayloadFields).contains { $0.fieldTitle == .value })
+    }
+}
+
+private extension GemListRow {
+    var fieldTitle: GemListRowTitle? {
+        guard case let .field(.rowTitle(title), _) = self else { return nil }
+        return title
     }
 }

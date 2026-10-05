@@ -250,54 +250,44 @@ fn render_points(zoom: GemChartZoom) -> usize {
     RENDER_POINTS << zoom.scale.log2().floor() as usize
 }
 
-pub fn price_chart_data(chart: GemChart, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
-    let base = chart.base_value;
-    let current = chart.current;
-    let values: Vec<ChartDateValue> = chart.values.into_iter().chain(current.as_ref().map(|current| ChartDateValue { date: current.date, value: current.value })).collect();
-    if values.len() < MIN_CHART_POINTS {
+fn chart_data(values: Vec<ChartDateValue>, value_type: GemChartValueType, base: f64, shows_secondary_value: bool, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
+    if values.len() < MIN_CHART_POINTS || values.iter().any(|value| !value.value.is_finite()) {
         return None;
     }
-    let last = values.last()?.value;
-    let data = GemChartData {
-        value_type: GemChartValueType::Price,
+    if matches!(value_type, GemChartValueType::PriceChange) && values.windows(2).all(|pair| pair[0].value == pair[1].value) {
+        return None;
+    }
+    Some(GemChartData {
+        value_type,
         base,
-        shows_secondary_value: false,
+        shows_secondary_value,
         bounds: chart_bounds(&values, currency.clone()),
         currency,
-        start: values[0].date,
-        end: values[values.len() - 1].date,
+        start: values.first()?.date,
+        end: values.last()?.date,
         is_zoomed: false,
         values,
         header: None,
         date_style: date_style(period),
-    };
+    })
+}
+
+pub fn price_chart_data(chart: GemChart, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
+    let base = chart.base_value;
+    let current = chart.current;
+    let values: Vec<ChartDateValue> = chart.values.into_iter().chain(current.as_ref().map(|current| ChartDateValue { date: current.date, value: current.value })).collect();
+    let data = chart_data(values, GemChartValueType::Price, base, false, period, currency)?;
     let header = match &current {
         Some(current) => header(&data, current.value, Some(current.change_percentage)),
-        None => header(&data, last, None),
+        None => header(&data, data.values.last()?.value, None),
     };
     Some(GemChartData { header: Some(header), ..data })
 }
 
 pub fn change_chart_data(values: Vec<ChartDateValue>, shows_secondary_value: bool, period: ChartPeriod, currency: Currency) -> Option<GemChartData> {
-    if values.len() < MIN_CHART_POINTS || !has_variation(&values) {
-        return None;
-    }
     let base = values.first()?.value;
-    let last = values.last()?.value;
-    let data = GemChartData {
-        value_type: GemChartValueType::PriceChange,
-        base,
-        shows_secondary_value,
-        bounds: chart_bounds(&values, currency.clone()),
-        currency,
-        start: values[0].date,
-        end: values[values.len() - 1].date,
-        is_zoomed: false,
-        values,
-        header: None,
-        date_style: date_style(period),
-    };
-    let header = header(&data, last, None);
+    let data = chart_data(values, GemChartValueType::PriceChange, base, shows_secondary_value, period, currency)?;
+    let header = header(&data, data.values.last()?.value, None);
     Some(GemChartData { header: Some(header), ..data })
 }
 
@@ -328,11 +318,6 @@ pub fn series_header(value_type: GemChartValueType, base: f64, shows_secondary_v
             GemChartValueType::PriceChange => GemFormattedNumber::percentage(change_percentage, GemPercentageStyle::Unsigned).in_parentheses().toned(),
         }),
     }
-}
-
-fn has_variation(values: &[ChartDateValue]) -> bool {
-    let first = values.first().map(|value| value.value);
-    values.iter().any(|value| Some(value.value) != first)
 }
 
 #[cfg(test)]
@@ -418,6 +403,16 @@ mod tests {
     fn test_price_chart_data_needs_two_points() {
         assert_eq!(price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0)]), ChartPeriod::Day, Currency::USD), None);
         assert_eq!(price_chart_data(GemChart::mock(vec![]), ChartPeriod::Day, Currency::USD), None);
+    }
+
+    #[test]
+    fn test_chart_data_rejects_non_finite_values() {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            let values = vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, value)];
+
+            assert_eq!(price_chart_data(GemChart::mock(values.clone()), ChartPeriod::Day, Currency::USD), None);
+            assert_eq!(change_chart_data(values, true, ChartPeriod::Day, Currency::USD), None);
+        }
     }
 
     #[test]

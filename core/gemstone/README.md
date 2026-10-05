@@ -4,14 +4,14 @@ Gemstone is the essential cross platform library used by Gem Wallet clients (mai
 
 ## Build
 
-iOS example
+iOS
 
 ```bash
-just build-ios
-just test-ios
+just prepare-ios-package   # UniFFI Swift sources and headers
+just build-ios-lib         # Gemstone static library for the iOS Rust targets
 ```
 
-`just build-ios` and `just test-ios` create the local Swift package sources, build the native Gemstone static library, and build the SwiftPM-based iOS test harness.
+`just prepare-ios-package` generates the UniFFI Swift sources and copies them into `tests/ios/Packages/Gemstone`; `just build-ios-lib` builds the native static library for the iOS targets.
 
 Android
 

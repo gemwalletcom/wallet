@@ -8,7 +8,6 @@ import enum Gemstone.GemListRow
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemSignMessagePreview
 import protocol Gemstone.GemSignMessageServiceProtocol
-import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemSimulationValue
 import struct Gemstone.GemValueHeader
 import struct Gemstone.GemWalletConnectMessageRequest
@@ -96,11 +95,11 @@ public final class SignMessageSceneViewModel {
         preview.warnings
     }
 
-    var primaryPayloadFields: [GemSimulationPayloadRow] {
+    var primaryPayloadFields: [GemListRow] {
         preview.primaryFields
     }
 
-    var secondaryPayloadFields: [GemSimulationPayloadRow] {
+    var secondaryPayloadFields: [GemListRow] {
         preview.secondaryFields
     }
 
@@ -154,14 +153,8 @@ public extension SignMessageSceneViewModel {
         }
     }
 
-    func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
-        SimulationPayloadFieldViewModel.models(
-            for: fields,
-            onSelectAddress: { [weak self] address in
-                guard let self else { return }
-                presentedSheet = .addressDetails(ChainAddress(chain: Chain(core: request.chain), address: address))
-            },
-        )
+    func onSelectPayloadAddress(_ address: String) {
+        presentedSheet = .addressDetails(ChainAddress(chain: Chain(core: request.chain), address: address))
     }
 
     func onViewPayloadDetails() {

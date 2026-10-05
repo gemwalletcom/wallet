@@ -158,7 +158,7 @@ fn write_node(output: &mut String, node: &Node, enum_name: &str, level: usize) {
         }
     }
     for (segment, child) in &node.children {
-        output.push_str(&format!("{indent}public enum {} {{\n", type_name(segment)));
+        output.push_str(&format!("{indent}public enum {} {{\n", camel_case(segment)));
         write_node(output, child, enum_name, level + 1);
         output.push_str(&format!("{indent}}}\n"));
     }
@@ -196,10 +196,6 @@ fn property_name(segment: &str) -> String {
         return format!("`{name}`");
     }
     name
-}
-
-fn type_name(segment: &str) -> String {
-    camel_case(segment)
 }
 
 fn camel_case(segment: &str) -> String {

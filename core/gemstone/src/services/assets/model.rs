@@ -5,6 +5,7 @@ use crate::config::image::GemImage;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSectionTitle, GemRowAction};
+use crate::models::state::GemListPhase;
 use crate::services::balance::GemAssetBalanceRow;
 use crate::services::banner::GemBannerRow;
 use crate::services::empty_state::GemEmptyState;
@@ -264,12 +265,14 @@ impl GemSelectAssetFlow {
         }
     }
 
-    pub fn state(&self, counts: GemAssetSectionCounts, is_searching: bool) -> GemSelectAssetState {
-        match (counts.pinned + counts.popular + counts.assets > 0, is_searching) {
+    pub fn view(&self, asset_ids: Vec<AssetId>, pinned_asset_ids: Vec<AssetId>, is_searching: bool) -> GemSelectAssetView {
+        let sections = super::rules::asset_sections(asset_ids, pinned_asset_ids, self.popular_section, super::rules::popular_asset_ids()).sections();
+        let state = match (!sections.is_empty(), is_searching) {
             (true, _) => GemSelectAssetState::Idle,
             (false, true) => GemSelectAssetState::Loading,
             (false, false) => GemSelectAssetState::Empty,
-        }
+        };
+        GemSelectAssetView { sections, state }
     }
 }
 
@@ -366,7 +369,7 @@ impl GemAssetAction {
 
 #[cfg(test)]
 mod tests {
-    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemAssetSectionCounts, GemImage, GemSearchListRow, GemSelectAssetState, GemSelectAssetType, RecentActivityType};
+    use super::{Asset, AssetId, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemAssetSectionKind, GemImage, GemSearchListRow, GemSelectAssetState, GemSelectAssetType, RecentActivityType};
     use primitives::Chain;
 
     #[test]
@@ -399,19 +402,31 @@ mod tests {
     #[test]
     fn test_the_list_reads_as_loading_only_while_a_search_finds_nothing() {
         let flow = GemSelectAssetType::Buy.flow();
-        let listed = GemAssetSectionCounts { assets: 2, ..Default::default() };
-        let none = GemAssetSectionCounts::default();
-        assert_eq!(flow.state(listed, true), GemSelectAssetState::Idle);
-        assert_eq!(flow.state(listed, false), GemSelectAssetState::Idle);
-        assert_eq!(flow.state(none, true), GemSelectAssetState::Loading);
-        assert_eq!(flow.state(none, false), GemSelectAssetState::Empty);
+        let listed = vec![Chain::Tron.as_asset_id(), Chain::Cosmos.as_asset_id()];
+        assert_eq!(flow.view(listed.clone(), vec![], true).state, GemSelectAssetState::Idle);
+        assert_eq!(flow.view(listed, vec![], false).state, GemSelectAssetState::Idle);
+        assert_eq!(flow.view(vec![], vec![], true).state, GemSelectAssetState::Loading);
+        assert_eq!(flow.view(vec![], vec![], false).state, GemSelectAssetState::Empty);
     }
 
     #[test]
     fn test_a_result_of_only_popular_or_pinned_rows_is_a_list() {
         let flow = GemSelectAssetType::Buy.flow();
-        assert_eq!(flow.state(GemAssetSectionCounts { popular: 3, ..Default::default() }, false), GemSelectAssetState::Idle);
-        assert_eq!(flow.state(GemAssetSectionCounts { pinned: 1, ..Default::default() }, true), GemSelectAssetState::Idle);
+        let popular = flow.view(vec![Chain::Bitcoin.as_asset_id()], vec![], false);
+        let pinned = flow.view(vec![Chain::Tron.as_asset_id()], vec![Chain::Tron.as_asset_id()], true);
+
+        assert_eq!(popular.state, GemSelectAssetState::Idle);
+        assert_eq!(popular.sections.iter().map(|section| section.kind).collect::<Vec<_>>(), vec![GemAssetSectionKind::Popular]);
+        assert_eq!(pinned.state, GemSelectAssetState::Idle);
+        assert_eq!(pinned.sections.iter().map(|section| section.kind).collect::<Vec<_>>(), vec![GemAssetSectionKind::Pinned]);
+    }
+
+    #[test]
+    fn test_a_flow_without_a_popular_section_lists_popular_assets_with_the_rest() {
+        let flow = GemSelectAssetType::Send.flow();
+        let view = flow.view(vec![Chain::Bitcoin.as_asset_id()], Vec::<AssetId>::new(), false);
+
+        assert_eq!(view.sections.iter().map(|section| section.kind).collect::<Vec<_>>(), vec![GemAssetSectionKind::Assets]);
     }
 
     #[test]
@@ -489,22 +504,21 @@ pub struct GemAssetSection {
     pub asset_ids: Vec<AssetId>,
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, uniffi::Record)]
-pub struct GemAssetSectionCounts {
-    pub pinned: u32,
-    pub popular: u32,
-    pub assets: u32,
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemSelectAssetView {
+    pub sections: Vec<GemAssetSection>,
+    pub state: GemSelectAssetState,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNetworkAssetSections {
     pub shows_pinned: bool,
     pub shows_unpinned: bool,
     pub shows_hidden: bool,
-    pub shows_empty: bool,
+    pub phase: GemListPhase,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNetworkAssetIds {
     pub pinned: Vec<AssetId>,
     pub unpinned: Vec<AssetId>,

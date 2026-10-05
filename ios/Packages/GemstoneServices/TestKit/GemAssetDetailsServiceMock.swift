@@ -28,7 +28,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         self.assetPair = assetPair
     }
 
-    public func refresh(assetId _: AssetId, hasTransactions _: Bool) async -> GemAssetRefresh {
+    public func refresh(assetId _: AssetId) async -> GemAssetRefresh {
         GemAssetRefresh(transactions: .data, failures: [])
     }
 
@@ -66,7 +66,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         )
     }
 
-    public func setPriceAlert(asset: Asset, enabled: Bool) async throws -> GemToast {
+    public func setPriceAlert(asset: Asset, enabled: Bool) async throws -> GemToast? {
         GemToast(text: .priceAlertsToggled(name: asset.name, enabled: enabled), icon: .priceAlert)
     }
 

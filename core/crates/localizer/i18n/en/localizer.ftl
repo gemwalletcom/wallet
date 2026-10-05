@@ -39,6 +39,7 @@ rewards_error_referral_referrer_limit_reached = Referral code has reached their 
 errors_generic = An unexpected error occurred. Please try again later.
 fiat_error_limit_reached = Too many quote requests. Please try again in a few minutes.
 fiat_error_quote_unavailable = This quote is no longer available. Please try again.
+fiat_error_region_unavailable = Not available in your region.
 rewards_error_referral_country_ineligible = Referrals are currently unavailable for your country: {$value}.
 notification_rewards_disabled_title = Referral code deactivated
 notification_rewards_disabled_description = This referral code has been disabled due to repeated violations of our referral program terms.

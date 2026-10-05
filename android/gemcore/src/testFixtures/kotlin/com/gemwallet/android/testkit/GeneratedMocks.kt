@@ -96,12 +96,14 @@ import com.wallet.core.primitives.TransactionsFilter
 import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WCPairingProposal
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletAddressItem
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletConnectionSession
 import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.wallet.core.primitives.WalletConnectionState
 import com.wallet.core.primitives.WalletConnectionVerificationStatus
 import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletListItem
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 
@@ -899,6 +901,14 @@ fun mockWallet(
     source = source,
 )
 
+fun mockWalletAddressItem(
+    wallet: WalletListItem = mockWalletListItem(),
+    address: String = "",
+) = WalletAddressItem(
+    wallet = wallet,
+    address = address,
+)
+
 fun mockWalletConnection(
     session: WalletConnectionSession = mockWalletConnectionSession(),
     wallet: Wallet = mockWallet(),
@@ -933,6 +943,20 @@ fun mockWalletConnectionSessionProposal(
     defaultWallet = defaultWallet,
     wallets = wallets,
     metadata = metadata,
+)
+
+fun mockWalletListItem(
+    id: WalletId = mockWalletId(),
+    name: String = "",
+    index: Int = 0,
+    isPinned: Boolean = false,
+    imageUrl: String? = null,
+) = WalletListItem(
+    id = id,
+    name = name,
+    index = index,
+    isPinned = isPinned,
+    imageUrl = imageUrl,
 )
 
 fun mockApprovalData(
@@ -1294,8 +1318,8 @@ fun mockGemConfirmScreen(
 )
 
 fun mockGemConfirmSimulation(
-    primaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
-    secondaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
+    primaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
+    secondaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
     header: uniffi.gemstone.GemSimulationValue? = null,
     balanceChanges: List<uniffi.gemstone.GemListRow> = emptyList(),
     hasCriticalWarning: Boolean = false,
@@ -1386,15 +1410,17 @@ fun mockGemFeeRateRows(
     showsOptions: Boolean = false,
     unitType: uniffi.gemstone.FeeUnitType = uniffi.gemstone.FeeUnitType.SAT_VB,
     unitDecimals: UInt = 0u,
-    selectedTotal: java.math.BigInteger? = null,
-    normalTotal: java.math.BigInteger? = null,
+    selected: uniffi.gemstone.GasPriceType? = null,
+    normal: uniffi.gemstone.GasPriceType? = null,
+    baseFee: java.math.BigInteger? = null,
 ) = uniffi.gemstone.GemFeeRateRows(
     rows = rows,
     showsOptions = showsOptions,
     unitType = unitType,
     unitDecimals = unitDecimals,
-    selectedTotal = selectedTotal,
-    normalTotal = normalTotal,
+    selected = selected,
+    normal = normal,
+    baseFee = baseFee,
 )
 
 fun mockGemFeeText(
@@ -1479,7 +1505,7 @@ fun mockGemHeaderButton(
 
 fun mockGemHeaderButtonAction(): uniffi.gemstone.GemHeaderButtonAction = uniffi.gemstone.GemHeaderButtonAction.Send(assetId = null)
 
-fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.NetworkFee(asset = mockAsset().toGem())
+fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.RegionUnavailable
 
 fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.GemLocalizedText.WalletDefaultName(index = 0)
 
@@ -1526,7 +1552,7 @@ fun mockGemNftRow(
 fun mockGemNodeCheck(
     url: String = "",
     chainId: String? = null,
-    latestBlockNumber: ULong = 0u,
+    latestBlockNumber: ULong? = null,
     isInSync: Boolean = false,
     latency: uniffi.gemstone.Latency = mockLatency().toGem(),
 ) = uniffi.gemstone.GemNodeCheck(
@@ -1636,8 +1662,8 @@ fun mockGemRowText(
 fun mockGemSignMessagePreview(
     title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     text: String = "",
-    primaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
-    secondaryFields: List<uniffi.gemstone.GemSimulationPayloadRow> = emptyList(),
+    primaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
+    secondaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
     hasCriticalWarning: Boolean = false,
     header: uniffi.gemstone.GemSimulationValue? = null,
     rows: List<uniffi.gemstone.GemListRow> = emptyList(),
@@ -1665,8 +1691,10 @@ fun mockGemSocialLink(
 
 fun mockGemStakeValidatorOptions(
     sections: List<uniffi.gemstone.GemValidatorSection> = emptyList(),
+    phase: uniffi.gemstone.GemListPhase = uniffi.gemstone.GemListPhase.Rows,
 ) = uniffi.gemstone.GemStakeValidatorOptions(
     sections = sections,
+    phase = phase,
 )
 
 fun mockGemSwapPairSuggestion(
@@ -1943,8 +1971,28 @@ fun mockGemWalletConnectTransactionRequest(
     action = action,
 )
 
+fun mockGemWalletHomeViewState(
+    walletRow: uniffi.gemstone.GemWalletRow = mockGemWalletRow(),
+    header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
+    showCollections: Boolean = false,
+    collections: List<uniffi.gemstone.GemNftEntry> = emptyList(),
+    showsPerpetuals: Boolean = false,
+    banner: uniffi.gemstone.GemBannerRow? = null,
+    pinnedAssetIds: List<String> = emptyList(),
+    assetIds: List<String> = emptyList(),
+) = uniffi.gemstone.GemWalletHomeViewState(
+    walletRow = walletRow,
+    header = header,
+    showCollections = showCollections,
+    collections = collections,
+    showsPerpetuals = showsPerpetuals,
+    banner = banner,
+    pinnedAssetIds = pinnedAssetIds,
+    assetIds = assetIds,
+)
+
 fun mockGemWalletRow(
-    id: String = "",
+    id: String = mockWalletId().id,
     name: String = "",
     subtitle: uniffi.gemstone.GemWalletSubtitle = uniffi.gemstone.GemWalletSubtitle.Multicoin,
     placeholder: uniffi.gemstone.GemWalletPlaceholder = uniffi.gemstone.GemWalletPlaceholder.Multicoin,
@@ -2327,6 +2375,7 @@ fun mockSwapQuote(
     toValue: java.math.BigInteger = java.math.BigInteger.ZERO,
     providerData: uniffi.gemstone.SwapProviderData = mockSwapProviderData(),
     slippageBps: UInt = 0u,
+    slippageMode: uniffi.gemstone.SwapperSlippageMode = uniffi.gemstone.SwapperSlippageMode.AUTO,
     etaInSeconds: UInt? = null,
     useMaxAmount: Boolean? = null,
 ) = uniffi.gemstone.SwapQuote(
@@ -2337,6 +2386,7 @@ fun mockSwapQuote(
     toValue = toValue,
     providerData = providerData,
     slippageBps = slippageBps,
+    slippageMode = slippageMode,
     etaInSeconds = etaInSeconds,
     useMaxAmount = useMaxAmount,
 )

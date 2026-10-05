@@ -1,15 +1,17 @@
 use std::collections::HashSet;
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceMapping, PriceProviders};
 use primitives::{AssetAssociation, AssetAssociationType, AssetId};
-use storage::{AssetsRepository, Database};
 use streamer::{FetchAssetAssociationsPayload, consumer::MessageConsumer};
 
+use crate::assets::repository::Repository;
+
 pub struct FetchAssetAssociationsConsumer {
-    pub database: Database,
+    pub(crate) repository: Arc<dyn Repository>,
     pub providers: PriceProviders,
 }
 
@@ -24,15 +26,14 @@ impl MessageConsumer<FetchAssetAssociationsPayload, usize> for FetchAssetAssocia
         let provider = self.providers.get(&price_id.provider).ok_or_else(|| format!("Unsupported asset association price provider: {}", price_id.provider))?;
         let mappings = provider.get_mappings_for_price_id(&price_id.provider_price_id).await?;
         let discovered_asset_ids = mappings.iter().map(|mapping| mapping.asset_id.clone()).collect();
-        let existing_asset_ids = self.database.run(move |client| client.get_assets(discovered_asset_ids)).await?.into_iter().map(|asset| asset.id).collect::<HashSet<_>>();
+        let existing_asset_ids = self.repository.assets(discovered_asset_ids).await?.into_iter().map(|asset| asset.id).collect::<HashSet<_>>();
         let associations = map_asset_associations(mappings, &existing_asset_ids);
 
         if associations.len() < 2 {
             return Err(format!("Price association has fewer than two existing assets: {price_id}").into());
         }
 
-        let id = payload.id.clone();
-        let count = self.database.run(move |client| client.upsert_asset_associations(&id, associations)).await?;
+        let count = self.repository.upsert_asset_associations(payload.id.clone(), associations).await?;
         info_with_fields!("fetch asset associations", id = payload.id.as_str(), count = count);
         Ok(count)
     }

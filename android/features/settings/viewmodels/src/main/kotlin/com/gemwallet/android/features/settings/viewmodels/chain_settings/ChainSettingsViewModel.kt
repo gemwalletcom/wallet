@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemChainRow
+import uniffi.gemstone.GemChainList
 import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemExplorerRow
@@ -53,9 +53,9 @@ class ChainSettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            updateState { it.copy(availableChains = chainService.chainRows(null, "")) }
+            updateState { it.copy(availableChains = chainService.chainList(null, "")) }
             snapshotFlow { chainFilter.text }.collectLatest { query ->
-                updateState { it.copy(availableChains = chainService.chainRows(null, query.toString())) }
+                updateState { it.copy(availableChains = chainService.chainList(null, query.toString())) }
             }
         }
     }
@@ -152,7 +152,7 @@ class ChainSettingsViewModel @Inject constructor(
         val chain: Chain? = null,
         val explorers: List<GemExplorerRow> = emptyList(),
         val session: GemNodeListSession? = null,
-        val availableChains: List<GemChainRow> = emptyList(),
+        val availableChains: GemChainList? = null,
         val selectChain: Boolean = true,
         val errorText: String? = null,
     )

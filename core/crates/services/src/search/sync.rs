@@ -40,8 +40,8 @@ pub struct SearchSyncClient {
 }
 
 impl SearchSyncClient {
-    pub fn new(config: Arc<ConfigCacher>, search_index: &SearchIndexClient) -> Self {
-        Self { config, search_index: search_index.clone() }
+    pub fn new(config: Arc<ConfigCacher>, search_index: SearchIndexClient) -> Self {
+        Self { config, search_index }
     }
 
     pub async fn for_key(&self, key: ConfigKey) -> Result<IndexSync<'_>, Box<dyn Error + Send + Sync>> {

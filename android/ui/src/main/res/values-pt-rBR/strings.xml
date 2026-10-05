@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personalizado</string>
+  <string name="fee_rate_priority">Taxa de prioridade</string>
+  <string name="fee_rate_base">Taxa base</string>
   <string name="banner_account_activation_title">Taxa de ativação da conta</string>
   <string name="banner_account_activation_description">A rede %1$s exige uma taxa única de %2$s.</string>
   <string name="banner_stake_title">Comece staking %1$s</string>
@@ -442,9 +444,12 @@
   <string name="lock_privacy_lock">Bloqueio de privacidade</string>
   <string name="lock_footer">Proteja o acesso a este aplicativo no seu dispositivo</string>
   <string name="lock_passcode">Senha</string>
+  <string name="lock_passcode_off_title">O código do dispositivo está desativado</string>
+  <string name="lock_passcode_off_description">O Gem está bloqueado com o código do seu dispositivo. Ative um código nos ajustes do dispositivo para abrir o Gem. Suas carteiras estão seguras.</string>
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta conta %1$s pode ser controlada por outra pessoa. Não envie fundos para ela a menos que tenha certeza de que você a controla, ou poderá perder seus ativos permanentemente.</string>
   <string name="sell_title">Vender %1$s</string>
+  <string name="info_region_unavailable_description">Este recurso não está disponível na sua região. A disponibilidade depende das regras locais e dos requisitos dos provedores.</string>
   <string name="info_network_fee_title">Taxa de rede</string>
   <string name="info_watch_wallet_title">Assistir carteira</string>
   <string name="info_watch_wallet_description">Uma carteira à qual você não tem acesso, mas pode monitorar suas transações e movimentos.</string>

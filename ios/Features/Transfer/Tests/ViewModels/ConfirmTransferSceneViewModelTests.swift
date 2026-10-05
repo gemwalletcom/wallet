@@ -17,7 +17,6 @@ import enum Gemstone.GemFeeRateKind
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemNameServiceProtocol
 import enum Gemstone.GemRowMenuItem
-import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.GemTransferData
 import struct Gemstone.PaymentInvoice
 import struct Gemstone.PaymentQuote
@@ -204,8 +203,8 @@ struct ConfirmTransferSceneViewModelTests {
             showsOptions: false,
             unitType: .gwei,
             unitDecimals: 9,
-            selectedTotal: 20,
-            normalTotal: 20,
+            selected: .regular(gasPrice: 20),
+            normal: .regular(gasPrice: 20),
         ))
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
 
@@ -239,8 +238,8 @@ struct ConfirmTransferSceneViewModelTests {
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
-            selectedTotal: 20,
-            normalTotal: 20,
+            selected: .regular(gasPrice: 20),
+            normal: .regular(gasPrice: 20),
         )))
 
         model.state = .mock(load: .mock())
@@ -262,8 +261,8 @@ struct ConfirmTransferSceneViewModelTests {
             showsOptions: true,
             unitType: .gwei,
             unitDecimals: 9,
-            selectedTotal: 20,
-            normalTotal: 20,
+            selected: .regular(gasPrice: 20),
+            normal: .regular(gasPrice: 20),
         ))
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmation)
         let expected = { confirmation.viewState(screen: model.state.screen) }
@@ -283,7 +282,7 @@ struct ConfirmTransferSceneViewModelTests {
             feeRates: .mock(rows: [
                 .mock(kind: .priority(priority: .normal), isSelected: true),
                 .mock(kind: .priority(priority: .fast), isSelected: false),
-            ], showsOptions: true, unitType: .gwei, unitDecimals: 9, selectedTotal: 20, normalTotal: 20),
+            ], showsOptions: true, unitType: .gwei, unitDecimals: 9, selected: .regular(gasPrice: 20), normal: .regular(gasPrice: 20)),
             warnings: [warning],
         ))
 
@@ -309,8 +308,8 @@ struct ConfirmTransferSceneViewModelTests {
                 showsOptions: true,
                 unitType: .gwei,
                 unitDecimals: 9,
-                selectedTotal: 20,
-                normalTotal: 20,
+                selected: .regular(gasPrice: 20),
+                normal: .regular(gasPrice: 20),
             ),
         )
         let model = ConfirmTransferSceneViewModel.mock(confirmation: confirmationMock)
@@ -380,11 +379,11 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func walletConnectSectionsStructure() async {
         let rows = [
-            GemSimulationPayloadRow(
-                title: .contract,
-                value: .address(display: "0x1111...1111", copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1111111111111111111111111111111111111111"), explorer: BlockExplorerLink.mock().toGem()),
+            GemListRow.field(
+                title: .rowTitle(title: .contract),
+                value: .address(display: "0x1111...1111", copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1111111111111111111111111111111111111111"), explorer: BlockExplorerLink.mock().toGem(), menu: []),
             ),
-            GemSimulationPayloadRow(title: .method, value: .text(text: "Approve")),
+            GemListRow.field(title: .rowTitle(title: .method), value: .text(text: "Approve")),
         ]
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(inputType: .generic(

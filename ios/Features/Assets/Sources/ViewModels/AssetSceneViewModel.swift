@@ -10,14 +10,16 @@ import enum Gemstone.GemAssetOption
 import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerDestination
 import struct Gemstone.GemBannerKey
+import struct Gemstone.GemEmptyState
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemInfoTopic
+import enum Gemstone.GemListPhase
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemTransactionRow
-import func Gemstone.loadError
+import func Gemstone.transactionListPhase
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
@@ -126,16 +128,12 @@ public final class AssetSceneViewModel: Sendable {
         )
     }
 
-    var transactionsError: Error? {
-        Gemstone.loadError(state: transactionsState, hasRows: !transactionSections.isEmpty)
+    func transactionsPhase(_ details: GemAssetDetails) -> GemListPhase {
+        transactionListPhase(rows: transactionSections.flatMap(\.values), state: transactionsState, emptyState: details.state.emptyState)
     }
 
-    var showTransactions: Bool {
-        transactionSections.isNotEmpty
-    }
-
-    func emptyContentModel(_ details: GemAssetDetails) -> EmptyStateViewModel {
-        EmptyStateViewModel(state: details.state.emptyState, symbol: asset.symbol) { [weak self] action in
+    func emptyContentModel(_ state: GemEmptyState) -> EmptyStateViewModel {
+        EmptyStateViewModel(state: state, symbol: asset.symbol) { [weak self] action in
             switch action {
             case .buy: self?.onSelectBuy()
             case .swap: self?.onSelectSwap()
@@ -275,8 +273,7 @@ public extension AssetSceneViewModel {
         guard let toggled = details.state.priceAlert?.toggled() else { return }
         Task {
             do {
-                let toast = try await service.setPriceAlert(asset: asset.toGem(), enabled: toggled == .enabled)
-                isPresentingToastMessage = ToastMessage(toast: toast)
+                isPresentingToastMessage = try await service.setPriceAlert(asset: asset.toGem(), enabled: toggled == .enabled).map { ToastMessage(toast: $0) }
             } catch let error as GemServiceError {
                 isPresentingToastMessage = .error(error.localizedDescription)
             } catch {
@@ -330,7 +327,7 @@ extension AssetSceneViewModel {
     }
 
     func refresh() async {
-        let refresh = await service.refresh(assetId: asset.id, hasTransactions: showTransactions)
+        let refresh = await service.refresh(assetId: asset.id)
         transactionsState = refresh.transactions
         for failure in refresh.failures {
             debugLog("asset scene: refresh \(failure.step) failed: \(failure.message)")

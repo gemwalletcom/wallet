@@ -13,6 +13,6 @@ impl<C: Client> ChainState for HyperCoreClient<C> {
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
-        Ok(1)
+        Err("HyperCore API does not expose latest block numbers".into())
     }
 }

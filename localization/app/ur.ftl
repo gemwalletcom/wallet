@@ -476,6 +476,8 @@ fee_rates_normal = نارمل
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = حسب ضرورت
+fee_rate_priority = ترجیحی فیس
+fee_rate_base = بنیادی فیس
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = غیر مقفل کریں۔
 lock_privacy_lock = پرائیویسی لاک
 lock_footer = اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔
 lock_passcode = پاس کوڈ
+lock_passcode_off_title = ڈیوائس کا پاس کوڈ بند ہے
+lock_passcode_off_description = Gem آپ کی ڈیوائس کے پاس کوڈ سے لاک ہے۔ Gem کھولنے کے لیے ڈیوائس کی ترتیبات میں پاس کوڈ آن کریں۔ آپ کے والیٹس محفوظ ہیں۔
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = اس %@ اکاؤنٹ کو کوئی او
 sell_title = فروخت کریں %@
 
 # Info
+
+info_region_unavailable_description = یہ خصوصیت آپ کے علاقے میں دستیاب نہیں ہے۔ دستیابی مقامی قواعد اور سروس فراہم کرنے والوں کی ضروریات پر منحصر ہے۔
 
 info_network_fee_title = نیٹ ورک فیس
 info_watch_wallet_title = والیٹ دیکھیں

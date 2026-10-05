@@ -2,9 +2,10 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemListPhase
 import enum Gemstone.GemLoadState
 import protocol Gemstone.GemSupportServiceProtocol
-import func Gemstone.loadError
+import func Gemstone.supportListPhase
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -32,12 +33,8 @@ public final class SupportChatSceneViewModel {
     }
 
     var title: String { Localized.Settings.support }
-    var emptyTitle: String { Localized.Support.stateEmptyTitle }
-    var emptyDescription: String { Localized.Support.stateEmptyDescription }
-    var isEmpty: Bool { query.value.isEmpty }
-
-    var loadError: Error? {
-        Gemstone.loadError(state: loadState, hasRows: !isEmpty)
+    var phase: GemListPhase {
+        supportListPhase(messages: query.value.map { $0.toGem() }, state: loadState)
     }
 
     var typingAgentName: String? { typing.agent?.name }
@@ -54,7 +51,7 @@ public final class SupportChatSceneViewModel {
 
     func load() async {
         let fromTimestamp = service.syncFromTimestamp(messages: query.value.map { $0.toGem() })
-        loadState = await service.refresh(fromTimestamp: fromTimestamp, hasMessages: !isEmpty)
+        loadState = await service.refresh(fromTimestamp: fromTimestamp)
     }
 
     func enableNotificationsForSupport() async {

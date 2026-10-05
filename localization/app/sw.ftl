@@ -476,6 +476,8 @@ fee_rates_normal = Kawaida
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Maalum
+fee_rate_priority = Ada ya Kipaumbele
+fee_rate_base = Ada ya Msingi
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = Fungua
 lock_privacy_lock = Kufuli ya Faragha
 lock_footer = Linda ufikiaji wa programu hii kwenye kifaa chako
 lock_passcode = Nambari ya siri
+lock_passcode_off_title = Nambari ya siri ya kifaa imezimwa
+lock_passcode_off_description = Gem imefungwa kwa nambari ya siri ya kifaa chako. Washa nambari ya siri kwenye mipangilio ya kifaa ili kufungua Gem. Pochi zako ziko salama.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Akaunti hii ya %@ inaweza kudhibitiwa n
 sell_title = Uza %@
 
 # Info
+
+info_region_unavailable_description = Kipengele hiki hakipatikani katika eneo lako. Upatikanaji hutegemea kanuni za eneo na masharti ya watoa huduma.
 
 info_network_fee_title = Ada ya Mtandao
 info_watch_wallet_title = Tazama Wallet

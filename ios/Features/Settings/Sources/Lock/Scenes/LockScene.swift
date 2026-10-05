@@ -37,8 +37,20 @@ extension LockScene {
         }
     }
 
+    @ViewBuilder
     private var placeholderView: some View {
-        LogoView()
-            .background(Colors.white)
+        if model.isPasscodeOff {
+            StateHeroView(
+                systemImage: SystemImage.lockFill,
+                title: model.passcodeOffTitle,
+                description: model.passcodeOffDescription,
+            )
+            .padding(.horizontal, .medium)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Colors.grayBackground)
+        } else {
+            LogoView()
+                .background(Colors.white)
+        }
     }
 }

@@ -35,7 +35,7 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
-    var deleteWalletId by remember { mutableStateOf<WalletId?>(null) }
+    var deleteRow by remember { mutableStateOf<GemWalletRow?>(null) }
 
     WalletsScene(
         sections = sections,
@@ -44,24 +44,24 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
             when (action) {
                 WalletsAction.Create -> onCreateWallet()
                 WalletsAction.Import -> onImportWallet()
-                is WalletsAction.Edit -> onEditWallet(action.walletId)
-                is WalletsAction.Select -> viewModel.selectWallet(action.walletId, onSelectWallet)
-                is WalletsAction.Delete -> deleteWalletId = action.walletId
-                is WalletsAction.TogglePin -> viewModel.togglePin(action.walletId)
+                is WalletsAction.Edit -> onEditWallet(WalletId(action.row.id))
+                is WalletsAction.Select -> viewModel.selectWallet(action.row, onSelectWallet)
+                is WalletsAction.Delete -> deleteRow = action.row
+                is WalletsAction.TogglePin -> viewModel.togglePin(action.row)
                 WalletsAction.Cancel -> onCancel()
             }
         },
     )
 
-    deleteWalletId?.let { pendingDeleteWalletId ->
+    deleteRow?.let { row ->
         ConfirmWalletDeleteDialog(
-            prompt = sections.flatMap { it.rows }.firstOrNull { it.id == pendingDeleteWalletId.id }?.deletePrompt?.string(LocalContext.current).orEmpty(),
+            prompt = row.deletePrompt.string(LocalContext.current),
             onConfirm = {
-                deleteWalletId = null
-                viewModel.deleteWallet(walletId = pendingDeleteWalletId, onBoard)
+                deleteRow = null
+                viewModel.deleteWallet(row, onBoard)
             },
         ) {
-            deleteWalletId = null
+            deleteRow = null
         }
     }
 }

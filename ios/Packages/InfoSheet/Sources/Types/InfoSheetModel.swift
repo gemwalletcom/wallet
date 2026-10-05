@@ -25,7 +25,9 @@ public enum InfoSheetButton: Sendable {
     }
 }
 
-public struct InfoSheetModel: Sendable {
+public struct InfoSheetModel: Identifiable, Sendable {
+    public var id: String { title + description }
+
     public let title: String
     public let description: String
     public let image: InfoSheetImage?
@@ -61,8 +63,12 @@ public struct InfoSheetModel: Sendable {
     }
 }
 
-extension InfoSheetModel {
-    init(sheet: GemInfoSheet, onAction: InfoSheetActionHandler?) {
+public extension InfoSheetModel {
+    init(error: any Error) {
+        self.init(title: Localized.Errors.errorOccurred, description: error.localizedDescription)
+    }
+
+    init(sheet: GemInfoSheet, onAction: InfoSheetActionHandler? = nil) {
         self.init(
             title: sheet.title.text,
             description: sheet.description.text,

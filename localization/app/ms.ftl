@@ -476,6 +476,8 @@ fee_rates_normal = Biasa
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Tersuai
+fee_rate_priority = Yuran Keutamaan
+fee_rate_base = Yuran Asas
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = Buka kunci
 lock_privacy_lock = Kunci Privasi
 lock_footer = Lindungi akses kepada apl ini pada peranti anda
 lock_passcode = Kod Laluan
+lock_passcode_off_title = Kod laluan peranti dimatikan
+lock_passcode_off_description = Gem dikunci dengan kod laluan peranti anda. Hidupkan kod laluan dalam tetapan peranti untuk membuka Gem. Dompet anda selamat.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Akaun %@ ini mungkin dikawal oleh orang
 sell_title = Jual %@
 
 # Info
+
+info_region_unavailable_description = Ciri ini tidak tersedia di rantau anda. Ketersediaan bergantung pada peraturan setempat dan syarat penyedia.
 
 info_network_fee_title = Yuran Rangkaian
 info_watch_wallet_title = Tonton Wallet

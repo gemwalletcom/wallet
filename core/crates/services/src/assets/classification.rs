@@ -52,6 +52,14 @@ impl AssetClassificationRules {
         }
         asset
     }
+
+    #[cfg(test)]
+    pub(crate) fn mock_with_spam_marker(marker: &str) -> Self {
+        Self {
+            spam_markers: vec![marker.to_string()],
+            fraudulent_assets: vec![],
+        }
+    }
 }
 
 #[cfg(test)]

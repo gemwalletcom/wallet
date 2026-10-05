@@ -10,7 +10,7 @@ import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.gemwallet.android.NotificationTapActivity
+import com.gemwallet.android.MainActivity
 import com.gemwallet.android.application.notifications.cases.ShowSystemNotification
 import com.gemwallet.android.putNotificationPayload
 import com.gemwallet.android.ui.R
@@ -33,9 +33,9 @@ class ShowSystemNotificationImpl @Inject constructor(@param:ApplicationContext p
         val channelId = channelId ?: "default"
         val title = title ?: "GemWallet"
         val notificationId = "$type:$rawData".hashCode()
-        val intent = Intent(applicationContext, NotificationTapActivity::class.java)
+        val intent = Intent(applicationContext, MainActivity::class.java)
             .putNotificationPayload(type = type, rawData = rawData)
-            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pendingIntent = PendingIntent.getActivity(
             applicationContext,
             notificationId,

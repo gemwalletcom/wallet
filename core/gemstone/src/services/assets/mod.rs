@@ -14,7 +14,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, AssetProperties, Chain, ConfigVersions, FiatAssets, FiatQuoteType, Wallet, WalletId};
 
 pub use add::GemAddAssetService;
 pub use details::GemAssetDetailsService;
@@ -28,6 +28,7 @@ pub use store::GemAssetStore;
 use crate::api::{GemApiClient, GemApiError};
 use crate::gateway::GemGateway;
 use crate::services::clock::is_outdated;
+use crate::services::collections::missing;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 
@@ -122,11 +123,11 @@ impl GemAssetsService {
 
     pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
-        let missing = rules::missing_asset_ids(asset_ids, existing);
-        if missing.is_empty() {
+        let missing_ids = missing(asset_ids, existing);
+        if missing_ids.is_empty() {
             return Ok(vec![]);
         }
-        self.sync_assets(missing).await
+        self.sync_assets(missing_ids).await
     }
 
     async fn sync_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
@@ -139,12 +140,12 @@ impl GemAssetsService {
 
     pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
-        let missing = rules::missing_asset_ids(asset_ids.clone(), existing);
-        if missing.is_empty() {
+        let missing_ids = missing(asset_ids.clone(), existing);
+        if missing_ids.is_empty() {
             return self.assets(asset_ids).await;
         }
-        let synced = self.sync_assets(missing.clone()).await.unwrap_or_default();
-        for asset_id in rules::missing_asset_ids(missing, synced) {
+        let synced = self.sync_assets(missing_ids.clone()).await.unwrap_or_default();
+        for asset_id in missing(missing_ids, synced) {
             let _ = self.node_token_asset(asset_id).await;
         }
         self.assets(asset_ids).await
@@ -167,16 +168,12 @@ impl GemAssetsService {
         self.store.get_assets(asset_ids).await
     }
 
+    pub async fn asset_properties(&self, asset_id: AssetId) -> Result<Option<AssetProperties>, GemServiceError> {
+        Ok(self.store.get_asset_basics(vec![asset_id]).await?.into_iter().next().map(|basic| basic.properties))
+    }
+
     pub async fn get_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemApiError> {
         Ok(self.api.client.get_asset(asset_id).await?)
-    }
-
-    pub async fn search_assets(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemApiError> {
-        Ok(self.api.client.get_search_assets(query, chains).await?)
-    }
-
-    pub async fn search(&self, query: String, chains: Vec<Chain>, tags: Vec<String>) -> Result<SearchResponse, GemApiError> {
-        Ok(self.api.client.get_search(query, chains, tags).await?)
     }
 
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
@@ -234,12 +231,6 @@ impl GemAssetsService {
             return Ok(());
         }
         self.store.save_assets(missing).await
-    }
-
-    pub async fn search_assets_and_tokens(&self, query: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
-        let token_chains = rules::token_search_chains(&chains);
-        let (assets, tokens) = futures::join!(self.search_assets(query.clone(), chains), self.search_tokens(query, token_chains));
-        Ok(rules::merge_assets(assets?, tokens))
     }
 
     pub async fn get_fiat_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, GemApiError> {

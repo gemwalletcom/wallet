@@ -23,11 +23,15 @@ flowchart LR
 | An Active delegation has rewards | Rewards shows on it | |
 | A delegation has yet to activate or become available | a countdown says when | |
 | The user taps a delegation awaiting withdrawal, in a wallet that can sign | straight to Withdraw | |
+| The user delegates to a validator Gem does not recommend | the delegation shows the state the network reports for that validator | |
 | No other active validator exists | no Redelegate | |
 | The user redelegates | never to the validator being left | |
 | The delegation is awaiting withdrawal | Withdraw is offered | |
 | The coin is TRX on TRON | the user freezes and unfreezes it, and sees Energy and Bandwidth as "available / total" | |
+| The wallet has no delegations | a loading row until the first sync answers, then the empty state or the sync's error | the screen never says nothing is staked before it knows |
 
 ## Rules
 
 - Earn (deposit with the best provider) sits behind the same screens but is behind a flag and not offered in the shipped apps.
+
+Regional feature restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table. Unstake, Withdraw and Claim Rewards remain available.

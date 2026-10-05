@@ -476,6 +476,8 @@ fee_rates_normal = Normal
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Personalizat
+fee_rate_priority = Taxa de prioritate
+fee_rate_base = Taxa de bază
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = Deblocați
 lock_privacy_lock = Blocare confidențialitate
 lock_footer = Protejați accesul la această aplicație pe dispozitivul dvs.
 lock_passcode = Cod de acces
+lock_passcode_off_title = Codul dispozitivului este dezactivat
+lock_passcode_off_description = Gem este blocat cu codul dispozitivului. Activați un cod din setările dispozitivului pentru a deschide Gem. Portofelele dvs. sunt în siguranță.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Acest cont %@ poate fi controlat de alt
 sell_title = Vânzare %@
 
 # Info
+
+info_region_unavailable_description = Această funcție nu este disponibilă în regiunea ta. Disponibilitatea depinde de regulile locale și de cerințele furnizorilor.
 
 info_network_fee_title = Taxa de retea
 info_watch_wallet_title = Portofel de monitorizare

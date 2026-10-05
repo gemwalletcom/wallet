@@ -130,7 +130,7 @@ class SetPriceAlertViewModel @Inject constructor(
         session.update { it.onSaving(true) }
         viewModelScope.launch {
             runCatchingCancellable { withContext(ioDispatcher) { service.enablePriceAlert(priceAlert) } }
-                .onSuccess { onSaved(viewState.value.savedMessage?.string(context).orEmpty()) }
+                .onSuccess { if (it) onSaved(viewState.value.savedMessage?.string(context).orEmpty()) }
                 .onFailure { errorState.value = it.errorText().text(context) }
             session.update { it.onSaving(false) }
         }

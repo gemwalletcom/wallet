@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = Kod polecający osiągnął limi
 errors_generic = Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.
 fiat_error_limit_reached = Zbyt wiele zapytań o wycenę. Spróbuj ponownie za kilka minut.
 fiat_error_quote_unavailable = Ta wycena nie jest już dostępna. Spróbuj ponownie.
+fiat_error_region_unavailable = Niedostępne w Twoim regionie.
 rewards_error_referral_country_ineligible = Polecenia są obecnie niedostępne dla Twojego kraju: {$value}.
 notification_rewards_disabled_title = Kod polecający został dezaktywowany
 notification_rewards_disabled_description = Ten kod polecający został wyłączony z powodu powtarzających się naruszeń warunków naszego programu poleceń.

@@ -2,7 +2,7 @@ use num_bigint::BigInt;
 use num_bigint::BigUint;
 use primitives::{
     Asset, AssetId, BitcoinChain, Chain, GasPriceType, SignerInput, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO,
-    swap::{SwapData, SwapProviderData, SwapQuote, SwapQuoteData},
+    swap::{SlippageMode, SwapData, SwapProviderData, SwapQuote, SwapQuoteData},
 };
 
 use crate::testkit::address_mock::{mock_destination_address, mock_p2wpkh_address, mock_sender_address};
@@ -95,6 +95,7 @@ fn mock_swap_input(chain: BitcoinChain, provider: SwapProvider, use_max_amount: 
                     protocol_name: provider.protocol_name().to_string(),
                 },
                 slippage_bps: 50,
+                slippage_mode: SlippageMode::Exact,
                 eta_in_seconds: None,
                 use_max_amount,
             },

@@ -108,8 +108,7 @@ fun GemLineChart(
     val maxIndex = bounds.upperIndex.toInt()
 
     val valueRange = rememberChartRange(bounds.yMin.toFloat(), bounds.yMax.toFloat())
-    val paddedMin = valueRange.low
-    val paddedRange = valueRange.high - valueRange.low
+    val viewport = valueRange.viewport
 
     var chartSize by remember { mutableStateOf(IntSize.Zero) }
     val selection = rememberChartSelection(selectedIndex)
@@ -128,12 +127,13 @@ fun GemLineChart(
             val plotBottom = canvasHeight - verticalPaddingPx
             val plotHeight = plotBottom - plotTop
             if (plotHeight <= 0) return@Box
+            val chartViewport = viewport ?: return@Box
 
             val curveLeft = horizontalPaddingPx
             val curveWidth = canvasWidth - 2 * horizontalPaddingPx
 
             fun screenX(fraction: Float) = curveLeft + fraction * curveWidth
-            fun valueToScreenY(value: Float) = plotTop + valueToY(value, paddedMin, paddedRange, plotHeight)
+            fun valueToScreenY(value: Float) = plotTop + chartViewport.y(value, plotHeight)
 
             val pointIndex by rememberUpdatedState(indexAt)
             val selectionChanged by rememberUpdatedState(onSelectionChanged)
@@ -141,7 +141,7 @@ fun GemLineChart(
             val pan by rememberUpdatedState(onPan)
             val zoomed by rememberUpdatedState(isZoomed)
 
-            val screenPoints = remember(points, chartSize, paddedMin, paddedRange) {
+            val screenPoints = remember(points, chartSize, chartViewport) {
                 points.map { point -> Offset(screenX(point.x), valueToScreenY(point.y)) }
             }
             val curvePath = remember(screenPoints) { buildCurvePath(screenPoints) }
@@ -311,5 +311,3 @@ private fun buildCurvePath(screenPoints: List<Offset>): Path {
 }
 
 private fun distanceBetween(from: Offset, to: Offset): Float = sqrt((from.x - to.x).let { it * it } + (from.y - to.y).let { it * it })
-
-private fun valueToY(value: Float, minValue: Float, range: Float, height: Float): Float = height - ((value - minValue) / range) * height

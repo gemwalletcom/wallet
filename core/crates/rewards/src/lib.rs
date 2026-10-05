@@ -1,4 +1,3 @@
-mod model;
 mod risk_scoring;
 
 mod abuseipdb;
@@ -18,7 +17,6 @@ pub use abuseipdb::AbuseIPDBClient;
 pub use error::{ReferralConfirmationError, ReferralError, ReferralValidationError, RewardsError, RewardsRedemptionError, UsernameError, UsernameValidationError};
 pub use ip_check_provider::IpCheckProvider;
 pub use ipapi::IpApiClient;
-pub use model::IpCheckResult;
 pub use redemption_service::{RedemptionAsset, RedemptionRequest, RedemptionResult, RedemptionService};
 pub use referral::{DeviceWallet, NewReferralVerification, Referral, ReferralUseFacts, ReferredRewards, new_referral_verification, referral_verification_delay};
 pub use risk_scoring::{RiskResult, RiskScoreConfig, RiskScoringInput, RiskSignalInput, evaluate_risk};

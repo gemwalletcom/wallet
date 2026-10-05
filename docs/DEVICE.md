@@ -101,4 +101,4 @@ Endpoints that act for a wallet (rewards and referrals, for example) also need p
 }
 ```
 
-The request is still device-authenticated: the body hash inside the `Gem` header binds the wallet-signed body to the request. Backend side: [wallet signature verification](../core/crates/gem_auth/src/signature.rs), [auth guards](../core/apps/api/src/auth/guard.rs), [nonce management](../core/crates/services/src/auth/client.rs), [auth primitives](../core/crates/primitives/src/auth.rs).
+The request is still device-authenticated: the body hash inside the `Gem` header binds the wallet-signed body to the request. The wallet signature is accepted only in its low-S form, so one nonce has exactly one valid signature encoding. Backend side: [wallet signature verification](../core/crates/gem_auth/src/signature.rs), [auth guards](../core/apps/api/src/auth/guard.rs), [nonce management](../core/crates/services/src/auth/client.rs), [auth primitives](../core/crates/primitives/src/auth.rs).

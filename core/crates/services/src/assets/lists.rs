@@ -1,27 +1,27 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
 use lists::ListProvider;
-use primitives::{AssetId, AssetIdVecExt, AssetList, ListId, ListProviderName};
-use storage::{AssetFilter, AssetsRepository, Database, DatabaseClient, DatabaseError, TagRepository};
+use primitives::{AssetList, ListId, ListProviderName};
+
+use crate::assets::repository::Repository;
 
 pub struct ListsClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
     providers: HashMap<ListProviderName, Arc<dyn ListProvider>>,
 }
 
 impl ListsClient {
-    pub fn new(database: Database, providers: Vec<Arc<dyn ListProvider>>) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>, providers: Vec<Arc<dyn ListProvider>>) -> Self {
         Self {
-            database,
+            repository,
             providers: providers.into_iter().map(|provider| (provider.provider(), provider)).collect(),
         }
     }
 
     pub async fn add_list(&self, id: String, list_id: ListId) -> Result<Option<AssetList>, Box<dyn Error + Send + Sync>> {
-        let tag_id = id.clone();
-        let tag = self.database.run(move |client| client.get_tag(&tag_id)).await?;
+        let tag = self.repository.list_tag(id.clone()).await?;
         if tag.as_ref().is_some_and(|tag| tag.list_id.as_ref() != Some(&list_id)) {
             return Ok(None);
         }
@@ -32,23 +32,7 @@ impl ListsClient {
         let Some(list) = provider.get_list(&list_id.provider_list_id).await? else {
             return Ok(None);
         };
-        let tag_id = id.clone();
-        let list_name = list.name.clone();
-        let candidate_asset_ids = list.asset_ids;
-        let is_new_tag = tag.is_none();
-        let count = self
-            .database
-            .run(move |client| -> Result<Option<usize>, DatabaseError> {
-                let asset_ids = known_asset_ids(client, candidate_asset_ids)?;
-                if is_new_tag && client.add_list_tag(&tag_id, &list_name, list_id)? == 0 {
-                    return Ok(None);
-                }
-                if !asset_ids.is_empty() {
-                    client.set_assets_tags_for_tag(&tag_id, asset_ids)?;
-                }
-                Ok(Some(client.get_asset_ids_for_tag(&tag_id)?.len()))
-            })
-            .await?;
+        let count = self.repository.set_list_assets(id.clone(), list.name.clone(), list_id, list.asset_ids, tag.is_none()).await?;
         let Some(count) = count else {
             return Ok(None);
         };
@@ -61,7 +45,7 @@ impl ListsClient {
     }
 
     pub async fn update_lists(&self, provider: ListProviderName) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let tags = self.database.run(TagRepository::get_list_tags).await?;
+        let tags = self.repository.list_tags().await?;
         let mut count = 0;
         for tag in tags {
             let Some(list_id) = tag.list_id else {
@@ -75,11 +59,69 @@ impl ListsClient {
     }
 }
 
-fn known_asset_ids(client: &mut DatabaseClient, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, DatabaseError> {
-    if asset_ids.is_empty() {
-        return Ok(asset_ids);
+#[cfg(test)]
+mod tests {
+    use async_trait::async_trait;
+    use lists::ListProviderData;
+    use primitives::{AssetId, Chain, TagVisibility};
+    use storage::Tag;
+
+    use super::*;
+    use crate::testkit::{ListAssets, MemoryAssetRepository};
+
+    struct StaticListProvider;
+
+    #[async_trait]
+    impl ListProvider for StaticListProvider {
+        fn provider(&self) -> ListProviderName {
+            ListProviderName::Coingecko
+        }
+
+        async fn get_list(&self, _provider_list_id: &str) -> Result<Option<ListProviderData>, Box<dyn Error + Send + Sync>> {
+            Ok(Some(ListProviderData {
+                name: "Stablecoins".to_string(),
+                asset_ids: vec![AssetId::from_chain(Chain::Ethereum)],
+            }))
+        }
     }
-    let existing = client.get_asset_ids_by_filter(vec![AssetFilter::Ids(asset_ids.ids())])?.into_iter().collect::<HashSet<_>>();
-    let mut seen = HashSet::new();
-    Ok(asset_ids.into_iter().filter(|asset_id| existing.contains(asset_id) && seen.insert(asset_id.clone())).collect())
+
+    fn list_id(provider_list_id: &str) -> ListId {
+        ListId {
+            provider: ListProviderName::Coingecko,
+            provider_list_id: provider_list_id.to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_add_list_creates_new_tag() {
+        let repository = Arc::new(MemoryAssetRepository::new(vec![]));
+        let client = ListsClient::new(repository.clone(), vec![Arc::new(StaticListProvider)]);
+
+        let list = client.add_list("stablecoins".to_string(), list_id("stablecoins")).await.unwrap().unwrap();
+
+        assert_eq!(list.count, 1);
+        assert_eq!(
+            repository.list_assets(),
+            vec![ListAssets {
+                tag_id: "stablecoins".to_string(),
+                asset_ids: vec![AssetId::from_chain(Chain::Ethereum)],
+                is_new_tag: true,
+            }]
+        );
+    }
+
+    #[tokio::test]
+    async fn test_add_list_skips_tag_bound_to_another_list() {
+        let tag = Tag {
+            id: "stablecoins".to_string(),
+            name: "Stablecoins".to_string(),
+            visibility: TagVisibility::Public,
+            list_id: Some(list_id("other")),
+        };
+        let repository = Arc::new(MemoryAssetRepository::new(vec![]).with_tags(vec![tag]));
+        let client = ListsClient::new(repository.clone(), vec![Arc::new(StaticListProvider)]);
+
+        assert!(client.add_list("stablecoins".to_string(), list_id("stablecoins")).await.unwrap().is_none());
+        assert!(repository.list_assets().is_empty());
+    }
 }

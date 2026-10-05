@@ -11,6 +11,7 @@ use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
+use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
@@ -103,11 +104,13 @@ impl DiscoveryTestkit {
                 gateway,
                 Arc::new(GemStaticApiClient::new(provider.clone())),
                 Arc::new(UnusedStakeStore),
+                assets.clone(),
                 names,
                 Arc::new(GemExplorerService::new(preferences.clone())),
                 preferences.clone(),
                 session.clone(),
                 primitives::Platform::IOS,
+                Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
             )),
             nft.clone(),
             Arc::new(GemPaymentService::new(provider.clone(), assets.clone())),

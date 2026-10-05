@@ -28,11 +28,10 @@ fun CollectionsScreen(
     val items by viewModel.collections.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val unverifiedListItem by viewModel.unverifiedListItem.collectAsStateWithLifecycle()
-    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val showReceiveAction by viewModel.showReceiveAction.collectAsStateWithLifecycle()
-    val emptyState by viewModel.emptyState.collectAsStateWithLifecycle()
+    val phase by viewModel.phase.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     ToastEffect(viewModel.toastEvents, snackbar)
 
@@ -43,11 +42,10 @@ fun CollectionsScreen(
     CollectionsScene(
         items = items,
         isRefreshing = isRefreshing,
-        errorRow = errorRow,
         unverifiedListItem = unverifiedListItem,
         title = title,
         showReceiveAction = showReceiveAction,
-        emptyState = emptyState,
+        phase = phase,
         listState = listState,
         snackbar = snackbar,
         onAction = { action ->

@@ -15,6 +15,7 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
+import uniffi.gemstone.initializeForeignFutureResultStructs
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -63,6 +64,7 @@ class App :
 
         init {
             System.loadLibrary("gemstone")
+            initializeForeignFutureResultStructs()
         }
     }
 }

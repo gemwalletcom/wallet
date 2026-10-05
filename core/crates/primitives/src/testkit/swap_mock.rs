@@ -108,6 +108,7 @@ impl SwapQuote {
             from_address: TEST_EVM_RECIPIENT.to_string(),
             to_address: TEST_EVM_RECIPIENT.to_string(),
             slippage_bps: 50,
+            slippage_mode: SlippageMode::Exact,
             eta_in_seconds: Some(30),
             use_max_amount: None,
         }
@@ -130,6 +131,7 @@ impl SwapQuote {
             from_address: from_address.to_string(),
             to_address: to_address.to_string(),
             slippage_bps: 50,
+            slippage_mode: SlippageMode::Exact,
             eta_in_seconds: Some(30),
             use_max_amount: None,
         }

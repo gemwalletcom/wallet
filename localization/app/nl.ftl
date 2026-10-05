@@ -476,6 +476,8 @@ fee_rates_normal = Normaal
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Aangepast
+fee_rate_priority = Prioriteitskosten
+fee_rate_base = Basiskosten
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = Ontgrendelen
 lock_privacy_lock = Privacyslot
 lock_footer = Beveilig de toegang tot deze app op uw apparaat
 lock_passcode = Toegangscode
+lock_passcode_off_title = Toegangscode van apparaat staat uit
+lock_passcode_off_description = Gem is vergrendeld met de toegangscode van je apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Je portemonnees zijn veilig.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Dit %@-account kan door iemand anders w
 sell_title = Verkoop %@
 
 # Info
+
+info_region_unavailable_description = Deze functie is niet beschikbaar in je regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders.
 
 info_network_fee_title = Netwerkkosten
 info_watch_wallet_title = Kijk-portemonnee

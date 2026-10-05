@@ -62,6 +62,12 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         keystorePassword.getAvailableAuthentication()
     }
 
+    public var isPasscodeSet: Bool {
+        var error: NSError?
+        LAContext().canEvaluatePolicy(.deviceOwnerAuthentication, error: &error)
+        return error?.code != LAError.passcodeNotSet.rawValue
+    }
+
     @MainActor
     public func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws {
         try await authenticate(context: context, reason: reason)

@@ -4,7 +4,7 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
-use primitives::{Release, Wallet};
+use primitives::{Release, WalletListItem};
 
 use crate::models::list::GemListSection;
 use crate::services::error::GemServiceError;
@@ -58,7 +58,7 @@ impl GemSettingsService {
         rules::security_sections(input, self.preferences.is_hide_balance_enabled())
     }
 
-    pub fn sections(&self, wallets: Vec<Wallet>, notifications_available: bool, wallet_connect_available: bool) -> Vec<GemListSection> {
+    pub fn sections(&self, wallets: Vec<WalletListItem>, notifications_available: bool, wallet_connect_available: bool) -> Vec<GemListSection> {
         rules::sections(
             wallets.len(),
             notifications_available,

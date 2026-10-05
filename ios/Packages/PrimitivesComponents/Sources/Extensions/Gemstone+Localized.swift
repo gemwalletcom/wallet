@@ -72,7 +72,6 @@ import enum Gemstone.GemRewardsIntroItem
 import enum Gemstone.GemSecurityReminderItem
 import enum Gemstone.GemSelectAssetSection
 import enum Gemstone.GemSelectAssetTitle
-import enum Gemstone.GemSimulationPayloadTitle
 import enum Gemstone.GemSlippageFooter
 import enum Gemstone.GemStakeSection
 import enum Gemstone.GemSwapButtonAction
@@ -429,20 +428,6 @@ public extension Resource {
     }
 }
 
-public extension GemSimulationPayloadTitle {
-    var text: String {
-        switch self {
-        case .contract: Localized.Asset.contract
-        case .method: Localized.Common.method
-        case .token: Localized.Common.token
-        case .spender: Localized.Transfer.to
-        case .value: Localized.Perpetual.value
-        case .expiration: Localized.Common.expiration
-        case let .custom(label): label
-        }
-    }
-}
-
 public extension TransactionState {
     var statusTitle: String {
         switch self {
@@ -631,6 +616,9 @@ public extension GemEmptyStateText {
         case .searchPerpetualsTitle: Localized.Perpetuals.EmptyState.noMarketsFound
         case .rewardsTitle: Localized.Rewards.stateEmptyTitle
         case .rewardsDescription: Localized.Rewards.stateEmptyDescription
+        case .supportTitle: Localized.Support.stateEmptyTitle
+        case .supportDescription: Localized.Support.stateEmptyDescription
+        case .noResultsFoundTitle: Localized.Common.noResultsFound
         }
     }
 }
@@ -881,6 +869,8 @@ public extension GemListRowTitle {
         case .normalFee: Localized.FeeRates.normal
         case .fastFee: Localized.FeeRates.fast
         case .customFee: Localized.FeeRate.custom
+        case .priorityFee: Localized.FeeRate.priority
+        case .baseFee: Localized.FeeRate.base
         case .payWith: Localized.Transfer.payWith
         case .validator: Localized.Stake.validator
         case .provider: Localized.Common.provider
@@ -945,6 +935,11 @@ public extension GemListRowTitle {
         case .transfer: Localized.Transfer.title
         case .swap: Localized.Wallet.swap
         case .contract: Localized.Asset.contract
+        case .method: Localized.Common.method
+        case .token: Localized.Common.token
+        case .spender: Localized.Transfer.to
+        case .value: Localized.Perpetual.value
+        case .expiration: Localized.Common.expiration
         case .tokenId: Localized.Asset.tokenId
         case .collection: Localized.Nft.collection
         }
@@ -993,6 +988,7 @@ extension GemTriggerOrder {
 public extension GemInfoTitle {
     var text: String {
         switch self {
+        case .notAvailable: Localized.Common.notAvailable
         case .networkFee: Localized.Info.NetworkFee.title
         case let .balanceRequired(symbol): Localized.Info.balanceRequiredTitle(symbol)
         case let .transactionState(state): state.toPrimitives().statusTitle
@@ -1030,6 +1026,7 @@ public extension GemInfoTitle {
 public extension GemInfoDescription {
     var text: String {
         switch self {
+        case .regionUnavailable: Localized.Info.regionUnavailableDescription
         case let .networkFee(network, symbol):
             Localized.Info.NetworkFee.description(network.boldMarkdown(), symbol.boldMarkdown())
         case let .balanceRequired(required, available, shortfall):
@@ -1288,7 +1285,7 @@ public extension GemPerpetualMarketSection {
         case .positions: Localized.Perpetual.positions
         case .pinned: Localized.Common.pinned
         case .markets: Localized.Perpetuals.markets
-        case .header, .recents, .empty: .empty
+        case .header, .recents: .empty
         }
     }
 }

@@ -476,6 +476,8 @@ fee_rates_normal = ปกติ
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = กำหนดเอง
+fee_rate_priority = ค่าธรรมเนียมลำดับความสำคัญ
+fee_rate_base = ค่าธรรมเนียมพื้นฐาน
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = ปลดล็อค
 lock_privacy_lock = ล็อคความเป็นส่วนตัว
 lock_footer = ป้องกันการเข้าถึงแอปนี้บนอุปกรณ์ของคุณ
 lock_passcode = รหัสผ่าน
+lock_passcode_off_title = รหัสผ่านอุปกรณ์ปิดอยู่
+lock_passcode_off_description = Gem ถูกล็อกด้วยรหัสผ่านอุปกรณ์ของคุณ เปิดรหัสผ่านในการตั้งค่าอุปกรณ์เพื่อเปิด Gem กระเป๋าเงินของคุณปลอดภัย
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = บัญชี %@ นี้อาจ�
 sell_title = ขาย %@
 
 # Info
+
+info_region_unavailable_description = ฟีเจอร์นี้ไม่พร้อมให้บริการในภูมิภาคของคุณ ความพร้อมให้บริการขึ้นอยู่กับกฎในท้องถิ่นและข้อกำหนดของผู้ให้บริการ
 
 info_network_fee_title = ค่าธรรมเนียมเครือข่าย
 info_watch_wallet_title = ดูกระเป๋าเงิน

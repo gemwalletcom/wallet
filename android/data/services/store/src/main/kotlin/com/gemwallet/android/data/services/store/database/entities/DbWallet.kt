@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletListItem
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,14 @@ fun DbWallet.toDTO(accounts: List<DbAccount>): Wallet = Wallet(
     isPinned = pinned,
     imageUrl = imageUrl,
     source = source,
+)
+
+fun DbWallet.toWalletListItem(): WalletListItem = WalletListItem(
+    id = WalletId(id),
+    name = name,
+    index = index,
+    isPinned = pinned,
+    imageUrl = imageUrl,
 )
 
 fun Wallet.toRecord(): DbWallet = DbWallet(

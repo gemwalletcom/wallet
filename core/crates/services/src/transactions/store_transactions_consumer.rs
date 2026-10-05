@@ -6,21 +6,21 @@ use std::{collections::HashMap, error::Error};
 use async_trait::async_trait;
 use futures::{StreamExt, TryStreamExt, stream};
 use primitives::{AssetAddress, AssetIdVecExt, AssetPriceMetadata, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
-use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, NftRepository, TransactionsRepository, WalletsRepository};
-use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
+use storage::AssetFilter;
+use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 
 use super::StoreTransactionsConsumerConfig;
 use super::SwapVaultAddressClient;
-use crate::assets::add_transaction_addresses;
+use super::repository::Repository;
 use crate::config::ConfigCacher;
 use crate::notifications::Pusher;
 
 const CROSS_CHAIN_SOURCE_TYPES: [TransactionType; 3] = [TransactionType::Transfer, TransactionType::SmartContractCall, TransactionType::Swap];
 
 pub struct StoreTransactionsConsumer {
-    pub database: Database,
-    pub stream_producer: StreamProducer,
+    pub(crate) repository: Arc<dyn Repository>,
+    pub stream_producer: Arc<dyn StreamProducerQueue>,
     pub pusher: Pusher,
     pub config: Arc<ConfigCacher>,
     pub vault_client: SwapVaultAddressClient,
@@ -74,7 +74,7 @@ impl StoreTransactionsConsumer {
         let wallet_events = Self::wallet_events(&subscriptions, &subscribed_transactions, &publishable_transactions);
 
         if !assets_addresses.is_empty() {
-            self.database.run(move |client| add_transaction_addresses(client, assets_addresses)).await?;
+            self.repository.add_asset_addresses(assets_addresses).await?;
         }
         self.stream_producer.publish_notifications_transactions(notifications).await?;
         self.stream_producer.publish_wallet_stream_events(wallet_events).await?;
@@ -89,22 +89,21 @@ impl StoreTransactionsConsumer {
         let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
         let transactions = Self::transactions_for_storage(transactions, &deposit_addresses, &send_addresses);
         let asset_ids: Vec<AssetId> = transactions.iter().flat_map(Transaction::asset_ids).collect::<HashSet<_>>().into_iter().collect();
-        let lookup_ids = asset_ids.clone();
-        let existing_ids = self.database.run(move |client| client.get_assets(lookup_ids)).await?.into_iter().map(|asset| asset.id).collect::<HashSet<_>>();
+        let existing_ids = self.repository.assets(asset_ids.clone()).await?.into_iter().map(|asset| asset.id).collect::<HashSet<_>>();
         self.stream_producer.publish_fetch_assets(asset_ids.into_iter().filter(|id| !existing_ids.contains(id)).collect()).await?;
 
         let transactions = transactions.into_iter().filter(|transaction| transaction.asset_ids().iter().all(|id| existing_ids.contains(id))).collect::<Vec<_>>();
         let referrals = transactions.iter().filter_map(|transaction| Some((referral_queue(transaction)?, transaction.id.clone()))).collect::<Vec<_>>();
         self.upsert_transactions(transactions, config.batch_size).await?;
         for (queue, transaction_id) in referrals {
-            self.stream_producer.publish(queue, &transaction_id).await?;
+            self.stream_producer.publish_referral_transaction(queue, transaction_id).await?;
         }
         Ok(())
     }
 
     async fn get_subscriptions(&self, chain: Chain, transactions: &[Transaction]) -> Result<Vec<DeviceSubscription>, Box<dyn Error + Send + Sync>> {
         let addresses: Vec<_> = transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
-        Ok(self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?)
+        Ok(self.repository.subscriptions_for_addresses(chain, addresses).await?)
     }
 
     fn subscribed_transactions_for_storage(
@@ -286,7 +285,7 @@ impl StoreTransactionsConsumer {
 
     async fn get_existing_and_missing_assets(&self, assets_ids: Vec<AssetId>, primary_price_max_age: Duration) -> Result<(Vec<primitives::AssetPriceMetadata>, Vec<AssetId>), Box<dyn Error + Send + Sync>> {
         let filters = vec![AssetFilter::Ids(assets_ids.clone().ids())];
-        let assets_with_prices = self.database.run(move |client| client.get_assets_with_prices(filters, primary_price_max_age)).await?;
+        let assets_with_prices = self.repository.assets_with_prices(filters, primary_price_max_age).await?;
         let existing_ids = assets_with_prices.iter().map(|asset| asset.asset.asset.id.clone()).collect::<HashSet<_>>();
         let missing_assets = assets_ids.into_iter().filter(|asset_id| !existing_ids.contains(asset_id)).collect();
         Ok((assets_with_prices, missing_assets))
@@ -297,20 +296,12 @@ impl StoreTransactionsConsumer {
             return Ok(Vec::new());
         }
         let identifiers: Vec<String> = nft_asset_ids.iter().map(ToString::to_string).collect();
-        let existing_ids: HashSet<NFTAssetId> = self.database.run(move |client| client.get_nft_asset_ids(identifiers)).await?.into_iter().collect();
+        let existing_ids: HashSet<NFTAssetId> = self.repository.nft_asset_ids(identifiers).await?.into_iter().collect();
         Ok(nft_asset_ids.into_iter().filter(|id| !existing_ids.contains(id)).collect())
     }
 
     async fn upsert_transactions(&self, transactions: Vec<Transaction>, batch_size: usize) -> Result<HashSet<TransactionId>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .database
-            .run(move |client| {
-                transactions.chunks(batch_size).try_fold(HashSet::new(), |inserted_ids, chunk| -> Result<HashSet<TransactionId>, DatabaseError> {
-                    let chunk_inserted_ids = client.upsert_transactions(chunk.to_vec())?;
-                    Ok(inserted_ids.into_iter().chain(chunk_inserted_ids).collect())
-                })
-            })
-            .await?)
+        Ok(self.repository.upsert_transactions(transactions, batch_size).await?)
     }
 }
 

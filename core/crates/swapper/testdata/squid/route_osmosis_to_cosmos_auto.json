@@ -1,0 +1,10 @@
+{
+    "route": {
+        "estimate": {
+            "toAmount": "212766",
+            "aggregateSlippage": 0.5,
+            "estimatedRouteDuration": 20
+        },
+        "transactionRequest": {}
+    }
+}

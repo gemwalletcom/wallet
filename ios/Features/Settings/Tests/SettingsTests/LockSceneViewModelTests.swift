@@ -109,6 +109,35 @@ struct LockSceneViewModelTests {
     }
 
     @Test
+    func passcodeOffExplainsWithoutPrompt() {
+        let mockService = BiometryAuthenticationMock(isPasscodeSet: false)
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        viewModel.onScenePhase(.active)
+
+        #expect(viewModel.state == .passcodeOff)
+        #expect(viewModel.shouldShowLockScreen)
+        #expect(viewModel.isPrivacyLockVisible)
+        #expect(!viewModel.isUnlockButtonVisible)
+        #expect(mockService.authenticateCallsCount == 0)
+    }
+
+    @Test
+    func passcodeTurnedBackOnStartsUnlockOnActivation() async {
+        let mockService = BiometryAuthenticationMock(isPasscodeSet: false)
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.onScenePhase(.active)
+
+        mockService.isPasscodeSet = true
+        viewModel.onScenePhase(.active)
+        #expect(viewModel.isUnlocking)
+
+        await viewModel.startUnlock()?.value
+        #expect(viewModel.state == .unlocked)
+        #expect(mockService.authenticateCallsCount == 1)
+    }
+
+    @Test
     func unexpectedErrorShowsUnlockButton() async {
         let mockService = BiometryAuthenticationMock()
         mockService.authenticateError = NSError(domain: "TestError", code: 999, userInfo: nil)

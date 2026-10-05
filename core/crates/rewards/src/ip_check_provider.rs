@@ -1,8 +1,7 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-
-use crate::model::IpCheckResult;
+use primitives::IpCheckResult;
 
 #[async_trait]
 pub trait IpCheckProvider: Send + Sync {

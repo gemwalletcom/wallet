@@ -3,7 +3,7 @@
 import Components
 import Foundation
 import func Gemstone.addressCopy
-import struct Gemstone.GemAssetSectionCounts
+import struct Gemstone.GemAssetSection
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import struct Gemstone.GemAssetsFilterSession
 import struct Gemstone.GemAssetsFilterView
@@ -12,7 +12,7 @@ import struct Gemstone.GemPaymentRecipient
 import protocol Gemstone.GemPaymentServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
-import enum Gemstone.GemSelectAssetState
+import struct Gemstone.GemSelectAssetView
 import struct Gemstone.GemSelectAssetWalletFlow
 import enum Gemstone.GemServiceError
 import GemstonePrimitives
@@ -90,8 +90,16 @@ public final class SelectAssetSceneViewModel {
         flow.title.text
     }
 
-    var sections: AssetsSections {
-        AssetsSections.from(assets, showsPopular: flow.popularSection)
+    var view: GemSelectAssetView {
+        flow.view(
+            assetIds: assets.map(\.asset.id),
+            pinnedAssetIds: assets.filter(\.metadata.isPinned).map(\.asset.id),
+            isSearching: state.isLoading,
+        )
+    }
+
+    func assets(_ section: GemAssetSection) -> [AssetData] {
+        assets.assets(ids: section.assetIds)
     }
 
     var assetsTitle: String {
@@ -134,15 +142,6 @@ public final class SelectAssetSceneViewModel {
 
     var isNetworkSearchEnabled: Bool {
         flow.networkSearch
-    }
-
-    func listState(_ sections: AssetsSections) -> GemSelectAssetState {
-        let counts = GemAssetSectionCounts(
-            pinned: UInt32(sections.pinned.count),
-            popular: UInt32(sections.popular.count),
-            assets: UInt32(sections.assets.count),
-        )
-        return flow.state(counts: counts, isSearching: state.isLoading)
     }
 
     var showRecents: Bool {

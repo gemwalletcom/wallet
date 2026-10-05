@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemIncomingCode
+import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemRewardsIntroItem
 import enum Gemstone.GemRewardsInviteAction
@@ -16,6 +17,7 @@ import struct Gemstone.GemRewardsWallet
 import enum Gemstone.GemServiceError
 import func Gemstone.rewardsSession
 import GemstonePrimitives
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -158,8 +160,16 @@ public final class RewardsSceneViewModel: Sendable {
 
     // MARK: - Actions
 
-    func selectWallet(id: String) {
-        session = session.onSelectWallet(rowId: id)
+    func onInviteFriends() {
+        guard service.isAvailable() else {
+            isPresentingSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
+            return
+        }
+        isPresentingSheet = .share
+    }
+
+    func selectWallet(id: WalletId) {
+        session = session.onSelectWallet(walletId: id)
         Task { await refresh() }
     }
 

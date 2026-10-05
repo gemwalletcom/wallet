@@ -64,6 +64,21 @@ struct SetPriceAlertSceneViewModelTests {
     }
 
     @Test
+    func savingWithoutNotificationsKeepsTheSheetOpen() async {
+        let service = GemPriceAlertServiceMock(allowsNotifications: false)
+        let messages = MessageRecorder()
+        let viewModel = SetPriceAlertSceneViewModel.mock(service: service, onComplete: { messages.record($0) })
+        viewModel.assetQuery.value = .mock(price: .mock(price: 2000))
+        viewModel.amount = "2500"
+
+        await viewModel.setPriceAlert()
+
+        #expect(service.isEnabled() == false)
+        #expect(messages.messages.isEmpty)
+        #expect(viewModel.isPresentingAlertMessage == nil)
+    }
+
+    @Test
     func savingWithNoAmountDoesNothing() async {
         let service = GemPriceAlertServiceMock()
         let viewModel = SetPriceAlertSceneViewModel.mock(service: service)

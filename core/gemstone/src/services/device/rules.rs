@@ -1,13 +1,4 @@
-use primitives::{Device, Wallet};
-
-pub fn subscriptions_signature(wallets: &[Wallet]) -> String {
-    let mut entries: Vec<String> = wallets
-        .iter()
-        .flat_map(|wallet| wallet.accounts.iter().map(move |account| format!("{}/{}/{}", wallet.id.id(), account.chain.as_ref(), account.address)))
-        .collect();
-    entries.sort();
-    entries.join(";")
-}
+use primitives::Device;
 
 pub fn device_changed(current: &Device, other: &Device) -> bool {
     current.id != other.id
@@ -24,32 +15,6 @@ pub fn device_changed(current: &Device, other: &Device) -> bool {
 mod tests {
     use super::*;
     use primitives::currency::Currency;
-    use primitives::{Account, Chain, WalletId};
-
-    #[test]
-    fn test_signature_ignores_rename_and_pin_but_tracks_accounts_and_order() {
-        let base = Wallet {
-            id: WalletId::Multicoin("wallet1".into()),
-            ..Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0xabc")])
-        };
-        let renamed = Wallet {
-            name: "Renamed".into(),
-            is_pinned: true,
-            ..base.clone()
-        };
-        let extended = Wallet {
-            accounts: vec![Account::mock(Chain::Ethereum, "0xabc"), Account::mock(Chain::Bitcoin, "bc1xyz")],
-            ..base.clone()
-        };
-        let other = Wallet {
-            id: WalletId::Multicoin("wallet2".into()),
-            ..Wallet::mock_with_accounts(vec![Account::mock(Chain::Solana, "solana123")])
-        };
-
-        assert_eq!(subscriptions_signature(std::slice::from_ref(&base)), subscriptions_signature(&[renamed]));
-        assert_ne!(subscriptions_signature(std::slice::from_ref(&base)), subscriptions_signature(&[extended]));
-        assert_eq!(subscriptions_signature(&[base.clone(), other.clone()]), subscriptions_signature(&[other, base]));
-    }
 
     #[test]
     fn test_device_changed_tracks_synced_fields_only() {

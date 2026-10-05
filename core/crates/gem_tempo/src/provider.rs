@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn test_maps_pathusd_transfer_as_tip20() {
         let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer { asset: TEMPO_PATHUSD.clone() }, "1000000");
-        let params = get_transaction_params(EVMChain::Tempo, &input).unwrap();
+        let params = get_transaction_params(&input).unwrap();
 
         assert_eq!(params.to, TEMPO_PATHUSD_TOKEN_ID);
         assert_eq!(params.value, BigInt::ZERO);

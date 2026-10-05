@@ -23,9 +23,9 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The asset screen opens | chart, history and market data load at the same time; the header is usable while they arrive | |
-| The asset still needs activation, or its account is blocked by multisig | the header actions are disabled, the empty history offers no Buy or Swap, and the Stake balance row opens nothing | the asset cannot receive yet, or this wallet cannot sign for the account; a purchase, swap or stake would fail `test_details_state_offers_no_empty_state_action_behind_an_activation_or_multi_signature_banner`, `test_details_sections_open_no_stake_behind_an_activation_or_multi_signature_banner` |
+| The asset still needs activation, or its account is blocked by multisig | the header actions are disabled, the empty history offers no Buy or Swap, and the Stake balance row opens nothing | the asset cannot receive yet, or this wallet cannot sign for the account; a purchase, swap or stake would fail |
 | Receive opens for an asset that was never refreshed, or not in the last hour | the asset is refreshed, so the network selector lists every network the wallet holds it on | the networks are known only once the asset has been fetched |
-| The user switches network on Receive | the selector keeps every network it listed when Receive opened, the first one included | the user can switch back without leaving the screen `test_the_session_lists_the_networks_of_the_asset_the_screen_opened_on` |
+| The user switches network on Receive | the selector keeps every network it listed when Receive opened, the first one included | the user can switch back without leaving the screen |
 
 ## Market
 
@@ -42,11 +42,7 @@ flowchart LR
 
 1. The asset screen shows the price chart and the asset's market data under the header.
 
-| When | Expected | Why |
-|---|---|---|
-| The price chart cannot load | it shows that there is no data; only being offline shows an error | server text is not written for users |
-| The user pinches the chart | it zooms toward the newest point while that point is on screen, and around the fingers once panned back, down to 14 points on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period | fewer points are too few to read a trend `test_magnified` `test_on_pan` |
-| The user touches the chart | a short hold shows the point under the finger; a sideways slide shows it at once while the chart is not zoomed and pans a zoomed chart; a drag that starts upright scrolls the page, and once the point shows the page stays put; a second finger hides the point | the price is read by sliding along the line; once zoomed, the same slide is how the user goes back in time `test_zoomed_chart` |
+The chart follows the shared [Charts](../PRODUCT.md#charts) section.
 
 ## Manage tokens
 

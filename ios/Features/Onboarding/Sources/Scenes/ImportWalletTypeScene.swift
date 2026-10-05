@@ -27,8 +27,8 @@ struct ImportWalletTypeScene: View {
                 }
             }
 
-            if types.chains.isEmpty {
-                StateEmptyView(title: Localized.Common.noResultsFound)
+            if case let .empty(state) = types.phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
             } else {
                 Section {
                     ForEach(types.chains, id: \.chain) { row in

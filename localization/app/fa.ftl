@@ -476,6 +476,8 @@ fee_rates_normal = عادی
 fee_rate_satvB = ساتوشی بر بایت
 fee_rate_gwei = gwei
 fee_rate_custom = سفارشی
+fee_rate_priority = کارمزد اولویت
+fee_rate_base = کارمزد پایه
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = باز کردن قفل
 lock_privacy_lock = قفل حریم خصوصی
 lock_footer = دسترسی به این برنامه را در دستگاه خود محافظت کنید
 lock_passcode = رمزعبور
+lock_passcode_off_title = رمز عبور دستگاه خاموش است
+lock_passcode_off_description = Gem با رمز عبور دستگاه شما قفل شده است. برای باز کردن Gem، رمز عبور را در تنظیمات دستگاه روشن کنید. کیف پول‌های شما امن هستند.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = ممکن است شخص دیگری ای�
 sell_title = فروش %@
 
 # Info
+
+info_region_unavailable_description = این قابلیت در منطقه شما در دسترس نیست. دسترسی به قوانین محلی و الزامات ارائه‌دهندگان بستگی دارد.
 
 info_network_fee_title = کارمزد شبکه
 info_watch_wallet_title = کیف پول مشاهده‌ای

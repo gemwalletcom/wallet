@@ -85,10 +85,10 @@ pub struct GemRewardsRedemption {
 }
 
 impl GemRewardsWallet {
-    pub fn selecting(&self, row_id: &str) -> Option<Self> {
-        let row = self.sections.iter().flat_map(|section| &section.rows).find(|row| row.id == row_id)?;
+    pub fn selecting(&self, wallet_id: &WalletId) -> Option<Self> {
+        let row = self.sections.iter().flat_map(|section| &section.rows).find(|row| &row.id == wallet_id)?;
         Some(Self {
-            id: WalletId::from_id(&row.id)?,
+            id: row.id.clone(),
             row: row.clone(),
             ..self.clone()
         })

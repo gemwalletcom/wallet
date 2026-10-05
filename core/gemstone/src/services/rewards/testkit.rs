@@ -7,6 +7,7 @@ use crate::api::GemDeviceApiClient;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::auth::GemAuthService;
 use crate::services::balance::testkit::MemoryBalanceStore;
+use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::wallet::testkit::{PHRASE, WalletTestkit};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -40,7 +41,7 @@ impl RewardsTestkit {
             Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))),
         ));
         let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.wallets.clone()));
-        let service = GemRewardsService::new(api, auth, discovery.balance.clone(), session);
+        let service = GemRewardsService::new(api, auth, discovery.balance.clone(), session, Arc::new(GemConfigService::mock(provider.clone())));
         Self {
             service,
             balances: discovery.balances,

@@ -19,12 +19,12 @@ public struct WalletScene: View {
     public var body: some View {
         @Bindable var preferences = model.observablePreferences
         let state = model.homeState
-        let sections = state.sections
+        let pinnedAssets = model.assets.assets(ids: state.pinnedAssetIds)
 
         List {
             Section {} header: {
                 ValueHeaderView(
-                    header: state.header,
+                    header: state.header.valueHeader,
                     isPrivacyEnabled: $preferences.isHideBalanceEnabled,
                     titleActionType: .privacyToggle,
                     onHeaderAction: model.onHeaderAction,
@@ -35,7 +35,7 @@ public struct WalletScene: View {
             }
             .cleanListRow()
 
-            if state.showPerpetuals {
+            if state.showsPerpetuals {
                 Section {
                     PerpetualsPreviewView(
                         wallet: model.wallet,
@@ -59,10 +59,10 @@ public struct WalletScene: View {
                 .listRowInsets(.zero)
             }
 
-            if !sections.pinned.isEmpty {
+            if !pinnedAssets.isEmpty {
                 Section {
                     WalletAssetsList(
-                        assets: sections.pinned,
+                        assets: pinnedAssets,
                         itemsModel: model.assetItems,
                         onHideAsset: model.onHideAsset,
                         onPinAsset: model.onPinAsset,
@@ -77,7 +77,7 @@ public struct WalletScene: View {
 
             Section {
                 WalletAssetsList(
-                    assets: sections.assets,
+                    assets: model.assets.assets(ids: state.assetIds),
                     itemsModel: model.assetItems,
                     onHideAsset: model.onHideAsset,
                     onPinAsset: model.onPinAsset,
@@ -99,7 +99,7 @@ public struct WalletScene: View {
 
             if state.showCollections {
                 Section {
-                    CollectionsPreviewView(entries: model.collections)
+                    CollectionsPreviewView(entries: state.collections)
                 } header: {
                     HeaderNavigationLinkView(title: model.collectionsTitle, destination: Scenes.Collections())
                 } footer: {

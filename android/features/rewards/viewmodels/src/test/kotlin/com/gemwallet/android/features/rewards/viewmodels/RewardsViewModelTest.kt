@@ -23,10 +23,10 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -36,6 +36,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemIncomingCode
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.GemServiceException
@@ -65,6 +66,7 @@ class RewardsViewModelTest {
         every { getString(any(), *anyVararg()) } answers { "string:${firstArg<Int>()}" }
     }
     private val service = mockk<GemRewardsServiceInterface> {
+        every { isAvailable() } returns true
         coEvery { refresh(any()) } answers { mockGemRewardsResult(walletId = firstArg(), state = GemLoadState.Data, rewards = rewards()) }
         coEvery { useReferralCode(any(), any()) } returns rewards(usedReferralCode = "friend", verifyAfter = 4_102_444_800)
     }
@@ -219,6 +221,28 @@ class RewardsViewModelTest {
             assertEquals("FRIEND", rows[3].subtitle)
         } finally {
             viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `inviting uses cached availability and can retry after it changes`() = runTest(testDispatcher) {
+        every { service.isAvailable() } returns false
+        val subject = createViewModel()
+        var invitations = 0
+        try {
+            runCurrent()
+            assertNull(subject.infoSheet.value)
+            subject.inviteFriends { invitations += 1 }
+            assertEquals(0, invitations)
+            assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+
+            subject.infoSheet.value = null
+            every { service.isAvailable() } returns true
+            subject.inviteFriends { invitations += 1 }
+            assertEquals(1, invitations)
+            assertNull(subject.infoSheet.value)
+        } finally {
+            subject.viewModelScope.cancel()
         }
     }
 

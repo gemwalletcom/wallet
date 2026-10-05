@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::{AuthenticatedRequest, ReferralCode, Rewards, WalletId};
+use primitives::{AuthenticatedRequest, Feature, ReferralCode, Rewards, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::models::state::GemLoadState;
 use crate::services::auth::GemAuthService;
 use crate::services::balance::GemBalanceService;
+use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -25,13 +26,18 @@ pub struct GemRewardsService {
     auth: Arc<GemAuthService>,
     balance: Arc<GemBalanceService>,
     session: Arc<GemWalletSessionService>,
+    config: Arc<GemConfigService>,
 }
 
 #[uniffi::export]
 impl GemRewardsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>, balance: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>) -> Self {
-        Self { api, auth, balance, session }
+    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>, balance: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>, config: Arc<GemConfigService>) -> Self {
+        Self { api, auth, balance, session, config }
+    }
+
+    pub fn is_available(&self) -> bool {
+        self.config.is_feature_enabled(Feature::Rewards)
     }
 
     pub async fn refresh(&self, wallet_id: WalletId) -> GemRewardsResult {

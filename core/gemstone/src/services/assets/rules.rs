@@ -22,6 +22,7 @@ pub const ASSET_UPDATE_INTERVAL_SECONDS: u32 = 3_600;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle, GemRowAction};
+use crate::models::state::GemListPhase;
 use crate::percentage::GemPercentageStyle;
 use crate::perpetual::GemPerpetual;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
@@ -38,7 +39,7 @@ use number_formatter::CryptoFiatConverter;
 use swapper::AssetList as SwapAssetList;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
-use crate::services::collections::{missing, missing_by, unique, unique_by};
+use crate::services::collections::{missing_by, unique, unique_by};
 use primitives::AssetType;
 
 pub fn menu_rows(input: &GemAssetMenuInput) -> Vec<GemAssetMenuRow> {
@@ -81,14 +82,6 @@ pub fn swappable_asset_ids(listed: Vec<AssetId>) -> Vec<AssetId> {
     let mut asset_ids = listed;
     asset_ids.extend(natives.filter(|native| !asset_ids.contains(native)).collect::<Vec<_>>());
     asset_ids
-}
-
-pub fn token_search_chains(chains: &[Chain]) -> Vec<Chain> {
-    if chains.is_empty() { Chain::all() } else { chains.to_vec() }
-}
-
-pub fn missing_asset_ids(requested: Vec<AssetId>, existing: Vec<AssetId>) -> Vec<AssetId> {
-    missing(requested, existing)
 }
 
 pub fn asset_prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
@@ -480,7 +473,10 @@ pub fn network_asset_sections(active: Vec<AssetId>, pinned: &[AssetId], hidden: 
         shows_pinned: !pinned.is_empty(),
         shows_unpinned: !unpinned.is_empty(),
         shows_hidden: !hidden.is_empty(),
-        shows_empty: pinned.is_empty() && unpinned.is_empty() && hidden.is_empty(),
+        phase: GemListPhase::local(
+            !pinned.is_empty() || !unpinned.is_empty() || !hidden.is_empty(),
+            screen_empty_state(GemEmptyStateKind::NetworkAssets, false, &[GemEmptyStateAction::ManageTokenList]),
+        ),
     };
     GemNetworkAssetIds { pinned, unpinned, hidden, sections }
 }
@@ -1230,17 +1226,22 @@ mod tests {
         let ids = network_asset_sections(vec![coin.clone(), usdc.clone(), pinned.clone()], &[coin.clone(), pinned.clone()], vec![coin, hidden.clone()]);
 
         assert_eq!((ids.pinned, ids.unpinned, ids.hidden), (vec![pinned], vec![usdc], vec![hidden]));
-        assert!(ids.sections.shows_pinned && ids.sections.shows_unpinned && ids.sections.shows_hidden && !ids.sections.shows_empty);
+        assert!(ids.sections.shows_pinned && ids.sections.shows_unpinned && ids.sections.shows_hidden);
+        assert_eq!(ids.sections.phase, GemListPhase::Rows);
     }
 
     #[test]
     fn test_network_assets_are_empty_only_when_every_section_is() {
         let token = AssetId::from_token(Chain::Ethereum, "0xtoken");
 
-        assert!(network_asset_sections(vec![], &[], vec![]).sections.shows_empty);
-        assert!(network_asset_sections(vec![AssetId::from_chain(Chain::Ethereum)], &[], vec![]).sections.shows_empty, "the coin alone leaves the screen empty");
+        let empty = GemListPhase::Empty {
+            state: screen_empty_state(GemEmptyStateKind::NetworkAssets, false, &[GemEmptyStateAction::ManageTokenList]),
+        };
+        assert_eq!(network_asset_sections(vec![], &[], vec![]).sections.phase, empty);
+        assert_eq!(network_asset_sections(vec![AssetId::from_chain(Chain::Ethereum)], &[], vec![]).sections.phase, empty, "the coin alone leaves the screen empty");
         let hidden_only = network_asset_sections(vec![], &[], vec![token]).sections;
-        assert!(hidden_only.shows_hidden && !hidden_only.shows_empty && !hidden_only.shows_pinned && !hidden_only.shows_unpinned);
+        assert!(hidden_only.shows_hidden && !hidden_only.shows_pinned && !hidden_only.shows_unpinned);
+        assert_eq!(hidden_only.phase, GemListPhase::Rows);
     }
 
     #[test]
@@ -1598,6 +1599,16 @@ mod tests {
     }
 
     #[test]
+    fn test_asset_prices_skip_assets_without_price() {
+        let priced = AssetBasic::mock_with_price(Chain::Ethereum, 2.0, 1.5);
+
+        let prices = asset_prices(&[priced, Asset::from_chain(Chain::Bitcoin).as_basic_primitive()]);
+
+        assert_eq!(prices.len(), 1);
+        assert_eq!((prices[0].asset_id.chain, prices[0].price, prices[0].price_change_percentage_24h), (Chain::Ethereum, 2.0, 1.5));
+    }
+
+    #[test]
     fn test_merge_assets_keeps_the_backend_copy_of_a_token() {
         let merged = merge_assets(
             vec![
@@ -1636,16 +1647,6 @@ mod tests {
     }
 
     #[test]
-    fn test_missing_asset_ids_drops_known_and_duplicate_ids() {
-        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
-        let ethereum = AssetId::from_chain(Chain::Ethereum);
-
-        let missing = missing_asset_ids(vec![bitcoin.clone(), ethereum.clone(), ethereum.clone()], vec![bitcoin]);
-
-        assert_eq!(missing, vec![ethereum]);
-    }
-
-    #[test]
     fn test_asset_list_is_outdated_only_when_the_stored_version_differs() {
         assert!(is_asset_list_outdated(None, 7));
         assert!(is_asset_list_outdated(Some("6"), 7));
@@ -1667,12 +1668,6 @@ mod tests {
         assert_eq!(asset_ids.first(), Some(&token));
         assert_eq!(asset_ids.iter().filter(|asset_id| **asset_id == AssetId::from_chain(Chain::Ethereum)).count(), 1);
         assert!(asset_ids.iter().filter(|asset_id| asset_id.token_id.is_none()).all(|asset_id| asset_id.chain.is_swap_supported()));
-    }
-
-    #[test]
-    fn test_token_search_chains_defaults_to_every_chain() {
-        assert_eq!(token_search_chains(&[Chain::Ethereum]), vec![Chain::Ethereum]);
-        assert_eq!(token_search_chains(&[]), Chain::all());
     }
 
     fn state(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemAssetDetailsState {

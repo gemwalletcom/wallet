@@ -3,8 +3,6 @@
 import Foundation
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
-import NFT
-import NFTTestKit
 import Primitives
 import PrimitivesTestKit
 import Store
@@ -19,7 +17,6 @@ public extension WalletSceneViewModel {
         let model = WalletSceneViewModel(
             service: service,
             observablePreferences: .mock(),
-            collectionsModel: .mock(wallet: wallet),
             wallet: wallet,
             isPresentingSelectedAssetInput: .constant(.none),
             isPresentingWallets: .constant(false),

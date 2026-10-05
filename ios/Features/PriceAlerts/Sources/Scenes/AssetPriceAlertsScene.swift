@@ -19,7 +19,7 @@ public struct AssetPriceAlertsScene: View {
         let assetAlerts = model.assetAlerts
         let alerts = model.alerts(assetAlerts)
         return List {
-            if let error = model.loadError {
+            if case let .error(error) = assetAlerts.phase {
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                 }
@@ -44,8 +44,8 @@ public struct AssetPriceAlertsScene: View {
                 }
             }
 
-            if model.showsEmpty(assetAlerts) {
-                EmptyContentView(model: model.emptyContentModel)
+            if case let .empty(state) = assetAlerts.phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
                     .padding(.top, .extraLarge)
                     .cleanListRow()
             }

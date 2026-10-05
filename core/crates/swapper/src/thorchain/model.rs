@@ -212,15 +212,15 @@ pub struct InboundAddress {
     pub address: String,
     pub router: Option<String>,
     pub halted: bool,
-    pub global_trading_paused: bool,
-    pub chain_trading_paused: bool,
+    pub global_trading_paused: Option<bool>,
+    pub chain_trading_paused: Option<bool>,
     #[serde(deserialize_with = "deserialize_bigint_from_str")]
     pub dust_threshold: BigInt,
 }
 
 impl InboundAddress {
     pub(crate) fn is_swap_available(&self) -> bool {
-        !self.halted && !self.global_trading_paused && !self.chain_trading_paused
+        !self.halted && self.global_trading_paused != Some(true) && self.chain_trading_paused != Some(true)
     }
 }
 
@@ -364,6 +364,19 @@ mod tests {
         assert!(bitcoin_address.is_swap_available());
         assert!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &rune).unwrap().is_none());
         assert_eq!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &ethereum).unwrap_err(), SwapperError::InvalidRoute);
+    }
+
+    #[test]
+    fn test_inbound_addresses_mayachain() {
+        let inbound_addresses: Vec<InboundAddress> = serde_json::from_str(include_str!("testdata/inbound_addresses_mayachain.json")).unwrap();
+        let bitcoin = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Bitcoin.as_ref()).unwrap();
+
+        let bitcoin_address = inbound_addresses.inbound_address_for_asset(THORChainNetwork::Mayachain, &bitcoin).unwrap().unwrap();
+
+        assert_eq!(bitcoin_address.chain, "BTC");
+        assert_eq!(bitcoin_address.global_trading_paused, None);
+        assert_eq!(bitcoin_address.chain_trading_paused, None);
+        assert!(bitcoin_address.is_swap_available());
     }
 
     #[test]

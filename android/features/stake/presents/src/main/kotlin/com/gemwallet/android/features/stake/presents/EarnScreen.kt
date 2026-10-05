@@ -40,7 +40,7 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.theme.paddingLarge
 import uniffi.gemstone.GemEarnSection
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListPhase
 
 @Composable
 fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, String) -> Unit, onConfirm: ConfirmTransactionAction, onCancel: () -> Unit, viewModel: EarnViewModel = hiltViewModel()) {
@@ -100,10 +100,10 @@ fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, Str
                     }
                 }
 
-                if (earn.showsEmpty) {
+                (earn.positionsPhase as? GemListPhase.Empty)?.let { empty ->
                     item {
                         Spacer(modifier = Modifier.height(paddingLarge))
-                        EmptyContentView(kind = GemEmptyStateKind.EARN, symbol = earnAssetInfo.asset.symbol)
+                        EmptyContentView(state = empty.state, symbol = earnAssetInfo.asset.symbol)
                     }
                 }
             }

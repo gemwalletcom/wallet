@@ -41,6 +41,7 @@ import uniffi.gemstone.GemConnectionDetails
 import uniffi.gemstone.GemConnectionSection
 import uniffi.gemstone.GemConnectionsView
 import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -67,7 +68,7 @@ class ConnectionsViewModelTest {
     fun `the sections come from Core`() = runTest(dispatcher) {
         val sections = listOf(GemConnectionSection(title = "Active", connections = emptyList()))
         val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {
-            every { connectionsView(any()) } returns GemConnectionsView(sections, "https://docs.gemwallet.com/guides/walletconnect/")
+            every { connectionsView(any()) } returns GemConnectionsView(sections, GemListPhase.Rows, "https://docs.gemwallet.com/guides/walletconnect/")
         }
         val connectionsQuery: ConnectionsQuery = mockk {
             every { this@mockk() } returns flowOf(listOf(connection))
