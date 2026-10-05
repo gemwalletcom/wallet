@@ -1,7 +1,6 @@
-use primitives::Chain;
 use swapper::{SwapperSlippage, config as swap_config};
 
-pub use swap_config::{Config as SwapConfig, get_swap_config};
+pub use swap_config::{Config as SwapConfig, get_default_slippage, get_swap_config};
 
 #[uniffi::remote(Record)]
 pub struct SwapConfig {
@@ -14,8 +13,4 @@ pub struct SwapConfig {
     pub max_slippage_bps: u32,
     pub slippage_suggestions_bps: Vec<u32>,
     pub amount_percent_presets: Vec<u32>,
-}
-
-pub fn get_default_slippage(chain: &Chain) -> SwapperSlippage {
-    swap_config::get_default_slippage(chain)
 }

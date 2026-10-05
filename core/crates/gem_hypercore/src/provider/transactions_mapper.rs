@@ -9,6 +9,7 @@ use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionState, Tr
 use crate::config::HypercoreConfig;
 use crate::core::hypercore::recover_l1_action_signer;
 use crate::models::action::{ExchangeRequest, SignedExchangeRequest};
+use crate::models::metadata::perpetual_asset_id;
 use crate::models::order::{FillDirection, UserFill};
 use crate::models::response::TransactionBroadcastResponse;
 use crate::models::spot::SpotMeta;
@@ -16,7 +17,6 @@ use crate::models::token::SpotToken;
 use crate::models::transaction_id::{HyperCoreSignedOrderId, HyperCoreTransactionId};
 use crate::perpetual_formatter::usdc_value;
 use crate::provider::fee_calculator::builder_fee_rate;
-use crate::provider::perpetual_mapper::create_perpetual_asset_id;
 use crate::provider::transaction_state_mapper::{order_action_fill, prepare_perpetual_fill};
 
 const BUILDER_FEE_RATE_TOLERANCE: f64 = 0.01;
@@ -76,7 +76,7 @@ fn map_perpetual_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &Use
     build_fill_transaction(
         address,
         last_fill,
-        create_perpetual_asset_id(&last_fill.coin),
+        perpetual_asset_id(&last_fill.coin),
         transaction_type,
         usdc_value(fee),
         HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),

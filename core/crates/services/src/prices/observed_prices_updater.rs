@@ -1,13 +1,14 @@
 use std::collections::HashMap;
 use std::error::Error;
+use std::sync::Arc;
 use std::time::Duration;
 
+use super::repository::Repository;
 use crate::prices::PriceClient;
-use cacher::{CacheKey, CacherClient};
+use cacher::ObservedAssetsCacher;
 use prices::AssetPriceMapping;
 use primitives::{AssetId, PriceProvider};
-use storage::{Database, PricesRepository};
-use streamer::StreamProducer;
+use streamer::StreamProducerQueue;
 
 use super::{AssetsProviders, PricesUpdater};
 
@@ -19,19 +20,19 @@ pub struct ObservedPricesConfig {
 }
 
 pub struct ObservedPricesUpdater {
-    cacher_client: CacherClient,
-    database: Database,
+    observed: Arc<dyn ObservedAssetsCacher>,
+    repository: Arc<dyn Repository>,
     price_client: PriceClient,
     providers: AssetsProviders,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
     config: ObservedPricesConfig,
 }
 
 impl ObservedPricesUpdater {
-    pub fn new(cacher_client: CacherClient, database: Database, price_client: PriceClient, providers: AssetsProviders, stream_producer: StreamProducer, config: ObservedPricesConfig) -> Self {
+    pub(crate) fn new(observed: Arc<dyn ObservedAssetsCacher>, repository: Arc<dyn Repository>, price_client: PriceClient, providers: AssetsProviders, stream_producer: Arc<dyn StreamProducerQueue>, config: ObservedPricesConfig) -> Self {
         Self {
-            cacher_client,
-            database,
+            observed,
+            repository,
             price_client,
             providers,
             stream_producer,
@@ -46,8 +47,7 @@ impl ObservedPricesUpdater {
         }
 
         let mut by_provider: HashMap<PriceProvider, Vec<AssetPriceMapping>> = HashMap::new();
-        let primary_price_max_age = self.config.primary_price_max_age;
-        let primary_prices = self.database.run(move |client| client.get_primary_prices(&asset_ids, primary_price_max_age)).await?;
+        let primary_prices = self.repository.primary_prices(asset_ids, self.config.primary_price_max_age).await?;
         for (asset_id, price) in primary_prices {
             by_provider.entry(price.provider).or_default().push(AssetPriceMapping::new(asset_id, price.provider_price_id));
         }
@@ -57,13 +57,12 @@ impl ObservedPricesUpdater {
             let Some(instance) = self.providers.get(&provider).cloned() else {
                 continue;
             };
-            total += PricesUpdater::new(instance, self.database.clone(), self.price_client.clone(), self.stream_producer.clone()).update_prices(mappings).await?;
+            total += PricesUpdater::new(instance, self.repository.clone(), self.price_client.clone(), self.stream_producer.clone()).update_prices(mappings).await?;
         }
         Ok(total)
     }
 
     async fn get_observed_assets(&self) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        let key = CacheKey::ObservedAssets;
-        self.cacher_client.sorted_set_range_by_score(&key.key(), self.config.min_observers as f64, f64::INFINITY, self.config.max_assets).await
+        self.observed.observed_assets(self.config.min_observers, self.config.max_assets).await
     }
 }

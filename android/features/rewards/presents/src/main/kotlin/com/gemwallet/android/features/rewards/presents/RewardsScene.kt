@@ -53,7 +53,6 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.buttonState
-import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -77,14 +76,12 @@ fun RewardsScene(
     state: GemLoadState,
     isRefreshing: Boolean,
     wallet: GemRewardsWallet?,
-    referralLink: String?,
     introItems: List<GemRewardsIntroItem>,
     inviteAction: GemRewardsInviteAction?,
     canUseReferralCode: Boolean,
     pendingReferral: GemRewardsPendingReferral?,
     notices: List<GemListRow>,
     inviteDescription: String,
-    shareText: String?,
     sections: List<RewardsSectionUIModel>,
     redemptions: List<GemRewardsRedemption>,
     incomingCode: GemIncomingCode? = null,
@@ -95,12 +92,10 @@ fun RewardsScene(
     onWallet: () -> Unit,
     onRedeem: (GemRewardsRedemption) -> Unit,
     onClose: () -> Unit,
+    onInvite: () -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val context = LocalContext.current
-    val link = referralLink.orEmpty()
-    val joinText = shareText.orEmpty()
-    val shareTitle = stringResource(id = R.string.common_share, link)
 
     var getStartedDialogShow by remember(inviteAction) { mutableStateOf(false) }
     var codeDialogShow by remember { mutableStateOf(false) }
@@ -108,10 +103,6 @@ fun RewardsScene(
 
     val successStr = stringResource(R.string.common_done)
     val scope = rememberCoroutineScope()
-
-    val onShare = fun () {
-        context.shareText(subject = link, text = joinText, chooserTitle = shareTitle)
-    }
 
     val onCodeResult = fun (error: Throwable?) {
         val message = error?.errorText()?.text(context)
@@ -178,10 +169,12 @@ fun RewardsScene(
                         item { EmptyContentView(kind = GemEmptyStateKind.REWARDS, modifier = Modifier.fillParentMaxSize()) }
                         return@LazyColumn
                     }
+
                     is GemLoadState.Error -> {
                         item { GemListRowView(row = GemListRow.Error(state.error), listPosition = ListPosition.Single) }
                         return@LazyColumn
                     }
+
                     GemLoadState.Data, GemLoadState.Loading -> Unit
                 }
                 rewardsHead(
@@ -189,7 +182,7 @@ fun RewardsScene(
                     intro = introItems,
                     action = inviteAction,
                     onGetStarted = { getStartedDialogShow = true },
-                    onShare = onShare,
+                    onShare = onInvite,
                 )
 
                 if (canUseReferralCode) {
@@ -258,14 +251,12 @@ private fun RewardsScenePreview() {
             state = GemLoadState.Data,
             isRefreshing = false,
             wallet = null,
-            referralLink = null,
             introItems = GemRewardsIntroItem.entries,
             inviteAction = GemRewardsInviteAction.SHARE,
             canUseReferralCode = false,
             pendingReferral = null,
             notices = emptyList(),
             inviteDescription = "Invite friends and earn 100 points",
-            shareText = null,
             sections = emptyList(),
             redemptions = emptyList(),
             onUsername = { _, _ -> },
@@ -275,6 +266,7 @@ private fun RewardsScenePreview() {
             onWallet = {},
             onRedeem = {},
             onClose = {},
+            onInvite = {},
         )
     }
 }
@@ -287,14 +279,12 @@ private fun RewardsSceneNoRewardsPreview() {
             state = GemLoadState.Data,
             isRefreshing = false,
             wallet = null,
-            referralLink = null,
             introItems = GemRewardsIntroItem.entries,
             inviteAction = GemRewardsInviteAction.CREATE_CODE,
             canUseReferralCode = true,
             pendingReferral = null,
             notices = emptyList(),
             inviteDescription = "Invite friends and earn 100 points",
-            shareText = null,
             sections = emptyList(),
             redemptions = emptyList(),
             onUsername = { _, _ -> },
@@ -304,6 +294,7 @@ private fun RewardsSceneNoRewardsPreview() {
             onWallet = {},
             onRedeem = {},
             onClose = {},
+            onInvite = {},
         )
     }
 }

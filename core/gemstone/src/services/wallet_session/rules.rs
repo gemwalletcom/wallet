@@ -1,7 +1,7 @@
-use primitives::{Wallet, WalletId, WalletType};
+use primitives::{Wallet, WalletId, WalletListItem, WalletType};
 
-pub fn shows_rewards(wallets: &[Wallet]) -> bool {
-    wallets.is_empty() || wallets.iter().any(|wallet| wallet.wallet_type == WalletType::Multicoin)
+pub fn shows_rewards(wallets: &[WalletListItem]) -> bool {
+    wallets.is_empty() || wallets.iter().any(|wallet| wallet.id.wallet_type() == WalletType::Multicoin)
 }
 
 pub fn rewards_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
@@ -20,6 +20,7 @@ pub fn rewards_wallet<'a>(wallets: &'a [Wallet], requested: Option<&WalletId>, c
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Chain;
 
     fn multicoin(id: &str) -> Wallet {
         Wallet {
@@ -61,7 +62,8 @@ mod tests {
     #[test]
     fn test_rewards_need_a_multicoin_wallet_but_stay_visible_before_wallets_load() {
         assert!(shows_rewards(&[]));
-        assert!(!shows_rewards(&[Wallet::mock_with_type(WalletType::Single, &[])]));
-        assert!(shows_rewards(&[Wallet::mock_with_type(WalletType::Single, &[]), Wallet::mock_with_type(WalletType::Multicoin, &[])]));
+        let single = WalletListItem::mock_with_id(WalletId::Single(Chain::Ethereum, "0x1".to_string()));
+        assert!(!shows_rewards(std::slice::from_ref(&single)));
+        assert!(shows_rewards(&[single, WalletListItem::mock()]));
     }
 }

@@ -11,12 +11,12 @@ import com.gemwallet.android.ui.models.navigation.RouteMessage
 @Composable
 fun InAppNotificationsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onAction: (InAppNotificationsAction) -> Unit, viewModel: InAppNotificationsViewModel = hiltViewModel()) {
     val notifications by viewModel.notifications.collectAsStateWithLifecycle()
-    val errorRow by viewModel.errorRow.collectAsStateWithLifecycle()
+    val phase by viewModel.phase.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
     InAppNotificationsScene(
         notifications = notifications,
-        errorRow = errorRow,
+        phase = phase,
         snackbar = snackbar,
         onAction = onAction,
     )

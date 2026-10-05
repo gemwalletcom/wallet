@@ -27,7 +27,7 @@ impl<C: Client> NameResolver for SnsProvider<C> {
     }
 
     fn domains(&self) -> Vec<&'static str> {
-        vec!["sol", "sns"]
+        vec!["sns"]
     }
 
     fn chains(&self) -> Vec<Chain> {

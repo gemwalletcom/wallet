@@ -7,9 +7,9 @@ pub(crate) mod testkit;
 use crate::services::error::GemServiceError;
 use std::sync::{Arc, Mutex};
 
+use primitives::ChartPeriod;
 use primitives::currency::Currency;
 use primitives::{Appearance, AssetId, Chain, ConfigResponse, Device, WalletType};
-use primitives::{ChartPeriod, OptionStringExt};
 
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
@@ -48,7 +48,6 @@ const APPEARANCE: &str = "appearance";
 const IS_DEVICE_REGISTERED: &str = "is_device_registered";
 const SUBSCRIPTIONS_VERSION: &str = "subscriptions_version";
 const PUSHED_DEVICE: &str = "pushed_device";
-const PUSHED_SUBSCRIPTIONS: &str = "pushed_subscriptions";
 
 #[uniffi::export(rust, foreign)]
 pub trait GemPreferencesObserver: Send + Sync {
@@ -389,14 +388,6 @@ impl GemPreferencesService {
     pub fn set_pushed_device(&self, device: &Device) -> Result<(), GemServiceError> {
         let json = serde_json::to_string(device).map_err(GemServiceError::core)?;
         self.store.set(PUSHED_DEVICE.to_string(), json)
-    }
-
-    pub fn get_pushed_subscriptions(&self) -> Option<String> {
-        self.store.get(PUSHED_SUBSCRIPTIONS.to_string()).non_empty()
-    }
-
-    pub fn set_pushed_subscriptions(&self, signature: String) -> Result<(), GemServiceError> {
-        self.store.set(PUSHED_SUBSCRIPTIONS.to_string(), signature)
     }
 }
 

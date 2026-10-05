@@ -77,12 +77,4 @@ class Migration_95_96Test {
     }
 
     private fun SupportSQLiteDatabase.metadata(assetId: String): String? = rows("SELECT metadata FROM balances WHERE asset_id = '$assetId'").single().first()
-
-    private fun SupportSQLiteDatabase.rows(query: String): List<List<String?>> = query(query).use { cursor ->
-        buildList {
-            while (cursor.moveToNext()) {
-                add((0 until cursor.columnCount).map { if (cursor.isNull(it)) null else cursor.getString(it) })
-            }
-        }
-    }
 }

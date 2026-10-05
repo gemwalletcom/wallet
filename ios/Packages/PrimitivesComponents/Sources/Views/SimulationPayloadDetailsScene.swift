@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemListRow
 import Localization
 import Style
 import SwiftUI
@@ -8,34 +9,37 @@ import SwiftUI
 public struct SimulationPayloadDetailsScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    private let primaryModels: [SimulationPayloadFieldViewModel]
-    private let secondaryModels: [SimulationPayloadFieldViewModel]
+    private let primaryRows: [GemListRow]
+    private let secondaryRows: [GemListRow]
+    private let onSelectAddress: (String) -> Void
     private let actionListItem: ListItemModel?
     private let actionDestination: AnyView?
 
     public init(
-        primaryModels: [SimulationPayloadFieldViewModel],
-        secondaryModels: [SimulationPayloadFieldViewModel],
+        primaryRows: [GemListRow],
+        secondaryRows: [GemListRow],
+        onSelectAddress: @escaping (String) -> Void,
         actionListItem: ListItemModel? = nil,
         actionDestination: AnyView? = nil,
     ) {
-        self.primaryModels = primaryModels
-        self.secondaryModels = secondaryModels
+        self.primaryRows = primaryRows
+        self.secondaryRows = secondaryRows
+        self.onSelectAddress = onSelectAddress
         self.actionListItem = actionListItem
         self.actionDestination = actionDestination
     }
 
     public var body: some View {
         List {
-            if !primaryModels.isEmpty {
+            if !primaryRows.isEmpty {
                 Section {
-                    SimulationPayloadFieldsContent(models: primaryModels)
+                    rows(primaryRows)
                 }
             }
 
-            if !secondaryModels.isEmpty {
+            if !secondaryRows.isEmpty {
                 Section(Localized.Common.details) {
-                    SimulationPayloadFieldsContent(models: secondaryModels)
+                    rows(secondaryRows)
                 }
             }
 
@@ -59,5 +63,11 @@ public struct SimulationPayloadDetailsScene: View {
         .listStyle(.insetGrouped)
         .listRowSpacing(.zero)
         .listSectionSpacing(.compact)
+    }
+
+    private func rows(_ rows: [GemListRow]) -> some View {
+        ForEach(Array(rows.enumerated()), id: \.offset) {
+            GemListRowView(row: $0.element, onSelectAddress: onSelectAddress)
+        }
     }
 }

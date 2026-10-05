@@ -28,7 +28,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         self.assetPair = assetPair
     }
 
-    public func refresh(assetId _: AssetId, hasTransactions _: Bool) async -> GemAssetRefresh {
+    public func refresh(assetId _: AssetId) async -> GemAssetRefresh {
         GemAssetRefresh(transactions: .data, failures: [])
     }
 

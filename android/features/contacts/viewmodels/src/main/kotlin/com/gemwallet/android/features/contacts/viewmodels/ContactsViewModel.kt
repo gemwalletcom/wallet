@@ -32,9 +32,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemContactAddressInput
+import uniffi.gemstone.GemContactList
 import uniffi.gemstone.GemContactRow
 import uniffi.gemstone.GemContactServiceInterface
-import uniffi.gemstone.contactRows
+import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.contactList
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,10 +48,18 @@ class ContactsViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    val contacts: StateFlow<List<ContactRowUIModel>> = contactsQuery()
-        .map { contacts -> contacts.zip(contactRows(contacts.map { it.contact.toGem() }), ::listItem) }
+    private val list: StateFlow<Pair<List<ContactData>, GemContactList>?> = contactsQuery()
+        .map { contacts -> contacts to contactList(contacts.map { it.contact.toGem() }) }
         .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val contacts: StateFlow<List<ContactRowUIModel>> = list
+        .map { list -> list?.let { (contacts, list) -> contacts.zip(list.rows, ::listItem) }.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val phase: StateFlow<GemListPhase?> = list
+        .map { it?.second?.phase }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private fun listItem(contact: ContactData, row: GemContactRow): ContactRowUIModel = ContactRowUIModel(
         contact = contact,

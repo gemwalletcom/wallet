@@ -10,12 +10,12 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 
 @Composable
 fun CurrencyScreen(onCancel: () -> Unit, viewModel: CurrencyViewModel = hiltViewModel()) {
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val list by viewModel.list.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     CurrencyScene(
-        sections = sections,
+        list = list,
         query = viewModel.query,
         snackbar = snackbar,
         onSelect = { viewModel.setCurrency(it, onCancel) },

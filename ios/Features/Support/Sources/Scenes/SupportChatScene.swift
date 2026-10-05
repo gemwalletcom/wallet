@@ -3,6 +3,7 @@
 import Components
 import struct Gemstone.GemSupportChatGroup
 import Localization
+import PrimitivesComponents
 import QuickLook
 import Store
 import Style
@@ -35,16 +36,14 @@ public struct SupportChatScene: View {
                 .animation(.smooth, value: model.typingAgentName)
             }
             .defaultScrollAnchor(.bottom)
-            if let error = model.loadError {
+            switch model.phase {
+            case .rows: EmptyView()
+            case let .error(error):
                 ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                     .padding(.medium)
-            } else if model.isEmpty {
-                StateEmptyView(
-                    title: model.emptyTitle,
-                    description: model.emptyDescription,
-                    image: Image(systemName: SystemImage.bubbleLeftAndBubbleRight),
-                )
-                .padding(.medium)
+            case let .empty(state):
+                EmptyContentView(model: EmptyStateViewModel(state: state))
+                    .padding(.medium)
             }
         }
         .bindQuery(model.query)

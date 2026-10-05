@@ -39,8 +39,9 @@ struct ConfirmTransferNavigationView: View {
                 case .payloadDetails:
                     NavigationStack {
                         SimulationPayloadDetailsScene(
-                            primaryModels: model.fieldModels(for: model.primaryPayloadFields),
-                            secondaryModels: model.fieldModels(for: model.secondaryPayloadFields),
+                            primaryRows: model.primaryPayloadFields,
+                            secondaryRows: model.secondaryPayloadFields,
+                            onSelectAddress: model.onSelectPayloadAddress,
                         )
                     }
                     .sheetPresentation([.large])

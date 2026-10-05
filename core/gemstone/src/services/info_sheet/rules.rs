@@ -11,6 +11,7 @@ use crate::services::confirm::error::{GemConfirmErrorInfo, GemConfirmErrorSheet}
 pub fn sheet(topic: &GemInfoTopic, platform: Platform) -> GemInfoSheet {
     let learn_more = |docs: DocsUrl| Some(GemInfoAction::LearnMore { url: docs.url_for(platform) });
     match topic {
+        GemInfoTopic::RegionUnavailable => info_sheet(GemInfoTitle::NotAvailable, GemInfoDescription::RegionUnavailable, GemInfoImage::Logo, learn_more(DocsUrl::FeatureAvailability)),
         GemInfoTopic::NetworkFee { asset } => info_sheet(
             GemInfoTitle::NetworkFee,
             GemInfoDescription::NetworkFee {

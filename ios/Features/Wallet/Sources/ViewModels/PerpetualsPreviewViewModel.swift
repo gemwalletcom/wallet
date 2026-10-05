@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import func Gemstone.perpetualBalanceTotal
+import enum Gemstone.GemPerpetualPreview
+import func Gemstone.perpetualPreview
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -29,12 +30,8 @@ final class PerpetualsPreviewViewModel {
         Localized.Perpetuals.trade
     }
 
-    var tradePerpetualsSubtitle: String {
-        perpetualBalanceTotal(balance: walletBalanceQuery.value?.balance.toGem()).text()
-    }
-
-    var hasNoPositions: Bool {
-        positions.isEmpty
+    var preview: GemPerpetualPreview {
+        perpetualPreview(positionIds: positions.map(\.position.id), balance: walletBalanceQuery.value?.balance.toGem())
     }
 
     func updateWallet(walletId: WalletId) {

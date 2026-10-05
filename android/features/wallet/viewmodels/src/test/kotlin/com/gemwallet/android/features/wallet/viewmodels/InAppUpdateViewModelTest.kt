@@ -107,6 +107,59 @@ class InAppUpdateViewModelTest {
         assertEquals(0, updateService.downloadCalls)
     }
 
+    @Test
+    fun `granting install permission reuses the downloaded apk`() = runTest(testDispatcher) {
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", apkUrl = APK_URL)
+        updateService.canInstall = false
+        updateService.suspendDownload = false
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.update()
+        advanceUntilIdle()
+
+        assertEquals(DownloadState.PermissionRequired, viewModel.downloadState.value)
+        assertEquals(1, updateService.downloadCalls)
+        assertTrue(updateService.installedVersions.isEmpty())
+
+        viewModel.onInstallPermissionResult()
+        advanceUntilIdle()
+
+        assertEquals(DownloadState.PermissionRequired, viewModel.downloadState.value)
+        assertEquals(1, updateService.downloadCalls)
+        assertTrue(updateService.installedVersions.isEmpty())
+
+        updateService.canInstall = true
+        viewModel.onInstallPermissionResult()
+        advanceUntilIdle()
+
+        assertEquals(DownloadState.Success, viewModel.downloadState.value)
+        assertEquals(1, updateService.downloadCalls)
+        assertEquals(listOf("2.0.0"), updateService.installedVersions)
+    }
+
+    @Test
+    fun `changed offer is not installed after permission round trip`() = runTest(testDispatcher) {
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", apkUrl = APK_URL)
+        updateService.canInstall = false
+        updateService.suspendDownload = false
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.update()
+        advanceUntilIdle()
+        offer.value = mockGemAppUpdateOffer(version = "3.0.0", apkUrl = APK_URL)
+        updateService.canInstall = true
+        advanceUntilIdle()
+
+        viewModel.onInstallPermissionResult()
+        advanceUntilIdle()
+
+        assertEquals(DownloadState.Error, viewModel.downloadState.value)
+        assertEquals(1, updateService.downloadCalls)
+        assertTrue(updateService.installedVersions.isEmpty())
+    }
+
     private fun createViewModel() = InAppUpdateViewModel(
         observeAppUpdateOffer = object : ObserveAppUpdateOffer {
             override fun observeAppUpdateOffer(): Flow<GemAppUpdateOffer?> = offer
@@ -126,17 +179,22 @@ class InAppUpdateViewModelTest {
     private class FakeInAppUpdateService : InAppUpdateService {
         var downloadCalls = 0
         var cancelCalls = 0
+        var canInstall = true
+        var suspendDownload = true
+        val installedVersions = mutableListOf<String>()
 
-        override fun canRequestPackageInstalls(): Boolean = true
+        override fun canRequestPackageInstalls(): Boolean = canInstall
 
         override suspend fun clearDownloadedUpdate() = Unit
 
         override suspend fun download(url: String, version: String, onProgress: (Float?) -> Unit) {
             downloadCalls += 1
-            kotlinx.coroutines.awaitCancellation()
+            if (suspendDownload) kotlinx.coroutines.awaitCancellation()
         }
 
-        override fun installDownloadedUpdate(version: String) = Unit
+        override fun installDownloadedUpdate(version: String) {
+            installedVersions.add(version)
+        }
 
         override fun cancel() {
             cancelCalls += 1

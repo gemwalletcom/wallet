@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = Mã giới thiệu đã đạt �
 errors_generic = Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.
 fiat_error_limit_reached = Quá nhiều yêu cầu báo giá. Vui lòng thử lại sau vài phút.
 fiat_error_quote_unavailable = Báo giá này không còn hiệu lực. Vui lòng thử lại.
+fiat_error_region_unavailable = Không khả dụng tại khu vực của bạn.
 rewards_error_referral_country_ineligible = Hiện tại, dịch vụ giới thiệu chưa khả dụng cho quốc gia của bạn: {$value}.
 notification_rewards_disabled_title = Mã giới thiệu đã bị vô hiệu hóa
 notification_rewards_disabled_description = Mã giới thiệu này đã bị vô hiệu hóa do vi phạm nhiều lần các điều khoản của chương trình giới thiệu.

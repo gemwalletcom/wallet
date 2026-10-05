@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use primitives::{Chain, asset_score::AssetRank};
+use search_index::SearchQuery;
 
 const MIN_LIST_SEARCH_QUERY_LENGTH: usize = 2;
 const STRICT_RANK_QUERY_LENGTH: usize = 16;
@@ -26,6 +27,16 @@ impl SearchRequest {
             tags,
             limit,
             offset: offset.unwrap_or(0),
+        }
+    }
+
+    pub fn search_query(&self) -> SearchQuery {
+        SearchQuery {
+            query: self.query.clone(),
+            chains: self.chains.clone(),
+            tags: self.tags.clone(),
+            limit: self.limit,
+            offset: self.offset,
         }
     }
 

@@ -1,4 +1,4 @@
-use primitives::known_assets::{PYUSD_ASSET_IDS, USD1_ASSET_IDS, USDC_ASSETS, USDE_ASSET_IDS, USDG_ASSET_IDS, USDS_ASSET_IDS, USDT_ASSETS};
+use primitives::known_assets::{PYUSD_ASSET_IDS, USD1_ASSET_IDS, USDC_ASSET_IDS, USDE_ASSET_IDS, USDG_ASSET_IDS, USDS_ASSET_IDS, USDT_ASSET_IDS};
 use primitives::{Asset, AssetId, Chain};
 use strum::{EnumIter, IntoEnumIterator};
 
@@ -24,15 +24,15 @@ pub enum GemLocalTokenIcon {
 }
 
 impl GemLocalTokenIcon {
-    fn draws(&self, asset_id: &AssetId) -> bool {
+    fn asset_ids(&self) -> &'static [AssetId] {
         match self {
-            Self::Usdt => USDT_ASSETS.iter().any(|asset| asset.id == *asset_id),
-            Self::Usdc => USDC_ASSETS.iter().any(|asset| asset.id == *asset_id),
-            Self::Usds => USDS_ASSET_IDS.contains(asset_id),
-            Self::Usde => USDE_ASSET_IDS.contains(asset_id),
-            Self::Usd1 => USD1_ASSET_IDS.contains(asset_id),
-            Self::Usdg => USDG_ASSET_IDS.contains(asset_id),
-            Self::Pyusd => PYUSD_ASSET_IDS.contains(asset_id),
+            Self::Usdt => &USDT_ASSET_IDS,
+            Self::Usdc => &USDC_ASSET_IDS,
+            Self::Usds => &USDS_ASSET_IDS,
+            Self::Usde => &USDE_ASSET_IDS,
+            Self::Usd1 => &USD1_ASSET_IDS,
+            Self::Usdg => &USDG_ASSET_IDS,
+            Self::Pyusd => &PYUSD_ASSET_IDS,
         }
     }
 }
@@ -78,7 +78,7 @@ fn icon_asset_id(asset_id: &AssetId) -> AssetId {
 }
 
 fn local_token_icon(asset_id: &AssetId) -> Option<GemLocalTokenIcon> {
-    GemLocalTokenIcon::iter().find(|token| token.draws(asset_id))
+    GemLocalTokenIcon::iter().find(|token| token.asset_ids().contains(asset_id))
 }
 
 fn perpetual_coin(asset_id: &AssetId) -> Option<String> {
@@ -223,18 +223,14 @@ mod tests {
 
     #[test]
     fn test_known_stablecoins_draw_their_bundled_logo_badged_with_their_chain() {
+        use chain_primitives::format_token_id;
         use primitives::asset_constants::USDE_OFT_TOKEN_ID;
-        use primitives::known_assets::{PYUSD_ASSET_IDS, USD1_ASSET_IDS, USDE_ASSET_IDS, USDG_ASSET_IDS, USDS_ASSET_IDS};
 
-        for (token, asset_ids) in [
-            (GemLocalTokenIcon::Usds, &*USDS_ASSET_IDS),
-            (GemLocalTokenIcon::Usde, &*USDE_ASSET_IDS),
-            (GemLocalTokenIcon::Usd1, &*USD1_ASSET_IDS),
-            (GemLocalTokenIcon::Usdg, &*USDG_ASSET_IDS),
-            (GemLocalTokenIcon::Pyusd, &*PYUSD_ASSET_IDS),
-        ] {
-            for asset_id in asset_ids {
+        for token in GemLocalTokenIcon::iter() {
+            for asset_id in token.asset_ids() {
                 assert_eq!(asset_icon(asset_id).image, GemAssetIconImage::LocalToken { token }, "{asset_id}");
+                let token_id = asset_id.token_id.clone().unwrap_or_default();
+                assert_eq!(format_token_id(asset_id.chain, token_id.clone()).unwrap_or(token_id.clone()), token_id, "{asset_id} must match the stored id exactly");
             }
         }
         assert_eq!(

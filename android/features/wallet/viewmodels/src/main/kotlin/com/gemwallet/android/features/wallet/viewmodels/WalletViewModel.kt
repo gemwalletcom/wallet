@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
-import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.assets.cases.GetWalletHomeState
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.asset.assetSections
+import com.gemwallet.android.domains.asset.assets
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -29,23 +29,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemBannerKey
-import uniffi.gemstone.GemBannerRow
 import uniffi.gemstone.GemWalletHomeServiceInterface
+import uniffi.gemstone.GemWalletHomeViewState
 import javax.inject.Inject
 
 @HiltViewModel
 class WalletViewModel @Inject constructor(
     private val service: GemWalletHomeServiceInterface,
     getActiveAssetsInfo: GetActiveAssetsInfo,
-    getWalletSummary: GetWalletSummary,
+    getWalletHomeState: GetWalletHomeState,
     private val getSession: GetSession,
     private val preferences: ObservablePreferences,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -58,35 +58,27 @@ class WalletViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private fun groups(items: List<AssetInfoDataAggregate>) = items.assetSections(assetId = { it.asset.id }, isPinned = { it.pinned })
-
     val isLoadingAssets = MutableStateFlow(false)
 
     val isRefreshing = MutableStateFlow(false)
 
-    private val assetGroups = getActiveAssetsInfo.assetsInfo()
-        .map(::groups)
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, groups(getActiveAssetsInfo.assetsInfo().value))
+    val homeState = getWalletHomeState.walletHomeState()
 
-    val pinnedAssets = assetGroups
-        .map { it.pinned }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, assetGroups.value.pinned)
-
-    val unpinnedAssets = assetGroups
-        .map { it.unpinned }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, assetGroups.value.unpinned)
-
-    val walletSummary = getWalletSummary.getWalletSummary()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val bannerRow: StateFlow<GemBannerRow?> = walletSummary.map { summary -> summary?.state?.banner }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val collectionsAvailable = walletSummary
-        .map { it?.state?.showCollections ?: false }
-        .distinctUntilChanged()
+    val isBalanceHidden = preferences.isHideBalances()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    private val walletAssets = getActiveAssetsInfo.assetsInfo()
+
+    val pinnedAssets = sectionAssets { it.pinnedAssetIds }
+
+    val unpinnedAssets = sectionAssets { it.assetIds }
+
+    private fun sectionAssets(ids: (GemWalletHomeViewState) -> List<String>): StateFlow<List<AssetInfoDataAggregate>> {
+        val items = { state: GemWalletHomeViewState?, assets: List<AssetInfoDataAggregate> -> assets.assets(state?.let(ids).orEmpty()) { it.asset.id } }
+        return combine(homeState, walletAssets, items)
+            .flowOn(ioDispatcher)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, items(homeState.value, walletAssets.value))
+    }
 
     init {
         viewModelScope.launch(ioDispatcher) {
@@ -119,7 +111,7 @@ class WalletViewModel @Inject constructor(
     }
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
-        val item = assetGroups.value.let { it.pinned + it.unpinned }.firstOrNull { it.id == assetId } ?: return@launch
+        val item = walletAssets.value.firstOrNull { it.id == assetId } ?: return@launch
         runCatchingCancellable { service.setAssetPinned(item.asset.toGem(), !item.pinned) }
             .onSuccess { emitToast(it.message(context)) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }

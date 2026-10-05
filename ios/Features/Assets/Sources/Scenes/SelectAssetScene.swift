@@ -1,4 +1,5 @@
 import Components
+import struct Gemstone.GemAssetSection
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -15,9 +16,8 @@ public struct SelectAssetScene: View {
     }
 
     public var body: some View {
-        let sections = model.sections
-        let listState = model.listState(sections)
-        return list(sections)
+        let view = model.view
+        return list(view.sections)
             .searchable(
                 text: $model.searchableQuery,
                 placement: .navigationBarDrawer(displayMode: .always),
@@ -30,10 +30,10 @@ public struct SelectAssetScene: View {
                 )
             }
             .overlay {
-                if listState == .loading {
-                    LoadingView()
-                } else if listState != .idle {
-                    EmptyContentView(model: model.emptyModel)
+                switch view.state {
+                case .loading: LoadingView()
+                case .empty: EmptyContentView(model: model.emptyModel)
+                case .idle: EmptyView()
                 }
             }
             .bindQuery(model.assetsQuery, model.recentModel.query)
@@ -43,7 +43,7 @@ public struct SelectAssetScene: View {
             .navigationBarTitle(model.title)
     }
 
-    func list(_ sections: AssetsSections) -> some View {
+    func list(_ sections: [GemAssetSection]) -> some View {
         let assetItems = model.assetItems
         return List {
             if model.showRecents {
@@ -53,9 +53,9 @@ public struct SelectAssetScene: View {
                 )
             }
 
-            ForEach(sections.sections, id: \.kind) { section in
+            ForEach(sections, id: \.kind) { section in
                 Section {
-                    assetsList(assets: section.assets, assetItems: assetItems)
+                    assetsList(assets: model.assets(section), assetItems: assetItems)
                 } header: {
                     if let title = section.kind.title {
                         SectionHeaderView(title: title, image: section.kind.image)

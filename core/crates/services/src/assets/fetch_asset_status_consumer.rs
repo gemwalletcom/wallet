@@ -1,15 +1,18 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use futures::future;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{AssetId, asset_score::AssetRank};
 use security::{TokenScanProviders, TokenTarget};
-use storage::{AssetUpdate, AssetsRepository, Database};
+use storage::AssetUpdate;
 use streamer::consumer::MessageConsumer;
 
+use crate::assets::repository::Repository;
+
 pub struct FetchAssetStatusConsumer {
-    pub database: Database,
+    pub(crate) repository: Arc<dyn Repository>,
     pub providers: TokenScanProviders,
 }
 
@@ -69,9 +72,7 @@ impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
         let verdict = AssetStatusVerdict::from_provider_results(&provider_results);
 
         if verdict.is_malicious {
-            self.database
-                .run(move |client| client.update_assets(vec![asset_id], vec![AssetUpdate::Rank(AssetRank::Fraudulent.threshold()), AssetUpdate::IsEnabled(false)]))
-                .await?;
+            self.repository.update_assets(vec![asset_id], vec![AssetUpdate::Rank(AssetRank::Fraudulent.threshold()), AssetUpdate::IsEnabled(false)]).await?;
         }
         let failed_providers = verdict.failed_providers.join(",");
         info_with_fields!(
@@ -89,7 +90,62 @@ impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
 
 #[cfg(test)]
 mod tests {
-    use super::AssetStatusVerdict;
+    use async_trait::async_trait;
+    use primitives::{AssetBasic, Chain};
+    use security::{ScanResult, TokenScanProvider};
+
+    use super::*;
+    use crate::testkit::MemoryAssetRepository;
+
+    struct StaticTokenScan(Option<bool>);
+
+    #[async_trait]
+    impl TokenScanProvider for StaticTokenScan {
+        fn name(&self) -> &'static str {
+            "Static"
+        }
+
+        fn supports_chain(&self, _chain: Chain) -> bool {
+            true
+        }
+
+        async fn scan_token(&self, target: &TokenTarget) -> Result<ScanResult<TokenTarget>, Box<dyn Error + Send + Sync>> {
+            let is_malicious = self.0.ok_or("scan unavailable")?;
+            Ok(ScanResult {
+                target: target.clone(),
+                is_malicious,
+                reason: None,
+                provider: "Static".to_string(),
+            })
+        }
+    }
+
+    async fn consume(result: Option<bool>) -> (bool, Arc<MemoryAssetRepository>) {
+        let repository = Arc::new(MemoryAssetRepository::new(Vec::<AssetBasic>::new()));
+        let consumer = FetchAssetStatusConsumer {
+            repository: repository.clone(),
+            providers: vec![Arc::new(StaticTokenScan(result))],
+        };
+        let is_malicious = consumer.consume(AssetId::from_token(Chain::Ethereum, "0x1")).await.unwrap();
+        (is_malicious, repository)
+    }
+
+    #[tokio::test]
+    async fn test_malicious_token_is_disabled_as_fraudulent() {
+        let (is_malicious, repository) = consume(Some(true)).await;
+
+        assert!(is_malicious);
+        let updates = repository.updates();
+        assert_eq!(updates.len(), 1);
+        assert_eq!(updates[0].0, vec![AssetId::from_token(Chain::Ethereum, "0x1")]);
+        assert_eq!(format!("{:?}", updates[0].1), format!("{:?}", vec![AssetUpdate::Rank(AssetRank::Fraudulent.threshold()), AssetUpdate::IsEnabled(false)]));
+    }
+
+    #[tokio::test]
+    async fn test_clean_or_failed_scan_leaves_token() {
+        assert!(consume(Some(false)).await.1.updates().is_empty());
+        assert!(consume(None).await.1.updates().is_empty());
+    }
 
     #[test]
     fn test_from_provider_results() {

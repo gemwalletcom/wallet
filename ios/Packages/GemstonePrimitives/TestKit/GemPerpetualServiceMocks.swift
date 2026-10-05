@@ -15,6 +15,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
     private var enabled: Bool
     private let setEnabledError: Error?
     private let allowsNotifications: Bool
+    public var refreshState: GemLoadState = .data
 
     public init(enabled: Bool = false, setEnabledError: Error? = .none, allowsNotifications: Bool = true) {
         self.enabled = enabled
@@ -47,8 +48,8 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         lock.withLock { self.enabled = enabled }
     }
 
-    public func refresh(assetId _: Gemstone.AssetId?, hasAlerts _: Bool) async -> GemLoadState {
-        .data
+    public func refresh(assetId _: Gemstone.AssetId?) async -> GemLoadState {
+        refreshState
     }
 
     public func enablePriceAlert(alert _: Gemstone.PriceAlert) async throws -> Bool {
@@ -78,6 +79,14 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
 }
 
 public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
+    public var isAvailableValue = true
+    public private(set) var availabilityCheckCount = 0
+
+    public func isAvailable() -> Bool {
+        availabilityCheckCount += 1
+        return isAvailableValue
+    }
+
     public var isPerpetualEnabled = true
     public var connects = true
     public private(set) var syncMarketsCount = 0
@@ -155,6 +164,12 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 }
 
 public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServiceProtocol, @unchecked Sendable {
+    public var isAvailableValue = true
+
+    public func isAvailable() -> Bool {
+        isAvailableValue
+    }
+
     public var detailsValue: GemPerpetualDetails = .mock()
     public var chartPeriodValue: Gemstone.ChartPeriod = Primitives.ChartPeriod.day.toGem()
     public var candlesticksValue: [Gemstone.ChartCandleStick] = []

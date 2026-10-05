@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemListPhase
 import struct Gemstone.GemStakeActionItem
 import enum Gemstone.GemStakeSection
 import struct Gemstone.GemStakeViewState
@@ -27,9 +28,9 @@ public struct StakeScene: View {
                     content(for: section, state: state)
                 }
             }
-            if model.showsDelegationsPlaceholder(state) {
+            if state.delegationsPhase != .rows {
                 Section {
-                    delegationsPlaceholder(state)
+                    delegationsPlaceholder(state.delegationsPhase)
                 }
             }
         }
@@ -64,7 +65,12 @@ extension StakeScene {
                 GemListRowView(row: row)
             }
         case .delegations:
-            delegationsPlaceholder(state)
+            ForEach(state.delegations, id: \.id) { item in
+                NavigationCustomLink(with: ListItemView(model: item.row.listItem)) {
+                    model.onSelect(delegation: item)
+                }
+            }
+            .listRowInsets(.assetListRowInsets)
         }
     }
 
@@ -78,29 +84,24 @@ extension StakeScene {
                 .enabled(false)
         case let .open(destination):
             NavigationCustomLink(with: GemListRowView(row: item.row)) {
-                model.onSelect(destination: destination)
+                model.onSelect(kind: item.kind, destination: destination)
             }
         }
     }
 
     @ViewBuilder
-    private func delegationsPlaceholder(_ state: GemStakeViewState) -> some View {
-        switch model.delegationsViewState(state) {
-        case .noData:
-            EmptyContentView(model: model.emptyContentModel)
+    private func delegationsPlaceholder(_ phase: GemListPhase?) -> some View {
+        switch phase {
+        case let .empty(state):
+            EmptyContentView(model: model.emptyContentModel(state))
                 .cleanListRow()
-        case .loading:
+        case .none:
             ListItemLoadingView()
                 .id(UUID())
-        case let .data(items):
-            ForEach(items, id: \.id) { item in
-                NavigationCustomLink(with: ListItemView(model: item.row.listItem)) {
-                    model.onSelect(delegation: item)
-                }
-            }
-            .listRowInsets(.assetListRowInsets)
         case let .error(error):
             ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+        case .rows:
+            EmptyView()
         }
     }
 

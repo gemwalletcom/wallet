@@ -9,6 +9,7 @@ import func Gemstone.formattedAmount
 import func Gemstone.formattedCurrency
 import struct Gemstone.GemFiatQuoteRequest
 import struct Gemstone.GemProviderRow
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Localization
@@ -137,7 +138,7 @@ final class FiatSceneViewModelTests {
         #expect(model.viewState.buttonState.state == .normal)
         #expect(model.viewState.buttonAction.title == Localized.Common.continue)
 
-        model.urlState = .loading
+        model.isUrlLoading = true
         #expect(model.viewState.buttonState.state == .loading(showProgress: true))
     }
 
@@ -330,5 +331,38 @@ final class FiatSceneViewModelTests {
         let row = model.fiatProviderViewModel.state.value?.items.first
 
         #expect(row?.listItem.subtitleExtra == "$48.80")
+    }
+
+    @Test(arguments: [FiatQuoteType.buy, .sell])
+    func unavailableFiatKeepsTheQuoteAndStopsContinue(type: FiatQuoteType) async {
+        let service = GemFiatQuoteServiceMock()
+        service.isAvailableValue = false
+        let model = FiatSceneViewModel.mock(service: service, type: type, amount: 100)
+        model.session = model.session.onQuoteResults(results: .mock(
+            request: .mock(quoteType: type.toGem(), amount: 100),
+            quotes: [.mock(provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), quoteType: type.toGem(), fiatAmount: 100, fiatCurrency: "USD", cryptoAmount: 1)],
+        ))
+        #expect(model.isPresentingInfoSheet == nil)
+
+        await model.onSelectContinue()
+
+        #expect(model.isPresentingInfoSheet?.description == Localized.Info.regionUnavailableDescription)
+        #expect(model.viewState.selectedQuoteRow != nil)
+    }
+
+    @Test
+    func failedFiatCheckoutShowsErrorAndReleasesLoading() async {
+        let service = GemFiatQuoteServiceMock()
+        let model = FiatSceneViewModel.mock(service: service, amount: 100)
+        model.session = model.session.onQuoteResults(results: .mock(
+            request: .mock(quoteType: .buy, amount: 100),
+            quotes: [.mock(provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), fiatAmount: 100, fiatCurrency: "USD", cryptoAmount: 1)],
+        ))
+
+        await model.onSelectContinue()
+
+        #expect(service.quoteUrlRequests.count == 1)
+        #expect(model.isPresentingInfoSheet?.description == "not stubbed")
+        #expect(model.isUrlLoading == false)
     }
 }

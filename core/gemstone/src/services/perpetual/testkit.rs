@@ -17,6 +17,7 @@ use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
+use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::name::GemNameService;
@@ -129,7 +130,7 @@ impl PerpetualTestkit {
         testkit
     }
 
-    fn with_provider(provider: TestAlienProvider) -> Self {
+    pub fn with_provider(provider: TestAlienProvider) -> Self {
         let wallet = Wallet::mock();
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
@@ -164,6 +165,7 @@ impl PerpetualTestkit {
             wallet_preferences.clone(),
             session.clone(),
             Arc::new(GemRecentActivityService::new(recents.clone(), session)),
+            Arc::new(GemConfigService::mock(provider.clone())),
         );
         Self {
             service,

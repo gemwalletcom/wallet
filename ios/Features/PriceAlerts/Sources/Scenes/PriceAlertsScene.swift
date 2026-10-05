@@ -16,17 +16,18 @@ public struct PriceAlertsScene: View {
     }
 
     public var body: some View {
-        List {
+        let list = model.list
+        return List {
             toggleView
 
-            if let error = model.loadError {
+            if case let .error(error) = list.phase {
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                 }
             }
 
             ListItemValueSectionList(
-                list: model.sections,
+                list: model.sections(list),
                 content: { item in
                     NavigationLink(value: model.chart(item)) {
                         PriceAlertItemView(item: item, onDelete: { onDelete(alert: $0) })
@@ -38,8 +39,8 @@ public struct PriceAlertsScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .overlay {
-            if model.priceAlerts.isEmpty, model.loadError == nil {
-                EmptyContentView(model: model.emptyContentModel)
+            if case let .empty(state) = list.phase {
+                EmptyContentView(model: EmptyStateViewModel(state: state))
             }
         }
         .onChange(of: model.isPriceAlertsEnabled, onAlertsEnable)

@@ -6,7 +6,6 @@ import enum Gemstone.GemLoadState
 import struct Gemstone.GemPriceAlertItem
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import enum Gemstone.GemServiceError
-import func Gemstone.loadError
 import class Gemstone.PriceAlertFormatter
 import GemstoneServices
 import Localization
@@ -32,10 +31,6 @@ public final class AssetPriceAlertsSceneViewModel: Sendable {
     var isPresentingToastMessage: ToastMessage?
 
     private var loadState: GemLoadState = .loading
-
-    var loadError: Error? {
-        Gemstone.loadError(state: loadState, hasRows: !priceAlerts.isEmpty)
-    }
 
     public init(
         service: any GemPriceAlertServiceProtocol,
@@ -66,20 +61,13 @@ public final class AssetPriceAlertsSceneViewModel: Sendable {
         assetAlerts.alerts
     }
 
-    func showsEmpty(_ assetAlerts: GemAssetPriceAlerts) -> Bool {
-        assetAlerts.showsEmpty && loadError == nil
-    }
-
-    var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .priceAlerts)
-    }
-
     var assetAlerts: GemAssetPriceAlerts {
         PriceAlertFormatter.shared.assetAlerts(
             asset: asset.toGem(),
             price: priceQuery.value?.price?.toGem(),
             alerts: priceAlerts.map { $0.toGem() },
             priceCurrency: service.getCurrency(),
+            state: loadState,
         )
     }
 }
@@ -88,7 +76,7 @@ public final class AssetPriceAlertsSceneViewModel: Sendable {
 
 extension AssetPriceAlertsSceneViewModel {
     func load() async {
-        loadState = await service.refresh(assetId: asset.id, hasAlerts: priceAlerts.isNotEmpty)
+        loadState = await service.refresh(assetId: asset.id)
     }
 
     func toggleAutoAlert(enabled: Bool) async {

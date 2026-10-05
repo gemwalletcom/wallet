@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.di
 
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneStakeStore
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.StakeDao
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneStakeStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemNameService
@@ -43,7 +44,8 @@ object StakeModule {
         explorerService: GemExplorerService,
         preferencesService: GemPreferencesService,
         walletSessionService: GemWalletSessionService,
-    ): GemStakeService = GemStakeService(gateway, staticApiClient, store, nameService, explorerService, preferencesService, walletSessionService, Platform.ANDROID)
+        configService: GemConfigService,
+    ): GemStakeService = GemStakeService(gateway, staticApiClient, store, nameService, explorerService, preferencesService, walletSessionService, Platform.ANDROID, configService)
 
     @Provides
     @Singleton

@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = รหัสแนะนำเ�
 errors_generic = เกิดข้อผิดพลาดที่ไม่คาดคิด โปรดลองใหม่อีกครั้งในภายหลัง
 fiat_error_limit_reached = ขอใบเสนอราคาบ่อยเกินไป โปรดลองใหม่ในอีกไม่กี่นาที
 fiat_error_quote_unavailable = ใบเสนอราคานี้ใช้ไม่ได้แล้ว โปรดลองใหม่อีกครั้ง
+fiat_error_region_unavailable = ไม่พร้อมให้บริการในภูมิภาคของคุณ
 rewards_error_referral_country_ineligible = ขณะนี้ยังไม่สามารถให้บริการส่งต่อผู้ป่วยสำหรับประเทศของคุณได้: {$value}-
 notification_rewards_disabled_title = รหัสแนะนำถูกปิดใช้งานแล้ว
 notification_rewards_disabled_description = รหัสแนะนำนี้ถูกปิดใช้งานเนื่องจากมีการละเมิดข้อกำหนดของโปรแกรมแนะนำเพื่อนของเราซ้ำหลายครั้ง

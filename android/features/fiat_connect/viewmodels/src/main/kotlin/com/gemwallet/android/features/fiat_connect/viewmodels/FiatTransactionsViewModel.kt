@@ -21,10 +21,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatTransactionRow
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.fiatTransactionListPhase
 import uniffi.gemstone.fiatTransactionRows
-import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,9 +46,8 @@ class FiatTransactionsViewModel @Inject constructor(
         .map { items -> fiatTransactionRows(items.map { it.toGem() }) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val errorRow: StateFlow<GemListRow?> = combine(loadState, transactions) { state, items ->
-        loadError(state, items.isNotEmpty())?.let { GemListRow.Error(it) }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val phase: StateFlow<GemListPhase> = combine(transactions, loadState, ::fiatTransactionListPhase)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, fiatTransactionListPhase(transactions.value, loadState.value))
 
     init {
         refresh()
@@ -64,6 +63,6 @@ class FiatTransactionsViewModel @Inject constructor(
     }
 
     private suspend fun sync() {
-        loadState.update { service.refreshTransactions(transactions.value.isNotEmpty()) }
+        loadState.update { service.refreshTransactions() }
     }
 }

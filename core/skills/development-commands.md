@@ -47,8 +47,11 @@ just unused                     # Find unused dependencies with cargo-machete
 **Formatting and Linting**:
 ```sh
 just format
-cargo clippy -p <crate> -- -D warnings
+just lint
+cargo clippy -p <crate> --all-features -- -D warnings
 ```
+
+Before committing or pushing Core changes, run `just lint`, the same command as Core CI. It enables `redundant_clone`, `implicit_clone` and `redundant_closure_for_method_calls` in addition to treating warnings as errors. Per-crate clippy checks provide focused feature coverage and do not replace this closing check.
 
 Most chain crates declare `default = []` and gate whole modules behind features: `gem_bitcoin` keeps `signer/` behind `signer`, `gem_keystore` keeps v3 migration behind `v3`, `swapper` keeps live clients behind `reqwest_provider`. `just test <CRATE>` passes `--all-features`, but bare `cargo test -p <crate>` and `cargo clippy -p <crate>` compile only the default set and finish in seconds with nothing from the gated modules, which reads as a pass. Lint and test with the feature that compiles the changed path, for example `cargo clippy -p gem_bitcoin --features signer --all-targets -- -D warnings`, or pass `--all-features`.
 

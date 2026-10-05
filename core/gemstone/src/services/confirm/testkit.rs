@@ -1,3 +1,4 @@
+use num_bigint::BigInt;
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
@@ -14,6 +15,7 @@ use crate::payment::GemPaymentService;
 use crate::services::assets::{GemAssetFilter, GemAssetStore, GemAssetsService};
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::balance::{GemAssetBalance, GemBalanceService};
+use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -36,7 +38,6 @@ use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWa
 use crate::services::{GemScanService, GemSimulationService};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 use crate::transfer_amount::GemTransferAmount;
-use num_bigint::BigInt;
 use primitives::swap::{Permit2ApprovalData, SwapData, SwapQuoteData};
 use primitives::{Account, FeePriority, GasPriceType, SwapProvider, TransactionInputType};
 use swapper::Quote;
@@ -106,6 +107,7 @@ impl ConfirmTestkit {
             preferences.clone(),
             session.clone(),
             primitives::Platform::IOS,
+            Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
         let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone()));
@@ -336,4 +338,8 @@ impl SendInput {
             ..SendInput::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() })
         }
     }
+}
+
+pub fn gwei(value: u64) -> BigInt {
+    BigInt::from(value) * 1_000_000_000
 }

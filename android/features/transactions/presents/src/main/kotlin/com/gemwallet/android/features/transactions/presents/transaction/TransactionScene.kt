@@ -20,7 +20,6 @@ import com.gemwallet.android.ui.components.list_item.listSections
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.format.rememberFormattedAddress
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListSection

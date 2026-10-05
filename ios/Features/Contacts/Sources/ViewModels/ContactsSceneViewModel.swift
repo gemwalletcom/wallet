@@ -2,8 +2,9 @@
 
 import Components
 import Foundation
-import func Gemstone.contactRows
+import func Gemstone.contactList
 import struct Gemstone.GemContactAddressInput
+import struct Gemstone.GemContactList
 import struct Gemstone.GemContactRow
 import protocol Gemstone.GemContactServiceProtocol
 import struct Gemstone.GemRecipient
@@ -94,13 +95,12 @@ public final class ContactsSceneViewModel {
         }
     }
 
-    var emptyContent: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .contacts)
+    var list: GemContactList {
+        contactList(contacts: contacts.map { $0.contact.toGem() })
     }
 
-    var items: [(contact: ContactData, listItem: ListItemModel)] {
-        let contacts = contacts
-        return zip(contacts, contactRows(contacts: contacts.map { $0.contact.toGem() })).map { contact, row in
+    func items(_ list: GemContactList) -> [(contact: ContactData, listItem: ListItemModel)] {
+        zip(contacts, list.rows).map { contact, row in
             (contact, listItemModel(contact: contact, row: row))
         }
     }

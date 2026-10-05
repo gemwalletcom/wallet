@@ -5,6 +5,12 @@ import Gemstone
 import Primitives
 
 public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked Sendable {
+    public var isAvailableValue = true
+
+    public func isAvailable() -> Bool {
+        isAvailableValue
+    }
+
     public var rewardsResult: Result<Rewards, Error> = .success(.mock(
         code: "test123",
         inviteRewardPoints: 100,

@@ -4,10 +4,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,15 +45,16 @@ internal fun PerpetualScene(
     chart: StateViewType<GemCandleChart>,
     period: ChartPeriod,
     isRefreshing: Boolean,
+    showModifyDialog: Boolean = false,
+    onDismissModify: () -> Unit,
     snackbar: SnackbarHostState? = null,
     onAction: (PerpetualAction) -> Unit,
 ) {
-    var showModifyDialog by remember { mutableStateOf(false) }
     val onButton: (GemPerpetualButton) -> Unit = { action ->
         when (action) {
             GemPerpetualButton.LONG -> onAction(PerpetualAction.OpenPosition(PerpetualDirection.Long))
             GemPerpetualButton.SHORT -> onAction(PerpetualAction.OpenPosition(PerpetualDirection.Short))
-            GemPerpetualButton.MODIFY -> showModifyDialog = true
+            GemPerpetualButton.MODIFY -> onAction(PerpetualAction.ModifyPosition)
             GemPerpetualButton.CLOSE -> onAction(PerpetualAction.ClosePosition)
             GemPerpetualButton.INCREASE -> onAction(PerpetualAction.IncreasePosition)
             GemPerpetualButton.REDUCE -> onAction(PerpetualAction.ReducePosition)
@@ -117,7 +114,7 @@ internal fun PerpetualScene(
         isVisible = showModifyDialog,
         title = stringResource(R.string.perpetual_modify),
         buttons = details?.modifyButtons.orEmpty(),
-        onDismiss = { showModifyDialog = false },
+        onDismiss = onDismissModify,
         onSelect = { onButton(it) },
     )
 }
@@ -162,6 +159,7 @@ private fun PerpetualScenePreview() {
             chart = StateViewType.Loading,
             period = ChartPeriod.Day,
             isRefreshing = false,
+            onDismissModify = {},
             onAction = {},
         )
     }

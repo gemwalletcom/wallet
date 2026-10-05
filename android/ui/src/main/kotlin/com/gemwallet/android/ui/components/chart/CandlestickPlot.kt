@@ -3,8 +3,6 @@ package com.gemwallet.android.ui.components.chart
 import androidx.compose.ui.geometry.Rect
 import uniffi.gemstone.ChartCandleStick
 import uniffi.gemstone.GemCandleChart
-import uniffi.gemstone.GemFormattedNumber
-import uniffi.gemstone.perpetualChartLevels
 import kotlin.math.max
 import kotlin.math.min
 
@@ -17,8 +15,8 @@ internal class CandlestickPlot(
     volumeBandGap: Float,
     private val minWickWidth: Float,
     private val maxWickWidth: Float,
-    private val priceRange: ChartRange,
-    private val volumeRange: ChartRange,
+    private val priceViewport: ChartViewport,
+    private val volumeViewport: ChartViewport?,
 ) {
     private val span = (chart.end - chart.start).coerceAtLeast(1L).toFloat()
 
@@ -26,14 +24,9 @@ internal class CandlestickPlot(
     val priceBottom = volumeBand.top - volumeBandGap
     val bodyWidth = max(1f, chart.bodyWidth.toFloat() * frame.width)
 
-    val hasVolume: Boolean
-        get() = volumeRange.high > 0f
-
-    fun levels(): List<GemFormattedNumber> = perpetualChartLevels(priceRange.low.toDouble(), priceRange.high.toDouble(), chart.layout.currentPrice.value)
-
     fun x(date: Long): Float = frame.left + (date - chart.start) / span * frame.width
 
-    fun y(price: Double): Float = (priceBottom - (price - priceRange.low) / (priceRange.high - priceRange.low) * (priceBottom - frame.top)).toFloat()
+    fun y(price: Double): Float = frame.top + priceViewport.y(price, priceBottom - frame.top)
 
     fun body(candle: ChartCandleStick): Rect {
         val top = y(max(candle.open, candle.close))
@@ -45,8 +38,9 @@ internal class CandlestickPlot(
         return Rect(x(candle.date) - width / 2f, y(candle.high), x(candle.date) + width / 2f, y(candle.low))
     }
 
-    fun volume(candle: ChartCandleStick): Rect {
-        val height = max(1f, volumeBand.height * min(candle.volume.toFloat() / volumeRange.high, 1f))
+    fun volume(candle: ChartCandleStick): Rect? {
+        val viewport = volumeViewport ?: return null
+        val height = max(1f, volumeBand.height * min(viewport.fraction(candle.volume), 1f))
         return Rect(x(candle.date) - bodyWidth / 2f, volumeBand.bottom - height, x(candle.date) + bodyWidth / 2f, volumeBand.bottom)
     }
 }

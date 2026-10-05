@@ -56,6 +56,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -63,6 +64,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapQuoteServiceInterface
@@ -103,6 +105,7 @@ class SwapViewModelTest {
     private val quoteAnswers = Channel<Result<List<SwapperQuote>>>(Channel.UNLIMITED)
     private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
         coEvery { getQuotes(any(), any(), any(), any(), any()) } coAnswers { quoteAnswers.receive().getOrThrow() }
+        every { isAvailable() } returns true
         every { slippageBps() } returns null
         coEvery { suggestPair(any()) } returns null
         every { newSession() } answers { mockGemSwapSession() }
@@ -129,10 +132,29 @@ class SwapViewModelTest {
         createdViewModels.clear()
     }
 
+    @Test
+    fun `unavailable swap keeps quotes and does not prepare a transfer`() = runTest(testDispatcher) {
+        every { swapQuoteService.isAvailable() } returns false
+        val subject = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        seedReadyQuote(subject)
+        val quote = subject.viewState.value.quote
+        assertNull(subject.infoSheet.value)
+        var confirmations = 0
+
+        subject.swap { confirmations += 1 }
+        advanceUntilIdle()
+
+        assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+        assertEquals(quote, subject.viewState.value.quote)
+        assertEquals(0, confirmations)
+        coVerify(exactly = 0) { swapQuoteService.getTransfer(any()) }
+    }
+
     private fun createViewModel(savedStateHandle: SavedStateHandle) = SwapViewModel(
         getCurrentWalletId = getCurrentWalletId,
         assetQuery = assetQuery,
-        swapQuoteService = swapQuoteService,
+        service = swapQuoteService,
         savedStateHandle = savedStateHandle,
         ioDispatcher = testDispatcher,
     ).also { createdViewModels += it }
@@ -514,6 +536,28 @@ class SwapViewModelTest {
 
         assertEquals(GemInfoTopic.NoQuote.infoSheet(), viewModel.viewState.value.error?.info()?.infoSheet())
         assertEquals(2.5, viewModel.viewState.value.details?.provider?.amount?.value)
+    }
+
+    @Test
+    fun `an unexpected transfer error releases loading and offers transfer retry`() = runTest(testDispatcher) {
+        val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
+        every { getSession() } returns MutableStateFlow(mockSession(wallet = wallet))
+        coEvery { swapQuoteService.getTransfer(any()) } throws IllegalStateException("unexpected transfer failure")
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        seedReadyQuote(viewModel)
+        val quote = viewModel.viewState.value.quote
+        var confirmations = 0
+
+        viewModel.swap { confirmations += 1 }
+        awaitCondition { viewModel.viewState.value.error != null }
+
+        val state = viewModel.viewState.value
+        assertFalse(state.isTransferLoading)
+        assertEquals(GemSwapButtonAction.RetryTransfer, state.buttonAction)
+        assertEquals(ButtonState.Enabled, state.buttonState.buttonState())
+        assertEquals(quote, state.quote)
+        assertEquals(0, confirmations)
     }
 
     @Test

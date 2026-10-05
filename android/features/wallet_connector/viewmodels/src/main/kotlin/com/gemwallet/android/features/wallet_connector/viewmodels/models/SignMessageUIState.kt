@@ -10,7 +10,6 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessagePreview
 import uniffi.gemstone.GemSignMessageServiceInterface
-import uniffi.gemstone.GemSimulationPayloadRow
 import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.SignMessage as GemSignMessage
 
@@ -54,9 +53,9 @@ class SignMessageUIState(
     override val header: GemValueHeader?
         get() = preview.header?.header
 
-    override val primaryPayloadFields: List<GemSimulationPayloadRow> get() = preview.primaryFields
+    override val primaryPayloadFields: List<GemListRow> get() = preview.primaryFields
 
-    override val secondaryPayloadFields: List<GemSimulationPayloadRow> get() = preview.secondaryFields
+    override val secondaryPayloadFields: List<GemListRow> get() = preview.secondaryFields
 
     suspend fun withAddressNames(): SignMessageUIState = SignMessageUIState(request, row, service, texts, context, service.withAddressNames(chain.string, preview))
 }

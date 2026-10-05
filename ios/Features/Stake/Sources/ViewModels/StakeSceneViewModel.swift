@@ -2,10 +2,12 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemEmptyState
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
+import enum Gemstone.GemStakeActionKind
 import struct Gemstone.GemStakeDelegationItem
 import enum Gemstone.GemStakeDestination
 import struct Gemstone.GemStakeInput
@@ -69,20 +71,13 @@ public final class StakeSceneViewModel {
                 currency: service.getCurrency(),
                 validators: validatorsQuery.value.map { $0.toGem() },
                 delegations: delegationsQuery.value.map { $0.toGem() },
+                state: delegationsState,
             ),
         )
     }
 
-    func showsDelegationsPlaceholder(_ state: GemStakeViewState) -> Bool {
-        !state.sections.contains(.delegations)
-    }
-
-    var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .stake, symbol: asset.symbol)
-    }
-
-    func delegationsViewState(_ state: GemStakeViewState) -> StateViewType<[GemStakeDelegationItem]> {
-        delegationsState.stateViewType(state.delegations)
+    func emptyContentModel(_ state: GemEmptyState) -> EmptyStateViewModel {
+        EmptyStateViewModel(state: state, symbol: asset.symbol)
     }
 
     func route(destination: GemStakeDestination) -> StakeRoute {
@@ -101,7 +96,15 @@ extension StakeSceneViewModel {
         delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: viewState.delegations.map(\.delegation))
     }
 
-    func onSelect(destination: GemStakeDestination) {
+    func onSelect(kind: GemStakeActionKind, destination: GemStakeDestination) {
+        switch kind {
+        case .stake:
+            guard service.isAvailable() else {
+                isPresentingInfoSheet = GemInfoTopic.regionUnavailable.infoSheet
+                return
+            }
+        case .freeze, .unfreeze, .claimRewards: break
+        }
         onNavigate?(route(destination: destination))
     }
 

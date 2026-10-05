@@ -22,14 +22,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.rewards.viewmodels.RewardsViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.walletSections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.shareText
 import kotlinx.coroutines.launch
 
 @Composable
 fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewModel()) {
+    val infoSheet by viewModel.infoSheet.collectAsStateWithLifecycle()
+    InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val loadingMessage = stringResource(R.string.common_loading)
@@ -55,21 +60,27 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val redemptions by viewModel.redemptions.collectAsStateWithLifecycle()
 
+    val context = LocalContext.current
+    val shareTitle = stringResource(R.string.common_share, referralLink.orEmpty())
+
     RewardsScene(
         state = state,
         isRefreshing = isRefreshing,
         wallet = wallet,
         incomingCode = incomingCode,
-        referralLink = referralLink,
         introItems = introItems,
         inviteAction = inviteAction,
         canUseReferralCode = canUseReferralCode,
         pendingReferral = pendingReferral,
         notices = notices,
         inviteDescription = inviteDescription,
-        shareText = shareText,
         sections = sections,
         redemptions = redemptions,
+        onInvite = {
+            viewModel.inviteFriends(
+                onInvite = { context.shareText(subject = referralLink.orEmpty(), text = shareText.orEmpty(), chooserTitle = shareTitle) },
+            )
+        },
         onUsername = viewModel::createReferral,
         onCode = viewModel::useCode,
         onCodeHandled = viewModel::onCodeHandled,

@@ -14,6 +14,10 @@ updates:
   - package-ecosystem: "cargo"
     directory: "/core"
     open-pull-requests-limit: 2
+    groups:
+      alloy:
+        patterns:
+          - "alloy-*"
     schedule:
       interval: "weekly"
     cooldown:

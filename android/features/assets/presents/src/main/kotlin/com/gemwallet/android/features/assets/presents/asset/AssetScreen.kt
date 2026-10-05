@@ -21,7 +21,7 @@ fun AssetScreen(onAction: (AssetAction.Navigation) -> Unit) {
     val viewModel: AssetViewModel = hiltViewModel()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
-    val transactionsErrorRow by viewModel.transactionsErrorRow.collectAsStateWithLifecycle()
+    val transactionsPhase by viewModel.transactionsPhase.collectAsStateWithLifecycle()
     val priceAlertError by viewModel.error.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -40,7 +40,7 @@ fun AssetScreen(onAction: (AssetAction.Navigation) -> Unit) {
             details = currentDetails,
             asset = currentAsset,
             transactions = transactions,
-            transactionsErrorRow = transactionsErrorRow,
+            transactionsPhase = transactionsPhase,
             isRefreshing = isRefreshing,
             snackBar = snackBar,
             onAction = { action ->

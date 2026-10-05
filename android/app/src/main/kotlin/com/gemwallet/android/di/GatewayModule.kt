@@ -121,8 +121,14 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemSearchService(assetsService: GemAssetsService, balanceService: GemBalanceService, priceService: GemPriceService, perpetualService: GemPerpetualService, searchStore: GemSearchStore): GemSearchService =
-        GemSearchService(assetsService, balanceService, priceService, perpetualService, searchStore)
+    fun provideGemSearchService(
+        apiClient: GemstoneApiClient,
+        assetsService: GemAssetsService,
+        balanceService: GemBalanceService,
+        priceService: GemPriceService,
+        perpetualService: GemPerpetualService,
+        searchStore: GemSearchStore,
+    ): GemSearchService = GemSearchService(apiClient, assetsService, balanceService, priceService, perpetualService, searchStore)
 
     @Provides
     @Singleton
@@ -147,8 +153,13 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemRewardsService(apiClient: GemstoneDeviceApiClient, authService: GemAuthService, balanceService: GemBalanceService, walletSessionService: GemWalletSessionService): GemRewardsServiceInterface =
-        GemRewardsService(apiClient, authService, balanceService, walletSessionService)
+    fun provideGemRewardsService(
+        apiClient: GemstoneDeviceApiClient,
+        authService: GemAuthService,
+        balanceService: GemBalanceService,
+        walletSessionService: GemWalletSessionService,
+        configService: GemConfigService,
+    ): GemRewardsServiceInterface = GemRewardsService(apiClient, authService, balanceService, walletSessionService, configService)
 
     @Provides
     @Singleton
@@ -159,8 +170,13 @@ object GatewayModule {
     fun provideGemFiatServiceInterface(service: GemFiatService): GemFiatServiceInterface = service
 
     @Provides
-    fun provideGemFiatQuoteService(fiatService: GemFiatService, balanceService: GemBalanceService, walletSessionService: GemWalletSessionService, recentActivityService: GemRecentActivityService): GemFiatQuoteServiceInterface =
-        GemFiatQuoteService(fiatService, balanceService, walletSessionService, recentActivityService)
+    fun provideGemFiatQuoteService(
+        fiatService: GemFiatService,
+        balanceService: GemBalanceService,
+        walletSessionService: GemWalletSessionService,
+        recentActivityService: GemRecentActivityService,
+        configService: GemConfigService,
+    ): GemFiatQuoteServiceInterface = GemFiatQuoteService(fiatService, balanceService, walletSessionService, recentActivityService, configService)
 
     @Provides
     @Singleton

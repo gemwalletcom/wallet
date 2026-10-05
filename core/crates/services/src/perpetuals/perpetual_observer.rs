@@ -3,37 +3,37 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use cacher::{CacheKey, CacherClient};
+use cacher::{PerpetualAddressCacher, PerpetualAddressTier};
 use chain_providers::ChainProviders;
 use chain_traits::TransactionsRequest;
 use config_keys::ConfigParamKey;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::Chain;
+use streamer::TransactionsPayload;
 use streamer::steam_producer_queue::StreamProducerQueue;
-use streamer::{StreamProducer, TransactionsPayload};
 
 pub struct PerpetualPositionObserver {
     chain: Chain,
     providers: Arc<ChainProviders>,
-    cacher: CacherClient,
+    addresses: Arc<dyn PerpetualAddressCacher>,
     config: Arc<ConfigCacher>,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PerpetualPositionObserver {
-    pub fn new(chain: Chain, providers: Arc<ChainProviders>, cacher: CacherClient, config: Arc<ConfigCacher>, stream_producer: StreamProducer) -> Self {
+    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressCacher>, config: Arc<ConfigCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self {
             chain,
             providers,
-            cacher,
+            addresses,
             config,
             stream_producer,
         }
     }
 
     pub async fn observe_active(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let active = self.get_addresses(CacheKey::PerpetualActiveAddresses(self.chain.as_ref())).await?;
-        let priority = self.get_addresses(CacheKey::PerpetualPriorityAddresses(self.chain.as_ref())).await?;
+        let active = self.addresses.addresses(self.chain, PerpetualAddressTier::Active).await?;
+        let priority = self.addresses.addresses(self.chain, PerpetualAddressTier::Priority).await?;
         let excluded: HashSet<&str> = priority.iter().map(String::as_str).collect();
         let addresses: Vec<_> = active.into_iter().filter(|a| !excluded.contains(a.as_str())).collect();
 
@@ -41,13 +41,9 @@ impl PerpetualPositionObserver {
     }
 
     pub async fn observe_priority(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let addresses = self.get_addresses(CacheKey::PerpetualPriorityAddresses(self.chain.as_ref())).await?;
+        let addresses = self.addresses.addresses(self.chain, PerpetualAddressTier::Priority).await?;
 
         self.observe_addresses("priority", &addresses).await
-    }
-
-    async fn get_addresses(&self, key: CacheKey<'_>) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        Ok(self.cacher.get_cached_optional::<Vec<String>>(key).await?.unwrap_or_default())
     }
 
     async fn observe_addresses(&self, tier: &str, addresses: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -67,10 +63,8 @@ impl PerpetualPositionObserver {
     }
 
     async fn observe_address(&self, address: &str) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let checkpoint = CacheKey::PerpetualObserverCheckpoint(self.chain.as_ref(), address);
-        let checkpoint_key = checkpoint.key();
         let now = chrono::Utc::now().timestamp() as u64;
-        let from_timestamp: u64 = self.cacher.get_value_optional(&checkpoint_key).await?.unwrap_or(now);
+        let from_timestamp = self.addresses.checkpoint(self.chain, address).await?.unwrap_or(now);
         let limit = self.config.get_param_usize(&ConfigParamKey::TransactionsRequestLimit(self.chain)).await?;
 
         let request = TransactionsRequest::new(address.to_string(), limit).with_from_timestamp(Some(from_timestamp));
@@ -79,7 +73,7 @@ impl PerpetualPositionObserver {
         let payload = TransactionsPayload::new_with_notify(self.chain, vec![], transactions);
         let count = self.stream_producer.publish_transactions(payload).await?;
 
-        self.cacher.set_value_with_ttl(&checkpoint_key, now.to_string(), checkpoint.ttl()).await?;
+        self.addresses.set_checkpoint(self.chain, address, now).await?;
 
         Ok(count)
     }

@@ -1,11 +1,12 @@
 use std::error::Error;
+use std::sync::Arc;
 
-use cacher::CacherClient;
+use super::repository::Repository;
+use cacher::DeviceStreamCacher;
 use localizer::LanguageLocalizer;
-use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus, device_stream_channel};
+use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus};
 use push_notification::{GorushNotification, PushNotification, PushNotificationSupport, PushNotificationTypes};
-use storage::{Database, DevicesRepository};
-use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
+use streamer::{NotificationsPayload, StreamProducerQueue};
 use support::markdown_plain_text;
 
 use super::constants::{EVENT_CONVERSATION_TYPING_OFF, EVENT_CONVERSATION_TYPING_ON, EVENT_MESSAGE_CREATED};
@@ -18,26 +19,18 @@ pub struct SupportWebhookResult {
 }
 
 pub struct SupportClient {
-    database: Database,
-    stream_producer: StreamProducer,
-    cacher: CacherClient,
+    repository: Arc<dyn Repository>,
+    stream_producer: Arc<dyn StreamProducerQueue>,
+    device_stream: Arc<dyn DeviceStreamCacher>,
 }
 
 impl SupportClient {
-    pub fn new(database: Database, stream_producer: StreamProducer, cacher: CacherClient) -> Self {
-        Self { database, stream_producer, cacher }
+    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>, device_stream: Arc<dyn DeviceStreamCacher>) -> Self {
+        Self { repository, stream_producer, device_stream }
     }
 
     pub async fn get_device(&self, device_id: &str) -> Result<Option<Device>, Box<dyn Error + Send + Sync>> {
-        let device_id = device_id.to_string();
-        Ok(self
-            .database
-            .run(move |client| match client.get_device(&device_id) {
-                Ok(device) => Ok(Some(device)),
-                Err(error) if error.is_not_found() => Ok(None),
-                Err(error) => Err(error),
-            })
-            .await?)
+        Ok(self.repository.device(device_id.to_string()).await?)
     }
 
     pub async fn publish_webhook(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
@@ -103,7 +96,8 @@ impl SupportClient {
     }
 
     async fn publish_event(&self, device: &Device, event: StreamEvent) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cacher.publish(&device_stream_channel(&device.id), &event).await
+        self.device_stream.publish_event(&device.id, &event).await?;
+        Ok(())
     }
 }
 

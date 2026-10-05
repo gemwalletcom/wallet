@@ -13,5 +13,7 @@ jupiter = { path = "../jupiter" }
 number_formatter = { path = "../number_formatter" }
 primitives = { path = "../primitives" }
 serde = { workspace = true }
-serde_json = { workspace = true }
 settings = { path = "../settings" }
+
+[dev-dependencies]
+serde_json = { workspace = true }

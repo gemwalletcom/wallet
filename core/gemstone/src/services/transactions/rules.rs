@@ -131,7 +131,7 @@ pub fn participant(extended: &TransactionExtended, link: impl FnOnce(&str) -> Bl
         contact: can_add_contact.then(|| GemRecipient {
             address: address.clone(),
             name: None,
-            memo: transaction.memo.clone().non_empty(),
+            memo: contact_memo(transaction),
             references: vec![],
         }),
         is_selectable: true,
@@ -143,6 +143,13 @@ pub fn participant(extended: &TransactionExtended, link: impl FnOnce(&str) -> Bl
             &link(&address),
         )
     })
+}
+
+fn contact_memo(transaction: &Transaction) -> Option<String> {
+    match transaction.direction {
+        TransactionDirection::Incoming => None,
+        TransactionDirection::Outgoing | TransactionDirection::SelfTransfer => transaction.memo.clone().non_empty(),
+    }
 }
 
 pub fn detail_rows(extended: &TransactionExtended, wallet_type: WalletType, participant: Option<GemAddressRow>, explorer: BlockExplorerLink, currency: Currency) -> GemTransactionDetailRows {
@@ -999,6 +1006,18 @@ mod tests {
         let named = participant(&named, link).unwrap();
         assert_eq!(named.text, GemLocalizedText::Text { text: "Binance".to_string() });
         assert_eq!(named.short_address, Some(short), "a name reveals the short address on a tap");
+    }
+
+    #[test]
+    fn test_a_contact_from_a_transfer_keeps_only_the_memo_the_user_sent() {
+        let contact_memo = |direction| {
+            let mut extended = TransactionExtended::mock_transaction(Transaction::mock_with_state(TransactionType::Transfer, TransactionState::Confirmed, direction));
+            extended.transaction.memo = Some("123456".to_string());
+            participant(&extended, BlockExplorerLink::mock_with_address).and_then(|row| row.contact).and_then(|contact| contact.memo)
+        };
+
+        assert_eq!(contact_memo(TransactionDirection::Outgoing).as_deref(), Some("123456"));
+        assert_eq!(contact_memo(TransactionDirection::Incoming), None, "a received memo belongs to the user's own address, not the sender's");
     }
 
     #[test]

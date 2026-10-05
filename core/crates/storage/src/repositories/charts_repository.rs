@@ -7,6 +7,7 @@ use crate::{DatabaseClient, DatabaseError};
 use chrono::NaiveDateTime;
 use diesel::dsl::sql;
 use diesel::prelude::*;
+use diesel::sql_types::{Array, VarChar};
 use primitives::{ChartPeriod, ChartTimeframe};
 
 enum ChartGranularity {
@@ -48,6 +49,12 @@ pub(crate) fn insert_chart_rows(client: &mut DatabaseClient, timeframe: ChartTim
             diesel::insert_into(charts_daily).values(rows).on_conflict_do_nothing().execute(&mut client.connection)
         }
     }
+}
+
+pub(crate) fn aggregate_chart_rows(client: &mut DatabaseClient, price_ids: &[String]) -> Result<(), diesel::result::Error> {
+    diesel::sql_query("SELECT aggregate_hourly_charts($1)").bind::<Array<VarChar>, _>(price_ids).execute(&mut client.connection)?;
+    diesel::sql_query("SELECT aggregate_daily_charts($1)").bind::<Array<VarChar>, _>(price_ids).execute(&mut client.connection)?;
+    Ok(())
 }
 
 pub trait ChartsRepository {

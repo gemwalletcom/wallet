@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemAvatarList
 import struct Gemstone.GemWalletRow
 import protocol Gemstone.GemWalletServiceProtocol
 import func Gemstone.walletRow
@@ -51,16 +52,16 @@ public final class WalletImageSceneViewModel: Sendable {
         Localized.Common.avatar
     }
 
-    var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .nfts)
-    }
-
     var row: GemWalletRow {
         walletRow(wallet: wallet.toGem())
     }
 
-    var nftAssetItems: [NFTAssetImageItem] {
-        service.avatarItems(data: nftDataList.map { $0.toGem() }).map(\.row).map { row in
+    var avatarList: GemAvatarList {
+        service.avatarList(data: nftDataList.map { $0.toGem() })
+    }
+
+    func nftAssetItems(_ list: GemAvatarList) -> [NFTAssetImageItem] {
+        list.items.map(\.row).map { row in
             NFTAssetImageItem(
                 id: row.id,
                 assetImage: AssetImage(

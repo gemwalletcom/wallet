@@ -11,6 +11,7 @@ use std::{collections::BTreeSet, ops::Deref, str::FromStr};
 
 use gem_evm::ethereum_address_checksum;
 pub use gem_sui::tx_builder::transaction_json::TransactionArgument as SuiTransactionArgument;
+use primitives::contract_constants::EVM_ZERO_ADDRESS;
 use primitives::swap::{SlippageMode, SwapStatus};
 use primitives::{OptionStringExt, SolanaInstruction};
 
@@ -544,7 +545,7 @@ impl MayanClientStatus {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MayanChain {
-    pub mayan_address: Option<String>,
+    pub mayan_contract_address: Option<String>,
 }
 
 fn checksum_address(address: &str) -> String {
@@ -555,8 +556,8 @@ impl MayanChain {
     pub fn unique_addresses(chains: Vec<MayanChain>) -> Vec<String> {
         chains
             .into_iter()
-            .filter_map(|c| c.mayan_address)
-            .filter(|address| !address.is_empty())
+            .filter_map(|chain| chain.mayan_contract_address)
+            .filter(|address| !address.is_empty() && !address.eq_ignore_ascii_case(EVM_ZERO_ADDRESS))
             .map(|address| checksum_address(&address))
             .collect::<BTreeSet<_>>()
             .into_iter()

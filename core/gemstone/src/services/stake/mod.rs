@@ -4,29 +4,30 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use crate::models::list::GemListRow;
-use crate::models::state::GemLoadState;
-use crate::services::error::{GemServiceError, required_account};
-use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Platform, StakeProviderType, WalletId, WalletType};
+use chrono::Utc;
+
+use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Feature, Platform, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
+use crate::models::list::GemListRow;
+use crate::models::state::GemLoadState;
 use crate::models::{GemContractCallData, GemEarnType};
+use crate::services::config::GemConfigService;
+use crate::services::error::{GemServiceError, required_account};
+use crate::services::explorer::GemExplorerService;
+use crate::services::name::GemNameService;
+use crate::services::preferences::GemPreferencesService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 pub use model::{
     GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionKind,
     GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow, GemValidatorSection,
 };
 pub use store::GemStakeStore;
-
-use crate::services::explorer::GemExplorerService;
-use crate::services::name::GemNameService;
-use crate::services::preferences::GemPreferencesService;
-use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
@@ -38,6 +39,7 @@ pub struct GemStakeService {
     preferences: Arc<GemPreferencesService>,
     session: Arc<GemWalletSessionService>,
     platform: Platform,
+    config: Arc<GemConfigService>,
 }
 
 #[uniffi::export]
@@ -52,6 +54,7 @@ impl GemStakeService {
         preferences: Arc<GemPreferencesService>,
         session: Arc<GemWalletSessionService>,
         platform: Platform,
+        config: Arc<GemConfigService>,
     ) -> Self {
         Self {
             gateway,
@@ -62,7 +65,12 @@ impl GemStakeService {
             preferences,
             session,
             platform,
+            config,
         }
+    }
+
+    pub fn is_available(&self) -> bool {
+        self.config.is_feature_enabled(Feature::Staking)
     }
 
     pub fn get_currency(&self) -> Currency {
@@ -88,6 +96,7 @@ impl GemStakeService {
                     ..section
                 })
                 .collect(),
+            phase: options.phase,
         }
     }
 

@@ -27,11 +27,12 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.icons.AppIcons
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListPhase
 
 @Composable
 fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewModel = hiltViewModel()) {
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
+    val phase by viewModel.phase.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     val revealed = remember { mutableStateOf<String?>(null) }
     val snackbar = rememberSnackbarState(message = errorText, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
@@ -46,13 +47,15 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
             }
         },
     ) {
-        if (contacts.isEmpty()) {
-            EmptyContentView(
-                kind = GemEmptyStateKind.CONTACTS,
+        when (val current = phase) {
+            is GemListPhase.Empty -> EmptyContentView(
+                state = current.state,
                 modifier = Modifier.fillMaxSize(),
             )
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+
+            is GemListPhase.Error, null -> Unit
+
+            GemListPhase.Rows -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                 itemsPositioned(contacts, key = { _, item -> item.contact.contact.id }) { position, item ->
                     SwipeableItemWithActions(
                         isRevealed = revealed.value == item.contact.contact.id,

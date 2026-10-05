@@ -19,9 +19,9 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM262 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
+1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5, then VM294 (scenes) in the same way.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173.
 
 ## Screen coverage and existing infrastructure
 
@@ -32,17 +32,17 @@ This map routes work to current owners. It groups existing ids rather than creat
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM294 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM294 |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM264, VM269 |
-| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM262, VM286 |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM269 |
+| Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
 | Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemAutocloseDraft` | VM287 |
-| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | VM267 |
+| Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | — |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | — |
-| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | VM290 |
+| Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | — |
 | Buy/sell quotes, provider opening, fiat history | `GemFiatQuoteService`, `GemFiatSession`, existing fiat transaction owner | — |
 | Perpetual market list/search/pins and balance | `GemPerpetualService`, market session/rows, native search indexes | — |
 | Perpetual position/details/candles/activity | `GemPerpetualDetailsService`, `GemCandleSession`, position rows, chart load rules | — |
@@ -52,7 +52,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
-| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM290; retain native locale/theme application |
+| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
@@ -117,18 +117,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Shared components, second round
 
-- **VM262** **M** **Screens count their own lists so Core can pick the phase.**
-  - **iOS:** `SelectAssetSceneViewModel` (`GemAssetSectionCounts`), `PerpetualsSceneViewModel` (`GemPerpetualMarketCounts`), and `loadError(state:hasRows:)` in the asset, transactions, fiat transactions, price alerts, asset price alerts, notifications and support screens.
-  - **Android:** `BaseSelectAssetViewModel`, `PerpetualsViewModel` and `loadError(..., candles.isNotEmpty())` in `PerpetualViewModel`.
-  - **Expected:** the Core call that builds the screen reads the list sizes through the store port it already has and returns sections and phase together; the counting and the `hasRows` arguments go.
-- **VM264** **S** **Wallet home sections are split in the apps.**
-  - **iOS:** `WalletSceneViewModel` splits pinned and other assets (`AssetsSections.from`); `WalletHomeState` re-assembles the home sections, header and flags.
-  - **Android:** `WalletViewModel` splits the same way; `WalletSummary` re-assembles the home state.
-  - **Expected:** the home view state carries finished sections, as `GemWalletSearchView` does for the wallet search; the splitting types go.
-- **VM267** **S** **Simulation payload fields are mapped twice.**
-  - **iOS:** `SimulationPayloadFieldViewModel` (with `SimulationPayloadFieldKind` and `models(for:)`) maps text, address and timestamp values and wires address taps.
-  - **Android:** `SimulationPayloadFieldsContent` does the same per value case.
-  - **Expected:** payload rows render through the shared row renderer (address rows as `GemAddressRow`); both go.
 - **VM269** **S** **Banner destinations are routed per screen.**
   - **iOS:** `WalletSceneViewModel` opens only URL banners and ignores stake, activate and perpetual destinations; `AssetSceneViewModel` handles all four; both map banner buttons to header actions.
   - **Android:** `WalletScene` ignores the same three; `BannerItem` handles all four.
@@ -147,10 +135,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Scenes
 
-- **VM290** **M** **Empty states are decided scene by scene.**
-  - **iOS:** `FiatTransactionsScene`, `InAppNotificationsScene`, `PriceAlertsScene` and `TransactionsScene` show the empty view when the list is empty and there is no error; `ContactsScene`, `ConnectionsScene`, `ChainListSettingsScene`, `ValidatorSelectScene`, `WalletImageScene`, `CurrencyScene`, `ImportWalletTypeScene` and `CollectionsScene` check emptiness themselves; `AssetPriceAlertsSceneViewModel.showsEmpty`, `EarnSceneViewModel.showsEmptyState` and `PerpetualsPreviewViewModel.hasNoPositions` decide it in the model.
-  - **Android:** `TransactionsScene`, `ConnectionsScreen`, `FiatTransactionsScene`, `EarnScreen`, `StakeScene`, `ContactsScreen`, `InAppNotificationsScene`, `CollectionsScene` (empty and no unverified row), `CurrencyScene` (only while a query is typed, unlike iOS), `PerpetualsScene`, `ValidatorSelectScene`, `PriceAlertsScene`, `NetworkAssetsScreen`, `SelectChain`, `WalletImageScene` and `PerpetualsPreviewSection` do the same.
-  - **Expected:** each list screen's Core phase says it is empty and which empty kind to show, as `GemSelectAssetState` already does; the scenes render the phase (land with VM262).
 - **VM294** **S** **Secret phrase rows are filled with words in the apps.**
   - **iOS:** `SecretPhraseRow` and `GemSecretPhraseRow+PrimitivesComponents` map Core's index rows to words.
   - **Android:** `PhraseWord.phraseRows` does the same.
@@ -165,6 +149,8 @@ The target for every item below: a model that only renames or regroups a Core re
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
 - **VM79** **S** **The root scene stops reading the wallet store.** iOS [`RootSceneViewModel`](../ios/Gem/ViewModels/RootSceneViewModel.swift) reads `stores.walletStore.getWallet` directly; the session service answers the current wallet. Blocked on a synchronous answer: `GemWalletSessionService::get_current_wallet` is async (the wallet store port is async), and the root view needs the wallet on its first render or it flashes onboarding at every launch; either the port gains a synchronous read or the root keeps a stored wallet it can seed before first render.
+
+- **VM296** **S** **One device-sync trigger driven by Core's subscriptions version.** Core already bumps `subscriptions_version` on wallet import, delete and chain setup, and the device sync compares only that version, yet each app re-derives "wallets changed" from its own table observer. **iOS:** [`SubscriptionsObserver`](../ios/Packages/Store/Sources/Observers/SubscriptionsObserver.swift) re-reads every account on any accounts-table change and skips the first value. **Android:** [`DeviceObserverService`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/device/DeviceObserverService.kt) re-reads the wallets-joined-with-accounts query on any wallet or account change, including pin, rename and avatar, and runs on the first value. **Expected:** both apps delete their table observer and call `synchronizeIfNeeded` when Core changes `subscriptions_version`, through the preference observation each app already registers; Core stays without a runtime, so the trigger stays in the app. **Review before building:** whether `set_subscriptions_version` already reaches `GemPreferencesObserver` or needs a `notify()`, and that deleting the last wallet still syncs, since no wallet-scoped request follows it.
 
 ## 7. Rows and taps
 
@@ -183,7 +169,7 @@ Differences between the apps, or between an app and the server, each with its de
 
 ### Freshness
 
-- **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `core/crates/services/src/chain/fee_estimates_client.rs:73-76` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`:55-70`). Used by the website, not the apps. **Needs a decision (2026-09-24):** either the public route drops entries past the one-hour fresh key (the website loses chains nobody requested lately) or it refreshes them (a public route then triggers node calls).
+- **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `all_estimates` in `core/crates/services/src/chain/fee_estimates_client.rs` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`get_chain_fee_estimates` through `fresh_estimates`). Used by the website, not the apps. **Needs a decision (2026-09-24):** either the public route drops entries past the one-hour fresh key (the website loses chains nobody requested lately) or it refreshes them (a public route then triggers node calls).
 
 ## 10. Module layout and names
 
@@ -201,4 +187,6 @@ A feature module is one product area, and both apps give it the same name. iOS g
 - **X170** **S** Dynode's TON `/api/v2/runGetMethod` cache validation in [`proxy/service.rs`](../core/apps/dynode/src/proxy/service.rs) goes on 2027-01-01, together with the Dynode legacy wallet routes.
 - **X171** **S** The connection banner stays off (`CONNECTION_BANNER_ENABLED` in [`constants.rs`](../core/gemstone/src/constants.rs)) until it is polished; turning it on is the owner's call.
 - **X172** **S** `WidgetValueTone` ([`WidgetValueTone.swift`](../ios/GemPriceWidget/Types/WidgetValueTone.swift)) restates Core's `valueTone` because the widget extension cannot link Gemstone; a change of nothing stays neutral in both. The copy goes once the widget can reach Core, and until then the two change together.
-- **X163** **M** iOS pins the `Gemstone` package to Swift 5 language mode. Re-tested on 2026-09-16 against uniffi 0.32.1: both `uniffiTraitInterfaceCallAsync` sites still fail with "passing closure as a 'sending' parameter" because the generated `Task { }` captures three `@escaping` non-`Sendable` parameters. Nothing to decide and nothing to do until a uniffi release changes that function; re-test then. Rechecked on 2026-09-22 with `cargo search uniffi`: 0.32.1 is still the latest uniffi release, and the fix is already merged upstream as uniffi #2929 (`694fda6a05`, 2026-07-15, marks the async trait-interface closures `@Sendable`) but is not in 0.32.1. Bump uniffi to the first release that contains #2929, regenerate, and move the `Gemstone` package to Swift 6 mode.
+- **X173** **M** `.sol` resolution is paused until the Solana Record Service publishes a supported resolver. SNS resolves `.sns` only; when SRS support ships, add `.sol` as a distinct provider and preserve its ownership independently from `.sns`.
+- **X174** **S** `initializeForeignFutureResultStructs` ([`ForeignFutureResultStructs.kt`](../android/gemstone/src/main/kotlin/uniffi/gemstone/ForeignFutureResultStructs.kt)) is a workaround, called once from `App`'s companion `init` before anything can reach Core. JNA 5.18.1 publishes a by-value struct's libffi descriptor unsized and libffi sizes it in place, unlocked, inside the first call that passes it, so the first async callback completions racing each other hand Rust a half-sized `UniffiForeignFutureResult*` (Play's `ffi_tramp_arch` SIGSEGV clusters and the `null RustBuffer had non-zero capacity` panic, uniffi #2624). Delete the function, its call and its test once a JNA release sizes the descriptor before publishing it, or once the Kotlin bindings stop using JNA (#872).
+- **X163** **M** iOS pins the `Gemstone` package to Swift 5 language mode. Re-tested on 2026-09-16 against uniffi 0.32.1: both `uniffiTraitInterfaceCallAsync` sites still fail with "passing closure as a 'sending' parameter" because the generated `Task { }` captures three `@escaping` non-`Sendable` parameters. Nothing to decide and nothing to do until a uniffi release changes that function; re-test then. Rechecked on 2026-09-22 with `cargo search uniffi`: 0.32.1 is still the latest uniffi release, and the fix is already merged upstream as uniffi #2929 (`694fda6a05`, 2026-07-15, marks the async trait-interface closures `@Sendable`) but is not in 0.32.1. Rechecked on 2026-10-04: 0.32.2 still lacks it (its Swift `Async.swift` template has no `@Sendable`). Bump uniffi to the first release that contains #2929, regenerate, and move the `Gemstone` package to Swift 6 mode.

@@ -476,6 +476,8 @@ fee_rates_normal = Normal
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Benutzerdefiniert
+fee_rate_priority = Prioritätsgebühr
+fee_rate_base = Grundgebühr
 
 # Banner
 
@@ -535,6 +537,8 @@ lock_unlock = Entsperren
 lock_privacy_lock = Datenschutzsperre
 lock_footer = Schützen Sie den Zugriff auf diese App auf Ihrem Gerät
 lock_passcode = Passcode
+lock_passcode_off_title = Gerätecode ist deaktiviert
+lock_passcode_off_description = Gem ist mit dem Code Ihres Geräts gesperrt. Aktivieren Sie einen Code in den Geräteeinstellungen, um Gem zu öffnen. Ihre Wallets sind sicher.
 
 # Verify
 
@@ -549,6 +553,8 @@ warnings_externally_controlled_account = Dieses %@-Konto kann von jemand anderem
 sell_title = Verkaufen %@
 
 # Info
+
+info_region_unavailable_description = Diese Funktion ist in deiner Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab.
 
 info_network_fee_title = Netzwerk-Gebühr
 info_watch_wallet_title = Beobachtungs-Wallet

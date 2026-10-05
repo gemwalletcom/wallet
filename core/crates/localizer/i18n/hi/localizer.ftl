@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = रेफरल कोड की
 errors_generic = एक अप्रत्याशित त्रुटि उत्पन्न हुई। कृपया बाद में पुनः प्रयास करें।
 fiat_error_limit_reached = कोटेशन के लिए बहुत अधिक अनुरोध। कृपया कुछ मिनट बाद फिर प्रयास करें।
 fiat_error_quote_unavailable = यह कोटेशन अब उपलब्ध नहीं है। कृपया फिर प्रयास करें।
+fiat_error_region_unavailable = आपके क्षेत्र में उपलब्ध नहीं है।
 rewards_error_referral_country_ineligible = आपके देश के लिए फिलहाल रेफरल उपलब्ध नहीं हैं: {$value}.
 notification_rewards_disabled_title = रेफरल कोड निष्क्रिय कर दिया गया है
 notification_rewards_disabled_description = हमारे रेफरल प्रोग्राम की शर्तों के बार-बार उल्लंघन के कारण इस रेफरल कोड को निष्क्रिय कर दिया गया है।

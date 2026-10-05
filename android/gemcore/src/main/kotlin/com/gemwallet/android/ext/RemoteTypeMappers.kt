@@ -2085,6 +2085,16 @@ fun com.wallet.core.primitives.Wallet.toGem(): uniffi.gemstone.Wallet = uniffi.g
     source = source.toGem(),
 )
 
+fun uniffi.gemstone.WalletAddressItem.toPrimitives(): com.wallet.core.primitives.WalletAddressItem = com.wallet.core.primitives.WalletAddressItem(
+    wallet = wallet.toPrimitives(),
+    address = address,
+)
+
+fun com.wallet.core.primitives.WalletAddressItem.toGem(): uniffi.gemstone.WalletAddressItem = uniffi.gemstone.WalletAddressItem(
+    wallet = wallet.toGem(),
+    address = address,
+)
+
 fun uniffi.gemstone.WalletConnection.toPrimitives(): com.wallet.core.primitives.WalletConnection = com.wallet.core.primitives.WalletConnection(
     session = session.toPrimitives(),
     wallet = wallet.toPrimitives(),
@@ -2125,4 +2135,20 @@ fun com.wallet.core.primitives.WalletConnectionSessionProposal.toGem(): uniffi.g
     defaultWallet = defaultWallet.toGem(),
     wallets = wallets.map { it.toGem() },
     metadata = metadata.toGem(),
+)
+
+fun uniffi.gemstone.WalletListItem.toPrimitives(): com.wallet.core.primitives.WalletListItem = com.wallet.core.primitives.WalletListItem(
+    id = com.wallet.core.primitives.WalletId(id),
+    name = name,
+    index = index,
+    isPinned = isPinned,
+    imageUrl = imageUrl,
+)
+
+fun com.wallet.core.primitives.WalletListItem.toGem(): uniffi.gemstone.WalletListItem = uniffi.gemstone.WalletListItem(
+    id = id.toIdentifier(),
+    name = name,
+    index = index,
+    isPinned = isPinned,
+    imageUrl = imageUrl,
 )

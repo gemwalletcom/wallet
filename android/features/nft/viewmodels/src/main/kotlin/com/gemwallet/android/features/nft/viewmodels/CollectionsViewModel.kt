@@ -36,13 +36,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemEmptyState
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNftListScreen
 import uniffi.gemstone.GemNftServiceInterface
-import uniffi.gemstone.loadError
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -80,18 +78,17 @@ class CollectionsViewModel @Inject constructor(
         .flatMapLatest { nftQuery(it.wallet.id.id, collectionId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val screen: StateFlow<GemNftListScreen> = nftData
-        .map { data -> nftService.listScreen(data.map { it.toGem() }, list) }
+    private val screen: StateFlow<GemNftListScreen> = combine(nftData, loadState) { data, state -> nftService.listScreen(data.map { it.toGem() }, list, state) }
         .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, nftService.listScreen(emptyList(), list))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, nftService.listScreen(emptyList(), list, loadState.value))
 
     val title: StateFlow<String> = screen
         .map { it.title.string(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val emptyState: StateFlow<GemEmptyState> = screen
-        .map { it.emptyState }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, screen.value.emptyState)
+    val phase: StateFlow<GemListPhase> = screen
+        .map { it.phase }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, screen.value.phase)
 
     val showReceiveAction: StateFlow<Boolean> = screen
         .map { it.offersReceive }
@@ -100,10 +97,6 @@ class CollectionsViewModel @Inject constructor(
     val collections = screen
         .map { it.items }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val errorRow: StateFlow<GemListRow?> = combine(loadState, screen) { state, screen ->
-        loadError(state, screen.hasContent)?.let { GemListRow.Error(it) }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val unverifiedListItem: StateFlow<ListItemModel?> = screen
         .map { screen -> screen.unverifiedRow?.let { ListItemModel(title = context.getString(R.string.asset_verification_unverified), subtitle = it.countText) } }

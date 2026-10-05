@@ -10,7 +10,9 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProp
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.listItem
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.wallet_connector.viewmodels.models.map
 import com.gemwallet.android.ui.R
@@ -72,7 +74,7 @@ class ConnectionProposalViewModel @AssistedInject constructor(
     val availableWallets = _sessionProposal.map { prepared -> prepared?.proposal?.wallets.orEmpty().map { it.toPrimitives() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val availableWalletSections = _sessionProposal.map { prepared -> walletSections(prepared?.proposal?.wallets.orEmpty(), null) }
+    val availableWalletSections = availableWallets.map { wallets -> walletSections(wallets.map { it.listItem.toGem() }, null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _selectedWallet = MutableStateFlow<com.wallet.core.primitives.Wallet?>(null)

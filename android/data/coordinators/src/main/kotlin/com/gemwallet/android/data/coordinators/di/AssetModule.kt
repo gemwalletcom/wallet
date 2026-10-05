@@ -2,12 +2,12 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.assets.cases.GetWalletHomeState
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
-import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
+import com.gemwallet.android.data.coordinators.asset.GetWalletHomeStateImpl
 import com.gemwallet.android.data.coordinators.asset.WalletAssetsCoordinator
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.store.queries.AssetFiatValuesQuery
@@ -41,15 +41,17 @@ object AssetModule {
 
     @Provides
     @Singleton
-    fun provideGetWalletSummary(
+    fun provideGetWalletHomeState(
         getSession: GetSession,
+        getActiveAssetsInfo: GetActiveAssetsInfo,
         assetFiatValuesQuery: AssetFiatValuesQuery,
         perpetualWalletBalanceQuery: PerpetualWalletBalanceQuery,
         bannersQuery: BannersQuery,
         userConfig: UserConfig,
         walletHomeService: GemWalletHomeServiceInterface,
-    ): GetWalletSummary = GetWalletSummaryImpl(
+    ): GetWalletHomeState = GetWalletHomeStateImpl(
         getSession = getSession,
+        getActiveAssetsInfo = getActiveAssetsInfo,
         assetFiatValuesQuery = assetFiatValuesQuery,
         perpetualWalletBalanceQuery = perpetualWalletBalanceQuery,
         bannersQuery = bannersQuery,

@@ -25,6 +25,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The dapp fails verification | the proposal shows it before the user connects | |
+| A request to sign comes for a wallet that is not the current one | that wallet becomes current before the request shows, the wallet's screens return to its main screen, and it stays current after the user signs or rejects | the request, its fee and any Buy, Swap or Receive it offers all belong to the connected wallet |
 | The user rejects a request | a refusal goes back to the dapp | |
 | The same connection code is opened again while its proposal is on screen | the proposal stays; approving or rejecting it closes it | the SDK delivers a pending proposal again when its code is paired twice |
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
