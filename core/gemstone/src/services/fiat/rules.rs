@@ -7,6 +7,7 @@ use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge,
 use crate::config::fiat_config::FiatConfig;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::services::amount::rules::plain_number;
 use crate::services::assets::GemAssetAction;
 use crate::services::swap::GemAssetRate;
 
@@ -45,12 +46,12 @@ pub enum FiatAmountInput {
     Value(f64),
 }
 
-pub fn parse_amount(text: &str) -> FiatAmountInput {
-    let normalized: String = text.trim().replace(',', ".").chars().filter(|character| !character.is_whitespace()).collect();
-    if normalized.is_empty() {
+pub fn parse_amount(decimal_separator: &str, text: &str) -> FiatAmountInput {
+    let plain = plain_number(decimal_separator, text);
+    if plain.is_empty() {
         return FiatAmountInput::Empty;
     }
-    match normalized.parse::<f64>() {
+    match plain.parse::<f64>() {
         Ok(value) if value > 0.0 && value.fract() == 0.0 => FiatAmountInput::Value(value),
         Ok(value) if value <= 0.0 => FiatAmountInput::Empty,
         Ok(_) | Err(_) => FiatAmountInput::Invalid,
@@ -298,14 +299,24 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_amount_takes_whole_amounts_only_and_treats_zero_as_empty() {
-        assert_eq!(parse_amount("1 000"), FiatAmountInput::Value(1000.0));
-        assert_eq!(parse_amount(" 12 "), FiatAmountInput::Value(12.0));
-        assert_eq!(parse_amount(""), FiatAmountInput::Empty);
-        assert_eq!(parse_amount("0"), FiatAmountInput::Empty);
-        assert_eq!(parse_amount(" 12,5 "), FiatAmountInput::Invalid);
-        assert_eq!(parse_amount("12.5"), FiatAmountInput::Invalid);
-        assert_eq!(parse_amount("abc"), FiatAmountInput::Invalid);
+    fn test_parse_amount_reads_a_typed_whole_amount_in_any_script_and_treats_zero_as_empty() {
+        for (separator, input, expected) in [
+            (".", "1 000", FiatAmountInput::Value(1000.0)),
+            (".", " 12 ", FiatAmountInput::Value(12.0)),
+            (".", "050", FiatAmountInput::Value(50.0)),
+            ("\u{066B}", "٥٠", FiatAmountInput::Value(50.0)),
+            ("\u{066B}", "۱۰۰", FiatAmountInput::Value(100.0)),
+            (".", "१२३", FiatAmountInput::Value(123.0)),
+            (".", "৪৫", FiatAmountInput::Value(45.0)),
+            (".", "５０", FiatAmountInput::Value(50.0)),
+            (".", "", FiatAmountInput::Empty),
+            (".", "0", FiatAmountInput::Empty),
+            (".", "abc", FiatAmountInput::Empty),
+            (",", "12,5", FiatAmountInput::Invalid),
+            (".", "12.5", FiatAmountInput::Invalid),
+        ] {
+            assert_eq!(parse_amount(separator, input), expected, "{input} in {separator}");
+        }
     }
 
     #[test]

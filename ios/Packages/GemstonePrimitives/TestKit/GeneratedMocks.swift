@@ -668,12 +668,14 @@ public extension Gemstone.GemFiatSession {
         buy: Gemstone.GemFiatOperation = .mock(),
         sell: Gemstone.GemFiatOperation = .mock(),
         available: BigUInt = 0,
+        format: Gemstone.GemNumberFormat = .mock(),
     ) -> Gemstone.GemFiatSession {
         Gemstone.GemFiatSession(
             quoteType: quoteType,
             buy: buy,
             sell: sell,
             available: available,
+            format: format,
         )
     }
 }

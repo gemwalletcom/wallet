@@ -21,6 +21,7 @@ flowchart LR
 |---|---|---|
 | The screen opens | the amount starts at `$50` for Buy and `$100` for Sell | |
 | The user types an amount | whole dollars between `$5` and `$10,000` | |
+| The user types the amount with their keyboard's own digits (Arabic, Persian, Devanagari, …) | it reads as the same amount, so `٥٠` asks for `$50` quotes | the field accepts those digits, so rejecting them leaves the user with only the preset amounts |
 | Gem disables a provider for a country | the provider receives no new quote requests there; the screen shows a localized region-unavailable message when no provider serves the country; provider country syncs preserve the block | Gem controls availability independently of provider-reported coverage |
 | More than one provider quoted | the user can pick another; the choice survives refreshes | |
 | The screen stays open | quotes refresh every `5 minutes` | |

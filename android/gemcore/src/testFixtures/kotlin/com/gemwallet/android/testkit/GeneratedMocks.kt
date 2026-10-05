@@ -1466,11 +1466,13 @@ fun mockGemFiatSession(
     buy: uniffi.gemstone.GemFiatOperation = mockGemFiatOperation(),
     sell: uniffi.gemstone.GemFiatOperation = mockGemFiatOperation(),
     available: java.math.BigInteger = java.math.BigInteger.ZERO,
+    format: uniffi.gemstone.GemNumberFormat = mockGemNumberFormat(),
 ) = uniffi.gemstone.GemFiatSession(
     quoteType = quoteType,
     buy = buy,
     sell = sell,
     available = available,
+    format = format,
 )
 
 fun mockGemFormattedNumber(
