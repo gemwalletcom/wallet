@@ -273,6 +273,7 @@ pub struct GemCandleChart {
     pub end: DateTime<Utc>,
     pub body_width: f64,
     pub x_ticks: Vec<GemCandleTick>,
+    pub is_zoomed: bool,
 }
 
 #[uniffi::export]

@@ -37,7 +37,7 @@ struct CandlestickChartView: View {
             chartView
                 .padding(.bottom, Spacing.small)
         }
-        .sensoryFeedback(.selection, trigger: selectedCandle?.date) { _, date in date != nil }
+        .sensoryFeedback(.selection, trigger: selectedCandle?.date) { previous, date in previous != nil && date != nil }
     }
 }
 
@@ -66,6 +66,7 @@ extension CandlestickChartView {
             CandlestickCanvas(plot: plot, selectedCandle: selectedCandle)
                 .chartGestures(
                     in: plot.frame,
+                    isZoomed: chart.isZoomed,
                     isPinching: $isPinching,
                     onScrub: { selectedIndex = chart.indexAt(fraction: $0).map(Int.init) },
                     onScrubEnd: { selectedIndex = nil },

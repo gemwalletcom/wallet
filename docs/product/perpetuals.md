@@ -49,7 +49,7 @@ flowchart LR
 | The wallet's currency is not dollars | every perpetual value is still in dollars | the collateral is USDC |
 | A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen | one rule decides which screen an asset opens, for both apps |
 
-Pinching the chart follows the shared [Charts](../PRODUCT.md#charts) section.
+Pinching and touching the chart follow the shared [Charts](../PRODUCT.md#charts) section.
 
 ## Platform differences
 

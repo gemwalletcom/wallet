@@ -102,6 +102,7 @@ Wherever the user types an address (Send, Import Wallet, Contacts), a name such 
 |---|---|---|
 | The price chart, a portfolio chart or the price widget cannot load | it shows that there is no data; only being offline shows an error | server text is not written for users |
 | The user pinches the price chart or a market's candlestick chart | it zooms toward the newest point while that point is on screen, and around the fingers once panned back, down to 14 points on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period | the newest point is what the user watches, and fewer points stop reading as a trend |
+| The user touches the price chart or a market's candlestick chart | a short hold shows the point under the finger; a sideways slide shows it at once while the chart is not zoomed and pans a zoomed chart; a drag that starts upright scrolls the page, and once the point shows the page stays put; a second finger hides the point | the price is read by sliding along the line; the short hold lets a pinch or a page scroll start without the point flashing |
 
 ## Secrets
 

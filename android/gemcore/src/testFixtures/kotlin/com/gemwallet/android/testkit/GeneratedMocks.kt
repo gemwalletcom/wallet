@@ -1212,6 +1212,7 @@ fun mockGemChartData(
     dateStyle: uniffi.gemstone.GemChartDateStyle = uniffi.gemstone.GemChartDateStyle.RELATIVE,
     start: Long = 0L,
     end: Long = 0L,
+    isZoomed: Boolean = false,
 ) = uniffi.gemstone.GemChartData(
     valueType = valueType,
     base = base,
@@ -1223,6 +1224,7 @@ fun mockGemChartData(
     dateStyle = dateStyle,
     start = start,
     end = end,
+    isZoomed = isZoomed,
 )
 
 fun mockGemConfirmFee(

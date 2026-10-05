@@ -32,6 +32,7 @@ class GemLineChartTest {
                     GemLineChart(
                         points = listOf(ChartPoint(0f, 1f), ChartPoint(1f, 1f)),
                         bounds = mockGemChartBounds(yMin = 1.0, yMax = 1.0),
+                        isZoomed = false,
                         lineColor = Color.Blue,
                         indexAt = { null },
                         onZoom = { _, _ -> },
