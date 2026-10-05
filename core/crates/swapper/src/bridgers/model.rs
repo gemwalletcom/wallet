@@ -1,12 +1,13 @@
 use std::str::FromStr;
 
 use num_bigint::BigUint;
+use number_formatter::BigNumberFormatter;
 use primitives::{TransactionSwapMetadata, swap::SwapStatus};
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_u64_from_str_or_int;
 
 use super::asset::get_asset_id;
-use crate::SwapperProvider;
+use crate::{SwapperError, SwapperProvider};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -55,6 +56,22 @@ impl QuoteTxData {
             3 => Some(1800),
             _ => None,
         }
+    }
+
+    pub fn get_deposit_range(&self, decimals: u32) -> Result<(BigUint, BigUint), SwapperError> {
+        Ok((
+            BigNumberFormatter::value_from_amount_biguint(&self.deposit_min, decimals)?,
+            BigNumberFormatter::value_from_amount_biguint(&self.deposit_max, decimals)?,
+        ))
+    }
+
+    pub fn get_to_value(&self, decimals: u32) -> Result<BigUint, SwapperError> {
+        let to_amount = BigNumberFormatter::value_from_amount_biguint(&self.to_token_amount, decimals)?;
+        let chain_fee = BigNumberFormatter::value_from_amount_biguint(&self.chain_fee, decimals)?;
+        if to_amount <= chain_fee {
+            return Err(SwapperError::NoQuoteAvailable);
+        }
+        Ok(to_amount - chain_fee)
     }
 }
 
@@ -159,6 +176,22 @@ mod tests {
     use primitives::{AssetId, Chain, asset_constants::ARBITRUM_USDC_ASSET_ID};
 
     use super::*;
+
+    #[test]
+    fn test_quote_values() {
+        let quote = QuoteTxData {
+            amount_out_min: BigUint::ZERO,
+            to_token_amount: "0.599919".to_string(),
+            deposit_min: "147.8".to_string(),
+            deposit_max: "20000".to_string(),
+            chain_fee: "0.0001".to_string(),
+            estimated_time: 10,
+        };
+
+        assert_eq!(quote.get_deposit_range(18).unwrap(), (BigUint::from(147_800_000_000_000_000_000u128), BigUint::from(20_000_000_000_000_000_000_000u128)));
+        assert_eq!(quote.get_to_value(8).unwrap(), BigUint::from(59_981_900u64));
+        assert_eq!(QuoteTxData { chain_fee: "1".to_string(), ..quote }.get_to_value(8).unwrap_err(), SwapperError::NoQuoteAvailable);
+    }
 
     #[test]
     fn test_quote_eta_in_seconds() {

@@ -56,7 +56,7 @@ where
 
     fn data<T: DeserializeOwned>(response: BridgersResponse) -> Result<T, SwapperError> {
         match response.res_code {
-            SUCCESS_CODE => serde_json::from_value(response.data).map_err(SwapperError::compute_quote_error),
+            SUCCESS_CODE => Ok(serde_json::from_value(response.data)?),
             QUOTE_FAIL_CODE => Err(SwapperError::NoQuoteAvailable),
             _ => Err(SwapperError::ComputeQuoteError(response.res_msg)),
         }

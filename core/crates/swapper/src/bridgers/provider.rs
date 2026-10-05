@@ -37,19 +37,15 @@ pub struct Bridgers<C: Client + Clone + Send + Sync + Debug + 'static> {
 
 impl Bridgers<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        Self::new_with_client(RpcClient::new(get_swap_proxy_url(SwapperProvider::Bridgers.as_ref()), rpc_provider.clone()), rpc_provider)
+        Self {
+            provider: ProviderType::new(SwapperProvider::Bridgers),
+            client: BridgersClient::new(RpcClient::new(get_swap_proxy_url(SwapperProvider::Bridgers.as_ref()), rpc_provider.clone())),
+            rpc_provider,
+        }
     }
 }
 
 impl<C: Client + Clone + Send + Sync + Debug + 'static> Bridgers<C> {
-    pub fn new_with_client(client: C, rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        Self {
-            provider: ProviderType::new(SwapperProvider::Bridgers),
-            client: BridgersClient::new(client),
-            rpc_provider,
-        }
-    }
-
     async fn get_evm_quote_data(&self, network: Network, from_asset: &AssetId, to_code: &str, swap: &SwapRequest) -> Result<SwapperQuoteData, SwapperError> {
         let transaction = self.client.get_swap(swap).await?.tx_data;
         let router = network.router()?;
@@ -72,8 +68,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Bridgers<C> {
 }
 
 fn get_min_from_value(quote: &QuoteTxData, request: &QuoteRequest) -> Result<BigUint, SwapperError> {
-    let min_value = BigNumberFormatter::value_from_amount_biguint(&quote.deposit_min, request.from_asset.decimals).map_err(SwapperError::compute_quote_error)?;
-    let max_value = BigNumberFormatter::value_from_amount_biguint(&quote.deposit_max, request.from_asset.decimals).map_err(SwapperError::compute_quote_error)?;
+    let (min_value, max_value) = quote.get_deposit_range(request.from_asset.decimals)?;
     if request.value < min_value {
         return Err(SwapperError::InputAmountError { min_amount: Some(min_value.to_string()) });
     }
@@ -118,12 +113,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
         let quote = self.client.get_quote(&get_quote_request(request, &request.value)?).await?.tx_data;
 
         let min_value = get_min_from_value(&quote, request)?;
-        let to_amount = BigNumberFormatter::value_from_amount_biguint(&quote.to_token_amount, request.to_asset.decimals).map_err(SwapperError::compute_quote_error)?;
-        let chain_fee = BigNumberFormatter::value_from_amount_biguint(&quote.chain_fee, request.to_asset.decimals).map_err(SwapperError::compute_quote_error)?;
-        if to_amount <= chain_fee {
-            return Err(SwapperError::NoQuoteAvailable);
-        }
-        let to_value = to_amount - chain_fee;
+        let to_value = quote.get_to_value(request.to_asset.decimals)?;
         let eta_in_seconds = quote.eta_in_seconds();
         let route_data = RouteData { amount_out_min: quote.amount_out_min };
 
@@ -136,7 +126,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
                 routes: vec![Route {
                     input: request.from_asset.asset_id(),
                     output: request.to_asset.asset_id(),
-                    route_data: serde_json::to_string(&route_data).map_err(SwapperError::compute_quote_error)?,
+                    route_data: serde_json::to_string(&route_data)?,
                 }],
                 slippage_bps: request.options.slippage.bps,
             },
@@ -169,7 +159,7 @@ impl<C: Client + Clone + Send + Sync + Debug + 'static> Swapper for Bridgers<C> 
             from_address: request.wallet_address.clone(),
             to_address: request.destination_address.clone(),
             amount_out_min: route.amount_out_min,
-            slippage: BigNumberFormatter::value(&quote.data.slippage_bps.to_string(), 4).map_err(SwapperError::compute_quote_error)?,
+            slippage: BigNumberFormatter::value(&quote.data.slippage_bps.to_string(), 4)?,
         };
         match network.chain.chain_type() {
             ChainType::Ethereum => self.get_evm_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
@@ -187,12 +177,10 @@ mod swap_integration_tests {
     };
     use primitives::{Chain, TransactionSwapMetadata, asset_constants::ARBITRUM_USDC_ASSET_ID};
 
-    const BRIDGERS_API_URL: &str = "https://api.bridgers.xyz";
-
     #[tokio::test]
     async fn test_bridgers_quote_and_quote_data() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = Bridgers::new_with_client(RpcClient::new(BRIDGERS_API_URL.to_string(), rpc_provider.clone()), rpc_provider);
+        let provider = Bridgers::new(rpc_provider);
 
         for request in [mock_opbnb_to_bsc_usdt_request(), mock_base_usdc_to_bsc_usdt_request()] {
             let quote = provider.get_quote(&request).await?;

@@ -1,5 +1,6 @@
 mod asset;
 mod client;
+mod contracts;
 mod model;
 mod provider;
 #[cfg(test)]
