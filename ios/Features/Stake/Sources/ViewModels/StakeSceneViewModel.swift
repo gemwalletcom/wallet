@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemEmptyState
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
@@ -70,20 +71,13 @@ public final class StakeSceneViewModel {
                 currency: service.getCurrency(),
                 validators: validatorsQuery.value.map { $0.toGem() },
                 delegations: delegationsQuery.value.map { $0.toGem() },
+                state: delegationsState,
             ),
         )
     }
 
-    func showsDelegationsPlaceholder(_ state: GemStakeViewState) -> Bool {
-        !state.sections.contains(.delegations)
-    }
-
-    var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .stake, symbol: asset.symbol)
-    }
-
-    func delegationsViewState(_ state: GemStakeViewState) -> StateViewType<[GemStakeDelegationItem]> {
-        delegationsState.stateViewType(state.delegations)
+    func emptyContentModel(_ state: GemEmptyState) -> EmptyStateViewModel {
+        EmptyStateViewModel(state: state, symbol: asset.symbol)
     }
 
     func route(destination: GemStakeDestination) -> StakeRoute {

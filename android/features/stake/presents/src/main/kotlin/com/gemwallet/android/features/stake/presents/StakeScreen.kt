@@ -20,7 +20,6 @@ fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransac
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
-    val loadError by viewModel.loadError.collectAsStateWithLifecycle()
 
     val stakeAssetInfo = assetInfo
     val state = viewState
@@ -34,7 +33,6 @@ fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransac
             inSync = inSync,
             assetInfo = stakeAssetInfo,
             state = state,
-            loadError = loadError,
             onAction = { action ->
                 when (action) {
                     StakeAction.Refresh -> viewModel.onRefresh()

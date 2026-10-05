@@ -1,7 +1,7 @@
 use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::GemListRow;
-use crate::models::state::GemLoadState;
+use crate::models::state::{GemListPhase, GemLoadState};
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
 use crate::services::assets::icon::GemAssetIcon;
@@ -123,6 +123,7 @@ pub struct GemStakeInput {
     pub currency: Currency,
     pub validators: Vec<DelegationValidator>,
     pub delegations: Vec<Delegation>,
+    pub state: GemLoadState,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -140,6 +141,7 @@ pub struct GemStakeViewState {
     pub actions: Vec<GemStakeActionItem>,
     pub resource_rows: Vec<GemListRow>,
     pub delegations: Vec<GemStakeDelegationItem>,
+    pub delegations_phase: Option<GemListPhase>,
     pub docs_url: Option<String>,
 }
 
@@ -213,7 +215,7 @@ pub struct GemEarnView {
     pub deposit_row: GemListRow,
     pub deposit_provider: Option<DelegationValidator>,
     pub positions: Vec<GemStakeDelegationItem>,
-    pub shows_empty: bool,
+    pub positions_phase: Option<GemListPhase>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

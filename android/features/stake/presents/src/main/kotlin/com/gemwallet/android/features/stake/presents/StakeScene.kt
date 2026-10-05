@@ -35,14 +35,13 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.AssetData
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStakeSection
 import uniffi.gemstone.GemStakeViewState
 
 @Composable
-internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeViewState, loadError: GemServiceException?, onAction: (StakeAction) -> Unit) {
+internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeViewState, onAction: (StakeAction) -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -97,9 +96,11 @@ internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeVi
                 if (GemStakeSection.DELEGATIONS !in state.sections) {
                     item {
                         Spacer(modifier = Modifier.height(paddingLarge))
-                        when (loadError) {
-                            null -> EmptyContentView(kind = GemEmptyStateKind.STAKE, symbol = assetInfo.asset.symbol)
-                            else -> GemListRowView(row = GemListRow.Error(loadError), listPosition = ListPosition.Single)
+                        when (val phase = state.delegationsPhase) {
+                            null -> GemListRowView(row = GemListRow.Loading, listPosition = ListPosition.Single)
+                            is GemListPhase.Empty -> EmptyContentView(state = phase.state, symbol = assetInfo.asset.symbol)
+                            is GemListPhase.Error -> GemListRowView(row = GemListRow.Error(phase.error), listPosition = ListPosition.Single)
+                            GemListPhase.Rows -> Unit
                         }
                     }
                 }

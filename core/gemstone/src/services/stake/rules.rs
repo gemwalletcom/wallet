@@ -25,10 +25,11 @@ use crate::duration_formatter::{GemDurationPart, countdown_parts, day_parts};
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
-use crate::models::state::GemLoadState;
+use crate::models::state::{GemListPhase, GemLoadState};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
+use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::rules as transfer_rules;
 use chrono::{DateTime, Utc};
@@ -285,6 +286,7 @@ pub fn stake_view_state(input: GemStakeInput, platform: Platform) -> GemStakeVie
         currency,
         validators,
         delegations,
+        state,
     } = input;
     let asset = &asset_data.asset;
     let chain = asset.chain();
@@ -297,6 +299,7 @@ pub fn stake_view_state(input: GemStakeInput, platform: Platform) -> GemStakeVie
         sections: stake_sections(uses_freeze(chain), !actions.is_empty(), !delegations.is_empty()),
         info_rows: stake_info_rows(asset, asset_data.metadata.staking_apr),
         resource_rows: crate::services::balance::rules::balance_resource_rows(asset_data.balance.metadata.clone()),
+        delegations_phase: GemListPhase::once_loaded(state, !delegations.is_empty(), empty_state(GemEmptyStateKind::Stake)),
         delegations: delegations
             .into_iter()
             .map(|delegation| GemStakeDelegationItem {
@@ -585,7 +588,7 @@ pub fn earn_view(input: GemEarnInput) -> GemEarnView {
             info: None,
         },
         deposit_provider,
-        shows_empty: positions.is_empty() && state != GemLoadState::Loading,
+        positions_phase: GemListPhase::once_loaded(state, !positions.is_empty(), empty_state(GemEmptyStateKind::Earn)),
         positions,
     }
 }
@@ -1359,16 +1362,40 @@ mod tests {
                 currency: Currency::USD,
                 validators,
                 delegations: delegations.clone(),
+                state: GemLoadState::Loading,
             },
             Platform::IOS,
         );
 
         let sorted = sorted_delegations(delegations);
+        assert_eq!(state.delegations_phase, Some(GemListPhase::Rows), "stored delegations show while the first sync runs");
         assert_eq!(state.delegations.iter().map(|item| item.delegation.clone()).collect::<Vec<_>>(), sorted);
         assert_eq!(state.sections, stake_sections(uses_freeze(Chain::Cosmos), !state.actions.is_empty(), true));
         assert_eq!(state.delegations[0].row, delegation_list_row(&sorted[0], &asset, None, Currency::USD));
         assert!(state.resource_rows.is_empty());
         assert_eq!(state.docs_url, Some(DocsUrl::Staking(StakeChain::Cosmos).url_for(Platform::IOS)), "the screen links its chain's staking guide");
+    }
+
+    #[test]
+    fn test_no_delegations_waits_for_the_first_sync_before_saying_so() {
+        let input = |state| GemStakeInput {
+            wallet_type: WalletType::Multicoin,
+            asset_data: AssetData::mock(Asset::from_chain(Chain::Cosmos), Balance::coin_balance(0u32.into())),
+            currency: Currency::USD,
+            validators: vec![DelegationValidator::mock()],
+            delegations: vec![],
+            state,
+        };
+        let error = crate::services::error::GemServiceError::Gateway { msg: "offline".to_string() };
+
+        assert_eq!(stake_view_state(input(GemLoadState::Loading), Platform::IOS).delegations_phase, None);
+        assert_eq!(
+            stake_view_state(input(GemLoadState::Data), Platform::IOS).delegations_phase,
+            Some(GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::Stake)
+            })
+        );
+        assert_eq!(stake_view_state(input(GemLoadState::Error { error: error.clone() }), Platform::IOS).delegations_phase, Some(GemListPhase::Error { error }));
     }
 
     #[test]
@@ -1925,13 +1952,13 @@ mod tests {
         );
         assert!(matches!(view(error, vec![provider.clone()], vec![]).rate_row, GemListRow::Error { .. }));
 
-        assert!(!view(GemLoadState::Loading, vec![], vec![]).shows_empty, "nothing is empty before the first load ends");
+        assert_eq!(view(GemLoadState::Loading, vec![], vec![]).positions_phase, None, "nothing is empty before the first load ends");
         let empty = view(GemLoadState::Data, vec![provider.clone()], vec![]);
-        assert!(empty.shows_empty);
+        assert_eq!(empty.positions_phase, Some(GemListPhase::Empty { state: empty_state(GemEmptyStateKind::Earn) }));
         assert_eq!(empty.sections, vec![GemEarnSection::Manage]);
 
         let invested = view(GemLoadState::Data, vec![provider], vec![position]);
-        assert!(!invested.shows_empty);
+        assert_eq!(invested.positions_phase, Some(GemListPhase::Rows));
         assert_eq!(invested.sections, vec![GemEarnSection::Manage, GemEarnSection::Positions]);
     }
 

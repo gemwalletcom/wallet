@@ -229,6 +229,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             delegations: zip(input.delegations, Gemstone.delegationListRows(delegations: input.delegations, asset: input.assetData.asset, price: input.assetData.price?.price, currency: input.currency)).map {
                 GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
             },
+            delegationsPhase: loadedPhase(state: input.state, hasRows: !input.delegations.isEmpty, kind: .stake),
             docsUrl: nil,
         )
     }
@@ -277,8 +278,17 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             depositRow: .action(title: .deposit, value: nil, info: nil),
             depositProvider: depositProvider,
             positions: positions,
-            showsEmpty: positions.isEmpty && input.state != .loading,
+            positionsPhase: loadedPhase(state: input.state, hasRows: !positions.isEmpty, kind: .earn),
         )
+    }
+}
+
+private func loadedPhase(state: GemLoadState, hasRows: Bool, kind: GemEmptyStateKind) -> GemListPhase? {
+    switch (hasRows, state) {
+    case (true, _): .rows
+    case (false, .loading): nil
+    case let (false, .error(error)): .error(error: error)
+    case (false, .data), (false, .noData): .empty(state: emptyState(kind: kind))
     }
 }
 

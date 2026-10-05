@@ -100,6 +100,7 @@ class StakeViewModelTest {
             actions = emptyList(),
             resourceRows = emptyList(),
             delegations = emptyList(),
+            delegationsPhase = null,
             docsUrl = null,
         )
     }
@@ -172,7 +173,7 @@ class StakeViewModelTest {
 
         runCurrent()
         assertEquals(listOf(delegation), viewModel.delegations.value)
-        assertEquals(offline, viewModel.loadError.value)
+        verify { stakeService.stakeViewState(match { it.state == GemLoadState.Error(offline) }) }
     }
 
     private fun createViewModel() = StakeViewModel(

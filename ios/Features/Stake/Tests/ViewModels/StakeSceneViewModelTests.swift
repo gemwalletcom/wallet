@@ -39,10 +39,7 @@ struct StakeSceneViewModelTests {
 
         await model.load()
 
-        guard case .error = model.delegationsViewState(model.viewState) else {
-            Issue.record("expected the refresh error")
-            return
-        }
+        #expect(model.viewState.delegationsPhase == .error(error: .Gateway(msg: "offline")))
     }
 
     @Test

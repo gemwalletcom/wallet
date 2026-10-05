@@ -42,7 +42,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
-import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStakeActionKind
 import uniffi.gemstone.GemStakeDestination
 import uniffi.gemstone.GemStakeInput
@@ -92,12 +91,15 @@ class StakeViewModel @Inject constructor(
         .flatMapLatest { validatorsQuery(it, StakeProviderType.Stake) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
+
     val viewState: StateFlow<GemStakeViewState?> = combine(
         walletType.filterNotNull(),
         delegations,
         assetInfo.filterNotNull(),
         validators,
-    ) { walletType, delegations, assetInfo, validators ->
+        loadState,
+    ) { walletType, delegations, assetInfo, validators, state ->
         service.stakeViewState(
             GemStakeInput(
                 walletType = walletType.toGem(),
@@ -105,17 +107,12 @@ class StakeViewModel @Inject constructor(
                 currency = service.getCurrency(),
                 validators = validators.map { it.toGem() },
                 delegations = delegations.map { it.toGem() },
+                state = state,
             ),
         )
     }.flowOn(ioDispatcher).stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val sync = MutableStateFlow<Boolean>(true)
-
-    private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
-
-    val loadError: StateFlow<GemServiceException?> = loadState
-        .map { (it as? GemLoadState.Error)?.error }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val isSync = sync
         .flatMapLatest { isSync ->

@@ -69,6 +69,13 @@ impl GemListPhase {
     pub fn local(has_rows: bool, empty: GemEmptyState) -> Self {
         Self::new(GemLoadState::Data, has_rows, empty)
     }
+
+    pub fn once_loaded(state: GemLoadState, has_rows: bool, empty: GemEmptyState) -> Option<Self> {
+        match (has_rows, &state) {
+            (false, GemLoadState::Loading) => None,
+            _ => Some(Self::new(state, has_rows, empty)),
+        }
+    }
 }
 
 impl GemLoadState {

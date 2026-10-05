@@ -4,6 +4,7 @@ import Components
 import Foundation
 import struct Gemstone.GemEarnInput
 import struct Gemstone.GemEarnView
+import struct Gemstone.GemEmptyState
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemStakeDelegationItem
 import protocol Gemstone.GemStakeServiceProtocol
@@ -74,8 +75,8 @@ public final class EarnSceneViewModel {
         view.depositProvider.map { .transfer(.amount(AmountInput(type: .earn(.deposit($0)), asset: asset))) }
     }
 
-    var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .earn, symbol: asset.symbol)
+    func emptyContentModel(_ state: GemEmptyState) -> EmptyStateViewModel {
+        EmptyStateViewModel(state: state, symbol: asset.symbol)
     }
 }
 
