@@ -12,6 +12,7 @@ impl StoreTransactionsConsumerConfig {
             min_amount_usd: 0.01,
             primary_price_max_age: DAY,
             batch_size: 100,
+            notifications_batch_size: 10,
         }
     }
 }
