@@ -618,6 +618,7 @@ public extension GemEmptyStateText {
         case .rewardsDescription: Localized.Rewards.stateEmptyDescription
         case .supportTitle: Localized.Support.stateEmptyTitle
         case .supportDescription: Localized.Support.stateEmptyDescription
+        case .noResultsFoundTitle: Localized.Common.noResultsFound
         }
     }
 }

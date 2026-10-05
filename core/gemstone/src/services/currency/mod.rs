@@ -5,8 +5,10 @@ use std::{collections::HashMap, sync::Arc};
 
 use primitives::Currency;
 
-pub use model::{GemCurrencyRow, GemCurrencySection, GemCurrencySectionKind};
+pub use model::{GemCurrencyList, GemCurrencyRow, GemCurrencySection, GemCurrencySectionKind};
 
+use crate::models::state::GemListPhase;
+use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::error::GemServiceError;
 use crate::services::price::GemPriceService;
 
@@ -22,9 +24,13 @@ impl GemCurrencyService {
         Self { prices }
     }
 
-    pub async fn sections(&self, currency: Currency, locale: Option<Currency>, query: String, localized_names: HashMap<String, String>) -> Result<Vec<GemCurrencySection>, GemServiceError> {
+    pub async fn list(&self, currency: Currency, locale: Option<Currency>, query: String, localized_names: HashMap<String, String>) -> Result<GemCurrencyList, GemServiceError> {
         let rated = self.prices.rated_currencies().await?;
-        Ok(rules::sections(currency, locale, &query, &localized_names, &rated))
+        let sections = rules::sections(currency, locale, &query, &localized_names, &rated);
+        Ok(GemCurrencyList {
+            phase: GemListPhase::local(!sections.is_empty(), empty_state(GemEmptyStateKind::SearchResults)),
+            sections,
+        })
     }
 
     pub async fn set_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
@@ -60,13 +66,27 @@ mod tests {
     fn test_the_picker_offers_only_currencies_with_a_rate() {
         let (service, _, _) = service(MemoryPriceStore::with_rate(Currency::EUR, 0.9));
 
-        let currencies: Vec<Currency> = block_on(service.sections(Currency::GBP, None, String::new(), HashMap::new()))
+        let currencies: Vec<Currency> = block_on(service.list(Currency::GBP, None, String::new(), HashMap::new()))
             .unwrap()
+            .sections
             .into_iter()
             .flat_map(|section| section.rows.into_iter().map(|row| row.currency))
             .collect();
 
         assert_eq!(currencies, vec![Currency::GBP, Currency::USD, Currency::EUR], "the current and the base currency stay offered");
+    }
+
+    #[test]
+    fn test_a_currency_search_that_matches_nothing_shows_no_results() {
+        let (service, _, _) = service(MemoryPriceStore::with_rate(Currency::EUR, 0.9));
+
+        assert_eq!(block_on(service.list(Currency::GBP, None, String::new(), HashMap::new())).unwrap().phase, GemListPhase::Rows);
+        assert_eq!(
+            block_on(service.list(Currency::GBP, None, "zzz".to_string(), HashMap::new())).unwrap().phase,
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::SearchResults)
+            }
+        );
     }
 
     #[test]

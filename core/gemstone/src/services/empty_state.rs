@@ -18,6 +18,7 @@ pub enum GemEmptyStateKind {
     SearchPerpetuals,
     Rewards,
     Support,
+    SearchResults,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -66,6 +67,7 @@ pub enum GemEmptyStateText {
     RewardsDescription,
     SupportTitle,
     SupportDescription,
+    NoResultsFoundTitle,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -206,6 +208,12 @@ pub(crate) fn screen_empty_state(kind: GemEmptyStateKind, is_view_only: bool, of
             title: SupportTitle,
             description: Some(SupportDescription),
             image: GemEmptyStateImage::Support,
+            actions: vec![],
+        },
+        SearchResults => GemEmptyState {
+            title: NoResultsFoundTitle,
+            description: None,
+            image: GemEmptyStateImage::Search,
             actions: vec![],
         },
     }

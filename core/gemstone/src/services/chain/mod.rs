@@ -28,6 +28,7 @@ pub struct GemChainList {
 pub struct GemImportWalletTypes {
     pub multicoin: GemLocalizedText,
     pub chains: Vec<GemChainRow>,
+    pub phase: GemListPhase,
 }
 
 #[uniffi::export]
@@ -71,9 +72,11 @@ impl GemChainService {
     }
 
     pub fn import_wallet_types(&self, query: String) -> GemImportWalletTypes {
+        let chains = self.chain_rows(None, query);
         GemImportWalletTypes {
             multicoin: GemLocalizedText::WalletMulticoin,
-            chains: self.chain_rows(None, query),
+            phase: GemListPhase::local(!chains.is_empty(), empty_state(GemEmptyStateKind::SearchResults)),
+            chains,
         }
     }
 
@@ -96,7 +99,16 @@ mod tests {
 
         assert_eq!(types.multicoin, GemLocalizedText::WalletMulticoin);
         assert_eq!(types.chains.first().map(|row| row.chain), Some(Chain::Bitcoin));
-        assert!(GemChainService::new().import_wallet_types("zzz-no-chain".to_string()).chains.is_empty());
+        assert_eq!(types.phase, GemListPhase::Rows);
+        let nothing = GemChainService::new().import_wallet_types("zzz-no-chain".to_string());
+        assert!(nothing.chains.is_empty());
+        assert_eq!(
+            nothing.phase,
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::SearchResults)
+            },
+            "multicoin still shows above the no results state"
+        );
     }
 
     #[test]

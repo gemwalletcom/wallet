@@ -358,9 +358,9 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
         try preferencesService.setCurrency(currency: currency)
     }
 
-    public func sections(currency _: Gemstone.Currency, locale _: Gemstone.Currency?, query: String, localizedNames _: [String: String]) async throws -> [GemCurrencySection] {
+    public func list(currency _: Gemstone.Currency, locale _: Gemstone.Currency?, query: String, localizedNames _: [String: String]) async throws -> GemCurrencyList {
         queries.append(query)
-        return sectionsValue
+        return GemCurrencyList(sections: sectionsValue, phase: sectionsValue.isEmpty ? .empty(state: emptyState(kind: .searchResults)) : .rows)
     }
 }
 
