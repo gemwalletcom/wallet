@@ -550,11 +550,28 @@ mod tests {
         assert!(GemPerpetualPositionAction::Open { data: data.clone() }.shows_autoclose());
         assert!(!GemPerpetualPositionAction::Increase { data }.shows_autoclose());
     }
+
+    #[test]
+    fn test_the_wallet_preview_offers_trading_until_a_position_is_open() {
+        assert_eq!(perpetual_preview(vec![], None), GemPerpetualPreview::Trade { balance: GemFormattedNumber::usd(0.0) });
+        assert_eq!(perpetual_preview(vec!["position".to_string()], None), GemPerpetualPreview::Positions);
+    }
 }
 
 #[uniffi::export]
-pub fn perpetual_balance_total(balance: Option<PerpetualBalance>) -> GemFormattedNumber {
-    rules::balance_total(balance.as_ref())
+pub fn perpetual_preview(position_ids: Vec<String>, balance: Option<PerpetualBalance>) -> GemPerpetualPreview {
+    match position_ids.is_empty() {
+        true => GemPerpetualPreview::Trade {
+            balance: rules::balance_total(balance.as_ref()),
+        },
+        false => GemPerpetualPreview::Positions,
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemPerpetualPreview {
+    Trade { balance: GemFormattedNumber },
+    Positions,
 }
 
 #[uniffi::export]

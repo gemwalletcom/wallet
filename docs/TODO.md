@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5, then VM290 to VM294 (scenes) in the same way.
+1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5, then VM294 (scenes) in the same way.
 
 Waiting on the owner: BD29 and BD50 (server), VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173.
 
@@ -52,7 +52,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Rewards/create/use/redeem referral | `GemRewardsService`, rewards state, shared load and list records | — |
 | Contacts/list/editor/address picker | `GemContactService`, `GemContactEditorService`, contact session/name component | — |
 | Networks/node list/add/check | `GemChainSettingsService`, node sessions, shared rows | — |
-| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | VM290; retain native locale/theme application |
+| Settings/preferences/currency/language/appearance/about | `GemSettingsService`, `GemCurrencyService`, `GemAppUpdateService`, preference observation | retain native locale/theme application |
 | Security/lock/biometry/recovery | `GemSecurityService`, existing keystore/auth ports and settings sections | retain platform-only privacy lock |
 | Push settings, in-app notifications, support chat | Notification services, `GemSupportService`, permission and lifecycle ports | — |
 | WalletConnect list/detail/proposal/request/signing | `GemWalletConnectService` (sign messages scanned through `GemScanService`), `GemSignMessageService`, Reown adapters | retain Android-only one-click auth |
@@ -135,10 +135,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Scenes
 
-- **VM290** **M** **Empty states are decided scene by scene.**
-  - **iOS:** `PerpetualsPreviewViewModel.hasNoPositions` decides it in the model.
-  - **Android:** `PerpetualsPreviewSection` does the same.
-  - **Expected:** each list screen's Core projection returns a `GemListPhase` that says it is empty and which empty state to show, as the activity, alert, notification, support, NFT, perpetual market, WalletConnect, contact, stake, earn, validator, network asset and avatar lists and the network, currency and import type searches already do; the scenes render the phase.
 - **VM294** **S** **Secret phrase rows are filled with words in the apps.**
   - **iOS:** `SecretPhraseRow` and `GemSecretPhraseRow+PrimitivesComponents` map Core's index rows to words.
   - **Android:** `PhraseWord.phraseRows` does the same.
