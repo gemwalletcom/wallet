@@ -35,6 +35,7 @@ impl StoreTransactionsPerpetualsConsumer {
             kind: transaction.transaction_type.clone(),
             direction: metadata.direction,
             size_usd: BigNumberFormatter::value_as_f64(&transaction.value.to_string(), decimals)?,
+            pnl_usd: metadata.pnl,
             referral_fee_amount_usd: BigNumberFormatter::value_as_f64(&referral_fee.value.to_string(), decimals)?,
             created_at: transaction.created_at.naive_utc(),
         }))
@@ -70,6 +71,7 @@ mod tests {
 
     fn perpetual_transaction(state: TransactionState) -> Transaction {
         let metadata = TransactionPerpetualMetadata {
+            pnl: 12.5,
             provider: Some(PerpetualProvider::Hypercore),
             referral_fee: Some(TransactionSwapReferralFee {
                 asset_id: usdc().id,
@@ -98,6 +100,7 @@ mod tests {
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].0, transaction.id);
         assert_eq!(records[0].1.size_usd, 150.0);
+        assert_eq!(records[0].1.pnl_usd, 12.5);
         assert_eq!(records[0].1.referral_fee_amount_usd, 2.0);
         assert_eq!(records[0].1.asset_id, transaction.asset_id);
     }

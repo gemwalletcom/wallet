@@ -7,6 +7,7 @@ CREATE TABLE transactions_perpetuals (
     kind transaction_type NOT NULL,
     direction perpetual_direction NOT NULL,
     size_usd float NOT NULL,
+    pnl_usd float NOT NULL,
     referral_fee_amount_usd float NOT NULL,
     updated_at timestamp NOT NULL default current_timestamp,
     created_at timestamp NOT NULL default current_timestamp
