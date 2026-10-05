@@ -68,17 +68,6 @@ impl GemAppStartService {
             }
             Err(error) => failures.push(GemAppStartFailure::new(GemAppStartStep::SetupChains, error.to_string())),
         }
-        match self.wallet.wallets().await {
-            Ok(wallets) => {
-                for wallet in wallets {
-                    let wallet_id = wallet.id.clone();
-                    if let Err(error) = self.balance.setup_wallet(wallet).await {
-                        failures.push(GemAppStartFailure::new(GemAppStartStep::SetupWalletAssets, format!("wallet {}: {error}", wallet_id.id())));
-                    }
-                }
-            }
-            Err(error) => failures.push(GemAppStartFailure::new(GemAppStartStep::SetupWalletAssets, error.to_string())),
-        }
         failures
     }
 
