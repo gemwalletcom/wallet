@@ -11,9 +11,7 @@ final class WebSocket: NSObject, @unchecked Sendable {
     @Locked var onDisconnect: ((Error?) -> Void)?
     @Locked var onText: ((String) -> Void)?
 
-    @Locked private(set) var task: URLSessionWebSocketTask?
-    @Locked private var session: URLSession?
-    @Locked private var isAttemptComplete = true
+    @Locked private var connection: Connection?
 
     private let delegateQueue: OperationQueue = {
         let queue = OperationQueue()
@@ -27,11 +25,15 @@ final class WebSocket: NSObject, @unchecked Sendable {
     }
 
     deinit {
-        closeConnection(.goingAway)
+        connection?.close(.goingAway)
     }
 
-    private func receiveMessage() {
-        task?.receive { [weak self] result in
+    var task: URLSessionWebSocketTask? {
+        connection?.task
+    }
+
+    private func receiveMessage(on task: URLSessionWebSocketTask) {
+        task.receive { [weak self] result in
             guard let self else { return }
             switch result {
             case let .success(message):
@@ -45,21 +47,20 @@ final class WebSocket: NSObject, @unchecked Sendable {
                 @unknown default:
                     break
                 }
-                receiveMessage()
+                receiveMessage(on: task)
             case .failure:
                 break
             }
         }
     }
 
-    private func closeConnection(_ closeCode: URLSessionWebSocketTask.CloseCode) {
-        task?.cancel(with: closeCode, reason: nil)
-        session?.invalidateAndCancel()
-    }
-
-    private func onDisconnect(error: Error?) {
-        guard !isAttemptComplete else { return }
-        isAttemptComplete = true
+    private func completeAttempt(of task: URLSessionTask, error: Error?) {
+        let isCurrentAttempt = _connection.withLock { connection in
+            guard connection?.task === task, connection?.isComplete == false else { return false }
+            connection?.isComplete = true
+            return true
+        }
+        guard isCurrentAttempt else { return }
         isConnected = false
         onDisconnect?(error)
     }
@@ -69,20 +70,35 @@ final class WebSocket: NSObject, @unchecked Sendable {
     }
 }
 
+private struct Connection {
+    let session: URLSession
+    let task: URLSessionWebSocketTask
+    var isComplete = false
+
+    func close(_ closeCode: URLSessionWebSocketTask.CloseCode) {
+        task.cancel(with: closeCode, reason: nil)
+        session.invalidateAndCancel()
+    }
+}
+
 // MARK: - WebSocketConnecting
 
 extension WebSocket: WebSocketConnecting {
     func connect() {
-        closeConnection(.goingAway)
-        session = URLSession(configuration: .default, delegate: self, delegateQueue: delegateQueue)
-        task = session?.webSocketTask(with: request)
-        isAttemptComplete = false
-        task?.resume()
-        receiveMessage()
+        let session = URLSession(configuration: .default, delegate: self, delegateQueue: delegateQueue)
+        let task = session.webSocketTask(with: request)
+        let replaced = _connection.withLock { connection in
+            let replaced = connection
+            connection = Connection(session: session, task: task)
+            return replaced
+        }
+        replaced?.close(.goingAway)
+        task.resume()
+        receiveMessage(on: task)
     }
 
     func disconnect() {
-        closeConnection(.normalClosure)
+        connection?.close(.normalClosure)
     }
 
     func write(string: String, completion: (() -> Void)?) {
@@ -107,12 +123,10 @@ extension WebSocket: URLSessionWebSocketDelegate {
     }
 
     func urlSession(_: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith _: URLSessionWebSocketTask.CloseCode, reason _: Data?) {
-        guard isCurrentTask(webSocketTask) else { return }
-        onDisconnect(error: nil)
+        completeAttempt(of: webSocketTask, error: nil)
     }
 
     func urlSession(_: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        guard isCurrentTask(task) else { return }
-        onDisconnect(error: error)
+        completeAttempt(of: task, error: error)
     }
 }
