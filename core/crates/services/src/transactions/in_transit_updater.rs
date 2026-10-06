@@ -125,7 +125,7 @@ impl InTransitUpdater {
         }
 
         self.schedule.remove(&transaction.id).await?;
-        let metadata = swap_result_metadata(transaction, metadata);
+        let metadata = swap_result_metadata(transaction, metadata, state.swap_status().charges_referral_fee());
         self.save_and_publish(chain, transaction, state, metadata).await?;
         Ok(true)
     }
