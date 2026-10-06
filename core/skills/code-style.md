@@ -24,6 +24,7 @@ Line length 180 (`rustfmt.toml`), 4-space indentation, imports reordered by rust
 
 ## Code Organization
 
+- Declare third-party dependency versions in the workspace manifest using `{ version = "major.minor.patch" }` tables; keep crate-specific features and optional flags at their consumers.
 - **Modular structure**: Break down long files into smaller, focused modules by logical responsibility
 - **Thin module entrances**: For multi-file modules, prefer a directory module with a thin `mod.rs` (or crate `lib.rs`) that only declares submodules and re-exports the public surface; keep implementation details in focused child files
 - **Avoid duplication**: Search for existing implementations before writing new code; reuse existing code or crates

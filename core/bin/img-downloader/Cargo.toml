@@ -9,9 +9,9 @@ tokio = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 config = { workspace = true }
-image = { version = "0.25.8", default-features = false, features = ["png", "jpeg", "webp"] }
-resvg = { version = "0.48.1", default-features = false, features = ["text"] }
-oxipng = { version = "10.1.1", default-features = false }
+image = { workspace = true, default-features = false, features = ["png", "jpeg", "webp"] }
+resvg = { workspace = true, default-features = false, features = ["text"] }
+oxipng = { workspace = true, default-features = false }
 
 clap = { workspace = true }
 
