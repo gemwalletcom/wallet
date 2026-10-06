@@ -25,10 +25,6 @@ pub fn wallet_connect_namespace(chain: Chain) -> Option<String> {
     WalletConnectCAIP2::get_namespace(chain)
 }
 
-pub fn wallet_connect_reference(chain: Chain) -> Option<String> {
-    WalletConnectCAIP2::get_reference(chain)
-}
-
 pub fn wallet_connect_chain(chain_id: String) -> Option<Chain> {
     WalletConnectCAIP2::parse_chain_id(chain_id)
 }
@@ -106,9 +102,8 @@ mod tests {
     }
 
     #[test]
-    fn namespace_and_reference_come_from_the_chain_table() {
+    fn namespace_comes_from_the_chain_table() {
         assert_eq!(super::wallet_connect_namespace(Chain::Base), Some("eip155".to_string()));
-        assert_eq!(super::wallet_connect_reference(Chain::Base), Some("8453".to_string()));
         assert_eq!(super::wallet_connect_namespace(Chain::Solana), Some("solana".to_string()));
     }
 

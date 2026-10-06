@@ -1,6 +1,6 @@
 pub mod rules;
 
-use primitives::{Chain, ChainAsset};
+use primitives::{Chain, ChainAsset, WalletConnectCAIP2};
 
 use crate::config::chain::icon_chain;
 use crate::models::state::GemListPhase;
@@ -8,7 +8,7 @@ use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
 use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
 
-use crate::wallet_connect::{wallet_connect_namespace, wallet_connect_reference};
+use crate::wallet_connect::wallet_connect_namespace;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChainRow {
@@ -84,8 +84,8 @@ impl GemChainService {
         wallet_connect_namespace(chain)
     }
 
-    pub fn caip2_reference(&self, chain: Chain) -> Option<String> {
-        wallet_connect_reference(chain)
+    pub fn caip2_references(&self, chain: Chain) -> Vec<String> {
+        WalletConnectCAIP2::get_references(chain)
     }
 }
 

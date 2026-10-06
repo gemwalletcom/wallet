@@ -1,23 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import class Gemstone.GemChainService
+import protocol Gemstone.GemChainServiceProtocol
 import Primitives
 import struct WalletConnectUtils.Blockchain
 
 extension Primitives.Chain {
-    func namespace(chainService: GemChainService) -> String? {
-        chainService.caip2Namespace(chain: rawValue)
-    }
-
-    func reference(chainService: GemChainService) -> String? {
-        chainService.caip2Reference(chain: rawValue)
-    }
-
-    func blockchain(chainService: GemChainService) -> Blockchain? {
-        guard let namespace = namespace(chainService: chainService), let reference = reference(chainService: chainService) else {
-            return .none
+    func blockchains(chainService: any GemChainServiceProtocol) -> [Blockchain] {
+        guard let namespace = chainService.caip2Namespace(chain: rawValue) else {
+            return []
         }
-        return Blockchain(namespace: namespace, reference: reference)
+        return chainService.caip2References(chain: rawValue).compactMap {
+            Blockchain(namespace: namespace, reference: $0)
+        }
     }
 }
