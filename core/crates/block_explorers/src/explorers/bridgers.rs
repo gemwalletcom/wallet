@@ -1,4 +1,4 @@
-use crate::{BlockExplorer, ExplorerInput};
+use crate::BlockExplorer;
 
 pub struct BridgersScan;
 
@@ -20,15 +20,12 @@ impl BlockExplorer for BridgersScan {
     fn get_address_url(&self, address: &str) -> String {
         format!("https://explorer.bridgers.xyz/#/search/{address}")
     }
-
-    fn get_swap_tx_url(&self, input: &ExplorerInput) -> String {
-        self.get_tx_url(&input.hash)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ExplorerInput;
 
     #[test]
     fn test_swap_transaction_url() {

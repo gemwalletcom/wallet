@@ -1,4 +1,4 @@
-use std::{collections::HashSet, error::Error};
+use std::error::Error;
 
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
@@ -189,16 +189,6 @@ mod chain_asset_tests {
     #[test]
     fn asset_from_chain_preserves_existing_native_asset_accessor() {
         assert_eq!(Asset::from_chain(Chain::Ton), ChainAsset::from_chain(Chain::Ton).asset);
-    }
-}
-
-pub trait AssetHashSetExt {
-    fn ids(&self) -> Vec<String>;
-}
-
-impl AssetHashSetExt for HashSet<AssetId> {
-    fn ids(&self) -> Vec<String> {
-        self.iter().map(ToString::to_string).collect()
     }
 }
 

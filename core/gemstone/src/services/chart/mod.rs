@@ -148,11 +148,9 @@ impl GemChartService {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
     use primitives::{Asset, AssetMarket, Price, PriceProvider};
 
-    use super::session::{GemChartRate, GemChartRequest};
+    use super::session::GemChartRate;
     use super::*;
     use crate::models::list::{GemListRow, GemListRowTitle};
     use crate::services::preferences::testkit::MemoryPreferencesStore;
@@ -186,7 +184,7 @@ mod tests {
             .iter()
             .flat_map(|section| section.rows.iter())
             .filter_map(|row| match row {
-                GemListRow::Ranked { title, .. } | GemListRow::Amount { title, .. } | GemListRow::Link { title, .. } => Some(title.clone()),
+                GemListRow::Ranked { title, .. } | GemListRow::Amount { title, .. } | GemListRow::Link { title, .. } => Some(*title),
                 _ => None,
             })
             .collect()

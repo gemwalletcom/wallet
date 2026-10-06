@@ -24,11 +24,7 @@ impl PerpetualAddressRefresher {
         let candidate_addresses = self.providers.get_perpetual_referral_addresses(chain).await?;
         let candidate_count = candidate_addresses.len();
 
-        let tracked_addresses: Vec<String> = if candidate_addresses.is_empty() {
-            vec![]
-        } else {
-            self.subscription_lookup.get(chain, candidate_addresses).await?.into_iter().map(|s| s.address).collect::<HashSet<_>>().into_iter().collect()
-        };
+        let tracked_addresses: Vec<String> = self.subscription_lookup.get(chain, candidate_addresses).await?.into_iter().map(|s| s.address).collect::<HashSet<_>>().into_iter().collect();
 
         self.addresses.set_addresses(chain, PerpetualAddressTier::Tracked, &tracked_addresses).await?;
 

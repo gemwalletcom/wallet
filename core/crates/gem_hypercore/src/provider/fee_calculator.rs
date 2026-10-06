@@ -1,13 +1,12 @@
 use num_bigint::BigInt;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, swap::SwapData};
+use primitives::{Asset, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, known_assets::HYPERCORE_PERPETUAL_USDC, swap::SwapData};
 use std::error::Error;
 use std::fmt::Display;
 
 use crate::perpetual_formatter::USDC_DECIMALS_MULTIPLIER;
 
 const HYPERCORE_BUILDER_FEE_RATE_SCALE: f64 = 100_000.0;
-const HYPERCORE_PERPETUAL_USDC_DECIMALS: u32 = 6;
 
 pub fn calculate_perpetual_fee_amount(fiat_value: f64, fee_rate: f64, builder_fee_bps: u32) -> BigInt {
     fee_amount_in_usdc(fiat_value, fee_rate + builder_fee_rate(builder_fee_bps))
@@ -16,7 +15,7 @@ pub fn calculate_perpetual_fee_amount(fiat_value: f64, fee_rate: f64, builder_fe
 pub fn calculate_spot_fee_amount(swap_data: &SwapData, from_asset: &Asset, to_asset: &Asset, fee_rate: f64, builder_fee_bps: u32) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
     let fiat_value = calculate_spot_usdc_value(swap_data, from_asset, to_asset, builder_fee_bps)?;
     let usdc_decimals = spot_usdc_decimals(from_asset, to_asset)?;
-    let value = fiat_value * decimal_scale(usdc_decimals.saturating_sub(HYPERCORE_PERPETUAL_USDC_DECIMALS));
+    let value = fiat_value * decimal_scale(usdc_decimals.saturating_sub(HYPERCORE_PERPETUAL_USDC.decimals));
     let trade_fee = fee_amount_in_usdc(value, fee_rate);
     let builder_fee = fee_amount_in_usdc(value, builder_fee_rate(builder_fee_bps));
 

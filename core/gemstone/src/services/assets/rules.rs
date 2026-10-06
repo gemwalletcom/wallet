@@ -279,7 +279,7 @@ pub fn asset_list_row(data: &AssetData, currency: &Currency, scope: GemAssetBala
         trailing: match style.trailing {
             GemAssetTrailingStyle::Balance => GemAssetItemTrailing::Value {
                 value: balance_text(&value, asset),
-                extra: fiat_amount(asset, &value, price, currency.clone(), GemCurrencyStyle::Short).map(GemRowText::neutral_number),
+                extra: fiat_amount_of(asset, &value, price, currency.clone(), GemCurrencyStyle::Short).map(GemRowText::neutral_number),
             },
             GemAssetTrailingStyle::Toggle => GemAssetItemTrailing::Toggle { is_on: data.metadata.is_balance_enabled },
             GemAssetTrailingStyle::Copy => GemAssetItemTrailing::Copy,
@@ -597,7 +597,7 @@ pub fn asset_title(asset: &Asset) -> String {
 }
 
 pub fn fiat_value(asset: &Asset, balance: &GemAssetBalance, price: Option<f64>, currency: Currency) -> Option<GemFormattedNumber> {
-    fiat_amount(asset, &balance.total(), price, currency, GemCurrencyStyle::Currency)
+    fiat_amount_of(asset, &balance.total(), price, currency, GemCurrencyStyle::Currency)
 }
 
 pub fn fee_amount(asset: &Asset, value: &num_bigint::BigInt, price: Option<f64>, currency: Currency) -> GemFeeAmount {
@@ -609,10 +609,6 @@ pub fn fee_amount(asset: &Asset, value: &num_bigint::BigInt, price: Option<f64>,
 }
 
 pub fn fiat_amount_of(asset: &Asset, value: &num_bigint::BigUint, price: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> Option<GemFormattedNumber> {
-    fiat_amount(asset, &GemBigUint::from(value.clone()), price, currency, style)
-}
-
-fn fiat_amount(asset: &Asset, value: &GemBigUint, price: Option<f64>, currency: Currency, style: GemCurrencyStyle) -> Option<GemFormattedNumber> {
     let value = CryptoFiatConverter::to_fiat_as_f64(value, asset.decimals, price?).ok()?;
     (value > 0.0).then(|| GemFormattedNumber::currency(value, currency, style))
 }

@@ -51,13 +51,6 @@ pub enum SimulationWarningType {
 }
 
 impl SimulationWarningType {
-    fn requires_spender_verification(&self) -> bool {
-        match self {
-            Self::SuspiciousSpender | Self::ExternallyOwnedSpender | Self::ValidationError => false,
-            Self::TokenApproval(_) | Self::NftCollectionApproval(_) | Self::PermitApproval(_) | Self::PermitBatchApproval(_) => true,
-        }
-    }
-
     fn approval_value(&self) -> Option<&Option<BigInt>> {
         match self {
             Self::TokenApproval(a) | Self::PermitApproval(a) => Some(&a.value),
@@ -266,10 +259,6 @@ impl SimulationResult {
         self
     }
 
-    pub fn requires_spender_verification(&self) -> bool {
-        self.warnings.iter().any(|warning| warning.warning.requires_spender_verification())
-    }
-
     fn collapse_warnings(warnings: Vec<SimulationWarning>) -> Vec<SimulationWarning> {
         let max_priority = warnings.iter().map(SimulationWarning::collapse_priority).max().unwrap_or(0);
         if max_priority > 0
@@ -452,13 +441,6 @@ mod tests {
                 Some("Unable to verify spender is a contract".to_string()),
             )]
         );
-    }
-
-    #[test]
-    fn approval_simulation_requires_spender_verification() {
-        let result = SimulationResult::new(vec![SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(BigInt::from(100)))))], vec![]);
-
-        assert!(result.requires_spender_verification());
     }
 
     #[test]

@@ -430,7 +430,7 @@ pub fn value_from_input(decimal_separator: &str, text: &str, decimals: u32) -> R
 }
 
 pub fn input_text(decimal_separator: &str, value: &str, decimals: u32) -> Option<String> {
-    let plain = BigNumberFormatter::big_decimal_value(value, decimals).ok()?.normalized().to_plain_string();
+    let plain = BigNumberFormatter::plain_value(value, decimals).ok()?;
     Some(plain.replace('.', decimal_separator))
 }
 

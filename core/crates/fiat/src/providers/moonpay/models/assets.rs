@@ -3,15 +3,6 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Currency {
-    pub decimals: u32,
-    pub not_allowed_countries: Vec<String>,
-    #[serde(rename = "notAllowedUSStates")]
-    pub not_allowed_us_states: Vec<String>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Asset {
     pub code: String,
     pub metadata: Option<CurrencyMetadata>,

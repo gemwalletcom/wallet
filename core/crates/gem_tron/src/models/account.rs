@@ -103,17 +103,3 @@ pub struct TronUnfrozen {
 pub struct TronReward {
     pub reward: u64,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WitnessesList {
-    pub witnesses: Vec<WitnessAccount>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct WitnessAccount {
-    pub address: String,
-    pub vote_count: Option<u64>,
-    pub url: String,
-    pub is_jobs: Option<bool>,
-}

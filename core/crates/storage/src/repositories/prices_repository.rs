@@ -5,7 +5,7 @@ use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
 use diesel::sql_types::{Nullable, SingleValue, SqlType};
 use diesel::upsert::excluded;
-use primitives::{AssetBasic, AssetId, AssetMarket, AssetPriceInfo, ChartTimeframe, Price, PriceData, PriceId, PriceProvider};
+use primitives::{AssetBasic, AssetId, AssetMarket, AssetPriceInfo, ChartTimeframe, PriceData, PriceId, PriceProvider};
 
 use crate::error::ResourceName;
 use crate::models::min_max::MinMax;
@@ -62,7 +62,6 @@ pub trait PricesRepository {
     fn get_primary_price_key(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<PriceId, DatabaseError>;
     fn get_primary_prices(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError>;
     fn get_primary_price_infos(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
-    fn get_price_by_id(&mut self, price_id: &str) -> Result<Price, DatabaseError>;
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceData>, DatabaseError>;
     fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError>;
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError>;
@@ -224,10 +223,6 @@ impl PricesRepository for DatabaseClient {
             return Ok(vec![]);
         }
         Ok(primary_prices.into_iter().map(|(asset_id, price)| price.as_price_asset_info(asset_id)).collect())
-    }
-
-    fn get_price_by_id(&mut self, price_id: &str) -> Result<Price, DatabaseError> {
-        Ok(price_row(self, price_id).or_not_found(price_id.to_string())?.as_primitive())
     }
 
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceData>, DatabaseError> {

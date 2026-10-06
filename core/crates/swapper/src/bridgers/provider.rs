@@ -23,7 +23,6 @@ use crate::{
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
-    models::ApprovalType,
 };
 
 #[derive(Debug)]
@@ -56,10 +55,9 @@ impl Bridgers {
             return Ok(None);
         };
         let amount = biguint_to_u256(&swap.quote.from_token_amount).ok_or(SwapperError::InvalidRoute)?;
-        match check_approval_erc20(swap.from_address.clone(), token_id.clone(), router.to_string(), amount, self.rpc_provider.clone(), &network.chain).await? {
-            ApprovalType::Approve(data) => Ok(Some(data)),
-            ApprovalType::Permit2(_) | ApprovalType::None => Ok(None),
-        }
+        Ok(check_approval_erc20(swap.from_address.clone(), token_id.clone(), router.to_string(), amount, self.rpc_provider.clone(), &network.chain)
+            .await?
+            .approval_data())
     }
 }
 

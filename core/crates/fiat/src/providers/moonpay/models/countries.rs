@@ -12,7 +12,5 @@ pub struct Country {
 pub struct MoonPayIpAddress {
     pub alpha2: String,
     pub state: String,
-    pub is_buy_allowed: bool,
-    pub is_sell_allowed: bool,
     pub is_allowed: bool,
 }
