@@ -1,9 +1,9 @@
 use super::models::{Asset, FiatCurrency, TransakOrderResponse, TransakQuote};
 use crate::model::{FiatProviderAsset, filter_token_id};
-use primitives::FiatQuoteUrlData;
 use primitives::PaymentType;
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
+use primitives::{Asset as PrimitiveAsset, FiatQuoteUrlData};
 use primitives::{Chain, FiatProviderName, FiatQuoteType, FiatTransactionStatus, FiatTransactionUpdate};
 use serde_json::{Value, json};
 use std::collections::HashMap;
@@ -140,7 +140,8 @@ fn map_limits(fiat_currencies: &[FiatCurrency], quote_type: FiatQuoteType) -> Ve
 
 pub fn map_asset(asset: Asset) -> Option<FiatProviderAsset> {
     let chain = map_asset_chain(&asset.network.name, Some(&asset.coin_id));
-    let token_id = filter_token_id(chain, asset.clone().address);
+    let is_native = chain.is_some_and(|chain| PrimitiveAsset::from_chain(chain).symbol == asset.symbol);
+    let token_id = if is_native { None } else { filter_token_id(chain, asset.clone().address) };
     let enabled = asset.is_allowed && !asset.is_suspended.unwrap_or(false);
     let is_sell_enabled = asset.is_pay_in_allowed.unwrap_or(false);
 
@@ -190,6 +191,22 @@ mod tests {
     use crate::providers::transak::models::{AssetNetwork, Data, FiatCurrency, Response, TransakOrderResponse};
     use num_bigint::BigUint;
     use primitives::{Asset as PrimitiveAsset, Chain, FiatAssetSymbol, FiatProvider, FiatQuote, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
+
+    #[test]
+    fn test_map_asset() {
+        let assets: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/transak/assets.json")).unwrap();
+        let asset_ids: Vec<(String, Option<primitives::AssetId>)> = assets.into_iter().filter_map(map_asset).map(|asset| (asset.id.clone(), asset.asset_id())).collect();
+
+        assert_eq!(
+            asset_ids,
+            vec![
+                ("ETHethereum".to_string(), Some(Chain::Ethereum.as_asset_id())),
+                ("INJinjective".to_string(), Some(Chain::Injective.as_asset_id())),
+                ("APTaptos".to_string(), Some(Chain::Aptos.as_asset_id())),
+                ("USDTaptos".to_string(), Some(primitives::asset_constants::APTOS_USDT_ASSET_ID.clone())),
+            ]
+        );
+    }
 
     #[test]
     fn test_map_order_buy_failed() {

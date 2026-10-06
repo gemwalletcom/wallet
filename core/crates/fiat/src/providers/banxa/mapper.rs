@@ -147,11 +147,27 @@ fn map_payment_type(payment_id: &str) -> Option<PaymentType> {
 
 #[cfg(test)]
 mod tests {
-    use crate::providers::banxa::models::{FiatCurrency, Order};
+    use crate::providers::banxa::models::{Asset, FiatCurrency, Order};
+    use primitives::asset_constants::{APTOS_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID};
     use primitives::currency::Currency;
-    use primitives::{FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
+    use primitives::{AssetId, Chain, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
 
-    use super::{map_limits, map_order};
+    use super::{map_asset_with_limits, map_limits, map_order};
+
+    #[test]
+    fn map_asset_with_limits_keeps_tokens_apart_from_the_native_coin() {
+        let assets: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/banxa/assets_aptos.json")).unwrap();
+        let asset_ids: Vec<(String, Option<AssetId>)> = assets.into_iter().flat_map(|asset| map_asset_with_limits(asset, &[], &[])).map(|asset| (asset.id.clone(), asset.asset_id())).collect();
+
+        assert_eq!(
+            asset_ids,
+            vec![
+                ("APT-APT".to_string(), Some(Chain::Aptos.as_asset_id())),
+                ("USDC-APT".to_string(), Some(APTOS_USDC_ASSET_ID.clone())),
+                ("USDC-ETH".to_string(), Some(ETHEREUM_USDC_ASSET_ID.clone())),
+            ]
+        );
+    }
 
     #[test]
     fn map_order_maps_sell_failure() {

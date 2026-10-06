@@ -1,6 +1,12 @@
 use alloy_primitives::Address;
-use primitives::Chain;
+use primitives::{Chain, decode_hex_array};
 use std::str::FromStr;
+
+const APTOS_COIN_OBJECT: [u8; 32] = {
+    let mut bytes = [0u8; 32];
+    bytes[31] = 0x0a;
+    bytes
+};
 
 pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
     match chain {
@@ -61,6 +67,14 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
                 None
             }
         }
+        Chain::Aptos => {
+            if chain.as_denom() == Some(token_id.as_str()) {
+                return None;
+            }
+            let is_coin_type = token_id.starts_with("0x") && token_id.matches("::").count() == 2;
+            let is_fungible_asset = token_id.len() == 66 && decode_hex_array::<32>(&token_id).is_ok_and(|bytes| bytes != APTOS_COIN_OBJECT);
+            (is_coin_type || is_fungible_asset).then_some(token_id)
+        }
         Chain::Bitcoin
         | Chain::BitcoinCash
         | Chain::Litecoin
@@ -72,7 +86,6 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
         | Chain::Doge
         | Chain::Dash
         | Chain::Zcash
-        | Chain::Aptos
         | Chain::Injective
         | Chain::Noble
         | Chain::Sei
@@ -83,7 +96,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use primitives::asset_constants::{STELLAR_USDC_TOKEN_ID, SUI_WAL_TOKEN_ID, TRON_USDT_TOKEN_ID};
+    use primitives::asset_constants::{APTOS_USDC_TOKEN_ID, STELLAR_USDC_TOKEN_ID, SUI_WAL_TOKEN_ID, TRON_USDT_TOKEN_ID};
 
     use super::*;
 
@@ -105,6 +118,19 @@ mod tests {
         assert_eq!(format_token_id(chain, "0x2::sui::SUI".to_string()), None);
         assert_eq!(format_token_id(chain, SUI_WAL_TOKEN_ID.to_string()), Some(SUI_WAL_TOKEN_ID.to_string()));
         assert_eq!(format_token_id(chain, "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI".to_string()), None);
+    }
+
+    #[test]
+    fn test_format_token_id_aptos() {
+        let chain = Chain::Aptos;
+        let coin_type = "0x159df6b7689437016108a019fd5bef736bac692b6d4a1f10c941f6fbb9a74ca6::oft::CakeOFT".to_string();
+
+        assert_eq!(format_token_id(chain, APTOS_USDC_TOKEN_ID.to_string()), Some(APTOS_USDC_TOKEN_ID.to_string()));
+        assert_eq!(format_token_id(chain, coin_type.clone()), Some(coin_type));
+        assert_eq!(format_token_id(chain, "0x1::aptos_coin::AptosCoin".to_string()), None);
+        assert_eq!(format_token_id(chain, "0x000000000000000000000000000000000000000000000000000000000000000a".to_string()), None);
+        assert_eq!(format_token_id(chain, "0xa".to_string()), None);
+        assert_eq!(format_token_id(chain, "USDC".to_string()), None);
     }
 
     #[test]

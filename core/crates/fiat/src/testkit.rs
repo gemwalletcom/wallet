@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
 use crate::FiatWebhookRequest;
-use crate::model::FiatDeviceContext;
-use primitives::WalletType;
+use crate::model::{FiatDeviceContext, FiatProviderAsset};
+use primitives::asset_constants::APTOS_USDC_TOKEN_ID;
+use primitives::{Chain, FiatProviderName, WalletType};
 
 impl FiatWebhookRequest {
     pub fn mock(raw_body: &str) -> Self {
@@ -11,6 +12,25 @@ impl FiatWebhookRequest {
 
     pub fn mock_with_header(raw_body: &str, name: &str, value: &str) -> Self {
         Self::new(raw_body.to_string(), HashMap::from([(name.to_ascii_lowercase(), value.to_string())]), String::new()).unwrap()
+    }
+}
+
+impl FiatProviderAsset {
+    pub fn mock() -> Self {
+        Self {
+            id: "USDC-APTOS".to_string(),
+            provider: FiatProviderName::Banxa,
+            chain: Some(Chain::Aptos),
+            symbol: "USDC".to_string(),
+            token_id: Some(APTOS_USDC_TOKEN_ID.to_string()),
+            network: Some("APTOS".to_string()),
+            enabled: true,
+            is_buy_enabled: true,
+            is_sell_enabled: false,
+            unsupported_countries: None,
+            buy_limits: vec![],
+            sell_limits: vec![],
+        }
     }
 }
 
