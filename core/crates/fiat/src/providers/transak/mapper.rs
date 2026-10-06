@@ -141,7 +141,7 @@ fn map_limits(fiat_currencies: &[FiatCurrency], quote_type: FiatQuoteType) -> Ve
 pub fn map_asset(asset: Asset) -> Option<FiatProviderAsset> {
     let chain = map_asset_chain(&asset.network.name, Some(&asset.coin_id));
     let is_native = chain.is_some_and(|chain| PrimitiveAsset::from_chain(chain).symbol == asset.symbol);
-    let token_id = if is_native { None } else { filter_token_id(chain, asset.clone().address) };
+    let token_id = if is_native { None } else { Some(filter_token_id(chain, asset.clone().address)?) };
     let enabled = asset.is_allowed && !asset.is_suspended.unwrap_or(false);
     let is_sell_enabled = asset.is_pay_in_allowed.unwrap_or(false);
 

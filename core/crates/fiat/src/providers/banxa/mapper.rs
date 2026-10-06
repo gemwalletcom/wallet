@@ -87,11 +87,12 @@ fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: V
     asset
         .blockchains
         .into_iter()
-        .map(|blockchain| {
+        .filter_map(|blockchain| {
             let chain = map_asset_chain(blockchain.id.as_str());
-            let token_id = filter_token_id(chain, blockchain.address);
+            let is_native = chain.is_some_and(|chain| primitives::Asset::from_chain(chain).symbol == symbol);
+            let token_id = if is_native { None } else { Some(filter_token_id(chain, blockchain.address)?) };
 
-            FiatProviderAsset {
+            Some(FiatProviderAsset {
                 id: format!("{symbol}-{}", blockchain.id),
                 provider: FiatProviderName::Banxa,
                 chain,
@@ -104,7 +105,7 @@ fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: V
                 unsupported_countries: Some(blockchain.unsupported_countries.list_map()),
                 buy_limits: buy_limits.clone(),
                 sell_limits: sell_limits.clone(),
-            }
+            })
         })
         .collect()
 }

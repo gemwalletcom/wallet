@@ -1,4 +1,4 @@
-use chain_primitives::format_token_id;
+use chain_primitives::{format_token_id, is_native_token_id};
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{
     Asset, AssetId, Chain, CosmosDenom, FiatAssetSymbol, FiatProviderName, RequestError, WalletType,
@@ -96,7 +96,7 @@ pub fn filter_token_id(chain: Option<Chain>, token_id: Option<String>) -> Option
         ]
         .contains(&contract_address.as_str())
     })?;
-    if chain.is_some_and(|chain| chain.as_denom() == Some(token_id.as_str())) {
+    if chain.is_some_and(|chain| is_native_token_id(chain, &token_id)) {
         return None;
     }
     Some(token_id)
@@ -111,6 +111,7 @@ mod tests {
     fn test_filter_token_id() {
         assert_eq!(filter_token_id(Some(Chain::Ethereum), Some(EVM_ZERO_ADDRESS.to_string())), None);
         assert_eq!(filter_token_id(Some(Chain::Aptos), Some("0x1::aptos_coin::AptosCoin".to_string())), None);
+        assert_eq!(filter_token_id(Some(Chain::Sui), Some("0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI".to_string())), None);
         assert_eq!(filter_token_id(Some(Chain::Aptos), Some(APTOS_USDC_TOKEN_ID.to_string())), Some(APTOS_USDC_TOKEN_ID.to_string()));
         assert_eq!(filter_token_id(Some(Chain::Cardano), Some("asset1abc".to_string())), Some("asset1abc".to_string()));
         assert_eq!(filter_token_id(None, Some("abc".to_string())), Some("abc".to_string()));

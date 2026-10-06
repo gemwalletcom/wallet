@@ -42,7 +42,7 @@ impl FiatProvider for MercuryoClient {
         }))
         .await;
 
-        Ok(assets_with_limits.into_iter().map(|(asset, limits)| map_asset_with_limits(asset, limits.clone(), limits)).collect())
+        Ok(assets_with_limits.into_iter().filter_map(|(asset, limits)| map_asset_with_limits(asset, limits.clone(), limits)).collect())
     }
 
     async fn get_countries(&self) -> Result<Vec<FiatProviderCountry>, Box<dyn std::error::Error + Send + Sync>> {
