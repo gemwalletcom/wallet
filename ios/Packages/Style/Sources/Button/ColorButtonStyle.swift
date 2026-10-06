@@ -140,15 +140,6 @@ public extension ButtonStyle where Self == ColorButtonStyle {
     ) -> ColorButtonStyle {
         .styled(.green, paddingHorizontal: paddingHorizontal, paddingVertical: paddingVertical, cornerRadius: cornerRadius, glassEffect: glassEffect)
     }
-
-    static func listEmpty(
-        paddingHorizontal: CGFloat = .small,
-        paddingVertical: CGFloat = .small,
-        cornerRadius: CGFloat = .small,
-        glassEffect: GlassEffectSettings = .isInteractive,
-    ) -> ColorButtonStyle {
-        .styled(.listEmpty, paddingHorizontal: paddingHorizontal, paddingVertical: paddingVertical, cornerRadius: cornerRadius, glassEffect: glassEffect)
-    }
 }
 
 // MARK: – Previews
