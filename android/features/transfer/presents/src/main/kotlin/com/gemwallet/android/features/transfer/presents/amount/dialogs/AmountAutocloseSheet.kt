@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer.presents.amount.dialogs
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -28,7 +29,7 @@ import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.TpslType
 
 @Composable
@@ -58,7 +59,6 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .padding(horizontal = paddingDefault)
                 .imePadding(),
         ) {
             provider.openPositionRow(amount)?.let { AssetListItem(row = it, listPosition = ListPosition.Single) }
@@ -91,21 +91,23 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
                 },
             )
             Spacer(Modifier.weight(1f))
-            if (activeField != null && activeField.text.isEmpty()) {
-                PercentSuggestionsBar(
-                    suggestions = activeField.suggestions,
-                    onPercentSelected = { percent -> provider.onAutoclosePercentSelected(activeField.tpslType.toPrimitives(), percent) },
-                )
-            } else {
-                MainActionButton(
-                    title = stringResource(R.string.common_done),
-                    state = buttonState(enabled = viewState.confirmEnabled),
-                    onClick = {
-                        if (provider.onAutocloseSubmitted()) {
-                            onDismiss()
-                        }
-                    },
-                )
+            Box(modifier = Modifier.padding(horizontal = sceneContentPadding())) {
+                if (activeField != null && activeField.text.isEmpty()) {
+                    PercentSuggestionsBar(
+                        suggestions = activeField.suggestions,
+                        onPercentSelected = { percent -> provider.onAutoclosePercentSelected(activeField.tpslType.toPrimitives(), percent) },
+                    )
+                } else {
+                    MainActionButton(
+                        title = stringResource(R.string.common_done),
+                        state = buttonState(enabled = viewState.confirmEnabled),
+                        onClick = {
+                            if (provider.onAutocloseSubmitted()) {
+                                onDismiss()
+                            }
+                        },
+                    )
+                }
             }
             Spacer16()
         }
