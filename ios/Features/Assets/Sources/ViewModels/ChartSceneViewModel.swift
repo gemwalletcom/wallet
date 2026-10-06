@@ -2,16 +2,15 @@
 
 import Components
 import Foundation
-import struct Gemstone.AssetPrice
-import struct Gemstone.GemChart
 import struct Gemstone.GemChartData
+import struct Gemstone.GemChartInput
 import enum Gemstone.GemChartPhase
 import protocol Gemstone.GemChartServiceProtocol
 import struct Gemstone.GemChartSession
+import struct Gemstone.GemChartView
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemListSection
-import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -28,22 +27,20 @@ public final class ChartSceneViewModel: ChartListViewable {
 
     let asset: Asset
 
-    private var session: GemChartSession
+    private var session: GemChartSession {
+        didSet { view = service.viewState(session: session, input: priceData.map()) }
+    }
+
+    private(set) var view: GemChartView
+
     public var selectedPeriod: ChartPeriod {
         get { session.period.toPrimitives() }
-        set {
-            session = session.onSelectPeriod(period: newValue.toGem())
-            do {
-                try service.setChartPeriod(period: newValue.toGem())
-            } catch {
-                debugLog("ChartSceneViewModel chart period error: \(error)")
-            }
-        }
+        set { session = session.onSelectPeriod(period: newValue.toGem()) }
     }
 
     public let priceQuery: ObservableQuery<PriceQuery>
-    var priceData: PriceData? {
-        priceQuery.value
+    var priceData: PriceData {
+        priceQuery.value ?? .with(asset: asset)
     }
 
     var isPresentingInfoSheet: GemInfoSheet?
@@ -55,26 +52,12 @@ public final class ChartSceneViewModel: ChartListViewable {
     }
 
     public var chartState: StateViewType<GemChartData> {
-        switch session.viewState(price: currentPrice).phase {
-        case .loading: .loading
-        case let .data(data): .data(data)
-        case .noData: .noData
-        case let .failed(error): .error(error)
-        }
+        view.phase.map()
     }
 
-    private var currentPrice: AssetPrice? {
-        priceData?.price.map {
-            AssetPrice(
-                assetId: asset.id,
-                price: $0.price,
-                priceChangePercentage24h: $0.priceChangePercentage24h,
-                updatedAt: $0.updatedAt,
-            )
-        }
+    var sections: [GemListSection] {
+        view.sections
     }
-
-    private(set) var sections: [GemListSection] = []
 
     public init(
         service: any GemChartServiceProtocol,
@@ -86,8 +69,11 @@ public final class ChartSceneViewModel: ChartListViewable {
         self.service = service
         self.preferences = preferences
         self.asset = asset
-        session = service.newSession()
-        priceQuery = ObservableQuery(PriceQuery(assetId: asset.id), initialValue: .with(asset: asset))
+        let session = service.newSession()
+        let priceData = PriceData.with(asset: asset)
+        self.session = session
+        priceQuery = ObservableQuery(PriceQuery(assetId: asset.id), initialValue: priceData)
+        view = service.viewState(session: session, input: priceData.map())
         self.onSetPriceAlert = onSetPriceAlert
         self.onSelectAddress = onSelectAddress
     }
@@ -97,33 +83,15 @@ public final class ChartSceneViewModel: ChartListViewable {
 
 public extension ChartSceneViewModel {
     func load() async {
-        let period = selectedPeriod.toGem()
         session = session.onRefresh()
-        do {
-            let chart = try await service.syncCharts(assetId: asset.id, period: period)
-            session = session.onLoaded(chart: chart, period: period)
-        } catch let error as GemServiceError {
-            session = session.onFailed(error: error, period: period)
-        } catch {
-            debugLog("chart scene: load error \(error)")
+        while !Task.isCancelled, let request = session.request() {
+            let result = await service.load(assetId: asset.id, request: request)
+            session = session.onResult(result: result)
         }
     }
 
-    func updateSections() async {
-        guard let priceData else { return }
-        do {
-            let sections = try await service.sections(
-                asset: priceData.asset.toGem(),
-                price: priceData.price?.price,
-                market: priceData.market?.toGem(),
-                priceAlerts: priceData.priceAlerts.map { $0.toGem() },
-                links: priceData.links.map { $0.toGem() },
-            )
-            guard !Task.isCancelled, priceData == self.priceData else { return }
-            self.sections = sections
-        } catch {
-            debugLog("chart scene: sections error \(error)")
-        }
+    func onChangePriceData() {
+        view = service.viewState(session: session, input: priceData.map())
     }
 
     func onZoom(_ magnification: Double, anchor: Double) {
@@ -144,11 +112,9 @@ public extension ChartSceneViewModel {
 
     func onChangeCurrency() async {
         let next = session.onCurrency(currency: currency.toGem())
-        if next != session {
-            session = next
-            await load()
-        }
-        await updateSections()
+        guard next != session else { return }
+        session = next
+        await load()
     }
 
     func onSelectSetPriceAlerts() {
@@ -163,5 +129,30 @@ public extension ChartSceneViewModel {
 
     internal func onInfo(_ topic: GemInfoTopic) {
         isPresentingInfoSheet = topic.infoSheet
+    }
+}
+
+// MARK: - Private
+
+private extension PriceData {
+    func map() -> GemChartInput {
+        GemChartInput(
+            asset: asset.toGem(),
+            price: price?.toGem(),
+            market: market?.toGem(),
+            priceAlerts: priceAlerts.map { $0.toGem() },
+            links: links.map { $0.toGem() },
+        )
+    }
+}
+
+private extension GemChartPhase {
+    func map() -> StateViewType<GemChartData> {
+        switch self {
+        case .loading: .loading
+        case let .data(data): .data(data)
+        case .noData: .noData
+        case let .failed(error): .error(error)
+        }
     }
 }
