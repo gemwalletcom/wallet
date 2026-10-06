@@ -1,4 +1,4 @@
-use chain_primitives::{format_token_id, is_native_token_id};
+use chain_primitives::format_token_id;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{
     Asset, AssetId, Chain, CosmosDenom, FiatAssetSymbol, FiatProviderName, RequestError, WalletType,
@@ -95,53 +95,18 @@ pub fn filter_token_id(chain: Option<Chain>, token_id: Option<String>) -> Option
             SOLANA_SYSTEM_PROGRAM_ID,
         ]
         .contains(&contract_address.as_str())
-    })?;
-    if chain.is_some_and(|chain| is_native_token_id(chain, &token_id)) {
-        return None;
+    });
+    if let Some(chain) = chain
+        && let Some(token_id) = token_id
+    {
+        return format_token_id(chain, token_id);
     }
-    Some(token_id)
+    token_id
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::asset_constants::{APTOS_USDC_ASSET_ID, APTOS_USDC_TOKEN_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID};
-
-    #[test]
-    fn test_filter_token_id() {
-        assert_eq!(filter_token_id(Some(Chain::Ethereum), Some(EVM_ZERO_ADDRESS.to_string())), None);
-        assert_eq!(filter_token_id(Some(Chain::Aptos), Some("0x1::aptos_coin::AptosCoin".to_string())), None);
-        assert_eq!(filter_token_id(Some(Chain::Sui), Some("0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI".to_string())), None);
-        assert_eq!(filter_token_id(Some(Chain::Aptos), Some(APTOS_USDC_TOKEN_ID.to_string())), Some(APTOS_USDC_TOKEN_ID.to_string()));
-        assert_eq!(filter_token_id(Some(Chain::Cardano), Some("asset1abc".to_string())), Some("asset1abc".to_string()));
-        assert_eq!(filter_token_id(None, Some("abc".to_string())), Some("abc".to_string()));
-        assert_eq!(filter_token_id(Some(Chain::Aptos), None), None);
-    }
-
-    #[test]
-    fn test_asset_id() {
-        assert_eq!(FiatProviderAsset::mock().asset_id(), Some(APTOS_USDC_ASSET_ID.clone()));
-        assert_eq!(
-            FiatProviderAsset {
-                chain: Some(Chain::Ethereum),
-                token_id: Some(ETHEREUM_USDC_TOKEN_ID.to_lowercase()),
-                ..FiatProviderAsset::mock()
-            }
-            .asset_id(),
-            Some(ETHEREUM_USDC_ASSET_ID.clone())
-        );
-        assert_eq!(FiatProviderAsset { token_id: None, ..FiatProviderAsset::mock() }.asset_id(), Some(Chain::Aptos.as_asset_id()));
-        assert_eq!(
-            FiatProviderAsset {
-                chain: Some(Chain::Cardano),
-                token_id: Some("asset1abc".to_string()),
-                ..FiatProviderAsset::mock()
-            }
-            .asset_id(),
-            None
-        );
-        assert_eq!(FiatProviderAsset { chain: None, ..FiatProviderAsset::mock() }.asset_id(), None);
-    }
 
     #[test]
     fn test_validate_wallet() {

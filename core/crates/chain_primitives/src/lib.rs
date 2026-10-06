@@ -4,4 +4,4 @@ pub mod token_id;
 
 pub use address::checksum_address;
 pub use balance_diff::{BalanceDiff, SwapMapper};
-pub use token_id::{format_token_id, is_native_token_id};
+pub use token_id::format_token_id;

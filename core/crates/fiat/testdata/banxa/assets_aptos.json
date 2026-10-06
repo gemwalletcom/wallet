@@ -16,16 +16,6 @@
         "id": "APT",
         "address": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
         "unsupportedCountries": []
-      },
-      {
-        "id": "ETH",
-        "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-        "unsupportedCountries": []
-      },
-      {
-        "id": "SUI",
-        "address": null,
-        "unsupportedCountries": []
       }
     ]
   }

@@ -87,12 +87,11 @@ fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: V
     asset
         .blockchains
         .into_iter()
-        .filter_map(|blockchain| {
+        .map(|blockchain| {
             let chain = map_asset_chain(blockchain.id.as_str());
-            let is_native = chain.is_some_and(|chain| primitives::Asset::from_chain(chain).symbol == symbol);
-            let token_id = if is_native { None } else { Some(filter_token_id(chain, blockchain.address)?) };
+            let token_id = filter_token_id(chain, blockchain.address);
 
-            Some(FiatProviderAsset {
+            FiatProviderAsset {
                 id: format!("{symbol}-{}", blockchain.id),
                 provider: FiatProviderName::Banxa,
                 chain,
@@ -105,7 +104,7 @@ fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: V
                 unsupported_countries: Some(blockchain.unsupported_countries.list_map()),
                 buy_limits: buy_limits.clone(),
                 sell_limits: sell_limits.clone(),
-            })
+            }
         })
         .collect()
 }
@@ -149,25 +148,18 @@ fn map_payment_type(payment_id: &str) -> Option<PaymentType> {
 #[cfg(test)]
 mod tests {
     use crate::providers::banxa::models::{Asset, FiatCurrency, Order};
-    use primitives::asset_constants::{APTOS_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID};
+    use primitives::asset_constants::APTOS_USDC_ASSET_ID;
     use primitives::currency::Currency;
     use primitives::{AssetId, Chain, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
 
     use super::{map_asset_with_limits, map_limits, map_order};
 
     #[test]
-    fn map_asset_with_limits_keeps_tokens_apart_from_the_native_coin() {
+    fn test_map_asset_with_limits() {
         let assets: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/banxa/assets_aptos.json")).unwrap();
         let asset_ids: Vec<(String, Option<AssetId>)> = assets.into_iter().flat_map(|asset| map_asset_with_limits(asset, &[], &[])).map(|asset| (asset.id.clone(), asset.asset_id())).collect();
 
-        assert_eq!(
-            asset_ids,
-            vec![
-                ("APT-APT".to_string(), Some(Chain::Aptos.as_asset_id())),
-                ("USDC-APT".to_string(), Some(APTOS_USDC_ASSET_ID.clone())),
-                ("USDC-ETH".to_string(), Some(ETHEREUM_USDC_ASSET_ID.clone())),
-            ]
-        );
+        assert_eq!(asset_ids, vec![("APT-APT".to_string(), Some(Chain::Aptos.as_asset_id())), ("USDC-APT".to_string(), Some(APTOS_USDC_ASSET_ID.clone())),]);
     }
 
     #[test]

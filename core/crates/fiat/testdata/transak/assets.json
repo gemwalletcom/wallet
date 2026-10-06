@@ -1,67 +1,32 @@
 [
   {
-    "coinId": "ethereum",
-    "uniqueId": "ETHethereum",
-    "symbol": "ETH",
-    "network": {
-      "name": "ethereum"
-    },
-    "address": "0x0000000000000000000000000000000000000000",
-    "isAllowed": true,
-    "isSuspended": false,
-    "isPayInAllowed": true,
-    "kycCountriesNotSupported": []
-  },
-  {
-    "coinId": "injective-protocol",
-    "uniqueId": "INJinjective",
-    "symbol": "INJ",
-    "network": {
-      "name": "injective"
-    },
-    "address": "0xa2b726b1145a4773f68593cf171187d8ebe4d495",
-    "isAllowed": true,
-    "isSuspended": false,
-    "isPayInAllowed": false,
-    "kycCountriesNotSupported": []
-  },
-  {
     "coinId": "aptos",
     "uniqueId": "APTaptos",
     "symbol": "APT",
     "network": {
-      "name": "aptos"
+      "name": "aptos",
+      "fiatCurrenciesNotSupported": [],
+      "chainId": null
     },
     "address": null,
     "isAllowed": true,
-    "isSuspended": false,
+    "isSuspended": null,
     "isPayInAllowed": false,
-    "kycCountriesNotSupported": []
+    "kycCountriesNotSupported": ["US", "CA"]
   },
   {
     "coinId": "tether",
     "uniqueId": "USDTaptos",
     "symbol": "USDT",
     "network": {
-      "name": "aptos"
+      "name": "aptos",
+      "fiatCurrenciesNotSupported": [],
+      "chainId": null
     },
     "address": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
     "isAllowed": true,
     "isSuspended": false,
     "isPayInAllowed": false,
-    "kycCountriesNotSupported": []
-  },
-  {
-    "coinId": "tether",
-    "uniqueId": "USDTsui",
-    "symbol": "USDT",
-    "network": {
-      "name": "sui"
-    },
-    "address": null,
-    "isAllowed": true,
-    "isSuspended": false,
-    "isPayInAllowed": false,
-    "kycCountriesNotSupported": []
+    "kycCountriesNotSupported": ["US", "CA"]
   }
 ]

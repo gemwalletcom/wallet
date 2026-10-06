@@ -1,40 +1,8 @@
 use alloy_primitives::Address;
-use primitives::chain_aptos::is_fungible_asset_token_id;
-use primitives::{AssetId, Chain};
+use primitives::{Chain, chain_aptos::is_fungible_asset_token_id};
 use std::str::FromStr;
 
-const APTOS_COIN_OBJECT_ID: &str = "0xa";
-
-pub fn is_native_token_id(chain: Chain, token_id: &str) -> bool {
-    let Some(denom) = chain.as_denom() else {
-        return false;
-    };
-    match chain {
-        Chain::Sui => is_same_move_id(token_id, denom),
-        Chain::Aptos => is_same_move_id(token_id, denom) || is_same_move_id(token_id, APTOS_COIN_OBJECT_ID),
-        _ => token_id == denom,
-    }
-}
-
-fn is_same_move_id(left: &str, right: &str) -> bool {
-    let left = AssetId::decode_token_id(left);
-    let right = AssetId::decode_token_id(right);
-    left.len() == right.len() && is_same_move_address(&left[0], &right[0]) && left[1..] == right[1..]
-}
-
-fn is_same_move_address(left: &str, right: &str) -> bool {
-    let digits = |address: &str| address.trim_start_matches("0x").trim_start_matches('0').to_ascii_lowercase();
-    digits(left) == digits(right)
-}
-
-fn is_move_coin_type(token_id: &str) -> bool {
-    token_id.starts_with("0x") && AssetId::decode_token_id(token_id).len() == 3
-}
-
 pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
-    if is_native_token_id(chain, &token_id) {
-        return None;
-    }
     match chain {
         Chain::Ethereum
         | Chain::SmartChain
@@ -79,7 +47,13 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
             token_id.starts_with('r').then_some(token_id)
         }
         Chain::Algorand => token_id.parse::<i32>().ok().map(|token_id| token_id.to_string()),
-        Chain::Sui => (token_id.len() >= 64 && is_move_coin_type(&token_id)).then_some(token_id),
+        Chain::Sui => {
+            if token_id.len() >= 64 && token_id.starts_with("0x") && token_id.matches("::").count() == 2 && !token_id.starts_with("0x0000000000000000000000000000000000000000000000000000000000000002") {
+                Some(token_id)
+            } else {
+                None
+            }
+        }
         Chain::Stellar => {
             if let Some((issuer, symbol)) = token_id.split_once("::") {
                 (issuer.len() == 56 && issuer.starts_with('G') && !symbol.is_empty()).then_some(token_id)
@@ -87,7 +61,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
                 None
             }
         }
-        Chain::Aptos => (is_move_coin_type(&token_id) || is_fungible_asset_token_id(&token_id)).then_some(token_id),
+        Chain::Aptos => is_fungible_asset_token_id(&token_id).then_some(token_id),
         Chain::Bitcoin
         | Chain::BitcoinCash
         | Chain::Litecoin
@@ -134,30 +108,8 @@ mod tests {
     }
 
     #[test]
-    fn test_is_native_token_id() {
-        assert!(is_native_token_id(Chain::Sui, "0x2::sui::SUI"));
-        assert!(is_native_token_id(Chain::Sui, "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI"));
-        assert!(!is_native_token_id(Chain::Sui, SUI_WAL_TOKEN_ID));
-        assert!(is_native_token_id(Chain::Aptos, "0x1::aptos_coin::AptosCoin"));
-        assert!(is_native_token_id(Chain::Aptos, "0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin"));
-        assert!(is_native_token_id(Chain::Aptos, "0xa"));
-        assert!(is_native_token_id(Chain::Aptos, "0x000000000000000000000000000000000000000000000000000000000000000A"));
-        assert!(!is_native_token_id(Chain::Aptos, APTOS_USDC_TOKEN_ID));
-        assert!(is_native_token_id(Chain::Cosmos, "uatom"));
-        assert!(!is_native_token_id(Chain::Ethereum, "0x0000000000000000000000000000000000000000"));
-    }
-
-    #[test]
     fn test_format_token_id_aptos() {
-        let chain = Chain::Aptos;
-        let coin_type = "0x159df6b7689437016108a019fd5bef736bac692b6d4a1f10c941f6fbb9a74ca6::oft::CakeOFT".to_string();
-
-        assert_eq!(format_token_id(chain, APTOS_USDC_TOKEN_ID.to_string()), Some(APTOS_USDC_TOKEN_ID.to_string()));
-        assert_eq!(format_token_id(chain, coin_type.clone()), Some(coin_type));
-        assert_eq!(format_token_id(chain, "0x1::aptos_coin::AptosCoin".to_string()), None);
-        assert_eq!(format_token_id(chain, "0x000000000000000000000000000000000000000000000000000000000000000a".to_string()), None);
-        assert_eq!(format_token_id(chain, "0xa".to_string()), None);
-        assert_eq!(format_token_id(chain, "USDC".to_string()), None);
+        assert_eq!(format_token_id(Chain::Aptos, APTOS_USDC_TOKEN_ID.to_string()), Some(APTOS_USDC_TOKEN_ID.to_string()));
     }
 
     #[test]
