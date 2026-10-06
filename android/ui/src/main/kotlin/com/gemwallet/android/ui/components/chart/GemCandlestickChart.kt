@@ -64,8 +64,8 @@ import kotlin.math.min
 private object CandlestickMetrics {
     val topPadding = paddingDefault
     val bottomPadding = space24
-    val rightAxisWidth = 88.dp
     val leftPadding = space8
+    val rightPadding = space8
     val labelPadding = space4
     val volumeBandGap = space4
     val timeLabelGap = space4
@@ -148,7 +148,12 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
     val topPaddingPx = with(density) { CandlestickMetrics.topPadding.toPx() }
     val bottomPaddingPx = with(density) { CandlestickMetrics.bottomPadding.toPx() }
     val leftPaddingPx = with(density) { CandlestickMetrics.leftPadding.toPx() }
-    val rightAxisWidthPx = with(density) { CandlestickMetrics.rightAxisWidth.toPx() }
+    val priceLabelWidthPx = remember(layout.levels, layout.currentPrice, axisLabelStyle, density) {
+        val levelWidth = layout.levels.maxOfOrNull { textMeasurer.measure(it.text(), axisLabelStyle).size.width } ?: 0
+        val currentPriceWidth = textMeasurer.measure(layout.currentPrice.text(), whiteLabelStyle).size.width + 2f * currentPriceBadgeHorizontalPaddingPx
+        maxOf(levelWidth.toFloat(), currentPriceWidth)
+    }
+    val rightAxisWidthPx = labelPaddingPx + priceLabelWidthPx + with(density) { CandlestickMetrics.rightPadding.toPx() }
     val volumeBandGapPx = with(density) { CandlestickMetrics.volumeBandGap.toPx() }
 
     var chartSize by remember { mutableStateOf(IntSize.Zero) }
