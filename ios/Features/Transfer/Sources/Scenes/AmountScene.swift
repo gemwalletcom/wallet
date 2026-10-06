@@ -38,7 +38,7 @@ public struct AmountScene: View {
                         balance: model.balanceText,
                         secondary: {
                             Button(model.maxTitle, action: onSelectMaxButton)
-                                .buttonStyle(.listEmpty(paddingHorizontal: .medium, paddingVertical: .small))
+                                .buttonStyle(.amount(paddingHorizontal: .medium, paddingVertical: .small))
                                 .fixedSize()
                         },
                     )

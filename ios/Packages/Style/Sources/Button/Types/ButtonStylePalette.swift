@@ -98,12 +98,4 @@ extension ButtonStylePalette {
         backgroundPressed: Colors.greenFaded,
         backgroundDisabled: Colors.greenFadedLight,
     )
-
-    static let listEmpty = ButtonStylePalette(
-        foreground: Colors.gray,
-        foregroundPressed: Colors.black,
-        background: Colors.Empty.listEmpty,
-        backgroundPressed: Colors.Empty.listEmpty,
-        backgroundDisabled: Colors.Empty.listEmpty,
-    )
 }
