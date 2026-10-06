@@ -62,7 +62,7 @@ struct TransactionsNavigationView: View {
                 CollectibleScene(
                     model: viewModelFactory.collectibleScene(
                         wallet: model.wallet,
-                        assetData: $0.assetData,
+                        collectible: $0,
                         isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
                         onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
                     ),

@@ -13,17 +13,14 @@ public struct NFTAssetQuery: DatabaseQueryable {
         self.assetId = assetId
     }
 
-    public func fetch(_ db: Database) throws -> NFTAssetDetails {
-        guard let info = try NFTAssetRecord
+    public func fetch(_ db: Database) throws -> NFTAssetDetails? {
+        try NFTAssetRecord
             .filter(NFTAssetRecord.Columns.id == assetId.identifier)
             .including(required: NFTAssetRecord.collection.forKey("collection"))
             .including(all: NFTAssetRecord.assetAssociations.filter(NFTAssetAssociationRecord.Columns.walletId == walletId.id).forKey("associations"))
             .asRequest(of: NFTAssetRecordInfo.self)
-            .fetchOne(db)
-        else {
-            throw AnyError("NFT asset not found: \(assetId.identifier)")
-        }
-        return info.mapToDetails()
+            .fetchOne(db)?
+            .mapToDetails()
     }
 }
 
