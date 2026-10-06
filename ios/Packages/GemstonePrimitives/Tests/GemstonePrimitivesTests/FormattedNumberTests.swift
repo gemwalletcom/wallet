@@ -2,7 +2,6 @@
 
 import BigInt
 import Foundation
-import func Gemstone.formattedAmount
 import func Gemstone.formattedCurrency
 import struct Gemstone.GemFormattedNumber
 @testable import GemstonePrimitives
@@ -91,12 +90,12 @@ struct FormattedNumberTests {
     }
 
     @Test
-    func anAmountReadsWithTheAutoStyle() throws {
-        let amounts: [(Double, String)] = [(5.205516, "5.2 ATOM"), (0.099999, "0.09999 ATOM"), (0.1992, "0.1992 ATOM"), (1_239_999, "1,239,999 ATOM"), (0.00000546, "0.00000546 ATOM")]
+    func aSignificantPrecisionKeepsFourDigitsAndTruncates() {
+        let amounts: [(Double, String)] = [(0.099999, "0.09999 ATOM"), (0.1992, "0.1992 ATOM"), (0.00000546, "0.00000546 ATOM")]
 
         for (value, text) in amounts {
-            let formatted = try formattedAmount(value: value, symbol: "ATOM", style: .auto).text(locale: .US)
-            #expect(formatted == text)
+            let amount = GemFormattedNumber(value: value, unit: .symbol(symbol: "ATOM"), display: .number(precision: .significant(max: 4)), notation: .plain, tone: .plain, rounding: .towardZero, exact: nil)
+            #expect(amount.text(locale: .US) == text)
         }
     }
 }
