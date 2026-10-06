@@ -92,6 +92,7 @@ internal fun PerpetualsScene(
                 SearchBar(
                     query = query,
                     modifier = Modifier.listItem(com.gemwallet.android.ui.models.ListPosition.Single, paddingHorizontal = space0),
+                    autoFocus = true,
                 )
             } else {
                 Text(stringResource(R.string.perpetuals_title))
