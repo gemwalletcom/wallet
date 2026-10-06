@@ -2,11 +2,13 @@ package com.gemwallet.android.features.transfer.presents.amount.dialogs
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,6 +23,7 @@ import com.gemwallet.android.features.transfer.viewmodels.amount.providers.Amoun
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
@@ -55,44 +58,50 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
         expansion = SheetExpansion.Full,
         title = stringResource(R.string.perpetual_auto_close),
     ) {
+        val isPercentBarVisible = WindowInsets.isKeyboardVisible && activeField != null && activeField.text.isEmpty()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
                 .imePadding(),
         ) {
-            provider.openPositionRow(amount)?.let { AssetListItem(row = it, listPosition = ListPosition.Single) }
-            Spacer16()
-            viewState.priceRows.forEachIndexed { index, row ->
-                GemListRowView(row = row, listPosition = ListPosition.getPosition(index, viewState.priceRows.size))
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                provider.openPositionRow(amount)?.let { AssetListItem(row = it, listPosition = ListPosition.Single) }
+                Spacer16()
+                viewState.priceRows.forEachIndexed { index, row ->
+                    GemListRowView(row = row, listPosition = ListPosition.getPosition(index, viewState.priceRows.size))
+                }
+                Spacer16()
+                AutocloseInputSection(
+                    field = viewState.takeProfit,
+                    onTextChanged = { provider.onAutocloseChanged(TpslType.TakeProfit, it) },
+                    onFocusChanged = { hasFocus ->
+                        if (hasFocus) {
+                            focused = TpslType.TakeProfit
+                        } else if (focused == TpslType.TakeProfit) {
+                            focused = null
+                        }
+                    },
+                )
+                Spacer16()
+                AutocloseInputSection(
+                    field = viewState.stopLoss,
+                    onTextChanged = { provider.onAutocloseChanged(TpslType.StopLoss, it) },
+                    onFocusChanged = { hasFocus ->
+                        if (hasFocus) {
+                            focused = TpslType.StopLoss
+                        } else if (focused == TpslType.StopLoss) {
+                            focused = null
+                        }
+                    },
+                )
             }
-            Spacer16()
-            AutocloseInputSection(
-                field = viewState.takeProfit,
-                onTextChanged = { provider.onAutocloseChanged(TpslType.TakeProfit, it) },
-                onFocusChanged = { hasFocus ->
-                    if (hasFocus) {
-                        focused = TpslType.TakeProfit
-                    } else if (focused == TpslType.TakeProfit) {
-                        focused = null
-                    }
-                },
-            )
-            Spacer16()
-            AutocloseInputSection(
-                field = viewState.stopLoss,
-                onTextChanged = { provider.onAutocloseChanged(TpslType.StopLoss, it) },
-                onFocusChanged = { hasFocus ->
-                    if (hasFocus) {
-                        focused = TpslType.StopLoss
-                    } else if (focused == TpslType.StopLoss) {
-                        focused = null
-                    }
-                },
-            )
-            Spacer(Modifier.weight(1f))
             Box(modifier = Modifier.padding(horizontal = sceneContentPadding())) {
-                if (activeField != null && activeField.text.isEmpty()) {
+                if (isPercentBarVisible) {
                     PercentSuggestionsBar(
                         suggestions = activeField.suggestions,
                         onPercentSelected = { percent -> provider.onAutoclosePercentSelected(activeField.tpslType.toPrimitives(), percent) },
