@@ -39,7 +39,7 @@ impl WalletConnectCAIP2 {
             WalletConnectCAIP2::Algorand => Some(Chain::Algorand),
             WalletConnectCAIP2::Sui => Some(Chain::Sui),
             WalletConnectCAIP2::Ton => Some(Chain::Ton),
-            WalletConnectCAIP2::Tron => Some(Chain::Tron),
+            WalletConnectCAIP2::Tron => (reference == Chain::Tron.network_id() || Some(reference) == Self::get_reference(Chain::Tron)).then_some(Chain::Tron),
         }
     }
 
@@ -51,9 +51,17 @@ impl WalletConnectCAIP2 {
             ChainType::Algorand => Some("wGHE2Pwdvd7S12BL5FaOP20EGYesN73k".to_string()),
             ChainType::Sui => Some("mainnet".to_string()),
             ChainType::Ton => Some("-239".to_string()),
-            ChainType::Tron => Some(chain.network_id().to_string()),
+            ChainType::Tron => chain.network_id_value().map(|value| value.to_string()),
             ChainType::Bitcoin | ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => None,
         }
+    }
+
+    pub fn get_references(chain: Chain) -> Vec<String> {
+        let mut references: Vec<_> = Self::get_reference(chain).into_iter().collect();
+        if chain == Chain::Tron {
+            references.push(chain.network_id().to_string());
+        }
+        references
     }
 
     pub fn parse_chain_id(chain_id: String) -> Option<Chain> {
@@ -167,6 +175,19 @@ mod tests {
         );
         assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:99999/slip44:60"), None);
         assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:1/erc20"), None);
+    }
+
+    #[test]
+    fn test_get_references() {
+        assert_eq!(WalletConnectCAIP2::get_references(Chain::Tron), vec!["728126428", "0x2b6653dc"]);
+        assert_eq!(WalletConnectCAIP2::get_references(Chain::Base), vec!["8453"]);
+        assert_eq!(WalletConnectCAIP2::get_references(Chain::Bitcoin), Vec::<String>::new());
+        for reference in WalletConnectCAIP2::get_references(Chain::Tron) {
+            assert_eq!(WalletConnectCAIP2::get_chain("tron".to_string(), reference), Some(Chain::Tron));
+        }
+        for reference in ["2494104990", "0x94a9059e", "3448148188", "0xcd8690dc", "testnet", "", "0728126428"] {
+            assert_eq!(WalletConnectCAIP2::get_chain("tron".to_string(), reference.to_string()), None);
+        }
     }
 
     #[test]

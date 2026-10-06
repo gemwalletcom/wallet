@@ -134,6 +134,7 @@ let package = Package(
             name: "WalletConnectorServiceTestKit",
             dependencies: [
                 "WalletConnectorService",
+                .product(name: "WalletConnect", package: "reown-swift"),
             ],
             path: "WalletConnectorService/TestKit",
         ),
@@ -143,6 +144,8 @@ let package = Package(
                 "WalletConnectorService",
                 "WalletConnectorServiceTestKit",
                 "Gemstone",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "WalletConnect", package: "reown-swift"),
             ],
             path: "WalletConnectorService/Tests",

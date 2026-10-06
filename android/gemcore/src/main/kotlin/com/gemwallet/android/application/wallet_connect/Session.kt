@@ -21,10 +21,11 @@ fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInt
 
 fun GemSessionApproval.toSupportedNamespaces(chainService: GemChainServiceInterface): Map<String, WalletConnectSessionNamespace> {
     return accounts
-        .mapNotNull { account ->
-            val namespace = chainService.caip2Namespace(account.chain) ?: return@mapNotNull null
-            val reference = chainService.caip2Reference(account.chain) ?: return@mapNotNull null
-            ApprovedAccount(namespace = namespace, chainId = "$namespace:$reference", address = account.address)
+        .flatMap { account ->
+            val namespace = chainService.caip2Namespace(account.chain) ?: return@flatMap emptyList()
+            chainService.caip2References(account.chain).map { reference ->
+                ApprovedAccount(namespace = namespace, chainId = "$namespace:$reference", address = account.address)
+            }
         }
         .groupBy { it.namespace }
         .mapValues { (_, approved) ->
