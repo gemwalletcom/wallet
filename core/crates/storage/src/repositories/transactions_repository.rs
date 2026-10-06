@@ -458,6 +458,8 @@ mod database_integration_tests {
         let database = Database::mock();
         let transaction = Transaction {
             id: TransactionId::new(Chain::Ethereum, "0xwalletlinktest".to_string()),
+            from: "0xlinkfrom".to_string(),
+            to: "0xlinkto".to_string(),
             ..Transaction::mock()
         };
         let chains = vec![Chain::Ethereum.to_string()];
@@ -465,13 +467,13 @@ mod database_integration_tests {
             .run(move |client| -> Result<_, DatabaseError> {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
-                add_wallet_addresses(client, &["0xto"])?;
+                add_wallet_addresses(client, &["0xlinkto"])?;
                 client.upsert_transactions(vec![transaction.clone()])?;
-                let from_before = client.count_transactions_by_addresses(vec!["0xfrom".to_string()], chains.clone())?;
-                let to_before = client.count_transactions_by_addresses(vec!["0xto".to_string()], chains.clone())?;
-                add_wallet_addresses(client, &["0xfrom"])?;
+                let from_before = client.count_transactions_by_addresses(vec!["0xlinkfrom".to_string()], chains.clone())?;
+                let to_before = client.count_transactions_by_addresses(vec!["0xlinkto".to_string()], chains.clone())?;
+                add_wallet_addresses(client, &["0xlinkfrom"])?;
                 client.upsert_transactions(vec![transaction])?;
-                let from_after = client.count_transactions_by_addresses(vec!["0xfrom".to_string()], chains)?;
+                let from_after = client.count_transactions_by_addresses(vec!["0xlinkfrom".to_string()], chains)?;
                 Ok((from_before, to_before, from_after))
             })
             .await
