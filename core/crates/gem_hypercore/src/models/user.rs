@@ -35,6 +35,7 @@ pub enum UserRole {
     Agent {
         data: AgentOwner,
     },
+    Missing,
     #[serde(other)]
     Other,
 }
@@ -48,7 +49,7 @@ impl UserRole {
     pub fn owner(self, signer: &str) -> String {
         match self {
             Self::Agent { data } => data.user,
-            Self::Other => signer.to_string(),
+            Self::Missing | Self::Other => signer.to_string(),
         }
     }
 }
