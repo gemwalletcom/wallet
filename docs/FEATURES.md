@@ -318,7 +318,7 @@ On-chain swaps use normal transaction tracking; cross-chain providers may also t
 
 ## Fiat exchange rates
 
-CoinGecko and CoinMarketCap provide USD-based rates with a provider assigned per currency. BYN, KZT, UZS, EGP, KES, COP, MAD, GHS, and PEN require app 2.114.32+ and remain disabled pending rollout.
+CoinGecko and CoinMarketCap provide USD-based rates with a provider assigned per currency. A rate the daemon stores is served at once; `fiat_rates.is_enabled` only turns a currency off by hand. BYN, KZT, UZS, EGP, KES, COP, MAD, GHS, and PEN reach only app 2.114.32+.
 
 ## Fiat providers
 

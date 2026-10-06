@@ -12,7 +12,7 @@ CREATE TABLE fiat_rates (
     name VARCHAR NOT NULL,
     rate float NOT NULL DEFAULT 0,
     provider fiat_rate_provider NOT NULL,
-    is_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE,
     created_at timestamp NOT NULL default current_timestamp,
     updated_at timestamp NOT NULL default current_timestamp
 );

@@ -28,7 +28,6 @@ pub(super) fn setup_dev_currency(client: &mut DatabaseClient) -> Result<(), Box<
 
     info_with_fields!("setup_dev", step = "add rate", currency = "USD");
     client.set_fiat_rates(FiatRateProvider::Coingecko, vec![FiatRate { symbol: Currency::USD, rate: 1.0 }])?;
-    client.set_fiat_rates_enabled(vec![Currency::USD], true)?;
 
     Ok(())
 }

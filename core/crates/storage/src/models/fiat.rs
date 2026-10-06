@@ -31,7 +31,7 @@ impl FiatRateRow {
             name: String::new(),
             rate: rate.rate,
             provider: provider.into(),
-            is_enabled: false,
+            is_enabled: true,
         }
     }
 }

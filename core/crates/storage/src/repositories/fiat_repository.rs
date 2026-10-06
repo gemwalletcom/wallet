@@ -69,7 +69,6 @@ pub trait FiatRepository {
     fn get_fiat_assets_popular(&mut self, from: NaiveDateTime, limit: i64) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_fiat_assets_for_asset_id(&mut self, asset_id: &AssetId) -> Result<Vec<FiatAsset>, DatabaseError>;
     fn set_fiat_rates(&mut self, provider: FiatRateProvider, rates: Vec<FiatRate>) -> Result<usize, DatabaseError>;
-    fn set_fiat_rates_enabled(&mut self, currencies: Vec<Currency>, enabled: bool) -> Result<usize, DatabaseError>;
     fn get_fiat_rates(&mut self) -> Result<Vec<FiatRate>, DatabaseError>;
     fn get_fiat_rate(&mut self, currency: &Currency) -> Result<FiatRate, DatabaseError>;
     fn get_fiat_providers(&mut self) -> Result<Vec<FiatProvider>, DatabaseError>;
@@ -331,12 +330,6 @@ impl FiatRepository for DatabaseClient {
         Ok(set_fiat_rates(self, rates.into_iter().map(|rate| FiatRateRow::from_primitive(rate, provider)).collect())?)
     }
 
-    fn set_fiat_rates_enabled(&mut self, currencies: Vec<Currency>, enabled: bool) -> Result<usize, DatabaseError> {
-        use crate::schema::fiat_rates::dsl::*;
-        let currencies: Vec<CurrencyRow> = currencies.into_iter().map(CurrencyRow).collect();
-        Ok(diesel::update(fiat_rates.filter(id.eq_any(currencies))).set(is_enabled.eq(enabled)).execute(&mut self.connection)?)
-    }
-
     fn get_fiat_rates(&mut self) -> Result<Vec<FiatRate>, DatabaseError> {
         let result = get_fiat_rates(self)?;
         Ok(result.into_iter().map(|x| x.as_primitive()).collect())
@@ -417,7 +410,7 @@ fn update_fiat_transaction(client: &mut DatabaseClient, provider: FiatProviderNa
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use primitives::{Asset, AssetId, Chain, FiatAsset, FiatProviderCountry, FiatProviderName};
+    use primitives::{Asset, AssetId, Chain, Currency, FiatAsset, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider};
 
     use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, FiatRepository};
 
@@ -446,6 +439,25 @@ mod database_integration_tests {
             alpha2: alpha2.to_string(),
             is_allowed: true,
         }
+    }
+
+    #[tokio::test]
+    async fn test_stored_fiat_rate_is_served() {
+        let database = Database::mock();
+        let rate = FiatRate { symbol: Currency::PEN, rate: 3.5 };
+        let (rates, stored) = database
+            .run({
+                let rate = rate.clone();
+                move |client| -> Result<_, DatabaseError> {
+                    client.set_fiat_rates(FiatRateProvider::Coinmarketcap, vec![rate])?;
+                    Ok((client.get_fiat_rates()?, client.get_fiat_rate(&Currency::PEN)?))
+                }
+            })
+            .await
+            .unwrap();
+
+        assert!(rates.contains(&rate));
+        assert_eq!(stored, rate);
     }
 
     #[tokio::test]
