@@ -8,6 +8,8 @@ use rocket::{State, get, post, serde::json::Json};
 use services::assets::{AssetsClient, SearchClient, SearchRequest};
 use services::prices::PriceClient;
 
+const SEARCH_LIMIT: usize = 50;
+
 #[get("/assets/<asset_id>?<currency>")]
 pub async fn get_asset(asset_id: AssetIdParam, currency: CurrencyParam, client: &State<AssetsClient>, price_client: &State<PriceClient>) -> Result<ApiResponse<AssetFull>, ApiError> {
     let asset = client.get_asset_full(&asset_id.0).await?;
@@ -30,7 +32,7 @@ pub async fn get_assets_search(params: SearchParams<'_>, client: &State<SearchCl
 
 #[get("/search?<params..>")]
 pub async fn get_search(params: SearchParams<'_>, client: &State<SearchClient>) -> Result<ApiResponse<SearchResponse>, ApiError> {
-    let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit.0, params.offset);
+    let request = SearchRequest::new(&params.query.0, params.chains, params.tags, params.limit.0.min(SEARCH_LIMIT), params.offset);
 
     let lists = async { if request.should_search_lists() { client.get_asset_lists_search(&request).await } else { Ok(vec![]) } };
     let nfts = async { if request.has_tag_filter() { Ok(vec![]) } else { client.get_nfts_search(&request).await } };
