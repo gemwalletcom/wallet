@@ -2,10 +2,11 @@
 
 import Components
 import Foundation
+import func Gemstone.emptyState
 import enum Gemstone.GemListPhase
 import enum Gemstone.GemLoadState
 import protocol Gemstone.GemSupportServiceProtocol
-import func Gemstone.supportListPhase
+import func Gemstone.listPhase
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -34,7 +35,7 @@ public final class SupportChatSceneViewModel {
 
     var title: String { Localized.Settings.support }
     var phase: GemListPhase {
-        supportListPhase(messages: query.value.map { $0.toGem() }, state: loadState)
+        listPhase(state: loadState, hasRows: !query.value.isEmpty, empty: emptyState(kind: .support))
     }
 
     var typingAgentName: String? { typing.agent?.name }

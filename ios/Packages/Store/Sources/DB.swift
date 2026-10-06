@@ -50,6 +50,9 @@ public struct DB: Sendable {
 
     public static let defaultConfiguration: GRDB.Configuration = {
         var config = GRDB.Configuration()
+        config.prepareDatabase { db in
+            try db.execute(sql: "PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL")
+        }
         #if DEBUG
             config.publicStatementArguments = true
         #endif

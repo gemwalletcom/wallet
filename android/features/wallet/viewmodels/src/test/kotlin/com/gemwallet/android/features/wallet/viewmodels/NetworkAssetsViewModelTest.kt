@@ -47,10 +47,10 @@ class NetworkAssetsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule(testDispatcher)
 
-    private val native = mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18))
+    private val native = mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u))
     private val pinnedToken =
         mockAssetData(
-            asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20),
+            asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6u, type = AssetType.ERC20),
             metadata = mockAssetMetaData(isPinned = true),
         )
     private val unpinnedToken = mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xusdc"), symbol = "USDC", type = AssetType.ERC20))

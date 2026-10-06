@@ -139,7 +139,7 @@ impl AssetId {
     fn native_mirror_exponent(&self) -> Option<u32> {
         let token_id = self.token_id.as_deref()?;
         match EVMChain::from_chain(self.chain)?.native_currency() {
-            EvmNativeCurrency::Mirrored { token, decimals } if token == token_id => u32::try_from(Asset::from_chain(self.chain).decimals).ok()?.checked_sub(decimals),
+            EvmNativeCurrency::Mirrored { token, decimals } if token == token_id => Asset::from_chain(self.chain).decimals.checked_sub(decimals),
             EvmNativeCurrency::Mirrored { .. } | EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Token(_) | EvmNativeCurrency::None => None,
         }
     }

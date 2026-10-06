@@ -9,6 +9,7 @@ import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.onboarding.presents.authentication.EnableAuthenticationRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletSecurityReminderRoute
 import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWalletRoute
@@ -31,6 +32,8 @@ import com.gemwallet.android.ui.navigation.routes.ChartRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualDepositSelectRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.RewardsRoute
@@ -194,6 +197,18 @@ class WalletNavigatorTest {
 
         assertEquals(listOf(WalletRootRoute), createNavigator.backStack.toList())
         assertEquals(listOf(WalletRootRoute), importNavigator.backStack.toList())
+    }
+
+    @Test
+    fun openEnableAuthentication_offersOverTheWalletSoARestoreKeepsTheOffer() {
+        val navigator = navigatorWith(OnboardingRoute, CreateWalletRoute)
+
+        navigator.openEnableAuthentication()
+
+        val stack = navigator.backStack.toList()
+        assertEquals(listOf(WalletRootRoute, EnableAuthenticationRoute), stack)
+        assertEquals(stack, stack.dropNonRestorableRoutes(OnboardingRoute))
+        assertEquals(stack, stack.dropNonRestorableRoutes(WalletRootRoute))
     }
 
     @Test
@@ -475,6 +490,21 @@ class WalletNavigatorTest {
             ),
             navigator.backStack.toList(),
         )
+    }
+
+    @Test
+    fun popConfirmFlow_popsPerpetualDepositFlowToPerpetuals() {
+        val navigator = navigatorWith(
+            WalletRootRoute,
+            PerpetualsRoute,
+            PerpetualDepositSelectRoute,
+            AmountRoute("amount"),
+            ConfirmTransferRoute("confirm"),
+        )
+
+        navigator.popConfirmFlow()
+
+        assertEquals(listOf(WalletRootRoute, PerpetualsRoute), navigator.backStack.toList())
     }
 
     @Test

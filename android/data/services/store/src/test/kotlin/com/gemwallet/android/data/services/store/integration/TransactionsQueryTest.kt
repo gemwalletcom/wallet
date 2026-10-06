@@ -42,9 +42,9 @@ class TransactionsQueryTest {
     private val query = TransactionsQuery(database.transactionsDao())
     private val wallet = mockWallet(id = WalletId("wallet-1"))
     private val otherWallet = mockWallet(id = WalletId("wallet-2"))
-    private val bitcoin = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8)
-    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
-    private val spam = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xspam"), name = "Spam", symbol = "SPAM", decimals = 18, type = AssetType.ERC20)
+    private val bitcoin = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u)
+    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
+    private val spam = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xspam"), name = "Spam", symbol = "SPAM", decimals = 18u, type = AssetType.ERC20)
     private val received = mockTransaction(
         assetId = bitcoin.id,
         id = mockTransactionId(chain = Chain.Bitcoin, hash = "received"),

@@ -402,9 +402,9 @@ fn payment_memo_required(chain: Chain) -> bool {
     is_memo_supported(chain) && chain.chain_type() != ChainType::Solana
 }
 
-fn transfer_value(request: &GemPaymentRequest, decimals: i32) -> Option<BigUint> {
+fn transfer_value(request: &GemPaymentRequest, decimals: u32) -> Option<BigUint> {
     match request.amount.as_ref()? {
-        GemPaymentAmount::ExactValue { value: amount } => BigNumberFormatter::value_from_amount_exact(amount, u32::try_from(decimals).ok()?).ok(),
+        GemPaymentAmount::ExactValue { value: amount } => BigNumberFormatter::value_from_amount_exact(amount, decimals).ok(),
         GemPaymentAmount::AtomicValue { value } => Some(value.clone()),
     }
 }

@@ -12,7 +12,6 @@ impl GemBannerContext {
         Self {
             wallet: Some(Wallet::mock_with_chains(&[Chain::Ethereum, Chain::HyperCore])),
             asset: Some(Asset::from_chain(Chain::Ethereum)),
-            is_stakeable: true,
             has_stake_balance: false,
             has_available_balance: false,
             is_asset_activated: true,

@@ -41,7 +41,7 @@ impl RoutedAsset {
             }
             EvmNativeCurrency::Token(token) => Ok(Self::unscaled(eth_address::parse_str(token)?, Funding::Permit2)),
             EvmNativeCurrency::Mirrored { token, decimals } => {
-                let native_decimals = u32::try_from(Asset::from_chain(chain.to_chain()).decimals).map_err(|_| SwapperError::NotSupportedChain)?;
+                let native_decimals = Asset::from_chain(chain.to_chain()).decimals;
                 let exponent = native_decimals.checked_sub(decimals).ok_or(SwapperError::NotSupportedChain)?;
                 Ok(Self {
                     address: eth_address::parse_str(token)?,

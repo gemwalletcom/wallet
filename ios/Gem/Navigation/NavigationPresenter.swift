@@ -4,7 +4,6 @@ import Components
 import protocol Gemstone.GemAssetsServiceProtocol
 import enum Gemstone.GemErrorText
 import protocol Gemstone.GemNavigationServiceProtocol
-import protocol Gemstone.GemNftServiceProtocol
 import enum Gemstone.GemTransactionHeaderAction
 import GemstonePrimitives
 import GemstoneServices
@@ -23,16 +22,13 @@ final class NavigationPresenter: Sendable {
     @MainActor private var _isPresentingWallets: Bool = false
     private let assetsService: any GemAssetsServiceProtocol
     private let navigationService: any GemNavigationServiceProtocol
-    private let nftService: any GemNftServiceProtocol
 
     init(
         assetsService: any GemAssetsServiceProtocol,
         navigationService: any GemNavigationServiceProtocol,
-        nftService: any GemNftServiceProtocol,
     ) {
         self.assetsService = assetsService
         self.navigationService = navigationService
-        self.nftService = nftService
     }
 }
 
@@ -100,8 +96,7 @@ extension NavigationPresenter {
                 wallet: wallet,
             )
         case let .nft(assetId):
-            let assetData = try await nftService.ensureAsset(assetId: assetId).toPrimitives()
-            nftDestination.append(Scenes.Collectible(assetData: assetData))
+            try nftDestination.append(Scenes.Collectible.assetId(NFTAssetId.from(id: assetId)))
         }
     }
 

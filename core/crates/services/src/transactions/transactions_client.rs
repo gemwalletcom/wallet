@@ -48,7 +48,7 @@ impl TransactionsClient {
 
     pub async fn get_transaction_by_wallet_id(&self, device_row_id: i32, wallet_id: i32, id: &TransactionId) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
         let (addresses, transaction) = self.repository.wallet_transaction(device_row_id, wallet_id, id.clone()).await?;
-        Ok(transaction.finalize(addresses))
+        Ok(transaction.finalize(addresses).without_utxo())
     }
 
     pub async fn get_transactions_by_hash(&self, hash: &str) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {

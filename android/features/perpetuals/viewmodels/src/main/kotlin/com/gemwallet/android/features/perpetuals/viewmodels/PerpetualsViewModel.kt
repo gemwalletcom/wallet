@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemMarketsRefreshTrigger
+import uniffi.gemstone.GemPerpetualDepositTarget
 import uniffi.gemstone.GemPerpetualMarketSections
 import uniffi.gemstone.GemPerpetualMarketSession
 import uniffi.gemstone.GemPerpetualMarketView
@@ -164,6 +165,10 @@ class PerpetualsViewModel @Inject constructor(
     fun unsubscribeMarketPrices() {
         perpetualObserver.unsubscribe(GemPerpetualSubscription.MarketPrices)
     }
+
+    suspend fun depositTarget(): GemPerpetualDepositTarget? = runCatchingCancellable { service.depositTarget() }
+        .onFailure { Log.e(TAG, "perpetual deposit target failed", it) }
+        .getOrNull()
 
     fun onTogglePin(perpetualId: PerpetualId) = viewModelScope.launch(ioDispatcher) {
         val item = (pinnedPerpetuals.value + unpinnedPerpetuals.value).firstOrNull { it.data.perpetual.id == perpetualId.toIdentifier() } ?: return@launch

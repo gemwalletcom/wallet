@@ -13,22 +13,30 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPerpetualStreamServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class HyperliquidObserverService(
     private val observePerpetualWallet: ObservePerpetualWallet,
     private val perpetualService: GemPerpetualServiceInterface,
@@ -48,16 +56,22 @@ class HyperliquidObserverService(
 
     init {
         scope.launch {
-            combine(foreground, observePerpetualWallet()) { isForeground, wallet ->
-                wallet?.takeIf { isForeground }
-            }
+            foreground
+                .flatMapLatest { isForeground -> if (isForeground) observePerpetualWallet() else flowOf(null) }
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
                     wallet ?: return@collectLatest
-                    val connection = runCatchingCancellable { perpetualService.connection(wallet.toGem()) }
-                        .onFailure { Log.e(TAG, "Perpetual connection failed", it) }
-                        .getOrNull() ?: return@collectLatest
-                    observeConnection(wallet.id, connection.address, connection.mode.toPrimitives())
+                    coroutineScope {
+                        val events = connection.connect().produceIn(this)
+                        val account = runCatchingCancellable { perpetualService.connection(wallet.toGem()) }
+                            .onFailure { Log.e(TAG, "Perpetual connection failed", it) }
+                            .getOrNull()
+                        if (account == null) {
+                            events.cancel()
+                            return@coroutineScope
+                        }
+                        observeConnection(events, wallet.id, account.address, account.mode.toPrimitives())
+                    }
                 }
         }
     }
@@ -78,13 +92,17 @@ class HyperliquidObserverService(
         scope.launch { send { streamService.unsubscribe(subscription) } }
     }
 
-    private suspend fun observeConnection(walletId: WalletId, address: String, mode: PerpetualAccountMode) {
-        connection.connect().collect { event ->
-            when (event) {
-                WebSocketEvent.Connected -> send { streamService.connected(address, mode.toGem()) }
-                is WebSocketEvent.Message -> onMessage(walletId, mode, event.text)
-                WebSocketEvent.Disconnected -> streamService.disconnected()
+    private suspend fun observeConnection(events: ReceiveChannel<WebSocketEvent>, walletId: WalletId, address: String, mode: PerpetualAccountMode) {
+        try {
+            for (event in events) {
+                when (event) {
+                    WebSocketEvent.Connected -> send { streamService.connected(address, mode.toGem()) }
+                    is WebSocketEvent.Message -> onMessage(walletId, mode, event.text)
+                    WebSocketEvent.Disconnected -> streamService.disconnected()
+                }
             }
+        } finally {
+            withContext(NonCancellable) { streamService.disconnected() }
         }
     }
 

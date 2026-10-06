@@ -41,7 +41,7 @@ pub struct GemPerpetualOrderInput {
     pub asset_index: i32,
     pub price: f64,
     pub usdc_value: GemBigInt,
-    pub usdc_decimals: i32,
+    pub usdc_decimals: u32,
     pub leverage: u8,
     pub slippage: Option<f64>,
     pub take_profit: Option<String>,
@@ -273,6 +273,7 @@ pub struct GemCandleChart {
     pub end: DateTime<Utc>,
     pub body_width: f64,
     pub x_ticks: Vec<GemCandleTick>,
+    pub is_zoomed: bool,
 }
 
 #[uniffi::export]
@@ -322,17 +323,17 @@ pub enum GemMarketsRefreshTrigger {
     UserRequested,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemPerpetualEnablementTrigger {
-    Foreground,
-    WalletChanged,
-    PreferenceChanged,
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemPerpetualDepositTarget {
+    SelectAsset,
+    Amount { asset: Asset },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPerpetualRefreshStep {
     Positions,
     Markets,
+    DepositBalances,
     Transactions,
 }
 

@@ -47,7 +47,7 @@ impl MessageConsumer<InAppNotificationPayload, usize> for InAppNotificationsCons
         let reward_value = redeem
             .as_ref()
             .zip(redeem_asset)
-            .and_then(|(m, asset)| ValueFormatter::format_with_symbol(ValueStyle::Auto, &m.value.to_string(), asset.decimals, &asset.symbol).ok());
+            .and_then(|(m, asset)| ValueFormatter::format_with_symbol(ValueStyle::Auto, &m.value, asset.decimals, &asset.symbol).ok());
         let points = redeem.as_ref().map(|m| m.points).unwrap_or(0);
 
         let notification = NewNotification {

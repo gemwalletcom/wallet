@@ -57,7 +57,7 @@ class PaymentNavigationTest {
 
     @Test
     fun `an address without an amount opens the amount input`() = runTest {
-        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6u, type = AssetType.SPL)
 
         val route = navigation(GemPaymentTarget.Amount(asset.toGem(), recipient())).routes(payment).single()
 
@@ -66,7 +66,7 @@ class PaymentNavigationTest {
 
     @Test
     fun `an asset Core resolved opens its recipient input`() = runTest {
-        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6u, type = AssetType.SPL)
 
         val route = navigation(GemPaymentTarget.Recipient(asset.toGem(), recipient())).routes(payment).single()
 

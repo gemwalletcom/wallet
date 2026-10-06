@@ -14,7 +14,6 @@ pub struct QuoteRequest {
 #[serde(rename_all = "camelCase")]
 pub struct PaybisQuote {
     pub id: String,
-    pub currency_code_to: String,
     #[serde(default)]
     pub payment_methods: Vec<PaymentMethod>,
     #[serde(default)]

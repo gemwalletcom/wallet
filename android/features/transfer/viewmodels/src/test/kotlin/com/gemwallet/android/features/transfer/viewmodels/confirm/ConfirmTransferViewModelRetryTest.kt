@@ -49,7 +49,7 @@ import java.math.BigInteger
 class ConfirmTransferViewModelRetryTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
-    private val asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10, type = AssetType.TOKEN)
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10u, type = AssetType.TOKEN)
     private val account = mockAccount(chain = Chain.HyperCore)
     private val confirmation = mockk<GemConfirmation> {
         every { rowContents(any()) } returns emptyList()
@@ -72,7 +72,7 @@ class ConfirmTransferViewModelRetryTest {
                                 id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"),
                                 name = "USDC",
                                 symbol = "USDC",
-                                decimals = 8,
+                                decimals = 8u,
                                 type = AssetType.TOKEN,
                             ).toGem(),
                             price = "100.0", fiatValue = 100.0, size = "1.0", slippage = 2.0, leverage = 1u, marketPrice = 100.0, marginAmount = 100.0,
@@ -130,7 +130,7 @@ class ConfirmTransferViewModelRetryTest {
                     simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
                     fee = mockGemConfirmFee(
                         value = BigInteger.ONE,
-                        formatted = feeAmount(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).toGem(), BigInteger.ONE, null, Currency.USD.toGem()),
+                        formatted = feeAmount(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u).toGem(), BigInteger.ONE, null, Currency.USD.toGem()),
                         selectedPriority = FeePriority.Normal.toGem(),
                         amount = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
                     ),

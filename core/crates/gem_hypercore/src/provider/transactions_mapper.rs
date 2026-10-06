@@ -140,12 +140,12 @@ fn map_spot_fee(fills: &[UserFill], base_token: &SpotToken, quote_token: &SpotTo
     Some((amount_to_value(fee_amount, fee_token.wei_decimals)?, fee_token.asset_id(Chain::HyperCore)))
 }
 
-fn amount_to_value(amount: f64, decimals: i32) -> Option<BigUint> {
+fn amount_to_value(amount: f64, decimals: u32) -> Option<BigUint> {
     if !amount.is_finite() {
         return None;
     }
-    let precision: usize = decimals.try_into().ok()?;
-    BigNumberFormatter::value_from_amount_biguint(&format!("{:.precision$}", amount.max(0.0)), precision as u32).ok()
+    let precision = decimals as usize;
+    BigNumberFormatter::value_from_amount_biguint(format!("{:.precision$}", amount.max(0.0)), decimals).ok()
 }
 
 fn build_fill_transaction(address: &str, last_fill: &UserFill, asset_id: AssetId, transaction_type: TransactionType, fee: BigUint, fee_asset_id: AssetId, value: BigUint, metadata: serde_json::Value) -> Option<Transaction> {

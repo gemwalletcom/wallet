@@ -24,6 +24,17 @@ struct CreateWalletViewModelTests {
     }
 
     @Test
+    func theTermsGateIsDecidedWhenTheFlowStarts() {
+        let preferences = ObservablePreferences.mock()
+        let model = CreateWalletViewModel.mock(preferences: preferences)
+
+        preferences.acceptTerms()
+
+        #expect(model.isAcceptTermsCompleted == false)
+        #expect(CreateWalletViewModel.mock(preferences: preferences).isAcceptTermsCompleted)
+    }
+
+    @Test
     func generatingASecretPhraseKeepsTheNewWords() throws {
         let model = CreateWalletViewModel.mock()
 

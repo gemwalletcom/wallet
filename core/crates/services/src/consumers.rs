@@ -119,12 +119,14 @@ impl Services {
     }
 
     pub async fn store_transactions_consumer(&self, stream_producer: StreamProducer) -> Result<StoreTransactionsConsumer, Box<dyn Error + Send + Sync>> {
+        let cacher = self.cacher().await?;
         Ok(StoreTransactionsConsumer {
             repository: self.transactions_repository(),
             stream_producer: Arc::new(stream_producer),
             pusher: Pusher::new(self.notifications_repository()),
             config: self.config(),
-            vault_client: SwapVaultAddressClient::new(Arc::new(self.cacher().await?)),
+            vault_client: SwapVaultAddressClient::new(Arc::new(cacher.clone())),
+            subscription_lookup: self.subscription_lookup(cacher),
         })
     }
 
@@ -173,7 +175,7 @@ impl Services {
         let retry_config = RedemptionRetryConfig {
             max_retries: config.get_i64(ConfigKey::RedemptionRetryMaxRetries).await? as u32,
             delay: config.get_duration(ConfigKey::RedemptionRetryDelay).await?,
-            errors: config.get_vec_string(ConfigKey::RedemptionRetryErrors).await?,
+            errors: config.get_json(ConfigKey::RedemptionRetryErrors).await?,
         };
         let stream_producer = self.stream_producer(name, shutdown).await?;
         Ok(RewardsRedemptionConsumer::new(self.rewards_repository(), Arc::new(self.redemption_service()?), retry_config, Arc::new(stream_producer)))

@@ -1,12 +1,19 @@
+use std::collections::HashMap;
+
 use diesel::{prelude::*, upsert::excluded};
-use primitives::{AssetId, perpetual::Perpetual};
+use primitives::{AssetId, PerpetualId, perpetual::Perpetual};
 
 use crate::models::{NewPerpetualRow, PerpetualRow};
-use crate::schema::{perpetuals, perpetuals_assets};
+use crate::schema::perpetuals;
+use crate::sql_types::{AssetId as AssetIdRow, PerpetualIdRow};
 use crate::{DatabaseClient, DatabaseError};
 
 pub trait PerpetualsRepository {
     fn get_perpetuals_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<Perpetual>, DatabaseError>;
+
+    fn get_associated_asset_id(&mut self, perpetual_asset_id: &AssetId) -> Result<Option<AssetId>, DatabaseError>;
+
+    fn get_associated_asset_ids(&mut self) -> Result<HashMap<PerpetualId, AssetId>, DatabaseError>;
 
     fn perpetuals_update(&mut self, values: Vec<Perpetual>) -> Result<usize, DatabaseError>;
 
@@ -16,12 +23,31 @@ pub trait PerpetualsRepository {
 impl PerpetualsRepository for DatabaseClient {
     fn get_perpetuals_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<Perpetual>, DatabaseError> {
         Ok(perpetuals::table
-            .inner_join(perpetuals_assets::table.on(perpetuals::id.eq(perpetuals_assets::perpetual_id)))
-            .filter(perpetuals_assets::asset_id.eq(asset_id.to_string()))
+            .filter(perpetuals::associated_asset_id.eq(asset_id.to_string()))
             .select(PerpetualRow::as_select())
             .load(&mut self.connection)?
             .into_iter()
             .map(|x| x.as_primitive())
+            .collect())
+    }
+
+    fn get_associated_asset_id(&mut self, perpetual_asset_id: &AssetId) -> Result<Option<AssetId>, DatabaseError> {
+        Ok(perpetuals::table
+            .filter(perpetuals::asset_id.eq(perpetual_asset_id.to_string()))
+            .select(perpetuals::associated_asset_id)
+            .first::<Option<AssetIdRow>>(&mut self.connection)
+            .optional()?
+            .flatten()
+            .map(|row| row.0))
+    }
+
+    fn get_associated_asset_ids(&mut self) -> Result<HashMap<PerpetualId, AssetId>, DatabaseError> {
+        Ok(perpetuals::table
+            .filter(perpetuals::associated_asset_id.is_not_null())
+            .select((perpetuals::id, perpetuals::associated_asset_id.assume_not_null()))
+            .load::<(PerpetualIdRow, AssetIdRow)>(&mut self.connection)?
+            .into_iter()
+            .map(|(perpetual_id, asset_id)| (perpetual_id.0, asset_id.0))
             .collect())
     }
 

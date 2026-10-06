@@ -124,7 +124,7 @@ impl<C: Client> TronClient<C> {
         let symbol = decode_abi_string(&symbol)?;
         let decimals = decode_abi_uint8(&decimals)?;
         let asset_id = AssetId::from(Chain::Tron, Some(token_id));
-        Ok(Asset::new(asset_id, name, symbol, decimals as i32, AssetType::TRC20))
+        Ok(Asset::new(asset_id, name, symbol, u32::from(decimals), AssetType::TRC20))
     }
 
     pub async fn get_account(&self, address: &str) -> Result<TronAccount, Box<dyn Error + Send + Sync>> {

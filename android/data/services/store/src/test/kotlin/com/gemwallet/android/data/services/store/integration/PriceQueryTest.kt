@@ -73,7 +73,7 @@ class PriceQueryTest {
     fun theAssetCarriesItsPriceMarketLinksAndAlerts() = runBlocking(Dispatchers.IO) {
         assertEquals(
             PriceData(
-                asset = Asset(id = ethereum, name = "Ethereum", symbol = "ETH", decimals = 18, type = AssetType.NATIVE),
+                asset = Asset(id = ethereum, name = "Ethereum", symbol = "ETH", decimals = 18u, type = AssetType.NATIVE),
                 price = Price(price = 2000.0, priceChangePercentage24h = 1.5, updatedAt = 10),
                 priceAlerts = listOf(PriceAlert(assetId = ethereum, currency = Currency.USD, price = 2500.0)),
                 market = AssetMarket(marketCap = 1234.0),

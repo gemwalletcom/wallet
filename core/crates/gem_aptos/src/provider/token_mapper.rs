@@ -9,7 +9,7 @@ pub fn map_token_data(resource: &Resource<CoinInfo>, token_id: &str) -> Result<A
         id: AssetId::from_token(Chain::Aptos, token_id),
         name: coin_info.name.clone(),
         symbol: coin_info.symbol.clone(),
-        decimals: coin_info.decimals as i32,
+        decimals: u32::from(coin_info.decimals),
         asset_type: AssetType::TOKEN,
     })
 }

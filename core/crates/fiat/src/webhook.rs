@@ -14,16 +14,6 @@ impl FiatWebhookRequest {
         Ok(Self { data, raw_body, path, headers })
     }
 
-    pub fn from_value(data: serde_json::Value) -> Self {
-        let raw_body = data.to_string();
-        Self {
-            data,
-            raw_body,
-            path: String::new(),
-            headers: HashMap::new(),
-        }
-    }
-
     pub fn header(&self, name: &str) -> Option<&str> {
         self.headers.get(&name.to_ascii_lowercase()).map(String::as_str)
     }

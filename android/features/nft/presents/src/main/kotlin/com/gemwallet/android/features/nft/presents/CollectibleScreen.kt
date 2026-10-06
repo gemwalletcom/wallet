@@ -19,8 +19,11 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.screen.FatalStateScene
+import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.ToastEffect
+import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.NFTAsset
@@ -30,37 +33,49 @@ import uniffi.gemstone.GemCollectibleAction
 @Composable
 fun CollectibleScreen(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
     val viewModel: CollectibleViewModel = hiltViewModel()
-    val assetData by viewModel.nftAsset.collectAsStateWithLifecycle()
-    val details by viewModel.details.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     val snackbar = remember { SnackbarHostState() }
     ToastEffect(viewModel.toastEvents, snackbar)
 
-    val data = assetData ?: return
-    val collectible = details ?: return
-    var isReportVisible by remember { mutableStateOf(false) }
-    CollectibleScene(
-        assetData = data,
-        details = collectible,
-        snackbar = snackbar,
-        onClose = { cancelAction() },
-        onSend = { onRecipient(data.asset) },
-        onAction = { action ->
-            when (action) {
-                GemCollectibleAction.REFRESH -> viewModel.refresh()
-                GemCollectibleAction.SAVE_IMAGE -> viewModel.saveImage()
-                GemCollectibleAction.SET_AVATAR -> viewModel.setAsAvatar()
-                GemCollectibleAction.REPORT -> isReportVisible = true
-            }
-        },
-        onOpenAddress = onOpenAddress,
-    )
-    ReportReasonSheet(
-        isVisible = isReportVisible,
-        reasons = viewModel.reportReasons,
-        onDismiss = { isReportVisible = false },
-        onSelect = { reason -> viewModel.report(reason) },
-    )
+    when (val current = state) {
+        StateViewType.Loading, StateViewType.NoData -> LoadingScene(
+            title = stringResource(R.string.common_loading),
+            onCancel = { cancelAction() },
+        )
+
+        is StateViewType.Error -> FatalStateScene(
+            title = stringResource(R.string.errors_error),
+            message = current.message.orEmpty(),
+            onCancel = { cancelAction() },
+        )
+
+        is StateViewType.Data -> {
+            var isReportVisible by remember { mutableStateOf(false) }
+            CollectibleScene(
+                assetData = current.data.assetData,
+                details = current.data.details,
+                snackbar = snackbar,
+                onClose = { cancelAction() },
+                onSend = { onRecipient(current.data.assetData.asset) },
+                onAction = { action ->
+                    when (action) {
+                        GemCollectibleAction.REFRESH -> viewModel.refresh()
+                        GemCollectibleAction.SAVE_IMAGE -> viewModel.saveImage()
+                        GemCollectibleAction.SET_AVATAR -> viewModel.setAsAvatar()
+                        GemCollectibleAction.REPORT -> isReportVisible = true
+                    }
+                },
+                onOpenAddress = onOpenAddress,
+            )
+            ReportReasonSheet(
+                isVisible = isReportVisible,
+                reasons = viewModel.reportReasons,
+                onDismiss = { isReportVisible = false },
+                onSelect = { reason -> viewModel.report(reason) },
+            )
+        }
+    }
 }
 
 @Composable

@@ -6,7 +6,7 @@ pub use gem_evm::slippage::{BasisPointConvert, subtract_bps};
 const BPS_PER_PERCENT_DECIMALS: i32 = 2;
 
 pub fn bps_to_percent_string(bps: u32) -> Result<String, NumberFormatterError> {
-    BigNumberFormatter::value(&bps.to_string(), BPS_PER_PERCENT_DECIMALS)
+    BigNumberFormatter::value(bps, BPS_PER_PERCENT_DECIMALS as u32)
 }
 
 pub fn percent_to_bps(percent: f64) -> Option<u32> {

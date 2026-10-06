@@ -42,7 +42,7 @@ impl ReferralSecurityConfig {
     pub(crate) async fn from_config(config: &ConfigCacher) -> Result<Self, DatabaseError> {
         Ok(Self {
             tor_allowed: config.get_bool(ConfigKey::ReferralIpTorAllowed).await?,
-            ineligible_countries: config.get_vec_string(ConfigKey::ReferralIneligibleCountries).await?,
+            ineligible_countries: config.get_json(ConfigKey::ReferralIneligibleCountries).await?,
         })
     }
 }
@@ -80,10 +80,10 @@ pub(crate) async fn risk_score_config(config: &ConfigCacher) -> Result<RiskScore
         device_id_reuse_penalty_per_referrer: config.get_i64(ConfigKey::ReferralRiskScoreDeviceIdReusePerReferrer).await?,
         device_id_reuse_max_penalty: config.get_i64(ConfigKey::ReferralRiskScoreDeviceIdReuseMaxPenalty).await?,
         ineligible_ip_type_score: config.get_i64(ConfigKey::ReferralRiskScoreIneligibleIpType).await?,
-        blocked_ip_types: config.get_vec(ConfigKey::ReferralBlockedIpTypes).await?,
+        blocked_ip_types: config.get_json(ConfigKey::ReferralBlockedIpTypes).await?,
         blocked_ip_type_penalty: config.get_i64(ConfigKey::ReferralBlockedIpTypePenalty).await?,
         max_abuse_score: config.get_i64(ConfigKey::ReferralMaxAbuseScore).await?,
-        penalty_isps: config.get_vec_string(ConfigKey::ReferralPenaltyIsps).await?,
+        penalty_isps: config.get_json(ConfigKey::ReferralPenaltyIsps).await?,
         isp_penalty_score: config.get_i64(ConfigKey::ReferralPenaltyIspsScore).await?,
         verified_user_reduction: config.get_i64(ConfigKey::ReferralRiskScoreVerifiedUserReduction).await?,
         early_referral_reduction_initial: config.get_i64(ConfigKey::ReferralRiskScoreEarlyReferralReductionInitial).await?,
@@ -98,15 +98,15 @@ pub(crate) async fn risk_score_config(config: &ConfigCacher) -> Result<RiskScore
         device_model_ring_threshold: config.get_i64(ConfigKey::ReferralRiskScoreDeviceModelRingThreshold).await?,
         device_model_ring_penalty_per_member: config.get_i64(ConfigKey::ReferralRiskScoreDeviceModelRingPenaltyPerMember).await?,
         lookback: config.get_duration(ConfigKey::ReferralRiskScoreLookback).await?,
-        high_risk_platform_stores: config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskPlatformStores).await?,
+        high_risk_platform_stores: config.get_json(ConfigKey::ReferralRiskScoreHighRiskPlatformStores).await?,
         high_risk_platform_store_penalty: config.get_i64(ConfigKey::ReferralRiskScoreHighRiskPlatformStorePenalty).await?,
-        high_risk_countries: config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskCountries).await?,
+        high_risk_countries: config.get_json(ConfigKey::ReferralRiskScoreHighRiskCountries).await?,
         high_risk_country_penalty: config.get_i64(ConfigKey::ReferralRiskScoreHighRiskCountryPenalty).await?,
-        high_risk_locales: config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskLocales).await?,
+        high_risk_locales: config.get_json(ConfigKey::ReferralRiskScoreHighRiskLocales).await?,
         high_risk_locale_penalty: config.get_i64(ConfigKey::ReferralRiskScoreHighRiskLocalePenalty).await?,
-        high_risk_device_models: config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskDeviceModels).await?,
+        high_risk_device_models: config.get_json(ConfigKey::ReferralRiskScoreHighRiskDeviceModels).await?,
         high_risk_device_model_penalty: config.get_i64(ConfigKey::ReferralRiskScoreHighRiskDeviceModelPenalty).await?,
-        high_risk_user_agents: config.get_vec_string(ConfigKey::ReferralRiskScoreHighRiskUserAgents).await?,
+        high_risk_user_agents: config.get_json(ConfigKey::ReferralRiskScoreHighRiskUserAgents).await?,
         high_risk_user_agent_penalty: config.get_i64(ConfigKey::ReferralRiskScoreHighRiskUserAgentPenalty).await?,
         ip_history_penalty_per_abuser: config.get_i64(ConfigKey::ReferralRiskScoreIpHistoryPenaltyPerAbuser).await?,
         ip_history_max_penalty: config.get_i64(ConfigKey::ReferralRiskScoreIpHistoryMaxPenalty).await?,

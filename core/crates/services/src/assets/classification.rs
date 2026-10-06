@@ -19,7 +19,7 @@ pub struct AssetClassificationRules {
 impl AssetClassificationRules {
     pub async fn from_config(config: &ConfigCacher) -> Result<Self, DatabaseError> {
         let spam_markers = config
-            .get_vec_string(ConfigKey::AssetsSpamMarkers)
+            .get_json::<Vec<String>>(ConfigKey::AssetsSpamMarkers)
             .await?
             .into_iter()
             .map(|marker| marker.trim().to_ascii_lowercase())

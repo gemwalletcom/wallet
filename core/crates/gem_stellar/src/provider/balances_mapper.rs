@@ -12,7 +12,7 @@ pub fn map_native_balance(account: &Account) -> Result<AssetBalance, Box<dyn Err
 
     let balance_stroops_str = BigNumberFormatter::value_from_amount(&native_balance, STELLAR_DECIMALS)?;
     let balance_decimal = BigNumberFormatter::big_decimal_value(&balance_stroops_str, 0).unwrap_or_default();
-    let reserved_decimal = BigNumberFormatter::big_decimal_value(&reserved_amount.to_string(), 0).unwrap_or_default();
+    let reserved_decimal = BigNumberFormatter::big_decimal_value(reserved_amount, 0).unwrap_or_default();
     let available_decimal = balance_decimal - reserved_decimal;
     let available = available_decimal.to_string();
     let reserved_str = reserved_amount.to_string();

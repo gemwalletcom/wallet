@@ -6,8 +6,7 @@ use number_formatter::BigNumberFormatter;
 use primitives::{Asset, AssetBalance, AssetId, Balance, Chain};
 use std::error::Error;
 
-pub fn map_balance_token(asset_id: AssetId, balance: &SpotBalance, available_after_maintenance: Option<&str>, decimals: i32) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-    let decimals = decimals as u32;
+pub fn map_balance_token(asset_id: AssetId, balance: &SpotBalance, available_after_maintenance: Option<&str>, decimals: u32) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
     let total = BigNumberFormatter::value_from_amount_biguint(&balance.total, decimals)?;
     let available = match available_after_maintenance {
         Some(amount) => BigNumberFormatter::value_from_amount_biguint(amount, decimals)?,
@@ -56,7 +55,7 @@ fn token_matches(token: &SpotToken, asset_id: &AssetId) -> bool {
 }
 
 pub fn map_balance_staking(balance: &StakeBalance, chain: Chain) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-    let native_decimals = Asset::from_chain(chain).decimals as u32;
+    let native_decimals = Asset::from_chain(chain).decimals;
     let available_biguint = BigNumberFormatter::value_from_amount_biguint(&balance.delegated, native_decimals).unwrap_or_default();
     let pending_biguint = BigNumberFormatter::value_from_amount_biguint(&balance.total_pending_withdrawal, native_decimals).unwrap_or_default();
 

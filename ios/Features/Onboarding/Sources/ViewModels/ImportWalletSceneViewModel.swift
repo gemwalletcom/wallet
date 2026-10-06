@@ -169,6 +169,7 @@ extension ImportWalletSceneViewModel {
     }
 
     func onSelectExistingWalletContinue() {
+        isPresentingExistingWallet = nil
         onComplete?()
     }
 }

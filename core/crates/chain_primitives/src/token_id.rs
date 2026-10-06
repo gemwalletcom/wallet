@@ -1,5 +1,5 @@
 use alloy_primitives::Address;
-use primitives::Chain;
+use primitives::{Chain, chain_aptos::is_fungible_asset_token_id};
 use std::str::FromStr;
 
 pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
@@ -61,6 +61,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
                 None
             }
         }
+        Chain::Aptos => is_fungible_asset_token_id(&token_id).then_some(token_id),
         Chain::Bitcoin
         | Chain::BitcoinCash
         | Chain::Litecoin
@@ -72,7 +73,6 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
         | Chain::Doge
         | Chain::Dash
         | Chain::Zcash
-        | Chain::Aptos
         | Chain::Injective
         | Chain::Noble
         | Chain::Sei
@@ -83,7 +83,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use primitives::asset_constants::{STELLAR_USDC_TOKEN_ID, SUI_WAL_TOKEN_ID, TRON_USDT_TOKEN_ID};
+    use primitives::asset_constants::{APTOS_USDC_TOKEN_ID, STELLAR_USDC_TOKEN_ID, SUI_WAL_TOKEN_ID, TRON_USDT_TOKEN_ID};
 
     use super::*;
 
@@ -105,6 +105,11 @@ mod tests {
         assert_eq!(format_token_id(chain, "0x2::sui::SUI".to_string()), None);
         assert_eq!(format_token_id(chain, SUI_WAL_TOKEN_ID.to_string()), Some(SUI_WAL_TOKEN_ID.to_string()));
         assert_eq!(format_token_id(chain, "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI".to_string()), None);
+    }
+
+    #[test]
+    fn test_format_token_id_aptos() {
+        assert_eq!(format_token_id(Chain::Aptos, APTOS_USDC_TOKEN_ID.to_string()), Some(APTOS_USDC_TOKEN_ID.to_string()));
     }
 
     #[test]

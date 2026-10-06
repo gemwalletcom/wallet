@@ -49,6 +49,11 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemFormattedNumber
+import uniffi.gemstone.GemNumberDisplay
+import uniffi.gemstone.GemNumberNotation
+import uniffi.gemstone.GemNumberRounding
+import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemPrecision
 import uniffi.gemstone.GemTransactionBadge
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionRowSubtitle
@@ -56,10 +61,8 @@ import uniffi.gemstone.GemTransactionRowValue
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionTitle
-import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.assetText
-import uniffi.gemstone.formattedAmount
 
 private val badgeStartPadding = 5.dp
 
@@ -168,7 +171,7 @@ private fun TransactionStatusBadge(row: GemTransactionRow) {
 @Composable
 @Preview
 fun PreviewTransactionItem() {
-    val asset = Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE)
+    val asset = Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u, type = AssetType.NATIVE)
     MaterialTheme {
         TransactionItem(
             data = previewRow(
@@ -176,7 +179,7 @@ fun PreviewTransactionItem() {
                 title = GemTransactionTitle.Transfer,
                 status = GemTransactionStatus(tone = GemTransactionStateTone.PENDING, showsBadge = true, showsProgress = true),
                 subtitle = GemTransactionRowSubtitle.ToAddress("btc12312sdfksdjfks"),
-                value = formattedAmount(-0.9998888999, "BTC", GemValueStyle.FULL),
+                value = previewAmount(-0.9998888999, "BTC"),
                 equivalentValue = null,
                 valueTone = GemValueTone.PLAIN,
                 badge = GemTransactionBadge.OUTGOING,
@@ -190,7 +193,7 @@ fun PreviewTransactionItem() {
 @Composable
 @Preview
 fun PreviewSwapTransactionItem() {
-    val asset = Asset(id = AssetId(Chain.SmartChain), name = "SmartChain", symbol = "BNB", decimals = 18, type = AssetType.NATIVE)
+    val asset = Asset(id = AssetId(Chain.SmartChain), name = "SmartChain", symbol = "BNB", decimals = 18u, type = AssetType.NATIVE)
     MaterialTheme {
         TransactionItem(
             data = previewRow(
@@ -198,8 +201,8 @@ fun PreviewSwapTransactionItem() {
                 title = GemTransactionTitle.Swap,
                 status = GemTransactionStatus(tone = GemTransactionStateTone.SUCCESS, showsBadge = false, showsProgress = false),
                 subtitle = GemTransactionRowSubtitle.None,
-                value = formattedAmount(19.0, "TON", GemValueStyle.FULL),
-                equivalentValue = formattedAmount(-0.09, "BNB", GemValueStyle.FULL),
+                value = previewAmount(19.0, "TON"),
+                equivalentValue = previewAmount(-0.09, "BNB"),
                 valueTone = GemValueTone.POSITIVE,
                 badge = GemTransactionBadge.ASSET,
             ),
@@ -208,6 +211,16 @@ fun PreviewSwapTransactionItem() {
         )
     }
 }
+
+private fun previewAmount(value: Double, symbol: String) = GemFormattedNumber(
+    value = value,
+    unit = GemNumberUnit.Symbol(symbol = symbol),
+    display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 32u)),
+    notation = GemNumberNotation.PLAIN,
+    tone = GemValueTone.PLAIN,
+    rounding = GemNumberRounding.TOWARD_ZERO,
+    exact = null,
+)
 
 private fun previewRow(
     asset: Asset,

@@ -61,7 +61,7 @@ public final class FiatSceneViewModel {
         self.wallet = wallet
         assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
         priceUsdQuery = ObservableQuery(PriceUsdQuery(assetId: assetAddress.asset.id), initialValue: nil)
-        session = service.newSession(quoteType: type.toGem(), amount: amount.map { UInt32($0) })
+        session = service.newSession(quoteType: type.toGem(), amount: amount.map { UInt32($0) }, format: NumberInput.format(locale))
         loadTrigger = FiatLoadTrigger(session: session, isImmediate: true)
     }
 
@@ -120,10 +120,6 @@ public final class FiatSceneViewModel {
 
     var assetTitle: String {
         asset.name
-    }
-
-    var typeAmountButtonTitle: String {
-        Emoji.random
     }
 
     var asset: Asset {
@@ -201,10 +197,6 @@ extension FiatSceneViewModel {
 
     func onSelect(amount: Int) {
         setAmount(String(amount), isImmediate: true)
-    }
-
-    func onSelectRandomAmount() {
-        setAmount(String(service.randomAmount()), isImmediate: true)
     }
 
     func onSelectFiatProviders() {

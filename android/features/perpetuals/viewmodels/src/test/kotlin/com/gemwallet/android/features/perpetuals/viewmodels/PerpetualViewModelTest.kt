@@ -130,18 +130,19 @@ class PerpetualViewModelTest {
     }
 
     @Test
-    fun `the chart period is remembered in Core`() = runTest(dispatcher) {
+    fun `a new chart period asks Core for its candles`() = runTest(dispatcher) {
         val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
             every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
             coEvery { candles(any()) } answers { GemCandleResult(request = firstArg(), state = GemLoadState.Data, candles = emptyList()) }
         }
-        val model = viewModel(service = service)
+        val model = viewModel(service = service, data = perpetualData())
+        advanceUntilIdle()
 
         model.period(ChartPeriod.Week)
         advanceUntilIdle()
 
         assertEquals(ChartPeriod.Week, model.period.first { it == ChartPeriod.Week })
-        coVerify { service.setChartPeriod(uniffi.gemstone.ChartPeriod.WEEK) }
+        coVerify(exactly = 1) { service.candles(match { it.period == uniffi.gemstone.ChartPeriod.WEEK }) }
     }
 
     @Test

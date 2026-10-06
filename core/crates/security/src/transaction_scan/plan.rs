@@ -40,13 +40,13 @@ fn local_detections(input: &TransactionScanInput) -> Vec<ScanDetection> {
         .addresses
         .iter()
         .filter(|address| address.is_malicious == Some(true))
-        .map(|address| ScanDetection::local(ScanType::Address, ScanFinding::Address(ChainAddress::new(address.chain, address.address.clone())), address.address.clone(), "manual", true));
+        .map(|address| ScanDetection::internal(ScanType::Address, ScanFinding::Address(ChainAddress::new(address.chain, address.address.clone())), address.address.clone(), "manual", true));
     let is_asset_enforced = input.enforced.contains(&ScanType::Asset);
     let assets = input
         .assets
         .iter()
         .filter(|asset| asset.score.rank <= AssetRank::Spam.threshold())
-        .map(|asset| ScanDetection::local(ScanType::Asset, ScanFinding::Asset(asset.asset.id.clone()), asset.asset.id.to_string(), "spam", is_asset_enforced));
+        .map(|asset| ScanDetection::internal(ScanType::Asset, ScanFinding::Asset(asset.asset.id.clone()), asset.asset.id.to_string(), "spam", is_asset_enforced));
     addresses.chain(assets).collect()
 }
 
@@ -246,6 +246,7 @@ mod tests {
         let plan = plan_transaction_scan(&input);
 
         assert_eq!(plan.targets, None);
+        assert_eq!(plan.detections[0].provider, ScanProvider::Internal);
         assert_eq!(plan.detections[0].reason.as_deref(), Some("manual"));
     }
 
@@ -258,7 +259,7 @@ mod tests {
 
         assert_eq!(plan.targets, None);
         assert!(plan.detections[0].is_cached);
-        assert_eq!(plan.detections[0].provider, Some(ScanProvider::HashDit));
+        assert_eq!(plan.detections[0].provider, ScanProvider::HashDit);
         assert_eq!(plan.detections[0].reason.as_deref(), Some("phishing"));
     }
 
@@ -292,7 +293,9 @@ mod tests {
         let token = AssetId::from_token(Chain::SmartChain, "0x123");
         let mut input = TransactionScanInput::mock(ScanTransactionPayload::mock_with_assets(token.clone(), token.clone()));
         input.assets = vec![spam_asset(token)];
-        assert_eq!(plan_transaction_scan(&input).targets, None);
+        let plan = plan_transaction_scan(&input);
+        assert_eq!(plan.targets, None);
+        assert_eq!(plan.detections[0].provider, ScanProvider::Internal);
 
         input.enforced.remove(&ScanType::Asset);
         let plan = plan_transaction_scan(&input);

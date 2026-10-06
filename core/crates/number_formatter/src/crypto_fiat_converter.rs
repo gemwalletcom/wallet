@@ -1,5 +1,5 @@
-use bigdecimal::num_bigint::BigInt;
 use bigdecimal::{BigDecimal, RoundingMode};
+use std::fmt::Display;
 use std::num::NonZeroU64;
 use std::str::FromStr;
 
@@ -10,14 +10,13 @@ const ENTRY_DUST_THRESHOLD: &str = "0.0001";
 pub struct CryptoFiatConverter {}
 
 impl CryptoFiatConverter {
-    pub fn fiat_amount(value: &str, decimals: u32, price: f64) -> BigDecimal {
-        let digits = BigInt::from_str(value).unwrap_or_default();
-        BigDecimal::new(digits, decimals as i64) * Self::price_value(price).unwrap_or_default()
+    pub fn to_fiat(value: impl Display, decimals: u32, price: f64) -> Result<String, NumberFormatterError> {
+        Ok((BigNumberFormatter::scaled_value(value, decimals)? * Self::price_value(price)?).normalized().to_string())
     }
 
-    pub fn to_fiat(value: &str, decimals: u32, price: f64) -> Result<String, NumberFormatterError> {
-        let amount = BigNumberFormatter::big_decimal_value(value, decimals)?;
-        Ok((amount * Self::price_value(price)?).normalized().to_string())
+    pub fn to_fiat_as_f64(value: impl Display, decimals: u32, price: f64) -> Result<f64, NumberFormatterError> {
+        let fiat = Self::to_fiat(value, decimals, price)?;
+        fiat.parse().map_err(|_| NumberFormatterError::ConversionError(fiat))
     }
 
     pub fn to_crypto(fiat_amount: &str, decimals: u32, price: f64) -> Result<String, NumberFormatterError> {
@@ -65,16 +64,6 @@ mod tests {
         assert_eq!(CryptoFiatConverter::to_fiat("0", 8, 50_000.0).unwrap(), "0");
         assert_eq!(CryptoFiatConverter::to_fiat("123456789012345678901234567890", 18, 2.0).unwrap(), "246913578024.69135780246913578");
         assert!(CryptoFiatConverter::to_fiat("abc", 8, 50_000.0).is_err());
-    }
-
-    #[test]
-    fn test_fiat_amount_never_fails() {
-        let amount = |value: &str, decimals: u32, price: f64| CryptoFiatConverter::fiat_amount(value, decimals, price).normalized().to_string();
-        assert_eq!(amount("150000000", 8, 50_000.0), "75000");
-        assert_eq!(amount("1092000000000", 18, 3520.42), "0.00384429864");
-        assert_eq!(amount("123456789012345678901234567890", 18, 2.0), "246913578024.69135780246913578");
-        assert_eq!(amount("0", 8, 50_000.0), "0");
-        assert_eq!(amount("150000000", 8, f64::NAN), "0", "a price that is not a number is not a price");
     }
 
     #[test]

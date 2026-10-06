@@ -42,9 +42,8 @@ mod tests {
             r#"{"action":{"type":"approveBuilderFee"},"nonce":123}"#,
             r#"{"action":{"type":"setReferrer"},"nonce":123}"#,
             r#"{"action":{"type":"updateLeverage"},"nonce":123}"#,
-            r#"{"action":{"type":"spotSend"},"nonce":123}"#,
+            r#"{"action":{"type":"sendAsset"},"nonce":123}"#,
             r#"{"action":{"type":"withdraw3"},"nonce":123}"#,
-            r#"{"action":{"type":"usdClassTransfer"},"nonce":123}"#,
             r#"{"action":{"type":"usdSend"},"nonce":123}"#,
         ] {
             assert_eq!(provider.decode_transaction_broadcast(request.as_bytes(), response).unwrap(), "action:123");
@@ -54,6 +53,7 @@ mod tests {
             (include_bytes!("../../testdata/hl_action_stake_to_validator.json").as_slice(), "action:tokenDelegate:10000000:stake:1755231522831"),
             (br#"{"action":{"type":"cWithdraw","wei":100},"nonce":123}"#.as_slice(), "action:cWithdraw:100:123"),
             (br#"{"action":{"type":"tokenDelegate","wei":100,"isUndelegate":true},"nonce":123}"#.as_slice(), "action:tokenDelegate:100:unstake:123"),
+            (br#"{"action":{"type":"usdClassTransfer","amount":"10","toPerp":true},"nonce":123}"#.as_slice(), "action:usdClassTransfer:perp:123"),
         ] {
             assert_eq!(provider.decode_transaction_broadcast_bytes(request, response.as_bytes()).unwrap(), expected);
         }

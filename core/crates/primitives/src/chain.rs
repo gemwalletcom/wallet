@@ -157,10 +157,6 @@ impl Chain {
         self.config().is_nft_supported
     }
 
-    pub fn is_defi_supported(&self) -> bool {
-        self.config().is_defi_supported
-    }
-
     pub fn block_time(&self) -> u32 {
         self.config().block_time
     }
@@ -215,14 +211,6 @@ mod tests {
     #[test]
     fn test_near_token_asset_type() {
         assert_eq!(Chain::Near.default_asset_type(), Some(AssetType::TOKEN));
-    }
-
-    #[test]
-    fn test_defi_supported() {
-        assert!(Chain::Ethereum.is_defi_supported());
-        assert!(Chain::Base.is_defi_supported());
-        assert!(Chain::Solana.is_defi_supported());
-        assert!(!Chain::Bitcoin.is_defi_supported());
     }
 
     #[test]

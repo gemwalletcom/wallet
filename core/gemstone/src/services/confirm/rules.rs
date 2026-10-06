@@ -507,7 +507,7 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[FeeRate], selection: 
     let rate_fee = &loaded_fee.fee - &fixed_fee;
     let unit_type = chain.fee_unit_type();
     let unit_decimals = match unit_type {
-        FeeUnitType::Native => fee_asset.decimals as u32,
+        FeeUnitType::Native => fee_asset.decimals,
         FeeUnitType::SatVb | FeeUnitType::Gwei => unit_type.decimals(),
     };
     let rows = rates.iter().map(|rate| {
@@ -984,7 +984,7 @@ mod tests {
 
         let solana = Asset::from_chain(Chain::Solana);
         let native = fee_rate_rows(Chain::Solana, &solana, &rates[..1], &normal, &GemTransactionLoadFee::mock(5_000));
-        assert_eq!((native.unit_type, native.unit_decimals), (FeeUnitType::Native, solana.decimals as u32));
+        assert_eq!((native.unit_type, native.unit_decimals), (FeeUnitType::Native, solana.decimals));
     }
 
     #[test]

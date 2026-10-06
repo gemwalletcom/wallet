@@ -72,10 +72,6 @@ impl GemPriceService {
         self.store.save_market(asset_id, market).await
     }
 
-    pub async fn market_in_currency(&self, market: AssetMarket, currency: Currency) -> Result<Option<AssetMarket>, GemServiceError> {
-        Ok(self.rate(currency).await?.map(|rate| rules::market_in_currency(market, rate.rate)))
-    }
-
     pub async fn rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
         Ok(rules::rate_or_base(currency.clone(), self.store.get_rate(currency).await?))
     }
@@ -164,7 +160,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_market_is_saved_in_usd_and_shown_in_the_current_currency() {
+    fn test_a_market_is_saved_in_usd() {
         let store = Arc::new(rates());
         let service = GemPriceService::mock(store.clone());
         let market = AssetMarket {
@@ -174,13 +170,9 @@ mod tests {
         };
 
         futures::executor::block_on(service.change_currency(Currency::EUR)).unwrap();
-        futures::executor::block_on(service.update_market(AssetId::from_chain(Chain::Solana), market.clone())).unwrap();
+        futures::executor::block_on(service.update_market(AssetId::from_chain(Chain::Solana), market)).unwrap();
 
         assert_eq!(store.markets.lock().unwrap()[0].1.market_cap, Some(1_000.0));
-        let shown = futures::executor::block_on(service.market_in_currency(market.clone(), Currency::EUR)).unwrap().unwrap();
-        assert_eq!(shown.market_cap, Some(500.0));
-        assert_eq!(shown.circulating_supply, Some(10.0));
-        assert!(futures::executor::block_on(service.market_in_currency(market, Currency::GBP)).unwrap().is_none());
     }
 
     #[test]

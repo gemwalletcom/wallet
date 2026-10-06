@@ -20,6 +20,7 @@ use streamer::{StreamProducerQueue, TransactionsPayload};
 pub struct PendingTransactionsUpdaterConfig {
     error_max_age_by_chain: HashMap<Chain, Duration>,
     check_interval: JobConfiguration,
+    chain_concurrency: usize,
 }
 
 impl PendingTransactionsUpdaterConfig {
@@ -31,6 +32,7 @@ impl PendingTransactionsUpdaterConfig {
                 max_interval_ms: config.get_duration(ConfigKey::TransactionPendingMaxCheckInterval).await?.as_millis() as u32,
                 step_factor: config.get_f64(ConfigKey::TransactionPendingCheckIntervalFactor).await? as f32,
             },
+            chain_concurrency: config.get_usize(ConfigKey::TransactionPendingChainConcurrency).await?.max(1),
         })
     }
 
@@ -80,11 +82,15 @@ impl PendingTransactionsUpdater {
         let groups = pending_counts.into_iter().map(|(chain, count)| (TransactionQueueGroup::new(chain, None), count)).collect();
         self.metrics.record_queue(TransactionQueue::Pending, groups);
 
-        stream::iter(chains).then(|chain| self.update_chain(chain)).try_fold(0, |total, count| async move { Ok(total + count) }).await
+        stream::iter(chains)
+            .map(|chain| self.update_chain(chain))
+            .buffer_unordered(self.config.chain_concurrency)
+            .try_fold(0, |total, count| async move { Ok(total + count) })
+            .await
     }
 
     async fn pending_counts(&self) -> Result<BTreeMap<Chain, usize>, Box<dyn Error + Send + Sync>> {
-        let counts = try_join_all(Chain::all().into_iter().map(|chain| async move { Ok::<_, Box<dyn Error + Send + Sync>>((chain, self.pending_count(chain).await?)) })).await?;
+        let counts = try_join_all(Chain::all().into_iter().map(|chain| async move { Ok::<_, Box<dyn Error + Send + Sync>>((chain, self.pending.pending_count(chain).await?)) })).await?;
         Ok(counts.into_iter().filter(|(_, count)| *count > 0).collect())
     }
 
@@ -110,7 +116,7 @@ impl PendingTransactionsUpdater {
         let now_seconds = now.timestamp_millis() as f64 / 1000.0;
         if self.update_pending_transaction(id.chain, &id.hash, expires_at, now_seconds).await? {
             self.schedule.remove(&id).await?;
-            return self.remove_pending_transaction(id.chain, &id.hash).await;
+            return self.pending.remove_pending(id.chain, &id.hash).await;
         }
         let elapsed = pending_transaction_elapsed(id.chain, expires_at, now_seconds);
         self.schedule.schedule_next(&id, &self.config.check_interval(id.chain), elapsed, now).await?;
@@ -149,14 +155,6 @@ impl PendingTransactionsUpdater {
                 Ok(pending_transaction_error_expired(elapsed_duration, self.config.error_max_age(chain)))
             }
         }
-    }
-
-    async fn remove_pending_transaction(&self, chain: Chain, identifier: &str) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        self.pending.remove_pending(chain, identifier).await
-    }
-
-    async fn pending_count(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        self.pending.pending_count(chain).await
     }
 }
 

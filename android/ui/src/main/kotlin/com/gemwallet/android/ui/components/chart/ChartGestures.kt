@@ -19,7 +19,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-private const val SCRUB_HOLD_MS = 250L
+private const val SCRUB_HOLD_MS = 100L
 private const val GLIDE_FRICTION = 2.4f
 
 private enum class ChartTouch {
@@ -30,7 +30,7 @@ private enum class ChartTouch {
     Pinch,
 }
 
-fun Modifier.chartGestures(plotLeft: Float, plotWidth: Float, indexAt: (Float) -> Int?, onSelectionChanged: (Int?) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit): Modifier = this
+fun Modifier.chartGestures(plotLeft: Float, plotWidth: Float, isZoomed: () -> Boolean, indexAt: (Float) -> Int?, onSelectionChanged: (Int?) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit): Modifier = this
     .systemGestureExclusion()
     .pointerInput(plotLeft, plotWidth) {
         val indexAtPixel = { x: Float -> indexAt((x - plotLeft) / plotWidth) }
@@ -41,7 +41,8 @@ fun Modifier.chartGestures(plotLeft: Float, plotWidth: Float, indexAt: (Float) -
             awaitEachGesture {
                 val down = awaitFirstDown(requireUnconsumed = false)
                 glide?.cancel()
-                when (withTimeoutOrNull(SCRUB_HOLD_MS) { awaitIntent(down, viewConfiguration.touchSlop) } ?: ChartTouch.Scrub) {
+                if (down.isConsumed) return@awaitEachGesture
+                when (withTimeoutOrNull(SCRUB_HOLD_MS) { awaitIntent(down, viewConfiguration.touchSlop, isZoomed()) } ?: ChartTouch.Scrub) {
                     ChartTouch.Scrub -> {
                         indexAtPixel(down.position.x)?.let(onSelectionChanged)
                         val pinched = followScrub(indexAtPixel, onSelectionChanged)
@@ -62,15 +63,21 @@ fun Modifier.chartGestures(plotLeft: Float, plotWidth: Float, indexAt: (Float) -
         }
     }
 
-private suspend fun AwaitPointerEventScope.awaitIntent(down: PointerInputChange, touchSlop: Float): ChartTouch {
+private suspend fun AwaitPointerEventScope.awaitIntent(down: PointerInputChange, touchSlop: Float, isZoomed: Boolean): ChartTouch {
     while (true) {
         val event = awaitPointerEvent()
         val finger = event.changes.firstOrNull { it.id == down.id }
         val moved = finger?.let { it.position - down.position }
         when {
             event.pressedCount() > 1 -> return ChartTouch.Pinch
+
             finger == null || !finger.pressed || moved == null -> return ChartTouch.Tap
-            moved.getDistance() > touchSlop -> return if (abs(moved.x) > abs(moved.y)) ChartTouch.Pan else ChartTouch.Scroll
+
+            moved.getDistance() > touchSlop -> return when {
+                abs(moved.x) <= abs(moved.y) -> ChartTouch.Scroll
+                isZoomed -> ChartTouch.Pan
+                else -> ChartTouch.Scrub
+            }
         }
     }
 }

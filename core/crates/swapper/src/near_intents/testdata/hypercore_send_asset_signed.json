@@ -1,0 +1,21 @@
+{
+    "action": {
+        "type": "sendAsset",
+        "destination": "0x1085c5f70f7f7591d97da281a64688385455c2bd",
+        "sourceDex": "spot",
+        "destinationDex": "spot",
+        "token": "USDC:0x6d1e7cde53ba9467b783cb7c530ce054",
+        "amount": "100.024305",
+        "fromSubAccount": "",
+        "nonce": 1755004027201,
+        "signatureChainId": "0xa4b1",
+        "hyperliquidChain": "Mainnet"
+    },
+    "signature": {
+        "r": "0xab9f31be8a715735e694d1e46e78472b06f67c0dada7f11163011c243a2ce47a",
+        "s": "0x3aea7407453226c6924a95022b0b55d4b8f69521c1b0d39e64839092b4f4ed2f",
+        "v": 27
+    },
+    "nonce": 1755004027201,
+    "isFrontend": true
+}

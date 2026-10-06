@@ -86,7 +86,7 @@ fun PerpetualListItem(item: GemPerpetualMarketItem, modifier: Modifier = Modifie
 @Composable
 private fun PerpetualListItemPreview() {
     WalletTheme {
-        PerpetualListItem(item = previewPerpetual(Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE), "BTC", 95420.50, 2.5, "$15.0B"))
+        PerpetualListItem(item = previewPerpetual(Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u, type = AssetType.NATIVE), "BTC", 95420.50, 2.5, "$15.0B"))
     }
 }
 

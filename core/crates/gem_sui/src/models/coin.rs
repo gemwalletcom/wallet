@@ -12,7 +12,7 @@ use super::core::Coin;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SuiCoinMetadata {
-    pub decimals: i32,
+    pub decimals: u32,
     pub name: String,
     pub symbol: String,
 }

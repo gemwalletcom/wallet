@@ -107,24 +107,24 @@ fn get_nft_collection(client: &mut DatabaseClient, _identifier: &str) -> Result<
 fn get_nft_asset_association_ids_by_filter(client: &mut DatabaseClient, filters: Vec<NftAssetAssociationFilter>) -> Result<Vec<i32>, diesel::result::Error> {
     use crate::schema::nft_assets::dsl::{chain as asset_chain, id as asset_pk, nft_assets};
     use crate::schema::nft_assets_associations::dsl::*;
-    let mut query = nft_assets_associations.inner_join(nft_assets.on(asset_pk.eq(asset_id))).into_boxed();
+    let mut query = nft_assets_associations.inner_join(nft_assets.on(asset_pk.eq(nft_asset_id))).into_boxed();
     for filter in filters {
         match filter {
             NftAssetAssociationFilter::AddressId(value) => query = query.filter(address_id.eq(value)),
             NftAssetAssociationFilter::Chains(values) => query = query.filter(asset_chain.eq_any(values.into_iter().map(ChainRow::from).collect::<Vec<_>>())),
         }
     }
-    query.select(asset_id).load(&mut client.connection)
+    query.select(nft_asset_id).load(&mut client.connection)
 }
 
 fn add_nft_asset_associations(client: &mut DatabaseClient, values: Vec<NewNftAssetAssociationRow>) -> Result<usize, diesel::result::Error> {
     use crate::schema::nft_assets_associations::dsl::*;
-    diesel::insert_into(nft_assets_associations).values(values).on_conflict((address_id, asset_id)).do_nothing().execute(&mut client.connection)
+    diesel::insert_into(nft_assets_associations).values(values).on_conflict((address_id, nft_asset_id)).do_nothing().execute(&mut client.connection)
 }
 
 fn delete_nft_asset_associations(client: &mut DatabaseClient, _address_id: i32, asset_ids: Vec<i32>) -> Result<usize, diesel::result::Error> {
     use crate::schema::nft_assets_associations::dsl::*;
-    diesel::delete(nft_assets_associations.filter(address_id.eq(_address_id)).filter(asset_id.eq_any(asset_ids))).execute(&mut client.connection)
+    diesel::delete(nft_assets_associations.filter(address_id.eq(_address_id)).filter(nft_asset_id.eq_any(asset_ids))).execute(&mut client.connection)
 }
 
 impl NftRepository for DatabaseClient {
@@ -171,10 +171,17 @@ impl NftRepository for DatabaseClient {
 
     fn get_nft_asset_ids_for_address(&mut self, chain_value: Chain, address_value: &str) -> Result<Vec<NFTAssetId>, DatabaseError> {
         use crate::schema::nft_assets::dsl::{chain, id as asset_pk, identifier, nft_assets};
-        use crate::schema::nft_assets_associations::dsl::{address_id, asset_id, nft_assets_associations};
+        use crate::schema::nft_assets_associations::dsl::{address_id, nft_asset_id, nft_assets_associations};
         use crate::schema::wallets_addresses::dsl::{address, id as wallet_address_pk, wallets_addresses};
         let rows: Vec<NftAssetIdRow> = nft_assets
-            .filter(asset_pk.eq_any(nft_assets_associations.inner_join(wallets_addresses.on(wallet_address_pk.eq(address_id))).filter(address.eq(address_value)).select(asset_id)))
+            .filter(
+                asset_pk.eq_any(
+                    nft_assets_associations
+                        .inner_join(wallets_addresses.on(wallet_address_pk.eq(address_id)))
+                        .filter(address.eq(address_value))
+                        .select(nft_asset_id),
+                ),
+            )
             .filter(chain.eq(ChainRow::from(chain_value)))
             .select(identifier)
             .load(&mut self.connection)?;
@@ -243,7 +250,7 @@ impl NftRepository for DatabaseClient {
         let asset_ids = nft_asset_pks(self, asset_ids.iter().map(ToString::to_string).collect())?;
         let existing = get_nft_asset_association_ids_by_filter(self, vec![NftAssetAssociationFilter::AddressId(address_id), NftAssetAssociationFilter::Chains(chains)])?;
         let diff = Diff::compare(asset_ids, existing);
-        let to_insert: Vec<NewNftAssetAssociationRow> = diff.different.into_iter().map(|asset_id| NewNftAssetAssociationRow { address_id, asset_id }).collect();
+        let to_insert: Vec<NewNftAssetAssociationRow> = diff.different.into_iter().map(|asset_id| NewNftAssetAssociationRow { address_id, nft_asset_id: asset_id }).collect();
         if !to_insert.is_empty() {
             add_nft_asset_associations(self, to_insert)?;
         }
@@ -261,7 +268,7 @@ impl NftRepository for DatabaseClient {
         let report = NewNftReportRow {
             device_id: device.id,
             collection_id: collection.id,
-            asset_id: asset.map(|row| row.id),
+            nft_asset_id: asset.map(|row| row.id),
             reason: reason_value,
         };
         Ok(diesel::insert_into(nft_reports).values(report).on_conflict_do_nothing().execute(&mut self.connection)?)
@@ -277,11 +284,11 @@ impl NftRepository for DatabaseClient {
         }
 
         Ok(nft_assets_associations
-            .inner_join(nft_assets.on(asset_pk.eq(asset_id)))
+            .inner_join(nft_assets.on(asset_pk.eq(nft_asset_id)))
             .inner_join(wallets_addresses.on(wallet_address_pk.eq(address_id)))
             .filter(wallet_address.eq_any(addresses))
             .filter(asset_chain.eq_any(chains.into_iter().map(ChainRow::from).collect::<Vec<_>>()))
-            .select(diesel::dsl::count(asset_id).aggregate_distinct())
+            .select(diesel::dsl::count(nft_asset_id).aggregate_distinct())
             .first(&mut self.connection)?)
     }
 }

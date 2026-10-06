@@ -48,6 +48,10 @@ impl GemChartZoom {
         }
     }
 
+    pub fn is_zoomed(&self) -> bool {
+        self.scale > 1.0
+    }
+
     pub fn window(&self, first: DateTime<Utc>, last: DateTime<Utc>) -> RangeInclusive<DateTime<Utc>> {
         let span = (last - first).num_milliseconds() as f64;
         let end = last - TimeDelta::milliseconds((span * self.offset) as i64);

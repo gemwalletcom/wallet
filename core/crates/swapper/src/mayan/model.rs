@@ -507,6 +507,7 @@ fn get_min_amount(message: &str) -> Option<String> {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MayanTransactionResult {
+    pub source_tx_hash: Option<String>,
     pub from_token_address: String,
     pub to_token_address: String,
     pub from_token_chain: String,

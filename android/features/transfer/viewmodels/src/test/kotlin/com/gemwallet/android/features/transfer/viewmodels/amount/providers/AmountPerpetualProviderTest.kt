@@ -83,8 +83,8 @@ class AmountPerpetualProviderTest {
                     mockGemPerpetualTransferData(
                         provider = PerpetualProvider.Hypercore.toGem(),
                         direction = PerpetualDirection.Long.toGem(),
-                        asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10, type = AssetType.TOKEN).toGem(),
-                        baseAsset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"), name = "USDC", symbol = "USDC", decimals = 8, type = AssetType.TOKEN).toGem(),
+                        asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10u, type = AssetType.TOKEN).toGem(),
+                        baseAsset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"), name = "USDC", symbol = "USDC", decimals = 8u, type = AssetType.TOKEN).toGem(),
                         price = 100.0,
                         leverage = 1u,
                         marginType = PerpetualMarginType.Cross.toGem(),
@@ -101,8 +101,8 @@ class AmountPerpetualProviderTest {
             mockGemPerpetualTransferData(
                 provider = PerpetualProvider.Hypercore.toGem(),
                 direction = direction.toGem(),
-                asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10, type = AssetType.TOKEN).toGem(),
-                baseAsset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"), name = "USDC", symbol = "USDC", decimals = 8, type = AssetType.TOKEN).toGem(),
+                asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10u, type = AssetType.TOKEN).toGem(),
+                baseAsset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"), name = "USDC", symbol = "USDC", decimals = 8u, type = AssetType.TOKEN).toGem(),
                 price = 100.0,
                 leverage = 1u,
                 marginType = PerpetualMarginType.Cross.toGem(),

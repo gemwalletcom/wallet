@@ -16,6 +16,7 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":features:onboarding:viewmodels"))
+    implementation(project(":features:qr_scanner:presents"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
 

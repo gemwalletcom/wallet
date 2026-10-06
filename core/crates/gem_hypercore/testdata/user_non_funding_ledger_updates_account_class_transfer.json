@@ -1,0 +1,20 @@
+[
+  {
+    "time": 1740542456616,
+    "hash": "0xc8a08ea1c51e64e7d78f041e7b05cd01c900bb6536fcf01776376153482be9e5",
+    "delta": {
+      "type": "accountClassTransfer",
+      "usdc": "106.37",
+      "toPerp": true
+    }
+  },
+  {
+    "time": 1759199390515,
+    "hash": "0x86a858ed8f9891628822042c8948b80202a100d32a9bb0342a7104404e9c6b4d",
+    "delta": {
+      "type": "accountClassTransfer",
+      "usdc": "100.0",
+      "toPerp": false
+    }
+  }
+]

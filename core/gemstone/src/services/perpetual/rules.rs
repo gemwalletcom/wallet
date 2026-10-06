@@ -14,9 +14,9 @@ use strum::IntoEnumIterator;
 
 use super::model::{
     GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput,
-    GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualMarketView, GemPerpetualOrderAction, GemPerpetualOrderInput,
-    GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData, PerpetualMarketLine, PerpetualOpenLine,
-    PerpetualPositionLine,
+    GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDepositTarget, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualMarketView,
+    GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData,
+    PerpetualMarketLine, PerpetualOpenLine, PerpetualPositionLine,
 };
 use crate::formatted_number::{GemFormattedNumber, GemValueTone, value_tone};
 use crate::models::custom_types::GemBigInt;
@@ -391,7 +391,7 @@ impl GemMarketsRefreshTrigger {
 
 pub fn balance_update(balance: &PerpetualBalance) -> Result<GemBalanceUpdate, NumberFormatterError> {
     let asset = &*HYPERCORE_PERPETUAL_USDC;
-    let value = |amount: f64| BigNumberFormatter::value_from_amount_biguint(&amount.to_string(), asset.decimals as u32);
+    let value = |amount: f64| BigNumberFormatter::value_from_amount_biguint(amount, asset.decimals);
     Ok(GemBalanceUpdate {
         asset_id: asset.id.clone(),
         update_type: GemBalanceUpdateType::Perpetual {
@@ -422,15 +422,22 @@ pub fn balance_total(balance: Option<&PerpetualBalance>) -> GemFormattedNumber {
     GemFormattedNumber::usd(balance.map_or(0.0, |balance| balance.available + balance.reserved))
 }
 
+pub fn deposit_target(assets: Vec<Asset>, funded: &[AssetId]) -> GemPerpetualDepositTarget {
+    let funded_assets: Vec<Asset> = assets.iter().filter(|asset| funded.contains(&asset.id)).cloned().collect();
+    match (funded_assets.as_slice(), assets.first()) {
+        ([asset], _) | ([], Some(asset)) => GemPerpetualDepositTarget::Amount { asset: asset.clone() },
+        _ => GemPerpetualDepositTarget::SelectAsset,
+    }
+}
+
 pub fn balance_header(balance: Option<PerpetualBalance>, wallet_type: WalletType) -> GemValueHeader {
     let (available, withdrawable) = balance.as_ref().map_or((0.0, 0.0), |balance| (balance.available, balance.withdrawable));
-    let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
     let actions = match wallet_type {
         WalletType::View => GemHeaderActions::WatchOnly,
         WalletType::Multicoin | WalletType::Single | WalletType::PrivateKey => GemHeaderActions::Buttons {
             buttons: vec![
                 GemHeaderButton::new(GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() }, withdrawable > 0.0),
-                GemHeaderButton::new(GemHeaderButtonAction::Deposit { asset: perpetual.deposit_asset() }, true),
+                GemHeaderButton::new(GemHeaderButtonAction::Deposit, true),
             ],
         },
     };
@@ -458,7 +465,7 @@ pub fn collateral_price(chain: Chain) -> Option<AssetPrice> {
 }
 
 pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> PerpetualType {
-    let usd_amount = BigNumberFormatter::f64_value(&input.usdc_value, u32::try_from(input.usdc_decimals).unwrap_or_default());
+    let usd_amount = BigNumberFormatter::f64_value(&input.usdc_value, input.usdc_decimals);
     let slippage = slippage_percent(input.slippage);
     let (size, fiat_value, margin_amount) = order_amounts(usd_amount, input.leverage, input.price);
     let price = slippage_price(input.price, input.direction.clone(), input.action.opens_position(), slippage);
@@ -906,6 +913,7 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::PerpetualTriggerOrder;
     use primitives::TransactionInputType;
+    use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
 
     #[test]
     fn test_the_balance_header_names_the_asset_each_button_moves() {
@@ -915,14 +923,19 @@ mod tests {
 
         assert_eq!(
             buttons.into_iter().map(|button| button.action).collect::<Vec<_>>(),
-            vec![
-                GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() },
-                GemHeaderButtonAction::Deposit {
-                    asset: GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()
-                },
-            ],
+            vec![GemHeaderButtonAction::Withdraw { asset: HYPERCORE_PERPETUAL_USDC.clone() }, GemHeaderButtonAction::Deposit],
             "a withdrawal leaves the perpetual account, not the chain"
         );
+    }
+
+    #[test]
+    fn test_deposit_target() {
+        let assets = vec![ARBITRUM_USDC.clone(), HYPERCORE_SPOT_USDC.clone()];
+        let amount = |asset: &Asset| GemPerpetualDepositTarget::Amount { asset: asset.clone() };
+
+        assert_eq!(deposit_target(assets.clone(), &[ARBITRUM_USDC.id.clone(), HYPERCORE_SPOT_USDC.id.clone()]), GemPerpetualDepositTarget::SelectAsset);
+        assert_eq!(deposit_target(assets.clone(), std::slice::from_ref(&HYPERCORE_SPOT_USDC.id)), amount(&HYPERCORE_SPOT_USDC), "a choice of one is no choice");
+        assert_eq!(deposit_target(assets, &[]), amount(&ARBITRUM_USDC), "with nothing to deposit, the Arbitrum USDC amount shows the zero balance");
     }
 
     #[test]

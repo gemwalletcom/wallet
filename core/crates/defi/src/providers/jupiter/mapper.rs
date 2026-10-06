@@ -116,7 +116,7 @@ fn map_asset(asset: &PortfolioAsset, token_info: &TokenInfoByAddress) -> Result<
 
     Ok(DefiPositionAsset {
         asset_id: map_asset_id(address),
-        value: BigNumberFormatter::value_from_amount_biguint(&amount.to_string(), decimals)?,
+        value: BigNumberFormatter::value_from_amount_biguint(amount, decimals)?,
     })
 }
 

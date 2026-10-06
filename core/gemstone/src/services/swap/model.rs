@@ -125,8 +125,8 @@ pub fn quote_details(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_
 }
 
 pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>) -> GemSwapQuoteSummary {
-    let pay = GemSwapValue::new(quote.from_value.clone(), from_asset.decimals as u32, from_price);
-    let receive = GemSwapValue::new(quote.to_value.clone(), to_asset.decimals as u32, to_price);
+    let pay = GemSwapValue::new(quote.from_value.clone(), from_asset.decimals, from_price);
+    let receive = GemSwapValue::new(quote.to_value.clone(), to_asset.decimals, to_price);
     let price_impact = pay.price_impact(&receive);
     GemSwapQuoteSummary {
         min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),

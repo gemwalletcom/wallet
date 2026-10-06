@@ -53,26 +53,48 @@ struct PerpetualsSceneViewModelTests {
     }
 
     @Test
-    func unavailablePerpetualsBlocksDepositButKeepsWithdrawal() {
+    func depositOpensThePickerWhenThereIsAChoice() async {
+        var selected: SelectAssetType?
+        let model = PerpetualsSceneViewModel.mock(onSelectAssetType: { selected = $0 })
+
+        await model.onSelectDeposit()
+
+        #expect(selected == .deposit)
+    }
+
+    @Test
+    func depositOpensTheAmountOfTheOneSource() async {
+        let perpetuals = GemPerpetualServiceMock()
+        perpetuals.depositTargetValue = .amount(asset: Asset.mock().toGem())
+        var selected: AmountInput?
+        let model = PerpetualsSceneViewModel.mock(onSelectAmount: { selected = $0 }, perpetualService: perpetuals)
+
+        await model.onSelectDeposit()
+
+        #expect(selected == AmountInput(type: .deposit, asset: .mock()))
+    }
+
+    @Test
+    func unavailablePerpetualsBlocksDepositButKeepsWithdrawal() async {
         let service = GemPerpetualServiceMock()
         service.isAvailableValue = false
+        service.depositTargetValue = .amount(asset: Asset.mock().toGem())
         var amounts: [AmountInput] = []
         let model = PerpetualsSceneViewModel.mock(onSelectAmount: { amounts.append($0) }, perpetualService: service)
-        let asset = Asset.mock().toGem()
 
         #expect(model.isPresentingInfoSheet == nil)
-        model.onSelectHeaderAction(.deposit(asset: asset))
+        await model.onSelectDeposit()
         #expect(amounts.isEmpty)
         #expect(model.isPresentingInfoSheet?.description == Localized.Info.regionUnavailableDescription)
 
         model.isPresentingInfoSheet = nil
-        model.onSelectHeaderAction(.withdraw(asset: asset))
+        model.onSelectHeaderAction(.withdraw(asset: Asset.mock().toGem()))
         #expect(amounts.count == 1)
         #expect(model.isPresentingInfoSheet == nil)
         #expect(service.availabilityCheckCount == 1)
 
         service.isAvailableValue = true
-        model.onSelectHeaderAction(.deposit(asset: asset))
+        await model.onSelectDeposit()
         #expect(amounts.count == 2)
     }
 }

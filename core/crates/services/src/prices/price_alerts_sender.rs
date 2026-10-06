@@ -21,7 +21,7 @@ impl PriceAlertSender {
         let notification_cooldown = self.config.get_duration(ConfigKey::AlerterPriceAlertsCooldown).await?;
         let price_change_threshold = self.config.get_f64(ConfigKey::AlerterPriceAlertsThreshold).await?;
         let rank_divisor = self.config.get_f64(ConfigKey::AlerterPriceAlertsRankDivisor).await?;
-        let milestones = self.config.get_vec::<f64>(ConfigKey::AlerterPriceAlertsMilestones).await?;
+        let milestones = self.config.get_json::<Vec<f64>>(ConfigKey::AlerterPriceAlertsMilestones).await?;
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
 
         let rules = PriceAlertRules {

@@ -263,10 +263,10 @@ extension WalletConnectorService {
         let approval = service.sessionApproval(wallet: wallet.toGem())
         let sessionNamespaces = try AutoNamespaces.build(
             sessionProposal: proposal,
-            chains: approval.chains.compactMap { Primitives.Chain(core: $0).blockchain(chainService: chainService) },
+            chains: approval.chains.flatMap { Primitives.Chain(core: $0).blockchains(chainService: chainService) },
             methods: approval.methods,
             events: approval.events,
-            accounts: approval.accounts.compactMap { $0.toPrimitives().blockchain(chainService: chainService) },
+            accounts: approval.accounts.flatMap { $0.toPrimitives().blockchains(chainService: chainService) },
         )
         let caip2Chains = sessionNamespaces.values.flatMap { $0.chains ?? [] }.map(\.absoluteString)
         let sessionProperties = service.configSessionProperties(

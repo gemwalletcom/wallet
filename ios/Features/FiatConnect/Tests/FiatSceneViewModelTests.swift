@@ -5,7 +5,6 @@ import BigInt
 import FiatConnectTestKit
 import Foundation
 import struct Gemstone.FiatQuote
-import func Gemstone.formattedAmount
 import func Gemstone.formattedCurrency
 import struct Gemstone.GemFiatQuoteRequest
 import struct Gemstone.GemProviderRow
@@ -109,7 +108,7 @@ final class FiatSceneViewModelTests {
         #expect(model.amountError(model.viewState) == nil)
         #expect(model.viewState.buttonState.state == .normal)
 
-        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiat: nil, isSelected: false)])
+        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: .mock(unit: .symbol(symbol: "BTC")), fiat: nil, isSelected: false)])
 
         #expect(model.viewState.selectedQuoteRow?.quoteId == unaffordable.id)
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.insufficientBalance("**\(model.asset.name) (\(model.asset.symbol))**"))
@@ -188,17 +187,6 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func loadTriggerOnSelectRandomAmountIsImmediate() {
-        let model = FiatSceneViewModel.mock()
-        model.amount = "123"
-
-        model.onSelectRandomAmount()
-
-        #expect(model.loadTrigger?.request == GemFiatQuoteRequest(quoteType: .buy, amount: 50))
-        #expect(model.loadTrigger?.isImmediate == true)
-    }
-
-    @Test
     func presetSelectionDoesNotScheduleSecondDebouncedFetch() {
         let model = FiatSceneViewModel.mock()
         model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 50), error: .Api(msg: "offline")))
@@ -226,7 +214,7 @@ final class FiatSceneViewModelTests {
         model.amount = "0"
         #expect(model.amountError(model.viewState) == nil)
 
-        model.amount = "."
+        model.amount = "12.5"
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Errors.invalidAmount)
 
         model.amount = "4"
@@ -287,7 +275,7 @@ final class FiatSceneViewModelTests {
         model.onAssetDataChange(.mock(metadata: .mock(isSellEnabled: true)), .mock(balance: .mock(available: BigInt(500_000_000)), metadata: .mock(isSellEnabled: true)))
         #expect(model.loadTrigger == trigger)
 
-        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiat: nil, isSelected: false)])
+        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: .mock(unit: .symbol(symbol: "BTC")), fiat: nil, isSelected: false)])
         #expect(model.loadTrigger == trigger)
     }
 

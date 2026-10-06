@@ -19,12 +19,12 @@ pub fn balance_amount(value: &BigUint, asset: &Asset) -> GemFormattedNumber {
 
 pub fn available_balance_text(asset: Asset, balance: GemAssetBalance) -> GemLocalizedText {
     GemLocalizedText::Balance {
-        amount: GemFormattedNumber::amount(BigNumberFormatter::f64_value(&balance.available, asset.decimals.unsigned_abs()), None, GemValueStyle::Auto),
+        amount: GemFormattedNumber::amount(BigNumberFormatter::f64_value(&balance.available, asset.decimals), None, GemValueStyle::Auto),
     }
 }
 
 pub fn balance_amount_styled(value: &BigUint, asset: &Asset, style: GemValueStyle) -> GemFormattedNumber {
-    let value = BigNumberFormatter::f64_value(value, asset.decimals.unsigned_abs());
+    let value = BigNumberFormatter::f64_value(value, asset.decimals);
     GemFormattedNumber::amount(value, Some(asset.symbol.clone()), style)
 }
 
@@ -167,7 +167,7 @@ pub fn changed_balances(stored: Vec<GemAssetBalance>, updates: Vec<GemBalanceUpd
 }
 
 pub fn balance_records(balances: Vec<GemAssetBalance>, assets: &[Asset]) -> Vec<GemBalanceRecord> {
-    let decimals: HashMap<AssetId, u32> = assets.iter().map(|asset| (asset.id.clone(), asset.decimals.max(0) as u32)).collect();
+    let decimals: HashMap<AssetId, u32> = assets.iter().map(|asset| (asset.id.clone(), asset.decimals)).collect();
     balances.into_iter().filter_map(|balance| Some(GemBalanceRecord::new(balance.clone(), *decimals.get(&balance.asset_id)?))).collect()
 }
 

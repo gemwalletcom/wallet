@@ -50,7 +50,7 @@ fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd
     let asset_decimals = asset.decimals;
     let rate_decimals = match rate_unit {
         FeeUnitType::Native => asset_decimals,
-        FeeUnitType::SatVb | FeeUnitType::Gwei => rate_unit.decimals() as i32,
+        FeeUnitType::SatVb | FeeUnitType::Gwei => rate_unit.decimals(),
     };
     let map_estimates = |estimates| map_estimates_by_priority(estimates, rate_decimals, asset_decimals, price_usd);
     Ok(ChainFeeEstimates {
@@ -62,18 +62,17 @@ fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd
     })
 }
 
-fn map_estimates_by_priority(estimates: Vec<TransactionFeeEstimate>, rate_decimals: i32, asset_decimals: i32, price_usd: f64) -> Result<FeeEstimatesByPriority, Box<dyn Error + Send + Sync>> {
+fn map_estimates_by_priority(estimates: Vec<TransactionFeeEstimate>, rate_decimals: u32, asset_decimals: u32, price_usd: f64) -> Result<FeeEstimatesByPriority, Box<dyn Error + Send + Sync>> {
     estimates
         .into_iter()
         .map(|estimate| {
-            let value = estimate.fee.to_string();
             Ok((
                 estimate.priority,
                 FeeEstimate {
-                    base: BigNumberFormatter::value(&estimate.gas_price_type.gas_price().to_string(), rate_decimals)?,
-                    priority_fee: BigNumberFormatter::value(&estimate.gas_price_type.priority_fee().to_string(), rate_decimals)?,
-                    value: BigNumberFormatter::value(&value, asset_decimals)?,
-                    fiat_value: CryptoFiatConverter::to_fiat(&value, asset_decimals as u32, price_usd)?,
+                    base: BigNumberFormatter::value(estimate.gas_price_type.gas_price(), rate_decimals)?,
+                    priority_fee: BigNumberFormatter::value(estimate.gas_price_type.priority_fee(), rate_decimals)?,
+                    value: BigNumberFormatter::value(&estimate.fee, asset_decimals)?,
+                    fiat_value: CryptoFiatConverter::to_fiat(&estimate.fee, asset_decimals, price_usd)?,
                 },
             ))
         })

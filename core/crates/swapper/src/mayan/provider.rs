@@ -259,7 +259,10 @@ mod tests {
         assert_eq!(map_quote_error(error, 6), SwapperError::InputAmountError { min_amount: Some("1234500000".to_string()) });
         assert_eq!(map_quote_error(SwapperError::NoQuoteAvailable, 6), SwapperError::NoQuoteAvailable);
     }
-    use crate::mayan::model::{MayanFastMctpQuote, MayanMctpQuote};
+    use crate::mayan::{
+        constants::MAYAN_CPI_PROXY_PROGRAM_ID,
+        model::{MayanFastMctpQuote, MayanMctpQuote},
+    };
     use crate::models::Options;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
     use gem_client::testkit::MockClient;
@@ -287,6 +290,7 @@ mod tests {
 
         assert_eq!(addresses.deposit.iter().filter(|address| *address == &api_address).count(), 1);
         assert_eq!(addresses.send.iter().filter(|address| *address == &api_address).count(), 1);
+        assert!(addresses.deposit.iter().any(|address| address == MAYAN_CPI_PROXY_PROGRAM_ID));
         assert!(addresses.send.iter().any(|address| address == "0xD78D199f8C402e7B5Cc2abE278dF0412400a3BAe"));
         assert!(!addresses.deposit.iter().chain(&addresses.send).any(|address| address == EVM_ZERO_ADDRESS));
     }

@@ -80,7 +80,7 @@ fun DbAssetInfo.toDTO(): AssetData? {
             id = assetId,
             name = entity.name,
             symbol = entity.symbol,
-            decimals = entity.decimals,
+            decimals = entity.decimals.toUInt(),
             type = entity.type,
         ),
         balance = Balance(

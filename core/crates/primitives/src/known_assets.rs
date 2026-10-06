@@ -13,7 +13,7 @@ const DAI_SYMBOL: &str = "DAI";
 const CBBTC_NAME: &str = "Coinbase BTC";
 const CBBTC_SYMBOL: &str = "cbBTC";
 
-fn token_asset(chain: Chain, token_id: &str, name: &str, symbol: &str, decimals: i32, asset_type: AssetType) -> Asset {
+fn token_asset(chain: Chain, token_id: &str, name: &str, symbol: &str, decimals: u32, asset_type: AssetType) -> Asset {
     Asset::new(AssetId::from_token(chain, token_id), name.to_string(), symbol.to_string(), decimals, asset_type)
 }
 

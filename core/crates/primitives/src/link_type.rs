@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
+use strum::{AsRefStr, EnumString};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, EnumIter, AsRefStr, EnumString)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, AsRefStr, EnumString)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum LinkType {
@@ -24,11 +24,5 @@ pub enum LinkType {
 impl LinkType {
     pub fn name(&self) -> String {
         self.as_ref().to_string()
-    }
-}
-
-impl LinkType {
-    pub fn all() -> Vec<Self> {
-        Self::iter().collect::<Vec<_>>()
     }
 }

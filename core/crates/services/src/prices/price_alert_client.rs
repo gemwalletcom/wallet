@@ -47,10 +47,6 @@ impl PriceAlertClient {
         let mut results = vec![];
 
         for alert in notifications {
-            if !alert.device.can_receive_price_alerts() {
-                continue;
-            }
-
             let Some(current_price) = formatter.currency(alert.price.price, alert.currency.as_ref()) else {
                 info_with_fields!("unknown_currency_symbol", currency = alert.currency.as_ref());
                 continue;

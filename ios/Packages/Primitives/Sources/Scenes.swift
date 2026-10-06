@@ -147,11 +147,15 @@ public enum Scenes {
         public init() {}
     }
 
-    public struct Collectible: Hashable, Codable, Sendable {
-        public let assetData: NFTAssetData
+    public enum Collectible: Hashable, Codable, Sendable {
+        case assetData(NFTAssetData)
+        case assetId(NFTAssetId)
 
-        public init(assetData: NFTAssetData) {
-            self.assetData = assetData
+        public var assetId: NFTAssetId {
+            switch self {
+            case let .assetData(assetData): assetData.asset.id
+            case let .assetId(assetId): assetId
+            }
         }
     }
 

@@ -85,12 +85,12 @@ impl GemAmountService {
         match request {
             GemAmountRequest::Transfer { transfer } => {
                 let owner = match transfer {
-                    GemAmountTransfer::Withdraw => {
+                    GemAmountTransfer::Withdraw | GemAmountTransfer::Deposit => {
                         let wallet = self.session.require_current_wallet().await?;
                         let account = required_account(&wallet, asset.chain())?;
                         Some(GemRecipient::named(account.address, wallet.name))
                     }
-                    GemAmountTransfer::Send { .. } | GemAmountTransfer::Deposit => None,
+                    GemAmountTransfer::Send { .. } => None,
                 };
                 rules::transfer_data(asset, transfer, owner, value, use_max_amount)
             }

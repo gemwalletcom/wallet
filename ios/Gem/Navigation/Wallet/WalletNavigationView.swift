@@ -123,7 +123,7 @@ struct WalletNavigationView: View {
             CollectibleScene(
                 model: viewModelFactory.collectibleScene(
                     wallet: model.wallet,
-                    assetData: $0.assetData,
+                    collectible: $0,
                     isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
                     onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
                 ),
@@ -158,6 +158,7 @@ struct WalletNavigationView: View {
                 model: viewModelFactory.perpetualsScene(
                     wallet: model.wallet,
                     onSelectAmount: { model.isPresentingSheet = .amount($0) },
+                    onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
                     onSelectAsset: navigationRouter.openAsset,
                     onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
                 ),

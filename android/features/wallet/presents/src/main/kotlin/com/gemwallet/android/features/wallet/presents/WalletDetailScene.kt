@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,9 +48,7 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
     wallet ?: return
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    var walletName by remember(wallet.row.name) {
-        mutableStateOf(wallet.row.name)
-    }
+    var walletName by rememberSaveable { mutableStateOf(wallet.row.name) }
     Scene(
         title = stringResource(id = R.string.common_wallet),
         snackbar = snackbar,

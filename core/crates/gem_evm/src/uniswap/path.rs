@@ -132,7 +132,7 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::SmartChain => SMARTCHAIN_USDT_TOKEN_ID,
         EVMChain::ZkSync => ZKSYNC_USDT_TOKEN_ID,
         EVMChain::Abstract => "0x0709F39376dEEe2A2dfC94A58EdEb2Eb9DF012bD",
-        EVMChain::Unichain => "0x9151434b16b9763660705744891fA906F660EcC5",
+        EVMChain::Unichain => UNICHAIN_USDT0_TOKEN_ID,
         EVMChain::Sonic => "0x6047828dc181963ba44974801FF68e538dA5eaF9",
         EVMChain::Mantle => "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
         EVMChain::Gnosis => GNOSIS_USDT_TOKEN_ID,
@@ -144,7 +144,7 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::Monad => MONAD_USDT_TOKEN_ID,
         EVMChain::SeiEvm => SEIEVM_USDT_TOKEN_ID,
         EVMChain::XLayer => XLAYER_USDT_TOKEN_ID,
-        EVMChain::Stable => "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
+        EVMChain::Stable => USDT0_OFT_TOKEN_ID,
         EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo | EVMChain::Arc => "",
         _ => panic!("USDT is not configured for this chain"),
     };

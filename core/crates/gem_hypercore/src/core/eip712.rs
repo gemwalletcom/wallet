@@ -160,7 +160,7 @@ pub fn approve_builder_fee_types() -> Vec<EIP712Type> {
     ]
 }
 
-pub fn spot_send_types() -> Vec<EIP712Type> {
+pub fn send_asset_types() -> Vec<EIP712Type> {
     vec![
         EIP712Type {
             name: "hyperliquidChain".to_string(),
@@ -168,6 +168,14 @@ pub fn spot_send_types() -> Vec<EIP712Type> {
         },
         EIP712Type {
             name: "destination".to_string(),
+            r#type: "string".to_string(),
+        },
+        EIP712Type {
+            name: "sourceDex".to_string(),
+            r#type: "string".to_string(),
+        },
+        EIP712Type {
+            name: "destinationDex".to_string(),
             r#type: "string".to_string(),
         },
         EIP712Type {
@@ -179,7 +187,32 @@ pub fn spot_send_types() -> Vec<EIP712Type> {
             r#type: "string".to_string(),
         },
         EIP712Type {
-            name: "time".to_string(),
+            name: "fromSubAccount".to_string(),
+            r#type: "string".to_string(),
+        },
+        EIP712Type {
+            name: "nonce".to_string(),
+            r#type: "uint64".to_string(),
+        },
+    ]
+}
+
+pub fn usd_class_transfer_types() -> Vec<EIP712Type> {
+    vec![
+        EIP712Type {
+            name: "hyperliquidChain".to_string(),
+            r#type: "string".to_string(),
+        },
+        EIP712Type {
+            name: "amount".to_string(),
+            r#type: "string".to_string(),
+        },
+        EIP712Type {
+            name: "toPerp".to_string(),
+            r#type: "bool".to_string(),
+        },
+        EIP712Type {
+            name: "nonce".to_string(),
             r#type: "uint64".to_string(),
         },
     ]

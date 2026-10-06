@@ -1,12 +1,10 @@
 use crate::formatted_number::{GemFormattedNumber, GemNumberNotation, GemValueTone};
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
-use crate::models::state::{GemListPhase, GemLoadState};
 use crate::precision::GemValueStyle;
 use crate::services::assets::icon::{GemAssetIcon, asset_icon};
 use crate::services::assets::model::{GemFeeAmount, GemFeeText, GemRowText, GemValueHeader};
 use crate::services::confirm::GemNetworkFeeScreen;
-use crate::services::empty_state::GemEmptyState;
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
@@ -232,11 +230,6 @@ pub fn transaction_rows(items: Vec<TransactionListItem>) -> Vec<GemTransactionRo
     items.iter().map(rules::row).collect()
 }
 
-#[uniffi::export]
-pub fn transaction_list_phase(rows: Vec<GemTransactionRow>, state: GemLoadState, empty_state: GemEmptyState) -> GemListPhase {
-    GemListPhase::new(state, !rows.is_empty(), empty_state)
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemTransactionHeader {
@@ -434,8 +427,6 @@ pub struct GemSwapAgain {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::services::empty_state::{GemEmptyStateKind, empty_state};
-    use crate::services::error::GemServiceError;
 
     #[test]
     fn test_a_signed_amount_carries_its_direction_and_an_unsigned_one_does_not() {
@@ -456,17 +447,6 @@ mod tests {
 
         let zero = number(GemAmountSign::Incoming, 0);
         assert_eq!(zero.notation, GemNumberNotation::Plain, "nothing moved, so nothing is signed");
-    }
-
-    #[test]
-    fn test_a_transaction_list_shows_its_rows_before_a_failed_sync() {
-        let error = GemServiceError::Gateway { msg: "offline".to_string() };
-        let rows = transaction_rows(vec![TransactionListItem::mock_transaction(primitives::Transaction::mock())]);
-        let empty = empty_state(GemEmptyStateKind::Activity);
-
-        assert_eq!(transaction_list_phase(rows, GemLoadState::Error { error: error.clone() }, empty.clone()), GemListPhase::Rows);
-        assert_eq!(transaction_list_phase(vec![], GemLoadState::Error { error: error.clone() }, empty.clone()), GemListPhase::Error { error });
-        assert_eq!(transaction_list_phase(vec![], GemLoadState::Loading, empty.clone()), GemListPhase::Empty { state: empty });
     }
 
     #[test]

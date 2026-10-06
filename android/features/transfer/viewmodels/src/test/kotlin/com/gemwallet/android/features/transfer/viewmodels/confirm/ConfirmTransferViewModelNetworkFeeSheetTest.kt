@@ -50,8 +50,8 @@ import java.math.BigInteger
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmTransferViewModelNetworkFeeSheetTest {
     private val testDispatcher = UnconfinedTestDispatcher()
-    private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
-    private val payAsset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9u)
+    private val payAsset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6u, type = AssetType.SPL)
     private val account = mockAccount(chain = Chain.Solana)
     private val confirmation = mockk<GemConfirmation> {
         every { rowContents(any()) } returns emptyList()
@@ -93,7 +93,7 @@ class ConfirmTransferViewModelNetworkFeeSheetTest {
                 simulation = mockGemConfirmSimulationState(chain = asset.id.chain.string),
                 fee = mockGemConfirmFee(
                     value = BigInteger.ONE,
-                    formatted = feeAmount(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).toGem(), BigInteger.ONE, null, Currency.USD.toGem()),
+                    formatted = feeAmount(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u).toGem(), BigInteger.ONE, null, Currency.USD.toGem()),
                     selectedPriority = FeePriority.Normal.toGem(),
                     amount = GemTransferAmountResult.Error(problem),
                 ),

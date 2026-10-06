@@ -51,7 +51,7 @@ class WalletConnectSignerTest {
     fun `send transaction is marked sendable`() = runTest {
         val transfer = mockGemTransferData(
             inputType = TransactionInputType.Generic(
-                asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9).toGem(),
+                asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9u).toGem(),
                 metadata = mockApplicationMetadata().toGem(),
                 extra = mockTransferDataExtra(
                     to = "recipient",

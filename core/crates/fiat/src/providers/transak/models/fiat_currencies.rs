@@ -6,11 +6,7 @@ pub struct FiatCurrency {
     pub symbol: String,
     pub name: String,
     pub payment_options: Vec<PaymentOption>,
-    pub supporting_countries: Vec<String>,
-    pub is_popular: bool,
     pub is_allowed: bool,
-    pub round_off: u32,
-    pub is_pay_out_allowed: bool,
     pub icon: String,
 }
 

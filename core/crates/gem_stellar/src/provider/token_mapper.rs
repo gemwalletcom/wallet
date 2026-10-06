@@ -1,4 +1,4 @@
-use crate::constants::STELLAR_TOKEN_DECIMALS;
+use crate::constants::STELLAR_DECIMALS;
 use crate::models::common::StellarAsset;
 use primitives::{Asset, AssetId, AssetType, Chain};
 
@@ -7,7 +7,7 @@ pub fn map_token_data(asset: &StellarAsset, token_id: String, chain: Chain) -> A
         id: AssetId::from(chain, Some(token_id)),
         name: asset.asset_code.clone(),
         symbol: asset.asset_code.clone(),
-        decimals: STELLAR_TOKEN_DECIMALS,
+        decimals: STELLAR_DECIMALS,
         asset_type: AssetType::TOKEN,
     }
 }

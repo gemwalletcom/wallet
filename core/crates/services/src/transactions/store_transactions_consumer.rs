@@ -15,6 +15,8 @@ use super::SwapVaultAddressClient;
 use super::repository::Repository;
 use crate::config::ConfigCacher;
 use crate::notifications::Pusher;
+use crate::subscriptions::SubscriptionLookup;
+use push_notification::GorushNotification;
 
 const CROSS_CHAIN_SOURCE_TYPES: [TransactionType; 3] = [TransactionType::Transfer, TransactionType::SmartContractCall, TransactionType::Swap];
 
@@ -24,6 +26,7 @@ pub struct StoreTransactionsConsumer {
     pub pusher: Pusher,
     pub config: Arc<ConfigCacher>,
     pub vault_client: SwapVaultAddressClient,
+    pub(crate) subscription_lookup: Arc<SubscriptionLookup>,
 }
 
 #[async_trait]
@@ -102,8 +105,8 @@ impl StoreTransactionsConsumer {
     }
 
     async fn get_subscriptions(&self, chain: Chain, transactions: &[Transaction]) -> Result<Vec<DeviceSubscription>, Box<dyn Error + Send + Sync>> {
-        let addresses: Vec<_> = transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
-        Ok(self.repository.subscriptions_for_addresses(chain, addresses).await?)
+        let addresses = transactions.iter().flat_map(Transaction::addresses).collect();
+        self.subscription_lookup.get(chain, addresses).await
     }
 
     fn subscribed_transactions_for_storage(
@@ -194,10 +197,11 @@ impl StoreTransactionsConsumer {
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
-        stream::iter(notification_requests)
-            .then(|(subscription, transaction, assets)| async move { Ok::<_, Box<dyn Error + Send + Sync>>(NotificationsPayload::new(self.pusher.get_messages(&subscription, transaction, assets).await?)) })
+        let notifications: Vec<Vec<GorushNotification>> = stream::iter(notification_requests)
+            .then(|(subscription, transaction, assets)| async move { self.pusher.get_messages(&subscription, transaction, assets).await })
             .try_collect()
-            .await
+            .await?;
+        Ok(NotificationsPayload::batches(notifications.into_iter().flatten().collect(), config.notifications_batch_size))
     }
 
     fn wallet_events(subscriptions: &[DeviceSubscription], subscribed_transactions: &[(&DeviceSubscription, &Transaction)], publishable_transactions: &[&Transaction]) -> Vec<WalletStreamPayload> {
@@ -343,9 +347,32 @@ mod tests {
     };
     use num_bigint::BigUint;
     use primitives::{
-        Asset, AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId, asset_constants::SOLANA_USDC_ASSET_ID,
-        contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, known_assets::HYPERCORE_PERPETUAL_USDC,
+        Asset, AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId,
+        asset_constants::SOLANA_USDC_ASSET_ID,
+        contract_constants::{SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID, SOLANA_RELAY_DEPOSITORY_PROGRAM_ID},
+        known_assets::HYPERCORE_PERPETUAL_USDC,
     };
+
+    #[test]
+    fn test_mayan_swift_deposit_enters_cross_chain_processing() {
+        let response: JsonRpcResult<SingleTransaction> = serde_json::from_str(include_str!("../../../gem_solana/testdata/mayan_swift_deposit_token.json")).unwrap();
+        let source = BlockTransaction {
+            meta: response.result.meta,
+            transaction: response.result.transaction,
+        };
+        let transaction = map_transaction(&source, response.result.block_time).unwrap();
+        let deposit_addresses = DepositAddressMap::from([(SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID.to_string(), SwapProvider::Mayan)]);
+        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new());
+
+        assert_eq!(transactions.len(), 1);
+        let transaction = &transactions[0];
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.state, TransactionState::InTransit);
+        assert_eq!(transaction.asset_id, AssetId::from_token(Chain::Solana, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"));
+        assert_eq!(transaction.value, BigUint::from(1_000_000_000u64));
+        assert_eq!(transaction.metadata, None);
+        assert_eq!(cross_chain::swap_provider_with_vault_addresses(transaction, &deposit_addresses), Some(SwapProvider::Mayan));
+    }
 
     #[test]
     fn test_relay_lookup_table_deposit_enters_cross_chain_processing() {

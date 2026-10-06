@@ -1,3 +1,4 @@
+use crate::SwapAmountMode;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_biguint_from_str;
@@ -35,11 +36,28 @@ pub struct QuoteRequest {
     pub deposit_mode: DepositMode,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum SwapType {
     ExactInput,
     FlexInput,
+}
+
+impl SwapType {
+    pub fn amount_mode(&self) -> SwapAmountMode {
+        match self {
+            Self::ExactInput => SwapAmountMode::Fixed,
+            Self::FlexInput => SwapAmountMode::Flexible,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DepositData {
+    pub to: String,
+    pub value: String,
+    pub data: String,
+    pub memo: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]

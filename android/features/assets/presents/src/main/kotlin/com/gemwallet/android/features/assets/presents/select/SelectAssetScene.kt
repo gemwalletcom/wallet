@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -225,6 +226,7 @@ fun SelectAssetScene(
                 }
                 assetRows(
                     pinned,
+                    GemAssetSectionKind.PINNED.name,
                     onSelect,
                     onItemAction,
                     longPressedAsset,
@@ -276,11 +278,12 @@ private fun LazyListScope.assets(
 
     item { AssetSectionHeaderItem(group) }
 
-    assetRows(items, onSelect, onItemAction, longPressedAsset, contextActions)
+    assetRows(items, group.name, onSelect, onItemAction, longPressedAsset, contextActions)
 }
 
 fun LazyListScope.assetRows(
     items: List<AssetInfoDataAggregate>,
+    keyPrefix: String,
     onSelect: ((Asset) -> Unit)?,
     onItemAction: ((AssetInfoDataAggregate, AssetItemAction) -> Unit)? = null,
     longPressedAsset: MutableState<AssetId?>,
@@ -288,7 +291,7 @@ fun LazyListScope.assetRows(
     indexOffset: Int = 0,
     totalCount: Int = items.size,
 ) {
-    itemsPositioned(items, indexOffset = indexOffset, totalCount = totalCount) { position, item ->
+    itemsPositioned(items, indexOffset = indexOffset, totalCount = totalCount, key = { _, item -> "$keyPrefix-${item.id.toIdentifier()}" }) { position, item ->
         SelectAssetRow(
             position = position,
             item = item,

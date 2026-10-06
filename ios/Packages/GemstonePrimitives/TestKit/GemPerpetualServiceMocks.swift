@@ -89,12 +89,14 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     public var isPerpetualEnabled = true
     public var connects = true
+    public var enablementError: Error?
     public private(set) var syncMarketsCount = 0
     public private(set) var syncPositionsCount = 0
     public private(set) var clearMarketsCount = 0
     public var connectionFailures = 0
     public var connectionGate: (@Sendable (Gemstone.Wallet) async -> Void)?
     public private(set) var connectionCount = 0
+    public var depositTargetValue: Gemstone.GemPerpetualDepositTarget = .selectAsset
     private var updatedAt: Int64?
 
     public init(marketsUpdatedAt: Int64? = nil) {
@@ -105,13 +107,16 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt
     }
 
-    public func syncEnablement(wallet _: Gemstone.Wallet?, trigger: Gemstone.GemPerpetualEnablementTrigger) async throws -> Bool {
+    public func syncEnablement(wallet _: Gemstone.Wallet?) async throws -> Bool {
+        if let enablementError {
+            throw enablementError
+        }
         guard isPerpetualEnabled else {
             try await clearMarkets()
             return false
         }
-        if trigger != .foreground {
-            _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: .scheduled)
+        if updatedAt == nil {
+            try await syncMarkets(chain: "hypercore")
         }
         return connects
     }
@@ -136,6 +141,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     private func syncCurrentPositions() async throws {
         syncPositionsCount += 1
+    }
+
+    public func depositTarget() async throws -> Gemstone.GemPerpetualDepositTarget {
+        depositTargetValue
     }
 
     public func refresh(trigger: Gemstone.GemMarketsRefreshTrigger) async -> [Gemstone.GemPerpetualRefreshFailure] {
@@ -182,7 +191,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public private(set) var syncPositionsCount = 0
     public private(set) var syncedTransactionAssetIds: [Gemstone.AssetId] = []
     public private(set) var positionKinds: [GemPerpetualPositionKind] = []
-    public private(set) var setChartPeriods: [Gemstone.ChartPeriod] = []
 
     public init() {}
 
@@ -221,11 +229,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
 
     public func details(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, positions _: [Gemstone.PerpetualPosition]) -> GemPerpetualDetails {
         detailsValue
-    }
-
-    public func setChartPeriod(period: Gemstone.ChartPeriod) throws {
-        setChartPeriods.append(period)
-        chartPeriodValue = period
     }
 
     public func refresh(assetId: Gemstone.AssetId) async -> [Gemstone.GemPerpetualRefreshFailure] {

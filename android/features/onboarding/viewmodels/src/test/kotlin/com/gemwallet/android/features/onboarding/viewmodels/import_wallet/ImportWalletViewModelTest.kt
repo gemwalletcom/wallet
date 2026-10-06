@@ -23,8 +23,10 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemLocalizedText
@@ -188,5 +190,11 @@ class ImportWalletViewModelTest {
         viewModel.import { }
         advanceUntilIdle()
         assertEquals(error, viewModel.uiState.value.dataError)
+    }
+
+    @Test
+    fun onlyASingleChainImportOffersScanning() {
+        assertFalse(ImportWalletUIState(importType = ImportType.phrase()).showsScan)
+        assertTrue(ImportWalletUIState(importType = ImportType.phrase(chain)).showsScan)
     }
 }

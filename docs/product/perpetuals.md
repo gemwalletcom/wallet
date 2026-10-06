@@ -15,11 +15,11 @@ flowchart LR
 5. Confirm shows the position ("Long 5x"), the size, the price with `2%` slippage, and the take profit and stop loss prices.
 6. After a position is opened, closed, increased, reduced or modified, a message confirms what was done ("Open Long", "Close position").
 7. A position shows its PnL with percent, Auto Close, Size, Entry Price, Liquidation price, Margin and Funding Payments; Modify increases or reduces it.
-8. Deposit moves USDC from the wallet's Arbitrum account, at least `5 USDC`; Withdraw moves the withdrawable balance back, at least `2 USDC`, plus Hyperliquid's `1 USDC` network fee.
+8. Deposit moves USDC from the wallet's Arbitrum account, at least `5 USDC`, or, on a standard Hyperliquid account, from its HyperCore spot USDC; Withdraw moves the withdrawable balance back, at least `2 USDC`, plus Hyperliquid's `1 USDC` network fee.
 
 ```mermaid
 flowchart LR
-    A[Perpetual balance] --> B[Deposit from the wallet's Arbitrum USDC] --> C[Confirm] --> D[Available balance]
+    A[Perpetual balance] --> B[Deposit from the wallet's Arbitrum USDC or HyperCore spot USDC] --> C[Confirm] --> D[Available balance]
     A --> E[Withdraw the withdrawable balance] --> C
 ```
 
@@ -29,7 +29,9 @@ flowchart LR
 |---|---|---|
 | The wallet is not Multi-Coin or has no Hyperliquid account, or the user has not switched Perpetuals on | Perpetuals are not offered | |
 | The user switches Perpetuals off | the markets, positions and every wallet's perpetual recents are removed | search must not offer a market the app no longer has |
-| The app launches or returns to the foreground | cached positions show immediately, then the Hyperliquid socket replaces them with its current account snapshot; the full REST position refresh does not delay opening the socket | the socket needs only the account mode required for the correct subscriptions |
+| The user switches Perpetuals on | the markets load before the Hyperliquid socket subscribes; if they cannot load, the next launch or return to the foreground tries again | a position is stored against its market, so the first account snapshot needs the markets |
+| The app launches, returns to the foreground or switches wallet | cached positions show immediately, then the Hyperliquid socket replaces them with its current account snapshot; neither the REST position refresh, the account mode lookup, a markets refresh nor the wallet's balance setup delays opening the socket | only the account subscriptions need the mode, so the lookup runs during the socket handshake; stored markets refresh when Perpetuals opens |
+| A position's market is not stored yet | the balance still updates; the position appears once the markets refresh | a balance never waits on a position |
 | A market's price moves while the list is open | its 24h change moves with it | the change next to the price must agree with it and with Hyperliquid |
 | The user long-presses a market | it is pinned | |
 | The user searches | positions and markets are filtered | |
@@ -47,9 +49,12 @@ flowchart LR
 | A position has paid funding | Funding Payments shows it as a negative cost, for a long and a short alike | a short must see when funding costs money, the same as on Hyperliquid |
 | The user withdraws | the amount is what arrives on Arbitrum, the Network Fee shows Hyperliquid's `1 USDC`, and Max leaves the fee out | Hyperliquid takes the fee out of every withdrawal, so the screen shows what actually arrives |
 | The wallet's currency is not dollars | every perpetual value is still in dollars | the collateral is USDC |
+| The user taps Deposit on a standard Hyperliquid account | a choice between the Arbitrum USDC and the HyperCore spot USDC when both hold USDC, otherwise straight to the amount of the one that does, even when it is not in the wallet list | spot and perpetual balances are separate there, spot USDC often arrives from outside the wallet, and a choice of one is no choice |
+| The user taps Deposit on a unified Hyperliquid account | straight to the Arbitrum USDC amount | the spot USDC already is the perpetual balance |
+| The user taps Deposit with no USDC to deposit | straight to the Arbitrum USDC amount, which shows the zero balance | the Arbitrum USDC deposits on every account |
 | A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen | one rule decides which screen an asset opens, for both apps |
 
-Pinching the chart follows the shared [Charts](../PRODUCT.md#charts) section.
+Pinching and touching the chart follow the shared [Charts](../PRODUCT.md#charts) section.
 
 ## Platform differences
 

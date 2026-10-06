@@ -253,7 +253,7 @@ fn side_amount_placeholder(data: Option<&AssetData>) -> String {
 }
 
 pub(super) fn provider_row(provider: SwapperProvider, name: String, to_value: &GemBigUint, receive_asset: &Asset, receive_price: Option<f64>, currency: &Currency, is_selected: bool) -> GemProviderRow {
-    let value = BigNumberFormatter::f64_value(to_value.to_string(), receive_asset.decimals as u32);
+    let value = BigNumberFormatter::f64_value(to_value, receive_asset.decimals);
     GemProviderRow {
         kind: GemProviderKind::Swap { provider },
         name,
@@ -267,7 +267,7 @@ pub(super) fn provider_row(provider: SwapperProvider, name: String, to_value: &G
 impl GemSwapSession {
     pub fn minimum_amount_text(&self, pay_asset: Asset, format: GemNumberFormat) -> Option<String> {
         let minimum = rules::minimum_amount(self.quote_error().as_ref())?;
-        format.input_text(minimum.to_string(), pay_asset.decimals as u32)
+        format.input_text(minimum.to_string(), pay_asset.decimals)
     }
 
     pub fn on_input_changed(&self, amount: String, pay_asset: Option<Asset>, receive_asset: Option<Asset>, available_value: GemBigInt, slippage_bps: Option<u32>, format: GemNumberFormat) -> GemSwapSession {
@@ -455,7 +455,7 @@ impl GemSwapSession {
 }
 
 fn receive_amount(quote: &SwapperQuote) -> GemFormattedNumber {
-    GemFormattedNumber::amount(BigNumberFormatter::f64_value(quote.to_value.to_string(), quote.request.to_asset.decimals), None, GemValueStyle::Auto)
+    GemFormattedNumber::amount(BigNumberFormatter::f64_value(&quote.to_value, quote.request.to_asset.decimals), None, GemValueStyle::Auto)
 }
 
 impl GemSwapSession {
@@ -789,7 +789,7 @@ mod tests {
         let quote = ready.quote().unwrap();
         let amount = receive_amount(&quote);
 
-        assert_eq!(amount.value, BigNumberFormatter::f64_value(quote.to_value.to_string(), quote.request.to_asset.decimals));
+        assert_eq!(amount.value, BigNumberFormatter::f64_value(&quote.to_value, quote.request.to_asset.decimals));
         assert_eq!(amount.unit, crate::formatted_number::GemNumberUnit::Plain, "the receive field shows the number without a symbol");
         assert!(GemSwapSession::default().view_state(None, None, Currency::USD).receive_amount.is_none());
     }

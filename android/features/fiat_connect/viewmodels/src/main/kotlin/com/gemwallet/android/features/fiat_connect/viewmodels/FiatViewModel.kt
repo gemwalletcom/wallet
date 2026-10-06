@@ -17,6 +17,7 @@ import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -80,6 +81,7 @@ class FiatViewModel @Inject constructor(
         service.newSession(
             (savedStateHandle.get<FiatQuoteType>(RouteArgument.Type.key) ?: FiatQuoteType.Buy).toGem(),
             savedStateHandle.get<Int>(RouteArgument.FiatAmount.key)?.toUInt(),
+            numberFormat(),
         ),
     )
     private val isUrlLoading = MutableStateFlow(false)
@@ -177,10 +179,6 @@ class FiatViewModel @Inject constructor(
 
     fun selectAmount(suggestion: GemFiatSuggestedAmount) {
         updateAmount(suggestion.amount.toString())
-    }
-
-    fun selectRandomAmount() {
-        updateAmount(service.randomAmount().toString())
     }
 
     fun setProvider(provider: FiatProviderName) {

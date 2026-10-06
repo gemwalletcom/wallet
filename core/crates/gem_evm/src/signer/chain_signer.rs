@@ -25,6 +25,10 @@ impl ChainSigner for EvmChainSigner {
         sign_and_encode(&build_eip1559_transaction(&params, token_id, U256::ZERO, Bytes::from(data))?, private_key)
     }
 
+    fn sign_deposit(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
+        self.sign_token_transfer(input, private_key)
+    }
+
     fn sign_nft_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let params = TransactionParams::from_input(input)?;
         let nft_asset = input.input_type.get_nft_asset()?;

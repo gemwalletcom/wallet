@@ -138,7 +138,7 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
         .iter()
         .filter_map(|option| {
             let asset = option.asset.as_ref()?;
-            let value = BigNumberFormatter::f64_value(&option.value, asset.decimals as u32);
+            let value = BigNumberFormatter::f64_value(&option.value, asset.decimals);
             let value = GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Short);
             let points = points_number(option.points);
             Some(GemRewardsRedemption {

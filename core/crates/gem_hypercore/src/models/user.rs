@@ -35,6 +35,7 @@ pub enum UserRole {
     Agent {
         data: AgentOwner,
     },
+    Missing,
     #[serde(other)]
     Other,
 }
@@ -48,7 +49,7 @@ impl UserRole {
     pub fn owner(self, signer: &str) -> String {
         match self {
             Self::Agent { data } => data.user,
-            Self::Other => signer.to_string(),
+            Self::Missing | Self::Other => signer.to_string(),
         }
     }
 }
@@ -69,6 +70,14 @@ pub struct UserFee {
     pub user_spot_cross_rate: f64,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub active_referral_discount: f64,
+    pub fee_schedule: UserFeeSchedule,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserFeeSchedule {
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub referral_discount: f64,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -131,6 +140,9 @@ pub enum LedgerDelta {
         token: String,
         amount: String,
         is_deposit: bool,
+    },
+    AccountClassTransfer {
+        to_perp: bool,
     },
     #[serde(other)]
     Other,

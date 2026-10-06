@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemChainService
+import protocol Gemstone.GemChainServiceProtocol
 import Primitives
 import ReownWalletKit
 
 extension Primitives.Account {
-    func blockchain(chainService: GemChainService) -> WalletConnectUtils.Account? {
-        guard let blockchain = chain.blockchain(chainService: chainService) else {
-            return .none
+    func blockchains(chainService: any GemChainServiceProtocol) -> [WalletConnectUtils.Account] {
+        chain.blockchains(chainService: chainService).compactMap {
+            WalletConnectUtils.Account(blockchain: $0, address: address)
         }
-        return WalletConnectUtils.Account(blockchain: blockchain, address: address)
     }
 }

@@ -138,7 +138,7 @@ pub fn map_perpetuals_data(metadata: HypercoreMetadataResponse, perp_dex_index: 
                 id: asset_id,
                 name: universe_asset.name.clone(),
                 symbol: universe_asset.name.clone(),
-                decimals: universe_asset.sz_decimals,
+                decimals: universe_asset.sz_decimals as u32,
                 asset_type: AssetType::PERPETUAL,
             };
 

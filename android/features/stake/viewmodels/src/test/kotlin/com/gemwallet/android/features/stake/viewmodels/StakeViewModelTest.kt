@@ -69,7 +69,7 @@ class StakeViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule(testDispatcher)
 
-    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6u)
     private val delegation = mockDelegation(base = mockDelegationBase(assetId = asset.id, balance = BigInteger("77"), shares = BigInteger("77")), validator = mockDelegationValidator(chain = asset.id.chain))
 
     private val walletId = mockWalletId()

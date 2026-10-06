@@ -7,13 +7,13 @@ CREATE TYPE device_locale AS ENUM (
 
 CREATE TABLE devices (
     id SERIAL PRIMARY KEY,
-    device_id VARCHAR(64) NOT NULL,
+    identifier VARCHAR(64) NOT NULL,
     is_push_enabled boolean NOT NULL,
     platform platform NOT NULL,
     platform_store platform_store NOT NULL,
     token VARCHAR(256) NOT NULL,
     locale device_locale NOT NULL,
-    version VARCHAR(8) NOT NULL,
+    version VARCHAR(12) NOT NULL,
     updated_at timestamp NOT NULL default current_timestamp,
     created_at timestamp NOT NULL default current_timestamp,
     currency currency NOT NULL REFERENCES fiat_rates (id) ON DELETE CASCADE,
@@ -21,7 +21,7 @@ CREATE TABLE devices (
     is_price_alerts_enabled boolean NOT NULL DEFAULT false,
     os VARCHAR(64) NOT NULL,
     model VARCHAR(128) NOT NULL,
-    UNIQUE(device_id)
+    UNIQUE(identifier)
 );
 
 CREATE INDEX devices_token_idx ON devices (token);

@@ -15,28 +15,28 @@ pub fn usdc_value(amount: f64) -> BigUint {
 pub struct PerpetualFormatter;
 
 impl PerpetualFormatter {
-    pub fn minimum_order_usd_amount(price: f64, sz_decimals: i32, leverage: u8) -> u64 {
-        let size_multiplier = 10_f64.powi(sz_decimals);
+    pub fn minimum_order_usd_amount(price: f64, sz_decimals: u32, leverage: u8) -> u64 {
+        let size_multiplier = 10_f64.powi(sz_decimals as i32);
         let rounded_size = ((MIN_ORDER_VALUE_USD / price) * size_multiplier).ceil() / size_multiplier;
         let min_usd = ((rounded_size * price / f64::from(leverage)) * USDC_CENTS_MULTIPLIER).ceil() / USDC_CENTS_MULTIPLIER;
 
         (min_usd * USDC_DECIMALS_MULTIPLIER) as u64
     }
 
-    pub fn format_price(price: f64, sz_decimals: i32) -> String {
+    pub fn format_price(price: f64, sz_decimals: u32) -> String {
         if price == 0.0 {
             return "0".to_string();
         }
 
-        let max_decimals = (6 - sz_decimals).max(0);
+        let max_decimals = 6u32.saturating_sub(sz_decimals);
         let magnitude = price.abs().log10().floor();
         let sig_fig_decimals = (4.0 - magnitude).max(0.0);
-        let decimals = sig_fig_decimals.min(max_decimals as f64) as usize;
+        let decimals = sig_fig_decimals.min(f64::from(max_decimals)) as usize;
 
         format_and_trim(price, decimals)
     }
 
-    pub fn format_input_price(price: f64, sz_decimals: i32, decimal_separator: char) -> String {
+    pub fn format_input_price(price: f64, sz_decimals: u32, decimal_separator: char) -> String {
         let formatted = Self::format_price(price, sz_decimals);
 
         match decimal_separator {
@@ -45,9 +45,9 @@ impl PerpetualFormatter {
         }
     }
 
-    pub fn format_size(size: f64, sz_decimals: i32) -> String {
-        let decimals = sz_decimals.max(0) as usize;
-        let multiplier = 10_f64.powi(sz_decimals);
+    pub fn format_size(size: f64, sz_decimals: u32) -> String {
+        let decimals = sz_decimals as usize;
+        let multiplier = 10_f64.powi(sz_decimals as i32);
         let value = (size * multiplier + 0.5).floor() / multiplier;
 
         format_and_trim(value, decimals)

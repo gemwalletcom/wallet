@@ -141,19 +141,12 @@ mod fiat_integration_tests {
 #[cfg(test)]
 mod tests {
     use super::MoonPayBuyQuote;
-    use crate::providers::moonpay::models::Currency;
     use crate::{FiatProvider, FiatWebhookRequest, providers::moonpay::client::MoonPayClient};
 
     #[test]
     fn test_map_buy_quote_response_rejects_provider_minimum_adjustment() {
         let quote = MoonPayBuyQuote {
             quote_currency_amount: 56.3,
-            quote_currency_code: "trx".to_string(),
-            quote_currency: Currency {
-                decimals: 6,
-                not_allowed_countries: vec![],
-                not_allowed_us_states: vec![],
-            },
             total_amount: 20.0,
         };
 

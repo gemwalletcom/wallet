@@ -499,7 +499,7 @@ impl<T: Clone + Default> GemLoad<T> {
 
 `data` is the decision: a fetch that succeeds replaces the value, a fetch that fails keeps a value already on screen, and only a screen with nothing to keep shows the error. A screen therefore hands its record back for the next load — `refresh(details)`, not `refresh(chain, address)` — so Core decides what survives a failure. Never re-derive the previous value from the sections the app is rendering: that is the same decision read backwards out of the UI.
 
-A list whose rows come from a store query rather than a Core record — the activity list, the asset transactions — hands the rows it observed and its load state to one pure Core call, which returns a `GemListPhase`: `Rows`, `Empty { state }` with the empty state to show, or `Error { error }` when the load left nothing to show (`transaction_list_phase(rows, state, empty_state)`). Its refresh is told nothing about the screen and returns the sync's own outcome (`GemLoadState::of`): rows already on screen stay, with no error, and an error takes the place of the empty state, drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS). The scene switches over the phase; it never tests emptiness or the load state itself. A list read only from the store builds its phase with `GemListPhase::local`, and a list that shows nothing until its first sync answers returns `GemListPhase::once_loaded`, which is `None` until then (the stake delegations and earn positions).
+A list whose rows come from a store query rather than a Core record — the activity list, the asset transactions — hands its load state, whether it has rows and its empty state to the one shared Core call, which returns a `GemListPhase`: `Rows`, `Empty { state }` with the empty state to show, or `Error { error }` when the load left nothing to show (`list_phase(state, has_rows, empty)`). It passes the flag, never the rows: the phase only asks whether there are any, and sending a whole list across the FFI on every render to answer that is the cost this boundary must not pay. A list whose empty state never changes reads it once with `empty_state(kind)`; no list gets its own wrapper around `list_phase`. Its refresh is told nothing about the screen and returns the sync's own outcome (`GemLoadState::of`): rows already on screen stay, with no error, and an error takes the place of the empty state, drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS). The scene switches over the phase; it never tests emptiness or the load state itself. A list read only from the store builds its phase with `GemListPhase::local`, and a list that shows nothing until its first sync answers returns `GemListPhase::once_loaded`, which is `None` until then (the stake delegations and earn positions).
 
 ```rust
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -712,12 +712,13 @@ pub enum GemChartPhase {
     Failed { error: GemServiceError },
 }
 
-impl GemChartSession {
-    pub fn view_state(&self, price: Option<AssetPrice>) -> GemChartViewState {
-        GemChartViewState {
-            period: self.period,
-            phase: self.phase(price),
-            is_refreshing: self.is_refreshing,
+impl GemChartService {
+    pub fn view_state(&self, session: GemChartSession, input: GemChartInput) -> GemChartView {
+        GemChartView {
+            period: session.period,
+            phase: session.phase(input.asset_price()),
+            is_refreshing: session.is_refreshing,
+            sections: rules::chart_sections(..),
         }
     }
 }
@@ -725,7 +726,7 @@ impl GemChartSession {
 
 ```swift
 var chartState: StateViewType<GemChartData> {
-    switch session.viewState(price: currentPrice).phase {
+    switch view.phase {
     case .loading: .loading
     case let .data(data): .data(data)
     case .noData: .noData
@@ -735,11 +736,11 @@ var chartState: StateViewType<GemChartData> {
 ```
 
 ```kotlin
-val chartUIState = combine(loaded, price) { session, price -> session.viewState(price) }.map { state ->
+val chartUIState = combine(session, view) { session, view ->
     ChartUIState(
-        period = state.period.toPrimitives(),
-        chart = when (val phase = state.phase) {
-            GemChartPhase.Loading -> StateViewType.Loading
+        period = session.period.toPrimitives(),
+        chart = when (val phase = view?.phase) {
+            null, GemChartPhase.Loading -> StateViewType.Loading
             is GemChartPhase.Data -> StateViewType.Data(phase.data)
             GemChartPhase.NoData -> StateViewType.NoData
             is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
@@ -755,13 +756,13 @@ Four rules keep the collapse honest:
 - **The phase has one source of truth.** A chart session derives its phase from the canonical loaded chart, last error and loading facts. A session that stores a canonical phase instead must not also store equivalent independent flags. Do not add a second representation of the same state.
 - **Empty is not a failure.** `NoData` is its own variant, so a series with one point renders the empty state instead of an error, and neither app has to guess from an `Option`.
 - **A progress flag that coexists with content is a field, not a variant.** A refresh happens *while* data is on screen, so `is_refreshing` sits beside the phase; anything that replaces the screen is a variant.
-- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed spot price is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom and pan are session state for the same reason: the drawn window cannot be computed without them, `on_zoom` and `on_pan` clamp against the points the session holds, and a new period starts unzoomed by construction.
+- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed price record (`GemChartInput`: the asset, its stored price, market, alerts and links) is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. The service answers the phase and the market, alert and link sections from that one record in one `GemChartView`, converting the market with the rate the session holds, so the sections never run on a second async path beside the chart. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom and pan are session state for the same reason: the drawn window cannot be computed without them, `on_zoom` and `on_pan` clamp against the points the session holds, and a new period starts unzoomed by construction.
 
 The app switches and stops. No `if isLoading` ahead of the switch, no `default:` inside it: the exhaustiveness is what makes a new variant a compile error on both platforms instead of a blank screen on one.
 
 ### A number crosses as a value and a style, never as a string or a callback
 
-The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the fiat-pins-to-two-places rule and the dust threshold are decisions, and they live in Core: `GemCurrencyStyle::precision`, `GemValueStyle::precision`, `adaptive_precision`, the styles' `abbreviates` and `GemValueStyle::is_dust`. Both apps take the display from `formatted_amount` and render it with their own locale formatter. What is left is the numbers themselves: a row that carries a bare `f64` still leaves each app to pick the style.
+The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the currency form of the adaptive rule (at least two places, so `$0.90` never reads `$0.9`), the fiat-pins-to-two-places rule and the dust threshold are decisions, and they live in Core: `GemCurrencyStyle::precision`, `GemValueStyle::precision`, `adaptive_precision`, the styles' `abbreviates` and `GemValueStyle::is_dust`. Both apps take the display Core builds with `GemFormattedNumber::amount` and render it with their own locale formatter. What is left is the numbers themselves: a row that carries a bare `f64` still leaves each app to pick the style.
 
 Two mechanisms are tempting and both are wrong.
 
@@ -1818,7 +1819,7 @@ Developer machines use kache as the `rustc` wrapper (see `core/skills/setup.md`)
 
 Amount strings come from two sources that must be parsed differently. Confusing them silently corrupts amounts on locales that group thousands with a dot (de, it, es, nl, pt-BR, da), where `"1.234"` means 1234, not 1.234. Pick the parser by the source of the string, never by convenience.
 
-- **Human input** (text a person typed into a field) is parsed by Core. `GemNumberFormat` (`core/gemstone/src/services/amount/model.rs`) carries the device's decimal separator, and its `plain` method and the amount rules own the separator, grouping, leading-zero and Unicode-digit rules (`plain_number` and `value_from_input`). The apps pass the text and the device's decimal separator and nothing else: iOS `NumberInput.plain/.double` (`ios/Packages/GemstonePrimitives/Sources/NumberInput.swift`), Android `String.plainInputNumber()` / `parseInputNumber()` (`android/gemcore/src/main/kotlin/com/gemwallet/android/math/NumberParser.kt`). A typed value that feeds a Core rule goes to that rule as text with the number format, and the rule parses it (`GemCustomFee::estimate` takes the typed rate), so no app holds a parse whose failure it has to swallow. Never read typed text with `Decimal(string:)`, `Double(_:)` or `BigDecimal(_)`: those miss grouping separators and non-Latin digits, so an Arabic or Persian keyboard reads as no amount at all and `"1.234"` in a dot-grouping locale reads 1000x too low. Text with no digit normalizes to an empty string, which every caller treats as no amount.
+- **Human input** (text a person typed into a field) is parsed by Core. `GemNumberFormat` (`core/gemstone/src/services/amount/model.rs`) carries the device's decimal separator, and its `plain` method and the amount rules own the separator, grouping, leading-zero and Unicode-digit rules (`plain_number` and `value_from_input`). The apps pass the text and the device's decimal separator and nothing else: iOS `NumberInput.plain/.double` (`ios/Packages/GemstonePrimitives/Sources/NumberInput.swift`), Android `String.plainInputNumber()` / `parseInputNumber()` (`android/gemcore/src/main/kotlin/com/gemwallet/android/math/NumberParser.kt`). A typed value that feeds a Core rule goes to that rule as text with the number format, and the rule parses it (`GemCustomFee::estimate` takes the typed rate), so no app holds a parse whose failure it has to swallow. A Core session that keeps typed text keeps the decimal separator it was created with (`GemAmountSession`, `GemFiatSession`, `GemSlippageSession`, `GemAutocloseSession`) and reads the text only through `plain_number` or `value_from_input`, never with `str::parse` on the raw text: the fiat amount parsed its text itself and rejected every amount typed on an Arabic keyboard. Never read typed text with `Decimal(string:)`, `Double(_:)` or `BigDecimal(_)`: those miss grouping separators and non-Latin digits, so an Arabic or Persian keyboard reads as no amount at all and `"1.234"` in a dot-grouping locale reads 1000x too low. Text with no digit normalizes to an empty string, which every caller treats as no amount.
 - **Machine strings** (QR/payment-link amounts, API/exchange payloads, anything the app did not get from a keyboard) never reach the input parser: Core decodes them and hands the apps typed values. If one has to be read app-side, parse it locale-independently — a machine string always uses `.` as the decimal point.
 - **Writing into a field.** Text in an editable number field is human input the moment it lands there, so whatever the app puts into one — a payment-link amount, the max, a suggestion — is written in the device's format. Core hands over a number (an atomic `GemBigInt`, as `GemAmountInput.prefill` carries, or an `f64`), and the app renders it with `GemNumberFormat`'s `input_text` or `value_text` (iOS `NumberInput.format()`, Android `numberFormat()`). A machine string never goes into a field as is, and Core returns text meant for a field only when it took the separator (`GemAutocloseSession::input_text`). A `"0.001"` placed in a comma-decimal field reads back as 1: #727 fixed the scan-to-confirm parse, but the amount-screen prefill wrote the raw string until it crossed as a number.
 - **Amounts Core formats for notifications** (`number_formatter::ValueFormatter`, `ValueStyle::Auto`, used by the daemon pusher, the staking rewards notifier and in-app notifications) keep two decimals above one and four significant digits below it, dust included: a push title has no room for `0.000040036032429186 ETH` (issue #1155), so it reads `0.00004003 ETH`. The app list formatters keep full precision for dust on purpose; that is a screen with room, not a title.
@@ -1846,7 +1847,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemAssetSelectionService` | — | `SelectAssetSceneViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseSelectAssetViewModel` and its subclasses (+ `AssetsQuery`, `WalletSearchQuery`, `RecentActivityQuery`) |
 | `GemChainService` | — | `ChainListSettingsSceneViewModel` (chain picker) | `ContactChainSelectViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `ChainSettingsViewModel`, `AddNodeViewModel` |
-| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartValuesViewModel`, `ChartViewModel` (+ `PriceQuery`) |
+| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartViewModel` (+ `PriceQuery`) |
 | `GemCollectibleService` | — | `CollectibleSceneViewModel`, `ReportNftSceneViewModel` | `CollectibleViewModel` (+ `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`) |
 | `GemConfirmTransferService` | `GemConfirmation` (one confirmation in flight; it loads and executes, so it is not a session) | `ConfirmTransferSceneViewModel` (holds the `GemConfirmation` the factory opens) | `ConfirmTransferViewModel` |
 | `GemContactService` | — | `ContactsSceneViewModel` | `ContactsViewModel` |

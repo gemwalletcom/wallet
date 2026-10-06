@@ -4,11 +4,12 @@ import SwiftUI
 
 private struct ChartGesturesView: UIViewRepresentable {
     private enum Constants {
-        static let scrubHold: TimeInterval = 0.25
+        static let scrubHold: TimeInterval = 0.1
         static let glideStopVelocity: CGFloat = 20
     }
 
     let plot: CGRect
+    let isZoomed: Bool
     @Binding var isPinching: Bool
     let onScrub: @MainActor (Double) -> Void
     let onScrubEnd: @MainActor () -> Void
@@ -54,18 +55,20 @@ private struct ChartGesturesView: UIViewRepresentable {
 
         private var glide: CADisplayLink?
         private var glideVelocity: CGFloat = 0
+        private var hasSecondTouch = false
 
         init(view: ChartGesturesView) {
             self.view = view
         }
 
-        @objc func onScrub(_ recognizer: UILongPressGestureRecognizer) {
+        @objc func onScrub(_ recognizer: UIGestureRecognizer) {
             switch recognizer.state {
             case .began, .changed:
-                stopGlide()
-                if !view.isPinching {
-                    view.onScrub(fraction(at: recognizer.location(in: recognizer.view)))
+                guard !hasSecondTouch, let host = recognizer.view else { return }
+                if recognizer.state == .began {
+                    stopPageScroll(above: host)
                 }
+                view.onScrub(fraction(at: recognizer.location(in: host)))
             case .ended, .cancelled, .failed:
                 view.onScrubEnd()
             default:
@@ -79,6 +82,7 @@ private struct ChartGesturesView: UIViewRepresentable {
                 stopGlide()
                 pan?.isEnabled = false
                 pan?.isEnabled = true
+                hasSecondTouch = true
                 view.isPinching = true
                 view.onScrubEnd()
             case .changed:
@@ -92,6 +96,10 @@ private struct ChartGesturesView: UIViewRepresentable {
         }
 
         @objc func onPan(_ recognizer: UIPanGestureRecognizer) {
+            guard view.isZoomed else {
+                onScrub(recognizer)
+                return
+            }
             switch recognizer.state {
             case .began:
                 stopGlide()
@@ -146,21 +154,45 @@ private struct ChartGesturesView: UIViewRepresentable {
             true
         }
 
-        func gestureRecognizer(_ recognizer: UIGestureRecognizer, shouldReceive event: UIEvent) -> Bool {
-            if recognizer is UIPinchGestureRecognizer, let view = recognizer.view, let touches = event.touches(for: view), touches.count > 1, touches.contains(where: { $0.phase == .began }) {
-                stopPageScroll(above: view)
+        func gestureRecognizer(_ recognizer: UIGestureRecognizer, shouldReceive _: UITouch) -> Bool {
+            guard let host = recognizer.view else { return true }
+            let isFirstTouch = recognizer.numberOfTouches == 0
+            if isFirstTouch, pageScrollView(above: host)?.isDecelerating == true {
+                return false
+            }
+            if recognizer === scrub, isFirstTouch {
+                stopGlide()
+                hasSecondTouch = false
+                DispatchQueue.main.async { self.cancelPageGestures(above: host) }
+            } else if !isFirstTouch {
+                hasSecondTouch = true
+                view.onScrubEnd()
+                stopPageScroll(above: host)
             }
             return true
         }
 
         private func stopPageScroll(above view: UIView) {
-            guard let parent = view.superview, let page = sequence(first: parent, next: { $0.superview }).lazy.compactMap({ $0 as? UIScrollView }).first else { return }
+            guard let page = pageScrollView(above: view) else { return }
             page.panGestureRecognizer.isEnabled = false
             page.panGestureRecognizer.isEnabled = true
         }
 
+        private func cancelPageGestures(above view: UIView) {
+            guard let page = pageScrollView(above: view) else { return }
+            for recognizer in page.gestureRecognizers ?? [] where recognizer is UILongPressGestureRecognizer {
+                recognizer.isEnabled = false
+                recognizer.isEnabled = true
+            }
+        }
+
+        private func pageScrollView(above view: UIView) -> UIScrollView? {
+            guard let parent = view.superview else { return nil }
+            return sequence(first: parent, next: { $0.superview }).lazy.compactMap { $0 as? UIScrollView }.first
+        }
+
         func gestureRecognizer(_ recognizer: UIGestureRecognizer, shouldBeRequiredToFailBy other: UIGestureRecognizer) -> Bool {
-            isBackSwipe(other, above: recognizer.view) || (!(recognizer is UIPinchGestureRecognizer) && other === (other.view as? UIScrollView)?.panGestureRecognizer)
+            isBackSwipe(other, above: recognizer.view) || (recognizer === pan && other === (other.view as? UIScrollView)?.panGestureRecognizer)
         }
 
         private func isBackSwipe(_ other: UIGestureRecognizer, above view: UIView?) -> Bool {
@@ -177,6 +209,7 @@ private struct ChartGesturesView: UIViewRepresentable {
 public extension View {
     func chartGestures(
         in plot: CGRect,
+        isZoomed: Bool,
         isPinching: Binding<Bool>,
         onScrub: @escaping @MainActor (Double) -> Void,
         onScrubEnd: @escaping @MainActor () -> Void,
@@ -184,7 +217,7 @@ public extension View {
         onPan: @escaping @MainActor (Double) -> Void,
     ) -> some View {
         overlay {
-            ChartGesturesView(plot: plot, isPinching: isPinching, onScrub: onScrub, onScrubEnd: onScrubEnd, onZoom: onZoom, onPan: onPan)
+            ChartGesturesView(plot: plot, isZoomed: isZoomed, isPinching: isPinching, onScrub: onScrub, onScrubEnd: onScrubEnd, onZoom: onZoom, onPan: onPan)
         }
     }
 }

@@ -76,6 +76,10 @@ impl NotificationsPayload {
     pub fn new(notifications: Vec<GorushNotification>) -> Self {
         Self { notifications }
     }
+
+    pub fn batches(notifications: Vec<GorushNotification>, size: usize) -> Vec<Self> {
+        notifications.chunks(size).map(|chunk| Self::new(chunk.to_vec())).collect()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -267,8 +271,35 @@ impl fmt::Display for PricesPayload {
 
 #[cfg(test)]
 mod tests {
-    use super::{TransactionsPayload, WalletStreamEvent, WalletStreamPayload};
+    use super::{NotificationsPayload, TransactionsPayload, WalletStreamEvent, WalletStreamPayload};
     use primitives::Chain;
+    use push_notification::{GorushNotification, PushNotification, PushNotificationTypes};
+
+    fn notification(device_id: usize) -> GorushNotification {
+        GorushNotification {
+            tokens: vec![format!("token-{device_id}")],
+            platform: 1,
+            title: String::new(),
+            message: String::new(),
+            topic: None,
+            data: PushNotification {
+                notification_type: PushNotificationTypes::Test,
+                data: None,
+            },
+            device_id: device_id.to_string(),
+            dry_run: None,
+        }
+    }
+
+    #[test]
+    fn test_notifications_payload_batches_keep_every_notification_in_order() {
+        let batches = NotificationsPayload::batches((0..12).map(notification).collect(), 10);
+
+        assert_eq!(batches.iter().map(|batch| batch.notifications.len()).collect::<Vec<_>>(), vec![10, 2]);
+        let device_ids: Vec<String> = batches.iter().flat_map(|batch| batch.notifications.iter().map(|n| n.device_id.clone())).collect();
+        assert_eq!(device_ids, (0..12).map(|id| id.to_string()).collect::<Vec<_>>());
+        assert!(NotificationsPayload::batches(vec![], 10).is_empty(), "no notifications publish no payload");
+    }
 
     #[test]
     fn test_transactions_payload_should_notify_devices() {

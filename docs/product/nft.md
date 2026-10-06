@@ -21,6 +21,7 @@ flowchart LR
 | A refresh fails | the list stays on screen, an Unverified row alone included, and a toast says so | |
 | A refresh fails and there is nothing to show | the error takes the list's place | |
 | The wallet has no NFTs | "Your NFTs will appear here. Receive your first NFT" | |
+| An NFT the wallet no longer holds is opened from a transaction | it is fetched; the screen keeps a way back while it loads and shows the error if the fetch fails | a sent or burned NFT is not stored on the device |
 
 ## Platform differences
 

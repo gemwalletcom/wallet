@@ -71,11 +71,11 @@ struct CollectibleSceneViewModelTests {
             ),
             asset: .mock(tokenId: "11871", chain: .ethereum, attributes: [NFTAttribute(name: "Color", value: "Blue", percentage: nil)]),
         ))
-        let sections = model.details.sections
+        let sections = try #require(model.details).sections
 
         #expect(sections.count == 4)
         #expect(sections.map(\.title) == [.none, .none, .properties, .socialLinks])
-        #expect(model.details.isVerified == false)
+        #expect(model.details?.isVerified == false)
         guard case let .info(rows) = sections[1].section, case let .identifier(title, copy, explorer, _, _) = try #require(rows.last) else {
             Issue.record("expected the token id row to close the info section")
             return
@@ -89,8 +89,8 @@ struct CollectibleSceneViewModelTests {
     func verifiedAssetWithoutExtrasOnlyListsItsInfo() {
         let model = CollectibleSceneViewModel.mock(assetData: .mock(collection: .mock(status: .verified, links: []), asset: .mock(attributes: [])))
 
-        #expect(model.details.sections.count == 1)
-        #expect(model.details.isVerified)
+        #expect(model.details?.sections.count == 1)
+        #expect(model.details?.isVerified == true)
     }
 
     @Test
@@ -105,7 +105,37 @@ struct CollectibleSceneViewModelTests {
         #expect(CollectibleSceneViewModel.mock().onSelectContract == nil)
     }
 
+    @Test
+    func aStoredCollectibleOpensWithItsData() {
+        let assetData = NFTAssetData.mock(asset: .mock(name: "Claws #2381"))
+        let model = CollectibleSceneViewModel.mock(assetData: assetData)
+
+        #expect(model.state.value != nil)
+        #expect(model.title == "Claws #2381")
+    }
+
+    @Test
+    func aCollectibleNotStoredLoadsUntilTheQueryHoldsIt() async {
+        let model = CollectibleSceneViewModel.mock(assetData: nil, service: GemCollectibleServiceMock())
+
+        #expect(model.state.isLoading)
+        #expect(model.title == Localized.Common.loading)
+        await model.load()
+        #expect(model.state.isLoading)
+    }
+
+    @Test
+    func aFailedFetchShowsTheErrorInsteadOfTheCollectible() async {
+        let model = CollectibleSceneViewModel.mock(assetData: nil, service: GemCollectibleServiceMock(ensureAssetResult: .failure(AnyError("offline"))))
+
+        await model.load()
+
+        #expect(model.state.isError)
+        #expect(model.title == Localized.Errors.error)
+        #expect(model.details == nil)
+    }
+
     private func sendEnabled(_ model: CollectibleSceneViewModel) -> Bool {
-        model.details.header.headerButtons.first { $0.kind == .send }?.isEnabled == true
+        model.details?.header.headerButtons.first { $0.kind == .send }?.isEnabled == true
     }
 }

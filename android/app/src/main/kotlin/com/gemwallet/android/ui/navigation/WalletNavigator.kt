@@ -63,6 +63,7 @@ import com.gemwallet.android.ui.navigation.routes.NetworkAssetsRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualDepositSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.PortfolioRoute
@@ -187,7 +188,8 @@ class WalletNavigator(
     }
 
     fun openEnableAuthentication() {
-        resetTo(EnableAuthenticationRoute)
+        resetToWallet()
+        push(EnableAuthenticationRoute)
     }
 
     private fun resetTo(route: NavKey) {
@@ -291,6 +293,8 @@ class WalletNavigator(
     fun openSetPriceAlert(assetId: AssetId) = push(SetPriceAlertRoute(assetId))
     fun openPerpetuals() = push(PerpetualsRoute)
     fun openPerpetual(assetId: AssetId) = push(PerpetualRoute(assetId))
+
+    fun openPerpetualDepositSelect() = push(PerpetualDepositSelectRoute)
 
     fun openRecent(asset: Asset) {
         val target = navigationService.assetTarget(asset.toGem()) as? GemNavigationTarget.Asset ?: return
@@ -410,6 +414,7 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean = when (this) {
     is SwapSelectRoute,
     is PaymentSelectRoute,
     is PaymentVerificationRoute,
+    is PerpetualDepositSelectRoute,
     -> true
 
     else -> false

@@ -8,12 +8,13 @@ use std::sync::Arc;
 use gem_client::Client;
 use primitives::transaction_load_metadata::AgentPrivateKey;
 use primitives::{
-    FeePriority, FeeRate, GasPriceType, HyperliquidOrder, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID,
-    perpetual::PerpetualType,
+    FeeOption, FeePriority, FeeRate, GasPriceType, HyperliquidOrder, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
+    asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, perpetual::PerpetualType,
 };
 
-use crate::constants::{TRANSACTION_FEE_UNITS, WITHDRAWAL_FEE};
+use crate::constants::{NEW_ACCOUNT_FEE, TRANSACTION_FEE_UNITS, WITHDRAWAL_FEE};
 use crate::is_spot_swap;
+use crate::models::user::UserRole;
 use crate::provider::fee_calculator::{calculate_perpetual_fee_amount, calculate_spot_fee_amount};
 use crate::provider::preload_cache::{HyperCoreCache, UserFeeRates};
 use crate::rpc::client::HyperCoreClient;
@@ -27,6 +28,7 @@ impl<C: Client> HyperCoreClient<C> {
             cache.needs_builder_fee_approval(sender_address, self.get_builder_fee(sender_address, &self.config.builder_address)),
             cache.get_user_fee_rates(sender_address, self.get_user_fees(sender_address)),
         )?;
+        let fee_rates = if referral_required { cache.activate_referral_fee_rates(sender_address, &fee_rates)? } else { fee_rates.current() };
 
         Ok((
             HyperliquidOrder {
@@ -43,6 +45,23 @@ impl<C: Client> HyperCoreClient<C> {
     }
 }
 
+fn perpetual_fee_fiat_value(perpetual_type: &PerpetualType) -> Result<f64, Box<dyn Error + Send + Sync>> {
+    let data = match perpetual_type {
+        PerpetualType::Open { data } | PerpetualType::Close { data } | PerpetualType::Increase { data } => data,
+        PerpetualType::Reduce { data } => &data.data,
+        PerpetualType::Modify { .. } => return Ok(0.0),
+    };
+
+    Ok(data.size.parse::<f64>()?.abs() * data.market_price)
+}
+
+fn transfer_fee(destination_role: &UserRole) -> TransactionFee {
+    match destination_role {
+        UserRole::Missing => TransactionFee::new_from_fee_with_option(BigInt::from(0), FeeOption::TokenAccountCreation, BigInt::from(NEW_ACCOUNT_FEE), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
+        UserRole::Agent { .. } | UserRole::Other => TransactionFee::new_from_fee(BigInt::from(0), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
+    }
+}
+
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
     fn transaction_fee_estimate_units(&self, _operation: TransactionFeeOperation) -> Option<u64> {
@@ -55,7 +74,11 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         match &input.input_type {
-            TransactionInputType::Transfer { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Stake { .. } => Ok(TransactionLoadData {
+            TransactionInputType::Transfer { .. } => Ok(TransactionLoadData {
+                fee: transfer_fee(&self.get_user_role(&input.destination_address).await?),
+                metadata: TransactionLoadMetadata::Hyperliquid { order: None },
+            }),
+            TransactionInputType::Deposit { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Stake { .. } => Ok(TransactionLoadData {
                 fee: TransactionFee::new_from_fee(BigInt::from(0), HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
                 metadata: TransactionLoadMetadata::Hyperliquid { order: None },
             }),
@@ -80,11 +103,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
                 })
             }
             TransactionInputType::Perpetual { perpetual_type, .. } => {
-                let fiat_value = match perpetual_type {
-                    PerpetualType::Open { data } | PerpetualType::Increase { data } | PerpetualType::Close { data } => data.fiat_value,
-                    PerpetualType::Reduce { data } => data.data.fiat_value,
-                    PerpetualType::Modify { .. } => 0.0,
-                };
+                let fiat_value = perpetual_fee_fiat_value(perpetual_type)?;
                 let fee_asset = perpetual_type.base_asset().id.clone();
                 let (order, fee_rates) = self.get_order(&input.sender_address).await?;
                 let fee_amount = calculate_perpetual_fee_amount(fiat_value, fee_rates.perpetual_cross, order.builder_fee_bps);
@@ -106,7 +125,34 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
+    use primitives::{PerpetualConfirmData, PerpetualDirection, known_assets::HYPERCORE_PERPETUAL_USDC};
+
+    #[test]
+    fn test_perpetual_fee_fiat_value_uses_signed_size_at_market_price() {
+        let data = PerpetualConfirmData {
+            size: "1.259".to_string(),
+            market_price: 794.14,
+            fiat_value: 1_000.0,
+            ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)
+        };
+
+        let fiat_value = perpetual_fee_fiat_value(&PerpetualType::Close { data }).unwrap();
+
+        assert!((fiat_value - 999.82226).abs() < 1e-9);
+        assert_eq!(calculate_perpetual_fee_amount(fiat_value, 0.000432, 45), BigInt::from(881_843));
+    }
+
+    #[test]
+    fn test_transfer_fee() {
+        let new_account = transfer_fee(&UserRole::Missing);
+        assert_eq!(new_account.fee, BigInt::from(NEW_ACCOUNT_FEE));
+        assert_eq!(new_account.options.get(&FeeOption::TokenAccountCreation), Some(&BigInt::from(NEW_ACCOUNT_FEE)));
+        assert_eq!(new_account.fee_asset, *HYPERCORE_SPOT_USDC_ASSET_ID);
+
+        let existing = transfer_fee(&UserRole::Other);
+        assert_eq!(existing.fee, BigInt::from(0));
+        assert!(existing.options.is_empty());
+    }
 
     #[tokio::test]
     async fn test_get_transaction_load_withdrawal() {
@@ -128,7 +174,10 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_transaction_load_transfer() {
         let client = create_hypercore_test_client();
-        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::HyperCore) });
+        let input = TransactionLoadInput {
+            destination_address: "0x1085c5f70f7f7591d97da281a64688385455c2bd".to_string(),
+            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::HyperCore) })
+        };
 
         let result = client.get_transaction_load(input).await.unwrap();
 

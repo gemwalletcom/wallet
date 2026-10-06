@@ -1,11 +1,11 @@
 use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
+use strum::{AsRefStr, EnumIter, EnumString};
 
 use crate::Asset;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumString, AsRefStr, PartialEq, Eq, Hash)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum RewardRedemptionType {
@@ -13,13 +13,7 @@ pub enum RewardRedemptionType {
     GiftAsset,
 }
 
-impl RewardRedemptionType {
-    pub fn all() -> Vec<Self> {
-        Self::iter().collect()
-    }
-}
-
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumString, AsRefStr, PartialEq)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 #[derive(Default)]
@@ -34,10 +28,6 @@ pub enum RewardStatus {
 }
 
 impl RewardStatus {
-    pub fn all() -> Vec<Self> {
-        Self::iter().collect()
-    }
-
     pub fn is_verified(&self) -> bool {
         match self {
             Self::Verified | Self::Trusted => true,
@@ -46,7 +36,7 @@ impl RewardStatus {
     }
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumString, AsRefStr, PartialEq)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum RewardEventType {
@@ -60,10 +50,6 @@ pub enum RewardEventType {
 }
 
 impl RewardEventType {
-    pub fn all() -> Vec<Self> {
-        Self::iter().collect()
-    }
-
     pub fn points(&self) -> i32 {
         match self {
             Self::CreateUsername => 25,

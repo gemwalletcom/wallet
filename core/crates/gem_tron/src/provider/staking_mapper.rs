@@ -14,7 +14,7 @@ pub fn map_staking_delegations(account: TronAccount, reward: TronReward, validat
 
 fn map_vote_delegations(votes: Vec<TronVote>, reward: u64, validators: &[DelegationValidator], asset_id: &AssetId) -> Vec<DelegationBase> {
     let total_votes: u64 = votes.iter().map(|vote| vote.vote_count).sum();
-    let decimals = 10_u64.pow(Asset::from_chain(Chain::Tron).decimals as u32);
+    let decimals = 10_u64.pow(Asset::from_chain(Chain::Tron).decimals);
 
     votes
         .into_iter()

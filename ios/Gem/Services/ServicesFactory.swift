@@ -158,7 +158,7 @@ struct ServicesFactory {
 
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore, platform: .ios)
         let navigationService = Gemstone.GemNavigationService(assets: assetsService, balance: balanceService, session: walletSessionService, transactionState: transactionStateService)
-        let navigationPresenter = NavigationPresenter(assetsService: assetsService, navigationService: navigationService, nftService: nftService)
+        let navigationPresenter = NavigationPresenter(assetsService: assetsService, navigationService: navigationService)
         let gemstonePerpetualStore = GemstonePerpetualStore(store: stores.perpetualStore)
         let perpetualService = gatewayService.perpetualService(
             price: priceService,

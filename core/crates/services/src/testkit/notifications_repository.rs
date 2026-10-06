@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{Asset, AssetId, Chain, Device, DeviceSubscription, NotificationData, ScanAddress, TransactionType};
+use primitives::{Asset, AssetId, Chain, Device, NotificationData, ScanAddress, TransactionType};
 use storage::{DatabaseError, DeviceFieldUpdate, NewNotification};
 
 use crate::notifications::repository::Repository;
@@ -47,10 +47,6 @@ impl Repository for MemoryNotificationsRepository {
     }
 
     async fn addresses_with_transactions(&self, _chain: Chain, _kinds: Vec<TransactionType>, _since: NaiveDateTime) -> Result<Vec<String>, DatabaseError> {
-        Ok(vec![])
-    }
-
-    async fn subscriptions_for_addresses(&self, _chain: Chain, _addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError> {
         Ok(vec![])
     }
 }

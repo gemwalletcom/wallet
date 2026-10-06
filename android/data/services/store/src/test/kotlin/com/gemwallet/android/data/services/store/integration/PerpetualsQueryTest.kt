@@ -32,10 +32,10 @@ class PerpetualsQueryTest {
         GemDatabase::class.java,
     ).build()
     private val query = PerpetualsQuery(database.perpetualDao())
-    private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8)
-    private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
-    private val solanaAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
-    private val dogeAsset = mockAsset(id = mockAssetId(chain = Chain.Doge), name = "Dogecoin", symbol = "DOGE", decimals = 8)
+    private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u)
+    private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
+    private val solanaAsset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9u)
+    private val dogeAsset = mockAsset(id = mockAssetId(chain = Chain.Doge), name = "Dogecoin", symbol = "DOGE", decimals = 8u)
     private val bitcoin = PerpetualData(
         perpetual = mockPerpetual(price = 95420.5, pricePercentChange24h = 2.5, volume24h = 500.0, funding = 0.0001).copy(id = PerpetualId(PerpetualProvider.Hypercore, "BTC"), name = "BTC", assetId = bitcoinAsset.id, identifier = "0"),
         asset = bitcoinAsset,

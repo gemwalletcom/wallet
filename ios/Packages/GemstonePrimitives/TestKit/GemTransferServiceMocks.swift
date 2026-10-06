@@ -66,16 +66,12 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         quoteType.toPrimitives() == .sell ? 100 : 50
     }
 
-    public func newSession(quoteType: Gemstone.FiatQuoteType, amount: UInt32?) -> GemFiatSession {
+    public func newSession(quoteType: Gemstone.FiatQuoteType, amount: UInt32?, format: GemNumberFormat) -> GemFiatSession {
         let operation = { (type: Gemstone.FiatQuoteType) -> GemFiatOperation in
             let value = (type == quoteType ? amount : nil) ?? self.defaultAmount(quoteType: type)
             return GemFiatOperation(quoteType: type, amount: String(value), quotes: [], selectedProvider: nil, phase: .loading(amount: Double(value)))
         }
-        return GemFiatSession(quoteType: quoteType, buy: operation(.buy), sell: operation(.sell), available: 0)
-    }
-
-    public func randomAmount() -> UInt32 {
-        50
+        return GemFiatSession(quoteType: quoteType, buy: operation(.buy), sell: operation(.sell), available: 0, format: format)
     }
 
     public func refreshTransactions() async -> GemLoadState {

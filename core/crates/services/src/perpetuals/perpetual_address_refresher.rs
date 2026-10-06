@@ -7,39 +7,28 @@ use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use primitives::Chain;
 
-use super::repository::Repository;
+use crate::subscriptions::SubscriptionLookup;
 
 pub struct PerpetualAddressRefresher {
     providers: Arc<ChainProviders>,
-    repository: Arc<dyn Repository>,
+    subscription_lookup: Arc<SubscriptionLookup>,
     addresses: Arc<dyn PerpetualAddressCacher>,
 }
 
 impl PerpetualAddressRefresher {
-    pub(crate) fn new(providers: Arc<ChainProviders>, repository: Arc<dyn Repository>, addresses: Arc<dyn PerpetualAddressCacher>) -> Self {
-        Self { providers, repository, addresses }
+    pub(crate) fn new(providers: Arc<ChainProviders>, subscription_lookup: Arc<SubscriptionLookup>, addresses: Arc<dyn PerpetualAddressCacher>) -> Self {
+        Self { providers, subscription_lookup, addresses }
     }
 
     pub async fn update(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let referred_addresses = self.providers.get_perpetual_referred_addresses(chain).await?;
-        let referred_count = referred_addresses.len();
+        let candidate_addresses = self.providers.get_perpetual_referral_addresses(chain).await?;
+        let candidate_count = candidate_addresses.len();
 
-        let tracked_addresses: Vec<String> = if referred_addresses.is_empty() {
-            vec![]
-        } else {
-            self.repository
-                .subscriptions_for_addresses(chain, referred_addresses)
-                .await?
-                .into_iter()
-                .map(|s| s.address)
-                .collect::<HashSet<_>>()
-                .into_iter()
-                .collect()
-        };
+        let tracked_addresses: Vec<String> = self.subscription_lookup.get(chain, candidate_addresses).await?.into_iter().map(|s| s.address).collect::<HashSet<_>>().into_iter().collect();
 
         self.addresses.set_addresses(chain, PerpetualAddressTier::Tracked, &tracked_addresses).await?;
 
-        info_with_fields!("perpetual_refresher", chain = chain.as_ref(), referred = referred_count, tracked = tracked_addresses.len());
+        info_with_fields!("perpetual_refresher", chain = chain.as_ref(), candidates = candidate_count, tracked = tracked_addresses.len());
 
         Ok(tracked_addresses.len())
     }

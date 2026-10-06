@@ -18,6 +18,7 @@ mod price;
 mod price_metadata;
 mod rate_limit;
 mod scan_safe;
+mod subscription_address;
 mod swap_vault_address;
 mod throttle;
 
@@ -41,5 +42,6 @@ pub use price::{PriceCacher, price_channel};
 pub use price_metadata::PriceMetadataCacher;
 pub use rate_limit::{GLOBAL_RATE_LIMIT_SCOPE, RateLimitCacher};
 pub use scan_safe::{SafeScanTarget, ScanSafeCacher};
+pub use subscription_address::SubscriptionAddressCacher;
 pub use swap_vault_address::{SwapVaultAddressCacher, SwapVaultAddressKind};
 pub use throttle::{ThrottleCacher, ThrottledTask};

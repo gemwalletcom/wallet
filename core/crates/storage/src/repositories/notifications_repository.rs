@@ -6,10 +6,10 @@ use crate::models::{AssetRow, NewNotificationRow, NotificationRow};
 use crate::schema::{assets, devices, notifications, wallets, wallets_subscriptions};
 use crate::{DatabaseClient, DatabaseError};
 
-type WalletIdsSubquery<'a> = diesel::dsl::Select<diesel::dsl::Filter<diesel::dsl::InnerJoin<wallets_subscriptions::table, devices::table>, diesel::dsl::Eq<devices::device_id, &'a str>>, wallets_subscriptions::wallet_id>;
+type WalletIdsSubquery<'a> = diesel::dsl::Select<diesel::dsl::Filter<diesel::dsl::InnerJoin<wallets_subscriptions::table, devices::table>, diesel::dsl::Eq<devices::identifier, &'a str>>, wallets_subscriptions::wallet_id>;
 
 fn wallet_ids_by_device_id(device_id: &str) -> WalletIdsSubquery<'_> {
-    wallets_subscriptions::table.inner_join(devices::table).filter(devices::device_id.eq(device_id)).select(wallets_subscriptions::wallet_id)
+    wallets_subscriptions::table.inner_join(devices::table).filter(devices::identifier.eq(device_id)).select(wallets_subscriptions::wallet_id)
 }
 
 #[derive(Debug, Clone, PartialEq)]

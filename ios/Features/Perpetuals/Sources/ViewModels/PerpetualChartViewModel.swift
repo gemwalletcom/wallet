@@ -27,14 +27,7 @@ public final class PerpetualChartViewModel {
 
     public var currentPeriod: ChartPeriod {
         get { session.period.toPrimitives() }
-        set {
-            session = session.onSelectPeriod(period: newValue.toGem())
-            do {
-                try service.setChartPeriod(period: newValue.toGem())
-            } catch {
-                debugLog("storing the chart period failed: \(error)")
-            }
-        }
+        set { session = session.onSelectPeriod(period: newValue.toGem()) }
     }
 
     public init(service: any GemPerpetualDetailsServiceProtocol, observerService: any PerpetualObservable) {

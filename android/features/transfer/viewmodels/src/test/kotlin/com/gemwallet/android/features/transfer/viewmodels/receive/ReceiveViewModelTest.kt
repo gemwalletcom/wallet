@@ -53,7 +53,7 @@ class ReceiveViewModelTest {
     }
 
     private val bitcoin = mockAsset()
-    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
     private val wallet = mockWallet(
         id = WalletId("multicoin_0xabc"),
         accounts = listOf(mockAccount(chain = Chain.Bitcoin, address = "bc1q"), mockAccount(chain = Chain.Ethereum, address = "0xabc")),

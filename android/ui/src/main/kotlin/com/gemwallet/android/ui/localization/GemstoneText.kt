@@ -120,7 +120,6 @@ import uniffi.gemstone.GemTransactionTitle
 import uniffi.gemstone.GemTransactionsFilterSummary
 import uniffi.gemstone.GemTriggerOrder
 import uniffi.gemstone.GemValidatorSectionKind
-import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletImportKind

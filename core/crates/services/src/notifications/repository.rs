@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{Asset, AssetId, Chain, Device, DeviceSubscription, NotificationData, ScanAddress, TransactionType};
+use primitives::{Asset, AssetId, Chain, Device, NotificationData, ScanAddress, TransactionType};
 use storage::{AssetsRepository, Database, DatabaseError, DeviceFieldUpdate, DevicesRepository, NewNotification, NotificationsRepository, ScanAddressesRepository, TransactionsRepository, WalletsRepository};
 
 #[async_trait]
@@ -12,7 +12,6 @@ pub(crate) trait Repository: Send + Sync {
     async fn update_device_fields(&self, device_ids: Vec<String>, updates: Vec<DeviceFieldUpdate>) -> Result<usize, DatabaseError>;
     async fn scan_address(&self, chain: Chain, address: String) -> Result<ScanAddress, DatabaseError>;
     async fn addresses_with_transactions(&self, chain: Chain, kinds: Vec<TransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError>;
-    async fn subscriptions_for_addresses(&self, chain: Chain, addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError>;
 }
 
 pub(crate) struct PostgresRepository {
@@ -65,9 +64,5 @@ impl Repository for PostgresRepository {
 
     async fn addresses_with_transactions(&self, chain: Chain, kinds: Vec<TransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError> {
         self.database.run(move |client| client.get_addresses_by_chain_and_kind(chain.as_ref(), kinds, since)).await
-    }
-
-    async fn subscriptions_for_addresses(&self, chain: Chain, addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError> {
-        self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await
     }
 }

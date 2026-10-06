@@ -1103,6 +1103,7 @@ public extension Gemstone.SwapProvider {
         case .squid: .squid
         case .mayachain: .mayachain
         case .swapsXyz: .swapsXyz
+        case .bridgers: .bridgers
         }
     }
 }
@@ -1132,6 +1133,7 @@ public extension Primitives.SwapProvider {
         case .squid: .squid
         case .mayachain: .mayachain
         case .swapsXyz: .swapsXyz
+        case .bridgers: .bridgers
         }
     }
 }

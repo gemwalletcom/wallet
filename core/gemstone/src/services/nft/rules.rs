@@ -293,7 +293,7 @@ mod tests {
             !list_screen(data.clone(), GemNftList::Collection, GemLoadState::Data).syncs_on_appear,
             "a single collection is already in what the root synced; a pull still refetches"
         );
-        assert!(!list_screen(data.clone(), GemNftList::Unverified, GemLoadState::Data).syncs_on_appear);
+        assert!(!list_screen(data, GemNftList::Unverified, GemLoadState::Data).syncs_on_appear);
     }
 
     #[test]

@@ -32,7 +32,7 @@ impl PriceClient {
     pub async fn set_fiat_rates(&self, provider: FiatRateProvider, rates: Vec<FiatRate>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let (count, rates) = self.repository.set_fiat_rates(provider, rates).await?;
 
-        self.set_cache_fiat_rates(rates).await?;
+        self.cache.set_fiat_rates(&rates).await?;
 
         Ok(count)
     }
@@ -54,10 +54,6 @@ impl PriceClient {
             market: Some(price.as_market_with_rate(rate)),
             prices: Some(prices),
         })
-    }
-
-    pub async fn set_cache_fiat_rates(&self, rates: Vec<FiatRate>) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.cache.set_fiat_rates(&rates).await
     }
 
     pub async fn get_cache_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {

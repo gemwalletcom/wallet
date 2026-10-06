@@ -74,7 +74,7 @@ impl NewAssetRow {
             name: asset.name,
             symbol: asset.symbol,
             asset_type: asset.asset_type.into(),
-            decimals: asset.decimals,
+            decimals: asset.decimals as i32,
             rank: score.rank,
             is_enabled: properties.is_enabled,
             is_buyable: properties.is_buyable,
@@ -99,7 +99,7 @@ impl AssetRow {
     }
 
     pub fn as_primitive(&self) -> Asset {
-        Asset::new(self.as_asset_id(), self.name.clone(), self.symbol.clone(), self.decimals, self.asset_type.0.clone())
+        Asset::new(self.as_asset_id(), self.name.clone(), self.symbol.clone(), self.decimals as u32, self.asset_type.0.clone())
     }
 
     pub fn as_basic_primitive(&self) -> AssetBasic {

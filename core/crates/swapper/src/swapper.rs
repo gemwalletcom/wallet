@@ -1,8 +1,8 @@
 use crate::ranking::rank_quotes;
 use crate::{
     AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
-    across, alien::RpcProvider, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi, swaps_xyz,
-    thorchain, uniswap,
+    across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, okx, panora, relay, squid, stonfi,
+    swaps_xyz, thorchain, uniswap,
 };
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
@@ -86,6 +86,7 @@ impl GemSwapper {
             Some(Box::new(squid::Squid::new(rpc_provider.clone()))),
             swaps_xyz::SwapsXyz::new(rpc_provider.clone()).map(Self::boxed),
             Some(uniswap::default::boxed_aerodrome(rpc_provider.clone())),
+            Some(Box::new(bridgers::Bridgers::new(rpc_provider.clone()))),
         ]
         .into_iter()
         .flatten()

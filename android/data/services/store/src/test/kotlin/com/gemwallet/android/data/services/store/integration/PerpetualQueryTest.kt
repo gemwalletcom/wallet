@@ -31,8 +31,8 @@ class PerpetualQueryTest {
         GemDatabase::class.java,
     ).build()
     private val query = PerpetualQuery(database.perpetualDao())
-    private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8)
-    private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u)
+    private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
     private val bitcoin = PerpetualData(
         perpetual = mockPerpetual(
             price = 95420.5,

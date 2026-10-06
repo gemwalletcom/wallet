@@ -254,9 +254,6 @@ impl GemPreferencesService {
     pub fn is_price_alerts_enabled(&self) -> bool {
         self.store.get(PRICE_ALERTS_ENABLED.to_string()).as_deref() == Some("true")
     }
-    pub fn default_currency(&self, locale_currency: Option<String>) -> Currency {
-        rules::default_currency(locale_currency)
-    }
 }
 
 impl GemPreferencesService {

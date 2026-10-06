@@ -39,8 +39,8 @@ class PerpetualWalletBalanceQueryTest {
     private val query = PerpetualWalletBalanceQuery(database.balancesDao(), database.pricesDao())
     private val wallet1 = WalletId("wallet-1")
     private val wallet2 = WalletId("wallet-2")
-    private val collateral = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC"), name = "USDC", symbol = "USDC", decimals = 8, type = AssetType.PERPETUAL)
-    private val bitcoin = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8)
+    private val collateral = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC"), name = "USDC", symbol = "USDC", decimals = 8u, type = AssetType.PERPETUAL)
+    private val bitcoin = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u)
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
