@@ -2,7 +2,7 @@ use super::spot::math::scale_units;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use async_trait::async_trait;
-use gem_hypercore::core::{actions::user::spot_send::SpotSend, hypercore::transfer_to_hyper_evm_typed_data};
+use gem_hypercore::core::{actions::user::send_asset::SendAsset, hypercore::send_asset_typed_data};
 use number_formatter::BigNumberFormatter;
 
 use primitives::{
@@ -77,11 +77,11 @@ impl Swapper for HyperCoreBridge {
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         match quote.request.from_asset.asset_id().chain {
             Chain::HyperCore => {
-                let amount = BigNumberFormatter::value(&quote.request.value, quote.request.from_asset.decimals)?;
-                let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis() as u64;
+                let amount = BigNumberFormatter::plain_value(&quote.request.value, quote.request.from_asset.decimals)?;
+                let nonce = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis() as u64;
 
-                let spot_send = SpotSend::new(amount, HYPERCORE_SYSTEM_ADDRESS.to_string(), timestamp, HYPERCORE_CORE_HYPE_TOKEN_ID.to_string());
-                let typed_data = transfer_to_hyper_evm_typed_data(spot_send).map_err(SwapperError::TransactionError)?;
+                let send_asset = SendAsset::spot(amount, HYPERCORE_SYSTEM_ADDRESS.to_string(), HYPERCORE_CORE_HYPE_TOKEN_ID.to_string(), nonce);
+                let typed_data = send_asset_typed_data(send_asset).map_err(SwapperError::TransactionError)?;
 
                 Ok(SwapperQuoteData::new_contract(HYPERCORE_SYSTEM_ADDRESS.to_string(), quote.request.value.clone(), typed_data, None, None))
             }
