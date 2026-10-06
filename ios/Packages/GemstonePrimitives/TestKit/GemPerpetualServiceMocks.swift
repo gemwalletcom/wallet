@@ -191,7 +191,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public private(set) var syncPositionsCount = 0
     public private(set) var syncedTransactionAssetIds: [Gemstone.AssetId] = []
     public private(set) var positionKinds: [GemPerpetualPositionKind] = []
-    public private(set) var setChartPeriods: [Gemstone.ChartPeriod] = []
 
     public init() {}
 
@@ -230,11 +229,6 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
 
     public func details(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, positions _: [Gemstone.PerpetualPosition]) -> GemPerpetualDetails {
         detailsValue
-    }
-
-    public func setChartPeriod(period: Gemstone.ChartPeriod) throws {
-        setChartPeriods.append(period)
-        chartPeriodValue = period
     }
 
     public func refresh(assetId: Gemstone.AssetId) async -> [Gemstone.GemPerpetualRefreshFailure] {
