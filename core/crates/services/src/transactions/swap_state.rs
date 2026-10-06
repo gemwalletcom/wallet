@@ -2,11 +2,14 @@ use primitives::{Transaction, TransactionState, TransactionSwapMetadata, Transac
 use storage::TransactionUpdate;
 
 pub fn swap_result_metadata(transaction: &Transaction, metadata: Option<TransactionSwapMetadata>, preserve_referral_fee: bool) -> Option<serde_json::Value> {
-    let referral_fee = preserve_referral_fee.then(|| transaction.swap_metadata().and_then(|metadata| metadata.referral_fee)).flatten();
+    let existing_metadata = transaction.swap_metadata();
+    let referral_fee = preserve_referral_fee.then(|| existing_metadata.clone().and_then(|metadata| metadata.referral_fee)).flatten();
     metadata
-        .map(|metadata| match metadata.referral_fee {
-            Some(_) => metadata,
-            None => metadata.with_referral_fee(referral_fee),
+        .or(existing_metadata)
+        .map(|metadata| match (preserve_referral_fee, metadata.referral_fee.is_some()) {
+            (false, _) => metadata.with_referral_fee(None),
+            (true, true) => metadata,
+            (true, false) => metadata.with_referral_fee(referral_fee),
         })
         .and_then(|metadata| serde_json::to_value(metadata).ok())
 }
@@ -70,13 +73,7 @@ mod tests {
             completed,
             SwapResult {
                 status: SwapStatus::Refunded,
-                metadata: Some(TransactionSwapMetadata::new(
-                    AssetId::from_chain(Chain::Solana),
-                    1000u32.into(),
-                    AssetId::from_chain(Chain::Ethereum),
-                    20u32.into(),
-                    SwapProvider::Mayan,
-                )),
+                metadata: None,
                 eta_in_seconds: None,
             },
         );
