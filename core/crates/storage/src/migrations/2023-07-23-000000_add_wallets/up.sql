@@ -24,7 +24,6 @@ CREATE TABLE wallets_subscriptions (
     UNIQUE(wallet_id, device_id, chain, address_id)
 );
 
-CREATE INDEX wallets_subscriptions_wallet_id_idx ON wallets_subscriptions (wallet_id);
 CREATE INDEX wallets_subscriptions_device_id_idx ON wallets_subscriptions (device_id);
 CREATE INDEX wallets_subscriptions_address_id_idx ON wallets_subscriptions (address_id);
 CREATE INDEX wallets_subscriptions_chain_address_id_idx ON wallets_subscriptions (chain, address_id);

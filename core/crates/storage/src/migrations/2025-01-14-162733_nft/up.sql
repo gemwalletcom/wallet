@@ -84,7 +84,6 @@ CREATE TABLE nft_assets_associations (
 );
 
 SELECT diesel_manage_updated_at('nft_assets_associations');
-CREATE INDEX nft_assets_associations_address_id_idx ON nft_assets_associations (address_id);
 CREATE INDEX nft_assets_associations_nft_asset_id_idx ON nft_assets_associations (nft_asset_id);
 
 CREATE TABLE nft_reports (
