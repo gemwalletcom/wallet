@@ -1,12 +1,9 @@
 use alloy_primitives::Address;
-use primitives::{Chain, decode_hex_array};
+use primitives::Chain;
+use primitives::chain_aptos::is_fungible_asset_token_id;
 use std::str::FromStr;
 
-const APTOS_COIN_OBJECT: [u8; 32] = {
-    let mut bytes = [0u8; 32];
-    bytes[31] = 0x0a;
-    bytes
-};
+const APTOS_COIN_OBJECT_ID: &str = "0x000000000000000000000000000000000000000000000000000000000000000a";
 
 pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
     match chain {
@@ -72,7 +69,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
                 return None;
             }
             let is_coin_type = token_id.starts_with("0x") && token_id.matches("::").count() == 2;
-            let is_fungible_asset = token_id.len() == 66 && decode_hex_array::<32>(&token_id).is_ok_and(|bytes| bytes != APTOS_COIN_OBJECT);
+            let is_fungible_asset = is_fungible_asset_token_id(&token_id) && !token_id.eq_ignore_ascii_case(APTOS_COIN_OBJECT_ID);
             (is_coin_type || is_fungible_asset).then_some(token_id)
         }
         Chain::Bitcoin

@@ -128,6 +128,7 @@ mod tests {
     use super::*;
     use crate::providers::flashnet::model::{FlashnetOrder, FlashnetRoute};
     use primitives::FiatTransactionStatus;
+    use primitives::contract_constants::SOLANA_WRAPPED_SOL_TOKEN_ADDRESS;
 
     #[test]
     fn map_status_maps_all_documented_flashnet_statuses() {
@@ -199,7 +200,7 @@ mod tests {
 
     #[test]
     fn map_assets_treats_the_native_symbol_as_the_native_coin() {
-        let assets = map_assets(vec![FlashnetRoute::mock("solana", "SOL", Some("So11111111111111111111111111111111111111112"))]);
+        let assets = map_assets(vec![FlashnetRoute::mock("solana", "SOL", Some(SOLANA_WRAPPED_SOL_TOKEN_ADDRESS))]);
 
         assert_eq!(assets.len(), 1);
         assert_eq!(assets[0].asset_id(), Some(primitives::AssetId::from_chain(Chain::Solana)));

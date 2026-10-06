@@ -32,6 +32,7 @@ pub mod chain_transaction_timeout;
 pub use self::chain_transaction_timeout::{chain_transaction_timeout, swap_transaction_timeout};
 pub mod chain_evm;
 pub use self::chain_evm::{EVMChain, EvmNativeCurrency};
+pub mod chain_aptos;
 pub mod chain_bitcoin;
 pub use self::chain_bitcoin::{BITCOINCASH_PREFIX, BitcoinChain};
 pub mod name;

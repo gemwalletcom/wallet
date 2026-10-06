@@ -1,15 +1,15 @@
-use primitives::decode_hex;
+use crate::decode_hex;
 
 const FUNGIBLE_ASSET_TOKEN_ID_LENGTH: usize = 66;
 
-pub(crate) fn is_fungible_asset_token_id(token_id: &str) -> bool {
+pub fn is_fungible_asset_token_id(token_id: &str) -> bool {
     token_id.starts_with("0x") && token_id.len() >= FUNGIBLE_ASSET_TOKEN_ID_LENGTH && decode_hex(token_id).map(|bytes| bytes.len() == 32).unwrap_or(false)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::asset_constants::APTOS_USDT_TOKEN_ID;
+    use crate::asset_constants::APTOS_USDT_TOKEN_ID;
 
     #[test]
     fn test_is_fungible_asset_token_id() {

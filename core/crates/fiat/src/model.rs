@@ -105,7 +105,7 @@ pub fn filter_token_id(chain: Option<Chain>, token_id: Option<String>) -> Option
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::asset_constants::{APTOS_USDC_ASSET_ID, APTOS_USDC_TOKEN_ID};
+    use primitives::asset_constants::{APTOS_USDC_ASSET_ID, APTOS_USDC_TOKEN_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID};
 
     #[test]
     fn test_filter_token_id() {
@@ -119,17 +119,15 @@ mod tests {
 
     #[test]
     fn test_asset_id() {
-        let usdc = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-
         assert_eq!(FiatProviderAsset::mock().asset_id(), Some(APTOS_USDC_ASSET_ID.clone()));
         assert_eq!(
             FiatProviderAsset {
                 chain: Some(Chain::Ethereum),
-                token_id: Some(usdc.to_lowercase()),
+                token_id: Some(ETHEREUM_USDC_TOKEN_ID.to_lowercase()),
                 ..FiatProviderAsset::mock()
             }
             .asset_id(),
-            Some(AssetId::from_token(Chain::Ethereum, usdc))
+            Some(ETHEREUM_USDC_ASSET_ID.clone())
         );
         assert_eq!(FiatProviderAsset { token_id: None, ..FiatProviderAsset::mock() }.asset_id(), Some(Chain::Aptos.as_asset_id()));
         assert_eq!(

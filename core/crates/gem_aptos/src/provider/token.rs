@@ -8,7 +8,7 @@ use primitives::Asset;
 use super::token_mapper::map_token_data;
 use crate::models::CoinInfo;
 use crate::rpc::client::AptosClient;
-use crate::token_id::is_fungible_asset_token_id;
+use primitives::chain_aptos::is_fungible_asset_token_id;
 
 const FUNGIBLE_ASSET_METADATA_TYPE: &str = "0x1::fungible_asset::Metadata";
 

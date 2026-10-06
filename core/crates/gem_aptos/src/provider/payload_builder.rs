@@ -4,8 +4,8 @@ use primitives::swap::{SwapQuoteData, SwapQuoteDataType};
 use serde_json::json;
 
 use crate::models::TransactionPayload;
-use crate::token_id::is_fungible_asset_token_id;
 use crate::{APTOS_TRANSFER_FUNCTION, DELEGATION_POOL_ADD_STAKE_FUNCTION, DELEGATION_POOL_UNLOCK_FUNCTION, DELEGATION_POOL_WITHDRAW_FUNCTION, ENTRY_FUNCTION_PAYLOAD_TYPE, FUNGIBLE_TRANSFER_FUNCTION, OBJECT_CORE_TYPE};
+use primitives::chain_aptos::is_fungible_asset_token_id;
 
 fn build_payload(function: &str, first_argument: &str, amount: &str) -> TransactionPayload {
     TransactionPayload {
