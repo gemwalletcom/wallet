@@ -13,7 +13,7 @@ public extension GemNftEntry {
     var destination: any Hashable & Sendable {
         switch item {
         case let .collection(data): Scenes.Collection(id: data.toPrimitives().collection.id.identifier)
-        case let .asset(data): Scenes.Collectible(assetData: data.toPrimitives())
+        case let .asset(data): Scenes.Collectible.assetData(data.toPrimitives())
         }
     }
 

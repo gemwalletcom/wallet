@@ -123,7 +123,7 @@ struct WalletNavigationView: View {
             CollectibleScene(
                 model: viewModelFactory.collectibleScene(
                     wallet: model.wallet,
-                    assetData: $0.assetData,
+                    collectible: $0,
                     isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
                     onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
                 ),

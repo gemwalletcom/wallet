@@ -33,6 +33,10 @@ impl GemCollectibleService {
         rules::collectible_details(&wallet_type, &asset_data, is_owned, contract_explorer, token_explorer, can_save_image)
     }
 
+    pub async fn ensure_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemServiceError> {
+        self.nfts.ensure_asset(asset_id).await
+    }
+
     pub async fn refresh_asset(&self, asset_id: NFTAssetId) -> Result<(), GemServiceError> {
         self.nfts.refresh_asset(self.nfts.session.current_wallet_id()?, asset_id).await
     }
