@@ -14,7 +14,6 @@ struct CandlestickChartView: View {
     private let onZoom: @MainActor (Double, Double) -> Void
     private let onPan: @MainActor (Double) -> Void
 
-    @ScaledMetric(relativeTo: .caption2) private var priceColumnWidth: CGFloat = 72
     @ScaledMetric(relativeTo: .caption2) private var timeRowHeight: CGFloat = 20
 
     @Binding private var isPinching: Bool
@@ -44,6 +43,10 @@ struct CandlestickChartView: View {
 // MARK: - UI
 
 extension CandlestickChartView {
+    private var priceColumnWidth: CGFloat {
+        CandlestickCanvas.priceColumnWidth(for: chart.layout)
+    }
+
     private var selectedCandle: ChartCandleStick? {
         selectedIndex.flatMap { chart.candles[safe: $0] }
     }

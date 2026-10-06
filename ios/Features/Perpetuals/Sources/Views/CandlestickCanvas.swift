@@ -2,6 +2,7 @@
 
 import struct Gemstone.ChartCandleStick
 import struct Gemstone.GemFormattedNumber
+import struct Gemstone.GemPerpetualChartLayout
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -21,6 +22,13 @@ struct CandlestickCanvas: View {
     let selectedCandle: ChartCandleStick?
 
     private let dateFormatter = ChartDateFormatter()
+
+    static func priceColumnWidth(for layout: GemPerpetualChartLayout) -> CGFloat {
+        let font = UIFont.monospacedDigitSystemFont(ofSize: UIFont.preferredFont(forTextStyle: .caption2).pointSize, weight: .regular)
+        let labels = layout.levels.map { $0.text() } + [layout.currentPrice.text()]
+        let labelWidth = labels.map { ($0 as NSString).size(withAttributes: [.font: font]).width }.max() ?? .zero
+        return Metrics.axisTickLength + .extraSmall + labelWidth.rounded(.up) + .extraSmall + .small
+    }
 
     var body: some View {
         Canvas { context, _ in
