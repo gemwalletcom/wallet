@@ -712,12 +712,13 @@ pub enum GemChartPhase {
     Failed { error: GemServiceError },
 }
 
-impl GemChartSession {
-    pub fn view_state(&self, price: Option<AssetPrice>) -> GemChartViewState {
-        GemChartViewState {
-            period: self.period,
-            phase: self.phase(price),
-            is_refreshing: self.is_refreshing,
+impl GemChartService {
+    pub fn view_state(&self, session: GemChartSession, input: GemChartInput) -> GemChartView {
+        GemChartView {
+            period: session.period,
+            phase: session.phase(input.asset_price()),
+            is_refreshing: session.is_refreshing,
+            sections: rules::chart_sections(..),
         }
     }
 }
@@ -725,7 +726,7 @@ impl GemChartSession {
 
 ```swift
 var chartState: StateViewType<GemChartData> {
-    switch session.viewState(price: currentPrice).phase {
+    switch view.phase {
     case .loading: .loading
     case let .data(data): .data(data)
     case .noData: .noData
@@ -735,11 +736,11 @@ var chartState: StateViewType<GemChartData> {
 ```
 
 ```kotlin
-val chartUIState = combine(loaded, price) { session, price -> session.viewState(price) }.map { state ->
+val chartUIState = combine(session, view) { session, view ->
     ChartUIState(
-        period = state.period.toPrimitives(),
-        chart = when (val phase = state.phase) {
-            GemChartPhase.Loading -> StateViewType.Loading
+        period = session.period.toPrimitives(),
+        chart = when (val phase = view?.phase) {
+            null, GemChartPhase.Loading -> StateViewType.Loading
             is GemChartPhase.Data -> StateViewType.Data(phase.data)
             GemChartPhase.NoData -> StateViewType.NoData
             is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
@@ -755,7 +756,7 @@ Four rules keep the collapse honest:
 - **The phase has one source of truth.** A chart session derives its phase from the canonical loaded chart, last error and loading facts. A session that stores a canonical phase instead must not also store equivalent independent flags. Do not add a second representation of the same state.
 - **Empty is not a failure.** `NoData` is its own variant, so a series with one point renders the empty state instead of an error, and neither app has to guess from an `Option`.
 - **A progress flag that coexists with content is a field, not a variant.** A refresh happens *while* data is on screen, so `is_refreshing` sits beside the phase; anything that replaces the screen is a variant.
-- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed spot price is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom and pan are session state for the same reason: the drawn window cannot be computed without them, `on_zoom` and `on_pan` clamp against the points the session holds, and a new period starts unzoomed by construction.
+- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed price record (`GemChartInput`: the asset, its stored price, market, alerts and links) is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. The service answers the phase and the market, alert and link sections from that one record in one `GemChartView`, converting the market with the rate the session holds, so the sections never run on a second async path beside the chart. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom and pan are session state for the same reason: the drawn window cannot be computed without them, `on_zoom` and `on_pan` clamp against the points the session holds, and a new period starts unzoomed by construction.
 
 The app switches and stops. No `if isLoading` ahead of the switch, no `default:` inside it: the exhaustiveness is what makes a new variant a compile error on both platforms instead of a blank screen on one.
 
@@ -1846,7 +1847,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemAssetSelectionService` | — | `SelectAssetSceneViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseSelectAssetViewModel` and its subclasses (+ `AssetsQuery`, `WalletSearchQuery`, `RecentActivityQuery`) |
 | `GemChainService` | — | `ChainListSettingsSceneViewModel` (chain picker) | `ContactChainSelectViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `ChainSettingsViewModel`, `AddNodeViewModel` |
-| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartValuesViewModel`, `ChartViewModel` (+ `PriceQuery`) |
+| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartViewModel` (+ `PriceQuery`) |
 | `GemCollectibleService` | — | `CollectibleSceneViewModel`, `ReportNftSceneViewModel` | `CollectibleViewModel` (+ `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`) |
 | `GemConfirmTransferService` | `GemConfirmation` (one confirmation in flight; it loads and executes, so it is not a session) | `ConfirmTransferSceneViewModel` (holds the `GemConfirmation` the factory opens) | `ConfirmTransferViewModel` |
 | `GemContactService` | — | `ContactsSceneViewModel` | `ContactsViewModel` |

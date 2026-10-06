@@ -54,10 +54,6 @@ impl GemPerpetualDetailsService {
         self.preferences.get_perpetual_chart_period()
     }
 
-    pub fn set_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
-        self.preferences.set_perpetual_chart_period(period)
-    }
-
     pub fn candle_subscription(&self, perpetual: Perpetual, period: ChartPeriod) -> GemPerpetualSubscription {
         GemPerpetualSubscription::Candle {
             symbol: rules::symbol(&perpetual),
@@ -70,6 +66,7 @@ impl GemPerpetualDetailsService {
     }
 
     pub async fn candles(&self, request: GemCandleRequest) -> GemCandleResult {
+        self.remember_period(request.period);
         let candles = self.perpetuals.get_candlesticks(Chain::HyperCore, request.symbol.clone(), request.period).await;
         GemCandleResult {
             request,
@@ -88,6 +85,12 @@ impl GemPerpetualDetailsService {
 }
 
 impl GemPerpetualDetailsService {
+    fn remember_period(&self, period: ChartPeriod) {
+        if self.preferences.get_perpetual_chart_period() != period {
+            self.preferences.set_perpetual_chart_period(period).ok();
+        }
+    }
+
     async fn sync_positions(&self) -> Result<(), GemServiceError> {
         self.perpetuals.sync_current_positions().await
     }
@@ -116,6 +119,23 @@ mod tests {
             assert!(steps.contains(&GemPerpetualRefreshStep::Transactions), "a later take profit never arrives without this one");
             let paths = testkit.provider.requested_paths();
             assert!(paths.iter().any(|path| path.contains("devices/transactions") && path.contains("asset_id=hypercore")), "{paths:?}");
+        })
+    }
+
+    #[test]
+    fn test_a_candle_load_remembers_the_period_it_was_asked_for() {
+        block_on(async {
+            let testkit = PerpetualTestkit::new().details_service();
+
+            testkit
+                .service
+                .candles(GemCandleRequest {
+                    symbol: "BTC".to_string(),
+                    period: ChartPeriod::Month,
+                })
+                .await;
+
+            assert_eq!(testkit.service.chart_period(), ChartPeriod::Month, "the next perpetual chart opens on the period that was loaded last");
         })
     }
 
