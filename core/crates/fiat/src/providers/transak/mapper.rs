@@ -189,7 +189,16 @@ mod tests {
     use super::*;
     use crate::providers::transak::models::{AssetNetwork, Data, FiatCurrency, Response, TransakOrderResponse};
     use num_bigint::BigUint;
-    use primitives::{Asset as PrimitiveAsset, Chain, FiatAssetSymbol, FiatProvider, FiatQuote, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
+    use primitives::asset_constants::APTOS_USDT_ASSET_ID;
+    use primitives::{Asset as PrimitiveAsset, AssetId, Chain, FiatAssetSymbol, FiatProvider, FiatQuote, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
+
+    #[test]
+    fn test_map_asset() {
+        let assets: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/transak/assets.json")).unwrap();
+        let asset_ids: Vec<(String, Option<AssetId>)> = assets.into_iter().filter_map(map_asset).map(|asset| (asset.id.clone(), asset.asset_id())).collect();
+
+        assert_eq!(asset_ids, vec![("APTaptos".to_string(), Some(Chain::Aptos.as_asset_id())), ("USDTaptos".to_string(), Some(APTOS_USDT_ASSET_ID.clone())),]);
+    }
 
     #[test]
     fn test_map_order_buy_failed() {

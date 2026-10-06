@@ -6,7 +6,6 @@ pub mod models;
 pub use models::*;
 pub mod r#move;
 pub mod signer;
-mod token_id;
 
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
