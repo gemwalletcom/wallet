@@ -77,7 +77,7 @@ Note: Mobile builds require UniFFI bindings generation and platform-specific com
 
 ## Generating Bindings (When Core Changes Affect Mobile APIs)
 
-> **IMPORTANT**: Regenerate platform bindings when a change affects the mobile API or generated models. Internal implementation changes in `gemstone/`, `swapper/`, `signer/`, or other Core crates do not require regeneration when the exposed interfaces and generated outputs are unchanged.
+Apply [Cross-Platform Awareness](../../skills/cross-platform-awareness.md) to decide when generation and app verification are required, including UniFFI schema or configuration changes.
 
 For the apps, `just generate-stone` from the repo root builds the iOS library and bindings, and the Android Gradle build regenerates its own. The recipes below serve the standalone Gemstone example projects.
 
@@ -94,13 +94,6 @@ just gemstone bindgen-kotlin    # Generate Kotlin bindings only (run in gemstone
 just gemstone build-android     # Full Android build including Kotlin binding generation (run in gemstone/)
 ```
 Generated files: `gemstone/generated/kotlin/` → copied to `gemstone/android/gemstone/src/main/java/uniffi/`
-
-### When to Regenerate Bindings
-1. After adding/modifying public functions in `gemstone/src/lib.rs`
-2. After changing any UniFFI-exposed types or interfaces
-3. After changing models that derive `Model`, which either app consumes
-4. When UniFFI schema or configuration changes
-5. When platform build inputs or app-side integration must change with Core
 
 ## Utilities
 

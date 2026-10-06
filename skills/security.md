@@ -38,8 +38,7 @@ Before editing these areas, identify the security invariants and confirm the cha
 
 ## Cross-Platform Rule
 
-- If a security-sensitive Core change affects mobile interfaces, generated outputs, platform build inputs, or app-side integration, regenerate bindings and verify the affected apps
-- If only one app changes a shared security or transaction flow, call out the parity risk explicitly
+Apply [Cross-Platform Awareness](cross-platform-awareness.md) for generation, app verification, and parity in shared security or transaction flows.
 
 ## Optional External Security Skills
 
@@ -59,5 +58,5 @@ Before finishing a security-sensitive change, check:
 3. Transaction inputs and outputs remain explicit, validated, and correctly typed
 4. Existing auth and confirmation gates still execute on every required path
 5. New external-input handling is validated against malformed or hostile input
-6. Affected platforms were verified when mobile interfaces, generated outputs, platform build inputs, or app-side integration changed
+6. Cross-platform verification follows [Cross-Platform Awareness](cross-platform-awareness.md)
 7. Approval spenders, routers, transaction targets, and multi-call destinations are independently authorized rather than cross-checked only against values from the same response

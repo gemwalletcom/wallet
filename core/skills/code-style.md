@@ -1,7 +1,7 @@
 # Code Style
 
 Use for any Rust change; it is the crate-level style contract.
-Follow the existing code style patterns unless explicitly asked to change.
+Apply the shared [Clean Code Principles](../../skills/engineering-principles.md#clean-code-principles) alongside these Rust-specific rules.
 
 ## Formatting
 
@@ -12,7 +12,7 @@ Line length 180 (`rustfmt.toml`), 4-space indentation, imports reordered by rust
 - Files and modules `snake_case`; functions and variables `snake_case`; types `PascalCase`; constants `SCREAMING_SNAKE_CASE`.
 - Crate names: `gem_<chain>` for chain crates; `gem_<name>` for core libraries whose bare name is generic or collides with a crates.io crate (`gem_client`, `gem_hash`, `gem_tracing`); the vendor name for third-party API clients (`coingecko`, `alchemy`); the plain domain name for domain crates (`fiat`, `rewards`, `security`), matching its `services` module. The directory name equals the package name.
 - Rely on scope instead of repeating the module or crate prefix inside it: `is_spot_swap` inside `gem_hypercore::core_signer`, not `is_hypercore_spot_swap`.
-- Name functions after the domain action and result they own: `parse_destination_tag`, `build_transfer_message`, `sign_trust_set`, `map_balance_assets`. Avoid `util`, `utils`, `normalize`, `resolve`, `process`, `handle`, `manage`, `perform`, `execute` unless a framework or protocol owns the signature.
+- Avoid generic `util`, `utils`, or `normalize` names; use the shared domain naming rule.
 - No type suffixes (`_str`, `_int`, `_vec`); the type system already says it.
 - Follow the shared [comment policy](../../skills/engineering-principles.md#clean-code-principles), including in `mod.rs`. Omit redundant local type annotations; keep those required for inference or a meaningful type boundary.
 - Keep `value` for variables derived from `input.value`; use `amount` when the external protocol field requires that name.
@@ -28,14 +28,11 @@ Line length 180 (`rustfmt.toml`), 4-space indentation, imports reordered by rust
 - **Thin module entrances**: For multi-file modules, prefer a directory module with a thin `mod.rs` (or crate `lib.rs`) that only declares submodules and re-exports the public surface; keep implementation details in focused child files
 - **Avoid duplication**: Search for existing implementations before writing new code; reuse existing code or crates
 - **Extraction**: Follow [Abstractions Must Earn Their Place](../../skills/engineering-principles.md#abstractions-must-earn-their-place); prefer the existing owning crate
-- **Avoid `mut`**: Prefer immutable bindings; use `mut` only when truly necessary
-- **No `#[allow(dead_code)]`**: Remove dead code instead of suppressing warnings
 - **Avoid `#[serde(default)]`**: Only use when the field is genuinely optional in the API response; if the field is always present, omit it
 - **Fields a response may omit are `Option<T>`**: when adding a field to a struct that parses a provider or RPC response, make it `Option<T>` unless the provider documents it as always present. Only the path that needs the field returns an error when it is `None`, never a default; every other path keeps working
 - **Enum accessors**: Reuse existing typed accessors for repeated extraction. Implement variant-dependent behavior with exhaustive matching; add an accessor only for a current domain operation
 - **No `assert!` with `contains`**: Use `assert_eq!` with concrete values; `assert!(x.contains(...))` gives useless failure messages
-- **No fallback, fail fast**: Follow [Defensive Programming](defensive-programming.md); propagate errors with `?` rather than masking them with a default.
+- **Production safety**: Follow [Defensive Programming](defensive-programming.md) for errors, exhaustive matching, and dead-code suppression.
 - **Helper ownership**: Follow [Architecture § 6](../../docs/ARCHITECTURE.md#6-where-derived-domain-answers-live): methods for intrinsic behavior, pure functions in existing mapper/rules modules when there is no natural receiver. Never create a struct or generic `utils`, `normalizer`, or `codec` module just to house a helper
 - **No unused fields**: Remove unused fields from structs/models; don't keep fields "for future use"
 - **Constants for magic numbers**: Extract magic numbers into named constants with clear meaning
-- **Minimum interface**: Don't expose unnecessary functions; if client only needs one function, don't add multiple variants

@@ -38,9 +38,8 @@ If a task spans platforms, read every affected guide. Generation and parity requ
 
 Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
 
-- [Product](docs/PRODUCT.md) — How the wallet behaves from the user's side, one short page per area under [docs/product/](docs/product); when a change settles an important user-facing rule, add it to that area's page in the same change (important rules only, not every case)
+- [Product](docs/PRODUCT.md) — User-facing rules, rationale, guarding tests, failure behavior, platform differences, and open decisions, organized by area under [docs/product/](docs/product)
 - [Architecture](docs/ARCHITECTURE.md) — Ownership contracts, worked examples, and the screen-service map
-- [Product behavior](docs/PRODUCT.md) — how each area is meant to behave for the user: the UX intent, the rules with their reason and guarding test, failure behavior, intentional platform differences and the open decisions. Read the area's section before changing its owner; a change that would break a stated rule is a product decision for the user, never a simplification
 - [Open work](docs/TODO.md) — Every open item, ordered, with the exemplar to copy for each; delete an item's line in the commit that lands it
 - [Performance](docs/PERFORMANCE.md) — responsiveness principles, budgets, and testing for wallet, asset, transaction, confirmation, and swap screens on both apps
 - [Deep links](docs/DEEPLINKS.md) — deep link URL contract, support-chat links, and the web association requirements
@@ -61,9 +60,4 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 
 ## Task Completion
 
-1. Fix the cause at its owner, within the task's scope; see [Engineering Principles](skills/engineering-principles.md).
-2. Run both cleanup rounds in [Task Workflow](skills/task-workflow.md), before and after verification. Rerun affected checks if cleanup changes source.
-3. Review security impact for changes touching secrets, signing, auth, transactions, or wallet recovery.
-4. Run the applicable [Quality Checks](skills/quality-checks.md), including generation and app verification when shared contracts change. Documentation-only work uses its lightweight checks.
-
-For code changes, reasoning and file inspection do not replace execution. Report exact verification commands, results, and anything skipped or blocked. For wallet-critical flows, explicitly surface skipped records, swallowed errors, and untested branches.
+Follow [Task Workflow](skills/task-workflow.md#4-verify-the-actual-result) for verification, both cleanup rounds, and handoff; [Quality Checks](skills/quality-checks.md) defines the required commands. Review wallet-critical changes with [Security](skills/security.md#review-checklist).

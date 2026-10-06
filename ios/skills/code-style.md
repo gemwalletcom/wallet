@@ -36,6 +36,6 @@ References: `ios/Gem/App.swift` (app composition), `ios/Gem/ViewModels/MainTabVi
 
 ## TestKit Mocks
 
-Reusable mocks are `static func mock(...)` extensions on the type in the package's `TestKit` target, every field a defaulted parameter so a test passes what it asserts. Data mocks follow [Testing § Mocks](testing.md#mocks): generated ones in `TestKit/GeneratedMocks.swift`, the rest in the package's one `TestKit/Mocks.swift`. Reference: `ios/Packages/Primitives/TestKit/GeneratedMocks.swift`.
+Follow [Testing § Mocks](testing.md#mocks) for data mocks, doubles, and TestKit layout.
 
 Shared clean-code principles live in `../../skills/engineering-principles.md`.

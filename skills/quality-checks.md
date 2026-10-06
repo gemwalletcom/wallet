@@ -1,10 +1,10 @@
 # Quality Checks
 
-Run the checks that match the area you touched. Use the narrowest meaningful command while iterating, then finish with the broader validation required by the risk of the change.
+Use narrow checks while iterating, then the closing matrix for the changed area's risk.
 
 For SwiftUI and Compose work, pure presentation changes should not spend most of the loop in full app builds.
 
-Before running checks, confirm the active checkout/worktree and command directory. Use the feature flags that compile the changed path, and verify that filtered commands selected the intended tests. Tool-specific caveats (Cargo test filters, lock contention) live in the platform development-commands skills.
+Before running checks, confirm the checkout and command directory. Use features that compile the changed path and confirm filters selected the intended tests; zero selected tests is not a pass. If concurrent checks contend or return unclear status, rerun individually. Tool-specific caveats live in platform development-command guides.
 
 ## Iteration Matrix
 
@@ -35,11 +35,11 @@ Before running checks, confirm the active checkout/worktree and command director
 | Service construction or a Core key rendered outside its mapper, or a backend crate depending on an infra crate | `just check-boundaries` |
 | Documentation-only change | `git diff --check`<br>`just check-docs`<br>Inspect changed links, paths, commands, and instructions |
 
-Repo Checks runs `check-mappers`, `check-docs`, `check-ffi` and `check-boundaries` on every pull request, so a mapper the checker stops reading, an export no app calls, a service built outside the composition root, or a backend crate reaching infra outside `services`, fails there as well as locally. `check-ffi` is the standing sweep: an exported function that Core itself still uses keeps its body and loses only the `#[uniffi::export]`.
+Repo Checks runs `check-mappers`, `check-docs`, `check-ffi`, and `check-boundaries` on every PR. When removing an unused FFI export that Core still calls, keep its body and remove only `#[uniffi::export]`.
 
 Navigation, app wiring, wallet-critical UI, security-sensitive code, Room migrations, signing, transaction construction, wallet import/export, seed phrases, private keys, and auth flows are never presentation-only. Use the stricter platform/security checks for those tasks.
 
-For Core crates with `default = []`, per-crate `cargo clippy -p <crate>` and `cargo test -p <crate>` skip feature-gated modules and pass in seconds. Add `--all-features` or the gating feature (`just test <CRATE>` already does); see [Core Development Commands](../core/skills/development-commands.md).
+For Core feature coverage and CI lint details, see [Core Development Commands](../core/skills/development-commands.md#code-quality).
 
 ## Format every platform you touched
 
@@ -51,33 +51,22 @@ Run the formatter for each platform your change touched, before the closing chec
 | iOS | `cd ios && just format` |
 | Android | `cd android && just format` (`just android format-all` sweeps every file) |
 
-Each is idempotent and takes about a second, so running it when nothing changed costs nothing. `just generate-models` formats the Rust it writes, so regenerating never fights `just format`.
+`just generate-models` formats the Rust it writes.
 
-Except for documentation-only changes, closing a task requires at least one real build or test command for the changed area. Do not substitute `git diff`, static inspection, or reasoning for execution. If execution is blocked by unrelated repo state, include the exact command and the blocking failure in the handoff.
+Code changes require a real build or test for the changed area; inspection and reasoning cannot substitute. Report exact commands and results, including blocking failures.
 
-Compiling a gated integration test with `--no-run` proves build compatibility, not live provider behavior. Report deterministic tests, gated live tests, and checks that were compiled but not executed as separate results.
+Report deterministic tests, compiled-only checks, gated live tests, skipped tests, and expected failures separately. Compilation does not prove runtime behavior; correctness, performance, compatibility, and exact output are separate claims.
 
 If a broad suite fails outside the changed path, rerun the narrow affected check to separate a regression from an environmental or pre-existing failure. Report both results; a targeted pass does not turn the failed broad suite into a pass.
 
 ## Ready-to-Commit Batch
 
-Do not run the closing matrix after every edit. Once the implementation is stable and no more code edits are expected, run the applicable closing checks as one batch:
+Run the closing matrix once the change is stable: format → required generation → targeted tests → builds → required UI smoke. If checks change source or require fixes, return to the narrow loop and rerun affected final checks. [Cross-Platform Awareness](cross-platform-awareness.md) owns generation and parity requirements.
 
-1. Format every platform the change touched.
-2. Regenerate models/bindings or localization if the changed inputs require it.
-3. Run the targeted tests that cover the changed behavior.
-4. Build the affected package/module/app according to the closing matrix.
-5. Exercise the changed UI flow when the platform guide requires a simulator, emulator, or device smoke check.
-
-If any step modifies source files or forces a compile fix, return to the narrow iteration loop, then run the affected final checks again.
-
-If you change shared models or bindings, also run the generation steps and validate both mobile apps.
-
-App checks see a Core change only through what each app links. Run `just generate-stone` before iOS builds and tests; it rebuilds the iOS library and bindings and costs a few seconds when nothing changed. Android app builds regenerate bindings and native libraries on their own. Gradle builds the host library before Android unit tests, including single-module runs, and includes it in their cache inputs.
-
-If a user-facing shared flow changes on only one platform, call out the parity gap explicitly before finishing.
+Run `just generate-stone` before iOS checks to rebuild the linked Core library and bindings. Android app builds generate their bindings and native libraries. Gradle builds and fingerprints the host library before unit tests, including single-module runs.
 
 For detailed platform-specific commands, flags, and workflows see:
+
 - [iOS Development Commands](../ios/skills/development-commands.md)
 - [Android Development Commands](../android/skills/development-commands.md)
 - [Core Development Commands](../core/skills/development-commands.md)
