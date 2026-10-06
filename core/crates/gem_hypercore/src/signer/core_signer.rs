@@ -19,11 +19,11 @@ use crate::{
     constants::{BUILDER_ADDRESS, REFERRAL_CODE},
     core::{
         actions::{
-            ApproveAgent, ApproveBuilderFee, Builder, CDeposit, CWithdraw, Cancel, CancelOrder, PlaceOrder, SetReferrer, SpotSend, TokenDelegate, UpdateLeverage, UsdClassTransfer, WithdrawalRequest, make_market_order, make_position_tp_sl,
+            ApproveAgent, ApproveBuilderFee, Builder, CDeposit, CWithdraw, Cancel, CancelOrder, PlaceOrder, SendAsset, SetReferrer, TokenDelegate, UpdateLeverage, UsdClassTransfer, WithdrawalRequest, make_market_order, make_position_tp_sl,
         },
         hypercore::{
-            approve_agent_typed_data, approve_builder_fee_typed_data, c_deposit_typed_data, c_withdraw_typed_data, cancel_order_typed_data, place_order_typed_data, send_spot_token_to_address_typed_data, set_referrer_typed_data,
-            token_delegate_typed_data, update_leverage_typed_data, usd_class_transfer_typed_data, withdrawal_request_typed_data,
+            approve_agent_typed_data, approve_builder_fee_typed_data, c_deposit_typed_data, c_withdraw_typed_data, cancel_order_typed_data, place_order_typed_data, send_asset_typed_data, set_referrer_typed_data, token_delegate_typed_data,
+            update_leverage_typed_data, usd_class_transfer_typed_data, withdrawal_request_typed_data,
         },
     },
     is_spot_swap,
@@ -38,7 +38,7 @@ pub struct HyperCoreSigner;
 impl HyperCoreSigner {
     fn sign_transfer_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<String> {
         let amount = input_amount(input)?;
-        self.sign_spot_send(&amount, &input.destination_address, HYPERCORE_CORE_HYPE_TOKEN_ID, private_key)
+        self.sign_send_asset(&amount, &input.destination_address, HYPERCORE_CORE_HYPE_TOKEN_ID, private_key)
     }
 
     fn sign_approval_transactions(&self, order: &HyperliquidOrder, private_key: &[u8], timestamp_incrementer: &mut NumberIncrementer) -> SignerResult<Vec<String>> {
@@ -61,7 +61,7 @@ impl HyperCoreSigner {
         let asset = input.input_type.get_asset();
         let amount = input_amount(input)?;
         let token_id = spot_token_id_for_asset_id(&asset.id).ok_or_else(|| SignerError::InvalidInput(format!("Invalid spot token ID: {}", asset.id)))?;
-        self.sign_spot_send(&amount, &input.destination_address, &token_id, private_key)
+        self.sign_send_asset(&amount, &input.destination_address, &token_id, private_key)
     }
 
     fn sign_swap_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<Vec<String>> {
@@ -158,10 +158,10 @@ impl HyperCoreSigner {
         self.sign_serialized_action(referrer, timestamp, agent_key, |value| set_referrer_typed_data(value, timestamp), "set referrer")
     }
 
-    fn sign_spot_send(&self, amount: &str, destination: &str, token: &str, private_key: &[u8]) -> SignerResult<String> {
-        let timestamp = Self::timestamp_ms();
-        let spot_send = SpotSend::new(amount.to_string(), destination.to_string(), timestamp, token.to_string());
-        self.sign_serialized_action(spot_send, timestamp, private_key, send_spot_token_to_address_typed_data, "spot send")
+    fn sign_send_asset(&self, amount: &str, destination: &str, token: &str, private_key: &[u8]) -> SignerResult<String> {
+        let nonce = Self::timestamp_ms();
+        let send_asset = SendAsset::spot(amount.to_string(), destination.to_string(), token.to_string(), nonce);
+        self.sign_serialized_action(send_asset, nonce, private_key, send_asset_typed_data, "send asset")
     }
 
     fn sign_c_deposit(&self, deposit: CDeposit, private_key: &[u8]) -> SignerResult<String> {
@@ -571,7 +571,9 @@ mod tests {
         let response = signer.sign_token_transfer_action(&input, &private_key).unwrap();
         let request: serde_json::Value = serde_json::from_str(&response).unwrap();
 
-        assert_eq!(request["action"]["type"], "spotSend");
+        assert_eq!(request["action"]["type"], "sendAsset");
+        assert_eq!(request["action"]["sourceDex"], "spot");
+        assert_eq!(request["action"]["destinationDex"], "spot");
         assert_eq!(request["action"]["token"], "USDC:0x6d1e7cde53ba9467b783cb7c530ce054");
         assert_eq!(request["action"]["amount"], "0.02");
     }

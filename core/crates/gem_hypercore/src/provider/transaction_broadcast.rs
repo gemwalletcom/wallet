@@ -42,7 +42,7 @@ mod tests {
             r#"{"action":{"type":"approveBuilderFee"},"nonce":123}"#,
             r#"{"action":{"type":"setReferrer"},"nonce":123}"#,
             r#"{"action":{"type":"updateLeverage"},"nonce":123}"#,
-            r#"{"action":{"type":"spotSend"},"nonce":123}"#,
+            r#"{"action":{"type":"sendAsset"},"nonce":123}"#,
             r#"{"action":{"type":"withdraw3"},"nonce":123}"#,
             r#"{"action":{"type":"usdSend"},"nonce":123}"#,
         ] {
