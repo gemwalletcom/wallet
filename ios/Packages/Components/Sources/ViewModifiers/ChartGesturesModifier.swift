@@ -180,7 +180,7 @@ private struct ChartGesturesView: UIViewRepresentable {
 
         private func cancelPageGestures(above view: UIView) {
             guard let page = pageScrollView(above: view) else { return }
-            for recognizer in page.gestureRecognizers ?? [] where recognizer !== page.panGestureRecognizer {
+            for recognizer in page.gestureRecognizers ?? [] where recognizer is UILongPressGestureRecognizer {
                 recognizer.isEnabled = false
                 recognizer.isEnabled = true
             }
