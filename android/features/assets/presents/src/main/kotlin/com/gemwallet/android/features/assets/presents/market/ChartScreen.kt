@@ -9,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.assets.viewmodels.market.ChartValuesViewModel
 import com.gemwallet.android.features.assets.viewmodels.market.ChartViewModel
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.list_item.gemListSections
@@ -31,14 +30,13 @@ fun ChartScreen(
     message: RouteMessage?,
     onMessageShown: () -> Unit,
     viewModel: ChartViewModel = hiltViewModel(),
-    valuesViewModel: ChartValuesViewModel = hiltViewModel(),
 ) {
-    val refreshIntervalMillis by valuesViewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
-    RefreshOnTimer(refreshIntervalMillis, valuesViewModel::refresh)
+    val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
+    RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
-    val isChartRefreshing by valuesViewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isChartRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
     Scene(
@@ -49,12 +47,12 @@ fun ChartScreen(
         PullToRefreshBox(
             isRefreshing = isChartRefreshing,
             onRefresh = {
-                valuesViewModel.refresh()
+                viewModel.refresh()
             },
             containerColor = PullToRefreshDefaults.indicatorContainerColor,
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                item { Chart(valuesViewModel) }
+                item { Chart(viewModel) }
                 gemListSections(sections, onSelectAddress = { onOpenAddress(ChainAddress(viewModel.assetId.chain, it)) }) { action ->
                     when (action) {
                         GemRowAction.PriceAlerts -> onPriceAlerts(viewModel.assetId)
