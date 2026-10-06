@@ -41,7 +41,6 @@ data class AssetFull (
 	val links: List<AssetLink>,
 	val associations: List<AssetAssociation>,
 	val perpetuals: List<PerpetualBasic>,
-	val associatedAssetId: AssetId? = null,
 	val price: Price? = null,
 	val market: AssetMarket? = null
 )
