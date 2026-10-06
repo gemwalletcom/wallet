@@ -32,11 +32,10 @@ CREATE INDEX transactions_hash_created_at_idx ON transactions (hash, created_at 
 
 CREATE TABLE transactions_addresses
 (
-    id             SERIAL PRIMARY KEY,
+    address_id     INTEGER      NOT NULL REFERENCES wallets_addresses (id) ON DELETE CASCADE,
     transaction_id BIGINT       NOT NULL REFERENCES transactions (id) ON DELETE CASCADE,
     asset_id       VARCHAR(256) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
-    address        VARCHAR(256) NOT NULL,
-    UNIQUE (transaction_id, address, asset_id)
+    PRIMARY KEY (address_id, transaction_id, asset_id)
 );
 
-CREATE INDEX transactions_addresses_address_idx ON transactions_addresses (address);
+CREATE INDEX transactions_addresses_transaction_id_idx ON transactions_addresses (transaction_id);

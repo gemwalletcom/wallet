@@ -983,13 +983,11 @@ diesel::table! {
 }
 
 diesel::table! {
-    transactions_addresses (id) {
-        id -> Int4,
+    transactions_addresses (address_id, transaction_id, asset_id) {
+        address_id -> Int4,
         transaction_id -> Int8,
         #[max_length = 256]
         asset_id -> Varchar,
-        #[max_length = 256]
-        address -> Varchar,
     }
 }
 
@@ -1151,6 +1149,7 @@ diesel::joinable!(support_sessions -> devices (device_id));
 diesel::joinable!(transactions -> chains (chain));
 diesel::joinable!(transactions_addresses -> assets (asset_id));
 diesel::joinable!(transactions_addresses -> transactions (transaction_id));
+diesel::joinable!(transactions_addresses -> wallets_addresses (address_id));
 diesel::joinable!(transactions_perpetuals -> assets (asset_id));
 diesel::joinable!(transactions_perpetuals -> transactions (transaction_id));
 diesel::joinable!(transactions_swaps -> transactions (transaction_id));

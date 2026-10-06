@@ -9,7 +9,7 @@ pub(crate) mod sql_types;
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
-diesel::allow_columns_to_appear_in_same_group_by_clause!(schema::transactions_addresses::address, schema::transactions::chain,);
+diesel::allow_columns_to_appear_in_same_group_by_clause!(schema::wallets_addresses::address, schema::transactions::chain,);
 
 pub use self::database::DatabaseClient;
 pub use self::error::{DatabaseError, DieselResultExt};
