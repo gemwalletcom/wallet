@@ -121,27 +121,25 @@ fn get_transactions_by_device_id(
 ) -> Result<Vec<TransactionRow>, diesel::result::Error> {
     use crate::schema::transactions::dsl::*;
 
-    let mut query = transactions
-        .into_boxed()
-        .inner_join(transactions_addresses::table)
-        .filter(chain.eq_any(chains))
+    let wallet_transaction_ids = transactions_addresses::table
         .filter(transactions_addresses::address.eq_any(addresses))
-        .filter(state.ne(TransactionState::InTransit));
-
-    if let Some(filter_asset) = filter_asset_id {
-        query = query.filter(transactions_addresses::asset_id.eq(filter_asset));
-    }
-
-    if let Some(datetime) = from_datetime {
-        query = query.filter(created_at.gt(datetime).or(updated_at.gt(datetime)));
-    }
+        .select(transactions_addresses::transaction_id)
+        .into_boxed();
+    let wallet_transaction_ids = match filter_asset_id {
+        Some(filter_asset) => wallet_transaction_ids.filter(transactions_addresses::asset_id.eq(filter_asset)),
+        None => wallet_transaction_ids,
+    };
+    let query = transactions.into_boxed().filter(id.eq_any(wallet_transaction_ids)).filter(chain.eq_any(chains)).filter(state.ne(TransactionState::InTransit));
+    let query = match from_datetime {
+        Some(datetime) => query.filter(created_at.gt(datetime).or(updated_at.gt(datetime))),
+        None => query,
+    };
 
     query
         .order((created_at.desc(), id.desc()))
         .limit(limit as i64)
         .offset(offset as i64)
         .select(TransactionRow::as_select())
-        .distinct()
         .load(&mut client.connection)
 }
 
@@ -416,6 +414,27 @@ mod database_integration_tests {
         assert_eq!(by_hash.len(), 1);
         assert_eq!(by_hash[0].from, "0xfrom");
         assert_eq!(by_hash[0].to, "0xto");
+    }
+
+    #[tokio::test]
+    async fn test_get_transactions_by_device_id_returns_transaction_once_for_multiple_wallet_addresses() {
+        let database = Database::mock();
+        let transaction = Transaction {
+            id: TransactionId::new(Chain::Ethereum, "0xdevicehistorytest".to_string()),
+            ..Transaction::mock()
+        };
+        let transactions = database
+            .run(move |client| -> Result<_, DatabaseError> {
+                client.add_chains(vec![Chain::Ethereum])?;
+                client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
+                client.upsert_transactions(vec![transaction])?;
+                client.get_transactions_by_device_id("", vec!["0xfrom".to_string(), "0xto".to_string()], vec![Chain::Ethereum.to_string()], None, None, 10, 0)
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].id.hash, "0xdevicehistorytest");
     }
 }
 
