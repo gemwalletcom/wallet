@@ -5,6 +5,6 @@ use diesel::prelude::*;
 pub(crate) struct NewNftReportRow {
     pub device_id: i32,
     pub collection_id: i32,
-    pub asset_id: Option<i32>,
+    pub nft_asset_id: Option<i32>,
     pub reason: Option<String>,
 }

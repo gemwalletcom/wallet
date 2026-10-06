@@ -4,7 +4,7 @@ CREATE TYPE transaction_state AS ENUM ('pending', 'confirmed', 'inTransit', 'fai
 CREATE TABLE transactions
 (
     id           BIGSERIAL PRIMARY KEY,
-    chain        VARCHAR(16)  NOT NULL REFERENCES chains (id) ON DELETE CASCADE,
+    chain        VARCHAR(32)  NOT NULL REFERENCES chains (id) ON DELETE CASCADE,
     hash         VARCHAR(128) NOT NULL,
     from_address VARCHAR(256),
     to_address   VARCHAR(256),
@@ -13,7 +13,7 @@ CREATE TABLE transactions
     kind         transaction_type NOT NULL,
     value        VARCHAR(256),
     asset_id     VARCHAR      NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
-    fee          VARCHAR(32),
+    fee          VARCHAR(32)  NOT NULL,
     utxo_inputs  jsonb,
     utxo_outputs jsonb,
     fee_asset_id VARCHAR      NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
@@ -34,7 +34,7 @@ CREATE TABLE transactions_addresses
 (
     address_id     INTEGER      NOT NULL REFERENCES wallets_addresses (id) ON DELETE CASCADE,
     transaction_id BIGINT       NOT NULL REFERENCES transactions (id) ON DELETE CASCADE,
-    asset_id       VARCHAR(256) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
+    asset_id       VARCHAR(128) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
     PRIMARY KEY (address_id, transaction_id, asset_id)
 );
 

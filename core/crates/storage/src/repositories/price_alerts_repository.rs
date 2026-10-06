@@ -48,7 +48,7 @@ impl PriceAlertsRepository for DatabaseClient {
         use crate::schema::devices;
         use crate::schema::price_alerts::dsl::*;
 
-        let mut query = price_alerts.inner_join(devices::table.on(device_id.eq(devices::id))).filter(devices::device_id.eq(device_id_value)).into_boxed();
+        let mut query = price_alerts.inner_join(devices::table.on(device_id.eq(devices::id))).filter(devices::identifier.eq(device_id_value)).into_boxed();
 
         if let Some(asset_id_value) = asset_id_value {
             query = query.filter(asset_id.eq(asset_id_value));

@@ -195,7 +195,7 @@ diesel::table! {
         id -> Int4,
         #[max_length = 32]
         chain -> Varchar,
-        #[max_length = 256]
+        #[max_length = 128]
         asset_id -> Varchar,
         #[max_length = 256]
         address -> Varchar,
@@ -265,27 +265,27 @@ diesel::table! {
 }
 
 diesel::table! {
-    charts (coin_id, created_at) {
-        #[max_length = 255]
-        coin_id -> Varchar,
+    charts (price_id, created_at) {
+        #[max_length = 256]
+        price_id -> Varchar,
         price -> Float8,
         created_at -> Timestamp,
     }
 }
 
 diesel::table! {
-    charts_daily (coin_id, created_at) {
-        #[max_length = 255]
-        coin_id -> Varchar,
+    charts_daily (price_id, created_at) {
+        #[max_length = 256]
+        price_id -> Varchar,
         price -> Float8,
         created_at -> Timestamp,
     }
 }
 
 diesel::table! {
-    charts_hourly (coin_id, created_at) {
-        #[max_length = 255]
-        coin_id -> Varchar,
+    charts_hourly (price_id, created_at) {
+        #[max_length = 256]
+        price_id -> Varchar,
         price -> Float8,
         created_at -> Timestamp,
     }
@@ -321,14 +321,14 @@ diesel::table! {
     devices (id) {
         id -> Int4,
         #[max_length = 64]
-        device_id -> Varchar,
+        identifier -> Varchar,
         is_push_enabled -> Bool,
         platform -> Platform,
         platform_store -> PlatformStore,
         #[max_length = 256]
         token -> Varchar,
         locale -> DeviceLocale,
-        #[max_length = 8]
+        #[max_length = 12]
         version -> Varchar,
         updated_at -> Timestamp,
         created_at -> Timestamp,
@@ -374,7 +374,7 @@ diesel::table! {
         is_enabled_by_provider -> Bool,
         is_buy_enabled -> Bool,
         is_sell_enabled -> Bool,
-        unsupported_countries -> Nullable<Jsonb>,
+        unsupported_countries -> Jsonb,
         buy_limits -> Nullable<Jsonb>,
         sell_limits -> Nullable<Jsonb>,
         updated_at -> Timestamp,
@@ -405,7 +405,7 @@ diesel::table! {
         id -> Varchar,
         #[max_length = 128]
         provider -> Varchar,
-        #[max_length = 32]
+        #[max_length = 2]
         country -> Varchar,
         is_allowed -> Bool,
         is_enabled -> Bool,
@@ -451,7 +451,7 @@ diesel::table! {
         #[max_length = 256]
         value -> Nullable<Varchar>,
         status -> FiatTransactionStatus,
-        #[max_length = 256]
+        #[max_length = 2]
         country -> Nullable<Varchar>,
         #[max_length = 256]
         provider_transaction_id -> Nullable<Varchar>,
@@ -473,20 +473,20 @@ diesel::table! {
         #[max_length = 512]
         identifier -> Varchar,
         collection_id -> Int4,
-        #[max_length = 64]
+        #[max_length = 32]
         chain -> Varchar,
         #[max_length = 1024]
         name -> Varchar,
         #[max_length = 4096]
         description -> Varchar,
         #[max_length = 512]
-        image_preview_url -> Nullable<Varchar>,
+        image_preview_url -> Varchar,
         #[max_length = 64]
-        image_preview_mime_type -> Nullable<Varchar>,
+        image_preview_mime_type -> Varchar,
         #[max_length = 512]
-        resource_url -> Nullable<Varchar>,
+        resource_url -> Varchar,
         #[max_length = 64]
-        resource_mime_type -> Nullable<Varchar>,
+        resource_mime_type -> Varchar,
         token_type -> NftType,
         #[max_length = 512]
         token_id -> Varchar,
@@ -502,7 +502,7 @@ diesel::table! {
     nft_assets_associations (id) {
         id -> Int4,
         address_id -> Int4,
-        asset_id -> Int4,
+        nft_asset_id -> Int4,
         updated_at -> Timestamp,
         created_at -> Timestamp,
     }
@@ -513,7 +513,7 @@ diesel::table! {
         id -> Int4,
         #[max_length = 512]
         identifier -> Varchar,
-        #[max_length = 64]
+        #[max_length = 32]
         chain -> Varchar,
         #[max_length = 1024]
         name -> Varchar,
@@ -522,13 +522,11 @@ diesel::table! {
         #[max_length = 128]
         symbol -> Nullable<Varchar>,
         #[max_length = 128]
-        owner -> Nullable<Varchar>,
-        #[max_length = 128]
         contract_address -> Varchar,
         #[max_length = 512]
-        image_preview_url -> Nullable<Varchar>,
+        image_preview_url -> Varchar,
         #[max_length = 64]
-        image_preview_mime_type -> Nullable<Varchar>,
+        image_preview_mime_type -> Varchar,
         is_verified -> Bool,
         is_enabled -> Bool,
         updated_at -> Timestamp,
@@ -554,7 +552,7 @@ diesel::table! {
 diesel::table! {
     nft_reports (id) {
         id -> Int4,
-        asset_id -> Nullable<Int4>,
+        nft_asset_id -> Nullable<Int4>,
         collection_id -> Int4,
         device_id -> Int4,
         #[max_length = 1024]
@@ -572,6 +570,7 @@ diesel::table! {
     notifications (id) {
         id -> Int4,
         wallet_id -> Int4,
+        #[max_length = 128]
         asset_id -> Nullable<Varchar>,
         notification_type -> NotificationType,
         is_read -> Bool,
@@ -583,6 +582,7 @@ diesel::table! {
 
 diesel::table! {
     parser_state (chain) {
+        #[max_length = 32]
         chain -> Varchar,
         current_block -> Int8,
         latest_block -> Int8,
@@ -608,9 +608,9 @@ diesel::table! {
         #[max_length = 128]
         name -> Varchar,
         provider -> PerpetualProvider,
-        #[max_length = 256]
+        #[max_length = 128]
         asset_id -> Varchar,
-        #[max_length = 256]
+        #[max_length = 128]
         associated_asset_id -> Nullable<Varchar>,
         #[max_length = 128]
         identifier -> Varchar,
@@ -686,7 +686,7 @@ diesel::table! {
 
 diesel::table! {
     prices_assets (asset_id, provider) {
-        #[max_length = 256]
+        #[max_length = 128]
         asset_id -> Varchar,
         #[max_length = 256]
         price_id -> Varchar,
@@ -731,8 +731,6 @@ diesel::table! {
         #[max_length = 64]
         username -> Varchar,
         status -> RewardStatus,
-        #[max_length = 32]
-        level -> Nullable<Varchar>,
         points -> Int4,
         #[max_length = 64]
         referrer_username -> Nullable<Varchar>,
@@ -794,7 +792,7 @@ diesel::table! {
         device_id -> Int4,
         wallet_id -> Int4,
         #[max_length = 512]
-        transaction_id -> Nullable<Varchar>,
+        transaction_hash -> Nullable<Varchar>,
         status -> RedemptionStatus,
         #[max_length = 1024]
         error -> Nullable<Varchar>,
@@ -877,8 +875,9 @@ diesel::table! {
 
     scan_addresses (id) {
         id -> Int4,
+        #[max_length = 32]
         chain -> Varchar,
-        #[max_length = 128]
+        #[max_length = 256]
         address -> Varchar,
         #[max_length = 128]
         name -> Nullable<Varchar>,
@@ -900,6 +899,7 @@ diesel::table! {
     scan_detections (id) {
         id -> Int4,
         scan_type -> ScanType,
+        #[max_length = 32]
         chain -> Nullable<Varchar>,
         #[max_length = 256]
         target -> Varchar,
@@ -912,7 +912,7 @@ diesel::table! {
 
 diesel::table! {
     subscriptions_addresses_exclude (address) {
-        #[max_length = 128]
+        #[max_length = 256]
         address -> Varchar,
         #[max_length = 32]
         chain -> Varchar,
@@ -956,7 +956,7 @@ diesel::table! {
 
     transactions (id) {
         id -> Int8,
-        #[max_length = 16]
+        #[max_length = 32]
         chain -> Varchar,
         #[max_length = 128]
         hash -> Varchar,
@@ -972,7 +972,7 @@ diesel::table! {
         value -> Nullable<Varchar>,
         asset_id -> Varchar,
         #[max_length = 32]
-        fee -> Nullable<Varchar>,
+        fee -> Varchar,
         utxo_inputs -> Nullable<Jsonb>,
         utxo_outputs -> Nullable<Jsonb>,
         fee_asset_id -> Varchar,
@@ -986,7 +986,7 @@ diesel::table! {
     transactions_addresses (address_id, transaction_id, asset_id) {
         address_id -> Int4,
         transaction_id -> Int8,
-        #[max_length = 256]
+        #[max_length = 128]
         asset_id -> Varchar,
     }
 }
@@ -1000,6 +1000,7 @@ diesel::table! {
     transactions_perpetuals (transaction_id) {
         transaction_id -> Int8,
         provider -> PerpetualProvider,
+        #[max_length = 128]
         asset_id -> Varchar,
         kind -> TransactionType,
         direction -> PerpetualDirection,
@@ -1020,12 +1021,15 @@ diesel::table! {
         transaction_id -> Int8,
         provider -> SwapProvider,
         status -> SwapStatus,
+        #[max_length = 128]
         from_asset_id -> Varchar,
         from_amount -> Float8,
         from_amount_usd -> Nullable<Float8>,
+        #[max_length = 128]
         to_asset_id -> Varchar,
         to_amount -> Float8,
         to_amount_usd -> Nullable<Float8>,
+        #[max_length = 128]
         referral_fee_asset_id -> Varchar,
         referral_fee_amount_usd -> Nullable<Float8>,
         updated_at -> Timestamp,
@@ -1091,9 +1095,9 @@ diesel::joinable!(assets_links -> assets (asset_id));
 diesel::joinable!(assets_tags -> assets (asset_id));
 diesel::joinable!(assets_tags -> tags (tag_id));
 diesel::joinable!(assets_usage_ranks -> assets (asset_id));
-diesel::joinable!(charts -> prices (coin_id));
-diesel::joinable!(charts_daily -> prices (coin_id));
-diesel::joinable!(charts_hourly -> prices (coin_id));
+diesel::joinable!(charts -> prices (price_id));
+diesel::joinable!(charts_daily -> prices (price_id));
+diesel::joinable!(charts_hourly -> prices (price_id));
 diesel::joinable!(devices -> fiat_rates (currency));
 diesel::joinable!(features -> countries (alpha2));
 diesel::joinable!(fiat_assets -> assets (asset_id));
@@ -1107,12 +1111,12 @@ diesel::joinable!(fiat_transactions -> wallets (wallet_id));
 diesel::joinable!(fiat_transactions -> wallets_addresses (address_id));
 diesel::joinable!(nft_assets -> chains (chain));
 diesel::joinable!(nft_assets -> nft_collections (collection_id));
-diesel::joinable!(nft_assets_associations -> nft_assets (asset_id));
+diesel::joinable!(nft_assets_associations -> nft_assets (nft_asset_id));
 diesel::joinable!(nft_assets_associations -> wallets_addresses (address_id));
 diesel::joinable!(nft_collections -> chains (chain));
 diesel::joinable!(nft_collections_links -> nft_collections (collection_id));
 diesel::joinable!(nft_reports -> devices (device_id));
-diesel::joinable!(nft_reports -> nft_assets (asset_id));
+diesel::joinable!(nft_reports -> nft_assets (nft_asset_id));
 diesel::joinable!(nft_reports -> nft_collections (collection_id));
 diesel::joinable!(notifications -> assets (asset_id));
 diesel::joinable!(notifications -> wallets (wallet_id));

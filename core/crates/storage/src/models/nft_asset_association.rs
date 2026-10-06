@@ -4,5 +4,5 @@ use diesel::prelude::*;
 #[diesel(table_name = crate::schema::nft_assets_associations)]
 pub(crate) struct NewNftAssetAssociationRow {
     pub address_id: i32,
-    pub asset_id: i32,
+    pub nft_asset_id: i32,
 }
