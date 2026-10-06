@@ -17,5 +17,4 @@ CREATE TABLE scan_addresses (
 SELECT diesel_manage_updated_at('scan_addresses');
 
 CREATE INDEX scan_addresses_address_idx ON scan_addresses (address);
-CREATE INDEX scan_addresses_chain_idx ON scan_addresses (chain);
 CREATE INDEX scan_addresses_type_idx ON scan_addresses (type);

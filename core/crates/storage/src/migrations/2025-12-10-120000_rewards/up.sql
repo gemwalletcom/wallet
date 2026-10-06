@@ -97,4 +97,5 @@ CREATE TABLE rewards_referral_attempts (
 );
 
 CREATE INDEX idx_rewards_referral_attempts_referrer_username ON rewards_referral_attempts(referrer_username);
+CREATE INDEX idx_rewards_referral_attempts_wallet_id ON rewards_referral_attempts(wallet_id);
 CREATE INDEX idx_rewards_referral_attempts_created_at ON rewards_referral_attempts(created_at);

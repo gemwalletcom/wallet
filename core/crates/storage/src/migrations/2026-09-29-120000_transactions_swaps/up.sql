@@ -19,6 +19,3 @@ CREATE TABLE transactions_swaps (
 );
 
 SELECT diesel_manage_updated_at('transactions_swaps');
-
-CREATE INDEX transactions_swaps_provider_idx ON transactions_swaps (provider);
-CREATE INDEX transactions_swaps_created_at_idx ON transactions_swaps (created_at DESC);
