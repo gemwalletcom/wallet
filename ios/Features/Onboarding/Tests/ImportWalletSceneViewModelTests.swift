@@ -49,6 +49,26 @@ struct ImportWalletSceneViewModelTests {
     }
 
     @Test
+    func continuingFromTheExistingWalletSheetClosesItFirst() async throws {
+        let service = GemWalletService.mock(db: .mock(chains: [.ethereum]))
+        let phrase = LocalKeystore.words.joined(separator: " ")
+        _ = try await service.importWallet(kind: .phrase, chain: .ethereum, input: phrase, nameRecord: .none, source: .import)
+        var completed = false
+        let model = ImportWalletSceneViewModel.mock(service: service, onComplete: { completed = true })
+        model.input = phrase
+
+        await model.onSelectActionButton()
+
+        #expect(model.isPresentingExistingWallet != nil)
+        #expect(completed == false)
+
+        model.onSelectExistingWalletContinue()
+
+        #expect(model.isPresentingExistingWallet == nil)
+        #expect(completed)
+    }
+
+    @Test
     func resolvesNameOnlyForAddressImport() {
         let model = ImportWalletSceneViewModel.mock()
 

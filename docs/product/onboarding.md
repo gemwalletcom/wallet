@@ -17,6 +17,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The terms were already accepted on this install | they are not asked again; the security reminder still shows on every create | |
+| The user accepts the terms | the next screen opens once; whether the terms are asked is decided when create or import opens, not while it is open | accepting must not also replace the screen underneath |
 
 ## Import wallet
 
@@ -52,6 +53,7 @@ The Import screen, top to bottom:
 | The cursor is inside the phrase | no suggestions show | a tap never changes the wrong word |
 | An address is typed as a name | the resolved name becomes the wallet name | |
 | The wallet already exists | it is simply opened | |
+| The wallet already exists and the app lock offer is due | the "already imported" sheet closes, then the offer opens | the offer must not open behind the sheet |
 | An import fails | its error shows under the input after every failed attempt, and clears as soon as the input changes | a retry with the same mistake must not look like nothing happened |
 
 Names follow the shared [Names](../PRODUCT.md#names) section.
