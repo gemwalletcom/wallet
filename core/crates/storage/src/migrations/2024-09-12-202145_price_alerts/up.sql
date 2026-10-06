@@ -1,3 +1,5 @@
+CREATE TYPE price_alert_direction AS ENUM ('up', 'down');
+
 CREATE TABLE IF NOT EXISTS price_alerts (
     id SERIAL PRIMARY KEY,
     identifier varchar(512) NOT NULL,
@@ -5,7 +7,7 @@ CREATE TABLE IF NOT EXISTS price_alerts (
     device_id            INTEGER NOT NULL REFERENCES devices (id) ON DELETE CASCADE,
     asset_id             VARCHAR(128) NOT NULL REFERENCES assets (id)  ON DELETE CASCADE,
     currency             currency NOT NULL REFERENCES fiat_rates (id) ON DELETE CASCADE,
-    price_direction      VARCHAR(16),
+    price_direction      price_alert_direction,
     price                float,
     price_percent_change float,
     last_notified_at     timestamp,

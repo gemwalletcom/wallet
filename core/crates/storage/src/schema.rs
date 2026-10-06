@@ -74,6 +74,10 @@ pub mod sql_types {
     pub struct PlatformStore;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "price_alert_direction"))]
+    pub struct PriceAlertDirection;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "redemption_status"))]
     pub struct RedemptionStatus;
 
@@ -640,6 +644,7 @@ diesel::table! {
 diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::Currency;
+    use super::sql_types::PriceAlertDirection;
 
     price_alerts (id) {
         id -> Int4,
@@ -649,8 +654,7 @@ diesel::table! {
         #[max_length = 128]
         asset_id -> Varchar,
         currency -> Currency,
-        #[max_length = 16]
-        price_direction -> Nullable<Varchar>,
+        price_direction -> Nullable<PriceAlertDirection>,
         price -> Nullable<Float8>,
         price_percent_change -> Nullable<Float8>,
         last_notified_at -> Nullable<Timestamp>,
@@ -970,11 +974,13 @@ diesel::table! {
         kind -> TransactionType,
         #[max_length = 256]
         value -> Nullable<Varchar>,
+        #[max_length = 128]
         asset_id -> Varchar,
         #[max_length = 32]
         fee -> Varchar,
         utxo_inputs -> Nullable<Jsonb>,
         utxo_outputs -> Nullable<Jsonb>,
+        #[max_length = 128]
         fee_asset_id -> Varchar,
         metadata -> Nullable<Jsonb>,
         created_at -> Timestamp,
