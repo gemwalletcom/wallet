@@ -221,11 +221,6 @@ pub fn formatted_currency(value: f64, code: String, style: GemCurrencyStyle) -> 
 }
 
 #[uniffi::export]
-pub fn formatted_amount(value: f64, symbol: Option<String>, style: GemValueStyle) -> GemFormattedNumber {
-    GemFormattedNumber::amount(value, symbol, style)
-}
-
-#[uniffi::export]
 pub fn formatted_percentage(value: f64, style: GemPercentageStyle) -> GemFormattedNumber {
     GemFormattedNumber::percentage(value, style)
 }

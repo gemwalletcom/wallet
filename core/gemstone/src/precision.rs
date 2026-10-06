@@ -19,7 +19,7 @@ pub fn adaptive_precision(magnitude: f64) -> GemPrecision {
     number_formatter::precision::adaptive(magnitude).into()
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GemValueStyle {
     Full,
     Short,
