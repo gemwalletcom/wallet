@@ -56,6 +56,6 @@ rand.workspace = true
 tokio.workspace = true
 primitives = { path = "../primitives", features = ["testkit"] }
 gem_client = { path = "../gem_client", features = ["testkit"] }
-gem_hypercore = { path = "../gem_hypercore", features = ["testkit"] }
+gem_hypercore = { path = "../gem_hypercore", features = ["testkit", "signer"] }
 gem_sui = { path = "../gem_sui", features = ["reqwest"] }
 settings = { path = "../settings", features = ["testkit"] }
