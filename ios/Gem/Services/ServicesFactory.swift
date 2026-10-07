@@ -279,6 +279,7 @@ struct ServicesFactory {
             wallet: walletService,
             device: deviceService,
             support: supportService,
+            nodes: nodeService,
         )
 
         let onStartService = OnstartService(
@@ -289,8 +290,10 @@ struct ServicesFactory {
         )
 
         let hyperliquidWebSocket = WebSocketConnection(
-            url: nodeService.webSocketNode(for: .hyperCore),
-            reconnection: connectionService,
+            configuration: WebSocketConfiguration(
+                requestProvider: NodeRequestProvider(nodeService: nodeService, chain: .hyperCore),
+                reconnection: connectionService,
+            ),
         )
         let hyperliquidObserverService = HyperliquidObserverService(
             webSocket: hyperliquidWebSocket,

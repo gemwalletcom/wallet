@@ -16,6 +16,7 @@ use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::{StepFailure, record};
+use crate::services::node::GemNodeService;
 use crate::services::support::GemSupportService;
 use crate::services::wallet::GemWalletService;
 use crate::services::wallet_configuration::GemWalletConfigurationService;
@@ -30,6 +31,7 @@ pub struct GemAppStartService {
     wallet: Arc<GemWalletService>,
     device: Arc<GemDeviceService>,
     support: Arc<GemSupportService>,
+    nodes: Arc<GemNodeService>,
 }
 
 #[uniffi::export]
@@ -44,6 +46,7 @@ impl GemAppStartService {
         wallet: Arc<GemWalletService>,
         device: Arc<GemDeviceService>,
         support: Arc<GemSupportService>,
+        nodes: Arc<GemNodeService>,
     ) -> Self {
         Self {
             config,
@@ -54,6 +57,7 @@ impl GemAppStartService {
             wallet,
             device,
             support,
+            nodes,
         }
     }
 
@@ -73,13 +77,14 @@ impl GemAppStartService {
 
     pub async fn run(&self) -> Vec<GemAppStartFailure> {
         let default_assets = recorded(GemAppStartStep::SetupAssets, self.assets.ensure_default_assets()).await;
-        let (banners, config_and_assets, device, support) = futures::join!(
+        let (banners, config_and_assets, device, support, nodes) = futures::join!(
             recorded(GemAppStartStep::SetupBanners, self.banners.setup()),
             self.sync_config_and_assets(),
             recorded(GemAppStartStep::SyncDevice, async { self.device.synchronize().await.map(|_| ()) }),
             recorded(GemAppStartStep::RecoverSupportMessages, self.support.recover_interrupted_messages()),
+            recorded(GemAppStartStep::SetupNodes, self.nodes.ensure_selected_nodes()),
         );
-        [default_assets, banners, config_and_assets, device, support].concat()
+        [default_assets, banners, config_and_assets, device, support, nodes].concat()
     }
 
     pub async fn setup_wallet(&self, wallet: Wallet) -> Vec<GemAppStartFailure> {
@@ -168,6 +173,20 @@ mod tests {
             for asset_id in named {
                 assert!(stored.contains(&asset_id), "banner names {asset_id}, which no asset row backs: {failures:?}");
             }
+        })
+    }
+
+    #[test]
+    fn test_the_app_start_moves_a_chain_off_a_node_it_no_longer_offers() {
+        block_on(async {
+            let testkit = AppStartTestkit::new().await;
+            testkit.nodes.add_node(Chain::Sui, "https://added.example".into()).await.unwrap();
+            testkit.nodes.select_node(Chain::Sui, "https://added.example".into()).await.unwrap();
+            testkit.node_store.nodes.lock().unwrap().clear();
+
+            testkit.service.run().await;
+
+            assert_eq!(testkit.nodes.node_url(Chain::Sui), crate::services::node::rules::fallback_node(Chain::Sui).url);
         })
     }
 
