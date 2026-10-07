@@ -15,7 +15,14 @@ struct CandlestickCanvas: View {
         static let selectionStyle = StrokeStyle(lineWidth: .space1, dash: [5])
         static let cornerRatio: CGFloat = 0.15
         static let axisTickLength: CGFloat = 4
+        static let priceLabelOffset: CGFloat = axisTickLength + .extraSmall
+        static let pricePillPadding: CGFloat = .extraSmall
+        static let priceColumnTrailing: CGFloat = .small
         static let selectionDotSize: CGFloat = .space12
+
+        static var priceFont: UIFont {
+            .monospacedDigitSystemFont(ofSize: UIFont.preferredFont(forTextStyle: .caption2).pointSize, weight: .regular)
+        }
     }
 
     let plot: CandlestickPlot
@@ -24,10 +31,11 @@ struct CandlestickCanvas: View {
     private let dateFormatter = ChartDateFormatter()
 
     static func priceColumnWidth(for layout: GemPerpetualChartLayout) -> CGFloat {
-        let font = UIFont.monospacedDigitSystemFont(ofSize: UIFont.preferredFont(forTextStyle: .caption2).pointSize, weight: .regular)
-        let labels = layout.levels.map { $0.text() } + [layout.currentPrice.text()]
-        let labelWidth = labels.map { ($0 as NSString).size(withAttributes: [.font: font]).width }.max() ?? .zero
-        return Metrics.axisTickLength + .extraSmall + labelWidth.rounded(.up) + .extraSmall + .small
+        let font = Metrics.priceFont
+        let textWidth = (layout.levels + [layout.currentPrice]).reduce(CGFloat.zero) { width, price in
+            max(width, (price.text() as NSString).size(withAttributes: [.font: font]).width)
+        }
+        return Metrics.priceLabelOffset + textWidth.rounded(.up) + Metrics.pricePillPadding + Metrics.priceColumnTrailing
     }
 
     var body: some View {
@@ -114,16 +122,17 @@ extension CandlestickCanvas {
     }
 
     private func drawPriceLabels(_ levels: [GemFormattedNumber], in context: inout GraphicsContext) {
-        let labelX = plot.frame.maxX + Metrics.axisTickLength + .extraSmall
+        let labelX = plot.frame.maxX + Metrics.priceLabelOffset
+        let font = Font(Metrics.priceFont)
         for level in levels {
-            let label = context.resolve(Text(level.text()).font(.caption2).monospacedDigit().foregroundStyle(Colors.gray))
+            let label = context.resolve(Text(level.text()).font(font).foregroundStyle(Colors.gray))
             context.draw(label, at: CGPoint(x: labelX, y: plot.y(for: level.value)), anchor: .leading)
         }
         guard plot.showsCurrentPrice else { return }
         let currentPrice = plot.chart.layout.currentPrice
-        let label = context.resolve(Text(currentPrice.text()).font(.caption2).monospacedDigit().foregroundStyle(Colors.whiteSolid))
+        let label = context.resolve(Text(currentPrice.text()).font(font).foregroundStyle(Colors.whiteSolid))
         let size = label.measure(in: plot.frame.size)
-        let pill = CGRect(x: labelX - .extraSmall, y: plot.y(for: currentPrice.value) - size.height / 2 - .space1, width: size.width + .extraSmall * 2, height: size.height + .space1 * 2)
+        let pill = CGRect(x: labelX - Metrics.pricePillPadding, y: plot.y(for: currentPrice.value) - size.height / 2 - .space1, width: size.width + Metrics.pricePillPadding * 2, height: size.height + .space1 * 2)
         context.fill(Path(roundedRect: pill, cornerRadius: Spacing.tiny), with: .color(plot.chart.layout.currentTone.color))
         context.draw(label, at: CGPoint(x: pill.midX, y: pill.midY), anchor: .center)
     }
