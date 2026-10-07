@@ -29,7 +29,7 @@ use crate::{
     route_cache::Cache,
 };
 use primitives::{
-    AssetId, ChainType, MINUTE,
+    AssetId, Chain, ChainType, MINUTE,
     hex::{decode_hex, encode_with_0x},
 };
 
@@ -37,10 +37,12 @@ const DEFAULT_SWAP_ERC20_GAS_LIMIT: u64 = 100_000;
 const REFUND_RETRY_BLOCKS: u32 = 150;
 const ASSETS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
 
-const VAULT_ETH: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
-const VAULT_ARB: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
-const VAULT_SOL: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
-const VAULT_TRON: &str = "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC";
+pub const VAULT_ADDRESSES: [(Chain, &str); 4] = [
+    (Chain::Ethereum, "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc"),
+    (Chain::Arbitrum, "0x79001a5e762f3bEFC8e5871b42F6734e00498920"),
+    (Chain::Solana, "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT"),
+    (Chain::Tron, "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC"),
+];
 
 #[derive(Debug)]
 pub struct ChainflipProvider<CX, BR>
@@ -81,7 +83,7 @@ where
 }
 
 fn vault_deposit_addresses() -> Vec<String> {
-    vec![VAULT_ETH.to_string(), VAULT_ARB.to_string(), VAULT_SOL.to_string(), VAULT_TRON.to_string()]
+    VAULT_ADDRESSES.iter().map(|(_, address)| address.to_string()).collect()
 }
 
 fn build_quote_request(request: &QuoteRequest, assets: &AssetsResponse) -> Result<(ChainflipQuoteRequest, BigUint), SwapperError> {
@@ -803,11 +805,12 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_get_quote_data_tron_usdt_to_trx() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let swap_provider = ChainflipProvider::new(Arc::new(NativeProvider::default()));
+        let vault_address = VAULT_ADDRESSES.iter().find(|(chain, _)| *chain == Chain::Tron).unwrap().1;
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::mock_with_asset_id(TRON_USDT.id.clone(), "USDT", 6),
             to_asset: SwapperQuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Tron), "TRX", 6),
-            wallet_address: VAULT_TRON.to_string(),
-            destination_address: VAULT_TRON.to_string(),
+            wallet_address: vault_address.to_string(),
+            destination_address: vault_address.to_string(),
             value: BigUint::from(25_000_000u64),
             options: Options::default(),
         };
