@@ -75,21 +75,25 @@ class WalletConnectCoordinator(
 
     init {
         scope.launch(Dispatchers.IO) {
-            if (walletConnectService.hasSessions()) {
-                initWalletConnect()
-                sync()
-                pingActiveSessions()
-                emitPendingRequests()
-            }
+            runCatchingCancellable {
+                if (walletConnectService.hasSessions()) {
+                    initWalletConnect()
+                    sync()
+                    pingActiveSessions()
+                    emitPendingRequests()
+                }
+            }.onFailure { Log.e("WalletConnect", "Restore sessions failed", it) }
         }
         scope.launch(Dispatchers.IO) {
             events.collect { event ->
-                when (event) {
-                    is WalletConnectEvent.SessionDeleted -> walletConnectService.deleteSession(event.topic)
-                    is WalletConnectEvent.SessionSettled -> storeSettledSession(event.session)
-                    is WalletConnectEvent.SessionChanged -> sync()
-                    else -> Unit
-                }
+                runCatchingCancellable {
+                    when (event) {
+                        is WalletConnectEvent.SessionDeleted -> walletConnectService.deleteSession(event.topic)
+                        is WalletConnectEvent.SessionSettled -> storeSettledSession(event.session)
+                        is WalletConnectEvent.SessionChanged -> sync()
+                        else -> Unit
+                    }
+                }.onFailure { Log.e("WalletConnect", "Handle session event failed", it) }
             }
         }
     }
