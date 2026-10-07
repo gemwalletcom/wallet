@@ -1,10 +1,12 @@
 package com.gemwallet.android.data.coordinators.session
 
+import android.util.Log
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.session.cases.SetCurrentCurrency
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletSessionStore
 import com.gemwallet.android.data.services.store.queries.WalletQuery
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.Session
@@ -54,7 +56,8 @@ class SessionCoordinator(
 
     init {
         scope.launch {
-            setCurrency(preferencesService.setupCurrency(localeCurrencyCode()).toPrimitives())
+            runCatchingCancellable { setCurrency(preferencesService.setupCurrency(localeCurrencyCode()).toPrimitives()) }
+                .onFailure { Log.e("SessionCoordinator", "Currency setup failed", it) }
         }
     }
 

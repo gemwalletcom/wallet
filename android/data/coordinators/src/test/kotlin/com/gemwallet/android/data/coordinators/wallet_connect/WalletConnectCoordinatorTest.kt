@@ -29,6 +29,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemSessionApproval
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
@@ -122,5 +123,17 @@ class WalletConnectCoordinatorTest {
 
         subject.syncSessions()
         coVerify(exactly = 2) { walletConnectService.updateSessions(any()) }
+    }
+
+    @Test
+    fun `a failed session event leaves the following events handled`() = runBlocking {
+        coEvery { walletConnectService.deleteSession("topic-1") } throws GemServiceException.Store("disk full")
+        subject.pair("wc:uri")
+        clientEvents.subscriptionCount.first { it > 0 }
+
+        clientEvents.emit(WalletConnectEvent.SessionDeleted("topic-1"))
+        clientEvents.emit(WalletConnectEvent.SessionChanged("topic-2"))
+
+        coVerify(timeout = 2_000, exactly = 1) { walletConnectService.updateSessions(any()) }
     }
 }
