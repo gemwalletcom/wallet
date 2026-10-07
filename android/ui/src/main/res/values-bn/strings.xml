@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 ঘন্টা</string>
   <string name="lock_require_authentication">প্রমাণীকরণ প্রয়োজন</string>
   <string name="lock_unlock">আনলক করুন</string>
-  <string name="lock_privacy_lock">গোপনীয়তা লক</string>
   <string name="lock_footer">আপনার ডিভাইসে এই অ্যাপের অ্যাক্সেস সুরক্ষিত করুন</string>
   <string name="lock_passcode">পাসকোড</string>
   <string name="lock_passcode_off_title">ডিভাইসের পাসকোড বন্ধ আছে</string>

@@ -23,11 +23,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.filters.FormDialog
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -37,6 +39,7 @@ internal fun CreateRewardsCodeDialog(isVisible: Boolean, onUsername: (String, (T
     var username by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf<Throwable?>(null) }
     var showProgress by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     val focusRequester = remember { FocusRequester() }
 
@@ -47,12 +50,14 @@ internal fun CreateRewardsCodeDialog(isVisible: Boolean, onUsername: (String, (T
     val doneAction: () -> Unit = done@{
         if (username.isEmpty() || showProgress) return@done
         showProgress = true
-        onUsername(username) {
-            showProgress = false
-            if (it == null) {
-                dismissDialog()
-            } else {
-                showError = it
+        context.requestAuth(AuthRequest.Default, onCancel = { showProgress = false }) {
+            onUsername(username) {
+                showProgress = false
+                if (it == null) {
+                    dismissDialog()
+                } else {
+                    showError = it
+                }
             }
         }
     }

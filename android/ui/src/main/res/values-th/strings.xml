@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 ชั่วโมง</string>
   <string name="lock_require_authentication">ต้องมีการรับรองความถูกต้อง</string>
   <string name="lock_unlock">ปลดล็อค</string>
-  <string name="lock_privacy_lock">ล็อคความเป็นส่วนตัว</string>
   <string name="lock_footer">ป้องกันการเข้าถึงแอปนี้บนอุปกรณ์ของคุณ</string>
   <string name="lock_passcode">รหัสผ่าน</string>
   <string name="lock_passcode_off_title">รหัสผ่านอุปกรณ์ปิดอยู่</string>

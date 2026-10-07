@@ -986,7 +986,6 @@ lock_require_authentication = Require authentication
 # Used in Privacy Lock settings for the unlock label.
 lock_unlock = Unlock
 # Used in Privacy Lock settings for the privacy lock label.
-lock_privacy_lock = Privacy Lock
 # Used in Privacy Lock settings as a footer helper text.
 lock_footer = Protect access to this app on your device
 # Title of the screen that offers to turn on app authentication on a device with a passcode and no biometrics.

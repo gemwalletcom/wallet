@@ -21,12 +21,4 @@ public struct WebSocketConfiguration: Sendable {
         self.sessionConfiguration = sessionConfiguration
         self.makeSession = makeSession
     }
-
-    public init(
-        url: URL,
-        reconnection: any Reconnectable,
-        sessionConfiguration: URLSessionConfiguration = .default,
-    ) {
-        self.init(requestProvider: StaticRequestProvider(url: url), reconnection: reconnection, sessionConfiguration: sessionConfiguration)
-    }
 }

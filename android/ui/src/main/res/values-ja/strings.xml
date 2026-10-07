@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 時間</string>
   <string name="lock_require_authentication">認証を要求</string>
   <string name="lock_unlock">ロック解除</string>
-  <string name="lock_privacy_lock">プライバシーロック</string>
   <string name="lock_footer">デバイス上のこのアプリへのアクセスを保護する</string>
   <string name="lock_passcode">パスコード</string>
   <string name="lock_passcode_off_title">デバイスのパスコードがオフです</string>

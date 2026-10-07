@@ -26,7 +26,7 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock()
         let viewModel = LockSceneViewModel(service: mockService)
         #expect(viewModel.state == .locked)
-        #expect(viewModel.isPrivacyLockVisible)
+        #expect(viewModel.isLocked)
     }
 
     @Test
@@ -34,7 +34,7 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock(requiresAuthentication: false, availableAuthentication: .none)
         let viewModel = LockSceneViewModel(service: mockService)
         #expect(viewModel.state == .unlocked)
-        #expect(!viewModel.isPrivacyLockVisible)
+        #expect(!viewModel.isLocked)
     }
 
     @Test
@@ -45,7 +45,7 @@ struct LockSceneViewModelTests {
         await viewModel.startUnlock()?.value
 
         #expect(viewModel.state == .unlocked)
-        #expect(viewModel.shouldShowLockScreen == false)
+        #expect(!viewModel.isLocked)
         #expect(viewModel.backgroundedAt == nil)
         #expect(mockService.authenticateCallsCount == 1)
     }
@@ -60,7 +60,7 @@ struct LockSceneViewModelTests {
 
         #expect(viewModel.state == .lockedCanceled)
         #expect(viewModel.isUnlockButtonVisible)
-        #expect(viewModel.shouldShowLockScreen)
+        #expect(viewModel.isLocked)
     }
 
     @Test
@@ -116,8 +116,7 @@ struct LockSceneViewModelTests {
         viewModel.onScenePhase(.active)
 
         #expect(viewModel.state == .passcodeOff)
-        #expect(viewModel.shouldShowLockScreen)
-        #expect(viewModel.isPrivacyLockVisible)
+        #expect(viewModel.isLocked)
         #expect(!viewModel.isUnlockButtonVisible)
         #expect(mockService.authenticateCallsCount == 0)
     }
@@ -273,7 +272,7 @@ struct LockSceneViewModelTests {
         viewModel.onScenePhase(.active)
 
         #expect(viewModel.isUnlocking)
-        #expect(viewModel.shouldShowLockScreen)
+        #expect(viewModel.isLocked)
 
         await viewModel.startUnlock()?.value
         #expect(viewModel.state == .unlocked)
@@ -327,13 +326,13 @@ struct LockSceneViewModelTests {
     func togglingAuthOffResetsViewModel() async throws {
         let mockService = BiometryAuthenticationMock()
         let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.onScenePhase(.inactive) // showPlaceholderPreview true
+        viewModel.onScenePhase(.inactive)
 
         try await mockService.enableAuthentication(false, reason: "unit")
         viewModel.resetLockState()
 
         #expect(viewModel.state == .unlocked)
-        #expect(!viewModel.shouldShowLockScreen)
+        #expect(!viewModel.isLocked)
     }
 
     @Test
@@ -377,19 +376,29 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func shouldShowLockScreen() {
-        let mockService = BiometryAuthenticationMock()
+    func returningAfterTheLockPeriodCoversTheAppBeforeItIsActive() {
+        let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)
-
         viewModel.state = .unlocked
-        #expect(!viewModel.shouldShowLockScreen)
+        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
 
-        viewModel.state = .locked
-        #expect(viewModel.shouldShowLockScreen)
-
-        viewModel.state = .unlocked
         viewModel.onScenePhase(.inactive)
-        #expect(viewModel.shouldShowLockScreen)
+
+        #expect(viewModel.state == .locked)
+        #expect(viewModel.isLocked)
+        #expect(mockService.authenticateCallsCount == 0)
+    }
+
+    @Test
+    func inactiveWithinTheLockPeriodLeavesTheAppUncovered() {
+        let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+
+        viewModel.onScenePhase(.inactive)
+
+        #expect(viewModel.state == .unlocked)
+        #expect(!viewModel.isLocked)
     }
 
     @Test
@@ -400,11 +409,11 @@ struct LockSceneViewModelTests {
 
         viewModel.onScenePhase(.inactive)
         #expect(viewModel.state == .unlocked)
-        #expect(!viewModel.shouldShowLockScreen)
+        #expect(!viewModel.isLocked)
 
         viewModel.onScenePhase(.active)
         #expect(viewModel.state == .unlocked)
-        #expect(!viewModel.shouldShowLockScreen)
+        #expect(!viewModel.isLocked)
         #expect(mockService.authenticateCallsCount == 0)
     }
 
@@ -469,7 +478,6 @@ struct LockSceneViewModelTests {
         viewModel.resetLockState()
 
         #expect(viewModel.state == .unlocked)
-        #expect(!viewModel.shouldShowLockScreen)
         #expect(!viewModel.isLocked)
         #expect(viewModel.backgroundedAt == nil)
     }

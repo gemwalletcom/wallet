@@ -328,7 +328,7 @@ impl ConfigKey {
             Self::PriceTimerCleanOutdated => "1d",
             Self::PriceTimerCleanupChartsRaw => "1d",
             Self::PriceTimerCleanupChartsHourly => "1d",
-            Self::PriceChartsRetentionRaw => "7d",
+            Self::PriceChartsRetentionRaw => "2d",
             Self::PriceChartsRetentionHourly => "31d",
             Self::PriceChartsRetentionDaily => "10000d",
             Self::PriceOutdated => "7d",

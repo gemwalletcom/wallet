@@ -9,7 +9,7 @@ pub mod target;
 use std::sync::Arc;
 
 pub use client::{AlienClient, new_alien_client};
-pub use error::AlienError;
+pub use error::{AlienError, RpcAlienError};
 pub use provider::{AlienProvider, AlienProviderWrapper, AlienRpcProvider};
 pub use target::{AlienHttpMethod, AlienResponse, AlienTarget};
 

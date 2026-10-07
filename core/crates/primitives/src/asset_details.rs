@@ -14,8 +14,6 @@ pub struct AssetFull {
     pub links: Vec<AssetLink>,
     pub associations: Vec<AssetAssociation>,
     pub perpetuals: Vec<PerpetualBasic>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub associated_asset_id: Option<AssetId>,
     pub price: Option<Price>,
     pub market: Option<AssetMarket>,
 }
@@ -30,7 +28,6 @@ impl AssetFull {
             links: self.links,
             associations: self.associations,
             perpetuals: self.perpetuals,
-            associated_asset_id: self.associated_asset_id,
             price: self.price.map(|p| p.with_rate(rate)),
             market: self.market.map(|m| m.with_rate(rate)),
         }

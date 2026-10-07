@@ -27,6 +27,7 @@ use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
 use crate::services::assets::rules::{fee_amount, fiat_amount_of};
 use crate::services::collections::unique;
 use crate::services::localization::GemLocalizedText;
+use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::swap::model::GemSwapRate;
 use crate::services::swap::rules as swap_rules;
 use crate::services::transfer::GemRecipient;
@@ -182,7 +183,7 @@ pub fn detail_rows(extended: &TransactionExtended, wallet_type: WalletType, part
         resource: resource(transaction),
         rate: swap_rate(extended),
         pnl: details.pnl.map(GemFormattedNumber::signed_usd),
-        price: details.price.map(GemFormattedNumber::usd),
+        price: details.price.map(|price| perpetual_rules::display_price(&extended.asset, price)),
         fee_row: fee_row(&fee, currency),
         fee,
         explorer,
@@ -325,7 +326,9 @@ fn row_subtitle(item: &TransactionListItem) -> GemTransactionRowSubtitle {
         },
         GemTransactionSubtitle::ToResource { resource } => GemTransactionRowSubtitle::ToResource { resource },
         GemTransactionSubtitle::FromResource { resource } => GemTransactionRowSubtitle::FromResource { resource },
-        GemTransactionSubtitle::Price { value } => GemTransactionRowSubtitle::Price { price: GemFormattedNumber::usd(value) },
+        GemTransactionSubtitle::Price { value } => GemTransactionRowSubtitle::Price {
+            price: perpetual_rules::display_price(&item.asset, value),
+        },
     }
 }
 
@@ -959,6 +962,16 @@ mod tests {
             .unwrap(),
         );
         assert_eq!(transaction_subtitle(&open), GemTransactionSubtitle::Price { value: 12.5 });
+        assert_eq!(
+            row_subtitle(&TransactionListItem {
+                asset: Asset::mock_perpetual(),
+                ..TransactionListItem::mock_transaction(open)
+            }),
+            GemTransactionRowSubtitle::Price {
+                price: GemFormattedNumber::usd(12.5).with_places(3)
+            },
+            "a fill price reads in the market's Hyperliquid places"
+        );
     }
 
     #[test]

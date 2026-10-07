@@ -18,7 +18,6 @@ SELECT diesel_manage_updated_at('usernames');
 CREATE TABLE rewards (
     username VARCHAR(64) PRIMARY KEY REFERENCES usernames(username) ON DELETE CASCADE ON UPDATE CASCADE,
     status reward_status NOT NULL,
-    level VARCHAR(32),
     points INT NOT NULL DEFAULT 0 CHECK (points >= 0),
     referrer_username VARCHAR(64) REFERENCES rewards(username) ON DELETE SET NULL ON UPDATE CASCADE,
     referral_count INT NOT NULL DEFAULT 0 CHECK (referral_count >= 0),
@@ -98,4 +97,5 @@ CREATE TABLE rewards_referral_attempts (
 );
 
 CREATE INDEX idx_rewards_referral_attempts_referrer_username ON rewards_referral_attempts(referrer_username);
+CREATE INDEX idx_rewards_referral_attempts_wallet_id ON rewards_referral_attempts(wallet_id);
 CREATE INDEX idx_rewards_referral_attempts_created_at ON rewards_referral_attempts(created_at);

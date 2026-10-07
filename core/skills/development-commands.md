@@ -27,7 +27,7 @@ just test-integration           # Run integration tests only
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 ```
 
-`just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `img-downloader`, run `cargo test --locked -p img-downloader --bins --all-features` instead.
+`just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `generate`, run `cargo test --locked -p generate --bins --all-features` instead.
 
 The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs pass `--all-features` and skip `integration_tests`; workspace runs rely on feature unification across members. Check the test count so an unmatched filter is not mistaken for coverage.
 
@@ -77,7 +77,7 @@ Note: Mobile builds require UniFFI bindings generation and platform-specific com
 
 ## Generating Bindings (When Core Changes Affect Mobile APIs)
 
-> **IMPORTANT**: Regenerate platform bindings when a change affects the mobile API or generated models. Internal implementation changes in `gemstone/`, `swapper/`, `signer/`, or other Core crates do not require regeneration when the exposed interfaces and generated outputs are unchanged.
+Apply [Cross-Platform Awareness](../../skills/cross-platform-awareness.md) to decide when generation and app verification are required, including UniFFI schema or configuration changes.
 
 For the apps, `just generate-stone` from the repo root builds the iOS library and bindings, and the Android Gradle build regenerates its own. The recipes below serve the standalone Gemstone example projects.
 
@@ -94,13 +94,6 @@ just gemstone bindgen-kotlin    # Generate Kotlin bindings only (run in gemstone
 just gemstone build-android     # Full Android build including Kotlin binding generation (run in gemstone/)
 ```
 Generated files: `gemstone/generated/kotlin/` → copied to `gemstone/android/gemstone/src/main/java/uniffi/`
-
-### When to Regenerate Bindings
-1. After adding/modifying public functions in `gemstone/src/lib.rs`
-2. After changing any UniFFI-exposed types or interfaces
-3. After changing models that derive `Model`, which either app consumes
-4. When UniFFI schema or configuration changes
-5. When platform build inputs or app-side integration must change with Core
 
 ## Utilities
 

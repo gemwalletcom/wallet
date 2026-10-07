@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
@@ -6,10 +6,11 @@ use std::time::Duration;
 use cacher::{CacheError, ObservedAssetsCacher, PriceCacher};
 use chrono::NaiveDateTime;
 use config_keys::ConfigKey;
-use gem_tracing::error_with_fields;
+use gem_tracing::{error_with_fields, warn_with_fields};
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviders};
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider};
+use primitives::price_provider::primary_price;
+use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider, PriceProviderConfig};
 use storage::{AssetFilter, PriceAsset};
 
 use super::repository::Repository;
@@ -35,6 +36,32 @@ impl PriceClient {
         self.cache.set_fiat_rates(&rates).await?;
 
         Ok(count)
+    }
+
+    async fn price_providers(&self) -> Result<Vec<PriceProviderConfig>, Box<dyn Error + Send + Sync>> {
+        match self.cache.price_providers().await {
+            Ok(Some(providers)) => return Ok(providers),
+            Ok(None) => {}
+            Err(error) => warn_with_fields!("price providers cache read failed", error = error.as_ref()),
+        }
+        let providers = self.repository.price_providers().await?;
+        if let Err(error) = self.cache.set_price_providers(&providers).await {
+            warn_with_fields!("price providers cache write failed", error = error.as_ref());
+        }
+        Ok(providers)
+    }
+
+    pub(crate) async fn store_prices(&self, prices: Vec<PriceData>, max_age: Duration) -> Result<Vec<AssetPriceInfo>, Box<dyn Error + Send + Sync>> {
+        let prices = self.repository.store_prices(prices).await?;
+        if prices.is_empty() {
+            return Ok(vec![]);
+        }
+        let providers = self.price_providers().await?;
+        let mut by_asset: HashMap<AssetId, Vec<AssetPriceInfo>> = HashMap::new();
+        for price in prices {
+            by_asset.entry(price.asset_id.clone()).or_default().push(price);
+        }
+        Ok(by_asset.into_values().filter_map(|prices| primary_price(&providers, &prices, max_age, AssetPriceInfo::as_price_primitive).cloned()).collect())
     }
 
     pub async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
@@ -180,5 +207,110 @@ impl PriceClient {
             .collect();
         self.repository.save_prices(new_prices, price_assets).await?;
         Ok(prices.len())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::{Duration as ChronoDuration, Utc};
+    use primitives::{AssetMarket, Chain, HOUR, Price};
+
+    use super::*;
+    use crate::testkit::{MemoryConfigRepository, MemoryPriceCacher, MemoryPricesRepository, UnusedObservedCacher};
+
+    #[tokio::test]
+    async fn test_price_providers() {
+        let providers = vec![
+            PriceProviderConfig {
+                provider: PriceProvider::Coingecko,
+                enabled: false,
+                priority: 2,
+            },
+            PriceProviderConfig {
+                provider: PriceProvider::Jupiter,
+                enabled: true,
+                priority: 0,
+            },
+        ];
+        let repository = Arc::new(MemoryPricesRepository::default().with_providers(providers.clone()));
+        let cache = Arc::new(MemoryPriceCacher::new(vec![]));
+        let client = PriceClient::new(repository.clone(), Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new()))), cache.clone(), Arc::new(UnusedObservedCacher));
+
+        assert_eq!(client.price_providers().await.unwrap(), providers);
+        assert_eq!(client.price_providers().await.unwrap(), providers);
+        assert_eq!(repository.provider_reads(), 1);
+
+        cache.expire_price_providers();
+        assert_eq!(client.price_providers().await.unwrap(), providers);
+        assert_eq!(repository.provider_reads(), 2);
+
+        cache.set_price_providers(&[]).await.unwrap();
+        assert_eq!(client.price_providers().await.unwrap(), vec![]);
+        assert_eq!(repository.provider_reads(), 2);
+
+        let unavailable_cache = Arc::new(MemoryPriceCacher::new(vec![]).with_unavailable_price_providers());
+        let client = PriceClient::new(repository.clone(), client.config.clone(), unavailable_cache, Arc::new(UnusedObservedCacher));
+        assert_eq!(client.price_providers().await.unwrap(), providers);
+        assert_eq!(repository.provider_reads(), 3);
+    }
+
+    #[tokio::test]
+    async fn test_store_prices() {
+        let asset_id = AssetId::from_chain(Chain::Solana);
+        let fresh = AssetPriceInfo {
+            asset_id: asset_id.clone(),
+            price: Price::new(144.0, 2.0, Utc::now(), PriceProvider::Jupiter),
+            market: AssetMarket::mock(),
+        };
+        let repository = Arc::new(MemoryPricesRepository::default().with_price_infos(vec![
+            AssetPriceInfo {
+                price: Price::new(143.0, 1.0, Utc::now() - ChronoDuration::hours(2), PriceProvider::Coingecko),
+                ..fresh.clone()
+            },
+            fresh.clone(),
+            AssetPriceInfo {
+                price: Price::new(145.0, 0.0, Utc::now(), PriceProvider::Pyth),
+                ..fresh.clone()
+            },
+        ]));
+        let cache = Arc::new(MemoryPriceCacher::new(vec![]));
+        cache
+            .set_price_providers(&[
+                PriceProviderConfig {
+                    provider: PriceProvider::Coingecko,
+                    enabled: true,
+                    priority: 0,
+                },
+                PriceProviderConfig {
+                    provider: PriceProvider::Jupiter,
+                    enabled: true,
+                    priority: 2,
+                },
+                PriceProviderConfig {
+                    provider: PriceProvider::Pyth,
+                    enabled: false,
+                    priority: 1,
+                },
+            ])
+            .await
+            .unwrap();
+        let client = PriceClient::new(repository.clone(), Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new()))), cache, Arc::new(UnusedObservedCacher));
+        let incoming = PriceData {
+            id: PriceId::new(PriceProvider::Jupiter, "So11111111111111111111111111111111111111112".to_string()),
+            provider: PriceProvider::Jupiter,
+            provider_price_id: "So11111111111111111111111111111111111111112".to_string(),
+            price: fresh.price.price,
+            price_change_percentage_24h: fresh.price.price_change_percentage_24h,
+            last_updated_at: fresh.price.updated_at,
+            ..PriceData::mock()
+        };
+        let selected = client.store_prices(vec![incoming.clone()], HOUR).await.unwrap();
+
+        assert_eq!(selected.len(), 1);
+        assert_eq!(selected[0].asset_id, asset_id);
+        assert_eq!(selected[0].price, fresh.price);
+        assert_eq!(selected[0].market.market_cap, fresh.market.market_cap);
+        assert_eq!(repository.provider_reads(), 0);
+        assert_eq!(repository.stored_price_ids(), vec![vec![incoming.id]]);
     }
 }

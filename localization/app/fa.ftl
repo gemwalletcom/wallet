@@ -534,7 +534,6 @@ lock_one_hour = 1 ساعت
 lock_six_hours = 6 ساعت
 lock_require_authentication = نیاز به احراز هویت
 lock_unlock = باز کردن قفل
-lock_privacy_lock = قفل حریم خصوصی
 lock_footer = دسترسی به این برنامه را در دستگاه خود محافظت کنید
 lock_passcode = رمزعبور
 lock_passcode_off_title = رمز عبور دستگاه خاموش است

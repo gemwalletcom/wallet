@@ -48,7 +48,7 @@ pub trait DevicesRepository {
 
 pub(crate) fn device_row(client: &mut DatabaseClient, device_id_value: &str) -> Result<DeviceRow, diesel::result::Error> {
     use crate::schema::devices::dsl::*;
-    devices.filter(device_id.eq(device_id_value)).select(DeviceRow::as_select()).first(&mut client.connection)
+    devices.filter(identifier.eq(device_id_value)).select(DeviceRow::as_select()).first(&mut client.connection)
 }
 
 impl DevicesRepository for DatabaseClient {
@@ -57,9 +57,9 @@ impl DevicesRepository for DatabaseClient {
         let device = UpdateDeviceRow::from_primitive(device);
         Ok(diesel::insert_into(devices)
             .values(&device)
-            .on_conflict(device_id)
+            .on_conflict(identifier)
             .do_update()
-            .set((device_id.eq(excluded(device_id)),))
+            .set((identifier.eq(excluded(identifier)),))
             .returning(DeviceRow::as_returning())
             .get_result(&mut self.connection)?
             .as_primitive())
@@ -87,10 +87,10 @@ impl DevicesRepository for DatabaseClient {
 
     fn update_device(&mut self, device: Device) -> Result<Device, DatabaseError> {
         let device = UpdateDeviceRow::from_primitive(device);
-        let device_id_value = device.device_id.clone();
+        let device_id_value = device.identifier.clone();
         use crate::schema::devices::dsl::*;
         Ok(diesel::update(devices)
-            .filter(device_id.eq(device_id_value.clone()))
+            .filter(identifier.eq(device_id_value.clone()))
             .set(device)
             .returning(DeviceRow::as_returning())
             .get_result(&mut self.connection)
@@ -107,7 +107,7 @@ impl DevicesRepository for DatabaseClient {
 
         let mut total_updated = 0;
         for update in updates {
-            let target = devices.filter(device_id.eq_any(&device_ids));
+            let target = devices.filter(identifier.eq_any(&device_ids));
             let updated = match update {
                 DeviceFieldUpdate::IsPushEnabled(value) => diesel::update(target).set(is_push_enabled.eq(value)).execute(&mut self.connection)?,
             };

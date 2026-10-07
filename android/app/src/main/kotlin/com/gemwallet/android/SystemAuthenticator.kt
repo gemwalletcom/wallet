@@ -92,15 +92,17 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
         }
     }
 
-    fun requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
+    fun requestAuth(auth: AuthRequest, onCancel: () -> Unit, onSuccess: () -> Unit) {
         if (lockViewModel.isAuthRequired() || auth == AuthRequest.Required) {
             if (refreshEnrollment()) {
                 authRequests.enqueue(
                     requiresConfirmation = auth.requiresConfirmation,
+                    onCancel = onCancel,
                     onSuccess = onSuccess,
                 )?.let(::startAuthRequest)
             } else {
                 openSettings()
+                onCancel()
             }
         } else {
             onSuccess()
@@ -138,6 +140,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
             delay(SystemAuthPolicy.authRequestTimeout)
             val timedOut = authRequests.completeActive(request.id) ?: return@launch
             lockViewModel.completeAuthRequest(timedOut.id)
+            timedOut.onCancel()
             runCatching { biometricPrompt.cancelAuthentication() }
             delay(SystemAuthPolicy.authRequestRestartDelay)
             activeAuthTimeout = null
@@ -160,6 +163,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
         activeAuthTimeout?.cancel()
         activeAuthTimeout = null
         lockViewModel.completeAuthRequest(request.id)
+        request.onCancel()
         authRequests.startNext()?.let(::startAuthRequest)
     }
 }

@@ -9,6 +9,7 @@ use primitives::{AssetBalance, AssetId, Chain, asset_balance::BalanceMetadata};
 
 use crate::{
     address::TronAddress,
+    models::TronRpcError,
     provider::balances_mapper::{map_balance_staking, map_coin_balance, map_token_balance},
     rpc::{TronProvider, trongrid::mapper::TronGridMapper},
 };
@@ -28,13 +29,17 @@ impl<C: Client> ChainBalances for TronProvider<C> {
             .map(|token_id| {
                 let parameter = parameter.clone();
                 async move {
-                    let balance_hex = self.trigger_constant_contract(&token_id, "balanceOf(address)", &parameter).await?;
+                    let balance_hex = match self.trigger_constant_contract(&token_id, "balanceOf(address)", &parameter).await {
+                        Ok(balance_hex) => balance_hex,
+                        Err(error) if error.downcast_ref::<TronRpcError>().is_some() => return Ok(None),
+                        Err(error) => return Err(error),
+                    };
                     let asset_id = AssetId::from(self.get_chain(), Some(token_id));
-                    map_token_balance(&balance_hex, asset_id)
+                    map_token_balance(&balance_hex, asset_id).map(Some)
                 }
             })
             .collect();
-        join_all(futures).await.into_iter().collect::<Result<Vec<_>, _>>()
+        Ok(join_all(futures).await.into_iter().collect::<Result<Vec<_>, _>>()?.into_iter().flatten().collect())
     }
 
     async fn get_balance_staking(&self, address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
@@ -55,6 +60,31 @@ impl<C: Client> ChainBalances for TronProvider<C> {
 
     async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
         Ok(self.get_indexer_accounts(&address).await?.into_iter().next().map(TronGridMapper::map_asset_balances).unwrap_or_default())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::rpc::TronClient;
+    use gem_client::testkit::MockClient;
+    use primitives::asset_constants::TRON_USDT_TOKEN_ID;
+
+    #[tokio::test]
+    async fn test_get_balance_tokens_skips_reverted_contract() {
+        let reverted = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax";
+        let client = MockClient::new().with_post(move |_, body| match String::from_utf8_lossy(body).contains(reverted) {
+            true => Ok(include_bytes!("../../testdata/trigger_constant_contract_reverted.json").to_vec()),
+            false => Ok(include_bytes!("../../testdata/balance_token.json").to_vec()),
+        });
+        let provider = TronProvider::new_rpc_only(TronClient::new(client));
+
+        let balances = provider
+            .get_balance_tokens("TFdTEn9dJuqh351y8fyJ3eMmghFsZNwakb".to_string(), vec![TRON_USDT_TOKEN_ID.to_string(), reverted.to_string()])
+            .await
+            .unwrap();
+
+        assert_eq!(balances, vec![AssetBalance::new(AssetId::from(Chain::Tron, Some(TRON_USDT_TOKEN_ID.to_string())), BigUint::from(136389002_u64))]);
     }
 }
 

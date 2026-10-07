@@ -417,7 +417,7 @@ mod tests {
 
             assert!(result.is_err());
             assert!(store.assets.lock().unwrap().is_empty());
-            assert_eq!(provider.requested_paths(), vec!["/v1/assets".to_string(), crate::services::node::rules::preferred_chain_node(Chain::Ethereum, None).url]);
+            assert_eq!(provider.requested_paths(), vec!["/v1/assets".to_string(), crate::services::node::rules::fallback_node(Chain::Ethereum).url]);
         });
     }
 }

@@ -111,6 +111,7 @@ struct ServicesFactory {
             api: deviceApiClient,
             preferences: preferencesService,
             store: GemstonePriceAlertStore(store: stores.priceAlertStore),
+            device: deviceService,
             permissions: notificationPermissions,
         )
         let gemstoneBalanceStore = GemstoneBalanceStore(store: stores.balanceStore)
@@ -279,6 +280,7 @@ struct ServicesFactory {
             wallet: walletService,
             device: deviceService,
             support: supportService,
+            nodes: nodeService,
         )
 
         let onStartService = OnstartService(
@@ -289,8 +291,10 @@ struct ServicesFactory {
         )
 
         let hyperliquidWebSocket = WebSocketConnection(
-            url: nodeService.webSocketNode(for: .hyperCore),
-            reconnection: connectionService,
+            configuration: WebSocketConfiguration(
+                requestProvider: NodeRequestProvider(nodeService: nodeService, chain: .hyperCore),
+                reconnection: connectionService,
+            ),
         )
         let hyperliquidObserverService = HyperliquidObserverService(
             webSocket: hyperliquidWebSocket,

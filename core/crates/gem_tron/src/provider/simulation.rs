@@ -9,8 +9,8 @@ use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeade
 
 use crate::address::TronAddress;
 use crate::decode_wallet_connect_approval;
-use crate::models::TriggerSmartContractData;
-use crate::provider::simulation_mapper::{map_approval_simulation, map_simulation_result};
+use crate::models::{TriggerSmartContractData, TronRpcError};
+use crate::provider::simulation_mapper::{map_approval_simulation, map_execution_error, map_simulation_result};
 use crate::rpc::TronProvider;
 use crate::transaction::approval::PERMIT2_APPROVE_SELECTOR;
 use crate::trc20::TRC20_APPROVE_SELECTOR;
@@ -33,8 +33,13 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
         let owner = TronAddress::from_hex_or_base58(&contract_data.owner_address).ok_or("invalid owner address")?;
         let call_value = contract_data.call_value.filter(|value| *value > 0);
 
-        let response = self.trigger_smart_contract_call(&contract_data).await?;
-        let SimulationResult { warnings, balance_changes, payload, .. } = map_simulation_result(&owner, &response, call_value);
+        let SimulationResult { warnings, balance_changes, payload, .. } = match self.trigger_smart_contract_call(&contract_data).await {
+            Ok(response) => map_simulation_result(&owner, &response, call_value),
+            Err(error) => match error.downcast_ref::<TronRpcError>() {
+                Some(error) => map_execution_error(error),
+                None => return Err(error),
+            },
+        };
 
         let assets = join_all(balance_changes.iter().map(|change| async move {
             match &change.asset_id.token_id {
@@ -65,6 +70,7 @@ mod tests {
     use gem_client::testkit::MockClient;
     use num_bigint::BigInt;
     use primitives::Address as _;
+    use primitives::SimulationWarning;
 
     #[tokio::test]
     async fn test_simulate_transaction_decodes_approval() {
@@ -167,8 +173,18 @@ mod tests {
 
         let result = ChainSimulation::simulate_transaction(&client, SimulationInput::new(encoded_transaction)).await.unwrap();
 
-        assert_eq!(result.warnings.len(), 1);
-        assert!(result.balance_changes.is_empty());
+        assert_eq!(
+            result,
+            SimulationResult {
+                warnings: vec![SimulationWarning::execution_error("REVERT opcode executed")],
+                header: Some(SimulationHeader {
+                    asset_id: AssetId::from_chain(Chain::Tron),
+                    value: Some(BigUint::from(1_000_000u32)),
+                    is_unlimited: false,
+                }),
+                ..SimulationResult::default()
+            }
+        );
     }
 
     #[tokio::test]

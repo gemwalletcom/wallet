@@ -185,7 +185,7 @@ A later step that needs an earlier result stays sequential. That ordering is the
 
 ### Service example: price alerts
 
-[`GemPriceAlertService`](../core/gemstone/src/services/price_alert/mod.rs) shows a service combining an API client, preferences, its own store and a platform permission port:
+[`GemPriceAlertService`](../core/gemstone/src/services/price_alert/mod.rs) shows a service combining an API client, preferences, its own store, the device service and a platform permission port:
 
 ```rust
 #[derive(uniffi::Object)]
@@ -193,6 +193,7 @@ pub struct GemPriceAlertService {
     api: Arc<GemDeviceApiClient>,
     preferences: Arc<GemPreferencesService>,
     store: Arc<dyn GemPriceAlertStore>,
+    device: Arc<GemDeviceService>,
     permissions: Arc<dyn GemNotificationPermissions>,
 }
 ```
@@ -213,7 +214,7 @@ pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceErro
 
 Continue with the [store adapters](#store-adapter-example-price-alerts), [construction](#construction-example-price-alerts) and [screen calls](#direct-service-calls-and-observed-reads) below.
 
-Node selection illustrates this boundary: `GemChainSettingsService.check_node` owns URL validation, the network-id check and node status. `GemGateway`, `GemSwapper` and `GemSimulationService` take `GemNodeService` for the selected node. Gateway preferences hold gateway state such as HyperCore agent data, never a second node selection.
+Node selection illustrates this boundary: `GemChainSettingsService.check_node` owns URL validation, the network-id check and node status. `GemGateway`, `GemSwapper` and `GemSimulationService` take `GemNodeService` for the selected node. Gateway preferences hold gateway state such as HyperCore agent data, never a second node selection. The stored selection is always a node the chain offers: `GemNodeService::select_node` resolves it against the built-in and added nodes, and `GemAppStartService::run` re-resolves every stored selection before its network steps, replacing only a selection the user has not changed meanwhile, so a node an update removed is not used past the next launch.
 
 ### No trivial exports
 
@@ -762,7 +763,7 @@ The app switches and stops. No `if isLoading` ahead of the switch, no `default:`
 
 ### A number crosses as a value and a style, never as a string or a callback
 
-The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the currency form of the adaptive rule (at least two places, so `$0.90` never reads `$0.9`), the fiat-pins-to-two-places rule and the dust threshold are decisions, and they live in Core: `GemCurrencyStyle::precision`, `GemValueStyle::precision`, `adaptive_precision`, the styles' `abbreviates` and `GemValueStyle::is_dust`. Both apps take the display Core builds with `GemFormattedNumber::amount` and render it with their own locale formatter. What is left is the numbers themselves: a row that carries a bare `f64` still leaves each app to pick the style.
+The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the currency form of the adaptive rule (at least two places, so `$0.90` never reads `$0.9`), the fiat-pins-to-two-places rule and the dust threshold are decisions, and they live in Core: `GemCurrencyStyle::precision`, `GemValueStyle::precision`, `adaptive_precision`, the styles' `abbreviates` and `GemValueStyle::is_dust`. A perpetual price is the exception: it reads in its provider's places for the market, never the currency ladder. `perpetual::rules::display_price` takes the market's asset, whose chain names the provider and whose decimals are the market's size decimals, so a screen passes that one asset rather than the market and its decimals. Both apps take the display Core builds with `GemFormattedNumber::amount` and render it with their own locale formatter. What is left is the numbers themselves: a row that carries a bare `f64` still leaves each app to pick the style.
 
 Two mechanisms are tempting and both are wrong.
 
@@ -1024,7 +1025,7 @@ An adapter maps reads and writes and nothing more — **no rules or mapping impl
 | a value the user set | [`GemPreferencesStore`](../core/gemstone/src/services/preferences/store.rs) through `GemPreferencesService` | sync; `get` returns `Option<String>` and **cannot fail** | `GemstonePreferencesStore` over `UserDefaults` | `GemstonePreferencesStore` over `SharedPreferences` |
 | the same, per wallet | `GemWalletPreferencesStore` through `GemWalletPreferencesService` | sync, keyed by `WalletId` | same file layout | same file layout |
 | a secret | [`GemSecureStore`](../core/gemstone/src/services/preferences/store.rs) | sync; **every read can fail** | `GemstoneSecurePreferencesStore` over the Keychain | `TinkGemPreferences` over Tink |
-| something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs | app class | app class |
+| something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs; a method the platform can fail returns `Result<_, GemServiceError>` | app class | app class |
 
 Use one trait per persistence owner; closely related rows such as contacts and their addresses may share a trait. Preferences use named `const` keys and typed accessors on the existing owner; apps never duplicate raw keys. Existing keys such as `price_alerts_enabled` are valid. Preference reads are infallible; secure-store failures must propagate.
 
@@ -1481,7 +1482,7 @@ The same applies to state: a view switching on the model's `mode` forces `mode` 
 
 ### Depend on the generated abstraction, not the concrete object
 
-On iOS, UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists; importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be substituted without relying on UniFFI's fragile no-handle test path. On Android the same holds for the generated `GemFooServiceInterface`: bind it in the Hilt module (`): GemReceiveServiceInterface = GemReceiveService(...)`) and inject the interface.
+On iOS, UniFFI generates a protocol for every exported object. `GemContactServiceProtocol` exists; importing `class Gemstone.GemContactService` at a consumer means that consumer cannot be substituted without relying on UniFFI's fragile no-handle test path. On Android the same holds for the generated `GemFooServiceInterface`: bind it in the Hilt module (`): GemReceiveServiceInterface = GemReceiveService(...)`) and inject the interface.
 
 - **iOS consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
 - **Android consumers** take the generated interface, or the observed-read case, used by their layer.
@@ -1513,6 +1514,7 @@ let priceAlertService = Gemstone.GemPriceAlertService(
     api: deviceApiClient,
     preferences: preferencesService,
     store: gemstonePriceAlertStore,
+    device: deviceService,
     permissions: notificationPermissions,
 )
 ```
@@ -1532,11 +1534,13 @@ fun provideGemPriceAlertService(
     apiClient: GemDeviceApiClient,
     preferencesService: GemPreferencesService,
     store: GemPriceAlertStore,
+    deviceService: GemDeviceService,
     notificationPermissions: GemNotificationPermissions,
 ): GemPriceAlertService = GemPriceAlertService(
     api = apiClient,
     preferences = preferencesService,
     store = store,
+    device = deviceService,
     permissions = notificationPermissions,
 )
 
@@ -1703,7 +1707,7 @@ Variant fields are named: `GetAccount(String)` does not say what the string is. 
 
 **Tests.** A client test over `MockClient` or `mock_jsonrpc_client` asserts behaviour the wire shape does not show: an envelope's failure branch, the paths a pagination loop produced, the body and content type of a broadcast, a merged credential header. Do not test `path()` by copying its implementation into the expectation. A wire-contract regression test uses an independently specified request and exercises the real client through its mock transport.
 
-**Deliberate exceptions.** Three things stay on raw `reqwest` because they are not REST clients: the off-chain NFT metadata fetch (an arbitrary HTTPS URL read under a byte cap with redirects off), the image downloader (binary bodies), and the egress node health probe (only the status matters). The OKX client sends the string it signed rather than a target, and the alien reqwest provider is the transport itself.
+**Deliberate exceptions.** Two things stay on raw `reqwest` because they are not REST clients: the off-chain NFT metadata fetch (an arbitrary HTTPS URL read under a byte cap with redirects off) and the egress node health probe (only the status matters). The OKX client sends the string it signed rather than a target, and the alien reqwest provider is the transport itself.
 
 ## 13. Shapes that were tried and reverted
 
@@ -1943,7 +1947,7 @@ These choices explain apparent parity gaps. They do not authorize copying shared
 
 | Area | Contract |
 |---|---|
-| Authentication | Privacy lock is iOS-only; WalletConnect one-click auth is Android-only. Android gates secret reads at each call site, while iOS gates the secret read itself. A new Android caller must request authentication. Wallet auth uses the Ethereum signature scheme (`AUTH_CHAIN`) on every chain; rejecting other schemes is intentional. |
+| Authentication | WalletConnect one-click auth is Android-only. Android gates secret reads at each call site and, when authentication is enabled, wraps the wallet-password keyset with a Keystore key that needs a recent device credential or strong biometric; iOS gates the secret read itself. The iOS app lock unlocks only after reading its access-controlled lock key through the context that passed authentication; Android unlocks on the prompt result. A new Android caller must request authentication. Wallet auth uses the Ethereum signature scheme (`AUTH_CHAIN`) on every chain; rejecting other schemes is intentional. |
 | Refresh | Wallet home receives socket prices and refreshes on pull; it intentionally has no interval timer. Socket reconnect delay is capped at 30 seconds. `debugLog` and stream diagnostic logging compile out in release. |
 | One-sided features | iOS support-image previews use `image_file`; Android uses post-search `sync_assets` and invalid-mnemonic highlighting. Developer tools may differ (`deeplink_url` on iOS, `platform_store` on Android). Add the counterpart only when the feature is required. |
 | Equivalent integration | Both apps choose the collectible receive network through `GemSelectAssetType::ReceiveCollection`. Payment prefills reach iOS through `GemAmountTransfer::prefilled_amount` and Android through Core-built `GemRecipientNext::Amount` carried in navigation. Perpetual banners use native navigation on each app; both observable preference adapters call `GemPreferencesService.set_perpetual_enabled`. |

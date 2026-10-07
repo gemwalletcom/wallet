@@ -43,7 +43,7 @@ const X_TICK_STEPS: [TimeDelta; 23] = [
 const X_TICK_STEP_MONTHS: [i64; 6] = [1, 2, 3, 6, 12, 24];
 const X_TICK_MONTH: TimeDelta = TimeDelta::days(30);
 
-pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, position: Option<&PerpetualPosition>, zoom: GemChartZoom, utc_offset: TimeDelta) -> Option<GemCandleChart> {
+pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, price_decimals: u32, position: Option<&PerpetualPosition>, zoom: GemChartZoom, utc_offset: TimeDelta) -> Option<GemCandleChart> {
     let (first, last) = (candles.first()?, candles.last()?);
     let interval = candles
         .iter()
@@ -62,10 +62,11 @@ pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, position:
     let visible = &candles[from..to];
     Some(GemCandleChart {
         candles: visible.to_vec(),
-        layout: chart_layout(visible, last, position),
-        header: candlestick_header(first.close, last.close),
+        layout: chart_layout(visible, last, position, price_decimals),
+        header: candlestick_header(first.close, last.close, price_decimals),
         date_style: date_style(period),
         base: first.close,
+        price_decimals,
         start,
         end,
         body_width: interval.num_milliseconds() as f64 * CANDLE_BODY_FRACTION / (end - start).num_milliseconds() as f64,
@@ -154,7 +155,7 @@ mod tests {
     fn test_candle_chart() {
         let at = |seconds: i64| DateTime::from_timestamp(seconds, 0).unwrap();
         let candles = ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 40);
-        let chart = |candles: &[ChartCandleStick], scale: f64, offset: f64| candle_chart(candles, ChartPeriod::Hour, None, GemChartZoom { scale, offset }, TimeDelta::zero()).unwrap();
+        let chart = |candles: &[ChartCandleStick], scale: f64, offset: f64| candle_chart(candles, ChartPeriod::Hour, 2, None, GemChartZoom { scale, offset }, TimeDelta::zero()).unwrap();
         let whole = chart(&candles, 1.0, 0.0);
         let zoomed = chart(&candles, 2.0, 0.0);
         let panned = chart(&candles, 2.0, 0.25);
@@ -162,7 +163,7 @@ mod tests {
 
         assert_eq!((whole.start, whole.end, whole.body_width), (at(-30), DateTime::from_timestamp_millis(2_386_800).unwrap(), 60_000.0 * 0.7 / 2_416_800.0));
         assert_eq!((zoomed.start, zoomed.end, zoomed.candles.len()), (at(1140), at(2370), 21), "the candle straddling the left edge stays drawn");
-        assert_eq!(zoomed.layout, chart_layout(&candles[19..], &candles[39], None), "the price axis fits the candles on screen");
+        assert_eq!(zoomed.layout, chart_layout(&candles[19..], &candles[39], None, 2), "the price axis fits the candles on screen");
         assert_eq!(chart(&candles, 100.0, 0.0).candles, candles[25..], "a pinch stops with fourteen candles on screen");
         assert_eq!(
             (whole.is_zoomed, zoomed.is_zoomed, chart(&candles[..10], 2.0, 0.0).is_zoomed),
@@ -173,11 +174,11 @@ mod tests {
         assert_eq!(panned.index_at(0.0), Some(1), "a candle whose middle is off the plot is never picked");
         assert_eq!(
             panned.selection(0).map(|selection| selection.header),
-            Some(candlestick_header(candles[0].close, candles[9].close)),
+            Some(candlestick_header(candles[0].close, candles[9].close, 2)),
             "a selection is measured from the period's first close"
         );
         assert_eq!((lone.start, lone.end, lone.body_width), (at(-810), at(30), 0.05), "a lone candle is drawn at the fourteen-candle width");
-        assert_eq!(candle_chart(&[], ChartPeriod::Hour, None, GemChartZoom::default(), TimeDelta::zero()), None);
+        assert_eq!(candle_chart(&[], ChartPeriod::Hour, 2, None, GemChartZoom::default(), TimeDelta::zero()), None);
     }
 
     #[test]
@@ -185,7 +186,7 @@ mod tests {
         use GemCandleTickFormat::{Day, MonthYear, Time};
         let at = |date: &str| DateTime::parse_from_rfc3339(date).unwrap().to_utc();
         let axis = |candles: &[ChartCandleStick], zoom: GemChartZoom, utc_offset: TimeDelta| -> Vec<(DateTime<Utc>, GemCandleTickFormat)> {
-            candle_chart(candles, ChartPeriod::Day, None, zoom, utc_offset).unwrap().x_ticks.into_iter().map(|tick| (tick.date, tick.format)).collect()
+            candle_chart(candles, ChartPeriod::Day, 2, None, zoom, utc_offset).unwrap().x_ticks.into_iter().map(|tick| (tick.date, tick.format)).collect()
         };
         let monthly: Vec<ChartCandleStick> = (0..14)
             .map(|month| ChartCandleStick::mock(at("2025-08-07T00:00:00Z").checked_add_months(chrono::Months::new(month)).unwrap().timestamp(), 1.0))

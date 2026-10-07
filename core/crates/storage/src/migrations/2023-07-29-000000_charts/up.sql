@@ -1,22 +1,22 @@
 CREATE TABLE IF NOT EXISTS charts (
-    coin_id VARCHAR(255) NOT NULL REFERENCES prices (id) ON DELETE CASCADE,
+    price_id VARCHAR(256) NOT NULL REFERENCES prices (id) ON DELETE CASCADE,
     price float NOT NULL,
     created_at TIMESTAMP NOT NULL,
-    PRIMARY KEY (coin_id, created_at)
+    PRIMARY KEY (price_id, created_at)
 );
 
 CREATE TABLE IF NOT EXISTS charts_hourly (
-    coin_id VARCHAR(255) NOT NULL REFERENCES prices (id) ON DELETE CASCADE,
+    price_id VARCHAR(256) NOT NULL REFERENCES prices (id) ON DELETE CASCADE,
     price float NOT NULL,
     created_at TIMESTAMP NOT NULL,
-    PRIMARY KEY (coin_id, created_at)
+    PRIMARY KEY (price_id, created_at)
 );
 
 CREATE TABLE IF NOT EXISTS charts_daily (
-    coin_id VARCHAR(255) NOT NULL REFERENCES prices (id) ON DELETE CASCADE,
+    price_id VARCHAR(256) NOT NULL REFERENCES prices (id) ON DELETE CASCADE,
     price float NOT NULL,
     created_at TIMESTAMP NOT NULL,
-    PRIMARY KEY (coin_id, created_at)
+    PRIMARY KEY (price_id, created_at)
 );
 
 -- indexes
@@ -27,34 +27,34 @@ CREATE INDEX IF NOT EXISTS idx_charts_daily_created_at ON charts_daily (created_
 -- functions
 CREATE FUNCTION aggregate_hourly_charts(_price_ids VARCHAR[] DEFAULT NULL, _created_at TIMESTAMP DEFAULT NULL) RETURNS VOID AS $$
 BEGIN
-    INSERT INTO charts_hourly (coin_id, created_at, price)
+    INSERT INTO charts_hourly (price_id, created_at, price)
     SELECT
-        charts.coin_id,
+        charts.price_id,
         DATE_TRUNC('hour', charts.created_at),
         AVG(charts.price)
     FROM charts
     WHERE charts.created_at >= COALESCE(DATE_TRUNC('hour', _created_at), DATE_TRUNC('hour', NOW()) - INTERVAL '1 hour')
       AND charts.created_at < COALESCE(DATE_TRUNC('hour', _created_at) + INTERVAL '1 hour', DATE_TRUNC('hour', NOW()) + INTERVAL '1 hour')
-      AND (_price_ids IS NULL OR charts.coin_id = ANY(_price_ids))
-    GROUP BY charts.coin_id, DATE_TRUNC('hour', charts.created_at)
-    ON CONFLICT (coin_id, created_at) DO UPDATE SET price = EXCLUDED.price
+      AND (_price_ids IS NULL OR charts.price_id = ANY(_price_ids))
+    GROUP BY charts.price_id, DATE_TRUNC('hour', charts.created_at)
+    ON CONFLICT (price_id, created_at) DO UPDATE SET price = EXCLUDED.price
     WHERE charts_hourly.price <> EXCLUDED.price;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE FUNCTION aggregate_daily_charts(_price_ids VARCHAR[] DEFAULT NULL, _created_at TIMESTAMP DEFAULT NULL) RETURNS VOID AS $$
 BEGIN
-    INSERT INTO charts_daily (coin_id, created_at, price)
+    INSERT INTO charts_daily (price_id, created_at, price)
     SELECT
-        charts_hourly.coin_id,
+        charts_hourly.price_id,
         DATE_TRUNC('day', charts_hourly.created_at),
         AVG(charts_hourly.price)
     FROM charts_hourly
     WHERE charts_hourly.created_at >= COALESCE(DATE_TRUNC('day', _created_at), DATE_TRUNC('day', NOW()) - INTERVAL '1 day')
       AND charts_hourly.created_at < COALESCE(DATE_TRUNC('day', _created_at) + INTERVAL '1 day', DATE_TRUNC('day', NOW()) + INTERVAL '1 day')
-      AND (_price_ids IS NULL OR charts_hourly.coin_id = ANY(_price_ids))
-    GROUP BY charts_hourly.coin_id, DATE_TRUNC('day', charts_hourly.created_at)
-    ON CONFLICT (coin_id, created_at) DO UPDATE SET price = EXCLUDED.price
+      AND (_price_ids IS NULL OR charts_hourly.price_id = ANY(_price_ids))
+    GROUP BY charts_hourly.price_id, DATE_TRUNC('day', charts_hourly.created_at)
+    ON CONFLICT (price_id, created_at) DO UPDATE SET price = EXCLUDED.price
     WHERE charts_daily.price <> EXCLUDED.price;
 END;
 $$ LANGUAGE plpgsql;

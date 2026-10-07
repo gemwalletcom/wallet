@@ -7,19 +7,19 @@ use primitives::{
 
 use crate::TransactionApproval;
 use crate::address::TronAddress;
-use crate::models::TriggerConstantContractResponse;
+use crate::models::{TriggerConstantContractResponse, TronRpcError};
 use crate::provider::balance_diff::token_balance_deltas;
 
 pub fn map_simulation_result(owner: &TronAddress, response: &TriggerConstantContractResponse, call_value: Option<u64>) -> SimulationResult {
-    if let Err(error) = response.get_energy() {
-        let message = error.message.clone().unwrap_or_else(|| error.to_string());
-        return SimulationResult::new(vec![SimulationWarning::execution_error(message)], vec![]);
-    }
-
     SimulationResult {
         balance_changes: map_balance_changes(owner, response, call_value),
         ..Default::default()
     }
+}
+
+pub fn map_execution_error(error: &TronRpcError) -> SimulationResult {
+    let message = error.message.clone().unwrap_or_else(|| error.to_string());
+    SimulationResult::new(vec![SimulationWarning::execution_error(message)], vec![])
 }
 
 pub(crate) fn map_approval_simulation(decoded: TransactionApproval) -> SimulationResult {
@@ -124,10 +124,10 @@ mod tests {
     }
 
     #[test]
-    fn test_map_simulation_result_reverted_returns_validation_warning() {
+    fn test_map_execution_error() {
         let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_reverted.json")).unwrap();
 
-        let result = map_simulation_result(&TronAddress::mock(), &response, Some(1_000_000));
+        let result = map_execution_error(&response.check_result().unwrap_err());
 
         assert_eq!(result.warnings, vec![SimulationWarning::execution_error("REVERT opcode executed")]);
         assert!(result.balance_changes.is_empty());

@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use chrono::NaiveDateTime;
 use diesel::dsl::{count, exists};
@@ -7,7 +7,8 @@ use diesel::prelude::*;
 use primitives::{AssetId, ChainAddress, Transaction, TransactionId, TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType};
 
 use crate::models::*;
-use crate::schema::{transactions::dsl as transactions_dsl, transactions_addresses};
+use crate::repositories::wallets_repository::wallet_addresses;
+use crate::schema::{transactions::dsl as transactions_dsl, transactions_addresses, wallets_addresses};
 use crate::sql_types::{AssetId as AssetIdRow, ChainRow, TransactionState, TransactionType};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
@@ -121,27 +122,26 @@ fn get_transactions_by_device_id(
 ) -> Result<Vec<TransactionRow>, diesel::result::Error> {
     use crate::schema::transactions::dsl::*;
 
-    let mut query = transactions
-        .into_boxed()
-        .inner_join(transactions_addresses::table)
-        .filter(chain.eq_any(chains))
-        .filter(transactions_addresses::address.eq_any(addresses))
-        .filter(state.ne(TransactionState::InTransit));
-
-    if let Some(filter_asset) = filter_asset_id {
-        query = query.filter(transactions_addresses::asset_id.eq(filter_asset));
-    }
-
-    if let Some(datetime) = from_datetime {
-        query = query.filter(created_at.gt(datetime).or(updated_at.gt(datetime)));
-    }
+    let wallet_transaction_ids = transactions_addresses::table
+        .inner_join(wallets_addresses::table)
+        .filter(wallets_addresses::address.eq_any(addresses))
+        .select(transactions_addresses::transaction_id)
+        .into_boxed();
+    let wallet_transaction_ids = match filter_asset_id {
+        Some(filter_asset) => wallet_transaction_ids.filter(transactions_addresses::asset_id.eq(filter_asset)),
+        None => wallet_transaction_ids,
+    };
+    let query = transactions.into_boxed().filter(id.eq_any(wallet_transaction_ids)).filter(chain.eq_any(chains)).filter(state.ne(TransactionState::InTransit));
+    let query = match from_datetime {
+        Some(datetime) => query.filter(created_at.gt(datetime).or(updated_at.gt(datetime))),
+        None => query,
+    };
 
     query
         .order((created_at.desc(), id.desc()))
         .limit(limit as i64)
         .offset(offset as i64)
         .select(TransactionRow::as_select())
-        .distinct()
         .load(&mut client.connection)
 }
 
@@ -158,24 +158,17 @@ fn get_asset_usage_counts(client: &mut DatabaseClient, since: NaiveDateTime) -> 
 pub(crate) fn transactions_by_wallet_since(client: &mut DatabaseClient, wallet_id: i32, since: NaiveDateTime, filters: Vec<TransactionFilter>) -> Result<Vec<TransactionRow>, diesel::result::Error> {
     use crate::schema::transactions::dsl as tx_dsl;
     use crate::schema::transactions_addresses::dsl as addr_dsl;
-    use crate::schema::wallets_addresses::dsl as wallet_addr_dsl;
     use crate::schema::wallets_subscriptions::dsl as wallet_sub_dsl;
 
-    let mut query = tx_dsl::transactions
+    let query = tx_dsl::transactions
         .inner_join(addr_dsl::transactions_addresses.on(tx_dsl::id.eq(addr_dsl::transaction_id)))
-        .inner_join(wallet_addr_dsl::wallets_addresses.on(addr_dsl::address.eq(wallet_addr_dsl::address)))
-        .inner_join(wallet_sub_dsl::wallets_subscriptions.on(wallet_addr_dsl::id.eq(wallet_sub_dsl::address_id)))
+        .inner_join(wallet_sub_dsl::wallets_subscriptions.on(addr_dsl::address_id.eq(wallet_sub_dsl::address_id)))
         .into_boxed()
         .filter(wallet_sub_dsl::wallet_id.eq(wallet_id))
         .filter(tx_dsl::created_at.ge(since));
-
-    for filter in filters {
-        match filter {
-            TransactionFilter::States(states) => {
-                query = query.filter(tx_dsl::state.eq_any(transaction_states(states)));
-            }
-        }
-    }
+    let query = filters.into_iter().fold(query, |query, filter| match filter {
+        TransactionFilter::States(states) => query.filter(tx_dsl::state.eq_any(transaction_states(states))),
+    });
 
     query.distinct().select(TransactionRow::as_select()).load(&mut client.connection)
 }
@@ -202,18 +195,26 @@ impl TransactionsRepository for DatabaseClient {
     }
 
     fn upsert_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, DatabaseError> {
+        let addresses = transactions
+            .iter()
+            .flat_map(Transaction::assets_addresses)
+            .map(|asset_address| asset_address.address)
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect();
+        let address_ids: HashMap<String, i32> = wallet_addresses(self, addresses)?.into_iter().map(|row| (row.address, row.id)).collect();
         Ok(self.connection.transaction::<_, diesel::result::Error, _>(|conn| {
             transactions
                 .into_iter()
                 .map(|transaction| {
                     let (stored, is_inserted) = upsert_transaction(conn, &transaction)?;
 
-                    let addresses = NewTransactionAddressesRow::from_transaction(stored.id, &transaction);
-                    if !addresses.is_empty() {
+                    let wallet_address_rows = NewTransactionAddressesRow::from_transaction(stored.id, &transaction, &address_ids);
+                    if !wallet_address_rows.is_empty() {
                         use crate::schema::transactions_addresses::dsl as addr_dsl;
                         diesel::insert_into(addr_dsl::transactions_addresses)
-                            .values(&addresses)
-                            .on_conflict((addr_dsl::transaction_id, addr_dsl::address, addr_dsl::asset_id))
+                            .values(&wallet_address_rows)
+                            .on_conflict((addr_dsl::address_id, addr_dsl::transaction_id, addr_dsl::asset_id))
                             .do_nothing()
                             .execute(conn)?;
                     }
@@ -246,26 +247,29 @@ impl TransactionsRepository for DatabaseClient {
             return Ok(0);
         }
 
+        let wallet_transaction_ids = transactions_addresses::table
+            .inner_join(wallets_addresses::table)
+            .filter(wallets_addresses::address.eq_any(addresses))
+            .select(transactions_addresses::transaction_id);
         Ok(transactions
-            .inner_join(transactions_addresses::table)
+            .filter(id.eq_any(wallet_transaction_ids))
             .filter(chain.eq_any(chains))
-            .filter(transactions_addresses::address.eq_any(addresses))
             .filter(state.ne(TransactionState::InTransit))
-            .select(count(id).aggregate_distinct())
+            .select(count(id))
             .first(&mut self.connection)?)
     }
 
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<ChainAddress>, DatabaseError> {
         use crate::schema::transactions::dsl as tx_dsl;
-        use crate::schema::transactions_addresses::dsl::*;
 
-        Ok(transactions_addresses
+        Ok(transactions_addresses::table
             .inner_join(tx_dsl::transactions)
+            .inner_join(wallets_addresses::table)
             .filter(tx_dsl::created_at.ge(since))
-            .select((address, tx_dsl::chain))
-            .group_by((address, tx_dsl::chain))
-            .having(count(address).gt(min_count))
-            .order_by(count(address).desc())
+            .select((wallets_addresses::address, tx_dsl::chain))
+            .group_by((wallets_addresses::address, tx_dsl::chain))
+            .having(count(wallets_addresses::address).gt(min_count))
+            .order_by(count(wallets_addresses::address).desc())
             .limit(limit)
             .load::<AddressChainIdResultRow>(&mut self.connection)?
             .into_iter()
@@ -282,18 +286,19 @@ impl TransactionsRepository for DatabaseClient {
         }
 
         Ok(self.connection.transaction::<_, diesel::result::Error, _>(|connection| {
-            let mut transaction_ids = vec![];
-            for chain_address in chain_addresses {
-                let mut deleted_ids = diesel::delete(
-                    addr_dsl::transactions_addresses
-                        .filter(addr_dsl::address.eq(chain_address.address))
-                        .filter(exists(tx_dsl::transactions.filter(tx_dsl::id.eq(addr_dsl::transaction_id)).filter(tx_dsl::chain.eq(ChainRow::from(chain_address.chain))))),
-                )
-                .returning(addr_dsl::transaction_id)
-                .load(connection)?;
-                transaction_ids.append(&mut deleted_ids);
-            }
-            Ok(transaction_ids)
+            chain_addresses
+                .into_iter()
+                .map(|chain_address| {
+                    diesel::delete(
+                        addr_dsl::transactions_addresses
+                            .filter(addr_dsl::address_id.eq_any(wallets_addresses::table.filter(wallets_addresses::address.eq(chain_address.address)).select(wallets_addresses::id)))
+                            .filter(exists(tx_dsl::transactions.filter(tx_dsl::id.eq(addr_dsl::transaction_id)).filter(tx_dsl::chain.eq(ChainRow::from(chain_address.chain))))),
+                    )
+                    .returning(addr_dsl::transaction_id)
+                    .load::<i64>(connection)
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .map(|deleted_ids| deleted_ids.into_iter().flatten().collect())
         })?)
     }
 
@@ -369,15 +374,15 @@ impl TransactionsRepository for DatabaseClient {
 
     fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<PrimitiveTransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError> {
         use crate::schema::transactions::dsl as tx_dsl;
-        use crate::schema::transactions_addresses::dsl::*;
 
-        Ok(transactions_addresses
+        Ok(transactions_addresses::table
             .inner_join(tx_dsl::transactions)
+            .inner_join(wallets_addresses::table)
             .filter(tx_dsl::chain.eq(chain))
             .filter(tx_dsl::kind.eq_any(transaction_kinds(kinds)))
             .filter(tx_dsl::state.eq(TransactionState::Confirmed))
             .filter(tx_dsl::created_at.ge(since))
-            .select(address)
+            .select(wallets_addresses::address)
             .distinct()
             .load::<String>(&mut self.connection)?)
     }
@@ -385,9 +390,17 @@ impl TransactionsRepository for DatabaseClient {
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
+    use diesel::prelude::*;
     use primitives::{Asset, Chain, Transaction, TransactionDirection, TransactionId};
 
-    use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, TransactionsRepository};
+    use crate::models::NewWalletAddressRow;
+    use crate::schema::wallets_addresses;
+    use crate::{AssetsRepository, ChainsRepository, Database, DatabaseClient, DatabaseError, TransactionsRepository};
+
+    fn add_wallet_addresses(client: &mut DatabaseClient, addresses: &[&str]) -> Result<usize, DatabaseError> {
+        let rows: Vec<NewWalletAddressRow> = addresses.iter().map(|address| NewWalletAddressRow { address: address.to_string() }).collect();
+        Ok(diesel::insert_into(wallets_addresses::table).values(&rows).execute(&mut client.connection)?)
+    }
 
     #[tokio::test]
     async fn test_get_transaction_by_id_direction_from_wallet_addresses() {
@@ -416,6 +429,59 @@ mod database_integration_tests {
         assert_eq!(by_hash.len(), 1);
         assert_eq!(by_hash[0].from, "0xfrom");
         assert_eq!(by_hash[0].to, "0xto");
+    }
+
+    #[tokio::test]
+    async fn test_get_transactions_by_device_id_returns_transaction_once_for_multiple_wallet_addresses() {
+        let database = Database::mock();
+        let transaction = Transaction {
+            id: TransactionId::new(Chain::Ethereum, "0xdevicehistorytest".to_string()),
+            ..Transaction::mock()
+        };
+        let transactions = database
+            .run(move |client| -> Result<_, DatabaseError> {
+                client.add_chains(vec![Chain::Ethereum])?;
+                client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
+                add_wallet_addresses(client, &["0xfrom", "0xto"])?;
+                client.upsert_transactions(vec![transaction])?;
+                client.get_transactions_by_device_id("", vec!["0xfrom".to_string(), "0xto".to_string()], vec![Chain::Ethereum.to_string()], None, None, 10, 0)
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].id.hash, "0xdevicehistorytest");
+    }
+
+    #[tokio::test]
+    async fn test_upsert_transactions_links_only_wallet_addresses() {
+        let database = Database::mock();
+        let transaction = Transaction {
+            id: TransactionId::new(Chain::Ethereum, "0xwalletlinktest".to_string()),
+            from: "0xlinkfrom".to_string(),
+            to: "0xlinkto".to_string(),
+            ..Transaction::mock()
+        };
+        let chains = vec![Chain::Ethereum.to_string()];
+        let (from_before, to_before, from_after) = database
+            .run(move |client| -> Result<_, DatabaseError> {
+                client.add_chains(vec![Chain::Ethereum])?;
+                client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
+                add_wallet_addresses(client, &["0xlinkto"])?;
+                client.upsert_transactions(vec![transaction.clone()])?;
+                let from_before = client.count_transactions_by_addresses(vec!["0xlinkfrom".to_string()], chains.clone())?;
+                let to_before = client.count_transactions_by_addresses(vec!["0xlinkto".to_string()], chains.clone())?;
+                add_wallet_addresses(client, &["0xlinkfrom"])?;
+                client.upsert_transactions(vec![transaction])?;
+                let from_after = client.count_transactions_by_addresses(vec!["0xlinkfrom".to_string()], chains)?;
+                Ok((from_before, to_before, from_after))
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(from_before, 0);
+        assert_eq!(to_before, 1);
+        assert_eq!(from_after, 1);
     }
 }
 

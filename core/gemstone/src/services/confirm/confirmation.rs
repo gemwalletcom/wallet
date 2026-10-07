@@ -107,10 +107,10 @@ impl GemConfirmation {
                 ),
             }),
             TransactionInputType::Perpetual {
+                asset,
                 perpetual_type: PerpetualType::Modify { data },
-                ..
-            } => autoclose_row(data).map(|row| GemConfirmDetails::PerpetualAutoclose { row }),
-            TransactionInputType::Perpetual { perpetual_type, .. } => perpetual_confirm_details(perpetual_type.clone()).map(|details| GemConfirmDetails::Perpetual { details }),
+            } => autoclose_row(asset, data).map(|row| GemConfirmDetails::PerpetualAutoclose { row }),
+            TransactionInputType::Perpetual { asset, perpetual_type } => perpetual_confirm_details(asset.clone(), perpetual_type.clone()).map(|details| GemConfirmDetails::Perpetual { details }),
             _ => None,
         }
     }

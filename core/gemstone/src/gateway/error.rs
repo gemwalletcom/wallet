@@ -1,4 +1,4 @@
-use crate::alien::AlienError;
+use crate::alien::RpcAlienError;
 use crate::transaction_state::TransactionStatusError;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use std::{error::Error, fmt::Display};
@@ -61,10 +61,10 @@ pub(crate) fn map_network_error(error: Box<dyn Error + Send + Sync>) -> GatewayE
 }
 
 fn is_offline(error: &(dyn Error + 'static)) -> bool {
-    let offline = AlienError::Offline.to_string();
+    let offline = RpcAlienError::Offline.to_string();
     let mut current_error: Option<&(dyn Error + 'static)> = Some(error);
     while let Some(err) = current_error {
-        if matches!(err.downcast_ref::<AlienError>(), Some(AlienError::Offline)) || err.to_string().contains(&offline) {
+        if matches!(err.downcast_ref::<RpcAlienError>(), Some(RpcAlienError::Offline)) || err.to_string().contains(&offline) {
             return true;
         }
         current_error = err.source();
@@ -76,8 +76,8 @@ fn http_status_from_error(error: &(dyn Error + 'static)) -> Option<u16> {
     let mut current_error: Option<&(dyn Error + 'static)> = Some(error);
 
     while let Some(err) = current_error {
-        if let Some(alien_error) = err.downcast_ref::<AlienError>()
-            && let AlienError::Http { status, .. } = alien_error
+        if let Some(alien_error) = err.downcast_ref::<RpcAlienError>()
+            && let RpcAlienError::Http { status, .. } = alien_error
         {
             return Some(*status);
         }
@@ -100,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_map_network_error_with_status_code() {
-        let error = AlienError::Http { status: 404, len: 0 };
+        let error = RpcAlienError::Http { status: 404, len: 0 };
         let mapped = map_network_error(Box::new(error));
 
         match mapped {
@@ -111,8 +111,11 @@ mod tests {
 
     #[test]
     fn test_map_network_error_keeps_offline_kind() {
-        assert_eq!(map_network_error(Box::new(AlienError::Offline)), GatewayError::Offline);
-        assert_eq!(map_network_error(Box::<gem_client::ClientError>::new(gem_client::ClientError::Network(AlienError::Offline.to_string()))), GatewayError::Offline);
+        assert_eq!(map_network_error(Box::new(RpcAlienError::Offline)), GatewayError::Offline);
+        assert_eq!(
+            map_network_error(Box::<gem_client::ClientError>::new(gem_client::ClientError::Network(RpcAlienError::Offline.to_string()))),
+            GatewayError::Offline
+        );
         assert_eq!(
             map_network_error(Box::new(JsonRpcError {
                 code: ERROR_CLIENT_ERROR,
@@ -121,7 +124,7 @@ mod tests {
             })),
             GatewayError::Offline
         );
-        assert!(matches!(map_network_error(Box::new(AlienError::ResponseError { msg: "timeout".into() })), GatewayError::NetworkError { .. }));
+        assert!(matches!(map_network_error(Box::new(RpcAlienError::ResponseError { msg: "timeout".into() })), GatewayError::NetworkError { .. }));
     }
 
     #[test]

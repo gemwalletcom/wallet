@@ -17,6 +17,7 @@ pub(crate) enum CacheKey<'a> {
     FetchAssets(&'a str),
     FetchNftAsset(&'a str),
     Price(&'a str),
+    PriceProviders,
     PriceMetadata(&'a str, u64),
     PriceMissingMapping(&'a str, &'a str, u64),
 
@@ -73,6 +74,7 @@ impl CacheKey<'_> {
             Self::FetchAssets(asset_id) => format!("fetch:assets:{}", asset_id),
             Self::FetchNftAsset(asset_id) => format!("fetch:nft_asset:{}", asset_id),
             Self::Price(asset_id) => format!("prices:{}", asset_id),
+            Self::PriceProviders => "prices:providers".to_string(),
             Self::PriceMetadata(id, _) => format!("prices:metadata:{}", id),
             Self::PriceMissingMapping(provider, id, _) => format!("prices:missing_mapping:{}:{}", provider, id),
             Self::FiatRates => "fiat:rates".to_string(),
@@ -116,6 +118,7 @@ impl CacheKey<'_> {
             Self::FetchAssets(_) => 30 * SECONDS_PER_DAY,
             Self::FetchNftAsset(_) => SECONDS_PER_HOUR,
             Self::Price(_) => 30 * SECONDS_PER_DAY,
+            Self::PriceProviders => SECONDS_PER_MINUTE,
             Self::PriceMetadata(_, ttl) | Self::PriceMissingMapping(_, _, ttl) => *ttl,
             Self::FiatRates => SECONDS_PER_DAY,
             Self::FiatQuote(_, _, _) => 15 * SECONDS_PER_MINUTE,

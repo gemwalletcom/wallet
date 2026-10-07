@@ -131,7 +131,7 @@ impl Services {
     }
 
     pub async fn store_prices_consumer(&self) -> Result<StorePricesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(StorePricesConsumer::new(self.prices_repository(), self.prices(self.cacher().await?), self.config()))
+        Ok(StorePricesConsumer::new(self.prices(self.cacher().await?), self.config()))
     }
 
     pub async fn wallet_stream_consumer(&self) -> Result<WalletStreamConsumer, Box<dyn Error + Send + Sync>> {

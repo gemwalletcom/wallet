@@ -39,8 +39,8 @@ final class GemNodeStoreMock: GemNodeStore, @unchecked Sendable {
 }
 
 public extension GemNodeService {
-    static func mock() -> GemNodeService {
-        GemNodeService(store: GemNodeStoreMock(), preferences: GemPreferencesStoreMock())
+    static func mock(preferences: GemPreferencesStore = GemPreferencesStoreMock()) -> GemNodeService {
+        GemNodeService(store: GemNodeStoreMock(), preferences: preferences)
     }
 }
 

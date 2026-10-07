@@ -15,14 +15,13 @@ import Testing
 struct SecuritySceneViewModelTests {
     @Test
     func theSceneStartsFromWhatTheKeystoreReports() {
-        let service = BiometryAuthenticationMock(requiresAuthentication: true, lockPeriod: .oneMinute, isPrivacyLockEnabled: true)
+        let service = BiometryAuthenticationMock(requiresAuthentication: true, lockPeriod: .oneMinute)
         let settings = GemSettingsServiceMock()
         let model = SecuritySceneViewModel.mock(service: service, settings: settings)
 
         _ = model.sections
 
         #expect(model.isEnabled)
-        #expect(model.isPrivacyLockEnabled)
         #expect(settings.securitySectionsCalls.map(\.lockPeriod) == [GemLockPeriod.oneMinute.title])
     }
 
@@ -106,19 +105,6 @@ struct SecuritySceneViewModelTests {
         model.onToggle(.hideBalance, true)
 
         #expect(preferences.isHideBalanceEnabled)
-    }
-
-    @Test
-    func aFailedPrivacyLockRevertsTheToggle() {
-        let service = BiometryAuthenticationMock(isPrivacyLockEnabled: false)
-        service.privacyLockError = AnyError("not available")
-        let model = SecuritySceneViewModel.mock(service: service)
-        model.isPrivacyLockEnabled = true
-
-        model.togglePrivacyLock()
-
-        #expect(model.isPrivacyLockEnabled == false)
-        #expect(model.isPresentingAlertMessage?.message == "not available")
     }
 
     @Test

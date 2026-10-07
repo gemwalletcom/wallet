@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 ساعات</string>
   <string name="lock_require_authentication">تتطلب المصادقة</string>
   <string name="lock_unlock">فتح</string>
-  <string name="lock_privacy_lock">قفل الخصوصية</string>
   <string name="lock_footer">حماية الوصول إلى هذا التطبيق على جهازك</string>
   <string name="lock_passcode">رمز المرور</string>
   <string name="lock_passcode_off_title">رمز مرور الجهاز متوقف</string>

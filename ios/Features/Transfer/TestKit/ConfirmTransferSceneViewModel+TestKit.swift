@@ -2,7 +2,6 @@
 
 import func Gemstone.addressCopy
 import struct Gemstone.AddressName
-import class Gemstone.GemAddressService
 import struct Gemstone.GemConfirmLoad
 import enum Gemstone.GemConfirmRowContent
 import struct Gemstone.GemCopy
@@ -39,7 +38,7 @@ public extension ConfirmTransferSceneViewModel {
             ))
             let recipient: GemConfirmRowContent = .recipient(row: .mock(
                 title: .confirmDestination(destination: .recipient(name: addressName?.name, address: data.recipient.address)),
-                text: .text(text: addressName?.name ?? GemAddressService.shared.format(address: data.recipient.address, chain: data.chain.rawValue, style: .short)),
+                text: .text(text: addressName?.name ?? addressCopy(chain: data.chain.rawValue, address: data.recipient.address).display),
                 chain: data.chain.rawValue,
                 address: data.recipient.address,
                 isSelectable: true,

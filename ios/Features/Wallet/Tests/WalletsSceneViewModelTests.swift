@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemWalletRow
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import GemstonePrimitives

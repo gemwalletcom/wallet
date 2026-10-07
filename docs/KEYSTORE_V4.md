@@ -127,6 +127,64 @@ Android:
 
 Empty v4 passwords are rejected. v3 empty passwords are accepted only for legacy compatibility. On iOS, password lookup, policy lookup, generation and storage share one process-wide lock with authentication changes. Only an authorized first-wallet import may create a password; absent or legacy empty values otherwise fail as missing. A policy chosen before the first password is applied when it is created, and reusing an existing password leaves its policy unchanged (`LocalKeystorePasswordTests`).
 
+### Android Password Keysets
+
+The wallet password store is one AndroidKeyStore key that wraps a Tink AES-GCM keyset in a preferences file, which in turn encrypts the passwords in a second preferences file. The secure preferences store, which holds the passcode flag and the lock interval, and the device key store use the same chain with their own master keys and are never wrapped by the authentication-bound key.
+
+```mermaid
+flowchart TD
+    PM["AndroidKeyStore master key<br/>gem_wallet_password_master_key"]
+    PA["AndroidKeyStore auth-bound key<br/>gem_wallet_password_master_key_authenticated<br/>usable within 10 s of a credential or strong biometric"]
+    PK["gem_wallet_password_keyset_prefs.xml<br/>gem_wallet_password_keyset or gem_wallet_password_keyset_authenticated, never both"]
+    PV["gem_wallet_passwords.xml<br/>shared password and legacy per-wallet passwords"]
+    Legacy["pwd.xml, androidx EncryptedSharedPreferences"]
+    PM -- "wraps, passcode off" --> PK
+    PA -- "wraps, passcode on" --> PK
+    PK -- "AES-GCM, AAD wallet_password:key" --> PV
+    Legacy -. "migrated on first read" .-> PV
+```
+
+With the passcode on, every password read goes through the hardware's own authentication window. The app still shows the system prompt before each sensitive operation, but the prompt is the UX; the Keystore check is the enforcement, so a hooked `authRequired()` or a tampered preference gets an error, not a password.
+
+```mermaid
+flowchart LR
+    Site["Call site: export, sign, create, import, rewards"] --> Prompt["requestAuth: system prompt"]
+    Prompt -- "success" --> Core["Core get_password, once per operation"]
+    Core --> Store["TinkPasswordStore reads gem_wallet_passwords.xml"]
+    Store --> Envelope{"Envelope present?"}
+    Envelope -- "No" --> Master["Master key unwraps the keyset"]
+    Envelope -- "Yes" --> Window{"Keystore: credential or strong biometric within 10 s?"}
+    Window -- "No" --> Fail["UserNotAuthenticatedException: read fails, nothing decrypted"]
+    Window -- "Yes" --> Unwrap["Auth-bound key unwraps the keyset in memory"]
+    Master --> Decrypt["Tink AEAD decrypts the password"]
+    Unwrap --> Decrypt
+    Decrypt --> Open["Core opens the v4 file"]
+```
+
+The lock screen, the lock timer and the Settings toggle read `passwordProtection.authenticationRequired() || securityPreferences.authRequired()`: the envelope's presence is the source of truth and the preference can only add the requirement, never remove it.
+
+Every transition rewrites the keyset file in one commit, so an interrupted switch leaves one consistent state. The reset out of a lost key is deliberately narrow: a store that still holds any wallet's password is never reset.
+
+```mermaid
+stateDiagram-v2
+    Unprotected: Unprotected, gem_wallet_password_keyset under the master key
+    Protected: Protected, gem_wallet_password_keyset_authenticated under the auth-bound key
+    Lost: Key lost, alias absent or permanently invalidated
+    [*] --> Unprotected
+    Unprotected --> Protected: enable in Settings, in the onboarding offer, or at the first unlock after an upgrade with the passcode on. New auth key, wrap, write the envelope and remove the plain entry in one commit, delete the master key
+    Protected --> Unprotected: disable in Settings. New master key, wrap, write the plain entry and remove the envelope in one commit, delete the auth key
+    Protected --> Lost: screen lock removed. Enrollment changes do not invalidate the key
+    Lost --> Lost: every read fails, wallets are restored from their phrases
+    Lost --> Unprotected: next create or import, only when no wallet is stored and the store holds nothing but the shared password. Envelope removed, auth key deleted, new keyset; the next unlock protects it again
+```
+
+| Store | Values file | Keyset file and entry | Keystore alias |
+|---|---|---|---|
+| Wallet passwords | `gem_wallet_passwords.xml` | `gem_wallet_password_keyset_prefs.xml`, `gem_wallet_password_keyset` or `gem_wallet_password_keyset_authenticated` | `gem_wallet_password_master_key` or `gem_wallet_password_master_key_authenticated` |
+| Secure preferences | `gem_secure_preferences.xml` | `gem_secure_preferences_keyset_prefs.xml`, `gem_secure_preferences_keyset` | `gem_secure_preferences_master_key` |
+| Device keys | `gem_device_keys.xml` | `gem_device_master_key.xml`, `ngen_gem_keyset` | `gem_device_master_key` |
+| Legacy | `pwd.xml` | androidx EncryptedSharedPreferences keysets, migrated out on first read | androidx master key |
+
 ## Keystore-Internal Signing
 
 Routine signing runs inside Rust. The decrypted key never crosses the UniFFI/JNI boundary, and neither do these signing methods: Core's own services pass the keystore id, chain, prepared input, and password bytes, and receive only signatures.
@@ -243,6 +301,7 @@ Rules:
 - Keep WalletCore references out of production keystore flows except explicit legacy migration support during rollout.
 - A thrown Keychain or Keystore read error is not "absent". Only a confirmed not-found result may create a new password; errors propagate and never remove, overwrite, or regenerate existing password or keystore material.
 - Android verifies an empty preferences load against the file on disk (backup first, as the platform restores it) before treating a password or keyset as absent, wraps the Tink keyset with the Keystore master key on every path and re-wraps a cleartext keyset in place, and generates a new keyset only while the value file is empty. A shared-password migration failure is shown at startup, not only logged (`SecureStorageFailureInstrumentedTest`, `EncryptedKeysetTest`).
+- When Android authentication is enabled, the password keyset is wrapped with a Keystore key that requires a device credential or strong biometric within the last 10 seconds; every password read unwraps it, so neither the preference nor a process hook can bypass it, and a missing or tampered envelope fails closed. Enabling it in Settings or in the onboarding offer, or the first unlock of an installation that already had authentication on, converts the keyset in one commit; a failure is shown at startup and the wallet keeps the unprotected keyset. Removing the screen lock invalidates the key, so wallets must then be restored from their recovery phrases: once every wallet is removed, the next create or import finds the key lost, discards the keyset and the one shared password it still holds, and starts a new store that the next unlock protects again. A store that holds any other password, or a key that is only waiting for authentication, is never reset (`PasswordKeysetInstrumentedTest`, `LockViewModelTest`, `MainViewModelStartupErrorTest`).
 - Uninstall semantics differ by platform: iOS Keychain items survive app removal, so a broken password item persists across reinstall, while Android app removal wipes the password store, master key, and keystore files, so reinstalling without a backed-up phrase loses the wallet. Recovery guidance and support scripts must never recommend reinstall as a fix.
 
 ## Misc

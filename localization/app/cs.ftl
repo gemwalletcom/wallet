@@ -534,7 +534,6 @@ lock_one_hour = 1 hodina
 lock_six_hours = 6 hodin
 lock_require_authentication = Vyžadovat ověření
 lock_unlock = Odemknout
-lock_privacy_lock = Zámek soukromí
 lock_footer = Chraňte přístup k této aplikaci na svém zařízení
 lock_passcode = Přístupový kód
 lock_passcode_off_title = Kód zařízení je vypnutý

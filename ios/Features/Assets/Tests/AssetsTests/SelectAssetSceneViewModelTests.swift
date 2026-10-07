@@ -3,7 +3,6 @@
 @testable import Assets
 import AssetsTestKit
 import Components
-import enum Gemstone.GemSelectAssetState
 import enum Gemstone.GemServiceError
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit

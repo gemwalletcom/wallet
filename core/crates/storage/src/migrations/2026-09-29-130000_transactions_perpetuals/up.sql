@@ -3,7 +3,7 @@ CREATE TYPE perpetual_direction AS ENUM ('long', 'short');
 CREATE TABLE transactions_perpetuals (
     transaction_id BIGINT PRIMARY KEY REFERENCES transactions (id) ON DELETE CASCADE,
     provider perpetual_provider NOT NULL,
-    asset_id VARCHAR NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
+    asset_id VARCHAR(128) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
     kind transaction_type NOT NULL,
     direction perpetual_direction NOT NULL,
     size_usd float NOT NULL,

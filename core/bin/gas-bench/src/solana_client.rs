@@ -5,9 +5,10 @@ use gem_jsonrpc::alien::RpcProvider;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_solana::models::jito::{FeeStats, calculate_fee_stats};
 use gem_solana::models::prioritization_fee::SolanaPrioritizationFee;
+use gem_solana::provider::preload_mapper::calculate_fee_rates;
 use gem_solana::{JUPITER_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, SolanaRpc, SolanaRpcConfig, USDC_TOKEN_MINT};
 use gemstone::alien::{new_alien_client, reqwest_provider::NativeProvider};
-use primitives::Chain;
+use primitives::{Asset, AssetId, AssetType, Chain, FeePriority, TransactionInputType};
 
 const MIN_NORMAL_FEE: u64 = 10_000;
 const MIN_FAST_FEE: u64 = 100_000;
@@ -21,8 +22,18 @@ pub struct JitoTipEstimates {
 }
 
 #[derive(Debug)]
+pub struct CoreFeeRate {
+    pub transfer: &'static str,
+    pub priority: FeePriority,
+    pub unit_price: u64,
+    pub priority_fee: u64,
+    pub total_fee: u64,
+}
+
+#[derive(Debug)]
 pub struct SolanaFeeData {
     pub slot: u64,
+    pub core_rates: Vec<CoreFeeRate>,
     pub priority_fees: PriorityFees,
     pub jito_tips: JitoTipEstimates,
     pub raw_fees: FeeStats,
@@ -77,6 +88,19 @@ impl SolanaGasClient {
             }
         }
 
+        let mut core_rates = Vec::new();
+        for (transfer, asset) in core_transfer_assets() {
+            for rate in calculate_fee_rates(&TransactionInputType::Transfer { asset }, &global_fees) {
+                core_rates.push(CoreFeeRate {
+                    transfer,
+                    priority: rate.priority,
+                    unit_price: u64::try_from(rate.gas_price_type.unit_price())?,
+                    priority_fee: u64::try_from(rate.gas_price_type.priority_fee())?,
+                    total_fee: u64::try_from(rate.gas_price_type.total_fee())?,
+                });
+            }
+        }
+
         let global_values: Vec<i64> = global_fees.iter().map(|f| f.prioritization_fee).collect();
         let raw_fees = calculate_fee_stats(&global_values);
 
@@ -86,12 +110,20 @@ impl SolanaGasClient {
 
         Ok(SolanaFeeData {
             slot,
+            core_rates,
             priority_fees,
             jito_tips,
             raw_fees,
             account_fees,
         })
     }
+}
+
+fn core_transfer_assets() -> [(&'static str, Asset); 2] {
+    [
+        ("SOL", Asset::from_chain(Chain::Solana)),
+        ("USDC", Asset::new(AssetId::from_token(Chain::Solana, USDC_TOKEN_MINT), "USD Coin".to_string(), "USDC".to_string(), 6, AssetType::SPL)),
+    ]
 }
 
 fn get_best_fee_stats(global: &FeeStats, accounts: &AccountFeeStats) -> FeeStats {

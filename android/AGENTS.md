@@ -23,12 +23,4 @@ Read `core/AGENTS.md` when the task touches `core/`, generated models, JNI bindi
 
 ## Task Completion
 
-Before finishing an Android task:
-1. Use [Quality Checks](../skills/quality-checks.md) to choose targeted vs full verification
-2. Run at least one real Gradle verification command for the touched codepath
-3. If Core changed Android-facing interfaces, generated artifacts, build inputs, or app integration, regenerate the required artifacts and verify Android still builds
-4. Run `just android format`
-5. Clean imports and follow the shared comment policy
-6. In tests, prefer shared `:gemcore` fixtures with sensible defaults over inline full-field mock construction
-
-For UI changes, smoke the changed flow on an emulator or device when the flow is reachable. `git diff --check`, code inspection, or reasoning are not enough. If Gradle is blocked by unrelated repo failures, report the exact command and blocking error instead of claiming the change was verified.
+Follow [Task Workflow](../skills/task-workflow.md#4-verify-the-actual-result) and the Android rows in [Quality Checks](../skills/quality-checks.md). For UI changes, smoke the changed flow on an emulator or device when reachable. Test fixture conventions live in [Testing](skills/testing.md#shared-testkit).

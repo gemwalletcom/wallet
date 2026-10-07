@@ -10,10 +10,7 @@ public protocol KeystorePassword: Sendable {
     func getAuthentication() throws -> KeystoreAuthentication
     func getAvailableAuthentication() -> KeystoreAuthentication
     func enableAuthentication(_ enable: Bool, context: LAContext) throws
-    func remove() throws
-
-    func getPrivacyLockStatus() throws -> PrivacyLockStatus?
-    func setPrivacyLockStatus(_ status: PrivacyLockStatus) throws
+    func unlock(context: LAContext) throws
 
     func getAuthenticationLockPeriod() throws -> GemLockPeriod?
     func setAuthenticationLockPeriod(period: GemLockPeriod) throws

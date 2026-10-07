@@ -3,6 +3,7 @@ use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
 use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
@@ -26,6 +27,16 @@ impl GemPerpetual {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_price(price, decimals),
         }
+    }
+
+    pub fn price_decimals(&self, price: f64, decimals: u32) -> u32 {
+        match self.provider {
+            PerpetualProvider::Hypercore => PerpetualFormatter::price_decimals(price, decimals),
+        }
+    }
+
+    pub fn display_price(&self, price: f64, decimals: u32) -> GemFormattedNumber {
+        GemFormattedNumber::usd(price).with_places(self.price_decimals(price, decimals))
     }
 
     pub fn format_input_price(&self, price: f64, decimals: u32, decimal_separator: String) -> String {

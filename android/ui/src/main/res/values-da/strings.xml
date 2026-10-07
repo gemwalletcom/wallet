@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 timer</string>
   <string name="lock_require_authentication">Kræv godkendelse</string>
   <string name="lock_unlock">Lås op</string>
-  <string name="lock_privacy_lock">Privatlivslås</string>
   <string name="lock_footer">Beskyt adgangen til denne app på din enhed</string>
   <string name="lock_passcode">Adgangskode</string>
   <string name="lock_passcode_off_title">Enhedens adgangskode er slået fra</string>

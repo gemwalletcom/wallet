@@ -24,6 +24,11 @@ impl Asset {
         Asset::new(AssetId::from_token(Chain::HyperCore, "usdc"), "USDC".to_string(), "USDC".to_string(), 6, AssetType::TOKEN)
     }
 
+    pub fn mock_perpetual() -> Self {
+        let token_id = AssetId::sub_token_id(&["perpetual".to_string(), "XRP".to_string()]);
+        Asset::new(AssetId::from(Chain::HyperCore, Some(token_id)), "XRP".to_string(), "XRP".to_string(), 0, AssetType::PERPETUAL)
+    }
+
     pub fn mock_ton_usdt() -> Self {
         Asset::new(TON_USDT_ASSET_ID.clone(), "Tether USD".to_string(), "USDT".to_string(), 6, AssetType::JETTON)
     }

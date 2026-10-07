@@ -76,7 +76,7 @@ impl GemAmountService {
                     }),
                     _ => None,
                 },
-                autoclose: action.shows_autoclose().then(|| self.perpetual_autoclose_row(draft.clone(), decimal_separator.clone())),
+                autoclose: action.shows_autoclose().then(|| self.perpetual_autoclose_row(&action.data().asset, draft.clone(), decimal_separator.clone())),
             },
         }
     }
@@ -113,8 +113,8 @@ impl GemAmountService {
 }
 
 impl GemAmountService {
-    fn perpetual_autoclose_row(&self, draft: GemAutocloseDraft, decimal_separator: String) -> GemListRow {
+    fn perpetual_autoclose_row(&self, asset: &Asset, draft: GemAutocloseDraft, decimal_separator: String) -> GemListRow {
         let (take_profit, stop_loss) = draft.prices(&decimal_separator);
-        perpetual_rules::amount_autoclose_row(take_profit, stop_loss)
+        perpetual_rules::amount_autoclose_row(asset, take_profit, stop_loss)
     }
 }

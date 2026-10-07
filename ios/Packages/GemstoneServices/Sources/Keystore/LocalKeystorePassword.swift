@@ -11,7 +11,7 @@ public final class LocalKeystorePassword: KeystorePassword {
         static let password = "password"
         static let passwordAuthentication = "password_authentication"
         static let passwordAuthenticationPeriod = "password_authentication_period"
-        static let passwordAuthenticationPrivacyLock = "password_authentication_privacy_lock"
+        static let lockKey = "lock_key"
     }
 
     private static let lock = NSLock()
@@ -39,17 +39,6 @@ public final class LocalKeystorePassword: KeystorePassword {
         return GemLockPeriod(keychainValue: option)
     }
 
-    public func getPrivacyLockStatus() throws -> PrivacyLockStatus? {
-        guard let value = try keychain.get(Keys.passwordAuthenticationPrivacyLock) else {
-            return .none
-        }
-        return PrivacyLockStatus(rawValue: value) ?? .none
-    }
-
-    public func setPrivacyLockStatus(_ status: PrivacyLockStatus) throws {
-        try keychain.set(status.rawValue, key: Keys.passwordAuthenticationPrivacyLock)
-    }
-
     public func setAuthenticationLockPeriod(period: GemLockPeriod) throws {
         try keychain.set(period.keychainValue, key: Keys.passwordAuthenticationPeriod)
     }
@@ -67,7 +56,6 @@ public final class LocalKeystorePassword: KeystorePassword {
                 }
             case false:
                 try changeAuthentication(authentication: .none, context: context)
-                try setPrivacyLockStatus(.disabled)
                 try setAuthenticationLockPeriod(period: .default)
             }
         }
@@ -83,18 +71,21 @@ public final class LocalKeystorePassword: KeystorePassword {
                 throw KeystoreError.missingPassword
             }
             let authentication = try getAuthentication()
-            let password = try SecureRandom.generateKey(length: 32).hex
+            let password = try generateSecret()
             try setPassword(password, authentication: authentication, context: context)
             return password
         }
     }
 
-    public func remove() throws {
+    public func unlock(context: LAContext) throws {
         try Self.lock.withLock {
-            try keychain.remove(Keys.password)
-            try keychain.remove(Keys.passwordAuthentication)
-            try keychain.remove(Keys.passwordAuthenticationPeriod)
-            try keychain.remove(Keys.passwordAuthenticationPrivacyLock)
+            guard try storedLockKey(context: context) == nil else {
+                return
+            }
+            try setLockKey(generateSecret(), authentication: getAuthentication(), context: context)
+            guard try storedLockKey(context: context) != nil else {
+                throw KeystoreError.missingLockKey
+            }
         }
     }
 }
@@ -102,6 +93,10 @@ public final class LocalKeystorePassword: KeystorePassword {
 // MARK: - Private
 
 extension LocalKeystorePassword {
+    private func generateSecret() throws -> String {
+        try SecureRandom.generateKey(length: 32).hex
+    }
+
     private func setPassword(
         _ password: String,
         authentication: KeystoreAuthentication,
@@ -120,12 +115,26 @@ extension LocalKeystorePassword {
         return password
     }
 
+    private func storedLockKey(context: LAContext) throws -> String? {
+        try keychain.authenticationContext(context).get(Keys.lockKey)
+    }
+
+    private func setLockKey(_ lockKey: String, authentication: KeystoreAuthentication, context: LAContext) throws {
+        try keychain.remove(Keys.lockKey)
+        try keychain
+            .accessibility(.whenUnlockedThisDeviceOnly, authenticationPolicy: authentication.policy)
+            .authenticationContext(context)
+            .set(lockKey, key: Keys.lockKey)
+    }
+
     private func changeAuthentication(authentication: KeystoreAuthentication, context: LAContext) throws {
         let password = try storedPassword(context: context)
+        let lockKey = try storedLockKey(context: context) ?? generateSecret()
         try keychain.set(authentication.rawValue, key: Keys.passwordAuthentication)
         if let password {
             try setPassword(password, authentication: authentication, context: context)
         }
+        try setLockKey(lockKey, authentication: authentication, context: context)
     }
 }
 

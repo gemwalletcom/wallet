@@ -112,8 +112,8 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         switch transfer().inputType {
         case let .swap(fromAsset, toAsset, swapData):
             .swap(details: swapQuoteDetails(quote: swapData.quote, fromAsset: fromAsset, toAsset: toAsset, fromPrice: nil, toPrice: nil, currency: currency))
-        case let .perpetual(_, perpetualType):
-            perpetualConfirmDetails(perpetualType: perpetualType).map { .perpetual(details: $0) }
+        case let .perpetual(asset, perpetualType):
+            perpetualConfirmDetails(asset: asset, perpetualType: perpetualType).map { .perpetual(details: $0) }
         case .transfer, .deposit, .withdrawal, .stake, .tokenApprove, .generic, .payment, .transferNft, .account, .earn:
             nil
         }

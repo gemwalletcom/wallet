@@ -34,10 +34,9 @@ pub fn map_transaction_preload(nonce_hex: String, chain_id: String) -> Result<Tr
 
 pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHistory) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
     let base_fee = fee_history.base_fee_per_gas.last().ok_or("No base fee available")?;
-    let min_priority_fee = BigInt::from(chain.min_priority_fee());
 
     Ok(FeeCalculator::new()
-        .calculate_priority_fees(fee_history, &[FeePriority::Normal, FeePriority::Fast], min_priority_fee)?
+        .calculate_priority_fees(chain, fee_history, &[FeePriority::Normal, FeePriority::Fast])?
         .into_iter()
         .map(|fee| FeeRate::new(fee.priority, GasPriceType::eip1559(base_fee.clone(), fee.value)))
         .collect())
@@ -223,7 +222,7 @@ mod tests {
             result.into_iter().map(|rate| (rate.priority, rate.gas_price_type)).collect::<Vec<_>>(),
             vec![
                 (FeePriority::Normal, GasPriceType::eip1559(20_000_000_000u64, 200_000_000u64)),
-                (FeePriority::Fast, GasPriceType::eip1559(20_000_000_000u64, 600_000_000u64)),
+                (FeePriority::Fast, GasPriceType::eip1559(20_000_000_000u64, 2_220_000_000u64)),
             ]
         );
 

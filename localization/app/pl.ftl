@@ -534,7 +534,6 @@ lock_one_hour = 1 godzina
 lock_six_hours = 6 godzin
 lock_require_authentication = Wymagaj uwierzytelnienia
 lock_unlock = Odblokuj
-lock_privacy_lock = Blokada prywatności
 lock_footer = Chroń dostęp do tej aplikacji na swoim urządzeniu
 lock_passcode = Hasło
 lock_passcode_off_title = Kod urządzenia jest wyłączony

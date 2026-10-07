@@ -1,6 +1,7 @@
 use super::{
-    AppFee, DepositMode, NearIntentsClient, NearIntentsExplorer, QuoteRequest as NearQuoteRequest, QuoteResponse, QuoteResponseError, QuoteResponseResult, SwapType, auto_quote_time_chains, deposit_memo_chains, get_asset_id_from_near_asset,
-    get_near_asset_id,
+    AppFee, DepositData, DepositMode, NearIntentsClient, NearIntentsExplorer, QuoteRequest as NearQuoteRequest, QuoteResponse, QuoteResponseError, QuoteResponseResult, SwapType, auto_quote_time_chains,
+    chain::{self, hypercore, sui},
+    deposit_memo_chains, get_asset_id_from_near_asset, get_near_asset_id,
     model::{DEFAULT_WAIT_TIME_MS, DEPOSIT_TYPE_ORIGIN, ExplorerTransaction, RECIPIENT_TYPE_DESTINATION},
     supported_assets,
 };
@@ -17,7 +18,7 @@ use async_trait::async_trait;
 #[cfg(test)]
 use chrono::DateTime;
 use chrono::{Duration, Utc};
-use gem_sui::{SuiClient, build_transfer_message_bytes};
+use gem_sui::SuiClient;
 use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::Zero;
@@ -31,33 +32,25 @@ use std::{fmt::Debug, sync::Arc};
 const DEFAULT_DEADLINE_MINUTES: i64 = 30;
 const BITCOIN_DEADLINE_MINUTES: i64 = 120;
 
-const TREASURY_ADDRESSES: [&str; 17] = [
-    "0x2CfF890f0378a11913B6129B2E97417a2c302680",
-    "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd",
-    "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra",
-    "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ",
-    "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD",
-    "XxA9DbXaFpF4GFY8KUNX7eAxhZPsWtcKhc",
-    "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX",
-    "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML",
-    "intents.near",
-    "HWjmoUNYckccg9Qrwi43JTzBcGcM1nbdAtATf9GXmz16",
-    "UQAfoBd_f0pIvNpUPAkOguUrFWpGWV9TWBeZs_5TXE95_trZ",
-    "GDJ4JZXZELZD737NVFORH4PSSQDWFDZTKW3AIDKHYQG23ZXBPDGGQBJK",
-    "0x00ea18889868519abd2f238966cab9875750bb2859ed3a34debec37781520138",
-    "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446",
-    "TX5XiRXdyz7sdFwF5mnhT1QoGCpbkncpke",
-    "r9R8jciZBYGq32DxxQrBPi5ysZm67iQitH",
-    "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm",
+pub const TREASURY_ADDRESSES: [(Chain, &str); 17] = [
+    (Chain::Ethereum, "0x2CfF890f0378a11913B6129B2E97417a2c302680"),
+    (Chain::Monad, "0x233c5370CCfb3cD7409d9A3fb98ab94dE94Cb4Cd"),
+    (Chain::Bitcoin, "1C6XJtNXiuXvk4oUAVMkKF57CRpaTrN5Ra"),
+    (Chain::BitcoinCash, "1LxByjYMdnogW9Nc73srT4NCbS8oPVaXvZ"),
+    (Chain::Doge, "DRmCnxzL9U11EJzLmWkm2ikaZikPFbLuQD"),
+    (Chain::Dash, "XxA9DbXaFpF4GFY8KUNX7eAxhZPsWtcKhc"),
+    (Chain::Litecoin, "LQjEMkuiA2pCwFeUPwsu6ktzUubBVLsahX"),
+    (Chain::Zcash, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML"),
+    (Chain::Near, "intents.near"),
+    (Chain::Solana, "HWjmoUNYckccg9Qrwi43JTzBcGcM1nbdAtATf9GXmz16"),
+    (Chain::Ton, "UQAfoBd_f0pIvNpUPAkOguUrFWpGWV9TWBeZs_5TXE95_trZ"),
+    (Chain::Stellar, "GDJ4JZXZELZD737NVFORH4PSSQDWFDZTKW3AIDKHYQG23ZXBPDGGQBJK"),
+    (Chain::Sui, "0x00ea18889868519abd2f238966cab9875750bb2859ed3a34debec37781520138"),
+    (Chain::Aptos, "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446"),
+    (Chain::Tron, "TX5XiRXdyz7sdFwF5mnhT1QoGCpbkncpke"),
+    (Chain::Xrp, "r9R8jciZBYGq32DxxQrBPi5ysZm67iQitH"),
+    (Chain::Cardano, "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm"),
 ];
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DepositData {
-    pub to: String,
-    pub value: String,
-    pub data: String,
-    pub memo: Option<String>,
-}
 
 pub struct NearIntents<C>
 where
@@ -115,12 +108,15 @@ where
         Some(vec![AppFee { recipient: fee.address, fee: fee.bps }])
     }
 
-    fn build_quote_request(request: &QuoteRequest, mode: SwapType, dry: bool) -> Result<NearQuoteRequest, SwapperError> {
+    fn build_quote_request(request: &QuoteRequest, dry: bool) -> Result<NearQuoteRequest, SwapperError> {
         let origin_asset = get_near_asset_id(&request.from_asset)?;
         let destination_asset = get_near_asset_id(&request.to_asset)?;
         let deposit_mode = Self::deposit_mode(&request.from_asset);
         let from_chain = request.from_asset.asset_id().chain;
         let to_chain = request.to_asset.asset_id().chain;
+        if !chain::supports_destination(to_chain) {
+            return Err(SwapperError::NotSupportedAsset);
+        }
         let quote_waiting_time_ms = Some(Self::quote_waiting_time(from_chain, to_chain));
 
         let deadline_minutes = Self::get_deadline_by_chain(from_chain).max(Self::get_deadline_by_chain(to_chain));
@@ -131,7 +127,7 @@ where
             amount: request.value.to_string(),
             referral: DEFAULT_REFERRER.to_string(),
             recipient: request.destination_address.clone(),
-            swap_type: mode,
+            swap_type: chain::swap_type(from_chain),
             slippage_tolerance: request.options.slippage.bps,
             app_fees: Self::build_app_fee(),
             deposit_type: DEPOSIT_TYPE_ORIGIN.to_string(),
@@ -189,31 +185,16 @@ where
     }
 
     async fn build_deposit_data(&self, deposit_memo: Option<String>, from_asset: &SwapperQuoteAsset, wallet_address: &str, deposit_address: &str, amount_in: &str) -> Result<DepositData, SwapperError> {
-        if from_asset.asset_id().chain == Chain::Sui {
-            return self.build_sui_deposit_data(from_asset, wallet_address, deposit_address, amount_in).await;
+        match from_asset.chain() {
+            Chain::HyperCore => hypercore::build_deposit_data(from_asset, deposit_address, amount_in),
+            Chain::Sui => sui::build_deposit_data(&self.sui_client, from_asset, wallet_address, deposit_address, amount_in).await,
+            _ => Ok(DepositData {
+                to: deposit_address.to_string(),
+                value: amount_in.to_string(),
+                data: String::new(),
+                memo: deposit_memo,
+            }),
         }
-
-        Ok(DepositData {
-            to: deposit_address.to_string(),
-            value: amount_in.to_string(),
-            data: String::new(),
-            memo: deposit_memo,
-        })
-    }
-
-    async fn build_sui_deposit_data(&self, from_asset: &SwapperQuoteAsset, wallet_address: &str, deposit_address: &str, amount_in: &str) -> Result<DepositData, SwapperError> {
-        let amount = amount_in.parse::<u64>().map_err(|_| SwapperError::ComputeQuoteError("Invalid Sui amount provided for deposit".into()))?;
-
-        let message_bytes = build_transfer_message_bytes(&self.sui_client, wallet_address, deposit_address, amount, from_asset.asset_id().token_id.as_deref())
-            .await
-            .map_err(|error| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {error}")))?;
-
-        Ok(DepositData {
-            to: deposit_address.to_string(),
-            value: amount_in.to_string(),
-            data: message_bytes,
-            memo: None,
-        })
     }
 
     fn extract_quote(response: QuoteResponseResult, from_decimals: u32) -> Result<QuoteResponse, SwapperError> {
@@ -292,13 +273,12 @@ where
         self.supported_assets.clone()
     }
 
-    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
-        SwapAmountMode::Flexible
+    fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode {
+        chain::swap_type(request.from_asset.chain()).amount_mode()
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let quote_request = Self::build_quote_request(request, SwapType::FlexInput, true)?;
-        let amount = quote_request.amount.clone();
+        let quote_request = Self::build_quote_request(request, true)?;
         let response = Self::extract_quote(self.client.get_quote(&quote_request).await?, request.from_asset.decimals)?;
 
         let eta = response.quote.time_estimate;
@@ -307,7 +287,10 @@ where
         let route_data = serde_json::to_string(&quote_request)?;
 
         Ok(Quote {
-            from_value: BigUint::from_str(&amount).map_err(SwapperError::compute_quote_error)?,
+            from_value: match quote_request.swap_type {
+                SwapType::ExactInput => response.quote.amount_in,
+                SwapType::FlexInput => request.value.clone(),
+            },
             min_from_value: Some(min_amount_in),
             to_value: amount_out,
             data: ProviderData {
@@ -380,7 +363,7 @@ where
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses {
             deposit: vec![],
-            send: TREASURY_ADDRESSES.iter().map(ToString::to_string).collect(),
+            send: TREASURY_ADDRESSES.iter().map(|(_, address)| address.to_string()).collect(),
         })
     }
 }
@@ -388,12 +371,12 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{SwapperError, SwapperQuoteAsset};
+    use crate::{SwapperError, SwapperQuoteAsset, alien::mock::ProviderMock, near_intents::testkit::mock_hypercore_quote_request};
     use primitives::{
         AssetId, Chain,
         asset_constants::{POLYGON_USDC_ASSET_ID, TON_USDT_ASSET_ID},
     };
-    use serde_json::json;
+    use serde_json::{Value, json};
 
     fn status(json: &str) -> SwapResult {
         let transactions: Vec<ExplorerTransaction> = serde_json::from_str(json).unwrap();
@@ -410,9 +393,27 @@ mod tests {
         request.value = BigUint::from(37000000u64);
         request.options.use_max_amount = true;
 
-        let quote_request = NearIntents::<RpcClient>::build_quote_request(&request, SwapType::FlexInput, true).unwrap();
+        let quote_request = NearIntents::<RpcClient>::build_quote_request(&request, true).unwrap();
 
         assert_eq!(quote_request.amount, "37000000");
+    }
+
+    #[tokio::test]
+    async fn test_hypercore_quote_data() {
+        let provider = NearIntents::new(Arc::new(ProviderMock::new(include_str!("testdata/quote_hypercore_to_ethereum_usdc.json").to_string()))).unwrap();
+        let quote = provider.get_quote(&mock_hypercore_quote_request()).await.unwrap();
+        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let payload: Value = serde_json::from_str(&data.data).unwrap();
+
+        assert_eq!(quote.from_value, BigUint::from(10002430500_u64));
+        assert_eq!(payload["message"]["amount"], "100.024305");
+        assert_eq!(
+            data,
+            SwapperQuoteData {
+                data: data.data.clone(),
+                ..SwapperQuoteData::new_transfer("0x1085c5f70F7F7591D97da281A64688385455c2bD".into(), BigUint::from(10002430500_u64), None)
+            }
+        );
     }
 
     #[test]
@@ -422,7 +423,7 @@ mod tests {
             request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(to_chain));
             let earliest_deadline = Utc::now() + Duration::hours(2);
 
-            let quote_request = NearIntents::<RpcClient>::build_quote_request(&request, SwapType::FlexInput, true).unwrap();
+            let quote_request = NearIntents::<RpcClient>::build_quote_request(&request, true).unwrap();
             let latest_deadline = Utc::now() + Duration::hours(2);
             let deadline: DateTime<Utc> = quote_request.deadline.parse().unwrap();
 
@@ -574,12 +575,24 @@ mod tests {
 mod swap_integration_tests {
     use super::*;
     use crate::near_intents::assets::NEAR_INTENTS_BTC_NATIVE;
+    use crate::near_intents::testkit::mock_hypercore_quote_request;
     use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
     use primitives::{
         AssetId, Chain,
         asset_constants::{ARBITRUM_USDC_ASSET_ID, BASE_USDC_ASSET_ID, NEAR_USDT_ASSET_ID},
     };
     use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_near_intents_hypercore_quote() -> Result<(), SwapperError> {
+        let provider = NearIntents::new(Arc::new(NativeProvider::new().set_debug(true))).unwrap();
+        let request = mock_hypercore_quote_request();
+
+        let quote = provider.get_quote(&request).await?;
+        assert!(quote.from_value <= request.value);
+        assert!(quote.to_value > BigUint::ZERO);
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_near_intents_quote() -> Result<(), SwapperError> {

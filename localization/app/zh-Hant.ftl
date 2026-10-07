@@ -534,7 +534,6 @@ lock_one_hour = 1小時
 lock_six_hours = 6小時
 lock_require_authentication = 需要身分驗證
 lock_unlock = 解鎖
-lock_privacy_lock = 隱私鎖
 lock_footer = 保護此裝置上的 App 存取安全
 lock_passcode = 密碼
 lock_passcode_off_title = 裝置密碼已關閉

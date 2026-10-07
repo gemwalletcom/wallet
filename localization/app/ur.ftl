@@ -534,7 +534,6 @@ lock_one_hour = 1 گھنٹہ
 lock_six_hours = 6 گھنٹے
 lock_require_authentication = تصدیق کی ضرورت ہے۔
 lock_unlock = غیر مقفل کریں۔
-lock_privacy_lock = پرائیویسی لاک
 lock_footer = اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔
 lock_passcode = پاس کوڈ
 lock_passcode_off_title = ڈیوائس کا پاس کوڈ بند ہے

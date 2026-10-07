@@ -10,7 +10,7 @@ use crate::sql_types::{Currency, DeviceLocale, Platform, PlatformStore};
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct DeviceRow {
     pub id: i32,
-    pub device_id: String,
+    pub identifier: String,
     pub platform: Platform,
     pub platform_store: PlatformStore,
     pub token: String,
@@ -30,7 +30,7 @@ pub(crate) struct DeviceRow {
 #[diesel(table_name = crate::schema::devices)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct UpdateDeviceRow {
-    pub device_id: String,
+    pub identifier: String,
     pub platform: Platform,
     pub platform_store: PlatformStore,
     pub token: String,
@@ -47,7 +47,7 @@ pub(crate) struct UpdateDeviceRow {
 impl DeviceRow {
     pub fn as_primitive(&self) -> Device {
         Device {
-            id: self.device_id.clone(),
+            id: self.identifier.clone(),
             platform: self.platform.0,
             platform_store: self.platform_store.0,
             os: self.os.clone(),
@@ -66,7 +66,7 @@ impl DeviceRow {
 impl UpdateDeviceRow {
     pub fn from_primitive(device: Device) -> Self {
         Self {
-            device_id: device.id,
+            identifier: device.id,
             platform: device.platform.into(),
             platform_store: device.platform_store.into(),
             os: device.os,

@@ -1,6 +1,6 @@
 use super::model::{GemConfirmRowContent, GemConfirmSection, GemConfirmSimulation};
 use super::swap::ConfirmSwapQuote;
-use crate::address_formatter::{GemAddressFormatStyle, GemAddressService, format_address};
+use crate::address_formatter::{GemAddressFormatStyle, format_address, name_text};
 use crate::application;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::address_copy;
@@ -548,10 +548,10 @@ fn base_fee_rate(rates: &[FeeRate]) -> Option<&FeeRate> {
 }
 
 pub(super) fn confirmation_fee_rates(asset_id: &AssetId, is_max_amount: bool, rates: Vec<FeeRate>) -> Vec<FeeRate> {
-    let increase_percent = if is_max_amount && asset_id.is_native() {
-        EVMChain::from_chain(asset_id.chain).map_or(0, |chain| chain.chain_stack().max_amount_base_fee_increase_percent())
-    } else {
-        BASE_FEE_INCREASE_PERCENT
+    let increase_percent = match EVMChain::from_chain(asset_id.chain) {
+        Some(EVMChain::Ethereum) => 0,
+        Some(chain) if is_max_amount && asset_id.is_native() => chain.chain_stack().max_amount_base_fee_increase_percent(),
+        Some(_) | None => BASE_FEE_INCREASE_PERCENT,
     };
     let mut rates = rates;
     for rate in &mut rates {
@@ -616,7 +616,7 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 let address = destination.address();
                 let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
                 let is_named_by_user = address_name.as_ref().is_some_and(|address_name| names_the_user_owns(&address_name.address_type));
-                let name = GemAddressService::new().name_text(destination.name(), short_address.clone(), is_named_by_user || !destination.shows_address_beside_name());
+                let name = name_text(destination.name(), short_address.clone(), is_named_by_user || !destination.shows_address_beside_name());
                 let text = match &destination {
                     GemConfirmDestination::Resource { resource } => GemLocalizedText::Resource { resource: *resource },
                     _ => GemLocalizedText::Text { text: name.unwrap_or(short_address) },
@@ -1111,9 +1111,12 @@ mod tests {
         let native = AssetId::from_chain;
         let token = |chain| AssetId::from_token(chain, "0x1111111111111111111111111111111111111111");
         for (asset_id, is_max_amount, base_fee) in [
-            (native(Chain::Ethereum), false, 120),
+            (native(Chain::Ethereum), false, 100),
             (native(Chain::Ethereum), true, 100),
-            (token(Chain::Ethereum), true, 120),
+            (token(Chain::Ethereum), true, 100),
+            (native(Chain::Polygon), false, 120),
+            (native(Chain::Polygon), true, 100),
+            (token(Chain::Polygon), true, 120),
             (native(Chain::Arbitrum), false, 120),
             (native(Chain::Arbitrum), true, 105),
             (native(Chain::Robinhood), true, 105),

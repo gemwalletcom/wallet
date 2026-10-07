@@ -64,6 +64,14 @@ impl GemDeviceService {
         self.synchronize_if_needed().await
     }
 
+    pub async fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        if enabled {
+            self.preferences.set_push_notifications_enabled(true)?;
+        }
+        self.preferences.set_price_alerts_enabled(enabled)?;
+        self.synchronize_if_needed().await
+    }
+
     pub async fn synchronize(&self) -> Result<Device, GemServiceError> {
         let _guard = self.sync_lock.lock().await;
         self.sync(self.current_device().await?).await

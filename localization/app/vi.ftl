@@ -534,7 +534,6 @@ lock_one_hour = 1 giờ
 lock_six_hours = 6 giờ
 lock_require_authentication = Yêu cầu xác thực
 lock_unlock = Mở khóa
-lock_privacy_lock = Khóa riêng tư
 lock_footer = Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn
 lock_passcode = Mật mã
 lock_passcode_off_title = Mật mã thiết bị đang tắt

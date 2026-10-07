@@ -534,7 +534,6 @@ lock_one_hour = 1 hora
 lock_six_hours = 6 horas
 lock_require_authentication = Exigir autenticação
 lock_unlock = Desbloqueio
-lock_privacy_lock = Bloqueio de privacidade
 lock_footer = Proteja o acesso a este aplicativo no seu dispositivo
 lock_passcode = Senha
 lock_passcode_off_title = O código do dispositivo está desativado

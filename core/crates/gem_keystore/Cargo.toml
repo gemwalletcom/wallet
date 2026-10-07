@@ -10,19 +10,19 @@ storage = ["mnemonic", "dep:aes-gcm", "dep:argon2", "dep:hex", "dep:serde", "dep
 v3 = ["storage", "dep:aes", "dep:ctr", "dep:scrypt", "dep:sha3"]
 
 [dependencies]
-aes = { version = "0.9.1", optional = true }
+aes = { workspace = true, optional = true }
 aes-gcm = { workspace = true, optional = true }
-argon2 = { version = "0.6.0", optional = true }
+argon2 = { workspace = true, optional = true }
 bip39 = { workspace = true, optional = true }
-ctr = { version = "0.10.1", optional = true }
+ctr = { workspace = true, optional = true }
 gem_crypto = { path = "../gem_crypto", default-features = false, optional = true }
 hex = { workspace = true, optional = true }
-scrypt = { version = "0.12.0", optional = true }
+scrypt = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 sha3 = { workspace = true, optional = true }
 strum = { workspace = true, optional = true }
-unicode-normalization = { version = "0.1.25", optional = true }
+unicode-normalization = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 

@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 Stunden</string>
   <string name="lock_require_authentication">Authentifizierung erforderlich</string>
   <string name="lock_unlock">Entsperren</string>
-  <string name="lock_privacy_lock">Datenschutzsperre</string>
   <string name="lock_footer">Schützen Sie den Zugriff auf diese App auf Ihrem Gerät</string>
   <string name="lock_passcode">Passcode</string>
   <string name="lock_passcode_off_title">Gerätecode ist deaktiviert</string>

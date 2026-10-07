@@ -35,7 +35,7 @@ CREATE INDEX prices_provider_idx ON prices (provider);
 CREATE INDEX prices_last_updated_at_idx ON prices (last_updated_at);
 
 CREATE TABLE prices_assets (
-    asset_id VARCHAR(256) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
+    asset_id VARCHAR(128) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
     price_id VARCHAR(256) NOT NULL REFERENCES prices (id) ON DELETE CASCADE,
     provider VARCHAR(32) NOT NULL REFERENCES prices_providers (id) ON DELETE CASCADE,
     updated_at timestamp NOT NULL default current_timestamp,

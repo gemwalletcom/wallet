@@ -50,7 +50,7 @@ impl OutboundProxy {
 }
 
 pub(super) fn build_client(timeout: Duration, proxy: Option<&str>) -> Result<Client, RequestError> {
-    let mut builder = gem_client::builder().timeout(timeout).redirect(Policy::none());
+    let mut builder = gem_client::builder().timeout(timeout).redirect(Policy::limited(3));
     if let Some(proxy) = proxy {
         builder = builder.proxy(Proxy::all(proxy)?);
     }

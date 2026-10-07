@@ -18,7 +18,7 @@ import Primitives
 extension KeystoreError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
-        case .missingPassword: Localized.Errors.keystoreAccess
+        case .missingPassword, .missingLockKey: Localized.Errors.keystoreAccess
         }
     }
 }

@@ -18,6 +18,7 @@ import SwiftUI
 public final class PerpetualChartViewModel {
     private let service: any GemPerpetualDetailsServiceProtocol
     private let observerService: any PerpetualObservable
+    private let asset: Asset
 
     private var observeTask: Task<Void, Never>?
 
@@ -30,14 +31,15 @@ public final class PerpetualChartViewModel {
         set { session = session.onSelectPeriod(period: newValue.toGem()) }
     }
 
-    public init(service: any GemPerpetualDetailsServiceProtocol, observerService: any PerpetualObservable) {
+    public init(service: any GemPerpetualDetailsServiceProtocol, observerService: any PerpetualObservable, asset: Asset) {
         self.service = service
         self.observerService = observerService
+        self.asset = asset
         session = candleSession(period: service.chartPeriod())
     }
 
     public func state(position: PerpetualPosition?) -> StateViewType<GemCandleChart> {
-        session.viewState().state.stateViewType(session.chart(position: position, utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT())))
+        session.viewState().state.stateViewType(session.chart(asset: asset.toGem(), position: position, utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT())))
     }
 }
 
