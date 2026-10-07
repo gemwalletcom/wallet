@@ -2,7 +2,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use primitives::{AssetId, AssetPriceInfo, FiatRate, PriceProvider};
+use primitives::{AssetId, AssetPriceInfo, FiatRate, PriceProvider, PriceProviderConfig};
 
 use crate::{CacheKey, CacherClient};
 
@@ -12,6 +12,8 @@ pub fn price_channel(asset_id: &AssetId) -> String {
 
 #[async_trait]
 pub trait PriceCacher: Send + Sync {
+    async fn price_providers(&self) -> Result<Option<Vec<PriceProviderConfig>>, Box<dyn Error + Send + Sync>>;
+    async fn set_price_providers(&self, providers: &[PriceProviderConfig]) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn set_fiat_rates(&self, rates: &[FiatRate]) -> Result<(), Box<dyn Error + Send + Sync>>;
     async fn fiat_rates(&self) -> Result<Option<Vec<FiatRate>>, Box<dyn Error + Send + Sync>>;
     async fn set_prices(&self, prices: &[AssetPriceInfo], ttl: Duration) -> Result<usize, Box<dyn Error + Send + Sync>>;
@@ -23,6 +25,14 @@ pub trait PriceCacher: Send + Sync {
 
 #[async_trait]
 impl PriceCacher for CacherClient {
+    async fn price_providers(&self) -> Result<Option<Vec<PriceProviderConfig>>, Box<dyn Error + Send + Sync>> {
+        self.get(CacheKey::PriceProviders).await
+    }
+
+    async fn set_price_providers(&self, providers: &[PriceProviderConfig]) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.set(CacheKey::PriceProviders, &providers).await
+    }
+
     async fn set_fiat_rates(&self, rates: &[FiatRate]) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.set(CacheKey::FiatRates, &rates).await
     }

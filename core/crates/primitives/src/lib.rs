@@ -52,7 +52,7 @@ pub use self::price_change::PriceChangeCalculator;
 pub mod price_data;
 pub use self::price_data::PriceData;
 pub mod price_provider;
-pub use self::price_provider::PriceProvider;
+pub use self::price_provider::{PriceProvider, PriceProviderConfig};
 pub mod price_id;
 mod provider_scoped_id;
 pub use self::price_id::PriceId;
