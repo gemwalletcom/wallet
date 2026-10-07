@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 uur</string>
   <string name="lock_require_authentication">Authenticatie vereisen</string>
   <string name="lock_unlock">Ontgrendelen</string>
-  <string name="lock_privacy_lock">Privacyslot</string>
   <string name="lock_footer">Beveilig de toegang tot deze app op uw apparaat</string>
   <string name="lock_passcode">Toegangscode</string>
   <string name="lock_passcode_off_title">Toegangscode van apparaat staat uit</string>

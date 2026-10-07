@@ -40,7 +40,6 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - **uniffi-bindgen** (`bin/uniffi-bindgen/`): UniFFI bindings generator for iOS and Android
 - **generate** (`bin/generate/`): Code generation utilities
 - **gas-bench** (`bin/gas-bench/`): Gas benchmarking tool for blockchain operations
-- **img-downloader** (`bin/img-downloader/`): Image asset downloader utility
 - **cli** (`bin/cli/`): Command-line entry point for Core operations
 - **nodecheck** (`bin/nodecheck/`): Node availability and RPC health checks
 
@@ -64,7 +63,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 
 ### Pricing & Market Data
 - `prices/`: Price provider implementations (CoinGecko, DefiLlama, Jupiter) behind one `PriceProvider` contract, and the price alert rules
-- `coingecko/`: CoinGecko API client
+- `coingecko/`, `coinmarketcap/`, `jupiter/`, `dexscreener/`: Provider API clients. The assets repository's `cli` also builds against them through a pinned release tag, so check that consumer before removing a public item that has no caller here
 
 ### NFT & Digital Assets
 - `nft/`: NFT models, provider factory, and provider clients (OpenSea, Magic Eden, Alchemy, TON)

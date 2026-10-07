@@ -534,7 +534,6 @@ lock_one_hour = 1 jam
 lock_six_hours = 6 jam
 lock_require_authentication = Memerlukan otentikasi
 lock_unlock = Buka kunci
-lock_privacy_lock = Kunci Privasi
 lock_footer = Lindungi akses ke aplikasi ini di perangkat Anda
 lock_passcode = Kode Sandi
 lock_passcode_off_title = Kode sandi perangkat nonaktif

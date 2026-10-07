@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 saat</string>
   <string name="lock_require_authentication">Kimlik doğrulama gerektir</string>
   <string name="lock_unlock">Kilidi aç</string>
-  <string name="lock_privacy_lock">Gizlilik Kilidi</string>
   <string name="lock_footer">Cihazınızda bu uygulamaya erişimi koruyun</string>
   <string name="lock_passcode">Şifre</string>
   <string name="lock_passcode_off_title">Cihaz parolası kapalı</string>

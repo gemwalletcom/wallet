@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 na oras</string>
   <string name="lock_require_authentication">Nangangailangan ng pagpapatunay</string>
   <string name="lock_unlock">I-unlock</string>
-  <string name="lock_privacy_lock">Privacy Lock</string>
   <string name="lock_footer">Protektahan ang access sa app na ito sa iyong device</string>
   <string name="lock_passcode">Passcode</string>
   <string name="lock_passcode_off_title">Naka-off ang passcode ng device</string>

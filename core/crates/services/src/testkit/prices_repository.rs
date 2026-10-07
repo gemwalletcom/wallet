@@ -6,8 +6,8 @@ use async_trait::async_trait;
 use chrono::NaiveDateTime;
 use prices::{AssetPriceMapping, PriceAlertNotification, PriceAlertRules, PriceProviderAssetMetadata};
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceProvider};
-use storage::{AssetFilter, ChartPoint, ChartResult, DatabaseError, PriceAsset, PriceFilter, PriceProviderConfig};
+use primitives::{AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceId, PriceProvider, PriceProviderConfig};
+use storage::{AssetFilter, ChartPoint, ChartResult, DatabaseError, PriceAsset, PriceFilter};
 
 use crate::prices::repository::{ChartData, PortfolioPrice, Repository};
 
@@ -18,9 +18,28 @@ pub(crate) struct MemoryPricesRepository {
     price_assets: Vec<PriceAsset>,
     portfolio: Mutex<Vec<Option<PortfolioPrice>>>,
     saved: Mutex<Vec<(Vec<PriceData>, Vec<PriceAsset>)>>,
+    providers: Vec<PriceProviderConfig>,
+    provider_reads: Mutex<usize>,
+    price_infos: Vec<AssetPriceInfo>,
 }
 
 impl MemoryPricesRepository {
+    pub(crate) fn with_providers(self, providers: Vec<PriceProviderConfig>) -> Self {
+        Self { providers, ..self }
+    }
+
+    pub(crate) fn provider_reads(&self) -> usize {
+        *self.provider_reads.lock().unwrap()
+    }
+
+    pub(crate) fn with_price_infos(self, price_infos: Vec<AssetPriceInfo>) -> Self {
+        Self { price_infos, ..self }
+    }
+
+    pub(crate) fn stored_price_ids(&self) -> Vec<Vec<PriceId>> {
+        self.saved.lock().unwrap().iter().map(|(prices, _)| prices.iter().map(|price| price.id.clone()).collect()).collect()
+    }
+
     pub(crate) fn with_fiat_rates(self, fiat_rates: Vec<FiatRate>) -> Self {
         Self { fiat_rates, ..self }
     }
@@ -135,8 +154,9 @@ impl Repository for MemoryPricesRepository {
         Ok(vec![])
     }
 
-    async fn store_prices(&self, _prices: Vec<PriceData>, _price_max_age: Duration) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
-        Ok(vec![])
+    async fn store_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
+        self.saved.lock().unwrap().push((prices, vec![]));
+        Ok(self.price_infos.clone())
     }
 
     async fn update_price_changes(&self, _provider: PriceProvider, _from: NaiveDateTime, _until: NaiveDateTime) -> Result<usize, DatabaseError> {
@@ -152,7 +172,8 @@ impl Repository for MemoryPricesRepository {
     }
 
     async fn price_providers(&self) -> Result<Vec<PriceProviderConfig>, DatabaseError> {
-        Ok(vec![])
+        *self.provider_reads.lock().unwrap() += 1;
+        Ok(self.providers.clone())
     }
 
     async fn update_assets_metadata(&self, _metadata: Vec<PriceProviderAssetMetadata>) -> Result<(), DatabaseError> {

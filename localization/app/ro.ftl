@@ -534,7 +534,6 @@ lock_one_hour = 1 oră
 lock_six_hours = 6 ore
 lock_require_authentication = Necesită autentificare
 lock_unlock = Deblocați
-lock_privacy_lock = Blocare confidențialitate
 lock_footer = Protejați accesul la această aplicație pe dispozitivul dvs.
 lock_passcode = Cod de acces
 lock_passcode_off_title = Codul dispozitivului este dezactivat

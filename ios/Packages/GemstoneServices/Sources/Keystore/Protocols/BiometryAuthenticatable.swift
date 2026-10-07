@@ -10,14 +10,12 @@ public protocol BiometryAuthenticatable: Sendable {
     var availableAuthentication: KeystoreAuthentication { get }
     var isPasscodeSet: Bool { get }
     var lockPeriod: GemLockPeriod { get }
-    var isPrivacyLockEnabled: Bool { get }
 
     @MainActor
     func authenticate(context: LAContext, reason: String) async throws
     @MainActor
     func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws
     func update(period: GemLockPeriod) throws
-    func togglePrivacyLock(enabled: Bool) throws
     func shouldRelock(elapsedMilliseconds: Int64) -> Bool
 }
 

@@ -9,26 +9,22 @@ import Primitives
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     public private(set) var getPasswordCallsCount = 0
     public var getAuthenticationError: (any Error)?
-    public var getPrivacyLockStatusError: (any Error)?
 
     private let passwordLock = NSLock()
     private var memoryPassword: String
     private var isAuthenticationEnabled: Bool
     private var lockPeriod: GemLockPeriod?
     private var availableAuthentication: KeystoreAuthentication
-    private var privacyLockStatus: PrivacyLockStatus?
 
     public init(
         memoryPassword: String = "",
         isAuthenticationEnabled: Bool = false,
         lockPeriod: GemLockPeriod? = .default,
         availableAuthentication: KeystoreAuthentication = .none,
-        privacyLockStatus: PrivacyLockStatus? = .none,
     ) {
         self.memoryPassword = memoryPassword
         self.isAuthenticationEnabled = isAuthenticationEnabled
         self.availableAuthentication = availableAuthentication
-        self.privacyLockStatus = privacyLockStatus
         self.lockPeriod = lockPeriod
     }
 
@@ -70,18 +66,5 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         isAuthenticationEnabled = enable
     }
 
-    public func getPrivacyLockStatus() throws -> PrivacyLockStatus? {
-        if let getPrivacyLockStatusError {
-            throw getPrivacyLockStatusError
-        }
-        return privacyLockStatus
-    }
-
-    public func setPrivacyLockStatus(_ status: PrivacyLockStatus) {
-        privacyLockStatus = status
-    }
-
-    public func remove() throws {
-        memoryPassword = ""
-    }
+    public func unlock(context _: LAContext) throws {}
 }

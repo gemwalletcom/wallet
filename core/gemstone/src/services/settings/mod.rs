@@ -125,8 +125,6 @@ mod tests {
                 authentication_enabled: false,
                 authentication_name: None,
                 lock_period: String::new(),
-                privacy_lock_enabled: false,
-                privacy_lock_supported: false,
             })
         };
 

@@ -5,10 +5,10 @@ use async_trait::async_trait;
 use chrono::NaiveDateTime;
 use prices::{AssetPriceMapping, PriceAlertNotification, PriceAlertRules, PriceProviderAssetMetadata};
 use primitives::currency::Currency;
-use primitives::{Asset, AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceProvider};
+use primitives::{Asset, AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceProvider, PriceProviderConfig};
 use storage::{
     AssetFilter, AssetUpdate, AssetsLinksRepository, AssetsRepository, AssetsUsageRanksRepository, ChartFilter, ChartPoint, ChartResult, ChartsRepository, Database, DatabaseClient, DatabaseError, FiatRepository, PriceAlertsRepository,
-    PriceAsset, PriceFilter, PriceProviderConfig, PriceUpdate, PricesProvidersRepository, PricesRepository, TagRepository,
+    PriceAsset, PriceFilter, PriceUpdate, PricesProvidersRepository, PricesRepository, TagRepository,
 };
 
 use super::prices_metrics_updater::price_changes;
@@ -46,7 +46,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn price_asset_ids(&self, price_id: String, asset_filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
     async fn price_mappings(&self, provider: PriceProvider, window: Option<(usize, usize)>) -> Result<Vec<AssetPriceMapping>, DatabaseError>;
     async fn primary_prices(&self, asset_ids: Vec<AssetId>, price_max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError>;
-    async fn store_prices(&self, prices: Vec<PriceData>, price_max_age: Duration) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
+    async fn store_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
     async fn update_price_changes(&self, provider: PriceProvider, from: NaiveDateTime, until: NaiveDateTime) -> Result<usize, DatabaseError>;
     async fn delete_prices(&self, filters: Vec<PriceFilter>) -> Result<(Vec<String>, usize), DatabaseError>;
     async fn usage_ranks_and_priced_assets(&self) -> Result<(Vec<(AssetId, i32)>, HashSet<AssetId>), DatabaseError>;
@@ -191,14 +191,14 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.get_primary_prices(&asset_ids, price_max_age)).await
     }
 
-    async fn store_prices(&self, prices: Vec<PriceData>, price_max_age: Duration) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
+    async fn store_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
         self.database
             .run(move |client| {
                 let asset_ids = client.set_prices(prices)?;
                 if asset_ids.is_empty() {
                     return Ok(vec![]);
                 }
-                client.get_primary_price_infos(&asset_ids, price_max_age)
+                client.get_price_infos(&asset_ids)
             })
             .await
     }

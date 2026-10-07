@@ -65,8 +65,6 @@ class SecurityViewModel @Inject constructor(
             authenticationEnabled = authRequired,
             authenticationName = null,
             lockPeriod = context.getString(lockPeriodFromMinutes(lockInterval.toUInt()).stringRes()),
-            privacyLockEnabled = false,
-            privacyLockSupported = false,
         ),
     )
 

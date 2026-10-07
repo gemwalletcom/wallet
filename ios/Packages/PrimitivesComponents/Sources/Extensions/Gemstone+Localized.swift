@@ -848,7 +848,6 @@ public extension GemListRowTitle {
         case .developer: Localized.Settings.developer
         case .authentication: Localized.Settings.enablePasscode
         case .lockPeriod: Localized.Lock.requireAuthentication
-        case .privacyLock: Localized.Lock.privacyLock
         case .hideBalance: Localized.Settings.hideBalance
         case .currency: Localized.Settings.currency
         case .language: Localized.Settings.language

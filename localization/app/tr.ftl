@@ -534,7 +534,6 @@ lock_one_hour = 1 saat
 lock_six_hours = 6 saat
 lock_require_authentication = Kimlik doğrulama gerektir
 lock_unlock = Kilidi aç
-lock_privacy_lock = Gizlilik Kilidi
 lock_footer = Cihazınızda bu uygulamaya erişimi koruyun
 lock_passcode = Şifre
 lock_passcode_off_title = Cihaz parolası kapalı

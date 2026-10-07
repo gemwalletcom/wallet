@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 ore</string>
   <string name="lock_require_authentication">Necesită autentificare</string>
   <string name="lock_unlock">Deblocați</string>
-  <string name="lock_privacy_lock">Blocare confidențialitate</string>
   <string name="lock_footer">Protejați accesul la această aplicație pe dispozitivul dvs.</string>
   <string name="lock_passcode">Cod de acces</string>
   <string name="lock_passcode_off_title">Codul dispozitivului este dezactivat</string>

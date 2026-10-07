@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 ساعت</string>
   <string name="lock_require_authentication">نیاز به احراز هویت</string>
   <string name="lock_unlock">باز کردن قفل</string>
-  <string name="lock_privacy_lock">قفل حریم خصوصی</string>
   <string name="lock_footer">دسترسی به این برنامه را در دستگاه خود محافظت کنید</string>
   <string name="lock_passcode">رمزعبور</string>
   <string name="lock_passcode_off_title">رمز عبور دستگاه خاموش است</string>

@@ -534,7 +534,6 @@ lock_one_hour = 1 oras
 lock_six_hours = 6 na oras
 lock_require_authentication = Nangangailangan ng pagpapatunay
 lock_unlock = I-unlock
-lock_privacy_lock = Privacy Lock
 lock_footer = Protektahan ang access sa app na ito sa iyong device
 lock_passcode = Passcode
 lock_passcode_off_title = Naka-off ang passcode ng device

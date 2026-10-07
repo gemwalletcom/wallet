@@ -1,15 +1,18 @@
 use std::collections::HashSet;
 use std::error::Error;
+use std::io;
 use std::sync::Mutex;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use cacher::PriceCacher;
-use primitives::{AssetId, AssetPriceInfo, FiatRate, PriceProvider};
+use primitives::{AssetId, AssetPriceInfo, FiatRate, PriceProvider, PriceProviderConfig};
 
 pub(crate) struct MemoryPriceCacher {
     prices: Mutex<Vec<AssetPriceInfo>>,
     fiat_rates: Mutex<Option<Vec<FiatRate>>>,
+    providers: Mutex<Option<Vec<PriceProviderConfig>>>,
+    providers_unavailable: bool,
     missing_mappings: Mutex<HashSet<(PriceProvider, String)>>,
     requests: Mutex<Vec<Vec<AssetId>>>,
 }
@@ -19,6 +22,8 @@ impl MemoryPriceCacher {
         Self {
             prices: Mutex::new(prices),
             fiat_rates: Mutex::new(None),
+            providers: Mutex::new(None),
+            providers_unavailable: false,
             missing_mappings: Mutex::new(HashSet::new()),
             requests: Mutex::new(Vec::new()),
         }
@@ -27,10 +32,33 @@ impl MemoryPriceCacher {
     pub(crate) fn requests(&self) -> Vec<Vec<AssetId>> {
         self.requests.lock().unwrap().clone()
     }
+
+    pub(crate) fn expire_price_providers(&self) {
+        *self.providers.lock().unwrap() = None;
+    }
+
+    pub(crate) fn with_unavailable_price_providers(self) -> Self {
+        Self { providers_unavailable: true, ..self }
+    }
 }
 
 #[async_trait]
 impl PriceCacher for MemoryPriceCacher {
+    async fn price_providers(&self) -> Result<Option<Vec<PriceProviderConfig>>, Box<dyn Error + Send + Sync>> {
+        if self.providers_unavailable {
+            return Err(io::Error::other("price providers cache unavailable").into());
+        }
+        Ok(self.providers.lock().unwrap().clone())
+    }
+
+    async fn set_price_providers(&self, providers: &[PriceProviderConfig]) -> Result<(), Box<dyn Error + Send + Sync>> {
+        if self.providers_unavailable {
+            return Err(io::Error::other("price providers cache unavailable").into());
+        }
+        *self.providers.lock().unwrap() = Some(providers.to_vec());
+        Ok(())
+    }
+
     async fn set_fiat_rates(&self, rates: &[FiatRate]) -> Result<(), Box<dyn Error + Send + Sync>> {
         *self.fiat_rates.lock().unwrap() = Some(rates.to_vec());
         Ok(())

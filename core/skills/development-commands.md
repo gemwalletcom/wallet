@@ -27,7 +27,7 @@ just test-integration           # Run integration tests only
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 ```
 
-`just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `img-downloader`, run `cargo test --locked -p img-downloader --bins --all-features` instead.
+`just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `generate`, run `cargo test --locked -p generate --bins --all-features` instead.
 
 The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs pass `--all-features` and skip `integration_tests`; workspace runs rely on feature unification across members. Check the test count so an unmatched filter is not mistaken for coverage.
 

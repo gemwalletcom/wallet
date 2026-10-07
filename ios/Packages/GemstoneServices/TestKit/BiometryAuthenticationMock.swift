@@ -12,17 +12,14 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
     public var availableAuthentication: KeystoreAuthentication
     public var isPasscodeSet: Bool
     public var lockPeriod: GemLockPeriod
-    public var isPrivacyLockEnabled: Bool
 
     public var authenticateError: (any Error)?
     public var enableError: (any Error)?
-    public var privacyLockError: (any Error)?
     public var lockPeriodError: (any Error)?
     public var holdAuthentication = false
 
     public private(set) var authenticateCallsCount = 0
     public private(set) var enableCalls: [Bool] = []
-    public private(set) var privacyLockCalls: [Bool] = []
     public private(set) var lockPeriodCalls: [GemLockPeriod] = []
 
     private var holdContinuations: [CheckedContinuation<Void, Never>] = []
@@ -32,13 +29,11 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
         availableAuthentication: KeystoreAuthentication = .biometrics,
         isPasscodeSet: Bool = true,
         lockPeriod: GemLockPeriod = .default,
-        isPrivacyLockEnabled: Bool = false,
     ) {
         self.requiresAuthentication = requiresAuthentication
         self.availableAuthentication = availableAuthentication
         self.isPasscodeSet = isPasscodeSet
         self.lockPeriod = lockPeriod
-        self.isPrivacyLockEnabled = isPrivacyLockEnabled
     }
 
     public func shouldRelock(elapsedMilliseconds: Int64) -> Bool {
@@ -68,7 +63,6 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
         }
         requiresAuthentication = enable
         if !enable {
-            isPrivacyLockEnabled = false
             lockPeriod = .default
         }
     }
@@ -79,14 +73,6 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
             throw lockPeriodError
         }
         lockPeriod = period
-    }
-
-    public func togglePrivacyLock(enabled: Bool) throws {
-        privacyLockCalls.append(enabled)
-        if let privacyLockError {
-            throw privacyLockError
-        }
-        isPrivacyLockEnabled = enabled
     }
 
     public func releaseAuthentication() {
