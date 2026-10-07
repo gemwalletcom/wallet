@@ -2,7 +2,6 @@ package com.gemwallet.android.data.services.nativeprovider
 
 import com.gemwallet.android.ext.isNetworkUnavailable
 import com.gemwallet.android.ext.toGatewayNetworkMessage
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -14,7 +13,6 @@ import uniffi.gemstone.AlienHttpMethod
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.AlienResponse
 import uniffi.gemstone.AlienTarget
-import uniffi.gemstone.GatewayException
 import uniffi.gemstone.alienMethodToString
 import java.io.IOException
 
@@ -33,10 +31,6 @@ class NativeProvider(private val httpClient: OkHttpClient = OkHttpClient()) : Al
                 throw AlienException.Offline()
             }
             throw AlienException.RequestException(error.toGatewayNetworkMessage())
-        } catch (error: CancellationException) {
-            throw error
-        } catch (_: Exception) {
-            AlienResponse(500.toUShort(), byteArrayOf())
         }
     }
 }
