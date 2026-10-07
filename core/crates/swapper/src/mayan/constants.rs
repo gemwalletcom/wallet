@@ -1,5 +1,5 @@
-use primitives::{Chain, contract_constants::MAYAN_SWIFT_CONTRACT};
 pub use primitives::contract_constants::{SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID as MAYAN_CPI_PROXY_PROGRAM_ID, SOLANA_MAYAN_SWIFT_V2_PROGRAM_ID as MAYAN_SWIFT_V2_PROGRAM_ID};
+use primitives::{Chain, contract_constants::MAYAN_SWIFT_CONTRACT};
 
 pub const MAYAN_FORWARDER: &str = "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2";
 pub const MAYAN_MCTP: &str = "0x875d6d37EC55c8cF220B9E5080717549d8Aa8EcA";

@@ -8,7 +8,7 @@ use gem_evm::{
 };
 use gem_tracing::info_with_fields;
 use primitives::contract_constants::{UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
-use primitives::{Chain, ScanAddress, SwapProvider};
+use primitives::{AddressType, Chain, ScanAddress, SwapProvider};
 use std::collections::HashMap;
 use std::error::Error;
 use swapper::{chainflip, mayan, near_intents, squid, thorchain::THORChainNetwork};
@@ -68,15 +68,18 @@ fn provider_contracts() -> Vec<ScanAddress> {
     let routers = [THORChainNetwork::Thorchain, THORChainNetwork::Mayachain]
         .into_iter()
         .flat_map(|network| network.routers().iter().map(move |(chain, router)| ScanAddress::contract(*chain, *router, network.provider().name())));
-    let vaults = chainflip::VAULT_ADDRESSES
+    let contracts = chainflip::VAULT_ADDRESSES
         .into_iter()
         .map(|(chain, vault)| (SwapProvider::Chainflip, chain, vault))
-        .chain(near_intents::TREASURY_ADDRESSES.into_iter().map(|(chain, treasury)| (SwapProvider::NearIntents, chain, treasury)))
         .chain(mayan::MAYAN_DEPOSIT_CONTRACTS.into_iter().chain(mayan::MAYAN_SEND_CONTRACTS).map(|(chain, contract)| (SwapProvider::Mayan, chain, contract)))
         .chain([(SwapProvider::Squid, squid::SQUID_COSMOS_MULTICALL.0, squid::SQUID_COSMOS_MULTICALL.1)])
         .map(|(provider, chain, address)| ScanAddress::contract(chain, address, provider.name()));
+    let treasuries = near_intents::TREASURY_ADDRESSES.into_iter().map(|(chain, treasury)| ScanAddress {
+        address_type: Some(AddressType::Address),
+        ..ScanAddress::contract(chain, treasury, SwapProvider::NearIntents.name())
+    });
 
-    routers.chain(vaults).collect()
+    routers.chain(contracts).chain(treasuries).collect()
 }
 
 fn permit2_name(provider: SwapProvider, address: &str) -> String {
@@ -112,5 +115,16 @@ mod tests {
         assert_eq!(name(Chain::ZkSync, ZKSYNC_UNISWAP_PERMIT2_CONTRACT).as_deref(), Some("Permit2"));
         assert_eq!(name(Chain::SmartChain, pancakeswap.permit2).as_deref(), Some("PancakeSwap Permit2"));
         assert_eq!(name(Chain::SmartChain, pancakeswap.universal_router).as_deref(), Some("PancakeSwap Router"));
+    }
+
+    #[test]
+    fn test_a_treasury_is_saved_as_a_named_address() {
+        let contracts = known_contracts();
+
+        for (chain, treasury) in near_intents::TREASURY_ADDRESSES {
+            let row = contracts.iter().find(|contract| contract.chain == chain && contract.address == treasury).unwrap();
+            assert_eq!(row.address_type, Some(AddressType::Address), "{chain} {treasury}");
+            assert_eq!(row.name.as_deref(), Some("NEAR Intents"));
+        }
     }
 }
