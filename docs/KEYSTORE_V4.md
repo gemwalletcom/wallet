@@ -127,6 +127,81 @@ Android:
 
 Empty v4 passwords are rejected. v3 empty passwords are accepted only for legacy compatibility. On iOS, password lookup, policy lookup, generation and storage share one process-wide lock with authentication changes. Only an authorized first-wallet import may create a password; absent or legacy empty values otherwise fail as missing. A policy chosen before the first password is applied when it is created, and reusing an existing password leaves its policy unchanged (`LocalKeystorePasswordTests`).
 
+### Android Password Keysets
+
+Android keeps three Tink stores. Each is one AndroidKeyStore key that wraps a Tink AES-GCM keyset in a preferences file, which in turn encrypts the values in a second preferences file. Only the wallet password store can be wrapped by the authentication-bound key; the other two never are.
+
+```mermaid
+flowchart TD
+    subgraph Passwords["Wallet passwords"]
+        PM["AndroidKeyStore master key<br/>gem_wallet_password_master_key"]
+        PA["AndroidKeyStore auth-bound key<br/>gem_wallet_password_master_key_authenticated<br/>usable within 10 s of a credential or strong biometric"]
+        PK["gem_wallet_password_keyset_prefs.xml<br/>gem_wallet_password_keyset or gem_wallet_password_keyset_authenticated, never both"]
+        PV["gem_wallet_passwords.xml<br/>shared password and legacy per-wallet passwords"]
+        PM -- "wraps, passcode off" --> PK
+        PA -- "wraps, passcode on" --> PK
+        PK -- "AES-GCM, AAD wallet_password:key" --> PV
+    end
+    subgraph Prefs["Secure preferences"]
+        SM["AndroidKeyStore master key<br/>gem_secure_preferences_master_key"]
+        SK["gem_secure_preferences_keyset_prefs.xml<br/>gem_secure_preferences_keyset"]
+        SV["gem_secure_preferences.xml<br/>passcode flag, lock interval, device key copy, Gemstone values"]
+        SM -- "wraps" --> SK
+        SK -- "AES-GCM" --> SV
+    end
+    subgraph Device["Device keys"]
+        DM["AndroidKeyStore master key<br/>gem_device_master_key"]
+        DK["gem_device_master_key.xml<br/>ngen_gem_keyset"]
+        DV["gem_device_keys.xml<br/>device signing key pair"]
+        DM -- "wraps" --> DK
+        DK -- "AES-GCM" --> DV
+    end
+    Legacy["pwd.xml, androidx EncryptedSharedPreferences"] -. "migrated on first read" .-> PV
+    Legacy -. "migrated on first read" .-> SV
+    DataStore["device_keys DataStore"] -. "migrated on first read" .-> DV
+```
+
+With the passcode on, every password read goes through the hardware's own authentication window. The app still shows the system prompt before each sensitive operation, but the prompt is the UX; the Keystore check is the enforcement, so a hooked `authRequired()` or a tampered preference gets an error, not a password.
+
+```mermaid
+flowchart LR
+    Site["Call site: export, sign, create, import, rewards"] --> Prompt["requestAuth: system prompt"]
+    Prompt -- "success" --> Core["Core get_password, once per operation"]
+    Core --> Store["TinkPasswordStore reads gem_wallet_passwords.xml"]
+    Store --> Envelope{"Envelope present?"}
+    Envelope -- "No" --> Master["Master key unwraps the keyset"]
+    Envelope -- "Yes" --> Window{"Keystore: credential or strong biometric within 10 s?"}
+    Window -- "No" --> Fail["UserNotAuthenticatedException: read fails, nothing decrypted"]
+    Window -- "Yes" --> Unwrap["Auth-bound key unwraps the keyset in memory"]
+    Master --> Decrypt["Tink AEAD decrypts the password"]
+    Unwrap --> Decrypt
+    Decrypt --> Open["Core opens the v4 file"]
+```
+
+The lock screen, the lock timer and the Settings toggle read `passwordProtection.authenticationRequired() || securityPreferences.authRequired()`: the envelope's presence is the source of truth and the preference can only add the requirement, never remove it.
+
+Every transition rewrites the keyset file in one commit, so an interrupted switch leaves one consistent state. The reset out of a lost key is deliberately narrow: a store that still holds any wallet's password is never reset.
+
+```mermaid
+stateDiagram-v2
+    Unprotected: Unprotected, gem_wallet_password_keyset under the master key
+    Protected: Protected, gem_wallet_password_keyset_authenticated under the auth-bound key
+    Lost: Key lost, alias absent or permanently invalidated
+    [*] --> Unprotected
+    Unprotected --> Protected: enable in Settings, in the onboarding offer, or at the first unlock after an upgrade with the passcode on. New auth key, wrap, write the envelope and remove the plain entry in one commit, delete the master key
+    Protected --> Unprotected: disable in Settings. New master key, wrap, write the plain entry and remove the envelope in one commit, delete the auth key
+    Protected --> Lost: screen lock removed. Enrollment changes do not invalidate the key
+    Lost --> Lost: every read fails, wallets are restored from their phrases
+    Lost --> Unprotected: next create or import, only when no wallet is stored and the store holds nothing but the shared password. Envelope removed, auth key deleted, new keyset; the next unlock protects it again
+```
+
+| Store | Values file | Keyset file and entry | Keystore alias |
+|---|---|---|---|
+| Wallet passwords | `gem_wallet_passwords.xml` | `gem_wallet_password_keyset_prefs.xml`, `gem_wallet_password_keyset` or `gem_wallet_password_keyset_authenticated` | `gem_wallet_password_master_key` or `gem_wallet_password_master_key_authenticated` |
+| Secure preferences | `gem_secure_preferences.xml` | `gem_secure_preferences_keyset_prefs.xml`, `gem_secure_preferences_keyset` | `gem_secure_preferences_master_key` |
+| Device keys | `gem_device_keys.xml` | `gem_device_master_key.xml`, `ngen_gem_keyset` | `gem_device_master_key` |
+| Legacy | `pwd.xml` | androidx EncryptedSharedPreferences keysets, migrated out on first read | androidx master key |
+
 ## Keystore-Internal Signing
 
 Routine signing runs inside Rust. The decrypted key never crosses the UniFFI/JNI boundary, and neither do these signing methods: Core's own services pass the keystore id, chain, prepared input, and password bytes, and receive only signatures.
