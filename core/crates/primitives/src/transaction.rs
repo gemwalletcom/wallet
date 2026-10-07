@@ -329,9 +329,9 @@ impl Transaction {
         }
 
         match self.transaction_type {
-            TransactionType::Transfer | TransactionType::TransferNFT => self.addresses().into_iter().map(|x| AssetAddress::new(self.asset_id.clone(), x, None)).collect::<HashSet<_>>().into_iter().collect(),
-            TransactionType::TokenApproval => vec![AssetAddress::new(self.asset_id.clone(), self.from.clone(), None)],
-            TransactionType::StakeDelegate
+            TransactionType::Transfer
+            | TransactionType::TransferNFT
+            | TransactionType::StakeDelegate
             | TransactionType::StakeUndelegate
             | TransactionType::StakeRewards
             | TransactionType::StakeRedelegate
@@ -344,7 +344,8 @@ impl Transaction {
             | TransactionType::PerpetualClosePosition
             | TransactionType::PerpetualModifyPosition
             | TransactionType::EarnDeposit
-            | TransactionType::EarnWithdraw => vec![AssetAddress::new(self.asset_id.clone(), self.to.clone(), None)],
+            | TransactionType::EarnWithdraw => self.addresses().into_iter().map(|x| AssetAddress::new(self.asset_id.clone(), x, None)).collect::<HashSet<_>>().into_iter().collect(),
+            TransactionType::TokenApproval => vec![AssetAddress::new(self.asset_id.clone(), self.from.clone(), None)],
             TransactionType::Swap => self
                 .swap_metadata()
                 .map(|metadata| vec![AssetAddress::new(metadata.from_asset, self.from.clone(), None), AssetAddress::new(metadata.to_asset, self.to.clone(), None)])
@@ -496,6 +497,22 @@ mod tests {
         let addresses = transaction.assets_addresses();
 
         assert_eq!(addresses, vec![AssetAddress::new(Asset::mock_ethereum_usdc().id, "0xowner".to_string(), None)]);
+    }
+
+    #[test]
+    fn test_assets_addresses_links_both_participants() {
+        for transaction_type in [TransactionType::StakeDelegate, TransactionType::StakeRewards, TransactionType::SmartContractCall, TransactionType::EarnDeposit] {
+            let transaction = Transaction {
+                from: "0xowner".to_string(),
+                to: "0xcounterparty".to_string(),
+                transaction_type,
+                ..Transaction::mock()
+            };
+
+            let addresses: HashSet<String> = transaction.assets_addresses().into_iter().map(|address| address.address).collect();
+
+            assert_eq!(addresses, HashSet::from(["0xowner".to_string(), "0xcounterparty".to_string()]));
+        }
     }
 
     #[test]
