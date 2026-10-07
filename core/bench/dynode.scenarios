@@ -1,0 +1,4 @@
+# name|METHOD|path|body|auth
+health|GET|/health||none
+jsonrpc_cache_miss|POST|/ethereum|{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}|none
+jsonrpc_cache_hit|POST|/ethereum|{"jsonrpc":"2.0","id":1,"method":"eth_getCode","params":["0x1"]}|none

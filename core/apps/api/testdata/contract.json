@@ -1,0 +1,1373 @@
+{
+  "admin_asset_add_no_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing Authorization header"
+      }
+    }
+  },
+  "admin_asset_add_no_content_type": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "admin_asset_status_native": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Asset status requires a token asset"
+      }
+    }
+  },
+  "admin_block_latest_no_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing Authorization header"
+      }
+    }
+  },
+  "admin_chain_bad": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "admin_chain_fee": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "admin_chain_fee_no_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing Authorization header"
+      }
+    }
+  },
+  "admin_device": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "device": {
+        "id": "string",
+        "platform": "string",
+        "platformStore": "string",
+        "os": "string",
+        "model": "string",
+        "token": "string",
+        "locale": "string",
+        "version": "string",
+        "currency": "string",
+        "isPushEnabled": true,
+        "isPriceAlertsEnabled": true,
+        "subscriptionsVersion": "number"
+      },
+      "priceAlertCount": "number",
+      "wallets": [
+        {
+          "id": "string",
+          "source": "string",
+          "username": "string",
+          "subscriptionCount": "number",
+          "transactionCount": "number",
+          "fiatTransactionCount": "number",
+          "nftCount": "number",
+          "chains": [
+            "string"
+          ]
+        }
+      ]
+    }
+  },
+  "admin_device_bad_secret": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid API client for scope devices_read"
+      }
+    }
+  },
+  "admin_device_basic_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid authorization format"
+      }
+    }
+  },
+  "admin_device_fiat_transactions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "admin_device_no_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing Authorization header"
+      }
+    }
+  },
+  "admin_device_subscriptions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "walletId": "string",
+        "source": "string",
+        "subscriptions": [
+          {
+            "address": "string",
+            "chains": [
+              "string"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "admin_device_transactions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "transactions": [],
+      "addressNames": []
+    }
+  },
+  "admin_device_unknown": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Device unknown not found"
+      }
+    }
+  },
+  "admin_device_wallet_subscriptions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "walletId": "string",
+      "source": "string",
+      "subscriptions": [
+        {
+          "address": "string",
+          "chains": [
+            "string"
+          ]
+        }
+      ]
+    }
+  },
+  "admin_fiat_quotes_no_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing Authorization header"
+      }
+    }
+  },
+  "admin_swap_quote_no_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing Authorization header"
+      }
+    }
+  },
+  "admin_transactions_hash": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "admin_transactions_hash_no_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing Authorization header"
+      }
+    }
+  },
+  "head_health": {
+    "status": 200,
+    "content_type": null,
+    "body": null
+  },
+  "health": {
+    "status": 200,
+    "content_type": null,
+    "body": null
+  },
+  "metrics": {
+    "status": 200,
+    "content_type": "text/plain",
+    "body": "# HELP api_security_scan_latency_milliseconds Security provider request latency."
+  },
+  "options_root": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "root": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "time": "number",
+      "ipv4": "string"
+    }
+  },
+  "trailing_slash": {
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Internal server error"
+      }
+    }
+  },
+  "unmatched_root_segment": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "unmatched_route": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "v1_asset": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "asset": {
+        "id": "string",
+        "name": "string",
+        "symbol": "string",
+        "decimals": "number",
+        "type": "string"
+      },
+      "properties": {
+        "isEnabled": true,
+        "isBuyable": false,
+        "isSellable": false,
+        "isSwapable": true,
+        "isStakeable": true,
+        "isEarnable": false,
+        "hasImage": false,
+        "hasPrice": false
+      },
+      "score": {
+        "rank": "number",
+        "type": "string"
+      },
+      "tags": [],
+      "links": [],
+      "associations": [],
+      "perpetuals": [],
+      "price": null,
+      "market": null
+    }
+  },
+  "v1_asset_bad_currency": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_asset_currency": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "asset": {
+        "id": "string",
+        "name": "string",
+        "symbol": "string",
+        "decimals": "number",
+        "type": "string"
+      },
+      "properties": {
+        "isEnabled": true,
+        "isBuyable": false,
+        "isSellable": false,
+        "isSwapable": true,
+        "isStakeable": true,
+        "isEarnable": false,
+        "hasImage": false,
+        "hasPrice": false
+      },
+      "score": {
+        "rank": "number",
+        "type": "string"
+      },
+      "tags": [],
+      "links": [],
+      "associations": [],
+      "perpetuals": [],
+      "price": null,
+      "market": null
+    }
+  },
+  "v1_asset_unknown": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Asset ethereum_0x0000000000000000000000000000000000000001 not found"
+      }
+    }
+  },
+  "v1_assets": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "asset": {
+          "id": "string",
+          "name": "string",
+          "symbol": "string",
+          "decimals": "number",
+          "type": "string"
+        },
+        "properties": {
+          "isEnabled": true,
+          "isBuyable": false,
+          "isSellable": false,
+          "isSwapable": true,
+          "isStakeable": false,
+          "isEarnable": false,
+          "hasImage": false,
+          "hasPrice": false
+        },
+        "score": {
+          "rank": "number",
+          "type": "string"
+        }
+      }
+    ]
+  },
+  "v1_assets_currency": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "asset": {
+          "id": "string",
+          "name": "string",
+          "symbol": "string",
+          "decimals": "number",
+          "type": "string"
+        },
+        "properties": {
+          "isEnabled": true,
+          "isBuyable": false,
+          "isSellable": false,
+          "isSwapable": true,
+          "isStakeable": true,
+          "isEarnable": false,
+          "hasImage": false,
+          "hasPrice": false
+        },
+        "score": {
+          "rank": "number",
+          "type": "string"
+        }
+      }
+    ]
+  },
+  "v1_assets_invalid_json": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_assets_no_content_type": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "v1_assets_oversize": {
+    "status": 413,
+    "content_type": null,
+    "body": "<rejected>"
+  },
+  "v1_assets_search": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v1_assets_search_long_query": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_assets_search_no_query": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_assets_wrong_shape": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_charts": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Price ethereum not found"
+      }
+    }
+  },
+  "v1_charts_bad_period": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Price ethereum not found"
+      }
+    }
+  },
+  "v1_config": {
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Internal server error"
+      }
+    }
+  },
+  "v1_fee_estimates": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v1_fiat_assets_bad": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_fiat_assets_buy": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "version": "number",
+      "assetIds": []
+    }
+  },
+  "v1_fiat_rates": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "symbol": "string",
+        "rate": "number"
+      }
+    ]
+  },
+  "v1_markets": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Markets not found"
+      }
+    }
+  },
+  "v1_near_intents_quote": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v1_nft_asset_preview": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v1_nft_asset_preview_bad": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_nft_collection_preview": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v1_okx_quote": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_price": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Price ethereum not found"
+      }
+    }
+  },
+  "v1_prices": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "currency": "string",
+      "prices": []
+    }
+  },
+  "v1_rewards_leaderboard": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "daily": [],
+      "weekly": [],
+      "monthly": []
+    }
+  },
+  "v1_search": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "assets": [],
+      "perpetuals": [],
+      "nfts": [],
+      "lists": []
+    }
+  },
+  "v1_swap_assets": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "version": "number",
+      "assetIds": [
+        "string"
+      ]
+    }
+  },
+  "v1_swaps_xyz_action": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_webhook_bad_kind": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v1_webhook_header_basic": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "401 Unauthorized"
+      }
+    }
+  },
+  "v1_webhook_header_missing": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "401 Unauthorized"
+      }
+    }
+  },
+  "v1_webhook_header_unknown": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Webhook endpoint not found"
+      }
+    }
+  },
+  "v1_webhook_path_secret_unknown": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Webhook endpoint not found"
+      }
+    }
+  },
+  "v2_address_details": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_address_details_bad_chain": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v2_address_names": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v2_assets": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v2_assets_bad_from": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v2_assets_from": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v2_auth_nonce": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "nonce": "string",
+      "timestamp": "number"
+    }
+  },
+  "v2_body_hash_tamper": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Body hash mismatch"
+      }
+    }
+  },
+  "v2_defi_positions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v2_device": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "id": "string",
+      "platform": "string",
+      "platformStore": "string",
+      "os": "string",
+      "model": "string",
+      "token": "string",
+      "locale": "string",
+      "version": "string",
+      "currency": "string",
+      "isPushEnabled": true,
+      "isPriceAlertsEnabled": true,
+      "subscriptionsVersion": "number"
+    }
+  },
+  "v2_device_bearer_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid authorization format"
+      }
+    }
+  },
+  "v2_device_before_registration": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Device not found device_id=<device_id>"
+      }
+    }
+  },
+  "v2_device_expired": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Timestamp expired"
+      }
+    }
+  },
+  "v2_device_future": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Timestamp expired"
+      }
+    }
+  },
+  "v2_device_garbage_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid authorization format"
+      }
+    }
+  },
+  "v2_device_json_oversize": {
+    "status": 413,
+    "content_type": null,
+    "body": "<rejected>"
+  },
+  "v2_device_missing_auth": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing header: Authorization"
+      }
+    }
+  },
+  "v2_device_short_payload": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid authorization format"
+      }
+    }
+  },
+  "v2_device_signature_other_method": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid signature"
+      }
+    }
+  },
+  "v2_device_signature_other_path": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid signature"
+      }
+    }
+  },
+  "v2_device_unregistered": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Device not found device_id=ea4a6c63e29c520abef5507b132ec5f9954776aebebe7b92421eea691446d22c"
+      }
+    }
+  },
+  "v2_device_update": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "id": "string",
+      "platform": "string",
+      "platformStore": "string",
+      "os": "string",
+      "model": "string",
+      "token": "string",
+      "locale": "string",
+      "version": "string",
+      "currency": "string",
+      "isPushEnabled": true,
+      "isPriceAlertsEnabled": true,
+      "subscriptionsVersion": "number"
+    }
+  },
+  "v2_device_update_mismatch": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Device id mismatch"
+      }
+    }
+  },
+  "v2_fiat_assets": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "version": "number",
+      "assetIds": []
+    }
+  },
+  "v2_fiat_quote_url": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Dieses Angebot ist nicht mehr verf\u00fcgbar. Bitte versuchen Sie es erneut."
+      }
+    }
+  },
+  "v2_fiat_quotes": {
+    "status": 500,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_fiat_quotes_no_amount": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v2_fiat_transactions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v2_is_registered_after": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": true
+  },
+  "v2_is_registered_before": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": false
+  },
+  "v2_name_resolve": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_name_resolve_no_chain": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v2_nft_asset": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_nft_asset_bad": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v2_nft_assets": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v2_nft_refresh": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_nft_report": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid asset_id: bad"
+      }
+    }
+  },
+  "v2_notifications": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v2_notifications_read": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "number"
+  },
+  "v2_notifications_read_as_get": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "v2_portfolio_assets": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "totalValue": "number",
+      "values": [],
+      "allTimeHigh": null,
+      "allTimeLow": null,
+      "allocation": []
+    }
+  },
+  "v2_portfolio_assets_no_period": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v2_price_alerts": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "assetId": "string",
+        "currency": "string",
+        "price": "number"
+      }
+    ]
+  },
+  "v2_price_alerts_add": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "number"
+  },
+  "v2_price_alerts_asset": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "assetId": "string",
+        "currency": "string",
+        "price": "number"
+      }
+    ]
+  },
+  "v2_price_alerts_delete": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "number"
+  },
+  "v2_push_notification": {
+    "status": 500,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_referral_create": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_referral_create_reused_nonce": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid nonce"
+      }
+    }
+  },
+  "v2_referral_device_mismatch": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Wallet signature device mismatch"
+      }
+    }
+  },
+  "v2_referral_use_invalid_body": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid JSON"
+      }
+    }
+  },
+  "v2_referral_use_no_user_agent": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid JSON"
+      }
+    }
+  },
+  "v2_register": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "id": "string",
+      "platform": "string",
+      "platformStore": "string",
+      "os": "string",
+      "model": "string",
+      "token": "string",
+      "locale": "string",
+      "version": "string",
+      "currency": "string",
+      "isPushEnabled": true,
+      "isPriceAlertsEnabled": true,
+      "subscriptionsVersion": "number"
+    }
+  },
+  "v2_register_id_mismatch": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Device id mismatch"
+      }
+    }
+  },
+  "v2_register_invalid_json": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid JSON"
+      }
+    }
+  },
+  "v2_register_no_content_type": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "v2_register_twice": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "id": "string",
+      "platform": "string",
+      "platformStore": "string",
+      "os": "string",
+      "model": "string",
+      "token": "string",
+      "locale": "string",
+      "version": "string",
+      "currency": "string",
+      "isPushEnabled": true,
+      "isPriceAlertsEnabled": true,
+      "subscriptionsVersion": "number"
+    }
+  },
+  "v2_rewards": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "code": "string",
+      "inviteRewardPoints": "number",
+      "referralCount": "number",
+      "points": "number",
+      "usedReferralCode": null,
+      "status": "string",
+      "verifyAfter": null,
+      "redemptionOptions": [],
+      "disableReason": null,
+      "referralAllowance": {
+        "daily": {
+          "limit": "number",
+          "available": "number"
+        },
+        "weekly": {
+          "limit": "number",
+          "available": "number"
+        }
+      },
+      "useReferralCodeUntil": "string"
+    }
+  },
+  "v2_rewards_events": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "event": "string",
+        "points": "number",
+        "createdAt": "string"
+      }
+    ]
+  },
+  "v2_rewards_redeem": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_rewards_redemption": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "RewardRedemptionOption nope not found"
+      }
+    }
+  },
+  "v2_scan_transaction": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_subscriptions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "walletId": "string",
+        "chains": [
+          "string"
+        ]
+      }
+    ]
+  },
+  "v2_subscriptions_add": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "number"
+  },
+  "v2_subscriptions_add_invalid": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid JSON"
+      }
+    }
+  },
+  "v2_subscriptions_after_delete": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "walletId": "string",
+        "chains": [
+          "string"
+        ]
+      }
+    ]
+  },
+  "v2_subscriptions_delete": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "number"
+  },
+  "v2_support_image_no_content_type": {
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "500 Internal Server Error"
+      }
+    }
+  },
+  "v2_support_image_too_small": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Image upload is too small"
+      }
+    }
+  },
+  "v2_support_messages": {
+    "status": 500,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_token": {
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Internal server error"
+      }
+    }
+  },
+  "v2_transaction_by_id": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Transaction ethereum_0x0000000000000000000000000000000000000000000000000000000000000001 not found"
+      }
+    }
+  },
+  "v2_transaction_by_id_bad": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v2_transaction_legacy": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Transaction ethereum_0x0000000000000000000000000000000000000000000000000000000000000001 not found"
+      }
+    }
+  },
+  "v2_transactions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "transactions": [],
+      "addressNames": []
+    }
+  },
+  "v2_transactions_asset": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "transactions": [],
+      "addressNames": []
+    }
+  },
+  "v2_transactions_bad_limit": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "422 Unprocessable Entity"
+      }
+    }
+  },
+  "v2_wallet_configuration": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v2_wallet_route_without_wallet": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing wallet ID device_id=<device_id>"
+      }
+    }
+  },
+  "v2_wallet_unknown": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Wallet not found device_id=<device_id> wallet_id=multicoin_0xunknown"
+      }
+    }
+  },
+  "wrong_method": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "ws_health": {
+    "status": 200,
+    "content_type": null,
+    "body": null
+  },
+  "ws_stream_subscribe_prices": {
+    "status": 101,
+    "content_type": null,
+    "body": {
+      "event": "string",
+      "data": {
+        "prices": [],
+        "rates": [
+          {
+            "symbol": "string",
+            "rate": "number"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -169,6 +169,7 @@ strum = { version = "0.28.0", features = ["derive"] }
 tempfile = { version = "3.24.0" }
 unicode-normalization = { version = "0.1.25" }
 uuid = { version = "1.24.0", features = ["v4", "v5"] }
+tokio-tungstenite = { version = "0.29.0" }
 
 # Logging and metrics
 prometheus-client = { version = "0.25.0" }

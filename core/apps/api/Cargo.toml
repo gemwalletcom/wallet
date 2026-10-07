@@ -3,6 +3,14 @@ name = "api"
 edition = { workspace = true }
 version = { workspace = true }
 
+[features]
+api_integration_tests = []
+
+[[test]]
+name = "contract"
+test = false
+required-features = ["api_integration_tests"]
+
 [dependencies]
 num-bigint = { workspace = true }
 rocket = { workspace = true }
@@ -35,3 +43,8 @@ gem_auth = { path = "../../crates/gem_auth", features = ["jwt"] }
 [dev-dependencies]
 primitives = { path = "../../crates/primitives", features = ["testkit"] }
 rewards = { path = "../../crates/rewards" }
+hex = { workspace = true }
+reqwest = { workspace = true }
+signer = { path = "../../crates/signer" }
+tokio-tungstenite = { workspace = true }
+uuid = { workspace = true }

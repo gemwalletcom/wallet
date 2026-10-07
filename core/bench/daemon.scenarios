@@ -1,0 +1,3 @@
+# name|METHOD|path|body|auth
+health|GET|/health||none
+metrics|GET|/metrics||none
