@@ -7,6 +7,7 @@ pub enum GemAppStartStep {
     SyncAssets,
     SyncDevice,
     RecoverSupportMessages,
+    SetupNodes,
     SetupChains,
     SetupWalletAssets,
     SetupWalletBanners,

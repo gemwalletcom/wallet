@@ -9,17 +9,22 @@ use crate::gateway::GemGateway;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
-use crate::testkit::{EmptyPreferences, TestAlienProvider};
+use crate::testkit::{EmptyPreferences, TestAlienProvider, YieldOnce};
 
 #[derive(Default)]
 pub struct MemoryNodeStore {
     pub nodes: Mutex<Vec<Node>>,
+    pub yields_between_read_and_write: bool,
 }
 
 #[async_trait::async_trait]
 impl GemNodeStore for MemoryNodeStore {
     async fn get_nodes(&self, _chain: Chain) -> Result<Vec<Node>, GemServiceError> {
-        Ok(self.nodes.lock().unwrap().clone())
+        let nodes = self.nodes.lock().unwrap().clone();
+        if self.yields_between_read_and_write {
+            YieldOnce::default().await;
+        }
+        Ok(nodes)
     }
     async fn add_node(&self, _chain: Chain, node: Node) -> Result<(), GemServiceError> {
         self.nodes.lock().unwrap().push(node);

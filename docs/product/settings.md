@@ -43,6 +43,7 @@ flowchart LR
 | The user turns the push switch on | the app asks the system for permission | |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |
 | A network API does not expose a latest block, such as HyperCore | the node row shows a dash for Latest Block and still measures the API response latency | a missing capability is not a failed node |
+| A network's selected node is no longer offered, because an update removed it or the added node is gone | from the next launch the network uses the US Gem Wallet Node and Networks shows it selected | a node the app no longer lists may no longer answer |
 | The app has offered push | it asks again no sooner than 30 days later, unless the user turned push off | |
 | The user taps a push | the app switches to the wallet the push belongs to, then opens the transaction, the asset or the chat | |
 | A newer release exists | "New update available!" at launch, with Update and Skip, and in About Us | |

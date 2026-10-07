@@ -100,7 +100,7 @@ mod tests {
 
     use super::testkit::SearchTestkit;
     use super::*;
-    use crate::services::node::rules::preferred_chain_node;
+    use crate::services::node::rules::fallback_node;
 
     const USDT_SEARCH_RESPONSE: &str = r#"{
         "assets": [{
@@ -138,7 +138,7 @@ mod tests {
 
             assert!(testkit.service.search(testkit.wallet.clone(), " usdt ".to_string(), GemSearchScope::All).await.unwrap());
 
-            assert_eq!(testkit.provider.requested_paths(), vec!["/v1/search?query=usdt&chains=&tags=".to_string(), preferred_chain_node(Chain::Near, None).url]);
+            assert_eq!(testkit.provider.requested_paths(), vec!["/v1/search?query=usdt&chains=&tags=".to_string(), fallback_node(Chain::Near).url]);
             assert_eq!(testkit.asset_store.asset_writes.lock().unwrap().len(), 1);
             assert_eq!(testkit.prices.prices.lock().unwrap().len(), 1);
             assert_eq!(*testkit.balances.added_balances.lock().unwrap(), vec![(testkit.wallet.id.clone(), vec![usdt.clone()], false)]);
@@ -171,7 +171,7 @@ mod tests {
             let assets = testkit.service.search_assets(testkit.wallet.clone(), "eth".to_string()).await.unwrap();
 
             assert_eq!(assets.iter().map(|basic| basic.asset.id.clone()).collect::<Vec<_>>(), vec![ethereum.clone()]);
-            assert_eq!(testkit.provider.requested_paths(), vec!["/v1/assets/search?query=eth&chains=".to_string(), preferred_chain_node(Chain::Near, None).url]);
+            assert_eq!(testkit.provider.requested_paths(), vec!["/v1/assets/search?query=eth&chains=".to_string(), fallback_node(Chain::Near).url]);
             assert_eq!(*testkit.store.assets.lock().unwrap(), vec![("eth".to_string(), vec![ethereum])]);
             assert!(testkit.store.lists.lock().unwrap().is_empty());
         })

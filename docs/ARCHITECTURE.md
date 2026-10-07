@@ -214,7 +214,7 @@ pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceErro
 
 Continue with the [store adapters](#store-adapter-example-price-alerts), [construction](#construction-example-price-alerts) and [screen calls](#direct-service-calls-and-observed-reads) below.
 
-Node selection illustrates this boundary: `GemChainSettingsService.check_node` owns URL validation, the network-id check and node status. `GemGateway`, `GemSwapper` and `GemSimulationService` take `GemNodeService` for the selected node. Gateway preferences hold gateway state such as HyperCore agent data, never a second node selection.
+Node selection illustrates this boundary: `GemChainSettingsService.check_node` owns URL validation, the network-id check and node status. `GemGateway`, `GemSwapper` and `GemSimulationService` take `GemNodeService` for the selected node. Gateway preferences hold gateway state such as HyperCore agent data, never a second node selection. The stored selection is always a node the chain offers: `GemNodeService::select_node` resolves it against the built-in and added nodes, and `GemAppStartService::run` re-resolves every stored selection before its network steps, replacing only a selection the user has not changed meanwhile, so a node an update removed is not used past the next launch.
 
 ### No trivial exports
 
