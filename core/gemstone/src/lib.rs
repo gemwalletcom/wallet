@@ -36,7 +36,7 @@ pub mod transfer_amount;
 pub mod url_action;
 pub mod wallet_connect;
 
-use alien::AlienError;
+use alien::RpcAlienError;
 
 uniffi::setup_scaffolding!("gemstone");
 
@@ -100,8 +100,8 @@ impl From<::payment::PaymentDecoderError> for GemstoneError {
     }
 }
 
-impl From<AlienError> for GemstoneError {
-    fn from(error: AlienError) -> Self {
+impl From<RpcAlienError> for GemstoneError {
+    fn from(error: RpcAlienError) -> Self {
         Self::AnyError { msg: error.to_string() }
     }
 }

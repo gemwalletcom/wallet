@@ -1025,7 +1025,7 @@ An adapter maps reads and writes and nothing more — **no rules or mapping impl
 | a value the user set | [`GemPreferencesStore`](../core/gemstone/src/services/preferences/store.rs) through `GemPreferencesService` | sync; `get` returns `Option<String>` and **cannot fail** | `GemstonePreferencesStore` over `UserDefaults` | `GemstonePreferencesStore` over `SharedPreferences` |
 | the same, per wallet | `GemWalletPreferencesStore` through `GemWalletPreferencesService` | sync, keyed by `WalletId` | same file layout | same file layout |
 | a secret | [`GemSecureStore`](../core/gemstone/src/services/preferences/store.rs) | sync; **every read can fail** | `GemstoneSecurePreferencesStore` over the Keychain | `TinkGemPreferences` over Tink |
-| something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs | app class | app class |
+| something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs; a method the platform can fail returns `Result<_, GemServiceError>` | app class | app class |
 
 Use one trait per persistence owner; closely related rows such as contacts and their addresses may share a trait. Preferences use named `const` keys and typed accessors on the existing owner; apps never duplicate raw keys. Existing keys such as `price_alerts_enabled` are valid. Preference reads are infallible; secure-store failures must propagate.
 
