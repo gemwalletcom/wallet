@@ -30,6 +30,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.onboarding.viewmodels.create_wallet.CreateWalletViewModel
+import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
@@ -43,6 +44,7 @@ import com.gemwallet.android.ui.components.screen.PhraseRow
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -59,6 +61,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
     DisableScreenShooting()
     DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
+    val context = LocalContext.current
     val viewModel: CreateWalletViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
@@ -85,7 +88,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
                     choices = verificationChoices,
                     rows = verifiedRows,
                     onPick = viewModel::onPickWord,
-                    onDone = { viewModel.createWallet(onCreated) },
+                    onDone = { context.requestAuth(AuthRequest.Default) { viewModel.createWallet(onCreated) } },
                     onCancel = viewModel::dismissSafeMessage,
                 )
             }
