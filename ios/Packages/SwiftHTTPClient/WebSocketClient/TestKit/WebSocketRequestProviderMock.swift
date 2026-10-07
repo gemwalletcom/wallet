@@ -1,15 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import WebSocketClient
 
-struct StaticRequestProvider: WebSocketRequestProvider {
+public struct WebSocketRequestProviderMock: WebSocketRequestProvider {
     private let request: URLRequest
 
-    init(url: URL) {
+    public init(url: URL) {
         request = URLRequest(url: url)
     }
 
-    func makeRequest() -> URLRequest {
+    public func makeRequest() -> URLRequest {
         request
     }
 }

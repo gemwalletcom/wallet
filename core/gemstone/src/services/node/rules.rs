@@ -30,10 +30,8 @@ pub fn sorted_nodes(chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
     default_nodes.into_iter().chain(added).collect()
 }
 
-pub fn selected_node(chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> Node {
-    selected_url
-        .and_then(|url| merge_nodes(default_nodes(chain), stored_nodes).into_iter().find(|node| node.url == url))
-        .unwrap_or_else(|| fallback_node(chain))
+pub fn selected_node(chain: Chain, url: String, stored_nodes: Vec<Node>) -> Node {
+    merge_nodes(default_nodes(chain), stored_nodes).into_iter().find(|node| node.url == url).unwrap_or_else(|| fallback_node(chain))
 }
 
 pub fn fallback_node(chain: Chain) -> Node {
@@ -181,10 +179,9 @@ mod tests {
         let eu_url = NodeRegion::Eu.url(chain);
         let added = vec![Node::mock("https://added.example", 0)];
 
-        assert_eq!(selected_node(chain, Some(eu_url.clone()), vec![]).url, eu_url);
-        assert_eq!(selected_node(chain, Some("https://added.example".to_string()), added.clone()).url, "https://added.example");
-        assert_eq!(selected_node(chain, Some("https://removed.example".to_string()), added).url, fallback_node(chain).url, "a node the chain no longer offers");
-        assert_eq!(selected_node(chain, None, vec![]).url, NodeRegion::Us.url(chain));
+        assert_eq!(selected_node(chain, eu_url.clone(), vec![]).url, eu_url);
+        assert_eq!(selected_node(chain, "https://added.example".to_string(), added.clone()).url, "https://added.example");
+        assert_eq!(selected_node(chain, "https://removed.example".to_string(), added).url, NodeRegion::Us.url(chain), "a node the chain no longer offers");
     }
 
     #[test]

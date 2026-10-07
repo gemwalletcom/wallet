@@ -2,6 +2,7 @@
 
 import Foundation
 import protocol Gemstone.GemNodeServiceProtocol
+import GemstonePrimitives
 import Primitives
 import WebSocketClient
 
@@ -15,6 +16,6 @@ public struct NodeRequestProvider: WebSocketRequestProvider {
     }
 
     public func makeRequest() -> URLRequest {
-        URLRequest(url: nodeService.webSocketNode(for: chain))
+        URLRequest(url: URL(string: nodeService.websocketNodeUrl(chain: chain.rawValue)) ?? chain.defaultBaseUrl)
     }
 }

@@ -46,7 +46,7 @@ impl GemNodeService {
 
 impl GemNodeService {
     pub async fn select_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
-        let selected = rules::selected_node(chain, Some(url), self.store.get_nodes(chain).await?);
+        let selected = rules::selected_node(chain, url, self.store.get_nodes(chain).await?);
         self.set_selected_url(chain, selected.url)
     }
 
@@ -55,8 +55,8 @@ impl GemNodeService {
             let Some(url) = self.selected_url(chain) else {
                 continue;
             };
-            let selected = rules::selected_node(chain, Some(url.clone()), self.store.get_nodes(chain).await?);
-            if selected.url != url {
+            let selected = rules::selected_node(chain, url.clone(), self.store.get_nodes(chain).await?);
+            if selected.url != url && self.selected_url(chain) == Some(url) {
                 self.set_selected_url(chain, selected.url)?;
             }
         }
@@ -139,9 +139,8 @@ mod tests {
     #[test]
     fn test_the_launch_check_replaces_only_a_selection_the_chain_no_longer_offers() {
         futures::executor::block_on(async {
-            let store = Arc::new(MemoryNodeStore::default());
             let preferences = Arc::new(MemoryPreferencesStore::default());
-            let service = GemNodeService::new(store.clone(), preferences.clone());
+            let service = GemNodeService::new(Arc::new(MemoryNodeStore::default()), preferences.clone());
             let eu_url = NodeRegion::Eu.url(Chain::Solana);
             service.add_node(Chain::Sui, "https://added.example".into()).await.unwrap();
             service.select_node(Chain::Sui, "https://added.example".into()).await.unwrap();
@@ -157,43 +156,21 @@ mod tests {
         });
     }
 
-    struct SelectedDuringRead {
-        nodes: MemoryNodeStore,
-        preferences: Arc<MemoryPreferencesStore>,
-        selection: (Chain, String),
-    }
-
-    #[async_trait::async_trait]
-    impl GemNodeStore for SelectedDuringRead {
-        async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
-            let (selected_chain, url) = &self.selection;
-            if *selected_chain == chain {
-                self.preferences.set(node_key(chain), url.clone())?;
-            }
-            self.nodes.get_nodes(chain).await
-        }
-        async fn add_node(&self, chain: Chain, node: Node) -> Result<(), GemServiceError> {
-            self.nodes.add_node(chain, node).await
-        }
-        async fn delete_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
-            self.nodes.delete_node(chain, url).await
-        }
-    }
-
     #[test]
     fn test_the_launch_check_keeps_a_node_the_user_picks_while_it_reads() {
         futures::executor::block_on(async {
             let preferences = Arc::new(MemoryPreferencesStore::default());
-            let asia_url = NodeRegion::Asia.url(Chain::Sui);
-            let store = Arc::new(SelectedDuringRead {
-                nodes: MemoryNodeStore::default(),
-                preferences: preferences.clone(),
-                selection: (Chain::Sui, asia_url.clone()),
+            let store = Arc::new(MemoryNodeStore {
+                yields_between_read_and_write: true,
+                ..Default::default()
             });
             let service = GemNodeService::new(store, preferences.clone());
-            preferences.set(node_key(Chain::Sui), NodeRegion::Eu.url(Chain::Sui)).unwrap();
+            let asia_url = NodeRegion::Asia.url(Chain::Sui);
+            preferences.set(node_key(Chain::Sui), "https://removed.example".to_string()).unwrap();
 
-            service.ensure_selected_nodes().await.unwrap();
+            let (selected, checked) = futures::join!(service.select_node(Chain::Sui, asia_url.clone()), service.ensure_selected_nodes());
+            selected.unwrap();
+            checked.unwrap();
 
             assert_eq!(service.node_url(Chain::Sui), asia_url);
         });

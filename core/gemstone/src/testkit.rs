@@ -13,7 +13,10 @@ use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
 use primitives::{AssetId, Chain, ChainAddress, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
 use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll};
 
 #[derive(Debug)]
 pub struct TestAlienProvider {
@@ -196,5 +199,23 @@ impl GemPreferencesStore for EmptyPreferences {
 
     fn clear(&self) -> Result<(), GemServiceError> {
         Ok(())
+    }
+}
+
+#[derive(Default)]
+pub struct YieldOnce {
+    yielded: bool,
+}
+
+impl Future for YieldOnce {
+    type Output = ();
+
+    fn poll(mut self: Pin<&mut Self>, context: &mut Context<'_>) -> Poll<()> {
+        if self.yielded {
+            return Poll::Ready(());
+        }
+        self.yielded = true;
+        context.waker().wake_by_ref();
+        Poll::Pending
     }
 }

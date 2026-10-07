@@ -22,10 +22,6 @@ public actor WebSocketConnection: WebSocketConnectable {
         self.configuration = configuration
     }
 
-    public init(url: URL, reconnection: any Reconnectable) {
-        self.init(configuration: WebSocketConfiguration(url: url, reconnection: reconnection))
-    }
-
     deinit {
         task?.cancel(with: .goingAway, reason: nil)
         session?.invalidateAndCancel()
