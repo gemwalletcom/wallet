@@ -16,6 +16,15 @@ Five dot-separated parts: the 64-hex Ed25519 public key, the Unix timestamp in m
 
 The header lives in the shared `gem_auth` crate, used by the client and the backend; the device key never crosses the FFI boundary ([Keystore v4](KEYSTORE_V4.md)). Backend side: [signature verification](../core/apps/api/src/devices/signature.rs), [cryptographic check](../core/crates/gem_auth/src/device_signature.rs), [request guards](../core/apps/api/src/devices/guard/).
 
+## Device key storage
+
+Core owns the device key pair. `GemDeviceKeyService` reads the Ed25519 private key through `GemSecureStore` under `device_private_key`, with the public key beside it under `device_public_key`, generates the pair on the first read of an installation, and keeps it in memory for the process. The apps provide the store and never derive, sign with, or copy the key themselves.
+
+- iOS: a Keychain item named `gateway` plus the key, `whenUnlockedThisDeviceOnly`, no authentication policy. The pre-namespace items `devicePrivateKey` and `devicePublicKey` held raw bytes; a read that finds no namespaced item hex-encodes the legacy item into it once.
+- Android: an entry in the secure preferences store, `gem_secure_preferences.xml`, encrypted by the `gem_secure_preferences_keyset` Tink keyset under the `gem_secure_preferences_master_key` Keystore key. Older installations kept the pair in a separate store, `gem_device_keys.xml` with the `ngen_gem_keyset` keyset under `gem_device_master_key`, and before that in the `device_keys` DataStore; a read that finds no secure preferences entry copies the value forward once. The device key is never wrapped by the authentication-bound key that protects the wallet password ([Keystore v4](KEYSTORE_V4.md)), so device registration and the stream keep working while the app is locked.
+
+Reinstalling the app on Android creates a new device key and therefore a new device record; on iOS the Keychain item survives removal, so the device id is kept.
+
 ## Device record and subscriptions
 
 One record per install, the shared `Device` primitive: push token, locale, currency, app version, push and price-alert flags, and `subscriptionsVersion`, bumped whenever the subscription set changes so either side can tell the two disagree.
@@ -41,7 +50,7 @@ flowchart LR
 
 Subscriptions are reconciled by diffing local wallets against `GET /v2/devices/subscriptions`: missing addresses are added per wallet grouped by chain, and wallets the backend still knows but the device no longer has are removed in full. Registration comes first; if it fails nothing else assumes the device exists and the next sync retries. App start always checks the remote record so one lost by the backend is recreated; every other trigger runs only when local state diverges.
 
-[`GemDeviceService`](../core/gemstone/src/services/device/mod.rs) owns registration, divergence detection, serialization of concurrent syncs and the published-state checkpoint; [`GemSubscriptionService`](../core/gemstone/src/services/subscription/mod.rs) owns reconciliation. Divergence is derived from the current device plus a deterministic wallet/account signature, so a service that writes a record value (currency, the price-alert flag) just writes it and the next occasion finds the difference; a new field needs the field and the comparison, no new call site. `set_push_enabled` is the one write that also syncs, because the push token is read from the platform at that moment.
+[`GemDeviceService`](../core/gemstone/src/services/device/mod.rs) owns registration, divergence detection, serialization of concurrent syncs and the published-state checkpoint; [`GemSubscriptionService`](../core/gemstone/src/services/subscription/mod.rs) owns reconciliation. Divergence is derived from the current device plus a deterministic wallet/account signature, so a service that writes a record value (the currency) just writes it and the next occasion finds the difference; a new field needs the field and the comparison, no new call site. The values that decide whether the backend may push at all are written through `GemDeviceService` and synced at once: `set_push_enabled`, because the push token is read from the platform at that moment, and `set_price_alerts_enabled`, because the next occasion may be the next app open and price alerts are pushed while the app is closed.
 
 | Occasion | Check |
 |---|---|
@@ -101,4 +110,4 @@ Endpoints that act for a wallet (rewards and referrals, for example) also need p
 }
 ```
 
-The request is still device-authenticated: the body hash inside the `Gem` header binds the wallet-signed body to the request. Backend side: [wallet signature verification](../core/crates/gem_auth/src/signature.rs), [auth guards](../core/apps/api/src/auth/guard.rs), [nonce management](../core/crates/services/src/auth/client.rs), [auth primitives](../core/crates/primitives/src/auth.rs).
+The request is still device-authenticated: the body hash inside the `Gem` header binds the wallet-signed body to the request. The wallet signature is accepted only in its low-S form, so one nonce has exactly one valid signature encoding. Backend side: [wallet signature verification](../core/crates/gem_auth/src/signature.rs), [auth guards](../core/apps/api/src/auth/guard.rs), [nonce management](../core/crates/services/src/auth/client.rs), [auth primitives](../core/crates/primitives/src/auth.rs).

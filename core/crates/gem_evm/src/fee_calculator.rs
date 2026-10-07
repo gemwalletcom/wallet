@@ -12,8 +12,11 @@ pub fn get_fee_history_blocks(chain: EVMChain) -> u64 {
     min(60 * 1000 / block_time, 15) as u64
 }
 
-pub fn get_reward_percentiles() -> [u64; 2] {
-    [40, 60]
+pub fn get_reward_percentiles(chain: EVMChain) -> [u64; 2] {
+    match chain {
+        EVMChain::Ethereum => [16, 35],
+        _ => [40, 60],
+    }
 }
 
 pub struct FeeCalculator;
@@ -29,7 +32,7 @@ impl FeeCalculator {
         Self
     }
 
-    pub fn calculate_priority_fees(&self, fee_history: &EthereumFeeHistory, priorities: &[FeePriority], min_priority_fee: BigInt) -> Result<Vec<PriorityFeeValue>, Box<dyn std::error::Error + Sync + Send>> {
+    pub fn calculate_priority_fees(&self, chain: EVMChain, fee_history: &EthereumFeeHistory, priorities: &[FeePriority]) -> Result<Vec<PriorityFeeValue>, Box<dyn std::error::Error + Sync + Send>> {
         if fee_history.reward.is_empty() {
             return Err("fee_history.reward is empty".into());
         }
@@ -39,6 +42,7 @@ impl FeeCalculator {
         }
 
         let rewards = &fee_history.reward;
+        let min_priority_fee = BigInt::from(chain.min_priority_fee());
 
         let mut columns: Vec<Vec<BigInt>> = vec![Vec::new(); priorities.len()];
         for row in rewards {
@@ -53,29 +57,44 @@ impl FeeCalculator {
             .iter()
             .zip(columns.iter())
             .map(|(&priority, fees)| {
-                let value = if fees.is_empty() {
-                    min_priority_fee.clone()
-                } else {
-                    let sum = fees.iter().cloned().fold(BigInt::from(0), |a, b| a + b);
-                    let avg = &sum / BigInt::from(fees.len());
-                    let min_value = min_priority_fee.clone();
-                    if avg < min_value { min_value } else { avg }
-                };
+                let value = match chain {
+                    EVMChain::Ethereum => median(fees),
+                    _ => mean(fees),
+                }
+                .map_or(min_priority_fee.clone(), |value| value.max(min_priority_fee.clone()));
 
                 PriorityFeeValue { priority, value }
             })
             .collect();
 
         result.sort_unstable_by(|a, b| a.value.cmp(&b.value));
+        let base_fee = fee_history.base_fee_per_gas.last().ok_or("No base fee available")?;
+        let normal_fee = result[0].value.clone();
         result.iter_mut().zip(priorities.iter()).for_each(|(fee, &priority)| {
             fee.priority = priority;
-            match priority {
-                FeePriority::Normal => {}
-                FeePriority::Fast => fee.value *= BigInt::from(2),
+            match (chain, priority) {
+                (_, FeePriority::Normal) => {}
+                (EVMChain::Ethereum, FeePriority::Fast) => fee.value = fee.value.clone().max(&normal_fee + (base_fee + &normal_fee) / 10),
+                (_, FeePriority::Fast) => fee.value *= BigInt::from(2),
             }
         });
 
         Ok(result)
+    }
+}
+
+fn mean(values: &[BigInt]) -> Option<BigInt> {
+    (!values.is_empty()).then(|| values.iter().sum::<BigInt>() / BigInt::from(values.len()))
+}
+
+fn median(values: &[BigInt]) -> Option<BigInt> {
+    let mut values = values.to_vec();
+    values.sort_unstable();
+    let middle = values.len() / 2;
+    match values.len() {
+        0 => None,
+        len if len % 2 == 0 => Some((&values[middle - 1] + &values[middle]) / 2),
+        _ => Some(values[middle].clone()),
     }
 }
 
@@ -86,13 +105,14 @@ mod tests {
 
     #[test]
     fn test_get_fee_history_blocks() {
-        assert!(get_fee_history_blocks(primitives::EVMChain::Ethereum) > 0);
-        assert!(get_fee_history_blocks(primitives::EVMChain::Arbitrum) > 0);
+        assert!(get_fee_history_blocks(EVMChain::Ethereum) > 0);
+        assert!(get_fee_history_blocks(EVMChain::Arbitrum) > 0);
     }
 
     #[test]
     fn test_get_reward_percentiles() {
-        assert_eq!(get_reward_percentiles(), [40, 60]);
+        assert_eq!(get_reward_percentiles(EVMChain::Ethereum), [16, 35]);
+        assert_eq!(get_reward_percentiles(EVMChain::Arbitrum), [40, 60]);
     }
 
     #[test]
@@ -101,7 +121,7 @@ mod tests {
         let fee_history = EthereumFeeHistory::mock_ethereum();
         let priorities = [FeePriority::Normal, FeePriority::Fast];
 
-        let result = calculator.calculate_priority_fees(&fee_history, &priorities, BigInt::from(100_000_000)).unwrap();
+        let result = calculator.calculate_priority_fees(EVMChain::SmartChain, &fee_history, &priorities).unwrap();
 
         assert_eq!(result.len(), 2);
 
@@ -110,6 +130,35 @@ mod tests {
 
         assert_eq!(result[1].priority, FeePriority::Fast);
         assert_eq!(result[1].value, BigInt::from(1924038520));
+    }
+
+    #[test]
+    fn test_calculate_priority_fees_ethereum() {
+        let calculator = FeeCalculator::new();
+        let priorities = [FeePriority::Normal, FeePriority::Fast];
+
+        let result = calculator.calculate_priority_fees(EVMChain::Ethereum, &EthereumFeeHistory::mock_ethereum(), &priorities).unwrap();
+
+        assert_eq!(result[0].value, BigInt::from(700_000_000));
+        assert_eq!(result[1].value, BigInt::from(1_024_105_347));
+
+        let fee_history = EthereumFeeHistory {
+            reward: vec![vec!["0x0".to_string(), "0x0".to_string()]],
+            base_fee_per_gas: vec![BigInt::from(100_000_000u64)],
+            gas_used_ratio: vec![0.5],
+            oldest_block: 0,
+        };
+        let result = calculator.calculate_priority_fees(EVMChain::Ethereum, &fee_history, &priorities).unwrap();
+
+        assert_eq!(result[0].value, BigInt::from(100_000));
+        assert_eq!(result[1].value, BigInt::from(10_110_000));
+    }
+
+    #[test]
+    fn test_median() {
+        assert_eq!(median(&[]), None);
+        assert_eq!(median(&[BigInt::from(5), BigInt::from(1), BigInt::from(3)]), Some(BigInt::from(3)));
+        assert_eq!(median(&[BigInt::from(4), BigInt::from(1), BigInt::from(2), BigInt::from(100)]), Some(BigInt::from(3)));
     }
 
     #[test]
@@ -123,7 +172,7 @@ mod tests {
         };
         let priorities = [FeePriority::Normal, FeePriority::Fast];
 
-        let result = calculator.calculate_priority_fees(&fee_history, &priorities, BigInt::from(0)).unwrap();
+        let result = calculator.calculate_priority_fees(EVMChain::Arbitrum, &fee_history, &priorities).unwrap();
 
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].priority, FeePriority::Normal);
@@ -141,7 +190,7 @@ mod tests {
             oldest_block: 0,
         };
 
-        assert!(calculator.calculate_priority_fees(&empty_history, &[FeePriority::Normal], BigInt::from(100)).is_err());
-        assert!(calculator.calculate_priority_fees(&EthereumFeeHistory::mock_ethereum(), &[FeePriority::Normal], BigInt::from(100)).is_err());
+        assert!(calculator.calculate_priority_fees(EVMChain::Ethereum, &empty_history, &[FeePriority::Normal]).is_err());
+        assert!(calculator.calculate_priority_fees(EVMChain::Ethereum, &EthereumFeeHistory::mock_ethereum(), &[FeePriority::Normal]).is_err());
     }
 }

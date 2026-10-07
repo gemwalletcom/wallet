@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Personnalisé</string>
+  <string name="fee_rate_priority">Frais de priorité</string>
+  <string name="fee_rate_base">Frais de base</string>
   <string name="banner_account_activation_title">Frais d\'activation de compte</string>
   <string name="banner_account_activation_description">Le réseau %1$s nécessite des frais uniques de %2$s.</string>
   <string name="banner_stake_title">Commencez le staking de %1$s</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 heures</string>
   <string name="lock_require_authentication">Exiger une authentification</string>
   <string name="lock_unlock">Déverrouiller</string>
-  <string name="lock_privacy_lock">Verrouillage de la confidentialité</string>
   <string name="lock_footer">Protégez l\'accès à cette application sur votre appareil</string>
   <string name="lock_passcode">Mot de passe</string>
+  <string name="lock_passcode_off_title">Le code de l\'appareil est désactivé</string>
+  <string name="lock_passcode_off_description">Gem est verrouillé par le code de votre appareil. Activez un code dans les réglages de l\'appareil pour ouvrir Gem. Vos portefeuilles sont en sécurité.</string>
   <string name="verify_phrase_title">Confirmer</string>
   <string name="warnings_externally_controlled_account">Ce compte %1$s peut être contrôlé par quelqu\'un d\'autre. N\'y envoyez pas de fonds à moins d\'être certain de le contrôler, sinon vous pourriez perdre définitivement vos actifs.</string>
   <string name="sell_title">Vendre %1$s</string>
+  <string name="info_region_unavailable_description">Cette fonctionnalité n’est pas disponible dans votre région. La disponibilité dépend des règles locales et des exigences des prestataires.</string>
   <string name="info_network_fee_title">Frais de réseau</string>
   <string name="info_watch_wallet_title">Portefeuille en lecture seule</string>
   <string name="info_watch_wallet_description">Un portefeuille auquel vous n\'avez pas accès, mais dont vous pouvez surveiller les transactions et les mouvements.</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">Surnom</string>
   <string name="rewards_unverified_title">Récompenses non encore actives.</string>
   <string name="rewards_unverified_description">Les récompenses s\'activent automatiquement à mesure que vous utilisez l\'application.</string>
+  <string name="rewards_state_empty_title">Les récompenses nécessitent un portefeuille multi-pièces</string>
+  <string name="rewards_state_empty_description">Créez ou importez un portefeuille multi-pièces pour inviter des amis et gagner des points.</string>
   <string name="recent_activity_title">Récents</string>
   <string name="recent_activity_state_empty_title">Vos récents apparaîtront ici</string>
   <string name="recent_activity_state_empty_description">Les éléments que vous avez récemment utilisés apparaîtront ici</string>

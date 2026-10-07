@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import func Gemstone.emptyState
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 @testable import PriceAlerts
 import PriceAlertsTestKit
@@ -23,5 +25,18 @@ struct AssetPriceAlertsSceneViewModelTests {
 
         #expect(model.alerts(model.assetAlerts).map { $0.data.priceAlert.toPrimitives() } == [alert3, alert2, alert1].map(\.priceAlert))
         #expect(model.isAutoAlertEnabledBinding(model.assetAlerts).wrappedValue == true)
+        #expect(model.assetAlerts.phase == .rows)
+    }
+
+    @Test
+    func aFailedRefreshWithNoAlertsShowsTheErrorInsteadOfTheEmptyState() async {
+        let service = GemPriceAlertServiceMock()
+        let model = AssetPriceAlertsSceneViewModel.mock(service: service)
+        #expect(model.assetAlerts.phase == .empty(state: emptyState(kind: .priceAlerts)))
+
+        service.refreshState = .error(error: .Gateway(msg: "offline"))
+        await model.load()
+
+        #expect(model.assetAlerts.phase == .error(error: .Gateway(msg: "offline")))
     }
 }

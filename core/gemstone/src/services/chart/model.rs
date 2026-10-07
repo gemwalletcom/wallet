@@ -35,6 +35,7 @@ pub struct GemChartData {
     pub date_style: GemChartDateStyle,
     pub start: DateTime<Utc>,
     pub end: DateTime<Utc>,
+    pub is_zoomed: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

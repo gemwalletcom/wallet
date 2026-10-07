@@ -11,6 +11,7 @@ import class Gemstone.GemAvatarService
 import class Gemstone.GemBalanceService
 import class Gemstone.GemBannerService
 import class Gemstone.GemChainService
+import class Gemstone.GemConfigService
 import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemContactEditorService
 import class Gemstone.GemContactService
@@ -59,6 +60,7 @@ public struct ViewModelFactory: Sendable {
     let avatarService: GemAvatarService
     let bannerService: GemBannerService
     let balanceService: GemBalanceService
+    let configService: GemConfigService
     let confirmTransferService: GemConfirmTransferService
     let contactService: GemContactService
     let contactEditorService: GemContactEditorService
@@ -108,7 +110,7 @@ public struct ViewModelFactory: Sendable {
         (try? stores.walletStore.getWallets()) ?? []
     }
 
-    func currentWallet(in wallets: [Wallet]) -> Wallet? {
-        (try? walletSessionService.getCurrentWalletId()).flatMap { walletId in wallets.first { $0.id == walletId } }
+    func currentWallet() -> Wallet? {
+        (try? walletSessionService.getCurrentWalletId()).flatMap { try? stores.walletStore.getWallet(id: $0) }
     }
 }

@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Özel</string>
+  <string name="fee_rate_priority">Öncelik Ücreti</string>
+  <string name="fee_rate_base">Temel Ücret</string>
   <string name="banner_account_activation_title">Hesap Aktivasyon Ücreti</string>
   <string name="banner_account_activation_description">%1$s ağı, tek seferlik bir ücret gerektirir %2$s.</string>
   <string name="banner_stake_title">%1$s bahisine başla</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 saat</string>
   <string name="lock_require_authentication">Kimlik doğrulama gerektir</string>
   <string name="lock_unlock">Kilidi aç</string>
-  <string name="lock_privacy_lock">Gizlilik Kilidi</string>
   <string name="lock_footer">Cihazınızda bu uygulamaya erişimi koruyun</string>
   <string name="lock_passcode">Şifre</string>
+  <string name="lock_passcode_off_title">Cihaz parolası kapalı</string>
+  <string name="lock_passcode_off_description">Gem, cihazınızın parolasıyla kilitli. Gem\'i açmak için cihaz ayarlarından bir parola açın. Cüzdanlarınız güvende.</string>
   <string name="verify_phrase_title">Onaylamak</string>
   <string name="warnings_externally_controlled_account">Bu %1$s hesabı başka biri tarafından kontrol ediliyor olabilir. Hesabı sizin kontrol ettiğinizden emin olmadıkça bu hesaba para göndermeyin, aksi takdirde varlıklarınızı kalıcı olarak kaybedebilirsiniz.</string>
   <string name="sell_title">%1$s sat</string>
+  <string name="info_region_unavailable_description">Bu özellik bölgenizde kullanılamıyor. Kullanılabilirlik, yerel kurallara ve sağlayıcıların gereksinimlerine bağlıdır.</string>
   <string name="info_network_fee_title">Ağ Ücreti</string>
   <string name="info_watch_wallet_title">Cüzdanı İzle</string>
   <string name="info_watch_wallet_description">Erişiminizin olmadığı, ancak işlemlerini ve hareketlerini izleyebileceğiniz bir cüzdan.</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">Takma ad</string>
   <string name="rewards_unverified_title">Ödüller henüz aktif değil.</string>
   <string name="rewards_unverified_description">Uygulamayı daha çok kullandıkça ödüller otomatik olarak etkinleşir.</string>
+  <string name="rewards_state_empty_title">Ödüller için Çoklu Coin cüzdanı gerekir</string>
+  <string name="rewards_state_empty_description">Arkadaşlarınızı davet etmek ve puan kazanmak için bir Çoklu Coin cüzdanı oluşturun veya içe aktarın.</string>
   <string name="recent_activity_title">Son Kullanılanlar</string>
   <string name="recent_activity_state_empty_title">Son aramalarınız burada görünecek</string>
   <string name="recent_activity_state_empty_description">Yakın zamanda kullandığınız varlıklar burada görünecek</string>

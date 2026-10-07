@@ -86,7 +86,6 @@ fun GemRowAction.detailsAction(assetId: AssetId, network: AssetAction.Navigation
     GemRowAction.PushNotifications,
     GemRowAction.Authentication,
     GemRowAction.LockPeriod,
-    GemRowAction.PrivacyLock,
     GemRowAction.HideBalance,
     GemRowAction.SetPriceAlert,
     -> null

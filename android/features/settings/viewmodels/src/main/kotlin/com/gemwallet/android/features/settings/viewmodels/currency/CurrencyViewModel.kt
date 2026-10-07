@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemCurrencyList
 import uniffi.gemstone.GemCurrencyRow
 import uniffi.gemstone.GemCurrencyServiceInterface
 import java.util.Locale
@@ -48,14 +49,14 @@ class CurrencyViewModel @Inject constructor(
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
 
-    val sections = combine(getCurrentCurrency.getCurrency(), snapshotFlow { query.text.toString() }) { currency, query ->
+    val list: StateFlow<GemCurrencyList?> = combine(getCurrentCurrency.getCurrency(), snapshotFlow { query.text.toString() }) { currency, query ->
         val localizedNames = Currency.entries.associate { it.string to android.icu.util.Currency.getInstance(it.string).displayName }
-        runCatchingCancellable { service.sections(currency.toGem(), localeCurrency?.toGem(), query, localizedNames) }
+        runCatchingCancellable { service.list(currency.toGem(), localeCurrency?.toGem(), query, localizedNames) }
             .onFailure { errorState.value = it.errorText().text(context) }
-            .getOrDefault(emptyList())
+            .getOrNull()
     }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun setCurrency(row: GemCurrencyRow, onSelected: () -> Unit) = viewModelScope.launch {
         runCatchingCancellable { setCurrentCurrency.setCurrentCurrency(row.currency.toPrimitives()) }

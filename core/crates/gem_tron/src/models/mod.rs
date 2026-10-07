@@ -83,6 +83,13 @@ pub struct TriggerConstantContractResponse {
 
 impl TriggerConstantContractResponse {
     pub fn get_energy(&self) -> Result<u64, TronRpcError> {
+        self.energy_used.ok_or_else(|| TronRpcError {
+            code: None,
+            message: Some("Tron triggerconstantcontract response missing energy_used".to_string()),
+        })
+    }
+
+    pub fn check_result(self) -> Result<Self, TronRpcError> {
         if let Some(error) = self.result.as_ref().and_then(TriggerContractResult::check_error) {
             return Err(error);
         }
@@ -92,10 +99,7 @@ impl TriggerConstantContractResponse {
                 message: Some(decode_hex_utf8(message).unwrap_or_else(|| message.to_string())),
             });
         }
-        self.energy_used.ok_or_else(|| TronRpcError {
-            code: None,
-            message: Some("Tron triggerconstantcontract response missing energy_used".to_string()),
-        })
+        Ok(self)
     }
 }
 
@@ -164,11 +168,12 @@ mod tests {
     use crate::address::TronAddress;
 
     #[test]
-    fn test_get_energy_reverted_with_success_flag_and_message() {
-        let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_reverted.json")).unwrap();
+    fn test_check_result() {
+        let reverted: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_reverted.json")).unwrap();
+        let balance: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/balance_token.json")).unwrap();
 
-        let error = response.get_energy().unwrap_err();
-        assert_eq!(error.message.as_deref(), Some("REVERT opcode executed"));
+        assert_eq!(reverted.check_result().unwrap_err().message.as_deref(), Some("REVERT opcode executed"));
+        assert_eq!(balance.check_result().unwrap().constant_result, vec!["000000000000000000000000000000000000000000000000000000000821218a".to_string()]);
     }
 
     #[test]

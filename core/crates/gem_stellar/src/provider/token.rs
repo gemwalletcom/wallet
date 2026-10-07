@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use chain_traits::ChainToken;
 use std::error::Error;
 
-use crate::constants::STELLAR_TOKEN_DECIMALS;
+use crate::constants::STELLAR_DECIMALS;
 use crate::rpc::client::StellarClient;
 use gem_client::Client;
 use primitives::{Asset, AssetId, AssetType};
@@ -34,7 +34,7 @@ impl<C: Client> ChainToken for StellarClient<C> {
             id: AssetId::from(self.chain, Some(token_id)),
             name: symbol.clone(),
             symbol,
-            decimals: STELLAR_TOKEN_DECIMALS,
+            decimals: STELLAR_DECIMALS,
             asset_type: AssetType::TOKEN,
         })
     }

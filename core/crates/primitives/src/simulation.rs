@@ -51,13 +51,6 @@ pub enum SimulationWarningType {
 }
 
 impl SimulationWarningType {
-    fn requires_spender_verification(&self) -> bool {
-        match self {
-            Self::SuspiciousSpender | Self::ExternallyOwnedSpender | Self::ValidationError => false,
-            Self::TokenApproval(_) | Self::NftCollectionApproval(_) | Self::PermitApproval(_) | Self::PermitBatchApproval(_) => true,
-        }
-    }
-
     fn approval_value(&self) -> Option<&Option<BigInt>> {
         match self {
             Self::TokenApproval(a) | Self::PermitApproval(a) => Some(&a.value),
@@ -108,7 +101,7 @@ pub struct SimulationBalanceChange {
     pub asset_id: AssetId,
     #[serde(serialize_with = "serde_serializers::serialize_bigint", deserialize_with = "serde_serializers::deserialize_bigint_from_str")]
     pub value: BigInt,
-    pub decimals: i32,
+    pub decimals: u32,
     pub name: Option<String>,
     pub symbol: Option<String>,
 }
@@ -264,10 +257,6 @@ impl SimulationResult {
     pub fn prepend_warnings(mut self, warnings: Vec<SimulationWarning>) -> Self {
         self.warnings = Self::collapse_warnings(warnings.into_iter().chain(self.warnings).collect());
         self
-    }
-
-    pub fn requires_spender_verification(&self) -> bool {
-        self.warnings.iter().any(|warning| warning.warning.requires_spender_verification())
     }
 
     fn collapse_warnings(warnings: Vec<SimulationWarning>) -> Vec<SimulationWarning> {
@@ -452,13 +441,6 @@ mod tests {
                 Some("Unable to verify spender is a contract".to_string()),
             )]
         );
-    }
-
-    #[test]
-    fn approval_simulation_requires_spender_verification() {
-        let result = SimulationResult::new(vec![SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(BigInt::from(100)))))], vec![]);
-
-        assert!(result.requires_spender_verification());
     }
 
     #[test]

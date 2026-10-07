@@ -1,6 +1,7 @@
 use std::error::Error;
 
-use serde::{Deserialize, Serialize};
+use async_trait::async_trait;
+use primitives::IPAddressInfo;
 
 use crate::providers::MoonPayClient;
 
@@ -9,19 +10,20 @@ pub struct IPCheckClient {
     client: MoonPayClient,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IPAddressInfo {
-    pub alpha2: String,
-    pub state: String,
-    pub ip_address: String,
+#[async_trait]
+pub trait IpAddressProvider: Send + Sync {
+    async fn get_ip_address(&self, ip_address: &str) -> Result<IPAddressInfo, Box<dyn Error + Send + Sync>>;
 }
 
 impl IPCheckClient {
     pub fn new(client: MoonPayClient) -> Self {
         Self { client }
     }
+}
 
-    pub async fn get_ip_address(&self, ip_address: &str) -> Result<IPAddressInfo, Box<dyn Error + Send + Sync>> {
+#[async_trait]
+impl IpAddressProvider for IPCheckClient {
+    async fn get_ip_address(&self, ip_address: &str) -> Result<IPAddressInfo, Box<dyn Error + Send + Sync>> {
         let data = self.client.get_ip_address(ip_address).await?;
         Ok(IPAddressInfo {
             alpha2: data.alpha2,

@@ -5,7 +5,6 @@ use crate::fee::GemCustomFeeSession;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
-use crate::models::gateway::GemFeeRate;
 use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::precision::GemValueStyle;
@@ -16,13 +15,13 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::model::GemPerpetualConfirmDetails;
-use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
+use crate::services::simulation::{address_requests, named_payload_rows};
 use crate::services::swap::model::{GemSwapDetails, GemSwapPairSelection};
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmTitle;
 use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
-use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Wallet};
+use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeRate, FeeUnitType, GasPriceType, SimulationResult, Wallet};
 use primitives::{AssetPrice, Currency, PaymentVerification};
 use swapper::Quote;
 
@@ -37,16 +36,7 @@ pub struct GemConfirmInput {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemConfirmFeeSelection {
     Priority { priority: FeePriority },
-    Custom { gas_price: GemBigInt },
-}
-
-impl GemConfirmFeeSelection {
-    pub(super) fn custom_gas_price(&self) -> Option<GemBigInt> {
-        match self {
-            Self::Priority { .. } => None,
-            Self::Custom { gas_price } => Some(gas_price.clone()),
-        }
-    }
+    Custom { base_fee: Option<GemBigInt>, rate: Option<GemBigInt> },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -95,7 +85,7 @@ pub struct GemConfirmData {
     pub fee: GemTransactionLoadFee,
     pub selected_priority: FeePriority,
     pub fee_selection: GemConfirmFeeSelection,
-    pub fee_rates: Vec<GemFeeRate>,
+    pub fee_rates: Vec<FeeRate>,
     pub metadata: GemTransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
 }
@@ -206,8 +196,9 @@ pub struct GemFeeRateRows {
     pub shows_options: bool,
     pub unit_type: FeeUnitType,
     pub unit_decimals: u32,
-    pub selected_total: Option<GemBigInt>,
-    pub normal_total: Option<GemBigInt>,
+    pub selected: Option<GasPriceType>,
+    pub normal: Option<GasPriceType>,
+    pub base_fee: Option<GemBigInt>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -291,7 +282,6 @@ impl ConfirmState {
     pub(super) fn network_fee_screen(&self, currency: Currency, format: GemNumberFormat) -> GemNetworkFeeScreen {
         let load = &self.load;
         let rates = self.fee_rate_rows(currency.clone());
-        let custom_rate = self.confirm_data.as_ref().and_then(|data| data.fee_selection.custom_gas_price());
         let custom = rates.clone().filter(|rates| rates.rows.iter().any(|row| row.kind == GemFeeRateKind::Custom)).map(|rates| {
             GemCustomFeeSession::new(
                 load.fee_asset.clone(),
@@ -300,7 +290,7 @@ impl ConfirmState {
                 load.fee.as_ref().map(|fee| fee.value.clone()),
                 load.metadata.fee_price().map(|price| price.price),
                 currency.clone(),
-                custom_rate.as_ref(),
+                self.confirm_data.as_ref().map(|data| &data.fee_selection),
             )
         });
         GemNetworkFeeScreen {
@@ -379,8 +369,8 @@ impl GemSimulationValue {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulation {
-    pub primary_fields: Vec<GemSimulationPayloadRow>,
-    pub secondary_fields: Vec<GemSimulationPayloadRow>,
+    pub primary_fields: Vec<GemListRow>,
+    pub secondary_fields: Vec<GemListRow>,
     pub header: Option<GemSimulationValue>,
     pub balance_changes: Vec<GemListRow>,
     pub has_critical_warning: bool,
@@ -492,7 +482,7 @@ pub enum GemConfirmSection {
     Notice { row: GemListRow },
     Details { rows: Vec<GemConfirmRowContent> },
     Warnings { rows: Vec<GemListRow> },
-    Payload { primary: Vec<GemSimulationPayloadRow>, secondary: Vec<GemSimulationPayloadRow> },
+    Payload { primary: Vec<GemListRow>, secondary: Vec<GemListRow> },
     BalanceChanges { rows: Vec<GemListRow> },
     NetworkFee,
     Verification,
@@ -560,18 +550,25 @@ mod tests {
                 ..GemConfirmLoad::mock()
             },
             confirm_data: Some(GemConfirmData {
-                fee_rates: vec![GemFeeRate::mock(FeePriority::Normal, 10), GemFeeRate::mock(FeePriority::Fast, 25)],
+                fee_rates: vec![FeeRate::mock(FeePriority::Normal, 10), FeeRate::mock(FeePriority::Fast, 25)],
                 fee_selection,
                 ..GemConfirmData::mock(chain, primitives::TransactionInputType::Transfer { asset: Asset::from_chain(chain) })
             }),
             swap: None,
         };
 
-        let picked = state(primitives::Chain::Bitcoin, GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(25) }).network_fee_screen(Currency::USD, format.clone());
+        let picked = state(
+            primitives::Chain::Bitcoin,
+            GemConfirmFeeSelection::Custom {
+                base_fee: None,
+                rate: Some(num_bigint::BigInt::from(25)),
+            },
+        )
+        .network_fee_screen(Currency::USD, format.clone());
         assert_eq!(picked.fee, Some(fee.formatted.clone()));
-        assert_eq!(picked.custom.map(|custom| custom.input), Some("2.5".to_string()), "a picked custom rate reopens in the field");
+        assert_eq!(picked.custom.map(|custom| custom.rate.input), Some("2.5".to_string()), "a picked custom rate reopens in the field");
 
-        let preset = state(primitives::Chain::Ethereum, GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }).network_fee_screen(Currency::USD, format);
+        let preset = state(primitives::Chain::Solana, GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }).network_fee_screen(Currency::USD, format);
         assert!(preset.rates.is_some());
         assert!(preset.custom.is_none(), "no custom row, no custom field");
         assert!(preset.fee_asset.is_none(), "one fee asset is nothing to pick");
@@ -653,15 +650,6 @@ mod tests {
         let options = GemConfirmLoadOptions::initial(&transfer);
 
         assert_eq!(options.on_payment_asset(ethereum.id.clone(), transfer).asset_id, Some(ethereum.id));
-    }
-
-    #[test]
-    fn test_fee_selection_answers_only_for_its_own_case() {
-        let priority = GemConfirmFeeSelection::Priority { priority: FeePriority::Fast };
-        let custom = GemConfirmFeeSelection::Custom { gas_price: 7.into() };
-
-        assert_eq!(priority.custom_gas_price(), None);
-        assert_eq!(custom.custom_gas_price(), Some(7.into()));
     }
 }
 

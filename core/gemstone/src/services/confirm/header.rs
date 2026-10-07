@@ -93,7 +93,7 @@ fn amount(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, prices: &[A
         && value != GemBigUint::ZERO
     {
         return GemTransactionAmount {
-            price: Some(AssetPrice::new(asset.id.clone(), price.amount / BigNumberFormatter::f64_value(&value, asset.decimals as u32), 0.0, Utc::now())),
+            price: Some(AssetPrice::new(asset.id.clone(), price.amount / BigNumberFormatter::f64_value(&value, asset.decimals), 0.0, Utc::now())),
             asset,
             value,
             sign: GemAmountSign::None,

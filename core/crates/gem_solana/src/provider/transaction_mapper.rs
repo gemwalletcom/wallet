@@ -339,11 +339,11 @@ mod tests {
     const CORE_COLLECTION: &str = "5pQfZttNUtaj8sySRY9RsdtB81aEAQDh2vnacpxiwTpT";
 
     #[test]
-    fn test_map_swap_program_without_swap_output() {
+    fn test_map_mayan_deposit_without_local_swap_output() {
         let transaction = map_single_transaction(include_str!("../../testdata/mayan_deposit_jupiter_route.json"));
 
         assert_eq!(transaction.hash(), "vXUaBxa3MtnodHE7by5sXpExWHoMdcp7qiMKk1UoM8CnYBGD84KpzbErWLVf7RfjAmsrhJxjJ3Df7hqJ4Qh4umb");
-        assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
         assert_eq!(transaction.state, TransactionState::Confirmed);
     }
 

@@ -29,12 +29,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemErrorText
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPushResult
 import uniffi.gemstone.GemSupportServiceInterface
-import uniffi.gemstone.loadError
+import uniffi.gemstone.emptyState
+import uniffi.gemstone.listPhase
 import javax.inject.Inject
 
 @HiltViewModel
@@ -56,10 +58,6 @@ class SupportChatViewModel @Inject constructor(
         .map(::buildSupportChatDays)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val isEmpty = messages
-        .map { it.isEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
-
     val typingAgentName = getSupportTyping.typingAgent()
         .map { it?.name }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -69,9 +67,8 @@ class SupportChatViewModel @Inject constructor(
 
     private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
-    val errorRow: StateFlow<GemListRow?> = combine(loadState, messages) { state, shown ->
-        loadError(state, shown.isNotEmpty())?.let { GemListRow.Error(it) }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val phase: StateFlow<GemListPhase> = combine(messages, loadState) { messages, state -> listPhase(state, messages.isNotEmpty(), emptyState(GemEmptyStateKind.SUPPORT)) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, listPhase(loadState.value, false, emptyState(GemEmptyStateKind.SUPPORT)))
 
     init {
         viewModelScope.launch(ioDispatcher) {
@@ -83,7 +80,7 @@ class SupportChatViewModel @Inject constructor(
     fun load() = viewModelScope.launch(ioDispatcher) {
         val shown = messages.first()
         val fromTimestamp = supportService.syncFromTimestamp(shown.map { it.toGem() })
-        loadState.update { supportService.refresh(fromTimestamp, shown.isNotEmpty()) }
+        loadState.update { supportService.refresh(fromTimestamp) }
     }
 
     fun sendText(content: String) = viewModelScope.launch(ioDispatcher) {

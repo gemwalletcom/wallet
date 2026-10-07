@@ -21,9 +21,9 @@ import uniffi.gemstone.GemRowText
 import java.math.BigInteger
 
 class AssetInfoDataAggregateTest {
-    private val btcAsset = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8)
+    private val btcAsset = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8u)
 
-    private val ethAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val ethAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
 
     @Test
     fun theAggregateKeepsTheAssetIdentityNextToItsRow() {

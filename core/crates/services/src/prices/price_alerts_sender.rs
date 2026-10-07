@@ -4,16 +4,16 @@ use crate::ConfigCacher;
 use crate::prices::PriceAlertClient;
 use config_keys::ConfigKey;
 use prices::PriceAlertRules;
-use streamer::{NotificationsPayload, StreamProducer, StreamProducerQueue};
+use streamer::{NotificationsPayload, StreamProducerQueue};
 
 pub struct PriceAlertSender {
     config: Arc<ConfigCacher>,
     price_alert_client: PriceAlertClient,
-    stream_producer: StreamProducer,
+    stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PriceAlertSender {
-    pub fn new(config: Arc<ConfigCacher>, price_alert_client: PriceAlertClient, stream_producer: StreamProducer) -> Self {
+    pub fn new(config: Arc<ConfigCacher>, price_alert_client: PriceAlertClient, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { config, price_alert_client, stream_producer }
     }
 
@@ -21,7 +21,7 @@ impl PriceAlertSender {
         let notification_cooldown = self.config.get_duration(ConfigKey::AlerterPriceAlertsCooldown).await?;
         let price_change_threshold = self.config.get_f64(ConfigKey::AlerterPriceAlertsThreshold).await?;
         let rank_divisor = self.config.get_f64(ConfigKey::AlerterPriceAlertsRankDivisor).await?;
-        let milestones = self.config.get_vec::<f64>(ConfigKey::AlerterPriceAlertsMilestones).await?;
+        let milestones = self.config.get_json::<Vec<f64>>(ConfigKey::AlerterPriceAlertsMilestones).await?;
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
 
         let rules = PriceAlertRules {

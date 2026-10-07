@@ -41,7 +41,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.QRScanType
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemConnection
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListPhase
 
 @Composable
 fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, viewModel: ConnectionsViewModel = hiltViewModel()) {
@@ -49,6 +49,7 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
     var scannerShowed by remember { mutableStateOf(false) }
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val phase by viewModel.phase.collectAsStateWithLifecycle()
     val docsUrl by viewModel.docsUrl.collectAsStateWithLifecycle()
 
     var pairError by remember { mutableStateOf("") }
@@ -86,18 +87,20 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
                     modifier = Modifier.clickable { scannerShowed = true },
                 )
             }
-            if (sections.isEmpty()) {
-                item {
-                    EmptyContentView(kind = GemEmptyStateKind.WALLET_CONNECT, modifier = Modifier.fillParentMaxHeight(0.7f))
+            when (val current = phase) {
+                is GemListPhase.Empty -> item {
+                    EmptyContentView(state = current.state, modifier = Modifier.fillParentMaxHeight(0.7f))
                 }
-            } else {
-                listSections(sections) { position, item ->
+
+                GemListPhase.Rows -> listSections(sections) { position, item ->
                     ListItem(
                         model = item.row.listItem(),
                         listPosition = position,
                         modifier = Modifier.clickable { onConnection(item.connection.session.id) },
                     )
                 }
+
+                is GemListPhase.Error, null -> Unit
             }
         }
     }

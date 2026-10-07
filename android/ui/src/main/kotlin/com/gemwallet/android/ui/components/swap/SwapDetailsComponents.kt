@@ -26,6 +26,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ProviderRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
@@ -40,6 +41,7 @@ import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemProviderKind
 import uniffi.gemstone.GemProviderRow
 import uniffi.gemstone.GemSwapDetails
+import uniffi.gemstone.GemSwapQuotesState
 import uniffi.gemstone.SwapProvider
 
 @Composable
@@ -72,10 +74,10 @@ fun SwapDetailsSummaryItem(details: GemSwapDetails, onClick: () -> Unit, listPos
 @Composable
 fun SwapDetailsBottomSheet(
     isVisible: Boolean,
-    isLoading: Boolean,
     details: GemSwapDetails?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    quotesState: GemSwapQuotesState = GemSwapQuotesState.Quotes,
     expansion: SheetExpansion = SheetExpansion.Partial,
     providers: List<GemProviderRow> = emptyList(),
     isProviderSelectable: Boolean = false,
@@ -83,52 +85,78 @@ fun SwapDetailsBottomSheet(
 ) {
     val context = LocalContext.current
     ModalBottomSheet(
-        item = details.takeIf { isVisible },
+        item = (quotesState to details).takeIf { isVisible },
         onDismissRequest = onDismiss,
         modifier = modifier,
         expansion = expansion,
         title = { stringResource(R.string.common_details) },
         dismissType = DialogBarDismissType.Confirm,
-    ) { details ->
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxWidth()) {
+    ) { (quotesState, details) ->
+        when (quotesState) {
+            GemSwapQuotesState.Loading -> Box(modifier = Modifier.fillMaxWidth()) {
                 CircularProgressIndicator20(modifier = Modifier.align(Alignment.Center))
             }
-            return@ModalBottomSheet
-        }
 
-        LazyColumn {
+            is GemSwapQuotesState.Failed -> WarningItem(
+                title = stringResource(R.string.errors_error_occurred),
+                message = quotesState.error.text(context),
+                color = MaterialTheme.colorScheme.error,
+                position = ListPosition.Single,
+            )
+
+            GemSwapQuotesState.Empty -> WarningItem(
+                title = stringResource(R.string.errors_error_occurred),
+                color = MaterialTheme.colorScheme.error,
+                position = ListPosition.Single,
+            )
+
+            GemSwapQuotesState.Quotes -> details?.let {
+                SwapDetailsList(
+                    details = it,
+                    providers = providers,
+                    isProviderSelectable = isProviderSelectable,
+                    onProviderSelect = onProviderSelect,
+                    onDismiss = onDismiss,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SwapDetailsList(details: GemSwapDetails, providers: List<GemProviderRow>, isProviderSelectable: Boolean, onProviderSelect: ((SwapProvider) -> Unit)?, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    LazyColumn {
+        item {
+            SubheaderItem(GemListRowTitle.PROVIDER.text(context))
+        }
+        if (onProviderSelect != null && isProviderSelectable) {
+            itemsIndexed(providers) { index, provider ->
+                ProviderRowView(
+                    row = provider,
+                    listPosition = ListPosition.getPosition(index, providers.size),
+                    onClick = (provider.kind as? GemProviderKind.Swap)?.let { kind ->
+                        {
+                            onDismiss()
+                            onProviderSelect(kind.provider)
+                        }
+                    },
+                )
+            }
+        } else {
             item {
-                SubheaderItem(GemListRowTitle.PROVIDER.text(context))
+                ProviderRowView(row = details.provider, listPosition = ListPosition.Single)
             }
-            if (onProviderSelect != null && isProviderSelectable) {
-                itemsIndexed(providers) { index, provider ->
-                    ProviderRowView(
-                        row = provider,
-                        listPosition = ListPosition.getPosition(index, providers.size),
-                        onClick = (provider.kind as? GemProviderKind.Swap)?.let { kind ->
-                            {
-                                onDismiss()
-                                onProviderSelect(kind.provider)
-                            }
-                        },
-                    )
-                }
-            } else {
-                item {
-                    ProviderRowView(row = details.provider, listPosition = ListPosition.Single)
-                }
+        }
+        val rate = details.rate
+        val rateRows = if (rate != null) 1 else 0
+        rate?.let {
+            item {
+                AssetRatePropertyItem(stringResource(R.string.buy_rate), it, ListPosition.First)
             }
-            val rate = details.rate
-            val rateRows = if (rate != null) 1 else 0
-            rate?.let {
-                item {
-                    AssetRatePropertyItem(stringResource(R.string.buy_rate), it, ListPosition.First)
-                }
-            }
-            itemsIndexed(details.rows) { index, row ->
-                GemListRowView(row = row, listPosition = ListPosition.getPosition(index + rateRows, details.rows.size + rateRows))
-            }
+        }
+        itemsIndexed(details.rows) { index, row ->
+            GemListRowView(row = row, listPosition = ListPosition.getPosition(index + rateRows, details.rows.size + rateRows))
         }
     }
 }

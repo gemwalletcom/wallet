@@ -1,5 +1,4 @@
 use crate::alien::{AlienError, AlienHttpMethod, AlienProvider, AlienResponse, AlienTarget};
-use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemFeeOptions, GemSignedTransaction, GemTransactionLoadFee};
 use crate::payment::GemPaymentService;
 use crate::services::assets::{GemAssetsService, testkit::MemoryAssetStore};
@@ -11,10 +10,13 @@ use gem_wallet_connect::WCEthereumTransactionData;
 use num_bigint::BigInt;
 use payment::PaymentTransaction;
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
-use primitives::{AssetId, Chain, ChainAddress, FeePriority, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
+use primitives::{AssetId, Chain, ChainAddress, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
 use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll};
 
 #[derive(Debug)]
 pub struct TestAlienProvider {
@@ -165,15 +167,6 @@ impl GemSignedTransaction {
     }
 }
 
-impl GemFeeRate {
-    pub fn mock(priority: FeePriority, gas_price: u64) -> Self {
-        Self {
-            priority,
-            gas_price_type: GasPriceType::regular(gas_price),
-        }
-    }
-}
-
 #[derive(Debug, Default)]
 pub struct EmptyPreferences;
 
@@ -206,5 +199,23 @@ impl GemPreferencesStore for EmptyPreferences {
 
     fn clear(&self) -> Result<(), GemServiceError> {
         Ok(())
+    }
+}
+
+#[derive(Default)]
+pub struct YieldOnce {
+    yielded: bool,
+}
+
+impl Future for YieldOnce {
+    type Output = ();
+
+    fn poll(mut self: Pin<&mut Self>, context: &mut Context<'_>) -> Poll<()> {
+        if self.yielded {
+            return Poll::Ready(());
+        }
+        self.yielded = true;
+        context.waker().wake_by_ref();
+        Poll::Pending
     }
 }

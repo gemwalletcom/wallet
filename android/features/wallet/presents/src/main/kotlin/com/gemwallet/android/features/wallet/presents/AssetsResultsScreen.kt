@@ -69,6 +69,7 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                     item { AssetSectionHeaderItem(GemAssetSectionKind.PINNED) }
                     assetRows(
                         items = pinned,
+                        keyPrefix = GemAssetSectionKind.PINNED.name,
                         onSelect = onAssetClick,
                         longPressedAsset = longPressedAsset,
                         contextActions = contextActions,
@@ -76,6 +77,7 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                 }
                 assetRows(
                     items = assets,
+                    keyPrefix = GemAssetSectionKind.ASSETS.name,
                     onSelect = onAssetClick,
                     longPressedAsset = longPressedAsset,
                     contextActions = contextActions,

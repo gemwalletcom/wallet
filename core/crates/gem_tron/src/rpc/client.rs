@@ -10,7 +10,7 @@ use crate::models::{TriggerSmartContractData, TronAccount, TronAccountRequest, T
 use crate::rpc::constants::{DECIMALS_SELECTOR, DEFAULT_OWNER_ADDRESS, GENESIS_BLOCK_NUMBER, NAME_SELECTOR, SYMBOL_SELECTOR};
 use crate::rpc::target::TronTarget;
 use gem_client::{Client, ClientExt};
-use gem_evm::contracts::erc20::{decode_abi_string, decode_abi_uint8};
+use gem_evm::contracts::erc20::decode_token_metadata;
 
 #[derive(Clone)]
 pub struct TronClient<C: Client> {
@@ -71,7 +71,8 @@ impl<C: Client> TronClient<C> {
     }
 
     async fn trigger_constant_contract_request(&self, request: &(impl serde::Serialize + Send + Sync)) -> Result<TriggerConstantContractResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.post(TronTarget::TriggerConstantContract, request).await?)
+        let response: TriggerConstantContractResponse = self.client.post(TronTarget::TriggerConstantContract, request).await?;
+        Ok(response.check_result()?)
     }
 
     pub async fn estimate_energy_with_data(&self, contract_data: &TriggerSmartContractData) -> Result<u64, Box<dyn Error + Send + Sync>> {
@@ -120,11 +121,9 @@ impl<C: Client> TronClient<C> {
             self.trigger_constant_contract(&token_id, DECIMALS_SELECTOR, ""),
         )?;
 
-        let name = decode_abi_string(&name)?;
-        let symbol = decode_abi_string(&symbol)?;
-        let decimals = decode_abi_uint8(&decimals)?;
+        let (name, symbol, decimals) = decode_token_metadata(&name, &symbol, &decimals)?;
         let asset_id = AssetId::from(Chain::Tron, Some(token_id));
-        Ok(Asset::new(asset_id, name, symbol, decimals as i32, AssetType::TRC20))
+        Ok(Asset::new(asset_id, name, symbol, u32::from(decimals), AssetType::TRC20))
     }
 
     pub async fn get_account(&self, address: &str) -> Result<TronAccount, Box<dyn Error + Send + Sync>> {

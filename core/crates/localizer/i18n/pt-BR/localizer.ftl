@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = O código de indicação atingiu
 errors_generic = Ocorreu um erro inesperado. Tente novamente mais tarde.
 fiat_error_limit_reached = Muitas solicitações de cotação. Tente novamente em alguns minutos.
 fiat_error_quote_unavailable = Esta cotação não está mais disponível. Tente novamente.
+fiat_error_region_unavailable = Indisponível na sua região.
 rewards_error_referral_country_ineligible = No momento, não há encaminhamentos disponíveis para o seu país: {$value}.
 notification_rewards_disabled_title = Código de indicação desativado
 notification_rewards_disabled_description = Este código de indicação foi desativado devido a repetidas violações dos termos do nosso programa de indicações.

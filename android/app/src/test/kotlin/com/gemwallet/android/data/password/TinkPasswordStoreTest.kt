@@ -94,6 +94,17 @@ class TinkPasswordStoreTest {
     }
 
     @Test
+    fun hasPassword_doesNotDecryptOrMigrate() {
+        legacyStore.putString(TEST_WALLET_KEY, LEGACY_PASSWORD)
+
+        assertTrue(passwordStore.hasPassword(TEST_WALLET_KEY))
+
+        assertEquals(0, legacyStore.readCount)
+        assertEquals(0, encryptedStore.readCount)
+        assertEquals(0, legacyStore.removeCount(TEST_WALLET_KEY))
+    }
+
+    @Test
     fun getPassword_missingValueFailsClosed() {
         assertThrows(PasswordNotFoundException::class.java) {
             passwordStore.getPassword(TEST_WALLET_KEY)
@@ -106,7 +117,13 @@ class TinkPasswordStoreTest {
 
         override fun contains(key: String): Boolean = values.containsKey(key)
 
-        override fun getString(key: String): String? = values[key]
+        var readCount = 0
+            private set
+
+        override fun getString(key: String): String? {
+            readCount += 1
+            return values[key]
+        }
 
         override fun putString(key: String, value: String) {
             values[key] = value

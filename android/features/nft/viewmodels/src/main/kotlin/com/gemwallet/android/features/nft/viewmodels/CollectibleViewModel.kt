@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.nft.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -14,17 +13,20 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.nft.viewmodels.models.CollectibleUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.ReportReasonUIModel
 import com.gemwallet.android.features.nft.viewmodels.models.uiModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.canSaveImageToGallery
 import com.gemwallet.android.ui.components.image.saveImageToGallery
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
+import com.gemwallet.android.ui.models.dataOrNull
+import com.gemwallet.android.ui.models.flatMap
 import com.gemwallet.android.ui.models.navigation.requireNftAssetId
-import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.ReportReason
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -38,7 +40,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemCollectibleDetails
 import uniffi.gemstone.GemCollectibleServiceInterface
 import javax.inject.Inject
 
@@ -55,19 +56,17 @@ class CollectibleViewModel @Inject constructor(
 
     private val nftAssetId = savedStateHandle.requireNftAssetId()
 
-    private val assetDetails: StateFlow<NFTAssetDetails?> = getNftAssetDetails(nftAssetId)
-        .catch { Log.e(TAG, "Collectible details unavailable", it) }
+    private val assetDetails: StateFlow<StateViewType<NFTAssetDetails>> = getNftAssetDetails(nftAssetId)
+        .map<NFTAssetDetails, StateViewType<NFTAssetDetails>> { StateViewType.Data(it) }
+        .catch { emit(StateViewType.Error(it.errorText().text(context))) }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, StateViewType.Loading)
 
-    val nftAsset: StateFlow<NFTAssetData?> = assetDetails.map { it?.assetData }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val details: StateFlow<GemCollectibleDetails?> = combine(assetDetails.filterNotNull(), getSession().filterNotNull()) { asset, session ->
-        service.details(session.wallet.type.toGem(), asset.assetData.toGem(), asset.isOwned, canSaveImageToGallery)
+    val state: StateFlow<StateViewType<CollectibleUIModel>> = combine(assetDetails, getSession().filterNotNull()) { asset, session ->
+        asset.flatMap { StateViewType.Data(CollectibleUIModel(it.assetData, service.details(session.wallet.type.toGem(), it.assetData.toGem(), it.isOwned, canSaveImageToGallery))) }
     }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, StateViewType.Loading)
 
     val reportReasons: List<ReportReasonUIModel> = ReportReason.entries.map { it.uiModel(context) }
 
@@ -77,13 +76,13 @@ class CollectibleViewModel @Inject constructor(
     }
 
     fun setAsAvatar() = viewModelScope.launch(ioDispatcher) {
-        val url = nftAsset.value?.asset?.images?.preview?.url ?: return@launch
+        val url = state.value.dataOrNull?.assetData?.asset?.images?.preview?.url ?: return@launch
         runCatchingCancellable { service.setWalletAvatar(url) }
             .toast(R.string.nft_set_as_avatar)
     }
 
     fun saveImage() = viewModelScope.launch(ioDispatcher) {
-        val asset = nftAsset.value?.asset ?: return@launch
+        val asset = state.value.dataOrNull?.assetData?.asset ?: return@launch
         runCatchingCancellable { context.saveImageToGallery(url = asset.images.preview.url, name = asset.name) }
             .toast(R.string.nft_save_to_photos)
     }
@@ -98,5 +97,3 @@ class CollectibleViewModel @Inject constructor(
         onFailure { emitToast(ToastMessage(it.errorText().text(context), R.drawable.ic_error)) }
     }
 }
-
-private const val TAG = "CollectibleViewModel"

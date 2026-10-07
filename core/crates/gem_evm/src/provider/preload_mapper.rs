@@ -34,16 +34,15 @@ pub fn map_transaction_preload(nonce_hex: String, chain_id: String) -> Result<Tr
 
 pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHistory) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
     let base_fee = fee_history.base_fee_per_gas.last().ok_or("No base fee available")?;
-    let min_priority_fee = BigInt::from(chain.min_priority_fee());
 
     Ok(FeeCalculator::new()
-        .calculate_priority_fees(fee_history, &[FeePriority::Normal, FeePriority::Fast], min_priority_fee)?
+        .calculate_priority_fees(chain, fee_history, &[FeePriority::Normal, FeePriority::Fast])?
         .into_iter()
         .map(|fee| FeeRate::new(fee.priority, GasPriceType::eip1559(base_fee.clone(), fee.value)))
         .collect())
 }
 
-pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
+pub fn get_transaction_params(input: &TransactionLoadInput) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
     let value = input.value_as_bigint();
 
     match &input.input_type {
@@ -162,12 +161,12 @@ mod tests {
         let payment = |approval| TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra { approval, ..TransferDataExtra::mock() });
 
         assert_eq!(
-            get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(Some(approval.clone())), "1000"))?,
+            get_transaction_params(&TransactionLoadInput::mock_evm(payment(Some(approval.clone())), "1000"))?,
             TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?),
             "a payment that still needs an approval sends the approval"
         );
         assert_eq!(
-            get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(None), "1000"))?,
+            get_transaction_params(&TransactionLoadInput::mock_evm(payment(None), "1000"))?,
             TransactionParams::new(TEST_EVM_RECIPIENT, vec![], BigInt::from(1000)),
             "a payment paid by a transaction sends what the gateway built"
         );
@@ -223,7 +222,7 @@ mod tests {
             result.into_iter().map(|rate| (rate.priority, rate.gas_price_type)).collect::<Vec<_>>(),
             vec![
                 (FeePriority::Normal, GasPriceType::eip1559(20_000_000_000u64, 200_000_000u64)),
-                (FeePriority::Fast, GasPriceType::eip1559(20_000_000_000u64, 600_000_000u64)),
+                (FeePriority::Fast, GasPriceType::eip1559(20_000_000_000u64, 2_220_000_000u64)),
             ]
         );
 
@@ -331,9 +330,6 @@ mod tests {
     fn test_bigint_to_string_conversion() {
         let value = BigInt::from(100_000_000u64);
         assert_eq!(value.to_string(), "100000000");
-
-        let min_priority = BigInt::from(primitives::EVMChain::Ethereum.min_priority_fee());
-        assert_eq!(min_priority.to_string(), "100000000");
     }
 
     #[test]

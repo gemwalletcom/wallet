@@ -40,6 +40,7 @@ import org.junit.Test
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemEarnInput
 import uniffi.gemstone.GemEarnView
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemStakeDelegationItem
@@ -55,7 +56,7 @@ class EarnViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule(testDispatcher)
 
-    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6)
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Cosmos), name = "Cosmos", symbol = "ATOM", decimals = 6u)
     private val provider = mockDelegationValidator(id = "earn-provider", apr = 4.0, providerType = StakeProviderType.Earn)
     private val funded = mockDelegation(base = mockDelegationBase(assetId = asset.id, balance = BigInteger("500"), shares = BigInteger("500")), validator = provider)
     private val empty = mockDelegation(base = mockDelegationBase(assetId = asset.id, balance = BigInteger.ZERO, shares = BigInteger.ZERO, delegationId = "empty"), validator = provider)
@@ -72,7 +73,7 @@ class EarnViewModelTest {
                 depositRow = GemListRow.Action(GemListRowTitle.DEPOSIT, null, null),
                 depositProvider = input.providers.firstOrNull().takeIf { input.walletType != uniffi.gemstone.WalletType.VIEW },
                 positions = listOf(GemStakeDelegationItem(funded.toGem(), delegationListRows(listOf(funded.toGem()), input.asset, null, input.currency).first(), destination)),
-                showsEmpty = false,
+                positionsPhase = GemListPhase.Rows,
             )
         }
     }
@@ -106,7 +107,7 @@ class EarnViewModelTest {
 
     @Test
     fun `a token reads the earn providers stored under its chain's coin`() = runTest(testDispatcher) {
-        val token = mockAsset(id = AssetId(Chain.Cosmos, "usdc"), name = "USD Coin", symbol = "USDC", decimals = 6)
+        val token = mockAsset(id = AssetId(Chain.Cosmos, "usdc"), name = "USD Coin", symbol = "USDC", decimals = 6u)
         every { assetQuery(walletId.id, token.id) } returns flowOf(mockAssetData(asset = token))
 
         val model = viewModel(screenAssetId = token.id)

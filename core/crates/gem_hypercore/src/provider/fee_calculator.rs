@@ -1,12 +1,12 @@
 use num_bigint::BigInt;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, swap::SwapData};
+use primitives::{Asset, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, known_assets::HYPERCORE_PERPETUAL_USDC, swap::SwapData};
 use std::error::Error;
+use std::fmt::Display;
 
 use crate::perpetual_formatter::USDC_DECIMALS_MULTIPLIER;
 
 const HYPERCORE_BUILDER_FEE_RATE_SCALE: f64 = 100_000.0;
-const HYPERCORE_PERPETUAL_USDC_DECIMALS: i32 = 6;
 
 pub fn calculate_perpetual_fee_amount(fiat_value: f64, fee_rate: f64, builder_fee_bps: u32) -> BigInt {
     fee_amount_in_usdc(fiat_value, fee_rate + builder_fee_rate(builder_fee_bps))
@@ -15,7 +15,7 @@ pub fn calculate_perpetual_fee_amount(fiat_value: f64, fee_rate: f64, builder_fe
 pub fn calculate_spot_fee_amount(swap_data: &SwapData, from_asset: &Asset, to_asset: &Asset, fee_rate: f64, builder_fee_bps: u32) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
     let fiat_value = calculate_spot_usdc_value(swap_data, from_asset, to_asset, builder_fee_bps)?;
     let usdc_decimals = spot_usdc_decimals(from_asset, to_asset)?;
-    let value = fiat_value * decimal_scale(usdc_decimals - HYPERCORE_PERPETUAL_USDC_DECIMALS);
+    let value = fiat_value * decimal_scale(usdc_decimals.saturating_sub(HYPERCORE_PERPETUAL_USDC.decimals));
     let trade_fee = fee_amount_in_usdc(value, fee_rate);
     let builder_fee = fee_amount_in_usdc(value, builder_fee_rate(builder_fee_bps));
 
@@ -27,9 +27,9 @@ fn calculate_spot_usdc_value(swap_data: &SwapData, from_asset: &Asset, to_asset:
     let usdc_to = to_asset.id == *HYPERCORE_SPOT_USDC_ASSET_ID;
 
     match (usdc_from, usdc_to) {
-        (true, false) => quote_value(&swap_data.quote.from_value.to_string(), from_asset.decimals),
+        (true, false) => quote_value(&swap_data.quote.from_value, from_asset.decimals),
         (false, true) => {
-            let net_output = quote_value(&swap_data.quote.to_value.to_string(), to_asset.decimals)?;
+            let net_output = quote_value(&swap_data.quote.to_value, to_asset.decimals)?;
             let fee_factor = 1.0 - builder_fee_rate(builder_fee_bps);
             Ok(net_output / fee_factor)
         }
@@ -37,11 +37,11 @@ fn calculate_spot_usdc_value(swap_data: &SwapData, from_asset: &Asset, to_asset:
     }
 }
 
-fn quote_value(value: &str, decimals: i32) -> Result<f64, Box<dyn Error + Send + Sync>> {
-    Ok(BigNumberFormatter::value(value, decimals)?.parse::<f64>()?)
+fn quote_value(value: impl Display, decimals: u32) -> Result<f64, Box<dyn Error + Send + Sync>> {
+    Ok(BigNumberFormatter::value_as_f64(value, decimals)?)
 }
 
-fn spot_usdc_decimals(from_asset: &Asset, to_asset: &Asset) -> Result<i32, Box<dyn Error + Send + Sync>> {
+fn spot_usdc_decimals(from_asset: &Asset, to_asset: &Asset) -> Result<u32, Box<dyn Error + Send + Sync>> {
     if from_asset.id == *HYPERCORE_SPOT_USDC_ASSET_ID {
         return Ok(from_asset.decimals);
     }
@@ -51,8 +51,8 @@ fn spot_usdc_decimals(from_asset: &Asset, to_asset: &Asset) -> Result<i32, Box<d
     Err("spot swap quote must have exactly one USDC leg".into())
 }
 
-fn decimal_scale(power: i32) -> f64 {
-    10_i64.pow(power as u32) as f64
+fn decimal_scale(power: u32) -> f64 {
+    10_i64.pow(power) as f64
 }
 
 fn fee_amount_in_usdc(value: f64, fee_rate: f64) -> BigInt {

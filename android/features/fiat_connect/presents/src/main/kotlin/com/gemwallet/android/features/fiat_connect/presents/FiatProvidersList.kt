@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
@@ -18,11 +19,12 @@ import uniffi.gemstone.GemProviderRow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FiatProvidersList(isShow: MutableState<Boolean>, providers: List<GemProviderRow>, onProviderSelect: (FiatProviderName) -> Unit) {
+    val openedProviders = remember(isShow.value) { providers.takeIf { isShow.value } }
     ModalBottomSheet(
-        isVisible = isShow.value,
+        item = openedProviders,
         onDismissRequest = { isShow.value = false },
-        title = stringResource(R.string.buy_providers_title),
-    ) {
+        title = { stringResource(R.string.buy_providers_title) },
+    ) { providers ->
         LazyColumn {
             itemsIndexed(providers) { index, row ->
                 ProviderRowView(

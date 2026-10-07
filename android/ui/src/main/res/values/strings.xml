@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Custom</string>
+  <string name="fee_rate_priority">Priority Fee</string>
+  <string name="fee_rate_base">Base Fee</string>
   <string name="banner_account_activation_title">Account Activation Fee</string>
   <string name="banner_account_activation_description">The %1$s network requires a one time fee of %2$s.</string>
   <string name="banner_stake_title">Start staking %1$s</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 hours</string>
   <string name="lock_require_authentication">Require authentication</string>
   <string name="lock_unlock">Unlock</string>
-  <string name="lock_privacy_lock">Privacy Lock</string>
   <string name="lock_footer">Protect access to this app on your device</string>
   <string name="lock_passcode">Passcode</string>
+  <string name="lock_passcode_off_title">Device passcode is off</string>
+  <string name="lock_passcode_off_description">Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe.</string>
   <string name="verify_phrase_title">Confirm</string>
   <string name="warnings_externally_controlled_account">This %1$s account can be controlled by someone else. Do not send funds to it unless you are certain you control it, or you may permanently lose your assets.</string>
   <string name="sell_title">Sell %1$s</string>
+  <string name="info_region_unavailable_description">This feature is not available in your region. Availability depends on local rules and provider requirements.</string>
   <string name="info_network_fee_title">Network Fee</string>
   <string name="info_watch_wallet_title">Watch Wallet</string>
   <string name="info_watch_wallet_description">A wallet that you do not have access to, but you can watch its transactions and movements.</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">Nickname</string>
   <string name="rewards_unverified_title">Rewards not active yet.</string>
   <string name="rewards_unverified_description">Rewards activate automatically as you use the app more.</string>
+  <string name="rewards_state_empty_title">Rewards need a Multi-Coin wallet</string>
+  <string name="rewards_state_empty_description">Create or import a Multi-Coin wallet to invite friends and earn points.</string>
   <string name="recent_activity_title">Recents</string>
   <string name="recent_activity_state_empty_title">Your recents will appear here</string>
   <string name="recent_activity_state_empty_description">Assets you\'ve recently used will appear here</string>

@@ -4,7 +4,7 @@ CREATE TYPE transaction_state AS ENUM ('pending', 'confirmed', 'inTransit', 'fai
 CREATE TABLE transactions
 (
     id           BIGSERIAL PRIMARY KEY,
-    chain        VARCHAR(16)  NOT NULL REFERENCES chains (id) ON DELETE CASCADE,
+    chain        VARCHAR(32)  NOT NULL REFERENCES chains (id) ON DELETE CASCADE,
     hash         VARCHAR(128) NOT NULL,
     from_address VARCHAR(256),
     to_address   VARCHAR(256),
@@ -12,11 +12,11 @@ CREATE TABLE transactions
     state        transaction_state NOT NULL,
     kind         transaction_type NOT NULL,
     value        VARCHAR(256),
-    asset_id     VARCHAR      NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
-    fee          VARCHAR(32),
+    asset_id     VARCHAR(128) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
+    fee          VARCHAR(32)  NOT NULL,
     utxo_inputs  jsonb,
     utxo_outputs jsonb,
-    fee_asset_id VARCHAR      NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
+    fee_asset_id VARCHAR(128) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
     metadata     jsonb,
     created_at   timestamp    NOT NULL default current_timestamp,
     updated_at   timestamp    NOT NULL default current_timestamp,
@@ -32,11 +32,10 @@ CREATE INDEX transactions_hash_created_at_idx ON transactions (hash, created_at 
 
 CREATE TABLE transactions_addresses
 (
-    id             SERIAL PRIMARY KEY,
+    address_id     INTEGER      NOT NULL REFERENCES wallets_addresses (id) ON DELETE CASCADE,
     transaction_id BIGINT       NOT NULL REFERENCES transactions (id) ON DELETE CASCADE,
-    asset_id       VARCHAR(256) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
-    address        VARCHAR(256) NOT NULL,
-    UNIQUE (transaction_id, address, asset_id)
+    asset_id       VARCHAR(128) NOT NULL REFERENCES assets (id) ON DELETE CASCADE,
+    PRIMARY KEY (address_id, transaction_id, asset_id)
 );
 
-CREATE INDEX transactions_addresses_address_idx ON transactions_addresses (address);
+CREATE INDEX transactions_addresses_transaction_id_idx ON transactions_addresses (transaction_id);

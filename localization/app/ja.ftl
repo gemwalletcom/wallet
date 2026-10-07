@@ -476,6 +476,8 @@ fee_rates_normal = 普通
 fee_rate_satvB = サトシ/vB
 fee_rate_gwei = gwei
 fee_rate_custom = カスタム
+fee_rate_priority = 優先手数料
+fee_rate_base = 基本手数料
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 時間
 lock_six_hours = 6 時間
 lock_require_authentication = 認証を要求
 lock_unlock = ロック解除
-lock_privacy_lock = プライバシーロック
 lock_footer = デバイス上のこのアプリへのアクセスを保護する
 lock_passcode = パスコード
+lock_passcode_off_title = デバイスのパスコードがオフです
+lock_passcode_off_description = Gem はデバイスのパスコードでロックされています。Gem を開くには、デバイスの設定でパスコードをオンにしてください。ウォレットは安全です。
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = この%@アカウントは他の人が�
 sell_title = %@を売る
 
 # Info
+
+info_region_unavailable_description = この機能はお住まいの地域では利用できません。 利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。
 
 info_network_fee_title = ネットワーク手数料
 info_watch_wallet_title = ウォッチウォレット
@@ -725,6 +730,8 @@ rewards_pending_description_ready = ポイントを受け取れるようにな�
 rewards_nickname = ニックネーム
 rewards_unverified_title = ポイント機能はまだ利用できません。
 rewards_unverified_description = アプリを使い続けると、ポイント機能が自動的に有効になります。
+rewards_state_empty_title = ポイントにはマルチコインウォレットが必要です
+rewards_state_empty_description = マルチコインウォレットを作成またはインポートすると、友達を招待してポイントを獲得できます。
 
 # Recent Activity
 

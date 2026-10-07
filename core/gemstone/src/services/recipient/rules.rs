@@ -1,4 +1,4 @@
-use primitives::{Asset, Chain, ChainAsset, ContactData, Wallet, WalletType};
+use primitives::{Asset, Chain, ChainAsset, ContactData, WalletAddressItem, WalletType};
 use primitives::{OptionStringExt, name::NameRecord};
 
 use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext, GemRecipientRow, GemRecipientScan, GemRecipientSection, GemRecipientSectionKind, GemRecipientType, GemRecipientValidation};
@@ -9,6 +9,7 @@ use crate::payment::{GemPaymentRecipient, GemPaymentStep};
 use crate::services::name::GemNameRecordState;
 use crate::services::name::rules::is_name_supported;
 use crate::services::transfer::{GemRecipient, GemTransferData};
+use crate::services::wallet::rules::sorted_by_wallet_order;
 use chain_primitives::checksum_address;
 use primitives::TransactionInputType;
 
@@ -116,35 +117,33 @@ pub fn contact_recipients(contacts: Vec<ContactData>, chain: Chain) -> Vec<GemRe
         .collect()
 }
 
-pub fn recipient_sections(wallets: Vec<Wallet>, chain: Chain, contacts: Vec<GemRecipient>) -> Vec<GemRecipientSection> {
-    let on_chain: Vec<Wallet> = wallets.into_iter().filter(|wallet| wallet.account(chain).is_some()).collect();
-    let of = |pinned: bool, view: bool| -> Vec<Wallet> { on_chain.iter().filter(|wallet| wallet.is_pinned == pinned && (wallet.wallet_type == WalletType::View) == view).cloned().collect() };
-    let pinned: Vec<Wallet> = on_chain.iter().filter(|wallet| wallet.is_pinned).cloned().collect();
-
-    let wallet_rows = |wallets: Vec<Wallet>| -> Vec<GemRecipientRow> {
-        wallets
-            .into_iter()
-            .filter_map(|wallet| {
-                let address = wallet.account(chain)?.address.clone();
-                Some(recipient_row(
+pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contacts: Vec<GemRecipient>) -> Vec<GemRecipientSection> {
+    let sorted = sorted_by_wallet_order(wallets, |item| &item.wallet);
+    let rows = |include: &dyn Fn(&WalletAddressItem) -> bool| -> Vec<GemRecipientRow> {
+        sorted
+            .iter()
+            .filter(|item| include(item))
+            .map(|item| {
+                recipient_row(
                     chain,
                     GemRecipient {
-                        address,
-                        name: Some(wallet.name),
+                        address: item.address.clone(),
+                        name: Some(item.wallet.name.clone()),
                         memo: None,
                         references: vec![],
                     },
-                ))
+                )
             })
             .collect()
     };
+    let is_view = |item: &WalletAddressItem| item.wallet.id.wallet_type() == WalletType::View;
     let section = |kind: GemRecipientSectionKind, rows: Vec<GemRecipientRow>| (!rows.is_empty()).then_some(GemRecipientSection { kind, rows });
 
     [
-        section(GemRecipientSectionKind::Pinned, wallet_rows(pinned)),
+        section(GemRecipientSectionKind::Pinned, rows(&|item| item.wallet.is_pinned)),
         section(GemRecipientSectionKind::Contacts, contacts.into_iter().map(|contact| recipient_row(chain, contact)).collect()),
-        section(GemRecipientSectionKind::Wallets, wallet_rows(of(false, false))),
-        section(GemRecipientSectionKind::ViewWallets, wallet_rows(of(false, true))),
+        section(GemRecipientSectionKind::Wallets, rows(&|item| !item.wallet.is_pinned && !is_view(item))),
+        section(GemRecipientSectionKind::ViewWallets, rows(&|item| !item.wallet.is_pinned && is_view(item))),
     ]
     .into_iter()
     .flatten()
@@ -163,6 +162,7 @@ fn recipient_row(chain: Chain, recipient: GemRecipient) -> GemRecipientRow {
 mod tests {
     use super::*;
     use crate::services::recipient::model::GemRecipientSession;
+    use primitives::{WalletId, WalletListItem};
 
     const ADDRESS: &str = "0x1f9090aae28b8a3dceadf281b0f12828e676c326";
     const CHECKSUMMED: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";
@@ -369,6 +369,17 @@ mod tests {
         section.rows.iter().map(|row| row.title.clone()).collect()
     }
 
+    fn wallet(name: &str, id: WalletId, is_pinned: bool) -> WalletAddressItem {
+        WalletAddressItem::mock(
+            WalletListItem {
+                name: name.to_string(),
+                is_pinned,
+                ..WalletListItem::mock_with_id(id)
+            },
+            "0x1",
+        )
+    }
+
     fn contact(name: &str, address: &str) -> GemRecipient {
         GemRecipient {
             address: address.to_string(),
@@ -442,36 +453,11 @@ mod tests {
     #[test]
     fn test_a_private_key_wallet_is_offered_beside_the_other_wallets() {
         let wallets = vec![
-            Wallet {
-                name: "pinned".to_string(),
-                is_pinned: true,
-                ..Wallet::mock_with_type(WalletType::Multicoin, &[Chain::Ethereum])
-            },
-            Wallet {
-                name: "multicoin".to_string(),
-                is_pinned: false,
-                ..Wallet::mock_with_type(WalletType::Multicoin, &[Chain::Ethereum])
-            },
-            Wallet {
-                name: "private key".to_string(),
-                is_pinned: false,
-                ..Wallet::mock_with_type(WalletType::PrivateKey, &[Chain::Ethereum])
-            },
-            Wallet {
-                name: "single".to_string(),
-                is_pinned: false,
-                ..Wallet::mock_with_type(WalletType::Single, &[Chain::Ethereum])
-            },
-            Wallet {
-                name: "watching".to_string(),
-                is_pinned: false,
-                ..Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum])
-            },
-            Wallet {
-                name: "other chain".to_string(),
-                is_pinned: false,
-                ..Wallet::mock_with_type(WalletType::Multicoin, &[Chain::Bitcoin])
-            },
+            wallet("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), false),
+            wallet("private key", WalletId::PrivateKey(Chain::Ethereum, "0x3".to_string()), false),
+            wallet("single", WalletId::Single(Chain::Ethereum, "0x4".to_string()), false),
+            wallet("multicoin", WalletId::Multicoin("0x2".to_string()), false),
+            wallet("pinned", WalletId::Multicoin("0x1".to_string()), true),
         ];
 
         let sections = recipient_sections(wallets, Chain::Ethereum, vec![contact("Alice", "0x71C7656EC7ab88b098defB751B7401B5f6d8976F")]);
@@ -486,7 +472,7 @@ mod tests {
                 recipient: contact("Alice", "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"),
             }]
         );
-        assert_eq!(names(&sections[2]), vec!["multicoin", "private key", "single"]);
+        assert_eq!(names(&sections[2]), vec!["multicoin", "single", "private key"], "wallets keep the order of the wallets list");
         assert_eq!(names(&sections[3]), vec!["watching"]);
     }
 
@@ -520,15 +506,7 @@ mod tests {
 
     #[test]
     fn test_an_empty_section_is_left_out_and_contacts_only_appear_when_there_are_some() {
-        let sections = recipient_sections(
-            vec![Wallet {
-                name: "watching".to_string(),
-                is_pinned: false,
-                ..Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum])
-            }],
-            Chain::Ethereum,
-            vec![],
-        );
+        let sections = recipient_sections(vec![wallet("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), false)], Chain::Ethereum, vec![]);
 
         assert_eq!(sections.len(), 1);
         assert_eq!(sections[0].kind, GemRecipientSectionKind::ViewWallets);
@@ -536,15 +514,7 @@ mod tests {
 
     #[test]
     fn test_a_pinned_view_wallet_stays_in_the_pinned_section() {
-        let sections = recipient_sections(
-            vec![Wallet {
-                name: "watching".to_string(),
-                is_pinned: true,
-                ..Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum])
-            }],
-            Chain::Ethereum,
-            vec![],
-        );
+        let sections = recipient_sections(vec![wallet("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), true)], Chain::Ethereum, vec![]);
 
         assert_eq!(names(&sections[0]), vec!["watching"]);
         assert_eq!(sections.len(), 1);

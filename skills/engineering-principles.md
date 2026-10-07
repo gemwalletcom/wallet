@@ -4,48 +4,45 @@ Use for every code change. Guidance precedence is defined in [AGENTS.md](../AGEN
 
 ## Fix Causes, Not Symptoms
 
-Trace the failure to the code that owns the broken invariant, and fix it there. Do the right fix even when it is the harder one: conform the type, change the Core contract, touch the extra files. Surrounding code is an example, never permission to copy a shape you can see is wrong.
+Fix the broken invariant at its owner, even when that requires changing a type or Core contract. Do not defer an in-scope fix to [Open work](../docs/TODO.md).
 
-A real fix is not deferred into a plan item. Adding the correct change to [Open work](../docs/TODO.md) instead of making it leaves the wrong shape in place and hands the next change the same excuse. Only a scope the user set, another repository, a provider or a shipped client puts a fix genuinely out of reach.
-
-- Who produced this value or state? Fix it there (the parser that accepted the input, the mapper that built the value, the Core rule the apps consume, the config that declared support), not in the caller that noticed it, and delete the downstream guards the fix makes unnecessary (see § No Over-Defensive Code)
-- Is this condition real? A null check, swallowed error, retry, wider timeout, or sleep is a fix only when you can name the state it handles
-- Diagnose a failing test against the intended contract. Fix the implementation when it violates the contract; update the test when its expectation is stale or the task intentionally changes behavior. Never weaken an assertion just to pass
-- Is this the only place? Two similar patches usually mean one shared cause; check whether the failure recurs through another entry point, chain, provider, or timing
-- If the real fix is genuinely out of reach (another repository, a provider, shipped clients, a scope the user set), propose it in the handoff with the layer, the change, and what it would remove. Ship a symptom patch only if it is safe, minimal, and labeled temporary; never present it as the fix
-- Verify a defect end to end before asserting it. Read the code that consumes the value, not only the code that produces it; a missing conformance or mapping is often already handled one layer down
-- The regression test reproduces the cause at the producer, not the guard at the consumer
+- Fix the producer and delete downstream guards it makes unnecessary; see § No Over-Defensive Code
+- A null check, swallowed error, retry, wider timeout, or sleep requires a named state it handles
+- Diagnose failing tests against intent. Fix a violating implementation; update stale expectations or intentionally changed behavior. Never weaken assertions just to pass
+- Check other entry points, chains, providers, and timing for the same cause
+- When scope, another repository, a provider, or shipped clients prevent the owner fix, describe it and the downstream work it would remove in the handoff. Symptom relief must be safe, minimal, and labeled temporary
+- Verify producer and consumer behavior before asserting a defect; test its cause at the producer
 
 ## Clean Code Principles
 
 - Touch only what the task requires; adjacent improvements go in their own PR or stay out
-- No code comments. Convey intent through names and structure; if code seems to need a comment, rename or restructure it. Only compiler- or tooling-required comments (attributes, lint directives, license headers) are exceptions
-- Full domain terms in names (`transaction`, not `tx`) except when preserving external protocol fields, database columns, or URLs verbatim. A Core error variant keeps `msg`: UniFFI turns each one into a Kotlin class extending `Exception`, and a field named `message` shadows `Throwable.message` and fails the Android build
-- Intent-specific names that state the domain action and result (`parse_destination_tag`, `build_transfer_message`, `map_balance_assets`). Generic verbs such as `apply`, `process`, `handle`, `manage`, `perform`, `execute`, and `resolve` hide the contract; keep them only when a framework or protocol owns the signature
-- Extend the existing component, domain type, mapper, or fixture before adding another. Reuse the flow's loading, error, navigation, and cancellation behavior; do not introduce a parallel path for the new entry point
-- Model variants with a type, not a boolean flag or a bare string. An enum or sealed hierarchy the compiler checks exhaustively replaces paired booleans, optional-plus-flag pairs, and default branches that hide a missing state
+- No code comments; express intent through names and structure. Only compiler- or tooling-required comments and license headers are exceptions
+- Use full domain terms except for external protocol fields, database columns, or URLs. Core error fields keep `msg`: UniFFI's generated Kotlin exceptions cannot declare `message` without shadowing `Throwable.message`
+- Name the domain action and result (`parse_destination_tag`, `build_transfer_message`, `map_balance_assets`). Keep generic verbs (`apply`, `process`, `handle`, `manage`, `perform`, `execute`, `resolve`) only when a framework or protocol owns the signature
+- Extend existing components, types, mappers, and fixtures. Reuse loading, error, navigation, and cancellation behavior for new entry points
+- Model variants with exhaustive enums or sealed types, replacing paired flags, optional-plus-flag pairs, and strings that hide missing states
 - Keep types and functions single-purpose; expose only what current callers require
 - Immutable bindings (`let`, `val`, non-`mut`); mutation only where ownership requires it, in the narrowest scope
-- Resolve conflicting examples against the documented contract and caller behavior. Recency or a passing test alone does not make a pattern correct; explain the choice and flag unrelated drift
-- A press highlight matches the visible shape of the control. A circle or rounded image keeps a circle or rounded highlight; a rectangular row keeps a rectangular one. On Android the clip of that shape comes before `clickable` (`android/skills/code-style.md`)
+- Resolve conflicting examples from current contracts and callers; recency or passing tests alone is insufficient. Explain the choice and flag unrelated drift
+- A press highlight matches the control's visible shape; see [Android modifier ordering](../android/skills/code-style.md#core-rules)
 
 ## Abstractions Must Earn Their Place
 
-- Use the existing family contract (`ChainConfig`, provider trait, mapper, Core service) for shared behavior. Extract a new abstraction only for current consumers with the same domain rule, or an explicit boundary required by this task. Hypothetical reuse does not justify a crate, trait, wrapper, service, module, or wider signature.
-- Keep a single-case rule small and named at its owner. Do not create empty companion files, forwarding-only services, or helper objects to satisfy a layout convention. Put intrinsic behavior on its type and pure rules without a natural receiver in the existing mapper/rules module.
-- Preserve independent concurrent requests. Fetch a shared value once in the orchestrator and pass it down instead of adding a singleton cache or lock to deduplicate calls. Add mutable coordination only for a demonstrated race, lifetime, or consistency requirement; preserve required security and transaction ordering.
+- Use existing family contracts (`ChainConfig`, provider traits, mappers, Core services). Extract abstractions only for current consumers sharing a domain rule or a task-required boundary; hypothetical reuse does not justify infrastructure or wider signatures.
+- Keep single-case rules at their owner. No empty companion files, forwarding-only services, or helper objects for layout. Intrinsic behavior belongs on its type; pure rules without a receiver belong in existing mapper/rules modules.
+- Preserve independent concurrent requests. Fetch shared values once in the orchestrator and pass them down. Mutable coordination needs a demonstrated race, lifetime, or consistency requirement; preserve security and transaction ordering.
 
 ## No Over-Defensive Code
 
-- Validate once at the trust boundary (external payloads, RPC responses, user input, FFI edges), then trust the types inside. Redundant null checks, re-validation of typed values, catch-all handlers, and `unwrap_or`-style fallbacks that hide a failure are review findings, not safety.
+- Validate external payloads, RPC responses, user input, and FFI values once at the trust boundary. Trust established invariants internally; redundant checks, catch-all handlers, and defaults that hide failures are review findings.
 - Do not duplicate an invariant across layers. When Core or a typed shared contract owns a rule, the apps consume the result.
 - Fail fast and loud where the app cannot safely continue; fail closed on security state. Apply the platform safety rules and [Security](security.md).
 
 ## Tests
 
-- Tests protect an independent contract: a business rule, failure boundary, or required wire/signing format. For a new or changed domain rule, invert it temporarily, run the targeted test, confirm failure, and restore it. A test that mocks the defect's owner proves nothing about that defect
-- For a high-impact bug with a deterministic seam, add the smallest test that materially reduces regression risk and write it before the fix; skip trivial, framework, formatting-only, and purely visual coverage unless asked or already cheap
-- "Tests pass" is not a green light if any were skipped, marked expected-failure, or gated behind features you did not run. Report what you executed
-- Unit tests never spin up ad hoc HTTP/TCP servers. Use the platform testkit fixtures, pure mappers and parsers, or injected clients; when network behavior matters, use the gated integration tests
+- Protect independent business rules, failure boundaries, and wire/signing contracts. Temporarily invert a changed domain rule, confirm the targeted test fails, then restore it. Do not mock the defect's owner
+- For high-impact bugs with deterministic seams, write the smallest useful regression test before fixing. Skip trivial, framework, formatting, and purely visual coverage unless requested or already cheap
+- Use focused database checks for straightforward schema, operator flags, and unchanged persistence mechanics; tests must protect behavior beyond repeating SQL or mappings
+- Unit tests use testkit fixtures, pure rules, or injected clients; never ad hoc HTTP/TCP servers. Network compatibility belongs in gated integration tests
 
 Review criteria live in `skills/code-review.md`; this file is for writing code.

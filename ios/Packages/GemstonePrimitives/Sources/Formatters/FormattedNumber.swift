@@ -74,6 +74,7 @@ private extension GemFormattedNumber {
         switch rounding {
         case .toNearest: .toNearestOrEven
         case .towardZero: .towardZero
+        case .awayFromZero: .awayFromZero
         }
     }
 

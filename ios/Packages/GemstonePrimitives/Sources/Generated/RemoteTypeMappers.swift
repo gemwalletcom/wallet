@@ -1103,6 +1103,7 @@ public extension Gemstone.SwapProvider {
         case .squid: .squid
         case .mayachain: .mayachain
         case .swapsXyz: .swapsXyz
+        case .bridgers: .bridgers
         }
     }
 }
@@ -1132,6 +1133,7 @@ public extension Primitives.SwapProvider {
         case .squid: .squid
         case .mayachain: .mayachain
         case .swapsXyz: .swapsXyz
+        case .bridgers: .bridgers
         }
     }
 }
@@ -3095,6 +3097,24 @@ public extension Primitives.Wallet {
     }
 }
 
+public extension Gemstone.WalletAddressItem {
+    func toPrimitives() -> Primitives.WalletAddressItem {
+        Primitives.WalletAddressItem(
+            wallet: wallet.toPrimitives(),
+            address: address,
+        )
+    }
+}
+
+public extension Primitives.WalletAddressItem {
+    func toGem() -> Gemstone.WalletAddressItem {
+        Gemstone.WalletAddressItem(
+            wallet: wallet.toGem(),
+            address: address,
+        )
+    }
+}
+
 public extension Gemstone.WalletConnection {
     func toPrimitives() -> Primitives.WalletConnection {
         Primitives.WalletConnection(
@@ -3157,6 +3177,30 @@ public extension Primitives.WalletConnectionSessionProposal {
             defaultWallet: defaultWallet.toGem(),
             wallets: wallets.map { $0.toGem() },
             metadata: metadata.toGem(),
+        )
+    }
+}
+
+public extension Gemstone.WalletListItem {
+    func toPrimitives() -> Primitives.WalletListItem {
+        Primitives.WalletListItem(
+            id: id,
+            name: name,
+            index: index,
+            isPinned: isPinned,
+            imageUrl: imageUrl,
+        )
+    }
+}
+
+public extension Primitives.WalletListItem {
+    func toGem() -> Gemstone.WalletListItem {
+        Gemstone.WalletListItem(
+            id: id,
+            name: name,
+            index: index,
+            isPinned: isPinned,
+            imageUrl: imageUrl,
         )
     }
 }

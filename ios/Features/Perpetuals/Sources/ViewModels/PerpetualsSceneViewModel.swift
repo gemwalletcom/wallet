@@ -4,17 +4,18 @@ import Assets
 import Components
 import Foundation
 import enum Gemstone.GemHeaderButtonAction
+import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemMarketsRefreshTrigger
-import struct Gemstone.GemPerpetualMarketCounts
-import enum Gemstone.GemPerpetualMarketSection
 import struct Gemstone.GemPerpetualMarketSections
 import struct Gemstone.GemPerpetualMarketSession
+import struct Gemstone.GemPerpetualMarketView
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemValueHeader
 import func Gemstone.perpetualBalanceHeader
 import GemstonePrimitives
 import GemstoneServices
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -47,6 +48,7 @@ public final class PerpetualsSceneViewModel {
         perpetualBalanceHeader(balance: walletBalanceQuery.value?.balance.toGem(), walletType: wallet.type.toGem())
     }
 
+    var isPresentingInfoSheet: InfoSheetModel?
     var isSearchPresented: Bool = false
     private var session = GemPerpetualMarketSession(query: .empty, isSearching: false)
 
@@ -61,6 +63,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     let onSelectAmount: ((AmountInput) -> Void)?
+    let onSelectAssetType: ((SelectAssetType) -> Void)?
     let onSelectAsset: ((Asset) -> Void)?
     let onSelectPortfolio: VoidAction
 
@@ -70,6 +73,7 @@ public final class PerpetualsSceneViewModel {
         observerService: any PerpetualObservable,
         recentAssetsService: any GemRecentActivityServiceProtocol,
         onSelectAmount: ((AmountInput) -> Void)? = nil,
+        onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
         onSelectPortfolio: (() -> Void)? = nil,
     ) {
@@ -77,6 +81,7 @@ public final class PerpetualsSceneViewModel {
         self.service = service
         self.observerService = observerService
         self.onSelectAmount = onSelectAmount
+        self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsQuery(walletId: wallet.id, searchQuery: ""), initialValue: [])
@@ -92,10 +97,6 @@ public final class PerpetualsSceneViewModel {
         Localized.Perpetuals.title
     }
 
-    var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .searchPerpetuals)
-    }
-
     var pinImage: Image {
         Images.System.pin
     }
@@ -104,13 +105,13 @@ public final class PerpetualsSceneViewModel {
         Images.System.search
     }
 
-    var marketSectionList: [GemPerpetualMarketSection] {
-        session.sections(counts: GemPerpetualMarketCounts(
-            positions: UInt32(positions.count),
-            pinned: UInt32(sections.pinned.count),
-            markets: UInt32(sections.markets.count),
-            recents: recentModel.hasAssets ? 1 : 0,
-        ))
+    var marketView: GemPerpetualMarketView {
+        session.view(
+            positionIds: positions.map(\.position.id),
+            pinnedIds: sections.pinned.map(\.data.perpetual.id),
+            marketIds: sections.markets.map(\.data.perpetual.id),
+            recentAssetIds: recentModel.assets.map(\.asset.id),
+        )
     }
 
     var header: ValueHeader {
@@ -145,12 +146,27 @@ extension PerpetualsSceneViewModel {
 
     func onSelectHeaderAction(_ action: GemHeaderButtonAction) {
         switch action {
-        case let .deposit(asset):
-            onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
+        case .deposit:
+            Task { await onSelectDeposit() }
         case let .withdraw(asset):
             onSelectAmount?(AmountInput(type: .withdraw, asset: asset.toPrimitives()))
         case .send, .receive, .buy, .swap, .sendCollectible, .collectibleMenu:
             break
+        }
+    }
+
+    func onSelectDeposit() async {
+        guard service.isAvailable() else {
+            isPresentingInfoSheet = InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)
+            return
+        }
+        do {
+            switch try await service.depositTarget() {
+            case .selectAsset: onSelectAssetType?(.deposit)
+            case let .amount(asset): onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
+            }
+        } catch {
+            debugLog("PerpetualsSceneViewModel deposit target error: \(error)")
         }
     }
 

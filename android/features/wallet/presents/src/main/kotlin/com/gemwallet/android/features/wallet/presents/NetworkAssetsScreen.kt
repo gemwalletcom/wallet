@@ -28,7 +28,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemEmptyStateAction
-import uniffi.gemstone.GemEmptyStateKind
+import uniffi.gemstone.GemListPhase
 
 @Composable
 fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> Unit, onCancel: () -> Unit, viewModel: NetworkAssetsViewModel = hiltViewModel()) {
@@ -60,17 +60,17 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             if (pinned.isNotEmpty()) {
                 item { AssetSectionHeaderItem(GemAssetSectionKind.PINNED) }
-                networkAssetRows(pinned, onSelectAsset, longPressedAsset, activeActions)
+                networkAssetRows(pinned, "pinned", onSelectAsset, longPressedAsset, activeActions)
             }
-            networkAssetRows(unpinned, onSelectAsset, longPressedAsset, activeActions)
+            networkAssetRows(unpinned, "unpinned", onSelectAsset, longPressedAsset, activeActions)
             if (hidden.isNotEmpty()) {
                 item { SubheaderItem(R.string.common_hidden) }
-                networkAssetRows(hidden, onSelectAsset, longPressedAsset, hiddenActions)
+                networkAssetRows(hidden, "hidden", onSelectAsset, longPressedAsset, hiddenActions)
             }
-            if (sections.showsEmpty) {
+            (sections.phase as? GemListPhase.Empty)?.let { empty ->
                 item {
                     EmptyContentView(
-                        kind = GemEmptyStateKind.NETWORK_ASSETS,
+                        state = empty.state,
                         onAction = { action ->
                             when (action) {
                                 GemEmptyStateAction.MANAGE_TOKEN_LIST -> onManageAssets()
@@ -85,9 +85,10 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
     }
 }
 
-private fun LazyListScope.networkAssetRows(items: List<AssetInfoDataAggregate>, onSelect: (AssetId) -> Unit, longPressedAsset: MutableState<AssetId?>, contextActions: AssetContextActions) {
+private fun LazyListScope.networkAssetRows(items: List<AssetInfoDataAggregate>, keyPrefix: String, onSelect: (AssetId) -> Unit, longPressedAsset: MutableState<AssetId?>, contextActions: AssetContextActions) {
     assetRows(
         items = items,
+        keyPrefix = keyPrefix,
         onSelect = { onSelect(it.id) },
         longPressedAsset = longPressedAsset,
         contextActions = contextActions,

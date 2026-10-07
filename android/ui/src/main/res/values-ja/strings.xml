@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">サトシ/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">カスタム</string>
+  <string name="fee_rate_priority">優先手数料</string>
+  <string name="fee_rate_base">基本手数料</string>
   <string name="banner_account_activation_title">アカウントの有効化手数料</string>
   <string name="banner_account_activation_description">%1$s ネットワークでは、1回限りの有効化手数料 %2$s が必要です。</string>
   <string name="banner_stake_title">%1$s のステーキングを開始</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 時間</string>
   <string name="lock_require_authentication">認証を要求</string>
   <string name="lock_unlock">ロック解除</string>
-  <string name="lock_privacy_lock">プライバシーロック</string>
   <string name="lock_footer">デバイス上のこのアプリへのアクセスを保護する</string>
   <string name="lock_passcode">パスコード</string>
+  <string name="lock_passcode_off_title">デバイスのパスコードがオフです</string>
+  <string name="lock_passcode_off_description">Gem はデバイスのパスコードでロックされています。Gem を開くには、デバイスの設定でパスコードをオンにしてください。ウォレットは安全です。</string>
   <string name="verify_phrase_title">確認する</string>
   <string name="warnings_externally_controlled_account">この%1$sアカウントは他の人が管理している可能性があります。自分が管理していると確信できない限り、資金を送らないでください。資産を永久に失う可能性があります。</string>
   <string name="sell_title">%1$sを売る</string>
+  <string name="info_region_unavailable_description">この機能はお住まいの地域では利用できません。 利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。</string>
   <string name="info_network_fee_title">ネットワーク手数料</string>
   <string name="info_watch_wallet_title">ウォッチウォレット</string>
   <string name="info_watch_wallet_description">資産を操作する権限はありませんが、取引や資金の動きを確認できるウォレットです。</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">ニックネーム</string>
   <string name="rewards_unverified_title">ポイント機能はまだ利用できません。</string>
   <string name="rewards_unverified_description">アプリを使い続けると、ポイント機能が自動的に有効になります。</string>
+  <string name="rewards_state_empty_title">ポイントにはマルチコインウォレットが必要です</string>
+  <string name="rewards_state_empty_description">マルチコインウォレットを作成またはインポートすると、友達を招待してポイントを獲得できます。</string>
   <string name="recent_activity_title">最近</string>
   <string name="recent_activity_state_empty_title">最近のものがここに表示されます</string>
   <string name="recent_activity_state_empty_description">最近使用したアセットがここに表示されます</string>

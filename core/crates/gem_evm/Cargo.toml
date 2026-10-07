@@ -48,6 +48,5 @@ gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
 ankr = { path = "../ankr", features = ["testkit"] }
 blockscout = { path = "../blockscout", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-num-bigint = { workspace = true }
 settings = { path = "../settings", features = ["testkit"] }
 async-trait = { workspace = true }

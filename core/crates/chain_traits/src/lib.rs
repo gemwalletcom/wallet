@@ -93,7 +93,7 @@ pub trait ChainTraits:
         let latest_block_number = self.get_block_latest_number().await?;
 
         Ok(NodeStatus {
-            latest_block_number,
+            latest_block_number: Some(latest_block_number),
             latency_ms: started_at.elapsed().as_millis() as u64,
         })
     }
@@ -244,7 +244,7 @@ pub trait ChainPerpetual: Send + Sync {
         Err("Chain does not support perpetual portfolio".into())
     }
 
-    async fn get_perpetual_referred_addresses(&self) -> Result<Vec<String>, Box<dyn Error + Sync + Send>> {
+    async fn get_perpetual_referral_addresses(&self) -> Result<Vec<String>, Box<dyn Error + Sync + Send>> {
         Ok(vec![])
     }
 }

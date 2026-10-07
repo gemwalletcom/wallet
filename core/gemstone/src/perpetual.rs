@@ -1,13 +1,12 @@
 use gem_hypercore::{models::websocket::HyperliquidSubscription, perpetual_formatter::PerpetualFormatter};
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
-use primitives::known_assets::ARBITRUM_USDC;
-use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
+use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
+use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
 use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
-use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
-use crate::services::perpetual::rules as perpetual_rules;
+use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
 
@@ -23,13 +22,13 @@ impl GemPerpetual {
         Self { provider }
     }
 
-    pub fn format_price(&self, price: f64, decimals: i32) -> String {
+    pub fn format_price(&self, price: f64, decimals: u32) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_price(price, decimals),
         }
     }
 
-    pub fn format_input_price(&self, price: f64, decimals: i32, decimal_separator: String) -> String {
+    pub fn format_input_price(&self, price: f64, decimals: u32, decimal_separator: String) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_input_price(price, decimals, decimal_separator.chars().next().unwrap_or('.')),
         }
@@ -50,25 +49,34 @@ impl GemPerpetual {
         }
     }
 
-    pub fn deposit_recipient(&self) -> GemRecipient {
-        let address = match self.provider {
-            PerpetualProvider::Hypercore => HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS.to_string(),
-        };
-        GemRecipient { address, ..self.recipient() }
+    pub fn deposit_assets(&self, mode: PerpetualAccountMode) -> Vec<Asset> {
+        match mode {
+            PerpetualAccountMode::Standard => vec![self.deposit_asset(), HYPERCORE_SPOT_USDC.clone()],
+            PerpetualAccountMode::Unified => vec![self.deposit_asset()],
+        }
     }
 
-    pub fn format_size(&self, size: f64, decimals: i32) -> String {
+    pub fn deposit_recipient(&self, asset: &Asset, owner: GemRecipient) -> Result<GemRecipient, GemServiceError> {
+        if asset.id == self.deposit_asset().id {
+            Ok(GemRecipient {
+                address: HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS.to_string(),
+                ..self.recipient()
+            })
+        } else if asset.id == HYPERCORE_SPOT_USDC.id {
+            Ok(owner)
+        } else {
+            Err(GemServiceError::Unsupported {
+                msg: format!("perpetual deposit from {}", asset.id),
+            })
+        }
+    }
+
+    pub fn format_size(&self, size: f64, decimals: u32) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
         }
     }
 
-    pub fn order(&self, input: GemPerpetualOrderInput) -> PerpetualType {
-        perpetual_rules::order(self.provider.clone(), input)
-    }
-    pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
-        perpetual_rules::close_order(self.provider.clone(), input)
-    }
     pub fn transfer_data(&self, asset: GemAsset, perpetual_type: PerpetualType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
         GemTransferData {
             input_type: TransactionInputType::Perpetual { asset, perpetual_type },

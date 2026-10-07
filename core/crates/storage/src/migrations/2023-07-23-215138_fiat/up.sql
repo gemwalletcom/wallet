@@ -19,8 +19,9 @@ SELECT diesel_manage_updated_at('fiat_providers');
 CREATE TABLE fiat_providers_countries (
     id VARCHAR(32) PRIMARY KEY NOT NULL,
     provider VARCHAR(128) NOT NULL REFERENCES fiat_providers (id) ON DELETE CASCADE,
-    alpha2 VARCHAR(32) NOT NULL,
+    country VARCHAR(2) NOT NULL REFERENCES countries (alpha2),
     is_allowed BOOLEAN NOT NULL,
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE,
     updated_at timestamp NOT NULL default current_timestamp,
     created_at timestamp NOT NULL default current_timestamp
 );
@@ -39,7 +40,7 @@ CREATE TABLE fiat_assets (
     is_enabled_by_provider BOOLEAN NOT NULL DEFAULT TRUE,
     is_buy_enabled BOOLEAN NOT NULL DEFAULT TRUE,
     is_sell_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    unsupported_countries jsonb,
+    unsupported_countries jsonb NOT NULL,
     buy_limits jsonb,
     sell_limits jsonb,
     updated_at timestamp NOT NULL default current_timestamp,
@@ -59,7 +60,7 @@ CREATE TABLE fiat_transactions (
     fiat_currency VARCHAR(32) NOT NULL,
     value VARCHAR(256),
     status fiat_transaction_status NOT NULL,
-    country VARCHAR(256),
+    country VARCHAR(2),
     provider_transaction_id VARCHAR(256),
     transaction_hash VARCHAR(256),
     address_id INTEGER NOT NULL REFERENCES wallets_addresses (id) ON DELETE CASCADE,

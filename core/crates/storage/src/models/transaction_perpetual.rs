@@ -13,6 +13,7 @@ pub(crate) struct NewTransactionPerpetualRow {
     pub kind: TransactionType,
     pub direction: PerpetualDirectionRow,
     pub size_usd: f64,
+    pub pnl_usd: f64,
     pub referral_fee_amount_usd: f64,
     pub created_at: NaiveDateTime,
 }

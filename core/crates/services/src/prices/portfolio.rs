@@ -2,49 +2,45 @@ use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::Arc;
-use std::time::Duration;
 
 use config_keys::ConfigKey;
 use number_formatter::BigNumberFormatter;
 use primitives::{ChartPeriod, ChartValue, ChartValuePercentage, PortfolioAllocation, PortfolioAsset, PortfolioAssets};
-use storage::{AssetsRepository, ChartsRepository, Database, DatabaseClient, DatabaseError, PricesRepository};
+
+use super::repository::{PortfolioPrice, Repository};
 
 use crate::ConfigCacher;
 
 pub struct PortfolioClient {
-    database: Database,
+    repository: Arc<dyn Repository>,
     config: Arc<ConfigCacher>,
 }
 
 struct ResolvedAsset {
     asset: PortfolioAsset,
     balance: f64,
-    price_id: String,
+    charts: Vec<storage::ChartResult>,
     current_value: f64,
 }
 
 impl PortfolioClient {
-    pub fn new(database: Database, config: Arc<ConfigCacher>) -> Self {
-        Self { database, config }
+    pub(crate) fn new(repository: Arc<dyn Repository>, config: Arc<ConfigCacher>) -> Self {
+        Self { repository, config }
     }
 
     pub async fn get_portfolio_charts(&self, assets: Vec<PortfolioAsset>, period: ChartPeriod) -> Result<PortfolioAssets, Box<dyn Error + Send + Sync>> {
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
-        let (assets, chart_data) = self
-            .database
-            .run(move |client| -> Result<_, DatabaseError> {
-                let assets: Vec<ResolvedAsset> = assets.into_iter().filter_map(|input| Self::resolved_asset(client, input, primary_price_max_age)).collect();
-                let chart_data = Self::chart_values(client, &assets, &period);
-                Ok((assets, chart_data))
-            })
-            .await?;
+        let asset_ids = assets.iter().map(|asset| asset.asset_id.clone()).collect();
+        let prices = self.repository.portfolio_prices(asset_ids, period, primary_price_max_age).await?;
+        let assets: Vec<ResolvedAsset> = assets.into_iter().zip(prices).filter_map(|(input, price)| Self::resolved_asset(input, price?)).collect();
+        let chart_data = Self::chart_values(&assets);
         Ok(Self::build_portfolio(assets, chart_data))
     }
 
-    fn chart_values(client: &mut DatabaseClient, assets: &[ResolvedAsset], period: &ChartPeriod) -> BTreeMap<i64, f64> {
+    fn chart_values(assets: &[ResolvedAsset]) -> BTreeMap<i64, f64> {
         assets
             .iter()
-            .flat_map(|r| client.get_charts(&r.price_id, period).unwrap_or_default().into_iter().map(|(ts, price)| (ts.and_utc().timestamp(), r.balance * price)))
+            .flat_map(|r| r.charts.iter().map(|(ts, price)| (ts.and_utc().timestamp(), r.balance * price)))
             .fold(BTreeMap::new(), |mut acc, (ts, value)| {
                 *acc.entry(ts).or_default() += value;
                 acc
@@ -85,19 +81,53 @@ impl PortfolioClient {
         }
     }
 
-    fn resolved_asset(client: &mut DatabaseClient, input: PortfolioAsset, primary_price_max_age: Duration) -> Option<ResolvedAsset> {
-        let asset_id = &input.asset_id;
-        let asset = client.get_asset(asset_id).ok()?;
-        let balance = BigNumberFormatter::value_as_f64(&input.value.to_string(), asset.decimals as u32).ok()?;
-        let key = client.get_primary_price_key(asset_id, primary_price_max_age).ok()?;
-        let price_id = key.id();
-        let price = client.get_price_by_id(&price_id).map(|p| p.price).unwrap_or_default();
-
+    fn resolved_asset(input: PortfolioAsset, price: PortfolioPrice) -> Option<ResolvedAsset> {
+        let balance = BigNumberFormatter::value_as_f64(&input.value, price.asset.decimals).ok()?;
         Some(ResolvedAsset {
             asset: input,
             balance,
-            price_id,
-            current_value: balance * price,
+            charts: price.charts,
+            current_value: balance * price.price,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::DateTime;
+    use num_bigint::BigUint;
+    use primitives::{Asset, AssetId, Chain};
+
+    use super::*;
+    use crate::testkit::{MemoryConfigRepository, MemoryPricesRepository};
+
+    #[tokio::test]
+    async fn test_portfolio_skips_unpriced_assets() {
+        let at = DateTime::from_timestamp(1_700_000_000, 0).unwrap().naive_utc();
+        let bitcoin = PortfolioPrice {
+            asset: Asset::mock_btc(),
+            price: 100.0,
+            charts: vec![(at, 90.0)],
+        };
+        let repository = MemoryPricesRepository::default().with_portfolio(vec![Some(bitcoin), None]);
+        let client = PortfolioClient::new(Arc::new(repository), Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new()))));
+        let assets = vec![
+            PortfolioAsset {
+                asset_id: AssetId::from_chain(Chain::Bitcoin),
+                value: BigUint::from(200_000_000u64),
+            },
+            PortfolioAsset {
+                asset_id: AssetId::from_chain(Chain::Ethereum),
+                value: BigUint::from(1u64),
+            },
+        ];
+
+        let portfolio = client.get_portfolio_charts(assets, ChartPeriod::Day).await.unwrap();
+
+        assert_eq!(portfolio.total_value, 200.0);
+        assert_eq!(portfolio.values, vec![ChartValue { timestamp: 1_700_000_000, value: 180.0 }]);
+        assert_eq!(portfolio.allocation.len(), 1);
+        assert_eq!(portfolio.allocation[0].asset_id, AssetId::from_chain(Chain::Bitcoin));
+        assert_eq!(portfolio.allocation[0].percentage, 1.0);
     }
 }

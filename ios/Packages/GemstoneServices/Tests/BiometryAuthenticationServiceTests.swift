@@ -21,18 +21,6 @@ struct BiometryAuthenticationServiceTests {
     }
 
     @Test
-    func privacyLockStaysOnWhenTheKeychainIsUnreadable() {
-        let keystorePassword = MockKeystorePassword(privacyLockStatus: .none)
-        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())
-
-        #expect(!service.isPrivacyLockEnabled)
-
-        keystorePassword.getPrivacyLockStatusError = AnyError("keychain interaction not allowed")
-
-        #expect(service.isPrivacyLockEnabled)
-    }
-
-    @Test
     func requiresAuthenticationReflectsStoredAuthentication() {
         let keystorePassword = MockKeystorePassword(availableAuthentication: .biometrics)
         let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())

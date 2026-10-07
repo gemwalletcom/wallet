@@ -29,14 +29,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemTransactionFilter
+import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionsFilterSession
 import uniffi.gemstone.GemTransactionsFilterView
 import uniffi.gemstone.GemTransactionsServiceInterface
-import uniffi.gemstone.loadError
+import uniffi.gemstone.listPhase
 import uniffi.gemstone.newTransactionsFilterSession
 import javax.inject.Inject
 
@@ -85,9 +86,8 @@ class TransactionsViewModel @Inject constructor(
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
-    val errorRow: StateFlow<GemListRow?> = combine(transactionsState, transactions) { state, items ->
-        loadError(state, items?.isEmpty() != true)?.let { GemListRow.Error(it) }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val phase: StateFlow<GemListPhase?> = combine(transactionsState, transactions, filterView, ::phase)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, phase(transactionsState.value, transactions.value, filterView.value))
 
     init {
         viewModelScope.launch {
@@ -116,7 +116,7 @@ class TransactionsViewModel @Inject constructor(
         val job = viewModelScope.launch(ioDispatcher, start = CoroutineStart.LAZY) {
             if (showsSpinner) _isRefreshing.update { true }
             try {
-                val state = service.refresh(null, !transactions.value.isNullOrEmpty())
+                val state = service.refresh(null)
                 if (walletId.value != wallet) return@launch
                 transactionsState.value = state
                 if (state is GemLoadState.Error && syncedWalletId == wallet) {
@@ -130,6 +130,8 @@ class TransactionsViewModel @Inject constructor(
         job.start()
         return job
     }
+
+    private fun phase(state: GemLoadState, rows: List<GemTransactionRow>?, view: GemTransactionsFilterView): GemListPhase? = rows?.let { listPhase(state, it.isNotEmpty(), view.emptyState) }
 
     fun setChainsFilter(chains: List<Chain>) {
         _filter.update { it.onChains(chains.map { chain -> chain.string }) }

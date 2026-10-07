@@ -1,12 +1,14 @@
 pub mod rules;
 
-use primitives::{Chain, ChainAsset};
+use primitives::{Chain, ChainAsset, WalletConnectCAIP2};
 
 use crate::config::chain::icon_chain;
+use crate::models::state::GemListPhase;
 use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
+use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
 
-use crate::wallet_connect::{wallet_connect_namespace, wallet_connect_reference};
+use crate::wallet_connect::wallet_connect_namespace;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChainRow {
@@ -17,9 +19,16 @@ pub struct GemChainRow {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemChainList {
+    pub rows: Vec<GemChainRow>,
+    pub phase: GemListPhase,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemImportWalletTypes {
     pub multicoin: GemLocalizedText,
     pub chains: Vec<GemChainRow>,
+    pub phase: GemListPhase,
 }
 
 #[uniffi::export]
@@ -54,10 +63,20 @@ impl GemChainService {
         rules::matching_chains(chains.unwrap_or_else(rules::chains_by_rank), &query).into_iter().map(chain_row).collect()
     }
 
+    pub fn chain_list(&self, chains: Option<Vec<Chain>>, query: String) -> GemChainList {
+        let rows = self.chain_rows(chains, query);
+        GemChainList {
+            phase: GemListPhase::local(!rows.is_empty(), empty_state(GemEmptyStateKind::SearchNetworks)),
+            rows,
+        }
+    }
+
     pub fn import_wallet_types(&self, query: String) -> GemImportWalletTypes {
+        let chains = self.chain_rows(None, query);
         GemImportWalletTypes {
             multicoin: GemLocalizedText::WalletMulticoin,
-            chains: self.chain_rows(None, query),
+            phase: GemListPhase::local(!chains.is_empty(), empty_state(GemEmptyStateKind::SearchResults)),
+            chains,
         }
     }
 
@@ -65,8 +84,8 @@ impl GemChainService {
         wallet_connect_namespace(chain)
     }
 
-    pub fn caip2_reference(&self, chain: Chain) -> Option<String> {
-        wallet_connect_reference(chain)
+    pub fn caip2_references(&self, chain: Chain) -> Vec<String> {
+        WalletConnectCAIP2::get_references(chain)
     }
 }
 
@@ -80,7 +99,16 @@ mod tests {
 
         assert_eq!(types.multicoin, GemLocalizedText::WalletMulticoin);
         assert_eq!(types.chains.first().map(|row| row.chain), Some(Chain::Bitcoin));
-        assert!(GemChainService::new().import_wallet_types("zzz-no-chain".to_string()).chains.is_empty());
+        assert_eq!(types.phase, GemListPhase::Rows);
+        let nothing = GemChainService::new().import_wallet_types("zzz-no-chain".to_string());
+        assert!(nothing.chains.is_empty());
+        assert_eq!(
+            nothing.phase,
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::SearchResults)
+            },
+            "multicoin still shows above the no results state"
+        );
     }
 
     #[test]
@@ -93,6 +121,19 @@ mod tests {
         assert_eq!(offered.iter().map(|row| row.chain).collect::<Vec<_>>(), vec![Chain::Solana, Chain::Bitcoin], "offered chains keep their order");
         assert_eq!(service.chain_rows(Some(vec![Chain::Solana, Chain::Bitcoin]), "bitcoin".to_string()), vec![chain_row(Chain::Bitcoin)]);
         assert!(service.chain_rows(None, "zzz-no-chain".to_string()).is_empty());
+    }
+
+    #[test]
+    fn test_a_network_search_that_matches_nothing_shows_the_search_empty_state() {
+        let service = GemChainService::new();
+
+        assert_eq!(service.chain_list(None, "bitcoin".to_string()).phase, GemListPhase::Rows);
+        assert_eq!(
+            service.chain_list(None, "zzz-no-chain".to_string()).phase,
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::SearchNetworks)
+            }
+        );
     }
 
     #[test]

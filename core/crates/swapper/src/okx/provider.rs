@@ -1,7 +1,7 @@
 use super::{
     constants::{PROXY_QUOTE_PATH, PROXY_SWAP_PATH},
     model::{OkxApiResponse, QuoteData, SwapDataResult},
-    params::{build_quote_params, build_swap_params},
+    params::{build_quote_params, build_swap_params, max_slippage_bps},
     quote_data::build_swap_quote_data,
 };
 use crate::{
@@ -78,7 +78,7 @@ where
                     output: request.to_asset.asset_id(),
                     route_data,
                 }],
-                slippage_bps: request.options.slippage.bps,
+                slippage_bps: max_slippage_bps(request),
             },
             request: request.clone(),
             eta_in_seconds: None,

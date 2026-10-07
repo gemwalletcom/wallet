@@ -37,11 +37,13 @@ import com.gemwallet.android.features.rewards.presents.components.rewardsInfo
 import com.gemwallet.android.features.rewards.presents.dialogs.CreateRewardsCodeDialog
 import com.gemwallet.android.features.rewards.presents.dialogs.RedeemRewardsCodeDialog
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
+import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -52,69 +54,62 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.buttonState
-import com.gemwallet.android.ui.shareText
+import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletSource
-import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemRewardsInviteAction
 import uniffi.gemstone.GemRewardsPendingReferral
 import uniffi.gemstone.GemRewardsRedemption
-import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemRewardsWallet
 
 private val referralCodeMaxWidth = 250.dp
 
 @Composable
 fun RewardsScene(
-    isLoading: Boolean,
+    state: GemLoadState,
     isRefreshing: Boolean,
-    loadError: GemServiceException?,
-    isAvailableWalletSelect: Boolean,
-    referralLink: String?,
+    wallet: GemRewardsWallet?,
     introItems: List<GemRewardsIntroItem>,
     inviteAction: GemRewardsInviteAction?,
     canUseReferralCode: Boolean,
     pendingReferral: GemRewardsPendingReferral?,
     notices: List<GemListRow>,
     inviteDescription: String,
-    shareText: String?,
     sections: List<RewardsSectionUIModel>,
     redemptions: List<GemRewardsRedemption>,
-    currentWallet: Wallet?,
     incomingCode: GemIncomingCode? = null,
     onUsername: (String, (Throwable?) -> Unit) -> Unit,
     onCode: (String, (Throwable?) -> Unit) -> Unit,
-    onCancelCode: () -> Unit,
+    onCodeHandled: () -> Unit,
     onRefresh: () -> Unit,
     onWallet: () -> Unit,
     onRedeem: (GemRewardsRedemption) -> Unit,
     onClose: () -> Unit,
+    onInvite: () -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val context = LocalContext.current
-    val link = referralLink.orEmpty()
-    val joinText = shareText.orEmpty()
-    val shareTitle = stringResource(id = R.string.common_share, link)
 
     var getStartedDialogShow by remember(inviteAction) { mutableStateOf(false) }
-    var codeDialogShow by remember(incomingCode, isLoading, isRefreshing) { mutableStateOf(incomingCode is GemIncomingCode.Confirm && !isLoading && !isRefreshing) }
-    val referralCode = (incomingCode as? GemIncomingCode.Confirm)?.code
+    var codeDialogShow by remember { mutableStateOf(false) }
+    var codeRetryShow by remember { mutableStateOf(false) }
+    val referralCode = when (incomingCode) {
+        is GemIncomingCode.Activate -> incomingCode.code
+        is GemIncomingCode.Confirm -> incomingCode.code
+        null -> null
+    }
 
     val successStr = stringResource(R.string.common_done)
     val scope = rememberCoroutineScope()
-
-    val onShare = fun () {
-        context.shareText(subject = link, text = joinText, chooserTitle = shareTitle)
-    }
 
     val onCodeResult = fun (error: Throwable?) {
         val message = error?.errorText()?.text(context)
@@ -129,15 +124,17 @@ fun RewardsScene(
 
     LaunchedEffect(incomingCode) {
         val code = (incomingCode as? GemIncomingCode.Activate)?.code ?: return@LaunchedEffect
-        onCancelCode()
-        onCode(code, onCodeResult)
+        context.requestAuth(AuthRequest.Default, onCancel = { codeRetryShow = true }) {
+            onCodeHandled()
+            onCode(code, onCodeResult)
+        }
     }
 
     Scene(
         title = stringResource(R.string.rewards_title),
         snackbar = snackbar,
         actions = {
-            if (isAvailableWalletSelect) {
+            if (wallet?.canChoose == true) {
                 Row(
                     modifier = Modifier
                         .widthIn(max = referralCodeMaxWidth)
@@ -150,7 +147,7 @@ fun RewardsScene(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = currentWallet?.name ?: "",
+                        text = wallet.row.name,
                         maxLines = 1,
                         overflow = TextOverflow.MiddleEllipsis,
                         color = MaterialTheme.colorScheme.onPrimary,
@@ -165,7 +162,7 @@ fun RewardsScene(
         },
         onClose = onClose,
     ) {
-        if (isLoading) {
+        if (state == GemLoadState.Loading) {
             Box(modifier = Modifier.fillMaxSize()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
@@ -176,16 +173,25 @@ fun RewardsScene(
             onRefresh = onRefresh,
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (loadError != null) {
-                    item { GemListRowView(row = GemListRow.Error(loadError), listPosition = ListPosition.Single) }
-                    return@LazyColumn
+                when (state) {
+                    GemLoadState.NoData -> {
+                        item { EmptyContentView(kind = GemEmptyStateKind.REWARDS, modifier = Modifier.fillParentMaxSize()) }
+                        return@LazyColumn
+                    }
+
+                    is GemLoadState.Error -> {
+                        item { GemListRowView(row = GemListRow.Error(state.error), listPosition = ListPosition.Single) }
+                        return@LazyColumn
+                    }
+
+                    GemLoadState.Data, GemLoadState.Loading -> Unit
                 }
                 rewardsHead(
                     description = inviteDescription,
                     intro = introItems,
                     action = inviteAction,
                     onGetStarted = { getStartedDialogShow = true },
-                    onShare = onShare,
+                    onShare = onInvite,
                 )
 
                 if (canUseReferralCode) {
@@ -221,7 +227,7 @@ fun RewardsScene(
                                     title = stringResource(R.string.transfer_confirm),
                                     state = buttonState(enabled = pending.isEnabled),
                                 ) {
-                                    onCode(pending.code, onCodeResult)
+                                    context.requestAuth(AuthRequest.Default) { onCode(pending.code, onCodeResult) }
                                 }
                             }
                         }
@@ -237,12 +243,13 @@ fun RewardsScene(
     }
 
     RedeemRewardsCodeDialog(
-        isVisible = codeDialogShow,
+        isVisible = codeDialogShow || codeRetryShow || incomingCode is GemIncomingCode.Confirm,
         referralCode = referralCode,
         onCode = onCode,
     ) {
         codeDialogShow = false
-        onCancelCode()
+        codeRetryShow = false
+        onCodeHandled()
     }
 }
 
@@ -251,28 +258,25 @@ fun RewardsScene(
 private fun RewardsScenePreview() {
     WalletTheme {
         RewardsScene(
-            loadError = null,
-            isLoading = false,
+            state = GemLoadState.Data,
             isRefreshing = false,
-            isAvailableWalletSelect = false,
-            referralLink = null,
+            wallet = null,
             introItems = GemRewardsIntroItem.entries,
             inviteAction = GemRewardsInviteAction.SHARE,
             canUseReferralCode = false,
             pendingReferral = null,
             notices = emptyList(),
             inviteDescription = "Invite friends and earn 100 points",
-            shareText = null,
             sections = emptyList(),
             redemptions = emptyList(),
-            currentWallet = previewWallet(),
             onUsername = { _, _ -> },
             onCode = { _, _ -> },
-            onCancelCode = {},
+            onCodeHandled = {},
             onRefresh = {},
             onWallet = {},
             onRedeem = {},
             onClose = {},
+            onInvite = {},
         )
     }
 }
@@ -282,39 +286,25 @@ private fun RewardsScenePreview() {
 private fun RewardsSceneNoRewardsPreview() {
     WalletTheme {
         RewardsScene(
-            loadError = null,
-            isLoading = false,
+            state = GemLoadState.Data,
             isRefreshing = false,
-            isAvailableWalletSelect = false,
-            referralLink = null,
+            wallet = null,
             introItems = GemRewardsIntroItem.entries,
             inviteAction = GemRewardsInviteAction.CREATE_CODE,
             canUseReferralCode = true,
             pendingReferral = null,
             notices = emptyList(),
             inviteDescription = "Invite friends and earn 100 points",
-            shareText = null,
             sections = emptyList(),
             redemptions = emptyList(),
-            currentWallet = previewWallet(),
             onUsername = { _, _ -> },
             onCode = { _, _ -> },
-            onCancelCode = {},
+            onCodeHandled = {},
             onRefresh = {},
             onWallet = {},
             onRedeem = {},
             onClose = {},
+            onInvite = {},
         )
     }
 }
-
-private fun previewWallet() = Wallet(
-    id = WalletId("1"),
-    name = "Wallet 1",
-    index = 0,
-    type = WalletType.Multicoin,
-    accounts = emptyList(),
-    isPinned = false,
-    imageUrl = null,
-    source = WalletSource.Create,
-)

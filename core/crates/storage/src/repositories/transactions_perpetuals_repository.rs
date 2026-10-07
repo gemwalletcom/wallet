@@ -13,6 +13,7 @@ pub struct TransactionPerpetualRecord {
     pub kind: TransactionType,
     pub direction: PerpetualDirection,
     pub size_usd: f64,
+    pub pnl_usd: f64,
     pub referral_fee_amount_usd: f64,
     pub created_at: NaiveDateTime,
 }
@@ -31,6 +32,7 @@ impl TransactionsPerpetualsRepository for DatabaseClient {
             kind: record.kind.into(),
             direction: record.direction.into(),
             size_usd: record.size_usd,
+            pnl_usd: record.pnl_usd,
             referral_fee_amount_usd: record.referral_fee_amount_usd,
             created_at: record.created_at,
         };

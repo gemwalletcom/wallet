@@ -17,6 +17,7 @@ import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -52,12 +53,11 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetBalanceScope
 import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
-import uniffi.gemstone.GemFiatQuotesResult
 import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemFiatViewState
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemSelectAssetType
-import uniffi.gemstone.GemServiceException
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -72,6 +72,8 @@ class FiatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
+
     private val currency = GemConstants.fiatQuoteCurrency
     private val assetId: AssetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
@@ -79,6 +81,7 @@ class FiatViewModel @Inject constructor(
         service.newSession(
             (savedStateHandle.get<FiatQuoteType>(RouteArgument.Type.key) ?: FiatQuoteType.Buy).toGem(),
             savedStateHandle.get<Int>(RouteArgument.FiatAmount.key)?.toUInt(),
+            numberFormat(),
         ),
     )
     private val isUrlLoading = MutableStateFlow(false)
@@ -141,7 +144,7 @@ class FiatViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { refreshes -> if (refreshes) tickerFlow(GemConstants.fiatQuoteRefreshInterval.inWholeMilliseconds) {} else emptyFlow() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
-    private val quoteRetry = MutableStateFlow(0L)
+    private val quoteRefresh = MutableStateFlow(0L)
 
     init {
         assetInfo.filterNotNull()
@@ -157,8 +160,8 @@ class FiatViewModel @Inject constructor(
             session.map { it.quoteRequest() }.distinctUntilChanged().debounce(GemConstants.fiatQuoteDebounce),
             assetInfo.filterNotNull().map { it.asset.id }.distinctUntilChanged(),
             ticker,
-            quoteRetry,
-        ) { request, assetId, tick, retry -> request?.let { QuoteFetch(it, assetId, tick, retry) } }
+            quoteRefresh,
+        ) { request, assetId, tick, refresh -> request?.let { QuoteFetch(it, assetId, tick, refresh) } }
             .distinctUntilChanged()
             .mapLatest { fetch -> fetch?.let { loadQuotes(it.request, it.assetId) } }
             .launchIn(viewModelScope)
@@ -166,12 +169,7 @@ class FiatViewModel @Inject constructor(
 
     private suspend fun loadQuotes(request: GemFiatQuoteRequest, assetId: AssetId) {
         session.update { it.onFetchStarted(request) }
-        val results = try {
-            GemFiatQuotesResult(request, withContext(ioDispatcher) { service.quotes(request.quoteType, assetId.toIdentifier(), request.amount) }, null)
-        } catch (error: GemServiceException) {
-            Log.e(TAG, "fiat quotes request failed", error)
-            GemFiatQuotesResult(request, emptyList(), error)
-        }
+        val results = withContext(ioDispatcher) { service.quotes(request, assetId.toIdentifier()) }
         session.update { it.onQuoteResults(results) }
     }
 
@@ -183,10 +181,6 @@ class FiatViewModel @Inject constructor(
         updateAmount(suggestion.amount.toString())
     }
 
-    fun selectRandomAmount() {
-        updateAmount(service.randomAmount().toString())
-    }
-
     fun setProvider(provider: FiatProviderName) {
         session.update { it.onProviderSelected(provider.toGem()) }
     }
@@ -196,19 +190,30 @@ class FiatViewModel @Inject constructor(
     }
 
     fun retry() {
-        quoteRetry.value += 1
+        quoteRefresh.value += 1
     }
 
     fun setRefreshEnabled(isEnabled: Boolean) {
+        if (isEnabled && !refreshEnabled.value && session.value.refreshesQuotes(true)) {
+            quoteRefresh.value += 1
+        }
         refreshEnabled.value = isEnabled
     }
 
-    suspend fun quoteUrl(): Result<String> {
+    suspend fun continueToProvider(onUrl: (String) -> Unit): Result<Unit> {
+        val request = session.value.quoteRequest() ?: return Result.success(Unit)
+        if (!service.isAvailable(request.quoteType)) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return Result.success(Unit)
+        }
         val quoteId = requireNotNull(viewState.value.selectedQuoteRow).quoteId
         isUrlLoading.value = true
-        try {
-            return runCatchingCancellable { service.quoteUrl(assetId.toIdentifier(), quoteId).redirectUrl }
-                .onFailure { Log.e(TAG, "fiat quote url request failed", it) }
+        return try {
+            runCatchingCancellable {
+                val url = withContext(ioDispatcher) { service.quoteUrl(assetId.toIdentifier(), quoteId) }
+                if (session.value.quoteRequest() != request) return@runCatchingCancellable
+                onUrl(url.redirectUrl)
+            }.onFailure { Log.e(TAG, "fiat continuation failed", it) }
         } finally {
             isUrlLoading.value = false
         }
@@ -218,5 +223,5 @@ class FiatViewModel @Inject constructor(
         const val TAG = "FiatViewModel"
     }
 
-    private data class QuoteFetch(val request: GemFiatQuoteRequest, val assetId: AssetId, val ticker: Long, val retry: Long)
+    private data class QuoteFetch(val request: GemFiatQuoteRequest, val assetId: AssetId, val ticker: Long, val refresh: Long)
 }

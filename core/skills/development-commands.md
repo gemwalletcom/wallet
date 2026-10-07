@@ -27,7 +27,7 @@ just test-integration           # Run integration tests only
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 ```
 
-`just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `img-downloader`, run `cargo test --locked -p img-downloader --bins --all-features` instead.
+`just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `generate`, run `cargo test --locked -p generate --bins --all-features` instead.
 
 The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs pass `--all-features` and skip `integration_tests`; workspace runs rely on feature unification across members. Check the test count so an unmatched filter is not mistaken for coverage.
 
@@ -47,8 +47,11 @@ just unused                     # Find unused dependencies with cargo-machete
 **Formatting and Linting**:
 ```sh
 just format
-cargo clippy -p <crate> -- -D warnings
+just lint
+cargo clippy -p <crate> --all-features -- -D warnings
 ```
+
+Before committing or pushing Core changes, run `just lint`, the same command as Core CI. It enables `redundant_clone`, `implicit_clone` and `redundant_closure_for_method_calls` in addition to treating warnings as errors. Per-crate clippy checks provide focused feature coverage and do not replace this closing check.
 
 Most chain crates declare `default = []` and gate whole modules behind features: `gem_bitcoin` keeps `signer/` behind `signer`, `gem_keystore` keeps v3 migration behind `v3`, `swapper` keeps live clients behind `reqwest_provider`. `just test <CRATE>` passes `--all-features`, but bare `cargo test -p <crate>` and `cargo clippy -p <crate>` compile only the default set and finish in seconds with nothing from the gated modules, which reads as a pass. Lint and test with the feature that compiles the changed path, for example `cargo clippy -p gem_bitcoin --features signer --all-targets -- -D warnings`, or pass `--all-features`.
 
@@ -74,7 +77,7 @@ Note: Mobile builds require UniFFI bindings generation and platform-specific com
 
 ## Generating Bindings (When Core Changes Affect Mobile APIs)
 
-> **IMPORTANT**: Regenerate platform bindings when a change affects the mobile API or generated models. Internal implementation changes in `gemstone/`, `swapper/`, `signer/`, or other Core crates do not require regeneration when the exposed interfaces and generated outputs are unchanged.
+Apply [Cross-Platform Awareness](../../skills/cross-platform-awareness.md) to decide when generation and app verification are required, including UniFFI schema or configuration changes.
 
 For the apps, `just generate-stone` from the repo root builds the iOS library and bindings, and the Android Gradle build regenerates its own. The recipes below serve the standalone Gemstone example projects.
 
@@ -92,17 +95,9 @@ just gemstone build-android     # Full Android build including Kotlin binding ge
 ```
 Generated files: `gemstone/generated/kotlin/` → copied to `gemstone/android/gemstone/src/main/java/uniffi/`
 
-### When to Regenerate Bindings
-1. After adding/modifying public functions in `gemstone/src/lib.rs`
-2. After changing any UniFFI-exposed types or interfaces
-3. After changing models that derive `Model`, which either app consumes
-4. When UniFFI schema or configuration changes
-5. When platform build inputs or app-side integration must change with Core
-
 ## Utilities
 
 ```sh
 just localize                   # Update English localization files only
-just localize-all               # Update all localization files
 just outdated                   # Check for outdated dependencies
 ```

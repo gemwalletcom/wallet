@@ -29,7 +29,7 @@ pub enum GemAmountType {
         direction: PerpetualDirection,
         price: f64,
         leverage: u8,
-        size_decimals: i32,
+        size_decimals: u32,
     },
 }
 
@@ -370,7 +370,7 @@ impl GemAmountSession {
 
 impl GemAmountSession {
     fn filled(&self, entry: GemAmountMaxEntry, asset: &Asset) -> Self {
-        match self.format.input_text(entry.value.to_string(), asset.decimals as u32) {
+        match self.format.input_text(entry.value.to_string(), asset.decimals) {
             Some(text) => Self {
                 text,
                 input_type: entry.input_type,

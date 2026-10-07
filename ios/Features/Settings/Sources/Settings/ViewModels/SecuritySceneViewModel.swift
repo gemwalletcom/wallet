@@ -26,7 +26,6 @@ public final class SecuritySceneViewModel {
     var isPresentingLockPeriods: Bool = false
     var isEnabled: Bool
     private var storedLockPeriod: GemLockPeriod
-    var isPrivacyLockEnabled: Bool
 
     public init(
         service: any BiometryAuthenticatable,
@@ -39,7 +38,6 @@ public final class SecuritySceneViewModel {
 
         storedLockPeriod = service.lockPeriod
         isEnabled = service.requiresAuthentication
-        isPrivacyLockEnabled = service.isPrivacyLockEnabled
     }
 
     var title: String {
@@ -55,10 +53,7 @@ public final class SecuritySceneViewModel {
     }
 
     private var authenticationName: String? {
-        switch service.availableAuthentication {
-        case .biometrics: KeystoreAuthentication.availableBiometryName
-        case .passcode, .none: .none
-        }
+        service.availableAuthentication.biometryName
     }
 }
 
@@ -70,8 +65,6 @@ public extension SecuritySceneViewModel {
                 authenticationEnabled: isEnabled,
                 authenticationName: authenticationName,
                 lockPeriod: storedLockPeriod.title,
-                privacyLockEnabled: isPrivacyLockEnabled,
-                privacyLockSupported: true,
             ),
         )
     }
@@ -85,9 +78,6 @@ extension SecuritySceneViewModel {
         case .authentication:
             isEnabled = isOn
             Task { await toggleBiometrics() }
-        case .privacyLock:
-            isPrivacyLockEnabled = isOn
-            togglePrivacyLock()
         case .hideBalance:
             preferences.isHideBalanceEnabled = isOn
         default:
@@ -106,7 +96,6 @@ extension SecuritySceneViewModel {
         guard isEnabled != service.requiresAuthentication else { return }
         do {
             try await service.enableAuthentication(isEnabled, reason: SecuritySceneViewModel.reason)
-            isPrivacyLockEnabled = service.isPrivacyLockEnabled
             storedLockPeriod = service.lockPeriod
         } catch let error as BiometryAuthenticationError {
             if let text = error.promptOutcome.errorText() {
@@ -116,16 +105,6 @@ extension SecuritySceneViewModel {
         } catch {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
             isEnabled.toggle()
-        }
-    }
-
-    func togglePrivacyLock() {
-        guard isPrivacyLockEnabled != service.isPrivacyLockEnabled else { return }
-        do {
-            try service.togglePrivacyLock(enabled: isPrivacyLockEnabled)
-        } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
-            isPrivacyLockEnabled.toggle()
         }
     }
 

@@ -476,6 +476,8 @@ fee_rates_normal = نارمل
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = حسب ضرورت
+fee_rate_priority = ترجیحی فیس
+fee_rate_base = بنیادی فیس
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 گھنٹہ
 lock_six_hours = 6 گھنٹے
 lock_require_authentication = تصدیق کی ضرورت ہے۔
 lock_unlock = غیر مقفل کریں۔
-lock_privacy_lock = پرائیویسی لاک
 lock_footer = اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔
 lock_passcode = پاس کوڈ
+lock_passcode_off_title = ڈیوائس کا پاس کوڈ بند ہے
+lock_passcode_off_description = Gem آپ کی ڈیوائس کے پاس کوڈ سے لاک ہے۔ Gem کھولنے کے لیے ڈیوائس کی ترتیبات میں پاس کوڈ آن کریں۔ آپ کے والیٹس محفوظ ہیں۔
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = اس %@ اکاؤنٹ کو کوئی او
 sell_title = فروخت کریں %@
 
 # Info
+
+info_region_unavailable_description = یہ خصوصیت آپ کے علاقے میں دستیاب نہیں ہے۔ دستیابی مقامی قواعد اور سروس فراہم کرنے والوں کی ضروریات پر منحصر ہے۔
 
 info_network_fee_title = نیٹ ورک فیس
 info_watch_wallet_title = والیٹ دیکھیں
@@ -725,6 +730,8 @@ rewards_pending_description_ready = آپ کا بونس تیار ہے!
 rewards_nickname = عرفی نام
 rewards_unverified_title = انعامات ابھی فعال نہیں ہیں۔
 rewards_unverified_description = جب آپ ایپ کو زیادہ استعمال کرتے ہیں تو انعامات خود بخود فعال ہوجاتے ہیں۔
+rewards_state_empty_title = انعامات کے لیے ملٹی کوائن والیٹ درکار ہے
+rewards_state_empty_description = دوستوں کو مدعو کرنے اور پوائنٹس حاصل کرنے کے لیے ملٹی کوائن والیٹ بنائیں یا امپورٹ کریں۔
 
 # Recent Activity
 

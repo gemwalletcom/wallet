@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemKeystoreAuthentication
 import Keychain
 import LocalAuthentication
 
@@ -38,18 +39,12 @@ extension KeystoreAuthentication {
     }
 }
 
-public extension KeystoreAuthentication {
-    static var availableBiometryType: LABiometryType {
-        LAContext().biometryType
-    }
-
-    static var availableBiometryName: String? {
-        switch availableBiometryType {
-        case .faceID: "Face ID"
-        case .touchID: "Touch ID"
-        case .opticID: "Optic ID"
+extension KeystoreAuthentication {
+    func toGem() -> GemKeystoreAuthentication {
+        switch self {
+        case .biometrics: .biometrics
+        case .passcode: .passcode
         case .none: .none
-        @unknown default: .none
         }
     }
 }

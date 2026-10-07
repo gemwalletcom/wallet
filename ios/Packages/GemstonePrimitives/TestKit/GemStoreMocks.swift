@@ -39,8 +39,8 @@ final class GemNodeStoreMock: GemNodeStore, @unchecked Sendable {
 }
 
 public extension GemNodeService {
-    static func mock() -> GemNodeService {
-        GemNodeService(store: GemNodeStoreMock(), preferences: GemPreferencesStoreMock())
+    static func mock(preferences: GemPreferencesStore = GemPreferencesStoreMock()) -> GemNodeService {
+        GemNodeService(store: GemNodeStoreMock(), preferences: preferences)
     }
 }
 
@@ -67,10 +67,10 @@ public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Send
     }
 }
 
-final class StubAlienProvider: AlienProvider, @unchecked Sendable {
-    init() {}
+public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
+    public init() {}
 
-    func request(target _: AlienTarget) async throws -> AlienResponse {
+    public func request(target _: AlienTarget) async throws -> AlienResponse {
         throw AnyError("StubAlienProvider does not perform requests")
     }
 }

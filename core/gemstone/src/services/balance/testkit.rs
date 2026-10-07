@@ -1,8 +1,5 @@
 use std::collections::HashMap;
-use std::future::Future;
-use std::pin::Pin;
 use std::sync::{Arc, Mutex};
-use std::task::{Context, Poll};
 
 use num_bigint::BigUint;
 use primitives::{AssetBalance, AssetId, Balance, Chain, WalletId};
@@ -21,7 +18,7 @@ use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
 use crate::services::stream::testkit::SubscriptionTestkit;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
-use crate::testkit::{EmptyPreferences, TestAlienProvider};
+use crate::testkit::{EmptyPreferences, TestAlienProvider, YieldOnce};
 
 impl GemAssetBalance {
     pub fn mock() -> Self {
@@ -43,24 +40,6 @@ impl GemBalanceUpdate {
             update_type,
             is_active: true,
         }
-    }
-}
-
-#[derive(Default)]
-pub struct YieldOnce {
-    yielded: bool,
-}
-
-impl Future for YieldOnce {
-    type Output = ();
-
-    fn poll(mut self: Pin<&mut Self>, context: &mut Context<'_>) -> Poll<()> {
-        if self.yielded {
-            return Poll::Ready(());
-        }
-        self.yielded = true;
-        context.waker().wake_by_ref();
-        Poll::Pending
     }
 }
 

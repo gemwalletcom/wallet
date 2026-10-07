@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Maalum</string>
+  <string name="fee_rate_priority">Ada ya Kipaumbele</string>
+  <string name="fee_rate_base">Ada ya Msingi</string>
   <string name="banner_account_activation_title">Ada ya Kuanzisha Akaunti</string>
   <string name="banner_account_activation_description">Mtandao wa %1$s unahitaji ada ya mara moja ya %2$s.</string>
   <string name="banner_stake_title">Anza kugoma %1$s</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 masaa</string>
   <string name="lock_require_authentication">Inahitaji uthibitishaji</string>
   <string name="lock_unlock">Fungua</string>
-  <string name="lock_privacy_lock">Kufuli ya Faragha</string>
   <string name="lock_footer">Linda ufikiaji wa programu hii kwenye kifaa chako</string>
   <string name="lock_passcode">Nambari ya siri</string>
+  <string name="lock_passcode_off_title">Nambari ya siri ya kifaa imezimwa</string>
+  <string name="lock_passcode_off_description">Gem imefungwa kwa nambari ya siri ya kifaa chako. Washa nambari ya siri kwenye mipangilio ya kifaa ili kufungua Gem. Pochi zako ziko salama.</string>
   <string name="verify_phrase_title">Thibitisha</string>
   <string name="warnings_externally_controlled_account">Akaunti hii ya %1$s inaweza kudhibitiwa na mtu mwingine. Usitume pesa kwake isipokuwa una uhakika kuwa unaidhibiti, la sivyo unaweza kupoteza mali yako kabisa.</string>
   <string name="sell_title">Uza %1$s</string>
+  <string name="info_region_unavailable_description">Kipengele hiki hakipatikani katika eneo lako. Upatikanaji hutegemea kanuni za eneo na masharti ya watoa huduma.</string>
   <string name="info_network_fee_title">Ada ya Mtandao</string>
   <string name="info_watch_wallet_title">Tazama Wallet</string>
   <string name="info_watch_wallet_description">Mkoba ambao huna ufikiaji, lakini unaweza kutazama shughuli na harakati zake.</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">Jina la utani</string>
   <string name="rewards_unverified_title">Zawadi hazijaanza kutumika bado.</string>
   <string name="rewards_unverified_description">Zawadi huamilishwa kiotomatiki unapotumia programu zaidi.</string>
+  <string name="rewards_state_empty_title">Zawadi zinahitaji mkoba wa sarafu nyingi</string>
+  <string name="rewards_state_empty_description">Unda au ingiza mkoba wa sarafu nyingi ili kualika marafiki na kupata pointi.</string>
   <string name="recent_activity_title">Hivi karibuni</string>
   <string name="recent_activity_state_empty_title">Habari zako za hivi majuzi zitaonekana hapa</string>
   <string name="recent_activity_state_empty_description">Vipengee ambavyo umetumia hivi karibuni vitaonekana hapa</string>

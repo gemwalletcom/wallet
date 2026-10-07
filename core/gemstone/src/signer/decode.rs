@@ -7,8 +7,3 @@ pub fn decode_private_key(chain: Chain, value: String) -> Result<Vec<u8>, Gemsto
     let mut private_key = signer::decode_private_key(&chain, &value)?;
     Ok(std::mem::take(private_key.as_mut()))
 }
-
-pub fn encode_private_key(chain: Chain, private_key: Vec<u8>) -> Result<String, GemstoneError> {
-    let private_key = Zeroizing::new(private_key);
-    signer::encode_private_key(&chain, &private_key).map_err(GemstoneError::from)
-}

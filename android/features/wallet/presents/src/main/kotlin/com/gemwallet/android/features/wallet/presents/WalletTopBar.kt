@@ -17,21 +17,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.domains.wallet.aggregates.WalletSummary
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.style.iconModel
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
+import uniffi.gemstone.GemWalletRow
 
 private const val ScanActionTag = "assetsScanAction"
 private const val ManageActionTag = "assetsManageAction"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun WalletTopBar(walletSummary: WalletSummary?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
-    val walletIcon = walletSummary?.walletRow?.iconModel(LocalContext.current)
+internal fun WalletTopBar(walletRow: GemWalletRow?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
+    val walletIcon = walletRow?.iconModel(LocalContext.current)
 
     CenterAlignedTopAppBar(
         title = {
@@ -45,7 +45,7 @@ internal fun WalletTopBar(walletSummary: WalletSummary?, onShowWallets: () -> Un
                         Spacer(modifier = Modifier.size(paddingSmall))
                     }
                     Text(
-                        text = walletSummary?.walletRow?.name ?: "",
+                        text = walletRow?.name ?: "",
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onSurface,

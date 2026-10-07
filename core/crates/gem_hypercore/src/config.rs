@@ -1,3 +1,5 @@
+use crate::constants::{BUILDER_ADDRESS, REFERRAL_CODE};
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct HypercoreConfig {
     pub builder_address: String,
@@ -9,8 +11,8 @@ pub struct HypercoreConfig {
 impl Default for HypercoreConfig {
     fn default() -> Self {
         Self {
-            builder_address: "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc".to_string(),
-            referral_code: "GEMWALLET".to_string(),
+            builder_address: BUILDER_ADDRESS.to_string(),
+            referral_code: REFERRAL_CODE.to_string(),
             max_builder_fee_bps: 45,
             enabled_hip3_markets: vec![],
         }

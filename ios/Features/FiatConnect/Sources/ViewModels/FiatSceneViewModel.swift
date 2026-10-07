@@ -8,15 +8,15 @@ import enum Gemstone.FiatProviderName
 import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemFiatAmountCheck
 import protocol Gemstone.GemFiatQuoteServiceProtocol
-import struct Gemstone.GemFiatQuotesResult
 import struct Gemstone.GemFiatSession
 import struct Gemstone.GemFiatSuggestedAmount
 import struct Gemstone.GemFiatViewState
+import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemProviderRow
 import enum Gemstone.GemSelectAssetType
-import enum Gemstone.GemServiceError
 import GemstonePrimitives
 import GemstoneServices
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -41,9 +41,9 @@ public final class FiatSceneViewModel {
     }
 
     var session: GemFiatSession
-    var urlState: StateViewType<Void> = .noData
+    var isUrlLoading = false
     var isPresentingFiatProvider: Bool = false
-    var isPresentingAlertMessage: AlertMessage?
+    var isPresentingInfoSheet: InfoSheetModel?
     var loadTrigger: FiatLoadTrigger?
 
     public init(
@@ -61,7 +61,7 @@ public final class FiatSceneViewModel {
         self.wallet = wallet
         assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
         priceUsdQuery = ObservableQuery(PriceUsdQuery(assetId: assetAddress.asset.id), initialValue: nil)
-        session = service.newSession(quoteType: type.toGem(), amount: amount.map { UInt32($0) })
+        session = service.newSession(quoteType: type.toGem(), amount: amount.map { UInt32($0) }, format: NumberInput.format(locale))
         loadTrigger = FiatLoadTrigger(session: session, isImmediate: true)
     }
 
@@ -71,7 +71,7 @@ public final class FiatSceneViewModel {
     }
 
     var viewState: GemFiatViewState {
-        session.viewState(assetPrice: priceUsdQuery.value, isUrlLoading: urlState.isLoading, isSellEnabled: assetData.metadata.isSellEnabled)
+        session.viewState(assetPrice: priceUsdQuery.value, isUrlLoading: isUrlLoading, isSellEnabled: assetData.metadata.isSellEnabled)
     }
 
     var amount: String {
@@ -120,10 +120,6 @@ public final class FiatSceneViewModel {
 
     var assetTitle: String {
         asset.name
-    }
-
-    var typeAmountButtonTitle: String {
-        Emoji.random
     }
 
     var asset: Asset {
@@ -177,18 +173,8 @@ extension FiatSceneViewModel {
     func load() async {
         guard let request = session.quoteRequest() else { return }
         session = session.onFetchStarted(request: request)
-        let results: GemFiatQuotesResult
-        do {
-            let quotes = try await service.quotes(quoteType: request.quoteType, assetId: asset.id, amount: request.amount)
-            results = GemFiatQuotesResult(request: request, quotes: quotes, error: nil)
-        } catch let error as GemServiceError {
-            guard !error.isCancelled, !Task.isCancelled else { return }
-            results = GemFiatQuotesResult(request: request, quotes: [], error: error)
-            debugLog("FiatSceneViewModel get quotes error: \(error)")
-        } catch {
-            debugLog("FiatSceneViewModel get quotes error: \(error)")
-            return
-        }
+        let results = await service.quotes(request: request, assetId: asset.id)
+        guard results.error == nil || !Task.isCancelled else { return }
         session = session.onQuoteResults(results: results)
     }
 
@@ -202,19 +188,15 @@ extension FiatSceneViewModel {
         }
     }
 
-    func onSelectContinue() {
+    func onSelectContinue() async {
         switch viewState.buttonAction {
-        case .retryQuote: Task { await load() }
-        case .continue: openQuoteUrl()
+        case .retryQuote: await load()
+        case .continue: await openQuoteUrl()
         }
     }
 
     func onSelect(amount: Int) {
         setAmount(String(amount), isImmediate: true)
-    }
-
-    func onSelectRandomAmount() {
-        setAmount(String(service.randomAmount()), isImmediate: true)
     }
 
     func onSelectFiatProviders() {
@@ -245,31 +227,20 @@ extension FiatSceneViewModel {
         loadTrigger = FiatLoadTrigger(session: session, isImmediate: isImmediate)
     }
 
-    private func openQuoteUrl() {
-        guard let quote = viewState.selectedQuoteRow else { return }
-
-        Task {
-            urlState = .loading
-
-            do {
-                guard let url = try await service.quoteUrl(assetId: asset.id, quoteId: quote.quoteId).redirectUrl.asURL else {
-                    urlState = .noData
-                    return
-                }
-
-                urlState = .data(())
-                await UIApplication.shared.open(url, options: [:])
-            } catch let error as GemServiceError {
-                urlState = .error(error)
-                isPresentingAlertMessage = AlertMessage(
-                    title: Localized.Errors.errorOccurred,
-                    message: error.localizedDescription,
-                )
-                debugLog("FiatSceneViewModel get quote URL error: \(error)")
-            } catch {
-                urlState = .error(error)
-                debugLog("FiatSceneViewModel get quote URL error: \(error)")
-            }
+    private func openQuoteUrl() async {
+        guard !isUrlLoading, let quote = viewState.selectedQuoteRow, let request = session.quoteRequest() else { return }
+        guard service.isAvailable(quoteType: request.quoteType) else {
+            isPresentingInfoSheet = InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)
+            return
+        }
+        isUrlLoading = true
+        defer { isUrlLoading = false }
+        do {
+            guard let url = try await service.quoteUrl(assetId: asset.id, quoteId: quote.quoteId).redirectUrl.asURL else { return }
+            guard session.quoteRequest() == request else { return }
+            await UIApplication.shared.open(url, options: [:])
+        } catch {
+            isPresentingInfoSheet = InfoSheetModel(error: error)
         }
     }
 }

@@ -68,3 +68,27 @@ impl ConfigRepository for DatabaseClient {
         Ok(diesel::delete(config.filter(key.eq_any(keys))).execute(&mut self.connection)?)
     }
 }
+
+#[cfg(all(test, feature = "database_integration_tests"))]
+mod database_integration_tests {
+    use config_keys::{ConfigParamKey, RateLimitKey, RateLimitWindow};
+
+    use crate::{ConfigRepository, Database, DatabaseError};
+
+    #[tokio::test]
+    async fn test_get_config_param_missing_row_is_not_found() {
+        let param = ConfigParamKey::RateLimit(RateLimitKey::ReferralPerUserLimit, RateLimitWindow::Day);
+        let (missing, stored) = Database::mock()
+            .run(move |client| -> Result<_, DatabaseError> {
+                client.delete_keys(vec![param.key()])?;
+                let missing = client.get_config_param(param);
+                client.add_config_params(vec![param])?;
+                Ok((missing, client.get_config_param(param)?))
+            })
+            .await
+            .unwrap();
+
+        assert!(missing.unwrap_err().is_not_found());
+        assert_eq!(stored, param.default_value());
+    }
+}

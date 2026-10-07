@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemNetworkAssetSections
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.networkAssetSections
@@ -142,7 +143,7 @@ private data class NetworkAssetGroups(
     val pinned: List<AssetInfoDataAggregate> = emptyList(),
     val unpinned: List<AssetInfoDataAggregate> = emptyList(),
     val hidden: List<AssetInfoDataAggregate> = emptyList(),
-    val sections: GemNetworkAssetSections = GemNetworkAssetSections(showsPinned = false, showsUnpinned = false, showsHidden = false, showsEmpty = true),
+    val sections: GemNetworkAssetSections = GemNetworkAssetSections(showsPinned = false, showsUnpinned = false, showsHidden = false, phase = GemListPhase.Rows),
     val isLoaded: Boolean = false,
 ) {
     fun assetIds(): List<String> = (pinned + unpinned + hidden).map { it.id.toIdentifier() }

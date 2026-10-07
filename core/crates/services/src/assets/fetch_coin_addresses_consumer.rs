@@ -1,36 +1,41 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
-use cacher::{CacheKey, CacherClient};
+use cacher::{ThrottleCacher, ThrottledTask};
 use chain_providers::ChainProviders;
-use storage::Database;
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
-use super::addresses::update_coin_address;
+use crate::assets::repository::Repository;
 
 pub struct FetchCoinAddressesConsumer {
     pub provider: ChainProviders,
-    pub database: Database,
-    pub cacher: CacherClient,
+    pub(crate) repository: Arc<dyn Repository>,
+    pub throttle: Arc<dyn ThrottleCacher>,
 }
 
 impl FetchCoinAddressesConsumer {
-    pub fn new(provider: ChainProviders, database: Database, cacher: CacherClient) -> Self {
-        Self { provider, database, cacher }
+    pub(crate) fn new(provider: ChainProviders, repository: Arc<dyn Repository>, throttle: Arc<dyn ThrottleCacher>) -> Self {
+        Self { provider, repository, throttle }
     }
 }
 
 #[async_trait]
 impl MessageConsumer<ChainAddressPayload, String> for FetchCoinAddressesConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.cacher.can_process_cached(CacheKey::FetchCoinAddresses(payload.value.chain.as_ref(), &payload.value.address)).await
+        self.throttle
+            .try_start(ThrottledTask::FetchCoinAddresses {
+                chain: payload.value.chain.as_ref(),
+                address: &payload.value.address,
+            })
+            .await
     }
 
     async fn consume(&self, payload: ChainAddressPayload) -> Result<String, Box<dyn Error + Send + Sync>> {
         let chain_address = payload.value;
         let balance = self.provider.get_balance_coin(chain_address.chain, chain_address.address.clone()).await?;
         let balance_value = balance.balance.available.to_string();
-        self.database.run(move |client| update_coin_address(client, &chain_address, balance)).await?;
+        self.repository.update_coin_address(chain_address, balance).await?;
         Ok(balance_value)
     }
 }

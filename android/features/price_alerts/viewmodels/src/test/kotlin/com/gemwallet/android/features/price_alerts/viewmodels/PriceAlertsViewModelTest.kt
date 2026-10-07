@@ -17,6 +17,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -26,6 +27,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPriceAlertService
@@ -55,6 +57,27 @@ class PriceAlertsViewModelTest {
 
             coVerify(exactly = 1) { service.setEnabled(true) }
             assertEquals(true, viewModel.priceAlertEnabled.first { it == true })
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `the switch moves at once while Core tells the server`() = runTest {
+        val service = service(enabled = true)
+        val answered = CompletableDeferred<Unit>()
+        coEvery { service.setEnabled(false) } coAnswers {
+            answered.await()
+            every { service.isEnabled() } returns false
+        }
+        val viewModel = viewModel(service)
+        try {
+            val toggle = viewModel.togglePriceAlerts(false)
+
+            assertEquals(false, viewModel.priceAlertEnabled.value)
+            answered.complete(Unit)
+            toggle.join()
+            assertEquals(false, viewModel.priceAlertEnabled.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -108,6 +131,20 @@ class PriceAlertsViewModelTest {
         }
     }
 
+    @Test
+    fun `a failed refresh with no alerts shows the error instead of the empty state`() = runTest {
+        val service = service(enabled = true)
+        coEvery { service.refresh(any()) } returns GemLoadState.Error(GemServiceException.Gateway("offline"))
+        listOf(null, assetId).forEach { assetId ->
+            val viewModel = viewModel(service, assetId)
+            try {
+                assertEquals("offline", ((viewModel.phase.first { it != null } as GemListPhase.Error).error as GemServiceException.Gateway).msg)
+            } finally {
+                viewModel.viewModelScope.cancel()
+            }
+        }
+    }
+
     private fun viewModel(service: GemPriceAlertService, assetId: AssetId? = null) = PriceAlertsViewModel(
         priceAlertsQuery = mockk<PriceAlertsQuery> {
             every { this@mockk(any()) } returns flowOf(emptyList())
@@ -130,7 +167,7 @@ class PriceAlertsViewModelTest {
                 state = firstArg()
                 Unit
             }
-            coEvery { refresh(any(), any()) } returns GemLoadState.Data
+            coEvery { refresh(any()) } returns GemLoadState.Data
         }
     }
 }

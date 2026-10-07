@@ -18,7 +18,7 @@ struct NFTAssetQueryTests {
         try store.add(asset: assetData.asset, collection: assetData.collection)
 
         try db.dbQueue.read { db in
-            let details = try NFTAssetQuery(walletId: walletId, assetId: assetData.asset.id).fetch(db)
+            let details = try #require(try NFTAssetQuery(walletId: walletId, assetId: assetData.asset.id).fetch(db))
             #expect(details.assetData.asset.id == assetData.asset.id)
             #expect(details.assetData.collection.id == assetData.collection.id)
             #expect(details.isOwned == false)
@@ -27,10 +27,21 @@ struct NFTAssetQueryTests {
         try store.save([NFTData(collection: assetData.collection, assets: [assetData.asset])], for: walletId)
 
         try db.dbQueue.read { db in
-            let held = try NFTAssetQuery(walletId: walletId, assetId: assetData.asset.id).fetch(db)
-            let otherWallet = try NFTAssetQuery(walletId: .mock(address: "0x1"), assetId: assetData.asset.id).fetch(db)
+            let held = try #require(try NFTAssetQuery(walletId: walletId, assetId: assetData.asset.id).fetch(db))
+            let otherWallet = try #require(try NFTAssetQuery(walletId: .mock(address: "0x1"), assetId: assetData.asset.id).fetch(db))
             #expect(held.isOwned)
             #expect(otherWallet.isOwned == false)
         }
+    }
+
+    @Test
+    func anAssetNotStoredReadsAsNil() throws {
+        let db = DB.mock(chains: [.ethereum])
+
+        let details = try db.dbQueue.read { db in
+            try NFTAssetQuery(walletId: .mock(), assetId: .mock()).fetch(db)
+        }
+
+        #expect(details == nil)
     }
 }

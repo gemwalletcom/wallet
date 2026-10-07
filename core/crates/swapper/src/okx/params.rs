@@ -15,7 +15,7 @@ use primitives::{
 
 const OKX_MAX_SLIPPAGE_BPS_EVM: u32 = HUNDRED_PERCENT_IN_BPS;
 const OKX_MAX_SLIPPAGE_BPS_SOLANA: u32 = HUNDRED_PERCENT_IN_BPS - 1;
-const MAX_SLIPPAGE_PERCENT_BPS: u32 = 100;
+const AUTO_SLIPPAGE_MAX_MULTIPLIER: u32 = 2;
 
 fn fee_bps(chain: Chain) -> u32 {
     match chain {
@@ -29,12 +29,13 @@ fn limit_slippage_bps(slippage_bps: u32, chain: Chain) -> u32 {
     slippage_bps.min(max)
 }
 
-fn slippage_percent(slippage_bps: u32) -> String {
-    bps_to_percent_string(slippage_bps.min(MAX_SLIPPAGE_PERCENT_BPS)).unwrap_or_else(|_| "1".to_string())
-}
-
-fn max_auto_slippage_percent(slippage_bps: u32) -> Option<String> {
-    bps_to_percent_string(slippage_bps.saturating_mul(2)).ok()
+pub(super) fn max_slippage_bps(request: &QuoteRequest) -> u32 {
+    let bps = request.options.slippage.bps;
+    let chain = request.from_asset.chain();
+    match request.options.slippage.mode {
+        SlippageMode::Exact => limit_slippage_bps(bps, chain),
+        SlippageMode::Auto => limit_slippage_bps(bps.saturating_mul(AUTO_SLIPPAGE_MAX_MULTIPLIER), chain),
+    }
 }
 
 pub(super) fn asset_to_token_address(asset: &QuoteAsset) -> Result<String, SwapperError> {
@@ -58,7 +59,7 @@ pub(super) fn build_quote_params(request: &QuoteRequest) -> Result<QuoteParams, 
         amount: request.value.to_string(),
         from_token_address: asset_to_token_address(&request.from_asset)?,
         to_token_address: asset_to_token_address(&request.to_asset)?,
-        slippage_percent: slippage_percent(request.options.slippage.bps),
+        slippage_percent: bps_to_percent_string(limit_slippage_bps(request.options.slippage.bps, chain))?,
         dex_ids: dex_ids(chain).map(str::to_string),
         fee_percent: bps_to_percent_string(fee_bps(chain))?,
     })
@@ -78,9 +79,9 @@ pub(super) fn build_swap_params(request: &QuoteRequest, route: &QuoteData) -> Re
         user_wallet_address: request.wallet_address.clone(),
         approve_transaction: approve_transaction.then_some(true),
         approve_amount: approve_transaction.then(|| request.value.to_string()),
-        slippage_percent: Some(slippage_percent(slippage_bps)),
+        slippage_percent: Some(bps_to_percent_string(slippage_bps)?),
         auto_slippage: Some(is_auto),
-        max_auto_slippage_percent: is_auto.then(|| max_auto_slippage_percent(slippage_bps)).flatten(),
+        max_auto_slippage_percent: is_auto.then(|| bps_to_percent_string(max_slippage_bps(request))).transpose()?,
         dex_ids: dex_ids(chain).map(str::to_string),
         fee_percent: bps_to_percent_string(fee_bps(chain))?,
         from_token_referrer_wallet_address: referrers.from_token,
@@ -101,11 +102,20 @@ mod tests {
     };
 
     #[test]
-    fn test_slippage_percent() {
-        assert_eq!(slippage_percent(10), "0.1");
-        assert_eq!(slippage_percent(50), "0.5");
-        assert_eq!(slippage_percent(100), "1");
-        assert_eq!(slippage_percent(500), "1");
+    fn test_max_slippage_bps() {
+        let mut ethereum = mock_quote(
+            QuoteAsset::mock_with_asset_id(ETHEREUM_USDC_ASSET_ID.clone(), "", 6),
+            QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Ethereum), "", 18),
+        );
+        ethereum.options.slippage = SwapperSlippage::mock_exact(300);
+        assert_eq!(max_slippage_bps(&ethereum), 300, "a chosen slippage is sent as chosen");
+
+        ethereum.options.slippage = SwapperSlippage { bps: 100, mode: SlippageMode::Auto };
+        assert_eq!(max_slippage_bps(&ethereum), 200, "auto lets OKX go up to twice the default");
+
+        let mut solana = mock_quote(QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Solana), "", 9), QuoteAsset::mock_with_asset_id(SOLANA_USDC_ASSET_ID.clone(), "", 6));
+        solana.options.slippage = SwapperSlippage { bps: 6_000, mode: SlippageMode::Auto };
+        assert_eq!(max_slippage_bps(&solana), 9_999, "OKX's own ceiling still holds");
     }
 
     #[test]
@@ -218,6 +228,9 @@ mod tests {
         assert_eq!(evm_params.auto_slippage, Some(false));
         assert_eq!(evm_params.max_auto_slippage_percent, None);
         assert_eq!(evm_params.slippage_percent.as_deref(), Some("1"));
+
+        evm_request.options.slippage = SwapperSlippage::mock_exact(300);
+        assert_eq!(build_swap_params(&evm_request, &evm_route).unwrap().slippage_percent.as_deref(), Some("3"), "a chosen slippage above 1% is not clipped");
     }
 
     #[test]
@@ -230,7 +243,7 @@ mod tests {
         assert_eq!(params.amount, "1000000");
         assert_eq!(params.from_token_address, SOLANA_SYSTEM_PROGRAM_ID);
         assert_eq!(params.to_token_address, SOLANA_USDC_TOKEN_ID);
-        assert_eq!(params.slippage_percent, "1");
+        assert_eq!(params.slippage_percent, "3");
         assert!(params.dex_ids.is_some());
         assert_eq!(params.fee_percent, "0.7");
     }

@@ -31,7 +31,7 @@ impl AcrossAsset {
                 funding: Funding::Value,
             }),
             EvmNativeCurrency::Mirrored { token, decimals } => {
-                let exponent = u32::try_from(Asset::from_chain(chain).decimals).ok()?.checked_sub(decimals)?;
+                let exponent = Asset::from_chain(chain).decimals.checked_sub(decimals)?;
                 Some(Self {
                     asset_id: AssetId::from_token(chain, token),
                     scale: U256::from(10).pow(U256::from(exponent)),

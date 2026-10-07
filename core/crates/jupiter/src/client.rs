@@ -13,10 +13,6 @@ pub struct JupiterClient<C: Client> {
 }
 
 impl JupiterClient<ReqwestClient> {
-    pub fn new_with_reqwest_client(client: reqwest::Client) -> Self {
-        Self::new_with_client(ReqwestClient::new(JUPITER_API_URL.to_string(), client))
-    }
-
     pub fn new_with_reqwest_client_and_api_key(client: reqwest::Client, api_key: String) -> Self {
         Self::new_with_client_and_api_key(ReqwestClient::new(JUPITER_API_URL.to_string(), client), api_key)
     }

@@ -44,6 +44,14 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
 }
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
+    public var isAvailableValue = true
+    public var refreshTransactionsState: GemLoadState = .data
+    public private(set) var quoteUrlRequests: [String] = []
+
+    public func isAvailable(quoteType _: Gemstone.FiatQuoteType) -> Bool {
+        isAvailableValue
+    }
+
     private let quotes: [Gemstone.FiatQuote]
 
     public init(quotes: [Gemstone.FiatQuote] = []) {
@@ -58,27 +66,24 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         quoteType.toPrimitives() == .sell ? 100 : 50
     }
 
-    public func newSession(quoteType: Gemstone.FiatQuoteType, amount: UInt32?) -> GemFiatSession {
+    public func newSession(quoteType: Gemstone.FiatQuoteType, amount: UInt32?, format: GemNumberFormat) -> GemFiatSession {
         let operation = { (type: Gemstone.FiatQuoteType) -> GemFiatOperation in
             let value = (type == quoteType ? amount : nil) ?? self.defaultAmount(quoteType: type)
             return GemFiatOperation(quoteType: type, amount: String(value), quotes: [], selectedProvider: nil, phase: .loading(amount: Double(value)))
         }
-        return GemFiatSession(quoteType: quoteType, buy: operation(.buy), sell: operation(.sell), available: 0)
+        return GemFiatSession(quoteType: quoteType, buy: operation(.buy), sell: operation(.sell), available: 0, format: format)
     }
 
-    public func randomAmount() -> UInt32 {
-        50
+    public func refreshTransactions() async -> GemLoadState {
+        refreshTransactionsState
     }
 
-    public func refreshTransactions(hasTransactions _: Bool) async -> GemLoadState {
-        .data
+    public func quotes(request: GemFiatQuoteRequest, assetId _: Gemstone.AssetId) async -> GemFiatQuotesResult {
+        GemFiatQuotesResult(request: request, quotes: quotes, error: nil)
     }
 
-    public func quotes(quoteType _: Gemstone.FiatQuoteType, assetId _: Gemstone.AssetId, amount _: Double) async throws -> [Gemstone.FiatQuote] {
-        quotes
-    }
-
-    public func quoteUrl(assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
+    public func quoteUrl(assetId _: Gemstone.AssetId, quoteId: String) async throws -> Gemstone.FiatQuoteUrl {
+        quoteUrlRequests.append(quoteId)
         throw AnyError("not stubbed")
     }
 }
@@ -147,6 +152,12 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 }
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
+    public var isAvailableValue = true
+
+    public func isAvailable() -> Bool {
+        isAvailableValue
+    }
+
     private let claimable: Bool
     private let actions: [GemDelegationActionItem]
     private let validators: [Gemstone.DelegationValidator]
@@ -188,6 +199,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
                     rows: validators.map { Gemstone.GemValidatorRow.mock(validator: $0, name: $0.name, imageUrl: "https://assets.gemwallet.com/validator.png", placeholder: String($0.name.prefix(1)), apr: .apr(value: nil)) },
                 ),
             ].filter(\.rows.isNotEmpty),
+            phase: validators.isEmpty ? .empty(state: emptyState(kind: .validators)) : .rows,
         )
     }
 
@@ -214,6 +226,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             delegations: zip(input.delegations, Gemstone.delegationListRows(delegations: input.delegations, asset: input.assetData.asset, price: input.assetData.price?.price, currency: input.currency)).map {
                 GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
             },
+            delegationsPhase: loadedPhase(state: input.state, hasRows: !input.delegations.isEmpty, kind: .stake),
             docsUrl: nil,
         )
     }
@@ -262,8 +275,17 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             depositRow: .action(title: .deposit, value: nil, info: nil),
             depositProvider: depositProvider,
             positions: positions,
-            showsEmpty: positions.isEmpty && input.state != .loading,
+            positionsPhase: loadedPhase(state: input.state, hasRows: !positions.isEmpty, kind: .earn),
         )
+    }
+}
+
+private func loadedPhase(state: GemLoadState, hasRows: Bool, kind: GemEmptyStateKind) -> GemListPhase? {
+    switch (hasRows, state) {
+    case (true, _): .rows
+    case (false, .loading): nil
+    case let (false, .error(error)): .error(error: error)
+    case (false, .data), (false, .noData): .empty(state: emptyState(kind: kind))
     }
 }
 
@@ -350,7 +372,7 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
         filterChainsValue
     }
 
-    public func refresh(assetId: Gemstone.AssetId?, hasTransactions _: Bool) async -> GemLoadState {
+    public func refresh(assetId: Gemstone.AssetId?) async -> GemLoadState {
         syncedAssetIds.append(assetId)
         return refreshState
     }

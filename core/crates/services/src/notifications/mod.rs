@@ -3,6 +3,7 @@ mod notifications_client;
 mod notifications_consumer;
 mod notifications_failed_consumer;
 mod pusher;
+pub(crate) mod repository;
 mod staking_rewards_notifier;
 
 pub use in_app_notifications_consumer::InAppNotificationsConsumer;

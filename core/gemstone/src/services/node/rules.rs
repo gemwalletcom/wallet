@@ -30,8 +30,12 @@ pub fn sorted_nodes(chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
     default_nodes.into_iter().chain(added).collect()
 }
 
-pub fn selected_node(selected_url: Option<String>, nodes: Vec<Node>, fallback: Node) -> Node {
-    selected_url.and_then(|url| nodes.into_iter().find(|node| node.url == url)).unwrap_or(fallback)
+pub fn selected_node(chain: Chain, url: String, stored_nodes: Vec<Node>) -> Node {
+    merge_nodes(default_nodes(chain), stored_nodes).into_iter().find(|node| node.url == url).unwrap_or_else(|| fallback_node(chain))
+}
+
+pub fn fallback_node(chain: Chain) -> Node {
+    region_node(chain, NodeRegion::Us)
 }
 
 pub fn node_selections(nodes: Vec<Node>, selected_url: &str) -> Vec<GemNodeSelection> {
@@ -48,18 +52,6 @@ pub fn node_selections(nodes: Vec<Node>, selected_url: &str) -> Vec<GemNodeSelec
 
 fn node_host(url: &str) -> String {
     Url::parse(url).ok().and_then(|parsed| parsed.host_str().map(str::to_string)).unwrap_or_else(|| url.to_string())
-}
-
-pub fn chain_node(chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> Node {
-    selected_node(selected_url, merge_nodes(default_nodes(chain), stored_nodes), region_node(chain, NodeRegion::Us))
-}
-
-pub fn preferred_chain_node(chain: Chain, selected_url: Option<String>) -> Node {
-    let nodes = default_nodes(chain);
-    match selected_url {
-        Some(url) => nodes.into_iter().find(|node| node.url == url).unwrap_or(Node { url, status: NodeState::Active, priority: 0 }),
-        None => region_node(chain, NodeRegion::Us),
-    }
 }
 
 pub fn region_node(chain: Chain, region: NodeRegion) -> Node {
@@ -120,7 +112,7 @@ pub fn latency_status(state: &GemNodeStatusState) -> GemLatencyStatus {
 
 pub fn node_status_state(status: Option<NodeStatus>) -> GemNodeStatusState {
     match status {
-        Some(status) if status.latest_block_number > 0 => GemNodeStatusState::Result {
+        Some(status) if status.latest_block_number.is_none_or(|value| value > 0) => GemNodeStatusState::Result {
             latest_block_number: status.latest_block_number,
             latency: Latency::from_milliseconds(status.latency_ms),
         },
@@ -141,7 +133,7 @@ mod tests {
     fn test_latency_status_keeps_the_latency_and_drops_the_block_number() {
         let latency = primitives::Latency::from_milliseconds(440);
         let result = GemNodeStatusState::Result {
-            latest_block_number: 12,
+            latest_block_number: Some(12),
             latency: latency.clone(),
         };
         assert_eq!(latency_status(&result), GemLatencyStatus::Result { latency });
@@ -182,12 +174,14 @@ mod tests {
     }
 
     #[test]
-    fn test_selected_node_falls_back_when_url_is_missing() {
-        let nodes = vec![Node::mock("https://a", 1), Node::mock("https://b", 2)];
+    fn test_the_selected_node_is_one_the_chain_offers_or_the_us_node() {
+        let chain = Chain::Ethereum;
+        let eu_url = NodeRegion::Eu.url(chain);
+        let added = vec![Node::mock("https://added.example", 0)];
 
-        assert_eq!(selected_node(Some("https://b".to_string()), nodes.clone(), Node::mock("https://f", 0)).url, "https://b");
-        assert_eq!(selected_node(Some("https://c".to_string()), nodes.clone(), Node::mock("https://f", 0)).url, "https://f");
-        assert_eq!(selected_node(None, nodes, Node::mock("https://f", 0)).url, "https://f");
+        assert_eq!(selected_node(chain, eu_url.clone(), vec![]).url, eu_url);
+        assert_eq!(selected_node(chain, "https://added.example".to_string(), added.clone()).url, "https://added.example");
+        assert_eq!(selected_node(chain, "https://removed.example".to_string(), added).url, NodeRegion::Us.url(chain), "a node the chain no longer offers");
     }
 
     #[test]
@@ -223,24 +217,6 @@ mod tests {
     }
 
     #[test]
-    fn test_chain_node_defaults_to_us_region() {
-        let chain = Chain::Ethereum;
-
-        assert_eq!(chain_node(chain, None, vec![]).url, NodeRegion::Us.url(chain));
-        assert_eq!(chain_node(chain, Some("https://custom".to_string()), vec![Node::mock("https://custom", 1)]).url, "https://custom");
-        assert!(default_nodes(chain).iter().any(|node| node.url == NodeRegion::Eu.url(chain)));
-    }
-
-    #[test]
-    fn test_preferred_chain_node_uses_persisted_custom_url_without_stored_nodes() {
-        let chain = Chain::Ethereum;
-        let selected = preferred_chain_node(chain, Some("https://custom".to_string()));
-
-        assert_eq!(selected.url, "https://custom");
-        assert_eq!(preferred_chain_node(chain, None).url, NodeRegion::Us.url(chain));
-    }
-
-    #[test]
     fn test_config_node_maps_priority_to_state() {
         let config = |priority: NodePriority| config_node(node_config::Node { url: "https://n".to_string(), priority });
 
@@ -262,18 +238,26 @@ mod tests {
     }
 
     #[test]
-    fn test_a_node_that_reports_no_block_is_an_error_not_a_result() {
+    fn test_node_status_state_accepts_an_absent_block_but_rejects_block_zero() {
         let reachable = NodeStatus {
-            latest_block_number: 21_000_000,
+            latest_block_number: Some(21_000_000),
             latency_ms: 120,
         };
-        let stalled = NodeStatus { latest_block_number: 0, latency_ms: 5 };
+        let blockless = NodeStatus { latest_block_number: None, latency_ms: 80 };
+        let stalled = NodeStatus { latest_block_number: Some(0), latency_ms: 5 };
 
         assert_eq!(
             node_status_state(Some(reachable)),
             GemNodeStatusState::Result {
-                latest_block_number: 21_000_000,
+                latest_block_number: Some(21_000_000),
                 latency: Latency::from_milliseconds(120),
+            }
+        );
+        assert_eq!(
+            node_status_state(Some(blockless)),
+            GemNodeStatusState::Result {
+                latest_block_number: None,
+                latency: Latency::from_milliseconds(80),
             }
         );
         assert_eq!(node_status_state(Some(stalled)), GemNodeStatusState::Error, "a node at block zero has nothing to serve");

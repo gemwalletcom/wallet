@@ -12,8 +12,8 @@ r2d2 = { workspace = true }
 strum = { workspace = true }
 tokio = { workspace = true }
 
-diesel = { version = "2.3.10", features = ["postgres", "chrono", "serde_json", "r2d2"] }
-diesel_migrations = { version = "2.3.2" }
+diesel = { workspace = true, features = ["postgres", "chrono", "serde_json", "r2d2"] }
+diesel_migrations = { workspace = true }
 
 config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }
@@ -23,5 +23,4 @@ testkit = ["primitives/testkit"]
 database_integration_tests = ["testkit"]
 
 [dev-dependencies]
-tokio = { workspace = true }
 primitives = { path = "../primitives", features = ["testkit"] }

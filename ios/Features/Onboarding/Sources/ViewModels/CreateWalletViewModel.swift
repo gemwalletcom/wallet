@@ -25,6 +25,7 @@ public final class CreateWalletViewModel {
 
     let preferences: ObservablePreferences
     let onComplete: VoidAction
+    public let isAcceptTermsCompleted: Bool
 
     private(set) var words: [String] = []
     var isPresentingAlertMessage: AlertMessage?
@@ -39,10 +40,7 @@ public final class CreateWalletViewModel {
         self.biometryService = biometryService
         self.preferences = preferences
         self.onComplete = onComplete
-    }
-
-    public var isAcceptTermsCompleted: Bool {
-        preferences.isAcceptTermsCompleted
+        isAcceptTermsCompleted = preferences.isAcceptTermsCompleted
     }
 
     var shouldOfferAuthentication: Bool {

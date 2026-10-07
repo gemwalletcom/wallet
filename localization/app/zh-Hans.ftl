@@ -476,6 +476,8 @@ fee_rates_normal = 普通
 fee_rate_satvB = 聪/vB
 fee_rate_gwei = gwei
 fee_rate_custom = 自定义
+fee_rate_priority = 优先费用
+fee_rate_base = 基础费用
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 小时
 lock_six_hours = 6 小时
 lock_require_authentication = 需要身份验证
 lock_unlock = 解锁
-lock_privacy_lock = 隐私锁
 lock_footer = 保护此设备上的应用访问安全
 lock_passcode = 密码
+lock_passcode_off_title = 设备密码已关闭
+lock_passcode_off_description = Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。钱包仍然安全。
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = 此 %@ 账户可能由他人控制。�
 sell_title = 出售%@
 
 # Info
+
+info_region_unavailable_description = 此功能在您所在的地区不可用。 可用性取决于当地规定和服务提供商的要求。
 
 info_network_fee_title = 网络费用
 info_watch_wallet_title = 观察钱包
@@ -725,6 +730,8 @@ rewards_pending_description_ready = 积分已可领取！
 rewards_nickname = 昵称
 rewards_unverified_title = 积分尚未激活。
 rewards_unverified_description = 继续使用应用，积分功能会自动激活。
+rewards_state_empty_title = 积分需要多币种钱包
+rewards_state_empty_description = 创建或导入多币种钱包，即可邀请好友并赚取积分。
 
 # Recent Activity
 

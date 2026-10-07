@@ -185,7 +185,7 @@ A later step that needs an earlier result stays sequential. That ordering is the
 
 ### Service example: price alerts
 
-[`GemPriceAlertService`](../core/gemstone/src/services/price_alert/mod.rs) shows a service combining an API client, preferences, its own store and a platform permission port:
+[`GemPriceAlertService`](../core/gemstone/src/services/price_alert/mod.rs) shows a service combining an API client, preferences, its own store, the device service and a platform permission port:
 
 ```rust
 #[derive(uniffi::Object)]
@@ -193,6 +193,7 @@ pub struct GemPriceAlertService {
     api: Arc<GemDeviceApiClient>,
     preferences: Arc<GemPreferencesService>,
     store: Arc<dyn GemPriceAlertStore>,
+    device: Arc<GemDeviceService>,
     permissions: Arc<dyn GemNotificationPermissions>,
 }
 ```
@@ -213,7 +214,7 @@ pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceErro
 
 Continue with the [store adapters](#store-adapter-example-price-alerts), [construction](#construction-example-price-alerts) and [screen calls](#direct-service-calls-and-observed-reads) below.
 
-Node selection illustrates this boundary: `GemChainSettingsService.check_node` owns URL validation, the network-id check and node status. `GemGateway`, `GemSwapper` and `GemSimulationService` take `GemNodeService` for the selected node. Gateway preferences hold gateway state such as HyperCore agent data, never a second node selection.
+Node selection illustrates this boundary: `GemChainSettingsService.check_node` owns URL validation, the network-id check and node status. `GemGateway`, `GemSwapper` and `GemSimulationService` take `GemNodeService` for the selected node. Gateway preferences hold gateway state such as HyperCore agent data, never a second node selection. The stored selection is always a node the chain offers: `GemNodeService::select_node` resolves it against the built-in and added nodes, and `GemAppStartService::run` re-resolves every stored selection before its network steps, replacing only a selection the user has not changed meanwhile, so a node an update removed is not used past the next launch.
 
 ### No trivial exports
 
@@ -499,9 +500,18 @@ impl<T: Clone + Default> GemLoad<T> {
 
 `data` is the decision: a fetch that succeeds replaces the value, a fetch that fails keeps a value already on screen, and only a screen with nothing to keep shows the error. A screen therefore hands its record back for the next load — `refresh(details)`, not `refresh(chain, address)` — so Core decides what survives a failure. Never re-derive the previous value from the sections the app is rendering: that is the same decision read backwards out of the UI.
 
-A screen whose rows come from a store query rather than a Core record — the stake delegations, the asset transactions, the activity list — tells its refresh what it shows (`GemStakeService::refresh` takes the delegations, `GemAssetDetailsService::refresh` and `GemTransactionsService::refresh` take `has_transactions`), and Core answers with `GemLoadState::refreshed`. An `Error` state takes the place of the empty state and is drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS); rows already on screen stay, with no error. Which failure earns that row is `load_error(state, has_rows)`, not a `case .error` each screen writes for itself.
+A list whose rows come from a store query rather than a Core record — the activity list, the asset transactions — hands its load state, whether it has rows and its empty state to the one shared Core call, which returns a `GemListPhase`: `Rows`, `Empty { state }` with the empty state to show, or `Error { error }` when the load left nothing to show (`list_phase(state, has_rows, empty)`). It passes the flag, never the rows: the phase only asks whether there are any, and sending a whole list across the FFI on every render to answer that is the cost this boundary must not pay. A list whose empty state never changes reads it once with `empty_state(kind)`; no list gets its own wrapper around `list_phase`. Its refresh is told nothing about the screen and returns the sync's own outcome (`GemLoadState::of`): rows already on screen stay, with no error, and an error takes the place of the empty state, drawn as the shared error row (`GemListRow::Error` on Android, `ListItemErrorView` on iOS). The scene switches over the phase; it never tests emptiness or the load state itself. A list read only from the store builds its phase with `GemListPhase::local`, and a list that shows nothing until its first sync answers returns `GemListPhase::once_loaded`, which is `None` until then (the stake delegations and earn positions).
 
-`GemLoadState` is the only shape for these four answers. A screen that needs `Loading | Data | Failed` has not found a fifth case, it has restated this enum, and the four ways it crosses are all on `GemLoadState`: `of` builds it from a `Result`, `into_result` reads it back, `refreshed` folds a sync into what the screen shows, and `data` on `GemLoad<T>` makes the transition. Each app turns it into the state its views already take, once: `GemLoadState.stateViewType(_:)` on iOS, `loadError` plus the row builders on Android.
+```rust
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemListPhase {
+    Rows,
+    Empty { state: GemEmptyState },
+    Error { error: GemServiceError },
+}
+```
+
+`GemLoadState` is the only shape for these four answers. A screen that needs `Loading | Data | Failed` has not found a fifth case, it has restated this enum, and the four ways it crosses are all on `GemLoadState`: `of` builds it from a `Result`, `into_result` reads it back, `refreshed` folds a sync into what the screen shows, and `data` on `GemLoad<T>` makes the transition. Each app turns it into the state its views already take, once: `GemLoadState.stateViewType(_:)` on iOS, the row builders on Android; a list takes its `GemListPhase` instead.
 
 ### One copy model for every address, phrase and key
 
@@ -539,7 +549,7 @@ The test is whether the same row is drawn differently somewhere: if it is, the s
 
 ### A row is projected from its value, never fetched from a service
 
-`walletRow(wallet)`, `walletSections(wallets, currentWalletId)`, `secretPhraseRows(wordCount)`, `transactionRows(transactions)` and `emptyState(input)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root: a projection dressed up as a dependency. This is the one exception to [no trivial exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it.
+`walletRow(wallet)`, `walletSections(wallets, currentWalletId)`, `secretPhraseRows(wordCount)`, `transactionRows(transactions)` and `emptyState(input)` are pure functions of the value, so they are exported as functions, not hung off a service. Reading a row must never require a service the screen does not otherwise have — that is what forces a second service into a view model, a row to be passed down as a constructor argument, or a factory to call `service.walletRow(...)` at the composition root: a projection dressed up as a dependency. This is the one exception to [no trivial exports](#no-trivial-exports): a projection has no owner to be a receiver on, because the value it projects is a remote record and Rust allows no inherent `impl` for it. A list projection takes the slim record its rows read, not the full domain record: `walletSections` takes `WalletListItem`, which the apps read from the wallets table alone, so a thousand wallets cost one table read and one Core call per change and no accounts cross FFI.
 
 A view model that already owns the screen's service still asks that service for anything the *screen* decides. The line is whether the answer depends on state the service holds.
 
@@ -618,12 +628,12 @@ First derive once and pass the result down. Reuse a list projection until its so
 
 A row is not the only choice a screen makes, and the other three recur often enough to have the same answer.
 
-**Which sections show, and which empty state.** A screen that splits one list into positions, pinned, recents and results decides that split from counts and whether a search is running. Left in the apps it becomes four booleans on each side that drift one at a time.
+**Which sections show, and which empty state.** A screen that splits one list into positions, pinned, recents and results decides that split from the rows it observed and whether a search is running, and returns the sections with the list's phase. Left in the apps it becomes four booleans on each side that drift one at a time. The app hands the rows' ids, not their counts, so nothing is counted twice.
 
 ```rust
 #[uniffi::export]
 impl GemPerpetualMarketSession {
-    pub fn sections(&self, counts: GemPerpetualMarketCounts) -> Vec<GemPerpetualMarketSection> { ... }
+    pub fn view(&self, position_ids: Vec<String>, pinned_ids: Vec<PerpetualId>, market_ids: Vec<PerpetualId>, recent_asset_ids: Vec<AssetId>) -> GemPerpetualMarketView { ... }
 }
 ```
 
@@ -703,12 +713,13 @@ pub enum GemChartPhase {
     Failed { error: GemServiceError },
 }
 
-impl GemChartSession {
-    pub fn view_state(&self, price: Option<AssetPrice>) -> GemChartViewState {
-        GemChartViewState {
-            period: self.period,
-            phase: self.phase(price),
-            is_refreshing: self.is_refreshing,
+impl GemChartService {
+    pub fn view_state(&self, session: GemChartSession, input: GemChartInput) -> GemChartView {
+        GemChartView {
+            period: session.period,
+            phase: session.phase(input.asset_price()),
+            is_refreshing: session.is_refreshing,
+            sections: rules::chart_sections(..),
         }
     }
 }
@@ -716,7 +727,7 @@ impl GemChartSession {
 
 ```swift
 var chartState: StateViewType<GemChartData> {
-    switch session.viewState(price: currentPrice).phase {
+    switch view.phase {
     case .loading: .loading
     case let .data(data): .data(data)
     case .noData: .noData
@@ -726,11 +737,11 @@ var chartState: StateViewType<GemChartData> {
 ```
 
 ```kotlin
-val chartUIState = combine(loaded, price) { session, price -> session.viewState(price) }.map { state ->
+val chartUIState = combine(session, view) { session, view ->
     ChartUIState(
-        period = state.period.toPrimitives(),
-        chart = when (val phase = state.phase) {
-            GemChartPhase.Loading -> StateViewType.Loading
+        period = session.period.toPrimitives(),
+        chart = when (val phase = view?.phase) {
+            null, GemChartPhase.Loading -> StateViewType.Loading
             is GemChartPhase.Data -> StateViewType.Data(phase.data)
             GemChartPhase.NoData -> StateViewType.NoData
             is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
@@ -739,20 +750,20 @@ val chartUIState = combine(loaded, price) { session, price -> session.viewState(
 }
 ```
 
-The chart data carries its bounds, date style and plotted window (`start` to `end`, the room after the newest point included), `GemChartData.index_at(fraction)` answers which point a finger is on, and `GemChartData.selection(index)` answers the header and date for it, so neither view keeps a chart model of its own. The candle chart answers the same two questions and labels each time tick with its own format, so an app maps the window onto the plot width, reports every gesture as a fraction of that width, and turns a tick into text.
+The chart data carries its bounds, date style and plotted window (`start` to `end`, the room after the newest point included), `GemChartData.index_at(fraction)` answers which point a finger is on, and `GemChartData.selection(index)` answers the header and date for it, so neither view keeps a chart model of its own. The candle chart answers the same two questions, carries its settled price-axis levels and labels each time tick with its own format, so an app maps the window onto the plot width, reports every gesture as a fraction of that width, and renders without deriving axis values through FFI on each frame.
 
 Four rules keep the collapse honest:
 
 - **The phase has one source of truth.** A chart session derives its phase from the canonical loaded chart, last error and loading facts. A session that stores a canonical phase instead must not also store equivalent independent flags. Do not add a second representation of the same state.
 - **Empty is not a failure.** `NoData` is its own variant, so a series with one point renders the empty state instead of an error, and neither app has to guess from an `Option`.
 - **A progress flag that coexists with content is a field, not a variant.** A refresh happens *while* data is on screen, so `is_refreshing` sits beside the phase; anything that replaces the screen is a variant.
-- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed spot price is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom and pan are session state for the same reason: the drawn window cannot be computed without them, `on_zoom` and `on_pan` clamp against the points the session holds, and a new period starts unzoomed by construction.
+- **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed price record (`GemChartInput`: the asset, its stored price, market, alerts and links) is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. The service answers the phase and the market, alert and link sections from that one record in one `GemChartView`, converting the market with the rate the session holds, so the sections never run on a second async path beside the chart. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom and pan are session state for the same reason: the drawn window cannot be computed without them, `on_zoom` and `on_pan` clamp against the points the session holds, and a new period starts unzoomed by construction.
 
 The app switches and stops. No `if isLoading` ahead of the switch, no `default:` inside it: the exhaustiveness is what makes a new variant a compile error on both platforms instead of a blank screen on one.
 
 ### A number crosses as a value and a style, never as a string or a callback
 
-The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the fiat-pins-to-two-places rule and the dust threshold are decisions, and they live in Core: `GemCurrencyStyle::precision`, `GemValueStyle::precision`, `adaptive_precision`, the styles' `abbreviates` and `GemValueStyle::is_dust`. Both apps take the display from `formatted_amount` and render it with their own locale formatter. What is left is the numbers themselves: a row that carries a bare `f64` still leaves each app to pick the style.
+The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the currency form of the adaptive rule (at least two places, so `$0.90` never reads `$0.9`), the fiat-pins-to-two-places rule and the dust threshold are decisions, and they live in Core: `GemCurrencyStyle::precision`, `GemValueStyle::precision`, `adaptive_precision`, the styles' `abbreviates` and `GemValueStyle::is_dust`. Both apps take the display Core builds with `GemFormattedNumber::amount` and render it with their own locale formatter. What is left is the numbers themselves: a row that carries a bare `f64` still leaves each app to pick the style.
 
 Two mechanisms are tempting and both are wrong.
 
@@ -1014,7 +1025,7 @@ An adapter maps reads and writes and nothing more — **no rules or mapping impl
 | a value the user set | [`GemPreferencesStore`](../core/gemstone/src/services/preferences/store.rs) through `GemPreferencesService` | sync; `get` returns `Option<String>` and **cannot fail** | `GemstonePreferencesStore` over `UserDefaults` | `GemstonePreferencesStore` over `SharedPreferences` |
 | the same, per wallet | `GemWalletPreferencesStore` through `GemWalletPreferencesService` | sync, keyed by `WalletId` | same file layout | same file layout |
 | a secret | [`GemSecureStore`](../core/gemstone/src/services/preferences/store.rs) | sync; **every read can fail** | `GemstoneSecurePreferencesStore` over the Keychain | `TinkGemPreferences` over Tink |
-| something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs | app class | app class |
+| something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs; a method the platform can fail returns `Result<_, GemServiceError>` | app class | app class |
 
 Use one trait per persistence owner; closely related rows such as contacts and their addresses may share a trait. Preferences use named `const` keys and typed accessors on the existing owner; apps never duplicate raw keys. Existing keys such as `price_alerts_enabled` are valid. Preference reads are infallible; secure-store failures must propagate.
 
@@ -1109,7 +1120,7 @@ class PriceAlertsQuery @Inject constructor(private val priceAlertsDao: PriceAler
 
 A query selects and joins rows; it neither decides nor calls Core. A case — an interface in `gemcore` `application/<area>/cases/`, implemented in `data/coordinators/<area>/` and bound by Hilt — exists only for the ports and shared in-memory state listed below; a new observed read is a query.
 
-What stays a case is a platform port or Android-only state held in memory, never a read or a forward. The ports are `PasswordStore`, `ShowSystemNotification`, `NotificationPermissionRequests`, `AuthRequester`, `WalletConnectClient`, `PerpetualObserver`, `ObserveRefreshInterval`, `ObservablePreferences` (the Android side of iOS `ObservablePreferences`), `SecurityPreferences` (authentication and the lock interval) and the support typing state (`GetSupportTyping`, `ClearSupportTyping`). The Android-only state is the start-up update offer shared by the store prompt and the universal-APK banner (`SyncAppUpdate`, `ObserveAppUpdateOffer`, `SkipAppUpdate`); the push-enabled state shared by Settings, support, new wallets and `FCM`, and the push token (`GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet`, `SetPushToken`, `RequestPushToken`); the WalletConnect SDK session commands, the counterpart of iOS `WalletConnectorService` (`IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication`, `RespondWalletConnectRequest`); the transaction rows shared by the activity, asset and perpetual screens, warmed at start and cached per filter and limit (`GetTransactions`, reading `TransactionsQuery`); the sorted wallet rows kept from the first open of the wallet list (`GetAllWallets`, reading `WalletsQuery`); the wallet's asset rows, list rows and header kept from start for the stored first frame (`GetWalletAssets`, reading `AssetsQuery`, `GetActiveAssetsInfo`, and `GetWalletSummary`, reading `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery` and `BannersQuery`); the session, current wallet and currency in one eagerly shared `StateFlow` (`GetSession`, `GetCurrentWalletId`, `GetCurrentCurrency`, `SetCurrentCurrency`); and `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`. A feature module depends on neither `:data:services:gemstone` nor `:data:coordinators` and holds no store; `just check-boundaries` rejects both.
+What stays a case is a platform port or Android-only state held in memory, never a read or a forward. The ports are `PasswordStore`, `ShowSystemNotification`, `NotificationPermissionRequests`, `AuthRequester`, `WalletConnectClient`, `PerpetualObserver`, `ObserveRefreshInterval`, `ObservablePreferences` (the Android side of iOS `ObservablePreferences`), `SecurityPreferences` (authentication and the lock interval) and the support typing state (`GetSupportTyping`, `ClearSupportTyping`). The Android-only state is the start-up update offer shared by the store prompt and the universal-APK banner (`SyncAppUpdate`, `ObserveAppUpdateOffer`, `SkipAppUpdate`); the push-enabled state shared by Settings, support, new wallets and `FCM`, and the push token (`GetPushEnabled`, `SwitchPushEnabled`, `EnablePushForSupport`, `EnablePushForNewWallet`, `SetPushToken`, `RequestPushToken`); the WalletConnect SDK session commands, the counterpart of iOS `WalletConnectorService` (`IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication`, `RespondWalletConnectRequest`); the transaction rows shared by the activity, asset and perpetual screens, warmed at start and cached per filter and limit (`GetTransactions`, reading `TransactionsQuery`); the sorted wallet rows kept from the first open of the wallet list (`GetAllWallets`, reading `WalletListItemsQuery`); the wallet's asset rows, list rows and home state kept from start for the stored first frame (`GetWalletAssets`, reading `AssetsQuery`, `GetActiveAssetsInfo`, and `GetWalletHomeState`, reading `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery`, `BannersQuery`, `NFTQuery` and the list rows); the session, current wallet and currency in one eagerly shared `StateFlow` (`GetSession`, `GetCurrentWalletId`, `GetCurrentCurrency`, `SetCurrentCurrency`); and `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`. A feature module depends on neither `:data:services:gemstone` nor `:data:coordinators` and holds no store; `just check-boundaries` rejects both.
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
 
@@ -1482,7 +1493,7 @@ On iOS, UniFFI generates a protocol for every exported object. `GemAddressServic
 A `GemFooService()` in a field initialiser or at file scope is a second instance the graph does not know about, and it is where an app-side variant creeps back in. `just check-boundaries` rejects a new one: it reads which services Core declares with no fields, and holds every other one to the composition roots named below.
 
 - **iOS** — an owner (a service with a store, a client, a stream, or anything the app needs from launch) is registered in `ServicesFactory`, exposed through an `@Entry` in `ios/Gem/Types/Environment.swift`, and passed into the view model. A screen service — one that only composes owners for a single screen (`GemAssetDetailsService`, `GemChartService`, `GemTransactionDetailsService`, `GemWalletHomeService`) — is built in the `ViewModelFactory.xxxScene(...)` that builds its view model, from the owners the factory already holds. It is never a field of `AppResolver.Services` and never an `@Entry`: that constructs it on every launch of an app that may never open the screen, and hands views a composition detail.
-- **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`, `LocalAddressService`) only for the dependency-free config services; a screen's Core answers come from its view model's service, never from a `CompositionLocal` inside a feature composable (a share link or a confirm button's acquire flow built there is a reach-through). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable. Hilt scope and the requesting graph determine lifetime; `@Provides` alone guarantees neither screen scope nor deferred startup. Stateless composition may be shared. Mutable per-screen state belongs to a screen-lifetime instance or operation object, such as `GemConfirmation`, rather than an app singleton. Feature composables do not read screen services from a `CompositionLocal`.
+- **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`) only for the dependency-free config services; a screen's Core answers come from its view model's service, never from a `CompositionLocal` inside a feature composable (a share link or a confirm button's acquire flow built there is a reach-through). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable. Hilt scope and the requesting graph determine lifetime; `@Provides` alone guarantees neither screen scope nor deferred startup. Stateless composition may be shared. Mutable per-screen state belongs to a screen-lifetime instance or operation object, such as `GemConfirmation`, rather than an app singleton. Feature composables do not read screen services from a `CompositionLocal`.
 - **A value type or a namespace of statics** takes the service as a method parameter only when the answer genuinely requires that service's dependencies. A pure receiver-owned answer stays on the receiver according to § 6.
 
 Dependency-free FFI transport adapters are the exception: `GemSimulationFormatter` and `PriceAlertFormatter` may be constructed locally because they have no state to substitute. Do not extend that exception to a service, store, client or a type whose behavior can cross on its honest receiver.
@@ -1503,6 +1514,7 @@ let priceAlertService = Gemstone.GemPriceAlertService(
     api: deviceApiClient,
     preferences: preferencesService,
     store: gemstonePriceAlertStore,
+    device: deviceService,
     permissions: notificationPermissions,
 )
 ```
@@ -1522,11 +1534,13 @@ fun provideGemPriceAlertService(
     apiClient: GemDeviceApiClient,
     preferencesService: GemPreferencesService,
     store: GemPriceAlertStore,
+    deviceService: GemDeviceService,
     notificationPermissions: GemNotificationPermissions,
 ): GemPriceAlertService = GemPriceAlertService(
     api = apiClient,
     preferences = preferencesService,
     store = store,
+    device = deviceService,
     permissions = notificationPermissions,
 )
 
@@ -1693,7 +1707,7 @@ Variant fields are named: `GetAccount(String)` does not say what the string is. 
 
 **Tests.** A client test over `MockClient` or `mock_jsonrpc_client` asserts behaviour the wire shape does not show: an envelope's failure branch, the paths a pagination loop produced, the body and content type of a broadcast, a merged credential header. Do not test `path()` by copying its implementation into the expectation. A wire-contract regression test uses an independently specified request and exercises the real client through its mock transport.
 
-**Deliberate exceptions.** Three things stay on raw `reqwest` because they are not REST clients: the off-chain NFT metadata fetch (an arbitrary HTTPS URL read under a byte cap with redirects off), the image downloader (binary bodies), and the egress node health probe (only the status matters). The OKX client sends the string it signed rather than a target, and the alien reqwest provider is the transport itself.
+**Deliberate exceptions.** Two things stay on raw `reqwest` because they are not REST clients: the off-chain NFT metadata fetch (an arbitrary HTTPS URL read under a byte cap with redirects off) and the egress node health probe (only the status matters). The OKX client sends the string it signed rather than a target, and the alien reqwest provider is the transport itself.
 
 ## 13. Shapes that were tried and reverted
 
@@ -1809,7 +1823,7 @@ Developer machines use kache as the `rustc` wrapper (see `core/skills/setup.md`)
 
 Amount strings come from two sources that must be parsed differently. Confusing them silently corrupts amounts on locales that group thousands with a dot (de, it, es, nl, pt-BR, da), where `"1.234"` means 1234, not 1.234. Pick the parser by the source of the string, never by convenience.
 
-- **Human input** (text a person typed into a field) is parsed by Core. `GemNumberFormat` (`core/gemstone/src/services/amount/model.rs`) carries the device's decimal separator, and its `plain` method and the amount rules own the separator, grouping, leading-zero and Unicode-digit rules (`plain_number` and `value_from_input`). The apps pass the text and the device's decimal separator and nothing else: iOS `NumberInput.plain/.double` (`ios/Packages/GemstonePrimitives/Sources/NumberInput.swift`), Android `String.plainInputNumber()` / `parseInputNumber()` (`android/gemcore/src/main/kotlin/com/gemwallet/android/math/NumberParser.kt`). A typed value that feeds a Core rule goes to that rule as text with the number format, and the rule parses it (`GemCustomFee::estimate` takes the typed rate), so no app holds a parse whose failure it has to swallow. Never read typed text with `Decimal(string:)`, `Double(_:)` or `BigDecimal(_)`: those miss grouping separators and non-Latin digits, so an Arabic or Persian keyboard reads as no amount at all and `"1.234"` in a dot-grouping locale reads 1000x too low. Text with no digit normalizes to an empty string, which every caller treats as no amount.
+- **Human input** (text a person typed into a field) is parsed by Core. `GemNumberFormat` (`core/gemstone/src/services/amount/model.rs`) carries the device's decimal separator, and its `plain` method and the amount rules own the separator, grouping, leading-zero and Unicode-digit rules (`plain_number` and `value_from_input`). The apps pass the text and the device's decimal separator and nothing else: iOS `NumberInput.plain/.double` (`ios/Packages/GemstonePrimitives/Sources/NumberInput.swift`), Android `String.plainInputNumber()` / `parseInputNumber()` (`android/gemcore/src/main/kotlin/com/gemwallet/android/math/NumberParser.kt`). A typed value that feeds a Core rule goes to that rule as text with the number format, and the rule parses it (`GemCustomFee::estimate` takes the typed rate), so no app holds a parse whose failure it has to swallow. A Core session that keeps typed text keeps the decimal separator it was created with (`GemAmountSession`, `GemFiatSession`, `GemSlippageSession`, `GemAutocloseSession`) and reads the text only through `plain_number` or `value_from_input`, never with `str::parse` on the raw text: the fiat amount parsed its text itself and rejected every amount typed on an Arabic keyboard. Never read typed text with `Decimal(string:)`, `Double(_:)` or `BigDecimal(_)`: those miss grouping separators and non-Latin digits, so an Arabic or Persian keyboard reads as no amount at all and `"1.234"` in a dot-grouping locale reads 1000x too low. Text with no digit normalizes to an empty string, which every caller treats as no amount.
 - **Machine strings** (QR/payment-link amounts, API/exchange payloads, anything the app did not get from a keyboard) never reach the input parser: Core decodes them and hands the apps typed values. If one has to be read app-side, parse it locale-independently — a machine string always uses `.` as the decimal point.
 - **Writing into a field.** Text in an editable number field is human input the moment it lands there, so whatever the app puts into one — a payment-link amount, the max, a suggestion — is written in the device's format. Core hands over a number (an atomic `GemBigInt`, as `GemAmountInput.prefill` carries, or an `f64`), and the app renders it with `GemNumberFormat`'s `input_text` or `value_text` (iOS `NumberInput.format()`, Android `numberFormat()`). A machine string never goes into a field as is, and Core returns text meant for a field only when it took the separator (`GemAutocloseSession::input_text`). A `"0.001"` placed in a comma-decimal field reads back as 1: #727 fixed the scan-to-confirm parse, but the amount-screen prefill wrote the raw string until it crossed as a number.
 - **Amounts Core formats for notifications** (`number_formatter::ValueFormatter`, `ValueStyle::Auto`, used by the daemon pusher, the staking rewards notifier and in-app notifications) keep two decimals above one and four significant digits below it, dust included: a push title has no room for `0.000040036032429186 ETH` (issue #1155), so it reads `0.00004003 ETH`. The app list formatters keep full precision for dust on purpose; that is a screen with room, not a title.
@@ -1837,7 +1851,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemAssetSelectionService` | — | `SelectAssetSceneViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseSelectAssetViewModel` and its subclasses (+ `AssetsQuery`, `WalletSearchQuery`, `RecentActivityQuery`) |
 | `GemChainService` | — | `ChainListSettingsSceneViewModel` (chain picker) | `ContactChainSelectViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `ChainSettingsViewModel`, `AddNodeViewModel` |
-| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartValuesViewModel`, `ChartViewModel` (+ `PriceQuery`) |
+| `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartViewModel` (+ `PriceQuery`) |
 | `GemCollectibleService` | — | `CollectibleSceneViewModel`, `ReportNftSceneViewModel` | `CollectibleViewModel` (+ `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`) |
 | `GemConfirmTransferService` | `GemConfirmation` (one confirmation in flight; it loads and executes, so it is not a session) | `ConfirmTransferSceneViewModel` (holds the `GemConfirmation` the factory opens) | `ConfirmTransferViewModel` |
 | `GemContactService` | — | `ContactsSceneViewModel` | `ContactsViewModel` |
@@ -1866,8 +1880,8 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionViewModel` (with `WalletQuery`, `TransactionQuery`) |
 | `GemTransactionsService` | — | `TransactionsSceneViewModel` | `TransactionsViewModel` |
 | `GemWalletConnectService` | — | `WalletConnectorService`, `ConnectionsSceneViewModel` (+ `ConnectionsQuery`) | `WalletConnectorRequestViewModel`, `SignMessageViewModel`, `ConnectionProposalViewModel`, `AuthRequestViewModel`, `ConnectionsViewModel` (+ `ConnectionsQuery`), `ConnectionViewModel` (+ `ConnectionQuery`); `WalletConnectCoordinator` behind `IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication` and `RespondWalletConnectRequest` (the Android counterpart of iOS `WalletConnectorService`: it initializes the Reown or no-op `WalletConnectClient` flavor port, pairs, approves, rejects and responds through it, and stores the sessions it settles) |
-| `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `WalletViewModel`, `NetworkAssetsViewModel` (+ `AssetsQuery`); `GetWalletSummary` (keeps the wallet header, composed from `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery` and `BannersQuery`, in memory from start for `AssetsViewModel` and `AppViewModel`), `GetWalletAssets` (keeps the wallet's asset rows, read through `AssetsQuery`, in memory from start for the stored first frame of the asset, chart, stake and receive screens) and `GetActiveAssetsInfo` (keeps the wallet list rows built from them, warmed at start for `AssetsViewModel`) |
-| `GemWalletService` | — | onboarding and manage-wallet view models, and `WalletImageSceneViewModel` for the avatar (`WalletDetailSceneViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportWalletViewModel`, `WalletsViewModel` (`set_current_wallet_id`, `delete_wallet`, `set_pinned`), `WalletDetailViewModel` (`rename`, `delete_wallet`, with `WalletQuery`), `SecretDataViewModel` (`export_secret`), `WalletImageViewModel` (with `WalletQuery`, `NFTQuery`); `GetAllWallets` (keeps the Core wallet sections, read through `WalletsQuery`, in memory for `WalletsViewModel`) |
+| `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `WalletViewModel`, `NetworkAssetsViewModel` (+ `AssetsQuery`); `GetWalletHomeState` (keeps the wallet home state, composed from `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery`, `BannersQuery`, `NFTQuery` and the `GetActiveAssetsInfo` rows, in memory from start for `WalletViewModel` and `AppViewModel`), `GetWalletAssets` (keeps the wallet's asset rows, read through `AssetsQuery`, in memory from start for the stored first frame of the asset, chart, stake and receive screens) and `GetActiveAssetsInfo` (keeps the wallet list rows built from them, warmed at start for `WalletViewModel` and `GetWalletHomeState`) |
+| `GemWalletService` | — | onboarding and manage-wallet view models, and `WalletImageSceneViewModel` for the avatar (`WalletDetailSceneViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportWalletViewModel`, `WalletsViewModel` (`set_current_wallet_id`, `delete_wallet`, `set_pinned`), `WalletDetailViewModel` (`rename`, `delete_wallet`, with `WalletQuery`), `SecretDataViewModel` (`export_secret`), `WalletImageViewModel` (with `WalletQuery`, `NFTQuery`); `GetAllWallets` (keeps the Core wallet sections, read through `WalletListItemsQuery`, in memory for `WalletsViewModel`) |
 | `GemWalletSessionService` | — | `RootSceneViewModel`, `NavigationRouter` | `AppViewModel`, `NotificationNavigation`; `SessionCoordinator` behind `GetSession`, `GetCurrentWalletId`, `GetCurrentCurrency` and `SetCurrentCurrency` (keeps the current wallet, observed through the stored wallet id and `WalletQuery`, and the currency set up from `GemPreferencesService` in one eagerly shared `StateFlow` that screens and coordinators read synchronously) |
 | `GemWidgetService` | — | — (the iOS widget never links Gemstone; see [the iOS project overview](../ios/skills/project-overview.md)) | `WidgetCoinUIModel` and `WidgetPriceSyncWorker` through `WidgetEntryPoint` |
 
@@ -1933,7 +1947,7 @@ These choices explain apparent parity gaps. They do not authorize copying shared
 
 | Area | Contract |
 |---|---|
-| Authentication | Privacy lock is iOS-only; WalletConnect one-click auth is Android-only. Android gates secret reads at each call site, while iOS gates the secret read itself. A new Android caller must request authentication. Wallet auth uses the Ethereum signature scheme (`AUTH_CHAIN`) on every chain; rejecting other schemes is intentional. |
+| Authentication | WalletConnect one-click auth is Android-only. Android gates secret reads at each call site and, when authentication is enabled, wraps the wallet-password keyset with a Keystore key that needs a recent device credential or strong biometric; iOS gates the secret read itself. The iOS app lock unlocks only after reading its access-controlled lock key through the context that passed authentication; Android unlocks on the prompt result. A new Android caller must request authentication. Wallet auth uses the Ethereum signature scheme (`AUTH_CHAIN`) on every chain; rejecting other schemes is intentional. |
 | Refresh | Wallet home receives socket prices and refreshes on pull; it intentionally has no interval timer. Socket reconnect delay is capped at 30 seconds. `debugLog` and stream diagnostic logging compile out in release. |
 | One-sided features | iOS support-image previews use `image_file`; Android uses post-search `sync_assets` and invalid-mnemonic highlighting. Developer tools may differ (`deeplink_url` on iOS, `platform_store` on Android). Add the counterpart only when the feature is required. |
 | Equivalent integration | Both apps choose the collectible receive network through `GemSelectAssetType::ReceiveCollection`. Payment prefills reach iOS through `GemAmountTransfer::prefilled_amount` and Android through Core-built `GemRecipientNext::Amount` carried in navigation. Perpetual banners use native navigation on each app; both observable preference adapters call `GemPreferencesService.set_perpetual_enabled`. |

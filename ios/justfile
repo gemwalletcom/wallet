@@ -66,9 +66,19 @@ clean:
     done < <(find . -name Package.swift -print0)
     echo "iOS build folders cleaned"
 
+_simulator-app:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    xcode_developer_directory="$(xcode-select -p)"
+    if [ -d "$xcode_developer_directory/../Applications/DeviceHub.app" ]; then
+        printf '%s\n' "$xcode_developer_directory/../Applications/DeviceHub.app"
+    else
+        printf '%s\n' "$xcode_developer_directory/Applications/Simulator.app"
+    fi
+
 run: build boot-simulator
     @echo "==> Installing app on simulator..."
-    @open -a Simulator
+    @open -a "$(just _simulator-app)"
     @xcrun simctl install "{{SIMULATOR_NAME}}" {{DERIVED_DATA}}/Build/Products/Debug-iphonesimulator/Gem.app
     @echo "==> Launching app..."
     @xcrun simctl launch --console-pty "{{SIMULATOR_NAME}}" com.gemwallet.ios

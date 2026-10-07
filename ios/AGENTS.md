@@ -27,11 +27,4 @@ For package changes, use `just ios test-package <Package>` from the repo root (f
 
 ## Task Completion
 
-Before finishing an iOS task:
-1. Use [Quality Checks](../skills/quality-checks.md) to choose targeted vs full verification
-2. Run at least one real verification command for the touched codepath
-3. If generated files changed, or Core changed iOS-facing interfaces, build inputs, or app integration, run the required generation step and verify iOS still builds
-4. Run `cd ios && just format`
-5. Keep imports clean and remove dead code
-
-`swift build` succeeding is not the same as the feature working. For UI changes, exercise the changed flow on a simulator or device when the flow is reachable. If verification is blocked by unrelated repo state, report the exact command and blocking failure instead of claiming the change was verified.
+Follow [Task Workflow](../skills/task-workflow.md#4-verify-the-actual-result) and the iOS rows in [Quality Checks](../skills/quality-checks.md). For UI changes, exercise the changed flow on a simulator or device when reachable.

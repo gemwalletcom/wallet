@@ -224,6 +224,25 @@ def only_services_reach_infra():
                 yield f"{path} no longer depends on {crate}; remove it from INFRA_DEPENDENTS"
 
 
+SERVICES_SRC = ROOT / "core/crates/services/src"
+STORAGE_SRC = ROOT / "core/crates/storage/src"
+STORAGE_TRAIT = re.compile(r"pub trait (\w+Repository)\b")
+# The repository adapters and the composition roots that build them.
+SERVICE_ADAPTERS = re.compile(r"(?:^|/)(?:repository\.rs$|repository/|backend\.rs$|workers\.rs$|consumers\.rs$|testkit/)")
+
+
+def services_reach_postgres_through_repositories():
+    """core/skills/architecture.md § Repository Pattern: only repository adapters and composition roots touch Database, DatabaseClient or a storage repository trait."""
+    traits = {name for path in STORAGE_SRC.rglob("*.rs") for name in STORAGE_TRAIT.findall(path.read_text())}
+    pattern = re.compile(r"\b(?:Database|DatabaseClient|" + "|".join(sorted(traits)) + r")\b")
+    for path in sorted(SERVICES_SRC.rglob("*.rs")):
+        if SERVICE_ADAPTERS.search(str(path.relative_to(SERVICES_SRC))):
+            continue
+        for number, line in enumerate(path.read_text().splitlines(), start=1):
+            if pattern.search(line):
+                yield f"{path.relative_to(ROOT)}:{number} touches Postgres outside a repository adapter"
+
+
 ANDROID_FEATURES = ROOT / "android/features"
 DATA_INTERNALS = re.compile(r'project\(":data:(?:services:gemstone|coordinators)"\)')
 DATA_INTERNAL_DEPENDENTS = set()
@@ -283,6 +302,7 @@ RULES = [
     ("the Room version ships with its migration", room_version_ships_with_its_migration),
     ("Room never drops user data", room_never_drops_user_data),
     ("only services depends on infra crates", only_services_reach_infra),
+    ("services reach Postgres through repository adapters", services_reach_postgres_through_repositories),
     ("Android features stay off the data internals", android_features_stay_off_data_internals),
     ("features never hold a store", features_never_hold_a_store),
 ]

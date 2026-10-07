@@ -1,6 +1,4 @@
 mod client;
-mod etherscan;
-mod gasflow;
 mod helius;
 mod jito;
 mod solana_client;
@@ -13,15 +11,16 @@ use tokio::time::interval;
 use crate::jito::{format_micro_lamports, lamports_to_sol, priority_fee_to_lamports};
 use crate::{
     client::{GemstoneClient, GemstoneFeeData},
-    etherscan::EtherscanClient,
-    gasflow::GasflowClient,
     helius::{HeliusClient, HeliusPriorityFees},
     jito::{JitoClient, JitoTipFloor},
     solana_client::{SolanaFeeData, SolanaGasClient},
 };
+use etherscan::EtherscanClient;
 use gem_evm::ether_conv::EtherConv;
+use gem_evm::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
 use gem_solana::JUPITER_PROGRAM_ID;
 use gemstone::alien::reqwest_provider::NativeProvider;
+use primitives::EVMChain;
 use primitives::fee::FeePriority;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
@@ -46,8 +45,8 @@ struct SourceFeeDetail {
     about,
     long_about = "A CLI tool to benchmark gas/priority fees from multiple sources.\n\
 It periodically fetches fee data and displays comparative tables.\n\n\
-For Ethereum: fetches from Gemstone (local node), Etherscan API, and Gasflow API.\n\
-For Solana: fetches priority fees via RPC and compares with Jito tip floor API."
+For Ethereum: compares Core fee rates with Etherscan.\n\
+For Solana: compares Core fee rates with RPC samples, Helius, and the Jito tip floor API."
 )]
 struct Cli {
     /// Chain to benchmark
@@ -58,19 +57,11 @@ struct Cli {
     #[arg(long, short, action = clap::ArgAction::SetTrue)]
     debug: bool,
 
-    /// The number of blocks to fetch (Ethereum only)
-    #[clap(short, long, default_value_t = 4)]
-    blocks: u64,
+    /// Ethereum RPC URL for Core fee history (Ethereum only, defaults to the Core node list)
+    #[clap(long, env = "ETHEREUM_RPC_URL")]
+    rpc_url: Option<String>,
 
-    /// The reward percentiles to fetch (Ethereum only)
-    #[clap(short, long, value_delimiter = ',', default_value = "20,40,60")]
-    reward_percentiles: Vec<u64>,
-
-    /// The minimum priority fee in wei (Ethereum only, default: 0.01 Gwei)
-    #[clap(short, long, default_value_t = 10000000)]
-    min_priority_fee: u64,
-
-    /// The Etherscan API key (Ethereum only)
+    /// The Etherscan API key (Ethereum only, optional: keyless requests are rate limited)
     #[clap(long, env = "ETHERSCAN_API_KEY")]
     etherscan_api_key: Option<String>,
 
@@ -88,14 +79,24 @@ struct Cli {
 }
 
 async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let etherscan_api_key = args.etherscan_api_key.ok_or("Etherscan API key is required for Ethereum mode")?;
-
+    let chain = EVMChain::Ethereum;
     let mut ticker = interval(Duration::from_secs(6));
-    let native_provider = Arc::new(NativeProvider::new().set_debug(args.debug));
+    let native_provider = match &args.rpc_url {
+        Some(url) => NativeProvider::new_with_endpoints(HashMap::from([(chain.to_chain(), url.clone())])),
+        None => NativeProvider::new(),
+    };
+    let native_provider = Arc::new(native_provider.set_debug(args.debug));
+    let gemstone_client = GemstoneClient::new(native_provider, chain);
+    let etherscan_client = EtherscanClient::new_with_reqwest_client(gem_client::reqwest_client(), args.etherscan_api_key);
 
     let mut last_printed_block_opt: Option<u64> = None;
     let mut block_data: HashMap<u64, Vec<SourceFeeDetail>> = HashMap::new();
-    println!("gas-bench [Ethereum]: with history blocks: {}, reward percentiles: {:?}", args.blocks, args.reward_percentiles);
+    println!(
+        "gas-bench [Ethereum]: Core fee history blocks: {}, reward percentiles: {:?}, min priority fee: {} Gwei",
+        get_fee_history_blocks(chain),
+        get_reward_percentiles(chain),
+        EtherConv::to_gwei(&chain.min_priority_fee().into())
+    );
 
     loop {
         ticker.tick().await;
@@ -103,23 +104,7 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
             eprintln!("gas-bench: fetching new gas fee data...");
         }
 
-        let gemstone_client_clone = GemstoneClient::new(native_provider.clone());
-        let reward_percentiles_clone = args.reward_percentiles.clone();
-        let etherscan_api_key_clone = etherscan_api_key.clone();
-
-        let fee_history_future = gemstone_client_clone.get_base_priority_fees(args.blocks, reward_percentiles_clone, args.min_priority_fee);
-
-        let etherscan_future = async move {
-            let client = EtherscanClient::new(etherscan_api_key_clone);
-            client.get_gas_oracle().await
-        };
-
-        let gasflow_future = async {
-            let client = GasflowClient::new();
-            client.get_prediction().await
-        };
-
-        let (gemstone_res, etherscan_res, gasflow_res) = tokio::join!(fee_history_future, etherscan_future, gasflow_future);
+        let (gemstone_res, etherscan_res) = tokio::join!(gemstone_client.get_fee_data(), etherscan_client.get_gas_oracle(chain));
 
         if args.debug {
             eprintln!("gas-bench: processing new fetch cycle, block_data currently has {} entries.", block_data.len());
@@ -154,8 +139,8 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
             eprintln!("gas-bench: Error fetching Gemstone data: {error:?}");
         }
 
-        if let Ok(data) = etherscan_res {
-            let fee_data = data.result.fee_data();
+        if let Ok(oracle) = etherscan_res {
+            let fee_data = GemstoneFeeData::from(oracle);
             let entry = block_data.entry(fee_data.latest_block).or_default();
             if !entry.iter().any(|d| d.source_name == "Etherscan") {
                 entry.push(process_fee_data("Etherscan", &fee_data));
@@ -164,18 +149,6 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
             && args.debug
         {
             eprintln!("Error fetching Etherscan data: {error:?}");
-        }
-
-        if let Ok(data) = gasflow_res {
-            let fee_data = data.fee_data();
-            let entry = block_data.entry(fee_data.latest_block).or_default();
-            if !entry.iter().any(|d| d.source_name == "Gasflow") {
-                entry.push(process_fee_data("Gasflow", &fee_data));
-            }
-        } else if let Err(error) = gasflow_res
-            && args.debug
-        {
-            eprintln!("Error fetching Gasflow data: {error:?}");
         }
 
         if args.debug {
@@ -305,6 +278,21 @@ fn print_solana_fee_data(fee_data: &SolanaFeeData, jito_res: &Option<Result<Jito
         print!(" | Helius: normal={} fast={}", format_micro_lamports(helius.medium), format_micro_lamports(helius.high));
     }
     println!();
+
+    let core_rows = fee_data
+        .core_rates
+        .iter()
+        .map(|rate| {
+            vec![
+                rate.transfer.to_string(),
+                format!("{:?}", rate.priority),
+                format!("{} µL/CU", format_micro_lamports(rate.unit_price)),
+                rate.priority_fee.to_string(),
+                rate.total_fee.to_string(),
+            ]
+        })
+        .collect::<Vec<_>>();
+    print_aligned_table(&["Core", "Level", "Unit Price", "Priority (lamports)", "Total (lamports)"], &core_rows);
 
     let mut headers = vec!["Level", "Priority (70%)", "Jito Tip (30%)", "Total"];
     if jito_available {

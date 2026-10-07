@@ -20,6 +20,7 @@ pub mod search;
 pub mod security;
 pub mod setup;
 mod static_assets;
+mod subscriptions;
 pub mod support;
 pub mod swap;
 pub mod system;

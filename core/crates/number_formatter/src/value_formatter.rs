@@ -2,6 +2,7 @@ use bigdecimal::{BigDecimal, num_bigint::Sign};
 
 use crate::big_number_formatter::{BigNumberFormatter, NumberFormatterError};
 use crate::currency::add_thousands_separator;
+use std::fmt::Display;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ValueStyle {
@@ -13,8 +14,8 @@ pub enum ValueStyle {
 pub struct ValueFormatter;
 
 impl ValueFormatter {
-    pub fn format(style: ValueStyle, value: &str, decimals: i32) -> Result<String, NumberFormatterError> {
-        let decimal = BigNumberFormatter::big_decimal_value(value, decimals as u32)?;
+    pub fn format(style: ValueStyle, value: impl Display, decimals: u32) -> Result<String, NumberFormatterError> {
+        let decimal = BigNumberFormatter::big_decimal_value(value, decimals)?;
         match style {
             ValueStyle::Full => Ok(format_full(&decimal)),
             ValueStyle::Short | ValueStyle::Auto => Ok(format_auto(&decimal)),
@@ -36,7 +37,7 @@ impl ValueFormatter {
         }
     }
 
-    pub fn format_with_symbol(style: ValueStyle, value: &str, decimals: i32, symbol: &str) -> Result<String, NumberFormatterError> {
+    pub fn format_with_symbol(style: ValueStyle, value: impl Display, decimals: u32, symbol: &str) -> Result<String, NumberFormatterError> {
         let formatted = Self::format(style, value, decimals)?;
         Ok(format!("{} {}", formatted, symbol))
     }

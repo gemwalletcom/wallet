@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use chrono::NaiveDateTime;
 use diesel::{prelude::*, upsert::excluded};
-use primitives::{Asset, AssetAssociation, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata};
+use primitives::{Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetType, fiat_assets::AssetCatalog};
 
 use crate::models::{AssetAssociationRow, AssetRow, NewAssetRow, PriceRow};
 use crate::repositories::assets_links_repository::AssetsLinksRepository;
@@ -51,7 +51,7 @@ pub trait AssetsRepository {
     fn get_assets(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
     fn get_assets_basic(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, DatabaseError>;
     fn get_assets_with_prices(&mut self, filters: Vec<AssetFilter>, max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError>;
-    fn get_swap_assets(&mut self) -> Result<Vec<String>, DatabaseError>;
+    fn get_asset_catalog(&mut self) -> Result<AssetCatalog, DatabaseError>;
 }
 
 fn filter_assets(filters: Vec<AssetFilter>) -> crate::schema::assets::BoxedQuery<'static, diesel::pg::Pg> {
@@ -214,7 +214,29 @@ impl AssetsRepository for DatabaseClient {
         let market = price_row.as_ref().map(PriceRow::as_market_primitive);
         let price = price_row.as_ref().map(PriceRow::as_primitive);
         let links = self.get_asset_links(asset_id)?;
-        let associations = asset_associations(self, &id)?.into_iter().map(AssetAssociationRow::into_primitive).collect();
+        let associations = match asset.asset_type.0 {
+            AssetType::PERPETUAL => self
+                .get_associated_asset_id(asset_id)?
+                .map(|asset_id| AssetAssociation {
+                    asset_id,
+                    association_type: AssetAssociationType::Official,
+                })
+                .into_iter()
+                .collect(),
+            AssetType::NATIVE
+            | AssetType::ERC20
+            | AssetType::BEP20
+            | AssetType::SPL
+            | AssetType::SPL2022
+            | AssetType::TRC20
+            | AssetType::TIP20
+            | AssetType::TOKEN
+            | AssetType::IBC
+            | AssetType::JETTON
+            | AssetType::SYNTH
+            | AssetType::ASA
+            | AssetType::SPOT => asset_associations(self, &id)?.into_iter().map(AssetAssociationRow::into_primitive).collect(),
+        };
         let tags = asset_tag_ids(self, asset_id)?;
         let perpetuals = self.get_perpetuals_for_asset(asset_id)?;
         let perpetuals = perpetuals.into_iter().map(|x| x.as_basic()).collect();
@@ -256,8 +278,29 @@ impl AssetsRepository for DatabaseClient {
             .collect())
     }
 
-    fn get_swap_assets(&mut self) -> Result<Vec<String>, DatabaseError> {
+    fn get_asset_catalog(&mut self) -> Result<AssetCatalog, DatabaseError> {
         use crate::schema::assets::dsl::*;
-        Ok(assets.filter(rank.gt(21)).filter(is_swappable.eq(true)).select(id).order(rank.desc()).load(&mut self.connection)?)
+        let rows = assets
+            .filter(is_enabled.and(is_buyable.or(is_sellable)).or(is_swappable.and(rank.gt(21))))
+            .select((id, is_enabled, is_buyable, is_sellable, is_swappable, rank))
+            .order((rank.desc(), id.asc()))
+            .load::<(String, bool, bool, bool, bool, i32)>(&mut self.connection)?;
+        let mut on_ramp = Vec::new();
+        let mut off_ramp = Vec::new();
+        let mut swap = Vec::new();
+
+        for (asset_id, enabled, buyable, sellable, swappable, asset_rank) in rows {
+            if enabled && buyable {
+                on_ramp.push(asset_id.clone());
+            }
+            if enabled && sellable {
+                off_ramp.push(asset_id.clone());
+            }
+            if swappable && asset_rank > 21 {
+                swap.push(asset_id);
+            }
+        }
+
+        Ok(AssetCatalog::new(on_ramp, off_ramp, swap))
     }
 }

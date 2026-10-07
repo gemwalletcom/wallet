@@ -1,4 +1,7 @@
+use primitives::decode_hex;
 use serde::Deserialize;
+use serde_json::Value;
+use std::error::Error;
 
 pub const ACTION_ID_KEY: &str = "action";
 
@@ -23,8 +26,43 @@ pub enum ExchangeAction {
         wei: u64,
         is_undelegate: bool,
     },
+    UsdClassTransfer {
+        to_perp: bool,
+    },
     #[serde(other)]
     Other,
+}
+
+impl ExchangeAction {
+    pub fn places_orders(&self) -> bool {
+        match self {
+            Self::Order => true,
+            Self::CDeposit { .. } | Self::CWithdraw { .. } | Self::TokenDelegate { .. } | Self::UsdClassTransfer { .. } | Self::Other => false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SignedExchangeRequest {
+    pub action: Value,
+    pub nonce: u64,
+    pub signature: ExchangeSignature,
+    pub vault_address: Option<String>,
+    pub expires_after: Option<u64>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ExchangeSignature {
+    pub r: String,
+    pub s: String,
+    pub v: u8,
+}
+
+impl ExchangeSignature {
+    pub fn to_bytes(&self) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
+        Ok([decode_hex(&self.r)?, decode_hex(&self.s)?, vec![self.v]].concat())
+    }
 }
 
 #[cfg(test)]

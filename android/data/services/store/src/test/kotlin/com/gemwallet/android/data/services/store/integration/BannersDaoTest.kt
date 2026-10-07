@@ -28,7 +28,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class BannersDaoTest {
     private lateinit var database: GemDatabase
-    private val asset = mockAsset(id = mockAssetId(chain = Chain.Tron), name = "Tron", symbol = "TRX", decimals = 6)
+    private val asset = mockAsset(id = mockAssetId(chain = Chain.Tron), name = "Tron", symbol = "TRX", decimals = 6u)
     private val warning = DbBanner(
         id = "tron-multisignature",
         walletId = "wallet-1",

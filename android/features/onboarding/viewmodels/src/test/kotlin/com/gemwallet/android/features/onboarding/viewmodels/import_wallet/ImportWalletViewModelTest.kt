@@ -23,12 +23,17 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
+import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemWalletImportException
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletImportRequest
 import uniffi.gemstone.GemWalletImportResult
@@ -163,5 +168,33 @@ class ImportWalletViewModelTest {
         advanceUntilIdle()
 
         assertEquals(emptyList<String>(), viewModel.suggestions.value)
+    }
+
+    @Test
+    fun aRepeatedFailureShowsItsErrorAgain() = runTest(dispatcher) {
+        val service = service()
+        coEvery { service.importWallet(any()) } throws GemServiceException.WalletImport(GemWalletImportException.InvalidAddress())
+        val viewModel = viewModel(NameServiceMock(), dispatcher, service)
+
+        viewModel.importSelect(ImportType(GemWalletImportKind.ADDRESS, chain))
+        viewModel.onInput("0x123", 5)
+        viewModel.import { }
+        advanceUntilIdle()
+        val error = viewModel.uiState.value.dataError
+        assertNotNull(error)
+
+        viewModel.onInput("0x1234", 6)
+        advanceUntilIdle()
+        assertNull(viewModel.uiState.value.dataError)
+
+        viewModel.import { }
+        advanceUntilIdle()
+        assertEquals(error, viewModel.uiState.value.dataError)
+    }
+
+    @Test
+    fun onlyASingleChainImportOffersScanning() {
+        assertFalse(ImportWalletUIState(importType = ImportType.phrase()).showsScan)
+        assertTrue(ImportWalletUIState(importType = ImportType.phrase(chain)).showsScan)
     }
 }

@@ -121,4 +121,67 @@ struct LocalKeystorePasswordTests {
         #expect(try keystorePassword.getAuthentication() == .passcode)
         #expect(storage.authenticationPolicy(for: "password") == [.devicePasscode])
     }
+
+    @Test
+    func unlockCreatesTheMissingLockKeyUnderTheStoredPolicy() throws {
+        let storage = KeychainStorage()
+        storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+
+        try keystorePassword.unlock(context: LAContext())
+
+        #expect(storage.value(for: "lock_key")?.count == 64)
+        #expect(storage.accessibility(for: "lock_key") == .whenUnlockedThisDeviceOnly)
+        #expect(storage.authenticationPolicy(for: "lock_key") == [.devicePasscode])
+    }
+
+    @Test
+    func createdLockKeyMustBeReadBackToUnlock() throws {
+        let storage = KeychainStorage()
+        storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
+        storage.setReadErrorWhenStored(AnyError("authentication required"), key: "lock_key")
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+
+        #expect(throws: AnyError("authentication required")) { try keystorePassword.unlock(context: LAContext()) }
+
+        #expect(storage.authenticationPolicy(for: "lock_key") == [.devicePasscode])
+    }
+
+    @Test
+    func unlockKeepsTheStoredLockKey() throws {
+        let storage = KeychainStorage()
+        storage.set(Data("first".utf8), key: "lock_key", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+
+        try keystorePassword.unlock(context: LAContext())
+
+        #expect(storage.value(for: "lock_key") == Data("first".utf8))
+        #expect(storage.writeCount(for: "lock_key") == 1)
+    }
+
+    @Test
+    func unreadableLockKeyFailsUnlockWithoutReplacingIt() throws {
+        let storage = KeychainStorage()
+        storage.set(Data("first".utf8), key: "lock_key", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
+        storage.setReadError(AnyError("cancelled"), key: "lock_key")
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+
+        #expect(throws: AnyError("cancelled")) { try keystorePassword.unlock(context: LAContext()) }
+
+        #expect(storage.value(for: "lock_key") == Data("first".utf8))
+        #expect(storage.writeCount(for: "lock_key") == 1)
+    }
+
+    @Test
+    func turningAuthenticationOffKeepsTheLockKeyWithoutProtection() throws {
+        let storage = KeychainStorage()
+        storage.set(Data("first".utf8), key: "lock_key", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
+        storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+
+        try keystorePassword.enableAuthentication(false, context: LAContext())
+
+        #expect(storage.value(for: "lock_key") == Data("first".utf8))
+        #expect(storage.authenticationPolicy(for: "lock_key") == [])
+    }
 }

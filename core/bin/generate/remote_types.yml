@@ -97,6 +97,8 @@ remote:
   - Platform
   - PlatformStore
   - Wallet
+  - WalletListItem
+  - WalletAddressItem
   - WalletType
   - WalletSource
   - TpslType
@@ -277,6 +279,8 @@ mocks:
   - GemConfirmSimulation
   - GemConfirmSimulationState
   - GemConnectionRow
+  - GemCustomFeeField
+  - GemCustomFeeSession
   - GemEmptyState
   - GemFeeAmount
   - GemFeeAsset
@@ -307,6 +311,8 @@ mocks:
   - GemPerpetualDetails
   - GemPerpetualTransferData
   - GemPrecision
+  - GemProviderKind
+  - GemProviderRow
   - GemRecipient
   - GemRewardsResult
   - GemRowText
@@ -333,6 +339,8 @@ mocks:
   - GemWalletConnectAuthAccount
   - GemWalletConnectMessageRequest
   - GemWalletConnectTransactionRequest
+  - GemWalletDetails
+  - GemWalletHomeViewState
   - GemWalletRow
   - GemWalletSearchResultsView
   - GemWalletSearchState
@@ -398,6 +406,8 @@ mocks:
   - TransactionSwapMetadata
   - TransferDataExtra
   - Wallet
+  - WalletListItem
+  - WalletAddressItem
   - WalletConnection
   - WalletConnectionSession
   - WalletConnectionSessionProposal
@@ -454,6 +464,7 @@ conversions:
 # Aliases gemstone uses from other crates, which UniFFI resolves to the aliased type.
 aliases:
   SwapperProvider: SwapProvider
+  SwapperSlippageMode: SlippageMode
 declared:
   NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt

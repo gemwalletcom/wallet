@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Niestandardowe</string>
+  <string name="fee_rate_priority">Opłata priorytetowa</string>
+  <string name="fee_rate_base">Opłata bazowa</string>
   <string name="banner_account_activation_title">Opłata za aktywację konta</string>
   <string name="banner_account_activation_description">Sieć %1$s wymaga jednorazowej opłaty w wysokości %2$s.</string>
   <string name="banner_stake_title">Zacznij stawiać %1$s</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 godzin</string>
   <string name="lock_require_authentication">Wymagaj uwierzytelnienia</string>
   <string name="lock_unlock">Odblokuj</string>
-  <string name="lock_privacy_lock">Blokada prywatności</string>
   <string name="lock_footer">Chroń dostęp do tej aplikacji na swoim urządzeniu</string>
   <string name="lock_passcode">Hasło</string>
+  <string name="lock_passcode_off_title">Kod urządzenia jest wyłączony</string>
+  <string name="lock_passcode_off_description">Gem jest zablokowany kodem urządzenia. Włącz kod w ustawieniach urządzenia, aby otworzyć Gem. Twoje portfele są bezpieczne.</string>
   <string name="verify_phrase_title">Potwierdź</string>
   <string name="warnings_externally_controlled_account">To konto %1$s może być kontrolowane przez kogoś innego. Nie wysyłaj na nie środków, chyba że masz pewność, że to Ty je kontrolujesz, w przeciwnym razie możesz trwale utracić swoje aktywa.</string>
   <string name="sell_title">Sprzedaj %1$s</string>
+  <string name="info_region_unavailable_description">Ta funkcja nie jest dostępna w Twoim regionie. Dostępność zależy od lokalnych przepisów i wymagań dostawców.</string>
   <string name="info_network_fee_title">Opłata sieciowa</string>
   <string name="info_watch_wallet_title">Portfel obserwowany</string>
   <string name="info_watch_wallet_description">Portfel, do którego nie masz dostępu, ale możesz śledzić zawarte w nim transakcje i ruchy.</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">Przydomek</string>
   <string name="rewards_unverified_title">Nagrody nie są jeszcze aktywne.</string>
   <string name="rewards_unverified_description">Nagrody aktywują się automatycznie w miarę jak częściej korzystasz z aplikacji.</string>
+  <string name="rewards_state_empty_title">Nagrody wymagają portfela z wieloma monetami</string>
+  <string name="rewards_state_empty_description">Utwórz lub zaimportuj portfel z wieloma monetami, aby zapraszać znajomych i zdobywać punkty.</string>
   <string name="recent_activity_title">Ostatnie</string>
   <string name="recent_activity_state_empty_title">Tutaj pojawią się Twoje ostatnie wpisy</string>
   <string name="recent_activity_state_empty_description">Tutaj pojawią się ostatnio używane zasoby</string>

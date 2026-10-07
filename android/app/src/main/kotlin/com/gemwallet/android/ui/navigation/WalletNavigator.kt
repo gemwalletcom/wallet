@@ -63,6 +63,7 @@ import com.gemwallet.android.ui.navigation.routes.NetworkAssetsRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualDepositSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.PortfolioRoute
@@ -104,6 +105,10 @@ import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemDeeplinkServiceInterface
@@ -168,12 +173,23 @@ class WalletNavigator(
         resetTo(WalletRootRoute)
     }
 
+    suspend fun observeCurrentWallet() {
+        session.map { it?.wallet?.id }.filterNotNull().distinctUntilChanged().drop(1).collect { onCurrentWalletChanged() }
+    }
+
+    private fun onCurrentWalletChanged() {
+        val request = backStack.lastOrNull { it is WalletConnectorRequestRoute } ?: return
+        resetToWallet()
+        push(request)
+    }
+
     fun resetToOnboarding() {
         resetTo(OnboardingRoute)
     }
 
     fun openEnableAuthentication() {
-        resetTo(EnableAuthenticationRoute)
+        resetToWallet()
+        push(EnableAuthenticationRoute)
     }
 
     private fun resetTo(route: NavKey) {
@@ -278,6 +294,8 @@ class WalletNavigator(
     fun openPerpetuals() = push(PerpetualsRoute)
     fun openPerpetual(assetId: AssetId) = push(PerpetualRoute(assetId))
 
+    fun openPerpetualDepositSelect() = push(PerpetualDepositSelectRoute)
+
     fun openRecent(asset: Asset) {
         val target = navigationService.assetTarget(asset.toGem()) as? GemNavigationTarget.Asset ?: return
         if (target.isPerpetual) openPerpetual(asset.id) else openAsset(asset.id)
@@ -300,14 +318,9 @@ class WalletNavigator(
         clearSwapSelections()
         push(SwapRoute)
     }
-    fun openSwap(from: AssetId, to: AssetId? = null) {
+    fun openSwap(from: AssetId?, to: AssetId? = null) {
         clearSwapSelections()
         push(SwapPairRoute(from, to))
-    }
-    fun openSwapTo(assetId: AssetId) {
-        clearSwapSelections()
-        swapSelections[SwapRoute] = SwapSelection(itemType = SwapItemType.Receive, assetId = assetId)
-        push(SwapRoute)
     }
     fun openSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
         push(SwapSelectRoute(itemType, payAssetId, receiveAssetId))
@@ -320,7 +333,7 @@ class WalletNavigator(
     fun openGetAsset(action: GetAssetAction, assetId: AssetId) {
         when (action) {
             is GetAssetAction.Buy -> openBuy(assetId, amount = action.amount)
-            is GetAssetAction.Swap -> action.payAssetId?.let { openSwap(from = it, to = assetId) } ?: openSwapTo(assetId)
+            is GetAssetAction.Swap -> openSwap(from = action.payAssetId, to = assetId)
             GetAssetAction.Receive -> openReceive(assetId)
         }
     }
@@ -401,6 +414,7 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean = when (this) {
     is SwapSelectRoute,
     is PaymentSelectRoute,
     is PaymentVerificationRoute,
+    is PerpetualDepositSelectRoute,
     -> true
 
     else -> false

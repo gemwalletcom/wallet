@@ -476,6 +476,8 @@ fee_rates_normal = Normal
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Tilpasset
+fee_rate_priority = Prioritetsgebyr
+fee_rate_base = Basisgebyr
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 time
 lock_six_hours = 6 timer
 lock_require_authentication = Kræv godkendelse
 lock_unlock = Lås op
-lock_privacy_lock = Privatlivslås
 lock_footer = Beskyt adgangen til denne app på din enhed
 lock_passcode = Adgangskode
+lock_passcode_off_title = Enhedens adgangskode er slået fra
+lock_passcode_off_description = Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine wallets er i sikkerhed.
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = Denne %@-konto kan være kontrolleret a
 sell_title = Sælg %@
 
 # Info
+
+info_region_unavailable_description = Denne funktion er ikke tilgængelig i din region. Tilgængelighed afhænger af lokale regler og udbydernes krav.
 
 info_network_fee_title = Netværksgebyr
 info_watch_wallet_title = Overvågningstegnebog
@@ -725,6 +730,8 @@ rewards_pending_description_ready = Din bonus er klar!
 rewards_nickname = Kælenavn
 rewards_unverified_title = Belønninger er endnu ikke aktive.
 rewards_unverified_description = Belønninger aktiveres automatisk, når du bruger appen mere.
+rewards_state_empty_title = Belønninger kræver en multi-coin-tegnebog
+rewards_state_empty_description = Opret eller importér en multi-coin-tegnebog for at invitere venner og optjene point.
 
 # Recent Activity
 

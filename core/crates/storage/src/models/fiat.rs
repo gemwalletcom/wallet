@@ -53,7 +53,7 @@ pub(crate) struct FiatAssetRow {
     pub is_sell_enabled: bool,
     pub buy_limits: Option<serde_json::Value>,
     pub sell_limits: Option<serde_json::Value>,
-    pub unsupported_countries: Option<serde_json::Value>,
+    pub unsupported_countries: serde_json::Value,
 }
 
 impl FiatAssetRow {
@@ -62,7 +62,7 @@ impl FiatAssetRow {
         let id = format!("{}_{}", provider.0.id(), asset.id).to_lowercase();
         let buy_limits = Some(serde_json::to_value(asset.buy_limits)?);
         let sell_limits = Some(serde_json::to_value(asset.sell_limits)?);
-        let unsupported_countries = Some(serde_json::to_value(asset.unsupported_countries)?);
+        let unsupported_countries = serde_json::to_value(asset.unsupported_countries)?;
 
         Ok(Self {
             id,
@@ -112,7 +112,7 @@ impl FiatAssetRow {
     }
 
     pub fn unsupported_countries(&self) -> HashMap<String, Vec<String>> {
-        self.unsupported_countries.as_ref().and_then(|v| serde_json::from_value(v.clone()).ok()).unwrap_or_default()
+        serde_json::from_value(self.unsupported_countries.clone()).unwrap_or_default()
     }
 
     pub fn buy_limits(&self) -> Vec<FiatAssetLimits> {
@@ -282,8 +282,9 @@ impl NewFiatTransactionRow {
 pub(crate) struct FiatProviderCountryRow {
     pub id: String,
     pub provider: FiatProviderNameRow,
-    pub alpha2: String,
+    pub country: String,
     pub is_allowed: bool,
+    pub is_enabled: bool,
 }
 
 impl FiatProviderCountryRow {
@@ -293,16 +294,17 @@ impl FiatProviderCountryRow {
         Self {
             id: format!("{}_{}", provider.0.id(), primitive.alpha2).to_lowercase(),
             provider,
-            alpha2: primitive.alpha2.clone(),
+            country: primitive.alpha2.clone(),
             is_allowed: primitive.is_allowed,
+            is_enabled: true,
         }
     }
 
     pub fn as_primitive(&self) -> FiatProviderCountry {
         FiatProviderCountry {
             provider: self.provider.0,
-            alpha2: self.alpha2.clone(),
-            is_allowed: self.is_allowed,
+            alpha2: self.country.clone(),
+            is_allowed: self.is_allowed && self.is_enabled,
         }
     }
 }

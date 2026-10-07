@@ -30,12 +30,8 @@ pub struct QuoteSwapResponse {
     pub recommended_min_amount_in: BigInt,
     pub inbound_address: Option<String>,
     pub router: Option<String>,
-    pub fees: QuoteFees,
     pub total_swap_seconds: Option<u32>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuoteFees {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionStatus {
@@ -63,19 +59,16 @@ pub struct TransactionStatusTx {
 pub struct TransactionCoin {
     pub asset: String,
     pub amount: String,
-    pub decimals: Option<i32>,
+    pub decimals: Option<u32>,
 }
 
 impl TransactionCoin {
     pub fn native_value(&self, network: THORChainNetwork) -> Option<BigUint> {
-        let decimals = match self.decimals {
-            Some(decimals) => decimals,
-            None => self.asset_decimals(network)?,
-        };
+        let decimals = self.decimals.or_else(|| self.asset_decimals(network))?;
         Some(value_to(&self.amount, decimals).magnitude().clone())
     }
 
-    fn asset_decimals(&self, network: THORChainNetwork) -> Option<i32> {
+    fn asset_decimals(&self, network: THORChainNetwork) -> Option<u32> {
         let asset_id = self.asset_id(network)?;
         if asset_id.token_id.is_none() {
             return Some(Asset::from_chain(asset_id.chain).decimals);
@@ -216,15 +209,15 @@ pub struct InboundAddress {
     pub address: String,
     pub router: Option<String>,
     pub halted: bool,
-    pub global_trading_paused: bool,
-    pub chain_trading_paused: bool,
+    pub global_trading_paused: Option<bool>,
+    pub chain_trading_paused: Option<bool>,
     #[serde(deserialize_with = "deserialize_bigint_from_str")]
     pub dust_threshold: BigInt,
 }
 
 impl InboundAddress {
     pub(crate) fn is_swap_available(&self) -> bool {
-        !self.halted && !self.global_trading_paused && !self.chain_trading_paused
+        !self.halted && self.global_trading_paused != Some(true) && self.chain_trading_paused != Some(true)
     }
 }
 
@@ -368,6 +361,19 @@ mod tests {
         assert!(bitcoin_address.is_swap_available());
         assert!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &rune).unwrap().is_none());
         assert_eq!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &ethereum).unwrap_err(), SwapperError::InvalidRoute);
+    }
+
+    #[test]
+    fn test_inbound_addresses_mayachain() {
+        let inbound_addresses: Vec<InboundAddress> = serde_json::from_str(include_str!("testdata/inbound_addresses_mayachain.json")).unwrap();
+        let bitcoin = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Bitcoin.as_ref()).unwrap();
+
+        let bitcoin_address = inbound_addresses.inbound_address_for_asset(THORChainNetwork::Mayachain, &bitcoin).unwrap().unwrap();
+
+        assert_eq!(bitcoin_address.chain, "BTC");
+        assert_eq!(bitcoin_address.global_trading_paused, None);
+        assert_eq!(bitcoin_address.chain_trading_paused, None);
+        assert!(bitcoin_address.is_swap_available());
     }
 
     #[test]

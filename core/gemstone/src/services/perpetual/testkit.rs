@@ -1,8 +1,9 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use num_bigint::BigInt;
-use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
+use primitives::known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC};
 use primitives::perpetual::{Perpetual, PerpetualData};
 use primitives::{
     Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AutocloseValidation, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualPrice, PerpetualProvider, TpslType, Wallet, WalletId,
@@ -17,6 +18,7 @@ use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
+use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::name::GemNameService;
@@ -49,6 +51,7 @@ pub struct MemoryPerpetualStore {
     pub perpetual_writes: Mutex<Vec<Vec<PerpetualData>>>,
     pub pin_writes: Mutex<Vec<(Vec<PerpetualId>, bool)>>,
     pub stored: Mutex<Vec<Perpetual>>,
+    pub rejects_positions: AtomicBool,
 }
 
 #[async_trait]
@@ -76,6 +79,11 @@ impl GemPerpetualStore for MemoryPerpetualStore {
         Ok(self.positions.lock().unwrap().iter().map(|position| position.id.clone()).collect())
     }
     async fn update_positions(&self, _: WalletId, positions: Vec<PerpetualPosition>, delete_ids: Vec<String>) -> Result<(), GemServiceError> {
+        if self.rejects_positions.load(Ordering::SeqCst) {
+            return Err(GemServiceError::Store {
+                msg: "FOREIGN KEY constraint failed".to_string(),
+            });
+        }
         self.position_writes.lock().unwrap().push((positions, delete_ids));
         Ok(())
     }
@@ -88,6 +96,8 @@ impl GemPerpetualStore for MemoryPerpetualStore {
         Ok(())
     }
 }
+
+const EMPTY_CLEARINGHOUSE_STATE: &str = r#"{"assetPositions":[],"marginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMarginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMaintenanceMarginUsed":"0","withdrawable":"0"}"#;
 
 pub struct PerpetualTestkit {
     pub service: GemPerpetualService,
@@ -112,10 +122,7 @@ impl PerpetualTestkit {
     pub async fn with_unified_balance() -> Self {
         let testkit = Self::with_provider(TestAlienProvider::with_json_by_request_type(&[
             ("userAbstraction", r#""unifiedAccount""#),
-            (
-                "clearinghouseState",
-                r#"{"assetPositions":[],"marginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMarginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMaintenanceMarginUsed":"0","withdrawable":"0"}"#,
-            ),
+            ("clearinghouseState", EMPTY_CLEARINGHOUSE_STATE),
             (
                 "spotClearinghouseState",
                 r#"{"balances":[{"coin":"USDC","token":0,"total":"12.093224","hold":"0","entryNtl":"0"}],"tokenToAvailableAfterMaintenance":[[0,"12.093224"]]}"#,
@@ -129,7 +136,22 @@ impl PerpetualTestkit {
         testkit
     }
 
-    fn with_provider(provider: TestAlienProvider) -> Self {
+    pub async fn with_standard_spot_balance() -> Self {
+        let testkit = Self::with_provider(TestAlienProvider::with_json_by_request_type(&[
+            ("userAbstraction", r#""default""#),
+            ("clearinghouseState", EMPTY_CLEARINGHOUSE_STATE),
+            ("spotClearinghouseState", r#"{"balances":[{"coin":"USDC","token":0,"total":"3.073935","hold":"0","entryNtl":"0"}]}"#),
+            ("spotMeta", include_str!("../../../../crates/gem_hypercore/testdata/spot_meta_spot_swap.json")),
+        ]));
+        testkit
+            .asset_store
+            .save_assets(vec![AssetBasic::new(HYPERCORE_SPOT_USDC.clone(), AssetProperties::default(HYPERCORE_SPOT_USDC.id.clone()), AssetScore::new(0))])
+            .await
+            .unwrap();
+        testkit
+    }
+
+    pub fn with_provider(provider: TestAlienProvider) -> Self {
         let wallet = Wallet::mock();
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
@@ -164,6 +186,7 @@ impl PerpetualTestkit {
             wallet_preferences.clone(),
             session.clone(),
             Arc::new(GemRecentActivityService::new(recents.clone(), session)),
+            Arc::new(GemConfigService::mock(provider.clone())),
         );
         Self {
             service,

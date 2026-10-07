@@ -42,7 +42,7 @@ fun AddAssetScreen(onFinish: () -> Unit, onCancel: () -> Unit, viewModel: AddAss
     ) { isSelectChain ->
         if (isSelectChain) {
             SelectChain(
-                rows = chains,
+                list = chains,
                 chainFilter = viewModel.chainFilter,
                 onSelect = viewModel::setChain,
                 onCancel = viewModel::cancelSelectChain,

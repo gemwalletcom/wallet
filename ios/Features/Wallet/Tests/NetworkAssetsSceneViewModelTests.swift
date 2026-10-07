@@ -33,7 +33,7 @@ struct NetworkAssetsSceneViewModelTests {
         model.hiddenQuery.value = [.mock(asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20), metadata: .mock(isPinned: false))]
 
         #expect(model.groups.sections.showsHidden)
-        #expect(model.groups.sections.showsEmpty == false)
+        #expect(model.groups.sections.phase == .rows)
         #expect(model.assetIds.count == 1)
     }
 

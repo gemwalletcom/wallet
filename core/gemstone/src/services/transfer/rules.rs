@@ -57,10 +57,6 @@ impl GemTransferData {
 }
 
 impl GemTransferData {
-    pub fn transaction_type(&self) -> TransactionType {
-        self.input_type.transaction_type()
-    }
-
     pub fn header_kind(&self) -> GemTransactionHeaderKind {
         self.input_type.header_kind()
     }
@@ -305,7 +301,7 @@ impl TransferInput for TransactionInputType {
 }
 
 pub(crate) fn tron_stake_available(asset: &Asset, balance: &GemAssetBalance) -> BigInt {
-    let staked = BigInt::from(balance.votes()) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
+    let staked = BigInt::from(balance.votes()) * BigInt::from(10u32).pow(asset.decimals);
     (BigInt::from(&balance.frozen + &balance.locked) - staked).max(BigInt::from(0))
 }
 

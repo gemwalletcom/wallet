@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,6 +41,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val userConfig: UserConfig,
+    private val passwordProtection: WalletPasswordProtection,
     private val isWalletConnectEnabledCase: IsWalletConnectEnabled,
     private val pairWalletConnect: PairWalletConnect,
     private val appStartService: GemAppStartServiceInterface,
@@ -97,10 +100,21 @@ class MainViewModel @Inject constructor(
         }
         viewModelScope.launch(ioDispatcher) { appStartService.run().forEach(::logAppStartFailure) }
         viewModelScope.launch(ioDispatcher) {
+            isUnlocked.first { it }
             migratePriceAlertsPreference()
+            if (userConfig.authRequired() && !passwordProtection.authenticationRequired()) {
+                runCatching { passwordProtection.setAuthenticationRequired(true) }
+                    .onFailure { error ->
+                        Log.e("MainViewModel", "wallet password protection failed", error)
+                        _uiState.update { it.copy(startupError = error.errorText().text(context)) }
+                    }
+            }
             migrateV3KeystoreService()
             runCatching { walletService.migrateToSharedPassword() }
-                .onFailure { Log.e("MainViewModel", "shared keystore password migration failed", it) }
+                .onFailure { error ->
+                    Log.e("MainViewModel", "shared keystore password migration failed", error)
+                    _uiState.update { it.copy(startupError = error.errorText().text(context)) }
+                }
             appStartService.setupWallets().forEach(::logAppStartFailure)
         }
     }
@@ -134,6 +148,7 @@ class MainViewModel @Inject constructor(
             it.copy(
                 navigationError = null,
                 walletConnectError = null,
+                startupError = null,
                 isWalletConnectUnsupportedVisible = false,
             )
         }
@@ -166,5 +181,11 @@ class MainViewModel @Inject constructor(
         _uiState.update { it.copy(isWalletConnectUnsupportedVisible = true) }
     }
 
-    data class MainUIState(val isWalletConnectPairingToastVisible: Boolean = false, val walletConnectError: String? = null, val navigationError: String? = null, val isWalletConnectUnsupportedVisible: Boolean = false)
+    data class MainUIState(
+        val isWalletConnectPairingToastVisible: Boolean = false,
+        val walletConnectError: String? = null,
+        val navigationError: String? = null,
+        val startupError: String? = null,
+        val isWalletConnectUnsupportedVisible: Boolean = false,
+    )
 }

@@ -69,7 +69,7 @@ class FiatTransactionsQueryTest {
         assertEquals(
             FiatTransactionAssetData(
                 id = "older",
-                asset = Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE),
+                asset = Asset(id = AssetId(Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u, type = AssetType.NATIVE),
                 transactionType = FiatQuoteType.Buy,
                 provider = FiatProviderName.MoonPay,
                 status = FiatTransactionStatus.Complete,

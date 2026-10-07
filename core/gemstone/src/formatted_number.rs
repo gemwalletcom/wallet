@@ -48,6 +48,7 @@ pub enum GemNumberDisplay {
 pub enum GemNumberRounding {
     ToNearest,
     TowardZero,
+    AwayFromZero,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -81,10 +82,10 @@ impl GemFormattedNumber {
     pub fn asset_amount(value: &num_bigint::BigInt, asset: &primitives::Asset, style: GemValueStyle) -> Self {
         Self {
             exact: match style {
-                GemValueStyle::Full => number_formatter::BigNumberFormatter::plain_value(value.magnitude(), asset.decimals as u32).ok(),
+                GemValueStyle::Full => number_formatter::BigNumberFormatter::plain_value(value.magnitude(), asset.decimals).ok(),
                 GemValueStyle::Short | GemValueStyle::Auto => None,
             },
-            ..Self::amount(asset_value(value, asset.decimals), Some(asset.symbol.clone()), style)
+            ..Self::amount(number_formatter::BigNumberFormatter::f64_value(value, asset.decimals), Some(asset.symbol.clone()), style)
         }
     }
 
@@ -220,11 +221,6 @@ pub fn formatted_currency(value: f64, code: String, style: GemCurrencyStyle) -> 
 }
 
 #[uniffi::export]
-pub fn formatted_amount(value: f64, symbol: Option<String>, style: GemValueStyle) -> GemFormattedNumber {
-    GemFormattedNumber::amount(value, symbol, style)
-}
-
-#[uniffi::export]
 pub fn formatted_percentage(value: f64, style: GemPercentageStyle) -> GemFormattedNumber {
     GemFormattedNumber::percentage(value, style)
 }
@@ -253,10 +249,6 @@ fn value_display(value: f64, style: GemValueStyle) -> GemNumberDisplay {
         };
     }
     GemNumberDisplay::Number { precision: style.precision(value) }
-}
-
-fn asset_value(value: &num_bigint::BigInt, decimals: i32) -> f64 {
-    number_formatter::BigNumberFormatter::value(&value.to_string(), decimals).ok().and_then(|text| text.parse::<f64>().ok()).unwrap_or_default()
 }
 
 #[cfg(test)]
@@ -303,14 +295,14 @@ mod tests {
         assert_eq!(
             GemFormattedNumber::currency(0.0001, Currency::USD, GemCurrencyStyle::Short).display,
             GemNumberDisplay::Number {
-                precision: GemPrecision::Significant { max: 4 }
+                precision: GemPrecision::Fraction { min: 2, max: 7 }
             },
             "the threshold itself still reads as a number"
         );
         assert_eq!(
             GemFormattedNumber::currency(0.00000783, Currency::USD, GemCurrencyStyle::Currency).display,
             GemNumberDisplay::Number {
-                precision: GemPrecision::Significant { max: 4 }
+                precision: GemPrecision::Fraction { min: 2, max: 9 }
             },
             "a chart or alert price keeps its digits"
         );

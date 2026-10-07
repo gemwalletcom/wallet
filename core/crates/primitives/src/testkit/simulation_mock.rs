@@ -18,7 +18,7 @@ impl SimulationWarningApproval {
 }
 
 impl SimulationBalanceChange {
-    pub fn mock(asset_id: AssetId, value: BigInt, decimals: i32) -> Self {
+    pub fn mock(asset_id: AssetId, value: BigInt, decimals: u32) -> Self {
         Self {
             asset_id,
             value,

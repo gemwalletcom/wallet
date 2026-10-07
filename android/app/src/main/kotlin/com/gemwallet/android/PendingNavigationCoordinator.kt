@@ -2,6 +2,7 @@ package com.gemwallet.android
 
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.model.PushNotificationField
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,12 +47,8 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
 
     fun pendIntent(intent: Intent) {
         if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
-        val code = intent.dataString ?: return
-        _pendingNavigation.update { PendingNavigation.FromLink(code) }
-    }
-
-    fun pendNotification(type: String, data: String?) {
-        _pendingNavigation.update { PendingNavigation.FromNotification(type, data) }
+        val input = intent.dataString?.let(PendingNavigation::FromLink) ?: intent.notification() ?: return
+        _pendingNavigation.update { input }
     }
 
     fun pendScan(code: String) {
@@ -119,4 +116,13 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
         fun onPairing(uri: String)
         fun onRequest()
     }
+}
+
+private fun Intent.notification(): PendingNavigation.FromNotification? = runCatching {
+    getStringExtra(PushNotificationField.Type.key)?.let { type -> PendingNavigation.FromNotification(type, getStringExtra(PushNotificationField.Data.key)) }
+}.getOrNull()
+
+internal fun Intent.putNotificationPayload(type: String?, rawData: String?): Intent = apply {
+    type?.let { putExtra(PushNotificationField.Type.key, it) }
+    rawData?.let { putExtra(PushNotificationField.Data.key, it) }
 }

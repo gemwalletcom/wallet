@@ -31,7 +31,7 @@ class BaseSelectSearchTest {
 
     private val walletId = WalletId("wallet-1")
     private val session = mockSession(wallet = mockWallet(id = walletId))
-    private val results = listOf(mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)))
+    private val results = listOf(mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)))
 
     @Test
     fun `non-empty query with no matches emits empty list`() = runTest {

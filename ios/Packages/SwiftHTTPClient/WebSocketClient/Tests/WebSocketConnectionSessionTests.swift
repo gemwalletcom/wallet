@@ -58,7 +58,7 @@ private final class SessionRecorder: @unchecked Sendable {
 
     func configuration() -> WebSocketConfiguration {
         WebSocketConfiguration(
-            requestProvider: StaticRequestProvider(url: URL(string: "ws://127.0.0.1:9")!),
+            requestProvider: WebSocketRequestProviderMock(url: URL(string: "ws://127.0.0.1:9")!),
             reconnection: ReconnectableMock(),
             makeSession: { [self] configuration, delegate in
                 let observer = InvalidationObserver(inner: delegate) { [self] in

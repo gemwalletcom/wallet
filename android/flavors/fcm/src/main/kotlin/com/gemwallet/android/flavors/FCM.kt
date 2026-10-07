@@ -1,8 +1,10 @@
 package com.gemwallet.android.flavors
 
+import android.util.Log
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.notifications.cases.ShowSystemNotification
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.PushNotificationField
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -29,7 +31,11 @@ class FCM : FirebaseMessagingService() {
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onMessageReceived(message: RemoteMessage) {
-        val pushEnabled = runBlocking { getPushEnabled.getPushEnabled().firstOrNull() == true }
+        val pushEnabled = runBlocking {
+            runCatchingCancellable { getPushEnabled.getPushEnabled().firstOrNull() == true }
+                .onFailure { Log.e("FCM", "Read push setting failed", it) }
+                .getOrDefault(false)
+        }
         if (!pushEnabled) {
             return
         }

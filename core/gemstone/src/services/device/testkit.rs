@@ -1,8 +1,15 @@
 use async_trait::async_trait;
-use primitives::{Currency, Platform, PlatformStore};
+use primitives::{Currency, Device, Platform, PlatformStore};
+use std::sync::Arc;
 
+use super::GemDeviceService;
 use super::platform::{GemDeviceInfo, GemDevicePlatform};
+use crate::api::GemDeviceApiClient;
 use crate::services::error::GemServiceError;
+use crate::services::preferences::GemPreferencesService;
+use crate::services::subscription::GemSubscriptionService;
+use crate::services::wallet_session::GemWalletSessionService;
+use crate::testkit::TestAlienProvider;
 
 pub struct MemoryDevicePlatform;
 
@@ -30,4 +37,15 @@ impl GemDevicePlatform for MemoryDevicePlatform {
     async fn get_currency(&self) -> Result<Currency, GemServiceError> {
         Ok(Currency::USD)
     }
+}
+
+impl GemDeviceService {
+    pub fn mock(api: Arc<GemDeviceApiClient>, session: Arc<GemWalletSessionService>, preferences: Arc<GemPreferencesService>) -> Arc<Self> {
+        Arc::new(Self::new(api.clone(), Arc::new(GemSubscriptionService::new(api, session)), Arc::new(MemoryDevicePlatform), preferences))
+    }
+}
+
+pub fn registering_device_provider() -> TestAlienProvider {
+    let device = serde_json::to_string(&Device::mock()).unwrap();
+    TestAlienProvider::with_json_by_path(200, &[("devices/is_registered", "false"), ("devices/subscriptions", "[]"), ("/v2/devices", &device)])
 }

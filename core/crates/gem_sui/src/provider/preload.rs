@@ -155,12 +155,12 @@ impl SuiClient {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use super::*;
-    use crate::models::SuiStakeStatus;
     use crate::provider::testkit::*;
+    use chain_traits::ChainStaking;
     use chain_traits::ChainTransactionLoad;
     use gem_encoding::decode_base64;
     use num_bigint::BigUint;
-    use primitives::{Asset, Chain, Delegation, FeePriority, StakeType, TransactionLoadInput};
+    use primitives::{Asset, Chain, Delegation, DelegationState, FeePriority, StakeType, TransactionLoadInput};
 
     #[tokio::test]
     async fn test_sui_get_transaction_fee_rates() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -197,13 +197,12 @@ mod chain_integration_tests {
 
         let user_address = TEST_ADDRESS;
         let delegation_id = client
-            .get_stake_delegations(user_address.to_string())
+            .get_staking_delegations(user_address.to_string())
             .await?
             .into_iter()
-            .flat_map(|delegation| delegation.stakes.into_iter())
-            .find(|stake| stake.status == SuiStakeStatus::Active)
+            .find(|delegation| delegation.state == DelegationState::Active)
             .ok_or("No active Sui stake found for test address")?
-            .staked_sui_id;
+            .delegation_id;
 
         let delegation = Delegation::mock_with_id(delegation_id);
         let stake_type = StakeType::Unstake(delegation);

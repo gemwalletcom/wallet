@@ -20,8 +20,8 @@ chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/tes
 primitives = { path = "../primitives" }
 chain_primitives = { path = "../chain_primitives" }
 sui-types = { workspace = true }
-sui-transaction-builder = { package = "sui-transaction-builder", version = "0.4", default-features = false }
-bcs = { version = "0.2.1" }
+sui-transaction-builder = { workspace = true }
+bcs = { workspace = true }
 hex = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
 gem_client = { path = "../gem_client", optional = true }

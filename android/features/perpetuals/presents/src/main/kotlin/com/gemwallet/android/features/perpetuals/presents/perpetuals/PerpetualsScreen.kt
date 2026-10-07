@@ -5,17 +5,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.RecentsScreen
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
 import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualsViewModel
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.RefreshOnTimer
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.wallet.core.primitives.RecentActivityType
+import kotlinx.coroutines.launch
+import uniffi.gemstone.GemPerpetualDepositTarget
 
 @Composable
 fun PerpetualsScreen(
@@ -23,18 +29,22 @@ fun PerpetualsScreen(
     onOpenPerpetual: AssetIdAction,
     onOpenPortfolio: () -> Unit,
     amountAction: AmountTransactionAction,
+    onSelectDepositAsset: () -> Unit,
     viewModel: PerpetualsViewModel = hiltViewModel(),
     recentsViewModel: RecentsViewModel = hiltViewModel(),
 ) {
+    val infoSheet by viewModel.infoSheet.collectAsStateWithLifecycle()
+    InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val unpinnedPerpetuals by viewModel.unpinnedPerpetuals.collectAsStateWithLifecycle()
     val pinnedPerpetuals by viewModel.pinnedPerpetuals.collectAsStateWithLifecycle()
     val positions by viewModel.positionRows.collectAsStateWithLifecycle()
     val balanceHeader by viewModel.balanceHeader.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val marketView by viewModel.marketView.collectAsStateWithLifecycle()
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
     val query = rememberTextFieldState()
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(query) {
         snapshotFlow { query.text.toString() }.collect(viewModel::setQuery)
@@ -60,7 +70,7 @@ fun PerpetualsScreen(
         positions = positions,
         recent = recent,
         query = query,
-        sections = sections,
+        marketView = marketView,
         isSearching = isSearching,
         onAction = { action ->
             when (action) {
@@ -72,7 +82,15 @@ fun PerpetualsScreen(
 
                 is PerpetualsAction.Withdraw -> amountAction(AmountParams.Withdraw(action.assetId))
 
-                is PerpetualsAction.Deposit -> amountAction(AmountParams.Deposit(action.assetId))
+                PerpetualsAction.Deposit -> viewModel.deposit {
+                    scope.launch {
+                        when (val target = viewModel.depositTarget()) {
+                            GemPerpetualDepositTarget.SelectAsset -> onSelectDepositAsset()
+                            is GemPerpetualDepositTarget.Amount -> amountAction(AmountParams.Deposit(target.asset.toPrimitives().id))
+                            null -> Unit
+                        }
+                    }
+                }
 
                 PerpetualsAction.OpenPortfolio -> onOpenPortfolio()
 

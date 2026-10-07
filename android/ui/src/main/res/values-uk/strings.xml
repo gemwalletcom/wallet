@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Свій</string>
+  <string name="fee_rate_priority">Плата за пріоритет</string>
+  <string name="fee_rate_base">Базова плата</string>
   <string name="banner_account_activation_title">Плата за активацію рахунку</string>
   <string name="banner_account_activation_description">Мережа %1$s вимагає одноразової оплати в розмірі %2$s.</string>
   <string name="banner_stake_title">Почніть стейкінг %1$s</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 годин</string>
   <string name="lock_require_authentication">Вимагається автентифікація</string>
   <string name="lock_unlock">Розблокувати</string>
-  <string name="lock_privacy_lock">Блокування конфіденційності</string>
   <string name="lock_footer">Захистіть доступ до цієї програми на своєму пристрої</string>
   <string name="lock_passcode">Пароль</string>
+  <string name="lock_passcode_off_title">Пароль пристрою вимкнено</string>
+  <string name="lock_passcode_off_description">Gem захищено паролем пристрою. Увімкніть пароль у налаштуваннях пристрою, щоб відкрити Gem. Ваші гаманці в безпеці.</string>
   <string name="verify_phrase_title">Підтвердити</string>
   <string name="warnings_externally_controlled_account">Цей обліковий запис %1$s може контролювати хтось інший. Не надсилайте на нього кошти, якщо ви не впевнені, що контролюєте його, інакше ви можете назавжди втратити свої активи.</string>
   <string name="sell_title">Продати %1$s</string>
+  <string name="info_region_unavailable_description">Ця функція недоступна у вашому регіоні. Доступність залежить від місцевих правил і вимог провайдерів.</string>
   <string name="info_network_fee_title">Мережева плата</string>
   <string name="info_watch_wallet_title">Watch Wallet</string>
   <string name="info_watch_wallet_description">Гаманець, до якого у вас немає доступу, але ви можете спостерігати за його транзакціями та рухами.</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">Прізвисько</string>
   <string name="rewards_unverified_title">Нагороди ще не активні.</string>
   <string name="rewards_unverified_description">Винагороди активуються автоматично, коли ви більше користуєтеся додатком.</string>
+  <string name="rewards_state_empty_title">Для нагород потрібен мультимонетний гаманець</string>
+  <string name="rewards_state_empty_description">Створіть або імпортуйте мультимонетний гаманець, щоб запрошувати друзів і отримувати бали.</string>
   <string name="recent_activity_title">Нещодавні</string>
   <string name="recent_activity_state_empty_title">Тут з\'являться ваші нещодавні активи</string>
   <string name="recent_activity_state_empty_description">Тут відображатимуться активи, які ви нещодавно використовували</string>

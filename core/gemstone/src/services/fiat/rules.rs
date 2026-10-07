@@ -1,12 +1,12 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{Currency, FiatProviderName, FiatQuote, FiatQuoteType, FiatTransactionAssetData, FiatTransactionStatus};
-use rand::RngExt;
 
 use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge, GemFiatTransactionRow, GemFiatTransactionStatus};
 use crate::config::fiat_config::FiatConfig;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::services::amount::rules::plain_number;
 use crate::services::assets::GemAssetAction;
 use crate::services::swap::GemAssetRate;
 
@@ -15,10 +15,6 @@ pub fn default_amount(config: &FiatConfig, quote_type: FiatQuoteType) -> u32 {
         FiatQuoteType::Buy => config.default_buy_amount as u32,
         FiatQuoteType::Sell => config.default_sell_amount as u32,
     }
-}
-
-pub fn random_amount(config: &FiatConfig) -> u32 {
-    rand::rng().random_range(config.default_buy_amount as u32..config.random_max_amount as u32)
 }
 
 pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64, quote: Option<&FiatQuote>, available: &BigUint, currency: Currency) -> GemFiatAmountCheck {
@@ -45,12 +41,12 @@ pub enum FiatAmountInput {
     Value(f64),
 }
 
-pub fn parse_amount(text: &str) -> FiatAmountInput {
-    let normalized: String = text.trim().replace(',', ".").chars().filter(|character| !character.is_whitespace()).collect();
-    if normalized.is_empty() {
+pub fn parse_amount(decimal_separator: &str, text: &str) -> FiatAmountInput {
+    let plain = plain_number(decimal_separator, text);
+    if plain.is_empty() {
         return FiatAmountInput::Empty;
     }
-    match normalized.parse::<f64>() {
+    match plain.parse::<f64>() {
         Ok(value) if value > 0.0 && value.fract() == 0.0 => FiatAmountInput::Value(value),
         Ok(value) if value <= 0.0 => FiatAmountInput::Empty,
         Ok(_) | Err(_) => FiatAmountInput::Invalid,
@@ -111,7 +107,7 @@ pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow
         subtitle: format!("{} ({})", data.asset.name, data.provider.name()),
         value: GemFormattedNumber {
             tone: status.tone,
-            ..GemFormattedNumber::amount(BigNumberFormatter::f64_value(data.value.to_string(), data.asset.decimals as u32), Some(data.asset.symbol.clone()), GemValueStyle::Short)
+            ..GemFormattedNumber::amount(BigNumberFormatter::f64_value(&data.value, data.asset.decimals), Some(data.asset.symbol.clone()), GemValueStyle::Short)
         },
         fiat_value: GemFormattedNumber::currency_code(data.fiat_amount, data.fiat_currency.clone(), GemCurrencyStyle::Fiat),
         badge: status.badge,
@@ -121,7 +117,7 @@ pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow
 
 fn quote_value(quote: &FiatQuote) -> Option<BigUint> {
     let amount = format!("{:.precision$}", quote.crypto_amount, precision = quote.asset.decimals as usize);
-    BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals as u32).ok()
+    BigNumberFormatter::value_from_amount_biguint(&amount, quote.asset.decimals).ok()
 }
 
 #[cfg(test)]
@@ -267,14 +263,24 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_amount_takes_whole_amounts_only_and_treats_zero_as_empty() {
-        assert_eq!(parse_amount("1 000"), FiatAmountInput::Value(1000.0));
-        assert_eq!(parse_amount(" 12 "), FiatAmountInput::Value(12.0));
-        assert_eq!(parse_amount(""), FiatAmountInput::Empty);
-        assert_eq!(parse_amount("0"), FiatAmountInput::Empty);
-        assert_eq!(parse_amount(" 12,5 "), FiatAmountInput::Invalid);
-        assert_eq!(parse_amount("12.5"), FiatAmountInput::Invalid);
-        assert_eq!(parse_amount("abc"), FiatAmountInput::Invalid);
+    fn test_parse_amount_reads_a_typed_whole_amount_in_any_script_and_treats_zero_as_empty() {
+        for (separator, input, expected) in [
+            (".", "1 000", FiatAmountInput::Value(1000.0)),
+            (".", " 12 ", FiatAmountInput::Value(12.0)),
+            (".", "050", FiatAmountInput::Value(50.0)),
+            ("\u{066B}", "٥٠", FiatAmountInput::Value(50.0)),
+            ("\u{066B}", "۱۰۰", FiatAmountInput::Value(100.0)),
+            (".", "१२३", FiatAmountInput::Value(123.0)),
+            (".", "৪৫", FiatAmountInput::Value(45.0)),
+            (".", "５０", FiatAmountInput::Value(50.0)),
+            (".", "", FiatAmountInput::Empty),
+            (".", "0", FiatAmountInput::Empty),
+            (".", "abc", FiatAmountInput::Empty),
+            (",", "12,5", FiatAmountInput::Invalid),
+            (".", "12.5", FiatAmountInput::Invalid),
+        ] {
+            assert_eq!(parse_amount(separator, input), expected, "{input} in {separator}");
+        }
     }
 
     #[test]
@@ -296,11 +302,9 @@ mod tests {
     }
 
     #[test]
-    fn test_default_and_random_amounts_follow_the_config() {
+    fn test_default_amounts_follow_the_config() {
         let config = get_fiat_config();
         assert_eq!(default_amount(&config, FiatQuoteType::Buy), 50);
         assert_eq!(default_amount(&config, FiatQuoteType::Sell), 100);
-        let random = random_amount(&config);
-        assert!((50..1000).contains(&random));
     }
 }

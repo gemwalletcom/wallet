@@ -1,7 +1,7 @@
 package com.gemwallet.android
 
+import android.app.admin.DevicePolicyManager
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.biometric.BiometricManager
@@ -87,28 +87,22 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
     }
 
     fun openSettings() {
-        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Intent(Settings.ACTION_BIOMETRIC_ENROLL).putExtra(
-                Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                SystemAuthPolicy.allowedAuthenticators,
-            )
-        } else {
-            Intent(Settings.ACTION_SECURITY_SETTINGS)
-        }
-        runCatching { activity.startActivity(intent) }.onFailure {
+        runCatching { activity.startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD)) }.onFailure {
             activity.startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
         }
     }
 
-    fun requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
+    fun requestAuth(auth: AuthRequest, onCancel: () -> Unit, onSuccess: () -> Unit) {
         if (lockViewModel.isAuthRequired() || auth == AuthRequest.Required) {
             if (refreshEnrollment()) {
                 authRequests.enqueue(
                     requiresConfirmation = auth.requiresConfirmation,
+                    onCancel = onCancel,
                     onSuccess = onSuccess,
                 )?.let(::startAuthRequest)
             } else {
                 openSettings()
+                onCancel()
             }
         } else {
             onSuccess()
@@ -146,6 +140,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
             delay(SystemAuthPolicy.authRequestTimeout)
             val timedOut = authRequests.completeActive(request.id) ?: return@launch
             lockViewModel.completeAuthRequest(timedOut.id)
+            timedOut.onCancel()
             runCatching { biometricPrompt.cancelAuthentication() }
             delay(SystemAuthPolicy.authRequestRestartDelay)
             activeAuthTimeout = null
@@ -168,6 +163,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
         activeAuthTimeout?.cancel()
         activeAuthTimeout = null
         lockViewModel.completeAuthRequest(request.id)
+        request.onCancel()
         authRequests.startNext()?.let(::startAuthRequest)
     }
 }

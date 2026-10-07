@@ -54,6 +54,7 @@ import enum Gemstone.LinkType
 import enum Gemstone.PriceAlertDirection
 import enum Gemstone.YieldProvider
 import GemstonePrimitives
+import LocalAuthentication
 import Localization
 import Primitives
 import Style
@@ -70,6 +71,7 @@ public extension GemEmptyStateImage {
         case .walletConnect: Images.EmptyContent.walletConnect
         case .notifications: Images.System.bell
         case .search: Images.EmptyContent.search
+        case .support: Image(systemName: SystemImage.bubbleLeftAndBubbleRight)
         }
     }
 }
@@ -595,10 +597,21 @@ public extension GemAcquireOption {
 
 public extension GemKeystoreAuthentication {
     var image: Image? {
+        systemImage.map { Image(systemName: $0) }
+    }
+
+    var systemImage: String? {
         switch self {
-        case .biometrics: Image(systemName: SystemImage.faceid)
-        case .passcode: Image(systemName: SystemImage.lock)
+        case .biometrics: biometrySystemImage ?? SystemImage.lock
+        case .passcode: SystemImage.lock
         case .none: nil
+        }
+    }
+
+    var biometrySystemImage: String? {
+        switch self {
+        case .biometrics: LABiometryType.available.systemImage
+        case .passcode, .none: nil
         }
     }
 }
@@ -721,6 +734,7 @@ public extension SwapProvider {
         case .okx: Images.SwapProviders.okx
         case .squid: Images.SwapProviders.squid
         case .swapsXyz: Images.SwapProviders.swapsXyz
+        case .bridgers: Images.SwapProviders.bridgers
         }
     }
 }

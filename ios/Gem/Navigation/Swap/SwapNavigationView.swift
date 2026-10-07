@@ -20,7 +20,7 @@ struct SwapNavigationView: View {
             .sheet(item: $model.isPresentingInfoSheet) {
                 switch $0 {
                 case let .info(type):
-                    InfoSheetScene(sheet: type)
+                    InfoSheetScene(model: type)
                 case let .selectAsset(type):
                     SelectAssetNavigationStack(
                         model: viewModelFactory.selectAssetScene(
@@ -30,17 +30,15 @@ struct SwapNavigationView: View {
                         ),
                     )
                 case .swapDetails:
-                    if let details = model.swapDetails {
-                        NavigationStack {
-                            SwapDetailsView(
-                                details: details,
-                                providers: model.providers,
-                                allowSelectProvider: model.allowsProviderSelection,
-                                onSelectProvider: model.onFinishSwapProviderSelection,
-                            )
-                        }
-                        .sheetPresentation(.forCurrentDeviceSize(expandable: true))
+                    NavigationStack {
+                        SwapDetailsView(
+                            details: model.swapDetails,
+                            providers: model.providers,
+                            allowSelectProvider: model.allowsProviderSelection,
+                            onSelectProvider: model.onFinishSwapProviderSelection,
+                        )
                     }
+                    .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                 }
             }
     }

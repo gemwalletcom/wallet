@@ -10,6 +10,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticat
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.listItem
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -37,9 +38,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemConnectionRow
+import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessageServiceInterface
-import uniffi.gemstone.GemSimulationPayloadRow
 import uniffi.gemstone.GemWalletConnectAuthAccount
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
@@ -225,11 +226,12 @@ class AuthRequestViewModel @Inject constructor(
             validation = verifyContext.map(),
         )
         val selectedWallet = prepared.proposal.defaultWallet.toPrimitives()
+        val availableWallets = prepared.proposal.wallets.map { it.toPrimitives() }
         return AuthRequestUIState.Request(
             texts = ReviewTexts(context),
             peer = applicationConnectionRow(prepared.proposal.metadata),
-            availableWallets = prepared.proposal.wallets.map { it.toPrimitives() },
-            availableWalletSections = walletSections(prepared.proposal.wallets, null),
+            availableWallets = availableWallets,
+            availableWalletSections = walletSections(availableWallets.map { it.listItem.toGem() }, null),
             canChooseWallet = prepared.canChooseWallet,
             selectedWallet = selectedWallet,
             approval = buildApproval(request, selectedWallet),
@@ -313,8 +315,8 @@ sealed interface AuthRequestUIState {
         override val name: String get() = peer.title
         override val uri: String get() = peer.host.orEmpty()
         override val chain: Chain get() = approval.chain
-        override val primaryPayloadFields: List<GemSimulationPayloadRow> get() = approval.primaryPayloadFields
-        override val secondaryPayloadFields: List<GemSimulationPayloadRow> get() = approval.secondaryPayloadFields
+        override val primaryPayloadFields: List<GemListRow> get() = approval.primaryPayloadFields
+        override val secondaryPayloadFields: List<GemListRow> get() = approval.secondaryPayloadFields
         override val title: GemLocalizedText get() = approval.title
         override val message: String get() = approval.message
     }
@@ -347,10 +349,10 @@ data class AuthApproval(
     val issuer: String,
     val message: String,
     val title: GemLocalizedText,
-    val primaryPayloadFields: List<GemSimulationPayloadRow>,
-    val secondaryPayloadFields: List<GemSimulationPayloadRow>,
+    val primaryPayloadFields: List<GemListRow>,
+    val secondaryPayloadFields: List<GemListRow>,
 ) {
     val chain: Chain get() = account.chain
 }
 
-private data class AuthPayloadPreview(val title: GemLocalizedText = GemLocalizedText.ReviewRequest, val primaryFields: List<GemSimulationPayloadRow> = emptyList(), val secondaryFields: List<GemSimulationPayloadRow> = emptyList())
+private data class AuthPayloadPreview(val title: GemLocalizedText = GemLocalizedText.ReviewRequest, val primaryFields: List<GemListRow> = emptyList(), val secondaryFields: List<GemListRow> = emptyList())

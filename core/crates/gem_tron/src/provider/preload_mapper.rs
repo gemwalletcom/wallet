@@ -62,7 +62,7 @@ pub(crate) fn calculate_token_fee_rate_with_data(
     Ok(fee)
 }
 
-pub fn calculate_stake_fee_rate(chain_parameters: &[ChainParameter], account_usage: &TronAccountUsage, _stake_type: &StakeType) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
+pub fn calculate_stake_fee_rate(chain_parameters: &[ChainParameter], account_usage: &TronAccountUsage) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
     let bandwidth_price = get_chain_parameter_value(chain_parameters, GET_TRANSACTION_FEE)? as u64;
     let fee = bandwidth_fee(account_usage, DEFAULT_BANDWIDTH_BYTES, bandwidth_price);
     Ok(BigInt::from(fee))
@@ -185,7 +185,7 @@ impl TronAccountUsage {
 mod tests {
     use super::*;
     use crate::models::account::{TronAccount, TronFrozen, TronVote as AccountVote};
-    use primitives::{Chain, Delegation, DelegationValidator, Resource};
+    use primitives::{Delegation, Resource};
 
     fn calculate_token_transfer_fee(account_usage: &TronAccountUsage, estimated_energy: u64, energy_price: u64, bandwidth_price: u64) -> TokenTransferFee {
         calculate_token_transfer_fee_for_bandwidth(account_usage, estimated_energy, energy_price, bandwidth_price, DEFAULT_BANDWIDTH_BYTES, 0, FEE_LIMIT_BUFFER_PERCENT)
@@ -321,14 +321,13 @@ mod tests {
     #[test]
     fn test_calculate_stake_fee_rate() {
         let params = vec![ChainParameter::mock(GET_TRANSACTION_FEE, 1000)];
-        let stake_type = StakeType::Stake(DelegationValidator::stake(Chain::Tron, "validator".to_string(), "validator".to_string(), true, 0.0, 0.0));
 
         let with_bandwidth = TronAccountUsage::mock(DEFAULT_BANDWIDTH_BYTES, 0, 0);
-        assert_eq!(calculate_stake_fee_rate(&params, &with_bandwidth, &stake_type).unwrap(), BigInt::from(0));
+        assert_eq!(calculate_stake_fee_rate(&params, &with_bandwidth).unwrap(), BigInt::from(0));
 
         let without_bandwidth = TronAccountUsage::mock(100, 0, 0);
         let expected = BigInt::from(DEFAULT_BANDWIDTH_BYTES * 1000);
-        assert_eq!(calculate_stake_fee_rate(&params, &without_bandwidth, &stake_type).unwrap(), expected);
+        assert_eq!(calculate_stake_fee_rate(&params, &without_bandwidth).unwrap(), expected);
     }
 
     #[test]

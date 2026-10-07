@@ -1,16 +1,18 @@
 use std::error::Error;
-use storage::{Database, DevicesRepository};
+use std::sync::Arc;
+
+use super::repository::Repository;
 
 pub struct DeviceUpdater {
-    database: Database,
+    repository: Arc<dyn Repository>,
 }
 
 impl DeviceUpdater {
-    pub fn new(database: Database) -> Self {
-        Self { database }
+    pub(crate) fn new(repository: Arc<dyn Repository>) -> Self {
+        Self { repository }
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        Ok(self.database.run(|client| client.delete_devices_subscriptions_after_days(120)).await?)
+        Ok(self.repository.delete_subscriptions_after_days(120).await?)
     }
 }

@@ -18,12 +18,14 @@ import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.SearchBar
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import uniffi.gemstone.DocsUrl
 import uniffi.gemstone.GemImportWalletTypes
+import uniffi.gemstone.GemListPhase
 
 @Composable
 fun ImportWalletTypeScreen(onClose: () -> Unit, onSelect: (ImportType) -> Unit) {
@@ -60,6 +62,9 @@ private fun ImportWalletTypeScene(types: GemImportWalletTypes, chainFilter: Text
                 ) {
                     onSelect(ImportType.phrase())
                 }
+            }
+            (types.phase as? GemListPhase.Empty)?.let { empty ->
+                item { EmptyContentView(state = empty.state, modifier = Modifier.fillParentMaxHeight(0.5f)) }
             }
             itemsIndexed(types.chains) { index, row ->
                 ChainItem(

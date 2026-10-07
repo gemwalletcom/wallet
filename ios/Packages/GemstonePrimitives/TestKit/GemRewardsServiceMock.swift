@@ -2,8 +2,15 @@
 
 import Foundation
 import Gemstone
+import Primitives
 
 public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked Sendable {
+    public var isAvailableValue = true
+
+    public func isAvailable() -> Bool {
+        isAvailableValue
+    }
+
     public var rewardsResult: Result<Rewards, Error> = .success(.mock(
         code: "test123",
         inviteRewardPoints: 100,
@@ -14,19 +21,19 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
     public var useReferralCodeError: Error?
     public var redeemError: Error?
 
-    public private(set) var rewardsCalls: [WalletId] = []
-    public private(set) var usedReferralCodes: [(walletId: WalletId, code: String)] = []
+    public private(set) var rewardsCalls: [Primitives.WalletId] = []
+    public private(set) var usedReferralCodes: [(walletId: Primitives.WalletId, code: String)] = []
     public private(set) var redeemedIds: [String] = []
     public private(set) var createdReferrals: [String] = []
 
     public init() {}
 
-    public func createReferral(wallet _: Wallet, code: String) async throws -> Rewards {
+    public func createReferral(walletId _: Primitives.WalletId, code: String) async throws -> Rewards {
         createdReferrals.append(code)
         return try rewardsResult.get()
     }
 
-    public func refresh(walletId: WalletId) async -> GemRewardsResult {
+    public func refresh(walletId: Primitives.WalletId) async -> GemRewardsResult {
         rewardsCalls.append(walletId)
         guard let rewards = try? rewardsResult.get() else {
             return GemRewardsResult(walletId: walletId, state: .error(error: .Api(msg: "offline")), rewards: nil)
@@ -34,7 +41,7 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
         return GemRewardsResult(walletId: walletId, state: .data, rewards: rewards)
     }
 
-    public func redeem(wallet _: Wallet, redemptionId: String) async throws -> RedemptionResult {
+    public func redeem(walletId _: Primitives.WalletId, redemptionId: String) async throws -> RedemptionResult {
         redeemedIds.append(redemptionId)
         if let redeemError {
             throw redeemError
@@ -42,19 +49,11 @@ public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked 
         return .mock()
     }
 
-    public func selectedWallet(current: Wallet?, wallets _: [Wallet]) -> Wallet? {
-        current
-    }
-
-    public func useReferralCode(wallet: Wallet, code: String) async throws -> Rewards {
-        usedReferralCodes.append((wallet.id, code))
+    public func useReferralCode(walletId: Primitives.WalletId, code: String) async throws -> Rewards {
+        usedReferralCodes.append((walletId, code))
         if let useReferralCodeError {
             throw useReferralCodeError
         }
         return try rewardsResult.get()
-    }
-
-    public func wallets(wallets: [Wallet]) -> GemRewardsWallets {
-        GemRewardsWallets(wallets: wallets, canChoose: wallets.count > 1)
     }
 }

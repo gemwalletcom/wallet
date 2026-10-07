@@ -32,7 +32,7 @@ class TransferDataCodecTest {
 
     @Test
     fun transferPackRoundTripsThroughCoreCodec() {
-        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6, type = AssetType.SPL)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6u, type = AssetType.SPL)
         val original =
             mockGemTransferData(
                 inputType = TransactionInputType.Transfer(asset.toGem()),
@@ -55,7 +55,7 @@ class TransferDataCodecTest {
 
     @Test
     fun genericPackRoundTripsThroughCoreCodec() {
-        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9u)
         val approval = ApprovalData(token = "token", spender = "spender", value = BigInteger.ONE, isUnlimited = false)
         val original = mockGemTransferData(
             inputType = TransactionInputType.Generic(
@@ -98,7 +98,7 @@ class TransferDataCodecTest {
         val data = "0xa9059cbb00000000000000000000000000000000000000000000000000000000000000ff"
         val original = mockGemTransferData(
             inputType = TransactionInputType.Generic(
-                asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18).toGem(),
+                asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u).toGem(),
                 metadata = mockApplicationMetadata().toGem(),
                 extra = mockTransferDataExtra(
                     to = "0x000000000022D473030F116dDEE9F6B43aC78BA3",
@@ -122,7 +122,7 @@ class TransferDataCodecTest {
 
     @Test
     fun nativeTransferPackRoundTripsThroughCoreCodec() {
-        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9)
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9u)
         val original = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE)
 
         val transfer = roundTrip(original)

@@ -9,8 +9,8 @@ serde_json = { workspace = true }
 async-trait = { workspace = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
-alloy-ens = { version = "2.1.0" }
-idna = { version = "1.1.0" }
+alloy-ens = { workspace = true }
+idna = { workspace = true }
 
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["reqwest"] }

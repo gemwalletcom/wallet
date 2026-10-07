@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">कस्टम</string>
+  <string name="fee_rate_priority">प्राथमिकता शुल्क</string>
+  <string name="fee_rate_base">बेस शुल्क</string>
   <string name="banner_account_activation_title">खाता सक्रियण शुल्क</string>
   <string name="banner_account_activation_description">%1$s नेटवर्क को %2$s का एक बार शुल्क देना पड़ता है।</string>
   <string name="banner_stake_title">%1$s स्टेक करना शुरू करें</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 घंटे</string>
   <string name="lock_require_authentication">प्रमाणीकरण की आवश्यकता है</string>
   <string name="lock_unlock">अनलॉक</string>
-  <string name="lock_privacy_lock">गोपनीयता लॉक</string>
   <string name="lock_footer">अपने डिवाइस पर इस ऐप तक पहुंच सुरक्षित रखें</string>
   <string name="lock_passcode">पासकोड</string>
+  <string name="lock_passcode_off_title">डिवाइस पासकोड बंद है</string>
+  <string name="lock_passcode_off_description">Gem आपके डिवाइस पासकोड से लॉक है। Gem खोलने के लिए डिवाइस सेटिंग्स में पासकोड चालू करें। आपके वॉलेट सुरक्षित हैं।</string>
   <string name="verify_phrase_title">पुष्टि करना</string>
   <string name="warnings_externally_controlled_account">इस %1$s खाते को कोई और नियंत्रित कर सकता है। जब तक आप सुनिश्चित न हों कि इसका नियंत्रण आपके पास है, इसमें धनराशि न भेजें, वरना आप अपनी संपत्ति हमेशा के लिए खो सकते हैं।</string>
   <string name="sell_title">बेचें %1$s</string>
+  <string name="info_region_unavailable_description">यह सुविधा आपके क्षेत्र में उपलब्ध नहीं है। उपलब्धता स्थानीय नियमों और सेवा प्रदाताओं की आवश्यकताओं पर निर्भर करती है।</string>
   <string name="info_network_fee_title">नेटवर्क शुल्क</string>
   <string name="info_watch_wallet_title">वॉलेट देखें</string>
   <string name="info_watch_wallet_description">एक वॉलेट जिस तक आपकी पहुंच नहीं है, लेकिन आप इसके लेनदेन और गतिविधियों पर नजर रख सकते हैं।</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">उपनाम</string>
   <string name="rewards_unverified_title">पुरस्कार अभी सक्रिय नहीं हैं।</string>
   <string name="rewards_unverified_description">जैसे-जैसे आप ऐप का अधिक उपयोग करेंगे, पुरस्कार स्वचालित रूप से सक्रिय हो जाएंगे।</string>
+  <string name="rewards_state_empty_title">पुरस्कारों के लिए बहु-सिक्का वॉलेट ज़रूरी है</string>
+  <string name="rewards_state_empty_description">दोस्तों को आमंत्रित करने और अंक कमाने के लिए बहु-सिक्का वॉलेट बनाएं या इम्पोर्ट करें।</string>
   <string name="recent_activity_title">हाल ही</string>
   <string name="recent_activity_state_empty_title">आपकी हाल की गतिविधियाँ यहाँ दिखाई देंगी</string>
   <string name="recent_activity_state_empty_description">आपके द्वारा हाल ही में उपयोग की गई संपत्तियाँ यहाँ दिखाई देंगी</string>

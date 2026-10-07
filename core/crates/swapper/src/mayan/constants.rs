@@ -1,15 +1,15 @@
 use primitives::{Chain, contract_constants::MAYAN_SWIFT_CONTRACT};
+pub use primitives::contract_constants::{SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID as MAYAN_CPI_PROXY_PROGRAM_ID, SOLANA_MAYAN_SWIFT_V2_PROGRAM_ID as MAYAN_SWIFT_V2_PROGRAM_ID};
 
 pub const MAYAN_FORWARDER: &str = "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2";
 pub const MAYAN_MCTP: &str = "0x875d6d37EC55c8cF220B9E5080717549d8Aa8EcA";
 pub const MAYAN_FULFILL_HELPER: &str = "0xBC0663ef502F0Ee9676626ED5B418037252eFeb2";
+pub const MAYAN_SWIFT_V2_DESTINATION: &str = "0xD78D199f8C402e7B5Cc2abE278dF0412400a3BAe";
 pub const MAYAN_PROGRAM_ID: &str = "FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf";
 pub const MAYAN_MCTP_PROGRAM_ID: &str = "dkpZqrxHFrhziEMQ931GLtfy11nFkCsfMftH9u6QwBU";
 pub const MAYAN_FAST_MCTP_PROGRAM_ID: &str = "Gx9rivpS3YR8pBFwMuP6omYqVxunpLvLkNn7ubNyuZZ5";
-pub const MAYAN_SWIFT_V2_PROGRAM_ID: &str = "mayan34VedncxdK2XobtvWFDXQASUTBXhUVzt2kKgny";
 pub const MAYAN_FEE_MANAGER_PROGRAM_ID: &str = "5VtQHnhs2pfVEr68qQsbTRwKh4JV5GTu9mBHgHFxpHeQ";
 pub const MAYAN_LOOKUP_TABLE_SOLANA: &str = "Ff3yi1meWQQ19VPZMzGg6H8JQQeRudiV7QtVtyzJyoht";
-pub const MAYAN_CPI_PROXY_PROGRAM_ID: &str = "D8C8iW6zmoKg5TRr8nQ7h14TMWqQX8FiBdj2ju5MF3wa";
 pub const MAYAN_PAYLOAD_WRITER_PROGRAM_ID: &str = "DwMLtdtJqJQkHzNcrdTBuWHJByJfgpKBnvFvzyKdy3cU";
 pub const HC_HYPEREVM_DEPOSIT_PROCESSOR: &str = "0x56032241c0adab58a29b13e94fb595a4bc414e33";
 pub const HYPERCORE_SPOT_USDC_CONTRACT: &str = "0x000000000000000000000000000000000000ffff";
@@ -27,5 +27,11 @@ pub const SDK_VERSION: &str = "14_1_0";
 
 pub const MAYAN_MAX_SLIPPAGE_BPS: u32 = 500;
 
-pub const MAYAN_DEPOSIT_CONTRACTS: [(Chain, &str); 4] = [(Chain::Ethereum, MAYAN_FORWARDER), (Chain::Ethereum, MAYAN_MCTP), (Chain::Ethereum, MAYAN_SWIFT_CONTRACT), (Chain::Sui, SUI_MCTP_PACKAGE_ID)];
-pub const MAYAN_SEND_CONTRACTS: [(Chain, &str); 1] = [(Chain::Ethereum, MAYAN_FULFILL_HELPER)];
+pub const MAYAN_DEPOSIT_CONTRACTS: [(Chain, &str); 5] = [
+    (Chain::Ethereum, MAYAN_FORWARDER),
+    (Chain::Ethereum, MAYAN_MCTP),
+    (Chain::Ethereum, MAYAN_SWIFT_CONTRACT),
+    (Chain::Solana, MAYAN_CPI_PROXY_PROGRAM_ID),
+    (Chain::Sui, SUI_MCTP_PACKAGE_ID),
+];
+pub const MAYAN_SEND_CONTRACTS: [(Chain, &str); 2] = [(Chain::Ethereum, MAYAN_FULFILL_HELPER), (Chain::Ethereum, MAYAN_SWIFT_V2_DESTINATION)];

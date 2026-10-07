@@ -3,6 +3,7 @@ use diesel::expression::AsExpression;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{self, Output, ToSql};
 use primitives::AssetId as PrimitiveAssetId;
+use primitives::Feature as PrimitiveFeature;
 use primitives::FiatRateProvider as PrimitiveFiatRateProvider;
 use primitives::currency::Currency as PrimitiveCurrency;
 use primitives::nft::NFTType as PrimitiveNFTType;
@@ -23,11 +24,12 @@ use std::ops::Deref;
 use std::str::FromStr;
 
 use crate::schema::sql_types::{
-    AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, Currency as CurrencySql, DeviceLocale as DeviceLocaleSql, FiatRateProvider as FiatRateProviderSql,
+    AddressType as AddressTypeSql, AssetAssociationType as AssetAssociationTypeSql, AssetType as AssetTypeSql, Currency as CurrencySql, DeviceLocale as DeviceLocaleSql, Feature as FeatureSql, FiatRateProvider as FiatRateProviderSql,
     FiatTransactionStatus as FiatTransactionStatusSql, FiatTransactionType as FiatTransactionTypeSql, IpUsageType as IpUsageTypeSql, LinkType as LinkTypeSql, NftType as NftTypeSql, NotificationType as NotificationTypeSql,
-    PerpetualDirection as PerpetualDirectionSql, PerpetualProvider as PerpetualProviderSql, Platform as PlatformSql, PlatformStore as PlatformStoreSql, RedemptionStatus as RedemptionStatusSql, RewardEventType as RewardEventTypeSql,
-    RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql, ScanProvider as ScanProviderSql, ScanType as ScanTypeSql, SwapProvider as SwapProviderSql, SwapStatus as SwapStatusSql,
-    TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql, WalletType as WalletTypeSql,
+    PerpetualDirection as PerpetualDirectionSql, PerpetualProvider as PerpetualProviderSql, Platform as PlatformSql, PlatformStore as PlatformStoreSql, PriceAlertDirection as PriceAlertDirectionSql, RedemptionStatus as RedemptionStatusSql,
+    RewardEventType as RewardEventTypeSql, RewardRedemptionType as RewardRedemptionTypeSql, RewardStatus as RewardStatusSql, ScanProvider as ScanProviderSql, ScanType as ScanTypeSql, SwapProvider as SwapProviderSql,
+    SwapStatus as SwapStatusSql, TagVisibility as TagVisibilitySql, TransactionState as TransactionStateSql, TransactionType as TransactionTypeSql, UsernameStatus as UsernameStatusSql, WalletSource as WalletSourceSql,
+    WalletType as WalletTypeSql,
 };
 
 macro_rules! diesel_enum {
@@ -75,6 +77,8 @@ macro_rules! diesel_enum {
 }
 
 diesel_enum!(RewardStatus, PrimitiveRewardStatus, RewardStatusSql, [Unverified, Pending, Verified, Trusted, Attribution, Disabled]);
+
+diesel_enum!(Feature, PrimitiveFeature, FeatureSql);
 
 diesel_enum!(RewardRedemptionType, PrimitiveRewardRedemptionType, RewardRedemptionTypeSql, [Asset, GiftAsset]);
 
@@ -128,6 +132,8 @@ diesel_enum!(ScanProviderRow, PrimitiveScanProvider, ScanProviderSql);
 diesel_enum!(ScanTypeRow, PrimitiveScanType, ScanTypeSql);
 
 diesel_enum!(PerpetualDirectionRow, PrimitivePerpetualDirection, PerpetualDirectionSql);
+
+diesel_enum!(PriceAlertDirectionRow, PrimitivePriceAlertDirection, PriceAlertDirectionSql);
 
 diesel_enum!(PerpetualProviderRow, PrimitivePerpetualProvider, PerpetualProviderSql);
 
@@ -222,7 +228,6 @@ macro_rules! diesel_varchar {
 }
 
 diesel_varchar!(ChainRow, Chain);
-diesel_varchar!(PriceAlertDirectionRow, PrimitivePriceAlertDirection);
 diesel_varchar!(PriceProviderRow, PrimitivePriceProvider);
 diesel_varchar!(FiatProviderNameRow, PrimitiveFiatProviderName);
 

@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Свой</string>
+  <string name="fee_rate_priority">Приоритет</string>
+  <string name="fee_rate_base">Базовая плата</string>
   <string name="banner_account_activation_title">Плата за активацию аккаунта</string>
   <string name="banner_account_activation_description">Сеть %1$s требует единовременную плату в размере %2$s.</string>
   <string name="banner_stake_title">Начните стейкинг %1$s</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 часов</string>
   <string name="lock_require_authentication">Требуется аутентификация</string>
   <string name="lock_unlock">Разблокировать</string>
-  <string name="lock_privacy_lock">Блокировка конфиденциальности</string>
   <string name="lock_footer">Защитите доступ к этому приложению на вашем устройстве</string>
   <string name="lock_passcode">Пароль</string>
+  <string name="lock_passcode_off_title">Пароль устройства отключён</string>
+  <string name="lock_passcode_off_description">Gem защищён паролем устройства. Включите пароль в настройках устройства, чтобы открыть Gem. Ваши кошельки в безопасности.</string>
   <string name="verify_phrase_title">Подтвердите</string>
   <string name="warnings_externally_controlled_account">Этот аккаунт %1$s может контролировать кто-то другой. Не отправляйте на него средства, если вы не уверены, что контролируете его, иначе вы можете навсегда потерять свои активы.</string>
   <string name="sell_title">Продать %1$s</string>
+  <string name="info_region_unavailable_description">Эта функция недоступна в вашем регионе. Доступность зависит от местных правил и требований провайдеров.</string>
   <string name="info_network_fee_title">Сетевая плата</string>
   <string name="info_watch_wallet_title">Смотреть кошелек</string>
   <string name="info_watch_wallet_description">Кошелек, к которому у вас нет доступа, но вы можете следить за его транзакциями и движениями.</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">Никнейм</string>
   <string name="rewards_unverified_title">Награды пока неактивны.</string>
   <string name="rewards_unverified_description">Награды активируются автоматически по мере более частого использования приложения.</string>
+  <string name="rewards_state_empty_title">Для наград нужен мультимонетный кошелек</string>
+  <string name="rewards_state_empty_description">Создайте или импортируйте мультимонетный кошелек, чтобы приглашать друзей и получать баллы.</string>
   <string name="recent_activity_title">Последние</string>
   <string name="recent_activity_state_empty_title">Здесь появятся ваши недавние активы</string>
   <string name="recent_activity_state_empty_description">Здесь будут отображаться активы, которые вы недавно использовали</string>

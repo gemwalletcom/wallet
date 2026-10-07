@@ -150,8 +150,3 @@ pub struct SubmitTransactionBcsRequest {
     #[serde(rename = "bcsEncoding")]
     pub bcs_encoding: String,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionBroadcast {
-    pub hash: String,
-}

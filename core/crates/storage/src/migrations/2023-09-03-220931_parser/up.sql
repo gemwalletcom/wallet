@@ -1,5 +1,5 @@
 CREATE TABLE parser_state (
-    chain VARCHAR NOT NULL PRIMARY KEY REFERENCES chains (id) ON DELETE CASCADE,
+    chain VARCHAR(32) NOT NULL PRIMARY KEY REFERENCES chains (id) ON DELETE CASCADE,
     current_block BIGINT NOT NULL default 0,
     latest_block BIGINT NOT NULL default 0,
     await_blocks INTEGER NOT NULL default 0,

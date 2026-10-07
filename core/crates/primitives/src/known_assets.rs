@@ -13,7 +13,7 @@ const DAI_SYMBOL: &str = "DAI";
 const CBBTC_NAME: &str = "Coinbase BTC";
 const CBBTC_SYMBOL: &str = "cbBTC";
 
-fn token_asset(chain: Chain, token_id: &str, name: &str, symbol: &str, decimals: i32, asset_type: AssetType) -> Asset {
+fn token_asset(chain: Chain, token_id: &str, name: &str, symbol: &str, decimals: u32, asset_type: AssetType) -> Asset {
     Asset::new(AssetId::from_token(chain, token_id), name.to_string(), symbol.to_string(), decimals, asset_type)
 }
 
@@ -30,29 +30,13 @@ pub static ARBITRUM_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::
 pub static BASE_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Base, BASE_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
 pub static BASE_CBBTC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Base, BASE_CBBTC_TOKEN_ID, CBBTC_NAME, CBBTC_SYMBOL, 8, AssetType::ERC20));
 
-pub static LINEA_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Linea, LINEA_USDC_E_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
-pub static LINEA_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Linea, LINEA_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
-
-pub static OPTIMISM_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Optimism, OPTIMISM_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
-pub static OPTIMISM_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Optimism, OPTIMISM_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
-
 pub static POLYGON_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Polygon, POLYGON_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
-pub static POLYGON_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Polygon, POLYGON_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
-
-pub static ZKSYNC_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::ZkSync, ZKSYNC_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
 
 pub static SMARTCHAIN_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::SmartChain, SMARTCHAIN_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 18, AssetType::BEP20));
 pub static SMARTCHAIN_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::SmartChain, SMARTCHAIN_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 18, AssetType::BEP20));
 
 pub static AVALANCHE_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::AvalancheC, AVALANCHE_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
 pub static AVALANCHE_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::AvalancheC, AVALANCHE_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
-
-pub static INK_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Ink, INK_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
-
-pub static UNICHAIN_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Unichain, UNICHAIN_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
-
-pub static MONAD_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Monad, MONAD_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
-pub static MONAD_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Monad, MONAD_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
 
 pub static HYPERCORE_HYPE: LazyLock<Asset> = LazyLock::new(|| Asset::from_chain(Chain::HyperCore));
 pub static HYPERCORE_SPOT_HYPE: LazyLock<Asset> = LazyLock::new(|| Asset::new(HYPERCORE_SPOT_HYPE_ASSET_ID.clone(), "Hyperliquid".to_string(), "HYPE".to_string(), 8, AssetType::TOKEN));
@@ -61,21 +45,14 @@ pub static HYPERCORE_PERPETUAL_USDC: LazyLock<Asset> = LazyLock::new(|| Asset::n
 pub static HYPERCORE_SPOT_UBTC: LazyLock<Asset> = LazyLock::new(|| Asset::new(HYPERCORE_SPOT_UBTC_ASSET_ID.clone(), "Bitcoin".to_string(), "UBTC".to_string(), 10, AssetType::TOKEN));
 
 pub static HYPEREVM_HYPE: LazyLock<Asset> = LazyLock::new(|| Asset::from_chain(Chain::Hyperliquid));
-pub static HYPEREVM_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Hyperliquid, HYPEREVM_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
-pub static HYPEREVM_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Hyperliquid, HYPEREVM_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
-
-pub static PLASMA_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Plasma, PLASMA_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
 
 pub static SOLANA_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Solana, SOLANA_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::SPL));
 pub static SOLANA_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Solana, SOLANA_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::SPL));
-
-pub static SUI_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Sui, SUI_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::TOKEN));
 
 pub static THORCHAIN_TCY: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Thorchain, THORCHAIN_TCY_TOKEN_ID, "TCY", "TCY", 8, AssetType::TOKEN));
 
 pub static TRON_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tron, TRON_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::TRC20));
 
-pub static ARC_USDC: LazyLock<Asset> = LazyLock::new(|| Asset::from_chain(Chain::Arc));
 pub static ARC_EURC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Arc, ARC_EURC_TOKEN_ID, "EURC", "EURC", 6, AssetType::ERC20));
 
 pub static TEMPO_BRIDGED_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_BRIDGED_USDC_TOKEN_ID, "Bridged USDC", "USDC.e", 6, AssetType::TIP20));
@@ -104,46 +81,6 @@ pub static WALLET_DEFAULT_ASSETS: LazyLock<Vec<WalletDefaultAsset>> = LazyLock::
     ]
 });
 
-pub static USDT_ASSETS: LazyLock<Vec<&'static Asset>> = LazyLock::new(|| {
-    vec![
-        &ETHEREUM_USDT,
-        &ARBITRUM_USDT,
-        &LINEA_USDT,
-        &OPTIMISM_USDT,
-        &POLYGON_USDT,
-        &ZKSYNC_USDT,
-        &SMARTCHAIN_USDT,
-        &AVALANCHE_USDT,
-        &INK_USDT,
-        &MONAD_USDT,
-        &HYPEREVM_USDT,
-        &PLASMA_USDT,
-        &SOLANA_USDT,
-        &TRON_USDT,
-    ]
-});
-
-pub static USDC_ASSETS: LazyLock<Vec<&'static Asset>> = LazyLock::new(|| {
-    vec![
-        &ETHEREUM_USDC,
-        &ARBITRUM_USDC,
-        &BASE_USDC,
-        &LINEA_USDC,
-        &OPTIMISM_USDC,
-        &POLYGON_USDC,
-        &SMARTCHAIN_USDC,
-        &AVALANCHE_USDC,
-        &UNICHAIN_USDC,
-        &MONAD_USDC,
-        &HYPERCORE_SPOT_USDC,
-        &HYPERCORE_PERPETUAL_USDC,
-        &HYPEREVM_USDC,
-        &SOLANA_USDC,
-        &SUI_USDC,
-        &ARC_USDC,
-    ]
-});
-
 pub fn wallet_default_assets(chain: Chain) -> Vec<Asset> {
     WALLET_DEFAULT_ASSETS.iter().filter(|default| default.asset.chain() == chain).map(|default| default.asset.clone()).collect()
 }
@@ -160,6 +97,66 @@ fn token_ids(chains: &[Chain], token_id: &str) -> impl Iterator<Item = AssetId> 
     chains.iter().map(move |chain| AssetId::from_token(*chain, token_id))
 }
 
+pub static USDT_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
+    [
+        AssetId::from_token(Chain::Ethereum, ETHEREUM_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Solana, SOLANA_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::AvalancheC, AVALANCHE_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Celo, CELO_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Near, NEAR_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::SmartChain, SMARTCHAIN_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Arbitrum, ARBITRUM_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Polygon, POLYGON_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Optimism, OPTIMISM_USDT0_TOKEN_ID),
+        AssetId::from_token(Chain::Unichain, UNICHAIN_USDT0_TOKEN_ID),
+        AssetId::from_token(Chain::SeiEvm, SEIEVM_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Ink, INK_USDT0_TOKEN_ID),
+        AssetId::from_token(Chain::Monad, MONAD_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Hyperliquid, HYPEREVM_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Plasma, PLASMA_USDT_TOKEN_ID),
+        AssetId::from_token(Chain::Tempo, TEMPO_USDT0_TOKEN_ID),
+    ]
+    .into_iter()
+    .chain(token_ids(&[Chain::Mantle, Chain::Berachain, Chain::XLayer, Chain::Stable], USDT0_OFT_TOKEN_ID))
+    .collect()
+});
+
+pub static USDC_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
+    vec![
+        AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Arbitrum, ARBITRUM_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Base, BASE_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Optimism, OPTIMISM_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Polygon, POLYGON_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::AvalancheC, AVALANCHE_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::SmartChain, SMARTCHAIN_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Unichain, UNICHAIN_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Monad, MONAD_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Hyperliquid, HYPEREVM_USDC_TOKEN_ID),
+        HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
+        HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
+        AssetId::from_token(Chain::Solana, SOLANA_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Sui, SUI_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Celo, CELO_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Ink, INK_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Near, NEAR_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::ZkSync, ZKSYNC_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::World, WORLD_USDC_E_TOKEN_ID),
+        AssetId::from_token(Chain::SeiEvm, SEIEVM_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Plasma, PLASMA_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Sonic, SONIC_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::XLayer, XLAYER_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Aptos, APTOS_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Algorand, ALGORAND_USDC_TOKEN_ID),
+        AssetId::from_token(Chain::Stellar, STELLAR_USDC_TOKEN_ID),
+        AssetId::from_chain(Chain::Arc),
+        AssetId::from_token(Chain::Arc, ARC_USDC_TOKEN_ID),
+    ]
+});
+
 pub static USDS_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
     vec![
         ETHEREUM_USDS_ASSET_ID.clone(),
@@ -175,6 +172,7 @@ pub static USDE_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
         AssetId::from_token(Chain::ZkSync, ZKSYNC_USDE_TOKEN_ID),
         AssetId::from_token(Chain::Solana, SOLANA_USDE_TOKEN_ID),
         AssetId::from_token(Chain::Ton, TON_USDE_TOKEN_ID),
+        AssetId::from_token(Chain::Aptos, APTOS_USDE_TOKEN_ID),
     ]
     .into_iter()
     .chain(token_ids(
@@ -183,6 +181,7 @@ pub static USDE_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
             Chain::Arbitrum,
             Chain::AvalancheC,
             Chain::Base,
+            Chain::Berachain,
             Chain::Blast,
             Chain::Hyperliquid,
             Chain::Linea,
@@ -200,18 +199,28 @@ pub static USDE_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
 });
 
 pub static USD1_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
-    [AssetId::from_token(Chain::Solana, SOLANA_USD1_TOKEN_ID), AssetId::from_token(Chain::Tron, TRON_USD1_TOKEN_ID)]
-        .into_iter()
-        .chain(token_ids(&[Chain::Ethereum, Chain::SmartChain], USD1_TOKEN_ID))
-        .chain(token_ids(&[Chain::Mantle, Chain::Monad], USD1_OFT_TOKEN_ID))
-        .collect()
+    [
+        AssetId::from_token(Chain::Solana, SOLANA_USD1_TOKEN_ID),
+        AssetId::from_token(Chain::Tron, TRON_USD1_TOKEN_ID),
+        AssetId::from_token(Chain::Aptos, APTOS_USD1_TOKEN_ID),
+    ]
+    .into_iter()
+    .chain(token_ids(&[Chain::Ethereum, Chain::SmartChain], USD1_TOKEN_ID))
+    .chain(token_ids(&[Chain::Mantle, Chain::Monad], USD1_OFT_TOKEN_ID))
+    .collect()
 });
 
 pub static USDG_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {
-    [ROBINHOOD_USDG_ASSET_ID.clone(), SOLANA_USDG_ASSET_ID.clone(), AssetId::from_token(Chain::XLayer, XLAYER_USDG_TOKEN_ID)]
-        .into_iter()
-        .chain(token_ids(&[Chain::Ethereum, Chain::Ink], USDG_TOKEN_ID))
-        .collect()
+    [
+        ROBINHOOD_USDG_ASSET_ID.clone(),
+        SOLANA_USDG_ASSET_ID.clone(),
+        AssetId::from_token(Chain::XLayer, XLAYER_USDG_TOKEN_ID),
+        AssetId::from_token(Chain::Arbitrum, ARBITRUM_USDG_TOKEN_ID),
+        AssetId::from_token(Chain::Mantle, MANTLE_USDG_TOKEN_ID),
+    ]
+    .into_iter()
+    .chain(token_ids(&[Chain::Ethereum, Chain::Ink], USDG_TOKEN_ID))
+    .collect()
 });
 
 pub static PYUSD_ASSET_IDS: LazyLock<Vec<AssetId>> = LazyLock::new(|| {

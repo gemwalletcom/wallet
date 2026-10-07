@@ -42,6 +42,7 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
             GemLineChart(
                 points = points,
                 bounds = model.bounds,
+                isZoomed = model.isZoomed,
                 lineColor = MaterialTheme.colorScheme.primary,
                 indexAt = { fraction -> model.indexAt(fraction.toDouble())?.toInt() },
                 selectedIndex = selectedIndex,

@@ -84,7 +84,7 @@ mod tests {
     use gem_evm::constants::TOKEN_TRANSFER_GAS_LIMIT;
     use gem_evm::provider::preload_mapper::get_transaction_params;
     use primitives::{
-        EVMChain, GasPriceType, TransactionInputType, TransactionLoadInput,
+        GasPriceType, TransactionInputType, TransactionLoadInput,
         asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDT0_TOKEN_ID},
         known_assets::TEMPO_BRIDGED_USDC,
     };
@@ -114,7 +114,7 @@ mod tests {
         let gas_limit = BigInt::from(21_000u64);
         let mut input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer { asset: TEMPO_BRIDGED_USDC.clone() }, "1000000");
         input.gas_price = GasPriceType::eip1559(BigInt::from(20_000_000_001u64), BigInt::from(0u64));
-        let fee = calculator.calculate_fee(&input, &get_transaction_params(EVMChain::Tempo, &input)?, &gas_limit).await?;
+        let fee = calculator.calculate_fee(&input, &get_transaction_params(&input)?, &gas_limit).await?;
 
         assert_eq!(fee.fee, BigInt::from(421u64));
         assert_eq!(fee.fee_asset, TEMPO_BRIDGED_USDC.id);
@@ -123,11 +123,11 @@ mod tests {
 
         let token_asset = TEMPO_BRIDGED_USDC.clone();
         let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer { asset: token_asset.clone() }, "1000000");
-        let fee = calculator.calculate_fee(&input, &get_transaction_params(EVMChain::Tempo, &input)?, &BigInt::from(TOKEN_TRANSFER_GAS_LIMIT)).await?;
+        let fee = calculator.calculate_fee(&input, &get_transaction_params(&input)?, &BigInt::from(TOKEN_TRANSFER_GAS_LIMIT)).await?;
         assert_eq!(fee.fee_asset, token_asset.id);
 
         let input = TransactionLoadInput::mock_evm(mock_tempo_generic_input("0x0000000000000000000000000000000000000001", vec![0xab, 0xcd]), "0");
-        let fee = calculator.calculate_fee(&input, &get_transaction_params(EVMChain::Tempo, &input)?, &BigInt::from(100_000u64)).await?;
+        let fee = calculator.calculate_fee(&input, &get_transaction_params(&input)?, &BigInt::from(100_000u64)).await?;
         assert_eq!(fee.fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
 
         Ok(())

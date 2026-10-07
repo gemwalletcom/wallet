@@ -15,12 +15,12 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
-import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemFiatTransactionRow
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
 
 @Composable
-fun FiatTransactionsScene(transactions: List<GemFiatTransactionRow>, errorRow: GemListRow?, isRefreshing: Boolean, onClose: () -> Unit, onRefresh: () -> Unit) {
+fun FiatTransactionsScene(transactions: List<GemFiatTransactionRow>, phase: GemListPhase, isRefreshing: Boolean, onClose: () -> Unit, onRefresh: () -> Unit) {
     Scene(
         title = stringResource(id = R.string.activity_title),
         onClose = onClose,
@@ -32,18 +32,16 @@ fun FiatTransactionsScene(transactions: List<GemFiatTransactionRow>, errorRow: G
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
         ) {
-            if (transactions.isEmpty()) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    item {
-                        if (errorRow == null) {
-                            EmptyContentView(kind = GemEmptyStateKind.ACTIVITY, modifier = Modifier.fillParentMaxSize())
-                        } else {
-                            GemListRowView(row = errorRow, listPosition = ListPosition.Single)
-                        }
-                    }
+            when (phase) {
+                is GemListPhase.Empty -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item { EmptyContentView(state = phase.state, modifier = Modifier.fillParentMaxSize()) }
                 }
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+
+                is GemListPhase.Error -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item { GemListRowView(row = GemListRow.Error(phase.error), listPosition = ListPosition.Single) }
+                }
+
+                GemListPhase.Rows -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     fiatTransactionsList(
                         sections = sections,
                         onTransactionClick = { row ->

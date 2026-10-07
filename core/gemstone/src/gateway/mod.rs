@@ -23,7 +23,7 @@ use yielder::Yielder;
 
 use primitives::TransactionInputType;
 use primitives::perpetual::{PerpetualAccountPositions, PerpetualData};
-use primitives::{AssetBalance, AssetId, Chain, ChartPeriod, Latency, NodeStatus, Transaction, TransactionUpdate};
+use primitives::{AssetBalance, AssetId, Chain, ChartPeriod, FeeRate, Latency, NodeStatus, Transaction, TransactionUpdate};
 
 #[derive(uniffi::Object)]
 pub struct GemGateway {
@@ -161,9 +161,8 @@ impl GemGateway {
     pub async fn transaction_broadcast(&self, chain: Chain, data: String, options: GemBroadcastOptions) -> Result<String, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.transaction_broadcast(data, options).await }).await
     }
-    pub async fn get_fee_rates(&self, chain: Chain, input: TransactionInputType) -> Result<Vec<GemFeeRate>, GatewayError> {
-        let fees = self.with_provider(chain, |provider| async move { provider.get_transaction_fee_rates(input).await }).await?;
-        Ok(fees.into_iter().map(Into::into).collect())
+    pub async fn get_fee_rates(&self, chain: Chain, input: TransactionInputType) -> Result<Vec<FeeRate>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_transaction_fee_rates(input).await }).await
     }
     pub async fn get_transaction_preload(&self, chain: Chain, input: GemTransactionPreloadInput) -> Result<GemTransactionLoadMetadata, GatewayError> {
         let preload_input: primitives::TransactionPreloadInput = input.into();

@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
-import com.gemwallet.android.ui.components.empty.EmptyStateView
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -21,11 +21,13 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.stringRes
+import uniffi.gemstone.GemCurrencyList
 import uniffi.gemstone.GemCurrencyRow
-import uniffi.gemstone.GemCurrencySection
+import uniffi.gemstone.GemListPhase
 
 @Composable
-fun CurrencyScene(sections: List<GemCurrencySection>, query: TextFieldState, snackbar: SnackbarHostState, onSelect: (GemCurrencyRow) -> Unit, onCancel: () -> Unit) {
+fun CurrencyScene(list: GemCurrencyList?, query: TextFieldState, snackbar: SnackbarHostState, onSelect: (GemCurrencyRow) -> Unit, onCancel: () -> Unit) {
+    val sections = list?.sections.orEmpty()
     val listState = rememberLazyListState()
 
     LaunchedEffect(sections) {
@@ -38,8 +40,8 @@ fun CurrencyScene(sections: List<GemCurrencySection>, query: TextFieldState, sna
         onClose = onCancel,
     ) {
         SearchBar(query = query)
-        if (sections.isEmpty() && query.text.isNotBlank()) {
-            EmptyStateView(title = stringResource(R.string.common_no_results_found), modifier = Modifier.fillMaxSize())
+        (list?.phase as? GemListPhase.Empty)?.let { empty ->
+            EmptyContentView(state = empty.state, modifier = Modifier.fillMaxSize())
         }
         LazyColumn(state = listState) {
             sections.forEach { section ->

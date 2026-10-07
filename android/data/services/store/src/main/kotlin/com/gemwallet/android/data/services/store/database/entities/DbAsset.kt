@@ -137,7 +137,7 @@ fun DbAssetProjection.toDTO(): Asset? {
         id = id.toAssetId() ?: return null,
         name = name,
         symbol = symbol,
-        decimals = decimals,
+        decimals = decimals.toUInt(),
         type = type,
     )
 }
@@ -149,7 +149,7 @@ fun Asset.toRecord() = DbAsset(
     chain = id.chain,
     name = name,
     symbol = symbol,
-    decimals = decimals,
+    decimals = decimals.toInt(),
     type = type,
 )
 
@@ -158,7 +158,7 @@ fun AssetBasic.toRecord(associations: List<AssetAssociation> = emptyList()) = Db
     chain = asset.chain,
     name = asset.name,
     symbol = asset.symbol,
-    decimals = asset.decimals,
+    decimals = asset.decimals.toInt(),
     type = asset.type,
     isEnabled = properties.isEnabled,
     isBuyEnabled = properties.isBuyable,
@@ -178,7 +178,7 @@ fun AssetBasic.toUpdateRecord() = DbAssetBasicUpdate(
     chain = asset.chain,
     name = asset.name,
     symbol = asset.symbol,
-    decimals = asset.decimals,
+    decimals = asset.decimals.toInt(),
     type = asset.type,
     isEnabled = properties.isEnabled,
     isBuyEnabled = properties.isBuyable,

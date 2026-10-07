@@ -44,6 +44,20 @@ struct TransactionDateFormatterTests {
     }
 
     @Test
+    func aChangedLocaleOrClockFormatsAfresh() throws {
+        let morning = try #require(calendar.date(from: DateComponents(year: 2025, month: 2, day: 2, hour: 7, minute: 5)))
+        var twentyFourHour = Locale.Components(locale: locale)
+        twentyFourHour.hourCycle = .zeroToTwentyThree
+        let row = { (locale: Locale) in
+            TransactionDateFormatter(date: morning, boundaries: .current(in: timeZone), locale: locale, timeZone: timeZone).row
+        }
+
+        #expect(row(locale) == "February 2, 2025 at 7:05\u{202F}AM")
+        #expect(row(Locale(components: twentyFourHour)) == "February 2, 2025 at 07:05")
+        #expect(row(Locale(identifier: "en_GB")) == "2 February 2025 at 07:05")
+    }
+
+    @Test
     func aMissingTimestampReadsAsNothing() {
         let formatter = TransactionDateFormatter(unixMilliseconds: 0, locale: locale, timeZone: timeZone)
 

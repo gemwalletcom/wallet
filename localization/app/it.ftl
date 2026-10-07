@@ -476,6 +476,8 @@ fee_rates_normal = Normale
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Personalizzato
+fee_rate_priority = Commissione di priorità
+fee_rate_base = Commissione base
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 ora
 lock_six_hours = 6 ore
 lock_require_authentication = Richiedi l'autenticazione
 lock_unlock = Sblocca
-lock_privacy_lock = Blocco privacy
 lock_footer = Proteggi l'accesso a questa app sul tuo dispositivo
 lock_passcode = Codice di accesso
+lock_passcode_off_title = Il codice del dispositivo è disattivato
+lock_passcode_off_description = Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi wallet sono al sicuro.
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = Questo account %@ può essere controlla
 sell_title = Vendi %@
 
 # Info
+
+info_region_unavailable_description = Questa funzione non è disponibile nella tua regione. La disponibilità dipende dalle norme locali e dai requisiti dei fornitori.
 
 info_network_fee_title = Commissione di rete
 info_watch_wallet_title = Guarda Portafoglio
@@ -725,6 +730,8 @@ rewards_pending_description_ready = Il tuo bonus è pronto!
 rewards_nickname = Soprannome
 rewards_unverified_title = Premi non ancora attivi.
 rewards_unverified_description = I premi si attivano automaticamente man mano che utilizzi l'app.
+rewards_state_empty_title = Le ricompense richiedono un portafoglio Multi-Coin
+rewards_state_empty_description = Crea o importa un portafoglio Multi-Coin per invitare amici e guadagnare punti.
 
 # Recent Activity
 

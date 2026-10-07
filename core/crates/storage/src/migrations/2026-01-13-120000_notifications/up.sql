@@ -3,7 +3,7 @@ CREATE TYPE notification_type AS ENUM ('referralJoined', 'rewardsEnabled', 'rewa
 CREATE TABLE notifications (
     id SERIAL PRIMARY KEY,
     wallet_id INTEGER NOT NULL REFERENCES wallets(id) ON DELETE CASCADE,
-    asset_id VARCHAR REFERENCES assets(id) ON DELETE CASCADE,
+    asset_id VARCHAR(128) REFERENCES assets(id) ON DELETE CASCADE,
     notification_type notification_type NOT NULL,
     is_read BOOLEAN NOT NULL DEFAULT false,
     metadata JSONB,

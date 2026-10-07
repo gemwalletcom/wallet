@@ -1,47 +1,26 @@
-use crate::StaticAssetsClient;
-use primitives::{AssetId, Chain};
 use std::collections::HashSet;
 use std::error::Error;
-use storage::{AssetFilter, AssetUpdate, AssetsRepository, Database, DatabaseError};
+use std::sync::Arc;
+
+use primitives::{AssetId, Chain};
+
+use crate::StaticAssetsClient;
+use crate::assets::repository::Repository;
 
 pub struct AssetsImagesUpdater {
     client: StaticAssetsClient,
-    database: Database,
+    repository: Arc<dyn Repository>,
 }
 
 impl AssetsImagesUpdater {
-    pub fn new(client: StaticAssetsClient, database: Database) -> Self {
-        Self { client, database }
+    pub(crate) fn new(client: StaticAssetsClient, repository: Arc<dyn Repository>) -> Self {
+        Self { client, repository }
     }
 
     pub async fn update_chain(&self, chain: Chain) -> Result<(usize, usize), Box<dyn Error + Send + Sync>> {
         let mut assets = self.client.get_assets_list(chain).await?;
         assets.push(chain.as_asset_id());
-        let new: HashSet<AssetId> = assets.into_iter().collect();
-
-        Ok(self
-            .database
-            .run(move |client| -> Result<(usize, usize), DatabaseError> {
-                let current: HashSet<AssetId> = client
-                    .get_asset_ids_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::HasImage(true), AssetFilter::Chain(chain.as_ref().to_string())])?
-                    .into_iter()
-                    .collect();
-
-                let additions: Vec<AssetId> = new.difference(&current).cloned().collect();
-                let removals: Vec<AssetId> = current.difference(&new).cloned().collect();
-
-                let additions_len = additions.len();
-                let removals_len = removals.len();
-
-                if !additions.is_empty() {
-                    client.update_assets(additions, vec![AssetUpdate::HasImage(true)])?;
-                }
-                if !removals.is_empty() {
-                    client.update_assets(removals, vec![AssetUpdate::HasImage(false)])?;
-                }
-
-                Ok((additions_len, removals_len))
-            })
-            .await?)
+        let with_images: HashSet<AssetId> = assets.into_iter().collect();
+        Ok(self.repository.update_image_flags(chain, with_images).await?)
     }
 }

@@ -9,12 +9,12 @@ use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::banner::GemBannerService;
 use crate::services::banner::testkit::MemoryBannerStore;
 use crate::services::config::GemConfigService;
-use crate::services::device::testkit::MemoryDevicePlatform;
 use crate::services::device::{GemDeviceKeyService, GemDeviceService};
 use crate::services::file::testkit::NoopFileStore;
+use crate::services::node::GemNodeService;
+use crate::services::node::testkit::MemoryNodeStore;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
-use crate::services::subscription::GemSubscriptionService;
 use crate::services::support::GemSupportService;
 use crate::services::support::testkit::MemorySupportStore;
 use crate::services::wallet::testkit::{OTHER_PHRASE, PHRASE, WalletTestkit};
@@ -27,6 +27,8 @@ pub struct AppStartTestkit {
     pub wallets: WalletTestkit,
     pub banners: Arc<MemoryBannerStore>,
     pub assets: Arc<MemoryAssetStore>,
+    pub nodes: Arc<GemNodeService>,
+    pub node_store: Arc<MemoryNodeStore>,
     pub first: Wallet,
     pub second: Wallet,
 }
@@ -45,6 +47,8 @@ impl AppStartTestkit {
         let banner_store = Arc::new(MemoryBannerStore::default());
         let banners = Arc::new(GemBannerService::new(banner_store.clone(), primitives::Platform::IOS));
         let support_store = Arc::new(MemorySupportStore::default());
+        let node_store = Arc::new(MemoryNodeStore::default());
+        let nodes = Arc::new(GemNodeService::new(node_store.clone(), Arc::new(MemoryPreferencesStore::default())));
         let service = GemAppStartService::new(
             Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
             banners.clone(),
@@ -52,13 +56,7 @@ impl AppStartTestkit {
             discovery.balance.clone(),
             Arc::new(GemWalletConfigurationService::new(device_api.clone(), banners, discovery.wallet_preferences.clone())),
             wallets.service.clone(),
-            Arc::new(GemDeviceService::new(
-                device_api.clone(),
-                Arc::new(GemSubscriptionService::new(device_api.clone(), discovery.session.clone())),
-                discovery.session.clone(),
-                Arc::new(MemoryDevicePlatform),
-                preferences,
-            )),
+            GemDeviceService::mock(device_api.clone(), discovery.session.clone(), preferences),
             Arc::new(GemSupportService::new(
                 device_api,
                 support_store.clone(),
@@ -69,6 +67,7 @@ impl AppStartTestkit {
                     Arc::new(crate::services::banner::testkit::DeniedNotificationPermissions),
                 )),
             )),
+            nodes.clone(),
         );
         Self {
             service,
@@ -76,6 +75,8 @@ impl AppStartTestkit {
             wallets,
             banners: banner_store,
             assets: discovery.asset_store,
+            nodes,
+            node_store,
             first,
             second,
         }

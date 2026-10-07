@@ -8,9 +8,6 @@ pub struct UnusedStakeStore;
 
 #[async_trait]
 impl GemStakeStore for UnusedStakeStore {
-    async fn get_apr(&self, _: AssetId, _: StakeProviderType) -> Result<Option<f64>, GemServiceError> {
-        panic!("unexpected stake read")
-    }
     async fn get_validators(&self, _: AssetId, _: StakeProviderType) -> Result<Vec<DelegationValidator>, GemServiceError> {
         panic!("unexpected stake read")
     }

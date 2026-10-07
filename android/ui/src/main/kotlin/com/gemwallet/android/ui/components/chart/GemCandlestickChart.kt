@@ -161,12 +161,14 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
 
         val frame = Rect(leftPaddingPx, topPaddingPx, chartSize.width - rightAxisWidthPx, chartSize.height - bottomPaddingPx)
         if (frame.width <= 0 || frame.height <= 0) return@Box
-        val plot = CandlestickPlot(chart, frame, volumeBandGapPx, minWickWidthPx, maxWickWidthPx, priceRange, volumeRange)
+        val priceViewport = priceRange.viewport ?: return@Box
+        val plot = CandlestickPlot(chart, frame, volumeBandGapPx, minWickWidthPx, maxWickWidthPx, priceViewport, volumeRange.viewport)
 
         val candleIndex by rememberUpdatedState { fraction: Float -> chart.indexAt(fraction.toDouble())?.toInt() }
         val selectionChanged by rememberUpdatedState(onSelectionChanged)
         val zoom by rememberUpdatedState(onZoom)
         val pan by rememberUpdatedState(onPan)
+        val zoomed by rememberUpdatedState(chart.isZoomed)
 
         Canvas(
             modifier = Modifier
@@ -174,13 +176,14 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
                 .chartGestures(
                     plotLeft = frame.left,
                     plotWidth = frame.width,
+                    isZoomed = { zoomed },
                     indexAt = { candleIndex(it) },
                     onSelectionChanged = { selectionChanged(it) },
                     onZoom = { magnification, anchor -> zoom(magnification, anchor) },
                     onPan = { pan(it) },
                 ),
         ) {
-            drawYAxis(plot.levels(), plot, gridGuidelineColor, gridDashEffect, textMeasurer, axisLabelStyle, labelPaddingPx)
+            drawYAxis(layout.levels, plot, gridGuidelineColor, gridDashEffect, textMeasurer, axisLabelStyle, labelPaddingPx)
             drawTimeAxis(chart.xTicks.map { plot.x(it.date) }, timeLabels, plot, gridGuidelineColor, gridDashEffect, textMeasurer, timeLabelStyle, timeLabelGapPx)
             drawCurrentPriceLine(layout.currentPrice.value, plot, currentPriceLineColor, currentPriceDashEffect)
             clipRect(left = frame.left, top = 0f, right = frame.right, bottom = size.height) {
@@ -291,8 +294,7 @@ private fun DrawScope.drawCurrentPriceLine(price: Double, plot: CandlestickPlot,
 }
 
 private fun DrawScope.drawVolumes(candles: List<ChartCandleStick>, plot: CandlestickPlot, color: Color) {
-    if (!plot.hasVolume) return
-    candles.filter { it.volume > 0.0 }.map(plot::volume).forEach { bar ->
+    candles.filter { it.volume > 0.0 }.mapNotNull(plot::volume).forEach { bar ->
         val corner = min(plot.bodyWidth * CandlestickMetrics.BODY_CORNER_RATIO, bar.height / 2f)
         drawRoundRect(color = color, topLeft = bar.topLeft, size = bar.size, cornerRadius = CornerRadius(corner, corner))
     }

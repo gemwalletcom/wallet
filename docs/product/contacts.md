@@ -16,7 +16,10 @@ flowchart LR
 
 | When | Expected | Why |
 |---|---|---|
-| An address is typed as a name | it is resolved | |
+| The sender of a received transfer is saved as a contact | the contact gets no memo; a sent transfer keeps its memo | a received memo identifies the user's own account, so sending with it would credit the wrong one |
+| The user picks another network for an address | the memo is cleared; picking the network already selected keeps it | a memo belongs to one network, and the form does not show it, so a lost one goes unnoticed |
+
+Names follow the shared [Names](../PRODUCT.md#names) section.
 
 ## Platform differences
 

@@ -1,18 +1,19 @@
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
-use chrono::{NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use diesel::sql_types::{Nullable, SingleValue, SqlType};
 use diesel::upsert::excluded;
-use primitives::{AssetBasic, AssetId, AssetMarket, AssetPriceInfo, ChartTimeframe, Price, PriceData, PriceId, PriceProvider};
+use primitives::price_provider::{primary_price, ranked_prices};
+use primitives::{AssetBasic, AssetId, AssetMarket, AssetPriceInfo, ChartTimeframe, PriceData, PriceId, PriceProvider};
 
 use crate::error::ResourceName;
 use crate::models::min_max::MinMax;
-use crate::models::{ChartRow, PriceAssetRow, PriceProviderConfigRow, PriceRow, price::NewPriceRow, price::PricesChangeset};
+use crate::models::{ChartRow, PriceAssetRow, PriceRow, price::NewPriceRow, price::PricesChangeset};
 use crate::repositories::assets_repository::{all_asset_ids, asset_ids_updated_since, asset_rows};
-use crate::repositories::charts_repository::{ChartResult, chart_extremes, chart_price_at, insert_chart_rows};
-use crate::repositories::prices_providers_repository::price_provider_rows;
+use crate::repositories::charts_repository::{ChartResult, aggregate_chart_rows, chart_extremes, chart_price_at, insert_chart_rows};
+use crate::repositories::prices_providers_repository::PricesProvidersRepository;
 use crate::sql_types::PriceProviderRow;
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
@@ -61,8 +62,7 @@ pub trait PricesRepository {
     fn get_prices_assets_by_provider(&mut self, provider: PriceProvider) -> Result<Vec<PriceAsset>, DatabaseError>;
     fn get_primary_price_key(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<PriceId, DatabaseError>;
     fn get_primary_prices(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError>;
-    fn get_primary_price_infos(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
-    fn get_price_by_id(&mut self, price_id: &str) -> Result<Price, DatabaseError>;
+    fn get_price_infos(&mut self, asset_ids: &[AssetId]) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceData>, DatabaseError>;
     fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError>;
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError>;
@@ -72,7 +72,7 @@ pub trait PricesRepository {
     fn update_extremes_for_price(&mut self, price_id: &str) -> Result<usize, DatabaseError>;
 }
 
-fn prices_for_asset_ids(client: &mut DatabaseClient, asset_ids: &[String]) -> Result<Vec<(String, PriceRow)>, diesel::result::Error> {
+fn prices_for_asset_ids(client: &mut DatabaseClient, asset_ids: &[String]) -> Result<Vec<(AssetId, PriceRow)>, diesel::result::Error> {
     use crate::schema::{prices, prices_assets};
 
     prices_assets::table
@@ -80,7 +80,7 @@ fn prices_for_asset_ids(client: &mut DatabaseClient, asset_ids: &[String]) -> Re
         .filter(prices_assets::asset_id.eq_any(asset_ids))
         .select((prices_assets::asset_id, PriceRow::as_select()))
         .load::<(crate::sql_types::AssetId, PriceRow)>(&mut client.connection)
-        .map(|rows| rows.into_iter().map(|(id, row)| (id.0.to_string(), row)).collect())
+        .map(|rows| rows.into_iter().map(|(id, row)| (id.0, row)).collect())
 }
 
 fn price_row(client: &mut DatabaseClient, price_id: &str) -> Result<PriceRow, diesel::result::Error> {
@@ -125,17 +125,17 @@ pub(crate) fn primary_price_rows(client: &mut DatabaseClient, asset_ids: &[Asset
     if asset_ids.is_empty() {
         return Ok(vec![]);
     }
-    let providers = price_provider_rows(client)?;
+    let providers = client.get_prices_providers()?;
     let string_ids: Vec<String> = asset_ids.iter().map(ToString::to_string).collect();
-    let mut rows_by_asset: HashMap<String, Vec<PriceRow>> = prices_for_asset_ids(client, &string_ids)?.into_iter().fold(HashMap::new(), |mut acc, (id, row)| {
+    let mut rows_by_asset: HashMap<AssetId, Vec<PriceRow>> = prices_for_asset_ids(client, &string_ids)?.into_iter().fold(HashMap::new(), |mut acc, (id, row)| {
         acc.entry(id).or_default().push(row);
         acc
     });
     Ok(asset_ids
         .iter()
         .filter_map(|asset_id| {
-            let rows = rows_by_asset.remove(&asset_id.to_string())?;
-            let row = primary_price(&providers, &rows, max_age)?.clone();
+            let rows = rows_by_asset.remove(asset_id)?;
+            let row = primary_price(&providers, &rows, max_age, PriceRow::as_primitive)?.clone();
             Some((asset_id.clone(), row))
         })
         .collect())
@@ -177,6 +177,8 @@ impl PricesRepository for DatabaseClient {
 
     fn set_prices_assets(&mut self, values: Vec<PriceAsset>) -> Result<usize, DatabaseError> {
         use crate::schema::prices_assets::dsl::*;
+        use diesel::query_dsl::methods::FilterDsl;
+
         if values.is_empty() {
             return Ok(0);
         }
@@ -186,6 +188,7 @@ impl PricesRepository for DatabaseClient {
             .on_conflict((asset_id, provider))
             .do_update()
             .set(price_id.eq(excluded(price_id)))
+            .filter(price_id.ne(excluded(price_id)))
             .execute(&mut self.connection)?)
     }
 
@@ -206,25 +209,22 @@ impl PricesRepository for DatabaseClient {
     }
 
     fn get_primary_price_key(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<PriceId, DatabaseError> {
-        let providers = price_provider_rows(self)?;
+        let providers = self.get_prices_providers()?;
         let rows = prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row).collect::<Vec<_>>();
-        Ok(primary_price(&providers, &rows, max_age).ok_or_else(|| DatabaseError::not_found(PriceRow::RESOURCE_NAME, asset_id.to_string()))?.id.0.clone())
+        Ok(primary_price(&providers, &rows, max_age, PriceRow::as_primitive)
+            .ok_or_else(|| DatabaseError::not_found(PriceRow::RESOURCE_NAME, asset_id.to_string()))?
+            .id
+            .0
+            .clone())
     }
 
     fn get_primary_prices(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError> {
         Ok(primary_price_rows(self, asset_ids, max_age)?.into_iter().map(|(asset_id, row)| (asset_id, row.as_price_data())).collect())
     }
 
-    fn get_primary_price_infos(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
-        let primary_prices = primary_price_rows(self, asset_ids, max_age)?;
-        if primary_prices.is_empty() {
-            return Ok(vec![]);
-        }
-        Ok(primary_prices.into_iter().map(|(asset_id, price)| price.as_price_asset_info(asset_id)).collect())
-    }
-
-    fn get_price_by_id(&mut self, price_id: &str) -> Result<Price, DatabaseError> {
-        Ok(price_row(self, price_id).or_not_found(price_id.to_string())?.as_primitive())
+    fn get_price_infos(&mut self, asset_ids: &[AssetId]) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
+        let ids: Vec<String> = asset_ids.iter().map(ToString::to_string).collect();
+        Ok(prices_for_asset_ids(self, &ids)?.into_iter().map(|(asset_id, price)| price.as_price_asset_info(asset_id)).collect())
     }
 
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceData>, DatabaseError> {
@@ -232,9 +232,9 @@ impl PricesRepository for DatabaseClient {
     }
 
     fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError> {
-        let providers = price_provider_rows(self)?;
+        let providers = self.get_prices_providers()?;
         let rows = prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row).collect::<Vec<_>>();
-        let Some(row) = ranked_prices(&providers, &rows).into_iter().next() else {
+        let Some(row) = ranked_prices(&providers, &rows, PriceRow::provider_value).into_iter().next() else {
             return Ok(None);
         };
         Ok(chart_price_at(self, &row.id.to_string(), at)?)
@@ -280,35 +280,39 @@ impl PricesRepository for DatabaseClient {
         if prices.is_empty() {
             return Ok(vec![]);
         }
-        let prices: Vec<PriceRow> = prices.into_iter().map(PriceRow::from_price_data).collect();
-        let price_ids: Vec<String> = prices.iter().map(|p| p.id.to_string()).collect();
-        let mappings = price_assets_for_price_ids(self, price_ids)?;
-        let mapped_ids: HashSet<String> = mappings.iter().map(|m| m.price_id.to_string()).collect();
-        let to_store: Vec<PriceRow> = prices.into_iter().filter(|p| mapped_ids.contains(&p.id.to_string())).collect();
-        if to_store.is_empty() {
-            return Ok(vec![]);
-        }
-        let ids: Vec<String> = to_store.iter().map(|p| p.id.to_string()).collect();
-        let incoming_by_id: HashMap<String, PriceRow> = to_store.iter().cloned().map(|p| (p.id.to_string(), p)).collect();
-        upsert_prices(self, to_store)?;
+        self.transaction(move |client| {
+            let prices: Vec<PriceRow> = prices.into_iter().map(PriceRow::from_price_data).collect();
+            let price_ids: Vec<String> = prices.iter().map(|p| p.id.to_string()).collect();
+            let mappings = price_assets_for_price_ids(client, price_ids)?;
+            let mapped_ids: HashSet<String> = mappings.iter().map(|m| m.price_id.to_string()).collect();
+            let to_store: Vec<PriceRow> = prices.into_iter().filter(|p| mapped_ids.contains(&p.id.to_string())).collect();
+            if to_store.is_empty() {
+                return Ok(vec![]);
+            }
+            let ids: Vec<String> = to_store.iter().map(|p| p.id.to_string()).collect();
+            let incoming_by_id: HashMap<String, PriceRow> = to_store.iter().cloned().map(|p| (p.id.to_string(), p)).collect();
+            upsert_prices(client, to_store)?;
 
-        let current_prices = prices_by_filter(self, vec![PriceFilter::Ids(ids)])?;
-        let extreme_updates: Vec<(String, Vec<PriceUpdate>)> = current_prices
-            .iter()
-            .filter_map(|price| {
-                let id = price.id.to_string();
-                let updates = price.merge_extremes(incoming_by_id.get(&id));
-                (!updates.is_empty()).then_some((id, updates))
-            })
-            .collect();
-        for (id, updates) in extreme_updates {
-            self.update_prices(vec![id], updates)?;
-        }
+            let current_prices = prices_by_filter(client, vec![PriceFilter::Ids(ids)])?;
+            let extreme_updates: Vec<(String, Vec<PriceUpdate>)> = current_prices
+                .iter()
+                .filter_map(|price| {
+                    let id = price.id.to_string();
+                    let updates = price.merge_extremes(incoming_by_id.get(&id));
+                    (!updates.is_empty()).then_some((id, updates))
+                })
+                .collect();
+            for (id, updates) in extreme_updates {
+                client.update_prices(vec![id], updates)?;
+            }
 
-        let charts: Vec<ChartRow> = current_prices.iter().cloned().map(ChartRow::from_price).collect();
-        insert_chart_rows(self, ChartTimeframe::Raw, charts)?;
+            let chart_updates: Vec<(String, NaiveDateTime)> = current_prices.iter().map(|price| (price.id.to_string(), price.last_updated_at)).collect();
+            let charts: Vec<ChartRow> = current_prices.iter().cloned().map(ChartRow::from_price).collect();
+            insert_chart_rows(client, ChartTimeframe::Raw, charts)?;
+            aggregate_chart_rows(client, chart_updates)?;
 
-        Ok(mappings.into_iter().map(|m| m.asset_id.0).collect::<HashSet<_>>().into_iter().collect())
+            Ok(mappings.into_iter().map(|m| m.asset_id.0).collect::<HashSet<_>>().into_iter().collect())
+        })
     }
 
     fn get_assets_markets(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError> {
@@ -343,9 +347,9 @@ impl PricesRepository for DatabaseClient {
             return Ok(vec![]);
         }
 
-        let providers = price_provider_rows(self)?;
+        let providers = self.get_prices_providers()?;
         let assets = asset_rows(self, asset_ids)?;
-        let mut prices_by_asset: HashMap<String, Vec<PriceRow>> = prices_for_asset_ids(self, &assets.iter().map(|a| a.id.clone()).collect::<Vec<_>>())?
+        let mut prices_by_asset: HashMap<AssetId, Vec<PriceRow>> = prices_for_asset_ids(self, &assets.iter().map(|a| a.id.clone()).collect::<Vec<_>>())?
             .into_iter()
             .fold(HashMap::new(), |mut acc, (asset_id, row)| {
                 acc.entry(asset_id).or_default().push(row);
@@ -355,36 +359,37 @@ impl PricesRepository for DatabaseClient {
         Ok(assets
             .into_iter()
             .map(|asset| {
-                let rows = prices_by_asset.remove(&asset.id).unwrap_or_default();
-                let market = primary_price(&providers, &rows, max_age).map(PriceRow::as_market_primitive);
+                let rows = prices_by_asset.remove(&asset.as_asset_id()).unwrap_or_default();
+                let market = primary_price(&providers, &rows, max_age, PriceRow::as_primitive).map(PriceRow::as_market_primitive);
                 AssetWithMarket { asset: asset.as_basic_primitive(), market }
             })
             .collect())
     }
 }
 
-fn ranked_prices<'a>(providers: &[PriceProviderConfigRow], rows: &'a [PriceRow]) -> Vec<&'a PriceRow> {
-    let mut candidates: Vec<(&PriceProviderConfigRow, &PriceRow)> = providers.iter().filter(|p| p.enabled).filter_map(|p| rows.iter().find(|row| row.provider.0 == p.id.0).map(|row| (p, row))).collect();
-    candidates.sort_by_key(|(p, _)| p.priority);
-    candidates.into_iter().map(|(_, row)| row).collect()
-}
-
-fn primary_price<'a>(providers: &[PriceProviderConfigRow], rows: &'a [PriceRow], max_age: Duration) -> Option<&'a PriceRow> {
-    let cutoff = (Utc::now() - chrono::Duration::from_std(max_age).ok()?).naive_utc();
-    ranked_prices(providers, rows).into_iter().find(|row| row.last_updated_at >= cutoff)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::HOUR;
+    use primitives::{HOUR, PriceProviderConfig};
 
     #[test]
     fn test_primary_price() {
         let providers = vec![
-            PriceProviderConfigRow::new(PriceProvider::Coingecko, true),
-            PriceProviderConfigRow::new(PriceProvider::Jupiter, true),
-            PriceProviderConfigRow::new(PriceProvider::Pyth, false),
+            PriceProviderConfig {
+                provider: PriceProvider::Coingecko,
+                enabled: true,
+                priority: 0,
+            },
+            PriceProviderConfig {
+                provider: PriceProvider::Jupiter,
+                enabled: true,
+                priority: 2,
+            },
+            PriceProviderConfig {
+                provider: PriceProvider::Pyth,
+                enabled: false,
+                priority: 1,
+            },
         ];
         let max_age = HOUR;
 
@@ -400,32 +405,44 @@ mod tests {
                 ..PriceRow::mock_with_age(PriceProvider::Jupiter, 60)
             },
         ];
-        let primary = primary_price(&providers, &fresh, max_age).unwrap();
+        let primary = primary_price(&providers, &fresh, max_age, PriceRow::as_primitive).unwrap();
         assert_eq!(primary.provider.0, PriceProvider::Coingecko);
         assert_eq!(primary.as_market_primitive().market_cap, Some(600.0));
         assert_eq!(primary.as_market_primitive().circulating_supply, Some(300.0));
 
         let stale_primary = vec![PriceRow::mock_with_age(PriceProvider::Coingecko, 7200), PriceRow::mock_with_age(PriceProvider::Jupiter, 60)];
-        assert_eq!(primary_price(&providers, &stale_primary, max_age).unwrap().provider.0, PriceProvider::Jupiter);
+        assert_eq!(primary_price(&providers, &stale_primary, max_age, PriceRow::as_primitive).unwrap().provider.0, PriceProvider::Jupiter);
 
         let only_disabled = vec![PriceRow::mock_with_age(PriceProvider::Pyth, 60)];
-        assert!(primary_price(&providers, &only_disabled, max_age).is_none());
+        assert!(primary_price(&providers, &only_disabled, max_age, PriceRow::as_primitive).is_none());
 
-        assert!(primary_price(&providers, &[], max_age).is_none());
+        assert!(primary_price(&providers, &[], max_age, PriceRow::as_primitive).is_none());
+
+        let custom_priorities = vec![
+            PriceProviderConfig {
+                provider: PriceProvider::Coingecko,
+                enabled: true,
+                priority: 10,
+            },
+            PriceProviderConfig {
+                provider: PriceProvider::Jupiter,
+                enabled: true,
+                priority: 0,
+            },
+        ];
+        assert_eq!(primary_price(&custom_priorities, &fresh, max_age, PriceRow::as_primitive).unwrap().provider.0, PriceProvider::Jupiter);
     }
 }
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use std::time::Duration;
-
     use chrono::Utc;
     use primitives::{Asset, AssetId, AssetType, Chain, PriceData, PriceId, PriceProvider};
 
     use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, PriceAsset, PricesProvidersRepository, PricesRepository};
 
     #[tokio::test]
-    async fn test_get_primary_price_infos() {
+    async fn test_get_price_infos() {
         let database = Database::mock();
         let asset_id = AssetId::from_token(Chain::Ethereum, "0xpricetest");
         let coingecko_id = PriceId::new(PriceProvider::Coingecko, "price-test".to_string());
@@ -451,7 +468,7 @@ mod database_integration_tests {
             ..PriceData::mock()
         };
         let requested = asset_id.clone();
-        let infos = database
+        let mut infos = database
             .run(move |client| -> Result<_, DatabaseError> {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::new(requested.clone(), "Price Test".to_string(), "PT".to_string(), 18, AssetType::ERC20).as_basic_primitive()])?;
@@ -467,17 +484,22 @@ mod database_integration_tests {
                         price_id: jupiter_id,
                     },
                 ])?;
-                client.get_primary_price_infos(&[requested], Duration::from_secs(3600))
+                client.get_price_infos(&[requested])
             })
             .await
             .unwrap();
 
-        assert_eq!(infos.len(), 1);
+        infos.sort_by_key(|info| info.price.provider.priority());
+        assert_eq!(infos.len(), 2);
         assert_eq!(infos[0].asset_id, asset_id);
         assert_eq!(infos[0].price.price, 42.0);
         assert_eq!(infos[0].price.price_change_percentage_24h, 5.0);
         assert_eq!(infos[0].price.provider, PriceProvider::Coingecko);
         assert_eq!(infos[0].market.market_cap, Some(12_600.0));
         assert_eq!(infos[0].market.circulating_supply, Some(300.0));
+        assert_eq!(infos[1].asset_id, asset_id);
+        assert_eq!(infos[1].price.price, 41.0);
+        assert_eq!(infos[1].price.provider, PriceProvider::Jupiter);
+        assert_eq!(infos[1].market.market_cap, Some(41_000.0));
     }
 }

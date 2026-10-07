@@ -2,7 +2,7 @@ use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     Asset, AssetId, TransactionSwapMetadata, TransactionSwapReferralFee,
-    known_assets::HYPERCORE_SPOT_USDC,
+    known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC},
     swap::{EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS, SOLANA_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS},
 };
 
@@ -67,9 +67,15 @@ impl MayanTransactionResult {
 
 fn asset_decimals(asset_id: &AssetId) -> Option<u32> {
     if asset_id.is_native() {
-        return Some(Asset::from_chain(asset_id.chain).decimals as u32);
+        return Some(Asset::from_chain(asset_id.chain).decimals);
     }
-    (*asset_id == HYPERCORE_SPOT_USDC.id).then_some(HYPERCORE_SPOT_USDC.decimals as u32)
+    if *asset_id == HYPERCORE_SPOT_USDC.id {
+        Some(HYPERCORE_SPOT_USDC.decimals)
+    } else if *asset_id == HYPERCORE_PERPETUAL_USDC.id {
+        Some(HYPERCORE_PERPETUAL_USDC.decimals)
+    } else {
+        None
+    }
 }
 
 fn amount_value(amount: Option<&str>, amount64: Option<&str>, decimals: Option<u32>) -> Option<BigUint> {
@@ -221,6 +227,12 @@ mod tests {
             ..result(include_str!("test/pol_to_bnb_swift.json"))
         };
         assert!(map_swap_result(&invalid, None).metadata.is_none());
+    }
+
+    #[test]
+    fn test_asset_decimals() {
+        assert_eq!(asset_decimals(&HYPERCORE_PERPETUAL_USDC.id), Some(HYPERCORE_PERPETUAL_USDC.decimals));
+        assert_eq!(asset_decimals(&HYPERCORE_SPOT_USDC.id), Some(HYPERCORE_SPOT_USDC.decimals));
     }
 
     #[test]

@@ -139,7 +139,7 @@ where
                     output: request.to_asset.asset_id(),
                     route_data: String::new(),
                 }],
-                slippage_bps: request.options.slippage.bps,
+                slippage_bps: response.route.estimate.slippage_bps(&request.options.slippage)?,
             },
             request: request.clone(),
             eta_in_seconds: Some(response.route.estimate.estimated_route_duration).filter(|seconds| *seconds > 0),

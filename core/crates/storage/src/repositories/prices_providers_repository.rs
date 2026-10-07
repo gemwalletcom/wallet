@@ -1,16 +1,9 @@
 use diesel::prelude::*;
 use diesel::upsert::excluded;
-use primitives::PriceProvider;
+use primitives::{PriceProvider, PriceProviderConfig};
 
 use crate::models::PriceProviderConfigRow;
 use crate::{DatabaseClient, DatabaseError};
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PriceProviderConfig {
-    pub provider: PriceProvider,
-    pub enabled: bool,
-    pub priority: i32,
-}
 
 pub trait PricesProvidersRepository {
     fn add_prices_providers(&mut self, providers: Vec<PriceProvider>) -> Result<usize, DatabaseError>;

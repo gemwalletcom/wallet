@@ -36,6 +36,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
+import io.mockk.MockKStubScope
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -43,7 +44,9 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -58,12 +61,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.FiatQuote
 import uniffi.gemstone.FiatQuoteUrl
 import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemFiatButtonAction
 import uniffi.gemstone.GemFiatQuotePhase
+import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
+import uniffi.gemstone.GemFiatQuotesResult
 import uniffi.gemstone.GemFiatSuggestedAmount
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.formattedCurrency
@@ -77,7 +84,7 @@ class FiatViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule(testDispatcher)
 
-    private val asset = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8)
+    private val asset = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8u)
     private val assetInfoFlow = MutableStateFlow<AssetData?>(mockAssetData(asset = asset, price = mockPrice(price = 100.0)))
 
     private val wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Bitcoin)))
@@ -98,17 +105,17 @@ class FiatViewModelTest {
     }
     private val service = mockk<GemFiatQuoteServiceInterface> {
         every { suggestedAmounts() } returns listOf(GemFiatSuggestedAmount(100u, mockGemFormattedNumber(value = 100.0)), GemFiatSuggestedAmount(250u, mockGemFormattedNumber(value = 250.0)))
-        every { newSession(any(), any()) } answers {
+        every { newSession(any(), any(), any()) } answers {
             val quoteType = firstArg<uniffi.gemstone.FiatQuoteType>()
             val amount = secondArg<UInt?>()
             val operation = { type: uniffi.gemstone.FiatQuoteType, default: UInt ->
                 val value = amount?.takeIf { type == quoteType } ?: default
                 mockGemFiatOperation(quoteType = type, amount = value.toString(), phase = GemFiatQuotePhase.Loading(value.toDouble()))
             }
-            mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u))
+            mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u), format = thirdArg())
         }
-        every { randomAmount() } returns 500u
-        coEvery { quotes(any(), any(), any()) } returns
+        every { isAvailable(any()) } returns true
+        coEvery { quotes(any(), any()) } returnsQuotes
             listOf(
                 mockFiatQuote(
                     id = "quote-1",
@@ -146,7 +153,7 @@ class FiatViewModelTest {
             runCurrent()
 
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 50.0), asset.id.toIdentifier())
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -162,14 +169,14 @@ class FiatViewModelTest {
         try {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
-            coVerify(exactly = 0) { service.quotes(any(), any(), any()) }
+            coVerify(exactly = 0) { service.quotes(any(), any()) }
 
             assetInfoFlow.value = mockAssetData(asset = asset, price = mockPrice(price = 100.0))
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 50.0), asset.id.toIdentifier())
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -186,7 +193,7 @@ class FiatViewModelTest {
             runCurrent()
 
             assertNull(viewModel.assetInfoUIModel.value)
-            coVerify(exactly = 0) { service.quotes(any(), any(), any()) }
+            coVerify(exactly = 0) { service.quotes(any(), any()) }
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -202,7 +209,7 @@ class FiatViewModelTest {
 
             assertEquals("10", viewModel.amount.value)
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 10.0)
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 10.0), asset.id.toIdentifier())
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -230,10 +237,10 @@ class FiatViewModelTest {
 
             assertEquals("100", viewModel.amount.value)
             coVerify(exactly = 0) {
-                service.quotes(FiatQuoteType.Sell.toGem(), asset.id.toIdentifier(), 50.0)
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Sell.toGem(), 50.0), asset.id.toIdentifier())
             }
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Sell.toGem(), asset.id.toIdentifier(), 100.0)
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Sell.toGem(), 100.0), asset.id.toIdentifier())
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -264,7 +271,7 @@ class FiatViewModelTest {
 
     @Test
     fun `quote request failure is distinct from an empty quote list and can retry`() = runTest(testDispatcher) {
-        coEvery { service.quotes(any(), any(), any()) } throws GemServiceException.Api("offline")
+        coEvery { service.quotes(any(), any()) } failsWith GemServiceException.Api("offline")
         val viewModel = createViewModel()
 
         try {
@@ -275,7 +282,7 @@ class FiatViewModelTest {
             assertTrue((viewModel.viewState.value.buttonAction == GemFiatButtonAction.RETRY_QUOTE))
             assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
 
-            coEvery { service.quotes(any(), any(), any()) } returns
+            coEvery { service.quotes(any(), any()) } returnsQuotes
                 listOf(
                     mockFiatQuote(
                         id = "quote-1",
@@ -294,7 +301,7 @@ class FiatViewModelTest {
             assertFalse((viewModel.viewState.value.buttonAction == GemFiatButtonAction.RETRY_QUOTE))
             assertTrue(viewModel.providers.value.isNotEmpty())
             coVerify(exactly = 2) {
-                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 50.0), asset.id.toIdentifier())
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -318,7 +325,7 @@ class FiatViewModelTest {
 
     @Test
     fun `empty quote list remains quote not available`() = runTest(testDispatcher) {
-        coEvery { service.quotes(any(), any(), any()) } returns emptyList()
+        coEvery { service.quotes(any(), any()) } returnsQuotes emptyList()
         val viewModel = createViewModel()
 
         try {
@@ -335,7 +342,7 @@ class FiatViewModelTest {
     @Test
     fun `a sell quote above the balance keeps the providers and moves the error onto the amount`() = runTest(testDispatcher) {
         assetInfoFlow.value = mockAssetData(asset = asset, price = mockPrice(price = 100.0), metadata = mockAssetMetaData(isSellEnabled = true))
-        coEvery { service.quotes(any(), any(), any()) } returns
+        coEvery { service.quotes(any(), any()) } returnsQuotes
             listOf(
                 mockFiatQuote(
                     id = "quote-1",
@@ -402,7 +409,7 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            val result = viewModel.quoteUrl()
+            val result = viewModel.continueToProvider {}
             runCurrent()
 
             assertTrue(result.isFailure)
@@ -421,7 +428,9 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("https://provider.test/checkout", viewModel.quoteUrl().getOrThrow())
+            var redirect: String? = null
+            viewModel.continueToProvider { redirect = it }.getOrThrow()
+            assertEquals("https://provider.test/checkout", redirect)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -466,24 +475,8 @@ class FiatViewModelTest {
             assertEquals(FiatQuoteType.Buy, viewModel.type.value)
             assertEquals("25", viewModel.amount.value)
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 25.0)
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 25.0), asset.id.toIdentifier())
             }
-        } finally {
-            viewModel.viewModelScope.cancel()
-        }
-    }
-
-    @Test
-    fun `random amount remains valid when current amount is at maximum`() = runTest(testDispatcher) {
-        val viewModel = createViewModel()
-
-        try {
-            viewModel.updateAmount("1000")
-
-            viewModel.selectRandomAmount()
-            runCurrent()
-
-            assertEquals("500", viewModel.amount.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -507,22 +500,27 @@ class FiatViewModelTest {
     }
 
     @Test
-    fun `the quote clock only runs while the screen is started`() = runTest(testDispatcher) {
+    fun `the quote clock only runs while the screen is started and a return fetches at once`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
 
         try {
+            viewModel.setRefreshEnabled(true)
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
-            coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
+            coVerify(exactly = 1) { service.quotes(any(), any()) }
 
-            advanceTimeBy(RefreshIntervalMs + DebounceSettleMs)
+            viewModel.setRefreshEnabled(false)
+            advanceTimeBy(QuoteLifetimeMs)
             runCurrent()
-            coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
+            coVerify(exactly = 1) { service.quotes(any(), any()) }
 
             viewModel.setRefreshEnabled(true)
+            runCurrent()
+            coVerify(exactly = 2) { service.quotes(any(), any()) }
+
             advanceTimeBy(RefreshIntervalMs + DebounceSettleMs)
             runCurrent()
-            coVerify(exactly = 2) { service.quotes(any(), any(), any()) }
+            coVerify(exactly = 3) { service.quotes(any(), any()) }
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -530,25 +528,78 @@ class FiatViewModelTest {
 
     @Test
     fun `a failed quote stops the clock until the amount changes`() = runTest(testDispatcher) {
-        coEvery { service.quotes(any(), any(), any()) } throws GemServiceException.Api("offline")
+        coEvery { service.quotes(any(), any()) } failsWith GemServiceException.Api("offline")
         val viewModel = createViewModel()
 
         try {
             viewModel.setRefreshEnabled(true)
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
-            coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
+            coVerify(exactly = 1) { service.quotes(any(), any()) }
 
             advanceTimeBy(RefreshIntervalMs * 2)
             runCurrent()
-            coVerify(exactly = 1) { service.quotes(any(), any(), any()) }
+            coVerify(exactly = 1) { service.quotes(any(), any()) }
+
+            viewModel.setRefreshEnabled(false)
+            viewModel.setRefreshEnabled(true)
+            runCurrent()
+            coVerify(exactly = 1) { service.quotes(any(), any()) }
 
             viewModel.updateAmount("75")
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
-            coVerify(exactly = 1) { service.quotes(any(), any(), 75.0) }
+            coVerify(exactly = 1) { service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 75.0), any()) }
         } finally {
             viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `unavailable fiat keeps quotes but never requests a checkout url`() = runTest(testDispatcher) {
+        every { service.isAvailable(any()) } returns false
+        val subject = createViewModel()
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+            val quote = subject.viewState.value.selectedQuoteRow
+            assertNull(subject.infoSheet.value)
+
+            var redirects = 0
+            subject.continueToProvider { redirects += 1 }.getOrThrow()
+            assertEquals(0, redirects)
+            assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+            assertEquals(quote, subject.viewState.value.selectedQuoteRow)
+            coVerify(exactly = 0) { service.quoteUrl(any(), any()) }
+        } finally {
+            subject.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `switching fiat type while the checkout loads never opens the old checkout`() = runTest(testDispatcher) {
+        val checkout = CompletableDeferred<FiatQuoteUrl>()
+        coEvery { service.quoteUrl(any(), any()) } coAnswers { checkout.await() }
+        assetInfoFlow.value = requireNotNull(assetInfoFlow.value).copy(metadata = mockAssetMetaData(isSellEnabled = true))
+        val subject = createViewModel()
+        var redirects = 0
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+            val continuation = async { subject.continueToProvider { redirects += 1 } }
+            runCurrent()
+
+            subject.setType(FiatQuoteType.Sell)
+            runCurrent()
+            checkout.complete(FiatQuoteUrl(redirectUrl = "https://provider.test/checkout", providerTransactionId = null))
+            continuation.await().getOrThrow()
+
+            assertEquals(0, redirects)
+            assertNull(subject.infoSheet.value)
+            verify(exactly = 1) { service.isAvailable(FiatQuoteType.Buy.toGem()) }
+            coVerify(exactly = 1) { service.quoteUrl(any(), any()) }
+        } finally {
+            subject.viewModelScope.cancel()
         }
     }
 
@@ -573,5 +624,10 @@ class FiatViewModelTest {
         val OneBitcoin: BigInteger = BigInteger("100000000")
         const val DebounceSettleMs = 300L
         const val RefreshIntervalMs = 300_000L
+        const val QuoteLifetimeMs = 16 * 60_000L
     }
 }
+
+private infix fun MockKStubScope<GemFiatQuotesResult, GemFiatQuotesResult>.returnsQuotes(quotes: List<FiatQuote>) = answers { GemFiatQuotesResult(firstArg(), quotes, null) }
+
+private infix fun MockKStubScope<GemFiatQuotesResult, GemFiatQuotesResult>.failsWith(error: GemServiceException) = answers { GemFiatQuotesResult(firstArg(), emptyList(), error) }

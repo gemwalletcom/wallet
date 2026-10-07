@@ -13,6 +13,8 @@ import com.gemwallet.android.features.perpetuals.presents.autoclose.AutocloseCon
 import com.gemwallet.android.features.perpetuals.presents.autoclose.AutocloseNavGraph
 import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
@@ -40,6 +42,8 @@ fun PerpetualScreen(
         onDispose { viewModel.onScreenExit() }
     }
 
+    val infoSheet by viewModel.infoSheet.collectAsStateWithLifecycle()
+    InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val details by viewModel.details.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
@@ -47,6 +51,7 @@ fun PerpetualScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    var showModifyDialog by remember { mutableStateOf(false) }
     var showAutoclose by remember { mutableStateOf(false) }
 
     PerpetualScene(
@@ -55,11 +60,14 @@ fun PerpetualScreen(
         chart = chart,
         period = period,
         isRefreshing = isRefreshing,
+        showModifyDialog = showModifyDialog,
+        onDismissModify = { showModifyDialog = false },
         snackbar = snackbar,
         onAction = { action ->
             when (action) {
                 PerpetualAction.Close -> onClose()
                 PerpetualAction.Refresh -> viewModel.refresh()
+                PerpetualAction.ModifyPosition -> viewModel.modifyPosition { showModifyDialog = true }
                 PerpetualAction.IncreasePosition -> viewModel.increasePosition(amountAction)
                 PerpetualAction.ReducePosition -> viewModel.reducePosition(amountAction)
                 PerpetualAction.ClosePosition -> viewModel.closePosition(confirmAction)

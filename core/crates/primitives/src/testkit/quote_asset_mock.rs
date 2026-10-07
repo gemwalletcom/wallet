@@ -1,10 +1,6 @@
-use crate::{AssetId, Chain, swap::QuoteAsset};
+use crate::{AssetId, swap::QuoteAsset};
 
 impl QuoteAsset {
-    pub fn mock() -> Self {
-        Self::mock_with_asset_id(AssetId::from_chain(Chain::Ethereum), "ETH", 18)
-    }
-
     pub fn mock_with_asset_id(id: AssetId, symbol: &str, decimals: u32) -> Self {
         Self {
             symbol: symbol.to_string(),

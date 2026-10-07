@@ -66,7 +66,6 @@ public extension ViewModelFactory {
         WalletSceneViewModel(
             service: walletHomeService(),
             observablePreferences: observablePreferences,
-            collectionsModel: collectionsScene(wallet: wallet),
             wallet: wallet,
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
             isPresentingWallets: isPresentingWallets,
@@ -149,7 +148,7 @@ public extension ViewModelFactory {
 
     @MainActor
     func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetSceneViewModel? {
-        currentWallet(in: currentWallets()).map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
+        currentWallet().map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
     }
 
     @MainActor

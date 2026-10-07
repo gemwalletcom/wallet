@@ -27,11 +27,12 @@ fun PerpetualsPreviewSection(onOpenPerpetuals: () -> Unit, onOpenPerpetual: (Ass
 
     Column {
         SubheaderItem(stringResource(R.string.perpetuals_title), onClick = onOpenPerpetuals)
-        if (positions.isEmpty()) {
+        val trade = tradeRow
+        if (trade != null) {
             ListItem(
                 model = ListItemModel(
                     title = stringResource(R.string.perpetuals_trade),
-                    subtitle = tradeRow?.let { it.balance.text().hiddenWhen(it.hideBalance) },
+                    subtitle = trade.balance.text().hiddenWhen(trade.hideBalance),
                 ),
                 listPosition = ListPosition.Single,
                 modifier = Modifier.clickable(onClick = onOpenPerpetuals),

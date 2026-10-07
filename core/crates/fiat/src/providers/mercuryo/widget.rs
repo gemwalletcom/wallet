@@ -40,18 +40,7 @@ impl MercuryoWidget {
         }
     }
 
-    pub fn new_from_data(
-        widget_id: String,
-        secret_key: String,
-        merchant_transaction_id: String,
-        address: String,
-        ip_address: String,
-        currency: String,
-        _fiat_currency: String,
-        amount: f64,
-        quote_type: FiatQuoteType,
-        network: String,
-    ) -> Self {
+    pub fn new_from_data(widget_id: String, secret_key: String, merchant_transaction_id: String, address: String, ip_address: String, currency: String, amount: f64, quote_type: FiatQuoteType, network: String) -> Self {
         Self {
             widget_id,
             secret_key,

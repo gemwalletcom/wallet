@@ -328,6 +328,7 @@ fun WalletNavGraph(
                 onOpenPerpetual = navigator::openPerpetual,
                 onOpenPortfolio = { navigator.openPortfolio(PortfolioType.Perpetuals) },
                 amountAction = AmountTransactionAction(navigator::openAmount),
+                onSelectDepositAsset = navigator::openPerpetualDepositSelect,
                 confirmAction = ConfirmTransactionAction(navigator::openConfirmTransfer),
                 onCancel = onCancel,
                 onTransaction = navigator::openTransaction,

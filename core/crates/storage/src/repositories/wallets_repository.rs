@@ -75,7 +75,7 @@ pub(crate) fn wallet_row(client: &mut DatabaseClient, identifier: &str) -> Resul
     wallets::table.filter(wallets::identifier.eq(identifier)).select(WalletRow::as_select()).first(&mut client.connection)
 }
 
-fn wallet_addresses(client: &mut DatabaseClient, addresses: Vec<String>) -> Result<Vec<WalletAddressRow>, diesel::result::Error> {
+pub(crate) fn wallet_addresses(client: &mut DatabaseClient, addresses: Vec<String>) -> Result<Vec<WalletAddressRow>, diesel::result::Error> {
     wallets_addresses::table.filter(wallets_addresses::address.eq_any(addresses)).select(WalletAddressRow::as_select()).load(&mut client.connection)
 }
 

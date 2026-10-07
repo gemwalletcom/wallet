@@ -1,4 +1,6 @@
-use gem_wallet_connect::{SignDigestType, WalletConnectAction, WalletConnectRequestHandler, WalletConnectResponseHandler, WalletConnectResponseType, WalletConnectTransaction, WalletConnectTransactionType, config_session_properties};
+use gem_wallet_connect::{
+    SignDigestType, WalletConnectAction, WalletConnectRequestHandler, WalletConnectResponseHandler, WalletConnectResponseType, WalletConnectTransaction, WalletConnectTransactionType, config_session_properties, decode_sign_message,
+};
 use primitives::{Account, Chain, ChainAddress, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest};
 use std::collections::HashMap;
 
@@ -21,10 +23,6 @@ pub enum WalletConnectResponseType {
 
 pub fn wallet_connect_namespace(chain: Chain) -> Option<String> {
     WalletConnectCAIP2::get_namespace(chain)
-}
-
-pub fn wallet_connect_reference(chain: Chain) -> Option<String> {
-    WalletConnectCAIP2::get_reference(chain)
 }
 
 pub fn wallet_connect_chain(chain_id: String) -> Option<Chain> {
@@ -80,7 +78,7 @@ impl WalletConnect {
     }
 
     pub fn decode_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
-        simulation::decode_message(chain, sign_type, data)
+        decode_sign_message(chain, sign_type, data)
     }
 
     pub fn decode_send_transaction(&self, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, GemstoneError> {
@@ -104,9 +102,8 @@ mod tests {
     }
 
     #[test]
-    fn namespace_and_reference_come_from_the_chain_table() {
+    fn namespace_comes_from_the_chain_table() {
         assert_eq!(super::wallet_connect_namespace(Chain::Base), Some("eip155".to_string()));
-        assert_eq!(super::wallet_connect_reference(Chain::Base), Some("8453".to_string()));
         assert_eq!(super::wallet_connect_namespace(Chain::Solana), Some("solana".to_string()));
     }
 

@@ -77,7 +77,7 @@ impl SuiClient {
         decode_grpc_message(&response).map_err(|error| format!("Sui gRPC decode failed for {path}: {error}").into())
     }
 
-    pub async fn inspect_transaction_block(&self, sender: &str, tx_data: &[u8], _gas_price: Option<u64>) -> Result<InspectResult, Box<dyn Error + Send + Sync>> {
+    pub async fn inspect_transaction_block(&self, sender: &str, tx_data: &[u8]) -> Result<InspectResult, Box<dyn Error + Send + Sync>> {
         let transaction = decode_inspect_transaction_bytes(sender, tx_data)?;
         let request = SimulateTransactionRequest::new(transaction).with(|request| {
             request.read_mask = Some(FieldMask::from_paths(["transaction.effects.gas_used", "transaction.effects.status", "command_outputs.return_values.value"]));
@@ -140,7 +140,7 @@ impl SuiClient {
         let response: GetCoinInfoResponse = self.grpc_unary("/sui.rpc.v2.StateService/GetCoinInfo", request).await?;
         let metadata = response.metadata.ok_or("missing Sui coin metadata")?;
         Ok(SuiCoinMetadata {
-            decimals: metadata.decimals.unwrap_or_default() as i32,
+            decimals: metadata.decimals.unwrap_or_default(),
             name: metadata.name.unwrap_or_default(),
             symbol: metadata.symbol.unwrap_or_default(),
         })

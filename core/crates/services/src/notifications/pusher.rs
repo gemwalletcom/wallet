@@ -1,15 +1,18 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use localizer::{LanguageLocalizer, TransactionAction};
 use number_formatter::{ValueFormatter, ValueStyle};
 use primitives::{AddressFormatStyle, AddressFormatter, Asset, AssetVecExt, Chain, DeviceSubscription, FiatQuoteType, Transaction, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionType};
 use push_notification::{GorushNotification, PushNotification, PushNotificationTransaction, PushNotificationTypes};
-use storage::{Database, DatabaseError, ScanAddressesRepository};
+use storage::DatabaseError;
 
 use pusher::Message;
 
+use super::repository::Repository;
+
 pub struct Pusher {
-    database: Database,
+    repository: Arc<dyn Repository>,
 }
 
 fn format_currency(value: f64) -> String {
@@ -17,13 +20,12 @@ fn format_currency(value: f64) -> String {
 }
 
 impl Pusher {
-    pub fn new(database: Database) -> Self {
-        Self { database }
+    pub(crate) fn new(repository: Arc<dyn Repository>) -> Self {
+        Self { repository }
     }
 
     pub async fn get_address(&self, chain: Chain, address: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let value = address.to_string();
-        match self.database.run(move |client| client.get_scan_address(chain, &value)).await {
+        match self.repository.scan_address(chain, address.to_string()).await {
             Ok(address) => Ok(address.name.unwrap_or_default()),
             Err(DatabaseError::ConnectionPool) => Err(DatabaseError::ConnectionPool.into()),
             Err(_) => Ok(AddressFormatter::format(address, Some(chain), AddressFormatStyle::Short)),
@@ -70,7 +72,7 @@ impl Pusher {
             return Ok(message);
         }
         let asset = assets.asset_result(transaction.asset_id.clone())?;
-        let amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, &transaction.value.to_string(), asset.decimals, &asset.symbol)?;
+        let amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, &transaction.value, asset.decimals, &asset.symbol)?;
 
         match transaction.transaction_type {
             TransactionType::Transfer | TransactionType::SmartContractCall => {
@@ -124,8 +126,8 @@ impl Pusher {
                 let metadata: TransactionSwapMetadata = serde_json::from_value(metadata)?;
                 let from_asset = assets.asset_result(metadata.from_asset.clone())?;
                 let to_asset = assets.asset_result(metadata.to_asset.clone())?;
-                let from_amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, &metadata.from_value.to_string(), from_asset.decimals, &from_asset.symbol)?;
-                let to_amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, &metadata.to_value.to_string(), to_asset.decimals, &to_asset.symbol)?;
+                let from_amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, &metadata.from_value, from_asset.decimals, &from_asset.symbol)?;
+                let to_amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, &metadata.to_value, to_asset.decimals, &to_asset.symbol)?;
 
                 Ok(Message {
                     title: localizer.notification_swap_title(from_asset.symbol.as_str(), to_asset.symbol.as_str()),

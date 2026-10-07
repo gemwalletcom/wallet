@@ -6,7 +6,7 @@ import LocalAuthentication
 import Localization
 import Observation
 import Primitives
-import Style
+import PrimitivesComponents
 import SwiftUI
 
 @MainActor
@@ -18,8 +18,6 @@ public class LockSceneViewModel {
 
     var backgroundedAt: ContinuousClock.Instant?
     var state: LockSceneState
-
-    private var showPlaceholderPreview: Bool = false
 
     public init(
         service: any BiometryAuthenticatable,
@@ -33,11 +31,7 @@ public class LockSceneViewModel {
     }
 
     var unlockImage: String? {
-        switch service.availableAuthentication {
-        case .biometrics: SystemImage.faceid
-        case .passcode: SystemImage.lock
-        case .none: .none
-        }
+        service.availableAuthentication.systemImage
     }
 
     var isAutoLockEnabled: Bool {
@@ -52,31 +46,21 @@ public class LockSceneViewModel {
         state == .lockedCanceled
     }
 
+    var isPasscodeOff: Bool {
+        state == .passcodeOff
+    }
+
+    var passcodeOffTitle: String {
+        Localized.Lock.passcodeOffTitle
+    }
+
+    var passcodeOffDescription: String {
+        Localized.Lock.passcodeOffDescription
+    }
+
     var shouldLock: Bool {
         guard let backgroundedAt else { return false }
         return service.shouldRelock(elapsedMilliseconds: (ContinuousClock.now - backgroundedAt).milliseconds)
-    }
-
-    var shouldShowLockScreen: Bool {
-        isLocked || showPlaceholderPreview
-    }
-
-    var isPrivacyLockEnabled: Bool {
-        service.isPrivacyLockEnabled
-    }
-
-    var privacyLockAlpha: CGFloat {
-        isPrivacyLockVisible ? 1 : 0
-    }
-
-    var isPrivacyLockVisible: Bool {
-        guard isAutoLockEnabled else { return false }
-
-        if isPrivacyLockEnabled {
-            return state != .unlocked || showPlaceholderPreview
-        } else {
-            return state == .locked || state == .lockedCanceled || shouldLock
-        }
     }
 }
 
@@ -97,19 +81,16 @@ extension LockSceneViewModel {
                 backgroundedAt = ContinuousClock.now
             }
         case .active:
-            showPlaceholderPreview = false
-            if state == .unlocked, shouldLock {
-                state = .locked
-            }
+            lockIfExpired()
             backgroundedAt = nil
             if case let .unlocking(attempt) = state, attempt.isInvalidated {
                 state = .locked
             }
-            if state == .locked {
+            if state == .locked || state == .passcodeOff {
                 startUnlock()
             }
         case .inactive:
-            showPlaceholderPreview = true
+            lockIfExpired()
         @unknown default:
             break
         }
@@ -122,9 +103,13 @@ extension LockSceneViewModel {
             return attempt.task
         case .unlocked:
             return nil
-        case .locked, .lockedCanceled:
+        case .locked, .lockedCanceled, .passcodeOff:
             guard isAutoLockEnabled else {
                 resetLockState()
+                return nil
+            }
+            guard service.isPasscodeSet else {
+                state = .passcodeOff
                 return nil
             }
             let context = LAContext()
@@ -137,7 +122,6 @@ extension LockSceneViewModel {
     }
 
     func resetLockState() {
-        showPlaceholderPreview = false
         backgroundedAt = nil
         state = .unlocked
     }
@@ -158,6 +142,12 @@ extension LockSceneViewModel {
 // MARK: - Private
 
 extension LockSceneViewModel {
+    private func lockIfExpired() {
+        if state == .unlocked, shouldLock {
+            state = .locked
+        }
+    }
+
     private func authenticate(context: LAContext) async {
         let newState = await getAuthenticationState(context: context)
         guard case let .unlocking(attempt) = state, attempt.context === context else { return }

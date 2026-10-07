@@ -1,6 +1,7 @@
 import Components
 import struct Gemstone.GemFiatViewState
 import GemstonePrimitives
+import InfoSheet
 import Primitives
 import PrimitivesComponents
 import Store
@@ -31,7 +32,7 @@ struct FiatScene: View {
             StateButton(
                 text: viewState.buttonAction.title,
                 type: .primary(viewState.buttonState.state),
-                action: model.onSelectContinue,
+                action: { Task { await model.onSelectContinue() } },
             )
         }
         .contentMargins([.top], .zero, for: .scrollContent)
@@ -43,7 +44,7 @@ struct FiatScene: View {
         .onTimer(every: GemConstants.fiatQuoteRefreshInterval.timeInterval, id: model.loadTrigger) {
             await model.refreshQuotes()
         }
-        .alertSheet($model.isPresentingAlertMessage)
+        .sheet(item: $model.isPresentingInfoSheet) { InfoSheetScene(model: $0) }
     }
 }
 
@@ -57,22 +58,13 @@ extension FiatScene {
                 title: model.assetTitle,
                 balance: model.assetBalance,
                 secondary: {
-                    HStack(spacing: .space10) {
+                    HStack(spacing: .small) {
                         ForEach(model.suggestedAmounts, id: \.amount) { suggestion in
                             Button(suggestion.value.text()) {
                                 model.onSelect(amount: Int(suggestion.amount))
                             }
                             .font(.subheadline.weight(.semibold))
                             .buttonStyle(.amount())
-                        }
-
-                        Button(model.typeAmountButtonTitle) {
-                            model.onSelectRandomAmount()
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .buttonStyle(.listEmpty())
-                        .overlay {
-                            RandomOverlayView()
                         }
                     }
                     .fixedSize()

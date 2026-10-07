@@ -476,6 +476,8 @@ fee_rates_normal = 普通
 fee_rate_satvB = 聰/vB
 fee_rate_gwei = gwei
 fee_rate_custom = 自訂
+fee_rate_priority = 優先手續費
+fee_rate_base = 基本手續費
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1小時
 lock_six_hours = 6小時
 lock_require_authentication = 需要身分驗證
 lock_unlock = 解鎖
-lock_privacy_lock = 隱私鎖
 lock_footer = 保護此裝置上的 App 存取安全
 lock_passcode = 密碼
+lock_passcode_off_title = 裝置密碼已關閉
+lock_passcode_off_description = Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。錢包仍然安全。
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = 此 %@ 帳戶可能由他人控制。�
 sell_title = 出售%@
 
 # Info
+
+info_region_unavailable_description = 此功能在您所在的地區無法使用。 可用性取決於當地規定和服務提供者的要求。
 
 info_network_fee_title = 網路手續費
 info_watch_wallet_title = 觀察錢包
@@ -725,6 +730,8 @@ rewards_pending_description_ready = 積分已可領取！
 rewards_nickname = 暱稱
 rewards_unverified_title = 積分功能尚未啟用。
 rewards_unverified_description = 繼續使用 App，積分功能會自動啟用。
+rewards_state_empty_title = 積分需要多幣種錢包
+rewards_state_empty_description = 建立或匯入多幣種錢包，即可邀請好友並賺取積分。
 
 # Recent Activity
 

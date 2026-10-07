@@ -88,9 +88,11 @@ extension ConfirmTransferScene {
             )
         case let .warnings(rows):
             ForEach(rows, id: \.self) { GemListRowView(row: $0) }
-        case let .payload(models):
+        case let .payload(rows):
             Group {
-                SimulationPayloadFieldsContent(models: models)
+                ForEach(Array(rows.enumerated()), id: \.offset) {
+                    GemListRowView(row: $0.element, onSelectAddress: self.model.onSelectPayloadAddress)
+                }
 
                 if !self.model.secondaryPayloadFields.isEmpty {
                     NavigationCustomLink(

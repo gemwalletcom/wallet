@@ -19,6 +19,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -44,6 +45,7 @@ import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.ChartCandleStick
 import uniffi.gemstone.GemCandleResult
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
@@ -128,18 +130,19 @@ class PerpetualViewModelTest {
     }
 
     @Test
-    fun `the chart period is remembered in Core`() = runTest(dispatcher) {
+    fun `a new chart period asks Core for its candles`() = runTest(dispatcher) {
         val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
             every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
             coEvery { candles(any()) } answers { GemCandleResult(request = firstArg(), state = GemLoadState.Data, candles = emptyList()) }
         }
-        val model = viewModel(service = service)
+        val model = viewModel(service = service, data = perpetualData())
+        advanceUntilIdle()
 
         model.period(ChartPeriod.Week)
         advanceUntilIdle()
 
         assertEquals(ChartPeriod.Week, model.period.first { it == ChartPeriod.Week })
-        coVerify { service.setChartPeriod(uniffi.gemstone.ChartPeriod.WEEK) }
+        coVerify(exactly = 1) { service.candles(match { it.period == uniffi.gemstone.ChartPeriod.WEEK }) }
     }
 
     @Test
@@ -228,6 +231,7 @@ class PerpetualViewModelTest {
     fun `a failed position action reads the error`() = runTest(dispatcher) {
         val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
             every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+            every { isAvailable() } returns true
             every { positionAction(any(), any(), any(), any()) } throws IllegalStateException("no market")
         }
         val model = viewModel(service = service, data = perpetualData())
@@ -238,5 +242,54 @@ class PerpetualViewModelTest {
 
         assertEquals("no market", model.error.value)
         verify(exactly = 0) { amount(any()) }
+    }
+
+    @Test
+    fun `unavailable perps stops long short modify increase and reduce`() = runTest(dispatcher) {
+        val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
+            every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+        }
+        every { service.isAvailable() } returns false
+        val subject = viewModel(service = service, data = perpetualData())
+        val amount: AmountTransactionAction = mockk(relaxed = true)
+        advanceUntilIdle()
+        assertNull(subject.infoSheet.value)
+
+        subject.openPosition(PerpetualDirection.Long, amount)
+        assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+        subject.infoSheet.value = null
+        subject.openPosition(PerpetualDirection.Short, amount)
+        assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+        val modify = mockk<() -> Unit>(relaxed = true)
+        subject.infoSheet.value = null
+        subject.modifyPosition(modify)
+        assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+        subject.infoSheet.value = null
+        subject.increasePosition(amount)
+        assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+        subject.infoSheet.value = null
+        subject.reducePosition(amount)
+        assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+        verify(exactly = 0) { modify() }
+        verify(exactly = 0) { service.positionAction(any(), any(), any(), any()) }
+        verify(exactly = 0) { amount(any()) }
+    }
+
+    @Test
+    fun `unavailable perps keeps closing available`() = runTest(dispatcher) {
+        val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
+            every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+            every { isAvailable() } returns false
+            every { closeTransfer(any(), any(), any()) } throws IllegalStateException("no position")
+        }
+        val subject = viewModel(service = service, data = perpetualData())
+        advanceUntilIdle()
+
+        subject.closePosition(mockk(relaxed = true))
+        assertEquals("no position", subject.error.value)
+        verify(exactly = 0) { service.isAvailable() }
+        verify(exactly = 0) { service.positionAction(any(), any(), any(), any()) }
+        verify(exactly = 1) { service.closeTransfer(any(), any(), any()) }
+        assertNull(subject.infoSheet.value)
     }
 }

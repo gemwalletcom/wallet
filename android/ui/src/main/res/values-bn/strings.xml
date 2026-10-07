@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">কাস্টম</string>
+  <string name="fee_rate_priority">অগ্রাধিকার ফি</string>
+  <string name="fee_rate_base">বেস ফি</string>
   <string name="banner_account_activation_title">অ্যাকাউন্ট অ্যাক্টিভেশন ফি</string>
   <string name="banner_account_activation_description">%1$s নেটওয়ার্কের জন্য %2$s এর এককালীন ফি প্রয়োজন।</string>
   <string name="banner_stake_title">%1$s স্টেক করা শুরু করুন</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 ঘন্টা</string>
   <string name="lock_require_authentication">প্রমাণীকরণ প্রয়োজন</string>
   <string name="lock_unlock">আনলক করুন</string>
-  <string name="lock_privacy_lock">গোপনীয়তা লক</string>
   <string name="lock_footer">আপনার ডিভাইসে এই অ্যাপের অ্যাক্সেস সুরক্ষিত করুন</string>
   <string name="lock_passcode">পাসকোড</string>
+  <string name="lock_passcode_off_title">ডিভাইসের পাসকোড বন্ধ আছে</string>
+  <string name="lock_passcode_off_description">Gem আপনার ডিভাইসের পাসকোড দিয়ে লক করা। Gem খুলতে ডিভাইসের সেটিংসে পাসকোড চালু করুন। আপনার ওয়ালেটগুলো নিরাপদ আছে।</string>
   <string name="verify_phrase_title">নিশ্চিত করুন</string>
   <string name="warnings_externally_controlled_account">এই %1$s অ্যাকাউন্টটি অন্য কেউ নিয়ন্ত্রণ করতে পারে। এটি আপনার নিয়ন্ত্রণে আছে বলে নিশ্চিত না হলে এতে তহবিল পাঠাবেন না, নইলে আপনি স্থায়ীভাবে আপনার সম্পদ হারাতে পারেন।</string>
   <string name="sell_title">%1$s বিক্রি করুন</string>
+  <string name="info_region_unavailable_description">এই বৈশিষ্ট্যটি আপনার অঞ্চলে উপলব্ধ নয়। উপলব্ধতা স্থানীয় নিয়ম এবং পরিষেবা প্রদানকারীর শর্তের ওপর নির্ভর করে।</string>
   <string name="info_network_fee_title">নেটওয়ার্ক ফি</string>
   <string name="info_watch_wallet_title">ওয়ালেট দেখুন</string>
   <string name="info_watch_wallet_description">একটি মানিব্যাগ যা আপনার অ্যাক্সেস নেই, তবে আপনি এটির লেনদেন এবং গতিবিধি দেখতে পারেন।</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">ডাকনাম</string>
   <string name="rewards_unverified_title">পুরস্কারগুলো এখনও সক্রিয় হয়নি।</string>
   <string name="rewards_unverified_description">আপনি অ্যাপটি যত বেশি ব্যবহার করবেন, পুরস্কারগুলো তত স্বয়ংক্রিয়ভাবে সক্রিয় হবে।</string>
+  <string name="rewards_state_empty_title">পুরস্কারের জন্য মাল্টি-কয়েন ওয়ালেট প্রয়োজন</string>
+  <string name="rewards_state_empty_description">বন্ধুদের আমন্ত্রণ জানাতে ও পয়েন্ট অর্জন করতে একটি মাল্টি-কয়েন ওয়ালেট তৈরি বা ইমপোর্ট করুন।</string>
   <string name="recent_activity_title">সাম্প্রতিক</string>
   <string name="recent_activity_state_empty_title">আপনার সাম্প্রতিক এখানে প্রদর্শিত হবে</string>
   <string name="recent_activity_state_empty_description">আপনার সম্প্রতি ব্যবহার করা সম্পদ এখানে প্রদর্শিত হবে</string>

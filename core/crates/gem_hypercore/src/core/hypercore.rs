@@ -1,6 +1,10 @@
+use gem_evm::eip712::hash_typed_data;
 use serde_json::Value;
+use signer::Signer;
+use std::error::Error;
 
 use super::{actions::*, eip712, hasher::action_hash, models::PhantomAgent};
+use crate::models::action::SignedExchangeRequest;
 
 fn l1_action_typed_data(action: Value, nonce: u64) -> Result<String, String> {
     let hash = action_hash(&action, None, nonce, None)?;
@@ -8,9 +12,11 @@ fn l1_action_typed_data(action: Value, nonce: u64) -> Result<String, String> {
     eip712::create_l1_eip712_json(&phantom_agent)
 }
 
-fn spot_send_typed_data(spot_send: SpotSend) -> Result<String, String> {
-    let action_value = serde_json::to_value(&spot_send).map_err(|error| error.to_string())?;
-    eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:SpotSend", eip712::spot_send_types())
+pub fn recover_l1_action_signer(request: &SignedExchangeRequest) -> Result<String, Box<dyn Error + Send + Sync>> {
+    let hash = action_hash(&request.action, request.vault_address.as_deref(), request.nonce, request.expires_after)?;
+    let typed_data = eip712::create_l1_eip712_json(&PhantomAgent::new(hash))?;
+    let digest = hash_typed_data(&typed_data)?;
+    Ok(Signer::recover_ethereum_address(&digest, &request.signature.to_bytes()?)?)
 }
 
 // L1 payload
@@ -55,12 +61,14 @@ pub fn approve_builder_fee_typed_data(fee: ApproveBuilderFee) -> Result<String, 
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:ApproveBuilderFee", eip712::approve_builder_fee_types())
 }
 
-pub fn transfer_to_hyper_evm_typed_data(spot_send: SpotSend) -> Result<String, String> {
-    spot_send_typed_data(spot_send)
+pub fn send_asset_typed_data(send_asset: SendAsset) -> Result<String, String> {
+    let action_value = serde_json::to_value(&send_asset).map_err(|error| error.to_string())?;
+    eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:SendAsset", eip712::send_asset_types())
 }
 
-pub fn send_spot_token_to_address_typed_data(spot_send: SpotSend) -> Result<String, String> {
-    spot_send_typed_data(spot_send)
+pub fn usd_class_transfer_typed_data(usd_class_transfer: UsdClassTransfer) -> Result<String, String> {
+    let action_value = serde_json::to_value(&usd_class_transfer).map_err(|error| error.to_string())?;
+    eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:UsdClassTransfer", eip712::usd_class_transfer_types())
 }
 
 // User signed payload
@@ -83,7 +91,15 @@ pub fn token_delegate_typed_data(token_delegate: TokenDelegate) -> Result<String
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_ETHEREUM_ADDRESS;
     use primitives::{asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID, contract_constants::HYPERCORE_SYSTEM_ADDRESS};
+
+    #[test]
+    fn test_recover_l1_action_signer() {
+        let request: SignedExchangeRequest = serde_json::from_str(include_str!("../../testdata/hl_action_signed_market_order.json")).unwrap();
+
+        assert_eq!(recover_l1_action_signer(&request).unwrap(), TEST_PRIVATE_KEY_ETHEREUM_ADDRESS);
+    }
 
     #[test]
     fn test_action_open_long() {
@@ -245,10 +261,10 @@ mod tests {
     }
 
     #[test]
-    fn test_eip712_spot_send_core_to_evm() {
-        let spot_send = SpotSend::new("0.1".to_string(), HYPERCORE_SYSTEM_ADDRESS.to_string(), 1754996222238, HYPERCORE_CORE_HYPE_TOKEN_ID.to_string());
+    fn test_eip712_send_asset_core_to_evm() {
+        let send_asset = SendAsset::spot("0.1".to_string(), HYPERCORE_SYSTEM_ADDRESS.to_string(), HYPERCORE_CORE_HYPE_TOKEN_ID.to_string(), 1754996222238);
 
-        let eip712_json = transfer_to_hyper_evm_typed_data(spot_send).unwrap();
+        let eip712_json = send_asset_typed_data(send_asset).unwrap();
 
         // Parse both generated and expected JSON for comparison
         let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
@@ -258,19 +274,16 @@ mod tests {
     }
 
     #[test]
-    fn test_eip712_spot_send_l1() {
-        let spot_send = SpotSend::new(
+    fn test_eip712_send_asset() {
+        let send_asset = SendAsset::spot(
             "0.02".to_string(),
             "0x1085c5f70f7f7591d97da281a64688385455c2bd".to_string(),
-            1755004027201,
             "USDC:0x6d1e7cde53ba9467b783cb7c530ce054".to_string(),
+            1755004027201,
         );
 
-        let eip712_json = send_spot_token_to_address_typed_data(spot_send).unwrap();
-
-        // Parse both generated and expected JSON for comparison
-        let parsed: serde_json::Value = serde_json::from_str(&eip712_json).unwrap();
-        let expected: serde_json::Value = serde_json::from_str(include_str!("../../testdata/hl_eip712_spot_send_l1.json")).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&send_asset_typed_data(send_asset).unwrap()).unwrap();
+        let expected: serde_json::Value = serde_json::from_str(include_str!("../../testdata/hl_eip712_send_asset.json")).unwrap();
 
         assert_eq!(parsed, expected);
     }

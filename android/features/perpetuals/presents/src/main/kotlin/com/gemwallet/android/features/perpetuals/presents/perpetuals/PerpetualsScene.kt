@@ -62,10 +62,11 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemAssetSectionKind
-import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemHeaderButtonAction
+import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemPerpetualMarketItem
 import uniffi.gemstone.GemPerpetualMarketSection
+import uniffi.gemstone.GemPerpetualMarketView
 import uniffi.gemstone.GemValueHeader
 import uniffi.gemstone.PerpetualBalance
 import uniffi.gemstone.perpetualBalanceHeader
@@ -79,7 +80,7 @@ internal fun PerpetualsScene(
     pinnedPerpetuals: List<GemPerpetualMarketItem>,
     recent: List<Asset> = emptyList(),
     query: TextFieldState,
-    sections: List<GemPerpetualMarketSection>,
+    marketView: GemPerpetualMarketView,
     isSearching: Boolean,
     onAction: (PerpetualsAction) -> Unit,
 ) {
@@ -91,6 +92,7 @@ internal fun PerpetualsScene(
                 SearchBar(
                     query = query,
                     modifier = Modifier.listItem(com.gemwallet.android.ui.models.ListPosition.Single, paddingHorizontal = space0),
+                    autoFocus = true,
                 )
             } else {
                 Text(stringResource(R.string.perpetuals_title))
@@ -119,7 +121,7 @@ internal fun PerpetualsScene(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
             ) {
-                sections.forEach { section ->
+                marketView.sections.forEach { section ->
                     when (section) {
                         GemPerpetualMarketSection.HEADER -> if (balanceHeader != null) {
                             item {
@@ -129,7 +131,7 @@ internal fun PerpetualsScene(
                                 ) {
                                     AssetHeadActions(balanceHeader.actions ?: return@ValueListHead) { action ->
                                         when (action) {
-                                            is GemHeaderButtonAction.Deposit -> onAction(PerpetualsAction.Deposit(action.asset.toPrimitives().id))
+                                            GemHeaderButtonAction.Deposit -> onAction(PerpetualsAction.Deposit)
 
                                             is GemHeaderButtonAction.Withdraw -> onAction(PerpetualsAction.Withdraw(action.asset.toPrimitives().id))
 
@@ -164,7 +166,7 @@ internal fun PerpetualsScene(
                                 Spacer16()
                                 AssetSectionHeaderItem(GemAssetSectionKind.PINNED)
                             }
-                            itemsPositioned(pinnedPerpetuals) { position, item ->
+                            itemsPositioned(pinnedPerpetuals, key = { _, item -> "pinned-${item.data.perpetual.id}" }) { position, item ->
                                 PerpetualListItem(
                                     item = item,
                                     listPosition = position,
@@ -177,7 +179,7 @@ internal fun PerpetualsScene(
 
                         GemPerpetualMarketSection.MARKETS -> {
                             section.stringRes()?.let { title -> item { SubheaderItem(title) } }
-                            itemsPositioned(unpinnedPerpetuals) { position, item ->
+                            itemsPositioned(unpinnedPerpetuals, key = { _, item -> "markets-${item.data.perpetual.id}" }) { position, item ->
                                 PerpetualListItem(
                                     item = item,
                                     listPosition = position,
@@ -187,15 +189,16 @@ internal fun PerpetualsScene(
                                 )
                             }
                         }
-
-                        GemPerpetualMarketSection.EMPTY -> item {
-                            EmptyContentView(
-                                kind = GemEmptyStateKind.SEARCH_PERPETUALS,
-                                modifier = Modifier
-                                    .animateItem()
-                                    .fillParentMaxSize(),
-                            )
-                        }
+                    }
+                }
+                (marketView.phase as? GemListPhase.Empty)?.let { empty ->
+                    item {
+                        EmptyContentView(
+                            state = empty.state,
+                            modifier = Modifier
+                                .animateItem()
+                                .fillParentMaxSize(),
+                        )
                     }
                 }
             }
@@ -243,7 +246,7 @@ fun PreviewPerpetualsScene() {
         PerpetualsScene(
             isRefreshing = false,
             query = androidx.compose.foundation.text.input.TextFieldState(),
-            sections = emptyList(),
+            marketView = GemPerpetualMarketView(sections = emptyList(), phase = GemListPhase.Rows),
             isSearching = false,
             balanceHeader = perpetualBalanceHeader(
                 PerpetualBalance(available = 45_000.0, reserved = 92_000.0, withdrawable = 42_000.0),
@@ -256,7 +259,7 @@ fun PreviewPerpetualsScene() {
                         id = AssetId(Chain.Bitcoin),
                         name = "Bitcoin",
                         symbol = "BTC",
-                        decimals = 8,
+                        decimals = 8u,
                         type = AssetType.NATIVE,
                     ),
                     title = "BTC/USD",
@@ -269,7 +272,7 @@ fun PreviewPerpetualsScene() {
                         id = AssetId(Chain.Ethereum),
                         name = "Ethereum",
                         symbol = "ETH",
-                        decimals = 18,
+                        decimals = 18u,
                         type = AssetType.NATIVE,
                     ),
                     title = "ETH/USD",
@@ -282,7 +285,7 @@ fun PreviewPerpetualsScene() {
                         id = AssetId(Chain.Solana),
                         name = "Solana",
                         symbol = "SOL",
-                        decimals = 9,
+                        decimals = 9u,
                         type = AssetType.NATIVE,
                     ),
                     title = "SOL/USD",
@@ -295,7 +298,7 @@ fun PreviewPerpetualsScene() {
                         id = AssetId(Chain.AvalancheC),
                         name = "Avalanche",
                         symbol = "AVAX",
-                        decimals = 18,
+                        decimals = 18u,
                         type = AssetType.NATIVE,
                     ),
                     title = "AVAX/USD",
@@ -308,7 +311,7 @@ fun PreviewPerpetualsScene() {
                         id = AssetId(Chain.Ethereum, "0x514910771af9ca656af840dff83e8264ecf986ca"),
                         name = "Chainlink",
                         symbol = "LINK",
-                        decimals = 18,
+                        decimals = 18u,
                         type = AssetType.ERC20,
                     ),
                     title = "LINK/USD",
@@ -323,7 +326,7 @@ fun PreviewPerpetualsScene() {
                         id = AssetId(Chain.Bitcoin),
                         name = "Bitcoin",
                         symbol = "BTC",
-                        decimals = 8,
+                        decimals = 8u,
                         type = AssetType.NATIVE,
                     ),
                     title = "BTC/USD",
@@ -336,7 +339,7 @@ fun PreviewPerpetualsScene() {
                         id = AssetId(Chain.Ethereum),
                         name = "Ethereum",
                         symbol = "ETH",
-                        decimals = 18,
+                        decimals = 18u,
                         type = AssetType.NATIVE,
                     ),
                     title = "ETH/USD",

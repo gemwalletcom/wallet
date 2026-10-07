@@ -21,17 +21,25 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.rewards.viewmodels.RewardsViewModel
+import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.walletSections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.requestAuth
+import com.gemwallet.android.ui.shareText
 import kotlinx.coroutines.launch
 
 @Composable
 fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewModel()) {
+    val infoSheet by viewModel.infoSheet.collectAsStateWithLifecycle()
+    InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val loadingMessage = stringResource(R.string.common_loading)
     val insufficientPointsMessage = stringResource(R.string.rewards_insufficient_points)
     val doneMessage = stringResource(R.string.common_done)
@@ -40,13 +48,10 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     var showErrorDialog by remember { mutableStateOf<Throwable?>(null) }
     var showMessageDialog by remember { mutableStateOf<String?>(null) }
 
-    val canChooseWallet by viewModel.canChooseWallet.collectAsStateWithLifecycle()
-    val availableWalletSections by viewModel.availableWalletSections.collectAsStateWithLifecycle()
-    val currentWallet by viewModel.currentWallet.collectAsStateWithLifecycle()
+    val wallet by viewModel.wallet.collectAsStateWithLifecycle()
     val referralLink by viewModel.referralLink.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val loadError by viewModel.loadError.collectAsStateWithLifecycle()
     val incomingCode by viewModel.incomingCode.collectAsStateWithLifecycle()
     val introItems by viewModel.introItems.collectAsStateWithLifecycle()
     val inviteAction by viewModel.inviteAction.collectAsStateWithLifecycle()
@@ -58,26 +63,29 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val redemptions by viewModel.redemptions.collectAsStateWithLifecycle()
 
+    val shareTitle = stringResource(R.string.common_share, referralLink.orEmpty())
+
     RewardsScene(
-        isLoading = isLoading,
+        state = state,
         isRefreshing = isRefreshing,
-        loadError = loadError,
-        isAvailableWalletSelect = canChooseWallet,
+        wallet = wallet,
         incomingCode = incomingCode,
-        referralLink = referralLink,
         introItems = introItems,
         inviteAction = inviteAction,
         canUseReferralCode = canUseReferralCode,
         pendingReferral = pendingReferral,
         notices = notices,
         inviteDescription = inviteDescription,
-        shareText = shareText,
         sections = sections,
         redemptions = redemptions,
-        currentWallet = currentWallet,
+        onInvite = {
+            viewModel.inviteFriends(
+                onInvite = { context.shareText(subject = referralLink.orEmpty(), text = shareText.orEmpty(), chooserTitle = shareTitle) },
+            )
+        },
         onUsername = viewModel::createReferral,
         onCode = viewModel::useCode,
-        onCancelCode = viewModel::cancelCode,
+        onCodeHandled = viewModel::onCodeHandled,
         onRefresh = viewModel::sync,
         onWallet = { isShowSelectWallets = true },
         onRedeem = {
@@ -85,12 +93,14 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
                 showMessageDialog = insufficientPointsMessage
                 return@RewardsScene
             }
-            scope.launch { snackbar.showSnackbar(loadingMessage, R.drawable.ic_refresh) }
-            viewModel.redeem(it) { error ->
-                if (error == null) {
-                    scope.launch { snackbar.showSnackbar(doneMessage, R.drawable.ic_check_circle) }
-                } else {
-                    showErrorDialog = error
+            context.requestAuth(AuthRequest.Default) {
+                scope.launch { snackbar.showSnackbar(loadingMessage, R.drawable.ic_refresh) }
+                viewModel.redeem(it) { error ->
+                    if (error == null) {
+                        scope.launch { snackbar.showSnackbar(doneMessage, R.drawable.ic_check_circle) }
+                    } else {
+                        showErrorDialog = error
+                    }
                 }
             }
         },
@@ -103,9 +113,8 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         onDismissRequest = { isShowSelectWallets = false },
         title = stringResource(R.string.wallets_title),
     ) {
-        val context = LocalContext.current
         LazyColumn {
-            walletSections(availableWalletSections, currentWallet?.id?.id) { id ->
+            walletSections(wallet?.sections.orEmpty(), wallet?.row?.id) { id ->
                 viewModel.setWallet(walletId = id)
                 isShowSelectWallets = false
             }

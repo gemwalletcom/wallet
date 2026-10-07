@@ -1,17 +1,14 @@
 use hex::encode;
-use primitives::{ChainSigner, SignerError, SignerInput, TransactionInputType, TransactionLoadMetadata};
+use primitives::{ChainSigner, SignerError, SignerInput, TransactionInputType, TransactionLoadMetadata, chain_aptos::is_fungible_asset_token_id};
 use serde_json::{Value, from_str};
 use std::str::from_utf8;
 
 use super::abi::{PANORA_ROUTER_ENTRY_PARAMS, PANORA_ROUTER_FUNCTION, PANORA_ROUTER_MODULE};
 use super::{EntryFunction, EntryFunctionPayload, build_raw_transaction, build_submit_transaction_bcs, expiration_timestamp_secs, sign_message as sign_aptos_message, sign_raw_transaction};
 use crate::AccountAddress;
-use crate::token_id::is_fungible_asset_token_id;
-use crate::{APTOS_TRANSFER_FUNCTION, DELEGATION_POOL_ADD_STAKE_FUNCTION, DELEGATION_POOL_UNLOCK_FUNCTION, DELEGATION_POOL_WITHDRAW_FUNCTION, ENTRY_FUNCTION_PAYLOAD_TYPE};
+use crate::{APTOS_TRANSFER_FUNCTION, DELEGATION_POOL_ADD_STAKE_FUNCTION, DELEGATION_POOL_UNLOCK_FUNCTION, DELEGATION_POOL_WITHDRAW_FUNCTION, ENTRY_FUNCTION_PAYLOAD_TYPE, FUNGIBLE_TRANSFER_FUNCTION, OBJECT_CORE_TYPE};
 
 const APTOS_CHAIN_ID: u8 = 1;
-const FUNGIBLE_TRANSFER_FUNCTION: &str = "0x1::primary_fungible_store::transfer";
-const OBJECT_CORE_TYPE: &str = "0x1::object::ObjectCore";
 
 const STAKE_ENTRY_PARAMS: [&str; 2] = ["address", "u64"];
 const FUNGIBLE_TRANSFER_ENTRY_PARAMS: [&str; 3] = ["address", "address", "u64"];

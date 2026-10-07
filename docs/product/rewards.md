@@ -39,6 +39,8 @@ flowchart LR
 | A code is opened from a referral link | it still reaches the server | the server accepts it from partner codes that have no window |
 | The account is disabled | why, in the user's own language, never the internal reason the server stored | |
 | The user redeems with too few points, or an option that has run out | it says so instead of a generic error | |
+| No wallet is Multi-Coin and a referral link opens Rewards | it says a Multi-Coin wallet is needed | Settings hides Rewards for the same wallets |
+| A referral link opens Rewards with several Multi-Coin wallets | it asks for confirmation once the wallet has loaded; with one wallet the code is redeemed directly | |
 
 ## Platform differences
 
@@ -46,4 +48,5 @@ None recorded.
 
 ## Rules
 
-- Rewards belong to one wallet, the one the app picks as the rewards wallet.
+- Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
+- Rewards belong to one Multi-Coin wallet: the one the user chose on the screen, otherwise the current wallet, otherwise the first Multi-Coin wallet.

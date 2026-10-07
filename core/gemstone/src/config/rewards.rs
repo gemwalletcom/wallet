@@ -1,3 +1,4 @@
+use super::public::WEBSITE_URL;
 use super::with_utm_source;
 use primitives::Platform;
 
@@ -5,8 +6,6 @@ use primitives::Platform;
 pub enum RewardsUrl {
     Rewards,
 }
-
-const WEBSITE_URL: &str = "https://gemwallet.com";
 
 #[uniffi::export]
 impl RewardsUrl {

@@ -16,43 +16,67 @@ struct RewardsSceneViewModelTests {
     private let second = Wallet.mock(id: .mock(address: "0xbbb"), name: "Second")
 
     @Test
-    func noSelectedWalletMeansNoScene() {
-        #expect(RewardsSceneViewModel.mock(wallets: []) == nil)
-    }
-
-    @Test
-    func theSceneOffersTheWalletsCoreReturned() throws {
-        let model = try #require(RewardsSceneViewModel.mock(wallets: [first, second]))
-
-        #expect(model.selectedWallet.id == first.id)
-        #expect(model.wallets.map(\.id) == [first.id, second.id])
-        #expect(model.showsWalletSelector)
-    }
-
-    @Test
-    func aSingleWalletHidesTheSelector() throws {
-        let model = try #require(RewardsSceneViewModel.mock(wallets: [first]))
-
-        #expect(model.showsWalletSelector == false)
-    }
-
-    @Test
-    func loadingAsksCoreForTheSelectedWallet() async throws {
-        let service = GemRewardsServiceMock()
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
+    func noMulticoinWalletShowsTheEmptyState() async {
+        let model = RewardsSceneViewModel.mock(service: GemRewardsServiceMock(), wallets: [], activateCode: "friend")
 
         await model.refresh()
 
+        #expect(model.viewState.state == .noData)
+        #expect(model.wallet == nil)
+        #expect(model.isPresentingSheet == nil)
+    }
+
+    @Test
+    func theSceneOffersTheWalletsCoreReturned() async {
+        let model = RewardsSceneViewModel.mock(service: GemRewardsServiceMock(), wallets: [first, second])
+
+        await model.refresh()
+
+        #expect(model.wallet?.id == first.id)
+        #expect(model.walletSelectorModel?.selectedItems.map(\.id) == [first.id])
+        #expect(model.wallet?.canChoose == true)
+    }
+
+    @Test
+    func theWalletSelectorIsReadyBeforeTheFirstLoad() {
+        let model = RewardsSceneViewModel.mock(service: GemRewardsServiceMock(), wallets: [first, second])
+
+        #expect(model.wallet?.id == first.id)
+        #expect(model.wallet?.canChoose == true)
+        #expect(model.viewState.state == .loading)
+    }
+
+    @Test
+    func aSingleWalletHidesTheSelector() async {
+        let model = RewardsSceneViewModel.mock(service: GemRewardsServiceMock(), wallets: [first])
+
+        await model.refresh()
+
+        #expect(model.wallet?.canChoose == false)
+    }
+
+    @Test
+    func loadingAsksCoreForTheChosenWallet() async {
+        let service = GemRewardsServiceMock()
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
+
+        await model.refresh()
         #expect(service.rewardsCalls == [first.id])
+
+        model.selectWallet(id: second.id)
+        await model.refresh()
+
+        #expect(service.rewardsCalls.last == second.id)
+        #expect(model.wallet?.id == second.id)
         #expect(model.rewardsState.referralCode == "test123")
         #expect(model.referralLink == "https://gemwallet.com/join?code=test123")
     }
 
     @Test
-    func aFailedLoadShowsTheErrorInsteadOfTheCreateCodeScreen() async throws {
+    func aFailedLoadShowsTheErrorInsteadOfTheCreateCodeScreen() async {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .failure(AnyError("offline"))
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
 
         await model.refresh()
 
@@ -65,62 +89,50 @@ struct RewardsSceneViewModelTests {
     }
 
     @Test
-    func aLoadForAWalletThatIsNoLongerSelectedIsDropped() async throws {
+    func oneWalletWithAnActivateCodeRedeemsItOnceWithoutTheSheet() async {
         let service = GemRewardsServiceMock()
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first], activateCode: "friend")
+
         await model.refresh()
-
-        model.selectWallet(id: second.id.id)
         await model.refresh()
-
-        #expect(model.session.walletId == second.id)
-    }
-
-    @Test
-    func oneWalletWithAnActivateCodeRedeemsItWithoutTheSheet() async throws {
-        let service = GemRewardsServiceMock()
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first], activateCode: "friend"))
-
-        await model.onTaskOnce()
 
         #expect(service.usedReferralCodes.map(\.code) == ["friend"])
+        #expect(service.usedReferralCodes.map(\.walletId) == [first.id])
         #expect(model.isPresentingSheet == nil)
     }
 
     @Test
-    func severalWalletsWithAnActivateCodeAskWhichWalletFirst() async throws {
+    func severalWalletsWithAnActivateCodeAskWhichWalletFirst() async {
         let service = GemRewardsServiceMock()
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second], activateCode: "friend"))
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second], activateCode: "friend")
 
-        await model.onTaskOnce()
+        await model.refresh()
 
         #expect(service.usedReferralCodes.isEmpty)
         #expect(model.isPresentingSheet?.id == RewardsSheetType.activateCode(code: "friend").id)
+        #expect(model.viewState.incomingCode == nil)
     }
 
     @Test
-    func selectingAWalletSwitchesTheSelection() throws {
-        let model = try #require(RewardsSceneViewModel.mock(wallets: [first, second]))
+    func aCodeRedeemedFromTheSheetShowsTheStateItProduced() async throws {
+        let service = GemRewardsServiceMock()
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
+        await model.refresh()
+        service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "friend", status: .pending, verifyAfter: .distantFuture))
+        let sheet = try #require(model.redeemCodeViewModel(code: "friend"))
 
-        model.selectWallet(id: second.id.id)
+        await sheet.action()
 
-        #expect(model.selectedWallet.id == second.id)
+        #expect(model.pendingReferral?.code == "friend")
+        #expect(service.rewardsCalls.count == 1, "the sheet's answer is the new state, no reload")
+        #expect(model.toastMessage != nil)
     }
 
     @Test
-    func selectingAnUnknownWalletKeepsTheSelection() throws {
-        let model = try #require(RewardsSceneViewModel.mock(wallets: [first, second]))
-
-        model.selectWallet(id: "multicoin_0xccc")
-
-        #expect(model.selectedWallet.id == first.id)
-    }
-
-    @Test
-    func activatingAPendingReferralSendsTheStoredCode() async throws {
+    func activatingAPendingReferralSendsTheStoredCode() async {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
         await model.refresh()
 
         await model.activatePendingReferral()
@@ -131,11 +143,11 @@ struct RewardsSceneViewModelTests {
     }
 
     @Test
-    func aFailedActivationShowsTheError() async throws {
+    func aFailedActivationShowsTheError() async {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))
         service.useReferralCodeError = GemServiceError.Api(msg: "code already used")
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
         await model.refresh()
 
         await model.activatePendingReferral()
@@ -145,9 +157,10 @@ struct RewardsSceneViewModelTests {
     }
 
     @Test
-    func redeemingSendsTheOptionId() async throws {
+    func redeemingSendsTheOptionId() async {
         let service = GemRewardsServiceMock()
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
+        await model.refresh()
 
         await model.redeem(redemptionId: "option-7")
 
@@ -156,10 +169,11 @@ struct RewardsSceneViewModelTests {
     }
 
     @Test
-    func aFailedRedemptionShowsTheError() async throws {
+    func aFailedRedemptionShowsTheError() async {
         let service = GemRewardsServiceMock()
         service.redeemError = GemServiceError.Api(msg: "out of stock")
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
+        await model.refresh()
 
         await model.redeem(redemptionId: "option-7")
 
@@ -168,22 +182,39 @@ struct RewardsSceneViewModelTests {
     }
 
     @Test
-    func aReadyPendingReferralCanBeActivated() async throws {
+    func aReadyPendingReferralCanBeActivated() async {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
         await model.refresh()
 
         #expect(model.activatePendingButtonType == .primary())
     }
 
     @Test
-    func aWaitingPendingReferralCannotBeActivated() async throws {
+    func aWaitingPendingReferralCannotBeActivated() async {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantFuture))
-        let model = try #require(RewardsSceneViewModel.mock(service: service, wallets: [first, second]))
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
         await model.refresh()
 
         #expect(model.activatePendingButtonType == .primary(.disabled))
+    }
+
+    @Test
+    func unavailableRewardsBlocksInvitingUntilAvailabilityChanges() async {
+        let service = GemRewardsServiceMock()
+        service.isAvailableValue = false
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first])
+        await model.refresh()
+        #expect(model.isPresentingSheet == nil)
+
+        model.onInviteFriends()
+        #expect(model.isPresentingSheet?.id == "info")
+
+        model.isPresentingSheet = nil
+        service.isAvailableValue = true
+        model.onInviteFriends()
+        #expect(model.isPresentingSheet?.id == RewardsSheetType.share.id)
     }
 }

@@ -56,7 +56,7 @@ fn simulation_error_warning(error: Value) -> SimulationWarning {
 
 fn map_balance_changes(account_keys: &[String], signer_addresses: &HashSet<String>, pre_balances: &[u64], post_balances: &[u64], pre_token_balances: &[TokenBalance], post_token_balances: &[TokenBalance]) -> Vec<SimulationBalanceChange> {
     let mut deltas: HashMap<AssetId, BigInt> = HashMap::new();
-    let mut decimals: HashMap<AssetId, i32> = HashMap::new();
+    let mut decimals: HashMap<AssetId, u32> = HashMap::new();
     for (asset_id, value, asset_decimals) in signer_asset_values(account_keys, signer_addresses, post_balances, post_token_balances) {
         *deltas.entry(asset_id.clone()).or_default() += value;
         decimals.insert(asset_id, asset_decimals);
@@ -81,11 +81,17 @@ fn map_balance_changes(account_keys: &[String], signer_addresses: &HashSet<Strin
     balance_changes
 }
 
-fn signer_asset_values(account_keys: &[String], signer_addresses: &HashSet<String>, balances: &[u64], token_balances: &[TokenBalance]) -> Vec<(AssetId, BigInt, i32)> {
-    let mut values: Vec<(AssetId, BigInt, i32)> = token_balances
+fn signer_asset_values(account_keys: &[String], signer_addresses: &HashSet<String>, balances: &[u64], token_balances: &[TokenBalance]) -> Vec<(AssetId, BigInt, u32)> {
+    let mut values: Vec<(AssetId, BigInt, u32)> = token_balances
         .iter()
         .filter(|token_balance| signer_addresses.contains(&token_balance.owner))
-        .map(|token_balance| (AssetId::from_token(Chain::Solana, &token_balance.mint), BigInt::from(token_balance.get_amount()), token_balance.ui_token_amount.decimals as i32))
+        .map(|token_balance| {
+            (
+                AssetId::from_token(Chain::Solana, &token_balance.mint),
+                BigInt::from(token_balance.get_amount()),
+                u32::from(token_balance.ui_token_amount.decimals),
+            )
+        })
         .collect();
 
     let native_decimals = Asset::from_chain(Chain::Solana).decimals;

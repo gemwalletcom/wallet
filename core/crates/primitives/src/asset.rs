@@ -1,4 +1,4 @@
-use std::{collections::HashSet, error::Error};
+use std::error::Error;
 
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
@@ -12,7 +12,7 @@ pub struct Asset {
     pub id: AssetId,
     pub name: String,
     pub symbol: String,
-    pub decimals: i32,
+    pub decimals: u32,
     #[serde(rename = "type")]
     pub asset_type: AssetType,
 }
@@ -88,11 +88,11 @@ impl ChainAsset {
         }
     }
 
-    fn new(chain: Chain, name: &str, symbol: &str, decimals: i32) -> Self {
+    fn new(chain: Chain, name: &str, symbol: &str, decimals: u32) -> Self {
         Self::with_network_name(chain, name, name, symbol, decimals)
     }
 
-    fn with_network_name(chain: Chain, network_name: &str, name: &str, symbol: &str, decimals: i32) -> Self {
+    fn with_network_name(chain: Chain, network_name: &str, name: &str, symbol: &str, decimals: u32) -> Self {
         Self {
             asset: chain.new_asset(name, symbol, decimals, AssetType::NATIVE),
             network_name: network_name.to_string(),
@@ -101,7 +101,7 @@ impl ChainAsset {
 }
 
 impl Chain {
-    pub fn new_asset(&self, name: impl Into<String>, symbol: impl Into<String>, decimals: i32, asset_type: AssetType) -> Asset {
+    pub fn new_asset(&self, name: impl Into<String>, symbol: impl Into<String>, decimals: u32, asset_type: AssetType) -> Asset {
         Asset {
             id: self.as_asset_id(),
             name: name.into(),
@@ -113,7 +113,7 @@ impl Chain {
 }
 
 impl Asset {
-    pub fn new(id: AssetId, name: String, symbol: String, decimals: i32, asset_type: AssetType) -> Asset {
+    pub fn new(id: AssetId, name: String, symbol: String, decimals: u32, asset_type: AssetType) -> Asset {
         Asset { id, name, symbol, decimals, asset_type }
     }
 
@@ -189,16 +189,6 @@ mod chain_asset_tests {
     #[test]
     fn asset_from_chain_preserves_existing_native_asset_accessor() {
         assert_eq!(Asset::from_chain(Chain::Ton), ChainAsset::from_chain(Chain::Ton).asset);
-    }
-}
-
-pub trait AssetHashSetExt {
-    fn ids(&self) -> Vec<String>;
-}
-
-impl AssetHashSetExt for HashSet<AssetId> {
-    fn ids(&self) -> Vec<String> {
-        self.iter().map(ToString::to_string).collect()
     }
 }
 

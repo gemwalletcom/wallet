@@ -51,5 +51,7 @@ enum class SwapProvider(val string: String) {
 	Mayachain("mayachain"),
 	@SerialName("swaps_xyz")
 	SwapsXyz("swaps_xyz"),
+	@SerialName("bridgers")
+	Bridgers("bridgers"),
 }
 

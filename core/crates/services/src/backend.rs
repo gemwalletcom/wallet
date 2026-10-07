@@ -3,19 +3,19 @@ use std::error::Error;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use cacher::{AccessTokenCacherClient, CacherClient};
+use cacher::{AccessTokenCacherClient, AssetCatalogCacher, CacherClient, SwapVaultAddressCacher};
 use chain_providers::{ChainProviders, ProviderFactory};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
 use defi::{DefiProviderClient, DefiProviderConfig};
-use fiat::{FiatProvider, FiatProviderFactory};
+use fiat::{FiatProvider, FiatProviderFactory, IpAddressProvider};
 use gem_client::ReqwestClient;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::JsonRpcClient;
 use lists::CoinGeckoListProvider;
-use nft::NFTProviderConfig;
+use nft::{NFTProviderClient, NFTProviderConfig};
 use primitives::{AccessTokenCacher, Chain, ChainType, EVMChain, FiatProviderName};
-use pusher::PusherClient;
+use pusher::{PushProvider, PusherClient};
 use rewards::{AbuseIPDBClient, EvmClientProvider, IpApiClient, IpCheckProvider, TransferRedemptionService, WalletConfig};
 use search_index::{SearchIndexClient, SearchIndexConfig};
 use security::TransactionScanProviders;
@@ -27,9 +27,9 @@ use swapper::swapper::GemSwapper;
 use tokio::sync::OnceCell;
 
 use crate::access::AccessClient;
-use crate::app::ConfigClient;
+use crate::app::{CachedIpAddressProvider, ConfigClient};
 use crate::assets::ListsClient;
-use crate::assets::{AssetsClient, SearchClient};
+use crate::assets::{AssetCatalogClient, AssetsClient, SearchClient};
 use crate::auth::AuthClient;
 use crate::chain::{ChainClient, FeeEstimatesClient, NodesStatusClient};
 use crate::config::ConfigCacher;
@@ -45,9 +45,9 @@ use crate::prices::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
 use crate::rewards::IpSecurityClient;
 use crate::rewards::{RewardsClient, RewardsRedemptionClient};
 use crate::security::{ScanClient, ScanMetrics, scan_providers};
-use crate::support::SupportApiClient;
-use crate::support::SupportClient;
-use crate::swap::{NearIntentsProxyClient, SwapClient, SwapDepositAddressStore, SwapsXyzProxyClient};
+use crate::subscriptions::SubscriptionLookup;
+use crate::support::{ChatwootClient, ChatwootWebhookVerifier, SupportApiClient, SupportClient};
+use crate::swap::{NearIntentsProxyClient, SwapClient, SwapsXyzProxyClient};
 use crate::transactions::{AddressDetailsClient, AddressNamesClient, TransactionsClient};
 use crate::webhooks::WebhooksClient;
 
@@ -57,17 +57,19 @@ pub struct Services {
     database: Database,
     config: Arc<ConfigCacher>,
     cacher: Arc<OnceCell<CacherClient>>,
+    asset_catalog: Arc<OnceCell<Arc<AssetCatalogClient>>>,
 }
 
 impl Services {
     pub fn new(settings: Arc<Settings>) -> Result<Self, DatabaseError> {
         let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
-        let config = Arc::new(ConfigCacher::new(database.clone()));
+        let config = Arc::new(ConfigCacher::new(Arc::new(crate::config::repository::PostgresRepository::new(database.clone()))));
         Ok(Self {
             settings,
             database,
             config,
             cacher: Arc::new(OnceCell::new()),
+            asset_catalog: Arc::new(OnceCell::new()),
         })
     }
 
@@ -87,8 +89,23 @@ impl Services {
         Ok(self.cacher.get_or_try_init(|| CacherClient::new(&self.settings.redis.url)).await?.clone())
     }
 
+    async fn asset_catalog(&self) -> Result<Arc<AssetCatalogClient>, Box<dyn Error + Send + Sync>> {
+        let client = self
+            .asset_catalog
+            .get_or_try_init(|| async {
+                let cacher: Arc<dyn AssetCatalogCacher> = Arc::new(self.cacher().await?);
+                Ok::<_, Box<dyn Error + Send + Sync>>(Arc::new(AssetCatalogClient::new(self.assets_repository(), cacher, self.config())))
+            })
+            .await?;
+        Ok(client.clone())
+    }
+
+    pub(crate) fn subscription_lookup(&self, cacher: CacherClient) -> Arc<SubscriptionLookup> {
+        Arc::new(SubscriptionLookup::new(Arc::new(crate::subscriptions::repository::PostgresRepository::new(self.database())), Arc::new(cacher), self.config()))
+    }
+
     pub async fn auth(&self) -> Result<AuthClient, Box<dyn Error + Send + Sync>> {
-        Ok(AuthClient::new(self.cacher().await?))
+        Ok(AuthClient::new(Arc::new(self.cacher().await?)))
     }
 
     pub async fn stream_producer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<StreamProducer, Box<dyn Error + Send + Sync>> {
@@ -99,7 +116,7 @@ impl Services {
 
     pub async fn support(&self, shutdown: ShutdownReceiver) -> Result<SupportClient, Box<dyn Error + Send + Sync>> {
         let stream_producer = self.stream_producer("daemon_support_producer", shutdown).await?;
-        Ok(SupportClient::new(self.database(), stream_producer, self.cacher().await?))
+        Ok(SupportClient::new(self.support_repository(), Arc::new(stream_producer), Arc::new(self.cacher().await?)))
     }
 
     pub async fn search_index(&self) -> Result<SearchIndexClient, Box<dyn Error + Send + Sync>> {
@@ -110,13 +127,25 @@ impl Services {
     }
 
     pub fn defi(&self) -> DefiClient {
-        DefiClient::new(self.database(), DefiProviderClient::new(DefiProviderConfig::from_settings(&self.settings)))
+        DefiClient::new(
+            Arc::new(crate::defi::repository::PostgresRepository::new(self.database())),
+            DefiProviderClient::new(DefiProviderConfig::from_settings(&self.settings)),
+        )
     }
 
     pub async fn fiat(&self, stream_producer: StreamProducer) -> Result<FiatClient, Box<dyn Error + Send + Sync>> {
         let cacher = self.cacher().await?;
         let providers = self.fiat_providers(fiat_access_token_cacher(cacher.clone()));
-        Ok(FiatClient::new(self.database(), self.config(), cacher, providers, FiatProviderFactory::new_ip_check_client(&self.settings), stream_producer))
+        Ok(FiatClient::new(
+            self.fiat_repository(),
+            self.config(),
+            Arc::new(cacher.clone()),
+            Arc::new(cacher),
+            providers,
+            self.ip_address_provider().await?,
+            Arc::new(stream_producer),
+            self.asset_catalog().await?,
+        ))
     }
 
     pub async fn fiat_access_token_cacher(&self) -> Result<Arc<dyn AccessTokenCacher>, Box<dyn Error + Send + Sync>> {
@@ -129,27 +158,31 @@ impl Services {
 
     pub fn lists(&self) -> ListsClient {
         let coingecko = CoinGeckoClient::new(self.settings.coingecko.remote_provider_config());
-        ListsClient::new(self.database(), vec![Arc::new(CoinGeckoListProvider::new(coingecko))])
+        ListsClient::new(self.assets_repository(), vec![Arc::new(CoinGeckoListProvider::new(coingecko))])
     }
 
     pub fn nft(&self) -> NFTClient {
-        NFTClient::from_config(self.database(), NFTProviderConfig::from_settings(&self.settings), self.settings.nft.url.clone())
+        NFTClient::new(
+            Arc::new(crate::nft::repository::PostgresRepository::new(self.database())),
+            NFTProviderClient::new(NFTProviderConfig::from_settings(&self.settings)),
+            self.settings.nft.url.clone(),
+        )
     }
 
     pub fn prices(&self, cacher: CacherClient) -> PriceClient {
-        PriceClient::new(self.database(), self.config(), cacher)
+        PriceClient::new(self.prices_repository(), self.config(), Arc::new(cacher.clone()), Arc::new(cacher))
     }
 
     pub fn charts(&self) -> ChartClient {
-        ChartClient::new(self.database(), self.config())
+        ChartClient::new(self.prices_repository(), self.config())
     }
 
     pub fn markets(&self, cacher: CacherClient) -> MarketsClient {
-        MarketsClient::new(self.database(), cacher)
+        MarketsClient::new(self.prices_repository(), Arc::new(cacher))
     }
 
     pub fn price_alerts(&self) -> PriceAlertClient {
-        PriceAlertClient::new(self.database())
+        PriceAlertClient::new(self.prices_repository())
     }
 
     pub async fn ip_security(&self) -> Result<IpSecurityClient, Box<dyn Error + Send + Sync>> {
@@ -158,7 +191,7 @@ impl Services {
             Arc::new(AbuseIPDBClient::new(security.abuseipdb.url.clone(), security.abuseipdb.key.secret.clone())),
             Arc::new(IpApiClient::new(security.ipapi.url.clone(), security.ipapi.key.secret.clone())),
         ];
-        Ok(IpSecurityClient::new(providers, self.cacher().await?))
+        Ok(IpSecurityClient::new(providers, Arc::new(self.cacher().await?)))
     }
 
     pub fn redemption_service(&self) -> Result<TransferRedemptionService, Box<dyn Error + Send + Sync>> {
@@ -186,8 +219,44 @@ impl Services {
         Ok(TransferRedemptionService::new(wallets, client_provider))
     }
 
-    pub fn pusher(&self) -> PusherClient {
-        PusherClient::new(self.settings.pusher.url.clone(), self.settings.pusher.ios.topic.clone())
+    pub fn pusher(&self) -> Arc<dyn PushProvider> {
+        Arc::new(PusherClient::new(self.settings.pusher.url.clone(), self.settings.pusher.ios.topic.clone()))
+    }
+
+    pub(crate) fn assets_repository(&self) -> Arc<dyn crate::assets::repository::Repository> {
+        Arc::new(crate::assets::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn prices_repository(&self) -> Arc<dyn crate::prices::repository::Repository> {
+        Arc::new(crate::prices::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn transactions_repository(&self) -> Arc<dyn crate::transactions::repository::Repository> {
+        Arc::new(crate::transactions::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn fiat_repository(&self) -> Arc<dyn crate::fiat::repository::Repository> {
+        Arc::new(crate::fiat::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn setup_repository(&self) -> Arc<dyn crate::setup::repository::Repository> {
+        Arc::new(crate::setup::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn devices_repository(&self) -> Arc<dyn crate::devices::repository::Repository> {
+        Arc::new(crate::devices::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn notifications_repository(&self) -> Arc<dyn crate::notifications::repository::Repository> {
+        Arc::new(crate::notifications::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn support_repository(&self) -> Arc<dyn crate::support::repository::Repository> {
+        Arc::new(crate::support::repository::PostgresRepository::new(self.database()))
+    }
+
+    pub(crate) fn rewards_repository(&self) -> Arc<dyn crate::rewards::repository::Repository> {
+        Arc::new(crate::rewards::repository::PostgresRepository::new(self.database()))
     }
 
     pub fn chain_providers(&self, user_agent: &str) -> ChainProviders {
@@ -203,67 +272,76 @@ impl Services {
     }
 
     pub fn assets(&self) -> AssetsClient {
-        AssetsClient::new(self.database(), self.config())
+        AssetsClient::new(self.assets_repository(), self.config())
     }
 
-    pub async fn search(&self, price_client: PriceClient) -> Result<SearchClient, Box<dyn Error + Send + Sync>> {
-        Ok(SearchClient::new(self.search_index().await?, price_client))
+    pub async fn search(&self, cacher: CacherClient) -> Result<SearchClient, Box<dyn Error + Send + Sync>> {
+        Ok(SearchClient::new(Arc::new(self.search_index().await?), Arc::new(cacher)))
     }
 
     pub fn devices(&self) -> DevicesClient {
-        DevicesClient::new(self.database(), self.pusher())
+        DevicesClient::new(self.devices_repository(), self.pusher())
     }
 
-    pub fn wallets(&self, stream_producer: StreamProducer) -> WalletsClient {
-        WalletsClient::new(self.database(), stream_producer)
+    pub fn wallets(&self, stream_producer: StreamProducer, cacher: CacherClient) -> WalletsClient {
+        WalletsClient::new(self.devices_repository(), Arc::new(stream_producer), self.subscription_lookup(cacher))
     }
 
     pub fn wallet_configuration(&self, cacher: CacherClient, user_agent: &str) -> WalletConfigurationClient {
-        WalletConfigurationClient::new(self.database(), self.chain_providers(user_agent), cacher)
+        WalletConfigurationClient::new(self.devices_repository(), self.chain_providers(user_agent), Arc::new(cacher))
     }
 
     pub fn notifications(&self) -> NotificationsClient {
-        NotificationsClient::new(self.database())
+        NotificationsClient::new(self.notifications_repository())
     }
 
     pub fn rewards(&self, cacher: CacherClient, stream_producer: StreamProducer, ip_security: IpSecurityClient) -> RewardsClient {
-        RewardsClient::new(self.database(), self.config(), cacher, stream_producer, ip_security, self.pusher())
+        RewardsClient::new(self.rewards_repository(), self.config(), Arc::new(cacher), Arc::new(stream_producer), ip_security, self.pusher())
     }
 
     pub fn rewards_redemption(&self, stream_producer: StreamProducer) -> RewardsRedemptionClient {
-        RewardsRedemptionClient::new(self.database(), self.config(), stream_producer)
+        RewardsRedemptionClient::new(self.rewards_repository(), self.config(), Arc::new(stream_producer))
     }
 
     pub fn portfolio(&self) -> PortfolioClient {
-        PortfolioClient::new(self.database(), self.config())
+        PortfolioClient::new(self.prices_repository(), self.config())
     }
 
     pub fn transactions(&self) -> TransactionsClient {
-        TransactionsClient::new(self.database())
+        TransactionsClient::new(self.transactions_repository())
     }
 
     pub fn address_names(&self) -> AddressNamesClient {
-        AddressNamesClient::new(self.database())
+        AddressNamesClient::new(self.transactions_repository())
     }
 
     pub fn address_details(&self, user_agent: &str) -> AddressDetailsClient {
-        AddressDetailsClient::new(self.database(), self.config(), self.chain(user_agent))
+        AddressDetailsClient::new(self.transactions_repository(), self.config(), self.chain(user_agent))
     }
 
     pub fn indexer(&self, cacher: CacherClient, stream_producer: StreamProducer) -> IndexerClient {
-        IndexerClient::new(self.database(), cacher, stream_producer)
+        IndexerClient::new(self.assets_repository(), Arc::new(cacher), Arc::new(stream_producer))
     }
 
     pub fn access(&self) -> AccessClient {
-        AccessClient::new(self.database())
+        AccessClient::new(Arc::new(crate::access::repository::PostgresRepository::new(self.database())))
     }
 
     pub fn webhooks(&self, stream_producer: StreamProducer) -> WebhooksClient {
-        WebhooksClient::new(stream_producer, self.settings.support.webhook.key.secret.clone())
+        WebhooksClient::new(Arc::new(stream_producer), ChatwootWebhookVerifier::new(self.settings.support.webhook.key.secret.clone()))
     }
 
-    pub fn app_config(&self) -> ConfigClient {
-        ConfigClient::new(self.database())
+    pub async fn app_config(&self) -> Result<ConfigClient, Box<dyn Error + Send + Sync>> {
+        Ok(ConfigClient::new(
+            Arc::new(crate::app::repository::PostgresRepository::new(self.database())),
+            self.ip_address_provider().await?,
+            self.asset_catalog().await?,
+        ))
+    }
+
+    async fn ip_address_provider(&self) -> Result<Arc<dyn IpAddressProvider>, Box<dyn Error + Send + Sync>> {
+        let provider = Arc::new(FiatProviderFactory::new_ip_check_client(&self.settings));
+        Ok(Arc::new(CachedIpAddressProvider::new(Arc::new(self.cacher().await?), provider)))
     }
 
     pub fn chain(&self, user_agent: &str) -> ChainClient {
@@ -271,7 +349,7 @@ impl Services {
     }
 
     pub fn fee_estimates(&self, assets: AssetsClient, prices: PriceClient, cacher: CacherClient, user_agent: &str) -> FeeEstimatesClient {
-        FeeEstimatesClient::new(self.chain(user_agent), assets, prices, cacher)
+        FeeEstimatesClient::new(self.chain(user_agent), assets, prices, Arc::new(cacher))
     }
 
     pub fn nodes_status(&self) -> NodesStatusClient {
@@ -283,32 +361,36 @@ impl Services {
     }
 
     pub fn scan(&self, providers: TransactionScanProviders, cacher: CacherClient, metrics: Arc<dyn ScanMetrics>) -> ScanClient {
-        ScanClient::new(self.database(), self.config(), cacher, providers, metrics)
+        ScanClient::new(Arc::new(crate::security::repository::PostgresRepository::new(self.database())), self.config(), Arc::new(cacher), providers, metrics)
     }
 
     pub fn support_api(&self) -> SupportApiClient {
         let support = &self.settings.support;
-        SupportApiClient::new(support.url.clone(), support.widget.ios.clone(), support.widget.android.clone(), self.database())
+        SupportApiClient::new(
+            ChatwootClient::new(support.url.clone(), support.widget.ios.clone()),
+            ChatwootClient::new(support.url.clone(), support.widget.android.clone()),
+            self.support_repository(),
+        )
     }
 
     pub async fn device_stream(&self, cacher: CacherClient) -> Result<DeviceStreamClient, Box<dyn Error + Send + Sync>> {
         let config = self.config();
         Ok(DeviceStreamClient::new(
-            cacher,
+            Arc::new(cacher),
             config.get_duration(ConfigKey::DeviceStreamRetention).await?,
             config.get_usize(ConfigKey::DeviceStreamHistoryLimit).await?,
         ))
     }
 
-    pub fn swap(&self) -> SwapClient {
-        SwapClient::new(self.database())
+    pub async fn swap(&self) -> Result<SwapClient, Box<dyn Error + Send + Sync>> {
+        Ok(SwapClient::new(self.asset_catalog().await?))
     }
 
-    pub fn near_intents(&self, deposit_addresses: Arc<dyn SwapDepositAddressStore>) -> NearIntentsProxyClient {
+    pub fn near_intents(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> NearIntentsProxyClient {
         NearIntentsProxyClient::new(self.settings.swap.nearintents.url.clone(), deposit_addresses)
     }
 
-    pub fn swaps_xyz(&self, deposit_addresses: Arc<dyn SwapDepositAddressStore>) -> SwapsXyzProxyClient {
+    pub fn swaps_xyz(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> SwapsXyzProxyClient {
         SwapsXyzProxyClient::new(self.settings.swap.swapsxyz.url.clone(), deposit_addresses)
     }
 }

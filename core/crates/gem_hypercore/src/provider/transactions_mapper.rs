@@ -7,27 +7,45 @@ use number_formatter::BigNumberFormatter;
 use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID};
 
 use crate::config::HypercoreConfig;
-use crate::models::action::ExchangeRequest;
+use crate::core::hypercore::recover_l1_action_signer;
+use crate::models::action::{ExchangeRequest, SignedExchangeRequest};
+use crate::models::metadata::perpetual_asset_id;
 use crate::models::order::{FillDirection, UserFill};
 use crate::models::response::TransactionBroadcastResponse;
 use crate::models::spot::SpotMeta;
 use crate::models::token::SpotToken;
-use crate::models::transaction_id::{HyperCoreActionId, HyperCoreTransactionId};
+use crate::models::transaction_id::{HyperCoreSignedOrderId, HyperCoreTransactionId};
 use crate::perpetual_formatter::usdc_value;
 use crate::provider::fee_calculator::builder_fee_rate;
-use crate::provider::perpetual_mapper::create_perpetual_asset_id;
-use crate::provider::transaction_state_mapper::prepare_perpetual_fill;
+use crate::provider::transaction_state_mapper::{order_action_fill, prepare_perpetual_fill};
 
 const BUILDER_FEE_RATE_TOLERANCE: f64 = 0.01;
 const PREVIOUS_BUILDER_FEE_BPS: [u32; 2] = [43, 50];
 
 pub fn map_transaction_broadcast(request: &[u8], response: serde_json::Value) -> Result<String, Box<dyn Error + Sync + Send>> {
-    let response = serde_json::from_value::<TransactionBroadcastResponse>(response)?;
-    let identifier = match response.into_result()? {
-        Some(order_id) => HyperCoreTransactionId::Order(order_id),
-        None => HyperCoreTransactionId::Action(HyperCoreActionId::from(serde_json::from_slice::<ExchangeRequest>(request)?)),
-    };
-    Ok(identifier.to_string())
+    let order_id = serde_json::from_value::<TransactionBroadcastResponse>(response)?.into_result()?;
+    let request = serde_json::from_slice::<ExchangeRequest>(request)?;
+    Ok(HyperCoreTransactionId::new(order_id, request).to_string())
+}
+
+pub fn map_signed_transaction_broadcast(request: &[u8], response: serde_json::Value) -> Result<String, Box<dyn Error + Sync + Send>> {
+    let order_id = serde_json::from_value::<TransactionBroadcastResponse>(response)?.into_result()?;
+    let exchange_request = serde_json::from_slice::<ExchangeRequest>(request)?;
+    if exchange_request.action.places_orders() {
+        let signer = recover_l1_action_signer(&serde_json::from_slice::<SignedExchangeRequest>(request)?)?;
+        return Ok(HyperCoreSignedOrderId {
+            signer,
+            nonce: exchange_request.nonce,
+            oid: order_id,
+        }
+        .to_string());
+    }
+    Ok(HyperCoreTransactionId::new(order_id, exchange_request).to_string())
+}
+
+pub fn map_signed_order_fills(order: &HyperCoreSignedOrderId, fills: Vec<UserFill>) -> Vec<UserFill> {
+    let order_id = order.oid.or_else(|| order_action_fill(&fills, order.nonce).map(|fill| fill.oid));
+    fills.into_iter().filter(|fill| Some(fill.oid) == order_id).collect()
 }
 
 pub fn map_user_fills(address: &str, fills: Vec<UserFill>, spot_meta: Option<&SpotMeta>) -> Vec<Transaction> {
@@ -58,7 +76,7 @@ fn map_perpetual_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &Use
     build_fill_transaction(
         address,
         last_fill,
-        create_perpetual_asset_id(&last_fill.coin),
+        perpetual_asset_id(&last_fill.coin),
         transaction_type,
         usdc_value(fee),
         HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
@@ -122,12 +140,12 @@ fn map_spot_fee(fills: &[UserFill], base_token: &SpotToken, quote_token: &SpotTo
     Some((amount_to_value(fee_amount, fee_token.wei_decimals)?, fee_token.asset_id(Chain::HyperCore)))
 }
 
-fn amount_to_value(amount: f64, decimals: i32) -> Option<BigUint> {
+fn amount_to_value(amount: f64, decimals: u32) -> Option<BigUint> {
     if !amount.is_finite() {
         return None;
     }
-    let precision: usize = decimals.try_into().ok()?;
-    BigNumberFormatter::value_from_amount_biguint(&format!("{:.precision$}", amount.max(0.0)), precision as u32).ok()
+    let precision = decimals as usize;
+    BigNumberFormatter::value_from_amount_biguint(format!("{:.precision$}", amount.max(0.0)), decimals).ok()
 }
 
 fn build_fill_transaction(address: &str, last_fill: &UserFill, asset_id: AssetId, transaction_type: TransactionType, fee: BigUint, fee_asset_id: AssetId, value: BigUint, metadata: serde_json::Value) -> Option<Transaction> {

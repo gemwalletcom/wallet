@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">Tersuai</string>
+  <string name="fee_rate_priority">Yuran Keutamaan</string>
+  <string name="fee_rate_base">Yuran Asas</string>
   <string name="banner_account_activation_title">Yuran Pengaktifan Akaun</string>
   <string name="banner_account_activation_description">Rangkaian %1$s memerlukan bayaran sekali sebanyak %2$s.</string>
   <string name="banner_stake_title">Mula mempertaruhkan %1$s</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 jam</string>
   <string name="lock_require_authentication">Memerlukan pengesahan</string>
   <string name="lock_unlock">Buka kunci</string>
-  <string name="lock_privacy_lock">Kunci Privasi</string>
   <string name="lock_footer">Lindungi akses kepada apl ini pada peranti anda</string>
   <string name="lock_passcode">Kod Laluan</string>
+  <string name="lock_passcode_off_title">Kod laluan peranti dimatikan</string>
+  <string name="lock_passcode_off_description">Gem dikunci dengan kod laluan peranti anda. Hidupkan kod laluan dalam tetapan peranti untuk membuka Gem. Dompet anda selamat.</string>
   <string name="verify_phrase_title">Sahkan</string>
   <string name="warnings_externally_controlled_account">Akaun %1$s ini mungkin dikawal oleh orang lain. Jangan hantar dana ke akaun ini melainkan anda pasti anda yang mengawalnya, atau anda mungkin kehilangan aset anda secara kekal.</string>
   <string name="sell_title">Jual %1$s</string>
+  <string name="info_region_unavailable_description">Ciri ini tidak tersedia di rantau anda. Ketersediaan bergantung pada peraturan setempat dan syarat penyedia.</string>
   <string name="info_network_fee_title">Yuran Rangkaian</string>
   <string name="info_watch_wallet_title">Tonton Wallet</string>
   <string name="info_watch_wallet_description">Dompet yang anda tidak mempunyai akses, tetapi anda boleh menonton transaksi dan pergerakannya.</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">Nama panggilan</string>
   <string name="rewards_unverified_title">Ganjaran belum aktif lagi.</string>
   <string name="rewards_unverified_description">Ganjaran diaktifkan secara automatik apabila anda menggunakan aplikasi dengan lebih kerap.</string>
+  <string name="rewards_state_empty_title">Ganjaran memerlukan dompet Berbilang Koin</string>
+  <string name="rewards_state_empty_description">Buat atau import dompet Berbilang Koin untuk menjemput rakan dan memperoleh mata.</string>
   <string name="recent_activity_title">Terkini</string>
   <string name="recent_activity_state_empty_title">Tempahan anda akan dipaparkan di sini</string>
   <string name="recent_activity_state_empty_description">Aset yang anda gunakan baru-baru ini akan dipaparkan di sini</string>

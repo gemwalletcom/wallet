@@ -2,11 +2,13 @@
 
 import Components
 import Foundation
+import func Gemstone.emptyState
 import func Gemstone.fiatTransactionRows
 import protocol Gemstone.GemFiatQuoteServiceProtocol
 import struct Gemstone.GemFiatTransactionRow
+import enum Gemstone.GemListPhase
 import enum Gemstone.GemLoadState
-import func Gemstone.loadError
+import func Gemstone.listPhase
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -40,15 +42,11 @@ public final class FiatTransactionsSceneViewModel {
         Localized.Activity.title
     }
 
-    var loadError: Error? {
-        Gemstone.loadError(state: loadState, hasRows: !sections.isEmpty)
-    }
-
-    var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(kind: .activity)
+    var phase: GemListPhase {
+        listPhase(state: loadState, hasRows: sections.contains { !$0.values.isEmpty }, empty: emptyState(kind: .activity))
     }
 
     func load() async {
-        loadState = await service.refreshTransactions(hasTransactions: !sections.isEmpty)
+        loadState = await service.refreshTransactions()
     }
 }

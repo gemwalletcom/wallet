@@ -16,6 +16,7 @@ public final class ImportWalletViewModel {
     let preferences: ObservablePreferences
     private let nameService: any GemNameServiceProtocol
     let onComplete: VoidAction
+    public let isAcceptTermsCompleted: Bool
 
     public init(
         service: any GemWalletServiceProtocol,
@@ -29,10 +30,7 @@ public final class ImportWalletViewModel {
         self.preferences = preferences
         self.nameService = nameService
         self.onComplete = onComplete
-    }
-
-    public var isAcceptTermsCompleted: Bool {
-        preferences.isAcceptTermsCompleted
+        isAcceptTermsCompleted = preferences.isAcceptTermsCompleted
     }
 
     var shouldOfferAuthentication: Bool {

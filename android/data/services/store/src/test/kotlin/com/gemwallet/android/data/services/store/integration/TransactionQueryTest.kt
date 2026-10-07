@@ -39,8 +39,8 @@ class TransactionQueryTest {
     private val query = TransactionQuery(database.transactionsDao())
     private val wallet = mockWallet(id = WalletId("wallet-1"))
     private val otherWallet = mockWallet(id = WalletId("wallet-2"))
-    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
-    private val usdt = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6, type = AssetType.ERC20)
+    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
+    private val usdt = mockAsset(id = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7"), name = "Tether", symbol = "USDT", decimals = 6u, type = AssetType.ERC20)
     private val send = mockTransaction(
         assetId = usdt.id,
         id = mockTransactionId(chain = Chain.Ethereum, hash = "0xsend"),

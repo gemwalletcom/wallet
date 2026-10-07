@@ -137,7 +137,7 @@ extension AssetRecord {
             id: AssetId(chain: chain, tokenId: tokenId),
             name: name,
             symbol: symbol,
-            decimals: decimals.asInt32,
+            decimals: UInt32(decimals),
             type: type,
         )
     }

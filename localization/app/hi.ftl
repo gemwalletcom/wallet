@@ -476,6 +476,8 @@ fee_rates_normal = सामान्य
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = कस्टम
+fee_rate_priority = प्राथमिकता शुल्क
+fee_rate_base = बेस शुल्क
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 घंटा
 lock_six_hours = 6 घंटे
 lock_require_authentication = प्रमाणीकरण की आवश्यकता है
 lock_unlock = अनलॉक
-lock_privacy_lock = गोपनीयता लॉक
 lock_footer = अपने डिवाइस पर इस ऐप तक पहुंच सुरक्षित रखें
 lock_passcode = पासकोड
+lock_passcode_off_title = डिवाइस पासकोड बंद है
+lock_passcode_off_description = Gem आपके डिवाइस पासकोड से लॉक है। Gem खोलने के लिए डिवाइस सेटिंग्स में पासकोड चालू करें। आपके वॉलेट सुरक्षित हैं।
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = इस %@ खाते को कोई
 sell_title = बेचें %@
 
 # Info
+
+info_region_unavailable_description = यह सुविधा आपके क्षेत्र में उपलब्ध नहीं है। उपलब्धता स्थानीय नियमों और सेवा प्रदाताओं की आवश्यकताओं पर निर्भर करती है।
 
 info_network_fee_title = नेटवर्क शुल्क
 info_watch_wallet_title = वॉलेट देखें
@@ -725,6 +730,8 @@ rewards_pending_description_ready = आपका बोनस तैयार �
 rewards_nickname = उपनाम
 rewards_unverified_title = पुरस्कार अभी सक्रिय नहीं हैं।
 rewards_unverified_description = जैसे-जैसे आप ऐप का अधिक उपयोग करेंगे, पुरस्कार स्वचालित रूप से सक्रिय हो जाएंगे।
+rewards_state_empty_title = पुरस्कारों के लिए बहु-सिक्का वॉलेट ज़रूरी है
+rewards_state_empty_description = दोस्तों को आमंत्रित करने और अंक कमाने के लिए बहु-सिक्का वॉलेट बनाएं या इम्पोर्ट करें।
 
 # Recent Activity
 

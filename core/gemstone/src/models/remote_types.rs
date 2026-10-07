@@ -16,8 +16,8 @@ use primitives::{
     Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
     SimulationWarningApproval, SimulationWarningType, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData,
     SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType, Transaction, TransactionDirection, TransactionExtended, TransactionInputType,
-    TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletConnection,
-    WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletSource, WalletType, YieldProvider,
+    TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletAddressItem, WalletConnection,
+    WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletListItem, WalletSource, WalletType, YieldProvider,
 };
 use std::str::FromStr;
 
@@ -683,6 +683,7 @@ pub enum SwapProvider {
     Squid,
     Mayachain,
     SwapsXyz,
+    Bridgers,
 }
 
 #[uniffi::remote(Enum)]
@@ -845,7 +846,7 @@ pub struct Asset {
     pub id: primitives::AssetId,
     pub name: String,
     pub symbol: String,
-    pub decimals: i32,
+    pub decimals: u32,
     pub asset_type: AssetType,
 }
 
@@ -1603,7 +1604,7 @@ pub struct Rewards {
 pub struct SimulationBalanceChange {
     pub asset_id: primitives::AssetId,
     pub value: GemBigInt,
-    pub decimals: i32,
+    pub decimals: u32,
     pub name: Option<String>,
     pub symbol: Option<String>,
 }
@@ -1707,6 +1708,7 @@ pub struct SwapQuote {
     pub to_value: GemBigUint,
     pub provider_data: SwapProviderData,
     pub slippage_bps: u32,
+    pub slippage_mode: primitives::SlippageMode,
     pub eta_in_seconds: Option<u32>,
     pub use_max_amount: Option<bool>,
 }
@@ -1826,6 +1828,12 @@ pub struct Wallet {
 }
 
 #[uniffi::remote(Record)]
+pub struct WalletAddressItem {
+    pub wallet: WalletListItem,
+    pub address: String,
+}
+
+#[uniffi::remote(Record)]
 pub struct WalletConnection {
     pub session: WalletConnectionSession,
     pub wallet: Wallet,
@@ -1847,4 +1855,13 @@ pub struct WalletConnectionSessionProposal {
     pub default_wallet: Wallet,
     pub wallets: Vec<Wallet>,
     pub metadata: ApplicationMetadata,
+}
+
+#[uniffi::remote(Record)]
+pub struct WalletListItem {
+    pub id: primitives::WalletId,
+    pub name: String,
+    pub index: i32,
+    pub is_pinned: bool,
+    pub image_url: Option<String>,
 }

@@ -5,10 +5,14 @@ use std::time::Instant;
 
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, FiatProvider as PrimitiveFiatProvider, FiatQuote, FiatQuoteRequest, FiatQuoteType, PaymentType, sort_by_priority_then_amount};
+use primitives::{Asset, FiatProvider as PrimitiveFiatProvider, FiatProviderCountry, FiatQuote, FiatQuoteRequest, FiatQuoteType, PaymentType, sort_by_priority_then_amount};
 
 use crate::FiatProvider;
 use crate::model::FiatMapping;
+
+pub fn is_country_allowed(countries: &[FiatProviderCountry], country_code: &str, provider_id: Option<&str>) -> bool {
+    countries.iter().any(|country| country.alpha2 == country_code && country.is_allowed && provider_id.is_none_or(|id| country.provider.id() == id))
+}
 
 pub fn is_provider_eligible(db_provider: &PrimitiveFiatProvider, countries: &HashSet<String>, mapping: Option<&FiatMapping>, country_code: &str, request: &FiatQuoteRequest) -> bool {
     let is_enabled = match request.quote_type {
@@ -80,7 +84,7 @@ pub async fn get_provider_quote(provider: &(dyn FiatProvider + Send + Sync), req
 
 fn quote_value(asset: &Asset, crypto_amount: f64) -> Result<BigUint, Box<dyn Error + Send + Sync>> {
     let amount = format!("{crypto_amount:.precision$}", precision = asset.decimals as usize);
-    Ok(BigNumberFormatter::value_from_amount_biguint(&amount, asset.decimals as u32)?)
+    Ok(BigNumberFormatter::value_from_amount_biguint(&amount, asset.decimals)?)
 }
 
 #[cfg(test)]
@@ -99,6 +103,37 @@ mod tests {
     #[test]
     fn test_quote_value() {
         assert_eq!(quote_value(&Asset::from_chain(Chain::Ethereum), 0.000000000000000001_f64).unwrap(), BigUint::from(1u64));
+    }
+
+    #[test]
+    fn test_is_country_allowed() {
+        let countries = vec![
+            FiatProviderCountry {
+                provider: FiatProviderName::MoonPay,
+                alpha2: "GB".to_string(),
+                is_allowed: false,
+            },
+            FiatProviderCountry {
+                provider: FiatProviderName::Transak,
+                alpha2: "GB".to_string(),
+                is_allowed: true,
+            },
+            FiatProviderCountry {
+                provider: FiatProviderName::MoonPay,
+                alpha2: "US".to_string(),
+                is_allowed: true,
+            },
+        ];
+
+        assert!(is_country_allowed(&countries, "GB", None));
+        assert!(is_country_allowed(&countries, "GB", Some("transak")));
+        assert!(!is_country_allowed(&countries, "GB", Some("moonpay")));
+        assert!(!is_country_allowed(&countries, "GB", Some("paybis")));
+        assert!(is_country_allowed(&countries, "US", Some("moonpay")));
+        assert!(!is_country_allowed(&countries, "US", Some("transak")));
+        assert!(!is_country_allowed(&countries, "DE", None));
+        assert!(!is_country_allowed(&countries[..1], "GB", None));
+        assert!(!is_country_allowed(&[], "GB", None));
     }
 
     #[test]

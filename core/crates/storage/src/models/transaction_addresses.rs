@@ -1,27 +1,30 @@
+use std::collections::HashMap;
+
 use diesel::prelude::*;
 use primitives::Transaction;
-use serde::{Deserialize, Serialize};
 
 use crate::sql_types::{AssetId, ChainRow};
 
-#[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Insertable, Clone)]
 #[diesel(table_name = crate::schema::transactions_addresses)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct NewTransactionAddressesRow {
+    pub address_id: i32,
     pub transaction_id: i64,
     pub asset_id: AssetId,
-    pub address: String,
 }
 
 impl NewTransactionAddressesRow {
-    pub fn from_transaction(transaction_id: i64, transaction: &Transaction) -> Vec<NewTransactionAddressesRow> {
+    pub fn from_transaction(transaction_id: i64, transaction: &Transaction, address_ids: &HashMap<String, i32>) -> Vec<NewTransactionAddressesRow> {
         transaction
             .assets_addresses()
             .into_iter()
-            .map(|x| Self {
-                transaction_id,
-                asset_id: x.asset_id.into(),
-                address: x.address,
+            .filter_map(|asset_address| {
+                address_ids.get(&asset_address.address).map(|&address_id| Self {
+                    address_id,
+                    transaction_id,
+                    asset_id: asset_address.asset_id.into(),
+                })
             })
             .collect()
     }

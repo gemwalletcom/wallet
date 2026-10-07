@@ -22,7 +22,7 @@ pub(crate) struct TransactionRow {
     pub kind: TransactionType,
     pub value: Option<String>,
     pub asset_id: AssetId,
-    pub fee: Option<String>,
+    pub fee: String,
     pub utxo_inputs: Option<serde_json::Value>,
     pub utxo_outputs: Option<serde_json::Value>,
     pub fee_asset_id: AssetId,
@@ -43,7 +43,7 @@ pub(crate) struct NewTransactionRow {
     pub kind: TransactionType,
     pub value: Option<String>,
     pub asset_id: AssetId,
-    pub fee: Option<String>,
+    pub fee: String,
     pub utxo_inputs: Option<serde_json::Value>,
     pub utxo_outputs: Option<serde_json::Value>,
     pub fee_asset_id: AssetId,
@@ -71,7 +71,7 @@ impl TransactionRow {
 
         let direction = TransactionDirection::from_parties(&from, &to_address, &addresses);
         let transaction_type = self.kind.0.clone();
-        let fee = BigUint::from_str(self.fee.as_deref().unwrap_or("0")).map_err(serde_json::Error::custom)?;
+        let fee = BigUint::from_str(&self.fee).map_err(serde_json::Error::custom)?;
         let value = BigUint::from_str(self.value.as_deref().unwrap_or("0")).map_err(serde_json::Error::custom)?;
 
         Ok(Transaction {
@@ -123,7 +123,7 @@ impl NewTransactionRow {
             memo,
             asset_id: transaction.asset_id.into(),
             value,
-            fee: Some(transaction.fee.to_string()),
+            fee: transaction.fee.to_string(),
             fee_asset_id: transaction.fee_asset_id.into(),
             from_address,
             to_address,
@@ -156,7 +156,7 @@ mod tests {
             kind: TransactionType::Transfer,
             value: Some("28603917".to_string()),
             asset_id: AssetId::from_token(Chain::Ethereum, "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48").into(),
-            fee: Some("1".to_string()),
+            fee: "1".to_string(),
             utxo_inputs: None,
             utxo_outputs: None,
             fee_asset_id: AssetId::from_chain(Chain::Ethereum).into(),

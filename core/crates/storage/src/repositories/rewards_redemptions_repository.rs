@@ -136,7 +136,7 @@ impl RewardsRedemptionsRepository for DatabaseClient {
             let target = dsl::rewards_redemptions.find(redemption_id);
             match update {
                 RedemptionUpdate::Status(value) => diesel::update(target).set(dsl::status.eq(RedemptionStatus::from(value))).execute(&mut self.connection)?,
-                RedemptionUpdate::TransactionId(value) => diesel::update(target).set(dsl::transaction_id.eq(value)).execute(&mut self.connection)?,
+                RedemptionUpdate::TransactionId(value) => diesel::update(target).set(dsl::transaction_hash.eq(value)).execute(&mut self.connection)?,
                 RedemptionUpdate::Error(value) => diesel::update(target).set(dsl::error.eq(value)).execute(&mut self.connection)?,
             };
         }

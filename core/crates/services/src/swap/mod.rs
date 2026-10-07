@@ -4,6 +4,5 @@ mod swap_client;
 mod swaps_xyz_client;
 
 pub use near_intents_client::NearIntentsProxyClient;
-pub use proxy_client::SwapDepositAddressStore;
 pub use swap_client::SwapClient;
 pub use swaps_xyz_client::SwapsXyzProxyClient;

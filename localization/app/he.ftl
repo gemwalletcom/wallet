@@ -476,6 +476,8 @@ fee_rates_normal = רגיל
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = מותאם אישית
+fee_rate_priority = עמלת עדיפות
+fee_rate_base = עמלת בסיס
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = שעה אחת
 lock_six_hours = 6 שעות
 lock_require_authentication = דרוש אימות
 lock_unlock = פתח את הנעילה
-lock_privacy_lock = נעילת פרטיות
 lock_footer = הגן על הגישה לאפליקציה הזו במכשיר שלך
 lock_passcode = קוד גישה
+lock_passcode_off_title = קוד הגישה של המכשיר כבוי
+lock_passcode_off_description = Gem נעול באמצעות קוד הגישה של המכשיר. הפעל קוד גישה בהגדרות המכשיר כדי לפתוח את Gem. הארנקים שלך בטוחים.
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = ייתכן שמישהו אחר שולט
 sell_title = למכור %@
 
 # Info
+
+info_region_unavailable_description = תכונה זו אינה זמינה באזור שלך. הזמינות תלויה בכללים המקומיים ובדרישות של ספקי השירות.
 
 info_network_fee_title = עמלת רשת
 info_watch_wallet_title = ארנק במעקב
@@ -725,6 +730,8 @@ rewards_pending_description_ready = הבונוס שלך מוכן!
 rewards_nickname = כינוי
 rewards_unverified_title = הפרסים עדיין לא פעילים.
 rewards_unverified_description = הפרסים מופעלים אוטומטית ככל שתשתמשו יותר באפליקציה.
+rewards_state_empty_title = תגמולים דורשים ארנק רב מטבע
+rewards_state_empty_description = צרו או ייבאו ארנק רב מטבע כדי להזמין חברים ולצבור נקודות.
 
 # Recent Activity
 

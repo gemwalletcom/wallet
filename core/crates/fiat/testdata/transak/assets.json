@@ -1,0 +1,32 @@
+[
+  {
+    "coinId": "aptos",
+    "uniqueId": "APTaptos",
+    "symbol": "APT",
+    "network": {
+      "name": "aptos",
+      "fiatCurrenciesNotSupported": [],
+      "chainId": null
+    },
+    "address": null,
+    "isAllowed": true,
+    "isSuspended": null,
+    "isPayInAllowed": false,
+    "kycCountriesNotSupported": ["US", "CA"]
+  },
+  {
+    "coinId": "tether",
+    "uniqueId": "USDTaptos",
+    "symbol": "USDT",
+    "network": {
+      "name": "aptos",
+      "fiatCurrenciesNotSupported": [],
+      "chainId": null
+    },
+    "address": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+    "isAllowed": true,
+    "isSuspended": false,
+    "isPayInAllowed": false,
+    "kycCountriesNotSupported": ["US", "CA"]
+  }
+]

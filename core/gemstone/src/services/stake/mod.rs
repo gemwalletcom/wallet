@@ -4,18 +4,25 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use crate::models::list::GemListRow;
-use crate::models::state::GemLoadState;
-use crate::services::error::{GemServiceError, required_account};
-use chrono::Utc;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Platform, StakeProviderType, WalletId, WalletType};
+use chrono::Utc;
+
+use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Feature, Platform, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
+use crate::models::list::GemListRow;
+use crate::models::state::GemLoadState;
 use crate::models::{GemContractCallData, GemEarnType};
+use crate::services::assets::GemAssetsService;
+use crate::services::config::GemConfigService;
+use crate::services::error::{GemServiceError, required_account};
+use crate::services::explorer::GemExplorerService;
+use crate::services::name::GemNameService;
+use crate::services::preferences::GemPreferencesService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 pub use model::{
     GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionKind,
@@ -23,21 +30,18 @@ pub use model::{
 };
 pub use store::GemStakeStore;
 
-use crate::services::explorer::GemExplorerService;
-use crate::services::name::GemNameService;
-use crate::services::preferences::GemPreferencesService;
-use crate::services::wallet_session::GemWalletSessionService;
-
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
     gateway: Arc<GemGateway>,
     static_api: Arc<GemStaticApiClient>,
     store: Arc<dyn GemStakeStore>,
+    assets: Arc<GemAssetsService>,
     names: Arc<GemNameService>,
     explorer: Arc<GemExplorerService>,
     preferences: Arc<GemPreferencesService>,
     session: Arc<GemWalletSessionService>,
     platform: Platform,
+    config: Arc<GemConfigService>,
 }
 
 #[uniffi::export]
@@ -47,22 +51,30 @@ impl GemStakeService {
         gateway: Arc<GemGateway>,
         static_api: Arc<GemStaticApiClient>,
         store: Arc<dyn GemStakeStore>,
+        assets: Arc<GemAssetsService>,
         names: Arc<GemNameService>,
         explorer: Arc<GemExplorerService>,
         preferences: Arc<GemPreferencesService>,
         session: Arc<GemWalletSessionService>,
         platform: Platform,
+        config: Arc<GemConfigService>,
     ) -> Self {
         Self {
             gateway,
             static_api,
             store,
+            assets,
             names,
             explorer,
             preferences,
             session,
             platform,
+            config,
         }
+    }
+
+    pub fn is_available(&self) -> bool {
+        self.config.is_feature_enabled(Feature::Staking)
     }
 
     pub fn get_currency(&self) -> Currency {
@@ -88,6 +100,7 @@ impl GemStakeService {
                     ..section
                 })
                 .collect(),
+            phase: options.phase,
         }
     }
 
@@ -133,7 +146,7 @@ impl GemStakeService {
     }
 
     pub async fn sync_wallet(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
-        let apr = self.store.get_apr(AssetId::from_chain(chain), StakeProviderType::Stake).await?.unwrap_or_default();
+        let apr = self.assets.asset_properties(AssetId::from_chain(chain)).await?.and_then(|properties| properties.staking_apr).unwrap_or_default();
         let (names, validators, delegation_validators, delegations) = futures::join!(
             self.static_api.client.get_validators(chain),
             self.gateway.get_staking_validators(chain, Some(apr)),
@@ -149,7 +162,7 @@ impl GemStakeService {
     }
 
     pub async fn sync_earn_wallet(&self, wallet_id: WalletId, asset_id: AssetId, address: String) -> Result<(), GemServiceError> {
-        let apr = self.store.get_apr(asset_id.clone(), StakeProviderType::Earn).await?.unwrap_or_default();
+        let apr = self.assets.asset_properties(asset_id.clone()).await?.and_then(|properties| properties.earn_apr).unwrap_or_default();
         let providers = rules::earn_validators(self.gateway.get_earn_providers(asset_id.clone()), apr);
         let changed = rules::changed_validators(providers, &self.store.get_validators(asset_id.clone(), StakeProviderType::Earn).await?);
         if !changed.is_empty() {

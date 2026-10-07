@@ -7,119 +7,110 @@ use gem_evm::{
     },
 };
 use gem_tracing::info_with_fields;
+use primitives::contract_constants::{UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
 use primitives::{Chain, ScanAddress, SwapProvider};
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::error::Error;
-use storage::{Database, ScanAddressesRepository};
 use swapper::{chainflip, mayan, near_intents, squid, thorchain::THORChainNetwork};
 
-pub async fn setup_scan_addresses(database: &Database) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let values = known_contracts();
+use super::repository::Repository;
+
+pub(super) async fn setup_scan_addresses(repository: &dyn Repository) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let values = known_contracts().into_iter().map(|contract| ((contract.chain, contract.address.clone()), contract)).collect::<HashMap<_, _>>();
     let count = values.len();
-    let inserted = database.run(move |client| client.add_scan_addresses(values)).await?;
+    let inserted = repository.add_missing_scan_addresses(values).await?;
 
     info_with_fields!("setup", step = "scan addresses", count = count, inserted = inserted);
     Ok(())
 }
 
 fn known_contracts() -> Vec<ScanAddress> {
-    let mut contracts = Vec::new();
+    Chain::all().into_iter().flat_map(swap_contracts).chain(provider_contracts()).collect()
+}
 
-    for chain in Chain::all() {
-        let uniswap_v3 = get_uniswap_router_deployment_by_chain(&chain);
-        let uniswap_v4 = get_uniswap_deployment_by_chain(&chain);
-        let pancakeswap = get_pancakeswap_router_deployment_by_chain(&chain);
-        let oku = get_oku_deployment_by_chain(&chain);
-        let wagmi = get_wagmi_router_deployment_by_chain(&chain);
-        let aerodrome = get_aerodrome_router_deployment_by_chain(&chain);
+fn swap_contracts(chain: Chain) -> Vec<ScanAddress> {
+    let uniswap_v3 = get_uniswap_router_deployment_by_chain(&chain);
+    let uniswap_v4 = get_uniswap_deployment_by_chain(&chain);
+    let pancakeswap = get_pancakeswap_router_deployment_by_chain(&chain);
+    let oku = get_oku_deployment_by_chain(&chain);
+    let wagmi = get_wagmi_router_deployment_by_chain(&chain);
+    let aerodrome = get_aerodrome_router_deployment_by_chain(&chain);
 
-        if let Some(address) = get_uniswap_permit2_by_chain(&chain) {
-            contracts.push(ScanAddress::contract(chain, address, format!("{} Permit2", SwapProvider::UniswapV3.name())));
-        }
+    let permit2 = [
+        (SwapProvider::UniswapV3, get_uniswap_permit2_by_chain(&chain)),
+        (SwapProvider::PancakeswapV3, pancakeswap.as_ref().map(|deployment| deployment.permit2)),
+        (SwapProvider::Oku, oku.as_ref().map(|deployment| deployment.permit2)),
+        (SwapProvider::Wagmi, wagmi.as_ref().map(|deployment| deployment.permit2)),
+    ]
+    .into_iter()
+    .filter_map(|(provider, address)| address.map(|address| ScanAddress::contract(chain, address, permit2_name(provider, address))));
 
-        for (provider, address) in [
-            (SwapProvider::UniswapV3, uniswap_v3.as_ref().map(|deployment| deployment.universal_router)),
-            (SwapProvider::UniswapV4, uniswap_v4.as_ref().map(|deployment| deployment.universal_router)),
-            (SwapProvider::PancakeswapV3, pancakeswap.as_ref().map(|deployment| deployment.universal_router)),
-            (SwapProvider::Oku, oku.as_ref().map(|deployment| deployment.universal_router)),
-            (SwapProvider::Wagmi, wagmi.as_ref().map(|deployment| deployment.universal_router)),
-            (SwapProvider::Aerodrome, aerodrome.as_ref().map(|deployment| deployment.universal_router)),
-        ] {
-            if let Some(address) = address {
-                contracts.push(ScanAddress::contract(chain, address, format!("{} Router", provider.name())));
-            }
-        }
+    let routers = [
+        (SwapProvider::UniswapV3, uniswap_v3.as_ref().map(|deployment| deployment.universal_router)),
+        (SwapProvider::UniswapV4, uniswap_v4.as_ref().map(|deployment| deployment.universal_router)),
+        (SwapProvider::PancakeswapV3, pancakeswap.as_ref().map(|deployment| deployment.universal_router)),
+        (SwapProvider::Oku, oku.as_ref().map(|deployment| deployment.universal_router)),
+        (SwapProvider::Wagmi, wagmi.as_ref().map(|deployment| deployment.universal_router)),
+        (SwapProvider::Aerodrome, aerodrome.as_ref().map(|deployment| deployment.universal_router)),
+    ]
+    .into_iter()
+    .filter_map(|(provider, address)| address.map(|address| ScanAddress::contract(chain, address, format!("{} Router", provider.name()))));
 
-        for (provider, address) in [
-            (SwapProvider::PancakeswapV3, pancakeswap.as_ref().map(|deployment| deployment.permit2)),
-            (SwapProvider::Oku, oku.as_ref().map(|deployment| deployment.permit2)),
-            (SwapProvider::Wagmi, wagmi.as_ref().map(|deployment| deployment.permit2)),
-        ] {
-            if let Some(address) = address {
-                contracts.push(ScanAddress::contract(chain, address, format!("{} Permit2", provider.name())));
-            }
-        }
+    let across = AcrossDeployment::deployment_by_chain(&chain)
+        .into_iter()
+        .flat_map(|deployment| [deployment.spoke_pool, deployment.multicall_handler()])
+        .map(|address| ScanAddress::contract(chain, address, SwapProvider::Across.name()));
 
-        if let Some(deployment) = AcrossDeployment::deployment_by_chain(&chain) {
-            for address in [deployment.spoke_pool, deployment.multicall_handler()] {
-                contracts.push(ScanAddress::contract(chain, address, SwapProvider::Across.name()));
-            }
-        }
+    permit2.chain(routers).chain(across).collect()
+}
+
+fn provider_contracts() -> Vec<ScanAddress> {
+    let routers = [THORChainNetwork::Thorchain, THORChainNetwork::Mayachain]
+        .into_iter()
+        .flat_map(|network| network.routers().iter().map(move |(chain, router)| ScanAddress::contract(*chain, *router, network.provider().name())));
+    let vaults = chainflip::VAULT_ADDRESSES
+        .into_iter()
+        .map(|(chain, vault)| (SwapProvider::Chainflip, chain, vault))
+        .chain(near_intents::TREASURY_ADDRESSES.into_iter().map(|(chain, treasury)| (SwapProvider::NearIntents, chain, treasury)))
+        .chain(mayan::MAYAN_DEPOSIT_CONTRACTS.into_iter().chain(mayan::MAYAN_SEND_CONTRACTS).map(|(chain, contract)| (SwapProvider::Mayan, chain, contract)))
+        .chain([(SwapProvider::Squid, squid::SQUID_COSMOS_MULTICALL.0, squid::SQUID_COSMOS_MULTICALL.1)])
+        .map(|(provider, chain, address)| ScanAddress::contract(chain, address, provider.name()));
+
+    routers.chain(vaults).collect()
+}
+
+fn permit2_name(provider: SwapProvider, address: &str) -> String {
+    match address {
+        UNISWAP_PERMIT2_CONTRACT | ZKSYNC_UNISWAP_PERMIT2_CONTRACT => "Permit2".to_string(),
+        _ => format!("{} Permit2", provider.name()),
     }
-
-    for network in [THORChainNetwork::Thorchain, THORChainNetwork::Mayachain] {
-        contracts.extend(network.routers().iter().map(|(chain, router)| ScanAddress::contract(*chain, *router, network.provider().name())));
-    }
-    contracts.extend(chainflip::VAULT_ADDRESSES.map(|(chain, vault)| ScanAddress::contract(chain, vault, SwapProvider::Chainflip.name())));
-    contracts.extend(near_intents::TREASURY_ADDRESSES.map(|(chain, treasury)| ScanAddress::contract(chain, treasury, SwapProvider::NearIntents.name())));
-    contracts.extend(
-        mayan::MAYAN_DEPOSIT_CONTRACTS
-            .into_iter()
-            .chain(mayan::MAYAN_SEND_CONTRACTS)
-            .map(|(chain, contract)| ScanAddress::contract(chain, contract, SwapProvider::Mayan.name())),
-    );
-    let (chain, multicall) = squid::SQUID_COSMOS_MULTICALL;
-    contracts.push(ScanAddress::contract(chain, multicall, SwapProvider::Squid.name()));
-
-    let mut seen = HashSet::new();
-    contracts.retain(|contract| seen.insert((contract.chain, contract.address.clone())));
-    contracts
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
 
     #[test]
-    fn test_known_contracts_are_named_by_provider_and_role() {
+    fn test_a_contract_listed_more_than_once_keeps_one_name() {
         let contracts = known_contracts();
-        let names: HashMap<(Chain, &str), &str> = contracts.iter().map(|contract| ((contract.chain, contract.address.as_str()), contract.name.as_deref().unwrap())).collect();
-        let uniswap = get_uniswap_router_deployment_by_chain(&Chain::SmartChain).unwrap();
-        let pancakeswap = get_pancakeswap_router_deployment_by_chain(&Chain::SmartChain).unwrap();
-        let across = AcrossDeployment::deployment_by_chain(&Chain::Ethereum).unwrap();
+        let conflicting = contracts
+            .iter()
+            .filter(|contract| contracts.iter().any(|other| other.chain == contract.chain && other.address == contract.address && other.name != contract.name))
+            .collect::<Vec<_>>();
 
-        assert_eq!(names[&(Chain::SmartChain, uniswap.permit2)], "Uniswap Permit2");
-        assert_eq!(names[&(Chain::SmartChain, uniswap.universal_router)], "Uniswap Router");
-        assert_eq!(names[&(Chain::SmartChain, pancakeswap.permit2)], "PancakeSwap Permit2");
-        assert_eq!(names[&(Chain::SmartChain, pancakeswap.universal_router)], "PancakeSwap Router");
-        assert_eq!(names[&(Chain::Ethereum, across.spoke_pool)], "Across");
-        assert_eq!(names[&(Chain::Ethereum, across.multicall_handler())], "Across");
-        for (chain, router) in THORChainNetwork::Thorchain.routers() {
-            assert_eq!(names[&(*chain, *router)], "THORChain");
-        }
-        for (chain, router) in THORChainNetwork::Mayachain.routers() {
-            assert_eq!(names[&(*chain, *router)], "Maya");
-        }
-        for (chain, vault) in chainflip::VAULT_ADDRESSES {
-            assert_eq!(names[&(chain, vault)], "Chainflip");
-        }
-        for (chain, treasury) in near_intents::TREASURY_ADDRESSES {
-            assert_eq!(names[&(chain, treasury)], "NEAR Intents");
-        }
-        for (chain, contract) in mayan::MAYAN_DEPOSIT_CONTRACTS.into_iter().chain(mayan::MAYAN_SEND_CONTRACTS) {
-            assert_eq!(names[&(chain, contract)], "Mayan");
-        }
-        assert_eq!(names[&squid::SQUID_COSMOS_MULTICALL], "Squid");
+        assert!(conflicting.is_empty(), "{conflicting:?}");
+    }
+
+    #[test]
+    fn test_the_shared_permit2_is_named_permit2_whichever_provider_lists_it() {
+        let contracts = known_contracts();
+        let name = |chain: Chain, address: &str| contracts.iter().find(|contract| contract.chain == chain && contract.address == address).and_then(|contract| contract.name.clone());
+        let pancakeswap = get_pancakeswap_router_deployment_by_chain(&Chain::SmartChain).unwrap();
+
+        assert_eq!(name(Chain::Ethereum, UNISWAP_PERMIT2_CONTRACT).as_deref(), Some("Permit2"));
+        assert_eq!(name(Chain::Gnosis, UNISWAP_PERMIT2_CONTRACT).as_deref(), Some("Permit2"), "only Oku lists it on Gnosis");
+        assert_eq!(name(Chain::ZkSync, ZKSYNC_UNISWAP_PERMIT2_CONTRACT).as_deref(), Some("Permit2"));
+        assert_eq!(name(Chain::SmartChain, pancakeswap.permit2).as_deref(), Some("PancakeSwap Permit2"));
+        assert_eq!(name(Chain::SmartChain, pancakeswap.universal_router).as_deref(), Some("PancakeSwap Router"));
     }
 }

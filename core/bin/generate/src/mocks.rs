@@ -1,3 +1,4 @@
+use crate::models::KOTLIN_PACKAGE;
 use crate::remote_mappers::{Field, Generator, HEADER, RemoteType, Variant, Wrapper, camel_case, uniffi_swift_case, uniffi_type_name, unwrap};
 
 pub(crate) struct MockSyntax {
@@ -143,7 +144,7 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
     none: "null",
     empty_list: "emptyList()",
     empty_map: "emptyMap()",
-    app_module: "com.wallet.core.primitives",
+    app_module: KOTLIN_PACKAGE,
     app_qualifier: "",
     app_case: str::to_string,
     app_types: &[
@@ -195,16 +196,12 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
     core_typed_identifier: "",
     core_code: "com.wallet.core.primitives.{type}.{case}.string",
     core_imports: &["com.gemwallet.android.ext.toGem", "com.gemwallet.android.ext.toIdentifier"],
-    unit_case: [screaming_words, uniffi_type_name_case],
+    unit_case: [screaming_words, uniffi_type_name],
     unit_value: ["{type}.{case}", "{type}.{case}"],
-    data_case: uniffi_type_name_case,
+    data_case: uniffi_type_name,
     data_value: "{type}.{case}({arguments})",
     named_argument: "{label} = {value}",
 };
-
-fn uniffi_type_name_case(variant: &str) -> String {
-    uniffi_type_name(variant)
-}
 
 pub(crate) fn screaming_words(variant: &str) -> String {
     let camel = uniffi_type_name(variant);

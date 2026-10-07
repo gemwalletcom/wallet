@@ -1,6 +1,5 @@
+use primitives::IpCheckResult;
 use serde::{Deserialize, Serialize};
-
-use crate::model::IpCheckResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

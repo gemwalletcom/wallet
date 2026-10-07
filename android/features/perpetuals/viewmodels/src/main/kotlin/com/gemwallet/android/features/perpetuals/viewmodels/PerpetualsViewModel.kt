@@ -40,11 +40,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetAction
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemMarketsRefreshTrigger
-import uniffi.gemstone.GemPerpetualMarketCounts
-import uniffi.gemstone.GemPerpetualMarketSection
+import uniffi.gemstone.GemPerpetualDepositTarget
 import uniffi.gemstone.GemPerpetualMarketSections
 import uniffi.gemstone.GemPerpetualMarketSession
+import uniffi.gemstone.GemPerpetualMarketView
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemRefreshKind
@@ -70,10 +71,20 @@ class PerpetualsViewModel @Inject constructor(
     private val observeRefreshInterval: ObserveRefreshInterval,
 ) : ViewModel() {
 
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
+
     private val session = MutableStateFlow(GemPerpetualMarketSession(query = "", isSearching = false))
 
     val isSearching: StateFlow<Boolean> = session.map { it.isSearching }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    fun deposit(onDeposit: () -> Unit) {
+        if (!service.isAvailable()) {
+            infoSheet.value = GemInfoTopic.RegionUnavailable
+            return
+        }
+        onDeposit()
+    }
 
     fun setSearching(searching: Boolean) {
         session.update { it.onSearchingChanged(searching) }
@@ -126,16 +137,14 @@ class PerpetualsViewModel @Inject constructor(
         .map { items -> items.map { it.asset } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val sections: StateFlow<List<GemPerpetualMarketSection>> = combine(positions, pinnedPerpetuals, unpinnedPerpetuals, recent, session) { positions, pinned, markets, recents, session ->
-        session.sections(
-            GemPerpetualMarketCounts(
-                positions = positions.size.toUInt(),
-                pinned = pinned.size.toUInt(),
-                markets = markets.size.toUInt(),
-                recents = recents.size.toUInt(),
-            ),
+    val marketView: StateFlow<GemPerpetualMarketView> = combine(positions, perpetualSections, recent, session) { positions, markets, recents, session ->
+        session.view(
+            positionIds = positions.map { it.position.id },
+            pinnedIds = markets.pinned.map { it.data.perpetual.id },
+            marketIds = markets.markets.map { it.data.perpetual.id },
+            recentAssetIds = recents.map { it.id.toIdentifier() },
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, session.value.view(emptyList(), emptyList(), emptyList(), emptyList()))
 
     fun onRefresh() {
         isRefreshing.value = true
@@ -156,6 +165,10 @@ class PerpetualsViewModel @Inject constructor(
     fun unsubscribeMarketPrices() {
         perpetualObserver.unsubscribe(GemPerpetualSubscription.MarketPrices)
     }
+
+    suspend fun depositTarget(): GemPerpetualDepositTarget? = runCatchingCancellable { service.depositTarget() }
+        .onFailure { Log.e(TAG, "perpetual deposit target failed", it) }
+        .getOrNull()
 
     fun onTogglePin(perpetualId: PerpetualId) = viewModelScope.launch(ioDispatcher) {
         val item = (pinnedPerpetuals.value + unpinnedPerpetuals.value).firstOrNull { it.data.perpetual.id == perpetualId.toIdentifier() } ?: return@launch

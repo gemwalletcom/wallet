@@ -9,7 +9,7 @@ pub(crate) mod sql_types;
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
-diesel::allow_columns_to_appear_in_same_group_by_clause!(schema::transactions_addresses::address, schema::transactions::chain,);
+diesel::allow_columns_to_appear_in_same_group_by_clause!(schema::wallets_addresses::address, schema::transactions::chain,);
 
 pub use self::database::DatabaseClient;
 pub use self::error::{DatabaseError, DieselResultExt};
@@ -21,9 +21,10 @@ pub use self::repositories::{
     assets_repository::{AssetFilter, AssetUpdate, AssetsRepository},
     assets_usage_ranks_repository::AssetsUsageRanksRepository,
     chains_repository::ChainsRepository,
-    charts_repository::{ChartFilter, ChartPoint, ChartsRepository},
+    charts_repository::{ChartFilter, ChartPoint, ChartResult, ChartsRepository},
     config_repository::ConfigRepository,
     devices_repository::{DeviceFieldUpdate, DeviceRecord, DevicesRepository},
+    features_repository::FeaturesRepository,
     fiat_repository::{FiatAssetFilter, FiatRepository, FiatTransactionRecord},
     migrations_repository::MigrationsRepository,
     nft_repository::{NftCollectionFilter, NftRepository},
@@ -31,7 +32,7 @@ pub use self::repositories::{
     parser_state_repository::{ParserState, ParserStateRepository},
     perpetuals_repository::PerpetualsRepository,
     price_alerts_repository::PriceAlertsRepository,
-    prices_providers_repository::{PriceProviderConfig, PricesProvidersRepository},
+    prices_providers_repository::PricesProvidersRepository,
     prices_repository::{AssetWithMarket, AssetsWithPricesFilter, PriceAsset, PriceFilter, PriceUpdate, PricesRepository},
     releases_repository::ReleasesRepository,
     rewards_redemptions_repository::{RedemptionRecord, RedemptionUpdate, RewardsRedemptionsRepository},

@@ -27,7 +27,6 @@ pub(crate) struct RewardsRow {
 pub(crate) struct NewRewardsRow {
     pub username: String,
     pub status: RewardStatus,
-    pub level: Option<String>,
     pub points: i32,
     pub referrer_username: Option<String>,
     pub referral_count: i32,
@@ -42,7 +41,6 @@ impl NewRewardsRow {
         Self {
             username,
             status: RewardStatus::Unverified,
-            level: None,
             points: 0,
             referrer_username: None,
             referral_count: 0,
@@ -112,7 +110,7 @@ pub(crate) struct RewardRedemptionRow {
     pub username: String,
     pub option_id: String,
     pub wallet_id: i32,
-    pub transaction_id: Option<String>,
+    pub transaction_hash: Option<String>,
     pub status: RedemptionStatus,
     pub created_at: NaiveDateTime,
 }
@@ -123,7 +121,7 @@ impl RewardRedemptionRow {
             id: self.id,
             option,
             status: *self.status,
-            transaction_id: self.transaction_id.clone(),
+            transaction_id: self.transaction_hash.clone(),
             created_at: Utc.from_utc_datetime(&self.created_at),
         }
     }

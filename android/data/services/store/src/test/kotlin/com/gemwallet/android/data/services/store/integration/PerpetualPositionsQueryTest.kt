@@ -40,8 +40,8 @@ class PerpetualPositionsQueryTest {
     private val query = PerpetualPositionsQuery(database.perpetualPositionDao())
     private val wallet1 = WalletId("wallet-1")
     private val wallet2 = WalletId("wallet-2")
-    private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "XBT", decimals = 8)
-    private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
+    private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "XBT", decimals = 8u)
+    private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
     private val bitcoinMarket = mockPerpetual(price = 100.0).copy(id = PerpetualId(PerpetualProvider.Hypercore, "BTC-USD"), name = "BTC", assetId = bitcoinAsset.id, identifier = "0")
     private val ethereumMarket = mockPerpetual(price = 50.0).copy(id = PerpetualId(PerpetualProvider.Hypercore, "ETH"), name = "ETH", assetId = ethereumAsset.id, identifier = "1")
     private val bitcoinLong = PerpetualPositionData(

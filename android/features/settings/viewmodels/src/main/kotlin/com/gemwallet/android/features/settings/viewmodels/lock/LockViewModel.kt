@@ -3,6 +3,7 @@ package com.gemwallet.android.features.settings.viewmodels.lock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.features.settings.viewmodels.lock.models.LockUIState
@@ -17,9 +18,14 @@ import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
 @HiltViewModel
-class LockViewModel @Inject constructor(private val securityPreferences: SecurityPreferences, private val lockTimer: LockTimer, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
+class LockViewModel @Inject constructor(
+    private val securityPreferences: SecurityPreferences,
+    private val passwordProtection: WalletPasswordProtection,
+    private val lockTimer: LockTimer,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : ViewModel() {
 
-    private val isInitialAuthRequired = securityPreferences.authRequired()
+    private val isInitialAuthRequired = isAuthRequired()
 
     private val _uiState = MutableStateFlow(
         LockUIState(
@@ -31,7 +37,7 @@ class LockViewModel @Inject constructor(private val securityPreferences: Securit
 
     private val activeAuthRequestId = AtomicLong(NoActiveAuthRequestId)
 
-    fun isAuthRequired(): Boolean = securityPreferences.authRequired()
+    fun isAuthRequired(): Boolean = passwordProtection.authenticationRequired() || securityPreferences.authRequired()
 
     fun requestAuth(requestId: Long) {
         activeAuthRequestId.set(requestId)

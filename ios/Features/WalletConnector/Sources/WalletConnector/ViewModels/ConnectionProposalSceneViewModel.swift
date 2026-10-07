@@ -30,7 +30,7 @@ public struct ConnectionProposalSceneViewModel {
         self.pairingProposal = pairingProposal
         row = applicationConnectionRow(metadata: pairingProposal.proposal.metadata.toGem())
         walletSelectorModel = SelectWalletViewModel(
-            sections: walletSections(wallets: pairingProposal.proposal.wallets.map { $0.toGem() }, currentWalletId: nil),
+            sections: walletSections(wallets: pairingProposal.proposal.wallets.map { $0.listItem.toGem() }, currentWalletId: nil),
             selectedRow: walletRow(wallet: pairingProposal.proposal.defaultWallet.toGem()),
         )
     }
@@ -104,6 +104,6 @@ extension ConnectionProposalSceneViewModel {
         guard let selectedWallet = walletSelectorModel.selectedItems.first else {
             return
         }
-        confirmTransferDelegate(.success(selectedWallet.id))
+        confirmTransferDelegate(.success(selectedWallet.id.id))
     }
 }

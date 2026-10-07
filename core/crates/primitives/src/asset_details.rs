@@ -1,7 +1,7 @@
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
-use crate::{Asset, AssetAssociation, AssetId, AssetMarket, AssetScore, LinkType, Price, perpetual::PerpetualBasic};
+use crate::{Asset, AssetAssociation, AssetId, AssetMarket, AssetScore, AssetType, LinkType, Price, perpetual::PerpetualBasic};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Model)]
 #[model(swift = "Sendable")]
@@ -48,6 +48,11 @@ pub struct AssetBasic {
 impl AssetBasic {
     pub fn new(asset: Asset, properties: AssetProperties, score: AssetScore) -> Self {
         Self { asset, properties, score, price: None }
+    }
+
+    /// Perpetual assets stay disabled so apps never list them, but their transactions are still stored and notified.
+    pub fn is_enabled_for_transactions(&self) -> bool {
+        self.properties.is_enabled || self.asset.asset_type == AssetType::PERPETUAL
     }
 }
 

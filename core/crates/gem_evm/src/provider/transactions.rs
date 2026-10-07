@@ -5,13 +5,14 @@ use async_trait::async_trait;
 #[cfg(feature = "rpc")]
 use chain_traits::{ChainBlockTransactions, ChainTransaction, TransactionIdRequest};
 use gem_client::Client;
+use gem_jsonrpc::types::JsonRpcError;
+use num_bigint::BigUint;
 use primitives::Transaction;
-use serde_json::{Value, from_value};
 
 use crate::jsonrpc::EthereumRpc;
 use crate::rpc::{
     EthereumMapper, EthereumProvider,
-    model::{BlockHeader, Transaction as RpcTransaction, TransactionReceipt},
+    model::{Transaction as RpcTransaction, TransactionReceipt},
 };
 
 #[cfg(feature = "rpc")]
@@ -43,39 +44,12 @@ impl<C: Client + Clone> EthereumProvider<C> {
 
     pub async fn get_transaction_with_receipt(&self, request: TransactionIdRequest) -> Result<Option<(Transaction, TransactionReceipt)>, Box<dyn Error + Sync + Send>> {
         let TransactionIdRequest { hash, block_number, .. } = request;
-        let (transaction, receipt, timestamp) = match block_number {
-            Some(block_number) => {
-                let responses = self
-                    .client
-                    .batch_request::<Value, _>(vec![
-                        EthereumRpc::GetTransactionByHash { hash: hash.clone() },
-                        EthereumRpc::GetTransactionReceipt { hash },
-                        EthereumRpc::GetBlockByNumber {
-                            number: block_number,
-                            include_transactions: false,
-                        },
-                    ])
-                    .await?
-                    .take_all()?;
-                let [transaction, receipt, block] = responses.try_into().map_err(|_| "EVM transaction batch response length mismatch")?;
-                (transaction, receipt, Some(from_value::<BlockHeader>(block)?.timestamp))
-            }
-            None => {
-                let responses = self
-                    .client
-                    .batch_request::<Value, _>(vec![EthereumRpc::GetTransactionByHash { hash: hash.clone() }, EthereumRpc::GetTransactionReceipt { hash }])
-                    .await?
-                    .take_all()?;
-                let [transaction, receipt] = responses.try_into().map_err(|_| "EVM transaction batch response length mismatch")?;
-                (transaction, receipt, None)
-            }
-        };
-        let transaction: Option<RpcTransaction> = from_value(transaction)?;
-        let Some(transaction) = transaction else {
-            return Ok(None);
-        };
-        let receipt: Option<TransactionReceipt> = from_value(receipt)?;
-        let Some(receipt) = receipt else {
+        let (transaction, receipt, timestamp) = futures::try_join!(
+            self.client.request::<Option<RpcTransaction>, _>(EthereumRpc::GetTransactionByHash { hash: hash.clone() }),
+            self.client.request::<Option<TransactionReceipt>, _>(EthereumRpc::GetTransactionReceipt { hash }),
+            self.known_block_timestamp(block_number),
+        )?;
+        let (Some(transaction), Some(receipt)) = (transaction, receipt) else {
             return Ok(None);
         };
         let timestamp = match timestamp {
@@ -83,6 +57,13 @@ impl<C: Client + Clone> EthereumProvider<C> {
             None => self.get_block_timestamp(receipt.block_number).await?,
         };
         Ok(EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &timestamp, self.provider.protocol_parser()).map(|transaction| (transaction, receipt)))
+    }
+
+    async fn known_block_timestamp(&self, block_number: Option<u64>) -> Result<Option<BigUint>, JsonRpcError> {
+        match block_number {
+            Some(block_number) => Ok(Some(self.get_block_timestamp(block_number).await?)),
+            None => Ok(None),
+        }
     }
 }
 
@@ -118,19 +99,19 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_transaction_by_hash_batches_known_block() {
+    async fn test_get_transaction_by_hash_with_known_block() {
         let transport = MockClient::new().with_post(|_, body| {
-            let requests: Vec<Value> = serde_json::from_slice(body).map_err(|error| ClientError::Serialization(error.to_string()))?;
-            assert_eq!(
-                requests.iter().map(|request| request["method"].as_str().unwrap()).collect::<Vec<_>>(),
-                [method::ETH_GET_TRANSACTION_BY_HASH, method::ETH_GET_TRANSACTION_RECEIPT, method::ETH_GET_BLOCK_BY_NUMBER,]
-            );
-            assert_eq!(requests[2]["params"], json!(["0x150db7d1", false]));
-
-            let transaction: Value = load_json_rpc_result(include_str!("../../testdata/transfer_erc20.json"));
-            let receipt: Value = load_json_rpc_result(include_str!("../../testdata/transfer_erc20_receipt.json"));
-            let results = [transaction, receipt, json!({ "timestamp": "0x65a1f600" })];
-            serde_json::to_vec(&requests.iter().zip(results).map(|(request, result)| json!({ "jsonrpc": "2.0", "id": request["id"], "result": result })).collect::<Vec<_>>()).map_err(|error| ClientError::Serialization(error.to_string()))
+            let request: Value = serde_json::from_slice(body).map_err(|error| ClientError::Serialization(error.to_string()))?;
+            let result = match request["method"].as_str().unwrap() {
+                method::ETH_GET_TRANSACTION_BY_HASH => load_json_rpc_result(include_str!("../../testdata/transfer_erc20.json")),
+                method::ETH_GET_TRANSACTION_RECEIPT => load_json_rpc_result(include_str!("../../testdata/transfer_erc20_receipt.json")),
+                method::ETH_GET_BLOCK_BY_NUMBER => {
+                    assert_eq!(request["params"], json!(["0x150db7d1", false]));
+                    json!({ "timestamp": "0x65a1f600" })
+                }
+                other => panic!("unexpected method {other}"),
+            };
+            serde_json::to_vec(&json!({ "jsonrpc": "2.0", "id": request["id"], "result": result })).map_err(|error| ClientError::Serialization(error.to_string()))
         });
         let client = EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(transport), EVMChain::Arbitrum));
 

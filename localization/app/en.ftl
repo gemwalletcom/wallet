@@ -881,6 +881,10 @@ fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 # Used in the network fee rate selector for the custom fee rate row label.
 fee_rate_custom = Custom
+# Used in the custom network fee screen on EVM networks for the priority fee (tip) field label.
+fee_rate_priority = Priority Fee
+# Used in the custom network fee screen on EVM networks for the base fee field label.
+fee_rate_base = Base Fee
 
 # Banner
 
@@ -982,11 +986,14 @@ lock_require_authentication = Require authentication
 # Used in Privacy Lock settings for the unlock label.
 lock_unlock = Unlock
 # Used in Privacy Lock settings for the privacy lock label.
-lock_privacy_lock = Privacy Lock
 # Used in Privacy Lock settings as a footer helper text.
 lock_footer = Protect access to this app on your device
 # Title of the screen that offers to turn on app authentication on a device with a passcode and no biometrics.
 lock_passcode = Passcode
+# Title of the lock screen shown when app authentication is on but the device passcode (screen lock) has been turned off.
+lock_passcode_off_title = Device passcode is off
+# Description on the same lock screen: the app cannot be unlocked until the user turns the device passcode (screen lock) back on.
+lock_passcode_off_description = Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe.
 
 # Verify
 
@@ -1004,6 +1011,8 @@ warnings_externally_controlled_account = This %@ account can be controlled by so
 sell_title = Sell %@
 
 # Info
+
+info_region_unavailable_description = This feature is not available in your region. Availability depends on local rules and provider requirements.
 
 # Used in Info bottom sheets for the network fee title.
 info_network_fee_title = Network Fee
@@ -1324,6 +1333,10 @@ rewards_nickname = Nickname
 rewards_unverified_title = Rewards not active yet.
 # Used in rewards UI for the unverified description.
 rewards_unverified_description = Rewards activate automatically as you use the app more.
+# Used in rewards UI as the empty-state title when no wallet can earn rewards.
+rewards_state_empty_title = Rewards need a Multi-Coin wallet
+# Used in rewards UI as the empty-state description when no wallet can earn rewards.
+rewards_state_empty_description = Create or import a Multi-Coin wallet to invite friends and earn points.
 
 # Recent Activity
 

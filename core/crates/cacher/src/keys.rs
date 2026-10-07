@@ -3,7 +3,7 @@ use primitives::{SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE};
 
 const SECONDS_PER_YEAR: u64 = 365 * SECONDS_PER_DAY;
 
-pub enum CacheKey<'a> {
+pub(crate) enum CacheKey<'a> {
     ReferralIpCheck(&'a str),
 
     InactiveDeviceObserver(&'a str),
@@ -17,16 +17,20 @@ pub enum CacheKey<'a> {
     FetchAssets(&'a str),
     FetchNftAsset(&'a str),
     Price(&'a str),
+    PriceProviders,
     PriceMetadata(&'a str, u64),
     PriceMissingMapping(&'a str, &'a str, u64),
 
     FiatRates,
     FiatQuote(i32, i32, &'a str),
     FiatIpCheck(&'a str),
+    AssetCatalog(u64),
+    SubscriptionAddressStatus(&'a str, &'a str, u64),
 
     RateLimit(RateLimitKey, &'a str, RateLimitWindow),
 
     AuthNonce(&'a str, &'a str),
+    AccessToken(&'a str, u64),
 
     AddressStatus(&'a str, &'a str),
 
@@ -49,6 +53,7 @@ pub enum CacheKey<'a> {
 
     FetchTransaction(&'a str, &'a str),
     PendingTransactions(&'a str),
+    TransactionCheckSchedule(&'a str),
     TransactionFeeEstimates(&'a str),
     TransactionFeeEstimatesFresh(&'a str),
 
@@ -56,7 +61,7 @@ pub enum CacheKey<'a> {
 }
 
 impl CacheKey<'_> {
-    pub fn key(&self) -> String {
+    pub(crate) fn key(&self) -> String {
         match self {
             Self::ReferralIpCheck(ip_address) => format!("referral:ip_check:{}", ip_address),
             Self::InactiveDeviceObserver(device_id) => format!("device:inactive_observer:{}", device_id),
@@ -69,13 +74,17 @@ impl CacheKey<'_> {
             Self::FetchAssets(asset_id) => format!("fetch:assets:{}", asset_id),
             Self::FetchNftAsset(asset_id) => format!("fetch:nft_asset:{}", asset_id),
             Self::Price(asset_id) => format!("prices:{}", asset_id),
+            Self::PriceProviders => "prices:providers".to_string(),
             Self::PriceMetadata(id, _) => format!("prices:metadata:{}", id),
             Self::PriceMissingMapping(provider, id, _) => format!("prices:missing_mapping:{}:{}", provider, id),
             Self::FiatRates => "fiat:rates".to_string(),
             Self::FiatQuote(device_id, wallet_id, quote_id) => format!("fiat:quote:{}:{}:{}", device_id, wallet_id, quote_id),
             Self::FiatIpCheck(ip_address) => format!("fiat:ip_check:{}", ip_address),
+            Self::AssetCatalog(_) => "assets:catalog".to_string(),
+            Self::SubscriptionAddressStatus(chain, address, _) => format!("subscriptions:address_status:{}:{}", chain, address),
             Self::RateLimit(key, scope, window) => format!("rate_limit:{}:{}:{}", key.as_ref(), window.as_ref(), scope),
             Self::AuthNonce(device_id, nonce) => format!("auth:nonce:{}:{}", device_id, nonce),
+            Self::AccessToken(provider, _) => format!("access_token:{}", provider),
             Self::AddressStatus(chain, address) => format!("address:status:{}:{}", chain, address),
             Self::JobStatus(name) => format!("jobs:status:{}", name),
             Self::Markets => "markets:markets".to_string(),
@@ -89,13 +98,14 @@ impl CacheKey<'_> {
             Self::PerpetualPriorityAddresses(chain) => format!("perpetual:priority_addresses:{}", chain),
             Self::PerpetualObserverCheckpoint(chain, address) => format!("perpetual:last_seen:{}:{}", chain, address),
             Self::PendingTransactions(chain) => format!("transactions:pending:{}", chain),
+            Self::TransactionCheckSchedule(queue) => format!("transactions:check_schedule:{}", queue),
             Self::TransactionFeeEstimates(chain) => format!("transactions:fee_estimates:{}", chain),
             Self::TransactionFeeEstimatesFresh(chain) => format!("transactions:fee_estimates:fresh:{}", chain),
             Self::ScanSafe(scan_type, target, _) => format!("scan:safe:{}:{}", scan_type, target),
         }
     }
 
-    pub fn ttl(&self) -> u64 {
+    pub(crate) fn ttl(&self) -> u64 {
         match self {
             Self::ReferralIpCheck(_) => SECONDS_PER_DAY,
             Self::InactiveDeviceObserver(_) => 30 * SECONDS_PER_DAY,
@@ -108,12 +118,16 @@ impl CacheKey<'_> {
             Self::FetchAssets(_) => 30 * SECONDS_PER_DAY,
             Self::FetchNftAsset(_) => SECONDS_PER_HOUR,
             Self::Price(_) => 30 * SECONDS_PER_DAY,
+            Self::PriceProviders => SECONDS_PER_MINUTE,
             Self::PriceMetadata(_, ttl) | Self::PriceMissingMapping(_, _, ttl) => *ttl,
             Self::FiatRates => SECONDS_PER_DAY,
             Self::FiatQuote(_, _, _) => 15 * SECONDS_PER_MINUTE,
             Self::FiatIpCheck(_) => SECONDS_PER_DAY,
+            Self::AssetCatalog(ttl) => *ttl,
+            Self::SubscriptionAddressStatus(_, _, ttl) => *ttl,
             Self::RateLimit(_, _, window) => window.duration().as_secs(),
             Self::AuthNonce(_, _) => 5 * SECONDS_PER_MINUTE,
+            Self::AccessToken(_, ttl) => *ttl,
             Self::AddressStatus(_, _) => SECONDS_PER_YEAR,
             Self::JobStatus(_) => 7 * SECONDS_PER_DAY,
             Self::Markets => SECONDS_PER_DAY,
@@ -126,7 +140,7 @@ impl CacheKey<'_> {
             Self::PerpetualActiveAddresses(_) => 30 * SECONDS_PER_MINUTE,
             Self::PerpetualPriorityAddresses(_) => 30 * SECONDS_PER_MINUTE,
             Self::PerpetualObserverCheckpoint(_, _) => 30 * SECONDS_PER_DAY,
-            Self::PendingTransactions(_) => 30 * SECONDS_PER_DAY,
+            Self::PendingTransactions(_) | Self::TransactionCheckSchedule(_) => 30 * SECONDS_PER_DAY,
             Self::TransactionFeeEstimates(_) => 5 * SECONDS_PER_YEAR,
             Self::TransactionFeeEstimatesFresh(_) => SECONDS_PER_HOUR,
             Self::ScanSafe(_, _, ttl) => *ttl,

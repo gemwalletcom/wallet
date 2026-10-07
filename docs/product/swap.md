@@ -53,9 +53,9 @@ flowchart LR
 
 | When the user swaps 100% of a network's coin and | Expected | Why |
 |---|---|---|
-| the provider swaps whatever arrives: Near Intents, Chainflip, Thorchain and Relay from Bitcoin and other non-Ethereum networks | the full balance is quoted; the network fee comes off when the transaction is signed, so nothing is left behind | a deposit can be any amount |
+| the provider swaps whatever arrives: Near Intents except HyperCore, Chainflip, Thorchain and Relay from Bitcoin and other non-Ethereum networks | the full balance is quoted; the network fee comes off when the transaction is signed, so nothing is left behind | a deposit can be any amount |
 | what is left after the fee is under that provider's minimum | the minimum is shown, not a balance error | the provider would reject or refund it |
-| the provider needs the exact amount: Uniswap, PancakeSwap, OKX, Jupiter, Squid, Mayan, Across | Swap quotes the balance minus a fee reserve, so the quote is close; the confirmation screen then asks for everything but the actual network fee and shows that amount | the reserve is a guess; the fee is known only on the confirmation screen |
+| the provider needs the exact amount: Uniswap, PancakeSwap, OKX, Jupiter, Squid, Mayan, Across, Bridgers | Swap quotes the balance minus a fee reserve, so the quote is close; the confirmation screen then asks for everything but the actual network fee and shows that amount | the reserve is a guess; the fee is known only on the confirmation screen |
 | that provider is used on Solana, TON, Tron, Sui or Aptos | the reserve stays in the wallet | those networks charge more than the fee shown: rent, forwarding, energy |
 | the provider says it can take any amount but builds a contract call | it is treated as needing the exact amount | otherwise the full balance would be quoted and the fee would not fit |
 | a provider that leaves nothing behind quotes within `0.25%` of the best quote | that provider is chosen | a slightly smaller amount received beats a reserve stuck in the wallet |
@@ -70,16 +70,19 @@ flowchart LR
 | The user types an amount | quotes are asked shortly after typing stops | |
 | The screen stays open | quotes refresh every `30 seconds` | |
 | A refresh, including going back from Confirm | You Receive shows only the loading indicator until the new quote arrives, never the old amount with it | |
+| A refresh while Details is open | Details shows the loading indicator until the new quote arrives, never the old quote's details | it matches You Receive |
+| A refresh fails while Details is open | Details stays open and shows the error, as the Swap screen does | |
 | The amount, an asset or the slippage changes | You Receive clears | |
 | An answer arrives for an amount or pair the user has already changed | it is thrown away | |
 | The price impact is a loss of more than `1%` | Details shows the Price Impact | |
 | The user picks another provider | the choice survives refreshes | |
 | A chosen Slippage is `3%` or more | a warning | |
 | Slippage is Auto, including Solana's `3%` | no warning | |
+| Slippage is Auto and the provider picks its own: OKX, Squid | Minimum Receive is priced with the most OKX may take, and with the slippage Squid picked | the minimum shown is one the trade keeps |
 | The user changes Slippage | the choice is kept for later swaps | |
 | The price impact is `10%` or more | "High Price Impact" asks first | |
 | The swap needs a spending approval | the approval is signed together with the swap, with one fee for both | |
-| The confirmation screen loads or refreshes and the quote on screen is older than `1 minute` on one network, or `5 minutes` across networks | the chosen provider is asked again for the same amount and slippage, and You Receive shows its new answer | a quote left on the screen never goes stale, and a cross-network provider is not asked for a new deposit every minute |
+| The confirmation screen loads or refreshes and the quote on screen is older than `1 minute` on one network, or `5 minutes` across networks | the chosen provider is asked again for the same amount and slippage, Auto staying Auto, and You Receive shows its new answer | a quote left on the screen never goes stale, and a cross-network provider is not asked for a new deposit every minute |
 | The quote is younger than that | it stays; only the fee and balances are refreshed | |
 | The chosen provider no longer answers | the error row with Retry; the provider is never switched behind the user | |
 | The user taps Confirm | the trade the screen loaded is signed with one authentication | the amounts signed are the amounts shown |
@@ -91,6 +94,9 @@ flowchart LR
 
 ## Rules
 
+- Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
 - A quote is never cached: every eligible provider is asked again for the live amount; cached routes are only hints and every quote uses live chain state.
 - Every eligible provider is awaited, so the slowest one decides how long a quote takes.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it loaded and showed.
+- The Slippage row reads Auto on both screens until the user picks a value.
+- Near Intents serves HyperCore spot USDC as a source only. HyperCore destinations are excluded because the provider pays USDC into perps, which is separate from the wallet's spot asset (`test_supports_destination`). HyperCore deposits use an exact input quote and send its returned input amount from spot with `sendAsset`, since unified accounts reject `spotSend`; the provider deducts its deposit fee from that amount (`test_swap_type`, `test_hypercore_quote_data`).

@@ -39,6 +39,9 @@ class CurrencyTextTest {
     @Test
     fun currency_smallValueAdaptive() {
         assertEquals("$0.99", currencyUS(0.99))
+        assertEquals("$0.90", currencyUS(0.9))
+        assertEquals("$0.10", currencyUS(0.1))
+        assertEquals("$0.1235", currencyUS(0.123456))
         assertEquals("$1.90", currencyUS(1.89999))
         assertEquals("$0.0345", currencyUS(0.0345))
         assertEquals("$0.0001235", currencyUS(0.000123456))

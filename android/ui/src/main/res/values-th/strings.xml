@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">กำหนดเอง</string>
+  <string name="fee_rate_priority">ค่าธรรมเนียมลำดับความสำคัญ</string>
+  <string name="fee_rate_base">ค่าธรรมเนียมพื้นฐาน</string>
   <string name="banner_account_activation_title">ค่าธรรมเนียมการเปิดใช้งานบัญชี</string>
   <string name="banner_account_activation_description">เครือข่าย %1$s ต้องเสียค่าธรรมเนียมครั้งเดียวจำนวน %2$s</string>
   <string name="banner_stake_title">เริ่มสเตค %1$s</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 ชั่วโมง</string>
   <string name="lock_require_authentication">ต้องมีการรับรองความถูกต้อง</string>
   <string name="lock_unlock">ปลดล็อค</string>
-  <string name="lock_privacy_lock">ล็อคความเป็นส่วนตัว</string>
   <string name="lock_footer">ป้องกันการเข้าถึงแอปนี้บนอุปกรณ์ของคุณ</string>
   <string name="lock_passcode">รหัสผ่าน</string>
+  <string name="lock_passcode_off_title">รหัสผ่านอุปกรณ์ปิดอยู่</string>
+  <string name="lock_passcode_off_description">Gem ถูกล็อกด้วยรหัสผ่านอุปกรณ์ของคุณ เปิดรหัสผ่านในการตั้งค่าอุปกรณ์เพื่อเปิด Gem กระเป๋าเงินของคุณปลอดภัย</string>
   <string name="verify_phrase_title">ยืนยัน</string>
   <string name="warnings_externally_controlled_account">บัญชี %1$s นี้อาจถูกควบคุมโดยผู้อื่น อย่าส่งเงินไปยังบัญชีนี้ เว้นแต่คุณจะแน่ใจว่าคุณเป็นผู้ควบคุม มิฉะนั้นคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร</string>
   <string name="sell_title">ขาย %1$s</string>
+  <string name="info_region_unavailable_description">ฟีเจอร์นี้ไม่พร้อมให้บริการในภูมิภาคของคุณ ความพร้อมให้บริการขึ้นอยู่กับกฎในท้องถิ่นและข้อกำหนดของผู้ให้บริการ</string>
   <string name="info_network_fee_title">ค่าธรรมเนียมเครือข่าย</string>
   <string name="info_watch_wallet_title">ดูกระเป๋าเงิน</string>
   <string name="info_watch_wallet_description">กระเป๋าเงินที่คุณไม่สามารถเข้าถึงได้แต่คุณสามารถดูธุรกรรมและการเคลื่อนไหวได้</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">ชื่อเล่น</string>
   <string name="rewards_unverified_title">ระบบรางวัลยังไม่เปิดใช้งาน</string>
   <string name="rewards_unverified_description">รางวัลจะเปิดใช้งานโดยอัตโนมัติเมื่อคุณใช้งานแอปมากขึ้น</string>
+  <string name="rewards_state_empty_title">รางวัลต้องใช้กระเป๋าเงินแบบหลายเหรียญ</string>
+  <string name="rewards_state_empty_description">สร้างหรือนำเข้ากระเป๋าเงินแบบหลายเหรียญเพื่อเชิญเพื่อนและรับคะแนน</string>
   <string name="recent_activity_title">ล่าสุด</string>
   <string name="recent_activity_state_empty_title">ข้อมูลล่าสุดของคุณจะปรากฏที่นี่</string>
   <string name="recent_activity_state_empty_description">เนื้อหาที่คุณใช้ล่าสุดจะปรากฏที่นี่</string>

@@ -1,15 +1,18 @@
 use async_trait::async_trait;
-use primitives::{AssetId, Chain, Currency, PriceAlert};
+use primitives::{AssetId, Chain, Currency, PriceAlert, Wallet};
 use std::sync::{Arc, Mutex};
 
 use super::session::GemPriceAlertSession;
 use super::store::GemPriceAlertStore;
 use crate::api::GemDeviceApiClient;
 use crate::services::banner::GemNotificationPermissions;
-use crate::services::device::GemDeviceKeyService;
+use crate::services::device::{GemDeviceKeyService, GemDeviceService};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
+use crate::services::wallet::testkit::MemoryWalletStore;
+use crate::services::wallet_session::GemWalletSessionService;
+use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 impl GemPriceAlertSession {
@@ -73,12 +76,19 @@ impl GemNotificationPermissions for GrantedNotificationPermissions {
 
 pub fn price_alert_service(store: Arc<dyn GemPriceAlertStore>) -> Arc<super::GemPriceAlertService> {
     let provider = Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new())));
-    Arc::new(super::GemPriceAlertService::new(
-        Arc::new(GemDeviceApiClient::new(provider, Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
-        Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))),
-        store,
-        Arc::new(GrantedNotificationPermissions),
-    ))
+    Arc::new(price_alert_service_with(provider, store, Arc::new(GrantedNotificationPermissions)))
+}
+
+fn price_alert_service_with(provider: Arc<TestAlienProvider>, store: Arc<dyn GemPriceAlertStore>, permissions: Arc<dyn GemNotificationPermissions>) -> super::GemPriceAlertService {
+    let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
+    let api = Arc::new(GemDeviceApiClient::new(provider, Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+    let wallets = Arc::new(MemoryWalletStore {
+        wallets: Mutex::new(vec![Wallet::mock()]),
+        ..Default::default()
+    });
+    let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
+    let device = GemDeviceService::mock(api.clone(), session, preferences.clone());
+    super::GemPriceAlertService::new(api, preferences, store, device, permissions)
 }
 
 pub struct PriceAlertTestkit {
@@ -90,9 +100,7 @@ pub struct PriceAlertTestkit {
 impl PriceAlertTestkit {
     pub fn with_provider(provider: Arc<TestAlienProvider>, permissions: Arc<dyn GemNotificationPermissions>) -> Self {
         let store = Arc::new(MemoryPriceAlertStore::default());
-        let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
-        let api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
-        let service = super::GemPriceAlertService::new(api, preferences, store.clone(), permissions);
+        let service = price_alert_service_with(provider.clone(), store.clone(), permissions);
         Self { service, store, provider }
     }
 }

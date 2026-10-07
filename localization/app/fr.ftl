@@ -476,6 +476,8 @@ fee_rates_normal = Normale
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Personnalisé
+fee_rate_priority = Frais de priorité
+fee_rate_base = Frais de base
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 heure
 lock_six_hours = 6 heures
 lock_require_authentication = Exiger une authentification
 lock_unlock = Déverrouiller
-lock_privacy_lock = Verrouillage de la confidentialité
 lock_footer = Protégez l'accès à cette application sur votre appareil
 lock_passcode = Mot de passe
+lock_passcode_off_title = Le code de l'appareil est désactivé
+lock_passcode_off_description = Gem est verrouillé par le code de votre appareil. Activez un code dans les réglages de l'appareil pour ouvrir Gem. Vos portefeuilles sont en sécurité.
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = Ce compte %@ peut être contrôlé par 
 sell_title = Vendre %@
 
 # Info
+
+info_region_unavailable_description = Cette fonctionnalité n’est pas disponible dans votre région. La disponibilité dépend des règles locales et des exigences des prestataires.
 
 info_network_fee_title = Frais de réseau
 info_watch_wallet_title = Portefeuille en lecture seule
@@ -725,6 +730,8 @@ rewards_pending_description_ready = Votre prime est prête !
 rewards_nickname = Surnom
 rewards_unverified_title = Récompenses non encore actives.
 rewards_unverified_description = Les récompenses s'activent automatiquement à mesure que vous utilisez l'application.
+rewards_state_empty_title = Les récompenses nécessitent un portefeuille multi-pièces
+rewards_state_empty_description = Créez ou importez un portefeuille multi-pièces pour inviter des amis et gagner des points.
 
 # Recent Activity
 

@@ -476,6 +476,8 @@ fee_rates_normal = 보통
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = 사용자 지정
+fee_rate_priority = 우선순위 수수료
+fee_rate_base = 기본 수수료
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1시간
 lock_six_hours = 6시간
 lock_require_authentication = 인증 필요
 lock_unlock = 잠금 해제
-lock_privacy_lock = 개인 정보 보호 잠금
 lock_footer = 기기에서 이 앱에 대한 액세스를 보호하세요
 lock_passcode = 비밀번호
+lock_passcode_off_title = 기기 암호가 꺼져 있습니다
+lock_passcode_off_description = Gem은 기기 암호로 잠겨 있습니다. Gem을 열려면 기기 설정에서 암호를 켜세요. 지갑은 안전합니다.
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = 이 %@ 계정은 다른 사람이 제�
 sell_title = %@ 판매
 
 # Info
+
+info_region_unavailable_description = 이 기능은 회원님의 지역에서 사용할 수 없습니다. 이용 가능 여부는 지역 규정과 서비스 제공업체의 요건에 따라 달라집니다.
 
 info_network_fee_title = 네트워크 수수료
 info_watch_wallet_title = 시계 지갑
@@ -725,6 +730,8 @@ rewards_pending_description_ready = 보너스가 지급되었습니다!
 rewards_nickname = 별명
 rewards_unverified_title = 보상 프로그램이 아직 활성화되지 않았습니다.
 rewards_unverified_description = 앱을 더 많이 사용할수록 보상이 자동으로 활성화됩니다.
+rewards_state_empty_title = 보상을 받으려면 멀티코인 지갑이 필요합니다
+rewards_state_empty_description = 멀티코인 지갑을 만들거나 가져와서 친구를 초대하고 포인트를 받으세요.
 
 # Recent Activity
 

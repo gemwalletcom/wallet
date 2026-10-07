@@ -40,7 +40,7 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
     }
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
-        let fee_history = self.get_fee_history(get_fee_history_blocks(self.chain), get_reward_percentiles().to_vec()).await?;
+        let fee_history = self.get_fee_history(get_fee_history_blocks(self.chain), get_reward_percentiles(self.chain).to_vec()).await?;
 
         map_transaction_fee_rates(self.chain, &fee_history)
     }
@@ -55,7 +55,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let params = match &input.input_type {
             TransactionInputType::Stake { stake_type, .. } => self.provider.encode_stake(stake_type, &input.value_as_bigint())?,
-            _ => get_transaction_params(self.chain, &input)?,
+            _ => get_transaction_params(&input)?,
         };
 
         let gas_limit = match pending_permit_gas_limit(&input)? {

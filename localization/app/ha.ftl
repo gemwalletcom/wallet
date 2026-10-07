@@ -476,6 +476,8 @@ fee_rates_normal = Na al'ada
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Na Musamman
+fee_rate_priority = Kudin fifiko
+fee_rate_base = Kudin tushe
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = awa 1
 lock_six_hours = 6 hours
 lock_require_authentication = Bukatar tantancewa
 lock_unlock = Buɗe
-lock_privacy_lock = Kulle Sirri
 lock_footer = Kare damar shiga wannan app akan na'urarka
 lock_passcode = Lambar wucewa
+lock_passcode_off_title = An kashe lambar sirrin na'ura
+lock_passcode_off_description = An kulle Gem da lambar sirrin na'urarka. Kunna lambar sirri a cikin saitunan na'urar don buɗe Gem. Walat ɗinka suna cikin aminci.
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = Wani na iya sarrafa wannan asusun %@. K
 sell_title = Saya %@
 
 # Info
+
+info_region_unavailable_description = Wannan fasalin ba ya samuwa a yankinku. Samuwarsa ya dogara da dokokin yankin da ka’idojin masu samar da sabis.
 
 info_network_fee_title = Kudin hanyar sadarwa
 info_watch_wallet_title = Kalli Wallet
@@ -725,6 +730,8 @@ rewards_pending_description_ready = Karin kyautar ku a shirye take!
 rewards_nickname = Laƙabi
 rewards_unverified_title = Ladabi bai yi aiki ba tukuna.
 rewards_unverified_description = Lada yana kunna ta atomatik yayin da kake amfani da app ɗin sosai.
+rewards_state_empty_title = Lada yana buƙatar Wallet na Multi-Coin
+rewards_state_empty_description = Ƙirƙiri ko shigo da Wallet na Multi-Coin don gayyatar abokai da samun maki.
 
 # Recent Activity
 

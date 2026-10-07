@@ -1,7 +1,7 @@
 use crate::models::custom_types::GemBigInt;
 use crate::models::custom_types::GemBigUint;
 use crate::services::transfer::{GemRecipient, GemTransferData};
-use primitives::swap::{SwapData, SwapQuote, SwapQuoteData};
+use primitives::swap::{SlippageMode, SwapData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Currency};
 use swapper::{Quote, SwapperError};
 
@@ -56,7 +56,7 @@ pub struct GemSwapPriceImpactRow {
 }
 
 impl GemSwapQuoteSummary {
-    pub fn detail_rows(&self, has_selected_slippage: bool) -> Vec<GemListRow> {
+    pub fn detail_rows(&self) -> Vec<GemListRow> {
         let receive_asset = &self.to_asset;
         let price_impact = self.price_impact.filter(|impact| impact.shows_in_summary);
         [
@@ -85,11 +85,11 @@ impl GemSwapQuoteSummary {
             }),
             Some(GemListRow::Label {
                 title: GemListRowTitle::Slippage,
-                text: match has_selected_slippage {
-                    true => GemLocalizedText::Number {
+                text: match self.quote.slippage_mode {
+                    SlippageMode::Exact => GemLocalizedText::Number {
                         number: GemFormattedNumber::percentage(rules::slippage_percent(self.quote.slippage_bps), GemPercentageStyle::Unsigned),
                     },
-                    false => GemLocalizedText::SlippageAuto,
+                    SlippageMode::Auto => GemLocalizedText::SlippageAuto,
                 },
                 tone: GemValueTone::Plain,
                 info: Some(GemInfoTopic::Slippage),
@@ -111,22 +111,22 @@ pub struct GemSwapDetails {
 
 #[uniffi::export]
 pub fn swap_quote_details(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>, currency: Currency) -> GemSwapDetails {
-    quote_details(quote, from_asset, to_asset, from_price, to_price, &currency, true)
+    quote_details(quote, from_asset, to_asset, from_price, to_price, &currency)
 }
 
-pub fn quote_details(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>, currency: &Currency, has_selected_slippage: bool) -> GemSwapDetails {
+pub fn quote_details(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>, currency: &Currency) -> GemSwapDetails {
     let provider = provider_row(quote.provider_data.provider, quote.provider_data.protocol_name.clone(), &quote.to_value, &to_asset, to_price, currency, false);
     let summary = swap_quote_summary(quote, from_asset, to_asset, from_price, to_price);
     GemSwapDetails {
-        rows: summary.detail_rows(has_selected_slippage),
+        rows: summary.detail_rows(),
         provider,
         summary,
     }
 }
 
 pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>) -> GemSwapQuoteSummary {
-    let pay = GemSwapValue::new(quote.from_value.clone(), from_asset.decimals as u32, from_price);
-    let receive = GemSwapValue::new(quote.to_value.clone(), to_asset.decimals as u32, to_price);
+    let pay = GemSwapValue::new(quote.from_value.clone(), from_asset.decimals, from_price);
+    let receive = GemSwapValue::new(quote.to_value.clone(), to_asset.decimals, to_price);
     let price_impact = pay.price_impact(&receive);
     GemSwapQuoteSummary {
         min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
@@ -233,7 +233,7 @@ mod tests {
                 ..SwapQuote::mock_with_provider(SwapProvider::Okx)
             };
             swap_quote_summary(quote, Asset::from_chain(Chain::Solana), Asset::from_chain(Chain::Solana), None, None)
-                .detail_rows(false)
+                .detail_rows()
                 .into_iter()
                 .find_map(|row| match row {
                     GemListRow::Duration {
@@ -254,12 +254,15 @@ mod tests {
     fn test_the_slippage_row_reads_auto_until_the_user_picks_one() {
         use crate::models::list::{GemListRow, GemListRowTitle};
         use crate::services::localization::GemLocalizedText;
+        use primitives::swap::SlippageMode;
 
-        let quote = SwapQuote::mock_with_provider(SwapProvider::UniswapV3);
-        let summary = swap_quote_summary(quote, Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana), None, None);
-        let slippage = |has_selected| {
-            summary
-                .detail_rows(has_selected)
+        let slippage = |slippage_mode| {
+            let quote = SwapQuote {
+                slippage_mode,
+                ..SwapQuote::mock_with_provider(SwapProvider::UniswapV3)
+            };
+            swap_quote_summary(quote, Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana), None, None)
+                .detail_rows()
                 .into_iter()
                 .find_map(|row| match row {
                     GemListRow::Label { title: GemListRowTitle::Slippage, text, .. } => Some(text),
@@ -268,9 +271,9 @@ mod tests {
                 .unwrap()
         };
 
-        assert_eq!(slippage(false), GemLocalizedText::SlippageAuto);
+        assert_eq!(slippage(SlippageMode::Auto), GemLocalizedText::SlippageAuto);
         assert!(
-            matches!(slippage(true), GemLocalizedText::Number { number } if number.value == super::rules::slippage_percent(summary.quote.slippage_bps)),
+            matches!(slippage(SlippageMode::Exact), GemLocalizedText::Number { number } if number.value == super::rules::slippage_percent(SwapQuote::mock().slippage_bps)),
             "a chosen slippage reads as the percent the quote was priced with"
         );
     }
@@ -293,7 +296,7 @@ mod tests {
                 price_impact: Some(impact),
                 ..summary.clone()
             }
-            .detail_rows(false)
+            .detail_rows()
             .iter()
             .any(|row| matches!(row, GemListRow::Label { title: GemListRowTitle::PriceImpact, .. }))
         };

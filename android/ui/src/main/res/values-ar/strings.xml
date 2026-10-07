@@ -395,6 +395,8 @@
   <string name="fee_rate_satvB">sat/vB</string>
   <string name="fee_rate_gwei">gwei</string>
   <string name="fee_rate_custom">مخصص</string>
+  <string name="fee_rate_priority">رسوم الأولوية</string>
+  <string name="fee_rate_base">الرسوم الأساسية</string>
   <string name="banner_account_activation_title">رسوم تفعيل الحساب</string>
   <string name="banner_account_activation_description">تتطلب شبكة %1$s رسومًا لمرة واحدة قدرها %2$s.</string>
   <string name="banner_stake_title">ابدأ تخزين %1$s</string>
@@ -439,12 +441,14 @@
   <string name="lock_six_hours">6 ساعات</string>
   <string name="lock_require_authentication">تتطلب المصادقة</string>
   <string name="lock_unlock">فتح</string>
-  <string name="lock_privacy_lock">قفل الخصوصية</string>
   <string name="lock_footer">حماية الوصول إلى هذا التطبيق على جهازك</string>
   <string name="lock_passcode">رمز المرور</string>
+  <string name="lock_passcode_off_title">رمز مرور الجهاز متوقف</string>
+  <string name="lock_passcode_off_description">Gem مقفل برمز مرور جهازك. فعّل رمز المرور من إعدادات جهازك لفتح Gem. محافظك آمنة.</string>
   <string name="verify_phrase_title">يتأكد</string>
   <string name="warnings_externally_controlled_account">قد يتحكم شخص آخر في حساب %1$s هذا. لا ترسل أموالًا إليه إلا إذا كنت متأكدًا من أنك تتحكم فيه، وإلا فقد تفقد أصولك بشكل دائم.</string>
   <string name="sell_title">بيع %1$s</string>
+  <string name="info_region_unavailable_description">هذه الميزة غير متاحة في منطقتك. يعتمد التوفر على القواعد المحلية ومتطلبات مزودي الخدمة.</string>
   <string name="info_network_fee_title">رسوم الشبكة</string>
   <string name="info_watch_wallet_title">شاهد المحفظة</string>
   <string name="info_watch_wallet_description">محفظة لا يمكنك الوصول إليها، ولكن يمكنك مشاهدة معاملاتها وحركاتها.</string>
@@ -586,6 +590,8 @@
   <string name="rewards_nickname">كنية</string>
   <string name="rewards_unverified_title">المكافآت غير مفعلة بعد.</string>
   <string name="rewards_unverified_description">يتم تفعيل المكافآت تلقائيًا كلما زاد استخدامك للتطبيق.</string>
+  <string name="rewards_state_empty_title">المكافآت تتطلب محفظة متعددة العملات</string>
+  <string name="rewards_state_empty_description">أنشئ محفظة متعددة العملات أو استوردها لدعوة الأصدقاء وكسب النقاط.</string>
   <string name="recent_activity_title">آخر الأخبار</string>
   <string name="recent_activity_state_empty_title">ستظهر أحدث أعمالك هنا</string>
   <string name="recent_activity_state_empty_description">ستظهر هنا الأصول التي استخدمتها مؤخرًا</string>

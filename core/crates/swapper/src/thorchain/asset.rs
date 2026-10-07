@@ -5,20 +5,18 @@ use primitives::{Asset, AssetId, BITCOINCASH_PREFIX, Chain};
 
 use super::{THORChainNetwork, chain::ChainName};
 
-const THORCHAIN_DECIMALS: i32 = 8;
+const THORCHAIN_DECIMALS: u32 = 8;
 
-pub fn value_from(value: &str, decimals: i32) -> BigInt {
+pub fn value_from(value: &str, decimals: u32) -> BigInt {
     let value = BigInt::from_str(value).unwrap_or_default();
-    let diff = decimals - THORCHAIN_DECIMALS;
-    let factor = BigInt::from(10).pow(diff.unsigned_abs());
-    if diff > 0 { value / factor } else { value * factor }
+    let factor = BigInt::from(10).pow(decimals.abs_diff(THORCHAIN_DECIMALS));
+    if decimals > THORCHAIN_DECIMALS { value / factor } else { value * factor }
 }
 
-pub fn value_to(value: &str, decimals: i32) -> BigInt {
+pub fn value_to(value: &str, decimals: u32) -> BigInt {
     let value = BigInt::from_str(value).unwrap_or_default();
-    let diff = decimals - THORCHAIN_DECIMALS;
-    let factor = BigInt::from(10).pow(diff.unsigned_abs());
-    if diff > 0 { value * factor } else { value / factor }
+    let factor = BigInt::from(10).pow(decimals.abs_diff(THORCHAIN_DECIMALS));
+    if decimals > THORCHAIN_DECIMALS { value * factor } else { value / factor }
 }
 
 #[derive(Clone, Debug)]
@@ -52,7 +50,7 @@ impl THORChainAsset {
                 symbol: asset.symbol,
                 chain,
                 token_id: None,
-                decimals: asset.decimals as u32,
+                decimals: asset.decimals,
             })
         }
     }
@@ -66,7 +64,7 @@ impl THORChainAsset {
             symbol: asset.symbol,
             chain,
             token_id: asset.id.token_id,
-            decimals: asset.decimals as u32,
+            decimals: asset.decimals,
         })
     }
 

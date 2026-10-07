@@ -87,6 +87,23 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
+    func updatePerpetualConnectionDisconnectsWhenEnablementFails() async throws {
+        let observer = PerpetualObserverMock()
+        let perpetuals = GemPerpetualServiceMock()
+        let service = try AppLifecycleService.mock(
+            hyperliquidObserverService: observer,
+            perpetualService: perpetuals,
+            walletSessionService: GemWalletSessionService.mock(wallet: wallet),
+        )
+        await service.updatePerpetualConnection()
+
+        perpetuals.enablementError = AnyError("disk")
+        await service.updatePerpetualConnection()
+
+        #expect(await observer.isConnected == false)
+    }
+
+    @Test
     func updateWalletConnectionsDisconnectsWhenNoCurrentWallet() async throws {
         let observer = PerpetualObserverMock()
         let session = try GemWalletSessionService.mock(wallet: wallet)
@@ -140,7 +157,7 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
-    func updateWalletConnectionsRefreshesStaleMarkets() async throws {
+    func updateWalletConnectionsLoadsMarketsThatWereNeverSynced() async throws {
         let perpetuals = GemPerpetualServiceMock()
         let service = try AppLifecycleService.mock(
             perpetualService: perpetuals,
@@ -149,7 +166,7 @@ struct AppLifecycleServiceTests {
 
         await service.updateWalletConnections()
 
-        #expect(perpetuals.syncMarketsCount == 1, "a wallet switch refreshes markets that were never synced")
+        #expect(perpetuals.syncMarketsCount == 1, "a wallet switch loads markets that were never synced")
         #expect(perpetuals.clearMarketsCount == 0)
     }
 }

@@ -21,7 +21,7 @@ impl<C: Client + Clone> ChainToken for XrpClient<C> {
                 id: AssetId::from_token(self.chain, &token_id),
                 name: symbol.clone(),
                 symbol,
-                decimals: XRP_DEFAULT_ASSET_DECIMALS as i32,
+                decimals: XRP_DEFAULT_ASSET_DECIMALS,
                 asset_type: AssetType::TOKEN,
             })
         } else {

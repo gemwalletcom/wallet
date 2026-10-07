@@ -6,10 +6,10 @@ public struct Asset: Codable, Equatable, Hashable, Sendable {
 	public let id: AssetId
 	public let name: String
 	public let symbol: String
-	public let decimals: Int32
+	public let decimals: UInt32
 	public let type: AssetType
 
-	public init(id: AssetId, name: String, symbol: String, decimals: Int32, type: AssetType) {
+	public init(id: AssetId, name: String, symbol: String, decimals: UInt32, type: AssetType) {
 		self.id = id
 		self.name = name
 		self.symbol = symbol

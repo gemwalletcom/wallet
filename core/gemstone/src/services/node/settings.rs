@@ -35,8 +35,8 @@ impl GemChainSettingsService {
 
     pub async fn nodes(&self, chain: Chain) -> Result<Vec<GemNodeSelection>, GemServiceError> {
         let nodes = self.nodes.get_nodes(chain).await?;
-        let selected_url = self.nodes.selected_node(chain).url;
-        Ok(rules::node_selections(self.nodes.sorted_nodes(chain, nodes), &selected_url))
+        let selected_url = self.nodes.node_url(chain);
+        Ok(rules::node_selections(rules::sorted_nodes(chain, nodes), &selected_url))
     }
 
     pub async fn select_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {

@@ -44,7 +44,6 @@ pub struct Epoch {
     pub epoch: u64,
     pub system_state: Option<SystemState>,
     pub start: Option<Timestamp>,
-    pub end: Option<Timestamp>,
     pub reference_gas_price: Option<u64>,
 }
 
@@ -52,7 +51,6 @@ proto_decode!(Epoch {
     1 => epoch: varint_u64,
     3 => system_state: optional_message,
     6 => start: optional_message,
-    7 => end: optional_message,
     8 => reference_gas_price: optional_varint_u64,
 });
 
@@ -69,10 +67,12 @@ proto_decode!(SystemState {
 
 #[derive(Clone, Debug, Default)]
 pub struct SystemParameters {
+    pub epoch_duration_ms: Option<u64>,
     pub stake_subsidy_start_epoch: Option<u64>,
 }
 
 proto_decode!(SystemParameters {
+    1 => epoch_duration_ms: optional_varint_u64,
     2 => stake_subsidy_start_epoch: optional_varint_u64,
 });
 

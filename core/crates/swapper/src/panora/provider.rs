@@ -49,7 +49,7 @@ where
         Ok(model::QuoteRequest {
             from_token_address: token_address(&request.from_asset),
             to_token_address: token_address(&request.to_asset),
-            from_token_amount: BigNumberFormatter::value(from_value, request.from_asset.decimals as i32)?,
+            from_token_amount: BigNumberFormatter::value(from_value, request.from_asset.decimals)?,
             to_wallet_address: request.destination_address.clone(),
             slippage_percentage: bps_to_percent_string(request.options.slippage.bps)?,
             integrator_fee_percentage: bps_to_percent_string(referral.bps)?,

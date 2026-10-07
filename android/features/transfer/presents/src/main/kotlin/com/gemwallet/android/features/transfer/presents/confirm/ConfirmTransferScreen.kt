@@ -293,7 +293,7 @@ fun ConfirmTransferScreen(
             screen = feeScreen,
             feeListItem = feeListItem,
             onSelectPriority = viewModel::changeFeePriority,
-            onSelectCustom = viewModel::changeCustomFee,
+            onSelectCustom = viewModel::changeFeeSelection,
             onSelectFeeAsset = viewModel::changeFeeAsset,
             onCancel = { showSelectTxSpeed = false },
         )
@@ -395,7 +395,6 @@ private fun ConfirmDetailsRow(item: GemConfirmDetails, listPosition: ListPositio
 private fun ConfirmDetailsSheet(item: GemConfirmDetails?, onDismiss: () -> Unit) {
     SwapDetailsBottomSheet(
         isVisible = item is GemConfirmDetails.Swap,
-        isLoading = false,
         details = (item as? GemConfirmDetails.Swap)?.details,
         onDismiss = onDismiss,
     )

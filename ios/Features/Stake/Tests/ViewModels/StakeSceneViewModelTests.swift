@@ -39,10 +39,7 @@ struct StakeSceneViewModelTests {
 
         await model.load()
 
-        guard case .error = model.delegationsViewState(model.viewState) else {
-            Issue.record("expected the refresh error")
-            return
-        }
+        #expect(model.viewState.delegationsPhase == .error(error: .Gateway(msg: "offline")))
     }
 
     @Test
@@ -77,6 +74,40 @@ struct StakeSceneViewModelTests {
             Issue.record("expected an amount route")
             return
         }
+    }
+
+    @Test
+    func unavailableStakingStopsStakeUntilAvailabilityChanges() {
+        let service = GemStakeServiceMock()
+        service.isAvailableValue = false
+        var routes: [StakeRoute] = []
+        let model = StakeSceneViewModel.mock(stakeService: service, onNavigate: { routes.append($0) })
+        let destination = GemStakeDestination.amount(input: .stake(validator: DelegationValidator.mock().toGem()))
+
+        model.onSelect(kind: .stake, destination: destination)
+
+        #expect(routes.isEmpty)
+        #expect(model.isPresentingInfoSheet?.description == .regionUnavailable)
+
+        model.isPresentingInfoSheet = nil
+        service.isAvailableValue = true
+        model.onSelect(kind: .stake, destination: destination)
+        #expect(routes.count == 1)
+        #expect(model.isPresentingInfoSheet == nil)
+    }
+
+    @Test
+    func unavailableStakingKeepsClaimRewardsAvailable() {
+        let service = GemStakeServiceMock()
+        service.isAvailableValue = false
+        var routes: [StakeRoute] = []
+        let model = StakeSceneViewModel.mock(stakeService: service, onNavigate: { routes.append($0) })
+        let transfer = GemTransferData.mock()
+
+        model.onSelect(kind: .claimRewards, destination: .confirm(transfer: transfer))
+
+        #expect(routes == [.transfer(.confirm(transfer))])
+        #expect(model.isPresentingInfoSheet == nil)
     }
 
     private func claimDestination(_ model: StakeSceneViewModel) -> GemStakeDestination? {

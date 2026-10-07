@@ -23,7 +23,7 @@ pub fn map_staking_validators(validators: Vec<Validator>, chain: Chain, apy: Opt
 }
 
 pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec<DelegatorHistoryUpdate>, now: DateTime<Utc>, chain: Chain) -> Vec<DelegationBase> {
-    let native_decimals = Asset::from_chain(chain).decimals as u32;
+    let native_decimals = Asset::from_chain(chain).decimals;
     let mut result: Vec<DelegationBase> = delegations
         .into_iter()
         .map(|x| DelegationBase {

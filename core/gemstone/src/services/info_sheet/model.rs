@@ -15,6 +15,7 @@ pub struct GemInfoSheet {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemInfoTitle {
+    NotAvailable,
     NetworkFee,
     BalanceRequired { symbol: String },
     TransactionState { state: TransactionState },
@@ -55,6 +56,7 @@ pub struct GemInfoAmount {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemInfoDescription {
+    RegionUnavailable,
     NetworkFee {
         network: String,
         symbol: String,

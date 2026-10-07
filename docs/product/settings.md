@@ -11,11 +11,12 @@ Reach the wallets, protect the app, tune currency, language and appearance, choo
 
 ```mermaid
 flowchart LR
-    A[App goes to the background] --> B{Lock period passed on return?}
-    B -- no --> C[App as it was]
-    B -- yes --> D[Covered until Face ID, Touch ID or passcode] --> E{Success?}
-    E -- yes --> C
-    E -- cancelled --> F[Unlock button]
+    A[Gem opens] --> C[Covered until Face ID, Touch ID or passcode]
+    B[Gem returns from the background] --> D{Lock period passed?}
+    D -- no --> E[Gem as it was]
+    D -- yes --> C
+    C -- success --> E
+    C -- cancelled --> F[Still covered, asks again] --> C
 ```
 
 ```mermaid
@@ -31,11 +32,18 @@ flowchart LR
 | The user picks a currency | every value in the app converts at once | |
 | The user opens Language | the system's per-app language setting opens | |
 | Hide Balance is turned on | balances are masked everywhere, with no prompt | |
+| Gem opens with the lock on | nothing of the wallet shows until the user unlocks | |
+| The unlock prompt is open | Gem stays covered behind it | |
 | The lock period has passed, whatever the app was doing | the lock re-engages | |
 | The user returns before the lock period passes | the app stays unlocked, and the period starts again the next time the user leaves the app | time spent in the app never counts, so a Face ID prompt for a transaction is not followed by an unlock prompt |
+| The user leaves the app before the lock period passes | the app switcher shows the app as it was | the lock covers the app only once it locks |
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
+| The phone is turned or the appearance changes while the unlock prompt is open | the same prompt stays open and unlocks the app | Android recreates the screen; cancelling the prompt then crashed the app |
+| The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
 | The user turns the push switch on | the app asks the system for permission | |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |
+| A network API does not expose a latest block, such as HyperCore | the node row shows a dash for Latest Block and still measures the API response latency | a missing capability is not a failed node |
+| A network's selected node is no longer offered, because an update removed it or the added node is gone | from the next launch the network uses the US Gem Wallet Node and Networks shows it selected | a node the app no longer lists may no longer answer |
 | The app has offered push | it asks again no sooner than 30 days later, unless the user turned push off | |
 | The user taps a push | the app switches to the wallet the push belongs to, then opens the transaction, the asset or the chat | |
 | A newer release exists | "New update available!" at launch, with Update and Skip, and in About Us | |
@@ -49,7 +57,7 @@ flowchart LR
 
 | When | iOS | Android | Expected |
 |---|---|---|---|
-| The user opens Security | also offers Privacy Lock | does not | Intentional |
+| The device passcode is off while the lock is on | the lock screen explains it in text | the lock screen explains it and opens screen lock setup | Intentional: iOS has no public way to open passcode settings |
 | The user opens Developer | includes a deep link URL tool | includes a platform store setting | Intentional (developer-only) |
 | The build cannot push (F-Droid, Huawei) | not applicable | Settings does not list Notifications, so neither the push switch nor Price Alerts is reachable | Intentional: the build has no push service |
 

@@ -1,14 +1,15 @@
 use std::sync::Arc;
 
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::{AuthenticatedRequest, ReferralCode, Rewards, Wallet, WalletId};
+use primitives::{AuthenticatedRequest, Feature, ReferralCode, Rewards, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::models::state::GemLoadState;
 use crate::services::auth::GemAuthService;
 use crate::services::balance::GemBalanceService;
+use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
-use crate::services::wallet_session::rules as session_rules;
+use crate::services::wallet_session::GemWalletSessionService;
 
 pub mod model;
 pub mod rules;
@@ -16,38 +17,27 @@ pub mod session;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-pub use model::{GemIncomingCode, GemRewardsResult, GemRewardsState, GemRewardsViewState, GemRewardsWallets};
+pub use model::{GemIncomingCode, GemRewardsResult, GemRewardsState, GemRewardsViewState, GemRewardsWallet};
 pub use session::GemRewardsSession;
-
-#[uniffi::export]
-pub fn incoming_referral_code(code: Option<String>, wallets: Vec<Wallet>) -> Option<GemIncomingCode> {
-    rules::incoming_code(code.as_deref(), &session_rules::rewards_wallets(wallets))
-}
 
 #[derive(uniffi::Object)]
 pub struct GemRewardsService {
     api: Arc<GemDeviceApiClient>,
     auth: Arc<GemAuthService>,
     balance: Arc<GemBalanceService>,
+    session: Arc<GemWalletSessionService>,
+    config: Arc<GemConfigService>,
 }
 
 #[uniffi::export]
 impl GemRewardsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>, balance: Arc<GemBalanceService>) -> Self {
-        Self { api, auth, balance }
+    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>, balance: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>, config: Arc<GemConfigService>) -> Self {
+        Self { api, auth, balance, session, config }
     }
 
-    pub fn wallets(&self, wallets: Vec<Wallet>) -> GemRewardsWallets {
-        let wallets = session_rules::rewards_wallets(wallets);
-        GemRewardsWallets {
-            can_choose: session_rules::can_choose_wallet(&wallets),
-            wallets,
-        }
-    }
-
-    pub fn selected_wallet(&self, current: Option<Wallet>, wallets: Vec<Wallet>) -> Option<Wallet> {
-        session_rules::rewards_wallet(current, &session_rules::rewards_wallets(wallets))
+    pub fn is_available(&self) -> bool {
+        self.config.is_feature_enabled(Feature::Rewards)
     }
 
     pub async fn refresh(&self, wallet_id: WalletId) -> GemRewardsResult {
@@ -59,7 +49,8 @@ impl GemRewardsService {
         }
     }
 
-    pub async fn create_referral(&self, wallet: Wallet, code: String) -> Result<Rewards, GemServiceError> {
+    pub async fn create_referral(&self, wallet_id: WalletId, code: String) -> Result<Rewards, GemServiceError> {
+        let wallet = self.session.require_wallet(wallet_id).await?;
         let wallet_id = wallet.id.id();
         let request = AuthenticatedRequest {
             auth: self.auth.get_auth_payload(wallet).await?,
@@ -68,8 +59,8 @@ impl GemRewardsService {
         Ok(self.api.client.create_referral(wallet_id, request).await.map_err(GemApiError::from)?)
     }
 
-    pub async fn use_referral_code(&self, wallet: Wallet, code: String) -> Result<Rewards, GemServiceError> {
-        let wallet_id = wallet.id.clone();
+    pub async fn use_referral_code(&self, wallet_id: WalletId, code: String) -> Result<Rewards, GemServiceError> {
+        let wallet = self.session.require_wallet(wallet_id.clone()).await?;
         let request = AuthenticatedRequest {
             auth: self.auth.get_auth_payload(wallet).await?,
             data: ReferralCode { code: code.trim().to_string() },
@@ -78,8 +69,8 @@ impl GemRewardsService {
         self.get_rewards(wallet_id).await
     }
 
-    pub async fn redeem(&self, wallet: Wallet, redemption_id: String) -> Result<RedemptionResult, GemServiceError> {
-        let wallet_id = wallet.id.clone();
+    pub async fn redeem(&self, wallet_id: WalletId, redemption_id: String) -> Result<RedemptionResult, GemServiceError> {
+        let wallet = self.session.require_wallet(wallet_id.clone()).await?;
         let request = AuthenticatedRequest {
             auth: self.auth.get_auth_payload(wallet).await?,
             data: RedemptionRequest { id: redemption_id },
@@ -113,7 +104,7 @@ mod tests {
             let asset = Asset::from_chain(Chain::Ethereum);
             let testkit = RewardsTestkit::with_redemption(&RedemptionResult::mock(Some(asset.clone()))).await;
 
-            let redeemed = testkit.service.redeem(testkit.wallet.clone(), "option-1".to_string()).await.unwrap();
+            let redeemed = testkit.service.redeem(testkit.wallet.id.clone(), "option-1".to_string()).await.unwrap();
 
             assert_eq!(redeemed.redemption.id, 7);
             let writes = testkit.balances.enable_writes.lock().unwrap();
@@ -126,7 +117,7 @@ mod tests {
         block_on(async {
             let testkit = RewardsTestkit::with_redemption(&RedemptionResult::mock(None)).await;
 
-            testkit.service.redeem(testkit.wallet.clone(), "option-1".to_string()).await.unwrap();
+            testkit.service.redeem(testkit.wallet.id.clone(), "option-1".to_string()).await.unwrap();
 
             assert!(testkit.balances.enable_writes.lock().unwrap().is_empty());
         })
@@ -137,7 +128,7 @@ mod tests {
         block_on(async {
             let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(200, &[("auth/nonce", TEST_NONCE), ("rewards/redeem", "not json")]))).await;
 
-            assert!(testkit.service.redeem(testkit.wallet.clone(), "option-1".to_string()).await.is_err());
+            assert!(testkit.service.redeem(testkit.wallet.id.clone(), "option-1".to_string()).await.is_err());
             assert!(testkit.balances.enable_writes.lock().unwrap().is_empty());
         })
     }
@@ -155,7 +146,7 @@ mod tests {
             )))
             .await;
 
-            let rewards = testkit.service.use_referral_code(testkit.wallet.clone(), "code".to_string()).await.unwrap();
+            let rewards = testkit.service.use_referral_code(testkit.wallet.id.clone(), "code".to_string()).await.unwrap();
 
             assert_eq!(rewards.used_referral_code.as_deref(), Some("code"), "the used code answers with the state it produced");
             let paths = testkit.provider.requested_paths();
@@ -166,19 +157,19 @@ mod tests {
     }
 
     #[test]
-    fn test_an_incoming_code_is_activated_with_one_wallet_and_confirmed_with_more() {
+    fn test_a_refresh_answers_for_the_wallet_it_was_asked_about() {
         block_on(async {
-            let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(200, &[("auth/nonce", TEST_NONCE)]))).await;
-            let other = Wallet::mock_with_id(primitives::WalletId::Multicoin("0x2".to_string()), &[Chain::Ethereum]);
+            let rewards = Rewards {
+                code: Some("GEM123".to_string()),
+                ..Rewards::default()
+            };
+            let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(200, &[("devices/rewards", &serde_json::to_string(&rewards).unwrap())]))).await;
 
-            assert_eq!(incoming_referral_code(Some("friend".to_string()), vec![testkit.wallet.clone()]), Some(GemIncomingCode::Activate { code: "friend".to_string() }));
-            assert_eq!(
-                incoming_referral_code(Some("friend".to_string()), vec![testkit.wallet.clone(), other]),
-                Some(GemIncomingCode::Confirm { code: "friend".to_string() })
-            );
-            assert_eq!(incoming_referral_code(Some("  ".to_string()), vec![testkit.wallet.clone()]), None);
-            assert_eq!(incoming_referral_code(Some("friend".to_string()), vec![]), None, "no wallet decides nothing yet");
-            assert_eq!(incoming_referral_code(None, vec![testkit.wallet]), None);
+            let result = testkit.service.refresh(testkit.wallet.id.clone()).await;
+
+            assert_eq!(result.wallet_id, testkit.wallet.id);
+            assert_eq!(result.state, GemLoadState::Data);
+            assert_eq!(result.rewards.and_then(|rewards| rewards.code).as_deref(), Some("GEM123"));
         })
     }
 
@@ -195,8 +186,8 @@ mod tests {
                 msg: "Username must contain only letters and digits".to_string(),
             };
 
-            let created = testkit.service.create_referral(testkit.wallet.clone(), "code".to_string()).await.unwrap_err();
-            let used = testkit.service.use_referral_code(testkit.wallet.clone(), "code".to_string()).await.unwrap_err();
+            let created = testkit.service.create_referral(testkit.wallet.id.clone(), "code".to_string()).await.unwrap_err();
+            let used = testkit.service.use_referral_code(testkit.wallet.id.clone(), "code".to_string()).await.unwrap_err();
 
             assert_eq!(created, expected);
             assert_eq!(used, expected);
@@ -207,12 +198,9 @@ mod tests {
     fn test_a_wallet_with_no_auth_account_never_reaches_the_api() {
         block_on(async {
             let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(200, &[("auth/nonce", TEST_NONCE)]))).await;
-            let wallet = Wallet {
-                accounts: Vec::new(),
-                ..testkit.wallet.clone()
-            };
+            testkit.wallets.wallets.wallets.lock().unwrap().iter_mut().for_each(|wallet| wallet.accounts.clear());
 
-            assert!(testkit.service.create_referral(wallet, "code".to_string()).await.is_err());
+            assert!(testkit.service.create_referral(testkit.wallet.id.clone(), "code".to_string()).await.is_err());
             assert!(!testkit.provider.requested_paths().iter().any(|path| path.contains("referrals/create")));
             assert!(testkit.wallets.keystore_path(&testkit.wallet).exists());
         })

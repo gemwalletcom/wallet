@@ -6,24 +6,27 @@ use std::{collections::HashMap, error::Error};
 use async_trait::async_trait;
 use futures::{StreamExt, TryStreamExt, stream};
 use primitives::{AssetAddress, AssetIdVecExt, AssetPriceMetadata, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
-use storage::{AssetFilter, AssetsRepository, Database, DatabaseError, NftRepository, TransactionsRepository, WalletsRepository};
-use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
+use storage::AssetFilter;
+use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 
 use super::StoreTransactionsConsumerConfig;
 use super::SwapVaultAddressClient;
-use crate::assets::add_transaction_addresses;
+use super::repository::Repository;
 use crate::config::ConfigCacher;
 use crate::notifications::Pusher;
+use crate::subscriptions::SubscriptionLookup;
+use push_notification::GorushNotification;
 
 const CROSS_CHAIN_SOURCE_TYPES: [TransactionType; 3] = [TransactionType::Transfer, TransactionType::SmartContractCall, TransactionType::Swap];
 
 pub struct StoreTransactionsConsumer {
-    pub database: Database,
-    pub stream_producer: StreamProducer,
+    pub(crate) repository: Arc<dyn Repository>,
+    pub stream_producer: Arc<dyn StreamProducerQueue>,
     pub pusher: Pusher,
     pub config: Arc<ConfigCacher>,
     pub vault_client: SwapVaultAddressClient,
+    pub(crate) subscription_lookup: Arc<SubscriptionLookup>,
 }
 
 #[async_trait]
@@ -74,7 +77,7 @@ impl StoreTransactionsConsumer {
         let wallet_events = Self::wallet_events(&subscriptions, &subscribed_transactions, &publishable_transactions);
 
         if !assets_addresses.is_empty() {
-            self.database.run(move |client| add_transaction_addresses(client, assets_addresses)).await?;
+            self.repository.add_asset_addresses(assets_addresses).await?;
         }
         self.stream_producer.publish_notifications_transactions(notifications).await?;
         self.stream_producer.publish_wallet_stream_events(wallet_events).await?;
@@ -89,22 +92,21 @@ impl StoreTransactionsConsumer {
         let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
         let transactions = Self::transactions_for_storage(transactions, &deposit_addresses, &send_addresses);
         let asset_ids: Vec<AssetId> = transactions.iter().flat_map(Transaction::asset_ids).collect::<HashSet<_>>().into_iter().collect();
-        let lookup_ids = asset_ids.clone();
-        let existing_ids = self.database.run(move |client| client.get_assets(lookup_ids)).await?.into_iter().map(|asset| asset.id).collect::<HashSet<_>>();
+        let existing_ids = self.repository.assets(asset_ids.clone()).await?.into_iter().map(|asset| asset.id).collect::<HashSet<_>>();
         self.stream_producer.publish_fetch_assets(asset_ids.into_iter().filter(|id| !existing_ids.contains(id)).collect()).await?;
 
         let transactions = transactions.into_iter().filter(|transaction| transaction.asset_ids().iter().all(|id| existing_ids.contains(id))).collect::<Vec<_>>();
         let referrals = transactions.iter().filter_map(|transaction| Some((referral_queue(transaction)?, transaction.id.clone()))).collect::<Vec<_>>();
         self.upsert_transactions(transactions, config.batch_size).await?;
         for (queue, transaction_id) in referrals {
-            self.stream_producer.publish(queue, &transaction_id).await?;
+            self.stream_producer.publish_referral_transaction(queue, transaction_id).await?;
         }
         Ok(())
     }
 
     async fn get_subscriptions(&self, chain: Chain, transactions: &[Transaction]) -> Result<Vec<DeviceSubscription>, Box<dyn Error + Send + Sync>> {
-        let addresses: Vec<_> = transactions.iter().flat_map(Transaction::addresses).collect::<HashSet<_>>().into_iter().collect();
-        Ok(self.database.run(move |client| client.get_subscriptions_by_chain_addresses(chain, addresses)).await?)
+        let addresses = transactions.iter().flat_map(Transaction::addresses).collect();
+        self.subscription_lookup.get(chain, addresses).await
     }
 
     fn subscribed_transactions_for_storage(
@@ -147,7 +149,7 @@ impl StoreTransactionsConsumer {
             .iter()
             .flat_map(|subscription| transactions.iter().map(move |transaction| (subscription, transaction)))
             .filter(|(subscription, transaction)| transaction.addresses().contains(&subscription.address))
-            .filter(|(_, transaction)| transaction.asset_ids().iter().all(|id| assets.contains_key(id)))
+            .filter(|(_, transaction)| transaction.asset_ids().iter().all(|id| assets.get(id).is_some_and(|asset| asset.asset.is_enabled_for_transactions())))
             .filter(|(subscription, transaction)| {
                 let transaction = transaction.finalize(vec![subscription.address.clone()]);
                 assets
@@ -195,10 +197,11 @@ impl StoreTransactionsConsumer {
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
-        stream::iter(notification_requests)
-            .then(|(subscription, transaction, assets)| async move { Ok::<_, Box<dyn Error + Send + Sync>>(NotificationsPayload::new(self.pusher.get_messages(&subscription, transaction, assets).await?)) })
+        let notifications: Vec<Vec<GorushNotification>> = stream::iter(notification_requests)
+            .then(|(subscription, transaction, assets)| async move { self.pusher.get_messages(&subscription, transaction, assets).await })
             .try_collect()
-            .await
+            .await?;
+        Ok(NotificationsPayload::batches(notifications.into_iter().flatten().collect(), config.notifications_batch_size))
     }
 
     fn wallet_events(subscriptions: &[DeviceSubscription], subscribed_transactions: &[(&DeviceSubscription, &Transaction)], publishable_transactions: &[&Transaction]) -> Vec<WalletStreamPayload> {
@@ -286,11 +289,10 @@ impl StoreTransactionsConsumer {
 
     async fn get_existing_and_missing_assets(&self, assets_ids: Vec<AssetId>, primary_price_max_age: Duration) -> Result<(Vec<primitives::AssetPriceMetadata>, Vec<AssetId>), Box<dyn Error + Send + Sync>> {
         let filters = vec![AssetFilter::Ids(assets_ids.clone().ids())];
-        let assets_with_prices = self.database.run(move |client| client.get_assets_with_prices(filters, primary_price_max_age)).await?;
+        let assets_with_prices = self.repository.assets_with_prices(filters, primary_price_max_age).await?;
         let existing_ids = assets_with_prices.iter().map(|asset| asset.asset.asset.id.clone()).collect::<HashSet<_>>();
         let missing_assets = assets_ids.into_iter().filter(|asset_id| !existing_ids.contains(asset_id)).collect();
-        let enabled_assets = assets_with_prices.into_iter().filter(|asset| asset.asset.properties.is_enabled).collect();
-        Ok((enabled_assets, missing_assets))
+        Ok((assets_with_prices, missing_assets))
     }
 
     async fn get_missing_nft_assets(&self, nft_asset_ids: Vec<NFTAssetId>) -> Result<Vec<NFTAssetId>, Box<dyn Error + Send + Sync>> {
@@ -298,20 +300,12 @@ impl StoreTransactionsConsumer {
             return Ok(Vec::new());
         }
         let identifiers: Vec<String> = nft_asset_ids.iter().map(ToString::to_string).collect();
-        let existing_ids: HashSet<NFTAssetId> = self.database.run(move |client| client.get_nft_asset_ids(identifiers)).await?.into_iter().collect();
+        let existing_ids: HashSet<NFTAssetId> = self.repository.nft_asset_ids(identifiers).await?.into_iter().collect();
         Ok(nft_asset_ids.into_iter().filter(|id| !existing_ids.contains(id)).collect())
     }
 
     async fn upsert_transactions(&self, transactions: Vec<Transaction>, batch_size: usize) -> Result<HashSet<TransactionId>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .database
-            .run(move |client| {
-                transactions.chunks(batch_size).try_fold(HashSet::new(), |inserted_ids, chunk| -> Result<HashSet<TransactionId>, DatabaseError> {
-                    let chunk_inserted_ids = client.upsert_transactions(chunk.to_vec())?;
-                    Ok(inserted_ids.into_iter().chain(chunk_inserted_ids).collect())
-                })
-            })
-            .await?)
+        Ok(self.repository.upsert_transactions(transactions, batch_size).await?)
     }
 }
 
@@ -353,9 +347,32 @@ mod tests {
     };
     use num_bigint::BigUint;
     use primitives::{
-        AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId, asset_constants::SOLANA_USDC_ASSET_ID,
-        contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID,
+        Asset, AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId,
+        asset_constants::SOLANA_USDC_ASSET_ID,
+        contract_constants::{SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID, SOLANA_RELAY_DEPOSITORY_PROGRAM_ID},
+        known_assets::HYPERCORE_PERPETUAL_USDC,
     };
+
+    #[test]
+    fn test_mayan_swift_deposit_enters_cross_chain_processing() {
+        let response: JsonRpcResult<SingleTransaction> = serde_json::from_str(include_str!("../../../gem_solana/testdata/mayan_swift_deposit_token.json")).unwrap();
+        let source = BlockTransaction {
+            meta: response.result.meta,
+            transaction: response.result.transaction,
+        };
+        let transaction = map_transaction(&source, response.result.block_time).unwrap();
+        let deposit_addresses = DepositAddressMap::from([(SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID.to_string(), SwapProvider::Mayan)]);
+        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new());
+
+        assert_eq!(transactions.len(), 1);
+        let transaction = &transactions[0];
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.state, TransactionState::InTransit);
+        assert_eq!(transaction.asset_id, AssetId::from_token(Chain::Solana, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"));
+        assert_eq!(transaction.value, BigUint::from(1_000_000_000u64));
+        assert_eq!(transaction.metadata, None);
+        assert_eq!(cross_chain::swap_provider_with_vault_addresses(transaction, &deposit_addresses), Some(SwapProvider::Mayan));
+    }
 
     #[test]
     fn test_relay_lookup_table_deposit_enters_cross_chain_processing() {
@@ -376,6 +393,33 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(5_000_000u64));
         assert_eq!(transaction.metadata, None);
         assert_eq!(cross_chain::swap_provider_with_vault_addresses(transaction, &deposit_addresses), Some(SwapProvider::Relay));
+    }
+
+    #[test]
+    fn test_subscribed_transactions_asset_filter() {
+        let config = StoreTransactionsConsumerConfig::mock();
+        let subscriptions = vec![DeviceSubscription {
+            address: "0xfrom".to_string(),
+            ..DeviceSubscription::mock()
+        }];
+        let asset = |asset: Asset, is_enabled: bool| {
+            let mut basic = asset.as_basic_primitive();
+            basic.properties.is_enabled = is_enabled;
+            (basic.asset.id.clone(), AssetPriceMetadata { asset: basic, price: None })
+        };
+        let assets = HashMap::from([asset(Asset::mock_eth(), true), asset(Asset::mock_ethereum_usdc(), false), asset(HYPERCORE_PERPETUAL_USDC.clone(), false)]);
+        let transfer = Transaction::mock();
+        let disabled_token_transfer = Transaction::mock_with_params(Asset::mock_ethereum_usdc().id, TransactionType::Transfer, BigUint::from(1u32));
+        let perpetual = Transaction::mock_with_params(HYPERCORE_PERPETUAL_USDC.id.clone(), TransactionType::PerpetualOpenPosition, BigUint::from(1u32));
+        let missing_asset_transfer = Transaction::mock_with_params(AssetId::from_chain(Chain::Bitcoin), TransactionType::Transfer, BigUint::from(1u32));
+        let transactions = vec![transfer, disabled_token_transfer, perpetual, missing_asset_transfer];
+
+        let subscribed = StoreTransactionsConsumer::subscribed_transactions(&config, &subscriptions, &transactions, &assets);
+
+        assert_eq!(
+            subscribed.iter().map(|(_, transaction)| transaction.asset_id.clone()).collect::<Vec<_>>(),
+            vec![AssetId::from_chain(Chain::Ethereum), HYPERCORE_PERPETUAL_USDC.id.clone()]
+        );
     }
 
     #[test]

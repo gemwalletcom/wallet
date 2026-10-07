@@ -9,17 +9,22 @@ use crate::gateway::GemGateway;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
-use crate::testkit::{EmptyPreferences, TestAlienProvider};
+use crate::testkit::{EmptyPreferences, TestAlienProvider, YieldOnce};
 
 #[derive(Default)]
 pub struct MemoryNodeStore {
     pub nodes: Mutex<Vec<Node>>,
+    pub yields_between_read_and_write: bool,
 }
 
 #[async_trait::async_trait]
 impl GemNodeStore for MemoryNodeStore {
     async fn get_nodes(&self, _chain: Chain) -> Result<Vec<Node>, GemServiceError> {
-        Ok(self.nodes.lock().unwrap().clone())
+        let nodes = self.nodes.lock().unwrap().clone();
+        if self.yields_between_read_and_write {
+            YieldOnce::default().await;
+        }
+        Ok(nodes)
     }
     async fn add_node(&self, _chain: Chain, node: Node) -> Result<(), GemServiceError> {
         self.nodes.lock().unwrap().push(node);
@@ -63,7 +68,7 @@ impl GemNodeSelection {
 impl GemNodeStatusState {
     pub fn mock_result(latest_block_number: u64) -> Self {
         Self::Result {
-            latest_block_number,
+            latest_block_number: Some(latest_block_number),
             latency: Latency::from_milliseconds(10),
         }
     }
@@ -74,7 +79,7 @@ impl GemNodeCheck {
         Self {
             url: "https://node".to_string(),
             chain_id: None,
-            latest_block_number: 1,
+            latest_block_number: Some(1),
             is_in_sync: true,
             latency: Latency::from_milliseconds(10),
         }

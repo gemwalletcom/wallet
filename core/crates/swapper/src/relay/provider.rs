@@ -218,9 +218,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use primitives::Chain;
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock, approval::DEFAULT_TRON_SWAP_ENERGY_LIMIT, relay::model::Step};
+    use primitives::Chain;
     use primitives::{
         asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, TRON_USDT_TOKEN_ID},
         swap::SwapQuoteDataType,
@@ -325,9 +325,9 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
-    use primitives::Chain;
     use super::*;
     use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
+    use primitives::Chain;
     use primitives::{
         AssetId,
         asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TRON_USDT_ASSET_ID},

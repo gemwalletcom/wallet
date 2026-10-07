@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use crate::services::collections::{missing, unique};
-
 use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, BalanceMetadata, Chain, TotalFiatValue};
 
 use super::model::{GemAssetBalance, GemAssetConfiguration, GemBalanceRecord, GemBalanceUpdate, GemBalanceUpdateType};
@@ -21,12 +19,12 @@ pub fn balance_amount(value: &BigUint, asset: &Asset) -> GemFormattedNumber {
 
 pub fn available_balance_text(asset: Asset, balance: GemAssetBalance) -> GemLocalizedText {
     GemLocalizedText::Balance {
-        amount: GemFormattedNumber::amount(BigNumberFormatter::f64_value(&balance.available, asset.decimals.unsigned_abs()), None, GemValueStyle::Auto),
+        amount: GemFormattedNumber::amount(BigNumberFormatter::f64_value(&balance.available, asset.decimals), None, GemValueStyle::Auto),
     }
 }
 
 pub fn balance_amount_styled(value: &BigUint, asset: &Asset, style: GemValueStyle) -> GemFormattedNumber {
-    let value = BigNumberFormatter::f64_value(value, asset.decimals.unsigned_abs());
+    let value = BigNumberFormatter::f64_value(value, asset.decimals);
     GemFormattedNumber::amount(value, Some(asset.symbol.clone()), style)
 }
 
@@ -169,7 +167,7 @@ pub fn changed_balances(stored: Vec<GemAssetBalance>, updates: Vec<GemBalanceUpd
 }
 
 pub fn balance_records(balances: Vec<GemAssetBalance>, assets: &[Asset]) -> Vec<GemBalanceRecord> {
-    let decimals: HashMap<AssetId, u32> = assets.iter().map(|asset| (asset.id.clone(), asset.decimals.max(0) as u32)).collect();
+    let decimals: HashMap<AssetId, u32> = assets.iter().map(|asset| (asset.id.clone(), asset.decimals)).collect();
     balances.into_iter().filter_map(|balance| Some(GemBalanceRecord::new(balance.clone(), *decimals.get(&balance.asset_id)?))).collect()
 }
 
@@ -182,14 +180,6 @@ pub fn enabled_configuration(enabled: bool) -> GemAssetConfiguration {
 
 pub fn pinned_configuration(pinned: bool) -> GemAssetConfiguration {
     GemAssetConfiguration { is_enabled: None, is_pinned: Some(pinned) }
-}
-
-pub fn missing_asset_ids(requested: &[AssetId], stored: &[AssetId]) -> Vec<AssetId> {
-    missing(requested.iter().cloned(), stored.iter().cloned())
-}
-
-pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
-    unique(asset_ids)
 }
 
 pub fn exclude_native_mirrors(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
@@ -388,15 +378,6 @@ mod tests {
         assert_eq!(records[0].available.value, BigUint::from(1_500_000_000_000_000_000u64));
         assert_eq!(records[0].available.amount, 1.5);
         assert_eq!(records[0].staked.amount, 0.0);
-    }
-
-    #[test]
-    fn test_enable_asset_rules() {
-        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
-        let ethereum = AssetId::from_chain(Chain::Ethereum);
-
-        assert_eq!(unique_asset_ids(vec![bitcoin.clone(), ethereum.clone(), bitcoin.clone()]), vec![bitcoin.clone(), ethereum.clone()]);
-        assert_eq!(missing_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
     }
 
     #[test]

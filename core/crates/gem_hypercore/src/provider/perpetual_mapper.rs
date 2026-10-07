@@ -1,13 +1,13 @@
 use crate::models::{
     balance::Balances,
     candlestick::Candlestick,
-    metadata::HypercoreMetadataResponse,
+    metadata::{HypercoreMetadataResponse, perpetual_asset_id},
     order::OpenOrder,
     portfolio::HypercorePortfolioResponse,
     position::{AssetPositions, LeverageType, Position},
 };
 use primitives::{
-    Asset, AssetId, AssetType, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
+    Asset, AssetType, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
     chart::{ChartCandleStick, ChartDateValue},
     known_assets::USDC_SYMBOL,
     perpetual::{PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
@@ -17,10 +17,6 @@ use std::collections::BTreeMap;
 
 const HIP3_PERP_ASSET_OFFSET: u32 = 100_000;
 const HIP3_PERP_ASSET_STRIDE: u32 = 10_000;
-
-pub fn create_perpetual_asset_id(coin: &str) -> AssetId {
-    crate::models::metadata::perpetual_asset_id(coin)
-}
 
 pub fn create_perpetual_id(coin: &str) -> PerpetualId {
     PerpetualId::new(PerpetualProvider::Hypercore, coin)
@@ -69,18 +65,9 @@ pub fn map_position(position: Position, address: String, orders: &[OpenOrder]) -
     let direction = if size >= 0.0 { PerpetualDirection::Long } else { PerpetualDirection::Short };
 
     let raw_funding = position.cum_funding.since_open.parse::<f32>().unwrap_or(0.0);
-    let funding_value = match direction {
-        PerpetualDirection::Long => Some(-raw_funding),
-        PerpetualDirection::Short => {
-            if raw_funding < 0.0 {
-                Some(-raw_funding)
-            } else {
-                Some(raw_funding)
-            }
-        }
-    };
+    let funding_value = Some(-raw_funding);
     let perpetual_id = create_perpetual_id(&position.coin);
-    let asset_id = create_perpetual_asset_id(&position.coin);
+    let asset_id = perpetual_asset_id(&position.coin);
 
     let (take_profit, stop_loss) = map_tp_sl_from_orders(orders, &position.coin);
 
@@ -151,7 +138,7 @@ pub fn map_perpetuals_data(metadata: HypercoreMetadataResponse, perp_dex_index: 
                 id: asset_id,
                 name: universe_asset.name.clone(),
                 symbol: universe_asset.name.clone(),
-                decimals: universe_asset.sz_decimals,
+                decimals: universe_asset.sz_decimals as u32,
                 asset_type: AssetType::PERPETUAL,
             };
 
@@ -607,9 +594,17 @@ mod tests {
                 since_open: "1.5".to_string(),
             },
         };
+        let received_long_position = Position {
+            cum_funding: CumulativeFunding {
+                all_time: "-1.5".to_string(),
+                since_open: "-1.5".to_string(),
+            },
+            ..position.clone()
+        };
 
         let perpetual_position = map_position(position, "user123".to_string(), &[]);
         assert_eq!(perpetual_position.funding, Some(-1.5));
+        assert_eq!(map_position(received_long_position, "user123".to_string(), &[]).funding, Some(1.5));
 
         let short_position = Position {
             coin: "ETH".to_string(),
@@ -631,9 +626,18 @@ mod tests {
             },
         };
 
+        let paid_short_position = Position {
+            cum_funding: CumulativeFunding {
+                all_time: "1.5".to_string(),
+                since_open: "1.5".to_string(),
+            },
+            ..short_position.clone()
+        };
+
         let short_perpetual = map_position(short_position, "user123".to_string(), &[]);
         assert_eq!(short_perpetual.size, 5.0);
         assert_eq!(short_perpetual.funding, Some(1.5));
+        assert_eq!(map_position(paid_short_position, "user123".to_string(), &[]).funding, Some(-1.5), "funding a short paid is a cost, the same as for a long");
     }
 
     #[test]

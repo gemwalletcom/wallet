@@ -67,26 +67,12 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
         await closeConnection()
         guard token == generation else { return }
-
-        let connection: GemPerpetualConnection?
-        do {
-            connection = try await perpetualService.connection(wallet: wallet.toGem())
-        } catch {
-            debugLog("HyperliquidObserver: connection failed: \(error)")
-            if token == generation {
-                pendingWalletId = nil
-            }
-            return
-        }
-        guard token == generation else { return }
         pendingWalletId = nil
-        guard let connection else { return }
-        let mode = connection.mode.toPrimitives()
 
         currentWallet = wallet
         observeTask = Task { [weak self] in
             guard let self else { return }
-            await observeConnection(walletId: wallet.id, address: connection.address, mode: mode)
+            await observeConnection(wallet: wallet)
         }
     }
 
@@ -101,15 +87,30 @@ public actor HyperliquidObserverService: PerpetualObservable {
         await webSocket.disconnect()
     }
 
-    private func observeConnection(walletId: WalletId, address: String, mode: PerpetualAccountMode) async {
-        for await event in await webSocket.connect() {
+    private func observeConnection(wallet: Wallet) async {
+        let events = await webSocket.connect()
+        let connection: GemPerpetualConnection?
+        do {
+            connection = try await perpetualService.connection(wallet: wallet.toGem())
+        } catch {
+            debugLog("HyperliquidObserver: connection failed: \(error)")
+            connection = nil
+        }
+        guard !Task.isCancelled else { return }
+        guard let connection else {
+            await closeConnection()
+            return
+        }
+        let mode = connection.mode.toPrimitives()
+
+        for await event in events {
             guard !Task.isCancelled else { break }
 
             switch event {
             case .connected:
-                await onConnected(address: address, mode: mode)
+                await onConnected(address: connection.address, mode: mode)
             case let .message(data):
-                await onMessage(data, walletId: walletId, mode: mode)
+                await onMessage(data, walletId: wallet.id, mode: mode)
             case .disconnected:
                 await streamService.disconnected()
             }

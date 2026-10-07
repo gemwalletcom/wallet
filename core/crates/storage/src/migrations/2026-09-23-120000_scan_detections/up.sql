@@ -4,7 +4,7 @@ CREATE TYPE scan_provider AS ENUM ('goplus', 'hashdit', 'tronscan');
 CREATE TABLE scan_detections (
     id SERIAL PRIMARY KEY,
     scan_type scan_type NOT NULL,
-    chain VARCHAR REFERENCES chains (id) ON DELETE CASCADE,
+    chain VARCHAR(32) REFERENCES chains (id) ON DELETE CASCADE,
     target VARCHAR(256) NOT NULL,
     provider scan_provider NOT NULL,
     reason VARCHAR,

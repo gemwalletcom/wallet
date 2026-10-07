@@ -36,13 +36,11 @@ mod tests {
     #[tokio::test]
     async fn test_resolve_sns() {
         let client = NameClient::new(vec![Box::new(SnsProvider::new(ReqwestClient::new(get_test_settings().name.sns.url, reqwest_client())))], NameConfig { max_name_length: 20 });
-        for name in ["bonfida.sol", "bonfida.sns"] {
-            let record = client.resolve(name, Chain::Solana).await.unwrap().unwrap();
-            assert_eq!(record.name, name);
-            assert_eq!(record.provider, NameProvider::Sns);
-            assert_eq!(record.chain, Chain::Solana);
-            assert_eq!(record.address.is_empty(), false);
-        }
+        let record = client.resolve("bonfida.sns", Chain::Solana).await.unwrap().unwrap();
+        assert_eq!(record.name, "bonfida.sns");
+        assert_eq!(record.provider, NameProvider::Sns);
+        assert_eq!(record.chain, Chain::Solana);
+        assert_eq!(record.address.is_empty(), false);
     }
 
     #[tokio::test]

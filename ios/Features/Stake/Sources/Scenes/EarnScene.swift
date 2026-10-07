@@ -29,9 +29,9 @@ public struct EarnScene: View {
                 }
             }
 
-            if earn.showsEmpty {
+            if case let .empty(state) = earn.positionsPhase {
                 Section {
-                    EmptyContentView(model: model.emptyContentModel)
+                    EmptyContentView(model: model.emptyContentModel(state))
                         .cleanListRow()
                 }
             }

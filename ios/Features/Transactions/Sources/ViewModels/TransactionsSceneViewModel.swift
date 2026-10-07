@@ -2,10 +2,12 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemEmptyState
+import enum Gemstone.GemListPhase
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemTransactionRow
 import protocol Gemstone.GemTransactionsServiceProtocol
-import func Gemstone.loadError
+import func Gemstone.listPhase
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -49,12 +51,12 @@ public final class TransactionsSceneViewModel {
         Localized.Activity.title
     }
 
-    public var loadError: Error? {
-        Gemstone.loadError(state: transactionsState, hasRows: !sections.isEmpty)
+    public var phase: GemListPhase {
+        listPhase(state: transactionsState, hasRows: sections.contains { !$0.values.isEmpty }, empty: filterModel.viewState.emptyState)
     }
 
-    public var emptyContentModel: EmptyStateViewModel {
-        EmptyStateViewModel(state: filterModel.viewState.emptyState) { [weak self] action in
+    public func emptyContentModel(_ state: GemEmptyState) -> EmptyStateViewModel {
+        EmptyStateViewModel(state: state) { [weak self] action in
             switch action {
             case .buy: self?.onSelectBuy()
             case .receive: self?.onSelectReceive()
@@ -73,7 +75,7 @@ public extension TransactionsSceneViewModel {
     }
 
     func load() async {
-        transactionsState = await service.refresh(assetId: nil, hasTransactions: sections.isNotEmpty)
+        transactionsState = await service.refresh(assetId: nil)
     }
 }
 

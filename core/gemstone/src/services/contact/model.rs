@@ -3,7 +3,9 @@ use primitives::{OptionStringExt, contact::ContactAddress};
 
 use super::rules;
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::models::state::GemListPhase;
 use crate::services::chain::{GemChainRow, chain_row};
+use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 
 #[derive(uniffi::Enum)]
 pub enum GemContactAvatar {
@@ -147,6 +149,9 @@ pub struct GemContactAddressSession {
 #[uniffi::export]
 impl GemContactAddressSession {
     pub fn on_chain_changed(&self, chain: Chain) -> Self {
+        if chain == self.chain {
+            return self.clone();
+        }
         Self {
             chain,
             memo: String::new(),
@@ -277,6 +282,7 @@ mod tests {
         assert_eq!(cosmos.fields, rules::contact_address_fields(Chain::Cosmos));
 
         let typed = cosmos.on_memo_changed("typed".into());
+        assert_eq!(typed.on_chain_changed(Chain::Cosmos).memo, "typed", "picking the network already selected keeps the memo");
         assert_eq!(typed.on_scanned(GemContactScannedAddress { address: "cosmos1".into(), memo: None }).memo, "typed", "a scan without a memo keeps the typed one");
         assert_eq!(
             typed
@@ -322,9 +328,18 @@ pub struct GemContactRow {
     pub avatar: GemContactAvatarImage,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemContactList {
+    pub rows: Vec<GemContactRow>,
+    pub phase: GemListPhase,
+}
+
 #[uniffi::export]
-pub fn contact_rows(contacts: Vec<Contact>) -> Vec<GemContactRow> {
-    contacts.into_iter().map(contact_row).collect()
+pub fn contact_list(contacts: Vec<Contact>) -> GemContactList {
+    GemContactList {
+        phase: GemListPhase::local(!contacts.is_empty(), empty_state(GemEmptyStateKind::Contacts)),
+        rows: contacts.into_iter().map(contact_row).collect(),
+    }
 }
 
 pub fn contact_row(contact: Contact) -> GemContactRow {
@@ -388,6 +403,18 @@ mod row_tests {
             None
         );
         assert_eq!(contact_row(Contact { name: "Ada".into(), ..Contact::mock() }).subtitle, None);
+    }
+
+    #[test]
+    fn test_a_contact_list_shows_its_rows_or_the_contacts_empty_state() {
+        let listed = contact_list(vec![Contact::mock()]);
+        assert_eq!((listed.rows.len(), listed.phase), (1, GemListPhase::Rows));
+        assert_eq!(
+            contact_list(vec![]).phase,
+            GemListPhase::Empty {
+                state: empty_state(GemEmptyStateKind::Contacts)
+            }
+        );
     }
 
     #[test]

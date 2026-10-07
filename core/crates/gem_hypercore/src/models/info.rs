@@ -3,6 +3,7 @@ use serde::Serialize;
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase", rename_all_fields = "camelCase")]
 pub enum InfoRequest {
+    AllMids,
     ValidatorSummaries,
     Delegations {
         user: String,
@@ -46,6 +47,9 @@ pub enum InfoRequest {
     MaxBuilderFee {
         user: String,
         builder: String,
+    },
+    UserRole {
+        user: String,
     },
     UserFees {
         user: String,

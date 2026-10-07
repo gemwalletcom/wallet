@@ -39,15 +39,4 @@ Subsystem references live in [docs/](../docs). Read the relevant one before chan
 
 ## Task Completion
 
-During active implementation, rebase conflict resolution, or compile-fix loops, prefer targeted build/test commands and defer broad clippy/format runs until the change is ready to commit. Do not skip the required clippy/format checks silently before final handoff; run them then, or report the exact reason they are still pending.
-
-Before finishing a task:
-1. **Run the two cleanup rounds** from `skills/task-workflow.md` — reduce duplication, extract helpers only when they earn their keep, consolidate modules, remove dead code, and match the crate's conventions; then re-read the final diff as a reviewer
-2. **Keep changes minimal** — code must be concise and focused; reviewers cannot realistically review thousands of lines per PR, so only include what is necessary for the task
-3. **Run tests**: `just test` or `just test <CRATE>`
-4. **Run clippy**: `cargo clippy -p <crate> --all-features -- -D warnings` (most crates gate modules behind features; without them clippy compiles nothing from those modules, see `skills/development-commands.md`)
-5. **Format**: `just format`
-
-Regenerate bindings and build iOS or Android only when the change affects UniFFI interfaces, generated models, platform build inputs, or app-side integration. Do not run mobile generation or builds for internal Core implementation changes that preserve those contracts.
-
-Test rules and testkit conventions live in [Tests](skills/tests.md); read it before writing or changing any test.
+Follow [Task Workflow](../skills/task-workflow.md#4-verify-the-actual-result) and the Core rows in [Quality Checks](../skills/quality-checks.md); Cargo feature and CI lint details live in [Development Commands](skills/development-commands.md#code-quality). Apply [Cross-Platform Awareness](../skills/cross-platform-awareness.md) for mobile integration changes. Read [Tests](skills/tests.md) before writing or changing any test.

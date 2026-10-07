@@ -476,6 +476,8 @@ fee_rates_normal = Biasa
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Kustom
+fee_rate_priority = Biaya Prioritas
+fee_rate_base = Biaya Dasar
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 jam
 lock_six_hours = 6 jam
 lock_require_authentication = Memerlukan otentikasi
 lock_unlock = Buka kunci
-lock_privacy_lock = Kunci Privasi
 lock_footer = Lindungi akses ke aplikasi ini di perangkat Anda
 lock_passcode = Kode Sandi
+lock_passcode_off_title = Kode sandi perangkat nonaktif
+lock_passcode_off_description = Gem dikunci dengan kode sandi perangkat Anda. Aktifkan kode sandi di pengaturan perangkat untuk membuka Gem. Dompet Anda aman.
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = Akun %@ ini dapat dikendalikan oleh ora
 sell_title = Jual %@
 
 # Info
+
+info_region_unavailable_description = Fitur ini tidak tersedia di wilayah Anda. Ketersediaan bergantung pada aturan setempat dan persyaratan penyedia.
 
 info_network_fee_title = Biaya Jaringan
 info_watch_wallet_title = Dompet Pantau
@@ -725,6 +730,8 @@ rewards_pending_description_ready = Bonus Anda sudah siap!
 rewards_nickname = Nama panggilan
 rewards_unverified_title = Hadiah belum aktif.
 rewards_unverified_description = Hadiah akan aktif secara otomatis seiring Anda semakin sering menggunakan aplikasi.
+rewards_state_empty_title = Hadiah memerlukan dompet Multi-Koin
+rewards_state_empty_description = Buat atau impor dompet Multi-Koin untuk mengundang teman dan mendapatkan poin.
 
 # Recent Activity
 

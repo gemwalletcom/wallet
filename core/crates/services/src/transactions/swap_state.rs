@@ -1,12 +1,15 @@
 use primitives::{Transaction, TransactionState, TransactionSwapMetadata, TransactionType, swap::SwapResult};
 use storage::TransactionUpdate;
 
-pub fn swap_result_metadata(transaction: &Transaction, metadata: Option<TransactionSwapMetadata>) -> Option<serde_json::Value> {
-    let referral_fee = transaction.swap_metadata().and_then(|metadata| metadata.referral_fee);
+pub fn swap_result_metadata(transaction: &Transaction, metadata: Option<TransactionSwapMetadata>, preserve_referral_fee: bool) -> Option<serde_json::Value> {
+    let existing_metadata = transaction.swap_metadata();
+    let referral_fee = preserve_referral_fee.then(|| existing_metadata.clone().and_then(|metadata| metadata.referral_fee)).flatten();
     metadata
-        .map(|metadata| match metadata.referral_fee {
-            Some(_) => metadata,
-            None => metadata.with_referral_fee(referral_fee),
+        .or(existing_metadata)
+        .map(|metadata| match (preserve_referral_fee, metadata.referral_fee.is_some()) {
+            (false, _) => metadata.with_referral_fee(None),
+            (true, true) => metadata,
+            (true, false) => metadata.with_referral_fee(referral_fee),
         })
         .and_then(|metadata| serde_json::to_value(metadata).ok())
 }
@@ -15,7 +18,7 @@ pub fn transaction_with_swap_result(transaction: Transaction, result: SwapResult
     let Some(state) = result.status.transaction_state() else {
         return transaction;
     };
-    let metadata = swap_result_metadata(&transaction, result.metadata).or(transaction.metadata.clone());
+    let metadata = swap_result_metadata(&transaction, result.metadata, result.status.charges_referral_fee()).or(transaction.metadata.clone());
     Transaction {
         transaction_type: TransactionType::Swap,
         state,
@@ -65,5 +68,16 @@ mod tests {
         assert_eq!(pending.transaction_type, TransactionType::Transfer);
         assert_eq!(pending.state, TransactionState::Confirmed);
         assert_eq!(pending.metadata, None);
+
+        let refunded = transaction_with_swap_result(
+            completed,
+            SwapResult {
+                status: SwapStatus::Refunded,
+                metadata: None,
+                eta_in_seconds: None,
+            },
+        );
+        assert_eq!(refunded.state, TransactionState::Refunded);
+        assert_eq!(refunded.swap_metadata().and_then(|metadata| metadata.referral_fee), None);
     }
 }

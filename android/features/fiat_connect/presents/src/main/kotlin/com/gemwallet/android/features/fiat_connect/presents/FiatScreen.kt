@@ -27,8 +27,10 @@ import com.gemwallet.android.features.fiat_connect.viewmodels.FiatViewModel
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.localization.text
@@ -45,6 +47,8 @@ import uniffi.gemstone.GemFiatSuggestedAmount
 
 @Composable
 fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewModel: FiatViewModel = hiltViewModel()) {
+    val infoSheet by viewModel.infoSheet.collectAsStateWithLifecycle()
+    InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val type by viewModel.type.collectAsStateWithLifecycle()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val asset by viewModel.assetInfoUIModel.collectAsStateWithLifecycle()
@@ -88,14 +92,12 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
         },
         onAmount = viewModel::updateAmount,
         onLotSelect = viewModel::selectAmount,
-        onRandomAmount = viewModel::selectRandomAmount,
         onProviderSelect = viewModel::setProvider,
         onRetry = viewModel::retry,
         onFiatTransactions = onFiatTransactions,
         onBuy = {
             scope.launch {
-                viewModel.quoteUrl()
-                    .onSuccess { uriHandler.open(context, it) }
+                viewModel.continueToProvider { uriHandler.open(context, it) }
                     .onFailure { snackbar.showSnackbar(it.errorText().text(context), R.drawable.ic_error) }
             }
         },

@@ -71,8 +71,8 @@ class BaseSelectAssetViewModelTest {
         accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"), mockAccount(chain = Chain.Bitcoin, address = "bc1q")),
     )
 
-    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18)
-    private val bitcoin = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8)
+    private val ethereum = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
+    private val bitcoin = mockAsset(name = "Bitcoin", symbol = "BTC", decimals = 8u)
 
     private fun sendFlow(): GemSelectAssetFlow = mockk(relaxed = true) {
         every { action } returns GemAssetAction.SEND
@@ -82,6 +82,7 @@ class BaseSelectAssetViewModelTest {
         every { recents } returns true
         every { networkSearch } returns false
         every { filterSession(any()) } answers { GemAssetsFilterSession(filters = emptyList(), balanceFilter = true, selectedChains = firstArg(), hasBalance = false) }
+        every { view(any(), any(), any()) } answers { GemSelectAssetType.Send.flow().view(firstArg(), secondArg(), thirdArg()) }
     }
 
     private fun viewModel(

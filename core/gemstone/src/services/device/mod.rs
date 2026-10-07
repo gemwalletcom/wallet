@@ -17,7 +17,6 @@ pub use signer::GemDeviceRequestSigner;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::preferences::GemPreferencesService;
 use crate::services::subscription::GemSubscriptionService;
-use crate::services::wallet_session::GemWalletSessionService;
 use futures::lock::Mutex;
 use gem_api::WalletRequestPreflight;
 use gem_client::ClientError;
@@ -27,7 +26,6 @@ use std::sync::Weak;
 pub struct GemDeviceService {
     api: Arc<GemDeviceApiClient>,
     subscriptions: Arc<GemSubscriptionService>,
-    session: Arc<GemWalletSessionService>,
     platform: Arc<dyn GemDevicePlatform>,
     preferences: Arc<GemPreferencesService>,
     sync_lock: Mutex<()>,
@@ -36,11 +34,10 @@ pub struct GemDeviceService {
 #[uniffi::export]
 impl GemDeviceService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, subscriptions: Arc<GemSubscriptionService>, session: Arc<GemWalletSessionService>, platform: Arc<dyn GemDevicePlatform>, preferences: Arc<GemPreferencesService>) -> Self {
+    pub fn new(api: Arc<GemDeviceApiClient>, subscriptions: Arc<GemSubscriptionService>, platform: Arc<dyn GemDevicePlatform>, preferences: Arc<GemPreferencesService>) -> Self {
         Self {
             api,
             subscriptions,
-            session,
             platform,
             preferences,
             sync_lock: Mutex::new(()),
@@ -49,11 +46,11 @@ impl GemDeviceService {
 
     pub async fn synchronize_if_needed(&self) -> Result<(), GemServiceError> {
         let device = self.current_device().await?;
-        if !self.needs_sync(device.clone()).await? {
+        if !self.needs_sync(device.clone()) {
             return Ok(());
         }
         let _guard = self.sync_lock.lock().await;
-        if self.needs_sync(device.clone()).await? {
+        if self.needs_sync(device.clone()) {
             self.sync(device).await?;
         }
         Ok(())
@@ -64,6 +61,14 @@ impl GemDeviceService {
     pub async fn set_push_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
         self.preferences.set_push_notifications_declined(!enabled)?;
         self.preferences.set_push_notifications_enabled(enabled)?;
+        self.synchronize_if_needed().await
+    }
+
+    pub async fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        if enabled {
+            self.preferences.set_push_notifications_enabled(true)?;
+        }
+        self.preferences.set_price_alerts_enabled(enabled)?;
         self.synchronize_if_needed().await
     }
 
@@ -97,36 +102,22 @@ impl GemDeviceService {
         })
     }
 
-    async fn needs_sync(&self, device: Device) -> Result<bool, GemServiceError> {
-        if !self.preferences.is_device_registered() {
-            return Ok(true);
-        }
-        let Some(pushed) = self.preferences.get_pushed_device() else {
-            return Ok(true);
-        };
+    fn needs_sync(&self, device: Device) -> bool {
         let local = Device {
             subscriptions_version: self.preferences.get_subscriptions_version(),
             ..device
         };
-        if rules::device_changed(&pushed, &local) {
-            return Ok(true);
+        match self.preferences.get_pushed_device() {
+            Some(pushed) if self.preferences.is_device_registered() => rules::device_changed(&pushed, &local),
+            _ => true,
         }
-        let signature = rules::subscriptions_signature(&self.session.get_wallets().await?);
-        Ok(self.preferences.get_pushed_subscriptions() != Some(signature))
     }
 
     async fn sync(&self, device: Device) -> Result<Device, GemServiceError> {
-        let signature = rules::subscriptions_signature(&self.session.get_wallets().await?);
-        let mut version = self.preferences.get_subscriptions_version();
+        let version = self.preferences.get_subscriptions_version();
         let remote = self.get_or_create(&device).await?;
-
-        let signature_changed = self.preferences.get_pushed_subscriptions() != Some(signature.clone());
-        if signature_changed || remote.subscriptions_version != version {
+        if remote.subscriptions_version != version {
             self.subscriptions.sync().await?;
-            if signature_changed {
-                version += 1;
-                self.preferences.set_subscriptions_version(version)?;
-            }
         }
 
         let local = Device { subscriptions_version: version, ..device };
@@ -136,7 +127,6 @@ impl GemDeviceService {
             remote
         };
         self.preferences.set_pushed_device(&local)?;
-        self.preferences.set_pushed_subscriptions(signature)?;
         Ok(synced)
     }
 }

@@ -476,6 +476,8 @@ fee_rates_normal = Нормальний
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Свій
+fee_rate_priority = Плата за пріоритет
+fee_rate_base = Базова плата
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 година
 lock_six_hours = 6 годин
 lock_require_authentication = Вимагається автентифікація
 lock_unlock = Розблокувати
-lock_privacy_lock = Блокування конфіденційності
 lock_footer = Захистіть доступ до цієї програми на своєму пристрої
 lock_passcode = Пароль
+lock_passcode_off_title = Пароль пристрою вимкнено
+lock_passcode_off_description = Gem захищено паролем пристрою. Увімкніть пароль у налаштуваннях пристрою, щоб відкрити Gem. Ваші гаманці в безпеці.
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = Цей обліковий запис %@
 sell_title = Продати %@
 
 # Info
+
+info_region_unavailable_description = Ця функція недоступна у вашому регіоні. Доступність залежить від місцевих правил і вимог провайдерів.
 
 info_network_fee_title = Мережева плата
 info_watch_wallet_title = Watch Wallet
@@ -725,6 +730,8 @@ rewards_pending_description_ready = Ваш бонус готовий!
 rewards_nickname = Прізвисько
 rewards_unverified_title = Нагороди ще не активні.
 rewards_unverified_description = Винагороди активуються автоматично, коли ви більше користуєтеся додатком.
+rewards_state_empty_title = Для нагород потрібен мультимонетний гаманець
+rewards_state_empty_description = Створіть або імпортуйте мультимонетний гаманець, щоб запрошувати друзів і отримувати бали.
 
 # Recent Activity
 

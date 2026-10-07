@@ -476,6 +476,8 @@ fee_rates_normal = Normales
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Personalizado
+fee_rate_priority = Tarifa de prioridad
+fee_rate_base = Tarifa base
 
 # Banner
 
@@ -532,9 +534,10 @@ lock_one_hour = 1 hora
 lock_six_hours = 6 horas
 lock_require_authentication = Requerir autenticación
 lock_unlock = Desbloquear
-lock_privacy_lock = Bloqueo de privacidad
 lock_footer = Proteger el acceso a esta aplicación en su dispositivo
 lock_passcode = Código de acceso
+lock_passcode_off_title = El código del dispositivo está desactivado
+lock_passcode_off_description = Gem está bloqueado con el código de su dispositivo. Active un código en los ajustes del dispositivo para abrir Gem. Sus billeteras están a salvo.
 
 # Verify
 
@@ -549,6 +552,8 @@ warnings_externally_controlled_account = Esta cuenta de %@ puede estar controlad
 sell_title = Vender %@
 
 # Info
+
+info_region_unavailable_description = Esta función no está disponible en tu región. La disponibilidad depende de las normas locales y de los requisitos de los proveedores.
 
 info_network_fee_title = Tarifa de red
 info_watch_wallet_title = Billetera de observación
@@ -725,6 +730,8 @@ rewards_pending_description_ready = ¡Tu bono está listo!
 rewards_nickname = Apodo
 rewards_unverified_title = Las recompensas aún no están activas.
 rewards_unverified_description = Las recompensas se activan automáticamente a medida que usas más la aplicación.
+rewards_state_empty_title = Las recompensas requieren una billetera multi-moneda
+rewards_state_empty_description = Crea o importa una billetera multi-moneda para invitar a amigos y ganar puntos.
 
 # Recent Activity
 

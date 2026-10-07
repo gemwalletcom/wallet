@@ -5,10 +5,10 @@ import BigInt
 import FiatConnectTestKit
 import Foundation
 import struct Gemstone.FiatQuote
-import func Gemstone.formattedAmount
 import func Gemstone.formattedCurrency
 import struct Gemstone.GemFiatQuoteRequest
 import struct Gemstone.GemProviderRow
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Localization
@@ -108,7 +108,7 @@ final class FiatSceneViewModelTests {
         #expect(model.amountError(model.viewState) == nil)
         #expect(model.viewState.buttonState.state == .normal)
 
-        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiat: nil, isSelected: false)])
+        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: .mock(unit: .symbol(symbol: "BTC")), fiat: nil, isSelected: false)])
 
         #expect(model.viewState.selectedQuoteRow?.quoteId == unaffordable.id)
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.insufficientBalance("**\(model.asset.name) (\(model.asset.symbol))**"))
@@ -137,7 +137,7 @@ final class FiatSceneViewModelTests {
         #expect(model.viewState.buttonState.state == .normal)
         #expect(model.viewState.buttonAction.title == Localized.Common.continue)
 
-        model.urlState = .loading
+        model.isUrlLoading = true
         #expect(model.viewState.buttonState.state == .loading(showProgress: true))
     }
 
@@ -187,17 +187,6 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func loadTriggerOnSelectRandomAmountIsImmediate() {
-        let model = FiatSceneViewModel.mock()
-        model.amount = "123"
-
-        model.onSelectRandomAmount()
-
-        #expect(model.loadTrigger?.request == GemFiatQuoteRequest(quoteType: .buy, amount: 50))
-        #expect(model.loadTrigger?.isImmediate == true)
-    }
-
-    @Test
     func presetSelectionDoesNotScheduleSecondDebouncedFetch() {
         let model = FiatSceneViewModel.mock()
         model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .buy, amount: 50), error: .Api(msg: "offline")))
@@ -225,7 +214,7 @@ final class FiatSceneViewModelTests {
         model.amount = "0"
         #expect(model.amountError(model.viewState) == nil)
 
-        model.amount = "."
+        model.amount = "12.5"
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Errors.invalidAmount)
 
         model.amount = "4"
@@ -286,7 +275,7 @@ final class FiatSceneViewModelTests {
         model.onAssetDataChange(.mock(metadata: .mock(isSellEnabled: true)), .mock(balance: .mock(available: BigInt(500_000_000)), metadata: .mock(isSellEnabled: true)))
         #expect(model.loadTrigger == trigger)
 
-        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: formattedAmount(value: 0, symbol: "BTC", style: .auto), fiat: nil, isSelected: false)])
+        model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: .mock(unit: .symbol(symbol: "BTC")), fiat: nil, isSelected: false)])
         #expect(model.loadTrigger == trigger)
     }
 
@@ -330,5 +319,38 @@ final class FiatSceneViewModelTests {
         let row = model.fiatProviderViewModel.state.value?.items.first
 
         #expect(row?.listItem.subtitleExtra == "$48.80")
+    }
+
+    @Test(arguments: [FiatQuoteType.buy, .sell])
+    func unavailableFiatKeepsTheQuoteAndStopsContinue(type: FiatQuoteType) async {
+        let service = GemFiatQuoteServiceMock()
+        service.isAvailableValue = false
+        let model = FiatSceneViewModel.mock(service: service, type: type, amount: 100)
+        model.session = model.session.onQuoteResults(results: .mock(
+            request: .mock(quoteType: type.toGem(), amount: 100),
+            quotes: [.mock(provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), quoteType: type.toGem(), fiatAmount: 100, fiatCurrency: "USD", cryptoAmount: 1)],
+        ))
+        #expect(model.isPresentingInfoSheet == nil)
+
+        await model.onSelectContinue()
+
+        #expect(model.isPresentingInfoSheet?.description == Localized.Info.regionUnavailableDescription)
+        #expect(model.viewState.selectedQuoteRow != nil)
+    }
+
+    @Test
+    func failedFiatCheckoutShowsErrorAndReleasesLoading() async {
+        let service = GemFiatQuoteServiceMock()
+        let model = FiatSceneViewModel.mock(service: service, amount: 100)
+        model.session = model.session.onQuoteResults(results: .mock(
+            request: .mock(quoteType: .buy, amount: 100),
+            quotes: [.mock(provider: .mock(id: .moonPay, enabled: true, buyEnabled: true, sellEnabled: true), fiatAmount: 100, fiatCurrency: "USD", cryptoAmount: 1)],
+        ))
+
+        await model.onSelectContinue()
+
+        #expect(service.quoteUrlRequests.count == 1)
+        #expect(model.isPresentingInfoSheet?.description == "not stubbed")
+        #expect(model.isUrlLoading == false)
     }
 }

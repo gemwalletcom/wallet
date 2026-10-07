@@ -54,7 +54,7 @@ impl Asset {
         Asset::from_chain(chain)
     }
 
-    pub fn mock_with_params(chain: Chain, token_id: Option<String>, name: String, symbol: String, decimals: i32, asset_type: AssetType) -> Self {
+    pub fn mock_with_params(chain: Chain, token_id: Option<String>, name: String, symbol: String, decimals: u32, asset_type: AssetType) -> Self {
         Asset::new(AssetId::from(chain, token_id), name, symbol, decimals, asset_type)
     }
 }

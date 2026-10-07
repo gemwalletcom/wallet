@@ -37,6 +37,7 @@ rewards_error_referral_referrer_limit_reached = لقد وصل رمز الإحا�
 errors_generic = حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى لاحقاً.
 fiat_error_limit_reached = طلبات عروض أسعار كثيرة جدًا. يرجى المحاولة مرة أخرى بعد بضع دقائق.
 fiat_error_quote_unavailable = عرض السعر هذا لم يعد متاحًا. يرجى المحاولة مرة أخرى.
+fiat_error_region_unavailable = غير متاح في منطقتك.
 rewards_error_referral_country_ineligible = خدمة الإحالات غير متاحة حاليًا لبلدك: {$value}.
 notification_rewards_disabled_title = تم تعطيل رمز الإحالة
 notification_rewards_disabled_description = تم تعطيل رمز الإحالة هذا بسبب الانتهاكات المتكررة لشروط برنامج الإحالة الخاص بنا.

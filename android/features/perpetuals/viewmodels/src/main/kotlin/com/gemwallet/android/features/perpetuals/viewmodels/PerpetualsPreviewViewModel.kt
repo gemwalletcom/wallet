@@ -22,9 +22,11 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.perpetualBalanceTotal
+import uniffi.gemstone.GemPerpetualPreview
 import uniffi.gemstone.perpetualPositionRows
+import uniffi.gemstone.perpetualPreview
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -48,9 +50,13 @@ class PerpetualsPreviewViewModel @Inject constructor(
         .filterNotNull()
         .flatMapLatest { perpetualPositionsQuery(it.wallet.id) }
         .flowOn(ioDispatcher)
+        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
-    val tradeRow = combine(balance, preferences.isHideBalances()) { balance, hideBalance ->
-        PerpetualTradeRowUIModel(perpetualBalanceTotal(balance?.toGem()), hideBalance)
+    val tradeRow = combine(positionData, balance, preferences.isHideBalances()) { positions, balance, hideBalance ->
+        when (val preview = perpetualPreview(positions.map { it.position.id }, balance?.toGem())) {
+            is GemPerpetualPreview.Trade -> PerpetualTradeRowUIModel(preview.balance, hideBalance)
+            GemPerpetualPreview.Positions -> null
+        }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

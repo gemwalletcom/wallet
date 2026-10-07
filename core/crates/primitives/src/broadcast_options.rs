@@ -5,9 +5,3 @@ use serde::{Deserialize, Serialize};
 pub struct BroadcastOptions {
     pub skip_preflight: bool,
 }
-
-impl BroadcastOptions {
-    pub fn new(skip_preflight: bool) -> Self {
-        Self { skip_preflight }
-    }
-}

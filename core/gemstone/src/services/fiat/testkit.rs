@@ -3,13 +3,15 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use primitives::{Asset, AssetBasic, AssetProperties, AssetScore, FiatQuote, FiatQuoteType, FiatTransactionData, Wallet, WalletId};
 
-use super::{GemFiatQuoteRequest, GemFiatQuoteService, GemFiatQuotesResult, GemFiatService, GemFiatStore};
+use super::{GemFiatQuoteRequest, GemFiatQuoteService, GemFiatQuotesResult, GemFiatService, GemFiatSession, GemFiatStore};
 use crate::api::{GemApiClient, GemDeviceApiClient};
 use crate::gateway::GemGateway;
+use crate::services::amount::model::GemNumberFormat;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
+use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::node::GemNodeService;
@@ -21,6 +23,12 @@ use crate::services::transfer::testkit::MemoryRecentActivityStore;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
+
+impl GemFiatSession {
+    pub fn mock(quote_type: FiatQuoteType, amount: Option<u32>) -> Self {
+        Self::new(quote_type, amount, GemNumberFormat { decimal_separator: ".".to_string() })
+    }
+}
 
 impl GemFiatQuotesResult {
     pub fn mock(quotes: Vec<FiatQuote>) -> Self {
@@ -81,12 +89,12 @@ impl FiatQuoteTestkit {
         let recents = Arc::new(MemoryRecentActivityStore::default());
         let balance = Arc::new(GemBalanceService::new(gateway, balances.clone(), assets.clone(), session.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
         let fiat = Arc::new(GemFiatService::new(
-            Arc::new(GemDeviceApiClient::new(provider, Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
+            Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
             assets,
             Arc::new(MemoryFiatStore::default()),
         ));
         Self {
-            service: GemFiatQuoteService::new(fiat, balance, session.clone(), Arc::new(GemRecentActivityService::new(recents.clone(), session))),
+            service: GemFiatQuoteService::new(fiat, balance, session.clone(), Arc::new(GemRecentActivityService::new(recents.clone(), session)), Arc::new(GemConfigService::mock(provider))),
             balances,
             recents,
         }

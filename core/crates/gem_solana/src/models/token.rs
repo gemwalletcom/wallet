@@ -84,7 +84,7 @@ impl Default for TokenAmount {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenInfo {
-    pub decimals: i32,
+    pub decimals: u32,
     pub supply: String,
     pub extensions: Option<Vec<Extension>>,
 }

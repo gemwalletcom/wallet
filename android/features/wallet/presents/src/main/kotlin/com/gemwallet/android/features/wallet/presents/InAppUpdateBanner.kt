@@ -1,8 +1,9 @@
 package com.gemwallet.android.features.wallet.presents
 
 import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -140,6 +141,7 @@ fun InAppUpdateBanner() {
     RequestInstallPermissions(
         isVisible = state == DownloadState.PermissionRequired,
         onDismiss = viewModel::dismissPermissionPrompt,
+        onResult = viewModel::onInstallPermissionResult,
     )
 }
 
@@ -220,7 +222,10 @@ private fun UpdateInfo(modifier: Modifier = Modifier, state: DownloadState, upda
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RequestInstallPermissions(isVisible: Boolean, onDismiss: () -> Unit) {
+private fun RequestInstallPermissions(isVisible: Boolean, onDismiss: () -> Unit, onResult: () -> Unit) {
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        onResult()
+    }
     if (!isVisible) {
         return
     }
@@ -231,12 +236,10 @@ private fun RequestInstallPermissions(isVisible: Boolean, onDismiss: () -> Unit)
         confirmButton = {
             Button(
                 onClick = {
-                    onDismiss()
                     val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
                         data = "package:${context.packageName}".toUri()
-                        addFlags(FLAG_ACTIVITY_NEW_TASK)
                     }
-                    context.startActivity(intent)
+                    launcher.launch(intent)
                 },
             ) {
                 Text(stringResource(R.string.update_app_permission_open_settings))

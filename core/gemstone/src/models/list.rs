@@ -66,7 +66,6 @@ pub enum GemListRowTitle {
     Developer,
     Authentication,
     LockPeriod,
-    PrivacyLock,
     HideBalance,
     Currency,
     Language,
@@ -87,6 +86,8 @@ pub enum GemListRowTitle {
     NormalFee,
     FastFee,
     CustomFee,
+    PriorityFee,
+    BaseFee,
     PayWith,
     Validator,
     Provider,
@@ -151,6 +152,11 @@ pub enum GemListRowTitle {
     Transfer,
     Swap,
     Contract,
+    Method,
+    Token,
+    Spender,
+    Value,
+    Expiration,
     TokenId,
     Collection,
 }
@@ -179,6 +185,7 @@ pub enum GemNoticeKind {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemInfoTopic {
+    RegionUnavailable,
     NetworkFee { asset: Asset },
     PriceImpact,
     Slippage,
@@ -266,7 +273,6 @@ pub enum GemRowAction {
     PushNotifications,
     Authentication,
     LockPeriod,
-    PrivacyLock,
     HideBalance,
     PriceAlerts,
     SetPriceAlert,
@@ -277,6 +283,22 @@ pub enum GemRowAction {
     Pin,
     AddToWallet,
     Explorer { url: String },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemListFieldValue {
+    Text {
+        text: String,
+    },
+    Date {
+        date: DateTime<Utc>,
+    },
+    Address {
+        display: String,
+        copy: GemCopy,
+        explorer: BlockExplorerLink,
+        menu: Vec<GemRowMenuItem>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -434,6 +456,10 @@ pub enum GemListRow {
         lines: Vec<GemLocalizedText>,
         info: Option<GemInfoTopic>,
     },
+    Field {
+        title: GemLocalizedText,
+        value: GemListFieldValue,
+    },
     Loading,
     Error {
         error: GemServiceError,
@@ -498,7 +524,7 @@ pub enum GemRowMenuItem {
 }
 
 impl GemRowMenuItem {
-    fn view_on(explorer: &BlockExplorerLink) -> Self {
+    pub(crate) fn view_on(explorer: &BlockExplorerLink) -> Self {
         Self::Open {
             title: GemLocalizedText::ViewOn { name: explorer.name.clone() },
             url: explorer.link.clone(),
