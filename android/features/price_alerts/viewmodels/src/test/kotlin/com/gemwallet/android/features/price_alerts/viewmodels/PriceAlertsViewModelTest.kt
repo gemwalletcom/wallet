@@ -17,6 +17,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -56,6 +57,27 @@ class PriceAlertsViewModelTest {
 
             coVerify(exactly = 1) { service.setEnabled(true) }
             assertEquals(true, viewModel.priceAlertEnabled.first { it == true })
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `the switch moves at once while Core tells the server`() = runTest {
+        val service = service(enabled = true)
+        val answered = CompletableDeferred<Unit>()
+        coEvery { service.setEnabled(false) } coAnswers {
+            answered.await()
+            every { service.isEnabled() } returns false
+        }
+        val viewModel = viewModel(service)
+        try {
+            val toggle = viewModel.togglePriceAlerts(false)
+
+            assertEquals(false, viewModel.priceAlertEnabled.value)
+            answered.complete(Unit)
+            toggle.join()
+            assertEquals(false, viewModel.priceAlertEnabled.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }

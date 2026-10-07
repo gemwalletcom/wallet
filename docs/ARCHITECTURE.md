@@ -185,7 +185,7 @@ A later step that needs an earlier result stays sequential. That ordering is the
 
 ### Service example: price alerts
 
-[`GemPriceAlertService`](../core/gemstone/src/services/price_alert/mod.rs) shows a service combining an API client, preferences, its own store and a platform permission port:
+[`GemPriceAlertService`](../core/gemstone/src/services/price_alert/mod.rs) shows a service combining an API client, preferences, its own store, the device service and a platform permission port:
 
 ```rust
 #[derive(uniffi::Object)]
@@ -193,6 +193,7 @@ pub struct GemPriceAlertService {
     api: Arc<GemDeviceApiClient>,
     preferences: Arc<GemPreferencesService>,
     store: Arc<dyn GemPriceAlertStore>,
+    device: Arc<GemDeviceService>,
     permissions: Arc<dyn GemNotificationPermissions>,
 }
 ```
@@ -1513,6 +1514,7 @@ let priceAlertService = Gemstone.GemPriceAlertService(
     api: deviceApiClient,
     preferences: preferencesService,
     store: gemstonePriceAlertStore,
+    device: deviceService,
     permissions: notificationPermissions,
 )
 ```
@@ -1532,11 +1534,13 @@ fun provideGemPriceAlertService(
     apiClient: GemDeviceApiClient,
     preferencesService: GemPreferencesService,
     store: GemPriceAlertStore,
+    deviceService: GemDeviceService,
     notificationPermissions: GemNotificationPermissions,
 ): GemPriceAlertService = GemPriceAlertService(
     api = apiClient,
     preferences = preferencesService,
     store = store,
+    device = deviceService,
     permissions = notificationPermissions,
 )
 
