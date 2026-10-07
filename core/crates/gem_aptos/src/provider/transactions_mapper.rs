@@ -1,5 +1,5 @@
 use crate::models::{DelegationPoolAddStakeData, DelegationPoolUnlockStakeData, Event, Transaction, TransactionResponse};
-use crate::{APTOS_NATIVE_COIN, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_UNLOCK_STAKE_EVENT, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, STAKE_DEPOSIT_EVENT};
+use crate::{APTOS_NATIVE_COIN, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_UNLOCK_STAKE_EVENT, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, FUNGIBLE_TRANSFER_FUNCTION, STAKE_DEPOSIT_EVENT};
 use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::DateTime;
 use num_bigint::{BigInt, BigUint};
@@ -203,15 +203,19 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
     if transaction.transaction_type.as_deref() == Some("user_transaction") && events.len() <= 4 {
         let deposit_event = events.iter().find(|x| x.event_type == STAKE_DEPOSIT_EVENT || x.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT)?;
 
-        let to = if deposit_event.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT {
-            transaction.payload.as_ref()?.arguments.first()?.as_str()?.to_string()
+        let (transfer_asset_id, to) = if deposit_event.event_type == FUNGIBLE_ASSET_DEPOSIT_EVENT {
+            let payload = transaction.payload.as_ref()?;
+            match payload.function.as_deref() {
+                Some(FUNGIBLE_TRANSFER_FUNCTION) => (map_token_address_to_asset_id(chain, payload.arguments.first()?.get("inner")?.as_str()?), payload.arguments.get(1)?.as_str()?),
+                _ => (asset_id.clone(), payload.arguments.first()?.as_str()?),
+            }
         } else {
-            deposit_event.guid.account_address.clone()
+            (asset_id.clone(), deposit_event.guid.account_address.as_str())
         };
 
         let value = deposit_event.get_amount()?;
 
-        return Some(build_transaction(meta, asset_id.clone(), asset_id, to, value, TransactionType::Transfer, None));
+        return Some(build_transaction(meta, transfer_asset_id, asset_id, to.to_string(), value, TransactionType::Transfer, None));
     }
     None
 }
@@ -274,6 +278,30 @@ mod tests {
         assert_eq!(mapped.value, BigUint::from(2431838058u64));
         assert_eq!(mapped.state, TransactionState::Confirmed);
         assert_eq!(mapped.transaction_type, TransactionType::Transfer);
+    }
+
+    #[test]
+    fn test_map_transaction_fungible_asset_transfer() {
+        let transaction: Transaction = serde_json::from_str(include_str!("../../testdata/transaction_fungible_asset_transfer.json")).unwrap();
+
+        assert_eq!(
+            map_transaction(transaction),
+            Some(PrimitivesTransaction::new(
+                "0x42fb1bd38596b4f14d103e591fd631987e73fa9666d5d6dd05bed111a2dba0c6".to_string(),
+                AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID),
+                "0xd35f048a5d1de4299c4aa43e79758f8bb6047b8c7030faf680af4530c40c4ea7".to_string(),
+                "0x51c6abe562e755582d268340b2cf0e2d8895a155dc9b7a7fb5465000d62d770b".to_string(),
+                None,
+                TransactionType::Transfer,
+                TransactionState::Confirmed,
+                BigUint::from(15_000u32),
+                Chain::Aptos.as_asset_id(),
+                BigUint::from(14_820_000u32),
+                None,
+                None,
+                DateTime::from_timestamp_micros(1_789_429_930_321_207).unwrap(),
+            ))
+        );
     }
 
     #[test]
