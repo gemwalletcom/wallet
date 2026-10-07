@@ -38,7 +38,6 @@ import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.color
-import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space2
@@ -62,10 +61,10 @@ import java.util.Locale
 import kotlin.math.min
 
 private object CandlestickMetrics {
-    val topPadding = paddingDefault
+    val topPadding = space4
     val bottomPadding = space24
-    val rightAxisWidth = 88.dp
     val leftPadding = space8
+    val rightPadding = space8
     val labelPadding = space4
     val volumeBandGap = space4
     val timeLabelGap = space4
@@ -148,7 +147,11 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
     val topPaddingPx = with(density) { CandlestickMetrics.topPadding.toPx() }
     val bottomPaddingPx = with(density) { CandlestickMetrics.bottomPadding.toPx() }
     val leftPaddingPx = with(density) { CandlestickMetrics.leftPadding.toPx() }
-    val rightAxisWidthPx = with(density) { CandlestickMetrics.rightAxisWidth.toPx() }
+    val priceTextWidthPx = remember(layout.levels, layout.currentPrice, axisLabelStyle, density) {
+        val levelWidths = layout.levels.map { textMeasurer.measure(it.text(), axisLabelStyle).size.width }
+        (levelWidths + textMeasurer.measure(layout.currentPrice.text(), whiteLabelStyle).size.width).max().toFloat()
+    }
+    val rightAxisWidthPx = labelPaddingPx + priceTextWidthPx + with(density) { CandlestickMetrics.rightPadding.toPx() }
     val volumeBandGapPx = with(density) { CandlestickMetrics.volumeBandGap.toPx() }
 
     var chartSize by remember { mutableStateOf(IntSize.Zero) }
@@ -385,7 +388,7 @@ private fun DrawScope.drawCurrentPriceBadge(
         text = priceLabel,
         textStyle = labelStyle,
         backgroundColor = candleColor(tone, upColor, downColor, flatColor),
-        anchorX = plot.frame.right + labelPaddingPx,
+        anchorX = plot.frame.right + labelPaddingPx - badgeHorizontalPaddingPx,
         anchorY = y,
         horizontalPaddingPx = badgeHorizontalPaddingPx,
         verticalPaddingPx = badgeVerticalPaddingPx,

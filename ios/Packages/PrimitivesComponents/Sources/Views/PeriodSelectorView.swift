@@ -32,6 +32,6 @@ public struct PeriodSelectorView: View {
                 .buttonStyle(.borderless)
             }
         }
-        .padding(.bottom, Spacing.medium)
+        .padding(.bottom, .space12)
     }
 }

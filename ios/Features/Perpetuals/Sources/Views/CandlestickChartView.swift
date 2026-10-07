@@ -14,7 +14,6 @@ struct CandlestickChartView: View {
     private let onZoom: @MainActor (Double, Double) -> Void
     private let onPan: @MainActor (Double) -> Void
 
-    @ScaledMetric(relativeTo: .caption2) private var priceColumnWidth: CGFloat = 72
     @ScaledMetric(relativeTo: .caption2) private var timeRowHeight: CGFloat = 20
 
     @Binding private var isPinching: Bool
@@ -32,7 +31,7 @@ struct CandlestickChartView: View {
     }
 
     var body: some View {
-        VStack {
+        VStack(spacing: .zero) {
             priceHeader
             chartView
                 .padding(.bottom, Spacing.small)
@@ -57,11 +56,11 @@ extension CandlestickChartView {
             }
         }
         .padding(.top, Spacing.small)
-        .padding(.bottom, Spacing.tiny)
     }
 
     private var chartView: some View {
         GeometryReader { geometry in
+            let priceColumnWidth = CandlestickCanvas.priceColumnWidth(for: chart.layout)
             let plot = CandlestickPlot(chart: chart, size: geometry.size, priceColumnWidth: priceColumnWidth, timeRowHeight: timeRowHeight, priceRange: priceRange, volumeRange: volumeRange)
             CandlestickCanvas(plot: plot, selectedCandle: selectedCandle)
                 .chartGestures(
@@ -75,7 +74,7 @@ extension CandlestickChartView {
                 )
                 .overlay {
                     if let selectedCandle, let tooltip = selectedIndex.flatMap({ chart.tooltip(index: UInt32($0)) }) {
-                        tooltipOverlay(tooltip, isRightHalf: plot.x(for: selectedCandle.date) > plot.frame.midX)
+                        tooltipOverlay(tooltip, isRightHalf: plot.x(for: selectedCandle.date) > plot.frame.midX, priceColumnWidth: priceColumnWidth)
                     }
                 }
         }
@@ -83,7 +82,7 @@ extension CandlestickChartView {
         .chartRange($volumeRange, fitting: 0 ... chart.layout.volumeHigh)
     }
 
-    private func tooltipOverlay(_ tooltip: GemCandleTooltip, isRightHalf: Bool) -> some View {
+    private func tooltipOverlay(_ tooltip: GemCandleTooltip, isRightHalf: Bool, priceColumnWidth: CGFloat) -> some View {
         CandleTooltipView(tooltip: tooltip)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: isRightHalf ? .topLeading : .topTrailing)
             .padding(.leading, Spacing.small)
