@@ -204,14 +204,6 @@ pub struct GemAutocloseSession {
     pub decimal_separator: String,
 }
 
-fn price_row(title: GemListRowTitle, price: f64) -> GemListRow {
-    GemListRow::Amount {
-        title,
-        amount: GemFormattedNumber::currency(price, Currency::USD, GemCurrencyStyle::Currency),
-        info: None,
-    }
-}
-
 #[uniffi::export]
 impl GemAutocloseSession {
     pub fn on_submit_attempt(&self) -> Self {
@@ -240,10 +232,13 @@ impl GemAutocloseSession {
                 (GemAutocloseConfirmPolicy::UntilSubmitted, true) => self.modify.is_complete(),
                 (GemAutocloseConfirmPolicy::UntilSubmitted, false) => self.modify.take_profit.has_pending_change() || self.modify.stop_loss.has_pending_change(),
             },
-            price_rows: [self.prices.entry.map(|price| price_row(GemListRowTitle::EntryPrice, price)), Some(price_row(GemListRowTitle::MarketPrice, self.prices.market))]
-                .into_iter()
-                .flatten()
-                .collect(),
+            price_rows: [
+                self.prices.entry.map(|price| self.price_row(GemListRowTitle::EntryPrice, price)),
+                Some(self.price_row(GemListRowTitle::MarketPrice, self.prices.market)),
+            ]
+            .into_iter()
+            .flatten()
+            .collect(),
             position_row: self.position_row.clone(),
         }
     }
@@ -276,6 +271,14 @@ impl GemAutocloseSession {
             modify,
             submit_attempted: false,
             ..self.clone()
+        }
+    }
+
+    fn price_row(&self, title: GemListRowTitle, price: f64) -> GemListRow {
+        GemListRow::Amount {
+            title,
+            amount: GemPerpetual::new(self.provider.clone()).display_price(price, self.decimals),
+            info: None,
         }
     }
 
@@ -474,7 +477,15 @@ mod tests {
         let state = session.view_state();
 
         assert!(!state.confirm_enabled, "nothing has been entered yet");
-        assert_eq!(state.price_rows, vec![price_row(GemListRowTitle::MarketPrice, 100.0)], "an unopened position has no entry price");
+        assert_eq!(
+            state.price_rows,
+            vec![GemListRow::Amount {
+                title: GemListRowTitle::MarketPrice,
+                amount: GemFormattedNumber::usd(100.0).with_places(2),
+                info: None,
+            }],
+            "an unopened position has no entry price, and the market price reads in Hyperliquid's places"
+        );
         assert_eq!(session.view_state().take_profit.text, "");
 
         let above = session.on_price(TpslType::TakeProfit, Some(120.0));
@@ -499,12 +510,12 @@ mod tests {
             vec![
                 GemListRow::Amount {
                     title: GemListRowTitle::EntryPrice,
-                    amount: GemFormattedNumber::currency(100.0, Currency::USD, GemCurrencyStyle::Currency),
+                    amount: GemFormattedNumber::usd(100.0).with_places(2),
                     info: None,
                 },
                 GemListRow::Amount {
                     title: GemListRowTitle::MarketPrice,
-                    amount: GemFormattedNumber::currency(110.0, Currency::USD, GemCurrencyStyle::Currency),
+                    amount: GemFormattedNumber::usd(110.0).with_places(2),
                     info: None,
                 },
             ]

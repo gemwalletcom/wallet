@@ -509,8 +509,8 @@ mod tests {
 
     #[test]
     fn test_header_hides_the_percentage_of_a_zero_value() {
-        assert_eq!(super::super::candlestick_header(100.0, 0.0).change, None);
-        assert_eq!(super::super::candlestick_header(100.0, 150.0).change, Some(GemFormattedNumber::percentage(50.0, GemPercentageStyle::Signed)));
+        assert_eq!(super::super::candlestick_header(100.0, 0.0, 2).change, None);
+        assert_eq!(super::super::candlestick_header(100.0, 150.0, 2).change, Some(GemFormattedNumber::percentage(50.0, GemPercentageStyle::Signed)));
     }
 
     #[test]

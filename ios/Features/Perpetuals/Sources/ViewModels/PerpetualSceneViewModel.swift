@@ -62,7 +62,7 @@ public final class PerpetualSceneViewModel {
         self.asset = asset
         self.service = service
         self.observerService = observerService
-        chart = PerpetualChartViewModel(service: service, observerService: observerService)
+        chart = PerpetualChartViewModel(service: service, observerService: observerService, asset: asset)
         self.onTransferData = onTransferData
         self.onPerpetualPosition = onPerpetualPosition
 

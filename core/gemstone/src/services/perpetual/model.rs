@@ -84,8 +84,8 @@ pub struct GemPerpetualConfirmDetails {
 }
 
 #[uniffi::export]
-pub fn perpetual_confirm_details(perpetual_type: PerpetualType) -> Option<GemPerpetualConfirmDetails> {
-    rules::confirm_details(&perpetual_type)
+pub fn perpetual_confirm_details(asset: Asset, perpetual_type: PerpetualType) -> Option<GemPerpetualConfirmDetails> {
+    rules::confirm_details(&asset, &perpetual_type)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -269,6 +269,7 @@ pub struct GemCandleChart {
     pub header: GemChartHeader,
     pub date_style: GemChartDateStyle,
     pub base: f64,
+    pub price_decimals: u32,
     pub start: DateTime<Utc>,
     pub end: DateTime<Utc>,
     pub body_width: f64,
@@ -281,13 +282,13 @@ impl GemCandleChart {
     pub fn selection(&self, index: u32) -> Option<GemChartSelection> {
         let candle = self.candles.get(index as usize)?;
         Some(GemChartSelection {
-            header: candlestick_header(self.base, candle.close),
+            header: candlestick_header(self.base, candle.close, self.price_decimals),
             date: candle.date,
         })
     }
 
     pub fn tooltip(&self, index: u32) -> Option<GemCandleTooltip> {
-        self.candles.get(index as usize).map(rules::candle_tooltip)
+        self.candles.get(index as usize).map(|candle| rules::candle_tooltip(candle, self.price_decimals))
     }
 
     pub fn index_at(&self, fraction: f64) -> Option<u32> {

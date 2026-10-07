@@ -33,6 +33,7 @@ flowchart LR
 | The app launches, returns to the foreground or switches wallet | cached positions show immediately, then the Hyperliquid socket replaces them with its current account snapshot; neither the REST position refresh, the account mode lookup, a markets refresh nor the wallet's balance setup delays opening the socket | only the account subscriptions need the mode, so the lookup runs during the socket handshake; stored markets refresh when Perpetuals opens |
 | A position's market is not stored yet | the balance still updates; the position appears once the markets refresh | a balance never waits on a position |
 | A market's price moves while the list is open | its 24h change moves with it | the change next to the price must agree with it and with Hyperliquid |
+| A perpetual price shows (the chart, a market row, a position's Entry, Liquidation and Auto Close prices, Auto Close, confirmation, activity) | in Hyperliquid's places for that market: five significant figures and at most six minus the market's size decimals, so XRP reads `$1.4251` and BTC `$123,456`; the chart's axis and tooltip keep the places of the latest close | a market near a dollar moves in the fourth place, which two places hid; the price must read the same as on Hyperliquid |
 | The user long-presses a market | it is pinned | |
 | The user searches | positions and markets are filtered | |
 | The market has fewer than 14 candles | the chart draws them at the width of 14, newest on the right | wider bodies stop reading as a trend |

@@ -23,17 +23,19 @@ impl PerpetualFormatter {
         (min_usd * USDC_DECIMALS_MULTIPLIER) as u64
     }
 
+    pub fn price_decimals(price: f64, sz_decimals: u32) -> u32 {
+        let max_decimals = 6u32.saturating_sub(sz_decimals);
+        let magnitude = price.abs().log10().floor();
+        let sig_fig_decimals = (4.0 - magnitude).max(0.0);
+        sig_fig_decimals.min(f64::from(max_decimals)) as u32
+    }
+
     pub fn format_price(price: f64, sz_decimals: u32) -> String {
         if price == 0.0 {
             return "0".to_string();
         }
 
-        let max_decimals = 6u32.saturating_sub(sz_decimals);
-        let magnitude = price.abs().log10().floor();
-        let sig_fig_decimals = (4.0 - magnitude).max(0.0);
-        let decimals = sig_fig_decimals.min(f64::from(max_decimals)) as usize;
-
-        format_and_trim(price, decimals)
+        format_and_trim(price, Self::price_decimals(price, sz_decimals) as usize)
     }
 
     pub fn format_input_price(price: f64, sz_decimals: u32, decimal_separator: char) -> String {
@@ -78,6 +80,15 @@ mod tests {
         assert_eq!(usdc_value(31_379.535_17), BigUint::from(31_379_535_170u64));
         assert_eq!(usdc_value(-1.0), BigUint::ZERO);
         assert_eq!(usdc_value(f64::NAN), BigUint::ZERO);
+    }
+
+    #[test]
+    fn test_price_decimals() {
+        assert_eq!(PerpetualFormatter::price_decimals(1.4251, 0), 4);
+        assert_eq!(PerpetualFormatter::price_decimals(0.002877, 0), 6);
+        assert_eq!(PerpetualFormatter::price_decimals(4512.3, 4), 1);
+        assert_eq!(PerpetualFormatter::price_decimals(0.5, 4), 2);
+        assert_eq!(PerpetualFormatter::price_decimals(123456.0, 5), 0);
     }
 
     #[test]

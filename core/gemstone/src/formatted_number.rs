@@ -112,6 +112,15 @@ impl GemFormattedNumber {
         Self { tone: GemValueTone::of(self.value), ..self }
     }
 
+    pub fn with_places(self, places: u32) -> Self {
+        Self {
+            display: GemNumberDisplay::Number {
+                precision: GemPrecision::Fraction { min: places, max: places },
+            },
+            ..self
+        }
+    }
+
     pub fn signed_currency(value: f64, currency: Currency, style: GemCurrencyStyle) -> Self {
         Self::currency(value, currency, style).signed()
     }
@@ -181,26 +190,25 @@ impl GemFormattedNumber {
     }
 
     pub fn whole_currency(value: f64, currency: Currency) -> Self {
-        Self {
-            display: GemNumberDisplay::Number {
-                precision: GemPrecision::Fraction { min: 0, max: 0 },
-            },
-            ..Self::currency(value, currency, GemCurrencyStyle::Currency)
-        }
+        Self::currency(value, currency, GemCurrencyStyle::Currency).with_places(0)
     }
 
-    pub fn count(value: u64) -> Self {
+    pub fn plain(value: f64, places: u32) -> Self {
         Self {
-            value: value as f64,
+            value,
             notation: GemNumberNotation::Plain,
             tone: GemValueTone::Plain,
             rounding: GemNumberRounding::ToNearest,
             exact: None,
             unit: GemNumberUnit::Plain,
             display: GemNumberDisplay::Number {
-                precision: GemPrecision::Fraction { min: 0, max: 0 },
+                precision: GemPrecision::Fraction { min: places, max: places },
             },
         }
+    }
+
+    pub fn count(value: u64) -> Self {
+        Self::plain(value as f64, 0)
     }
 }
 
