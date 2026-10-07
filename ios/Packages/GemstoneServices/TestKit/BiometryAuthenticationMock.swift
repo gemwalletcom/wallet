@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemKeystoreAuthentication
 import enum Gemstone.GemLockPeriod
 import class Gemstone.GemSecurityService
 import GemstoneServices
@@ -9,7 +10,7 @@ import Primitives
 
 public final class BiometryAuthenticationMock: BiometryAuthenticatable, @unchecked Sendable {
     public var requiresAuthentication: Bool
-    public var availableAuthentication: KeystoreAuthentication
+    public var availableAuthentication: GemKeystoreAuthentication
     public var isPasscodeSet: Bool
     public var lockPeriod: GemLockPeriod
 
@@ -26,7 +27,7 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
 
     public init(
         requiresAuthentication: Bool = true,
-        availableAuthentication: KeystoreAuthentication = .biometrics,
+        availableAuthentication: GemKeystoreAuthentication = .biometrics,
         isPasscodeSet: Bool = true,
         lockPeriod: GemLockPeriod = .default,
     ) {

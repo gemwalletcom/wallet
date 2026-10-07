@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.GemKeystoreAuthentication
 public import enum Gemstone.GemLockPeriod
 import protocol Gemstone.GemSecurityServiceProtocol
 import LocalAuthentication
@@ -45,8 +46,8 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         try keystorePassword.setAuthenticationLockPeriod(period: period)
     }
 
-    public var availableAuthentication: KeystoreAuthentication {
-        keystorePassword.getAvailableAuthentication()
+    public var availableAuthentication: GemKeystoreAuthentication {
+        keystorePassword.getAvailableAuthentication().toGem()
     }
 
     public var isPasscodeSet: Bool {

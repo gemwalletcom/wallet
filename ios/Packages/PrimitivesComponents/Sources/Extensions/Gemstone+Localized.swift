@@ -50,6 +50,7 @@ import enum Gemstone.GemInfoAction
 import struct Gemstone.GemInfoAmount
 import enum Gemstone.GemInfoDescription
 import enum Gemstone.GemInfoTitle
+import enum Gemstone.GemKeystoreAuthentication
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemListSectionFooter
 import enum Gemstone.GemListSectionTitle
@@ -97,6 +98,7 @@ import enum Gemstone.PaymentStatus
 import enum Gemstone.PerpetualDirection
 import class Gemstone.PriceChangeCalculator
 import GemstonePrimitives
+import LocalAuthentication
 import Localization
 import Primitives
 import Style
@@ -464,6 +466,15 @@ public extension Primitives.PerpetualDirection {
 
     var reduceTitle: String {
         Localized.Perpetual.reduceDirection(title)
+    }
+}
+
+public extension GemKeystoreAuthentication {
+    var biometryName: String? {
+        switch self {
+        case .biometrics: LABiometryType.available.name
+        case .passcode, .none: nil
+        }
     }
 }
 

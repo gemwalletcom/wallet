@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.GemKeystoreAuthentication
 public import enum Gemstone.GemLockPeriod
 import Foundation
 import LocalAuthentication
@@ -7,7 +8,7 @@ import Primitives
 
 public protocol BiometryAuthenticatable: Sendable {
     var requiresAuthentication: Bool { get }
-    var availableAuthentication: KeystoreAuthentication { get }
+    var availableAuthentication: GemKeystoreAuthentication { get }
     var isPasscodeSet: Bool { get }
     var lockPeriod: GemLockPeriod { get }
 

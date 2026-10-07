@@ -53,10 +53,7 @@ public final class SecuritySceneViewModel {
     }
 
     private var authenticationName: String? {
-        switch service.availableAuthentication {
-        case .biometrics: KeystoreAuthentication.availableBiometryName
-        case .passcode, .none: .none
-        }
+        service.availableAuthentication.biometryName
     }
 }
 

@@ -4,7 +4,6 @@ import Components
 import Foundation
 import func Gemstone.enableAuthenticationLabel
 import GemstoneServices
-import LocalAuthentication
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -38,17 +37,7 @@ final class EnableAuthenticationSceneViewModel {
     }
 
     var image: String {
-        switch service.availableAuthentication {
-        case .biometrics:
-            switch KeystoreAuthentication.availableBiometryType {
-            case .faceID: SystemImage.faceid
-            case .touchID: SystemImage.touchid
-            case .opticID: SystemImage.opticid
-            case .none: SystemImage.lockFill
-            @unknown default: SystemImage.lockFill
-            }
-        case .passcode, .none: SystemImage.lockFill
-        }
+        service.availableAuthentication.biometrySystemImage ?? SystemImage.lockFill
     }
 
     var enableTitle: String {
@@ -60,10 +49,7 @@ final class EnableAuthenticationSceneViewModel {
     }
 
     private var authenticationName: String? {
-        switch service.availableAuthentication {
-        case .biometrics: KeystoreAuthentication.availableBiometryName
-        case .passcode, .none: .none
-        }
+        service.availableAuthentication.biometryName
     }
 }
 
