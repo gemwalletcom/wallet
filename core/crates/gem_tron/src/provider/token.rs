@@ -30,6 +30,14 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    async fn test_get_token_data_reverted_contract() {
+        let client = MockClient::new().with_post(|_, _| Ok(include_bytes!("../../testdata/trigger_constant_contract_reverted.json").to_vec()));
+        let provider = TronProvider::new_rpc_only(TronClient::new(client));
+
+        assert!(ChainToken::get_token_data(&provider, "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax".to_string()).await.is_err());
+    }
+
+    #[tokio::test]
     async fn test_get_token_data_forwards_to_client() {
         let called = Arc::new(AtomicBool::new(false));
         let handler_called = called.clone();
