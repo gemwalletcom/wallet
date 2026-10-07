@@ -129,36 +129,19 @@ Empty v4 passwords are rejected. v3 empty passwords are accepted only for legacy
 
 ### Android Password Keysets
 
-Android keeps three Tink stores. Each is one AndroidKeyStore key that wraps a Tink AES-GCM keyset in a preferences file, which in turn encrypts the values in a second preferences file. Only the wallet password store can be wrapped by the authentication-bound key; the other two never are.
+The wallet password store is one AndroidKeyStore key that wraps a Tink AES-GCM keyset in a preferences file, which in turn encrypts the passwords in a second preferences file. The secure preferences store, which holds the passcode flag and the lock interval, and the device key store use the same chain with their own master keys and are never wrapped by the authentication-bound key.
 
 ```mermaid
 flowchart TD
-    subgraph Passwords["Wallet passwords"]
-        PM["AndroidKeyStore master key<br/>gem_wallet_password_master_key"]
-        PA["AndroidKeyStore auth-bound key<br/>gem_wallet_password_master_key_authenticated<br/>usable within 10 s of a credential or strong biometric"]
-        PK["gem_wallet_password_keyset_prefs.xml<br/>gem_wallet_password_keyset or gem_wallet_password_keyset_authenticated, never both"]
-        PV["gem_wallet_passwords.xml<br/>shared password and legacy per-wallet passwords"]
-        PM -- "wraps, passcode off" --> PK
-        PA -- "wraps, passcode on" --> PK
-        PK -- "AES-GCM, AAD wallet_password:key" --> PV
-    end
-    subgraph Prefs["Secure preferences"]
-        SM["AndroidKeyStore master key<br/>gem_secure_preferences_master_key"]
-        SK["gem_secure_preferences_keyset_prefs.xml<br/>gem_secure_preferences_keyset"]
-        SV["gem_secure_preferences.xml<br/>passcode flag, lock interval, device key copy, Gemstone values"]
-        SM -- "wraps" --> SK
-        SK -- "AES-GCM" --> SV
-    end
-    subgraph Device["Device keys"]
-        DM["AndroidKeyStore master key<br/>gem_device_master_key"]
-        DK["gem_device_master_key.xml<br/>ngen_gem_keyset"]
-        DV["gem_device_keys.xml<br/>device signing key pair"]
-        DM -- "wraps" --> DK
-        DK -- "AES-GCM" --> DV
-    end
-    Legacy["pwd.xml, androidx EncryptedSharedPreferences"] -. "migrated on first read" .-> PV
-    Legacy -. "migrated on first read" .-> SV
-    DataStore["device_keys DataStore"] -. "migrated on first read" .-> DV
+    PM["AndroidKeyStore master key<br/>gem_wallet_password_master_key"]
+    PA["AndroidKeyStore auth-bound key<br/>gem_wallet_password_master_key_authenticated<br/>usable within 10 s of a credential or strong biometric"]
+    PK["gem_wallet_password_keyset_prefs.xml<br/>gem_wallet_password_keyset or gem_wallet_password_keyset_authenticated, never both"]
+    PV["gem_wallet_passwords.xml<br/>shared password and legacy per-wallet passwords"]
+    Legacy["pwd.xml, androidx EncryptedSharedPreferences"]
+    PM -- "wraps, passcode off" --> PK
+    PA -- "wraps, passcode on" --> PK
+    PK -- "AES-GCM, AAD wallet_password:key" --> PV
+    Legacy -. "migrated on first read" .-> PV
 ```
 
 With the passcode on, every password read goes through the hardware's own authentication window. The app still shows the system prompt before each sensitive operation, but the prompt is the UX; the Keystore check is the enforcement, so a hooked `authRequired()` or a tampered preference gets an error, not a password.
