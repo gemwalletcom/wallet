@@ -1,19 +1,9 @@
-use crate::{
-    contracts::erc20::{decode_abi_string, decode_abi_uint8},
-    ethereum_address_checksum,
-};
+use crate::{contracts::erc20::decode_token_metadata, ethereum_address_checksum};
 use primitives::{Asset, AssetId, Chain};
 
 pub fn map_token_data(chain: Chain, token_id: String, name_hex: String, symbol_hex: String, decimals_hex: String) -> Result<Asset, Box<dyn std::error::Error + Send + Sync>> {
-    let name = decode_abi_string(name_hex.trim_start_matches("0x"))?;
-    let symbol = decode_abi_string(symbol_hex.trim_start_matches("0x"))?;
-    let decimals = decode_abi_uint8(decimals_hex.trim_start_matches("0x"))?;
+    let (name, symbol, decimals) = decode_token_metadata(name_hex.trim_start_matches("0x"), symbol_hex.trim_start_matches("0x"), decimals_hex.trim_start_matches("0x"))?;
     let token_id = ethereum_address_checksum(&token_id)?;
-
-    if symbol.is_empty() {
-        return Err("Invalid token metadata: symbol is empty".into());
-    }
-    let name = if name.is_empty() { symbol.clone() } else { name };
 
     let asset_id = AssetId { chain, token_id: Some(token_id) };
 
