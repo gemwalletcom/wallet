@@ -4,9 +4,7 @@ use primitives::Wallet;
 
 use super::GemNotificationsService;
 use crate::api::GemDeviceApiClient;
-use crate::services::GemSubscriptionService;
 use crate::services::banner::GemNotificationPermissions;
-use crate::services::device::testkit::MemoryDevicePlatform;
 use crate::services::device::{GemDeviceKeyService, GemDeviceService};
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
@@ -24,12 +22,7 @@ impl GemNotificationsService {
             ..Default::default()
         });
         let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
-        let device = Arc::new(GemDeviceService::new(
-            device_api.clone(),
-            Arc::new(GemSubscriptionService::new(device_api, session)),
-            Arc::new(MemoryDevicePlatform),
-            preferences.clone(),
-        ));
+        let device = GemDeviceService::mock(device_api, session, preferences.clone());
         Self::new(device, preferences, permissions)
     }
 }

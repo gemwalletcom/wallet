@@ -111,6 +111,7 @@ struct ServicesFactory {
             api: deviceApiClient,
             preferences: preferencesService,
             store: GemstonePriceAlertStore(store: stores.priceAlertStore),
+            device: deviceService,
             permissions: notificationPermissions,
         )
         let gemstoneBalanceStore = GemstoneBalanceStore(store: stores.balanceStore)

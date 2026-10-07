@@ -9,12 +9,10 @@ use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::banner::GemBannerService;
 use crate::services::banner::testkit::MemoryBannerStore;
 use crate::services::config::GemConfigService;
-use crate::services::device::testkit::MemoryDevicePlatform;
 use crate::services::device::{GemDeviceKeyService, GemDeviceService};
 use crate::services::file::testkit::NoopFileStore;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
-use crate::services::subscription::GemSubscriptionService;
 use crate::services::support::GemSupportService;
 use crate::services::support::testkit::MemorySupportStore;
 use crate::services::wallet::testkit::{OTHER_PHRASE, PHRASE, WalletTestkit};
@@ -52,12 +50,7 @@ impl AppStartTestkit {
             discovery.balance.clone(),
             Arc::new(GemWalletConfigurationService::new(device_api.clone(), banners, discovery.wallet_preferences.clone())),
             wallets.service.clone(),
-            Arc::new(GemDeviceService::new(
-                device_api.clone(),
-                Arc::new(GemSubscriptionService::new(device_api.clone(), discovery.session.clone())),
-                Arc::new(MemoryDevicePlatform),
-                preferences,
-            )),
+            GemDeviceService::mock(device_api.clone(), discovery.session.clone(), preferences),
             Arc::new(GemSupportService::new(
                 device_api,
                 support_store.clone(),

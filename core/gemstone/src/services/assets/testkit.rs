@@ -14,7 +14,7 @@ use crate::gateway::GemGateway;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::banner::GemBannerService;
 use crate::services::banner::testkit::{DeniedNotificationPermissions, MemoryBannerStore};
-use crate::services::device::GemDeviceKeyService;
+use crate::services::device::{GemDeviceKeyService, GemDeviceService};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::node::GemNodeService;
@@ -160,7 +160,13 @@ impl AssetDetailsTestkit {
             Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), primitives::Platform::IOS)),
             swap,
             Arc::new(GemExplorerService::new(preferences.clone())),
-            Arc::new(GemPriceAlertService::new(device_api, preferences, Arc::new(MemoryPriceAlertStore::default()), Arc::new(DeniedNotificationPermissions))),
+            Arc::new(GemPriceAlertService::new(
+                device_api.clone(),
+                preferences.clone(),
+                Arc::new(MemoryPriceAlertStore::default()),
+                GemDeviceService::mock(device_api, discovery.session.clone(), preferences),
+                Arc::new(DeniedNotificationPermissions),
+            )),
             Arc::new(SubscriptionTestkit::new(&[], &[]).service),
             Arc::new(GemDeeplinkService::new()),
             discovery.session.clone(),

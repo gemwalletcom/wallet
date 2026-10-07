@@ -148,6 +148,7 @@ class PriceAlertsViewModel @Inject constructor(
     fun isAssetManage(): Boolean = assetId.value != null
 
     fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
+        alertsEnabled.value = enable
         runCatchingCancellable { service.setEnabled(enable) }
             .onFailure { errorState.value = it.errorText().text(context) }
         alertsEnabled.update { service.isEnabled() }

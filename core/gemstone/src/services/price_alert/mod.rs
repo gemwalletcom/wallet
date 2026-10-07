@@ -15,6 +15,7 @@ use primitives::{Asset, AssetId, Currency, PriceAlert};
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::banner::GemNotificationPermissions;
+use crate::services::device::GemDeviceService;
 use crate::services::preferences::GemPreferencesService;
 use session::GemPriceAlertSession;
 
@@ -25,14 +26,21 @@ pub struct GemPriceAlertService {
     api: Arc<GemDeviceApiClient>,
     preferences: Arc<GemPreferencesService>,
     store: Arc<dyn GemPriceAlertStore>,
+    device: Arc<GemDeviceService>,
     permissions: Arc<dyn GemNotificationPermissions>,
 }
 
 #[uniffi::export]
 impl GemPriceAlertService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, preferences: Arc<GemPreferencesService>, store: Arc<dyn GemPriceAlertStore>, permissions: Arc<dyn GemNotificationPermissions>) -> Self {
-        Self { api, preferences, store, permissions }
+    pub fn new(api: Arc<GemDeviceApiClient>, preferences: Arc<GemPreferencesService>, store: Arc<dyn GemPriceAlertStore>, device: Arc<GemDeviceService>, permissions: Arc<dyn GemNotificationPermissions>) -> Self {
+        Self {
+            api,
+            preferences,
+            store,
+            device,
+            permissions,
+        }
     }
 
     pub fn is_enabled(&self) -> bool {
@@ -43,13 +51,10 @@ impl GemPriceAlertService {
         if self.is_enabled() == enabled {
             return Ok(());
         }
-        if enabled {
-            if !self.permissions.request_permissions_or_open_settings().await? {
-                return Ok(());
-            }
-            self.preferences.set_push_notifications_enabled(true)?;
+        if enabled && !self.permissions.request_permissions_or_open_settings().await? {
+            return Ok(());
         }
-        self.preferences.set_price_alerts_enabled(enabled)
+        self.device.set_price_alerts_enabled(enabled).await
     }
 
     pub fn new_alert_session(&self, asset_id: AssetId, format: GemNumberFormat) -> GemPriceAlertSession {
@@ -142,6 +147,7 @@ mod tests {
     use super::rules::reconcile;
     use super::testkit::{GrantedNotificationPermissions, PriceAlertTestkit};
     use crate::services::banner::testkit::DeniedNotificationPermissions;
+    use crate::services::device::testkit::registering_device_provider;
     use crate::services::error::GemServiceError;
     use crate::services::price_alert::store::GemPriceAlertStore;
     use crate::testkit::TestAlienProvider;
@@ -150,15 +156,21 @@ mod tests {
     use std::sync::Arc;
 
     #[test]
-    fn test_set_enabled_asks_for_permission_and_writes_nothing_the_device_has_to_be_told() {
+    fn test_turning_alerts_on_or_off_reaches_the_device_record_at_once() {
         let kit = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(GrantedNotificationPermissions));
-        assert_eq!(block_on(kit.service.set_enabled(true)), Ok(()));
-        assert!(kit.service.is_enabled());
-        assert!(kit.provider.requested_paths().is_empty(), "the device record is compared, never announced");
+        assert_eq!(block_on(kit.service.set_enabled(true)), Err(GemServiceError::Offline));
+        assert!(kit.service.is_enabled(), "the choice is kept for the next sync");
+        let enabled_paths = kit.provider.requested_paths();
+        assert!(enabled_paths.iter().any(|path| path.contains("devices")), "{enabled_paths:?}");
+
+        assert_eq!(block_on(kit.service.set_enabled(false)), Err(GemServiceError::Offline));
+        assert!(!kit.service.is_enabled());
+        assert!(kit.provider.requested_paths().len() > enabled_paths.len(), "turning alerts off is sent too, not left for the next app open");
 
         let denied = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(DeniedNotificationPermissions));
         assert_eq!(block_on(denied.service.set_enabled(true)), Ok(()));
         assert!(!denied.service.is_enabled());
+        assert!(denied.provider.requested_paths().is_empty());
     }
 
     #[test]
@@ -170,7 +182,7 @@ mod tests {
         assert!(denied.store.identifiers().is_empty(), "a refused permission keeps no alert");
         assert!(denied.provider.requested_paths().is_empty());
 
-        let granted = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::with_json(200, "{}")), Arc::new(GrantedNotificationPermissions));
+        let granted = PriceAlertTestkit::with_provider(Arc::new(registering_device_provider()), Arc::new(GrantedNotificationPermissions));
         assert!(block_on(granted.service.set_auto_alert(asset, true)).unwrap().is_some());
         assert!(granted.service.is_enabled());
         assert_eq!(granted.store.identifiers().len(), 1);
