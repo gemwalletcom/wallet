@@ -8,6 +8,7 @@ import Style
 struct CandlestickPlot {
     private enum Metrics {
         static let topInset: CGFloat = Spacing.small
+        static let leadingInset: CGFloat = Spacing.small
         static let volumeBandFraction: CGFloat = 0.18
         static let volumeBandGap: CGFloat = Spacing.tiny
         static let wickWidthRatio: CGFloat = 0.12
@@ -22,7 +23,7 @@ struct CandlestickPlot {
         self.chart = chart
         self.priceRange = priceRange
         self.volumeRange = volumeRange
-        frame = CGRect(x: 0, y: Metrics.topInset, width: max(1, size.width - priceColumnWidth), height: max(1, size.height - Metrics.topInset - timeRowHeight))
+        frame = CGRect(x: Metrics.leadingInset, y: Metrics.topInset, width: max(1, size.width - Metrics.leadingInset - priceColumnWidth), height: max(1, size.height - Metrics.topInset - timeRowHeight))
     }
 
     var volumeBand: CGRect {
