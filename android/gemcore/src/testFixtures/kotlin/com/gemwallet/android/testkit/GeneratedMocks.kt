@@ -2015,13 +2015,13 @@ fun mockGemWalletConnectTransactionRequest(
 
 fun mockGemWalletDetails(
     row: uniffi.gemstone.GemWalletRow = mockGemWalletRow(),
-    secretKind: uniffi.gemstone.GemWalletSecretKind? = null,
-    showSecret: uniffi.gemstone.GemLocalizedText? = null,
+    backup: uniffi.gemstone.GemSecretRow? = null,
+    advanced: uniffi.gemstone.GemSecretRow? = null,
     address: uniffi.gemstone.GemAddressRow? = null,
 ) = uniffi.gemstone.GemWalletDetails(
     row = row,
-    secretKind = secretKind,
-    showSecret = showSecret,
+    backup = backup,
+    advanced = advanced,
     address = address,
 )
 
