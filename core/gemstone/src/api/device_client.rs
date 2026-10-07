@@ -4,12 +4,12 @@ use gem_api::GemDeviceApiClient as DeviceApiClient;
 
 use crate::services::device::{DeviceSyncPreflight, GemDeviceKeyService, GemDeviceService};
 
-use crate::alien::{AlienError, AlienProvider, AlienProviderWrapper};
+use crate::alien::{AlienProvider, AlienProviderWrapper, RpcAlienError};
 use crate::config::public::API_URL;
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemDeviceApiClient {
-    pub(crate) client: DeviceApiClient<AlienError>,
+    pub(crate) client: DeviceApiClient<RpcAlienError>,
 }
 
 #[uniffi::export]
