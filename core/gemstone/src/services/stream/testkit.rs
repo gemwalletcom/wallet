@@ -41,6 +41,7 @@ pub fn asset_ids(chains: &[Chain]) -> Vec<AssetId> {
 pub struct MemoryStreamConnection {
     pub connected: AtomicBool,
     pub latency: Mutex<Option<Duration>>,
+    pub fail_latency: AtomicBool,
     pub fail_next_send: AtomicBool,
     pause: Mutex<Option<oneshot::Receiver<()>>>,
     sent: Mutex<Vec<String>>,
@@ -73,8 +74,11 @@ impl MemoryStreamConnection {
 
 #[async_trait]
 impl GemStreamConnection for MemoryStreamConnection {
-    async fn latency(&self) -> Option<Duration> {
-        *self.latency.lock().unwrap()
+    async fn latency(&self) -> Result<Option<Duration>, GemServiceError> {
+        if self.fail_latency.load(Ordering::SeqCst) {
+            return Err(GemServiceError::Platform { msg: "latency failed".into() });
+        }
+        Ok(*self.latency.lock().unwrap())
     }
 
     async fn is_connected(&self) -> bool {
