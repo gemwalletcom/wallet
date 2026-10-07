@@ -8,10 +8,15 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import uniffi.gemstone.AlienException
 import uniffi.gemstone.AlienHttpMethod
 import uniffi.gemstone.AlienTarget
+import uniffi.gemstone.GemApiClient
+import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemWidgetService
+import uniffi.gemstone.GemWidgetSize
 import java.io.EOFException
 import java.io.IOException
 import java.net.UnknownHostException
@@ -20,7 +25,7 @@ class NativeProviderTest {
 
     @Test
     fun requestMapsKnownOfflineIoErrors() {
-        val provider = nativeProvider(
+        val provider = NativeProvider(
             httpClient = OkHttpClient.Builder()
                 .addInterceptor {
                     throw UnknownHostException("api.example.com")
@@ -28,7 +33,7 @@ class NativeProviderTest {
                 .build(),
         )
 
-        try {
+        assertThrows(AlienException.Offline::class.java) {
             runBlocking {
                 provider.request(
                     AlienTarget(
@@ -39,15 +44,12 @@ class NativeProviderTest {
                     ),
                 )
             }
-        } catch (_: AlienException.Offline) {
-            return
         }
-        throw AssertionError("Expected offline request exception")
     }
 
     @Test
     fun requestMapsDroppedStreamToOffline() {
-        val provider = nativeProvider(
+        val provider = NativeProvider(
             httpClient = OkHttpClient.Builder()
                 .addInterceptor {
                     throw IOException("unexpected end of stream on https://gemnodes.com/...", EOFException())
@@ -55,7 +57,7 @@ class NativeProviderTest {
                 .build(),
         )
 
-        try {
+        assertThrows(AlienException.Offline::class.java) {
             runBlocking {
                 provider.request(
                     AlienTarget(
@@ -66,15 +68,12 @@ class NativeProviderTest {
                     ),
                 )
             }
-        } catch (_: AlienException.Offline) {
-            return
         }
-        throw AssertionError("Expected request exception")
     }
 
     @Test
-    fun requestRethrowsCancellation() {
-        val provider = nativeProvider(
+    fun requestMapsCancellation() {
+        val provider = NativeProvider(
             httpClient = OkHttpClient.Builder()
                 .addInterceptor {
                     throw CancellationException("cancelled")
@@ -82,7 +81,7 @@ class NativeProviderTest {
                 .build(),
         )
 
-        try {
+        val error = assertThrows(AlienException.RequestException::class.java) {
             runBlocking {
                 provider.request(
                     AlienTarget(
@@ -93,17 +92,14 @@ class NativeProviderTest {
                     ),
                 )
             }
-        } catch (error: CancellationException) {
-            assertEquals("cancelled", error.message)
-            return
         }
-        throw AssertionError("Expected cancellation exception")
+        assertEquals("cancelled", error.msg)
     }
 
     @Test
     fun requestSendsABodylessPostWithAnEmptyBody() {
         var sent: Request? = null
-        val provider = nativeProvider(
+        val provider = NativeProvider(
             httpClient = OkHttpClient.Builder()
                 .addInterceptor { chain ->
                     sent = chain.request()
@@ -133,5 +129,32 @@ class NativeProviderTest {
         assertEquals(0L, sent?.body?.contentLength())
     }
 
-    private fun nativeProvider(httpClient: OkHttpClient = OkHttpClient()): NativeProvider = NativeProvider(httpClient = httpClient)
+    @Test
+    fun requestMapsInvalidUrl() {
+        assertThrows(AlienException.RequestException::class.java) {
+            runBlocking {
+                NativeProvider().request(AlienTarget("invalid", AlienHttpMethod.GET, null, null))
+            }
+        }
+    }
+
+    @Test
+    fun unexpectedFailureReturnsThroughRust() {
+        val provider = NativeProvider(OkHttpClient.Builder().addInterceptor { throw IllegalStateException("interceptor failed") }.build())
+        val service = GemWidgetService(GemApiClient(provider))
+        val error = assertThrows(GemServiceException.Api::class.java) {
+            runBlocking { service.coins(GemWidgetSize.SMALL, "USD") }
+        }
+        assertEquals("interceptor failed", error.msg)
+    }
+
+    @Test
+    fun cancellationReturnsThroughRust() {
+        val provider = NativeProvider(OkHttpClient.Builder().addInterceptor { throw CancellationException("callback cancelled") }.build())
+        val service = GemWidgetService(GemApiClient(provider))
+        val error = assertThrows(GemServiceException.Api::class.java) {
+            runBlocking { service.coins(GemWidgetSize.SMALL, "USD") }
+        }
+        assertEquals("callback cancelled", error.msg)
+    }
 }

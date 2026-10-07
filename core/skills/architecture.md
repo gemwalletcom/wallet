@@ -157,7 +157,7 @@ Reference: `crates/cacher/src/cachers/mod.rs`.
 
 Wrap external models with `#[uniffi::remote(Record)]` on a type alias instead of a duplicate struct plus `From` impls. Reference: `gemstone/src/transfer_amount.rs`.
 
-The error a foreign trait returns is the exception: it is a gemstone type with `impl From<uniffi::UnexpectedUniFFICallbackError>` (`GemServiceError`, `GatewayError`, `AlienError`). Without that impl, any other exception the app throws becomes a Rust panic and crashes the app, and nothing fails at compile time. A remote type cannot carry the impl, so `alien/error.rs` keeps its own enum and converts to `gem_jsonrpc`'s at the boundary. A foreign method whose app implementation can fail returns `Result`.
+Fallible foreign methods return `Result`; app callbacks map all platform exceptions, including cancellation, to the declared error before crossing UniFFI. Keep shared errors such as `AlienError` remote; gemstone-owned errors may also implement `From<uniffi::UnexpectedUniFFICallbackError>` as a fallback.
 
 An exported object that keeps state behind a `Mutex` reads it once per call into a local and derives the whole answer from that snapshot. A guard created inside a larger expression, such as one field of a struct literal, lives until the expression ends, so a later field that locks the same mutex again blocks the calling app thread forever.
 

@@ -62,9 +62,7 @@ impl Drop for RequestGuard<'_> {
     fn drop(&mut self) {
         if self.active {
             for waiter in requests(self.requests).remove(&self.key).unwrap_or_default() {
-                let _ = waiter.send(Err(AlienError::RequestError {
-                    msg: "Coalesced request was canceled".into(),
-                }));
+                let _ = waiter.send(Err(AlienError::request_error("Coalesced request was canceled")));
             }
         }
     }
@@ -94,11 +92,7 @@ impl AlienProvider for CoalescingAlienProvider {
         };
 
         if let Some(receiver) = receiver {
-            return receiver.await.unwrap_or_else(|_| {
-                Err(AlienError::RequestError {
-                    msg: "Coalesced request was canceled".into(),
-                })
-            });
+            return receiver.await.unwrap_or_else(|_| Err(AlienError::request_error("Coalesced request was canceled")));
         }
 
         let mut guard = RequestGuard::new(&self.requests, key);

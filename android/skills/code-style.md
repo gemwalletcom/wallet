@@ -5,7 +5,7 @@ Use for any Kotlin or Compose change.
 
 - Kotlin conventions and existing project patterns; Jetpack Compose for UI; Hilt for dependency injection; repository-based data access
 - Follow the shared [comment policy](../../skills/engineering-principles.md#clean-code-principles); clean imports after modifications
-- In suspend or flow code, a `catch (e: Throwable)` must rethrow `CancellationException` before mapping to an error state; otherwise a cancelled collection surfaces as a failure (see `InAppUpdateServiceImpl.kt`)
+- In suspend or flow code, a `catch (e: Throwable)` must rethrow `CancellationException` before mapping to an error state; otherwise a cancelled collection surfaces as a failure (see `InAppUpdateServiceImpl.kt`). Exception: UniFFI callbacks such as `NativeProvider.request` must map cancellation to their declared error type before returning to Rust.
 - No blocking store, Room, network, or platform I/O on the main thread, including calls through Gemstone. Dispatch those calls off main; a synchronous Room read reached from a view model constructor, a Hilt provider, or composition throws and kills the process. Cheap pure projections and cached preference reads can stay synchronous on the calling thread. `allowMainThreadQueries()` belongs to migration tests only
 - Row models for a list a screen scrolls are built off the main thread (`flowOn(ioDispatcher)` before `stateIn`), and every string a row displays is computed in that mapper, not in composition. The main thread only collects finished rows, so a list of any size keeps scrolling while its source keeps emitting
 - Prefer the smallest change that satisfies the requirement

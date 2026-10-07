@@ -71,7 +71,7 @@ public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
     public init() {}
 
     public func request(target _: AlienTarget) async throws -> AlienResponse {
-        throw AnyError("StubAlienProvider does not perform requests")
+        throw AlienError.RequestError(msg: "StubAlienProvider does not perform requests")
     }
 }
 
