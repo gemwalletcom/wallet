@@ -100,6 +100,8 @@ wallet_add_token_title = Aggiungi token
 wallet_sell = Vendi
 wallet_receive_collection = Ricevi la raccolta
 wallet_more = Di più
+wallet_backup = Backup
+wallet_advanced = Avanzate
 wallet_import_contract_address_field = Contratto o ID token
 wallet_import_address_warning = Puoi visualizzare i saldi e le transazioni per questo indirizzo, ma **non puoi inviare o vendere fondi**.
 wallet_deposit = Deposita
@@ -444,6 +446,17 @@ private_key_reminder_no_recovery_subtitle = Se perdi la tua chiave privata, perd
 private_key_do_not_share_title = Non condividere la tua chiave privata!
 private_key_do_not_share_description = Se qualcuno conosce la tua chiave privata avrà il pieno controllo di questo account!
 private_key_screenshot_detected_description = Gli screenshot potrebbero essere accessibili ad altre app e, se salvati in questo modo, potrebbero mettere a rischio la tua chiave privata.
+private_key_export_reminder_intro = La tua chiave privata dà accesso completo a questo account.
+private_key_export_reminder_keep_safe_title = Conservala in un posto sicuro
+private_key_export_reminder_keep_safe_subtitle = Chiunque la possieda può usare questo account.
+private_key_export_reminder_do_not_share_title = Non condividerla con nessuno
+private_key_export_reminder_do_not_share_subtitle = Nessuna persona, sito web o app dovrebbe chiedertela.
+private_key_export_reminder_no_recovery_title = Non possiamo aiutarti a recuperarli
+private_key_export_reminder_no_recovery_subtitle = Se qualcuno prende i tuoi fondi, non possono essere restituiti.
+private_key_select_account = Seleziona il tuo account
+private_key_scope_evm = Questa chiave controlla anche i tuoi account su tutte le reti EVM.
+private_key_scope_cosmos = Questa chiave controlla anche i tuoi account su tutte le reti Cosmos.
+private_key_accounts_info = La tua frase segreta fa già il backup di questi account. Esporta una chiave solo per usare un account in un altro portafoglio.
 
 # Social
 

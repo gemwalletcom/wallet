@@ -100,6 +100,8 @@ wallet_add_token_title = Token toevoegen
 wallet_sell = Verkopen
 wallet_receive_collection = Ontvang collectie
 wallet_more = Meer
+wallet_backup = Back-up
+wallet_advanced = Geavanceerd
 wallet_import_contract_address_field = Contract of token-ID
 wallet_import_address_warning = U kunt het saldo en de transacties voor dit adres bekijken, maar **u kunt geen geld verzenden of verkopen**.
 wallet_deposit = Storten
@@ -444,6 +446,17 @@ private_key_reminder_no_recovery_subtitle = Als u uw privésleutel verliest, ver
 private_key_do_not_share_title = Deel uw privésleutel niet!
 private_key_do_not_share_description = Als iemand uw privésleutel heeft, heeft diegene volledige controle over dit account!
 private_key_screenshot_detected_description = Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps en kunnen uw privésleutel in gevaar brengen als u ze op deze manier opslaat.
+private_key_export_reminder_intro = Uw privésleutel geeft volledige toegang tot dit account.
+private_key_export_reminder_keep_safe_title = Bewaar hem op een veilige plek
+private_key_export_reminder_keep_safe_subtitle = Iedereen die hem heeft, kan dit account gebruiken.
+private_key_export_reminder_do_not_share_title = Deel hem met niemand
+private_key_export_reminder_do_not_share_subtitle = Geen persoon, website of app hoort erom te vragen.
+private_key_export_reminder_no_recovery_title = Wij kunnen u niet helpen het terug te krijgen
+private_key_export_reminder_no_recovery_subtitle = Als iemand uw tegoed meeneemt, kan het niet worden teruggegeven.
+private_key_select_account = Selecteer uw account
+private_key_scope_evm = Deze sleutel beheert ook uw accounts op alle EVM-netwerken.
+private_key_scope_cosmos = Deze sleutel beheert ook uw accounts op alle Cosmos-netwerken.
+private_key_accounts_info = Uw geheime zin maakt al een back-up van deze accounts. Exporteer alleen een sleutel om één account in een andere portemonnee te gebruiken.
 
 # Social
 

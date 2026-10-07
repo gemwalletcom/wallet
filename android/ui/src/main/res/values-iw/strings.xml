@@ -94,6 +94,8 @@
   <string name="wallet_sell">מכור</string>
   <string name="wallet_receive_collection">קבלת אוסף</string>
   <string name="wallet_more">עוד</string>
+  <string name="wallet_backup">גיבוי</string>
+  <string name="wallet_advanced">מתקדם</string>
   <string name="wallet_import_contract_address_field">חוזה או מזהה טוקן</string>
   <string name="wallet_import_address_warning">ניתן לצפות ביתרות ועסקאות עבור כתובת זו, אך **לא ניתן לשלוח או למכור כספים**.</string>
   <string name="wallet_deposit">הפקד</string>
@@ -375,6 +377,17 @@
   <string name="private_key_do_not_share_title">אל תשתף את המפתח הפרטי שלך!</string>
   <string name="private_key_do_not_share_description">אם למישהו יש את המפתח הפרטי שלך, תהיה לו שליטה מלאה בחשבון הזה!</string>
   <string name="private_key_screenshot_detected_description">צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את המפתח הפרטי שלך אם יישמרו בדרך זו.</string>
+  <string name="private_key_export_reminder_intro">המפתח הפרטי שלך מעניק גישה מלאה לחשבון הזה.</string>
+  <string name="private_key_export_reminder_keep_safe_title">אחסן אותו במקום בטוח</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">כל מי שמחזיק בו יכול להשתמש בחשבון הזה.</string>
+  <string name="private_key_export_reminder_do_not_share_title">אל תשתף אותו עם אף אחד</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">אף אדם, אתר או אפליקציה לא אמורים לבקש אותו.</string>
+  <string name="private_key_export_reminder_no_recovery_title">אנחנו לא יכולים לעזור לך לשחזר אותם</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">אם מישהו ייקח את הכספים שלך, לא ניתן להחזיר אותם.</string>
+  <string name="private_key_select_account">בחר את החשבון שלך</string>
+  <string name="private_key_scope_evm">מפתח זה שולט גם בחשבונות שלך בכל רשתות EVM.</string>
+  <string name="private_key_scope_cosmos">מפתח זה שולט גם בחשבונות שלך בכל רשתות Cosmos.</string>
+  <string name="private_key_accounts_info">הביטוי הסודי שלך כבר מגבה את החשבונות האלה. ייצא מפתח רק כדי להשתמש בחשבון אחד בארנק אחר.</string>
   <string name="social_x">X (לשעבר Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
