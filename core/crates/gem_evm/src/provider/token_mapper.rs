@@ -2,7 +2,7 @@ use crate::{contracts::erc20::decode_token_metadata, ethereum_address_checksum};
 use primitives::{Asset, AssetId, Chain};
 
 pub fn map_token_data(chain: Chain, token_id: String, name_hex: String, symbol_hex: String, decimals_hex: String) -> Result<Asset, Box<dyn std::error::Error + Send + Sync>> {
-    let (name, symbol, decimals) = decode_token_metadata(name_hex.trim_start_matches("0x"), symbol_hex.trim_start_matches("0x"), decimals_hex.trim_start_matches("0x"))?;
+    let (name, symbol, decimals) = decode_token_metadata(&name_hex, &symbol_hex, &decimals_hex)?;
     let token_id = ethereum_address_checksum(&token_id)?;
 
     let asset_id = AssetId { chain, token_id: Some(token_id) };
@@ -58,11 +58,13 @@ mod tests {
         let symbol_hex = "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000045553444300000000000000000000000000000000000000000000000000000000".to_string();
         let decimals_hex = "0x0000000000000000000000000000000000000000000000000000000000000006".to_string();
 
-        let result = map_token_data(Chain::Ethereum, token_id.clone(), String::new(), symbol_hex, decimals_hex.clone()).unwrap();
+        let result = map_token_data(Chain::Ethereum, token_id.clone(), String::new(), symbol_hex.clone(), decimals_hex.clone()).unwrap();
 
         assert_eq!(result.name, "USDC");
         assert_eq!(result.symbol, "USDC");
-        assert!(map_token_data(Chain::Ethereum, token_id.clone(), name_hex, String::new(), decimals_hex.clone()).is_err());
-        assert!(map_token_data(Chain::Ethereum, token_id, String::new(), String::new(), decimals_hex).is_err());
+        assert!(map_token_data(Chain::Ethereum, token_id.clone(), name_hex.clone(), String::new(), decimals_hex.clone()).is_err());
+        assert!(map_token_data(Chain::Ethereum, token_id.clone(), String::new(), String::new(), decimals_hex).is_err());
+        assert!(map_token_data(Chain::Ethereum, token_id.clone(), name_hex.clone(), symbol_hex.clone(), "0x".to_string()).is_err());
+        assert!(map_token_data(Chain::Ethereum, token_id, name_hex, symbol_hex, String::new()).is_err());
     }
 }

@@ -24,10 +24,6 @@ fn decode_abi_string(hex_data: &str) -> Result<String, Box<dyn std::error::Error
 }
 
 fn decode_abi_uint8(hex_data: &str) -> Result<u8, Box<dyn std::error::Error + Send + Sync>> {
-    if hex_data.is_empty() {
-        return Ok(0);
-    }
-
     let bytes_data = hex::decode(hex_data)?;
     let value_u256 = U256::abi_decode(&bytes_data)?;
     let value: u8 = value_u256.try_into()?;
