@@ -35,7 +35,7 @@ struct CandlestickCanvas: View {
         let textWidth = (layout.levels + [layout.currentPrice]).reduce(CGFloat.zero) { width, price in
             max(width, (price.text() as NSString).size(withAttributes: [.font: font]).width)
         }
-        return Metrics.priceLabelOffset + textWidth.rounded(.up) + Metrics.pricePillPadding + Metrics.priceColumnTrailing
+        return Metrics.priceLabelOffset + textWidth.rounded(.up) + Metrics.priceColumnTrailing
     }
 
     var body: some View {

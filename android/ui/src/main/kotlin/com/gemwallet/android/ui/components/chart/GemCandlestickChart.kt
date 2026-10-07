@@ -151,7 +151,7 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
         val levelWidths = layout.levels.map { textMeasurer.measure(it.text(), axisLabelStyle).size.width }
         (levelWidths + textMeasurer.measure(layout.currentPrice.text(), whiteLabelStyle).size.width).max().toFloat()
     }
-    val rightAxisWidthPx = labelPaddingPx + priceTextWidthPx + currentPriceBadgeHorizontalPaddingPx + with(density) { CandlestickMetrics.rightPadding.toPx() }
+    val rightAxisWidthPx = labelPaddingPx + priceTextWidthPx + with(density) { CandlestickMetrics.rightPadding.toPx() }
     val volumeBandGapPx = with(density) { CandlestickMetrics.volumeBandGap.toPx() }
 
     var chartSize by remember { mutableStateOf(IntSize.Zero) }
