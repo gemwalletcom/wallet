@@ -74,6 +74,7 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         } catch where error.isAuthenticationCancelled {
             throw BiometryAuthenticationError.cancelledByUser
         } catch {
+            debugLog("lock key unlock failed: \(error)")
             throw BiometryAuthenticationError.authenticationFailed
         }
     }

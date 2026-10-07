@@ -12,6 +12,7 @@ final class KeychainStorage: @unchecked Sendable {
     private var authenticationPolicies: [String: AuthenticationPolicy] = [:]
     private var writes: [String: Int] = [:]
     private var readErrors: [String: AnyError] = [:]
+    private var storedReadErrors: [String: AnyError] = [:]
     private var writeErrors: [String: AnyError] = [:]
 
     func value(for key: String) -> Data? {
@@ -34,12 +35,16 @@ final class KeychainStorage: @unchecked Sendable {
         lock.withLock { readErrors[key] = error }
     }
 
+    func setReadErrorWhenStored(_ error: AnyError, key: String) {
+        lock.withLock { storedReadErrors[key] = error }
+    }
+
     func setWriteError(_ error: AnyError, key: String) {
         lock.withLock { writeErrors[key] = error }
     }
 
     func readError(for key: String) -> AnyError? {
-        lock.withLock { readErrors[key] }
+        lock.withLock { readErrors[key] ?? values[key].flatMap { _ in storedReadErrors[key] } }
     }
 
     func writeError(for key: String) -> AnyError? {

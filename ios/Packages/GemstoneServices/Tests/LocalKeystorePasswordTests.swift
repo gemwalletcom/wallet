@@ -136,6 +136,18 @@ struct LocalKeystorePasswordTests {
     }
 
     @Test
+    func createdLockKeyMustBeReadBackToUnlock() throws {
+        let storage = KeychainStorage()
+        storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
+        storage.setReadErrorWhenStored(AnyError("authentication required"), key: "lock_key")
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+
+        #expect(throws: AnyError("authentication required")) { try keystorePassword.unlock(context: LAContext()) }
+
+        #expect(storage.authenticationPolicy(for: "lock_key") == [.devicePasscode])
+    }
+
+    @Test
     func unlockKeepsTheStoredLockKey() throws {
         let storage = KeychainStorage()
         storage.set(Data("first".utf8), key: "lock_key", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
