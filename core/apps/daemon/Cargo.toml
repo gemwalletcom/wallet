@@ -5,13 +5,15 @@ version = { workspace = true }
 
 [dependencies]
 tokio = { workspace = true, features = ["signal"] }
-rocket = { workspace = true }
+axum = { workspace = true }
+http = { workspace = true }
 futures = { workspace = true }
 strum = { workspace = true }
 async-trait = { workspace = true }
 
 prometheus-client = { workspace = true }
 metrics = { path = "../../crates/metrics" }
+http_server = { path = "../../crates/http_server" }
 gem_tracing = { path = "../../crates/gem_tracing" }
 settings = { path = "../../crates/settings" }
 prices = { path = "../../crates/prices" }

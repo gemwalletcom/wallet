@@ -1,0 +1,17 @@
+[package]
+name = "http_server"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+axum = { workspace = true }
+http = { workspace = true }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+prometheus-client = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["net", "signal", "time", "sync"] }
+tower = { workspace = true }
+tower-http = { workspace = true }
+gem_tracing = { path = "../gem_tracing" }
+primitives = { path = "../primitives" }

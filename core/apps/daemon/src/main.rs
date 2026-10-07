@@ -51,8 +51,10 @@ pub async fn main() {
         }
         DaemonService::Parser(chain) => {
             let parser_metrics = Arc::new(metrics::parser::ParserMetrics::new());
-            let health_state = health::spawn_server(parser_metrics.clone());
-            parser::run(settings, chain, health_state, parser_metrics).await.expect("Parser failed");
+            let (shutdown_sender, shutdown) = shutdown::channel();
+            let (health_state, server) = health::spawn_server(parser_metrics.clone(), bind_address(&settings), serve_config(&settings, settings.parser.shutdown.timeout), shutdown.clone());
+            parser::run(settings, chain, health_state, parser_metrics, shutdown_sender, shutdown).await.expect("Parser failed");
+            server.await.ok();
         }
         DaemonService::Consumer(opts) => {
             let services = match opts.service {
@@ -62,6 +64,17 @@ pub async fn main() {
             run_consumer_services(settings, &services, opts).await.expect("Consumer failed");
         }
     }
+}
+
+fn serve_config(settings: &settings::Settings, grace: std::time::Duration) -> http_server::ServeConfig {
+    http_server::ServeConfig {
+        header_read_timeout: settings.server.header.timeout,
+        grace,
+    }
+}
+
+fn bind_address(settings: &settings::Settings) -> std::net::SocketAddr {
+    settings.daemon.bind.parse().unwrap_or_else(|error| panic!("invalid daemon.bind {}: {error}", settings.daemon.bind))
 }
 
 async fn run_worker_services(settings: settings::Settings, workers: &[WorkerService], options: WorkerOptions) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -84,7 +97,7 @@ async fn run_worker_services(settings: settings::Settings, workers: &[WorkerServ
     let job_metrics = Arc::new(metrics::job::JobMetrics::new(service_name));
     let transaction_metrics = Arc::new(metrics::transactions::TransactionMetrics::default());
     let composite = Arc::new(metrics::Metrics::new(vec![job_metrics.clone(), transaction_metrics.clone()]));
-    let health_state = health::spawn_server(composite);
+    let (health_state, server) = health::spawn_server(composite, bind_address(&settings), serve_config(&settings, shutdown_timeout), shutdown.clone());
 
     let signal_handle = shutdown::spawn_signal_handler(shutdown_sender);
 
@@ -124,6 +137,7 @@ async fn run_worker_services(settings: settings::Settings, workers: &[WorkerServ
 
     let handles_only: Vec<_> = worker_jobs.into_iter().flat_map(|(_, jobs)| jobs.into_iter().map(JobHandle::into_handle)).collect();
     let completed = shutdown::wait_with_timeout(handles_only, shutdown_timeout).await;
+    server.await.ok();
 
     if !completed {
         log_pending_workers(&status_tracks, "force-stopping unfinished jobs");
@@ -170,7 +184,7 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
 
     let consumer_metrics = Arc::new(metrics::consumer::ConsumerMetrics::new());
     let composite = Arc::new(metrics::Metrics::new(vec![consumer_metrics.clone()]));
-    let health_state = health::spawn_server(composite);
+    let (health_state, server) = health::spawn_server(composite, bind_address(&settings), serve_config(&settings, settings.consumer.shutdown.timeout), shutdown.clone());
     let reporter: Arc<dyn ConsumerStatusReporter> = Arc::new(ConsumerReporter::new(consumer_metrics));
     let failures = Arc::new(Mutex::new(Vec::new()));
 
@@ -218,6 +232,7 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
 
     signal_handle.await.ok();
     futures::future::join_all(handles).await;
+    server.await.ok();
 
     match failures.lock() {
         Ok(errors) if errors.is_empty() => {

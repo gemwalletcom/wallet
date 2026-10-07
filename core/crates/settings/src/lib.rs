@@ -15,6 +15,7 @@ pub struct Settings {
     pub rabbitmq: RabbitMQ,
 
     pub api: API,
+    pub server: Server,
     pub parser: Parser,
     pub daemon: Daemon,
     pub consumer: Consumer,
@@ -314,6 +315,18 @@ pub struct Chain {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct Server {
+    pub header: Timeout,
+    pub request: Timeout,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Timeout {
+    #[serde(deserialize_with = "duration::deserialize")]
+    pub timeout: Duration,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct Shutdown {
     #[serde(deserialize_with = "duration::deserialize")]
     pub timeout: Duration,
@@ -329,6 +342,7 @@ pub struct Parser {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Daemon {
     pub service: String,
+    pub bind: String,
     pub shutdown: Shutdown,
 }
 
@@ -351,6 +365,8 @@ pub struct ConsumerError {
 #[derive(Debug, Deserialize, Clone)]
 pub struct API {
     pub service: String,
+    pub bind: String,
+    pub shutdown: Shutdown,
     pub auth: Auth,
     pub admin: Admin,
 }

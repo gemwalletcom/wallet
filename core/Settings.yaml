@@ -17,8 +17,16 @@ rabbitmq:
     delay: 1s
     timeout: 30s
 
+server:
+  header:
+    timeout: 10s
+  request:
+    timeout: 30s
 api:
   service: ""
+  bind: "127.0.0.1:8000"
+  shutdown:
+    timeout: 12s
   admin:
     enabled: true
   auth:
@@ -33,6 +41,7 @@ parser:
     timeout: 15s
 daemon:
   service: ""
+  bind: "127.0.0.1:8000"
   shutdown:
     timeout: 15s
 consumer:

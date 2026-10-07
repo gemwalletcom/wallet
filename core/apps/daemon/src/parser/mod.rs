@@ -18,7 +18,7 @@ use services::Services;
 use settings::Settings;
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
 
-use crate::shutdown::{self, ShutdownReceiver};
+use crate::shutdown::{self, ShutdownReceiver, ShutdownSender};
 use services::transactions::{BlockPlan, BlockPlanKind, ParserState, ParserStateService, plan_next_block, should_reload_catchup, timeout_for_state};
 
 pub struct Parser {
@@ -198,7 +198,7 @@ impl Parser {
     }
 }
 
-pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<HealthState>, parser_metrics: Arc<ParserMetrics>) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<HealthState>, parser_metrics: Arc<ParserMetrics>, shutdown_sender: ShutdownSender, shutdown: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>> {
     let services = Services::new(Arc::new(settings.clone()))?;
 
     let config = services.config();
@@ -220,7 +220,6 @@ pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<Hea
         catchup_reload = catchup_reload_interval
     );
 
-    let (shutdown_sender, shutdown) = shutdown::channel();
     let shutdown_timeout = settings.parser.shutdown.timeout;
 
     let signal_handle = shutdown::spawn_signal_handler(shutdown_sender);

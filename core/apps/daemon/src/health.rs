@@ -1,7 +1,15 @@
+use std::net::SocketAddr;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use rocket::{State, get, http::Status, routes};
+use axum::Router;
+use axum::extract::State;
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
+use gem_tracing::error_fields;
+use http::StatusCode;
+use http_server::{ErrorBody, HttpMetrics, ServeConfig, ShutdownReceiver, serve};
+use tokio::task::JoinHandle;
 
 use crate::metrics::{self, MetricsProvider};
 
@@ -33,26 +41,47 @@ impl HealthState {
     }
 }
 
-#[get("/health")]
-fn health(state: &State<Arc<HealthState>>) -> Status {
-    if state.is_ready() { Status::Ok } else { Status::ServiceUnavailable }
+#[derive(Clone)]
+struct ServerState {
+    health: Arc<HealthState>,
+    provider: Arc<dyn MetricsProvider>,
+    http_metrics: HttpMetrics,
 }
 
-pub async fn run_server(state: Arc<HealthState>, metrics_provider: Arc<dyn MetricsProvider>) {
-    let _ = rocket::build()
-        .manage(state)
-        .manage(metrics_provider)
-        .mount("/", routes![health])
-        .mount("/metrics", routes![metrics::get_metrics])
-        .launch()
-        .await;
+async fn health(State(state): State<ServerState>) -> Response {
+    if state.health.is_ready() {
+        StatusCode::OK.into_response()
+    } else {
+        ErrorBody::from_status(StatusCode::SERVICE_UNAVAILABLE).into_response()
+    }
 }
 
-pub fn spawn_server(metrics_provider: Arc<dyn MetricsProvider>) -> Arc<HealthState> {
+async fn get_metrics(State(state): State<ServerState>) -> Response {
+    metrics::encode(state.provider.as_ref(), &state.http_metrics).into_response()
+}
+
+pub fn router(health_state: Arc<HealthState>, provider: Arc<dyn MetricsProvider>) -> Router {
+    let http_metrics = HttpMetrics::new();
+    let state = ServerState {
+        health: health_state,
+        provider,
+        http_metrics: http_metrics.clone(),
+    };
+    Router::new()
+        .route("/health", get(health))
+        .route("/metrics", get(get_metrics))
+        .fallback(async || ErrorBody::from_status(StatusCode::NOT_FOUND))
+        .with_state(state)
+        .layer(http_metrics.layer())
+}
+
+pub fn spawn_server(provider: Arc<dyn MetricsProvider>, bind: SocketAddr, config: ServeConfig, shutdown: ShutdownReceiver) -> (Arc<HealthState>, JoinHandle<()>) {
     let state = Arc::new(HealthState::new());
-    tokio::spawn({
-        let state = state.clone();
-        async move { run_server(state, metrics_provider).await }
+    let router = router(state.clone(), provider);
+    let handle = tokio::spawn(async move {
+        if let Err(error) = serve(router, bind, config, shutdown).await {
+            error_fields!("health server failed", error = error.to_string());
+        }
     });
-    state
+    (state, handle)
 }

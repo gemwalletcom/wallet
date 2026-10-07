@@ -5,10 +5,13 @@ pub mod transactions;
 
 use std::sync::{Arc, Mutex, MutexGuard};
 
+use axum::response::{IntoResponse, Response};
+use http::header::CONTENT_TYPE;
+use http_server::HttpMetrics;
 use metrics::MetricsRegistry;
 use prometheus_client::registry::Registry;
-use rocket::response::content::RawText;
-use rocket::{State, get};
+
+const HTTP_METRICS_PREFIX: &str = "daemon";
 
 pub fn locked<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
@@ -36,9 +39,9 @@ impl MetricsProvider for Metrics {
     }
 }
 
-#[get("/")]
-pub fn get_metrics(provider: &State<Arc<dyn MetricsProvider>>) -> RawText<String> {
+pub fn encode(provider: &dyn MetricsProvider, http_metrics: &HttpMetrics) -> Response {
     let mut registry = MetricsRegistry::new();
     provider.register(registry.registry_mut());
-    RawText(registry.encode())
+    http_metrics.register(registry.registry_mut().sub_registry_with_prefix(HTTP_METRICS_PREFIX));
+    ([(CONTENT_TYPE, "text/plain; charset=utf-8")], registry.encode()).into_response()
 }
