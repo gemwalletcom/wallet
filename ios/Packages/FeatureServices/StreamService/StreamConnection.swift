@@ -11,8 +11,8 @@ public final class GemstoneStreamConnection: GemStreamConnection, Sendable {
         self.webSocket = webSocket
     }
 
-    public func latency() async -> TimeInterval? {
-        try? await webSocket.ping()
+    public func latency() async throws -> TimeInterval? {
+        try await webSocket.ping()
     }
 
     public func isConnected() async -> Bool {

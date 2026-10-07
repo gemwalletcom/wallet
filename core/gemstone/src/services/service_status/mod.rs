@@ -28,7 +28,7 @@ impl GemServiceStatus {
     pub async fn status(&self, target: GemServiceStatusTarget) -> GemLatencyStatus {
         match target {
             GemServiceStatusTarget::Endpoint { host } => self.endpoint_status(&host).await,
-            GemServiceStatusTarget::Stream => self.stream.latency().await.into(),
+            GemServiceStatusTarget::Stream => self.stream.latency().await.ok().flatten().into(),
         }
     }
 }
@@ -48,6 +48,7 @@ impl GemServiceStatus {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::atomic::Ordering;
     use std::time::Duration;
 
     use futures::executor::block_on;
@@ -66,6 +67,11 @@ mod tests {
     fn test_status_reports_reachable_endpoints_and_stream_failure_independently() {
         let service = GemServiceStatus::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(MemoryStreamConnection::default()));
         assert!(matches!(block_on(service.status(api())), GemLatencyStatus::Result { .. }));
+        assert_eq!(block_on(service.status(GemServiceStatusTarget::Stream)), GemLatencyStatus::Error);
+
+        let stream = Arc::new(MemoryStreamConnection::default());
+        stream.fail_latency.store(true, Ordering::SeqCst);
+        let service = GemServiceStatus::new(Arc::new(TestAlienProvider::with_status(200)), stream);
         assert_eq!(block_on(service.status(GemServiceStatusTarget::Stream)), GemLatencyStatus::Error);
     }
 
