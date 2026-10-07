@@ -1,6 +1,6 @@
 use super::model::{GemConfirmRowContent, GemConfirmSection, GemConfirmSimulation};
 use super::swap::ConfirmSwapQuote;
-use crate::address_formatter::{GemAddressFormatStyle, GemAddressService, format_address};
+use crate::address_formatter::{GemAddressFormatStyle, format_address, name_text};
 use crate::application;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::address_copy;
@@ -616,7 +616,7 @@ pub fn confirm_row_contents(transfer: &GemTransferData, wallet: Wallet, address_
                 let address = destination.address();
                 let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
                 let is_named_by_user = address_name.as_ref().is_some_and(|address_name| names_the_user_owns(&address_name.address_type));
-                let name = GemAddressService::new().name_text(destination.name(), short_address.clone(), is_named_by_user || !destination.shows_address_beside_name());
+                let name = name_text(destination.name(), short_address.clone(), is_named_by_user || !destination.shows_address_beside_name());
                 let text = match &destination {
                     GemConfirmDestination::Resource { resource } => GemLocalizedText::Resource { resource: *resource },
                     _ => GemLocalizedText::Text { text: name.unwrap_or(short_address) },

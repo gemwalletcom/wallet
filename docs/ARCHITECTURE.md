@@ -1482,7 +1482,7 @@ The same applies to state: a view switching on the model's `mode` forces `mode` 
 
 ### Depend on the generated abstraction, not the concrete object
 
-On iOS, UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists; importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be substituted without relying on UniFFI's fragile no-handle test path. On Android the same holds for the generated `GemFooServiceInterface`: bind it in the Hilt module (`): GemReceiveServiceInterface = GemReceiveService(...)`) and inject the interface.
+On iOS, UniFFI generates a protocol for every exported object. `GemContactServiceProtocol` exists; importing `class Gemstone.GemContactService` at a consumer means that consumer cannot be substituted without relying on UniFFI's fragile no-handle test path. On Android the same holds for the generated `GemFooServiceInterface`: bind it in the Hilt module (`): GemReceiveServiceInterface = GemReceiveService(...)`) and inject the interface.
 
 - **iOS consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
 - **Android consumers** take the generated interface, or the observed-read case, used by their layer.
