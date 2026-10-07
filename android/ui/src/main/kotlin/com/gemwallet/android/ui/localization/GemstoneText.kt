@@ -780,7 +780,6 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.DEVELOPER -> context.getString(R.string.settings_developer)
     GemListRowTitle.AUTHENTICATION -> context.getString(R.string.settings_enable_passcode)
     GemListRowTitle.LOCK_PERIOD -> context.getString(R.string.lock_require_authentication)
-    GemListRowTitle.PRIVACY_LOCK -> context.getString(R.string.lock_privacy_lock)
     GemListRowTitle.HIDE_BALANCE -> context.getString(R.string.settings_hide_balance)
     GemListRowTitle.CURRENCY -> context.getString(R.string.settings_currency)
     GemListRowTitle.LANGUAGE -> context.getString(R.string.settings_language)

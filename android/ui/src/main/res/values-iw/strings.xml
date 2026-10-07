@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 שעות</string>
   <string name="lock_require_authentication">דרוש אימות</string>
   <string name="lock_unlock">פתח את הנעילה</string>
-  <string name="lock_privacy_lock">נעילת פרטיות</string>
   <string name="lock_footer">הגן על הגישה לאפליקציה הזו במכשיר שלך</string>
   <string name="lock_passcode">קוד גישה</string>
   <string name="lock_passcode_off_title">קוד הגישה של המכשיר כבוי</string>

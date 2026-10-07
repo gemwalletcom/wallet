@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6시간</string>
   <string name="lock_require_authentication">인증 필요</string>
   <string name="lock_unlock">잠금 해제</string>
-  <string name="lock_privacy_lock">개인 정보 보호 잠금</string>
   <string name="lock_footer">기기에서 이 앱에 대한 액세스를 보호하세요</string>
   <string name="lock_passcode">비밀번호</string>
   <string name="lock_passcode_off_title">기기 암호가 꺼져 있습니다</string>

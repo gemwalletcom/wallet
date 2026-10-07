@@ -534,7 +534,6 @@ lock_one_hour = 1 година
 lock_six_hours = 6 годин
 lock_require_authentication = Вимагається автентифікація
 lock_unlock = Розблокувати
-lock_privacy_lock = Блокування конфіденційності
 lock_footer = Захистіть доступ до цієї програми на своєму пристрої
 lock_passcode = Пароль
 lock_passcode_off_title = Пароль пристрою вимкнено

@@ -19,8 +19,6 @@ public class LockSceneViewModel {
     var backgroundedAt: ContinuousClock.Instant?
     var state: LockSceneState
 
-    private var showPlaceholderPreview: Bool = false
-
     public init(
         service: any BiometryAuthenticatable,
     ) {
@@ -68,28 +66,6 @@ public class LockSceneViewModel {
         guard let backgroundedAt else { return false }
         return service.shouldRelock(elapsedMilliseconds: (ContinuousClock.now - backgroundedAt).milliseconds)
     }
-
-    var shouldShowLockScreen: Bool {
-        isLocked || showPlaceholderPreview
-    }
-
-    var isPrivacyLockEnabled: Bool {
-        service.isPrivacyLockEnabled
-    }
-
-    var privacyLockAlpha: CGFloat {
-        isPrivacyLockVisible ? 1 : 0
-    }
-
-    var isPrivacyLockVisible: Bool {
-        guard isAutoLockEnabled else { return false }
-
-        if isPrivacyLockEnabled {
-            return state != .unlocked || showPlaceholderPreview
-        } else {
-            return state == .locked || state == .lockedCanceled || state == .passcodeOff || shouldLock
-        }
-    }
 }
 
 // MARK: - Business Logic
@@ -109,10 +85,7 @@ extension LockSceneViewModel {
                 backgroundedAt = ContinuousClock.now
             }
         case .active:
-            showPlaceholderPreview = false
-            if state == .unlocked, shouldLock {
-                state = .locked
-            }
+            lockIfExpired()
             backgroundedAt = nil
             if case let .unlocking(attempt) = state, attempt.isInvalidated {
                 state = .locked
@@ -121,7 +94,7 @@ extension LockSceneViewModel {
                 startUnlock()
             }
         case .inactive:
-            showPlaceholderPreview = true
+            lockIfExpired()
         @unknown default:
             break
         }
@@ -153,7 +126,6 @@ extension LockSceneViewModel {
     }
 
     func resetLockState() {
-        showPlaceholderPreview = false
         backgroundedAt = nil
         state = .unlocked
     }
@@ -174,6 +146,12 @@ extension LockSceneViewModel {
 // MARK: - Private
 
 extension LockSceneViewModel {
+    private func lockIfExpired() {
+        if state == .unlocked, shouldLock {
+            state = .locked
+        }
+    }
+
     private func authenticate(context: LAContext) async {
         let newState = await getAuthenticationState(context: context)
         guard case let .unlocking(attempt) = state, attempt.context === context else { return }

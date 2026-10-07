@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 годин</string>
   <string name="lock_require_authentication">Вимагається автентифікація</string>
   <string name="lock_unlock">Розблокувати</string>
-  <string name="lock_privacy_lock">Блокування конфіденційності</string>
   <string name="lock_footer">Захистіть доступ до цієї програми на своєму пристрої</string>
   <string name="lock_passcode">Пароль</string>
   <string name="lock_passcode_off_title">Пароль пристрою вимкнено</string>

@@ -534,7 +534,6 @@ lock_one_hour = 1 ঘন্টা
 lock_six_hours = 6 ঘন্টা
 lock_require_authentication = প্রমাণীকরণ প্রয়োজন
 lock_unlock = আনলক করুন
-lock_privacy_lock = গোপনীয়তা লক
 lock_footer = আপনার ডিভাইসে এই অ্যাপের অ্যাক্সেস সুরক্ষিত করুন
 lock_passcode = পাসকোড
 lock_passcode_off_title = ডিভাইসের পাসকোড বন্ধ আছে

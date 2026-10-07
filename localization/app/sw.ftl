@@ -534,7 +534,6 @@ lock_one_hour = Saa 1
 lock_six_hours = 6 masaa
 lock_require_authentication = Inahitaji uthibitishaji
 lock_unlock = Fungua
-lock_privacy_lock = Kufuli ya Faragha
 lock_footer = Linda ufikiaji wa programu hii kwenye kifaa chako
 lock_passcode = Nambari ya siri
 lock_passcode_off_title = Nambari ya siri ya kifaa imezimwa

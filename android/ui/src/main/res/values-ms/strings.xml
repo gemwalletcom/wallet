@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 jam</string>
   <string name="lock_require_authentication">Memerlukan pengesahan</string>
   <string name="lock_unlock">Buka kunci</string>
-  <string name="lock_privacy_lock">Kunci Privasi</string>
   <string name="lock_footer">Lindungi akses kepada apl ini pada peranti anda</string>
   <string name="lock_passcode">Kod Laluan</string>
   <string name="lock_passcode_off_title">Kod laluan peranti dimatikan</string>

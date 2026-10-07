@@ -534,7 +534,6 @@ lock_one_hour = שעה אחת
 lock_six_hours = 6 שעות
 lock_require_authentication = דרוש אימות
 lock_unlock = פתח את הנעילה
-lock_privacy_lock = נעילת פרטיות
 lock_footer = הגן על הגישה לאפליקציה הזו במכשיר שלך
 lock_passcode = קוד גישה
 lock_passcode_off_title = קוד הגישה של המכשיר כבוי

@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 masaa</string>
   <string name="lock_require_authentication">Inahitaji uthibitishaji</string>
   <string name="lock_unlock">Fungua</string>
-  <string name="lock_privacy_lock">Kufuli ya Faragha</string>
   <string name="lock_footer">Linda ufikiaji wa programu hii kwenye kifaa chako</string>
   <string name="lock_passcode">Nambari ya siri</string>
   <string name="lock_passcode_off_title">Nambari ya siri ya kifaa imezimwa</string>

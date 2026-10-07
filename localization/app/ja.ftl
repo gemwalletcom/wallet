@@ -534,7 +534,6 @@ lock_one_hour = 1 時間
 lock_six_hours = 6 時間
 lock_require_authentication = 認証を要求
 lock_unlock = ロック解除
-lock_privacy_lock = プライバシーロック
 lock_footer = デバイス上のこのアプリへのアクセスを保護する
 lock_passcode = パスコード
 lock_passcode_off_title = デバイスのパスコードがオフです

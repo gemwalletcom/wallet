@@ -534,7 +534,6 @@ lock_one_hour = 1시간
 lock_six_hours = 6시간
 lock_require_authentication = 인증 필요
 lock_unlock = 잠금 해제
-lock_privacy_lock = 개인 정보 보호 잠금
 lock_footer = 기기에서 이 앱에 대한 액세스를 보호하세요
 lock_passcode = 비밀번호
 lock_passcode_off_title = 기기 암호가 꺼져 있습니다

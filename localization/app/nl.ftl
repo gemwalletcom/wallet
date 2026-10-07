@@ -534,7 +534,6 @@ lock_one_hour = 1 uur
 lock_six_hours = 6 uur
 lock_require_authentication = Authenticatie vereisen
 lock_unlock = Ontgrendelen
-lock_privacy_lock = Privacyslot
 lock_footer = Beveilig de toegang tot deze app op uw apparaat
 lock_passcode = Toegangscode
 lock_passcode_off_title = Toegangscode van apparaat staat uit
