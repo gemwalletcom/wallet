@@ -15,7 +15,6 @@ members = [
     "apps/dynode",
 
     "bin/cli",
-    "bin/img-downloader",
     "bin/generate",
     "bin/uniffi-*",
     "bin/gas-bench",
@@ -181,11 +180,6 @@ fluent-syntax = { version = "0.12.0" }
 i18n-embed = { version = "0.16.0" }
 i18n-embed-fl = { version = "0.10.0" }
 rust-embed = { version = "8.11.0" }
-
-# Images
-image = { version = "0.25.8", default-features = false }
-oxipng = { version = "10.2.1", default-features = false }
-resvg = { version = "0.48.1", default-features = false }
 
 # Code generation and bindings
 quote = { version = "1.0.47" }
