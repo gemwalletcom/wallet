@@ -134,7 +134,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             is_nft_supported: true,
             is_utxo: false,
             evm: Some(EvmChainConfig {
-                min_priority_fee: 10_000_000,
+                min_priority_fee: 100_000,
                 chain_stack: ChainStack::Native,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped(ETHEREUM_WETH_TOKEN_ID),

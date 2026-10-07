@@ -40,7 +40,7 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
     }
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
-        let fee_history = self.get_fee_history(get_fee_history_blocks(self.chain), get_reward_percentiles().to_vec()).await?;
+        let fee_history = self.get_fee_history(get_fee_history_blocks(self.chain), get_reward_percentiles(self.chain).to_vec()).await?;
 
         map_transaction_fee_rates(self.chain, &fee_history)
     }
