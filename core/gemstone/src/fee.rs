@@ -396,11 +396,11 @@ mod tests {
         assert_eq!(at_normal.base_fee.unwrap().check, GemCustomFeeCheck::Valid, "normal's base fee itself is accepted");
         assert!(at_normal.selection.is_some());
 
-        let low_tip = fresh.on_base_fee_input("24".to_string()).on_input("0.005".to_string()).view_state();
+        let low_tip = fresh.on_base_fee_input("24".to_string()).on_input("0.00005".to_string()).view_state();
         assert_eq!(
             low_tip.rate.check,
             GemCustomFeeCheck::BelowMinimum {
-                rate: minimum_text(FeeUnitType::Gwei, &BigInt::from(10_000_000), 9, "ETH")
+                rate: minimum_text(FeeUnitType::Gwei, &BigInt::from(100_000), 9, "ETH")
             }
         );
         assert_eq!(low_tip.selection, None);

@@ -60,7 +60,7 @@ impl GemstoneClient {
         let blocks = get_fee_history_blocks(self.chain);
         let call = EthereumRpc::FeeHistory {
             blocks,
-            reward_percentiles: get_reward_percentiles().to_vec(),
+            reward_percentiles: get_reward_percentiles(self.chain).to_vec(),
         };
 
         let fee_history: EthereumFeeHistory = client.request(call).await?;
