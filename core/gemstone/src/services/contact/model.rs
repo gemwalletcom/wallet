@@ -149,6 +149,9 @@ pub struct GemContactAddressSession {
 #[uniffi::export]
 impl GemContactAddressSession {
     pub fn on_chain_changed(&self, chain: Chain) -> Self {
+        if chain == self.chain {
+            return self.clone();
+        }
         Self {
             chain,
             memo: String::new(),
@@ -279,6 +282,7 @@ mod tests {
         assert_eq!(cosmos.fields, rules::contact_address_fields(Chain::Cosmos));
 
         let typed = cosmos.on_memo_changed("typed".into());
+        assert_eq!(typed.on_chain_changed(Chain::Cosmos).memo, "typed", "picking the network already selected keeps the memo");
         assert_eq!(typed.on_scanned(GemContactScannedAddress { address: "cosmos1".into(), memo: None }).memo, "typed", "a scan without a memo keeps the typed one");
         assert_eq!(
             typed
