@@ -190,7 +190,7 @@ class MainActivity :
         viewModel.pendIntent(intent)
     }
 
-    override fun requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
-        systemAuthenticator.requestAuth(auth, onSuccess)
+    override fun requestAuth(auth: AuthRequest, onCancel: () -> Unit, onSuccess: () -> Unit) {
+        systemAuthenticator.requestAuth(auth, onCancel, onSuccess)
     }
 }

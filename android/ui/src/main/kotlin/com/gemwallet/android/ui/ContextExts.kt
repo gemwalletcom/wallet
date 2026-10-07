@@ -21,8 +21,8 @@ fun Context.findActivity(): Activity? {
     return null
 }
 
-fun Context.requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
-    (findActivity() as? AuthRequester)?.requestAuth(auth, onSuccess)
+fun Context.requestAuth(auth: AuthRequest, onCancel: () -> Unit = {}, onSuccess: () -> Unit) {
+    (findActivity() as? AuthRequester)?.requestAuth(auth, onCancel, onSuccess)
 }
 
 fun Context.shareText(subject: String?, text: String?, chooserTitle: String) {

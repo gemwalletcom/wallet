@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.GemKeystoreAuthentication
 public import enum Gemstone.GemLockPeriod
 import protocol Gemstone.GemSecurityServiceProtocol
 import LocalAuthentication
@@ -33,19 +34,6 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         }
     }
 
-    public var isPrivacyLockEnabled: Bool {
-        do {
-            return try keystorePassword.getPrivacyLockStatus() == .enabled
-        } catch {
-            return true
-        }
-    }
-
-    public func togglePrivacyLock(enabled: Bool) throws {
-        let status = PrivacyLockStatus(enabled: enabled)
-        try keystorePassword.setPrivacyLockStatus(status)
-    }
-
     public var lockPeriod: GemLockPeriod {
         do {
             return try keystorePassword.getAuthenticationLockPeriod() ?? .default
@@ -58,8 +46,8 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         try keystorePassword.setAuthenticationLockPeriod(period: period)
     }
 
-    public var availableAuthentication: KeystoreAuthentication {
-        keystorePassword.getAvailableAuthentication()
+    public var availableAuthentication: GemKeystoreAuthentication {
+        keystorePassword.getAvailableAuthentication().toGem()
     }
 
     public var isPasscodeSet: Bool {
@@ -80,6 +68,15 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
             try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
         } catch let error as NSError {
             throw BiometryAuthenticationError(error: error)
+        }
+        guard requiresAuthentication else { return }
+        do {
+            try keystorePassword.unlock(context: context)
+        } catch where error.isAuthenticationCancelled {
+            throw BiometryAuthenticationError.cancelledByUser
+        } catch {
+            debugLog("lock key unlock failed: \(error)")
+            throw BiometryAuthenticationError.authenticationFailed
         }
     }
 }

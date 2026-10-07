@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 giờ</string>
   <string name="lock_require_authentication">Yêu cầu xác thực</string>
   <string name="lock_unlock">Mở khóa</string>
-  <string name="lock_privacy_lock">Khóa riêng tư</string>
   <string name="lock_footer">Bảo vệ quyền truy cập vào ứng dụng này trên thiết bị của bạn</string>
   <string name="lock_passcode">Mật mã</string>
   <string name="lock_passcode_off_title">Mật mã thiết bị đang tắt</string>

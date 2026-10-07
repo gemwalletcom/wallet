@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 hodin</string>
   <string name="lock_require_authentication">Vyžadovat ověření</string>
   <string name="lock_unlock">Odemknout</string>
-  <string name="lock_privacy_lock">Zámek soukromí</string>
   <string name="lock_footer">Chraňte přístup k této aplikaci na svém zařízení</string>
   <string name="lock_passcode">Přístupový kód</string>
   <string name="lock_passcode_off_title">Kód zařízení je vypnutý</string>

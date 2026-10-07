@@ -19,9 +19,6 @@ private struct LockWindowViewModifier: ViewModifier {
             .onChange(of: colorScheme, initial: true) { _, newColorScheme in
                 lockWindow.setColorScheme(newColorScheme)
             }
-            .onChange(of: lockWindow.isPrivacyLockVisible) { _, visible in
-                lockWindow.togglePrivacyLock(visible: visible)
-            }
             .onChange(of: lockWindow.showLockScreen, initial: true) { _, showLockScreen in
                 lockWindow.toggleLock(show: showLockScreen)
             }

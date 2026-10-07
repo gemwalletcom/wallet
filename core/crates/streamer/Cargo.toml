@@ -11,7 +11,7 @@ futures = { workspace = true }
 async-trait = { workspace = true }
 strum = { workspace = true }
 
-lapin = { version = "4.10.0" }
+lapin = { workspace = true }
 
 gem_tracing = { path = "../gem_tracing" }
 primitives = { path = "../primitives" }

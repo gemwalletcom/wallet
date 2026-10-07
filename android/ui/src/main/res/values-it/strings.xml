@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 ore</string>
   <string name="lock_require_authentication">Richiedi l\'autenticazione</string>
   <string name="lock_unlock">Sblocca</string>
-  <string name="lock_privacy_lock">Blocco privacy</string>
   <string name="lock_footer">Proteggi l\'accesso a questa app sul tuo dispositivo</string>
   <string name="lock_passcode">Codice di accesso</string>
   <string name="lock_passcode_off_title">Il codice del dispositivo è disattivato</string>

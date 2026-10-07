@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.114.62"
+version = "2.114.63"
 edition = "2024"
 license = "MIT"
 homepage = "https://gemwallet.com/"
@@ -15,7 +15,6 @@ members = [
     "apps/dynode",
 
     "bin/cli",
-    "bin/img-downloader",
     "bin/generate",
     "bin/uniffi-*",
     "bin/gas-bench",
@@ -52,6 +51,7 @@ members = [
 
     "crates/localizer",
     "crates/coinmarketcap",
+    "crates/etherscan",
     "crates/dexscreener",
     "crates/jupiter",
     "crates/job_runner",
@@ -71,11 +71,30 @@ members = [
 ]
 
 [workspace.dependencies]
+# Serialization and encoding
+base64 = { version = "0.23.0" }
+bcs = { version = "0.2.1" }
+bech32 = { version = "0.12.0" }
+borsh = { version = "1.8.0", features = ["derive"] }
+bs58 = { version = "0.5.1", features = ["check"] }
+crc = { version = "3.4.0" }
+data-encoding = { version = "2.11.1" }
+hex = { version = "0.4.3" }
+hex_lit = { version = "0.1.1", features = ["rust_v_1_46"] }
+pem-rfc7468 = { version = "1.0.0", features = ["std"] }
+rmp-serde = { version = "1.3.1" }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.151", features = ["preserve_order"] }
 serde_urlencoded = { version = "0.7.1" }
 
+# Async runtime
+async-trait = { version = "0.1.91" }
+futures = { version = "0.3.33" }
 tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
+
+# HTTP and networking
+idna = { version = "1.1.0" }
+percent-encoding = { version = "2.3.2" }
 reqwest = { version = "0.13.4", features = [
     "json",
     "gzip",
@@ -84,76 +103,88 @@ reqwest = { version = "0.13.4", features = [
     "http2",
     "query",
 ] }
-
-url = { version = "2.5.8" }
-percent-encoding = { version = "2.3.2" }
-config = { version = "0.15.25", features = ["yaml"] }
 rocket = { version = "0.5.1", features = ["json"] }
 rocket_ws = { version = "0.1.1" }
+url = { version = "2.5.8" }
 
-async-trait = { version = "0.1.91" }
-prometheus-client = { version = "0.25.0" }
-futures = { version = "0.3.33" }
-uuid = { version = "1.24.0", features = ["v4", "v5"] }
-tracing = { version = "0.1.44" }
-tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-
-# db
+# Database and messaging
+diesel = { version = "2.3.13" }
+diesel_migrations = { version = "2.3.2" }
+lapin = { version = "4.12.0" }
+r2d2 = { version = "0.8.10" }
 redis = { version = "1.4.1", default-features = false, features = [
     "tokio-comp",
     "connection-manager",
 ] }
-r2d2 = { version = "0.8.10" }
-chrono = { version = "0.4.45", features = ["serde"] }
 
-# crypto
-base64 = { version = "0.23.0" }
-bech32 = { version = "0.12.0" }
-bitcoin = { version = "0.32.102" }
-bitcoincash-addr = { version = "0.5.2" }
+# Cryptography and authentication
+aes = { version = "0.9.3" }
+aes-gcm = { version = "0.11.0", default-features = false, features = ["aes", "alloc"] }
+argon2 = { version = "0.6.0" }
+bip39 = { version = "3.0.0", default-features = false, features = ["zeroize"] }
 blake2b_simd = { version = "1.0.4" }
-bs58 = { version = "0.5.1", features = ["check"] }
+ctr = { version = "0.10.1" }
+curve25519-dalek = { version = "5.0.0" }
+ed25519-dalek = { version = "3.0.0", default-features = false }
 getrandom = { version = "0.4.3" }
-hex = { version = "0.4.3" }
-hex_lit = { version = "0.1.1", features = ["rust_v_1_46"] }
-crc = { version = "3.4.0" }
-num-bigint = { version = "0.5.1", features = ["std", "serde"] }
-num-traits = { version = "0.2.19" }
-num-integer = { version = "0.1.46" }
-bigdecimal = "0.4.10"
 hmac = { version = "0.13.0" }
+jsonwebtoken = { version = "11.1.0", features = ["aws_lc_rs"] }
+k256 = { version = "0.14.0", features = ["ecdsa", "sha256"] }
+rand = { version = "0.10.2" }
+ring = { version = "0.17.14", features = ["std"] }
+ripemd = { version = "0.2.0" }
+scrypt = { version = "0.12.0" }
 sha1 = { version = "0.11.0" }
 sha2 = { version = "0.11.0" }
 sha3 = { version = "0.12.0" }
-ripemd = { version = "0.2.0" }
 zeroize = { version = "1.9.0" }
-ring = { version = "0.17.14", features = ["std"] }
-aes-gcm = { version = "0.11.0", default-features = false, features = ["aes", "alloc"] }
-rand = { version = "0.10.2" }
-strum = { version = "0.28.0", features = ["derive"] }
-curve25519-dalek = { version = "5.0.0" }
-ed25519-dalek = { version = "3.0.0" }
-borsh = { version = "1.8.0", features = ["derive"] }
-bcs = { version = "0.2.1" }
-pem-rfc7468 = { version = "1.0.0", features = ["std"] }
-sui-types = { package = "sui-sdk-types", version = "0.4", features = [
+
+# Blockchain
+alloy-consensus = { version = "2.5.0" }
+alloy-ens = { version = "2.5.0" }
+alloy-primitives = { version = "1.7.3" }
+alloy-rlp = { version = "0.3.16" }
+alloy-sol-types = { version = "1.7.3", features = ["eip712-serde"] }
+bitcoin = { version = "0.32.102" }
+bitcoincash-addr = { version = "0.5.2" }
+sui-transaction-builder = { version = "0.4.0", default-features = false }
+sui-types = { package = "sui-sdk-types", version = "0.4.0", features = [
     "hash",
     "serde",
 ] }
-sui-transaction-builder = { version = "0.4", default-features = false }
-k256 = { version = "0.14.0", features = ["ecdsa", "sha256"] }
-bip39 = { version = "3.0.0", default-features = false, features = ["zeroize"] }
 
-uniffi = { version = "0.32.1" }
-regex = { version = "1.13.1" }
+# Numbers
+bigdecimal = { version = "0.4.10" }
+num-bigint = { version = "0.5.1", features = ["std", "serde"] }
+num-integer = { version = "0.1.46" }
+num-traits = { version = "0.2.19" }
+rust_decimal = { version = "1.42.0" }
+
+# Configuration and utilities
+chrono = { version = "0.4.45", features = ["serde"] }
 clap = { version = "4.6.1", features = ["derive"] }
+config = { version = "0.15.25", default-features = false, features = ["yaml"] }
+regex = { version = "1.13.1" }
+strum = { version = "0.28.0", features = ["derive"] }
 tempfile = { version = "3.24.0" }
+unicode-normalization = { version = "0.1.25" }
+uuid = { version = "1.24.0", features = ["v4", "v5"] }
 
-alloy-primitives = { version = "1.7.3" }
-alloy-sol-types = { version = "1.7.3", features = ["eip712-serde"] }
-alloy-consensus = { version = "2.5.0" }
-alloy-rlp = { version = "0.3.16" }
-jsonwebtoken = { version = "11.1.0", features = ["aws_lc_rs"] }
+# Logging and metrics
+prometheus-client = { version = "0.25.0" }
+tracing = { version = "0.1.44" }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+
+# Localization and embedded assets
+fluent-syntax = { version = "0.12.0" }
+i18n-embed = { version = "0.16.0" }
+i18n-embed-fl = { version = "0.10.0" }
+rust-embed = { version = "8.11.0" }
+
+# Code generation and bindings
+quote = { version = "1.0.47" }
+syn = { version = "3.0.6" }
+uniffi = { version = "0.32.1" }
 
 [profile.dev]
 debug = "line-tables-only"

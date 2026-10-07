@@ -534,7 +534,6 @@ lock_one_hour = awa 1
 lock_six_hours = 6 hours
 lock_require_authentication = Bukatar tantancewa
 lock_unlock = Buɗe
-lock_privacy_lock = Kulle Sirri
 lock_footer = Kare damar shiga wannan app akan na'urarka
 lock_passcode = Lambar wucewa
 lock_passcode_off_title = An kashe lambar sirrin na'ura

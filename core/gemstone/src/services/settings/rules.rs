@@ -79,8 +79,6 @@ pub struct GemSecurityInput {
     pub authentication_enabled: bool,
     pub authentication_name: Option<String>,
     pub lock_period: String,
-    pub privacy_lock_enabled: bool,
-    pub privacy_lock_supported: bool,
 }
 
 pub fn preferences_sections(input: PreferencesInput) -> Vec<GemListSection> {
@@ -179,7 +177,6 @@ pub fn security_sections(input: GemSecurityInput, hide_balance_enabled: bool) ->
                     icon: GemListRowIcon::None,
                     action: GemRowAction::LockPeriod,
                 }),
-                (input.authentication_enabled && input.privacy_lock_supported).then(|| toggle(GemListRowTitle::PrivacyLock, input.privacy_lock_enabled, GemRowAction::PrivacyLock)),
             ]
             .into_iter()
             .flatten()
@@ -400,8 +397,6 @@ mod tests {
             authentication_enabled,
             authentication_name: Some("Face ID".to_string()),
             lock_period: "Immediately".to_string(),
-            privacy_lock_enabled: true,
-            privacy_lock_supported: true,
         };
 
         assert_eq!(
@@ -415,20 +410,7 @@ mod tests {
         );
         assert_eq!(
             security_sections(input(true), false).first().map(|section| section.rows.iter().filter_map(row_title).collect::<Vec<_>>()),
-            Some(vec![GemListRowTitle::LockPeriod, GemListRowTitle::PrivacyLock])
-        );
-        assert_eq!(
-            security_sections(
-                GemSecurityInput {
-                    privacy_lock_supported: false,
-                    ..input(true)
-                },
-                false
-            )
-            .first()
-            .map(|section| section.rows.iter().filter_map(row_title).collect::<Vec<_>>()),
-            Some(vec![GemListRowTitle::LockPeriod]),
-            "a platform without a privacy lock drops that row"
+            Some(vec![GemListRowTitle::LockPeriod])
         );
         assert_eq!(
             security_sections(input(true), false).last().map(|section| section.rows.clone()),
@@ -507,18 +489,13 @@ mod tests {
                 authentication_enabled: true,
                 authentication_name: None,
                 lock_period: "Immediately".to_string(),
-                privacy_lock_enabled: false,
-                privacy_lock_supported: true,
             },
             false,
         );
 
         assert_eq!(settings[0].rows[0].action(), Some(GemRowAction::Wallets));
         assert_eq!(settings.last().and_then(|section| section.rows.last()).and_then(GemListRow::action), Some(GemRowAction::Developer));
-        assert_eq!(
-            security[0].rows.iter().map(GemListRow::action).collect::<Vec<_>>(),
-            vec![Some(GemRowAction::Authentication), Some(GemRowAction::LockPeriod), Some(GemRowAction::PrivacyLock)]
-        );
+        assert_eq!(security[0].rows.iter().map(GemListRow::action).collect::<Vec<_>>(), vec![Some(GemRowAction::Authentication), Some(GemRowAction::LockPeriod)]);
         assert_eq!(about_sections("1.0".to_string(), "1".to_string(), None).last().and_then(|section| section.rows.first()).and_then(GemListRow::action), None);
     }
 

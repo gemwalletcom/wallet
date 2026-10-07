@@ -32,7 +32,7 @@ pub use self::repositories::{
     parser_state_repository::{ParserState, ParserStateRepository},
     perpetuals_repository::PerpetualsRepository,
     price_alerts_repository::PriceAlertsRepository,
-    prices_providers_repository::{PriceProviderConfig, PricesProvidersRepository},
+    prices_providers_repository::PricesProvidersRepository,
     prices_repository::{AssetWithMarket, AssetsWithPricesFilter, PriceAsset, PriceFilter, PriceUpdate, PricesRepository},
     releases_repository::ReleasesRepository,
     rewards_redemptions_repository::{RedemptionRecord, RedemptionUpdate, RewardsRedemptionsRepository},

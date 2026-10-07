@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -47,6 +48,7 @@ import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.Import
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportTabUIModel
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportWalletViewModel
 import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
+import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
@@ -61,6 +63,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -81,6 +84,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
     DisableScreenShooting()
     DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
+    val context = LocalContext.current
     val viewModel: ImportWalletViewModel = hiltViewModel()
 
     DisposableEffect(Unit) {
@@ -104,7 +108,12 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
         nameResolveIndicator = nameResolveIndicator,
         dataError = uiState.dataError,
         buttonState = buttonState(loading = uiState.loading),
-        onImport = { viewModel.import(onImported) },
+        onImport = {
+            when (uiState.importType.kind) {
+                GemWalletImportKind.ADDRESS -> viewModel.import(onImported)
+                GemWalletImportKind.PHRASE, GemWalletImportKind.PRIVATE_KEY -> context.requestAuth(AuthRequest.Default) { viewModel.import(onImported) }
+            }
+        },
         onInput = viewModel::onInput,
         onScan = if (uiState.showsScan) {
             { isScanning = true }

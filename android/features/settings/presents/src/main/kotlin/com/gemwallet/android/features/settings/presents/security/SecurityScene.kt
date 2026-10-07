@@ -8,8 +8,10 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,13 +36,33 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import uniffi.gemstone.GemListSection
 
 @Composable
-fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, lockPeriods: List<LockPeriodOption>, onAuthRequired: (Boolean) -> Unit, onHideBalances: () -> Unit, onLockInterval: (Int) -> Unit, onCancel: () -> Unit) {
+fun SecurityScene(
+    sections: List<GemListSection>,
+    lockInterval: Int?,
+    lockPeriods: List<LockPeriodOption>,
+    error: String?,
+    isUpdatingAuthentication: Boolean,
+    onErrorShown: () -> Unit,
+    onAuthRequired: (Boolean) -> Unit,
+    onHideBalances: () -> Unit,
+    onLockInterval: (Int) -> Unit,
+    onCancel: () -> Unit,
+) {
     val context = LocalContext.current
     var isShowLockPeriods by remember { mutableStateOf(false) }
+
+    val snackbar = remember { SnackbarHostState() }
+    LaunchedEffect(error) {
+        error?.let {
+            snackbar.showSnackbar(it)
+            onErrorShown()
+        }
+    }
 
     Scene(
         title = stringResource(id = (R.string.settings_security)),
         onClose = onCancel,
+        snackbar = snackbar,
     ) {
         LazyColumn {
             sections.forEachIndexed { index, section ->
@@ -50,8 +72,12 @@ fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, lockPeriod
                         listPosition = position,
                         onToggle = { action, isOn ->
                             when (action.securityAction()) {
-                                SecurityRowAction.Authentication -> context.requestAuth(AuthRequest.Required) { onAuthRequired(isOn) }
+                                SecurityRowAction.Authentication -> if (!isUpdatingAuthentication) {
+                                    context.requestAuth(AuthRequest.Required) { onAuthRequired(isOn) }
+                                }
+
                                 SecurityRowAction.HideBalance -> onHideBalances()
+
                                 null -> Unit
                             }
                         },

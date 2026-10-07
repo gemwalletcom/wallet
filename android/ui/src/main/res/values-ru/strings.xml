@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 часов</string>
   <string name="lock_require_authentication">Требуется аутентификация</string>
   <string name="lock_unlock">Разблокировать</string>
-  <string name="lock_privacy_lock">Блокировка конфиденциальности</string>
   <string name="lock_footer">Защитите доступ к этому приложению на вашем устройстве</string>
   <string name="lock_passcode">Пароль</string>
   <string name="lock_passcode_off_title">Пароль устройства отключён</string>

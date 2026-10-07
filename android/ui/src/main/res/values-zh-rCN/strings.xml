@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 小时</string>
   <string name="lock_require_authentication">需要身份验证</string>
   <string name="lock_unlock">解锁</string>
-  <string name="lock_privacy_lock">隐私锁</string>
   <string name="lock_footer">保护此设备上的应用访问安全</string>
   <string name="lock_passcode">密码</string>
   <string name="lock_passcode_off_title">设备密码已关闭</string>

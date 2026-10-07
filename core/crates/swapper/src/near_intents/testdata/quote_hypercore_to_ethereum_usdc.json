@@ -1,0 +1,46 @@
+{
+    "quote": {
+        "amountIn": "10002430500",
+        "amountInFormatted": "100.024305",
+        "amountInUsd": "100.002199628595",
+        "minAmountIn": "10002430500",
+        "amountOut": "99017274",
+        "amountOutFormatted": "99.017274",
+        "amountOutUsd": "98.995391182446",
+        "minAmountOut": "98027101",
+        "timeEstimate": 42,
+        "refundFee": "31530000",
+        "withdrawFee": "300000",
+        "depositAddress": "0x1085c5f70f7f7591d97da281a64688385455c2bd",
+        "depositMode": "SIMPLE"
+    },
+    "quoteRequest": {
+        "dry": false,
+        "depositMode": "SIMPLE",
+        "swapType": "EXACT_INPUT",
+        "slippageTolerance": 100,
+        "originAsset": "1cs_v1:hypercore:hip1:0x6d1e7cde53ba9467b783cb7c530ce054",
+        "depositType": "ORIGIN_CHAIN",
+        "destinationAsset": "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        "amount": "10002430590",
+        "refundTo": "0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4",
+        "refundType": "ORIGIN_CHAIN",
+        "recipient": "0x85F17Cf997934a597031b2E18a9aB6ebD4B9f6a4",
+        "recipientType": "DESTINATION_CHAIN",
+        "deadline": "2026-09-30T23:24:33.673Z",
+        "confidentiality": "public",
+        "referral": "gemwallet",
+        "quoteWaitingTimeMs": 1024,
+        "appFees": [
+            {
+                "recipient": "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc",
+                "fee": 25
+            },
+            {
+                "recipient": "5880ad2b362620fadf759cbceb1cd5737ce8c6ed7fb8e9942881e6731f9247dd",
+                "fee": 25
+            }
+        ],
+        "insured": false
+    }
+}

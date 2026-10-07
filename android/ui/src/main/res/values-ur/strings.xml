@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 گھنٹے</string>
   <string name="lock_require_authentication">تصدیق کی ضرورت ہے۔</string>
   <string name="lock_unlock">غیر مقفل کریں۔</string>
-  <string name="lock_privacy_lock">پرائیویسی لاک</string>
   <string name="lock_footer">اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔</string>
   <string name="lock_passcode">پاس کوڈ</string>
   <string name="lock_passcode_off_title">ڈیوائس کا پاس کوڈ بند ہے</string>

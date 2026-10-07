@@ -441,7 +441,6 @@
   <string name="lock_six_hours">6 hours</string>
   <string name="lock_require_authentication">Require authentication</string>
   <string name="lock_unlock">Unlock</string>
-  <string name="lock_privacy_lock">Privacy Lock</string>
   <string name="lock_footer">Protect access to this app on your device</string>
   <string name="lock_passcode">Passcode</string>
   <string name="lock_passcode_off_title">Device passcode is off</string>

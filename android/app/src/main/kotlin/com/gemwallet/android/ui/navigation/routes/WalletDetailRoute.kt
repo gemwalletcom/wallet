@@ -33,12 +33,8 @@ fun EntryProviderScope<NavKey>.walletDetailScreen(onBoard: () -> Unit, onCancel:
     entry<WalletDetailRoute>(
         metadata = { key -> routeArguments(RouteArgument.WalletId to key.walletId.id) },
     ) {
-        val context = LocalContext.current
-
         WalletDetailScreen(
-            onPhraseShow = { input ->
-                context.requestAuth(AuthRequest.Default) { onSecurityReminder(input) }
-            },
+            onPhraseShow = onSecurityReminder,
             onSelectImage = onSelectImage,
             onBoard = onBoard,
             onCancel = onCancel,
@@ -52,9 +48,10 @@ fun EntryProviderScope<NavKey>.walletDetailScreen(onBoard: () -> Unit, onCancel:
     }
 
     entry<SecurityReminderRoute> { key ->
+        val context = LocalContext.current
         SecurityReminderScene(
             title = stringResource(key.input.kind.stringRes()),
-            onAccept = { onSecurityReminderAccepted(key.input) },
+            onAccept = { context.requestAuth(AuthRequest.Default) { onSecurityReminderAccepted(key.input) } },
             onCancel = onCancel,
         )
     }

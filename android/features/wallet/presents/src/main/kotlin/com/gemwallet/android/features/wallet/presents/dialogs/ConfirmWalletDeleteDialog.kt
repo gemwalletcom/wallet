@@ -32,7 +32,7 @@ fun ConfirmWalletDeleteDialog(prompt: String, onConfirm: () -> Unit, onDismiss: 
                 colors = ButtonDefaults.textButtonColors().copy(contentColor = MaterialTheme.colorScheme.error),
                 onClick = {
                     onDismiss()
-                    context.requestAuth(AuthRequest.Confirmation, onConfirm)
+                    context.requestAuth(AuthRequest.Confirmation, onSuccess = onConfirm)
                 },
             ) {
                 Text(text = stringResource(id = R.string.common_delete))

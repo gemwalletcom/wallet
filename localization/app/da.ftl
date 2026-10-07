@@ -534,7 +534,6 @@ lock_one_hour = 1 time
 lock_six_hours = 6 timer
 lock_require_authentication = Kræv godkendelse
 lock_unlock = Lås op
-lock_privacy_lock = Privatlivslås
 lock_footer = Beskyt adgangen til denne app på din enhed
 lock_passcode = Adgangskode
 lock_passcode_off_title = Enhedens adgangskode er slået fra

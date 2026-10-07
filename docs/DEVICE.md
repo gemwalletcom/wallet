@@ -16,6 +16,15 @@ Five dot-separated parts: the 64-hex Ed25519 public key, the Unix timestamp in m
 
 The header lives in the shared `gem_auth` crate, used by the client and the backend; the device key never crosses the FFI boundary ([Keystore v4](KEYSTORE_V4.md)). Backend side: [signature verification](../core/apps/api/src/devices/signature.rs), [cryptographic check](../core/crates/gem_auth/src/device_signature.rs), [request guards](../core/apps/api/src/devices/guard/).
 
+## Device key storage
+
+Core owns the device key pair. `GemDeviceKeyService` reads the Ed25519 private key through `GemSecureStore` under `device_private_key`, with the public key beside it under `device_public_key`, generates the pair on the first read of an installation, and keeps it in memory for the process. The apps provide the store and never derive, sign with, or copy the key themselves.
+
+- iOS: a Keychain item named `gateway` plus the key, `whenUnlockedThisDeviceOnly`, no authentication policy. The pre-namespace items `devicePrivateKey` and `devicePublicKey` held raw bytes; a read that finds no namespaced item hex-encodes the legacy item into it once.
+- Android: an entry in the secure preferences store, `gem_secure_preferences.xml`, encrypted by the `gem_secure_preferences_keyset` Tink keyset under the `gem_secure_preferences_master_key` Keystore key. Older installations kept the pair in a separate store, `gem_device_keys.xml` with the `ngen_gem_keyset` keyset under `gem_device_master_key`, and before that in the `device_keys` DataStore; a read that finds no secure preferences entry copies the value forward once. The device key is never wrapped by the authentication-bound key that protects the wallet password ([Keystore v4](KEYSTORE_V4.md)), so device registration and the stream keep working while the app is locked.
+
+Reinstalling the app on Android creates a new device key and therefore a new device record; on iOS the Keychain item survives removal, so the device id is kept.
+
 ## Device record and subscriptions
 
 One record per install, the shared `Device` primitive: push token, locale, currency, app version, push and price-alert flags, and `subscriptionsVersion`, bumped whenever the subscription set changes so either side can tell the two disagree.

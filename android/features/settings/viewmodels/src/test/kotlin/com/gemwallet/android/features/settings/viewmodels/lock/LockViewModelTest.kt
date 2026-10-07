@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.viewmodels.lock
 
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import io.mockk.every
@@ -80,12 +81,24 @@ class LockViewModelTest {
         assertEquals(stateBefore, viewModel.uiState.value)
     }
 
-    private fun lockViewModel(authRequired: Boolean): LockViewModel {
+    @Test
+    fun protectedKeyset_requiresInitialAuthWhenThePreferenceWasTamperedOff() {
+        val viewModel = lockViewModel(authRequired = false, passwordProtected = true)
+
+        assertEquals(AuthState.Required, viewModel.uiState.value.initialAuth)
+        assertFalse(viewModel.uiState.value.hasUnlockedApp)
+        assertTrue(viewModel.isAuthRequired())
+    }
+
+    private fun lockViewModel(authRequired: Boolean, passwordProtected: Boolean = false): LockViewModel {
         val securityPreferences = mockk<SecurityPreferences>()
         every { securityPreferences.authRequired() } returns authRequired
+        val passwordProtection = mockk<WalletPasswordProtection>()
+        every { passwordProtection.authenticationRequired() } returns passwordProtected
 
         return LockViewModel(
             securityPreferences = securityPreferences,
+            passwordProtection = passwordProtection,
             lockTimer = mockk<LockTimer>(relaxed = true),
             ioDispatcher = UnconfinedTestDispatcher(),
         )
