@@ -2810,6 +2810,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "etherscan"
+version = "2.114.62"
+dependencies = [
+ "gem_client",
+ "primitives",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_serializers",
+]
+
+[[package]]
 name = "euclid"
 version = "0.22.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3265,6 +3277,7 @@ name = "gas-bench"
 version = "2.114.62"
 dependencies = [
  "clap",
+ "etherscan",
  "gem_client",
  "gem_evm",
  "gem_jsonrpc",
@@ -3273,7 +3286,6 @@ dependencies = [
  "num-bigint 0.5.1",
  "primitives",
  "serde",
- "serde_serializers",
  "tokio",
 ]
 

@@ -1,0 +1,12 @@
+[package]
+name = "etherscan"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+primitives = { path = "../primitives" }
+reqwest = { workspace = true }
+serde_serializers = { path = "../serde_serializers" }
