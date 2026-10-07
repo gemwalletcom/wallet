@@ -6,7 +6,7 @@ import LocalAuthentication
 import Localization
 import Observation
 import Primitives
-import Style
+import PrimitivesComponents
 import SwiftUI
 
 @MainActor
@@ -31,11 +31,7 @@ public class LockSceneViewModel {
     }
 
     var unlockImage: String? {
-        switch service.availableAuthentication {
-        case .biometrics: SystemImage.faceid
-        case .passcode: SystemImage.lock
-        case .none: .none
-        }
+        service.availableAuthentication.systemImage
     }
 
     var isAutoLockEnabled: Bool {
