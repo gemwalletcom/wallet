@@ -2,8 +2,9 @@ use std::{collections::HashSet, fmt::Debug, sync::Arc, time::Duration};
 
 use alloy_primitives::U256;
 use async_trait::async_trait;
+use gem_bitcoin::address::zcash_transparent_address;
 use gem_client::Client;
-use primitives::{AssetId, ChainType, MINUTE, swap::ApprovalData};
+use primitives::{AssetId, Chain, ChainType, MINUTE, swap::ApprovalData};
 
 use num_bigint::BigInt;
 
@@ -114,7 +115,12 @@ where
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         let vaults = self.client.get_asgard_vaults().await?;
-        let asgard_addresses: HashSet<String> = AsgardVault::all_addresses(self.network, &vaults).into_iter().collect();
+        let zcash_addresses = vaults
+            .iter()
+            .flat_map(|vault| &vault.addresses)
+            .filter(|address| ChainName::from_symbol(self.network, &address.chain).map(|name| name.chain()) == Some(Chain::Zcash))
+            .map(|address| zcash_transparent_address(&address.address).map_err(SwapperError::transaction_error));
+        let asgard_addresses = AsgardVault::all_addresses(self.network, &vaults).into_iter().map(Ok).chain(zcash_addresses).collect::<Result<HashSet<_>, _>>()?;
         let router_addresses: HashSet<String> = self.network.routers().iter().map(|(_, address)| address.to_string()).collect();
 
         let deposit: Vec<String> = asgard_addresses.union(&router_addresses).cloned().collect();
@@ -228,6 +234,7 @@ fn min_value(dust_threshold: &BigInt) -> BigInt {
 mod tests {
     use num_bigint::BigUint;
     use primitives::Chain;
+    use primitives::testkit::zcash_mock::{TEST_ZCASH_TEX_ADDRESS, TEST_ZCASH_TRANSPARENT_ADDRESS};
     use std::sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
@@ -257,6 +264,25 @@ mod tests {
         assert_eq!(min_value(&BigInt::from(10000)), BigInt::from(20000));
         assert_eq!(min_value(&BigInt::from(0)), BigInt::from(0));
         assert_eq!(min_value(&BigInt::from(50000)), BigInt::from(100000));
+    }
+
+    #[tokio::test]
+    async fn test_zcash_vault_address_aliases() {
+        let client = MockClient::new().with_get(|path| {
+            assert_eq!(path, "/thorchain/vaults/asgard");
+            Ok(include_str!("testdata/asgard_vaults_zcash.json").as_bytes().to_vec())
+        });
+        let addresses = ThorChain::mock(client).get_vault_addresses(None).await.unwrap();
+        let expected = HashSet::from([TEST_ZCASH_TEX_ADDRESS.to_string(), TEST_ZCASH_TRANSPARENT_ADDRESS.to_string()]);
+        assert_eq!(addresses.send.into_iter().collect::<HashSet<_>>(), expected);
+        assert_eq!(
+            addresses
+                .deposit
+                .into_iter()
+                .filter(|address| !THORChainNetwork::Thorchain.routers().iter().any(|(_, router)| router == address))
+                .collect::<HashSet<_>>(),
+            expected
+        );
     }
 
     #[test]

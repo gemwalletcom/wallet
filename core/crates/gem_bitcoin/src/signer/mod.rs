@@ -41,7 +41,8 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
 #[cfg(test)]
 mod tests {
     use bitcoin::{blockdata::transaction::Version, consensus::encode::deserialize};
-    use primitives::{BitcoinChain, ChainSigner};
+    use primitives::testkit::zcash_mock::{TEST_ZCASH_TEX_ADDRESS, TEST_ZCASH_TRANSPARENT_ADDRESS};
+    use primitives::{BitcoinChain, ChainSigner, TransactionInputType};
 
     use super::BitcoinChainSigner;
     use crate::testkit::signer_mock::{TEST_PRIVATE_KEY, mock_contract_swap_input, mock_funded_transfer_input, mock_p2wpkh_transfer_input, mock_transfer_input, mock_transfer_swap_input};
@@ -178,6 +179,20 @@ mod tests {
         let memo_output = transaction.output.iter().find(|output| output.script_pubkey.is_op_return()).unwrap();
         assert_eq!(memo_output.value.to_sat(), 0);
         assert_op_return_payload(&memo_output.script_pubkey, memo.as_bytes());
+    }
+
+    #[test]
+    fn test_sign_zcash_tex_swap() {
+        let mut input = mock_transfer_swap_input(BitcoinChain::Zcash, "=:b:bc1qdestination:0/1/0:g1:50");
+        let signer = BitcoinChainSigner::new(BitcoinChain::Zcash);
+        if let TransactionInputType::Swap { swap_data, .. } = &mut input.input.input_type {
+            swap_data.data.to = TEST_ZCASH_TRANSPARENT_ADDRESS.to_string();
+        }
+        let expected = signer.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap();
+        if let TransactionInputType::Swap { swap_data, .. } = &mut input.input.input_type {
+            swap_data.data.to = TEST_ZCASH_TEX_ADDRESS.to_string();
+        }
+        assert_eq!(signer.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap(), expected);
     }
 
     #[test]
