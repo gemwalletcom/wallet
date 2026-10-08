@@ -408,10 +408,6 @@ indexer:
     key:
       secret: ""
   fastnear:
-    neardata:
-      url: "https://mainnet.neardata.xyz"
-      key:
-        secret: ""
     transfers:
       url: "https://transfers.main.fastnear.com"
       key:

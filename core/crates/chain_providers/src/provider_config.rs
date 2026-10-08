@@ -17,7 +17,6 @@ pub(crate) struct IndexerProvidersConfig {
 
 #[derive(Clone, Default)]
 pub(crate) struct FastNearProvidersConfig {
-    pub(crate) neardata: RemoteProviderConfig,
     pub(crate) transfers: RemoteProviderConfig,
     pub(crate) tx: RemoteProviderConfig,
 }
@@ -52,7 +51,6 @@ impl ProviderConfig {
                 ankr: settings.indexer.ankr.remote_provider_config(),
                 blockscout: settings.indexer.blockscout.remote_provider_config(),
                 fastnear: FastNearProvidersConfig {
-                    neardata: settings.indexer.fastnear.neardata.remote_provider_config(),
                     transfers: settings.indexer.fastnear.transfers.remote_provider_config(),
                     tx: settings.indexer.fastnear.tx.remote_provider_config(),
                 },

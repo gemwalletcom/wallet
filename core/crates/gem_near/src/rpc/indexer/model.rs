@@ -56,41 +56,25 @@ pub(super) struct TransactionsResponse {
 }
 
 #[derive(Debug, Deserialize)]
-pub(super) struct NearDataBlockResponse {
-    pub block: NearDataBlock,
-    pub shards: Vec<NearDataShard>,
+pub(super) struct FastNearBlockResponse {
+    pub block: Option<FastNearBlock>,
+    pub block_txs: Option<Vec<FastNearBlockTransaction>>,
+}
+
+#[derive(Debug, Serialize)]
+pub(super) struct FastNearBlockRequest {
+    pub block_id: u64,
+    pub with_transactions: bool,
 }
 
 #[derive(Debug, Deserialize)]
-pub(super) struct NearDataBlock {
-    pub header: NearDataBlockHeader,
+pub(super) struct FastNearBlock {
+    pub block_height: u64,
 }
 
 #[derive(Debug, Deserialize)]
-pub(super) struct NearDataBlockHeader {
-    pub height: u64,
-    pub timestamp: u64,
-}
-
-#[derive(Debug, Deserialize)]
-pub(super) struct NearDataShard {
-    pub chunk: Option<NearDataChunk>,
-}
-
-#[derive(Debug, Deserialize)]
-pub(super) struct NearDataChunk {
-    pub transactions: Vec<NearDataTransaction>,
-}
-
-#[derive(Debug, Deserialize)]
-pub(super) struct NearDataTransaction {
-    pub outcome: NearDataTransactionOutcome,
-    pub transaction: BroadcastTransaction,
-}
-
-#[derive(Debug, Deserialize)]
-pub(super) struct NearDataTransactionOutcome {
-    pub execution_outcome: crate::models::TransactionOutcome,
+pub(super) struct FastNearBlockTransaction {
+    pub transaction_hash: String,
 }
 
 #[derive(Debug, Deserialize)]
