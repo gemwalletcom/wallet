@@ -183,7 +183,7 @@ stateDiagram-v2
 | Wallet passwords | `gem_wallet_passwords.xml` | `gem_wallet_password_keyset_prefs.xml`, `gem_wallet_password_keyset` or `gem_wallet_password_keyset_authenticated` | `gem_wallet_password_master_key` or `gem_wallet_password_master_key_authenticated` |
 | Secure preferences | `gem_secure_preferences.xml` | `gem_secure_preferences_keyset_prefs.xml`, `gem_secure_preferences_keyset` | `gem_secure_preferences_master_key` |
 | Device keys | `gem_device_keys.xml` | `gem_device_master_key.xml`, `ngen_gem_keyset` | `gem_device_master_key` |
-| Legacy | `pwd.xml` | androidx EncryptedSharedPreferences keysets, migrated out on first read | androidx master key |
+| Legacy | `pwd.xml` | androidx EncryptedSharedPreferences keysets, migrated out on first read; the file is cleared once only its keysets remain, so a drained store never needs the androidx master key | androidx master key |
 
 ## Keystore-Internal Signing
 

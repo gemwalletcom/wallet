@@ -17,6 +17,7 @@ import com.google.crypto.tink.integration.android.AndroidKeystoreKmsClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -156,6 +157,35 @@ class SecureStorageFailureInstrumentedTest {
     }
 
     @Test
+    fun drainedLegacyStoreIsRetiredWithoutUnwrappingItsKeysets() {
+        val preferences = context.getSharedPreferences("${name}_legacy", Context.MODE_PRIVATE)
+        assertTrue(preferences.edit().putString(LEGACY_KEY_KEYSET, "00").putString(LEGACY_VALUE_KEYSET, "00").commit())
+
+        assertNull(LegacyEncryptedPreferences(context, "${name}_legacy").getString("lock_interval"))
+        assertTrue(preferences.all.isEmpty())
+    }
+
+    @Test
+    fun legacyValuesBehindUnreadableKeysetsStillFailClosed() {
+        val preferences = context.getSharedPreferences("${name}_legacy", Context.MODE_PRIVATE)
+        assertTrue(preferences.edit().putString(LEGACY_KEY_KEYSET, "00").putString(LEGACY_VALUE_KEYSET, "00").putString("encrypted-name", "encrypted-password").commit())
+
+        assertThrows(Exception::class.java) { LegacyEncryptedPreferences(context, "${name}_legacy").getString("wallet") }
+        assertEquals(setOf(LEGACY_KEY_KEYSET, LEGACY_VALUE_KEYSET, "encrypted-name"), preferences.all.keys)
+    }
+
+    @Test
+    fun removingTheLastLegacyValueRetiresTheFile() {
+        val legacy = LegacyEncryptedPreferences(context, "${name}_legacy")
+        legacy.putString("wallet", "existing-password")
+
+        assertTrue(legacy.removeString("wallet"))
+
+        assertTrue(context.getSharedPreferences("${name}_legacy", Context.MODE_PRIVATE).all.isEmpty())
+        assertNull(legacy.getString("wallet"))
+    }
+
+    @Test
     fun masterKeyFailureDoesNotPersistAKeysetOrPassword() {
         val provider = TinkAeadProvider(context, config) { throw GeneralSecurityException("Keystore unavailable") }
         val store = TinkEncryptedKeyValueStore(context, config, provider::get)
@@ -196,4 +226,9 @@ class SecureStorageFailureInstrumentedTest {
     )
 
     private fun preferencesFile(fileName: String) = File(context.applicationInfo.dataDir, "shared_prefs/$fileName.xml").also { it.parentFile!!.mkdirs() }
+
+    private companion object {
+        const val LEGACY_KEY_KEYSET = "__androidx_security_crypto_encrypted_prefs_key_keyset__"
+        const val LEGACY_VALUE_KEYSET = "__androidx_security_crypto_encrypted_prefs_value_keyset__"
+    }
 }

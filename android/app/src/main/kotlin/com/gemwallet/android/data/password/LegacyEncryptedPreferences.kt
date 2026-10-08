@@ -16,6 +16,7 @@ import com.google.crypto.tink.integration.android.AndroidKeystoreKmsClient
 internal const val LEGACY_PREFERENCES_FILE_NAME = "pwd"
 private const val ANDROIDX_KEY_KEYSET_ALIAS = "__androidx_security_crypto_encrypted_prefs_key_keyset__"
 private const val ANDROIDX_VALUE_KEYSET_ALIAS = "__androidx_security_crypto_encrypted_prefs_value_keyset__"
+private val ANDROIDX_KEYSET_ALIASES = setOf(ANDROIDX_KEY_KEYSET_ALIAS, ANDROIDX_VALUE_KEYSET_ALIAS)
 
 internal class LegacyEncryptedPreferences(context: Context, private val preferencesFileName: String) : SecureStringStore {
 
@@ -34,7 +35,10 @@ internal class LegacyEncryptedPreferences(context: Context, private val preferen
         }
     }
 
-    override fun removeString(key: String): Boolean = synchronized(secureStorageLock) { existingPreferences()?.edit()?.remove(key)?.commit() != false }
+    override fun removeString(key: String): Boolean = synchronized(secureStorageLock) {
+        val preferences = existingPreferences() ?: return@synchronized true
+        preferences.edit().remove(key).commit().also { removed -> if (removed) retireIfDrained() }
+    }
 
     private fun preferences(): SharedPreferences {
         sharedPreferences?.let { return it }
@@ -43,11 +47,18 @@ internal class LegacyEncryptedPreferences(context: Context, private val preferen
         }
     }
 
-    private fun existingPreferences(): SharedPreferences? {
-        if (sharedPreferences == null && context.securePreferences(preferencesFileName).all.isEmpty()) {
-            return null
+    private fun existingPreferences(): SharedPreferences? = if (retireIfDrained()) null else preferences()
+
+    private fun retireIfDrained(): Boolean {
+        val rawPreferences = context.securePreferences(preferencesFileName)
+        if (!ANDROIDX_KEYSET_ALIASES.containsAll(rawPreferences.all.keys)) {
+            return false
         }
-        return preferences()
+        sharedPreferences = null
+        if (rawPreferences.all.isNotEmpty()) {
+            rawPreferences.edit().clear().commit()
+        }
+        return true
     }
 
     private fun createPreferences(): SharedPreferences {
