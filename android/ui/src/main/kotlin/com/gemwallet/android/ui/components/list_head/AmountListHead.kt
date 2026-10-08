@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.components.list_head
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -111,10 +112,17 @@ fun AmountListHead(
     actions: (@Composable () -> Unit)? = null,
 ) {
     val hidden = hideToggle.isHidden
+    val interactionSource = remember { MutableInteractionSource() }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+            .then(
+                when {
+                    onClick == null -> Modifier
+                    icon == null -> Modifier.clickable(onClick = onClick)
+                    else -> Modifier.headerClick(interactionSource, onClick)
+                },
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Column(
@@ -123,17 +131,22 @@ fun AmountListHead(
                 .padding(start = paddingDefault, end = paddingDefault, bottom = paddingSmall),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            when (icon) {
-                is Asset -> HeaderIcon(icon)
+            Box {
+                when (icon) {
+                    is Asset -> HeaderIcon(icon)
 
-                is GemAssetIcon -> HeaderIcon(icon)
+                    is GemAssetIcon -> HeaderIcon(icon)
 
-                else -> IconWithBadge(
-                    icon = icon,
-                    placeholder = iconPlaceholder,
-                    size = headerIconSize,
-                    badgeBackgroundColor = MaterialTheme.colorScheme.surface,
-                )
+                    else -> IconWithBadge(
+                        icon = icon,
+                        placeholder = iconPlaceholder,
+                        size = headerIconSize,
+                        badgeBackgroundColor = MaterialTheme.colorScheme.surface,
+                    )
+                }
+                if (onClick != null && icon != null) {
+                    HeaderHighlight(interactionSource, CircleShape)
+                }
             }
 
             icon?.let { Spacer16() }

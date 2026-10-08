@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.components.list_head
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,19 +27,26 @@ import com.wallet.core.primitives.NFTAsset
 
 @Composable
 fun NftHead(source: NftImageSource, size: Dp = headerLargeImageSize, onClick: (() -> Unit)? = null) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val shape = RoundedCornerShape(size / 4)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .headerClick(interactionSource, onClick)
             .padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        NftImage(
-            source = source,
-            modifier = Modifier
-                .size(size)
-                .clip(RoundedCornerShape(size / 4)),
-        )
+        Box {
+            NftImage(
+                source = source,
+                modifier = Modifier
+                    .size(size)
+                    .clip(shape),
+            )
+            if (onClick != null) {
+                HeaderHighlight(interactionSource, shape)
+            }
+        }
         if (source.name.isNotBlank()) {
             Spacer16()
             Text(
