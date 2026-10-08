@@ -13,7 +13,7 @@ import androidx.compose.ui.res.painterResource
 import com.gemwallet.android.ui.components.consumeAllPointerEvents
 
 @Composable
-internal fun LockScene(@DrawableRes logo: Int) {
+fun LockScene(@DrawableRes logo: Int) {
     Box(
         modifier = Modifier
             .fillMaxSize()

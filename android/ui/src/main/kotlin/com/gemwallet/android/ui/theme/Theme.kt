@@ -77,6 +77,8 @@ fun isCompactDimension(dimension: WindowDimension): Boolean {
     }
 }
 
+fun walletSurfaceColor(darkTheme: Boolean): Color = if (darkTheme) DarkColorScheme.surface else LightColorScheme.surface
+
 @Composable
 fun WalletTheme(darkTheme: Boolean = isSystemInDarkTheme(), dynamicColor: Boolean = false, content: @Composable () -> Unit) {
     val colorScheme = when {

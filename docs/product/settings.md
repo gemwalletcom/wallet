@@ -61,7 +61,7 @@ flowchart LR
 
 | When | iOS | Android | Expected |
 |---|---|---|---|
-| The lock is on and Gem is in the app switcher | covered with the Gem logo | the recent apps preview is hidden on Android 13 and later | Intentional: earlier Android versions can hide it only by also blocking screenshots |
+| The lock is on and Gem is in the app switcher | covered with the Gem logo | covered with the Gem logo on Android 10 and later; once Gem has left, the saved preview is the lock screen color without the logo | Intentional: Android draws the saved preview itself and allows only a color |
 | The device passcode is off while the lock is on | the lock screen explains it in text | the lock screen explains it and opens screen lock setup | Intentional: iOS has no public way to open passcode settings |
 | The user opens Developer | includes a deep link URL tool | includes a platform store setting | Intentional (developer-only) |
 | The build cannot push (F-Droid, Huawei) | not applicable | Settings does not list Notifications, so neither the push switch nor Price Alerts is reachable | Intentional: the build has no push service |

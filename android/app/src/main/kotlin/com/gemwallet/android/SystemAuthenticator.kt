@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
-internal class SystemAuthenticator(private val activity: FragmentActivity, private val lockViewModel: LockViewModel) {
+internal class SystemAuthenticator(private val activity: FragmentActivity, private val lockViewModel: LockViewModel, private val privacyCover: PrivacyCover) {
     private val _enrollmentMissing = MutableStateFlow(false)
     private val authRequests = AuthRequestQueue()
     private lateinit var biometricPrompt: BiometricPrompt
@@ -41,6 +41,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
             executor,
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    privacyCover.onPromptEnded()
                     if (!lockViewModel.uiState.value.isUnlocked) {
                         retryOrCloseAfterAuthError(errorCode)
                     } else if (authRequests.hasActive()) {
@@ -50,6 +51,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
                 }
 
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    privacyCover.onPromptEnded()
                     initialAuthRetry?.cancel()
                     if (!lockViewModel.uiState.value.isUnlocked) {
                         lockViewModel.onInitialAuth(AuthState.Success)
@@ -66,6 +68,7 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
         pendingAuthenticate = activity.lifecycleScope.launch {
             try {
                 activity.lifecycle.withResumed {
+                    privacyCover.onPromptShown()
                     biometricPrompt.authenticate(buildPrompt(authRequests.activeRequiresConfirmation()))
                 }
             } catch (_: LifecycleDestroyedException) {
