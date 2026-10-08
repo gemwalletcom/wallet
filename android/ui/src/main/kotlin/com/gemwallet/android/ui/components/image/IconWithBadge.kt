@@ -68,12 +68,10 @@ fun IconWithBadge(size: Dp = listItemIconSize, badgeBackgroundColor: Color? = nu
 
 private const val BADGE_CONTENT_SIZE_RATIO = 2.6f
 private const val LARGE_BADGE_CONTENT_SIZE_RATIO = 3f
-private const val BADGE_RING_WIDTH_RATIO = 32f
-private const val BADGE_OFFSET_RATIO = 5f
 private val LARGE_BADGE_THRESHOLD = 48.dp
-private val MAX_BADGE_RING_WIDTH = space2
+private val BADGE_RING_WIDTH = space2
 
-internal data class BadgeLayout(val contentSize: Dp, val ringWidth: Dp, val badgeSize: Dp, val offset: Dp)
+internal data class BadgeLayout(val contentSize: Dp, val badgeSize: Dp, val offset: Dp)
 
 internal fun badgeLayout(size: Dp): BadgeLayout {
     val contentSize = if (size <= LARGE_BADGE_THRESHOLD) {
@@ -81,14 +79,10 @@ internal fun badgeLayout(size: Dp): BadgeLayout {
     } else {
         size / LARGE_BADGE_CONTENT_SIZE_RATIO
     }
-    val ringWidth = (size / BADGE_RING_WIDTH_RATIO).coerceAtMost(MAX_BADGE_RING_WIDTH)
-    val badgeSize = contentSize + ringWidth * 2
-    val offset = badgeSize / BADGE_OFFSET_RATIO
     return BadgeLayout(
         contentSize = contentSize,
-        ringWidth = ringWidth,
-        badgeSize = badgeSize,
-        offset = offset,
+        badgeSize = contentSize + BADGE_RING_WIDTH * 2,
+        offset = (size / contentSize).dp + BADGE_RING_WIDTH,
     )
 }
 
