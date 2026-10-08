@@ -192,7 +192,6 @@ fun GemDelegationStatus.stateText(): String = stringResource(
     state.stateRes(),
 )
 
-@StringRes
 fun GemAcquireOption.title(context: Context): String = context.getString(
     when (this) {
         GemAcquireOption.BUY -> R.string.wallet_buy

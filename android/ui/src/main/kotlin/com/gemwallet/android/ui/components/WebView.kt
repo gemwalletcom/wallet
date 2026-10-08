@@ -16,7 +16,7 @@ interface WebViewBridge {
     val name: String
 }
 
-@SuppressLint("SetJavaScriptEnabled")
+@SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
 @Composable
 fun WebView(url: String, bridge: WebViewBridge? = null, modifier: Modifier = Modifier) {
     key(url) {

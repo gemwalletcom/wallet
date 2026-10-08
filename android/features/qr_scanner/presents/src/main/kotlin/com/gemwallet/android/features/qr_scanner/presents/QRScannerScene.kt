@@ -5,7 +5,6 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -142,7 +141,6 @@ private fun ContentResolver.decodeQrCode(uri: Uri): String? = try {
     null
 }
 
-@StringRes
 @Composable
 private fun ScannerHint(hint: String) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {

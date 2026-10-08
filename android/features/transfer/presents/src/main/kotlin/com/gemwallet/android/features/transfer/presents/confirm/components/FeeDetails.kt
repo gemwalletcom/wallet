@@ -145,7 +145,7 @@ fun FeeDetails(
         )
         when (page) {
             FeeDetailsPage.Details -> FeeRates(
-                feeItems = screen.additionalFees.map { ListItemModel(title = context.getString(it.option.stringRes()), subtitle = it.amount.amount.text()) },
+                feeItems = screen.additionalFees.map { ListItemModel(title = stringResource(it.option.stringRes()), subtitle = it.amount.amount.text()) },
                 feeListItem = feeListItem,
                 feeRateRows = screen.rates?.rows.orEmpty(),
                 showsOptions = screen.rates?.showsOptions == true,

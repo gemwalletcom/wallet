@@ -25,7 +25,7 @@ import com.wallet.core.primitives.ChartPeriod
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemCandleTooltip
 import java.time.ZoneId
-import java.util.Locale
+import androidx.compose.ui.platform.LocalConfiguration
 
 private val TooltipRightSafeArea = 96.dp
 
@@ -40,7 +40,7 @@ internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period:
     val selection = remember(chart, safeSelectedIndex) { safeSelectedIndex?.let { chart?.selection(it.toUInt()) } }
     val context = LocalContext.current
     val dateFormatter = remember(context) { context.rowDateFormatter() }
-    val headerDate = chart?.let { data -> selection?.let { dateFormatter.chartDate(it.date, data.dateStyle, ZoneId.systemDefault(), Locale.getDefault()) } }
+    val headerDate = chart?.let { data -> selection?.let { dateFormatter.chartDate(it.date, data.dateStyle, ZoneId.systemDefault(), LocalConfiguration.current.locales[0]) } }
     val tooltip = remember(chart, safeSelectedIndex) { safeSelectedIndex?.let { chart?.tooltip(it.toUInt()) } }
 
     ChartStateView(

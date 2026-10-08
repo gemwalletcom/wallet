@@ -13,6 +13,7 @@ import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.emptyState
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun EmptyContentView(kind: GemEmptyStateKind, modifier: Modifier = Modifier, symbol: String = "", onAction: ((GemEmptyStateAction) -> Unit)? = null) {
@@ -32,7 +33,7 @@ fun EmptyContentView(state: GemEmptyState, modifier: Modifier = Modifier, symbol
         icon = icon,
         iconVector = iconVector,
         buttons = onAction?.let { onAction ->
-            state.actions.map { action -> EmptyAction(title = context.getString(action.title()), onClick = { onAction(action) }, style = EmptyActionStyle.Secondary) }
+            state.actions.map { action -> EmptyAction(title = stringResource(action.title()), onClick = { onAction(action) }, style = EmptyActionStyle.Secondary) }
         }.orEmpty(),
         modifier = modifier,
     )
