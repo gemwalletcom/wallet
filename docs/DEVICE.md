@@ -50,7 +50,7 @@ flowchart LR
     Device --> Record
 ```
 
-Subscriptions are reconciled by diffing local wallets against `GET /v2/devices/subscriptions`: missing addresses are added per wallet grouped by chain, and wallets the backend still knows but the device no longer has are removed in full. Registration comes first; if it fails nothing else assumes the device exists and the next sync retries. App start always checks the remote record so one lost by the backend is recreated; every other trigger runs only when local state diverges.
+Subscriptions are reconciled by diffing local wallets against `GET /v3/devices/subscriptions`: missing addresses are added per wallet grouped by chain, and wallets the backend still knows but the device no longer has are removed in full. Registration comes first; if it fails nothing else assumes the device exists and the next sync retries. App start always checks the remote record so one lost by the backend is recreated; every other trigger runs only when local state diverges.
 
 [`GemDeviceService`](../core/gemstone/src/services/device/mod.rs) owns registration, divergence detection, serialization of concurrent syncs and the published-state checkpoint; [`GemSubscriptionService`](../core/gemstone/src/services/subscription/mod.rs) owns reconciliation. Divergence is derived from the current device plus a deterministic wallet/account signature, so a service that writes a record value (the currency) just writes it and the next occasion finds the difference; a new field needs the field and the comparison, no new call site. The values that decide whether the backend may push at all are written through `GemDeviceService` and synced at once: `set_push_enabled`, because the push token is read from the platform at that moment, and `set_price_alerts_enabled`, because the next occasion may be the next app open and price alerts are pushed while the app is closed.
 
@@ -73,7 +73,7 @@ Code: [iOS device platform](../ios/Packages/GemstoneServices/Sources/Device/Devi
 
 ## WebSocket stream
 
-`wss://api.gemwallet.com/v2/devices/stream`, authenticated once at upgrade with the header above, carries price, balance, transaction, price-alert, NFT, perpetual, in-app-notification, fiat-transaction, wallet-configuration and support updates. It runs as its own service (`api websocket_stream`); reconnects replay at most `DeviceStreamHistoryLimit` (default 25) missed events, and price updates are batched every 5 seconds.
+`wss://api.gemwallet.com/v3/devices/stream`, authenticated once at upgrade with the header above, carries price, balance, transaction, price-alert, NFT, perpetual, in-app-notification, fiat-transaction, wallet-configuration and support updates. It runs as its own service (`api websocket_stream`); reconnects replay at most `DeviceStreamHistoryLimit` (default 25) missed events, and price updates are batched every 5 seconds.
 
 Client messages are `{"type": ..., "data": {"assets": [...]}}` with the type `subscribePrices` (the first request on every connection, answered with current USD prices and fiat rates), `addPrices` (prices for the expanded set, no rates), `unsubscribePrices` and `getPrices` (once). `subscribeRealtimePrices` and `unsubscribeRealtimePrices` are still accepted and ignored.
 
