@@ -95,6 +95,12 @@ class MainActivity :
         }
         viewModel.maintain(isUnlocked = lockViewModel.uiState.map { it.isUnlocked })
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            lifecycleScope.launch {
+                lockViewModel.observeAuthRequired().collect { setRecentsScreenshotEnabled(!it) }
+            }
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 notificationPermissionRequests.requests.collect { request ->
@@ -171,19 +177,11 @@ class MainActivity :
         super.onResume()
         systemAuthenticator.refreshEnrollment()
         lockViewModel.onActivityResumed()
-        hideRecentsPreviewWhileLocked()
     }
 
     override fun onPause() {
         super.onPause()
         lockViewModel.onActivityPaused()
-        hideRecentsPreviewWhileLocked()
-    }
-
-    private fun hideRecentsPreviewWhileLocked() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            setRecentsScreenshotEnabled(!lockViewModel.isAuthRequired())
-        }
     }
 
     override fun onDestroy() {

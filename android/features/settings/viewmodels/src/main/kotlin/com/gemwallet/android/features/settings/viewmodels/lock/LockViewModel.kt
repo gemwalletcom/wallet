@@ -9,9 +9,12 @@ import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.features.settings.viewmodels.lock.models.LockUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicLong
@@ -38,6 +41,10 @@ class LockViewModel @Inject constructor(
     private val activeAuthRequestId = AtomicLong(NoActiveAuthRequestId)
 
     fun isAuthRequired(): Boolean = passwordProtection.authenticationRequired() || securityPreferences.authRequired()
+
+    fun observeAuthRequired(): Flow<Boolean> = securityPreferences.getAuthRequired()
+        .map { it || passwordProtection.authenticationRequired() }
+        .flowOn(ioDispatcher)
 
     fun requestAuth(requestId: Long) {
         activeAuthRequestId.set(requestId)

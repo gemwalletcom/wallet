@@ -18,7 +18,9 @@ import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import uniffi.gemstone.GemPreferencesObserver
@@ -33,12 +35,17 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
     ObservablePreferences,
     SecurityPreferences {
 
+    private val authRequiredState by lazy { MutableStateFlow(authRequired()) }
+
     override fun authRequired(): Boolean = secureStore.get(SecureKey.Auth.string)?.toBooleanStrictOrNull() ?: configStore.getBoolean(ConfigKey.Auth.string)
 
     override fun setAuthRequired(enabled: Boolean) {
         secureStore.set(SecureKey.Auth.string, enabled.toString())
         configStore.putBoolean(ConfigKey.Auth.string, enabled)
+        authRequiredState.value = enabled
     }
+
+    override fun getAuthRequired(): Flow<Boolean> = flow { emitAll(authRequiredState) }
 
     override fun developEnabled(): Boolean = preferencesService.isDeveloperEnabled()
 
