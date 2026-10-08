@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space8
@@ -27,7 +28,7 @@ fun ChartHeader(header: GemChartHeader, date: String?, modifier: Modifier = Modi
     ) {
         val secondaryValue = header.secondaryValue?.text()
         secondaryValue?.let { headerValue ->
-            Text(
+            NumericText(
                 text = headerValue,
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -39,14 +40,14 @@ fun ChartHeader(header: GemChartHeader, date: String?, modifier: Modifier = Modi
             MaterialTheme.typography.headlineSmall
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
+            NumericText(
                 text = header.value.text(),
                 style = changeStyle,
                 color = header.value.tone.color(),
             )
             header.change?.let { change ->
                 Spacer(modifier = Modifier.width(space8))
-                Text(
+                NumericText(
                     text = change.text(),
                     style = if (secondaryValue != null) changeStyle else MaterialTheme.typography.bodyLarge,
                     color = (change.tone ?: GemValueTone.PLAIN).color(),

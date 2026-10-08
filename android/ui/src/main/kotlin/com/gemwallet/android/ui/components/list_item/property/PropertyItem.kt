@@ -23,6 +23,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import com.gemwallet.android.ui.components.InfoButton
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.LocalNumericTransition
+import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.ChevronIcon
 import com.gemwallet.android.ui.components.list_item.ChevronIconDefaults
@@ -171,7 +173,7 @@ fun PropertyTitleText(text: String, badge: (@Composable () -> Unit)? = null, tra
 @Composable
 fun RowScope.PropertyDataText(text: String, modifier: Modifier = Modifier, badge: (@Composable () -> Unit)? = null, color: Color = MaterialTheme.colorScheme.secondary) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-        Text(
+        NumericText(
             modifier = Modifier.weight(1f, false),
             text = text,
             textAlign = TextAlign.End,
@@ -179,6 +181,7 @@ fun RowScope.PropertyDataText(text: String, modifier: Modifier = Modifier, badge
             overflow = TextOverflow.MiddleEllipsis,
             color = color,
             style = MaterialTheme.typography.bodyLarge,
+            animated = LocalNumericTransition.current,
         )
         badge?.invoke()
     }

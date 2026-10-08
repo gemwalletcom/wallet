@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.balance.hiddenWhen
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
@@ -100,7 +101,7 @@ private fun AssetItemSupport(text: String, tone: GemValueTone, extra: Pair<Strin
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
     ) {
-        Text(
+        NumericText(
             modifier = Modifier.weight(1f, false),
             text = text,
             maxLines = 1,
@@ -109,7 +110,7 @@ private fun AssetItemSupport(text: String, tone: GemValueTone, extra: Pair<Strin
             style = MaterialTheme.typography.bodyMedium,
         )
         extra?.let { (extraText, extraTone) ->
-            Text(
+            NumericText(
                 text = extraText,
                 maxLines = 1,
                 color = extraTone.color(),
@@ -197,7 +198,7 @@ private fun BalanceInfo(crypto: String, equivalent: String, color: Color, equiva
     Column(
         horizontalAlignment = Alignment.End,
     ) {
-        Text(
+        NumericText(
             modifier = Modifier,
             text = crypto,
             maxLines = 1,
@@ -207,7 +208,7 @@ private fun BalanceInfo(crypto: String, equivalent: String, color: Color, equiva
             color = color,
         )
         if (equivalent.isNotEmpty()) {
-            Text(
+            NumericText(
                 modifier = Modifier,
                 text = equivalent,
                 maxLines = 1,

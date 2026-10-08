@@ -3,7 +3,9 @@ package com.gemwallet.android.features.perpetuals.presents.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import com.gemwallet.android.ui.components.LocalNumericTransition
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -29,7 +31,10 @@ internal fun LazyListScope.positionProperties(position: GemAssetItemRow?, rows: 
                 accessory = { DataBadgeChevron() },
             )
 
-            GemPerpetualPositionDetailRow.PNL,
+            GemPerpetualPositionDetailRow.PNL -> CompositionLocalProvider(LocalNumericTransition provides true) {
+                GemListRowView(row = row.row, listPosition = listPosition)
+            }
+
             GemPerpetualPositionDetailRow.SIZE,
             GemPerpetualPositionDetailRow.ENTRY_PRICE,
             GemPerpetualPositionDetailRow.LIQUIDATION_PRICE,

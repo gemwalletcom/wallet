@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.LocalNumericTransition
+import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -193,11 +195,12 @@ fun ListItem(model: ListItemModel, listPosition: ListPosition, modifier: Modifie
                         if (model.subtitle != null || model.subtitleSuffix != null) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 model.subtitle?.let {
-                                    Text(
+                                    NumericText(
                                         text = it,
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = model.subtitleStyle.color(),
                                         maxLines = 1,
+                                        animated = LocalNumericTransition.current,
                                     )
                                 }
                                 model.subtitleSuffix?.let { SubtitleSuffix(it, model.subtitleSuffixStyle) }

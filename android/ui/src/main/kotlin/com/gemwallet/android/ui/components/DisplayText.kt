@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,7 +59,7 @@ fun DisplayText(text: String, modifier: Modifier = Modifier, hideToggle: HideTog
         contentAlignment = Alignment.Center,
     ) {
         val content: @Composable (Modifier) -> Unit = { innerModifier ->
-            Text(
+            NumericText(
                 modifier = innerModifier,
                 text = hideToggle.mask(text),
                 overflow = TextOverflow.MiddleEllipsis,

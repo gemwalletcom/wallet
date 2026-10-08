@@ -58,6 +58,7 @@ import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.HideToggle
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.image.supportIconModel
@@ -161,13 +162,12 @@ fun AmountListHead(
                     hideToggle = hideToggle,
                 )
                 if (!equivalent.isNullOrEmpty()) {
-                    Text(
+                    NumericText(
                         modifier = Modifier.fillMaxWidth(),
                         text = equivalent,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                     )
                 }
                 changedValue?.let { value ->
@@ -192,7 +192,7 @@ fun AmountListHead(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(space2),
                     ) {
-                        Text(
+                        NumericText(
                             text = hideToggle.mask(value),
                             color = highlightColor,
                             style = changeTextStyle,
