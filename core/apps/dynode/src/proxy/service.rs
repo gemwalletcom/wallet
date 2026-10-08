@@ -13,8 +13,8 @@ use serde_json::Value;
 
 use crate::BoxError;
 use crate::cache::RequestCache;
-use crate::config::{ChainConfig, HeadersConfig, Url};
-use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
+use crate::config::HeadersConfig;
+use crate::jsonrpc_types::RequestType;
 use crate::metrics::Metrics;
 use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::jsonrpc::JsonRpcHandler;
@@ -60,17 +60,10 @@ impl ProxyRequestService {
         headers
     }
 
-    pub async fn forward_request(&self, request: &ProxyRequest, active_url: &Url, chain_config: &ChainConfig, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
+    pub async fn forward_request(&self, request: &ProxyRequest, url: &RequestUrl, broadcast_host: &mut Option<String>) -> Result<ProxyResponse, BoxError> {
         let chain = request.chain;
         let request_type = request.request_type();
 
-        let rpc_method = match request_type {
-            RequestType::JsonRpc(JsonRpcRequest::Single(call)) => Some(call.method.as_str()),
-            _ => None,
-        };
-
-        let upstream_url = chain_config.url_for_request(active_url, rpc_method, Some(&request.path));
-        let url = RequestUrl::from_parts(upstream_url, &request.path_with_query)?;
         if request.is_broadcast(&self.broadcast_providers) {
             *broadcast_host = url.url.host_str().map(str::to_owned);
         }
@@ -80,7 +73,7 @@ impl ProxyRequestService {
         self.metrics.add_proxy_request(request.chain.as_ref(), &methods_for_metrics);
 
         if let RequestType::JsonRpc(rpc_request) = request_type {
-            return JsonRpcHandler::forward_request(rpc_request, request, &self.cache, &self.metrics, &url, &self.client, &headers, &self.broadcast_webhook, &self.broadcast_providers).await;
+            return JsonRpcHandler::forward_request(rpc_request, request, &self.cache, &self.metrics, url, &self.client, &headers, &self.broadcast_webhook, &self.broadcast_providers).await;
         }
 
         let cache_ttl = self.cache.should_cache_request(&chain, request_type);

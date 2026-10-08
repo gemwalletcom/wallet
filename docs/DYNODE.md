@@ -167,6 +167,8 @@ Node-switch metrics use the same stable reasons as request retries: `status=<cod
 
 `Upstream error` logs include the request ID, chain, remote hostname, HTTP method, RPC methods or HTTP path, stable reason, latency, and a safe error detail. Decode details contain only HTTP status, parser category, line, and column; batch details contain only HTTP status and a bounded validation reason. Transport details identify the transport or response-body stage. Raw exceptions, keyed upstream URLs, and response bodies are excluded. Monitoring error logs retain their bounded type (`upstream`, `request`, or `node_check`) and provider message; raw provider errors are never Prometheus labels.
 
+Each `Retry attempt` log records `original_host` (the first selected upstream), `failed_host` (the preceding failed upstream), `remote_host` (the selected fallback), the attempt number, and the preceding failure reason. Hosts come from the resolved endpoint after method/path overrides and exclude URL credentials, paths, and query strings; `unknown` means URL resolution did not yield a hostname. The fallback-host chart displays the original host and each failed-host → fallback-host transition, grouped by attempt and reason. It measures retry attempts per minute, not unique requests or successful recoveries. Older logs remain visible with missing host context marked `unknown`.
+
 ### Code map
 
 - [Monitoring worker](../core/apps/dynode/src/monitoring/worker.rs): creates one monitor per eligible chain.

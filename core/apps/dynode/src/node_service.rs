@@ -21,6 +21,7 @@ use crate::metrics::Metrics;
 use crate::monitoring::NodeMonitor;
 use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::proxy_request::ProxyRequest;
+use crate::proxy::request_url::RequestUrl;
 use crate::proxy::{CacheStatus, ProxyRequestService, ProxyResponse};
 use crate::webhook::DynodeBroadcastWebhookClient;
 
@@ -101,16 +102,23 @@ impl NodeService {
             return self.node_not_found_response(request);
         };
         if urls.len() == 1 {
-            return self.proxy.forward_request(request, &urls[0], chain_config, broadcast_host).await;
+            let url = RequestUrl::for_request(request, &urls[0], chain_config)?;
+            return self.proxy.forward_request(request, &url, broadcast_host).await;
         }
 
         let retry_enabled = self.retry_config.enabled;
         let mut last_error: Option<String> = None;
         let mut last_error_data: Option<Value> = None;
+        let mut original_host = String::new();
+        let mut failed_host = String::new();
         let max_attempts = if retry_enabled { self.retry_config.effective_max_attempts(urls.len()) } else { 1 };
 
         for (index, url) in urls.iter().take(max_attempts).enumerate() {
-            let remote_host = url.host();
+            let upstream_url = RequestUrl::for_request(request, url, chain_config);
+            let remote_host = upstream_url.as_ref().ok().and_then(|url| url.url.host_str()).unwrap_or("unknown").to_string();
+            if index == 0 {
+                original_host.clone_from(&remote_host);
+            }
             if index > 0 {
                 info_with_fields!(
                     "Retry attempt",
@@ -119,9 +127,15 @@ impl NodeService {
                     attempt = index + 1,
                     remote_host = remote_host.as_str(),
                     reason = last_error.as_deref().unwrap_or(""),
+                    original_host = original_host.as_str(),
+                    failed_host = failed_host.as_str(),
                 );
             }
-            match self.proxy.forward_request(request, url, chain_config, broadcast_host).await {
+            let result = match upstream_url {
+                Ok(url) => self.proxy.forward_request(request, &url, broadcast_host).await,
+                Err(error) => Err(error.into()),
+            };
+            match result {
                 Ok(response) => {
                     let retry_error = self.matches_response_error_signal(request, &response, &self.retry_config.errors);
                     if !response.is_from_cache() {
@@ -173,6 +187,7 @@ impl NodeService {
                     last_error = Some(retry_reason);
                 }
             }
+            failed_host = remote_host;
         }
 
         if let Some(error) = last_error.as_deref() {
@@ -374,6 +389,8 @@ mod tests {
             (vec!["http://127.0.0.1:9/secret-key"], None, Some("127.0.0.1")),
             (vec!["http://127.0.0.1:9"], Some("http://localhost:9/secret-key"), Some("localhost")),
             (vec!["http://127.0.0.1:9/secret-key", "http://localhost:9/other-key"], None, Some("localhost")),
+            (vec!["http://127.0.0.1:9/secret-key", "http://localhost:9/other-key", "http://localhost:9/third-key"], None, Some("localhost")),
+            (vec!["http://127.0.0.1:9/secret-key", "http://127.0.0.1:9/other-key"], Some("http://localhost:9/override-key"), Some("localhost")),
         ] {
             let config = ChainConfig {
                 urls: urls.into_iter().map(Url::mock).collect(),

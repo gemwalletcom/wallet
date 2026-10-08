@@ -4,7 +4,9 @@ use reqwest::header::{HeaderMap, HeaderName};
 use reqwest::{Method, Request, Url as ReqwestUrl};
 use url::ParseError;
 
-use crate::config::Url;
+use crate::config::{ChainConfig, Url};
+use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
+use crate::proxy::ProxyRequest;
 
 #[derive(Debug)]
 pub struct RequestUrl {
@@ -13,6 +15,14 @@ pub struct RequestUrl {
 }
 
 impl RequestUrl {
+    pub(crate) fn for_request(request: &ProxyRequest, active_url: &Url, chain_config: &ChainConfig) -> Result<Self, ParseError> {
+        let rpc_method = match request.request_type() {
+            RequestType::JsonRpc(JsonRpcRequest::Single(call)) => Some(call.method.as_str()),
+            RequestType::JsonRpc(JsonRpcRequest::Batch(_)) | RequestType::Regular { .. } => None,
+        };
+        Self::from_parts(chain_config.url_for_request(active_url, rpc_method, Some(&request.path)), &request.path_with_query)
+    }
+
     pub fn build_request(&self, method: &Method, body: Vec<u8>, mut headers: HeaderMap) -> Request {
         for (name, value) in &self.headers {
             if let (Ok(name), Ok(value)) = (HeaderName::from_bytes(name.as_bytes()), value.parse()) {
@@ -38,10 +48,40 @@ impl RequestUrl {
 
 #[cfg(test)]
 mod tests {
+    use primitives::Chain;
     use reqwest::header::{CONTENT_TYPE, HeaderValue};
 
     use super::*;
+    use crate::config::Override;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
+
+    #[test]
+    fn test_for_request_resolves_effective_host_without_credentials() {
+        let active = Url::mock("https://user:credential@node.example/secret-key?apikey=secret");
+        let config = ChainConfig {
+            overrides: Some(vec![
+                Override {
+                    rpc_method: Some("eth_call".to_string()),
+                    path: None,
+                    url: "https://relay.example/another-secret-key".to_string(),
+                },
+                Override {
+                    rpc_method: None,
+                    path: Some("/rest".to_string()),
+                    url: "https://rest.example/rest-secret-key".to_string(),
+                },
+            ]),
+            ..ChainConfig::mock(Chain::Ethereum)
+        };
+        for (request, expected_host) in [
+            (ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_call"), "relay.example"),
+            (ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_blockNumber"), "node.example"),
+            (ProxyRequest::mock(Chain::Ethereum, Method::POST, "/rest", &[]), "rest.example"),
+        ] {
+            let resolved = RequestUrl::for_request(&request, &active, &config).unwrap();
+            assert_eq!(resolved.url.host_str(), Some(expected_host));
+        }
+    }
 
     #[test]
     fn test_from_uri() {
