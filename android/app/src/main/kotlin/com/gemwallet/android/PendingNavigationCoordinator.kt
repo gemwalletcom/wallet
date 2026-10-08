@@ -98,7 +98,7 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
                 val current = if (outcome.showsLoading) PendingNavigation.Loading(pending).also { replace(pending, it) } else pending
                 val routes = paymentNavigation.routes(outcome.payment)
                 replace(current, PendingNavigation.Routes(routes).takeIf { routes.isNotEmpty() })
-                null
+                GemErrorText.NotSupported.takeIf { routes.isEmpty() }
             }
 
             is GemCodeOutcome.Failure -> {
