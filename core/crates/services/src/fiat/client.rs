@@ -228,7 +228,10 @@ impl FiatClient {
             locale: locale.to_string(),
         };
 
-        let url = provider.get_quote_url(data.clone()).await.map_err(FiatServiceError::provider)?;
+        let url = provider.get_quote_url(data.clone()).await.map_err(|error| {
+            info_with_fields!("fiat quote url failed", provider = data.quote.provider.id.as_ref(), quote_id = quote_id, error = error.to_string());
+            FiatServiceError::provider(error)
+        })?;
         let country = match country_code {
             Some(country_code) => country_code,
             None => self.ip_address_provider.get_ip_address(&context.ip_address).await?.alpha2,

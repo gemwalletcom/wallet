@@ -55,8 +55,14 @@ pub async fn json_error_net(response: Response) -> Response {
         return response;
     }
     let (parts, _) = response.into_parts();
-    let mut replaced = ErrorBody::from_status(status).into_response();
+    let error = ErrorBody::from_status(status);
+    let context = ErrorContext {
+        message: error.message.clone(),
+        detail: None,
+    };
+    let mut replaced = error.into_response();
     replaced.extensions_mut().extend(parts.extensions);
+    replaced.extensions_mut().insert(context);
     replaced
 }
 
@@ -70,6 +76,9 @@ pub async fn log_failed_requests(request: Request<Body>, next: Next) -> Response
         return response;
     }
     let context = response.extensions().get::<ErrorContext>().cloned();
+    if context.is_none() && !status.is_server_error() {
+        return response;
+    }
     let message = context
         .as_ref()
         .map(|context| context.message.clone())
@@ -99,8 +108,24 @@ fn redacted_uri(method: &Method, path: &str, query: Option<&str>) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::redacted_uri;
-    use http::Method;
+    use axum::body::Body;
+    use axum::response::Response;
+    use http::header::CONTENT_TYPE;
+    use http::{Method, StatusCode};
+
+    use super::{json_error_net, redacted_uri};
+    use crate::error::ErrorContext;
+
+    #[tokio::test]
+    async fn test_a_bare_error_response_becomes_a_json_error_we_log() {
+        let timed_out = Response::builder().status(StatusCode::GATEWAY_TIMEOUT).body(Body::empty()).unwrap();
+
+        let response = json_error_net(timed_out).await;
+
+        assert_eq!(response.status(), StatusCode::GATEWAY_TIMEOUT);
+        assert_eq!(response.headers().get(CONTENT_TYPE).unwrap(), "application/json");
+        assert_eq!(response.extensions().get::<ErrorContext>().unwrap().message, "504 Gateway Timeout");
+    }
 
     #[test]
     fn test_redacted_uri() {

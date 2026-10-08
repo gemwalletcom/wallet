@@ -1,7 +1,6 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use gem_client::ClientError;
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook, PaymentType};
 
 use crate::error::FiatQuoteError;
@@ -66,13 +65,7 @@ impl FiatProvider for FlashnetClient {
             amount_mode: "exact_out".to_string(),
             affiliate_id: self.affiliate_id.clone(),
         };
-        let response = match self.create_onramp(request, &data.quote.id).await {
-            Ok(response) => response,
-            Err(ClientError::Http { status: 400..=499, .. }) => {
-                return Err(FiatQuoteError::InvalidRequest("Flashnet rejected quote".to_string()).into());
-            }
-            Err(error) => return Err(error.into()),
-        };
+        let response = self.create_onramp(request, &data.quote.id).await?;
 
         Ok(FiatQuoteUrl {
             redirect_url: map_redirect_url(&response),

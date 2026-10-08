@@ -2,6 +2,7 @@ use std::error::Error;
 use std::fmt;
 
 use fiat::error::FiatQuoteError;
+use gem_client::ClientError;
 use primitives::RequestError;
 use storage::DatabaseError;
 
@@ -10,15 +11,19 @@ pub enum FiatServiceError {
     Request(RequestError),
     Quote(FiatQuoteError),
     Storage(DatabaseError),
+    Provider(ClientError),
     Internal(Box<dyn Error + Send + Sync>),
 }
 
 impl FiatServiceError {
     pub(crate) fn provider(error: Box<dyn Error + Send + Sync>) -> Self {
-        match error.downcast::<FiatQuoteError>() {
-            Ok(error) => Self::Quote(*error),
-            Err(error) => Self::Internal(error),
+        if let Some(error) = error.downcast_ref::<FiatQuoteError>() {
+            return Self::Quote(error.clone());
         }
+        if let Some(error) = error.downcast_ref::<ClientError>() {
+            return Self::Provider(error.clone());
+        }
+        Self::Internal(error)
     }
 }
 
@@ -28,6 +33,7 @@ impl fmt::Display for FiatServiceError {
             Self::Request(error) => write!(f, "{error}"),
             Self::Quote(error) => write!(f, "{error}"),
             Self::Storage(error) => write!(f, "{error}"),
+            Self::Provider(error) => write!(f, "{error}"),
             Self::Internal(error) => write!(f, "{error}"),
         }
     }
@@ -38,6 +44,7 @@ impl Error for FiatServiceError {
         match self {
             Self::Request(_) | Self::Quote(_) => None,
             Self::Storage(error) => Some(error),
+            Self::Provider(error) => Some(error),
             Self::Internal(error) => Some(error.as_ref()),
         }
     }
@@ -75,5 +82,15 @@ mod tests {
     fn test_provider_error_keeps_quote_errors() {
         assert!(matches!(FiatServiceError::provider(Box::new(FiatQuoteError::InvalidWebhook)), FiatServiceError::Quote(FiatQuoteError::InvalidWebhook)));
         assert!(matches!(FiatServiceError::provider("timeout".into()), FiatServiceError::Internal(error) if error.to_string() == "timeout"));
+    }
+
+    #[test]
+    fn test_provider_error_keeps_the_provider_http_status() {
+        let rejected = FiatServiceError::provider(Box::new(ClientError::Http {
+            status: 422,
+            body: b"amountMode=exact_out is not supported".to_vec(),
+        }));
+        assert!(matches!(&rejected, FiatServiceError::Provider(error) if error.status() == Some(422)));
+        assert_eq!(rejected.to_string(), "HTTP error: status 422");
     }
 }

@@ -12,6 +12,7 @@ use services::{CacheError, DatabaseError};
 use strum::ParseError;
 
 pub const INTERNAL_ERROR_MESSAGE: &str = "Internal server error";
+pub const UPSTREAM_ERROR_MESSAGE: &str = "Upstream service error";
 
 #[derive(Clone)]
 pub struct ErrorContext {
@@ -27,6 +28,10 @@ pub fn localized_fiat_error(error: FiatServiceError, locale: &str) -> ApiError {
         FiatServiceError::Quote(FiatQuoteError::RegionUnavailable) => ApiError::OkError(localizer.fiat_error_region_unavailable()),
         FiatServiceError::Quote(FiatQuoteError::MinimumAmount(_) | FiatQuoteError::UnsupportedState(_) | FiatQuoteError::InvalidRequest(_) | FiatQuoteError::InvalidWebhook) => ApiError::BadRequest(localizer.errors_generic()),
         FiatServiceError::Storage(error) => error.into(),
+        FiatServiceError::Provider(error) => match error.status() {
+            Some(400..=499) => ApiError::BadRequest(localizer.fiat_error_quote_unavailable()),
+            _ => ApiError::BadGateway(error.to_string()),
+        },
         FiatServiceError::Internal(error) => ApiError::Internal(error.to_string()),
     }
 }
@@ -41,6 +46,7 @@ pub enum ApiError {
     PayloadTooLarge(String),
     UnsupportedMediaType(String),
     UnprocessableEntity(String),
+    BadGateway(String),
     Internal(String),
 }
 
@@ -60,6 +66,7 @@ impl ApiError {
             StatusCode::PAYLOAD_TOO_LARGE => ApiError::PayloadTooLarge(message),
             StatusCode::UNSUPPORTED_MEDIA_TYPE => ApiError::UnsupportedMediaType(message),
             StatusCode::UNPROCESSABLE_ENTITY => ApiError::UnprocessableEntity(message),
+            StatusCode::BAD_GATEWAY => ApiError::BadGateway(message),
             _ => ApiError::Internal(message),
         }
     }
@@ -74,6 +81,7 @@ impl ApiError {
             ApiError::PayloadTooLarge(message) => (StatusCode::PAYLOAD_TOO_LARGE, message, None),
             ApiError::UnsupportedMediaType(message) => (StatusCode::UNSUPPORTED_MEDIA_TYPE, message, None),
             ApiError::UnprocessableEntity(message) => (StatusCode::UNPROCESSABLE_ENTITY, message, None),
+            ApiError::BadGateway(detail) => (StatusCode::BAD_GATEWAY, UPSTREAM_ERROR_MESSAGE.to_string(), Some(detail)),
             ApiError::Internal(detail) => (StatusCode::INTERNAL_SERVER_ERROR, INTERNAL_ERROR_MESSAGE.to_string(), Some(detail)),
         }
     }
@@ -152,6 +160,7 @@ impl From<FiatServiceError> for ApiError {
             FiatServiceError::Request(error) => error.into(),
             FiatServiceError::Quote(error) => error.into(),
             FiatServiceError::Storage(error) => error.into(),
+            FiatServiceError::Provider(error) => ApiError::BadGateway(error.to_string()),
             FiatServiceError::Internal(error) => ApiError::Internal(error.to_string()),
         }
     }
@@ -178,7 +187,7 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
                 return db_error.clone().into();
             }
             if let Some(ClientError::Http { status, body }) = current_error.downcast_ref::<ClientError>() {
-                return ApiError::Internal(format!("upstream status {status}: {}", String::from_utf8_lossy(body)));
+                return ApiError::BadGateway(format!("upstream status {status}: {}", String::from_utf8_lossy(body)));
             }
             match current_error.source() {
                 Some(source) => current_error = source,
@@ -192,7 +201,7 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
 
 #[cfg(test)]
 mod tests {
-    use super::{ApiError, INTERNAL_ERROR_MESSAGE};
+    use super::{ApiError, INTERNAL_ERROR_MESSAGE, UPSTREAM_ERROR_MESSAGE};
     use fiat::error::FiatQuoteError;
     use gem_client::ClientError;
     use http::StatusCode;
@@ -218,6 +227,22 @@ mod tests {
             ApiError::BadRequest("An unexpected error occurred. Please try again later.".to_string())
         );
         assert_eq!(super::localized_fiat_error(FiatServiceError::Internal("connection refused".into()), "en"), ApiError::Internal("connection refused".to_string()));
+        assert_eq!(
+            super::localized_fiat_error(
+                FiatServiceError::Provider(ClientError::Http {
+                    status: 422,
+                    body: b"amountMode=exact_out is not supported".to_vec()
+                }),
+                "en"
+            ),
+            ApiError::BadRequest("This quote is no longer available. Please try again.".to_string()),
+            "a provider rejecting the quote is the quote's problem, not a server error"
+        );
+        assert_eq!(
+            super::localized_fiat_error(FiatServiceError::Provider(ClientError::Http { status: 503, body: vec![] }), "en").public(),
+            (StatusCode::BAD_GATEWAY, super::UPSTREAM_ERROR_MESSAGE.to_string(), Some("HTTP error: status 503".to_string()))
+        );
+        assert_eq!(super::localized_fiat_error(FiatServiceError::Provider(ClientError::Timeout), "en"), ApiError::BadGateway("Timeout error".to_string()));
         assert_eq!(
             super::localized_fiat_error(FiatServiceError::Storage(DatabaseError::not_found("Asset", "btc")), "en"),
             ApiError::NotFound("Asset btc not found".to_string())
@@ -262,8 +287,8 @@ mod tests {
 
         let (status, message, detail) = ApiError::from(error).public();
 
-        assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR);
-        assert_eq!(message, INTERNAL_ERROR_MESSAGE);
+        assert_eq!(status, StatusCode::BAD_GATEWAY);
+        assert_eq!(message, UPSTREAM_ERROR_MESSAGE);
         assert_eq!(detail.as_deref(), Some("upstream status 500: NoMethodError (undefined method '[]' for nil)"));
     }
 
