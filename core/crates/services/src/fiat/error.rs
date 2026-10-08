@@ -11,7 +11,6 @@ pub enum FiatServiceError {
     Request(RequestError),
     Quote(FiatQuoteError),
     Storage(DatabaseError),
-    Provider(ClientError),
     Internal(Box<dyn Error + Send + Sync>),
 }
 
@@ -20,10 +19,10 @@ impl FiatServiceError {
         if let Some(error) = error.downcast_ref::<FiatQuoteError>() {
             return Self::Quote(error.clone());
         }
-        if let Some(error) = error.downcast_ref::<ClientError>() {
-            return Self::Provider(error.clone());
+        match error.downcast_ref::<ClientError>().and_then(ClientError::status) {
+            Some(400..=499) => Self::Quote(FiatQuoteError::ProviderRejected),
+            _ => Self::Internal(error),
         }
-        Self::Internal(error)
     }
 }
 
@@ -33,7 +32,6 @@ impl fmt::Display for FiatServiceError {
             Self::Request(error) => write!(f, "{error}"),
             Self::Quote(error) => write!(f, "{error}"),
             Self::Storage(error) => write!(f, "{error}"),
-            Self::Provider(error) => write!(f, "{error}"),
             Self::Internal(error) => write!(f, "{error}"),
         }
     }
@@ -44,7 +42,6 @@ impl Error for FiatServiceError {
         match self {
             Self::Request(_) | Self::Quote(_) => None,
             Self::Storage(error) => Some(error),
-            Self::Provider(error) => Some(error),
             Self::Internal(error) => Some(error.as_ref()),
         }
     }
@@ -85,12 +82,13 @@ mod tests {
     }
 
     #[test]
-    fn test_provider_error_keeps_the_provider_http_status() {
+    fn test_a_provider_http_rejection_is_a_quote_outcome_and_an_outage_is_not() {
         let rejected = FiatServiceError::provider(Box::new(ClientError::Http {
             status: 422,
             body: b"amountMode=exact_out is not supported".to_vec(),
         }));
-        assert!(matches!(&rejected, FiatServiceError::Provider(error) if error.status() == Some(422)));
-        assert_eq!(rejected.to_string(), "HTTP error: status 422");
+        assert!(matches!(rejected, FiatServiceError::Quote(FiatQuoteError::ProviderRejected)));
+        let down = FiatServiceError::provider(Box::new(ClientError::Http { status: 503, body: vec![] }));
+        assert!(matches!(down, FiatServiceError::Internal(error) if error.to_string() == "HTTP error: status 503"));
     }
 }

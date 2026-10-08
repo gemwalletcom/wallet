@@ -7,6 +7,7 @@ pub enum FiatQuoteError {
     InvalidRequest(String),
     InvalidWebhook,
     RegionUnavailable,
+    ProviderRejected,
 }
 
 impl fmt::Display for FiatQuoteError {
@@ -17,6 +18,7 @@ impl fmt::Display for FiatQuoteError {
             Self::InvalidRequest(msg) => write!(f, "Invalid request: {}", msg),
             Self::InvalidWebhook => write!(f, "Invalid webhook payload"),
             Self::RegionUnavailable => write!(f, "Not available in your region"),
+            Self::ProviderRejected => write!(f, "Rejected by the provider"),
         }
     }
 }
