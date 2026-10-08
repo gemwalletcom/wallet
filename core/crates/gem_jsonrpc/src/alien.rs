@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 use gem_client::ClientError;
 use primitives::Chain;
+#[cfg(feature = "uniffi")]
+use uniffi::UnexpectedUniFFICallbackError;
 
 use crate::client::JsonRpcClient;
 use crate::rpc::{RpcClient as GenericRpcClient, RpcClientError, RpcProvider as GenericRpcProvider};
@@ -32,6 +34,13 @@ impl std::fmt::Display for AlienError {
 }
 
 impl std::error::Error for AlienError {}
+
+#[cfg(feature = "uniffi")]
+impl From<UnexpectedUniFFICallbackError> for AlienError {
+    fn from(error: UnexpectedUniFFICallbackError) -> Self {
+        Self::RequestError { msg: error.reason }
+    }
+}
 
 impl RpcClientError for AlienError {
     fn into_client_error(self) -> ClientError {

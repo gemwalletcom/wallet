@@ -22,6 +22,7 @@ Fix the broken invariant at its owner, even when that requires changing a type o
 - Extend existing components, types, mappers, and fixtures. Reuse loading, error, navigation, and cancellation behavior for new entry points
 - Model variants with exhaustive enums or sealed types, replacing paired flags, optional-plus-flag pairs, and strings that hide missing states
 - Keep types and functions single-purpose; expose only what current callers require
+- Keep the main flow readable in production code and tests: extract cohesive implementation details into small, named helpers on the existing owner, even for one caller. Keep decisions and sequencing visible; avoid forwarding-only helpers or new helper types when a function suffices
 - Immutable bindings (`let`, `val`, non-`mut`); mutation only where ownership requires it, in the narrowest scope
 - Resolve conflicting examples from current contracts and callers; recency or passing tests alone is insufficient. Explain the choice and flag unrelated drift
 - A press highlight matches the control's visible shape; see [Android modifier ordering](../android/skills/code-style.md#core-rules)

@@ -1,4 +1,4 @@
-use super::{AlienError, AlienResponse, AlienTarget, RpcAlienError};
+use super::{AlienError, AlienResponse, AlienTarget};
 use crate::services::node::GemNodeService;
 
 use async_trait::async_trait;
@@ -26,7 +26,7 @@ impl AlienProviderWrapper {
 
 #[async_trait]
 impl GenericRpcProvider for AlienProviderWrapper {
-    type Error = RpcAlienError;
+    type Error = AlienError;
 
     async fn request(&self, target: AlienTarget) -> Result<RpcResponse, Self::Error> {
         Ok(self.provider.request(target).await?.to_rpc_response())
@@ -50,7 +50,7 @@ impl AlienRpcProvider {
 
 #[async_trait]
 impl GenericRpcProvider for AlienRpcProvider {
-    type Error = RpcAlienError;
+    type Error = AlienError;
 
     async fn request(&self, target: AlienTarget) -> Result<RpcResponse, Self::Error> {
         self.transport.request(target).await
@@ -58,7 +58,7 @@ impl GenericRpcProvider for AlienRpcProvider {
 }
 
 impl RpcProvider for AlienRpcProvider {
-    fn get_endpoint(&self, chain: Chain) -> Result<String, RpcAlienError> {
+    fn get_endpoint(&self, chain: Chain) -> Result<String, AlienError> {
         Ok(self.nodes.node_url(chain))
     }
 }

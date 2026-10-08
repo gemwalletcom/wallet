@@ -1,5 +1,5 @@
 use crate::GemstoneError;
-use crate::alien::RpcAlienError;
+use crate::alien::AlienError;
 use crate::api::GemApiError;
 use crate::gateway::GatewayError;
 use crate::services::wallet::error::GemWalletImportError;
@@ -48,7 +48,7 @@ impl From<uniffi::UnexpectedUniFFICallbackError> for GemServiceError {
 impl From<GemApiError> for GemServiceError {
     fn from(error: GemApiError) -> Self {
         match error {
-            GemApiError::Network { msg } if msg.contains(&RpcAlienError::Offline.to_string()) => Self::Offline,
+            GemApiError::Network { msg } if msg.contains(&AlienError::Offline.to_string()) => Self::Offline,
             GemApiError::Http { status, .. } | GemApiError::Response { status, .. } if status >= 500 => Self::Api { msg: String::new() },
             error => Self::Api { msg: error.to_string() },
         }
