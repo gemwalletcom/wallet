@@ -20,7 +20,7 @@ use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::jsonrpc::JsonRpcHandler;
 use crate::proxy::proxy_request::ProxyRequest;
 use crate::proxy::request_url::RequestUrl;
-use crate::proxy::transport::{self, TransportError};
+use crate::proxy::transport;
 use crate::proxy::{CacheStatus, ProxyResponse};
 use crate::webhook::DynodeBroadcastWebhookClient;
 
@@ -101,7 +101,7 @@ impl ProxyRequestService {
             result.as_ref().map_or(StatusCode::BAD_GATEWAY.as_u16(), |response| response.status),
             attempt_start.elapsed(),
         );
-        let response = result.map_err(TransportError::into_inner)?;
+        let response = result?;
         let status = response.status;
         let response_headers = response.headers;
         let body = response.body;

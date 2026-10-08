@@ -163,7 +163,9 @@ This matters for authenticated endpoints where `/v1/key` and `/v1/key/` can have
 
 Each observed URL publishes its last check success, sync state, latest and current block, check latency, and check timestamp. A cycle counter distinguishes `scheduled` checks from `failure_trigger` checks.
 
-Node-switch metrics use the same stable reasons as request retries: `status=<code>`, `timeout`, `connect_error`, and `request_error`. Profile failures use `request_error`. Error logs record the bounded type (`upstream`, `request`, or `node_check`) and one error detail containing the stable reason and provider message. Raw provider errors are not used as Prometheus labels.
+Node-switch metrics use the same stable reasons as request retries: `status=<code>`, `timeout`, `connect_error`, `transport`, `response_body`, `response_decode`, `invalid_rpc_batch`, and the uncategorized fallback `request_error`. Profile failures use `request_error`. Malformed non-2xx JSON-RPC responses retain their HTTP status in retry metrics; malformed 2xx responses use `response_decode` or `invalid_rpc_batch`. Parsing failures remain retryable, and retry limits and routing are unchanged.
+
+`Upstream error` logs include the request ID, chain, remote hostname, HTTP method, RPC methods or HTTP path, stable reason, latency, and a safe error detail. Decode details contain only HTTP status, parser category, line, and column; batch details contain only HTTP status and a bounded validation reason. Transport details identify the transport or response-body stage. Raw exceptions, keyed upstream URLs, and response bodies are excluded. Monitoring error logs retain their bounded type (`upstream`, `request`, or `node_check`) and provider message; raw provider errors are never Prometheus labels.
 
 ### Code map
 

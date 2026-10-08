@@ -15,7 +15,9 @@ pub(super) enum NodeMonitorError {
 impl NodeMonitorError {
     pub(super) fn from_error(error: &(dyn Error + Send + Sync + 'static)) -> Self {
         match FailureReason::from_error(error) {
-            reason @ (FailureReason::Status(_) | FailureReason::Timeout | FailureReason::ConnectError) => Self::Upstream(reason),
+            reason @ (FailureReason::Status(_) | FailureReason::Timeout | FailureReason::ConnectError | FailureReason::Transport | FailureReason::ResponseBody | FailureReason::ResponseDecode | FailureReason::InvalidRpcBatch) => {
+                Self::Upstream(reason)
+            }
             FailureReason::RequestError => Self::Request,
         }
     }
@@ -80,7 +82,7 @@ mod tests {
         let cases: [(ClientError, NodeMonitorError); 3] = [
             (ClientError::Timeout, NodeMonitorError::Upstream(FailureReason::Timeout)),
             (ClientError::Http { status: 503, body: Vec::new() }, NodeMonitorError::Upstream(FailureReason::Status(503))),
-            (ClientError::Network("request failed".to_string()), NodeMonitorError::Request),
+            (ClientError::Network("request failed".to_string()), NodeMonitorError::Upstream(FailureReason::Transport)),
         ];
 
         for (error, expected) in cases {

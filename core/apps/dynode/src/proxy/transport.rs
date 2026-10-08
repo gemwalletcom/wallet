@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::{error::Error, fmt};
 
 use reqwest::header::{HeaderMap, HeaderName};
 use reqwest::{Client, Error as RequestError, Request};
@@ -12,12 +13,6 @@ pub(crate) enum TransportError {
 }
 
 impl TransportError {
-    pub(crate) fn into_inner(self) -> RequestError {
-        match self {
-            Self::Transport(error) | Self::ResponseBody(error) => error,
-        }
-    }
-
     pub(crate) fn kind(&self) -> &'static str {
         match self {
             Self::Transport(_) => "transport",
@@ -25,6 +20,14 @@ impl TransportError {
         }
     }
 }
+
+impl fmt::Display for TransportError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.kind())
+    }
+}
+
+impl Error for TransportError {}
 
 pub(crate) fn filter_headers(headers: &HeaderMap, forward_headers: &HashSet<HeaderName>) -> HeaderMap {
     headers.iter().filter(|(name, _)| forward_headers.contains(*name)).map(|(name, value)| (name.clone(), value.clone())).collect()

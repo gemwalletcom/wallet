@@ -7,8 +7,10 @@ use reqwest::Client;
 use reqwest::StatusCode;
 use reqwest::header::HeaderMap;
 use serde::Serialize;
-use serde_json::{Error as JsonError, Value};
+use serde::de::DeserializeOwned;
+use serde_json::Value;
 
+use self::error::ResponseError;
 use crate::BoxError;
 use crate::cache::RequestCache;
 use crate::jsonrpc_types::{JsonRpcCall, JsonRpcRequest, JsonRpcResult};
@@ -16,11 +18,12 @@ use crate::metrics::Metrics;
 use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::proxy_request::ProxyRequest;
 use crate::proxy::request_url::RequestUrl;
-use crate::proxy::transport::{self, TransportError};
+use crate::proxy::transport;
 use crate::proxy::{CacheStatus, ProxyResponse};
 use crate::webhook::DynodeBroadcastWebhookClient;
 
 mod cache;
+pub(crate) mod error;
 
 pub struct JsonRpcHandler;
 
@@ -137,21 +140,21 @@ impl JsonRpcHandler {
             (serde_json::to_vec(&results)?, StatusCode::OK.as_u16(), CacheStatus::Hit)
         } else {
             let (body, missing_status) = Self::send_upstream(&missing_calls, request, metrics, url, client, forward_headers).await?;
-            let response = Self::single_call_batch_response(&missing_calls, serde_json::from_slice::<Value>(&body).map_err(|error| Self::format_parse_error(missing_status, &body, error))?);
+            let response = Self::single_call_batch_response(&missing_calls, Self::parse_response(missing_status, &body)?);
             let (body, status, cache_status) = if response.is_array() {
-                let ordered = Self::order_batch(&missing_calls, response)?;
+                let ordered = Self::order_batch(&missing_calls, response, missing_status)?;
                 let Value::Array(results) = ordered else {
-                    return Err("invalid JSON-RPC batch response".into());
+                    return Err(ResponseError::InvalidBatch { status: missing_status, detail: "shape" }.into());
                 };
                 if missing_status == StatusCode::OK.as_u16() {
                     cache::set_many(&missing_calls, &missing_ttls, &results, request, cache).await?;
                 }
                 let cache_status = if cache_hits == 0 { CacheStatus::Miss } else { CacheStatus::Partial };
-                (serde_json::to_vec(&Self::merge_batch_results(cached_results, results)?)?, missing_status, cache_status)
+                (serde_json::to_vec(&Self::merge_batch_results(cached_results, results, missing_status)?)?, missing_status, cache_status)
             } else if cache_hits > 0 {
                 let (body, status) = Self::send_upstream(calls, request, metrics, url, client, forward_headers).await?;
-                let response = serde_json::from_slice::<Value>(&body).map_err(|error| Self::format_parse_error(status, &body, error))?;
-                let body = if response.is_array() { serde_json::to_vec(&Self::order_batch(calls, response)?)? } else { body };
+                let response: Value = Self::parse_response(status, &body)?;
+                let body = if response.is_array() { serde_json::to_vec(&Self::order_batch(calls, response, status)?)? } else { body };
                 for call in calls {
                     metrics.add_proxy_upstream_response(request.chain.as_ref(), &call.method, url.url.host_str().unwrap_or_default(), status, request.elapsed().as_millis());
                 }
@@ -195,7 +198,7 @@ impl JsonRpcHandler {
             result.as_ref().map_or(StatusCode::BAD_GATEWAY.as_u16(), |response| response.status),
             attempt_start.elapsed(),
         );
-        let response = result.map_err(TransportError::into_inner)?;
+        let response = result?;
         Ok((response.body, response.status))
     }
 
@@ -211,7 +214,7 @@ impl JsonRpcHandler {
     ) -> Result<(JsonRpcResult, u16, Vec<u8>), BoxError> {
         let (body, status) = Self::send_upstream(call, request, metrics, url, client, forward_headers).await?;
 
-        let result: JsonRpcResult = serde_json::from_slice(&body).map_err(|error| Self::format_parse_error(status, &body, error))?;
+        let result = Self::parse_response(status, &body)?;
 
         if status == StatusCode::OK.as_u16()
             && let (JsonRpcResult::Success(success), Some(ttl)) = (&result, cache_ttl)
@@ -229,7 +232,7 @@ impl JsonRpcHandler {
         }
     }
 
-    fn order_batch(calls: &[JsonRpcCall], response: Value) -> Result<Value, BoxError> {
+    fn order_batch(calls: &[JsonRpcCall], response: Value, status: u16) -> Result<Value, ResponseError> {
         let Value::Array(results) = response else {
             return Ok(response);
         };
@@ -239,44 +242,37 @@ impl JsonRpcHandler {
             return Ok(Value::Array(results));
         }
         if results.len() != calls.len() {
-            return Err("invalid JSON-RPC batch response length".into());
+            return Err(ResponseError::InvalidBatch { status, detail: "length" });
         }
 
         let mut results_by_id = results.into_iter().filter_map(|result| result.get("id").and_then(Value::as_u64).map(|id| (id, result))).collect::<HashMap<_, _>>();
         if results_by_id.len() != calls.len() || !results_by_id.keys().all(|id| request_ids.contains(id)) {
-            return Err("invalid JSON-RPC batch response IDs".into());
+            return Err(ResponseError::InvalidBatch { status, detail: "ids" });
         }
 
         let ordered = calls.iter().filter_map(|call| results_by_id.remove(&call.id)).collect();
         Ok(Value::Array(ordered))
     }
 
-    fn merge_batch_results(cached_results: Vec<Option<JsonRpcResult>>, upstream_results: Vec<Value>) -> Result<Vec<Value>, BoxError> {
+    fn merge_batch_results(cached_results: Vec<Option<JsonRpcResult>>, upstream_results: Vec<Value>, status: u16) -> Result<Vec<Value>, BoxError> {
         let mut upstream_results = upstream_results.into_iter();
         let results = cached_results
             .into_iter()
             .map(|result| -> Result<Value, BoxError> {
                 match result {
                     Some(result) => Ok(serde_json::to_value(result)?),
-                    None => upstream_results.next().ok_or_else(|| "invalid JSON-RPC partial batch response length".into()),
+                    None => upstream_results.next().ok_or_else(|| ResponseError::InvalidBatch { status, detail: "partial_length" }.into()),
                 }
             })
             .collect::<Result<Vec<_>, _>>()?;
         if upstream_results.next().is_some() {
-            return Err("invalid JSON-RPC partial batch response length".into());
+            return Err(ResponseError::InvalidBatch { status, detail: "partial_length" }.into());
         }
         Ok(results)
     }
 
-    fn format_parse_error(status: u16, body: &[u8], error: JsonError) -> String {
-        const MAX_BODY_LEN: usize = 256;
-        if body.len() <= MAX_BODY_LEN
-            && let Ok(text) = std::str::from_utf8(body)
-        {
-            let body = text.split_whitespace().collect::<Vec<_>>().join(" ");
-            return format!("status={}, body: {}", status, body);
-        }
-        format!("status={}, parse error: {}", status, error)
+    fn parse_response<T: DeserializeOwned>(status: u16, body: &[u8]) -> Result<T, ResponseError> {
+        serde_json::from_slice(body).map_err(|error| ResponseError::decode(status, error))
     }
 }
 
@@ -285,24 +281,26 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+    use crate::failure_reason::FailureReason;
 
     #[test]
-    fn test_format_parse_error() {
-        let err = || serde_json::from_slice::<Value>(b"x").unwrap_err();
+    fn test_parse_response_preserves_failure_status_and_excludes_body() {
+        for (status, expected_reason) in [(500, "status=500"), (429, "status=429"), (200, "response_decode")] {
+            let error = JsonRpcHandler::parse_response::<JsonRpcResult>(status, b"<html>https://node.example/secret-key</html>").unwrap_err();
+            assert_eq!(FailureReason::from_error(&error).to_string(), expected_reason);
+            assert_eq!(error.to_string(), format!("response_decode status={status} category=syntax line=1 column=1"));
+        }
 
-        assert_eq!(
-            JsonRpcHandler::format_parse_error(415, b"Expected Content-Type: application/json", err()),
-            "status=415, body: Expected Content-Type: application/json"
-        );
-        assert_eq!(
-            JsonRpcHandler::format_parse_error(400, b"<html>\n<body>Bad Request</body>\n</html>", err()),
-            "status=400, body: <html> <body>Bad Request</body> </html>"
-        );
-        assert_eq!(
-            JsonRpcHandler::format_parse_error(502, b"<html>Bad Gateway...</html>".repeat(20).as_slice(), err()),
-            "status=502, parse error: expected value at line 1 column 1"
-        );
-        assert_eq!(JsonRpcHandler::format_parse_error(500, &[0xff, 0xfe], err()), "status=500, parse error: expected value at line 1 column 1");
+        let error = JsonRpcHandler::parse_response::<JsonRpcResult>(200, br#"{"credential":"secret-key"}"#).unwrap_err();
+        assert_eq!(FailureReason::from_error(&error).to_string(), "response_decode");
+        assert_eq!(error.to_string(), "response_decode status=200 category=data line=0 column=0");
+
+        let error = JsonRpcHandler::parse_response::<Value>(429, b"Too many requests").unwrap_err();
+        assert_eq!(FailureReason::from_error(&error).to_string(), "status=429");
+        assert_eq!(FailureReason::error_detail(&error), "response_decode status=429 category=syntax line=1 column=1");
+
+        let response: JsonRpcResult = JsonRpcHandler::parse_response(200, br#"{"jsonrpc":"2.0","id":1,"result":"0x12"}"#).unwrap();
+        assert_eq!(serde_json::to_value(response).unwrap(), json!({ "jsonrpc": "2.0", "id": 1, "result": "0x12" }));
     }
 
     #[test]
@@ -337,7 +335,7 @@ mod tests {
             }
         ]);
 
-        let ordered = JsonRpcHandler::order_batch(&calls, response).unwrap();
+        let ordered = JsonRpcHandler::order_batch(&calls, response, 200).unwrap();
         assert_eq!(
             ordered,
             json!([
@@ -362,7 +360,13 @@ mod tests {
             { "jsonrpc": "2.0", "result": "first", "id": 7 },
             { "jsonrpc": "2.0", "result": "second", "id": 7 }
         ]);
-        assert!(JsonRpcHandler::order_batch(&calls, duplicate).is_err());
+        let error = JsonRpcHandler::order_batch(&calls, duplicate, 200).unwrap_err();
+        assert_eq!(FailureReason::from_error(&error).to_string(), "invalid_rpc_batch");
+        assert_eq!(error.to_string(), "invalid_rpc_batch status=200 detail=ids");
+
+        let error = JsonRpcHandler::order_batch(&calls, json!([]), 429).unwrap_err();
+        assert_eq!(FailureReason::from_error(&error).to_string(), "status=429");
+        assert_eq!(FailureReason::error_detail(&error), "invalid_rpc_batch status=429 detail=length");
     }
 
     #[test]
@@ -384,7 +388,7 @@ mod tests {
         }))
         .unwrap();
 
-        let merged = JsonRpcHandler::merge_batch_results(vec![Some(cached), None], vec![upstream]).unwrap();
+        let merged = JsonRpcHandler::merge_batch_results(vec![Some(cached), None], vec![upstream], 200).unwrap();
 
         assert_eq!(
             serde_json::to_value(merged).unwrap(),
@@ -401,6 +405,8 @@ mod tests {
                 }
             ])
         );
-        assert!(JsonRpcHandler::merge_batch_results(vec![None], Vec::new()).is_err());
+        let error = JsonRpcHandler::merge_batch_results(vec![None], Vec::new(), 200).unwrap_err();
+        assert_eq!(FailureReason::from_error(error.as_ref()).to_string(), "invalid_rpc_batch");
+        assert_eq!(error.to_string(), "invalid_rpc_batch status=200 detail=partial_length");
     }
 }

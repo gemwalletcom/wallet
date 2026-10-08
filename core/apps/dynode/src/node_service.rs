@@ -153,7 +153,19 @@ impl NodeService {
                     let chain = request.chain.as_ref();
                     let latency = DurationMs(request.elapsed());
                     let retry_reason = FailureReason::from_error(error.as_ref()).to_string();
-                    info_with_fields!("Upstream error", id = request_id, chain = chain, remote_host = remote_host.as_str(), error = retry_reason.as_str(), latency = latency,);
+                    let rpc_methods = request.request_type().get_methods_list();
+                    let error_detail = FailureReason::error_detail(error.as_ref());
+                    info_with_fields!(
+                        "Upstream error",
+                        id = request_id,
+                        chain = chain,
+                        remote_host = remote_host.as_str(),
+                        method = request.method.as_str(),
+                        rpc_method = rpc_methods.as_str(),
+                        error = retry_reason.as_str(),
+                        error_detail = error_detail.as_str(),
+                        latency = latency,
+                    );
                     if index + 1 < max_attempts {
                         self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), &retry_reason);
                         self.metrics.record_node_failover(request.chain, remote_host.as_str(), &request.path, &retry_reason);
