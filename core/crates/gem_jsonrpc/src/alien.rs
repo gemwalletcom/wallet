@@ -42,7 +42,7 @@ impl std::error::Error for AlienError {}
 #[cfg(feature = "uniffi")]
 impl From<UnexpectedUniFFICallbackError> for AlienError {
     fn from(error: UnexpectedUniFFICallbackError) -> Self {
-        Self::request_error(error.reason)
+        Self::RequestError { msg: error.reason }
     }
 }
 
