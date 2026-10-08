@@ -23,8 +23,6 @@ extension NativeProvider: AlienProvider {
             let statusCode = (response as? HTTPURLResponse)?.statusCode
 
             return AlienResponse(status: statusCode.map(UInt16.init), data: data)
-        } catch let error as AlienError {
-            throw error
         } catch {
             if isNetworkError(error) {
                 throw AlienError.Offline
@@ -32,7 +30,7 @@ extension NativeProvider: AlienProvider {
             if (error as NSError).domain == NSURLErrorDomain {
                 throw AlienError.ResponseError(msg: error.localizedDescription)
             }
-            throw AlienError.RequestError(msg: error.localizedDescription)
+            throw error
         }
     }
 }

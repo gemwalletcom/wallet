@@ -72,7 +72,7 @@ class NativeProviderTest {
     }
 
     @Test
-    fun requestMapsCancellation() {
+    fun requestRethrowsCancellation() {
         val provider = NativeProvider(
             httpClient = OkHttpClient.Builder()
                 .addInterceptor {
@@ -81,7 +81,7 @@ class NativeProviderTest {
                 .build(),
         )
 
-        val error = assertThrows(AlienException.RequestException::class.java) {
+        val error = assertThrows(CancellationException::class.java) {
             runBlocking {
                 provider.request(
                     AlienTarget(
@@ -93,7 +93,7 @@ class NativeProviderTest {
                 )
             }
         }
-        assertEquals("cancelled", error.msg)
+        assertEquals("cancelled", error.message)
     }
 
     @Test
@@ -130,22 +130,13 @@ class NativeProviderTest {
     }
 
     @Test
-    fun requestMapsInvalidUrl() {
-        assertThrows(AlienException.RequestException::class.java) {
-            runBlocking {
-                NativeProvider().request(AlienTarget("invalid", AlienHttpMethod.GET, null, null))
-            }
-        }
-    }
-
-    @Test
     fun unexpectedFailureReturnsThroughRust() {
         val provider = NativeProvider(OkHttpClient.Builder().addInterceptor { throw IllegalStateException("interceptor failed") }.build())
         val service = GemWidgetService(GemApiClient(provider))
         val error = assertThrows(GemServiceException.Api::class.java) {
             runBlocking { service.coins(GemWidgetSize.SMALL, "USD") }
         }
-        assertEquals("interceptor failed", error.msg)
+        assertEquals("java.lang.IllegalStateException: interceptor failed", error.msg)
     }
 
     @Test
@@ -155,6 +146,6 @@ class NativeProviderTest {
         val error = assertThrows(GemServiceException.Api::class.java) {
             runBlocking { service.coins(GemWidgetSize.SMALL, "USD") }
         }
-        assertEquals("callback cancelled", error.msg)
+        assertEquals("java.util.concurrent.CancellationException: callback cancelled", error.msg)
     }
 }

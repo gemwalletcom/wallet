@@ -17,25 +17,21 @@ import uniffi.gemstone.alienMethodToString
 import java.io.IOException
 
 class NativeProvider(private val httpClient: OkHttpClient = OkHttpClient()) : AlienProvider {
-    override suspend fun request(target: AlienTarget): AlienResponse = try {
-        withContext(Dispatchers.IO) {
-            val requestBuilder = Request.Builder()
-                .url(target.url)
-                .method(alienMethodToString(target.method), target.requestBody())
-            target.headers?.forEach { (key, value) -> requestBuilder.addHeader(key, value) }
+    override suspend fun request(target: AlienTarget): AlienResponse = withContext(Dispatchers.IO) {
+        val requestBuilder = Request.Builder()
+            .url(target.url)
+            .method(alienMethodToString(target.method), target.requestBody())
+        target.headers?.forEach { (key, value) -> requestBuilder.addHeader(key, value) }
+        try {
             httpClient.newCall(requestBuilder.build()).execute().use { response ->
                 AlienResponse(response.code.toUShort(), response.body.bytes())
             }
+        } catch (error: IOException) {
+            if (error.isNetworkUnavailable()) {
+                throw AlienException.Offline()
+            }
+            throw AlienException.RequestException(error.toGatewayNetworkMessage())
         }
-    } catch (error: AlienException) {
-        throw error
-    } catch (error: IOException) {
-        if (error.isNetworkUnavailable()) {
-            throw AlienException.Offline()
-        }
-        throw AlienException.RequestException(error.toGatewayNetworkMessage())
-    } catch (error: Exception) {
-        throw AlienException.RequestException(error.message ?: error.toString())
     }
 }
 

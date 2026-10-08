@@ -29,14 +29,4 @@ struct AlienTargetRequestTests {
 
         #expect(throws: AlienError.self) { try target.asRequest() }
     }
-
-    @Test
-    func providerPreservesRequestError() async {
-        let provider = NativeProvider()
-        let target = AlienTarget(url: "", method: .get, headers: nil, body: nil)
-
-        await #expect(throws: AlienError.RequestError(msg: "invalid url: ")) {
-            try await provider.request(target: target)
-        }
-    }
 }

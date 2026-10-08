@@ -9,6 +9,7 @@ types = []
 client = ["dep:gem_client", "dep:async-trait", "dep:primitives"]
 reqwest = ["client", "dep:reqwest", "dep:percent-encoding", "gem_client/reqwest"]
 testkit = ["client", "gem_client/testkit"]
+uniffi = ["client", "dep:uniffi"]
 
 [dependencies]
 serde = { workspace = true }
@@ -19,3 +20,4 @@ async-trait = { workspace = true, optional = true }
 primitives = { path = "../primitives", optional = true }
 reqwest = { workspace = true, optional = true }
 percent-encoding = { workspace = true, optional = true }
+uniffi = { workspace = true, optional = true }
