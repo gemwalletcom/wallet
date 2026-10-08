@@ -40,6 +40,7 @@ val paddingDefault = 16.dp
 val paddingLarge = 32.dp
 
 val mainActionHeight = 48.dp
+val menuWindowMargin = 48.dp
 val hairlineThickness = 0.5.dp
 val chartFrameHeight = 320.dp
 
