@@ -390,11 +390,10 @@ extension SwapSceneViewModel {
             )
             try Task.checkCancellation()
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
-        } catch let error as SwapperError {
-            guard !Task.isCancelled else { return }
-            session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: error))
-            debugLog("SwapScene get quotes error: \(error)")
         } catch {
+            guard !Task.isCancelled else { return }
+            let quoteError = error as? SwapperError ?? .ComputeQuoteError(error.localizedDescription)
+            session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: quoteError))
             debugLog("SwapScene get quotes error: \(error)")
         }
     }

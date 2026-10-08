@@ -23,6 +23,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemWalletServiceInterface
+import uniffi.gemstone.InternalException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelStartupErrorTest {
@@ -84,14 +85,33 @@ class MainViewModelStartupErrorTest {
         coVerify(exactly = 1) { walletService.migrateToSharedPassword() }
     }
 
+    @Test
+    fun unexpectedLinkFailure_isShownAndClearsThePendingLink() {
+        val coordinator = coordinator(PendingNavigation.FromLink("gem://unexpected"))
+        coEvery { coordinator.buildRoutes(any()) } throws InternalException("panic")
+        val viewModel = mainViewModel(coordinator = coordinator)
+
+        viewModel.maintain(flowOf(true))
+
+        assertEquals("panic", viewModel.uiState.value.navigationError)
+        coVerify(exactly = 1) { coordinator.clear() }
+    }
+
+    private fun coordinator(pending: PendingNavigation? = null) = mockk<PendingNavigationCoordinator>(relaxed = true) {
+        every { pendingNavigation } returns MutableStateFlow(pending)
+    }
+
     private fun walletService() = mockk<GemWalletServiceInterface>(relaxed = true) { coEvery { migrateToSharedPassword() } returns 0u }
 
-    private fun mainViewModel(authRequired: Boolean = false, protection: WalletPasswordProtection = mockk(relaxed = true), walletService: GemWalletServiceInterface = walletService()): MainViewModel {
+    private fun mainViewModel(
+        authRequired: Boolean = false,
+        protection: WalletPasswordProtection = mockk(relaxed = true),
+        walletService: GemWalletServiceInterface = walletService(),
+        coordinator: PendingNavigationCoordinator = coordinator(),
+    ): MainViewModel {
         val userConfig = mockk<UserConfig>()
         every { userConfig.authRequired() } returns authRequired
         every { userConfig.appearance() } returns flowOf(Appearance.System)
-        val coordinator = mockk<PendingNavigationCoordinator>(relaxed = true)
-        every { coordinator.pendingNavigation } returns MutableStateFlow(null)
         return MainViewModel(
             userConfig = userConfig,
             passwordProtection = protection,

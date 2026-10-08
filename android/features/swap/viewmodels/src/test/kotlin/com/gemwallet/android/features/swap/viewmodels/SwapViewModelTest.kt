@@ -69,6 +69,7 @@ import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.InternalException
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperQuote
@@ -469,6 +470,18 @@ class SwapViewModelTest {
     }
 
     @Test
+    fun `an unexpected quote error shows an error and offers quote retry`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        failQuote(viewModel, InternalException("panic"))
+
+        val state = viewModel.viewState.value
+        assertNotNull(state.error)
+        assertEquals(GemSwapButtonAction.RetryQuote, state.buttonAction)
+    }
+
+    @Test
     fun `automatic refresh stops in background and resumes in foreground`() = runTest(testDispatcher) {
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
@@ -788,7 +801,7 @@ class SwapViewModelTest {
         assertEquals("0.000000001", viewModel.payValue.text.toString())
     }
 
-    private fun failQuote(viewModel: SwapViewModel, error: SwapperException) {
+    private fun failQuote(viewModel: SwapViewModel, error: Throwable) {
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "1")
         quoteAnswers.trySend(Result.failure(error))

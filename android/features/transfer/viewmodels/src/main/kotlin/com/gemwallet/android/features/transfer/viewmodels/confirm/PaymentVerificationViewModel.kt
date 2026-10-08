@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemPaymentException
 import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemPaymentTarget
 import uniffi.gemstone.Payment
@@ -62,7 +61,7 @@ class PaymentVerificationViewModel @Inject constructor(
                 }
             } catch (error: CancellationException) {
                 throw error
-            } catch (error: GemPaymentException) {
+            } catch (error: Exception) {
                 emitToast(ToastMessage(error.errorText().text(context), R.drawable.ic_warning))
             }
         }

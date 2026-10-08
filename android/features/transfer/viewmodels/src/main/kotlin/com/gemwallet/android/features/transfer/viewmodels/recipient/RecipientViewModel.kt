@@ -54,7 +54,6 @@ import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemRecipientException
 import uniffi.gemstone.GemRecipientNext
 import uniffi.gemstone.GemRecipientScan
 import uniffi.gemstone.GemRecipientServiceInterface
@@ -144,8 +143,8 @@ class RecipientViewModel @Inject constructor(
         if (!addressInput.validate()) return
         val next = try {
             recipientInput.updateAndGet { it.onAddressChanged(address.value) }.next(recipient.type, addressInput.nameRecordState)
-        } catch (rejection: GemRecipientException) {
-            addressInput.markInvalid(rejection)
+        } catch (error: Exception) {
+            addressInput.markInvalid(error)
             return
         }
         route(recipient, next, amountAction, confirmAction)
@@ -154,8 +153,8 @@ class RecipientViewModel @Inject constructor(
     fun onDestination(recipient: RecipientUIState.Ready, destination: GemRecipient, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
         val next = try {
             service.select(recipient.type, destination)
-        } catch (rejection: GemRecipientException) {
-            addressInput.markInvalid(rejection)
+        } catch (error: Exception) {
+            addressInput.markInvalid(error)
             return
         }
         route(recipient, next, amountAction, confirmAction)
@@ -191,8 +190,8 @@ class RecipientViewModel @Inject constructor(
     private fun onAddressScan(type: GemRecipientType, data: String, confirmAction: ConfirmTransactionAction) {
         val scan = try {
             service.scan(data, type)
-        } catch (rejection: GemRecipientException) {
-            addressInput.markInvalid(rejection)
+        } catch (error: Exception) {
+            addressInput.markInvalid(error)
             return
         }
         when (scan) {
