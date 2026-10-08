@@ -13,6 +13,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockPerpetualData
 import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -29,13 +30,17 @@ import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -49,6 +54,7 @@ import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
+import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PerpetualViewModelTest {
@@ -127,6 +133,46 @@ class PerpetualViewModelTest {
         verify(exactly = 2) { observer.subscribe(any()) }
         verify(exactly = 0) { observer.unsubscribe(any()) }
         verify(exactly = 1) { positions(any(), any<PerpetualId>()) }
+    }
+
+    @Test
+    fun `a price update while candles load keeps the load running`() = runTest(dispatcher) {
+        val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
+            every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+            coEvery { candles(any()) } coAnswers {
+                delay(1_000)
+                GemCandleResult(request = firstArg(), state = GemLoadState.Data, candles = emptyList())
+            }
+        }
+        val markets = MutableStateFlow<PerpetualData?>(mockPerpetualData(perpetual = mockPerpetual(price = 1.0), asset = asset))
+        val model = viewModel(service = service, perpetuals = markets)
+        backgroundScope.launch { model.chart.collect {} }
+        runCurrent()
+
+        advanceTimeBy(500)
+        markets.value = mockPerpetualData(perpetual = mockPerpetual(price = 2.0), asset = asset)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { service.candles(any()) }
+        assertEquals(StateViewType.NoData, model.chart.value)
+    }
+
+    @Test
+    fun `refreshing after a failed candle load asks Core again`() = runTest(dispatcher) {
+        val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
+            every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+            coEvery { candles(any()) } answers {
+                GemCandleResult(request = firstArg(), state = GemLoadState.Error(GemServiceException.Gateway("offline")), candles = emptyList())
+            }
+        }
+        val model = viewModel(service = service, data = perpetualData())
+        advanceUntilIdle()
+
+        model.refresh()
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { service.candles(any()) }
+        assertFalse(model.isRefreshing.value)
     }
 
     @Test

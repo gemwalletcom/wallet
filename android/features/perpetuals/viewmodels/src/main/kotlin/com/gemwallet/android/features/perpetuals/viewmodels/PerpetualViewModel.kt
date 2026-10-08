@@ -165,9 +165,9 @@ class PerpetualViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            combine(perpetual.map { it?.perpetual }.distinctUntilChanged(), candles.distinctUntilChangedBy { it.request() }, ::Pair).collectLatest { (market, session) ->
+            combine(perpetual.map { it?.perpetual }.distinctUntilChangedBy { it?.id }, candles.distinctUntilChangedBy { it.request() }, ::Pair).collectLatest { (market, session) ->
                 val selected = market?.let { session.onSelectMarket(it.toGem()) } ?: return@collectLatest
-                if (selected != session) {
+                if (selected.symbol != session.symbol) {
                     candles.value = selected
                     return@collectLatest
                 }
