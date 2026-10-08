@@ -21,7 +21,6 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.navigation3.runtime.NavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
@@ -38,6 +37,7 @@ import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
+import com.gemwallet.android.ui.navigation.rememberRouteArgumentsViewModelStoreNavEntryDecorator
 import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.viewmodel.NavEntryViewModelStoreOwner
 import com.wallet.core.primitives.ChainAddress
@@ -132,7 +132,7 @@ private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: Finish
         entries = backStack.map { entryProvider(it) },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
-            rememberAutocloseNavEntryDecorator(),
+            rememberRouteArgumentsViewModelStoreNavEntryDecorator(),
         ),
     )
 
@@ -193,44 +193,3 @@ private fun rememberAutocloseRootViewModelStoreOwner(): ViewModelStoreOwner {
         )
     }
 }
-
-@Composable
-private fun rememberAutocloseNavEntryDecorator(): NavEntryDecorator<NavKey> {
-    val parentOwner = checkNotNull(LocalViewModelStoreOwner.current) {
-        "No ViewModelStoreOwner via LocalViewModelStoreOwner"
-    }
-    val savedStateRegistryOwner = checkNotNull(parentOwner as? SavedStateRegistryOwner) {
-        "Parent ViewModelStoreOwner must implement SavedStateRegistryOwner"
-    }
-    val stores = remember { mutableMapOf<Any, ViewModelStore>() }
-    DisposableEffect(Unit) {
-        onDispose {
-            stores.values.forEach(ViewModelStore::clear)
-            stores.clear()
-        }
-    }
-    return remember(parentOwner, savedStateRegistryOwner) {
-        AutocloseNavEntryDecorator(parentOwner, savedStateRegistryOwner, stores)
-    }
-}
-
-private class AutocloseNavEntryDecorator(private val parent: ViewModelStoreOwner, private val savedStateRegistryOwner: SavedStateRegistryOwner, private val stores: MutableMap<Any, ViewModelStore>) :
-    NavEntryDecorator<NavKey>(
-        onPop = { contentKey -> stores.remove(contentKey)?.clear() },
-        decorate = { entry ->
-            val store = remember(entry.contentKey) {
-                stores.getOrPut(entry.contentKey) { ViewModelStore() }
-            }
-            val owner = remember(parent, store, savedStateRegistryOwner) {
-                NavEntryViewModelStoreOwner(
-                    parent = parent,
-                    store = store,
-                    savedStateRegistryOwner = savedStateRegistryOwner,
-                    defaultArgs = savedState(),
-                )
-            }
-            CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
-                entry.Content()
-            }
-        },
-    )
