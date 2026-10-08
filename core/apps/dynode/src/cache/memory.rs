@@ -1,9 +1,8 @@
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, PoisonError, RwLock};
 use std::time::Duration;
 
 use primitives::Chain;
-use tokio::sync::RwLock;
 
 use super::types::CacheEntry;
 use crate::config::routes::RouteConfig;
@@ -69,21 +68,21 @@ impl RequestCache {
         self.namespaces.get(&CacheScope::provider(group, service))?.rules.path_ttl(path, method, body)
     }
 
-    pub(crate) async fn get_provider(&self, group: &str, service: &str, key: &str) -> Option<ProxyResponse> {
-        self.get_scoped(&CacheScope::provider(group, service), key).await
+    pub(crate) fn get_provider(&self, group: &str, service: &str, key: &str) -> Option<ProxyResponse> {
+        self.get_scoped(&CacheScope::provider(group, service), key)
     }
 
-    pub(crate) async fn set_provider(&self, group: &str, service: &str, key: String, response: ProxyResponse, ttl: Duration) {
-        self.set_scoped(&CacheScope::provider(group, service), key, response, ttl).await;
+    pub(crate) fn set_provider(&self, group: &str, service: &str, key: String, response: ProxyResponse, ttl: Duration) {
+        self.set_scoped(&CacheScope::provider(group, service), key, response, ttl);
     }
 
-    async fn get_scoped(&self, scope: &CacheScope, key: &str) -> Option<ProxyResponse> {
+    fn get_scoped(&self, scope: &CacheScope, key: &str) -> Option<ProxyResponse> {
         let cache = self.namespaces.get(scope)?;
-        let read_guard = cache.entries.read().await;
+        let read_guard = cache.entries.read().unwrap_or_else(PoisonError::into_inner);
         let entry = read_guard.get(key)?;
         if entry.is_expired() {
             drop(read_guard);
-            let mut write_guard = cache.entries.write().await;
+            let mut write_guard = cache.entries.write().unwrap_or_else(PoisonError::into_inner);
             if write_guard.get(key).is_some_and(CacheEntry::is_expired) {
                 write_guard.remove(key);
             }
@@ -92,10 +91,10 @@ impl RequestCache {
         Some(entry.response.clone().into_cached())
     }
 
-    async fn set_scoped(&self, scope: &CacheScope, key: String, response: ProxyResponse, ttl: Duration) {
+    fn set_scoped(&self, scope: &CacheScope, key: String, response: ProxyResponse, ttl: Duration) {
         if let Some(cache) = self.namespaces.get(scope) {
             let entry = CacheEntry::new(response, ttl);
-            let mut guard = cache.entries.write().await;
+            let mut guard = cache.entries.write().unwrap_or_else(PoisonError::into_inner);
             guard.insert(key, entry);
             Self::evict_if_needed(&mut guard, self.max_memory / self.namespaces.len());
         }
@@ -126,12 +125,12 @@ impl RequestCache {
         }
     }
 
-    pub(crate) async fn get(&self, chain: &Chain, key: &str) -> Option<ProxyResponse> {
-        self.get_scoped(&CacheScope::Chain(*chain), key).await
+    pub(crate) fn get(&self, chain: &Chain, key: &str) -> Option<ProxyResponse> {
+        self.get_scoped(&CacheScope::Chain(*chain), key)
     }
 
-    pub(crate) async fn set(&self, chain: &Chain, key: String, response: ProxyResponse, ttl: Duration) {
-        self.set_scoped(&CacheScope::Chain(*chain), key, response, ttl).await;
+    pub(crate) fn set(&self, chain: &Chain, key: String, response: ProxyResponse, ttl: Duration) {
+        self.set_scoped(&CacheScope::Chain(*chain), key, response, ttl);
     }
 
     pub(crate) fn should_cache_request(&self, chain: &Chain, request_type: &RequestType) -> Option<Duration> {
@@ -149,6 +148,7 @@ impl RequestCache {
 
 #[cfg(test)]
 mod tests {
+    use bytes::Bytes;
     use std::time::Instant;
 
     use primitives::{HOUR, MINUTE};
@@ -165,13 +165,13 @@ mod tests {
         let cache = RequestCache::mock();
         let chain = Chain::Ethereum;
 
-        let response = ProxyResponse::with_content_type(StatusCode::OK.as_u16(), b"test".to_vec(), JSON_CONTENT_TYPE);
-        cache.set(&chain, "test_key".to_string(), response.clone(), MINUTE).await;
+        let response = ProxyResponse::with_content_type(StatusCode::OK.as_u16(), Bytes::from_static(b"test"), JSON_CONTENT_TYPE);
+        cache.set(&chain, "test_key".to_string(), response.clone(), MINUTE);
 
-        let cached = cache.get(&chain, "test_key").await.unwrap();
+        let cached = cache.get(&chain, "test_key").unwrap();
         assert_eq!(cached, response.clone().into_cached());
         for (request_id, latency, expected_latency) in [("first", 5, "5ms"), ("second", 10, "10ms")] {
-            let annotated = cache.get(&chain, "test_key").await.unwrap().with_proxy_headers(request_id, Duration::from_millis(latency), CacheStatus::Hit);
+            let annotated = cache.get(&chain, "test_key").unwrap().with_proxy_headers(request_id, Duration::from_millis(latency), CacheStatus::Hit);
             assert_eq!(
                 annotated.headers,
                 HeaderMap::from_iter([
@@ -182,7 +182,7 @@ mod tests {
                 ])
             );
         }
-        assert_eq!(cache.get(&chain, "test_key").await, Some(response.into_cached()));
+        assert_eq!(cache.get(&chain, "test_key"), Some(response.into_cached()));
     }
 
     #[test]
@@ -296,24 +296,24 @@ mod tests {
     async fn test_cache_namespaces_and_provider_headers() {
         let nodes = RequestCache::mock();
         let cache = RequestCache::mock_providers(&CacheConfig::mock());
-        let node = ProxyResponse::with_content_type(200, b"node".to_vec(), JSON_CONTENT_TYPE);
+        let node = ProxyResponse::with_content_type(200, Bytes::from_static(b"node"), JSON_CONTENT_TYPE);
         let mut headers = HeaderMap::from_iter([(CONTENT_TYPE, HeaderValue::from_static("application/json"))]);
         headers.append("x-provider", HeaderValue::from_static("first"));
         headers.append("x-provider", HeaderValue::from_static("second"));
-        let provider = ProxyResponse::new(200, headers.clone(), b"provider".to_vec());
-        nodes.set(&Chain::Ethereum, "same".into(), node.clone(), MINUTE).await;
-        cache.set_provider("evm", "ethereum", "same".into(), provider.clone(), MINUTE).await;
-        cache.set_provider("evm", "disabled", "same".into(), provider.clone(), MINUTE).await;
+        let provider = ProxyResponse::new(200, headers.clone(), Bytes::from_static(b"provider"));
+        nodes.set(&Chain::Ethereum, "same".into(), node.clone(), MINUTE);
+        cache.set_provider("evm", "ethereum", "same".into(), provider.clone(), MINUTE);
+        cache.set_provider("evm", "disabled", "same".into(), provider.clone(), MINUTE);
 
-        assert_eq!(nodes.get(&Chain::Ethereum, "same").await, Some(node.into_cached()));
-        let cached = cache.get_provider("evm", "ethereum", "same").await.unwrap();
-        assert_eq!((cached.status, &cached.headers, cached.body.as_slice(), cached.is_from_cache()), (200, &headers, b"provider".as_slice(), true));
-        assert_eq!(cache.get_provider("other", "ethereum", "same").await, None);
-        assert_eq!(cache.get_provider("evm", "disabled", "same").await, None);
-        let mut isolated = cache.get_provider("evm", "ethereum", "same").await.unwrap();
+        assert_eq!(nodes.get(&Chain::Ethereum, "same"), Some(node.into_cached()));
+        let cached = cache.get_provider("evm", "ethereum", "same").unwrap();
+        assert_eq!((cached.status, &cached.headers, &cached.body[..], cached.is_from_cache()), (200, &headers, b"provider".as_slice(), true));
+        assert_eq!(cache.get_provider("other", "ethereum", "same"), None);
+        assert_eq!(cache.get_provider("evm", "disabled", "same"), None);
+        let mut isolated = cache.get_provider("evm", "ethereum", "same").unwrap();
         isolated.headers.clear();
         isolated.body.clear();
-        assert_eq!(cache.get_provider("evm", "ethereum", "same").await, Some(provider.into_cached()));
+        assert_eq!(cache.get_provider("evm", "ethereum", "same"), Some(provider.into_cached()));
     }
 
     #[test]
@@ -332,34 +332,34 @@ mod tests {
 
     #[tokio::test]
     async fn test_chain_and_provider_caches_have_independent_budgets() {
-        let response = ProxyResponse::with_content_type(200, b"response".to_vec(), JSON_CONTENT_TYPE);
+        let response = ProxyResponse::with_content_type(200, Bytes::from_static(b"response"), JSON_CONTENT_TYPE);
         let size = CacheEntry::new(response.clone(), MINUTE).size();
         let node_config = CacheConfig { memory: MemoryConfig { max: 2 * size } };
         let provider_config = CacheConfig { memory: MemoryConfig { max: 3 * size } };
         let chains = [ChainConfig::mock(Chain::Ethereum), ChainConfig::mock(Chain::Optimism)];
         let nodes = RequestCache::for_chains(&node_config, &ChainTypesConfig::mock(), chains.iter());
         let providers = RequestCache::mock_providers(&provider_config);
-        nodes.set(&Chain::Ethereum, "first".into(), response.clone(), MINUTE).await;
+        nodes.set(&Chain::Ethereum, "first".into(), response.clone(), MINUTE);
         let namespace = nodes.namespaces.get(&CacheScope::Chain(Chain::Ethereum)).unwrap();
-        namespace.entries.write().await.get_mut("first").unwrap().created_at = Instant::now() - MINUTE;
-        nodes.set(&Chain::Ethereum, "second".into(), response.clone(), MINUTE).await;
-        nodes.set(&Chain::Optimism, "other".into(), response.clone(), MINUTE).await;
+        namespace.entries.write().unwrap().get_mut("first").unwrap().created_at = Instant::now() - MINUTE;
+        nodes.set(&Chain::Ethereum, "second".into(), response.clone(), MINUTE);
+        nodes.set(&Chain::Optimism, "other".into(), response.clone(), MINUTE);
         for key in ["first", "second", "third"] {
-            providers.clone().set_provider("evm", "ethereum", key.into(), response.clone(), MINUTE).await;
+            providers.clone().set_provider("evm", "ethereum", key.into(), response.clone(), MINUTE);
         }
 
-        assert_eq!(nodes.get(&Chain::Ethereum, "first").await, None);
-        assert_eq!(nodes.get(&Chain::Ethereum, "second").await, Some(response.clone().into_cached()));
-        assert_eq!(nodes.get(&Chain::Optimism, "other").await, Some(response.clone().into_cached()));
+        assert_eq!(nodes.get(&Chain::Ethereum, "first"), None);
+        assert_eq!(nodes.get(&Chain::Ethereum, "second"), Some(response.clone().into_cached()));
+        assert_eq!(nodes.get(&Chain::Optimism, "other"), Some(response.clone().into_cached()));
         for key in ["first", "second", "third"] {
-            assert_eq!(providers.get_provider("evm", "ethereum", key).await, Some(response.clone().into_cached()));
+            assert_eq!(providers.get_provider("evm", "ethereum", key), Some(response.clone().into_cached()));
         }
-        assert_eq!(nodes.get_provider("evm", "ethereum", "first").await, None);
-        assert_eq!(providers.get(&Chain::Ethereum, "second").await, None);
+        assert_eq!(nodes.get_provider("evm", "ethereum", "first"), None);
+        assert_eq!(providers.get(&Chain::Ethereum, "second"), None);
         for (cache, expected_size) in [(&nodes, node_config.memory.max), (&providers, provider_config.memory.max)] {
             let mut total = 0;
             for namespace in cache.namespaces.values() {
-                total += namespace.entries.read().await.values().map(CacheEntry::size).sum::<usize>();
+                total += namespace.entries.read().unwrap().values().map(CacheEntry::size).sum::<usize>();
             }
             assert_eq!(total, expected_size);
         }
@@ -369,19 +369,19 @@ mod tests {
     async fn test_expired_entries_are_removed_in_both_caches() {
         let nodes = RequestCache::mock();
         let providers = RequestCache::mock_providers(&CacheConfig::mock());
-        let response = ProxyResponse::with_content_type(200, b"expired".to_vec(), JSON_CONTENT_TYPE);
-        nodes.set(&Chain::Ethereum, "expired".into(), response.clone(), MINUTE).await;
-        providers.set_provider("evm", "ethereum", "expired".into(), response, MINUTE).await;
+        let response = ProxyResponse::with_content_type(200, Bytes::from_static(b"expired"), JSON_CONTENT_TYPE);
+        nodes.set(&Chain::Ethereum, "expired".into(), response.clone(), MINUTE);
+        providers.set_provider("evm", "ethereum", "expired".into(), response, MINUTE);
         for cache in [&nodes, &providers] {
             for namespace in cache.namespaces.values() {
-                namespace.entries.write().await.get_mut("expired").unwrap().expires_at = Some(Instant::now() - MINUTE);
+                namespace.entries.write().unwrap().get_mut("expired").unwrap().expires_at = Some(Instant::now() - MINUTE);
             }
         }
-        assert_eq!(nodes.get(&Chain::Ethereum, "expired").await, None);
-        assert_eq!(providers.get_provider("evm", "ethereum", "expired").await, None);
+        assert_eq!(nodes.get(&Chain::Ethereum, "expired"), None);
+        assert_eq!(providers.get_provider("evm", "ethereum", "expired"), None);
         for cache in [&nodes, &providers] {
             for namespace in cache.namespaces.values() {
-                assert_eq!(namespace.entries.read().await.len(), 0);
+                assert_eq!(namespace.entries.read().unwrap().len(), 0);
             }
         }
     }

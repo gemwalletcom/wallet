@@ -2587,6 +2587,7 @@ name = "dynode"
 version = "2.114.67"
 dependencies = [
  "axum",
+ "bytes",
  "chain_providers",
  "chain_traits",
  "config",

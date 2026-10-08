@@ -123,36 +123,28 @@ impl ProxyRequestService {
         if let (Some(ttl), Some(key)) = (cache_ttl, cache_key)
             && cacheable_response(chain, &request.path, status, &body)
         {
-            let cache = self.cache.clone();
             let content_type = response_headers.get(CONTENT_TYPE).and_then(|value| value.to_str().ok()).unwrap_or(JSON_CONTENT_TYPE);
             let cached = ProxyResponse::with_content_type(status, body.clone(), content_type);
             let size = cached.body.len();
-            let id = request.id.clone();
-            let host = request.host.clone();
-            let method = request.method.to_string();
-            let path = request.path.clone();
-            let elapsed = request.elapsed();
-            tokio::spawn(async move {
-                cache.set(&chain, key, cached, ttl).await;
-                info_with_fields!(
-                    "Cache SET",
-                    id = id.as_str(),
-                    chain = chain.as_ref(),
-                    host = &host,
-                    method = method.as_str(),
-                    path = &path,
-                    ttl_ms = ttl.as_millis(),
-                    size_bytes = size,
-                    latency = DurationMs(elapsed),
-                );
-            });
+            self.cache.set(&chain, key, cached, ttl);
+            info_with_fields!(
+                "Cache SET",
+                id = request.id.as_str(),
+                chain = chain.as_ref(),
+                host = request.host.as_str(),
+                method = request.method.as_str(),
+                path = request.path.as_str(),
+                ttl_ms = ttl.as_millis(),
+                size_bytes = size,
+                latency = DurationMs(request.elapsed()),
+            );
         }
 
         Ok(ProxyResponse::new(status, headers, body).with_proxy_headers(request.id.as_str(), response_latency, CacheStatus::Miss))
     }
 
     async fn try_cache_hit(&self, cache_key: &str, request: &ProxyRequest, methods_for_metrics: &[String]) -> Option<ProxyResponse> {
-        if let Some(cached) = self.cache.get(&request.chain, cache_key).await {
+        if let Some(cached) = self.cache.get(&request.chain, cache_key) {
             for method_name in methods_for_metrics {
                 self.metrics.add_cache_hit(request.chain.as_ref(), method_name);
             }

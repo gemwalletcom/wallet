@@ -13,6 +13,8 @@ pub fn builder() -> reqwest::ClientBuilder {
         .pool_idle_timeout(Duration::from_secs(90))
         .pool_max_idle_per_host(20)
         .tcp_keepalive(Duration::from_secs(60))
+        .http2_keep_alive_interval(Duration::from_secs(30))
+        .http2_keep_alive_while_idle(true)
         .gzip(true)
         .brotli(true)
         .deflate(true)

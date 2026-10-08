@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use std::collections::HashMap;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
@@ -192,9 +193,9 @@ async fn forward_request(routes: &Routes, uri: &Uri, request: Request) -> Result
     }
 }
 
-async fn read_request_body(body: Body, limit: usize) -> Result<Vec<u8>, ErrorBody> {
+async fn read_request_body(body: Body, limit: usize) -> Result<Bytes, ErrorBody> {
     match axum::body::to_bytes(body, limit).await {
-        Ok(bytes) => Ok(bytes.to_vec()),
+        Ok(bytes) => Ok(bytes),
         Err(error) => {
             let message = error.to_string();
             if error.into_inner().is::<LengthLimitError>() {

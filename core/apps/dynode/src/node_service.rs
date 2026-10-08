@@ -4,6 +4,7 @@ use std::{
     sync::Arc,
 };
 
+use bytes::Bytes;
 use chain_providers::BroadcastProviders;
 use gem_tracing::{DurationMs, info_with_fields};
 use primitives::{Chain, ResponseError, ResponseResult, response::ErrorDetail};
@@ -272,7 +273,7 @@ impl NodeService {
             request = &request.request_type().get_methods_list(),
         );
 
-        let body = serde_json::to_vec(&ResponseResult::<()>::error(error_message))?;
+        let body = Bytes::from(serde_json::to_vec(&ResponseResult::<()>::error(error_message))?);
 
         Ok(ProxyResponse::with_content_type(status.as_u16(), body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss))
     }
@@ -347,7 +348,7 @@ impl NodeService {
             })?,
         };
 
-        let body = serde_json::to_vec(&response)?;
+        let body = Bytes::from(serde_json::to_vec(&response)?);
 
         Ok(ProxyResponse::with_content_type(status, body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), response_latency, CacheStatus::Miss))
     }
@@ -442,7 +443,7 @@ mod tests {
         };
 
         let request = ProxyRequest::mock(Chain::Ethereum, Method::POST, "/", &[]);
-        let response = ProxyResponse::new(429, HeaderMap::new(), vec![]);
+        let response = ProxyResponse::new(429, HeaderMap::new(), Bytes::new());
 
         assert!(service.matches_response_error_signal(&request, &response, &service.retry_config.errors));
     }
@@ -455,7 +456,7 @@ mod tests {
         };
 
         let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_blockNumber");
-        let response = ProxyResponse::new(200, HeaderMap::new(), br#"{"jsonrpc":"2.0","error":{"code":-32000,"message":"Exceeded the quota usage"},"id":1}"#.to_vec());
+        let response = ProxyResponse::new(200, HeaderMap::new(), Bytes::from_static(br#"{"jsonrpc":"2.0","error":{"code":-32000,"message":"Exceeded the quota usage"},"id":1}"#));
 
         assert!(service.matches_response_error_signal(&request, &response, &service.retry_config.errors));
     }

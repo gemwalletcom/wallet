@@ -50,6 +50,7 @@ impl AllowlistRule {
 
 #[cfg(test)]
 mod tests {
+    use bytes::Bytes;
     use config::{Config, File, FileFormat};
     use serde_json::json;
 
@@ -69,20 +70,24 @@ mod tests {
         let allowed = RequestType::from_request(
             "POST",
             "/".to_string(),
-            serde_json::to_vec(&json!([
-                {"jsonrpc": "2.0", "method": "eth_call", "params": [], "id": 1},
-                {"jsonrpc": "2.0", "method": "eth_chainId", "params": [], "id": 2}
-            ]))
-            .unwrap(),
+            Bytes::from(
+                serde_json::to_vec(&json!([
+                    {"jsonrpc": "2.0", "method": "eth_call", "params": [], "id": 1},
+                    {"jsonrpc": "2.0", "method": "eth_chainId", "params": [], "id": 2}
+                ]))
+                .unwrap(),
+            ),
         );
         let denied = RequestType::from_request(
             "POST",
             "/".to_string(),
-            serde_json::to_vec(&json!([
-                {"jsonrpc": "2.0", "method": "eth_call", "params": [], "id": 1},
-                {"jsonrpc": "2.0", "method": "unsupported_method", "params": [], "id": 2}
-            ]))
-            .unwrap(),
+            Bytes::from(
+                serde_json::to_vec(&json!([
+                    {"jsonrpc": "2.0", "method": "eth_call", "params": [], "id": 1},
+                    {"jsonrpc": "2.0", "method": "unsupported_method", "params": [], "id": 2}
+                ]))
+                .unwrap(),
+            ),
         );
 
         assert!(config.allows(&allowed));
@@ -92,7 +97,7 @@ mod tests {
     #[test]
     fn test_allows_http_path_wildcard_without_query() {
         let config = AllowlistConfig::mock();
-        let request = RequestType::from_request("GET", "/api/v2/address/bc1qtest?pageSize=25&details=txs".to_string(), Vec::new());
+        let request = RequestType::from_request("GET", "/api/v2/address/bc1qtest?pageSize=25&details=txs".to_string(), Bytes::new());
 
         assert!(config.allows(&request));
     }
@@ -100,7 +105,7 @@ mod tests {
     #[test]
     fn test_denies_unlisted_bitcoin_block_path() {
         let config = AllowlistConfig::mock();
-        let request = RequestType::from_request("GET", "/api/v2/block/900000".to_string(), Vec::new());
+        let request = RequestType::from_request("GET", "/api/v2/block/900000".to_string(), Bytes::new());
 
         assert!(!config.allows(&request));
     }
@@ -108,7 +113,7 @@ mod tests {
     #[test]
     fn test_denies_http_path_method_mismatch() {
         let config = AllowlistConfig::mock();
-        let request = RequestType::from_request("GET", "/api/v2/sendtx/".to_string(), Vec::new());
+        let request = RequestType::from_request("GET", "/api/v2/sendtx/".to_string(), Bytes::new());
 
         assert!(!config.allows(&request));
     }
@@ -132,7 +137,7 @@ mod tests {
 
         assert!(wrapper.allowlist.allows(&RequestType::mock_jsonrpc("eth_call")));
         assert!(!wrapper.allowlist.allows(&RequestType::mock_jsonrpc("eth_chainId")));
-        assert!(wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/address/bc1q".to_string(), Vec::new())));
-        assert!(!wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/block/1".to_string(), Vec::new())));
+        assert!(wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/address/bc1q".to_string(), Bytes::new())));
+        assert!(!wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/block/1".to_string(), Bytes::new())));
     }
 }

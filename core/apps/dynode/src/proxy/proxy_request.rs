@@ -1,5 +1,6 @@
 use std::time::{Duration, Instant};
 
+use bytes::Bytes;
 use chain_providers::BroadcastProviders;
 use http::StatusCode;
 use primitives::{Chain, ChainRequest, ChainRequestProtocol, ChainRequestType};
@@ -20,7 +21,7 @@ pub struct ProxyRequest {
     pub id: String,
     pub method: Method,
     pub headers: HeaderMap,
-    pub body: Vec<u8>,
+    pub body: Bytes,
     pub path: String,
     pub path_with_query: String,
     pub host: String,
@@ -31,7 +32,7 @@ pub struct ProxyRequest {
 }
 
 impl ProxyRequest {
-    pub fn from_http(method: Method, headers: HeaderMap, body: Vec<u8>, uri: &str, chain: Chain) -> Result<Self, StatusCode> {
+    pub fn from_http(method: Method, headers: HeaderMap, body: Bytes, uri: &str, chain: Chain) -> Result<Self, StatusCode> {
         let host = headers.get(HOST).and_then(|header| header.to_str().ok()).ok_or(StatusCode::BAD_REQUEST)?;
         let host = Self::parse_hostname(host);
         let user_agent = headers.get(USER_AGENT).and_then(|header| header.to_str().ok()).unwrap_or_default().to_string();
@@ -39,7 +40,7 @@ impl ProxyRequest {
         Ok(Self::new(method, headers, body, path, path_with_query, host, user_agent, chain))
     }
 
-    pub fn new(method: Method, headers: HeaderMap, body: Vec<u8>, path: String, path_with_query: String, host: String, user_agent: String, chain: Chain) -> Self {
+    pub fn new(method: Method, headers: HeaderMap, body: Bytes, path: String, path_with_query: String, host: String, user_agent: String, chain: Chain) -> Self {
         let request_type = RequestType::from_request(method.as_str(), path_with_query.clone(), body.clone());
         Self {
             id: generate_request_id(),
@@ -138,7 +139,7 @@ mod tests {
         let request = ProxyRequest::new(
             Method::GET,
             HeaderMap::new(),
-            vec![],
+            Bytes::new(),
             "/test".to_string(),
             "/test?param=1".to_string(),
             "example.com".to_string(),

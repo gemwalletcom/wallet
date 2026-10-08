@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use std::sync::Arc;
 
 use chain_providers::BroadcastProviders;
@@ -13,7 +14,16 @@ use crate::webhook::DynodeBroadcastWebhookClient;
 
 impl ProxyRequest {
     pub fn mock(chain: Chain, method: Method, path: &str, body: &[u8]) -> Self {
-        Self::new(method, HeaderMap::new(), body.to_vec(), path.to_string(), path.to_string(), "example.com".to_string(), "test-agent".to_string(), chain)
+        Self::new(
+            method,
+            HeaderMap::new(),
+            Bytes::copy_from_slice(body),
+            path.to_string(),
+            path.to_string(),
+            "example.com".to_string(),
+            "test-agent".to_string(),
+            chain,
+        )
     }
 
     pub fn mock_jsonrpc(chain: Chain, method: &str) -> Self {

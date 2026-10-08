@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use bytes::Bytes;
 use reqwest::header::{HeaderMap, HeaderName};
 use reqwest::{Method, Request, Url as ReqwestUrl};
 use url::ParseError;
@@ -23,7 +24,7 @@ impl RequestUrl {
         Self::from_parts(chain_config.url_for_request(active_url, rpc_method, Some(&request.path)), &request.path_with_query)
     }
 
-    pub fn build_request(&self, method: &Method, body: Vec<u8>, mut headers: HeaderMap) -> Request {
+    pub fn build_request(&self, method: &Method, body: Bytes, mut headers: HeaderMap) -> Request {
         for (name, value) in &self.headers {
             if let (Ok(name), Ok(value)) = (HeaderName::from_bytes(name.as_bytes()), value.parse()) {
                 headers.append(name, value);
@@ -133,7 +134,7 @@ mod tests {
         let mut headers = HeaderMap::new();
         headers.insert(CONTENT_TYPE, HeaderValue::from_static(JSON_CONTENT_TYPE));
 
-        let req = req_url.build_request(&Method::POST, b"{}".to_vec(), headers);
+        let req = req_url.build_request(&Method::POST, Bytes::from_static(b"{}"), headers);
 
         assert_eq!(req.method(), &Method::POST);
         assert_eq!(req.url().to_string(), "https://example.com/rpc");
@@ -154,7 +155,7 @@ mod tests {
         )
         .unwrap();
         let headers = HeaderMap::from_iter([(HeaderName::from_static("x-api-key"), HeaderValue::from_static("inbound"))]);
-        let request = url.build_request(&Method::POST, Vec::new(), headers);
+        let request = url.build_request(&Method::POST, Bytes::new(), headers);
 
         assert_eq!(request.headers().get_all("x-api-key").iter().map(|value| value.to_str().unwrap()).collect::<Vec<_>>(), vec!["inbound", "configured"]);
     }
@@ -162,13 +163,13 @@ mod tests {
     fn test_build_request_preserves_wire_data() {
         let url = ReqwestUrl::parse("https://example.com/rpc/%2F?key=one%2Btwo&key=three").unwrap();
         let headers = HeaderMap::from_iter([(CONTENT_TYPE, HeaderValue::from_static("application/grpc+proto"))]);
-        let body = vec![0, 0xff, 0x80, b'\n'];
+        let body = Bytes::from_static(&[0, 0xff, 0x80, b'\n']);
         let request_url = RequestUrl { url: url.clone(), headers: HashMap::new() };
         let request = request_url.build_request(&Method::POST, body.clone(), headers.clone());
 
         assert_eq!(request.method(), Method::POST);
         assert_eq!(request.url(), &url);
         assert_eq!(request.headers(), &headers);
-        assert_eq!(request.body().unwrap().as_bytes(), Some(body.as_slice()));
+        assert_eq!(request.body().unwrap().as_bytes(), Some(&body[..]));
     }
 }

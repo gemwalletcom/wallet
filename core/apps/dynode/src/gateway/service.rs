@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
@@ -77,7 +78,7 @@ impl Gateway {
         }
     }
 
-    pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<ProxyResponse, ErrorBody> {
+    pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Bytes) -> Result<ProxyResponse, ErrorBody> {
         let route_match = match match_route(&self.routes, &method, uri) {
             Ok(route_match) => route_match,
             Err(error) => {
@@ -99,7 +100,7 @@ impl Gateway {
         let cache_ttl = self.cache.provider_ttl(&route.group, &route.service, route_match.cache_path(), method.as_str(), &body);
         let cache_key = cache_ttl.map(|_| route_match.cache_key(&method, headers, &body));
         if let Some(key) = &cache_key {
-            if let Some(response) = self.cache.get_provider(&route.group, &route.service, key).await {
+            if let Some(response) = self.cache.get_provider(&route.group, &route.service, key) {
                 self.metrics.record_cache_hit(source, &route.group, &route.service, &path);
                 self.metrics.record_response(source, &route.group, &route.service, &path, response.status);
                 return Ok(response);
@@ -157,7 +158,7 @@ impl Gateway {
                     access.response(&endpoint.name, host, response.status);
                     self.metrics.record_response(source, &route.group, &route.service, &path, response.status);
                     if cacheable && let (Some(ttl), Some(key)) = (cache_ttl, cache_key) {
-                        self.cache.set_provider(&route.group, &route.service, key, response.clone(), ttl).await;
+                        self.cache.set_provider(&route.group, &route.service, key, response.clone(), ttl);
                     }
                     return Ok(response);
                 }
@@ -290,7 +291,7 @@ mod tests {
 
     #[test]
     fn test_cacheable_response_honors_upstream_directives() {
-        let response = ProxyResponse::new(200, HeaderMap::new(), b"body".to_vec());
+        let response = ProxyResponse::new(200, HeaderMap::new(), Bytes::from_static(b"body"));
         assert!(cacheable_response(&response));
         for (header, value) in [
             (CACHE_CONTROL, "max-age=60, no-store"),
@@ -303,8 +304,8 @@ mod tests {
             response.headers.insert(header, value.parse().unwrap());
             assert!(!cacheable_response(&response));
         }
-        assert!(!cacheable_response(&ProxyResponse::new(500, HeaderMap::new(), b"body".to_vec())));
-        assert!(!cacheable_response(&ProxyResponse::new(200, HeaderMap::new(), Vec::new())));
+        assert!(!cacheable_response(&ProxyResponse::new(500, HeaderMap::new(), Bytes::from_static(b"body"))));
+        assert!(!cacheable_response(&ProxyResponse::new(200, HeaderMap::new(), Bytes::new())));
     }
 
     #[test]

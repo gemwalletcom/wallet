@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use gem_encoding::encode_base64_url;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -80,7 +81,7 @@ impl JsonRpcResult {
 
 #[derive(Debug, Clone)]
 pub enum RequestType {
-    Regular { path: String, method: String, body: Vec<u8> },
+    Regular { path: String, method: String, body: Bytes },
     JsonRpc(JsonRpcRequest),
 }
 
@@ -100,15 +101,22 @@ impl JsonRpcRequest {
 }
 
 impl RequestType {
-    pub fn from_request(method: &str, path: String, body: Vec<u8>) -> Self {
+    pub fn from_request(method: &str, path: String, body: Bytes) -> Self {
         if method == "POST" {
-            if let Ok(call) = serde_json::from_slice::<JsonRpcCall>(&body) {
-                return RequestType::JsonRpc(JsonRpcRequest::Single(call));
-            }
-            if let Ok(calls) = serde_json::from_slice::<Vec<JsonRpcCall>>(&body)
-                && !calls.is_empty()
-            {
-                return RequestType::JsonRpc(JsonRpcRequest::Batch(calls));
+            match body.iter().find(|byte| !byte.is_ascii_whitespace()) {
+                Some(b'{') => {
+                    if let Ok(call) = serde_json::from_slice::<JsonRpcCall>(&body) {
+                        return RequestType::JsonRpc(JsonRpcRequest::Single(call));
+                    }
+                }
+                Some(b'[') => {
+                    if let Ok(calls) = serde_json::from_slice::<Vec<JsonRpcCall>>(&body)
+                        && !calls.is_empty()
+                    {
+                        return RequestType::JsonRpc(JsonRpcRequest::Batch(calls));
+                    }
+                }
+                _ => {}
             }
         }
         RequestType::Regular { path, method: method.to_string(), body }
@@ -136,12 +144,13 @@ impl RequestType {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bytes::Bytes;
     use serde_json::json;
 
     #[test]
     fn test_request_parsing_params_serialization() {
         let body = br#"{"jsonrpc":"2.0","method":"getSlot","id":1}"#.to_vec();
-        let request_type = RequestType::from_request("POST", "/solana".to_string(), body);
+        let request_type = RequestType::from_request("POST", "/solana".to_string(), Bytes::from(body));
 
         match request_type {
             RequestType::JsonRpc(JsonRpcRequest::Single(call)) => {
@@ -160,7 +169,7 @@ mod tests {
         }
 
         let body = br#"{"jsonrpc":"2.0","method":"getLatestBlockhash","params":[{"commitment":"confirmed"}],"id":1}"#.to_vec();
-        let request_type = RequestType::from_request("POST", "/solana".to_string(), body);
+        let request_type = RequestType::from_request("POST", "/solana".to_string(), Bytes::from(body));
 
         match request_type {
             RequestType::JsonRpc(JsonRpcRequest::Single(call)) => {
@@ -180,7 +189,7 @@ mod tests {
         ]"#;
 
         let body = batch_json.as_bytes().to_vec();
-        let request_type = RequestType::from_request("POST", "/rpc".to_string(), body);
+        let request_type = RequestType::from_request("POST", "/rpc".to_string(), Bytes::from(body));
 
         match request_type {
             RequestType::JsonRpc(JsonRpcRequest::Batch(calls)) => {

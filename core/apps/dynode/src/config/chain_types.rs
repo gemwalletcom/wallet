@@ -73,6 +73,7 @@ struct ChainPolicyConfig {
 
 #[cfg(test)]
 mod tests {
+    use bytes::Bytes;
     use std::time::Duration;
 
     use super::*;
@@ -152,9 +153,9 @@ mod tests {
             }
         }))
         .unwrap();
-        let balance = RequestType::from_request("GET", "/cosmos/bank/v1beta1/balances/thor15r90lnu7wa4ll0ex6rqu77ysavfjkehazqse5u".to_string(), Vec::new());
-        let quote = RequestType::from_request("GET", "/thorchain/quote/swap?from_asset=SOL.SOL".to_string(), Vec::new());
-        let denied = RequestType::from_request("GET", "/thorchain/vaults/asgard".to_string(), Vec::new());
+        let balance = RequestType::from_request("GET", "/cosmos/bank/v1beta1/balances/thor15r90lnu7wa4ll0ex6rqu77ysavfjkehazqse5u".to_string(), Bytes::new());
+        let quote = RequestType::from_request("GET", "/thorchain/quote/swap?from_asset=SOL.SOL".to_string(), Bytes::new());
+        let denied = RequestType::from_request("GET", "/thorchain/vaults/asgard".to_string(), Bytes::new());
 
         assert!(config.allows(&ChainConfig::mock(Chain::Thorchain), &balance));
         assert!(config.allows(&ChainConfig::mock(Chain::Thorchain), &quote));

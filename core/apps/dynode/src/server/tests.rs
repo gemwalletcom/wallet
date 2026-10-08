@@ -1,5 +1,6 @@
 use axum::body::Body;
 use axum::response::Response;
+use bytes::Bytes;
 use http::header::{CONTENT_TYPE, HOST};
 use http::{Method, Request, StatusCode};
 use http_body_util::BodyExt;
@@ -9,7 +10,7 @@ use tower::ServiceExt;
 use super::*;
 use crate::testkit::server_mock::TEST_REQUEST_LIMIT;
 
-async fn send(router: &Router, method: Method, path: &str, body: Option<Vec<u8>>) -> Response {
+async fn send(router: &Router, method: Method, path: &str, body: Option<Bytes>) -> Response {
     let mut request = Request::builder().method(method).uri(path);
     if body.is_some() {
         request = request.header(HOST, "localhost");
@@ -54,7 +55,7 @@ async fn test_node_invalid_chain_and_missing_host_are_json_errors() {
         assert_eq!(content_type(&response), Some("application/json"));
         assert_eq!(json(response).await, json!({ "error": { "message": message } }));
     }
-    let response = send(&router, Method::POST, "/health", Some(b"{}".to_vec())).await;
+    let response = send(&router, Method::POST, "/health", Some(Bytes::from_static(b"{}"))).await;
     assert_eq!(response.status(), StatusCode::BAD_REQUEST);
     assert_eq!(json(response).await, json!({ "error": { "message": "Invalid chain" } }));
     let response = send(&router, Method::TRACE, "/ethereum", None).await;
@@ -117,7 +118,7 @@ async fn test_request_body_limit_accepts_exact_size_and_rejects_truncation_in_bo
             (TEST_REQUEST_LIMIT, StatusCode::FORBIDDEN, denied_message),
             (TEST_REQUEST_LIMIT + 1, StatusCode::PAYLOAD_TOO_LARGE, "request body is too large"),
         ] {
-            let response = send(&router, Method::POST, path, Some(vec![b'x'; length])).await;
+            let response = send(&router, Method::POST, path, Some(Bytes::from(vec![b'x'; length]))).await;
             assert_eq!(response.status(), status, "{path} body length {length}");
             assert_eq!(content_type(&response), Some("application/json"));
             assert_eq!(json(response).await, json!({ "error": { "message": message } }));

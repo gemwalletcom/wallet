@@ -19,6 +19,7 @@ strum = { workspace = true }
 tokio = { workspace = true }
 prometheus-client = { workspace = true }
 reqwest = { workspace = true }
+bytes = { workspace = true }
 axum = { workspace = true }
 http = { workspace = true }
 http-body-util = { workspace = true }

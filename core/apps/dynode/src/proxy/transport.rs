@@ -37,7 +37,7 @@ pub(crate) async fn send(client: &Client, request: Request) -> Result<ProxyRespo
     let response = client.execute(request).await.map_err(TransportError::Transport)?;
     let status = response.status().as_u16();
     let headers = response.headers().clone();
-    let body = response.bytes().await.map_err(TransportError::ResponseBody)?.to_vec();
+    let body = response.bytes().await.map_err(TransportError::ResponseBody)?;
     Ok(ProxyResponse::new(status, headers, body))
 }
 

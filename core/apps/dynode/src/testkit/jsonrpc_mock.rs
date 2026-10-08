@@ -2,6 +2,7 @@ use serde_json::{Value, json};
 
 use crate::cache::decoder::ETH_CALL;
 use crate::jsonrpc_types::{JsonRpcCall, RequestType};
+use bytes::Bytes;
 
 impl JsonRpcCall {
     pub fn mock(id: u64, method: &str) -> Self {
@@ -24,14 +25,14 @@ impl JsonRpcCall {
 
 impl RequestType {
     pub fn mock_jsonrpc(method: &str) -> Self {
-        Self::from_request("POST", "/".to_string(), serde_json::to_vec(&json!({ "jsonrpc": "2.0", "method": method, "params": [], "id": 1 })).unwrap())
+        Self::from_request("POST", "/".to_string(), Bytes::from(serde_json::to_vec(&json!({ "jsonrpc": "2.0", "method": method, "params": [], "id": 1 })).unwrap()))
     }
 
     pub fn mock_regular(path: &str, method: &str, body: &[u8]) -> Self {
         Self::Regular {
             path: path.to_string(),
             method: method.to_string(),
-            body: body.to_vec(),
+            body: Bytes::copy_from_slice(body),
         }
     }
 }

@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -79,7 +80,7 @@ impl Endpoint {
         headers
     }
 
-    pub(super) async fn send(&self, method: &Method, url: Url, inbound_headers: &HeaderMap, forward_headers: &HashSet<HeaderName>, body: Vec<u8>) -> Result<(ProxyResponse, Option<Duration>), &'static str> {
+    pub(super) async fn send(&self, method: &Method, url: Url, inbound_headers: &HeaderMap, forward_headers: &HashSet<HeaderName>, body: Bytes) -> Result<(ProxyResponse, Option<Duration>), &'static str> {
         let request = self
             .client
             .request(method.clone(), url)

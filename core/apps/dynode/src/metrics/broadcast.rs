@@ -105,6 +105,7 @@ fn format_broadcast_error_message(message: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use bytes::Bytes;
     use primitives::Chain;
     use reqwest::Method;
     use reqwest::header::HeaderMap;
@@ -115,7 +116,7 @@ mod tests {
     fn test_broadcast_result_hypercore() {
         let providers = BroadcastProviders::from_chains([Chain::HyperCore]);
         let request = br#"{"action":{"type":"updateLeverage"},"nonce":123}"#;
-        let response = Ok(ProxyResponse::new(200, HeaderMap::new(), br#"{"status":"ok","response":{"type":"default"}}"#.to_vec()));
+        let response = Ok(ProxyResponse::new(200, HeaderMap::new(), Bytes::from_static(br#"{"status":"ok","response":{"type":"default"}}"#)));
         assert_eq!(broadcast_result(Chain::HyperCore, request, &response, &providers), Ok("action:123".to_string()));
     }
 
@@ -131,7 +132,7 @@ mod tests {
             (Chain::Tron, 200, r#"{"result":true,"txid":"abc"}"#, Ok("abc")),
             (Chain::Tron, 200, r#"{"result":false,"txid":"abc","code":"SIGERROR","message":"invalid signature"}"#, Err("invalid signature")),
         ] {
-            let response = Ok(ProxyResponse::new(status, HeaderMap::new(), body.as_bytes().to_vec()));
+            let response = Ok(ProxyResponse::new(status, HeaderMap::new(), Bytes::copy_from_slice(body.as_bytes())));
             assert_eq!(broadcast_result(chain, b"", &response, &providers).as_deref().map_err(String::as_str), expected);
         }
         assert_eq!(broadcast_result(Chain::Ethereum, b"", &Err("connection failed".into()), &providers), Err("request_error".into()));
@@ -144,7 +145,7 @@ mod tests {
             (br#"{"error":"-26: min relay fee not met, 432 < 576"}"#.as_slice(), "-26: min relay fee not met, 432 < 576"),
             (br#"{"error":{"message":"transaction already in block chain"}}"#.as_slice(), "transaction already in block chain"),
         ] {
-            let response = Ok(ProxyResponse::new(400, HeaderMap::new(), body.to_vec()));
+            let response = Ok(ProxyResponse::new(400, HeaderMap::new(), Bytes::copy_from_slice(body)));
             assert_eq!(broadcast_result(Chain::Bitcoin, b"", &response, &providers), Err(message.to_string()));
         }
     }
@@ -192,7 +193,7 @@ mod tests {
         ];
         let providers = BroadcastProviders::from_chains(cases.iter().map(|(chain, _, _)| *chain));
         for (chain, body, message) in cases {
-            let response = Ok(ProxyResponse::new(400, HeaderMap::new(), body.to_vec()));
+            let response = Ok(ProxyResponse::new(400, HeaderMap::new(), Bytes::copy_from_slice(body)));
             assert_eq!(broadcast_result(chain, b"", &response, &providers), Err(message.to_string()), "{chain}");
         }
     }
@@ -201,16 +202,16 @@ mod tests {
     fn test_broadcast_result_preserves_sui_response_protocols() {
         let providers = BroadcastProviders::from_chains([Chain::Sui]);
         for body in [br#"{"digest":"abc"}"#.as_slice(), b"\x00\x00\x00\x00\x07\x0a\x05\x0a\x03abc".as_slice()] {
-            let response = Ok(ProxyResponse::new(200, HeaderMap::new(), body.to_vec()));
+            let response = Ok(ProxyResponse::new(200, HeaderMap::new(), Bytes::copy_from_slice(body)));
             assert_eq!(broadcast_result(Chain::Sui, b"", &response, &providers), Ok("abc".to_string()));
         }
     }
 
     #[test]
     fn test_broadcast_error_message_excludes_response_data_and_transport_details() {
-        let response = Ok(ProxyResponse::new(200, HeaderMap::new(), br#"{"error":{"message":"insufficient\nfunds","data":"signed-payload"},"id":1}"#.to_vec()));
+        let response = Ok(ProxyResponse::new(200, HeaderMap::new(), Bytes::from_static(br#"{"error":{"message":"insufficient\nfunds","data":"signed-payload"},"id":1}"#)));
         assert_eq!(broadcast_error_message(&response), "insufficient funds");
-        let response = Ok(ProxyResponse::new(503, HeaderMap::new(), b"private-response-body".to_vec()));
+        let response = Ok(ProxyResponse::new(503, HeaderMap::new(), Bytes::from_static(b"private-response-body")));
         assert_eq!(broadcast_error_message(&response), "Broadcast rejected or response could not be decoded (HTTP 503)");
         assert_eq!(broadcast_error_message(&Err("https://node.example/secret-key".into())), "request_error");
     }
@@ -220,7 +221,7 @@ mod tests {
         let metrics = Metrics::mock();
         let providers = BroadcastProviders::from_chains([Chain::Ethereum]);
         let request = ProxyRequest::mock(Chain::Ethereum, Method::POST, "/", &[]);
-        let response = Ok(ProxyResponse::new(200, HeaderMap::new(), br#"{"jsonrpc":"2.0","id":1,"result":"private-identifier"}"#.to_vec()));
+        let response = Ok(ProxyResponse::new(200, HeaderMap::new(), Bytes::from_static(br#"{"jsonrpc":"2.0","id":1,"result":"private-identifier"}"#)));
         metrics.record_transaction_broadcast(&request, &response, &providers, "rpc.example.com");
         let encoded = metrics.get_metrics();
         assert_eq!(encoded.find("private-identifier"), None);

@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
@@ -65,7 +66,7 @@ impl JsonRpcHandler {
             info_with_fields!("Cache HIT", id = request_id, chain = request.chain.as_ref(), host = request.host.as_str(), method = call.method.as_str());
 
             let response_latency = request.elapsed();
-            let body = serde_json::to_vec(&response)?;
+            let body = Bytes::from(serde_json::to_vec(&response)?);
             return Ok(ProxyResponse::with_content_type(StatusCode::OK.as_u16(), body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), response_latency, CacheStatus::Hit));
         }
         if cache_ttl.is_some() {
@@ -137,7 +138,7 @@ impl JsonRpcHandler {
 
         let (response_body, response_status, cache_status) = if missing_calls.is_empty() {
             let results = cached_results.into_iter().flatten().collect::<Vec<_>>();
-            (serde_json::to_vec(&results)?, StatusCode::OK.as_u16(), CacheStatus::Hit)
+            (Bytes::from(serde_json::to_vec(&results)?), StatusCode::OK.as_u16(), CacheStatus::Hit)
         } else {
             let (body, missing_status) = Self::send_upstream(&missing_calls, request, metrics, url, client, forward_headers).await?;
             let response = Self::single_call_batch_response(&missing_calls, Self::parse_response(missing_status, &body)?);
@@ -150,11 +151,11 @@ impl JsonRpcHandler {
                     cache::set_many(&missing_calls, &missing_ttls, &results, request, cache).await?;
                 }
                 let cache_status = if cache_hits == 0 { CacheStatus::Miss } else { CacheStatus::Partial };
-                (serde_json::to_vec(&Self::merge_batch_results(cached_results, results, missing_status)?)?, missing_status, cache_status)
+                (Bytes::from(serde_json::to_vec(&Self::merge_batch_results(cached_results, results, missing_status)?)?), missing_status, cache_status)
             } else if cache_hits > 0 {
                 let (body, status) = Self::send_upstream(calls, request, metrics, url, client, forward_headers).await?;
                 let response: Value = Self::parse_response(status, &body)?;
-                let body = if response.is_array() { serde_json::to_vec(&Self::order_batch(calls, response, status)?)? } else { body };
+                let body = if response.is_array() { Bytes::from(serde_json::to_vec(&Self::order_batch(calls, response, status)?)?) } else { body };
                 for call in calls {
                     metrics.add_proxy_upstream_response(request.chain.as_ref(), &call.method, url.url.host_str().unwrap_or_default(), status, request.elapsed().as_millis());
                 }
@@ -186,8 +187,8 @@ impl JsonRpcHandler {
         Ok(ProxyResponse::with_content_type(response_status, response_body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), request.elapsed(), cache_status))
     }
 
-    async fn send_upstream<T: Serialize + ?Sized>(data: &T, request: &ProxyRequest, metrics: &Metrics, url: &RequestUrl, client: &Client, headers: &HeaderMap) -> Result<(Vec<u8>, u16), BoxError> {
-        let body = serde_json::to_vec(data)?;
+    async fn send_upstream<T: Serialize + ?Sized>(data: &T, request: &ProxyRequest, metrics: &Metrics, url: &RequestUrl, client: &Client, headers: &HeaderMap) -> Result<(Bytes, u16), BoxError> {
+        let body = Bytes::from(serde_json::to_vec(data)?);
         let upstream_request = url.build_request(&request.method, body, headers.clone());
         let attempt_start = Instant::now();
         let result = transport::send(client, upstream_request).await;
@@ -211,7 +212,7 @@ impl JsonRpcHandler {
         url: &RequestUrl,
         client: &Client,
         forward_headers: &HeaderMap,
-    ) -> Result<(JsonRpcResult, u16, Vec<u8>), BoxError> {
+    ) -> Result<(JsonRpcResult, u16, Bytes), BoxError> {
         let (body, status) = Self::send_upstream(call, request, metrics, url, client, forward_headers).await?;
 
         let result = Self::parse_response(status, &body)?;

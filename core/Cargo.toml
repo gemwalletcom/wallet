@@ -78,6 +78,7 @@ bcs = { version = "0.2.1" }
 bech32 = { version = "0.12.0" }
 borsh = { version = "1.8.0", features = ["derive"] }
 bs58 = { version = "0.5.1", features = ["check"] }
+bytes = { version = "1.10.1" }
 crc = { version = "3.4.0" }
 data-encoding = { version = "2.11.1" }
 hex = { version = "0.4.3" }
