@@ -33,8 +33,8 @@ LOCALIZED_HOMES = {"Gemstone+Localized.swift", "GemstoneText.kt"}
 
 SYSTEM_PROMPTS = (
     (re.compile(r"\.evaluatePolicy\("), ("ios/Packages/GemstoneServices/Sources/Keystore/BiometryAuthenticationService.swift",), "starts a Face ID or passcode prompt outside BiometryAuthenticationService"),
-    (re.compile(r"authenticationPolicy:(?!\s*(?:\[\]|AuthenticationPolicy\b))"), ("ios/Packages/Keychain/", "ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystorePassword.swift"), "protects a keychain item outside LocalKeystorePassword"),
-    (re.compile(r"\.requestAuthorization\(options:"), ("ios/Packages/GemstoneServices/Sources/Notifications/PushNotificationService.swift",), "asks for notification permission outside PushNotificationEnablerService"),
+    (re.compile(r"authenticationPolicy:(?!\s*(?:\[\]|AuthenticationPolicy\b(?!\s*\.)))"), ("ios/Packages/Keychain/", "ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystorePassword.swift"), "protects a keychain item outside LocalKeystorePassword"),
+    (re.compile(r"\.requestAuthorization\((?!\s*for:)"), ("ios/Packages/GemstoneServices/Sources/Notifications/PushNotificationService.swift",), "asks for notification permission outside PushNotificationEnablerService"),
 )
 KEYSTORE = re.compile(r"\bGemKeystore\b")
 KEYSTORE_LAYERS = re.compile(r"(ios/Packages/GemstoneServices/|android/data/services/gemstone/)")

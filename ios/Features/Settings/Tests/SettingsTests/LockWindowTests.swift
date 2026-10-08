@@ -31,7 +31,7 @@ struct LockWindowTests {
         manager.toggleLock(show: true)
 
         manager.lockModel.state = .unlocked
-        manager.lockModel.backgroundedAt = nil
+        manager.lockModel.leftAt = nil
         manager.toggleLock(show: false)
 
         #expect(manager.overlayWindow != nil)

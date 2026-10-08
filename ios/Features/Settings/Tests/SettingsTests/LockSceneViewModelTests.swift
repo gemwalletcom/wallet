@@ -47,7 +47,7 @@ struct LockSceneViewModelTests {
 
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.isLocked)
-        #expect(viewModel.backgroundedAt == nil)
+        #expect(viewModel.leftAt == nil)
         #expect(mockService.authenticateCallsCount == 1)
     }
 
@@ -266,7 +266,7 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
+        viewModel.leftAt = ContinuousClock.now - .seconds(3600)
 
         viewModel.onScenePhase(.inactive)
         viewModel.onScenePhase(.background)
@@ -284,7 +284,7 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.backgroundedAt = ContinuousClock.now
+        viewModel.leftAt = ContinuousClock.now
 
         viewModel.onScenePhase(.background)
         viewModel.onScenePhase(.active)
@@ -298,28 +298,28 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.backgroundedAt = ContinuousClock.now - .seconds(20)
+        viewModel.leftAt = ContinuousClock.now - .seconds(20)
 
         viewModel.onScenePhase(.active)
         viewModel.onScenePhase(.inactive)
         viewModel.onScenePhase(.active)
 
         #expect(viewModel.state == .unlocked)
-        #expect(viewModel.backgroundedAt == nil)
+        #expect(viewModel.leftAt == nil)
         #expect(mockService.authenticateCallsCount == 0)
     }
 
     @Test
-    func gracePeriodExtendedDuringBackgrounding() {
+    func goingToTheBackgroundKeepsTheEarlierLeaveTime() {
         let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.backgroundedAt = ContinuousClock.now
+        let leftAt = ContinuousClock.now - .seconds(20)
+        viewModel.leftAt = leftAt
 
         viewModel.onScenePhase(.background)
 
-        let elapsed = viewModel.backgroundedAt.map { (ContinuousClock.now - $0).milliseconds } ?? .max
-        #expect(elapsed < 1000, "backgrounding inside the grace period restarts the countdown")
+        #expect(viewModel.leftAt == leftAt)
         #expect(viewModel.shouldLock == false)
     }
 
@@ -341,12 +341,12 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.backgroundedAt = nil
+        viewModel.leftAt = nil
 
         try mockService.update(period: .fiveMinutes)
 
         #expect(viewModel.state == .unlocked)
-        #expect(viewModel.backgroundedAt == nil)
+        #expect(viewModel.leftAt == nil)
     }
 
     @Test
@@ -381,7 +381,7 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
+        viewModel.leftAt = ContinuousClock.now - .seconds(3600)
 
         viewModel.onScenePhase(.inactive)
 
@@ -441,10 +441,10 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock()
         let viewModel = LockSceneViewModel(service: mockService)
 
-        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
+        viewModel.leftAt = ContinuousClock.now - .seconds(3600)
         #expect(viewModel.shouldLock)
 
-        viewModel.backgroundedAt = ContinuousClock.now
+        viewModel.leftAt = ContinuousClock.now
         #expect(!viewModel.shouldLock)
     }
 
@@ -453,10 +453,10 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock(requiresAuthentication: false, availableAuthentication: .none)
         let viewModel = LockSceneViewModel(service: mockService)
 
-        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
+        viewModel.leftAt = ContinuousClock.now - .seconds(3600)
         #expect(!viewModel.shouldLock)
 
-        viewModel.backgroundedAt = ContinuousClock.now
+        viewModel.leftAt = ContinuousClock.now
         #expect(!viewModel.shouldLock)
     }
 
@@ -465,7 +465,7 @@ struct LockSceneViewModelTests {
         let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.backgroundedAt = ContinuousClock.now
+        viewModel.leftAt = ContinuousClock.now
 
         viewModel.onScenePhase(.background)
         viewModel.onScenePhase(.active)
@@ -485,7 +485,7 @@ struct LockSceneViewModelTests {
 
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.isLocked)
-        #expect(viewModel.backgroundedAt == nil)
+        #expect(viewModel.leftAt == nil)
     }
 
     @Test
@@ -541,15 +541,74 @@ struct LockSceneViewModelTests {
     @Test
     func aSystemPromptKeepsTheCoverDownUntilTheAppIsActive() async {
         let mockService = BiometryAuthenticationMock()
-        mockService.presentedSystemPrompt = true
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        await mockService.systemPrompt.presenting {
+            viewModel.onScenePhase(.inactive)
+            await viewModel.obscureTask?.value
+        }
+
+        #expect(!viewModel.isCovered)
+        #expect(viewModel.leftAt == nil)
+    }
+
+    @Test
+    func aSystemPromptThatEndsWhileInactiveKeepsTheCoverDown() async {
+        let mockService = BiometryAuthenticationMock()
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
         viewModel.onScenePhase(.active)
 
         viewModel.onScenePhase(.inactive)
+        mockService.systemPrompt.presenting {}
         await viewModel.obscureTask?.value
 
         #expect(!viewModel.isCovered)
+    }
+
+    @Test
+    func aSystemPromptThatEndedBeforeLeavingDoesNotKeepTheCoverDown() async {
+        let mockService = BiometryAuthenticationMock()
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        mockService.systemPrompt.presenting {}
+        viewModel.onScenePhase(.inactive)
+        await viewModel.obscureTask?.value
+
+        #expect(viewModel.isCovered)
+    }
+
+    @Test
+    func stayingInactivePastTheLockPeriodLocks() async {
+        let viewModel = LockSceneViewModel(service: BiometryAuthenticationMock(lockPeriod: .oneMinute))
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        viewModel.onScenePhase(.inactive)
+        await viewModel.obscureTask?.value
+        #expect(viewModel.leftAt != nil)
+        viewModel.leftAt = ContinuousClock.now - .seconds(3600)
+        viewModel.onScenePhase(.active)
+
+        #expect(viewModel.isUnlocking)
+        #expect(viewModel.isCovered)
+    }
+
+    @Test
+    func immediateLockAsksAgainAfterTheCoverWasShown() async {
+        let viewModel = LockSceneViewModel(service: BiometryAuthenticationMock(lockPeriod: .immediate))
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        viewModel.onScenePhase(.inactive)
+        await viewModel.obscureTask?.value
+        viewModel.onScenePhase(.active)
+
+        #expect(viewModel.isUnlocking)
     }
 
     @Test
@@ -584,13 +643,14 @@ struct LockSceneViewModelTests {
     @Test
     func goingToTheBackgroundCoversAtOnceEvenDuringASystemPrompt() {
         let mockService = BiometryAuthenticationMock()
-        mockService.presentedSystemPrompt = true
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
         viewModel.onScenePhase(.active)
 
-        viewModel.onScenePhase(.inactive)
-        viewModel.onScenePhase(.background)
+        mockService.systemPrompt.presenting {
+            viewModel.onScenePhase(.inactive)
+            viewModel.onScenePhase(.background)
+        }
 
         #expect(viewModel.isCovered)
         #expect(viewModel.state == .unlocked)
@@ -619,7 +679,7 @@ struct LockSceneViewModelTests {
         viewModel.state = .unlocked
         viewModel.onScenePhase(.active)
         viewModel.onScenePhase(.background)
-        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
+        viewModel.leftAt = ContinuousClock.now - .seconds(3600)
 
         viewModel.onScenePhase(.inactive)
         viewModel.onScenePhase(.active)

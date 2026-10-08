@@ -37,9 +37,10 @@ flowchart LR
 | The lock period has passed, whatever the app was doing | the lock re-engages | |
 | The user returns before the lock period passes | the app stays unlocked, and the period starts again the next time the user leaves the app | time spent in the app never counts, so a Face ID prompt for a transaction is not followed by an unlock prompt |
 | The lock is on and the user opens the app switcher or leaves Gem | Gem is covered in the app switcher | balances and addresses stay hidden from anyone looking at the switcher |
+| The user stays in the app switcher, Control Center or Notification Center | the lock period runs from the moment Gem is covered | otherwise Gem would open unlocked after any amount of time away |
 | The lock is on and Gem asks for Face ID, Touch ID, the passcode or notification permission, or to paste | the screen stays as it is, without the cover | the cover is for leaving Gem, not for Gem's own prompts |
 | The lock is on and Gem asks for photos or camera access the first time | Gem is covered behind the prompt | these prompts appear once |
-| The user opens the app switcher while one of those Gem prompts is open | Gem is covered once the user moves to another app or the Home Screen | Gem cannot tell the switcher from its own prompt closing |
+| The user opens the app switcher while one of those Gem prompts is open or closing | Gem is covered once the user moves to another app or the Home Screen | Gem cannot tell the switcher from its own prompt closing |
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
 | The phone is turned or the appearance changes while the unlock prompt is open | the same prompt stays open and unlocks the app | Android recreates the screen; cancelling the prompt then crashed the app |
 | The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |

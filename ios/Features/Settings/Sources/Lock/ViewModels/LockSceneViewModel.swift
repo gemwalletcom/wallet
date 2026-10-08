@@ -17,7 +17,7 @@ public class LockSceneViewModel {
 
     private let service: any BiometryAuthenticatable
 
-    var backgroundedAt: ContinuousClock.Instant?
+    var leftAt: ContinuousClock.Instant?
     var state: LockSceneState
     private var isObscured = false
     private(set) var obscureTask: Task<Void, Never>?
@@ -66,8 +66,8 @@ public class LockSceneViewModel {
     }
 
     var shouldLock: Bool {
-        guard let backgroundedAt else { return false }
-        return service.shouldRelock(elapsedMilliseconds: (ContinuousClock.now - backgroundedAt).milliseconds)
+        guard let leftAt else { return false }
+        return service.shouldRelock(elapsedMilliseconds: (ContinuousClock.now - leftAt).milliseconds)
     }
 }
 
@@ -85,13 +85,11 @@ extension LockSceneViewModel {
             if case let .unlocking(attempt) = state, !attempt.isInvalidated {
                 state = .unlocking(attempt.invalidated())
             }
-            if state == .unlocked, !shouldLock {
-                backgroundedAt = ContinuousClock.now
-            }
+            startLockPeriod(at: ContinuousClock.now)
         case .active:
             setObscured(false)
             lockIfExpired()
-            backgroundedAt = nil
+            leftAt = nil
             if case let .unlocking(attempt) = state, attempt.isInvalidated {
                 state = .locked
             }
@@ -133,7 +131,7 @@ extension LockSceneViewModel {
 
     func resetLockState() {
         setObscured(false)
-        backgroundedAt = nil
+        leftAt = nil
         state = .unlocked
     }
 
@@ -172,6 +170,13 @@ extension LockSceneViewModel {
             try? await Task.sleep(for: Self.obscureDelay)
             guard !Task.isCancelled, isAutoLockEnabled, !service.hasPresentedSystemPrompt(since: inactiveAt) else { return }
             isObscured = true
+            startLockPeriod(at: inactiveAt)
+        }
+    }
+
+    private func startLockPeriod(at instant: ContinuousClock.Instant) {
+        if state == .unlocked, leftAt == nil {
+            leftAt = instant
         }
     }
 

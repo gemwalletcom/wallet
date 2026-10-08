@@ -1214,8 +1214,6 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Gem Wallet needs access to your Camera to scan QR Codes.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Enabling Face ID helps Gem Wallet keep your assets secure.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app requires access to your photo library to save NFTs.";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
@@ -1273,8 +1271,6 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Gem Wallet needs access to your Camera to scan QR Codes.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Enabling Face ID helps Gem Wallet keep your assets secure.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app requires access to your photo library to save NFTs.";
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
