@@ -426,6 +426,21 @@ pub fn is_insufficient_network_fee(fee_asset_id: &AssetId, fee_available: &GemBi
     !matches!(fee_asset_id.chain, Chain::HyperCore | Chain::Tron) && fee_asset_id.is_native() && *fee_available == GemBigUint::ZERO
 }
 
+pub fn insufficient_funds(transfer: &GemTransferData, metadata: &GemConfirmMetadata) -> Option<GemConfirmError> {
+    let fee = &metadata.fee_asset_balance;
+    if is_insufficient_network_fee(&fee.asset_id, &fee.available) {
+        return Some(GemConfirmError::InsufficientNetworkFee {
+            asset: Asset::from_chain(fee.asset_id.chain),
+            requirement: None,
+        });
+    }
+    let available = transfer.available_value(&metadata.asset_balance);
+    (transfer.input_type.spends_balance() && !transfer.use_max_amount && transfer.value > available).then(|| GemConfirmError::InsufficientBalance {
+        asset: transfer.input_type.get_asset().clone(),
+        requirement: GemBalanceRequirement::new(transfer.value.clone(), available),
+    })
+}
+
 impl SendInput {
     pub(super) fn pending_transactions(&self, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
         let chain = self.confirm.input.transfer.input_type.get_asset().chain();
@@ -1484,6 +1499,44 @@ mod tests {
         assert!(!is_insufficient_network_fee(&AssetId::from_chain(Chain::Tron), &empty));
         assert!(!is_insufficient_network_fee(&AssetId::from_chain(Chain::HyperCore), &empty));
         assert!(!is_insufficient_network_fee(&AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".into())), &empty));
+    }
+
+    #[test]
+    fn test_a_failed_load_names_the_missing_funds() {
+        let token = Asset::new(
+            AssetId::from(Chain::Ethereum, Some("0x514910771AF9Ca656af840dff83E8264EcF986CA".into())),
+            "Chainlink".into(),
+            "LINK".into(),
+            18,
+            AssetType::ERC20,
+        );
+        let transfer = GemTransferData {
+            value: BigInt::from(1_000),
+            ..GemTransferData::mock(TransactionInputType::Transfer { asset: token.clone() })
+        };
+        let metadata = |token_available: u64, eth_available: u64| GemConfirmMetadata {
+            asset_balance: GemConfirmMetadata::mock(&token.id, token_available).asset_balance,
+            fee_asset_balance: GemConfirmMetadata::mock(&AssetId::from_chain(Chain::Ethereum), eth_available).fee_asset_balance,
+            prices: vec![],
+        };
+
+        let missing_fee = Some(GemConfirmError::InsufficientNetworkFee {
+            asset: Asset::from_chain(Chain::Ethereum),
+            requirement: None,
+        });
+
+        assert_eq!(
+            insufficient_funds(&transfer, &metadata(400, 10)),
+            Some(GemConfirmError::InsufficientBalance {
+                asset: token.clone(),
+                requirement: GemBalanceRequirement::new(BigInt::from(1_000), BigInt::from(400)),
+            })
+        );
+        assert_eq!(insufficient_funds(&transfer, &metadata(1_000, 0)), missing_fee);
+        assert_eq!(insufficient_funds(&transfer, &metadata(400, 0)), missing_fee, "an empty fee balance still names the fee first");
+        assert_eq!(insufficient_funds(&transfer, &metadata(1_000, 10)), None, "a covered transfer keeps the load's own error");
+        let max = GemTransferData { use_max_amount: true, ..transfer.clone() };
+        assert_eq!(insufficient_funds(&max, &metadata(400, 10)), None, "a max amount is capped to the balance, never short");
     }
 
     #[test]

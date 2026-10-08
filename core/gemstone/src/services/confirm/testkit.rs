@@ -111,7 +111,7 @@ impl ConfirmTestkit {
             Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
-        let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone()));
+        let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone(), balance.clone()));
         let transaction_store = Arc::new(MemoryTransactionStateStore::default());
         let status = Arc::new(RecordingTransactionStatus::default());
         let transactions = Arc::new(GemTransactionStateService::new(gateway.clone(), transaction_store.clone(), balance.clone(), stake, nft, payment.clone()));

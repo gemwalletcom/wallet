@@ -113,7 +113,7 @@ impl DiscoveryTestkit {
                 Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
             )),
             nft.clone(),
-            Arc::new(GemPaymentService::new(provider.clone(), assets.clone())),
+            Arc::new(GemPaymentService::new(provider.clone(), assets.clone(), balance.clone())),
         ));
         state.set_status(status.clone());
         let discovery = Arc::new(GemAssetDiscoveryService::new(device_api, balance.clone(), transactions.clone(), nft, session.clone(), wallet_preferences.clone()));

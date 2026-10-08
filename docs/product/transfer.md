@@ -60,6 +60,7 @@ Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Das
 | For a network that uses a memo, without one | the recipient screen | |
 | An address that is not valid for the asset | the recipient screen | |
 | A plain address that matches several networks | a pick of the asset to send, then the rows above | |
+| A token the wallet has no balance for | Confirm, with the token's balance at zero so the shortfall and the ways to get it show; the token is not added to the wallet's list | the code chooses the token, not the wallet |
 | A WalletConnect Pay link | a review of the merchant's request; once confirmed, it pays and reports the result back to the merchant | |
 | A code the app cannot read | "Not supported" | a scan never does nothing |
 | A code the app can read but not open: a network without an account, a payment link that fails | why it cannot open | |
@@ -74,7 +75,7 @@ None recorded.
 
 ## Test codes
 
-Scan these from another device with a test wallet; do not submit the transactions. Token tests need the exact token enabled in the wallet.
+Scan these from another device with a test wallet; do not submit the transactions.
 
 <details>
 <summary>Payment codes and the expected result</summary>
