@@ -603,7 +603,7 @@ mod tests {
     async fn scanned_service(scan: Option<&str>) -> (GemWalletConnectService, Arc<testkit::TestWalletConnectSigner>, Arc<crate::testkit::TestAlienProvider>) {
         let signer = Arc::new(testkit::TestWalletConnectSigner::new(Ok("0xsignature".to_string())));
         let node = r#"{"jsonrpc":"2.0","id":1,"result":"0x6080"}"#;
-        let provider = Arc::new(crate::testkit::TestAlienProvider::with_json_by_path(200, &[("scan/transaction", scan.unwrap_or("not json")), ("gemnodes.com", node)]));
+        let provider = Arc::new(crate::testkit::TestAlienProvider::with_json_by_path(200, &[("transactions/scan", scan.unwrap_or("not json")), ("gemnodes.com", node)]));
         let service = GemWalletConnectService::mock_with_signer(signer.clone(), Wallet::mock(), provider.clone()).await;
         (service, signer, provider)
     }
@@ -659,7 +659,7 @@ mod tests {
             let warning = &messages[0].simulation.warnings[0];
             assert_eq!(warning.warning, primitives::SimulationWarningType::SuspiciousSpender);
             assert!(messages[0].simulation.has_critical_warning());
-            assert_eq!(provider.requested_paths().iter().filter(|path| path.contains("scan/transaction")).count(), 1);
+            assert_eq!(provider.requested_paths().iter().filter(|path| path.contains("transactions/scan")).count(), 1);
         })
     }
 

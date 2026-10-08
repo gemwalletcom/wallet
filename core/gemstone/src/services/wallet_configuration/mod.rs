@@ -69,7 +69,7 @@ mod tests {
                     externally_controlled_accounts: vec![],
                 },
             };
-            let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("wallet_configuration", &serde_json::to_string(&result).unwrap())]));
+            let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("wallet-configuration", &serde_json::to_string(&result).unwrap())]));
             let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
             let service = GemWalletConfigurationService::new(
                 Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
@@ -97,7 +97,7 @@ mod tests {
                     externally_controlled_accounts: vec![],
                 },
             };
-            let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("wallet_configuration", &serde_json::to_string(&result).unwrap())]));
+            let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("wallet-configuration", &serde_json::to_string(&result).unwrap())]));
             let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
             preferences.set_wallet_configuration_completed(wallet.id.clone()).unwrap();
             let service = GemWalletConfigurationService::new(

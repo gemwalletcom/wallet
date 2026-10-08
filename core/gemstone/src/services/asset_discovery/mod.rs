@@ -109,7 +109,7 @@ mod tests {
             assert!(testkit.discovery.discover(testkit.wallet_id.clone()).await.is_err());
 
             let paths = testkit.provider.requested_paths();
-            for expected in ["devices/assets", "devices/transactions", "devices/nft_assets"] {
+            for expected in ["devices/assets", "devices/transactions", "devices/nft-assets"] {
                 assert!(paths.iter().any(|path| path.contains(expected)), "{expected} never ran: {paths:?}");
             }
         })

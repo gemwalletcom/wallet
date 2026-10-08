@@ -126,7 +126,7 @@ mod tests {
     #[test]
     fn test_a_redemption_that_fails_enables_nothing() {
         block_on(async {
-            let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(200, &[("auth/nonce", TEST_NONCE), ("rewards/redeem", "not json")]))).await;
+            let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(200, &[("auth/nonce", TEST_NONCE), ("rewards/redemptions", "not json")]))).await;
 
             assert!(testkit.service.redeem(testkit.wallet.id.clone(), "option-1".to_string()).await.is_err());
             assert!(testkit.balances.enable_writes.lock().unwrap().is_empty());
@@ -179,7 +179,7 @@ mod tests {
             let username_error = r#"{"error":{"message":"Username must contain only letters and digits"}}"#;
             let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(
                 200,
-                &[("auth/nonce", TEST_NONCE), ("referrals/create", username_error), ("referrals/use", username_error)],
+                &[("auth/nonce", TEST_NONCE), ("referrals/use", username_error), ("rewards/referrals", username_error)],
             )))
             .await;
             let expected = GemServiceError::Api {
@@ -201,7 +201,7 @@ mod tests {
             testkit.wallets.wallets.wallets.lock().unwrap().iter_mut().for_each(|wallet| wallet.accounts.clear());
 
             assert!(testkit.service.create_referral(testkit.wallet.id.clone(), "code".to_string()).await.is_err());
-            assert!(!testkit.provider.requested_paths().iter().any(|path| path.contains("referrals/create")));
+            assert!(!testkit.provider.requested_paths().iter().any(|path| path.contains("rewards/referrals")));
             assert!(testkit.wallets.keystore_path(&testkit.wallet).exists());
         })
     }
