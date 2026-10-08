@@ -21,8 +21,8 @@ fn is_visible(state: BannerState) -> bool {
 
 pub fn default_state(event: BannerEvent) -> BannerState {
     match event {
-        BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature => BannerState::AlwaysActive,
-        BannerEvent::Stake | BannerEvent::AccountActivation | BannerEvent::SuspiciousAsset | BannerEvent::Onboarding | BannerEvent::TradePerpetuals => BannerState::Active,
+        BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature | BannerEvent::SuspiciousAsset => BannerState::AlwaysActive,
+        BannerEvent::Stake | BannerEvent::AccountActivation | BannerEvent::Onboarding | BannerEvent::TradePerpetuals => BannerState::Active,
     }
 }
 
@@ -176,7 +176,7 @@ pub(super) fn visible_banners(stored: Vec<Banner>, context: &GemBannerContext) -
     banners
         .into_iter()
         .map(|item| match stored.iter().find(|banner| banner.event == item.event && banner.asset.as_ref().map(|asset| &asset.id) == item.asset_id.as_ref()) {
-            Some(banner) => banner.clone(),
+            Some(banner) => Banner { state: item.state, ..banner.clone() },
             None => context.banner(item),
         })
         .collect()
@@ -298,6 +298,20 @@ mod tests {
         assert!(visible_banners(perpetuals.clone(), &unsupported).is_empty());
         let no_wallet = GemBannerContext { wallet: None, ..GemBannerContext::mock() };
         assert!(visible_banners(perpetuals, &no_wallet).is_empty());
+    }
+
+    #[test]
+    fn test_a_suspicious_asset_warning_cannot_be_closed() {
+        let suspicious = GemBannerContext {
+            asset_rank_score: Some(5),
+            ..GemBannerContext::mock()
+        };
+        let closed_before = vec![Banner::mock(BannerEvent::SuspiciousAsset, BannerState::Cancelled)];
+
+        for stored in [vec![], closed_before] {
+            let rows = suspicious.visible_banners(stored, Platform::IOS);
+            assert_eq!(rows.iter().map(|row| (row.banner.event, row.content.can_close)).collect::<Vec<_>>(), vec![(BannerEvent::SuspiciousAsset, false)]);
+        }
     }
 
     #[test]
