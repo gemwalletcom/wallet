@@ -23,6 +23,7 @@ flowchart LR
 | An asset's automatic alert and targets are both off | its Price Alerts screen shows the empty state, and only then | |
 | The user turns Enable Price Alerts off or on | the server is told at once; if it cannot be reached, the choice is kept, the error is shown and the next sync sends it | price alerts are pushed while the app is closed, so waiting for the next app open would keep pushing alerts the user turned off |
 | The user enables an alert but refuses notifications | nothing changes: no alert is kept, no confirmation is shown, the Enable Price Alerts switch stays off | an alert that can never be delivered is not kept |
+| The user adds an alert while Enable Price Alerts is on but notifications are off | the app asks for notifications first; allowed turns notifications back on and keeps the alert, refused keeps nothing | the server pushes price alerts only to a device with notifications on |
 
 ## Platform differences
 
