@@ -25,8 +25,7 @@ services:
     image: app
     container_name: api
     environment:
-      ROCKET_ADDRESS: 0.0.0.0
-      ROCKET_PORT: 8000
+      API_BIND: 0.0.0.0:8000
       BINARY: api
       REDIS_URL: redis://default:@redis:6379
       POSTGRES_URL: postgres://username:password@postgres/api

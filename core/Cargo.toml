@@ -104,8 +104,6 @@ reqwest = { version = "0.13.4", features = [
     "http2",
     "query",
 ] }
-rocket = { version = "0.5.1", default-features = false, features = ["json"] }
-rocket_ws = { version = "0.1.1" }
 url = { version = "2.5.8" }
 
 # Database and messaging
