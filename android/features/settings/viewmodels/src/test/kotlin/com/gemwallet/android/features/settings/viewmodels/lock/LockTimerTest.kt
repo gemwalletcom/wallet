@@ -16,36 +16,66 @@ class LockTimerTest {
     @Test
     fun shouldRelock_returnsFalseWhenAuthNotRequired() = runTest {
         val timer = lockTimer(authRequired = false, lockIntervalMinutes = 1)
+        timer.onLeft(at = 0)
 
-        assertFalse(timer.shouldRelock(now = Long.MAX_VALUE))
+        assertFalse(timer.shouldRelockOnReturn(now = Long.MAX_VALUE))
     }
 
     @Test
     fun shouldRelock_returnsFalseWhenWithinLockInterval() = runTest {
         val timer = lockTimer(authRequired = true, lockIntervalMinutes = 1)
+        timer.onLeft(at = 0)
 
-        assertFalse(timer.shouldRelock(now = DateUtils.MINUTE_IN_MILLIS))
+        assertFalse(timer.shouldRelockOnReturn(now = DateUtils.MINUTE_IN_MILLIS))
     }
 
     @Test
     fun shouldRelock_returnsTrueAfterLockIntervalElapsed() = runTest {
         val timer = lockTimer(authRequired = true, lockIntervalMinutes = 1)
+        timer.onLeft(at = 0)
 
-        assertTrue(timer.shouldRelock(now = DateUtils.MINUTE_IN_MILLIS + 1))
+        assertTrue(timer.shouldRelockOnReturn(now = DateUtils.MINUTE_IN_MILLIS + 1))
     }
 
     @Test
     fun shouldRelock_returnsTrueImmediatelyWhenIntervalIsZero() = runTest {
         val timer = lockTimer(authRequired = true, lockIntervalMinutes = 0)
+        timer.onLeft(at = 0)
 
-        assertTrue(timer.shouldRelock(now = 1L))
+        assertTrue(timer.shouldRelockOnReturn(now = 1L))
     }
 
     @Test
     fun shouldRelock_returnsTrueWhileAWalletConnectRequestIsOpen() = runTest {
         val timer = lockTimer(authRequired = true, lockIntervalMinutes = 0)
+        timer.onLeft(at = 0)
 
-        assertTrue("an open request never holds the lock off", timer.shouldRelock(now = Long.MAX_VALUE))
+        assertTrue("an open request never holds the lock off", timer.shouldRelockOnReturn(now = Long.MAX_VALUE))
+    }
+
+    @Test
+    fun returningWithoutLeavingNeverRelocks() = runTest {
+        val timer = lockTimer(authRequired = true, lockIntervalMinutes = 0)
+
+        assertFalse(timer.shouldRelockOnReturn(now = Long.MAX_VALUE))
+    }
+
+    @Test
+    fun theFirstLeaveOfAnAwaySpellStartsTheLockPeriod() = runTest {
+        val timer = lockTimer(authRequired = true, lockIntervalMinutes = 1)
+        timer.onLeft(at = 0)
+        timer.onLeft(at = DateUtils.MINUTE_IN_MILLIS)
+
+        assertTrue(timer.shouldRelockOnReturn(now = DateUtils.MINUTE_IN_MILLIS + 1))
+    }
+
+    @Test
+    fun returningEndsTheAwaySpell() = runTest {
+        val timer = lockTimer(authRequired = true, lockIntervalMinutes = 1)
+        timer.onLeft(at = 0)
+
+        assertTrue(timer.shouldRelockOnReturn(now = DateUtils.MINUTE_IN_MILLIS + 1))
+        assertFalse(timer.shouldRelockOnReturn(now = DateUtils.HOUR_IN_MILLIS))
     }
 
     private fun lockTimer(authRequired: Boolean, lockIntervalMinutes: Int): LockTimer {

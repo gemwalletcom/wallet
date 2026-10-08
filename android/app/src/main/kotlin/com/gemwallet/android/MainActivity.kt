@@ -118,7 +118,15 @@ class MainActivity :
         viewModel.maintain(isUnlocked = lockViewModel.uiState.map { it.isUnlocked })
 
         lifecycleScope.launch {
-            privacyCover.isCovered.collect { isCovered -> if (isCovered) showCover() else hideCover() }
+            privacyCover.isCovered.collect { isCovered ->
+                if (isCovered) {
+                    showCover()
+                    lockViewModel.onLeave()
+                } else {
+                    hideCover()
+                    lockViewModel.onReturn()
+                }
+            }
         }
 
         lifecycleScope.launch {
@@ -255,12 +263,12 @@ class MainActivity :
     override fun onResume() {
         super.onResume()
         systemAuthenticator.refreshEnrollment()
-        lockViewModel.onActivityResumed()
+        lockViewModel.onReturn()
     }
 
     override fun onPause() {
         super.onPause()
-        lockViewModel.onActivityPaused()
+        lockViewModel.onLeave()
     }
 
     override fun onDestroy() {

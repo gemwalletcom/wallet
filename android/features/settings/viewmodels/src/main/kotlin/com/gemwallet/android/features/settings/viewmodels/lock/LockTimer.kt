@@ -10,18 +10,26 @@ import javax.inject.Inject
 
 class LockTimer @Inject constructor(private val securityPreferences: SecurityPreferences, private val securityService: GemSecurityServiceInterface) {
 
-    private val pauseTime = AtomicLong(0L)
+    private val leftAt = AtomicLong(NOT_LEFT)
 
-    fun onPaused() {
-        pauseTime.set(SystemClock.elapsedRealtime())
+    fun onLeft(at: Long = SystemClock.elapsedRealtime()) {
+        leftAt.compareAndSet(NOT_LEFT, at)
     }
 
-    suspend fun shouldRelock(): Boolean = shouldRelock(now = SystemClock.elapsedRealtime())
+    suspend fun shouldRelockOnReturn(): Boolean = shouldRelockOnReturn(now = SystemClock.elapsedRealtime())
 
     @VisibleForTesting
-    internal suspend fun shouldRelock(now: Long): Boolean = securityService.shouldRelock(
-        elapsedMilliseconds = now - pauseTime.get(),
-        lockIntervalMinutes = securityPreferences.getLockInterval().first().toUInt(),
-        authRequired = securityPreferences.isLockEnabled(),
-    )
+    internal suspend fun shouldRelockOnReturn(now: Long): Boolean {
+        val left = leftAt.getAndSet(NOT_LEFT)
+        if (left == NOT_LEFT) return false
+        return securityService.shouldRelock(
+            elapsedMilliseconds = now - left,
+            lockIntervalMinutes = securityPreferences.getLockInterval().first().toUInt(),
+            authRequired = securityPreferences.isLockEnabled(),
+        )
+    }
+
+    private companion object {
+        const val NOT_LEFT = -1L
+    }
 }

@@ -18,11 +18,7 @@ import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
 @HiltViewModel
-class LockViewModel @Inject constructor(
-    private val securityPreferences: SecurityPreferences,
-    private val lockTimer: LockTimer,
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : ViewModel() {
+class LockViewModel @Inject constructor(private val securityPreferences: SecurityPreferences, private val lockTimer: LockTimer, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
 
     private val isInitialAuthRequired = isAuthRequired()
 
@@ -82,13 +78,13 @@ class LockViewModel @Inject constructor(
         return true
     }
 
-    fun onActivityPaused() {
-        lockTimer.onPaused()
+    fun onLeave() {
+        lockTimer.onLeft()
     }
 
-    fun onActivityResumed() {
+    fun onReturn() {
         viewModelScope.launch(ioDispatcher) {
-            if (lockTimer.shouldRelock()) relock()
+            if (lockTimer.shouldRelockOnReturn()) relock()
         }
     }
 
