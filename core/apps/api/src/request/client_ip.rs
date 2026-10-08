@@ -18,7 +18,7 @@ impl<S: Send + Sync> FromRequestParts<S> for ClientIp {
         }
         match ConnectInfo::<SocketAddr>::from_request_parts(parts, state).await {
             Ok(ConnectInfo(address)) => Ok(Self(address.ip())),
-            Err(_) => Err(ApiError::Internal("Client address is not available".to_string())),
+            Err(_) => Err(ApiError::internal("Client address is not available")),
         }
     }
 }

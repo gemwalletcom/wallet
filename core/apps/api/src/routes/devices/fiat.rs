@@ -6,7 +6,7 @@ use serde::Deserialize;
 use services::fiat::FiatClient;
 
 use crate::auth::device::{AuthenticatedDevice, AuthenticatedDeviceWallet};
-use crate::error::{ApiError, localized_fiat_error};
+use crate::error::{ApiError, fiat_error};
 use crate::request::{AssetIdParam, ClientIp, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, Path, Query, lenient};
 use crate::response::ApiResponse;
 
@@ -44,13 +44,13 @@ pub async fn get_fiat_quotes(
         ip_address: ip_address.clone(),
     };
     let context = fiat::FiatDeviceContext::new(device.record.id, device.wallet_id, device.wallet_type, ip_address);
-    let quotes = client.get_device_quotes(quote_request, &context).await.map_err(|error| localized_fiat_error(error, device.record.device.locale.as_ref()))?;
+    let quotes = client.get_device_quotes(quote_request, &context).await.map_err(|error| fiat_error(error, device.record.device.locale.as_ref()))?;
     Ok(quotes.into())
 }
 
 pub async fn get_fiat_quote_url(device: AuthenticatedDeviceWallet, Path(quote_id): Path<String>, ClientIp(ip): ClientIp, State(client): State<Arc<FiatClient>>) -> Result<ApiResponse<FiatQuoteUrl>, ApiError> {
     let locale = device.record.device.locale.as_ref();
     let context = fiat::FiatDeviceContext::new(device.record.id, device.wallet_id, device.wallet_type, ip.to_string());
-    let url = client.get_quote_url(&quote_id, &context, locale).await.map_err(|error| localized_fiat_error(error, locale))?;
+    let url = client.get_quote_url(&quote_id, &context, locale).await.map_err(|error| fiat_error(error, locale))?;
     Ok(url.into())
 }

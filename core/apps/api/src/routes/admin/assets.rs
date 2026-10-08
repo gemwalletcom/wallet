@@ -21,7 +21,7 @@ pub async fn add_asset_associations(_permission: AdminWrite, State(client): Stat
 
 pub async fn get_asset_status(_permission: AdminWrite, State(client): State<Arc<IndexerClient>>, Json(asset_id): Json<AssetId>) -> Result<ApiResponse<AssetId>, ApiError> {
     if asset_id.is_native() {
-        return Err(ApiError::BadRequest("Asset status requires a token asset".to_string()));
+        return Err(ApiError::bad_request("Asset status requires a token asset"));
     }
     client.fetch_asset_status(asset_id.clone()).await?;
     Ok(asset_id.into())

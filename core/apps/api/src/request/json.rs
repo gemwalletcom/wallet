@@ -12,10 +12,10 @@ impl<T: DeserializeOwned, S: Send + Sync> FromRequest<S> for Json<T> {
     async fn from_request(request: Request, state: &S) -> Result<Self, Self::Rejection> {
         match axum::Json::<T>::from_request(request, state).await {
             Ok(axum::Json(value)) => Ok(Json(value)),
-            Err(JsonRejection::JsonDataError(error)) => Err(ApiError::UnprocessableEntity(error.body_text())),
-            Err(JsonRejection::JsonSyntaxError(_)) => Err(ApiError::BadRequest("Invalid JSON".to_string())),
-            Err(JsonRejection::MissingJsonContentType(error)) => Err(ApiError::UnsupportedMediaType(error.body_text())),
-            Err(error) => Err(ApiError::status(error.status(), error.body_text())),
+            Err(JsonRejection::JsonDataError(error)) => Err(ApiError::unprocessable(error.body_text())),
+            Err(JsonRejection::JsonSyntaxError(_)) => Err(ApiError::bad_request("Invalid JSON")),
+            Err(JsonRejection::MissingJsonContentType(error)) => Err(ApiError::unsupported_media_type(error.body_text())),
+            Err(error) => Err(ApiError::new(error.status(), error.body_text())),
         }
     }
 }

@@ -37,7 +37,7 @@ pub async fn use_referral_code(device: AuthenticatedDevice, ClientIp(ip): Client
 
 pub async fn redeem(device: AuthenticatedDeviceWallet, State(client): State<Arc<RewardsRedemptionClient>>, request: WalletSigned<RedemptionRequest>) -> Result<ApiResponse<RedemptionResult>, ApiError> {
     if WalletId::Multicoin(request.address.clone()) != device.wallet_identifier {
-        return Err(ApiError::BadRequest("Wallet signature mismatch".to_string()));
+        return Err(ApiError::bad_request("Wallet signature mismatch"));
     }
     Ok(client.redeem_by_wallet_id(device.wallet_id, &request.data.id, device.record.id, device.record.device.locale.as_ref()).await?.into())
 }

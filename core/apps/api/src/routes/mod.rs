@@ -16,7 +16,7 @@ use http::header::{AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
 use http::{HeaderValue, Method, StatusCode};
 use http_server::{ErrorBody, HttpMetrics, catch_panic_layer, status_message, timeout_layer, with_security_headers};
 
-use crate::error::{ApiError, ErrorContext};
+use crate::error::ApiError;
 use crate::state::AppState;
 
 const DEFAULT_BODY_LIMIT: usize = 16 * 1024 * 1024;
@@ -63,23 +63,39 @@ pub async fn json_error_net(response: Response) -> Response {
 
 pub async fn log_failed_requests(request: Request<Body>, next: Next) -> Response {
     let method = request.method().clone();
-    let uri = redacted_uri(request.method(), request.uri().path(), request.uri().query());
-    let user_agent = request.headers().get(USER_AGENT).and_then(|value| value.to_str().ok()).unwrap_or("unknown").to_string();
+    let uri = request.uri().clone();
+    let user_agent = request.headers().get(USER_AGENT).cloned();
     let authorization = request.headers().get(AUTHORIZATION).cloned();
     let response = next.run(request).await;
     let status = response.status();
     if status.is_success() || status == StatusCode::SWITCHING_PROTOCOLS {
         return response;
     }
-    let context = response.extensions().get::<ErrorContext>().cloned();
-    if context.is_none() && !status.is_server_error() {
+    let error = response.extensions().get::<ApiError>();
+    if error.is_none() && !status.is_server_error() {
         return response;
     }
-    let message = context.as_ref().map(|context| context.message.clone()).unwrap_or_else(|| status_message(status));
+    let uri = redacted_uri(&method, uri.path(), uri.query());
+    let user_agent = user_agent.as_ref().and_then(|value| value.to_str().ok()).unwrap_or("unknown");
     let device = device_fields(authorization.as_ref());
-    match context.and_then(|context| context.detail) {
-        Some(detail) => error_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = format!("{detail}{device}"), user_agent = user_agent),
-        None => info_with_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = format!("{message}{device}"), user_agent = user_agent),
+    match error {
+        Some(ApiError { detail: Some(detail), .. }) => error_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = format!("{detail}{device}"), user_agent = user_agent),
+        Some(error) => info_with_fields!(
+            "Request failed",
+            method = method.as_str(),
+            uri = uri,
+            status = status.as_u16(),
+            error = format!("{}{device}", error.message),
+            user_agent = user_agent
+        ),
+        None => info_with_fields!(
+            "Request failed",
+            method = method.as_str(),
+            uri = uri,
+            status = status.as_u16(),
+            error = format!("{}{device}", status_message(status)),
+            user_agent = user_agent
+        ),
     }
     response
 }

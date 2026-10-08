@@ -34,7 +34,7 @@ impl IntoResponse for JsonProxyResponse {
     fn into_response(self) -> Response {
         let gem_client::Response { status, data } = self.0;
         let Some(status) = status.and_then(|status| StatusCode::from_u16(status).ok()) else {
-            return ApiError::Internal("Proxy response has no status".to_string()).into_response();
+            return ApiError::internal("Proxy response has no status").into_response();
         };
         (status, [(CONTENT_TYPE, "application/json")], Body::from(data)).into_response()
     }

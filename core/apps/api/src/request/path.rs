@@ -12,8 +12,8 @@ impl<T: DeserializeOwned + Send, S: Send + Sync> FromRequestParts<S> for Path<T>
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         axum::extract::Path::<T>::from_request_parts(parts, state).await.map(|axum::extract::Path(value)| Path(value)).map_err(|error| match error {
-            PathRejection::FailedToDeserializePathParams(error) => ApiError::UnprocessableEntity(error.kind().to_string()),
-            other => ApiError::UnprocessableEntity(other.body_text()),
+            PathRejection::FailedToDeserializePathParams(error) => ApiError::unprocessable(error.kind().to_string()),
+            other => ApiError::unprocessable(other.body_text()),
         })
     }
 }

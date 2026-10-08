@@ -28,7 +28,7 @@ pub async fn report_nft(device: AuthenticatedDevice, State(client): State<Arc<NF
     let asset_id = request
         .asset_id
         .as_deref()
-        .map(|asset_id| AssetId::new(asset_id).ok_or_else(|| ApiError::BadRequest(format!("Invalid asset_id: {asset_id}"))))
+        .map(|asset_id| AssetId::new(asset_id).ok_or_else(|| ApiError::bad_request(format!("Invalid asset_id: {asset_id}"))))
         .transpose()?;
     Ok(client.report_nft(&device.record.device.id, request.collection_id.clone(), asset_id, request.reason.clone()).await?.into())
 }

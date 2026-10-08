@@ -29,9 +29,9 @@ async fn authorize_webhook(access: &AccessClient, kind: WebhookKind, sender: &st
     let exists = access
         .is_webhook_sender_allowed(secret, kind, sender)
         .await
-        .map_err(|error| ApiError::Internal(format!("Failed to load webhook endpoint: {error}")))?;
+        .map_err(|error| ApiError::internal(format!("Failed to load webhook endpoint: {error}")))?;
     if !exists {
-        return Err(ApiError::NotFound("Webhook endpoint not found".to_string()));
+        return Err(ApiError::not_found("Webhook endpoint not found"));
     }
     Ok(())
 }
@@ -48,20 +48,20 @@ async fn receive_webhook(
 ) -> Result<ApiResponse<bool>, ApiError> {
     authorize_webhook(access, kind, sender, secret).await?;
 
-    let raw_body = String::from_utf8(body.to_vec()).map_err(|_| ApiError::BadRequest("Webhook body is not valid UTF-8".to_string()))?;
+    let raw_body = String::from_utf8(body.to_vec()).map_err(|_| ApiError::bad_request("Webhook body is not valid UTF-8"))?;
     match kind {
         WebhookKind::Transactions => {
-            let payload: TransactionId = serde_json::from_str(&raw_body).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
+            let payload: TransactionId = serde_json::from_str(&raw_body).map_err(|_| ApiError::bad_request("Invalid webhook JSON"))?;
             webhooks_client.publish_broadcast_webhook(payload).await?;
         }
         WebhookKind::Support => {
             webhooks_client.publish_support_webhook(&raw_body, &webhook_request.headers).await.map_err(|error| match error {
-                SupportWebhookError::Rejected(message) => ApiError::BadRequest(message),
+                SupportWebhookError::Rejected(message) => ApiError::bad_request(message),
                 SupportWebhookError::Publish(error) => ApiError::from(error),
             })?;
         }
         WebhookKind::Fiat => {
-            let request = FiatWebhookRequest::new(raw_body, webhook_request.headers, webhook_request.path).map_err(|_| ApiError::BadRequest("Invalid webhook JSON".to_string()))?;
+            let request = FiatWebhookRequest::new(raw_body, webhook_request.headers, webhook_request.path).map_err(|_| ApiError::bad_request("Invalid webhook JSON"))?;
             fiat_client.publish_webhook(request, sender).await?;
         }
     }

@@ -16,7 +16,7 @@ pub fn verified(parts: &Parts) -> Result<VerifiedRequest, ApiError> {
         .extensions
         .get::<VerifiedRequest>()
         .cloned()
-        .ok_or_else(|| ApiError::Internal("Device authentication is not configured for this route".to_string()))
+        .ok_or_else(|| ApiError::internal("Device authentication is not configured for this route"))
 }
 
 fn has_json_content_type(parts: &Parts) -> bool {
@@ -45,7 +45,7 @@ pub struct AuthenticatedDevice {
 
 impl AuthenticatedDevice {
     pub fn version(&self) -> Result<Version, ApiError> {
-        self.record.device.version.parse::<Version>().map_err(|error| ApiError::BadRequest(error.to_string()))
+        self.record.device.version.parse::<Version>().map_err(|error| ApiError::bad_request(error.to_string()))
     }
 }
 
@@ -58,11 +58,11 @@ where
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let request = verified(parts)?;
-        let State(devices): State<Arc<DevicesClient>> = State::from_request_parts(parts, state).await.map_err(|_| ApiError::Internal("Devices client is not available".to_string()))?;
+        let State(devices): State<Arc<DevicesClient>> = State::from_request_parts(parts, state).await.map_err(|_| ApiError::internal("Devices client is not available"))?;
         match devices.find_device_record(&request.device_id).await {
             Ok(Some(record)) => Ok(Self { record }),
-            Ok(None) => Err(ApiError::NotFound(DeviceError::DeviceNotFound.to_string())),
-            Err(_) => Err(ApiError::Internal(DeviceError::DatabaseError.to_string())),
+            Ok(None) => Err(ApiError::not_found(DeviceError::DeviceNotFound.to_string())),
+            Err(_) => Err(ApiError::internal(DeviceError::DatabaseError.to_string())),
         }
     }
 }
@@ -84,8 +84,8 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let request = verified(parts)?;
         let device_id = request.device_id.as_str();
-        let wallet_id = request.wallet_id.as_deref().ok_or_else(|| ApiError::Unauthorized(DeviceError::MissingWalletId.to_string()))?;
-        let State(devices): State<Arc<DevicesClient>> = State::from_request_parts(parts, state).await.map_err(|_| ApiError::Internal("Devices client is not available".to_string()))?;
+        let wallet_id = request.wallet_id.as_deref().ok_or_else(|| ApiError::unauthorized(DeviceError::MissingWalletId.to_string()))?;
+        let State(devices): State<Arc<DevicesClient>> = State::from_request_parts(parts, state).await.map_err(|_| ApiError::internal("Devices client is not available"))?;
         match devices.find_device_wallet(device_id, wallet_id).await {
             Ok(DeviceWalletLookup::Found(record, wallet)) => Ok(Self {
                 record,
@@ -93,9 +93,9 @@ where
                 wallet_identifier: wallet.wallet_id,
                 wallet_type: wallet.wallet_type,
             }),
-            Ok(DeviceWalletLookup::DeviceNotFound) => Err(ApiError::NotFound(DeviceError::DeviceNotFound.to_string())),
-            Ok(DeviceWalletLookup::WalletNotFound) => Err(ApiError::NotFound(DeviceError::WalletNotFound.to_string())),
-            Ok(DeviceWalletLookup::WalletUnavailable) | Err(_) => Err(ApiError::Internal(DeviceError::DatabaseError.to_string())),
+            Ok(DeviceWalletLookup::DeviceNotFound) => Err(ApiError::not_found(DeviceError::DeviceNotFound.to_string())),
+            Ok(DeviceWalletLookup::WalletNotFound) => Err(ApiError::not_found(DeviceError::WalletNotFound.to_string())),
+            Ok(DeviceWalletLookup::WalletUnavailable) | Err(_) => Err(ApiError::internal(DeviceError::DatabaseError.to_string())),
         }
     }
 }
@@ -128,8 +128,8 @@ impl<S: Send + Sync> FromRequestParts<S> for DeviceBody {
 
 pub fn json_body<T: DeserializeOwned>(parts: &Parts) -> Result<T, ApiError> {
     if !has_json_content_type(parts) {
-        return Err(ApiError::UnsupportedMediaType("Expected request with `Content-Type: application/json`".to_string()));
+        return Err(ApiError::unsupported_media_type("Expected request with `Content-Type: application/json`"));
     }
     let request = verified(parts)?;
-    serde_json::from_slice::<T>(&request.body).map_err(|_| ApiError::BadRequest("Invalid JSON".to_string()))
+    serde_json::from_slice::<T>(&request.body).map_err(|_| ApiError::bad_request("Invalid JSON"))
 }

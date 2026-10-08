@@ -21,8 +21,8 @@ fn bearer_secret(parts: &Parts) -> Result<&str, ApiError> {
         .headers
         .get(AUTHORIZATION_HEADER)
         .and_then(|value| value.to_str().ok())
-        .ok_or_else(|| ApiError::Unauthorized("Missing Authorization header".to_string()))?;
-    value.strip_prefix(BEARER_PREFIX).non_empty().ok_or_else(|| ApiError::Unauthorized("Invalid authorization format".to_string()))
+        .ok_or_else(|| ApiError::unauthorized("Missing Authorization header"))?;
+    value.strip_prefix(BEARER_PREFIX).non_empty().ok_or_else(|| ApiError::unauthorized("Invalid authorization format"))
 }
 
 async fn authorize<S>(parts: &mut Parts, state: &S, scope: ApiClientScope) -> Result<(), ApiError>
@@ -31,10 +31,10 @@ where
     Arc<AccessClient>: FromRef<S>,
 {
     let secret = bearer_secret(parts)?.to_string();
-    let State(access): State<Arc<AccessClient>> = State::from_request_parts(parts, state).await.map_err(|_| ApiError::Internal("Database not available".to_string()))?;
-    let allowed = access.is_api_client_allowed(&secret, scope).await.map_err(|_| ApiError::Internal("Failed to load API client".to_string()))?;
+    let State(access): State<Arc<AccessClient>> = State::from_request_parts(parts, state).await.map_err(|_| ApiError::internal("Database not available"))?;
+    let allowed = access.is_api_client_allowed(&secret, scope).await.map_err(|_| ApiError::internal("Failed to load API client"))?;
     if !allowed {
-        return Err(ApiError::Unauthorized(format!("Invalid API client for scope {}", scope.as_ref())));
+        return Err(ApiError::unauthorized(format!("Invalid API client for scope {}", scope.as_ref())));
     }
     Ok(())
 }

@@ -48,25 +48,25 @@ pub fn validate_support_image_upload(config: &SupportImageUploadConfig, file_nam
     } else {
         None
     }
-    .ok_or_else(|| ApiError::BadRequest("Image upload type is not supported".to_string()))?;
+    .ok_or_else(|| ApiError::bad_request("Image upload type is not supported"))?;
 
     if data.len() < MIN_SUPPORT_IMAGE_BYTES {
-        return Err(ApiError::BadRequest("Image upload is too small".to_string()));
+        return Err(ApiError::bad_request("Image upload is too small"));
     }
 
-    let bytes_image_type = ImageType::from_magic_bytes(&data).ok_or_else(|| ApiError::BadRequest("Image upload is not a valid image".to_string()))?;
+    let bytes_image_type = ImageType::from_magic_bytes(&data).ok_or_else(|| ApiError::bad_request("Image upload is not a valid image"))?;
     if bytes_image_type.mime_type() != content_image_type.mime_type() {
-        return Err(ApiError::BadRequest("Image content does not match Content-Type".to_string()));
+        return Err(ApiError::bad_request("Image content does not match Content-Type"));
     }
 
     let file_name = match file_name {
         Some(file_name) => {
-            let extension_image_type = ImageType::from_extension(&file_name).ok_or_else(|| ApiError::BadRequest("Image filename extension is not supported".to_string()))?;
+            let extension_image_type = ImageType::from_extension(&file_name).ok_or_else(|| ApiError::bad_request("Image filename extension is not supported"))?;
             if !config.allows(extension_image_type) {
-                return Err(ApiError::BadRequest("Image filename extension is not supported".to_string()));
+                return Err(ApiError::bad_request("Image filename extension is not supported"));
             }
             if extension_image_type.mime_type() != content_image_type.mime_type() {
-                return Err(ApiError::BadRequest("Image filename extension does not match Content-Type".to_string()));
+                return Err(ApiError::bad_request("Image filename extension does not match Content-Type"));
             }
             file_name
         }
@@ -117,21 +117,21 @@ mod tests {
     fn rejects_html_filename() {
         let error = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.html".to_string()), "image/png", png_bytes()).unwrap_err();
 
-        assert_eq!(error, ApiError::BadRequest("Image filename extension is not supported".to_string()));
+        assert_eq!(error, ApiError::bad_request("Image filename extension is not supported"));
     }
 
     #[test]
     fn rejects_tiny_image_upload() {
         let error = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.png".to_string()), "image/png", b"\x89PNG\r\n\x1A\n".to_vec()).unwrap_err();
 
-        assert_eq!(error, ApiError::BadRequest("Image upload is too small".to_string()));
+        assert_eq!(error, ApiError::bad_request("Image upload is too small"));
     }
 
     #[test]
     fn rejects_mismatched_content_type() {
         let error = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.jpg".to_string()), "image/jpeg", png_bytes()).unwrap_err();
 
-        assert_eq!(error, ApiError::BadRequest("Image content does not match Content-Type".to_string()));
+        assert_eq!(error, ApiError::bad_request("Image content does not match Content-Type"));
     }
 
     #[test]
@@ -141,7 +141,7 @@ mod tests {
 
         let error = validate_support_image_upload(&SupportImageUploadConfig::mock(), Some("proof.png".to_string()), "image/png", data).unwrap_err();
 
-        assert_eq!(error, ApiError::BadRequest("Image upload is not a valid image".to_string()));
+        assert_eq!(error, ApiError::bad_request("Image upload is not a valid image"));
     }
 
     #[test]
@@ -149,7 +149,7 @@ mod tests {
         let config = SupportImageUploadConfig::new(&["jpeg".to_string()]).unwrap();
         let error = validate_support_image_upload(&config, Some("proof.png".to_string()), "image/png", png_bytes()).unwrap_err();
 
-        assert_eq!(error, ApiError::BadRequest("Image upload type is not supported".to_string()));
+        assert_eq!(error, ApiError::bad_request("Image upload type is not supported"));
     }
 
     #[test]

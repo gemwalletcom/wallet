@@ -15,6 +15,6 @@ impl<S: Send + Sync> FromRequestParts<S> for UserAgent {
             .get(USER_AGENT)
             .and_then(|value| value.to_str().ok())
             .map(|value| Self(value.to_string()))
-            .ok_or_else(|| ApiError::BadRequest("Missing header: User-Agent".to_string()))
+            .ok_or_else(|| ApiError::bad_request("Missing header: User-Agent"))
     }
 }

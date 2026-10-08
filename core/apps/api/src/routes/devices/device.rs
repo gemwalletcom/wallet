@@ -13,7 +13,7 @@ use crate::response::ApiResponse;
 pub async fn register(device_id: VerifiedDeviceId, State(client): State<Arc<DevicesClient>>, device: DeviceJson<Device>) -> Result<ApiResponse<Device>, ApiError> {
     let device = device.into_inner();
     if device.id != device_id.0 {
-        return Err(ApiError::BadRequest("Device id mismatch".to_string()));
+        return Err(ApiError::bad_request("Device id mismatch"));
     }
     Ok(client.add_device(device).await?.into())
 }
@@ -29,7 +29,7 @@ pub async fn is_registered(device_id: VerifiedDeviceId, State(client): State<Arc
 pub async fn update(device: AuthenticatedDevice, State(client): State<Arc<DevicesClient>>, State(support): State<Arc<SupportApiClient>>, input: DeviceJson<Device>) -> Result<ApiResponse<Device>, ApiError> {
     let input = input.into_inner();
     if input.id != device.record.device.id {
-        return Err(ApiError::BadRequest("Device id mismatch".to_string()));
+        return Err(ApiError::bad_request("Device id mismatch"));
     }
     if let Err(error) = support.update_contact(device.record.id, &input).await {
         error_with_fields!("support contact update failed", &*error, device_id = device.record.id);

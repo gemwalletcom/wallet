@@ -14,6 +14,6 @@ impl<T: DeserializeOwned, S: Send + Sync> FromRequestParts<S> for Query<T> {
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         axum::extract::Query::<T>::try_from_uri(&parts.uri)
             .map(|axum::extract::Query(value)| Query(value))
-            .map_err(|error| ApiError::UnprocessableEntity(error.body_text().trim_start_matches(QUERY_ERROR_PREFIX).to_string()))
+            .map_err(|error| ApiError::unprocessable(error.body_text().trim_start_matches(QUERY_ERROR_PREFIX).to_string()))
     }
 }
