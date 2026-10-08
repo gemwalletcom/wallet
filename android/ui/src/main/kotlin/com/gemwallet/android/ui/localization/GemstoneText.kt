@@ -14,6 +14,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.perpetual.title
+import com.gemwallet.android.ui.models.name.AddressInputError
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.ChartPeriod
@@ -718,6 +719,11 @@ fun bannerDescription(context: Context, description: GemBannerDescription): Stri
 
 fun GemRecipientErrorDisplay.string(context: Context): String = when (this) {
     is GemRecipientErrorDisplay.InvalidAddress -> context.getString(R.string.errors_invalid_asset_address, network)
+}
+
+fun AddressInputError.string(context: Context): String = when (this) {
+    is AddressInputError.Rejected -> display.string(context)
+    is AddressInputError.Failed -> error.text(context)
 }
 
 @StringRes

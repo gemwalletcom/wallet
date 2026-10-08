@@ -17,6 +17,7 @@ import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,8 +33,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAppStartFailure
 import uniffi.gemstone.GemAppStartServiceInterface
-import uniffi.gemstone.GemPaymentException
-import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
@@ -91,9 +90,9 @@ class MainViewModel @Inject constructor(
                         pendingNavigationCoordinator.buildRoutes(walletConnectHandler)?.let { text ->
                             _uiState.update { it.copy(navigationError = text.text(context)) }
                         }
-                    } catch (error: GemPaymentException) {
-                        onNavigationFailed(error)
-                    } catch (error: GemServiceException) {
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (error: Exception) {
                         onNavigationFailed(error)
                     }
                 }

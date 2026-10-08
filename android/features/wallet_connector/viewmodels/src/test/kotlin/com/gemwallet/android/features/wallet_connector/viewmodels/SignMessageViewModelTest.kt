@@ -34,6 +34,7 @@ import org.junit.Test
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectServiceInterface
+import uniffi.gemstone.InternalException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SignMessageViewModelTest {
@@ -121,6 +122,24 @@ class SignMessageViewModelTest {
         assertEquals(1, errors.size)
         assertTrue(signatures.isEmpty())
         assertNull(requests.current.value)
+    }
+
+    @Test
+    fun `an unexpected signing failure shows an error and leaves the request open`() = runTest(dispatcher) {
+        val requests = WalletConnectPendingRequests()
+        val service = mockk<GemWalletConnectServiceInterface>(relaxed = true)
+        coEvery { service.signMessage(any(), any()) } throws InternalException("panic")
+        val job = pending(requests)
+        val model = viewModel(requests.awaitMessage(), service = service)
+
+        val errors = mutableListOf<String>()
+        model.onSign(onSigned = {}, onError = errors::add)
+        advanceUntilIdle()
+
+        assertEquals(1, errors.size)
+        assertNotNull(requests.current.value)
+        assertEquals(ButtonState.Enabled, model.buttonState.value)
+        job.cancel()
     }
 
     @Test

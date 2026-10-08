@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.validateRecipient
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CoroutineScope
@@ -11,21 +12,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
-import uniffi.gemstone.GemRecipientErrorDisplay
 import uniffi.gemstone.GemRecipientException
 import uniffi.gemstone.GemRecipientValidation
 
 class AddressInputModel(private val nameService: GemNameServiceInterface, scope: CoroutineScope, initialChain: Chain? = null) {
     private val nameRecordController = NameRecordController(nameService, scope)
     private val _text = MutableStateFlow("")
-    private val _error = MutableStateFlow<GemRecipientErrorDisplay?>(null)
+    private val _error = MutableStateFlow<AddressInputError?>(null)
     private val _chain = MutableStateFlow(initialChain)
 
     val chain: Chain? get() = _chain.value
 
     val text: StateFlow<String> = _text.asStateFlow()
     val nameResolveState: StateFlow<GemNameRecordState> = nameRecordController.state
-    val error: StateFlow<GemRecipientErrorDisplay?> = _error.asStateFlow()
+    val error: StateFlow<AddressInputError?> = _error.asStateFlow()
 
     val isValid: StateFlow<Boolean> = combine(_text, nameRecordController.state, _chain) { text, resolve, chain ->
         isValid(text, resolve, chain)
@@ -61,12 +61,15 @@ class AddressInputModel(private val nameService: GemNameServiceInterface, scope:
         val chain = _chain.value
         val resolve = nameRecordController.state.value
         val valid = isValid(text, resolve, chain)
-        _error.value = chain?.let { validation(text, resolve, it).error }
+        _error.value = chain?.let { validation(text, resolve, it).error }?.let(AddressInputError::Rejected)
         return valid
     }
 
-    fun markInvalid(rejection: GemRecipientException) {
-        _error.value = rejection.display()
+    fun markInvalid(error: Exception) {
+        _error.value = when (error) {
+            is GemRecipientException -> AddressInputError.Rejected(error.display())
+            else -> AddressInputError.Failed(error.errorText())
+        }
     }
 
     fun reset() {

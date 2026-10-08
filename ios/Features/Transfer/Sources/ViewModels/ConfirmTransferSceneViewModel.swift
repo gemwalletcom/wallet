@@ -312,15 +312,12 @@ extension ConfirmTransferSceneViewModel {
             state = try await ConfirmTransferState(confirmation.state(), screen: state.screen)
             let load = try await confirmation.load(options: loadOptions)
             state = ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
-        } catch let error as GemConfirmError {
-            if case .Cancelled = error {
-                return
-            }
+        } catch GemConfirmError.Cancelled {
+            return
+        } catch {
             guard !Task.isCancelled else { return }
             state.transfer = confirmation.transfer()
-            state.screen = state.screen.onLoadFailed(error: error)
-            debugLog("confirm load error: \(error)")
-        } catch {
+            state.screen = state.screen.onLoadFailed(error: error.toConfirmError())
             debugLog("confirm load error: \(error)")
         }
     }
@@ -364,11 +361,10 @@ extension ConfirmTransferSceneViewModel {
                 onComplete?(result)
             } catch GemConfirmError.Cancelled {
                 state.screen = state.screen.onExecuteCancelled()
-            } catch let error as GemConfirmError {
+            } catch {
+                let error = error.toConfirmError()
                 state.screen = state.screen.onExecuteFailed(error: error)
                 isPresentingAlertMessage = AlertMessage(title: Localized.Errors.transferError, message: error.display().localizedDescription)
-                debugLog("confirm transaction error: \(error)")
-            } catch {
                 debugLog("confirm transaction error: \(error)")
             }
         }
@@ -405,5 +401,11 @@ extension ConfirmTransferSceneViewModel {
             hashes.forEach { request.delegate?(.success($0)) }
         }
         return result
+    }
+}
+
+private extension Error {
+    func toConfirmError() -> GemConfirmError {
+        self as? GemConfirmError ?? .Load(msg: localizedDescription)
     }
 }

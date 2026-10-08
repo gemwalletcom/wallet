@@ -287,6 +287,17 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
+    func unexpectedQuoteErrorShowsTheError() async {
+        let model = SwapSceneViewModel.mock(service: GemSwapQuoteServiceMock(quotes: { _ in throw AnyError("panic") }))
+
+        await model.load()
+
+        #expect(model.isReceiveFieldLoading == false)
+        #expect(model.viewState.error != nil)
+        #expect(model.viewState.buttonAction == .retryQuote)
+    }
+
+    @Test
     func unexpectedTransferErrorReleasesLoading() async {
         let service = GemSwapQuoteServiceMock()
         service.transferError = AnyError("offline")

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.wallet_connector.viewmodels.models.ReviewTexts
 import com.gemwallet.android.features.wallet_connector.viewmodels.models.SignMessageUIState
@@ -17,6 +18,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,7 +27,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemSignerFailure
 import uniffi.gemstone.GemWalletConnectServiceInterface
@@ -61,10 +62,12 @@ class SignMessageViewModel @AssistedInject constructor(
         viewModelScope.launch(ioDispatcher) {
             val signature = try {
                 service.signMessage(state.wallet.id.id, state.signMessage)
-            } catch (err: GemServiceException) {
+            } catch (err: CancellationException) {
+                throw err
+            } catch (err: Exception) {
                 Log.e(TAG, "Sign message failed topic=${request.sessionId}", err)
                 isSigning.value = false
-                when (val failure = signerFailure(err.text())) {
+                when (val failure = signerFailure(err.errorText())) {
                     is GemSignerFailure.Retry -> onError(failure.error.text(context))
                     GemSignerFailure.Reject -> request.reject()
                 }

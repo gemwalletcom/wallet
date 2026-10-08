@@ -378,8 +378,10 @@ class SwapViewModel @Inject constructor(
         )
         currentCoroutineContext().ensureActive()
         GemSwapQuotesResult(request = params.key, quotes = quotes, error = null)
-    } catch (error: SwapperException) {
-        GemSwapQuotesResult(request = params.key, quotes = emptyList(), error = error)
+    } catch (error: Throwable) {
+        if (error is CancellationException) throw error
+        val quoteError = error as? SwapperException ?: SwapperException.ComputeQuoteException(error.message ?: error.toString())
+        GemSwapQuotesResult(request = params.key, quotes = emptyList(), error = quoteError)
     }
 
     private fun onQuoteResults(results: GemSwapQuotesResult?) {

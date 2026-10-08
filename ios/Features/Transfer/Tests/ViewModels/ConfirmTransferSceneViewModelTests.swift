@@ -352,6 +352,32 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
+    func unexpectedLoadErrorShowsTheError() async {
+        let model = ConfirmTransferSceneViewModel.mock(load: .failure(AnyError("panic")))
+
+        await model.load()
+
+        #expect(model.state.screen.phase == .failed)
+        #expect(model.state.loadError != nil)
+    }
+
+    @Test(.timeLimit(.minutes(1)))
+    func unexpectedSubmitErrorShowsTheError() async {
+        let model = ConfirmTransferSceneViewModel.mock(execute: .failure(AnyError("panic")))
+        await model.load()
+
+        model.onSelectConfirm()
+        while model.state.screen.phase == .confirming {
+            await withCheckedContinuation { changed in
+                withObservationTracking { _ = model.state } onChange: { changed.resume() }
+            }
+        }
+
+        #expect(model.state.screen.phase == .failed)
+        #expect(model.isPresentingAlertMessage != nil)
+    }
+
+    @Test
     func loadIgnoresErrorAfterCancellation() async {
         let model = ConfirmTransferSceneViewModel.mock(
             load: .failure(AnyError("network")),
