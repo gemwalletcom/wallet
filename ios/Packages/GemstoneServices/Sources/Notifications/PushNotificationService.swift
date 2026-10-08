@@ -6,9 +6,11 @@ import UIKit
 
 public struct PushNotificationEnablerService: Sendable {
     private let preferencesService: any GemPreferencesServiceProtocol
+    private let systemPrompt: SystemPrompt
 
-    public init(preferencesService: any GemPreferencesServiceProtocol) {
+    public init(preferencesService: any GemPreferencesServiceProtocol, systemPrompt: SystemPrompt) {
         self.preferencesService = preferencesService
+        self.systemPrompt = systemPrompt
     }
 
     private func requestPermissions() async throws -> Bool {
@@ -50,7 +52,9 @@ public struct PushNotificationEnablerService: Sendable {
     }
 
     private func requestAuthorizationPermissions() async throws -> Bool {
-        let result = try await UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .alert])
+        let result = try await systemPrompt.presenting {
+            try await UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .alert])
+        }
         await registerForRemoteNotifications()
         return result
     }

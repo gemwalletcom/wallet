@@ -1,5 +1,5 @@
-import Gemstone
 import Foundation
+import Gemstone
 import Primitives
 
 public final class LocalKeystore: Keystore, @unchecked Sendable {
@@ -10,7 +10,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
 
     public init(
         directory: String = "keystore",
-        keystorePassword: KeystorePassword = LocalKeystorePassword(),
+        keystorePassword: KeystorePassword,
     ) {
         do {
             let fileMigrator = FileMigrator()

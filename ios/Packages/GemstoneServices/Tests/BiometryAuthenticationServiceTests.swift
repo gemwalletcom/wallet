@@ -11,7 +11,7 @@ struct BiometryAuthenticationServiceTests {
     @Test
     func requiresAuthenticationWhenKeychainUnreadable() {
         let keystorePassword = MockKeystorePassword(availableAuthentication: .none)
-        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())
+        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService(), systemPrompt: SystemPrompt())
 
         #expect(!service.requiresAuthentication)
 
@@ -23,7 +23,7 @@ struct BiometryAuthenticationServiceTests {
     @Test
     func requiresAuthenticationReflectsStoredAuthentication() {
         let keystorePassword = MockKeystorePassword(availableAuthentication: .biometrics)
-        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())
+        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService(), systemPrompt: SystemPrompt())
 
         #expect(service.requiresAuthentication)
     }

@@ -18,6 +18,7 @@ public protocol BiometryAuthenticatable: Sendable {
     func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws
     func update(period: GemLockPeriod) throws
     func shouldRelock(elapsedMilliseconds: Int64) -> Bool
+    func hasPresentedSystemPrompt(since instant: ContinuousClock.Instant) -> Bool
 }
 
 public extension BiometryAuthenticatable {

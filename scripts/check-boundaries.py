@@ -31,6 +31,11 @@ COMPOSITION = re.compile(r"(ServicesFactory\.swift|ViewModelFactory[^/]*\.swift|
 LOCALIZED_MAPPER = re.compile(r"(?:extension GemLocalizedText\b(?!: Sendable)|fun GemLocalizedText\.)")
 LOCALIZED_HOMES = {"Gemstone+Localized.swift", "GemstoneText.kt"}
 
+SYSTEM_PROMPTS = (
+    (re.compile(r"\.evaluatePolicy\("), ("ios/Packages/GemstoneServices/Sources/Keystore/BiometryAuthenticationService.swift",), "starts a Face ID or passcode prompt outside BiometryAuthenticationService"),
+    (re.compile(r"authenticationPolicy:(?!\s*(?:\[\]|AuthenticationPolicy\b))"), ("ios/Packages/Keychain/", "ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystorePassword.swift"), "protects a keychain item outside LocalKeystorePassword"),
+    (re.compile(r"\.requestAuthorization\(options:"), ("ios/Packages/GemstoneServices/Sources/Notifications/PushNotificationService.swift",), "asks for notification permission outside PushNotificationEnablerService"),
+)
 KEYSTORE = re.compile(r"\bGemKeystore\b")
 KEYSTORE_LAYERS = re.compile(r"(ios/Packages/GemstoneServices/|android/data/services/gemstone/)")
 
@@ -108,6 +113,15 @@ def the_keystore_stays_in_its_layer():
             if KEYSTORE.search(line):
                 yield f"{relative}:{number} reaches for the keystore outside its layer"
 
+
+def system_prompts_start_where_they_are_marked():
+    """§ 14: a prompt Gem shows starts only where it is marked on SystemPrompt, so the privacy cover stays down behind it."""
+    for path in app_files():
+        relative = str(path.relative_to(ROOT))
+        for number, line in enumerate(path.read_text().splitlines(), start=1):
+            for pattern, homes, message in SYSTEM_PROMPTS:
+                if pattern.search(line) and not relative.startswith(homes):
+                    yield f"{relative}:{number} {message}"
 
 
 def native_stores_speak_primitives():
@@ -295,6 +309,7 @@ RULES = [
     ("services are injected, never constructed at a call site", services_are_injected),
     ("one localization mapper names every Core key it renders", one_localization_mapper),
     ("the keystore stays in its layer", the_keystore_stays_in_its_layer),
+    ("system prompts start where they are marked", system_prompts_start_where_they_are_marked),
     ("the native store speaks primitives only", native_stores_speak_primitives),
     ("store traits live in their adapters", store_traits_live_in_their_adapters),
     ("iOS start migrations only create tables", ios_start_migrations_only_create),

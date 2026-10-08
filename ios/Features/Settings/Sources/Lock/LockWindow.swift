@@ -20,7 +20,26 @@ public final class LockWindow {
     }
 
     public var showLockScreen: Bool {
-        lockModel.isLocked
+        lockModel.isCovered
+    }
+
+    public func observeScene() {
+        let phases: [(Notification.Name, ScenePhase)] = [
+            (UIScene.willDeactivateNotification, .inactive),
+            (UIScene.didEnterBackgroundNotification, .background),
+            (UIScene.willEnterForegroundNotification, .inactive),
+            (UIScene.didActivateNotification, .active),
+        ]
+        for (name, phase) in phases {
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.onScenePhase(phase)
+                }
+            }
+        }
+        if UIApplication.shared.applicationState == .active {
+            onScenePhase(.active)
+        }
     }
 
     public func setColorScheme(_ colorScheme: ColorScheme) {
@@ -39,6 +58,11 @@ public final class LockWindow {
 // MARK: - Private
 
 extension LockWindow {
+    func onScenePhase(_ phase: ScenePhase) {
+        lockModel.onScenePhase(phase)
+        toggleLock(show: showLockScreen)
+    }
+
     private func presentLockWindow() {
         if overlayWindow == nil, let window = sceneWindow() {
             overlayWindow = configured(window)

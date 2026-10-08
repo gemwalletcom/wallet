@@ -16,9 +16,11 @@ public final class LocalKeystorePassword: KeystorePassword {
 
     private static let lock = NSLock()
     private let keychain: Keychain
+    private let systemPrompt: SystemPrompt
 
-    public init(keychain: Keychain = KeychainDefault()) {
+    public init(keychain: Keychain = KeychainDefault(), systemPrompt: SystemPrompt) {
         self.keychain = keychain
+        self.systemPrompt = systemPrompt
     }
 
     public func getAvailableAuthentication() -> KeystoreAuthentication {
@@ -109,14 +111,18 @@ extension LocalKeystorePassword {
     }
 
     private func storedPassword(context: LAContext) throws -> String? {
-        guard let password = try keychain.authenticationContext(context).get(Keys.password), password.isNotEmpty else {
+        guard let password = try protectedValue(Keys.password, context: context), password.isNotEmpty else {
             return nil
         }
         return password
     }
 
     private func storedLockKey(context: LAContext) throws -> String? {
-        try keychain.authenticationContext(context).get(Keys.lockKey)
+        try protectedValue(Keys.lockKey, context: context)
+    }
+
+    private func protectedValue(_ key: String, context: LAContext) throws -> String? {
+        try systemPrompt.presenting { try keychain.authenticationContext(context).get(key) }
     }
 
     private func setLockKey(_ lockKey: String, authentication: KeystoreAuthentication, context: LAContext) throws {

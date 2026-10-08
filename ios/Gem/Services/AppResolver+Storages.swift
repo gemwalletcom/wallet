@@ -8,10 +8,14 @@ extension AppResolver {
     struct Storages {
         let db: DB = .init()
         let stores: Stores
-        let keystore = LocalKeystore()
+        let systemPrompt = SystemPrompt()
+        let keystorePassword: LocalKeystorePassword
+        let keystore: LocalKeystore
 
         init() {
             stores = Stores(db: db)
+            keystorePassword = LocalKeystorePassword(systemPrompt: systemPrompt)
+            keystore = LocalKeystore(keystorePassword: keystorePassword)
         }
     }
 }

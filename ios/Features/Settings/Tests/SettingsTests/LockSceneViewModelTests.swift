@@ -4,6 +4,7 @@ import Foundation
 import GemstoneServices
 import GemstoneServicesTestKit
 import LocalAuthentication
+import os
 import Primitives
 @testable import Settings
 
@@ -390,7 +391,7 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func inactiveWithinTheLockPeriodLeavesTheAppUncovered() {
+    func inactiveWithinTheLockPeriodKeepsTheAppUnlocked() {
         let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
@@ -415,6 +416,11 @@ struct LockSceneViewModelTests {
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.isLocked)
         #expect(mockService.authenticateCallsCount == 0)
+
+        viewModel.onScenePhase(.inactive)
+        #expect(viewModel.obscureTask == nil)
+        viewModel.onScenePhase(.background)
+        #expect(!viewModel.isCovered)
     }
 
     @Test
@@ -502,5 +508,146 @@ struct LockSceneViewModelTests {
         await waiter.value
 
         #expect(viewModel.state == .unlocked)
+    }
+
+    @Test
+    func leavingTheAppCoversItAfterAMoment() async {
+        let viewModel = LockSceneViewModel(service: BiometryAuthenticationMock())
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        viewModel.onScenePhase(.inactive)
+        #expect(!viewModel.isCovered)
+
+        await viewModel.obscureTask?.value
+        #expect(viewModel.isCovered)
+        #expect(viewModel.state == .unlocked)
+    }
+
+    @Test
+    func aBriefInterruptionDoesNotCover() async {
+        let viewModel = LockSceneViewModel(service: BiometryAuthenticationMock())
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        viewModel.onScenePhase(.inactive)
+        let obscureTask = viewModel.obscureTask
+        viewModel.onScenePhase(.active)
+        await obscureTask?.value
+
+        #expect(!viewModel.isCovered)
+    }
+
+    @Test
+    func aSystemPromptKeepsTheCoverDownUntilTheAppIsActive() async {
+        let mockService = BiometryAuthenticationMock()
+        mockService.presentedSystemPrompt = true
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        viewModel.onScenePhase(.inactive)
+        await viewModel.obscureTask?.value
+
+        #expect(!viewModel.isCovered)
+    }
+
+    @Test
+    func turningTheLockOffWhileInactiveNeverCovers() async {
+        let mockService = BiometryAuthenticationMock()
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        viewModel.onScenePhase(.inactive)
+        mockService.requiresAuthentication = false
+        await viewModel.obscureTask?.value
+
+        #expect(!viewModel.isCovered)
+    }
+
+    @Test
+    func returningAndLeavingAgainCoversAfterAMoment() async {
+        let mockService = BiometryAuthenticationMock()
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        viewModel.onScenePhase(.inactive)
+        viewModel.onScenePhase(.active)
+        viewModel.onScenePhase(.inactive)
+        await viewModel.obscureTask?.value
+
+        #expect(viewModel.isCovered)
+    }
+
+    @Test
+    func goingToTheBackgroundCoversAtOnceEvenDuringASystemPrompt() {
+        let mockService = BiometryAuthenticationMock()
+        mockService.presentedSystemPrompt = true
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+
+        viewModel.onScenePhase(.inactive)
+        viewModel.onScenePhase(.background)
+
+        #expect(viewModel.isCovered)
+        #expect(viewModel.state == .unlocked)
+    }
+
+    @Test
+    func returningWithinTheLockPeriodUncoversOnceActive() {
+        let viewModel = LockSceneViewModel(service: BiometryAuthenticationMock(lockPeriod: .oneMinute))
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+        viewModel.onScenePhase(.inactive)
+        viewModel.onScenePhase(.background)
+
+        viewModel.onScenePhase(.inactive)
+        #expect(viewModel.isCovered)
+
+        viewModel.onScenePhase(.active)
+        #expect(!viewModel.isCovered)
+        #expect(viewModel.state == .unlocked)
+    }
+
+    @Test
+    func returningAfterTheLockPeriodStaysCoveredUntilUnlocked() async {
+        let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        viewModel.onScenePhase(.active)
+        viewModel.onScenePhase(.background)
+        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
+
+        viewModel.onScenePhase(.inactive)
+        viewModel.onScenePhase(.active)
+        #expect(viewModel.isUnlocking)
+        #expect(viewModel.isCovered)
+
+        await viewModel.startUnlock()?.value
+        #expect(viewModel.state == .unlocked)
+        #expect(!viewModel.isCovered)
+    }
+
+    @Test
+    func theCoverIsObservedWhenAuthenticationIsTurnedOnLater() async {
+        let mockService = BiometryAuthenticationMock(requiresAuthentication: false, availableAuthentication: .none)
+        let viewModel = LockSceneViewModel(service: mockService)
+        let changed = OSAllocatedUnfairLock(initialState: false)
+        withObservationTracking {
+            _ = viewModel.isCovered
+        } onChange: {
+            changed.withLock { $0 = true }
+        }
+
+        mockService.requiresAuthentication = true
+        viewModel.onScenePhase(.active)
+        viewModel.onScenePhase(.inactive)
+        await viewModel.obscureTask?.value
+
+        #expect(changed.withLock { $0 })
+        #expect(viewModel.isCovered)
     }
 }

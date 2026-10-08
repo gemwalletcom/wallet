@@ -9,13 +9,20 @@ import Primitives
 public struct BiometryAuthenticationService: BiometryAuthenticatable {
     private let keystorePassword: KeystorePassword
     private let securityService: any GemSecurityServiceProtocol
+    private let systemPrompt: SystemPrompt
 
     public init(
         keystorePassword: KeystorePassword,
         securityService: any GemSecurityServiceProtocol,
+        systemPrompt: SystemPrompt,
     ) {
         self.keystorePassword = keystorePassword
         self.securityService = securityService
+        self.systemPrompt = systemPrompt
+    }
+
+    public func hasPresentedSystemPrompt(since instant: ContinuousClock.Instant) -> Bool {
+        systemPrompt.hasPresented(since: instant)
     }
 
     public func shouldRelock(elapsedMilliseconds: Int64) -> Bool {
@@ -65,7 +72,9 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
     @MainActor
     public func authenticate(context: LAContext, reason: String) async throws {
         do {
-            try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
+            try await systemPrompt.presenting {
+                try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
+            }
         } catch let error as NSError {
             throw BiometryAuthenticationError(error: error)
         }

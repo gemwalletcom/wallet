@@ -14,7 +14,7 @@ struct LocalKeystorePasswordTests {
         if legacyEmpty {
             storage.set(Data(), key: "password", accessibility: .afterFirstUnlock)
         }
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         #expect(throws: KeystoreError.missingPassword) { try keystorePassword.getPassword() }
 
@@ -25,7 +25,7 @@ struct LocalKeystorePasswordTests {
     @Test
     func authenticationChangeWithoutPasswordKeepsThePolicy() throws {
         let storage = KeychainStorage()
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         try keystorePassword.enableAuthentication(false, context: LAContext())
 
@@ -36,8 +36,8 @@ struct LocalKeystorePasswordTests {
     @Test
     func creationUsesThePolicySelectedAfterAnotherCustodianRead() throws {
         let storage = KeychainStorage()
-        let first = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
-        let second = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let first = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
+        let second = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
         #expect(try first.getAuthentication() == .none)
         storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
 
@@ -55,7 +55,7 @@ struct LocalKeystorePasswordTests {
         let storage = KeychainStorage()
         storage.set(Data("first".utf8), key: "password", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
         storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         #expect(try keystorePassword.getPassword(createIfMissing: true) == "first")
         #expect(try keystorePassword.getAuthentication() == .passcode)
@@ -69,7 +69,7 @@ struct LocalKeystorePasswordTests {
         let storage = KeychainStorage()
         storage.set(Data(), key: "password", accessibility: .afterFirstUnlock)
         storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         let passwordLength = try keystorePassword.getPassword(createIfMissing: true).count
 
@@ -84,7 +84,7 @@ struct LocalKeystorePasswordTests {
         let count = try await withThrowingTaskGroup(of: String.self) { group in
             for _ in 0 ..< 32 {
                 group.addTask {
-                    try LocalKeystorePassword(keychain: RecordingKeychain(storage: storage)).getPassword(createIfMissing: true)
+                    try LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt()).getPassword(createIfMissing: true)
                 }
             }
             return try await group.reduce(into: Set<String>()) { $0.insert($1) }.count
@@ -100,7 +100,7 @@ struct LocalKeystorePasswordTests {
         let storage = KeychainStorage()
         storage.set(Data("first".utf8), key: "password", accessibility: .afterFirstUnlock)
         storage.setReadError(AnyError("unavailable"), key: "password")
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         #expect(throws: AnyError("unavailable")) { try keystorePassword.getPassword(createIfMissing: true) }
 
@@ -114,7 +114,7 @@ struct LocalKeystorePasswordTests {
         storage.set(Data("first".utf8), key: "password", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
         storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
         storage.setWriteError(AnyError("unavailable"), key: "password_authentication")
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         #expect(throws: AnyError("unavailable")) { try keystorePassword.enableAuthentication(false, context: LAContext()) }
 
@@ -126,7 +126,7 @@ struct LocalKeystorePasswordTests {
     func unlockCreatesTheMissingLockKeyUnderTheStoredPolicy() throws {
         let storage = KeychainStorage()
         storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         try keystorePassword.unlock(context: LAContext())
 
@@ -140,7 +140,7 @@ struct LocalKeystorePasswordTests {
         let storage = KeychainStorage()
         storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
         storage.setReadErrorWhenStored(AnyError("authentication required"), key: "lock_key")
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         #expect(throws: AnyError("authentication required")) { try keystorePassword.unlock(context: LAContext()) }
 
@@ -151,7 +151,7 @@ struct LocalKeystorePasswordTests {
     func unlockKeepsTheStoredLockKey() throws {
         let storage = KeychainStorage()
         storage.set(Data("first".utf8), key: "lock_key", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         try keystorePassword.unlock(context: LAContext())
 
@@ -164,7 +164,7 @@ struct LocalKeystorePasswordTests {
         let storage = KeychainStorage()
         storage.set(Data("first".utf8), key: "lock_key", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
         storage.setReadError(AnyError("cancelled"), key: "lock_key")
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         #expect(throws: AnyError("cancelled")) { try keystorePassword.unlock(context: LAContext()) }
 
@@ -177,11 +177,28 @@ struct LocalKeystorePasswordTests {
         let storage = KeychainStorage()
         storage.set(Data("first".utf8), key: "lock_key", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
         storage.set(Data("passcode".utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
-        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage))
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
 
         try keystorePassword.enableAuthentication(false, context: LAContext())
 
         #expect(storage.value(for: "lock_key") == Data("first".utf8))
         #expect(storage.authenticationPolicy(for: "lock_key") == [])
+    }
+
+    @Test
+    func protectedReadsAreMarkedAsSystemPrompts() throws {
+        let storage = KeychainStorage()
+        storage.set(Data("first".utf8), key: "password", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
+        storage.set(Data("second".utf8), key: "lock_key", accessibility: .whenUnlockedThisDeviceOnly, authenticationPolicy: [.devicePasscode])
+        let systemPrompt = SystemPrompt()
+        storage.recordReads(during: systemPrompt)
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: systemPrompt)
+
+        #expect(try keystorePassword.getPassword() == "first")
+        #expect(try keystorePassword.getAuthentication() == .none)
+        try keystorePassword.unlock(context: LAContext())
+
+        #expect(storage.readsDuringPrompt == ["password", "lock_key"])
+        #expect(!systemPrompt.hasPresented(since: .now))
     }
 }

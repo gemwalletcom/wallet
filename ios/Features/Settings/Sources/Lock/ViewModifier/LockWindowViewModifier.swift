@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import SwiftUI
 
 private struct LockWindowViewModifier: ViewModifier {
-    @Environment(\.scenePhase) var scenePhase
     @Environment(\.colorScheme) var colorScheme
     private let lockWindow: LockWindow
 
@@ -13,9 +13,7 @@ private struct LockWindowViewModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .onChange(of: scenePhase, initial: true) { _, newPhase in
-                lockWindow.lockModel.onScenePhase(newPhase)
-            }
+            .taskOnce(lockWindow.observeScene)
             .onChange(of: colorScheme, initial: true) { _, newColorScheme in
                 lockWindow.setColorScheme(newColorScheme)
             }

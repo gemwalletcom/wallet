@@ -36,7 +36,10 @@ flowchart LR
 | The unlock prompt is open | Gem stays covered behind it | |
 | The lock period has passed, whatever the app was doing | the lock re-engages | |
 | The user returns before the lock period passes | the app stays unlocked, and the period starts again the next time the user leaves the app | time spent in the app never counts, so a Face ID prompt for a transaction is not followed by an unlock prompt |
-| The user leaves the app before the lock period passes | the app switcher shows the app as it was | the lock covers the app only once it locks |
+| The lock is on and the user opens the app switcher or leaves Gem | Gem is covered in the app switcher | balances and addresses stay hidden from anyone looking at the switcher |
+| The lock is on and Gem asks for Face ID, Touch ID, the passcode or notification permission, or to paste | the screen stays as it is, without the cover | the cover is for leaving Gem, not for Gem's own prompts |
+| The lock is on and Gem asks for photos or camera access the first time | Gem is covered behind the prompt | these prompts appear once |
+| The user opens the app switcher while one of those Gem prompts is open | Gem is covered once the user moves to another app or the Home Screen | Gem cannot tell the switcher from its own prompt closing |
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
 | The phone is turned or the appearance changes while the unlock prompt is open | the same prompt stays open and unlocks the app | Android recreates the screen; cancelling the prompt then crashed the app |
 | The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
@@ -57,6 +60,7 @@ flowchart LR
 
 | When | iOS | Android | Expected |
 |---|---|---|---|
+| The lock is on and Gem is in the app switcher | covered with the Gem logo | the recent apps preview is hidden on Android 13 and later | Intentional: earlier Android versions can hide it only by also blocking screenshots |
 | The device passcode is off while the lock is on | the lock screen explains it in text | the lock screen explains it and opens screen lock setup | Intentional: iOS has no public way to open passcode settings |
 | The user opens Developer | includes a deep link URL tool | includes a platform store setting | Intentional (developer-only) |
 | The build cannot push (F-Droid, Huawei) | not applicable | Settings does not list Notifications, so neither the push switch nor Price Alerts is reachable | Intentional: the build has no push service |

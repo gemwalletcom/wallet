@@ -13,6 +13,7 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
     public var availableAuthentication: GemKeystoreAuthentication
     public var isPasscodeSet: Bool
     public var lockPeriod: GemLockPeriod
+    public var presentedSystemPrompt = false
 
     public var authenticateError: (any Error)?
     public var enableError: (any Error)?
@@ -43,6 +44,10 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
             lockIntervalMinutes: lockPeriod.minutes(),
             authRequired: requiresAuthentication,
         )
+    }
+
+    public func hasPresentedSystemPrompt(since _: ContinuousClock.Instant) -> Bool {
+        presentedSystemPrompt
     }
 
     @MainActor

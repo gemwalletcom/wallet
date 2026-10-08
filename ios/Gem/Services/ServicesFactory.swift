@@ -105,7 +105,7 @@ struct ServicesFactory {
             names: nameService,
             avatar: avatarService,
         )
-        let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)
+        let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
         let priceAlertService = Gemstone.GemPriceAlertService(
             api: deviceApiClient,
@@ -415,8 +415,9 @@ struct ServicesFactory {
             appUpdateService: appUpdateService,
             inAppNotificationService: inAppNotificationService,
             biometryService: BiometryAuthenticationService(
-                keystorePassword: LocalKeystorePassword(),
+                keystorePassword: storages.keystorePassword,
                 securityService: Gemstone.GemSecurityService(),
+                systemPrompt: storages.systemPrompt,
             ),
             observablePreferences: observablePreferences,
             recentAssetsService: recentAssetsService,

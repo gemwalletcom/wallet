@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstoneServices
 import Keychain
 import LocalAuthentication
 import Primitives
@@ -13,6 +14,8 @@ final class KeychainStorage: @unchecked Sendable {
     private var writes: [String: Int] = [:]
     private var readErrors: [String: AnyError] = [:]
     private var storedReadErrors: [String: AnyError] = [:]
+    private var systemPrompt: SystemPrompt?
+    private var promptedReads: [String] = []
     private var writeErrors: [String: AnyError] = [:]
 
     func value(for key: String) -> Data? {
@@ -37,6 +40,22 @@ final class KeychainStorage: @unchecked Sendable {
 
     func setReadErrorWhenStored(_ error: AnyError, key: String) {
         lock.withLock { storedReadErrors[key] = error }
+    }
+
+    var readsDuringPrompt: [String] {
+        lock.withLock { promptedReads }
+    }
+
+    func recordReads(during systemPrompt: SystemPrompt) {
+        lock.withLock { self.systemPrompt = systemPrompt }
+    }
+
+    func recordRead(of key: String) {
+        lock.withLock {
+            if systemPrompt?.hasPresented(since: .now) == true {
+                promptedReads.append(key)
+            }
+        }
     }
 
     func setWriteError(_ error: AnyError, key: String) {
@@ -93,6 +112,7 @@ struct RecordingKeychain: Keychain {
     }
 
     func getData(_ key: String) throws -> Data? {
+        storage.recordRead(of: key)
         if let error = storage.readError(for: key) {
             throw error
         }

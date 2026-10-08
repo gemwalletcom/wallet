@@ -13,11 +13,14 @@ import SwiftUI
 @Observable
 public class LockSceneViewModel {
     private static let reason: String = Localized.Settings.Security.authentication
+    private static let obscureDelay: Duration = .milliseconds(150)
 
     private let service: any BiometryAuthenticatable
 
     var backgroundedAt: ContinuousClock.Instant?
     var state: LockSceneState
+    private var isObscured = false
+    private(set) var obscureTask: Task<Void, Never>?
 
     public init(
         service: any BiometryAuthenticatable,
@@ -40,6 +43,10 @@ public class LockSceneViewModel {
 
     var isLocked: Bool {
         state != .unlocked && isAutoLockEnabled
+    }
+
+    var isCovered: Bool {
+        isLocked || isObscured
     }
 
     var isUnlockButtonVisible: Bool {
@@ -74,6 +81,7 @@ extension LockSceneViewModel {
         }
         switch phase {
         case .background:
+            setObscured(true)
             if case let .unlocking(attempt) = state, !attempt.isInvalidated {
                 state = .unlocking(attempt.invalidated())
             }
@@ -81,6 +89,7 @@ extension LockSceneViewModel {
                 backgroundedAt = ContinuousClock.now
             }
         case .active:
+            setObscured(false)
             lockIfExpired()
             backgroundedAt = nil
             if case let .unlocking(attempt) = state, attempt.isInvalidated {
@@ -91,6 +100,7 @@ extension LockSceneViewModel {
             }
         case .inactive:
             lockIfExpired()
+            obscureAfterDelay()
         @unknown default:
             break
         }
@@ -122,6 +132,7 @@ extension LockSceneViewModel {
     }
 
     func resetLockState() {
+        setObscured(false)
         backgroundedAt = nil
         state = .unlocked
     }
@@ -145,6 +156,22 @@ extension LockSceneViewModel {
     private func lockIfExpired() {
         if state == .unlocked, shouldLock {
             state = .locked
+        }
+    }
+
+    private func setObscured(_ obscured: Bool) {
+        obscureTask?.cancel()
+        obscureTask = nil
+        isObscured = obscured
+    }
+
+    private func obscureAfterDelay() {
+        obscureTask?.cancel()
+        let inactiveAt = ContinuousClock.now
+        obscureTask = Task {
+            try? await Task.sleep(for: Self.obscureDelay)
+            guard !Task.isCancelled, isAutoLockEnabled, !service.hasPresentedSystemPrompt(since: inactiveAt) else { return }
+            isObscured = true
         }
     }
 

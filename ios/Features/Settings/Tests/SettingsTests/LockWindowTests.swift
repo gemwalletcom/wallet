@@ -71,4 +71,16 @@ struct LockWindowTests {
         #expect(!manager.showLockScreen)
         #expect(manager.overlayWindow == nil)
     }
+
+    @Test
+    func goingToTheBackgroundShowsTheCoverBeforeReturning() {
+        let manager = LockWindow.mock()
+        manager.lockModel.state = .unlocked
+        manager.onScenePhase(.active)
+        #expect(manager.overlayWindow?.isHidden != false)
+
+        manager.onScenePhase(.background)
+
+        #expect(manager.overlayWindow?.isHidden == false)
+    }
 }
