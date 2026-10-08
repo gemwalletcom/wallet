@@ -5,6 +5,7 @@ import com.gemwallet.android.data.services.gemstone.stream.WebSocketEvent
 import com.gemwallet.android.testkit.mockWallet
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -20,6 +21,7 @@ import org.junit.Test
 import uniffi.gemstone.GemPerpetualConnection
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamServiceInterface
+import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.PerpetualAccountMode
 import java.time.Duration
@@ -93,6 +95,20 @@ class HyperliquidObserverServiceTest {
 
         assertEquals(0, connection.activeConnections.get())
         coVerify(exactly = 1) { streamService.disconnected() }
+    }
+
+    @Test
+    fun hasCoreSubscribeAndUnsubscribeInTheOrderTheScreensAsk() = runTest {
+        val market = GemPerpetualSubscription.MarketData("BTC")
+        val subject = observer()
+
+        subject.unsubscribe(market)
+        subject.subscribe(market)
+
+        coVerifyOrder {
+            streamService.unsubscribe(market)
+            streamService.subscribe(market)
+        }
     }
 
     private fun TestScope.observer() = HyperliquidObserverService(

@@ -27,6 +27,7 @@ import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -49,6 +50,7 @@ import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualServiceInterface
+import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemValueHeader
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -139,6 +141,7 @@ class PerpetualsViewModelTest {
         balance: PerpetualBalance? = null,
         walletType: WalletType = WalletType.Multicoin,
         perpetuals: Flow<List<PerpetualData>> = flowOf(emptyList()),
+        perpetualObserver: PerpetualObserver = mockk(),
     ): PerpetualsViewModel {
         val perpetualsQuery = mockk<PerpetualsQuery> {
             every { this@mockk(any(), any(), any()) } returns perpetuals
@@ -153,7 +156,6 @@ class PerpetualsViewModelTest {
         val recentActivityQuery = mockk<RecentActivityQuery> {
             every { this@mockk(any(), any(), any(), any()) } returns flowOf(emptyList())
         }
-        val perpetualObserver = mockk<PerpetualObserver>()
         val getSession = mockk<GetSession>()
         every { getSession() } returns MutableStateFlow(mockSession(wallet = mockWallet(type = walletType)))
 
@@ -168,6 +170,25 @@ class PerpetualsViewModelTest {
             ioDispatcher = dispatcher,
             observeRefreshInterval = mockk(relaxed = true),
         ).also { model = it }
+    }
+
+    @Test
+    fun `leaving and returning to the markets resubscribes their prices in order`() = runTest(dispatcher) {
+        val observer = mockk<PerpetualObserver>(relaxed = true)
+        val viewModel = viewModel(mockk(relaxed = true), perpetualObserver = observer)
+
+        viewModel.onScreenEnter()
+        advanceUntilIdle()
+        viewModel.onScreenExit()
+        advanceUntilIdle()
+        viewModel.onScreenEnter()
+        advanceUntilIdle()
+
+        coVerifyOrder {
+            observer.subscribe(GemPerpetualSubscription.MarketPrices)
+            observer.unsubscribe(GemPerpetualSubscription.MarketPrices)
+            observer.subscribe(GemPerpetualSubscription.MarketPrices)
+        }
     }
 
     @Test

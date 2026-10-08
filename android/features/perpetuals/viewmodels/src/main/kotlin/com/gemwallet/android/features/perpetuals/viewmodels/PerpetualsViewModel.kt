@@ -26,9 +26,12 @@ import com.wallet.core.primitives.RecentActivityType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -39,6 +42,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemMarketsRefreshTrigger
@@ -158,12 +162,28 @@ class PerpetualsViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) { refresh(GemMarketsRefreshTrigger.SCHEDULED) }
     }
 
-    fun subscribeMarketPrices() {
-        perpetualObserver.subscribe(GemPerpetualSubscription.MarketPrices)
+    private val screenVisible = MutableStateFlow(false)
+
+    init {
+        viewModelScope.launch {
+            screenVisible.collectLatest { isVisible ->
+                if (!isVisible) return@collectLatest
+                perpetualObserver.subscribe(GemPerpetualSubscription.MarketPrices)
+                try {
+                    awaitCancellation()
+                } finally {
+                    withContext(NonCancellable) { perpetualObserver.unsubscribe(GemPerpetualSubscription.MarketPrices) }
+                }
+            }
+        }
     }
 
-    fun unsubscribeMarketPrices() {
-        perpetualObserver.unsubscribe(GemPerpetualSubscription.MarketPrices)
+    fun onScreenEnter() {
+        screenVisible.value = true
+    }
+
+    fun onScreenExit() {
+        screenVisible.value = false
     }
 
     suspend fun depositTarget(): GemPerpetualDepositTarget? = runCatchingCancellable { service.depositTarget() }

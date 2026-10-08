@@ -130,8 +130,8 @@ class PerpetualViewModelTest {
         markets.value = mockPerpetualData(perpetual = mockPerpetual(price = 2.0), asset = asset)
         advanceUntilIdle()
 
-        verify(exactly = 2) { observer.subscribe(any()) }
-        verify(exactly = 0) { observer.unsubscribe(any()) }
+        coVerify(exactly = 2) { observer.subscribe(any()) }
+        coVerify(exactly = 0) { observer.unsubscribe(any()) }
         verify(exactly = 1) { positions(any(), any<PerpetualId>()) }
     }
 
