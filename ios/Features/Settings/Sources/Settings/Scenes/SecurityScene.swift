@@ -15,15 +15,19 @@ public struct SecurityScene: View {
 
     public var body: some View {
         ListSectionView(sections: model.sections) { row in
-            GemListRowView(row: row, onToggle: model.onToggle, onSelect: model.onSelect)
+            if case .picker = row {
+                GemListRowView(row: row, onSelect: model.onSelect)
+                    .confirmationDialog(model.lockPeriodTitle, isPresented: $model.isPresentingLockPeriods) {
+                        ForEach(model.allLockPeriods) { period in
+                            Button(period.title) { model.updateLockPeriod(to: period) }
+                        }
+                    }
+            } else {
+                GemListRowView(row: row, onToggle: model.onToggle)
+            }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
-        .confirmationDialog(model.lockPeriodTitle, isPresented: $model.isPresentingLockPeriods) {
-            ForEach(model.allLockPeriods) { period in
-                Button(period.title) { model.updateLockPeriod(to: period) }
-            }
-        }
         .alertSheet($model.isPresentingAlertMessage)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
