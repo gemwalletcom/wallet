@@ -1,3 +1,5 @@
+use std::cmp::Reverse;
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::Arc;
 
@@ -41,12 +43,22 @@ impl FeeEstimatesClient {
     }
 
     pub async fn get_fee_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
-        self.cacher.all_estimates().await
+        Ok(self
+            .cacher
+            .all_estimates()
+            .await?
+            .into_iter()
+            .enumerate()
+            .map(|(position, estimates)| ((Reverse(estimates.asset.chain().rank()), position), estimates))
+            .collect::<BTreeMap<_, _>>()
+            .into_values()
+            .collect())
     }
 }
 
 fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd: f64) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
-    let rate_unit = asset.chain().fee_unit_type();
+    let chain = asset.chain();
+    let rate_unit = chain.fee_unit_type();
     let asset_decimals = asset.decimals;
     let rate_decimals = match rate_unit {
         FeeUnitType::Native => asset_decimals,
@@ -57,6 +69,8 @@ fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd
         transfer: map_estimates(estimates.transfer)?,
         token_transfer: estimates.token_transfer.map(&map_estimates).transpose()?,
         swap: estimates.swap.map(map_estimates).transpose()?,
+        block_time: chain.block_time(),
+        token_type: chain.default_asset_type(),
         asset,
         rate_unit,
     })

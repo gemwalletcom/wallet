@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{Asset, FeePriority, FeeUnitType};
+use crate::{Asset, AssetType, FeePriority, FeeUnitType};
 
 pub type FeeEstimatesByPriority = BTreeMap<FeePriority, FeeEstimate>;
 
@@ -11,6 +11,9 @@ pub type FeeEstimatesByPriority = BTreeMap<FeePriority, FeeEstimate>;
 pub struct ChainFeeEstimates {
     pub asset: Asset,
     pub rate_unit: FeeUnitType,
+    pub block_time: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token_type: Option<AssetType>,
     pub transfer: FeeEstimatesByPriority,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token_transfer: Option<FeeEstimatesByPriority>,
