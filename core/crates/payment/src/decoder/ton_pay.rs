@@ -10,6 +10,7 @@ const TRANSFER_PATH: &str = "transfer";
 
 const QUERY_AMOUNT: &str = "amount";
 const QUERY_TEXT: &str = "text";
+const QUERY_JETTON: &str = "jetton";
 const QUERY_BODY: &str = "bin";
 const QUERY_STATE_INIT: &str = "init";
 
@@ -21,16 +22,20 @@ pub fn decode(path: &str) -> Result<Payment> {
         return Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()));
     }
 
+    let jetton = query::value(&parameters, QUERY_JETTON);
+    let amount = query::value(&parameters, QUERY_AMOUNT).and_then(|value| match &jetton {
+        Some(_) => amount::atomic(&value).map(|value| PaymentAmount::AtomicValue { value }),
+        None => amount::exact_from_atomic(&value, Chain::Ton).map(|value| PaymentAmount::ExactValue { value }),
+    });
+
     Ok(Payment::Request {
         request: PaymentRequest {
             address: address(path)?,
-            amount: query::value(&parameters, QUERY_AMOUNT)
-                .and_then(|value| amount::exact_from_atomic(&value, Chain::Ton))
-                .map(|value| PaymentAmount::ExactValue { value }),
+            amount,
             memo: query::value(&parameters, QUERY_TEXT),
             label: None,
             references: None,
-            asset_id: Some(AssetId::from_chain(Chain::Ton)),
+            asset_id: Some(AssetId::from(Chain::Ton, jetton)),
         },
     })
 }
@@ -49,6 +54,7 @@ fn address(path: &str) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::asset_constants::{TON_DUST_ASSET_ID, TON_DUST_TOKEN_ID};
 
     const ADDRESS: &str = "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
 
@@ -77,6 +83,24 @@ mod tests {
         );
         assert_eq!(decode(&format!("//transfer/{ADDRESS}")).unwrap(), ton);
         assert_eq!(decode(ADDRESS).unwrap(), ton);
+    }
+
+    #[test]
+    fn test_decode_jetton() {
+        assert_eq!(
+            decode(&format!("//transfer/{ADDRESS}?jetton={TON_DUST_TOKEN_ID}&amount=5000000&text=hello")).unwrap(),
+            Payment::Request {
+                request: PaymentRequest {
+                    address: ADDRESS.to_string(),
+                    amount: Some(PaymentAmount::AtomicValue { value: 5_000_000u32.into() }),
+                    memo: Some("hello".to_string()),
+                    label: None,
+                    references: None,
+                    asset_id: Some(TON_DUST_ASSET_ID.clone()),
+                }
+            },
+            "the amount is in the jetton's units, not nanoTON"
+        );
     }
 
     #[test]
