@@ -48,13 +48,11 @@ impl GemPriceAlertService {
     }
 
     pub async fn set_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        if self.is_enabled() == enabled {
-            return Ok(());
+        match enabled {
+            true => self.enable().await.map(|_| ()),
+            false if self.is_enabled() => self.device.set_price_alerts_enabled(false).await,
+            false => Ok(()),
         }
-        if enabled && !self.permissions.request_permissions_or_open_settings().await? {
-            return Ok(());
-        }
-        self.device.set_price_alerts_enabled(enabled).await
     }
 
     pub fn new_alert_session(&self, asset_id: AssetId, format: GemNumberFormat) -> GemPriceAlertSession {
@@ -66,8 +64,7 @@ impl GemPriceAlertService {
     }
 
     pub async fn enable_price_alert(&self, alert: PriceAlert) -> Result<bool, GemServiceError> {
-        self.set_enabled(true).await?;
-        if !self.is_enabled() {
+        if !self.enable().await? {
             return Ok(false);
         }
         self.add_price_alerts(vec![alert]).await?;
@@ -110,6 +107,14 @@ pub fn price_alerts_toggle_row(enabled: bool) -> GemListRow {
 impl GemPriceAlertService {
     pub fn is_available(&self) -> bool {
         self.permissions.is_available()
+    }
+
+    async fn enable(&self) -> Result<bool, GemServiceError> {
+        if !self.permissions.request_permissions_or_open_settings().await? {
+            return Ok(false);
+        }
+        self.device.set_price_alerts_enabled(true).await?;
+        Ok(true)
     }
 
     pub async fn price_alerts(&self, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, GemServiceError> {
@@ -185,6 +190,27 @@ mod tests {
         let granted = PriceAlertTestkit::with_provider(Arc::new(registering_device_provider()), Arc::new(GrantedNotificationPermissions));
         assert!(block_on(granted.service.set_auto_alert(asset, true)).unwrap().is_some());
         assert!(granted.service.is_enabled());
+        assert_eq!(granted.store.identifiers().len(), 1);
+    }
+
+    #[test]
+    fn test_an_alert_asks_for_notifications_even_when_price_alerts_are_already_on() {
+        let asset = Asset::from_chain(Chain::Bitcoin);
+        let push_off = |permissions| {
+            let kit = PriceAlertTestkit::with_provider(Arc::new(registering_device_provider()), permissions);
+            kit.service.preferences.set_price_alerts_enabled(true).unwrap();
+            kit.service.preferences.set_push_notifications_enabled(false).unwrap();
+            kit
+        };
+
+        let denied = push_off(Arc::new(DeniedNotificationPermissions));
+        assert_eq!(block_on(denied.service.set_auto_alert(asset.clone(), true)), Ok(None));
+        assert!(denied.store.identifiers().is_empty(), "an alert that can never be delivered is not kept");
+        assert!(denied.provider.requested_paths().is_empty());
+
+        let granted = push_off(Arc::new(GrantedNotificationPermissions));
+        assert!(block_on(granted.service.set_auto_alert(asset, true)).unwrap().is_some());
+        assert!(granted.service.preferences.is_push_notifications_enabled(), "push is turned back on with the alert");
         assert_eq!(granted.store.identifiers().len(), 1);
     }
 
