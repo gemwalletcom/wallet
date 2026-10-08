@@ -171,11 +171,19 @@ class MainActivity :
         super.onResume()
         systemAuthenticator.refreshEnrollment()
         lockViewModel.onActivityResumed()
+        hideRecentsPreviewWhileLocked()
     }
 
     override fun onPause() {
         super.onPause()
         lockViewModel.onActivityPaused()
+        hideRecentsPreviewWhileLocked()
+    }
+
+    private fun hideRecentsPreviewWhileLocked() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setRecentsScreenshotEnabled(!lockViewModel.isAuthRequired())
+        }
     }
 
     override fun onDestroy() {
