@@ -32,14 +32,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.alpha60
+import com.gemwallet.android.ui.theme.captionFontSize
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space2
@@ -73,10 +72,10 @@ private object CandlestickMetrics {
     val minWickWidth = space1
     val maxWickWidth = space2
     val currentPriceDash = space2
-    val currentPriceGap = 3.dp
+    val currentPriceGap = space2
     val referenceLineThickness = space1
     val referenceLineDash = space4
-    val referenceLineGap = 3.dp
+    val referenceLineGap = space4
     val selectionLineWidth = space1
     val selectionDashLength = space4
     val selectionDotOuterRadius = space6
@@ -86,9 +85,7 @@ private object CandlestickMetrics {
     val referenceBadgeHorizontalPadding = space4
     val referenceBadgeVerticalPadding = space4
     val badgeCornerRadius = space4
-    val referenceLabelOverlapSpacing = 115.dp
-    val referenceLabelSize = 10.sp
-    val axisLabelSize = 11.sp
+    val referenceLabelGap = space8
 
     const val SELECTION_LINE_ALPHA = 0.50f
     const val BODY_CORNER_RATIO = 0.15f
@@ -122,10 +119,10 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
         PathEffect.dashPathEffect(floatArrayOf(dashPx, dashPx))
     }
     val axisLabelStyle = remember(axisLabelColor) {
-        TextStyle(color = axisLabelColor, fontSize = CandlestickMetrics.axisLabelSize, textAlign = TextAlign.Start)
+        TextStyle(color = axisLabelColor, fontSize = captionFontSize, textAlign = TextAlign.Start)
     }
     val whiteLabelStyle = remember(axisLabelStyle) { axisLabelStyle.copy(color = Color.White) }
-    val referenceLabelStyle = remember { TextStyle(color = Color.White, fontSize = CandlestickMetrics.referenceLabelSize, fontWeight = FontWeight.SemiBold) }
+    val referenceLabelStyle = remember { TextStyle(color = Color.White, fontSize = captionFontSize, fontWeight = FontWeight.SemiBold) }
     val timeLabelStyle = remember(axisLabelStyle) { axisLabelStyle.copy(textAlign = TextAlign.Center) }
     val currentPriceDashEffect = remember(density) {
         with(density) { PathEffect.dashPathEffect(floatArrayOf(CandlestickMetrics.currentPriceDash.toPx(), CandlestickMetrics.currentPriceGap.toPx())) }
@@ -147,7 +144,7 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
     val referenceBadgeHorizontalPaddingPx = with(density) { CandlestickMetrics.referenceBadgeHorizontalPadding.toPx() }
     val referenceBadgeVerticalPaddingPx = with(density) { CandlestickMetrics.referenceBadgeVerticalPadding.toPx() }
     val badgeCornerRadiusPx = with(density) { CandlestickMetrics.badgeCornerRadius.toPx() }
-    val referenceLabelSpacingPx = with(density) { CandlestickMetrics.referenceLabelOverlapSpacing.toPx() }
+    val referenceLabelGapPx = with(density) { CandlestickMetrics.referenceLabelGap.toPx() }
     val topPaddingPx = with(density) { CandlestickMetrics.topPadding.toPx() }
     val bottomPaddingPx = with(density) { CandlestickMetrics.bottomPadding.toPx() }
     val leftPaddingPx = with(density) { CandlestickMetrics.leftPadding.toPx() }
@@ -205,7 +202,7 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
                 lineThicknessPx = referenceLineThicknessPx,
                 lineDashEffect = PathEffect.dashPathEffect(floatArrayOf(referenceLineDashPx, referenceLineGapPx)),
                 labelStyle = referenceLabelStyle,
-                overlapSpacingPx = referenceLabelSpacingPx,
+                labelGapPx = referenceLabelGapPx,
                 badgeHorizontalPaddingPx = referenceBadgeHorizontalPaddingPx,
                 badgeVerticalPaddingPx = referenceBadgeVerticalPaddingPx,
                 badgeCornerRadiusPx = badgeCornerRadiusPx,
@@ -325,7 +322,7 @@ private fun DrawScope.drawReferenceLines(
     lineThicknessPx: Float,
     lineDashEffect: PathEffect,
     labelStyle: TextStyle,
-    overlapSpacingPx: Float,
+    labelGapPx: Float,
     badgeHorizontalPaddingPx: Float,
     badgeVerticalPaddingPx: Float,
     badgeCornerRadiusPx: Float,
@@ -344,18 +341,21 @@ private fun DrawScope.drawReferenceLines(
             pathEffect = lineDashEffect,
         )
     }
+    var previousBadgeEndX = plot.frame.left
     visible.forEach { (line, label, y) ->
+        val anchorX = if (line.overlapLevel == 0u) plot.frame.left else previousBadgeEndX + labelGapPx
         drawBadgeLabel(
             textMeasurer = textMeasurer,
             text = label,
             textStyle = labelStyle,
             backgroundColor = referenceColorByRole(line.kind),
-            anchorX = plot.frame.left + line.overlapLevel.toFloat() * overlapSpacingPx,
+            anchorX = anchorX,
             anchorY = y,
             horizontalPaddingPx = badgeHorizontalPaddingPx,
             verticalPaddingPx = badgeVerticalPaddingPx,
             cornerRadiusPx = badgeCornerRadiusPx,
         )
+        previousBadgeEndX = anchorX + textMeasurer.measure(label, labelStyle).size.width + 2f * badgeHorizontalPaddingPx
     }
 }
 

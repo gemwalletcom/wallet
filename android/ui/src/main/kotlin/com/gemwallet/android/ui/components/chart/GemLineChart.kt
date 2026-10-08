@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gemwallet.android.ui.theme.captionFontSize
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space24
@@ -115,7 +116,7 @@ fun GemLineChart(
 
     val labelStyle = TextStyle(
         color = MaterialTheme.colorScheme.secondary,
-        fontSize = 11.sp,
+        fontSize = captionFontSize,
         textAlign = TextAlign.Center,
     )
 

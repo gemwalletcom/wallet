@@ -12,8 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -36,7 +34,7 @@ fun ChartHeader(header: GemChartHeader, date: String?, modifier: Modifier = Modi
             )
         }
         val changeStyle = if (secondaryValue != null) {
-            MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp, fontWeight = FontWeight.Medium)
+            MaterialTheme.typography.titleMedium
         } else {
             MaterialTheme.typography.headlineSmall
         }
