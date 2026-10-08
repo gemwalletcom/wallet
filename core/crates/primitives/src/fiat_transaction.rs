@@ -28,7 +28,6 @@ pub struct FiatTransaction {
     #[serde(skip_serializing)]
     pub transaction_hash: Option<String>,
     pub created_at: DateTime<Utc>,
-    #[serde(skip_serializing)]
     pub updated_at: DateTime<Utc>,
 }
 
@@ -117,4 +116,47 @@ pub enum FiatTransactionStatus {
 pub enum FiatQuoteType {
     Buy,
     Sell,
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn test_transaction_data_json_decodes_back() {
+        let data = FiatTransactionData {
+            transaction: FiatTransaction::mock(),
+            details_url: None,
+        };
+        let value = serde_json::to_value(&data).unwrap();
+
+        assert_eq!(
+            value,
+            json!({
+                "transaction": {
+                    "id": "quote_123",
+                    "assetId": "bitcoin",
+                    "transactionType": "buy",
+                    "provider": "moonpay",
+                    "status": "pending",
+                    "fiatAmount": 100.0,
+                    "fiatCurrency": "USD",
+                    "value": "100000",
+                    "createdAt": "1970-01-01T00:00:00Z",
+                    "updatedAt": "1970-01-01T00:00:00Z"
+                },
+                "detailsUrl": null
+            })
+        );
+        assert_eq!(
+            serde_json::from_value::<FiatTransactionData>(value).unwrap().transaction,
+            FiatTransaction {
+                provider_transaction_id: None,
+                country: None,
+                ..FiatTransaction::mock()
+            }
+        );
+    }
 }
