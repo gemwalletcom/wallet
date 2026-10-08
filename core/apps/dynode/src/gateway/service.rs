@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
 
 use gem_tracing::{info_with_fields, path};
 use http::StatusCode;
+use http_server::ErrorBody;
 use reqwest::header::{CACHE_CONTROL, HeaderMap, SET_COOKIE, VARY};
 use reqwest::{Error as RequestError, Method};
 use tokio::sync::RwLock;
@@ -16,7 +17,7 @@ use crate::cache::RequestCache;
 use crate::config::RoutesConfig;
 use crate::metrics::Metrics;
 use crate::proxy::{ProxyResponse, transport};
-use crate::response::ProxyError;
+use crate::response::upstream_status;
 
 pub(crate) struct Gateway {
     routes: HashMap<String, Route>,
@@ -76,7 +77,7 @@ impl Gateway {
         }
     }
 
-    pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<ProxyResponse, ProxyError> {
+    pub(crate) async fn forward(&self, method: Method, uri: &str, headers: &HeaderMap, body: Vec<u8>) -> Result<ProxyResponse, ErrorBody> {
         let route_match = match match_route(&self.routes, &method, uri) {
             Ok(route_match) => route_match,
             Err(error) => {
@@ -86,7 +87,7 @@ impl Gateway {
                 };
                 let uri = path::redact(uri);
                 AccessLog::rejected(&method, &uri, status.as_u16(), reason);
-                return Err(ProxyError::new(status, message));
+                return Err(ErrorBody::new(status, message));
             }
         };
         let route = route_match.route;
@@ -108,7 +109,7 @@ impl Gateway {
         let mut candidates = self.available_endpoints(route, &path).await.map_err(|failure| {
             access.unavailable(failure.status, failure.reason);
             self.metrics.record_response(source, &route.group, &route.service, &path, failure.status);
-            ProxyError::with_code(failure.status, "no endpoint is available")
+            ErrorBody::new(upstream_status(failure.status), "no endpoint is available")
         })?;
         route.prioritize_endpoints(&mut candidates);
 
@@ -130,7 +131,7 @@ impl Gateway {
                 Err(error) => {
                     access.response(&endpoint.name, host, StatusCode::BAD_REQUEST.as_u16());
                     self.metrics.record_response(source, &route.group, &route.service, &path, StatusCode::BAD_REQUEST.as_u16());
-                    return Err(ProxyError::new(StatusCode::BAD_REQUEST, error.to_string()));
+                    return Err(ErrorBody::new(StatusCode::BAD_REQUEST, error.to_string()));
                 }
             };
             if let Some(wait) = endpoint.throttle().await {
@@ -192,7 +193,7 @@ impl Gateway {
         });
         access.unavailable(failure.status, failure.reason);
         self.metrics.record_response(source, &route.group, &route.service, &path, failure.status);
-        Err(ProxyError::with_code(failure.status, "all upstream requests failed"))
+        Err(ErrorBody::new(upstream_status(failure.status), "all upstream requests failed"))
     }
 
     async fn available_endpoints(&self, route: &Route, path: &str) -> Result<Vec<usize>, Failure> {

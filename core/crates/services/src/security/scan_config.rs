@@ -86,7 +86,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_from_config_malformed_value() {
-        let repository = MemoryConfigRepository::new().with_value(&ConfigParamKey::ScanProviderEnable(ScanProvider::remote()[0]).key(), "maybe");
+        let repository = MemoryConfigRepository::new().with_value(&ConfigParamKey::ScanProviderEnable(ScanProvider::GoPlus).key(), "maybe");
 
         assert!(ScanConfig::from_config(&config(repository)).await.is_err());
     }

@@ -13,7 +13,7 @@ use axum::{Router, body::Body};
 use gem_tracing::{error_fields, info_with_fields};
 use http::header::{CONTENT_TYPE, USER_AGENT};
 use http::{Method, StatusCode};
-use http_server::{ErrorBody, HttpMetrics, catch_panic_layer, timeout_layer, with_security_headers};
+use http_server::{ErrorBody, HttpMetrics, catch_panic_layer, status_message, timeout_layer, with_security_headers};
 
 use crate::error::{ApiError, ErrorContext};
 use crate::state::AppState;
@@ -73,10 +73,7 @@ pub async fn log_failed_requests(request: Request<Body>, next: Next) -> Response
     if context.is_none() && !status.is_server_error() {
         return response;
     }
-    let message = context
-        .as_ref()
-        .map(|context| context.message.clone())
-        .unwrap_or_else(|| format!("{} {}", status.as_u16(), status.canonical_reason().unwrap_or_default()));
+    let message = context.as_ref().map(|context| context.message.clone()).unwrap_or_else(|| status_message(status));
     match context.and_then(|context| context.detail) {
         Some(detail) => error_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = detail, user_agent = user_agent),
         None => info_with_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = message, user_agent = user_agent),

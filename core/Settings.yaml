@@ -30,7 +30,6 @@ api:
   admin:
     enabled: true
   auth:
-    enabled: true
     tolerance: 5m
     jwt:
       secret: ""

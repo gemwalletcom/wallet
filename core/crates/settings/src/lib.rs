@@ -327,23 +327,17 @@ pub struct Timeout {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Shutdown {
-    #[serde(deserialize_with = "duration::deserialize")]
-    pub timeout: Duration,
-}
-
-#[derive(Debug, Deserialize, Clone)]
 pub struct Parser {
     #[serde(deserialize_with = "duration::deserialize")]
     pub timeout: Duration,
-    pub shutdown: Shutdown,
+    pub shutdown: Timeout,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Daemon {
     pub service: String,
     pub bind: String,
-    pub shutdown: Shutdown,
+    pub shutdown: Timeout,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -351,7 +345,7 @@ pub struct Consumer {
     pub error: ConsumerError,
     #[serde(default, deserialize_with = "duration::deserialize")]
     pub delay: Duration,
-    pub shutdown: Shutdown,
+    pub shutdown: Timeout,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -366,14 +360,13 @@ pub struct ConsumerError {
 pub struct API {
     pub service: String,
     pub bind: String,
-    pub shutdown: Shutdown,
+    pub shutdown: Timeout,
     pub auth: Auth,
     pub admin: Admin,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Auth {
-    pub enabled: bool,
     #[serde(deserialize_with = "duration::deserialize")]
     pub tolerance: Duration,
     pub jwt: Jwt,

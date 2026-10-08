@@ -4,7 +4,7 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
-tokio = { workspace = true, features = ["signal"] }
+tokio = { workspace = true, features = ["time"] }
 axum = { workspace = true }
 http = { workspace = true }
 futures = { workspace = true }

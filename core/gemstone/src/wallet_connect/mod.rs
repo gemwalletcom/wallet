@@ -21,14 +21,6 @@ pub enum WalletConnectResponseType {
     Object { json: String },
 }
 
-pub fn wallet_connect_namespace(chain: Chain) -> Option<String> {
-    WalletConnectCAIP2::get_namespace(chain)
-}
-
-pub fn wallet_connect_chain(chain_id: String) -> Option<Chain> {
-    WalletConnectCAIP2::parse_chain_id(chain_id)
-}
-
 #[derive(Default)]
 pub struct WalletConnect {}
 
@@ -89,23 +81,6 @@ impl WalletConnect {
 #[cfg(test)]
 mod tests {
     use primitives::{Chain, ChainAddress, SimulationWarning, SimulationWarningType};
-
-    #[test]
-    fn parse_chain_id_uses_shared_caip2_parser() {
-        assert_eq!(super::wallet_connect_chain("eip155:8453".to_string()), Some(Chain::Base));
-        assert_eq!(super::wallet_connect_chain("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string()), Some(Chain::Solana));
-        assert_eq!(super::wallet_connect_chain("ton:-239".to_string()), Some(Chain::Ton));
-        assert_eq!(super::wallet_connect_chain("tron:0x2b6653dc".to_string()), Some(Chain::Tron));
-        assert_eq!(super::wallet_connect_chain("eip155:8453:extra".to_string()), None);
-        assert_eq!(super::wallet_connect_chain("eip155:99999".to_string()), None);
-        assert_eq!(super::wallet_connect_chain("bip122:000000000019d6689c085ae165831e93".to_string()), None);
-    }
-
-    #[test]
-    fn namespace_comes_from_the_chain_table() {
-        assert_eq!(super::wallet_connect_namespace(Chain::Base), Some("eip155".to_string()));
-        assert_eq!(super::wallet_connect_namespace(Chain::Solana), Some("solana".to_string()));
-    }
 
     #[test]
     fn parse_account_uses_shared_caip10_parser() {

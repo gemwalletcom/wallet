@@ -83,7 +83,7 @@ mod tests {
             (vec![ScanProvider::GoPlus, ScanProvider::Tronscan], vec![ScanProvider::GoPlus, ScanProvider::Tronscan], false),
             (vec![ScanProvider::HashDit], vec![ScanProvider::HashDit], true),
             (vec![], vec![], false),
-            (ScanProvider::remote(), ScanProvider::remote(), true),
+            (ScanProvider::all(), vec![ScanProvider::GoPlus, ScanProvider::HashDit, ScanProvider::Tronscan], true),
         ] {
             let enabled = enabled.into_iter().collect();
             let filtered = providers.filter_enabled(&enabled);

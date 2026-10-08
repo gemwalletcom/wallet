@@ -15,10 +15,6 @@ pub enum AlienError {
 }
 
 impl AlienError {
-    pub fn request_error(msg: impl Into<String>) -> Self {
-        Self::RequestError { msg: msg.into() }
-    }
-
     pub fn response_error(msg: impl Into<String>) -> Self {
         Self::ResponseError { msg: msg.into() }
     }

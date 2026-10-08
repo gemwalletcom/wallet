@@ -8,8 +8,6 @@ use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
 use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
 
-use crate::wallet_connect::wallet_connect_namespace;
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChainRow {
     pub chain: Chain,
@@ -81,7 +79,7 @@ impl GemChainService {
     }
 
     pub fn caip2_namespace(&self, chain: Chain) -> Option<String> {
-        wallet_connect_namespace(chain)
+        WalletConnectCAIP2::get_namespace(chain)
     }
 
     pub fn caip2_references(&self, chain: Chain) -> Vec<String> {

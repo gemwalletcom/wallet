@@ -12,7 +12,7 @@ use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use http::header::CONTENT_TYPE;
 use http::{Method, StatusCode, Uri};
 use http_body_util::LengthLimitError;
-use http_server::{ServeConfig, catch_panic_layer, serve, shutdown_channel, spawn_signal_handler, timeout_layer};
+use http_server::{ErrorBody, ServeConfig, catch_panic_layer, serve, shutdown_channel, spawn_signal_handler, timeout_layer};
 use primitives::Chain;
 use reqwest::header::HeaderMap;
 
@@ -24,7 +24,6 @@ use crate::gateway::Gateway;
 use crate::metrics::Metrics;
 use crate::node_service::NodeService;
 use crate::proxy::{ProxyRequest, ProxyResponse};
-use crate::response::ProxyError;
 use crate::webhook::DynodeBroadcastWebhookClient;
 
 struct Routes {
@@ -40,16 +39,16 @@ enum Target<'a> {
 }
 
 impl Routes {
-    fn target(&self, uri: &str) -> Result<Target<'_>, ProxyError> {
+    fn target(&self, uri: &str) -> Result<Target<'_>, ErrorBody> {
         if let Some(nodes) = &self.nodes {
             if let Some(chain) = parse_chain(uri) {
                 return Ok(Target::Node(nodes, chain));
             }
             if self.gateway.is_none() {
-                return Err(ProxyError::new(StatusCode::BAD_REQUEST, "Invalid chain"));
+                return Err(ErrorBody::new(StatusCode::BAD_REQUEST, "Invalid chain"));
             }
         }
-        self.gateway.as_ref().map(Target::Provider).ok_or_else(|| ProxyError::new(StatusCode::NOT_FOUND, "route not found"))
+        self.gateway.as_ref().map(Target::Provider).ok_or_else(|| ErrorBody::new(StatusCode::NOT_FOUND, "route not found"))
     }
 }
 
@@ -159,7 +158,7 @@ async fn proxy(State(state): State<AppState>, OriginalUri(uri): OriginalUri, req
     }
 }
 
-async fn forward_request(routes: &Routes, uri: &Uri, request: Request) -> Result<ProxyResponse, ProxyError> {
+async fn forward_request(routes: &Routes, uri: &Uri, request: Request) -> Result<ProxyResponse, ErrorBody> {
     let target = routes.target(uri.path())?;
     let limit = match target {
         Target::Node(..) => routes.node_limit,
@@ -172,9 +171,9 @@ async fn forward_request(routes: &Routes, uri: &Uri, request: Request) -> Result
     match target {
         Target::Node(service, chain) => {
             if method == Method::TRACE || method == Method::CONNECT {
-                return Err(ProxyError::new(StatusCode::NOT_FOUND, "route not found"));
+                return Err(ErrorBody::new(StatusCode::NOT_FOUND, "route not found"));
             }
-            let proxy_request = ProxyRequest::from_http(method, headers, body, &uri, chain).map_err(|status| ProxyError::new(status, "Failed to build request"))?;
+            let proxy_request = ProxyRequest::from_http(method, headers, body, &uri, chain).map_err(|status| ErrorBody::new(status, "Failed to build request"))?;
             service.proxy_request(&proxy_request).await.map_err(|error| {
                 error_with_fields!(
                     "Proxy request failed",
@@ -186,22 +185,22 @@ async fn forward_request(routes: &Routes, uri: &Uri, request: Request) -> Result
                     user_agent = proxy_request.user_agent.as_str(),
                     latency = DurationMs(proxy_request.elapsed()),
                 );
-                ProxyError::new(StatusCode::INTERNAL_SERVER_ERROR, "Proxy request failed")
+                ErrorBody::new(StatusCode::INTERNAL_SERVER_ERROR, "Proxy request failed")
             })
         }
         Target::Provider(gateway) => gateway.forward(method, &uri, &headers, body).await,
     }
 }
 
-async fn read_request_body(body: Body, limit: usize) -> Result<Vec<u8>, ProxyError> {
+async fn read_request_body(body: Body, limit: usize) -> Result<Vec<u8>, ErrorBody> {
     match axum::body::to_bytes(body, limit).await {
         Ok(bytes) => Ok(bytes.to_vec()),
         Err(error) => {
             let message = error.to_string();
             if error.into_inner().is::<LengthLimitError>() {
-                Err(ProxyError::new(StatusCode::PAYLOAD_TOO_LARGE, "request body is too large"))
+                Err(ErrorBody::new(StatusCode::PAYLOAD_TOO_LARGE, "request body is too large"))
             } else {
-                Err(ProxyError::new(StatusCode::BAD_REQUEST, message))
+                Err(ErrorBody::new(StatusCode::BAD_REQUEST, message))
             }
         }
     }

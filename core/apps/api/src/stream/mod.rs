@@ -14,7 +14,7 @@ use axum::response::Response;
 use axum::routing::get;
 use gem_tracing::info_with_fields;
 use http::StatusCode;
-use http_server::{HttpMetrics, ShutdownReceiver, catch_panic_layer, with_security_headers};
+use http_server::{ShutdownReceiver, catch_panic_layer, with_security_headers};
 use services::devices::{DeviceStreamClient, DevicesClient};
 use services::prices::PriceClient;
 use tokio_util::task::TaskTracker;
@@ -60,7 +60,7 @@ fn authenticated(state: &StreamState, scheme: SignedPath) -> Router<StreamState>
     Router::new().route("/stream", get(stream)).layer(from_fn_with_state(auth, device_auth))
 }
 
-pub fn router(state: StreamState, http_metrics: &HttpMetrics) -> Router {
+pub fn router(state: StreamState) -> Router {
     let router = Router::new()
         .route("/health", get(health))
         .nest("/v2/devices", authenticated(&state, SignedPath::PathOnly))
@@ -70,8 +70,7 @@ pub fn router(state: StreamState, http_metrics: &HttpMetrics) -> Router {
         .with_state(state)
         .layer(catch_panic_layer())
         .layer(axum::middleware::map_response(json_error_net))
-        .layer(axum::middleware::from_fn(log_failed_requests))
-        .layer(http_metrics.layer());
+        .layer(axum::middleware::from_fn(log_failed_requests));
     with_security_headers(router)
 }
 

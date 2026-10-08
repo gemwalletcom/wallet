@@ -3,15 +3,12 @@ use fiat::error::FiatQuoteError;
 use gem_auth::JwtError;
 use gem_client::ClientError;
 use http::StatusCode;
-use http_server::ErrorBody;
+use http_server::{ErrorBody, INTERNAL_ERROR_MESSAGE, status_message};
 use localizer::LanguageLocalizer;
 use primitives::RequestError;
 use services::fiat::FiatServiceError;
 use services::rewards::RewardsServiceError;
 use services::{CacheError, DatabaseError};
-use strum::ParseError;
-
-pub const INTERNAL_ERROR_MESSAGE: &str = "Internal server error";
 
 #[derive(Clone)]
 pub struct ErrorContext {
@@ -47,7 +44,7 @@ pub enum ApiError {
 
 impl ApiError {
     pub fn from_status(status: StatusCode) -> Self {
-        Self::status(status, format!("{} {}", status.as_u16(), status.canonical_reason().unwrap_or("Unknown")))
+        Self::status(status, status_message(status))
     }
 
     pub fn status(status: StatusCode, message: impl Into<String>) -> Self {
@@ -104,12 +101,6 @@ impl From<JwtError> for ApiError {
     }
 }
 
-impl From<ParseError> for ApiError {
-    fn from(error: ParseError) -> Self {
-        ApiError::NotFound(format!("Invalid parameter: {}", error))
-    }
-}
-
 impl From<DatabaseError> for ApiError {
     fn from(error: DatabaseError) -> Self {
         match error {
@@ -117,12 +108,6 @@ impl From<DatabaseError> for ApiError {
             DatabaseError::ConnectionPool => ApiError::Internal(error.to_string()),
             DatabaseError::Error(msg) => ApiError::Internal(msg),
         }
-    }
-}
-
-impl From<serde_json::Error> for ApiError {
-    fn from(error: serde_json::Error) -> Self {
-        ApiError::Internal(error.to_string())
     }
 }
 

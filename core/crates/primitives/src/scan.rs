@@ -25,10 +25,6 @@ impl ScanProvider {
     pub fn all() -> Vec<Self> {
         Self::iter().collect()
     }
-
-    pub fn remote() -> Vec<Self> {
-        vec![Self::GoPlus, Self::HashDit, Self::Tronscan]
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, AsRefStr, IntoStaticStr, EnumIter, EnumString)]

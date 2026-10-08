@@ -194,6 +194,6 @@ mod tests {
     #[test]
     fn test_an_offline_request_stays_offline() {
         assert_eq!(SwapperError::from(AlienError::Offline), SwapperError::Offline);
-        assert_eq!(SwapperError::from(AlienError::request_error("timeout")), SwapperError::ComputeQuoteError("timeout".to_string()));
+        assert_eq!(SwapperError::from(AlienError::RequestError { msg: "timeout".to_string() }), SwapperError::ComputeQuoteError("timeout".to_string()));
     }
 }

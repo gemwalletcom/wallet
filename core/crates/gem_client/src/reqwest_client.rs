@@ -140,10 +140,6 @@ impl ReqwestClient {
     }
 }
 
-pub async fn json_response<T: DeserializeOwned>(response: reqwest::Response) -> Result<T, ClientError> {
-    deserialize_response(&response_data(response).await?)
-}
-
 async fn response_data(response: reqwest::Response) -> Result<Response, ClientError> {
     let status = response.status().as_u16();
     let data = response.bytes().await.map_err(|error| ClientError::Network(format!("Failed to read response body: {}", error.without_url())))?.to_vec();

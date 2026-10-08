@@ -10,11 +10,6 @@ pub trait PricesProvidersRepository {
     fn get_prices_providers(&mut self) -> Result<Vec<PriceProviderConfig>, DatabaseError>;
 }
 
-pub(crate) fn price_provider_rows(client: &mut DatabaseClient) -> Result<Vec<PriceProviderConfigRow>, diesel::result::Error> {
-    use crate::schema::prices_providers::dsl::*;
-    prices_providers.order(priority.asc()).select(PriceProviderConfigRow::as_select()).load(&mut client.connection)
-}
-
 impl PricesProvidersRepository for DatabaseClient {
     fn add_prices_providers(&mut self, providers: Vec<PriceProvider>) -> Result<usize, DatabaseError> {
         use crate::schema::prices_providers::dsl::*;
@@ -28,7 +23,11 @@ impl PricesProvidersRepository for DatabaseClient {
     }
 
     fn get_prices_providers(&mut self) -> Result<Vec<PriceProviderConfig>, DatabaseError> {
-        Ok(price_provider_rows(self)?
+        use crate::schema::prices_providers::dsl::*;
+        Ok(prices_providers
+            .order(priority.asc())
+            .select(PriceProviderConfigRow::as_select())
+            .load::<PriceProviderConfigRow>(&mut self.connection)?
             .into_iter()
             .map(|row| PriceProviderConfig {
                 provider: row.id.0,

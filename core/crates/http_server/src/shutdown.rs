@@ -1,15 +1,12 @@
-use std::sync::Arc;
-
 use gem_tracing::info_with_fields;
 use tokio::sync::watch;
 use tokio::task::JoinHandle;
 
-pub type ShutdownSender = Arc<watch::Sender<bool>>;
+pub type ShutdownSender = watch::Sender<bool>;
 pub type ShutdownReceiver = watch::Receiver<bool>;
 
 pub fn shutdown_channel() -> (ShutdownSender, ShutdownReceiver) {
-    let (sender, receiver) = watch::channel(false);
-    (Arc::new(sender), receiver)
+    watch::channel(false)
 }
 
 pub fn spawn_signal_handler(sender: ShutdownSender) -> JoinHandle<()> {
@@ -20,7 +17,7 @@ pub fn spawn_signal_handler(sender: ShutdownSender) -> JoinHandle<()> {
     })
 }
 
-pub async fn wait_for_signal() -> &'static str {
+async fn wait_for_signal() -> &'static str {
     let ctrl_c = tokio::signal::ctrl_c();
 
     #[cfg(unix)]

@@ -53,5 +53,4 @@ hex = { workspace = true }
 reqwest = { workspace = true }
 serde_urlencoded = { workspace = true }
 signer = { path = "../../crates/signer" }
-tokio-tungstenite = { workspace = true }
 uuid = { workspace = true }

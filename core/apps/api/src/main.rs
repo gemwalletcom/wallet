@@ -17,7 +17,7 @@ use ::defi::{DefiProviderClient, DefiProviderConfig};
 use ::nft::{NFTProviderClient, NFTProviderConfig};
 use chain_providers::ProviderFactory;
 use gem_tracing::info_with_fields;
-use http_server::{HttpMetrics, ServeConfig, ShutdownReceiver, serve, shutdown_channel, spawn_signal_handler};
+use http_server::{ServeConfig, ShutdownReceiver, serve, shutdown_channel, spawn_signal_handler};
 use model::APIService;
 use name_resolver::{NameClient, NameConfig, NameProviderFactory};
 use services::Services;
@@ -159,7 +159,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         APIService::WebsocketStream => {
             let state = stream_state(&settings, shutdown.clone()).await?;
             let connections = state.connections.clone();
-            serve(stream::router(state, &HttpMetrics::new()), address, config, shutdown).await?;
+            serve(stream::router(state), address, config, shutdown).await?;
             connections.close();
             tokio::time::timeout(settings.api.shutdown.timeout, connections.wait()).await.ok();
             Ok(())

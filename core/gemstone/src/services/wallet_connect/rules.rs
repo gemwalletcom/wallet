@@ -9,14 +9,16 @@ use chrono::{DateTime, Utc};
 use gem_tron::decode_wallet_connect_approval;
 use primitives::ChainType;
 use primitives::WalletConnectionVerificationStatus;
-use primitives::{Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId, WalletType};
+use primitives::{
+    Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnectCAIP2, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId, WalletType,
+};
 
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectRpcError, GemWalletConnectTransactionAction};
-use crate::wallet_connect::{WalletConnect, wallet_connect_chain, wallet_connect_namespace};
+use crate::wallet_connect::WalletConnect;
 use gem_wallet_connect::{EvmTransactionKind, WalletConnectTransaction};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
@@ -243,11 +245,11 @@ fn serde_name<T: serde::Serialize>(value: &T) -> Option<String> {
 }
 
 fn parse_chain(chain_id: &str) -> Option<Chain> {
-    wallet_connect_chain(chain_id.to_string())
+    WalletConnectCAIP2::parse_chain_id(chain_id.to_string())
 }
 
 fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain]) -> bool {
-    let chains: HashSet<Chain> = wallet.accounts.iter().map(|account| account.chain).filter(|chain| wallet_connect_namespace(*chain).is_some()).collect();
+    let chains: HashSet<Chain> = wallet.accounts.iter().map(|account| account.chain).filter(|chain| WalletConnectCAIP2::get_namespace(*chain).is_some()).collect();
     if chains.is_empty() {
         return false;
     }

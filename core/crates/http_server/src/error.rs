@@ -14,16 +14,16 @@ impl ErrorBody {
     }
 
     pub fn from_status(status: StatusCode) -> Self {
-        Self::new(status, format!("{} {}", status.as_u16(), status.canonical_reason().unwrap_or("Unknown")))
+        Self::new(status, status_message(status))
     }
+}
+
+pub fn status_message(status: StatusCode) -> String {
+    format!("{} {}", status.as_u16(), status.canonical_reason().unwrap_or("Unknown"))
 }
 
 impl IntoResponse for ErrorBody {
     fn into_response(self) -> Response {
         (self.status, Json(ResponseResult::<()>::error(self.message))).into_response()
     }
-}
-
-pub fn error_response(status: StatusCode, message: impl Into<String>) -> Response {
-    ErrorBody::new(status, message).into_response()
 }
