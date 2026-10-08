@@ -55,7 +55,7 @@ fun SwipeableItemWithActions(
     }
 
     Box(modifier = modifier.fillMaxWidth()) {
-        Box(modifier = Modifier.fillMaxWidth().listItem(listPosition, Color.Transparent)) {
+        Box(modifier = Modifier.matchParentSize().listItem(listPosition, Color.Transparent)) {
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
