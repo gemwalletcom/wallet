@@ -88,12 +88,6 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
     }
 }
 
-public extension GemPaymentService {
-    static func mock() -> GemPaymentService {
-        GemPaymentService(provider: StubAlienProvider(), assets: .mock())
-    }
-}
-
 public extension GemNameService {
     static func mock() -> GemNameService {
         GemNameService(

@@ -7,8 +7,10 @@ use crate::config::chain::is_memo_supported;
 use crate::config::wallet_connect::get_wallet_connect_config;
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentInvoice, GemPaymentLink, GemPaymentRequest};
 use crate::services::assets::{GemAssetAction, GemAssetFilter, GemAssetsService};
+use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
+use crate::services::transfer::rules::TransferInput;
 use chain_primitives::checksum_address;
 use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
@@ -66,12 +68,13 @@ pub fn payment_verification_outcome(message_type: String) -> GemPaymentVerificat
 pub struct GemPaymentService {
     payments: PaymentService,
     assets: Arc<GemAssetsService>,
+    balance: Arc<GemBalanceService>,
 }
 
 #[uniffi::export]
 impl GemPaymentService {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>, assets: Arc<GemAssetsService>) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, assets: Arc<GemAssetsService>, balance: Arc<GemBalanceService>) -> Self {
         let auth = WalletConnectPayAuth {
             app_id: get_wallet_connect_config().project_id,
             client_id: Uuid::new_v4().to_string(),
@@ -79,6 +82,7 @@ impl GemPaymentService {
         Self {
             payments: PaymentService::new(Arc::new(AlienProviderWrapper::new(provider)), auth),
             assets,
+            balance,
         }
     }
 
@@ -110,7 +114,10 @@ impl GemPaymentService {
             sendable => sendable,
         };
         Ok(match destination {
-            PaymentDestination::Transfer { asset, step } => step.target(asset),
+            PaymentDestination::Transfer { asset, step } => {
+                self.balance.add_missing_balances(wallet.id, vec![asset.id.clone()]).await?;
+                step.target(asset)
+            }
             PaymentDestination::SelectAsset { payment, chains } => GemPaymentTarget::SelectAsset { payment, chains },
             PaymentDestination::Unsupported => GemPaymentTarget::Unsupported,
         })
@@ -124,7 +131,10 @@ impl GemPaymentService {
     async fn prepare_link(&self, link: GemPaymentLink, wallet: Wallet) -> Result<GemPaymentTarget, GemPaymentError> {
         let addresses = wallet.accounts.iter().map(|account| ChainAddress::new(account.chain, account.address.clone())).collect();
         Ok(match self.load(link, addresses).await? {
-            GemPaymentLoad::Sign { transfer } => GemPaymentTarget::Confirm { transfer },
+            GemPaymentLoad::Sign { transfer } => {
+                self.balance.add_missing_balances(wallet.id, vec![transfer.input_type.balance_asset().id]).await?;
+                GemPaymentTarget::Confirm { transfer }
+            }
             GemPaymentLoad::Verify { invoice, url, .. } => GemPaymentTarget::Verify { url, link: invoice.link },
         })
     }
@@ -414,25 +424,30 @@ mod tests {
     use super::*;
     use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
     use crate::services::assets::testkit::MemoryAssetStore;
+    use crate::services::balance::testkit::{BalanceTestkit, MemoryBalanceStore};
     use crate::testkit::TestAlienProvider;
     use crate::testkit::mock_payment_transaction;
     use futures::executor::block_on;
-    use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AssetType, Chain, PaymentInvoice};
+    use primitives::{Account, Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AssetType, Chain, PaymentInvoice};
     use std::sync::Arc;
 
-    fn service_with(assets: &[Asset], sendable: &[&Asset]) -> (GemPaymentService, Arc<MemoryAssetStore>) {
-        let store = Arc::new(MemoryAssetStore::default());
+    fn service_with(assets: &[Asset], sendable: &[&Asset]) -> (GemPaymentService, Arc<MemoryAssetStore>, Arc<MemoryBalanceStore>) {
+        service_with_provider(TestAlienProvider::with_status(200), assets, sendable)
+    }
+
+    fn service_with_provider(provider: TestAlienProvider, assets: &[Asset], sendable: &[&Asset]) -> (GemPaymentService, Arc<MemoryAssetStore>, Arc<MemoryBalanceStore>) {
+        let BalanceTestkit { service: balance, assets: store, balances } = BalanceTestkit::new(MemoryBalanceStore::default());
         *store.assets.lock().unwrap() = assets.iter().map(|asset| AssetBasic::new(asset.clone(), AssetProperties::default(asset.id.clone()), AssetScore::default())).collect();
         *store.filtered_asset_ids.lock().unwrap() = sendable.iter().map(|asset| asset.id.clone()).collect();
-        let service = GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(GemAssetsService::mock(Arc::new(TestAlienProvider::with_status(200)), store.clone())));
-        (service, store)
+        let service = GemPaymentService::new(Arc::new(provider), Arc::new(GemAssetsService::mock(Arc::new(TestAlienProvider::with_status(200)), store.clone())), Arc::new(balance));
+        (service, store, balances)
     }
 
     #[test]
     fn test_a_scan_opens_selection_only_when_the_send_list_shows_more_than_one_match() {
         let (bitcoin, near) = (Asset::from_chain(Chain::Bitcoin), Asset::from_chain(Chain::Near));
         let scan = |sendable: &[&Asset]| {
-            let (service, store) = service_with(&[bitcoin.clone(), near.clone()], sendable);
+            let (service, store, _) = service_with(&[bitcoin.clone(), near.clone()], sendable);
             let request = GemPaymentRequest {
                 address: BITCOIN_ADDRESS.to_string(),
                 ..GemPaymentRequest::mock()
@@ -471,6 +486,47 @@ mod tests {
         };
         assert_eq!(transfer.input_type.get_asset().id, token.id);
         assert_eq!(transfer.value, 1_000_000u32.into());
+    }
+
+    #[test]
+    fn test_a_request_for_a_token_without_a_balance_gives_it_a_hidden_balance_for_confirm() {
+        let token = Asset::new(
+            AssetId::from(Chain::Ethereum, Some("0x514910771AF9Ca656af840dff83E8264EcF986CA".to_string())),
+            "Chainlink".to_string(),
+            "LINK".to_string(),
+            18,
+            AssetType::ERC20,
+        );
+        let request = GemPaymentRequest {
+            address: "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326".to_string(),
+            amount: Some(GemPaymentAmount::AtomicValue { value: 1_000_000u32.into() }),
+            asset_id: Some(token.id.clone()),
+            ..GemPaymentRequest::mock()
+        };
+        let wallet = Wallet::mock();
+        let (service, _, balances) = service_with(std::slice::from_ref(&token), &[]);
+
+        let GemPaymentTarget::Confirm { .. } = block_on(service.prepare(GemPayment::Request { request }, wallet.clone())).unwrap() else {
+            panic!("a requested token opens confirm")
+        };
+
+        assert_eq!(*balances.added_balances.lock().unwrap(), vec![(wallet.id, vec![token.id], false)]);
+    }
+
+    #[test]
+    fn test_a_payment_link_gives_the_paid_asset_a_hidden_balance_for_confirm() {
+        const ACCOUNT: &str = "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN";
+        const RESPONSE: &str = r#"{"label":"Shop","icon":"https://shop.example/icon.png","transaction":"AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAECC4JMKqNplIXybGb/GhK1ofdVWeuEjXnQor7gi0Y2hMcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQECAAAMAgAAAAAAAAAAAAAA"}"#;
+        let solana = Asset::from_chain(Chain::Solana);
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Solana, ACCOUNT)]);
+        let (service, _, balances) = service_with_provider(TestAlienProvider::with_json(200, RESPONSE), std::slice::from_ref(&solana), &[]);
+        let link = GemPaymentLink::SolanaPay { url: "https://shop.example/pay".to_string() };
+
+        let GemPaymentTarget::Confirm { .. } = block_on(service.prepare(GemPayment::Link { link }, wallet.clone())).unwrap() else {
+            panic!("a payment link that returns a transaction opens confirm")
+        };
+
+        assert_eq!(*balances.added_balances.lock().unwrap(), vec![(wallet.id, vec![solana.id], false)]);
     }
 
     #[test]

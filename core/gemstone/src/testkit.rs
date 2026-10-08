@@ -1,7 +1,8 @@
 use crate::alien::{AlienError, AlienHttpMethod, AlienProvider, AlienResponse, AlienTarget};
 use crate::models::transaction::{GemFeeOptions, GemSignedTransaction, GemTransactionLoadFee};
 use crate::payment::GemPaymentService;
-use crate::services::assets::{GemAssetsService, testkit::MemoryAssetStore};
+use crate::services::assets::GemAssetsService;
+use crate::services::balance::testkit::{BalanceTestkit, MemoryBalanceStore};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 use async_trait::async_trait;
@@ -129,7 +130,8 @@ pub fn mock_wc_ethereum_transaction_data() -> WCEthereumTransactionData {
 impl GemPaymentService {
     pub fn mock() -> Self {
         let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(200));
-        Self::new(provider.clone(), Arc::new(GemAssetsService::mock(provider, Arc::new(MemoryAssetStore::default()))))
+        let balance = BalanceTestkit::new(MemoryBalanceStore::default());
+        Self::new(provider.clone(), Arc::new(GemAssetsService::mock(provider, balance.assets)), Arc::new(balance.service))
     }
 }
 

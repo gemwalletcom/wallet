@@ -119,7 +119,7 @@ impl GemConfirmation {
         let input_type = &input.transfer.input_type;
         let fee = match self.service.confirm().load(&self.wallet.id, input, options, self.service.get_currency()).await {
             Ok(fee) => fee,
-            Err(error) => return Err(self.service.missing_network_fee(self.wallet.id.clone(), input_type.clone()).await.unwrap_or(error)),
+            Err(error) => return Err(self.service.insufficient_funds(self.wallet.id.clone(), &input.transfer).await.unwrap_or(error)),
         };
         let simulation = match preload_simulation(self.simulation.as_ref(), &fee.confirm_data) {
             Some(simulation) => Some(self.service.simulation_state(input_type.clone(), simulation).await?),

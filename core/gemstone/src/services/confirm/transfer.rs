@@ -2,13 +2,13 @@ use crate::services::simulation::warning_rows;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, Chain, SimulationResult, Wallet, WalletId};
+use primitives::{Chain, SimulationResult, Wallet, WalletId};
 
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::{GemPaymentError, GemPaymentService};
-use crate::services::confirm::rules::{confirm_row_contents, is_broadcast, is_insufficient_network_fee, submit_message};
+use crate::services::confirm::rules::{confirm_row_contents, insufficient_funds, is_broadcast, submit_message};
 use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, SendInput};
 use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::explorer::GemExplorerService;
@@ -183,12 +183,9 @@ impl GemConfirmTransferService {
         })
     }
 
-    pub(super) async fn missing_network_fee(&self, wallet_id: WalletId, input_type: TransactionInputType) -> Option<GemConfirmError> {
-        let balance = self.confirm.input_metadata(wallet_id, &input_type, input_type.fee_asset().id).await.ok()?.fee_asset_balance;
-        is_insufficient_network_fee(&balance.asset_id, &balance.available).then(|| GemConfirmError::InsufficientNetworkFee {
-            asset: Asset::from_chain(balance.asset_id.chain),
-            requirement: None,
-        })
+    pub(super) async fn insufficient_funds(&self, wallet_id: WalletId, transfer: &GemTransferData) -> Option<GemConfirmError> {
+        let metadata = self.confirm.input_metadata(wallet_id, &transfer.input_type, transfer.input_type.fee_asset().id).await.ok()?;
+        insufficient_funds(transfer, &metadata)
     }
 }
 

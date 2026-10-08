@@ -83,7 +83,6 @@ struct ServicesFactory {
                 deviceKey: deviceKeyService,
             ),
         )
-        let paymentService = Gemstone.GemPaymentService(provider: nativeProvider, assets: assetsService)
         let transactionSimulationService = GemSimulationService(provider: nativeProvider, nodes: nodeService)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
         let serviceStatusConfiguration = URLSessionConfiguration.default
@@ -126,6 +125,7 @@ struct ServicesFactory {
             session: walletSessionService,
             stream: streamSubscriptionService,
         )
+        let paymentService = Gemstone.GemPaymentService(provider: nativeProvider, assets: assetsService, balance: balanceService)
         let stakeService = gatewayService.stakeService(
             staticApi: staticApiClient,
             store: GemstoneStakeStore(store: stores.stakeStore),
