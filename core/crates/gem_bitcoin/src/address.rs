@@ -57,6 +57,14 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
     BitcoinAddress::is_valid_for_chain(address, chain)
 }
 
+pub fn zcash_transparent_address(address: &str) -> Result<String, SignerError> {
+    let script = script_for_address(BitcoinChain::Zcash, address)?;
+    Ok(match script.public_key_hash() {
+        Some(hash) => prefixed_base58_address(&ZCASH_TRANSPARENT_P2PKH_PREFIX, &hash),
+        None => address.to_string(),
+    })
+}
+
 fn bitcoin_cash_address(public_key_hash: [u8; 20]) -> Result<String, SignerError> {
     let address = bitcoincash_addr::Address::new(public_key_hash.to_vec(), bitcoincash_addr::Scheme::CashAddr, bitcoincash_addr::HashType::Key, bitcoincash_addr::Network::Main)
         .encode()

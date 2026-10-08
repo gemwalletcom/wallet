@@ -3,6 +3,9 @@ use num_bigint::BigUint;
 
 use crate::{Asset, AssetId, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO};
 
+pub const TEST_ZCASH_TRANSPARENT_ADDRESS: &str = "t1VmmGiyjVNeCjxDZzg7vZmd99WyzVby9yC";
+pub const TEST_ZCASH_TEX_ADDRESS: &str = "tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgte";
+
 pub const TEST_ZCASH_BRANCH_ID: &str = "4dec4df0";
 
 pub fn mock_signer_input(sender_address: String, destination_address: String) -> SignerInput {
