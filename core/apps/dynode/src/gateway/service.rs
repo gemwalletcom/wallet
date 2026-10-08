@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 use gem_tracing::{info_with_fields, path};
+use http::StatusCode;
 use reqwest::header::{CACHE_CONTROL, HeaderMap, SET_COOKIE, VARY};
 use reqwest::{Error as RequestError, Method};
-use rocket::http::Status;
 use tokio::sync::RwLock;
 
 use super::access::AccessLog;
@@ -81,11 +81,11 @@ impl Gateway {
             Ok(route_match) => route_match,
             Err(error) => {
                 let (status, reason, message) = match error {
-                    MatchError::NotFound => (Status::NotFound, "route", "route not found"),
-                    MatchError::NotAllowed => (Status::Forbidden, "allowlist", "request not allowed"),
+                    MatchError::NotFound => (StatusCode::NOT_FOUND, "route", "route not found"),
+                    MatchError::NotAllowed => (StatusCode::FORBIDDEN, "allowlist", "request not allowed"),
                 };
                 let uri = path::redact(uri);
-                AccessLog::rejected(&method, &uri, status.code, reason);
+                AccessLog::rejected(&method, &uri, status.as_u16(), reason);
                 return Err(ProxyError::new(status, message));
             }
         };
@@ -108,7 +108,7 @@ impl Gateway {
         let mut candidates = self.available_endpoints(route, &path).await.map_err(|failure| {
             access.unavailable(failure.status, failure.reason);
             self.metrics.record_response(source, &route.group, &route.service, &path, failure.status);
-            ProxyError::new(Status::new(failure.status), "no endpoint is available")
+            ProxyError::with_code(failure.status, "no endpoint is available")
         })?;
         route.prioritize_endpoints(&mut candidates);
 
@@ -128,9 +128,9 @@ impl Gateway {
             let target = match route_match.target_url(endpoint) {
                 Ok(target) => target,
                 Err(error) => {
-                    access.response(&endpoint.name, host, Status::BadRequest.code);
-                    self.metrics.record_response(source, &route.group, &route.service, &path, Status::BadRequest.code);
-                    return Err(ProxyError::new(Status::BadRequest, error.to_string()));
+                    access.response(&endpoint.name, host, StatusCode::BAD_REQUEST.as_u16());
+                    self.metrics.record_response(source, &route.group, &route.service, &path, StatusCode::BAD_REQUEST.as_u16());
+                    return Err(ProxyError::new(StatusCode::BAD_REQUEST, error.to_string()));
                 }
             };
             if let Some(wait) = endpoint.throttle().await {
@@ -161,21 +161,21 @@ impl Gateway {
                     return Ok(response);
                 }
                 Err(reason) => {
-                    self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, Status::BadGateway.code);
-                    self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, Status::BadGateway.code, started.elapsed());
+                    self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, StatusCode::BAD_GATEWAY.as_u16());
+                    self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, StatusCode::BAD_GATEWAY.as_u16(), started.elapsed());
                     access.upstream_failed(&endpoint.name, host, reason);
                     self.start_cooldown(
                         route,
                         endpoint,
                         &path,
                         Failure {
-                            status: Status::ServiceUnavailable.code,
+                            status: StatusCode::SERVICE_UNAVAILABLE.as_u16(),
                             reason,
                         },
                         self.cooldown,
                     )
                     .await;
-                    pending_failover = Some((endpoint_index, Status::BadGateway.code, reason.to_string()));
+                    pending_failover = Some((endpoint_index, StatusCode::BAD_GATEWAY.as_u16(), reason.to_string()));
                 }
             }
         }
@@ -187,12 +187,12 @@ impl Gateway {
             return Ok(response);
         }
         let failure = self.available_endpoints(route, &path).await.err().unwrap_or(Failure {
-            status: Status::ServiceUnavailable.code,
+            status: StatusCode::SERVICE_UNAVAILABLE.as_u16(),
             reason: "upstream",
         });
         access.unavailable(failure.status, failure.reason);
         self.metrics.record_response(source, &route.group, &route.service, &path, failure.status);
-        Err(ProxyError::new(Status::new(failure.status), "all upstream requests failed"))
+        Err(ProxyError::with_code(failure.status, "all upstream requests failed"))
     }
 
     async fn available_endpoints(&self, route: &Route, path: &str) -> Result<Vec<usize>, Failure> {
@@ -207,7 +207,7 @@ impl Gateway {
             .filter_map(|(index, endpoint)| {
                 if !endpoint.is_available() {
                     failures.push(Failure {
-                        status: Status::ServiceUnavailable.code,
+                        status: StatusCode::SERVICE_UNAVAILABLE.as_u16(),
                         reason: "proxy",
                     });
                     return None;
@@ -224,7 +224,7 @@ impl Gateway {
         }
         let Some(first) = failures.first().copied() else {
             return Err(Failure {
-                status: Status::ServiceUnavailable.code,
+                status: StatusCode::SERVICE_UNAVAILABLE.as_u16(),
                 reason: "configuration",
             });
         };
@@ -238,7 +238,7 @@ impl Gateway {
             });
         }
         Err(Failure {
-            status: Status::ServiceUnavailable.code,
+            status: StatusCode::SERVICE_UNAVAILABLE.as_u16(),
             reason: "mixed",
         })
     }
@@ -333,7 +333,7 @@ mod tests {
         let gateway = Gateway::mock();
         let route = gateway.routes.get("indexer_blockscout").unwrap();
         let failure = Failure {
-            status: Status::TooManyRequests.code,
+            status: StatusCode::TOO_MANY_REQUESTS.as_u16(),
             reason: "cooldown",
         };
         for endpoint in &route.endpoints {
@@ -341,7 +341,7 @@ mod tests {
         }
 
         let unavailable = gateway.available_endpoints(route, "/api/v2/addresses/:value/token-transfers").await.unwrap_err();
-        assert_eq!(unavailable.status, Status::TooManyRequests.code);
+        assert_eq!(unavailable.status, StatusCode::TOO_MANY_REQUESTS.as_u16());
         assert_eq!(unavailable.reason, "cooldown");
 
         let available = gateway.available_endpoints(route, "/api/v2/addresses/:value/token-balances").await.unwrap();
@@ -353,7 +353,7 @@ mod tests {
                 &route.endpoints[0],
                 "/mixed",
                 Failure {
-                    status: Status::Forbidden.code,
+                    status: StatusCode::FORBIDDEN.as_u16(),
                     reason: "cooldown",
                 },
                 gateway.cooldown,
@@ -361,7 +361,7 @@ mod tests {
             .await;
         gateway.start_cooldown(route, &route.endpoints[1], "/mixed", failure, gateway.cooldown).await;
         let unavailable = gateway.available_endpoints(route, "/mixed").await.unwrap_err();
-        assert_eq!(unavailable.status, Status::TooManyRequests.code);
+        assert_eq!(unavailable.status, StatusCode::TOO_MANY_REQUESTS.as_u16());
         assert_eq!(unavailable.reason, "cooldown");
     }
 }

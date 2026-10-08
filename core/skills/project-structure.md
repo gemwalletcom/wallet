@@ -39,7 +39,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 
 - **uniffi-bindgen** (`bin/uniffi-bindgen/`): UniFFI bindings generator for iOS and Android
 - **generate** (`bin/generate/`): Code generation utilities
-- **gas-bench** (`bin/gas-bench/`): Gas benchmarking tool for blockchain operations
+- **gas-bench** (`bin/gas-bench/`): Compares Core fee rates with Etherscan, Gasflow, Helius and Jito
 - **cli** (`bin/cli/`): Command-line entry point for Core operations
 - **nodecheck** (`bin/nodecheck/`): Node availability and RPC health checks
 
@@ -47,6 +47,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 
 ### Blockchain Infrastructure
 - `gem_client/`: Client trait abstraction; implementations: `ReqwestClient` (backend) and `AlienProvider` (mobile)
+- `http_server/`: the hyper accept loop with graceful drain, shutdown signal, JSON error bodies, panic and timeout layers, security headers and per-route HTTP metrics shared by `api`, `daemon` and `dynode`
 - `gem_jsonrpc/`: Internal JSON-RPC client library (replaces external alloy dependencies)
 - `gem_hash/`: Hashing utilities for blockchain operations
 - `chain_primitives/`: Primitive types specific to blockchain operations
@@ -113,7 +114,7 @@ apps/ (api, daemon, dynode)
 
 ## Technology Stack
 
-- **Framework**: Rust workspace with Rocket web framework
+- **Framework**: Rust workspace; `api`, `daemon` and `dynode` serve HTTP with axum through the `http_server` crate
 - **Database**: PostgreSQL (primary), Redis (caching)
 - **Message Queue**: RabbitMQ with Lapin
 - **RPC**: Custom `gem_jsonrpc` client library for blockchain interactions

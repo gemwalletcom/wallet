@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use gem_tracing::{DurationMs, error_fields, info_with_fields};
+use http::StatusCode;
 use reqwest::Method;
-use rocket::http::Status;
 
 use super::route::Route;
 
@@ -69,7 +69,7 @@ impl<'a> AccessLog<'a> {
             host = host,
             method = self.method.as_str(),
             uri = self.uri,
-            status = Status::BadGateway.code,
+            status = StatusCode::BAD_GATEWAY.as_u16(),
             reason = reason,
             latency = DurationMs(self.start.elapsed()),
         );

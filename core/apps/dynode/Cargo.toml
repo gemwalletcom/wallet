@@ -19,7 +19,10 @@ strum = { workspace = true }
 tokio = { workspace = true }
 prometheus-client = { workspace = true }
 reqwest = { workspace = true }
-rocket = { workspace = true }
+axum = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+http_server = { path = "../../crates/http_server" }
 chain_traits = { path = "../../crates/chain_traits" }
 node_probes = { path = "../../crates/node_probes" }
 primitives = { path = "../../crates/primitives" }
@@ -36,4 +39,5 @@ url = { workspace = true }
 uuid = { workspace = true }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["test-util"] }
+tokio = { workspace = true, features = ["test-util", "net"] }
+tower = { workspace = true }

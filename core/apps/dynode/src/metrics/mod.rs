@@ -7,6 +7,7 @@ use std::{
 };
 
 use gem_tracing::path;
+use http_server::HttpMetrics;
 use metrics::MetricsRegistry;
 use primitives::NodeStatusState;
 use primitives::unix_seconds;
@@ -24,6 +25,7 @@ use traffic::{ClientResponseLabels, CooldownLabels, EndpointLabels, FailoverLabe
 #[derive(Debug, Clone)]
 pub struct Metrics {
     registry: Arc<MetricsRegistry>,
+    http: HttpMetrics,
     source: String,
     requests: Family<RequestLabels, Counter>,
     responses: Family<ClientResponseLabels, Counter>,
@@ -194,7 +196,10 @@ impl Metrics {
             transaction_broadcast_latency.clone(),
         );
 
+        let http = HttpMetrics::new();
+        http.register(registry);
         Self {
+            http,
             transaction_broadcasts,
             transaction_broadcast_latency,
             registry: Arc::new(metrics_registry),
@@ -362,6 +367,10 @@ impl Metrics {
 
     pub fn get_metrics(&self) -> String {
         self.registry.encode()
+    }
+
+    pub fn http(&self) -> &HttpMetrics {
+        &self.http
     }
 
     fn truncate_method(&self, method: &str) -> String {

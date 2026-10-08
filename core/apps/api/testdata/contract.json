@@ -9,11 +9,11 @@
     }
   },
   "admin_asset_add_no_content_type": {
-    "status": 404,
+    "status": 415,
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "404 Not Found"
+        "message": "Expected request with `Content-Type: application/json`"
       }
     }
   },
@@ -40,7 +40,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Invalid chain: mars"
       }
     }
   },
@@ -305,7 +305,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "currency: Invalid currency: BAD"
       }
     }
   },
@@ -414,16 +414,16 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Failed to deserialize the JSON body into the target type: invalid type: map, expected a sequence at line 1 column 0"
       }
     }
   },
   "v1_assets_no_content_type": {
-    "status": 404,
+    "status": 415,
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "404 Not Found"
+        "message": "Expected request with `Content-Type: application/json`"
       }
     }
   },
@@ -442,7 +442,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "query: Invalid query length: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       }
     }
   },
@@ -451,7 +451,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "missing field `query`"
       }
     }
   },
@@ -460,7 +460,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Failed to deserialize the JSON body into the target type: invalid type: map, expected a sequence at line 1 column 0"
       }
     }
   },
@@ -501,7 +501,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Invalid quote type: rent"
       }
     }
   },
@@ -547,7 +547,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Invalid nft asset id: not-an-id"
       }
     }
   },
@@ -561,7 +561,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Failed to deserialize the JSON body into the target type: missing field `chainIndex` at line 1 column 2"
       }
     }
   },
@@ -616,7 +616,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Failed to deserialize the JSON body into the target type: missing field `actionType` at line 1 column 2"
       }
     }
   },
@@ -625,7 +625,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Invalid webhook kind: other"
       }
     }
   },
@@ -675,7 +675,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Invalid chain: mars"
       }
     }
   },
@@ -874,7 +874,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "Dieses Angebot ist nicht mehr verf\u00fcgbar. Bitte versuchen Sie es erneut."
+        "message": "Dieses Angebot ist nicht mehr verfügbar. Bitte versuchen Sie es erneut."
       }
     }
   },
@@ -888,7 +888,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "missing field `amount`"
       }
     }
   },
@@ -917,7 +917,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "missing field `chain`"
       }
     }
   },
@@ -931,7 +931,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Invalid nft asset id: bad"
       }
     }
   },
@@ -989,7 +989,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "missing field `period`"
       }
     }
   },
@@ -1108,11 +1108,11 @@
     }
   },
   "v2_register_no_content_type": {
-    "status": 404,
+    "status": 415,
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "404 Not Found"
+        "message": "Expected request with `Content-Type: application/json`"
       }
     }
   },
@@ -1234,11 +1234,11 @@
     "body": "number"
   },
   "v2_support_image_no_content_type": {
-    "status": 500,
+    "status": 400,
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "500 Internal Server Error"
+        "message": "Missing header: Content-Type"
       }
     }
   },
@@ -1279,7 +1279,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "Invalid transaction id: not-an-id"
       }
     }
   },
@@ -1313,7 +1313,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "422 Unprocessable Entity"
+        "message": "limit: Invalid limit: many"
       }
     }
   },
@@ -1340,6 +1340,145 @@
       }
     }
   },
+  "v3_address_names": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v3_device": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "id": "string",
+      "platform": "string",
+      "platformStore": "string",
+      "os": "string",
+      "model": "string",
+      "token": "string",
+      "locale": "string",
+      "version": "string",
+      "currency": "string",
+      "isPushEnabled": true,
+      "isPriceAlertsEnabled": true,
+      "subscriptionsVersion": "number"
+    }
+  },
+  "v3_dropped_legacy_transaction": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "v3_dropped_token": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "v3_is_registered": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": true
+  },
+  "v3_names": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v3_nft_assets": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v3_notifications_read": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "number"
+  },
+  "v3_notifications_read_replayed": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Replayed request device_id=<device_id>"
+      }
+    }
+  },
+  "v3_price_alerts": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v3_subscriptions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "walletId": "string",
+        "chains": [
+          "string"
+        ]
+      }
+    ]
+  },
+  "v3_subscriptions_repeat_get": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "walletId": "string",
+        "chains": [
+          "string"
+        ]
+      }
+    ]
+  },
+  "v3_transactions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "transactions": [],
+      "addressNames": []
+    }
+  },
+  "v3_transactions_path_only_signature": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid signature"
+      }
+    }
+  },
+  "v3_transactions_query_tampered": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid signature"
+      }
+    }
+  },
+  "v3_underscore_path": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
+  "v3_wallet_configuration": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
   "wrong_method": {
     "status": 404,
     "content_type": "application/json",
@@ -1355,6 +1494,22 @@
     "body": null
   },
   "ws_stream_subscribe_prices": {
+    "status": 101,
+    "content_type": null,
+    "body": {
+      "event": "string",
+      "data": {
+        "prices": [],
+        "rates": [
+          {
+            "symbol": "string",
+            "rate": "number"
+          }
+        ]
+      }
+    }
+  },
+  "ws_v3_stream_subscribe_prices": {
     "status": 101,
     "content_type": null,
     "body": {

@@ -5,7 +5,7 @@ use dynode::config::load_config;
 use dynode::server::Server;
 use primitives::Chain;
 
-#[rocket::main]
+#[tokio::main]
 async fn main() -> Result<(), BoxError> {
     let selected_chain = std::env::args().nth(1).map(|value| Chain::from_str(&value)).transpose()?;
     let (config, mut chains) = load_config()?;

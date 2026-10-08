@@ -54,7 +54,7 @@ mod tests {
         let signer = GemDeviceRequestSigner::new(key_pair.private_key).unwrap();
         assert_eq!(signer.public_key_hex(), hex::encode(&key_pair.public_key));
 
-        let header = signer.sign("GET".into(), "/v2/devices".into(), "wallet".into(), Vec::new()).unwrap();
+        let header = signer.sign("GET".into(), "/v3/devices".into(), "wallet".into(), Vec::new()).unwrap();
         let payload = STANDARD.decode(header.strip_prefix("Gem ").unwrap()).unwrap();
         let parts: Vec<&str> = std::str::from_utf8(&payload).unwrap().splitn(5, '.').collect();
         assert_eq!(parts[0], signer.public_key_hex());
@@ -63,7 +63,7 @@ mod tests {
         assert!(GemDeviceRequestSigner::new(vec![1, 2, 3]).is_err());
 
         let stream = signer.device_stream_request().unwrap();
-        assert_eq!(stream.url, "wss://api.gemwallet.com/v2/devices/stream");
+        assert_eq!(stream.url, "wss://api.gemwallet.com/v3/devices/stream");
         assert!(stream.authorization.starts_with("Gem "));
     }
 }

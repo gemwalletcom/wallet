@@ -1,6 +1,6 @@
 # Device
 
-Every install registers a device with the backend, tells it which wallet addresses to watch, and streams updates over one authenticated WebSocket. Every `/v2/devices/*` request, including the stream upgrade, is signed with the device key.
+Every install registers a device with the backend, tells it which wallet addresses to watch, and streams updates over one authenticated WebSocket. Every `/v3/devices/*` request, including the stream upgrade, is signed with the device key. The `/v2/devices/*` routes serve releases before the one that ships the v3 client with the same handlers and the older signing rule below.
 
 ## Authentication
 
@@ -8,13 +8,15 @@ Every install registers a device with the backend, tells it which wallet address
 Authorization: Gem base64(<device_id_hex>.<timestamp_ms>.<wallet_id>.<body_hash_hex>.<signature_hex>)
 ```
 
-Five dot-separated parts: the 64-hex Ed25519 public key, the Unix timestamp in milliseconds, the wallet id (empty for a non-wallet endpoint, which leaves `..` between the timestamp and the hash), the SHA256 of the body, and the 128-hex Ed25519 signature over `{timestamp}.{method}.{path}.{walletId}.{bodyHash}`:
+Five dot-separated parts: the 64-hex Ed25519 public key, the Unix timestamp in milliseconds, the wallet id (empty for a non-wallet endpoint, which leaves `..` between the timestamp and the hash), the SHA256 of the body, and the 128-hex Ed25519 signature over `{timestamp}.{method}.{path}.{walletId}.{bodyHash}`. Under `/v3` the signed path is the path and the raw query string exactly as sent; under `/v2` it is the path alone:
 
 ```
-1706000000000.GET./v2/devices/assets.multicoin_0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+1706000000000.GET./v3/devices/transactions?asset_id=ethereum&limit=5.multicoin_0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 ```
 
-The header lives in the shared `gem_auth` crate, used by the client and the backend; the device key never crosses the FFI boundary ([Keystore v4](KEYSTORE_V4.md)). Backend side: [signature verification](../core/apps/api/src/devices/signature.rs), [cryptographic check](../core/crates/gem_auth/src/device_signature.rs), [request guards](../core/apps/api/src/devices/guard/).
+The backend checks the body hash on every signed request, including requests without a body, and keeps the timestamp within the configured tolerance. A `/v3` POST, PUT or DELETE is accepted once: a second request carrying the same signature inside the tolerance window is rejected as replayed.
+
+The header lives in the shared `gem_auth` crate, used by the client and the backend; the device key never crosses the FFI boundary ([Keystore v4](KEYSTORE_V4.md)). Backend side: [device authentication](../core/apps/api/src/auth/device/middleware.rs), [cryptographic check](../core/crates/gem_auth/src/device_signature.rs), [request guards](../core/apps/api/src/auth/device/guard.rs).
 
 ## Device key storage
 
@@ -30,11 +32,11 @@ Reinstalling the app on Android creates a new device key and therefore a new dev
 One record per install, the shared `Device` primitive: push token, locale, currency, app version, push and price-alert flags, and `subscriptionsVersion`, bumped whenever the subscription set changes so either side can tell the two disagree.
 
 ```
-GET/POST/PUT  /v2/devices          GET  /v2/devices/is_registered
-GET/POST/DELETE  /v2/devices/subscriptions
+GET/POST/PUT  /v3/devices          GET  /v3/devices/is-registered
+GET/POST/DELETE  /v3/devices/subscriptions
 ```
 
-Wallet-scoped endpoints such as `/v2/devices/assets` return `404` until that wallet is subscribed, so a wallet is subscribed before the first wallet-scoped fetch for it.
+Wallet-scoped endpoints such as `/v3/devices/assets` return `404` until that wallet is subscribed, so a wallet is subscribed before the first wallet-scoped fetch for it.
 
 ```mermaid
 flowchart LR
@@ -97,11 +99,11 @@ How the apps drive it:
 - Subscription changes are serialized; a failed send keeps the assets pending, and each new connection resets the sent state before resubscribing.
 - Events are applied in order, rates before later prices. `GemStreamService::decode_event` applies only local effects (prices, rates, notifications, support); the network follow-up for balance, transaction, NFT, perpetual, price-alert and fiat events runs through `GemStreamService::sync`, started outside the socket loop so a replayed backlog never delays the price snapshot.
 
-Backend: [stream handler](../core/apps/api/src/websocket_stream/stream.rs), [client logic](../core/apps/api/src/websocket_stream/client.rs), [message types](../core/crates/primitives/src/stream.rs), [price payload](../core/crates/primitives/src/websocket.rs).
+The server pings every 30 seconds and closes a connection that leaves two pings unanswered; on shutdown it sends a close frame before draining. Backend: [stream loop](../core/apps/api/src/stream/client.rs), [message handling](../core/apps/api/src/stream/observer.rs), [message types](../core/crates/primitives/src/stream.rs), [price payload](../core/crates/primitives/src/websocket.rs).
 
 ## Wallet authentication
 
-Endpoints that act for a wallet (rewards and referrals, for example) also need proof of wallet ownership: the client fetches a nonce from `GET /v2/devices/auth/nonce` (`{"nonce", "timestamp"}`), signs the `AuthMessage` `{"chain", "address", "authNonce": {"nonce", "timestamp"}}` serialized as JSON with the wallet key (Keccak256 then ECDSA on Ethereum, hex with `0x`), and sends it in the body beside the payload:
+Endpoints that act for a wallet (rewards and referrals, for example) also need proof of wallet ownership: the client fetches a nonce from `GET /v3/devices/auth/nonce` (`{"nonce", "timestamp"}`), signs the `AuthMessage` `{"chain", "address", "authNonce": {"nonce", "timestamp"}}` serialized as JSON with the wallet key (Keccak256 then ECDSA on Ethereum, hex with `0x`), and sends it in the body beside the payload:
 
 ```json
 {
@@ -110,4 +112,4 @@ Endpoints that act for a wallet (rewards and referrals, for example) also need p
 }
 ```
 
-The request is still device-authenticated: the body hash inside the `Gem` header binds the wallet-signed body to the request. The wallet signature is accepted only in its low-S form, so one nonce has exactly one valid signature encoding. Backend side: [wallet signature verification](../core/crates/gem_auth/src/signature.rs), [auth guards](../core/apps/api/src/auth/guard.rs), [nonce management](../core/crates/services/src/auth/client.rs), [auth primitives](../core/crates/primitives/src/auth.rs).
+The request is still device-authenticated: the body hash inside the `Gem` header binds the wallet-signed body to the request. The wallet signature is accepted only in its low-S form, so one nonce has exactly one valid signature encoding. Backend side: [wallet signature verification](../core/crates/gem_auth/src/signature.rs), [wallet-signed body guard](../core/apps/api/src/auth/wallet_signed.rs), [nonce management](../core/crates/services/src/auth/client.rs), [auth primitives](../core/crates/primitives/src/auth.rs).

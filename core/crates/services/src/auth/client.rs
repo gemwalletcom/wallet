@@ -1,17 +1,22 @@
 use std::{error::Error, sync::Arc};
 
-use cacher::AuthNonceCacher;
+use cacher::{AuthNonceCacher, DeviceSignatureCacher};
 use chrono::Utc;
 use primitives::AuthNonce;
 use uuid::Uuid;
 
 pub struct AuthClient {
     nonces: Arc<dyn AuthNonceCacher>,
+    signatures: Arc<dyn DeviceSignatureCacher>,
 }
 
 impl AuthClient {
-    pub fn new(nonces: Arc<dyn AuthNonceCacher>) -> Self {
-        Self { nonces }
+    pub fn new(nonces: Arc<dyn AuthNonceCacher>, signatures: Arc<dyn DeviceSignatureCacher>) -> Self {
+        Self { nonces, signatures }
+    }
+
+    pub async fn remember_request_signature(&self, signature: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.signatures.remember_signature(signature).await
     }
 
     pub async fn get_nonce(&self, device_id: &str) -> Result<AuthNonce, Box<dyn Error + Send + Sync>> {

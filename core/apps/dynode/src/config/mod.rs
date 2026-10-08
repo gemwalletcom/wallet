@@ -20,5 +20,5 @@ pub use loader::load_config;
 pub use metrics::MetricsConfig;
 pub use monitoring::{FailureTriggerConfig, MonitoringConfig};
 pub use retry::{ErrorMatcherConfig, RetryConfig};
-pub use settings::{ChainsConfig, Config, HeadersConfig, RequestConfig, RoutesConfig, WebhookConfig};
+pub use settings::{ChainsConfig, Config, HeadersConfig, RequestConfig, RoutesConfig, ServerConfig, WebhookConfig};
 pub use url::{Override, Url};

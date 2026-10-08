@@ -27,7 +27,7 @@ pub trait DeviceKey: Send + Sync + std::fmt::Debug {
     fn private_key(&self) -> Result<Vec<u8>, ClientError>;
 }
 
-/// Signs `/v2/devices/*` requests with the device Ed25519 key.
+/// Signs `/v3/devices/*` requests with the device Ed25519 key.
 ///
 /// The key is read when a request is signed, so building the client never reaches secure
 /// storage. It is a device-scoped credential, unrelated to wallet keys or recovery material,
@@ -279,10 +279,9 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
 
     fn authorization(&self, target: &GemDeviceApiTarget, body: &[u8]) -> Result<HashMap<String, String>, ClientError> {
         let path = target.path();
-        let signed_path = path.split('?').next().unwrap_or(&path);
         let timestamp_ms = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|error| ClientError::Serialization(error.to_string()))?.as_millis() as u64;
 
-        let header = build_device_auth_header(&self.device_key.private_key()?, target.method().as_ref(), signed_path, target.wallet_id(), body, timestamp_ms).map_err(|error| ClientError::Serialization(error.to_string()))?;
+        let header = build_device_auth_header(&self.device_key.private_key()?, target.method().as_ref(), &path, target.wallet_id(), body, timestamp_ms).map_err(|error| ClientError::Serialization(error.to_string()))?;
 
         Ok(HashMap::from([("Authorization".to_string(), header)]))
     }

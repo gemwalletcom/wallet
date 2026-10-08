@@ -1,0 +1,20 @@
+use std::error::Error;
+
+use redis::aio::MultiplexedConnection;
+use redis::{PushInfo, PushKind};
+use tokio::sync::mpsc::UnboundedReceiver;
+
+pub fn decode_push_message(message: &PushInfo) -> Option<(&str, &[u8])> {
+    match (&message.kind, message.data.as_slice()) {
+        (PushKind::Message, [redis::Value::BulkString(channel), redis::Value::BulkString(value)]) => Some((std::str::from_utf8(channel).ok()?, value)),
+        _ => None,
+    }
+}
+
+pub async fn connect(redis_url: &str) -> Result<(MultiplexedConnection, UnboundedReceiver<PushInfo>), Box<dyn Error + Send + Sync>> {
+    let client = redis::Client::open(redis_url)?;
+    let (sender, receiver) = tokio::sync::mpsc::unbounded_channel();
+    let config = redis::AsyncConnectionConfig::new().set_push_sender(sender);
+    let connection = client.get_multiplexed_async_connection_with_config(&config).await?;
+    Ok((connection, receiver))
+}

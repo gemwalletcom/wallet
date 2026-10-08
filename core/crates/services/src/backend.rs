@@ -105,7 +105,8 @@ impl Services {
     }
 
     pub async fn auth(&self) -> Result<AuthClient, Box<dyn Error + Send + Sync>> {
-        Ok(AuthClient::new(Arc::new(self.cacher().await?)))
+        let cacher = Arc::new(self.cacher().await?);
+        Ok(AuthClient::new(cacher.clone(), cacher))
     }
 
     pub async fn stream_producer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<StreamProducer, Box<dyn Error + Send + Sync>> {

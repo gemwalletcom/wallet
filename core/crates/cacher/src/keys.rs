@@ -30,6 +30,7 @@ pub(crate) enum CacheKey<'a> {
     RateLimit(RateLimitKey, &'a str, RateLimitWindow),
 
     AuthNonce(&'a str, &'a str),
+    DeviceRequestSignature(&'a str),
     AccessToken(&'a str, u64),
 
     AddressStatus(&'a str, &'a str),
@@ -84,6 +85,7 @@ impl CacheKey<'_> {
             Self::SubscriptionAddressStatus(chain, address, _) => format!("subscriptions:address_status:{}:{}", chain, address),
             Self::RateLimit(key, scope, window) => format!("rate_limit:{}:{}:{}", key.as_ref(), window.as_ref(), scope),
             Self::AuthNonce(device_id, nonce) => format!("auth:nonce:{}:{}", device_id, nonce),
+            Self::DeviceRequestSignature(signature) => format!("device:signature:{}", signature),
             Self::AccessToken(provider, _) => format!("access_token:{}", provider),
             Self::AddressStatus(chain, address) => format!("address:status:{}:{}", chain, address),
             Self::JobStatus(name) => format!("jobs:status:{}", name),
@@ -127,6 +129,7 @@ impl CacheKey<'_> {
             Self::SubscriptionAddressStatus(_, _, ttl) => *ttl,
             Self::RateLimit(_, _, window) => window.duration().as_secs(),
             Self::AuthNonce(_, _) => 5 * SECONDS_PER_MINUTE,
+            Self::DeviceRequestSignature(_) => 10 * SECONDS_PER_MINUTE,
             Self::AccessToken(_, ttl) => *ttl,
             Self::AddressStatus(_, _) => SECONDS_PER_YEAR,
             Self::JobStatus(_) => 7 * SECONDS_PER_DAY,

@@ -1,23 +1,25 @@
 use std::collections::HashMap;
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
+use std::sync::Arc;
 
+use axum::Router;
+use axum::body::Body;
+use axum::extract::{OriginalUri, Request, State};
+use axum::response::{IntoResponse, Response};
+use axum::routing::any;
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
+use http::header::CONTENT_TYPE;
+use http::{Method, StatusCode, Uri};
+use http_body_util::LengthLimitError;
+use http_server::{ServeConfig, catch_panic_layer, serve, shutdown_channel, spawn_signal_handler, timeout_layer};
 use primitives::Chain;
-use reqwest::Method;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use rocket::config::Config as RocketConfig;
-use rocket::data::{Data, ToByteUnit};
-use rocket::http::{Method as RocketMethod, Status};
-use rocket::outcome::Outcome as RequestOutcome;
-use rocket::response::content::RawText;
-use rocket::route::{Handler, Outcome, Route};
-use rocket::{Build, Request, Rocket, State};
+use reqwest::header::HeaderMap;
 
 use crate::BoxError;
 use crate::cache::RequestCache;
 use crate::config::path::path_without_query;
-use crate::config::{ChainConfig, Config};
+use crate::config::{ChainConfig, Config, ServerConfig};
 use crate::gateway::Gateway;
 use crate::metrics::Metrics;
 use crate::node_service::NodeService;
@@ -44,16 +46,23 @@ impl Routes {
                 return Ok(Target::Node(nodes, chain));
             }
             if self.gateway.is_none() {
-                return Err(ProxyError::new(Status::BadRequest, "Invalid chain"));
+                return Err(ProxyError::new(StatusCode::BAD_REQUEST, "Invalid chain"));
             }
         }
-        self.gateway.as_ref().map(Target::Provider).ok_or_else(|| ProxyError::new(Status::NotFound, "route not found"))
+        self.gateway.as_ref().map(Target::Provider).ok_or_else(|| ProxyError::new(StatusCode::NOT_FOUND, "route not found"))
     }
+}
+
+#[derive(Clone)]
+struct AppState {
+    routes: Arc<Routes>,
+    metrics: Metrics,
 }
 
 pub struct Server {
     address: IpAddr,
     port: u16,
+    server: ServerConfig,
     routes: Routes,
     metrics: Metrics,
 }
@@ -97,22 +106,29 @@ impl Server {
         Ok(Self {
             address,
             port,
+            server: config.server,
             routes: Routes { nodes, gateway, node_limit, route_limit },
             metrics,
         })
     }
 
-    fn rocket(self) -> Rocket<Build> {
-        let mut methods = vec![RocketMethod::Get, RocketMethod::Post, RocketMethod::Put, RocketMethod::Patch, RocketMethod::Delete, RocketMethod::Options, RocketMethod::Head];
-        let mut server = rocket::custom(RocketConfig::figment().merge(("address", self.address)).merge(("port", self.port))).manage(self.metrics);
-        if self.routes.nodes.is_some() {
-            server = server.mount("/", rocket::routes![root_endpoint]);
+    fn router(self) -> Router {
+        let http_metrics = self.metrics.http().clone();
+        let has_nodes = self.routes.nodes.is_some();
+        let state = AppState {
+            routes: Arc::new(self.routes),
+            metrics: self.metrics,
+        };
+        let mut router = Router::new().route("/health", any(proxy).get(health)).route("/metrics", any(proxy).get(metrics));
+        if has_nodes {
+            router = router.route("/", any(proxy).get(root));
         }
-        if self.routes.gateway.is_some() {
-            methods.extend([RocketMethod::Trace, RocketMethod::Connect]);
-        }
-        let routes = methods.into_iter().map(|method| Route::new(method, "/<path..>", ProxyHandler)).collect::<Vec<_>>();
-        server.manage(self.routes).mount("/", routes).mount("/", rocket::routes![health_endpoint, metrics_endpoint])
+        router
+            .fallback(proxy)
+            .with_state(state)
+            .layer(timeout_layer(self.server.request.timeout))
+            .layer(catch_panic_layer())
+            .layer(http_metrics.layer())
     }
 
     pub async fn launch(mut self) -> Result<(), BoxError> {
@@ -125,44 +141,38 @@ impl Server {
         if let Some(gateway) = &self.routes.gateway {
             gateway.start();
         }
-        let server = self.rocket().ignite().await?;
-        info_with_fields!("Server started", address = &server.config().address.to_string(), port = server.config().port);
-        server.launch().await?;
-        Ok(())
+        let address = SocketAddr::new(self.address, self.port);
+        let config = ServeConfig {
+            header_read_timeout: self.server.header.timeout,
+            grace: self.server.shutdown.timeout,
+        };
+        let (sender, shutdown) = shutdown_channel();
+        spawn_signal_handler(sender);
+        serve(self.router(), address, config, shutdown).await
     }
 }
 
-#[derive(Clone)]
-struct ProxyHandler;
-
-#[rocket::async_trait]
-impl Handler for ProxyHandler {
-    async fn handle<'r>(&self, request: &'r Request<'_>, data: Data<'r>) -> Outcome<'r> {
-        let routes = match request.guard::<&State<Routes>>().await {
-            RequestOutcome::Success(state) => state,
-            RequestOutcome::Error((status, ())) | RequestOutcome::Forward(status) => return Outcome::error(status),
-        };
-        let target = match routes.target(request.uri().path().as_str()) {
-            Ok(target) => target,
-            Err(error) => return Outcome::from(request, error),
-        };
-        let limit = match target {
-            Target::Node(..) => routes.node_limit,
-            Target::Provider(_) => routes.route_limit,
-        };
-        Outcome::from(request, forward_request(request, data, target, limit).await)
+async fn proxy(State(state): State<AppState>, OriginalUri(uri): OriginalUri, request: Request) -> Response {
+    match forward_request(&state.routes, &uri, request).await {
+        Ok(response) => response.into_response(),
+        Err(error) => error.into_response(),
     }
 }
 
-async fn forward_request(request: &Request<'_>, data: Data<'_>, target: Target<'_>, limit: usize) -> Result<ProxyResponse, ProxyError> {
-    let method = Method::from_bytes(request.method().as_str().as_bytes()).map_err(|_| ProxyError::new(Status::BadRequest, "invalid HTTP method"))?;
-    let uri = request.uri().to_string();
-    let body = read_request_body(data, limit).await?;
-    let headers = request_headers(request)?;
+async fn forward_request(routes: &Routes, uri: &Uri, request: Request) -> Result<ProxyResponse, ProxyError> {
+    let target = routes.target(uri.path())?;
+    let limit = match target {
+        Target::Node(..) => routes.node_limit,
+        Target::Provider(_) => routes.route_limit,
+    };
+    let method = request.method().clone();
+    let headers: HeaderMap = request.headers().clone();
+    let uri = uri.path_and_query().map(http::uri::PathAndQuery::as_str).unwrap_or("/").to_string();
+    let body = read_request_body(request.into_body(), limit).await?;
     match target {
         Target::Node(service, chain) => {
             if method == Method::TRACE || method == Method::CONNECT {
-                return Err(ProxyError::new(Status::NotFound, "route not found"));
+                return Err(ProxyError::new(StatusCode::NOT_FOUND, "route not found"));
             }
             let proxy_request = ProxyRequest::from_http(method, headers, body, &uri, chain).map_err(|status| ProxyError::new(status, "Failed to build request"))?;
             service.proxy_request(&proxy_request).await.map_err(|error| {
@@ -176,29 +186,25 @@ async fn forward_request(request: &Request<'_>, data: Data<'_>, target: Target<'
                     user_agent = proxy_request.user_agent.as_str(),
                     latency = DurationMs(proxy_request.elapsed()),
                 );
-                ProxyError::new(Status::InternalServerError, "Proxy request failed")
+                ProxyError::new(StatusCode::INTERNAL_SERVER_ERROR, "Proxy request failed")
             })
         }
         Target::Provider(gateway) => gateway.forward(method, &uri, &headers, body).await,
     }
 }
 
-async fn read_request_body(data: Data<'_>, limit: usize) -> Result<Vec<u8>, ProxyError> {
-    let body = data.open(limit.bytes()).into_bytes().await.map_err(|error| ProxyError::new(Status::BadRequest, error.to_string()))?;
-    if !body.is_complete() {
-        return Err(ProxyError::new(Status::PayloadTooLarge, "request body is too large"));
+async fn read_request_body(body: Body, limit: usize) -> Result<Vec<u8>, ProxyError> {
+    match axum::body::to_bytes(body, limit).await {
+        Ok(bytes) => Ok(bytes.to_vec()),
+        Err(error) => {
+            let message = error.to_string();
+            if error.into_inner().is::<LengthLimitError>() {
+                Err(ProxyError::new(StatusCode::PAYLOAD_TOO_LARGE, "request body is too large"))
+            } else {
+                Err(ProxyError::new(StatusCode::BAD_REQUEST, message))
+            }
+        }
     }
-    Ok(body.into_inner())
-}
-
-fn request_headers(request: &Request<'_>) -> Result<HeaderMap, ProxyError> {
-    let mut headers = HeaderMap::new();
-    for header in request.headers().iter() {
-        let name = HeaderName::from_bytes(header.name().as_str().as_bytes()).map_err(|error| ProxyError::new(Status::BadRequest, error.to_string()))?;
-        let value = HeaderValue::from_str(header.value()).map_err(|error| ProxyError::new(Status::BadRequest, error.to_string()))?;
-        headers.append(name, value);
-    }
-    Ok(headers)
 }
 
 fn parse_chain(path: &str) -> Option<Chain> {
@@ -206,19 +212,16 @@ fn parse_chain(path: &str) -> Option<Chain> {
     Chain::from_str(chain).ok()
 }
 
-#[rocket::get("/health")]
-fn health_endpoint() -> Status {
-    Status::Ok
+async fn health() -> StatusCode {
+    StatusCode::OK
 }
 
-#[rocket::get("/")]
-fn root_endpoint() -> &'static str {
+async fn root() -> &'static str {
     "ok"
 }
 
-#[rocket::get("/metrics")]
-fn metrics_endpoint(metrics: &State<Metrics>) -> RawText<String> {
-    RawText(metrics.get_metrics())
+async fn metrics(State(state): State<AppState>) -> Response {
+    ([(CONTENT_TYPE, "text/plain; charset=utf-8")], state.metrics.get_metrics()).into_response()
 }
 
 #[cfg(test)]

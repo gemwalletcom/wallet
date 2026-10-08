@@ -41,7 +41,7 @@ impl EncodeLabelSet for RouteLabels {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct HttpMetrics {
     requests: Family<RequestLabels, Counter>,
     duration: Family<RouteLabels, Histogram>,

@@ -1,10 +1,13 @@
+use std::convert::Infallible;
 use std::error::Error;
 use std::io;
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use axum::Router;
+use axum::ServiceExt;
+use axum::response::Response;
 use gem_tracing::{error_fields, info_with_fields};
+use hyper::body::Incoming;
 use hyper_util::rt::{TokioExecutor, TokioIo, TokioTimer};
 use hyper_util::server::conn::auto::Builder;
 use hyper_util::server::graceful::GracefulShutdown;
@@ -20,9 +23,13 @@ pub struct ServeConfig {
     pub grace: Duration,
 }
 
-pub async fn serve(router: Router, address: SocketAddr, config: ServeConfig, mut shutdown: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub async fn serve<S>(service: S, address: SocketAddr, config: ServeConfig, mut shutdown: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>>
+where
+    S: Service<http::Request<Incoming>, Response = Response, Error = Infallible> + Clone + Send + Sync + 'static,
+    S::Future: Send,
+{
     let listener = TcpListener::bind(address).await.map_err(|error| format!("failed to bind {address}: {error}"))?;
-    let mut make_service = router.into_make_service_with_connect_info::<SocketAddr>();
+    let mut make_service = service.into_make_service_with_connect_info::<SocketAddr>();
     let mut builder = Builder::new(TokioExecutor::new());
     builder.http1().timer(TokioTimer::new()).header_read_timeout(config.header_read_timeout);
     let graceful = GracefulShutdown::new();

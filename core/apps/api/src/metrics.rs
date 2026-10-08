@@ -1,16 +1,16 @@
 use std::fmt;
-use std::sync::Arc;
 use std::time::Duration;
 
+use http_server::HttpMetrics;
 use metrics::{MetricsRegistry, prometheus_client};
 use primitives::{ScanOutcome, ScanProvider, ScanType};
 use prometheus_client::encoding::{EncodeLabelSet, LabelSetEncoder};
 use prometheus_client::metrics::family::Family;
 use prometheus_client::metrics::histogram::{Histogram, exponential_buckets};
-use rocket::response::content::RawText;
-use rocket::{State, get};
 use security::TransactionScanProviders;
 use services::security::ScanMetrics;
+
+const METRICS_PREFIX: &str = "api";
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct ScanLabels {
@@ -28,6 +28,7 @@ impl EncodeLabelSet for ScanLabels {
 pub struct Metrics {
     registry: MetricsRegistry,
     scan_latency: Family<ScanLabels, Histogram>,
+    http: HttpMetrics,
 }
 
 impl Metrics {
@@ -48,9 +49,19 @@ impl Metrics {
                 }));
             }
         }
-        let mut registry = MetricsRegistry::with_prefix("api");
+        let mut registry = MetricsRegistry::with_prefix(METRICS_PREFIX);
         registry.registry_mut().register("security_scan_latency_milliseconds", "Security provider request latency", scan_latency.clone());
-        Self { registry, scan_latency }
+        let http = HttpMetrics::new();
+        http.register(registry.registry_mut());
+        Self { registry, scan_latency, http }
+    }
+
+    pub fn http(&self) -> &HttpMetrics {
+        &self.http
+    }
+
+    pub fn encode(&self) -> String {
+        self.registry.encode()
     }
 }
 
@@ -66,33 +77,22 @@ impl ScanMetrics for Metrics {
     }
 }
 
-#[get("/metrics")]
-pub fn get_metrics(metrics: &State<Arc<Metrics>>) -> RawText<String> {
-    RawText(metrics.registry.encode())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rocket::http::Status;
-    use rocket::local::blocking::Client;
-    use rocket::routes;
 
     #[test]
     fn test_metrics_provider_outcomes() {
-        let metrics = Arc::new(Metrics::new(&TransactionScanProviders {
+        let metrics = Metrics::new(&TransactionScanProviders {
             addresses: vec![],
             poisoning: vec![],
             websites: vec![],
-        }));
+        });
         metrics.record_scan(ScanProvider::HashDit, ScanType::Address, ScanOutcome::Clean, Duration::from_millis(125));
         metrics.record_scan(ScanProvider::HashDit, ScanType::Address, ScanOutcome::Malicious, Duration::from_secs(2));
         metrics.record_scan(ScanProvider::HashDit, ScanType::Website, ScanOutcome::Error, Duration::from_millis(62500));
         metrics.record_scan(ScanProvider::GoPlus, ScanType::Address, ScanOutcome::Clean, Duration::from_millis(5));
-        let client = Client::tracked(rocket::build().manage(metrics).mount("/", routes![get_metrics])).unwrap();
-        let response = client.get("/metrics").dispatch();
-        assert_eq!(response.status(), Status::Ok);
-        let body = response.into_string().unwrap();
+        let body = metrics.encode();
         let mut samples: Vec<_> = body
             .lines()
             .filter(|line| line.starts_with("api_security_scan_latency_milliseconds_count{") || line.starts_with("api_security_scan_latency_milliseconds_sum{"))

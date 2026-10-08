@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 use std::fs::{self, File};
-use std::io::Cursor;
 use std::net::TcpListener;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
@@ -8,15 +7,15 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use std::{env, str};
 
+use axum::Router;
+use axum::body::{Body, to_bytes};
+use axum::extract::{Request, State};
+use axum::response::Response;
+use axum::routing::any;
 use dynode::BoxError;
+use http::StatusCode;
 use reqwest::header::{CONTENT_TYPE, HeaderMap};
 use reqwest::{Client, Method, Url};
-use rocket::config::Config as RocketConfig;
-use rocket::data::{Data, ToByteUnit};
-use rocket::http::{Method as RocketMethod, Status};
-use rocket::response::Response;
-use rocket::route::{Handler, Outcome, Route};
-use rocket::{Request, Shutdown};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::task::JoinHandle;
@@ -50,77 +49,75 @@ impl Upstream {
     }
 }
 
-#[rocket::async_trait]
-impl Handler for Upstream {
-    async fn handle<'r>(&self, request: &'r Request<'_>, data: Data<'r>) -> Outcome<'r> {
-        let url = Url::parse(&format!("http://fixture{}", request.uri())).unwrap();
-        let body = data.open(64.kibibytes()).into_bytes().await.unwrap().into_inner();
-        let echo = {
-            let mut records = self.0.lock().unwrap();
-            let echo = Echo {
-                path: url.path().to_string(),
-                query: url.query_pairs().map(|(name, value)| (name.into_owned(), value.into_owned())).collect(),
-                body: String::from_utf8(body.clone()).unwrap(),
-                authorization: request.headers().get_one("Authorization").map(str::to_string),
-                variant: request.headers().get_one("X-Variant").map(str::to_string),
-                dropped: request.headers().get_one("X-Do-Not-Forward").map(str::to_string),
-                sequence: records.len(),
-            };
-            records.push(RecordedRequest {
-                echo: echo.clone(),
-                received: Instant::now(),
-            });
-            echo
+async fn upstream_handler(State(upstream): State<Upstream>, request: Request) -> Response {
+    let url = Url::parse(&format!("http://fixture{}", request.uri())).unwrap();
+    let authorization = request.headers().get("Authorization").and_then(|value| value.to_str().ok()).map(str::to_string);
+    let variant = request.headers().get("X-Variant").and_then(|value| value.to_str().ok()).map(str::to_string);
+    let dropped = request.headers().get("X-Do-Not-Forward").and_then(|value| value.to_str().ok()).map(str::to_string);
+    let body = to_bytes(request.into_body(), 64 * 1024).await.unwrap().to_vec();
+    let echo = {
+        let mut records = upstream.0.lock().unwrap();
+        let echo = Echo {
+            path: url.path().to_string(),
+            query: url.query_pairs().map(|(name, value)| (name.into_owned(), value.into_owned())).collect(),
+            body: String::from_utf8(body.clone()).unwrap(),
+            authorization,
+            variant,
+            dropped,
+            sequence: records.len(),
         };
-        if url.path() == "/echo/redirect" {
-            return Outcome::Success(Response::build().status(Status::Found).raw_header("Location", "/echo/inspect?redirected=true").finalize());
-        }
-        let (status, content_type, body) = if url.path().starts_with("/node/") {
-            let call: Value = serde_json::from_slice(&body).unwrap();
-            if call["method"] == "eth_blockNumber" {
-                sleep(Duration::from_millis(750)).await;
-            }
-            let result = if call["method"] == "eth_getCode" {
-                "a".repeat(4096)
-            } else if url.path() == "/node/region" {
-                "0x1".to_string()
-            } else {
-                "0xbad".to_string()
-            };
-            let body = format!(r#"{{"jsonrpc":"2.0","id":{},"result":"{result}"}}"#, call["id"]);
-            (Status::Ok, "application/json", body.into_bytes())
-        } else if url.path() == "/api/v3/runGetMethod" {
-            let call: Value = serde_json::from_slice(&body).unwrap();
-            let exit_code = if call["address"] == "undeployed" { -13 } else { 0 };
-            (Status::Ok, "application/json", format!(r#"{{"exit_code":{exit_code},"stack":[]}}"#).into_bytes())
-        } else if url.path().starts_with("/first429/") || url.path().starts_with("/last429/") {
-            (Status::TooManyRequests, "text/plain", url.path().as_bytes().to_vec())
-        } else if url.path() == "/echo/status" {
-            (Status::ImATeapot, "application/octet-stream", RAW_BODY.to_vec())
-        } else {
-            if url.path() == "/echo/slow" {
-                sleep(Duration::from_millis(750)).await;
-            }
-            (Status::Ok, "application/json", serde_json::to_vec(&echo).unwrap())
-        };
-        let mut response = Response::build();
-        response
-            .status(status)
-            .raw_header("Content-Type", content_type)
-            .raw_header("X-Provider", "fixture")
-            .raw_header("X-Do-Not-Forward", "upstream-private")
-            .sized_body(body.len(), Cursor::new(body));
-        if status == Status::TooManyRequests {
-            response.raw_header("Retry-After", "60");
-        }
-        if url.path() == "/privacy/no-store" {
-            response.raw_header("Cache-Control", "no-store");
-        }
-        if url.path() == "/privacy/cookie" {
-            response.raw_header("Set-Cookie", "session=test");
-        }
-        Outcome::Success(response.finalize())
+        records.push(RecordedRequest {
+            echo: echo.clone(),
+            received: Instant::now(),
+        });
+        echo
+    };
+    if url.path() == "/echo/redirect" {
+        return Response::builder().status(StatusCode::FOUND).header("Location", "/echo/inspect?redirected=true").body(Body::empty()).unwrap();
     }
+    let (status, content_type, body) = if url.path().starts_with("/node/") {
+        let call: Value = serde_json::from_slice(&body).unwrap();
+        if call["method"] == "eth_blockNumber" {
+            sleep(Duration::from_millis(750)).await;
+        }
+        let result = if call["method"] == "eth_getCode" {
+            "a".repeat(4096)
+        } else if url.path() == "/node/region" {
+            "0x1".to_string()
+        } else {
+            "0xbad".to_string()
+        };
+        let body = format!(r#"{{"jsonrpc":"2.0","id":{},"result":"{result}"}}"#, call["id"]);
+        (StatusCode::OK, "application/json", body.into_bytes())
+    } else if url.path() == "/api/v3/runGetMethod" {
+        let call: Value = serde_json::from_slice(&body).unwrap();
+        let exit_code = if call["address"] == "undeployed" { -13 } else { 0 };
+        (StatusCode::OK, "application/json", format!(r#"{{"exit_code":{exit_code},"stack":[]}}"#).into_bytes())
+    } else if url.path().starts_with("/first429/") || url.path().starts_with("/last429/") {
+        (StatusCode::TOO_MANY_REQUESTS, "text/plain", url.path().as_bytes().to_vec())
+    } else if url.path() == "/echo/status" {
+        (StatusCode::IM_A_TEAPOT, "application/octet-stream", RAW_BODY.to_vec())
+    } else {
+        if url.path() == "/echo/slow" {
+            sleep(Duration::from_millis(750)).await;
+        }
+        (StatusCode::OK, "application/json", serde_json::to_vec(&echo).unwrap())
+    };
+    let mut response = Response::builder()
+        .status(status)
+        .header("Content-Type", content_type)
+        .header("X-Provider", "fixture")
+        .header("X-Do-Not-Forward", "upstream-private");
+    if status == StatusCode::TOO_MANY_REQUESTS {
+        response = response.header("Retry-After", "60");
+    }
+    if url.path() == "/privacy/no-store" {
+        response = response.header("Cache-Control", "no-store");
+    }
+    if url.path() == "/privacy/cookie" {
+        response = response.header("Set-Cookie", "session=test");
+    }
+    response.body(Body::from(body)).unwrap()
 }
 
 enum Process {
@@ -132,7 +129,6 @@ struct Harness {
     directory: PathBuf,
     process: Option<Process>,
     upstream: Upstream,
-    upstream_shutdown: Shutdown,
     upstream_task: JoinHandle<()>,
     client: Client,
     base: String,
@@ -153,25 +149,17 @@ impl Harness {
         let upstream_port = free_port()?;
         let port = free_port()?;
         let upstream = Upstream::default();
-        let fixture = rocket::custom(
-            RocketConfig::figment()
-                .merge(("address", if image.is_some() { "0.0.0.0" } else { "127.0.0.1" }))
-                .merge(("port", upstream_port))
-                .merge(("log_level", "off")),
-        )
-        .mount("/", [RocketMethod::Get, RocketMethod::Post].map(|method| Route::new(method, "/<path..>", upstream.clone())))
-        .ignite()
-        .await?;
+        let fixture_address = format!("{}:{upstream_port}", if image.is_some() { "0.0.0.0" } else { "127.0.0.1" });
+        let listener = tokio::net::TcpListener::bind(&fixture_address).await?;
+        let fixture = Router::new().fallback(any(upstream_handler)).with_state(upstream.clone());
         let directory = env::temp_dir().join(format!("dynode-integration-{}", Uuid::new_v4()));
         fs::create_dir(&directory)?;
-        let shutdown = fixture.shutdown();
         let mut harness = Self {
             directory,
             process: None,
             upstream,
-            upstream_shutdown: shutdown,
             upstream_task: tokio::spawn(async move {
-                fixture.launch().await.unwrap();
+                axum::serve(listener, fixture).await.unwrap();
             }),
             client: Client::builder().no_proxy().timeout(Duration::from_secs(10)).build()?,
             base: format!("http://127.0.0.1:{port}"),
@@ -279,7 +267,6 @@ impl Drop for Harness {
             }
             None => {}
         }
-        self.upstream_shutdown.clone().notify();
         self.upstream_task.abort();
         let _ = fs::remove_dir_all(&self.directory);
     }

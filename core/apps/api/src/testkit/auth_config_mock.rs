@@ -1,5 +1,6 @@
-use crate::devices::auth_config::{AuthConfig, JwtConfig};
 use primitives::MINUTE;
+
+use crate::auth::device::{DeviceAuthConfig, JwtConfig};
 
 impl JwtConfig {
     pub fn mock() -> Self {
@@ -10,7 +11,7 @@ impl JwtConfig {
     }
 }
 
-impl AuthConfig {
+impl DeviceAuthConfig {
     pub fn mock() -> Self {
         Self::new(MINUTE, JwtConfig::mock())
     }

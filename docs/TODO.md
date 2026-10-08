@@ -21,7 +21,7 @@ These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5, then VM294 (scenes) in the same way.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173.
+Waiting on the owner: BD29 and BD50 (server), VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174.
 
 ## Screen coverage and existing infrastructure
 
@@ -183,7 +183,8 @@ A feature module is one product area, and both apps give it the same name. iOS g
 
 - **CLN455** **S** **Transaction asset links keep ids the store does not have yet.** iOS drops a swap's asset ids that are not stored yet when linking a transaction to its assets, so asset-filtered history misses the swap; Android keeps them. Decide whether iOS relaxes its foreign key (a migration) or Core stores the asset first; until then this stays open.
 - **X168** **S** `WalletConfiguration.multi_signature_accounts` ([`wallet_configuration.rs`](../core/crates/primitives/src/wallet_configuration.rs)) is the old name of `externally_controlled_accounts`, which also covers Solana accounts assigned to another program. The API fills both because shipped apps read only the old field. Delete the field, its fill in [`wallet_configuration.rs`](../core/crates/services/src/devices/wallet_configuration_client.rs) and the merge in [`externally_controlled_banners`](../core/gemstone/src/services/wallet_configuration/rules.rs) on 2026-12-18, three months after the release that reads `externally_controlled_accounts`.
-- **X169** **S** The legacy singular `GET /devices/transaction/<id>` route (`get_device_transaction_v2` in [`devices/mod.rs`](../core/apps/api/src/devices/mod.rs)) goes on 2026-11-15, with its mount.
+- **X169** **S** The legacy singular `GET /v2/devices/transaction/<id>` route (`get_transaction` in [`transactions.rs`](../core/apps/api/src/routes/devices/transactions.rs)) goes on 2026-11-15, with its `v2_router` entry.
+- **X174** **S** The `/v2/devices` routes ([`v2_router`](../core/apps/api/src/routes/devices/mod.rs)), the path-only signing rule (`SignedPath::PathOnly` in [`middleware.rs`](../core/apps/api/src/auth/device/middleware.rs)) and the `/v2/devices/stream` route go on 2027-01-15, three months after the release whose gemstone client calls `/v3/devices`.
 - **X170** **S** Dynode's TON `/api/v2/runGetMethod` cache validation in [`proxy/service.rs`](../core/apps/dynode/src/proxy/service.rs) goes on 2027-01-01, together with the Dynode legacy wallet routes.
 - **X171** **S** The connection banner stays off (`CONNECTION_BANNER_ENABLED` in [`constants.rs`](../core/gemstone/src/constants.rs)) until it is polished; turning it on is the owner's call.
 - **X172** **S** `WidgetValueTone` ([`WidgetValueTone.swift`](../ios/GemPriceWidget/Types/WidgetValueTone.swift)) restates Core's `valueTone` because the widget extension cannot link Gemstone; a change of nothing stays neutral in both. The copy goes once the widget can reach Core, and until then the two change together.

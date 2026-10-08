@@ -32,9 +32,23 @@ pub struct WebhookConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct TimeoutConfig {
+    #[serde(deserialize_with = "duration::deserialize")]
+    pub timeout: Duration,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct ServerConfig {
+    pub header: TimeoutConfig,
+    pub request: TimeoutConfig,
+    pub shutdown: TimeoutConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub port: u16,
     pub address: String,
+    pub server: ServerConfig,
     pub metrics: MetricsConfig,
     #[serde(skip)]
     pub chains: Option<ChainsConfig>,

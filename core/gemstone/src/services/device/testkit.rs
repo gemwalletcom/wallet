@@ -47,5 +47,5 @@ impl GemDeviceService {
 
 pub fn registering_device_provider() -> TestAlienProvider {
     let device = serde_json::to_string(&Device::mock()).unwrap();
-    TestAlienProvider::with_json_by_path(200, &[("devices/is_registered", "false"), ("devices/subscriptions", "[]"), ("/v2/devices", &device)])
+    TestAlienProvider::with_json_by_path(200, &[("devices/is-registered", "false"), ("devices/subscriptions", "[]"), ("/v3/devices", &device)])
 }

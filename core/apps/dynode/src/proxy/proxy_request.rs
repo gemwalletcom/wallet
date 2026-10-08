@@ -1,10 +1,10 @@
 use std::time::{Duration, Instant};
 
 use chain_providers::BroadcastProviders;
+use http::StatusCode;
 use primitives::{Chain, ChainRequest, ChainRequestProtocol, ChainRequestType};
 use reqwest::Method;
 use reqwest::header::{HOST, HeaderMap, USER_AGENT};
-use rocket::http::Status;
 use url::Url;
 use uuid::Uuid;
 
@@ -31,8 +31,8 @@ pub struct ProxyRequest {
 }
 
 impl ProxyRequest {
-    pub fn from_http(method: Method, headers: HeaderMap, body: Vec<u8>, uri: &str, chain: Chain) -> Result<Self, Status> {
-        let host = headers.get(HOST).and_then(|header| header.to_str().ok()).ok_or(Status::BadRequest)?;
+    pub fn from_http(method: Method, headers: HeaderMap, body: Vec<u8>, uri: &str, chain: Chain) -> Result<Self, StatusCode> {
+        let host = headers.get(HOST).and_then(|header| header.to_str().ok()).ok_or(StatusCode::BAD_REQUEST)?;
         let host = Self::parse_hostname(host);
         let user_agent = headers.get(USER_AGENT).and_then(|header| header.to_str().ok()).unwrap_or_default().to_string();
         let (path, path_with_query) = Self::prepare_paths(uri);

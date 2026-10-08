@@ -1,4 +1,4 @@
-use crate::support::SupportImageUploadConfig;
+use crate::routes::devices::support::SupportImageUploadConfig;
 
 impl SupportImageUploadConfig {
     pub fn mock() -> Self {

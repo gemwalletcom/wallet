@@ -1,89 +1,126 @@
-use rocket::http::{ContentType, Header};
-use rocket::local::asynchronous::Client;
+use axum::body::Body;
+use axum::response::Response;
+use http::header::{CONTENT_TYPE, HOST};
+use http::{Method, Request, StatusCode};
+use http_body_util::BodyExt;
 use serde_json::{Value, json};
+use tower::ServiceExt;
 
 use super::*;
 use crate::testkit::server_mock::TEST_REQUEST_LIMIT;
 
+async fn send(router: &Router, method: Method, path: &str, body: Option<Vec<u8>>) -> Response {
+    let mut request = Request::builder().method(method).uri(path);
+    if body.is_some() {
+        request = request.header(HOST, "localhost");
+    }
+    router.clone().oneshot(request.body(body.map(Body::from).unwrap_or_default()).unwrap()).await.unwrap()
+}
+
+fn content_type(response: &Response) -> Option<&str> {
+    response.headers().get(CONTENT_TYPE).and_then(|value| value.to_str().ok())
+}
+
+async fn text(response: Response) -> String {
+    String::from_utf8(response.into_body().collect().await.unwrap().to_bytes().to_vec()).unwrap()
+}
+
+async fn json(response: Response) -> Value {
+    serde_json::from_str(&text(response).await).unwrap()
+}
+
 #[tokio::test]
 async fn test_node_health_root_and_metrics() {
-    let client = Client::tracked(Server::mock_nodes().rocket()).await.unwrap();
-    assert_eq!(client.get("/health").dispatch().await.status(), Status::Ok);
-    let root = client.get("/").dispatch().await;
-    assert_eq!(root.status(), Status::Ok);
-    assert_eq!(root.into_string().await.unwrap(), "ok");
-    let response = client.get("/metrics").dispatch().await;
-    assert_eq!(response.status(), Status::Ok);
-    assert_eq!(response.content_type(), Some(ContentType::Plain));
-    let metrics = response.into_string().await.unwrap();
+    let router = Server::mock_nodes().router();
+    assert_eq!(send(&router, Method::GET, "/health", None).await.status(), StatusCode::OK);
+    let root = send(&router, Method::GET, "/", None).await;
+    assert_eq!(root.status(), StatusCode::OK);
+    assert_eq!(text(root).await, "ok");
+    let response = send(&router, Method::GET, "/metrics", None).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(content_type(&response), Some("text/plain; charset=utf-8"));
+    let metrics = text(response).await;
     assert!(!metrics.contains("auth_requests"));
     assert_eq!(metrics.lines().filter(|line| line.starts_with("egress_")).count(), 0);
+    assert!(metrics.contains("dynode_http_requests_total{method=\"GET\",route=\"/health\",status=\"200\"} 1"));
 }
 
 #[tokio::test]
 async fn test_node_invalid_chain_and_missing_host_are_json_errors() {
-    let client = Client::tracked(Server::mock_nodes().rocket()).await.unwrap();
+    let router = Server::mock_nodes().router();
     for (path, message) in [("/invalid-chain", "Invalid chain"), ("/auth", "Invalid chain"), ("/ethereum", "Failed to build request")] {
-        let response = client.get(path).dispatch().await;
-        assert_eq!(response.status(), Status::BadRequest);
-        assert_eq!(response.content_type(), Some(ContentType::JSON));
-        assert_eq!(serde_json::from_str::<Value>(&response.into_string().await.unwrap()).unwrap(), json!({ "error": { "message": message } }));
+        let response = send(&router, Method::GET, path, None).await;
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(content_type(&response), Some("application/json"));
+        assert_eq!(json(response).await, json!({ "error": { "message": message } }));
     }
+    let response = send(&router, Method::POST, "/health", Some(b"{}".to_vec())).await;
+    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    assert_eq!(json(response).await, json!({ "error": { "message": "Invalid chain" } }));
+    let response = send(&router, Method::TRACE, "/ethereum", None).await;
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    assert_eq!(json(response).await, json!({ "error": { "message": "route not found" } }));
 }
 
 #[tokio::test]
 async fn test_provider_health_and_route_access() {
-    let client = Client::tracked(Server::mock_egress().rocket()).await.unwrap();
-    assert_eq!(client.get("/health").dispatch().await.status(), Status::Ok);
+    let router = Server::mock_egress().router();
+    assert_eq!(send(&router, Method::GET, "/health", None).await.status(), StatusCode::OK);
     for (method, path, status, message) in [
-        (RocketMethod::Get, "/", Status::NotFound, "route not found"),
-        (RocketMethod::Get, "/auth", Status::NotFound, "route not found"),
-        (RocketMethod::Get, "/worker/missing/allowed", Status::NotFound, "route not found"),
-        (RocketMethod::Get, "/worker/security_public/denied", Status::Forbidden, "request not allowed"),
-        (RocketMethod::Post, "/worker/security_public/allowed", Status::Forbidden, "request not allowed"),
-        (RocketMethod::Get, "/ethereum", Status::NotFound, "route not found"),
+        (Method::GET, "/", StatusCode::NOT_FOUND, "route not found"),
+        (Method::GET, "/auth", StatusCode::NOT_FOUND, "route not found"),
+        (Method::GET, "/worker/missing/allowed", StatusCode::NOT_FOUND, "route not found"),
+        (Method::GET, "/worker/security_public/denied", StatusCode::FORBIDDEN, "request not allowed"),
+        (Method::POST, "/worker/security_public/allowed", StatusCode::FORBIDDEN, "request not allowed"),
+        (Method::GET, "/ethereum", StatusCode::NOT_FOUND, "route not found"),
     ] {
-        let response = client.req(method, path).dispatch().await;
+        let response = send(&router, method.clone(), path, None).await;
         assert_eq!(response.status(), status, "{method} {path}");
-        assert_eq!(response.content_type(), Some(ContentType::JSON));
-        assert_eq!(serde_json::from_str::<Value>(&response.into_string().await.unwrap()).unwrap(), json!({ "error": { "message": message } }));
+        assert_eq!(content_type(&response), Some("application/json"));
+        assert_eq!(json(response).await, json!({ "error": { "message": message } }));
     }
 }
 
 #[tokio::test]
 async fn test_egress_unavailable_endpoint_preserves_metrics() {
-    let client = Client::tracked(Server::mock_egress().rocket()).await.unwrap();
-    let response = client.get("/worker/security_public/allowed?token=not-a-metric-label").dispatch().await;
-    assert_eq!(response.status(), Status::ServiceUnavailable);
-    assert_eq!(response.content_type(), Some(ContentType::JSON));
-    assert_eq!(serde_json::from_str::<Value>(&response.into_string().await.unwrap()).unwrap(), json!({ "error": { "message": "no endpoint is available" } }));
+    let router = Server::mock_egress().router();
+    let response = send(&router, Method::GET, "/worker/security_public/allowed?token=not-a-metric-label", None).await;
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(content_type(&response), Some("application/json"));
+    assert_eq!(json(response).await, json!({ "error": { "message": "no endpoint is available" } }));
 
-    let response = client.get("/metrics").dispatch().await;
-    assert_eq!(response.status(), Status::Ok);
-    assert_eq!(response.content_type(), Some(ContentType::Plain));
-    let metrics = response.into_string().await.unwrap();
+    let response = send(&router, Method::GET, "/metrics", None).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(content_type(&response), Some("text/plain; charset=utf-8"));
+    let metrics = text(response).await;
     assert_eq!(
-        metrics.lines().filter(|line| line.starts_with("dynode_")).collect::<Vec<_>>(),
+        metrics.lines().filter(|line| line.starts_with("dynode_") && !line.starts_with("dynode_http_")).collect::<Vec<_>>(),
         vec![
             "dynode_responses_total{source=\"worker\",group=\"security\",service=\"security_public\",path=\"/allowed\",status=\"503\"} 1",
             "dynode_inflight{source=\"worker\",group=\"security\",service=\"security_public\"} 0",
         ]
+    );
+    assert_eq!(
+        metrics.lines().filter(|line| line.starts_with("dynode_http_requests_total")).collect::<Vec<_>>(),
+        vec!["dynode_http_requests_total{method=\"GET\",route=\"unmatched\",status=\"503\"} 1"]
     );
     assert_eq!(metrics.lines().filter(|line| line.starts_with("egress_")).count(), 0);
 }
 
 #[tokio::test]
 async fn test_request_body_limit_accepts_exact_size_and_rejects_truncation_in_both_modes() {
-    for (client, path, denied_message) in [
-        (Client::tracked(Server::mock_nodes().rocket()).await.unwrap(), "/ethereum/denied", "Request not allowed"),
-        (Client::tracked(Server::mock_egress().rocket()).await.unwrap(), "/worker/security_public/denied", "request not allowed"),
+    for (router, path, denied_message) in [
+        (Server::mock_nodes().router(), "/ethereum/denied", "Request not allowed"),
+        (Server::mock_egress().router(), "/worker/security_public/denied", "request not allowed"),
     ] {
-        for (length, status, message) in [(TEST_REQUEST_LIMIT, Status::Forbidden, denied_message), (TEST_REQUEST_LIMIT + 1, Status::PayloadTooLarge, "request body is too large")] {
-            let response = client.post(path).header(Header::new("Host", "localhost")).body(vec![b'x'; length]).dispatch().await;
+        for (length, status, message) in [
+            (TEST_REQUEST_LIMIT, StatusCode::FORBIDDEN, denied_message),
+            (TEST_REQUEST_LIMIT + 1, StatusCode::PAYLOAD_TOO_LARGE, "request body is too large"),
+        ] {
+            let response = send(&router, Method::POST, path, Some(vec![b'x'; length])).await;
             assert_eq!(response.status(), status, "{path} body length {length}");
-            assert_eq!(response.content_type(), Some(ContentType::JSON));
-            let body = response.into_string().await.unwrap();
-            assert_eq!(serde_json::from_str::<Value>(&body).unwrap(), json!({ "error": { "message": message } }));
+            assert_eq!(content_type(&response), Some("application/json"));
+            assert_eq!(json(response).await, json!({ "error": { "message": message } }));
         }
     }
 }

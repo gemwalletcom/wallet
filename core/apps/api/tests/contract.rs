@@ -148,6 +148,10 @@ impl Harness {
         self.sign(method, path, wallet_id, body, now_ms())
     }
 
+    fn signed_path<'a>(&self, path: &'a str) -> &'a str {
+        if path.starts_with("/v3/") { path } else { path.split('?').next().unwrap_or(path) }
+    }
+
     fn device(&self) -> Value {
         let device = Device {
             id: self.device_id.clone(),
@@ -158,13 +162,13 @@ impl Harness {
     }
 
     async fn send(&self, case: &Case) -> Observed {
-        let path_only = case.path.split('?').next().unwrap_or(&case.path);
+        let signed_path = self.signed_path(&case.path);
         let body = case.body.clone().unwrap_or_default();
         let mut request = self.http.request(case.method.clone(), format!("{}{}", self.base, case.path));
         let authorization = match &case.auth {
             Auth::None => None,
-            Auth::Device => Some(self.sign_now(case.method.as_str(), path_only, "", &body)),
-            Auth::DeviceWallet => Some(self.sign_now(case.method.as_str(), path_only, &self.wallet_id, &body)),
+            Auth::Device => Some(self.sign_now(case.method.as_str(), signed_path, "", &body)),
+            Auth::DeviceWallet => Some(self.sign_now(case.method.as_str(), signed_path, &self.wallet_id, &body)),
             Auth::Header(value) => Some(value.clone()),
             Auth::Bearer(secret) => Some(format!("Bearer {secret}")),
         };
@@ -259,7 +263,8 @@ impl Harness {
     }
 
     async fn stream_round_trip(&self, url: &str) -> Observed {
-        let path = "/v2/devices/stream";
+        let path = url.rsplit_once("/v").map(|(_, suffix)| format!("/v{suffix}")).unwrap();
+        let path = path.as_str();
         let mut request = url.into_client_request().unwrap();
         request.headers_mut().insert(AUTHORIZATION_HEADER, HeaderValue::from_str(&self.sign_now("GET", path, "", &[])).unwrap());
         let (mut socket, response) = connect_async(request).await.unwrap();
@@ -484,6 +489,34 @@ fn registered_device_cases(harness: &Harness) -> Vec<Case> {
     ]
 }
 
+fn v3_cases(harness: &Harness) -> Vec<Case> {
+    let wallet = harness.wallet_id.clone();
+    let query_signed_for_other_asset = harness.sign_now("GET", "/v3/devices/transactions?asset_id=bitcoin&limit=5", &wallet, &[]);
+    let path_only_signature = harness.sign_now("GET", "/v3/devices/transactions", &wallet, &[]);
+    let replayed = harness.sign_now("POST", "/v3/devices/notifications/read", "", &[]);
+    vec![
+        Case::new("v3_device", Method::GET, "/v3/devices").device(),
+        Case::new("v3_is_registered", Method::GET, "/v3/devices/is-registered").device(),
+        Case::new("v3_subscriptions", Method::GET, "/v3/devices/subscriptions").device(),
+        Case::new("v3_transactions", Method::GET, "/v3/devices/transactions?asset_id=ethereum&limit=5").wallet(),
+        Case::new("v3_transactions_query_tampered", Method::GET, "/v3/devices/transactions?asset_id=ethereum&limit=5").auth(Auth::Header(query_signed_for_other_asset)),
+        Case::new("v3_transactions_path_only_signature", Method::GET, "/v3/devices/transactions?asset_id=ethereum").auth(Auth::Header(path_only_signature)),
+        Case::new("v3_price_alerts", Method::GET, "/v3/devices/price-alerts?asset_id=ethereum").device(),
+        Case::new("v3_wallet_configuration", Method::GET, "/v3/devices/wallet-configuration").wallet().volatile(),
+        Case::new("v3_nft_assets", Method::GET, "/v3/devices/nft-assets").wallet(),
+        Case::new("v3_names", Method::GET, "/v3/devices/names/vitalik.eth?chain=ethereum").device().volatile(),
+        Case::new("v3_address_names", Method::POST, "/v3/devices/address-names")
+            .device()
+            .json(json!([{"chain": "ethereum", "address": TEST_PRIVATE_KEY_ETHEREUM_ADDRESS}])),
+        Case::new("v3_notifications_read", Method::POST, "/v3/devices/notifications/read").auth(Auth::Header(replayed.clone())),
+        Case::new("v3_notifications_read_replayed", Method::POST, "/v3/devices/notifications/read").auth(Auth::Header(replayed)),
+        Case::new("v3_subscriptions_repeat_get", Method::GET, "/v3/devices/subscriptions").device(),
+        Case::new("v3_dropped_token", Method::GET, "/v3/devices/token").device(),
+        Case::new("v3_dropped_legacy_transaction", Method::GET, &format!("/v3/devices/transaction/{TRANSACTION_ID}")).device(),
+        Case::new("v3_underscore_path", Method::GET, "/v3/devices/price_alerts").device(),
+    ]
+}
+
 fn admin_cases(harness: &Harness) -> Vec<Case> {
     let device_id = harness.device_id.clone();
     let mut cases = vec![
@@ -561,9 +594,11 @@ async fn test_api_contract() {
     )
     .await;
     run(&harness, admin_cases(&harness), &mut observed).await;
+    run(&harness, v3_cases(&harness), &mut observed).await;
     run(&harness, after_wallet, &mut observed).await;
     if let Ok(url) = env::var("API_WS_URL") {
         observed.insert("ws_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v2/devices/stream")).await);
+        observed.insert("ws_v3_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v3/devices/stream")).await);
         observed.insert("ws_health".to_string(), harness.send(&Case::new("ws_health", Method::GET, "/health")).await);
     }
 
