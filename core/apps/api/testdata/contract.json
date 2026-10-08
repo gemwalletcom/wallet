@@ -749,13 +749,9 @@
     }
   },
   "v2_device_before_registration": {
-    "status": 404,
+    "status": 200,
     "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Device not found device_id=<device_id>"
-      }
-    }
+    "body": null
   },
   "v2_device_expired": {
     "status": 401,
@@ -826,13 +822,9 @@
     }
   },
   "v2_device_unregistered": {
-    "status": 404,
+    "status": 200,
     "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Device not found device_id=ea4a6c63e29c520abef5507b132ec5f9954776aebebe7b92421eea691446d22c"
-      }
-    }
+    "body": null
   },
   "v2_device_update": {
     "status": 200,
@@ -1327,7 +1319,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "Missing wallet ID device_id=<device_id>"
+        "message": "Missing wallet ID"
       }
     }
   },
@@ -1336,7 +1328,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "Wallet not found device_id=<device_id> wallet_id=multicoin_0xunknown"
+        "message": "Wallet not found"
       }
     }
   },
@@ -1406,7 +1398,7 @@
     "content_type": "application/json",
     "body": {
       "error": {
-        "message": "Replayed request device_id=<device_id>"
+        "message": "Replayed request"
       }
     }
   },

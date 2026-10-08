@@ -18,8 +18,8 @@ pub async fn register(device_id: VerifiedDeviceId, State(client): State<Arc<Devi
     Ok(client.add_device(device).await?.into())
 }
 
-pub async fn get_device(device: AuthenticatedDevice, State(client): State<Arc<DevicesClient>>) -> Result<ApiResponse<Device>, ApiError> {
-    Ok(client.get_device(&device.record.device.id).await?.into())
+pub async fn get_device(device_id: VerifiedDeviceId, State(client): State<Arc<DevicesClient>>) -> Result<ApiResponse<Option<Device>>, ApiError> {
+    Ok(client.find_device_record(&device_id.0).await?.map(|record| record.device).into())
 }
 
 pub async fn is_registered(device_id: VerifiedDeviceId, State(client): State<Arc<DevicesClient>>) -> Result<ApiResponse<bool>, ApiError> {

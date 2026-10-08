@@ -10,9 +10,10 @@ use axum::extract::{DefaultBodyLimit, Request};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::{Router, body::Body};
+use gem_auth::parse_device_auth;
 use gem_tracing::{error_fields, info_with_fields};
-use http::header::{CONTENT_TYPE, USER_AGENT};
-use http::{Method, StatusCode};
+use http::header::{AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
+use http::{HeaderValue, Method, StatusCode};
 use http_server::{ErrorBody, HttpMetrics, catch_panic_layer, status_message, timeout_layer, with_security_headers};
 
 use crate::error::{ApiError, ErrorContext};
@@ -64,6 +65,7 @@ pub async fn log_failed_requests(request: Request<Body>, next: Next) -> Response
     let method = request.method().clone();
     let uri = redacted_uri(request.method(), request.uri().path(), request.uri().query());
     let user_agent = request.headers().get(USER_AGENT).and_then(|value| value.to_str().ok()).unwrap_or("unknown").to_string();
+    let authorization = request.headers().get(AUTHORIZATION).cloned();
     let response = next.run(request).await;
     let status = response.status();
     if status.is_success() || status == StatusCode::SWITCHING_PROTOCOLS {
@@ -74,11 +76,22 @@ pub async fn log_failed_requests(request: Request<Body>, next: Next) -> Response
         return response;
     }
     let message = context.as_ref().map(|context| context.message.clone()).unwrap_or_else(|| status_message(status));
+    let device = device_fields(authorization.as_ref());
     match context.and_then(|context| context.detail) {
-        Some(detail) => error_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = detail, user_agent = user_agent),
-        None => info_with_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = message, user_agent = user_agent),
+        Some(detail) => error_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = format!("{detail}{device}"), user_agent = user_agent),
+        None => info_with_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = format!("{message}{device}"), user_agent = user_agent),
     }
     response
+}
+
+fn device_fields(authorization: Option<&HeaderValue>) -> String {
+    let Some(payload) = authorization.and_then(|value| value.to_str().ok()).and_then(parse_device_auth) else {
+        return String::new();
+    };
+    match payload.wallet_id {
+        Some(wallet_id) => format!(" device_id={} wallet_id={wallet_id}", payload.device_id),
+        None => format!(" device_id={}", payload.device_id),
+    }
 }
 
 fn redacted_uri(method: &Method, path: &str, query: Option<&str>) -> String {
@@ -99,13 +112,26 @@ fn redacted_uri(method: &Method, path: &str, query: Option<&str>) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::redacted_uri;
-    use http::Method;
+    use super::{device_fields, redacted_uri};
+    use gem_auth::{build_device_auth_header, device_public_key};
+    use http::{HeaderValue, Method};
+    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
 
     #[test]
     fn test_redacted_uri() {
         assert_eq!(redacted_uri(&Method::POST, "/v1/webhooks/fiat/moonpay/s3cret", None), "/v1/webhooks/fiat/moonpay/[redacted]");
         assert_eq!(redacted_uri(&Method::POST, "/v1/webhooks/fiat/moonpay", Some("a=1")), "/v1/webhooks/fiat/moonpay?a=1");
         assert_eq!(redacted_uri(&Method::GET, "/v1/assets/ethereum", Some("currency=USD")), "/v1/assets/ethereum?currency=USD");
+    }
+
+    #[test]
+    fn test_device_fields() {
+        let device_id = hex::encode(device_public_key(&TEST_PRIVATE_KEY).unwrap());
+        let header = |wallet_id: &str| HeaderValue::from_str(&build_device_auth_header(&TEST_PRIVATE_KEY, "GET", "/v3/devices", wallet_id, &[], 1).unwrap()).unwrap();
+
+        assert_eq!(device_fields(Some(&header(""))), format!(" device_id={device_id}"));
+        assert_eq!(device_fields(Some(&header("multicoin_0x1"))), format!(" device_id={device_id} wallet_id=multicoin_0x1"));
+        assert_eq!(device_fields(Some(&HeaderValue::from_static("Bearer secret"))), "");
+        assert_eq!(device_fields(None), "");
     }
 }

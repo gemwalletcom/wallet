@@ -66,7 +66,7 @@ async fn verify(auth: &DeviceAuth, uri: &Uri, request: Request) -> Result<Reques
         return Err(ApiError::Unauthorized(DeviceError::InvalidSignature.to_string()));
     }
     if payload.device_id.len() != DEVICE_ID_LENGTH {
-        return Err(ApiError::Unauthorized(DeviceError::InvalidDeviceId.message(Some(&payload.device_id), None)));
+        return Err(ApiError::Unauthorized(DeviceError::InvalidDeviceId.to_string()));
     }
     let body = match axum::body::to_bytes(body, auth.limit).await {
         Ok(body) => body,
@@ -83,7 +83,7 @@ async fn verify(auth: &DeviceAuth, uri: &Uri, request: Request) -> Result<Reques
     if let Some(replay) = auth.replay.as_ref().filter(|_| is_mutation(&parts.method)) {
         match replay.remember_request_signature(&encode_with_0x(&payload.signature)).await {
             Ok(true) => {}
-            Ok(false) => return Err(ApiError::Unauthorized(DeviceError::ReplayedRequest.message(Some(&payload.device_id), None))),
+            Ok(false) => return Err(ApiError::Unauthorized(DeviceError::ReplayedRequest.to_string())),
             Err(error) => error_fields!("replay check unavailable", error = error.to_string(), device_id = payload.device_id.as_str()),
         }
     }

@@ -61,8 +61,8 @@ where
         let State(devices): State<Arc<DevicesClient>> = State::from_request_parts(parts, state).await.map_err(|_| ApiError::Internal("Devices client is not available".to_string()))?;
         match devices.find_device_record(&request.device_id).await {
             Ok(Some(record)) => Ok(Self { record }),
-            Ok(None) => Err(ApiError::NotFound(DeviceError::DeviceNotFound.message(Some(&request.device_id), None))),
-            Err(_) => Err(ApiError::Internal(DeviceError::DatabaseError.message(Some(&request.device_id), None))),
+            Ok(None) => Err(ApiError::NotFound(DeviceError::DeviceNotFound.to_string())),
+            Err(_) => Err(ApiError::Internal(DeviceError::DatabaseError.to_string())),
         }
     }
 }
@@ -84,7 +84,7 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let request = verified(parts)?;
         let device_id = request.device_id.as_str();
-        let wallet_id = request.wallet_id.as_deref().ok_or_else(|| ApiError::Unauthorized(DeviceError::MissingWalletId.message(Some(device_id), None)))?;
+        let wallet_id = request.wallet_id.as_deref().ok_or_else(|| ApiError::Unauthorized(DeviceError::MissingWalletId.to_string()))?;
         let State(devices): State<Arc<DevicesClient>> = State::from_request_parts(parts, state).await.map_err(|_| ApiError::Internal("Devices client is not available".to_string()))?;
         match devices.find_device_wallet(device_id, wallet_id).await {
             Ok(DeviceWalletLookup::Found(record, wallet)) => Ok(Self {
@@ -93,9 +93,9 @@ where
                 wallet_identifier: wallet.wallet_id,
                 wallet_type: wallet.wallet_type,
             }),
-            Ok(DeviceWalletLookup::DeviceNotFound) => Err(ApiError::NotFound(DeviceError::DeviceNotFound.message(Some(device_id), None))),
-            Ok(DeviceWalletLookup::WalletNotFound) => Err(ApiError::NotFound(DeviceError::WalletNotFound.message(Some(device_id), Some(wallet_id)))),
-            Ok(DeviceWalletLookup::WalletUnavailable) | Err(_) => Err(ApiError::Internal(DeviceError::DatabaseError.message(Some(device_id), Some(wallet_id)))),
+            Ok(DeviceWalletLookup::DeviceNotFound) => Err(ApiError::NotFound(DeviceError::DeviceNotFound.to_string())),
+            Ok(DeviceWalletLookup::WalletNotFound) => Err(ApiError::NotFound(DeviceError::WalletNotFound.to_string())),
+            Ok(DeviceWalletLookup::WalletUnavailable) | Err(_) => Err(ApiError::Internal(DeviceError::DatabaseError.to_string())),
         }
     }
 }
