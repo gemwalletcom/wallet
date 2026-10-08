@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
@@ -27,7 +28,7 @@ pub struct TransactionScanProviders {
 }
 
 impl TransactionScanProviders {
-    pub fn filter_enabled(&self, enabled: &[ScanProvider]) -> Self {
+    pub fn filter_enabled(&self, enabled: &HashSet<ScanProvider>) -> Self {
         Self {
             addresses: self.addresses.iter().filter(|provider| enabled.contains(&provider.provider())).cloned().collect(),
             poisoning: self.poisoning.iter().filter(|provider| enabled.contains(&provider.provider())).cloned().collect(),
@@ -84,6 +85,7 @@ mod tests {
             (vec![], vec![], false),
             (ScanProvider::remote(), ScanProvider::remote(), true),
         ] {
+            let enabled = enabled.into_iter().collect();
             let filtered = providers.filter_enabled(&enabled);
             assert_eq!(filtered.addresses.iter().map(|provider| provider.provider()).collect::<Vec<_>>(), addresses);
             assert_eq!(filtered.poisoning.len(), usize::from(hashdit_enabled));

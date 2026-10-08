@@ -53,9 +53,9 @@ impl ScanClient {
         let safe_targets = Self::safe_targets(&config, &subjects);
         let safe = self.get_cached_safe(&safe_targets).await;
         let input = self.get_scan_input(&config, payload, &subjects, safe).await?;
-        let plan = plan_transaction_scan(&input);
+        let plan = plan_transaction_scan(&input, &config.enabled_providers);
         let checks = match &plan.targets {
-            Some(targets) => self.run_checks(&config, targets).await?,
+            Some(targets) => self.run_checks(&config.enabled_providers, targets).await?,
             None => Vec::new(),
         };
         let result = evaluate_transaction_scan(&input, plan, checks);
@@ -119,8 +119,8 @@ impl ScanClient {
         self.safe_targets.add_safe(&new_safe).await
     }
 
-    async fn run_checks(&self, config: &ScanConfig, targets: &ScanTargets) -> Result<Vec<ProviderCheck>, Box<dyn Error + Send + Sync>> {
-        let providers = self.providers.filter_enabled(&config.enabled_providers);
+    async fn run_checks(&self, enabled_providers: &HashSet<ScanProvider>, targets: &ScanTargets) -> Result<Vec<ProviderCheck>, Box<dyn Error + Send + Sync>> {
+        let providers = self.providers.filter_enabled(enabled_providers);
         let (addresses, poisoning, websites) = future::join3(
             future::join_all(targets.address.iter().flat_map(|target| {
                 providers

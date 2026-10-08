@@ -9,7 +9,7 @@ use crate::ConfigCacher;
 
 pub(crate) struct ScanConfig {
     pub(crate) enforced: HashSet<ScanType>,
-    pub(crate) enabled_providers: Vec<ScanProvider>,
+    pub(crate) enabled_providers: HashSet<ScanProvider>,
     pub(crate) safe_cache_durations: HashMap<ScanType, Duration>,
     pub(crate) detection_max_age: Duration,
     pub(crate) required_successes: usize,
@@ -23,10 +23,10 @@ impl ScanConfig {
                 enforced.insert(scan_type);
             }
         }
-        let mut enabled_providers = Vec::new();
-        for provider in ScanProvider::remote() {
+        let mut enabled_providers = HashSet::new();
+        for provider in ScanProvider::all() {
             if config.get_param_bool(&ConfigParamKey::ScanProviderEnable(provider)).await? {
-                enabled_providers.push(provider);
+                enabled_providers.insert(provider);
             }
         }
         let mut safe_cache_durations = HashMap::new();
@@ -66,10 +66,7 @@ mod tests {
             assert_eq!(scan.enforced.contains(&scan_type), ConfigParamKey::ScanTypeEnable(scan_type).default_value() == "true");
             assert_eq!(scan.safe_cache_durations.contains_key(&scan_type), scan_type.is_safe_cacheable());
         }
-        assert_eq!(
-            scan.enabled_providers.len(),
-            ScanProvider::remote().into_iter().filter(|provider| ConfigParamKey::ScanProviderEnable(*provider).default_value() == "true").count()
-        );
+        assert_eq!(scan.enabled_providers, ScanProvider::all().into_iter().collect());
     }
 
     #[tokio::test]
@@ -77,11 +74,13 @@ mod tests {
         let scan_type = ScanType::all().into_iter().find(ScanType::is_safe_cacheable).unwrap();
         let repository = MemoryConfigRepository::new()
             .with_value(&ConfigParamKey::ScanTypeEnable(scan_type).key(), "false")
+            .with_value(&ConfigParamKey::ScanProviderEnable(ScanProvider::Internal).key(), "false")
             .with_value(&ConfigParamKey::ScanSafeCacheDuration(scan_type).key(), "0s");
 
         let scan = ScanConfig::from_config(&config(repository)).await.unwrap();
 
         assert!(!scan.enforced.contains(&scan_type));
+        assert!(!scan.enabled_providers.contains(&ScanProvider::Internal));
         assert_eq!(scan.safe_cache_ttl(scan_type), 0);
     }
 

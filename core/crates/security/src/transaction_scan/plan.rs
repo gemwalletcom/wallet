@@ -1,16 +1,22 @@
+use std::collections::HashSet;
+
 use primitives::asset_score::AssetRank;
-use primitives::{ChainAddress, ScanTransactionPayload, ScanType, TransactionType};
+use primitives::{ChainAddress, ScanProvider, ScanTransactionPayload, ScanType, TransactionType};
 
 use super::model::{ScanDetection, ScanFinding, ScanPlan, ScanTargets, TransactionScanInput};
 use super::subject::{ScanSubject, scan_subjects};
 use crate::{AddressPoisoningTarget, AddressTarget, WebsiteTarget};
 
-pub fn plan_transaction_scan(input: &TransactionScanInput) -> ScanPlan {
+pub fn plan_transaction_scan(input: &TransactionScanInput, enabled_providers: &HashSet<ScanProvider>) -> ScanPlan {
     let payload = &input.payload;
     let is_target_verified = input.addresses.iter().any(|address| address.is_verified_for(payload.target.asset_id.chain, &payload.target.address));
     let subjects = scan_subjects(payload);
-    let cached = cached_detections(input, &subjects, is_target_verified);
+    let cached = cached_detections(input, &subjects, is_target_verified)
+        .into_iter()
+        .filter(|detection| enabled_providers.contains(&detection.provider))
+        .collect::<Vec<_>>();
     let mut detections = local_detections(input);
+    detections.retain(|detection| enabled_providers.contains(&detection.provider));
     detections.extend(cached.iter().cloned());
 
     let has_website = subjects.iter().any(|subject| subject.scan_type == ScanType::Website);
@@ -98,7 +104,7 @@ mod tests {
     use std::collections::HashSet;
 
     use primitives::asset_score::AssetRank;
-    use primitives::{AssetBasic, AssetId, Chain, ScanAddress, ScanProvider, ScanTransactionPayload, ScanVerdict};
+    use primitives::{AssetBasic, AssetId, Chain, ScanAddress, ScanTransactionPayload, ScanVerdict};
 
     use super::*;
     use crate::{AddressPoisoningTarget, AddressTarget, WebsiteTarget};
@@ -132,12 +138,16 @@ mod tests {
         asset
     }
 
+    fn plan_all(input: &TransactionScanInput) -> ScanPlan {
+        plan_transaction_scan(input, &ScanProvider::all().into_iter().collect())
+    }
+
     #[test]
     fn test_plan_skips_cached_safe_types() {
         let mut input = TransactionScanInput::mock(payload(TransactionType::Transfer, Some("https://example.com")));
         input.safe = HashSet::from([ScanType::Address]);
 
-        let plan = plan_transaction_scan(&input);
+        let plan = plan_all(&input);
         let targets = plan.targets.unwrap();
 
         assert_eq!(plan.safe, vec![ScanType::Address]);
@@ -152,12 +162,12 @@ mod tests {
         input.addresses = vec![verified("target")];
         input.safe = HashSet::from([ScanType::Address]);
 
-        assert!(plan_transaction_scan(&input).safe.is_empty());
+        assert!(plan_all(&input).safe.is_empty());
     }
 
     #[test]
     fn test_plan_scans_recipient_targets() {
-        let plan = plan_transaction_scan(&TransactionScanInput::mock(payload(TransactionType::Transfer, Some("https://example.com"))));
+        let plan = plan_all(&TransactionScanInput::mock(payload(TransactionType::Transfer, Some("https://example.com"))));
         let address = AddressTarget {
             chain: Chain::SmartChain,
             address: "target".to_string(),
@@ -178,7 +188,7 @@ mod tests {
 
     #[test]
     fn test_plan_skips_poisoning_for_contract_calls() {
-        let targets = plan_transaction_scan(&TransactionScanInput::mock(payload(TransactionType::Swap, None))).targets.unwrap();
+        let targets = plan_all(&TransactionScanInput::mock(payload(TransactionType::Swap, None))).targets.unwrap();
 
         assert!(targets.address.is_some());
         assert!(targets.poisoning.is_none());
@@ -189,7 +199,7 @@ mod tests {
         let mut payload = payload(TransactionType::SmartContractCall, Some("https://example.com"));
         payload.target.address = String::new();
 
-        let targets = plan_transaction_scan(&TransactionScanInput::mock(payload)).targets.unwrap();
+        let targets = plan_all(&TransactionScanInput::mock(payload)).targets.unwrap();
 
         assert_eq!(targets.address, None);
         assert_eq!(targets.poisoning, None);
@@ -198,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_plan_skips_invalid_website() {
-        let targets = plan_transaction_scan(&TransactionScanInput::mock(payload(TransactionType::SmartContractCall, Some("invalid website")))).targets.unwrap();
+        let targets = plan_all(&TransactionScanInput::mock(payload(TransactionType::SmartContractCall, Some("invalid website")))).targets.unwrap();
 
         assert_eq!(targets.website, None);
         assert!(targets.address.is_some());
@@ -206,7 +216,7 @@ mod tests {
 
     #[test]
     fn test_plan_skips_staking() {
-        let plan = plan_transaction_scan(&TransactionScanInput::mock(payload(TransactionType::StakeDelegate, Some("https://example.com"))));
+        let plan = plan_all(&TransactionScanInput::mock(payload(TransactionType::StakeDelegate, Some("https://example.com"))));
 
         assert_eq!(plan.targets, None);
     }
@@ -216,7 +226,7 @@ mod tests {
         let mut input = TransactionScanInput::mock(payload(TransactionType::Transfer, None));
         input.addresses = vec![verified("target")];
 
-        assert_eq!(plan_transaction_scan(&input).targets, None);
+        assert_eq!(plan_all(&input).targets, None);
     }
 
     #[test]
@@ -224,7 +234,7 @@ mod tests {
         let mut input = TransactionScanInput::mock(payload(TransactionType::SmartContractCall, Some("https://bnbdaily.finance/")));
         input.addresses = vec![verified("target")];
 
-        let targets = plan_transaction_scan(&input).targets.unwrap();
+        let targets = plan_all(&input).targets.unwrap();
 
         assert_eq!(targets.address, None);
         assert_eq!(targets.poisoning, None);
@@ -243,7 +253,7 @@ mod tests {
         let mut input = TransactionScanInput::mock(payload(TransactionType::Transfer, None));
         input.addresses = vec![flagged];
 
-        let plan = plan_transaction_scan(&input);
+        let plan = plan_all(&input);
 
         assert_eq!(plan.targets, None);
         assert_eq!(plan.detections[0].provider, ScanProvider::Internal);
@@ -255,7 +265,7 @@ mod tests {
         let mut input = TransactionScanInput::mock(payload(TransactionType::Transfer, None));
         input.verdicts = vec![verdict(ScanType::Address, Some(Chain::SmartChain), "target")];
 
-        let plan = plan_transaction_scan(&input);
+        let plan = plan_all(&input);
 
         assert_eq!(plan.targets, None);
         assert!(plan.detections[0].is_cached);
@@ -268,7 +278,7 @@ mod tests {
         let mut input = TransactionScanInput::mock(payload(TransactionType::Transfer, None));
         input.verdicts = vec![verdict(ScanType::Address, Some(Chain::Ethereum), "target")];
 
-        let plan = plan_transaction_scan(&input);
+        let plan = plan_all(&input);
 
         assert!(plan.detections.is_empty());
         assert!(plan.targets.unwrap().address.is_some());
@@ -280,7 +290,7 @@ mod tests {
         input.enforced.remove(&ScanType::Website);
         input.verdicts = vec![verdict(ScanType::Website, None, "example.com")];
 
-        let plan = plan_transaction_scan(&input);
+        let plan = plan_all(&input);
         let targets = plan.targets.unwrap();
 
         assert!(!plan.detections[0].is_enforced);
@@ -293,13 +303,42 @@ mod tests {
         let token = AssetId::from_token(Chain::SmartChain, "0x123");
         let mut input = TransactionScanInput::mock(ScanTransactionPayload::mock_with_assets(token.clone(), token.clone()));
         input.assets = vec![spam_asset(token)];
-        let plan = plan_transaction_scan(&input);
+        let plan = plan_all(&input);
         assert_eq!(plan.targets, None);
         assert_eq!(plan.detections[0].provider, ScanProvider::Internal);
 
         input.enforced.remove(&ScanType::Asset);
-        let plan = plan_transaction_scan(&input);
+        let plan = plan_all(&input);
         assert!(!plan.detections[0].is_enforced);
         assert!(plan.targets.is_some());
+    }
+
+    #[test]
+    fn test_plan_internal_provider_disabled() {
+        let token = AssetId::from_token(Chain::SmartChain, "0x123");
+        let mut input = TransactionScanInput::mock(ScanTransactionPayload::mock_with_assets(token.clone(), token.clone()));
+        input.addresses = vec![ScanAddress {
+            is_malicious: Some(true),
+            ..verified("target")
+        }];
+        input.assets = vec![spam_asset(token)];
+        let enabled_providers = ScanProvider::all().into_iter().filter(|provider| *provider != ScanProvider::Internal).collect();
+
+        let plan = plan_transaction_scan(&input, &enabled_providers);
+
+        assert!(plan.detections.is_empty());
+        assert!(plan.targets.is_some());
+    }
+
+    #[test]
+    fn test_plan_disabled_provider_ignores_cached_verdict() {
+        let mut input = TransactionScanInput::mock(payload(TransactionType::Transfer, None));
+        input.verdicts = vec![verdict(ScanType::Address, Some(Chain::SmartChain), "target")];
+        let enabled_providers = ScanProvider::all().into_iter().filter(|provider| *provider != ScanProvider::HashDit).collect();
+
+        let plan = plan_transaction_scan(&input, &enabled_providers);
+
+        assert!(plan.detections.is_empty());
+        assert!(plan.targets.unwrap().address.is_some());
     }
 }

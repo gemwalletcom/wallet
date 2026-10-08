@@ -83,7 +83,7 @@ mod tests {
     }
 
     fn evaluate(input: &TransactionScanInput, checks: Vec<ProviderCheck>) -> TransactionScanResult {
-        evaluate_transaction_scan(input, plan_transaction_scan(input), checks)
+        evaluate_transaction_scan(input, plan_transaction_scan(input, &ScanProvider::all().into_iter().collect()), checks)
     }
 
     #[test]

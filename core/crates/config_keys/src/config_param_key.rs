@@ -147,7 +147,7 @@ impl ConfigParamKey {
         let charts_hourly = PriceProvider::all().into_iter().map(Self::PriceProviderChartsHourlyDuration);
         let metrics = PriceProvider::all().into_iter().map(Self::PriceProviderMetricsDuration);
         let clean_outdated = PriceProvider::all().into_iter().map(Self::PriceProviderCleanOutdatedDuration);
-        let scan_providers = ScanProvider::remote().into_iter().map(Self::ScanProviderEnable);
+        let scan_providers = ScanProvider::all().into_iter().map(Self::ScanProviderEnable);
         let scan_types = ScanType::all().into_iter().map(Self::ScanTypeEnable);
         let scan_safe_cache = ScanType::all().into_iter().filter(ScanType::is_safe_cacheable).map(Self::ScanSafeCacheDuration);
         let lists = ListProviderName::all().into_iter().map(Self::ListProviderUpdateDuration);
@@ -252,7 +252,8 @@ mod tests {
 
         assert_eq!(key.key(), "scanProviderEnable.hashdit");
         assert_eq!(key.default_value(), "true");
-        assert!(!ConfigParamKey::all().iter().any(|key| key.key() == "scanProviderEnable.internal"));
+        assert_eq!(ConfigParamKey::ScanProviderEnable(ScanProvider::Internal).key(), "scanProviderEnable.internal");
+        assert_eq!(ConfigParamKey::all().iter().filter(|key| matches!(key, ConfigParamKey::ScanProviderEnable(_))).count(), ScanProvider::all().len());
     }
 
     #[test]
