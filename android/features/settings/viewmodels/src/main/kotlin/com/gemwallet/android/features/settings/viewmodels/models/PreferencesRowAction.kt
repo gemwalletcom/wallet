@@ -15,8 +15,6 @@ sealed interface PreferencesRowAction {
     data class Option(val setting: PerpetualSetting) : PreferencesRowAction
 }
 
-fun GemListRow.opensPicker(): Boolean = this is GemListRow.Link
-
 enum class PerpetualSetting { Leverage, TakeProfit, StopLoss }
 
 fun GemPerpetualPickers.of(setting: PerpetualSetting): List<GemPickerOption> = when (setting) {

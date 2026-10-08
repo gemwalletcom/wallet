@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.wallet.presents
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -96,29 +97,31 @@ private fun PortfolioTypeSelector(selected: PortfolioType, onSelect: (PortfolioT
 @Composable
 private fun ChartTypeSelector(selected: PortfolioChartType, onSelect: (PortfolioChartType) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    TextButton(onClick = { expanded = true }) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(selected.stringRes()),
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Icon(
-                imageVector = AppIcons.ExpandMore,
-                tint = MaterialTheme.colorScheme.onSurface,
-                contentDescription = "select_chart_type",
-            )
+    Box {
+        TextButton(onClick = { expanded = true }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(selected.stringRes()),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Icon(
+                    imageVector = AppIcons.ExpandMore,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    contentDescription = "select_chart_type",
+                )
+            }
         }
-    }
-    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-        PortfolioChartType.entries.forEach { type ->
-            DropdownMenuItem(
-                text = { Text(stringResource(type.stringRes())) },
-                onClick = {
-                    onSelect(type)
-                    expanded = false
-                },
-            )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            PortfolioChartType.entries.forEach { type ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(type.stringRes())) },
+                    onClick = {
+                        onSelect(type)
+                        expanded = false
+                    },
+                )
+            }
         }
     }
 }
