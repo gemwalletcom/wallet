@@ -84,12 +84,12 @@ class HyperliquidObserverService(
         foreground.value = false
     }
 
-    override fun subscribe(subscription: GemPerpetualSubscription) {
-        scope.launch { send { streamService.subscribe(subscription) } }
+    override suspend fun subscribe(subscription: GemPerpetualSubscription) {
+        send { streamService.subscribe(subscription) }
     }
 
-    override fun unsubscribe(subscription: GemPerpetualSubscription) {
-        scope.launch { send { streamService.unsubscribe(subscription) } }
+    override suspend fun unsubscribe(subscription: GemPerpetualSubscription) {
+        send { streamService.unsubscribe(subscription) }
     }
 
     private suspend fun observeConnection(events: ReceiveChannel<WebSocketEvent>, walletId: WalletId, address: String, mode: PerpetualAccountMode) {

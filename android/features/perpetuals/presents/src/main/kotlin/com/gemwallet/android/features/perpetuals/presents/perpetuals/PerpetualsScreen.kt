@@ -58,8 +58,8 @@ fun PerpetualsScreen(
     RefreshOnTimer(refreshIntervalMillis, viewModel::refreshMarkets)
 
     DisposableEffect(Unit) {
-        viewModel.subscribeMarketPrices()
-        onDispose { viewModel.unsubscribeMarketPrices() }
+        viewModel.onScreenEnter()
+        onDispose { viewModel.onScreenExit() }
     }
 
     PerpetualsScene(

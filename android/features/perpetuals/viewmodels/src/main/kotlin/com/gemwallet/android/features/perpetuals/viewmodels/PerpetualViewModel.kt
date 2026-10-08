@@ -32,6 +32,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -197,11 +198,11 @@ class PerpetualViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collectLatest { subscriptions ->
                     subscriptions ?: return@collectLatest
-                    subscriptions.forEach(perpetualObserver::subscribe)
+                    subscriptions.forEach { perpetualObserver.subscribe(it) }
                     try {
                         awaitCancellation()
                     } finally {
-                        subscriptions.forEach(perpetualObserver::unsubscribe)
+                        withContext(NonCancellable) { subscriptions.forEach { perpetualObserver.unsubscribe(it) } }
                     }
                 }
         }
