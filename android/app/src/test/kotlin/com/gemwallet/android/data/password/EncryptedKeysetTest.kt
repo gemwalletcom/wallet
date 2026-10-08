@@ -12,6 +12,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.security.GeneralSecurityException
@@ -55,6 +56,21 @@ class EncryptedKeysetTest {
         every { preferences.getString("keyset", null) } returns stored.hex
 
         assertThrows(GeneralSecurityException::class.java) { encryptedKeyset(preferences, "keyset", wrongMaster, template) }
+        verify(exactly = 0) { preferences.edit() }
+    }
+
+    @Test
+    fun keystoreFailureIsReportedWhenThePlaintextFallbackAlsoFails() {
+        val master = KeysetHandle.generateNew(template).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        val stored = TinkProtoKeysetFormat.serializeEncryptedKeyset(KeysetHandle.generateNew(template), master, byteArrayOf())
+        every { preferences.getString("keyset", null) } returns stored.hex
+        val keystoreError = GeneralSecurityException("Keystore unavailable")
+        val failingMaster = mockk<Aead> { every { decrypt(any(), any()) } throws keystoreError }
+
+        val thrown = assertThrows(GeneralSecurityException::class.java) { encryptedKeyset(preferences, "keyset", failingMaster, template) }
+
+        assertTrue(generateSequence<Throwable>(thrown) { it.cause }.any { it === keystoreError })
+        assertTrue(thrown.suppressed.isNotEmpty())
         verify(exactly = 0) { preferences.edit() }
     }
 }

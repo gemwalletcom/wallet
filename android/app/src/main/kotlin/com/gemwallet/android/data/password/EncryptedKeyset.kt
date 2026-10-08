@@ -19,8 +19,13 @@ internal fun encryptedKeyset(preferences: SharedPreferences, name: String, maste
         val bytes = encoded.fromHex()
         try {
             return@synchronized TinkProtoKeysetFormat.parseEncryptedKeyset(bytes, masterAead, byteArrayOf())
-        } catch (_: GeneralSecurityException) {
-            TinkProtoKeysetFormat.parseKeyset(bytes, InsecureSecretKeyAccess.get())
+        } catch (keystoreError: GeneralSecurityException) {
+            try {
+                TinkProtoKeysetFormat.parseKeyset(bytes, InsecureSecretKeyAccess.get())
+            } catch (plaintextError: GeneralSecurityException) {
+                keystoreError.addSuppressed(plaintextError)
+                throw keystoreError
+            }
         } finally {
             bytes.fill(0)
         }
