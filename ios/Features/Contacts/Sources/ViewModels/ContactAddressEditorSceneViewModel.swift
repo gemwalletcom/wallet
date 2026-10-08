@@ -38,7 +38,6 @@ public final class ContactAddressEditorSceneViewModel {
         }
     }
 
-    private let mode: Mode
     private let chains: [Chain]
     private let service: any GemContactEditorServiceProtocol
     private let onComplete: (GemContactAddressInput) -> Void
@@ -54,7 +53,6 @@ public final class ContactAddressEditorSceneViewModel {
         mode: Mode,
         onComplete: @escaping (GemContactAddressInput) -> Void,
     ) {
-        self.mode = mode
         chains = GemChainService.shared.chainRows(chains: nil, query: .empty).map { Chain(core: $0.chain) }
         self.service = service
         self.onComplete = onComplete

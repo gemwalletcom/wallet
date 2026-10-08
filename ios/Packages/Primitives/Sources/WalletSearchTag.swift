@@ -8,13 +8,6 @@ public enum WalletSearchTag: Hashable, Codable, Sendable {
 }
 
 public extension WalletSearchTag {
-    var isList: Bool {
-        switch self {
-        case .list: true
-        case .all: false
-        }
-    }
-
     var isAll: Bool {
         switch self {
         case .all: true

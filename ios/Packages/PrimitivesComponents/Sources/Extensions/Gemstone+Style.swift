@@ -656,10 +656,6 @@ public extension GemLoadState {
         case let .error(error): .error(error)
         }
     }
-
-    func stateViewType<T>(_ values: [T]) -> StateViewType<[T]> {
-        stateViewType(values.isEmpty ? nil : values)
-    }
 }
 
 extension GemSocialLink {

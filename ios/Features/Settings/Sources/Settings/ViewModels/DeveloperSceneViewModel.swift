@@ -5,7 +5,6 @@ import Foundation
 import enum Gemstone.Deeplink
 import protocol Gemstone.GemDeveloperServiceProtocol
 import enum Gemstone.GemServiceError
-import GemstonePrimitives
 import class GemstoneServices.GemstoneDevicePlatform
 import Localization
 import Primitives

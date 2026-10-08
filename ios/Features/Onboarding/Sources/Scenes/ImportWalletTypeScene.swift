@@ -2,7 +2,6 @@
 
 import Components
 import GemstonePrimitives
-import Localization
 import Primitives
 import PrimitivesComponents
 import Style

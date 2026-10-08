@@ -55,41 +55,6 @@ final class GemPriceStoreMock: GemPriceStore, @unchecked Sendable {
     func saveMarket(assetId _: Gemstone.AssetId, market _: Gemstone.AssetMarket) async throws {}
 }
 
-final class GemWalletStoreMock: GemWalletStore, @unchecked Sendable {
-    init() {}
-
-    func getWallets() async throws -> [Gemstone.Wallet] {
-        []
-    }
-
-    func getWallet(walletId _: Gemstone.WalletId) async throws -> Gemstone.Wallet? {
-        nil
-    }
-
-    func addWallet(wallet _: Gemstone.Wallet) async throws {}
-    func deleteWallet(walletId _: Gemstone.WalletId) async throws -> Bool {
-        false
-    }
-
-    func setPinned(walletId _: Gemstone.WalletId, pinned _: Bool) async throws {}
-    func setName(walletId _: Gemstone.WalletId, name _: String) async throws {}
-    func setImageUrl(walletId _: Gemstone.WalletId, imageUrl _: String?) async throws {}
-}
-
-final class GemWalletSessionStoreMock: GemWalletSessionStore, @unchecked Sendable {
-    private var currentWalletId: Gemstone.WalletId?
-
-    init() {}
-
-    func getCurrentWalletId() throws -> Gemstone.WalletId? {
-        currentWalletId
-    }
-
-    func setCurrentWalletId(walletId: Gemstone.WalletId?) throws {
-        currentWalletId = walletId
-    }
-}
-
 public extension GemAssetsService {
     static func mock(store: any GemAssetStore = GemAssetStoreMock()) -> GemAssetsService {
         let provider = StubAlienProvider()

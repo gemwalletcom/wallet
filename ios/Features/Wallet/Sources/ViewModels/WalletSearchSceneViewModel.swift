@@ -10,7 +10,6 @@ import struct Gemstone.GemWalletSearchView
 import GemstonePrimitives
 import GemstoneServices
 import Localization
-import NFT
 import Primitives
 import PrimitivesComponents
 import Store
