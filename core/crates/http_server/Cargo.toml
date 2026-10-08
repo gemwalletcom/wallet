@@ -14,3 +14,6 @@ tower = { workspace = true }
 tower-http = { workspace = true }
 gem_tracing = { path = "../gem_tracing" }
 primitives = { path = "../primitives" }
+
+[dev-dependencies]
+http-body-util = { workspace = true }

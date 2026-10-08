@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use reqwest::header::{HeaderMap, HeaderName};
 use reqwest::{Method, Request, Url as ReqwestUrl};
+use url::ParseError;
 
 use crate::config::Url;
 
@@ -24,15 +25,14 @@ impl RequestUrl {
         request
     }
 
-    pub fn from_parts(url: Url, original_path_and_query: &str) -> RequestUrl {
+    pub fn from_parts(url: Url, original_path_and_query: &str) -> Result<RequestUrl, ParseError> {
         let path = if original_path_and_query == "/" { "" } else { original_path_and_query };
-        let combined = format!("{}{}", url.url, path);
-        let resolved = ReqwestUrl::parse(&combined).expect("invalid url");
+        let resolved = ReqwestUrl::parse(&format!("{}{}", url.url, path))?;
 
-        RequestUrl {
+        Ok(RequestUrl {
             url: resolved,
             headers: url.headers.unwrap_or_default(),
-        }
+        })
     }
 }
 
@@ -49,7 +49,7 @@ mod tests {
             headers: Some(HashMap::new()),
             ..Url::mock("https://example.com")
         };
-        let request_url = RequestUrl::from_parts(url, "/path");
+        let request_url = RequestUrl::from_parts(url, "/path").unwrap();
         assert_eq!(request_url.url.to_string(), "https://example.com/path");
         assert!(request_url.headers.is_empty());
     }
@@ -61,7 +61,7 @@ mod tests {
             headers: Some(headers),
             ..Url::mock("https://example.com")
         };
-        let request_url = RequestUrl::from_parts(url, "/path");
+        let request_url = RequestUrl::from_parts(url, "/path").unwrap();
         assert_eq!(request_url.headers.get("x-api-key"), Some(&"secret".to_string()));
     }
 
@@ -72,9 +72,14 @@ mod tests {
             ("https://example.com/rpc?key=credential", "/", "https://example.com/rpc?key=credential"),
             ("https://example.com/rpc", "/blocks/%2F?before=one%2Btwo&before=three", "https://example.com/rpc/blocks/%2F?before=one%2Btwo&before=three"),
         ] {
-            assert_eq!(RequestUrl::from_parts(Url::mock(base), path).url.as_str(), expected);
+            assert_eq!(RequestUrl::from_parts(Url::mock(base), path).unwrap().url.as_str(), expected);
         }
     }
+    #[test]
+    fn test_from_parts_rejects_an_unparsable_url() {
+        assert_eq!(RequestUrl::from_parts(Url::mock("rpc"), "/path").unwrap_err(), ParseError::RelativeUrlWithoutBase);
+    }
+
     #[test]
     fn test_build_with_headers() {
         let req_url = RequestUrl::from_parts(
@@ -83,7 +88,8 @@ mod tests {
                 ..Url::mock("https://example.com")
             },
             "/rpc",
-        );
+        )
+        .unwrap();
         let mut headers = HeaderMap::new();
         headers.insert(CONTENT_TYPE, HeaderValue::from_static(JSON_CONTENT_TYPE));
 
@@ -105,7 +111,8 @@ mod tests {
                 ..Url::mock("https://example.com")
             },
             "/rpc",
-        );
+        )
+        .unwrap();
         let headers = HeaderMap::from_iter([(HeaderName::from_static("x-api-key"), HeaderValue::from_static("inbound"))]);
         let request = url.build_request(&Method::POST, Vec::new(), headers);
 

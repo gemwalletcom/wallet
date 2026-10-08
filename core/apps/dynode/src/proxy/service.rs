@@ -70,7 +70,7 @@ impl ProxyRequestService {
         };
 
         let upstream_url = chain_config.url_for_request(active_url, rpc_method, Some(&request.path));
-        let url = RequestUrl::from_parts(upstream_url, &request.path_with_query);
+        let url = RequestUrl::from_parts(upstream_url, &request.path_with_query)?;
         if request.is_broadcast(&self.broadcast_providers) {
             *broadcast_host = url.url.host_str().map(str::to_owned);
         }

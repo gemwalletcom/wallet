@@ -4212,6 +4212,7 @@ dependencies = [
  "axum",
  "gem_tracing",
  "http",
+ "http-body-util",
  "hyper",
  "hyper-util",
  "primitives",
