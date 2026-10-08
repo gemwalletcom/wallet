@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.WalletPasswordProtection
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -40,6 +41,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val userConfig: UserConfig,
+    private val securityPreferences: SecurityPreferences,
     private val passwordProtection: WalletPasswordProtection,
     private val isWalletConnectEnabledCase: IsWalletConnectEnabled,
     private val pairWalletConnect: PairWalletConnect,
@@ -101,7 +103,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             isUnlocked.first { it }
             migratePriceAlertsPreference()
-            if (userConfig.authRequired() && !passwordProtection.authenticationRequired()) {
+            if (securityPreferences.authRequired() && !passwordProtection.authenticationRequired()) {
                 runCatching { passwordProtection.setAuthenticationRequired(true) }
                     .onFailure { error ->
                         Log.e("MainViewModel", "wallet password protection failed", error)

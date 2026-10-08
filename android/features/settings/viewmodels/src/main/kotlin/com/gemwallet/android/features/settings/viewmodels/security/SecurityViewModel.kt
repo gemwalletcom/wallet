@@ -46,7 +46,7 @@ class SecurityViewModel @Inject constructor(
     init {
         viewModelScope.launch(ioDispatcher) {
             runCatchingCancellable {
-                authRequired.value = passwordProtection.authenticationRequired() || securityPreferences.authRequired()
+                authRequired.value = securityPreferences.isLockEnabled()
             }.onFailure { error.value = it.errorText().text(context) }
         }
     }

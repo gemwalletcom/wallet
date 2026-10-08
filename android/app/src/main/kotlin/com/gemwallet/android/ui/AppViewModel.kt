@@ -7,6 +7,7 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.WalletPasswordProtection
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.assets.cases.GetWalletHomeState
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
@@ -42,6 +43,7 @@ import javax.inject.Inject
 class AppViewModel @Inject constructor(
     private val getSession: GetSession,
     private val userConfig: UserConfig,
+    private val securityPreferences: SecurityPreferences,
     private val passwordProtection: WalletPasswordProtection,
     private val syncAppUpdate: SyncAppUpdate,
     private val skipAppUpdate: SkipAppUpdate,
@@ -133,12 +135,12 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun shouldOfferAuthentication(isAvailable: Boolean): Boolean = userConfig.shouldOfferAuthentication(isAvailable)
+    fun shouldOfferAuthentication(isAvailable: Boolean): Boolean = userConfig.shouldOfferAuthentication(isAvailable, securityPreferences.authRequired())
 
     fun onAuthenticationOffered(enabled: Boolean) {
         viewModelScope.launch(ioDispatcher) {
             if (enabled) {
-                userConfig.setAuthRequired(true)
+                securityPreferences.setAuthRequired(true)
                 runCatchingCancellable { passwordProtection.setAuthenticationRequired(true) }
                     .onFailure { Log.e(TAG, "wallet password protection failed", it) }
             }

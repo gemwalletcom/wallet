@@ -3,6 +3,7 @@ package com.gemwallet.android
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.WalletPasswordProtection
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.assets.cases.GetWalletHomeState
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
@@ -19,6 +20,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +65,7 @@ class AppViewModelTest {
         unmockkStatic(Log::class)
     }
 
-    private fun viewModel(currentWalletId: String? = null, update: GemAppUpdateOffer? = null, skip: SkipAppUpdate = mockk(relaxed = true), passwordProtection: WalletPasswordProtection = mockk(relaxed = true)): AppViewModel {
+    private fun viewModel(currentWalletId: String? = null, update: GemAppUpdateOffer? = null, skip: SkipAppUpdate = mockk(relaxed = true), securityPreferences: SecurityPreferences = mockk(relaxed = true), passwordProtection: WalletPasswordProtection = mockk(relaxed = true)): AppViewModel {
         val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(null) }
         val walletSession: GemWalletSessionServiceInterface = mockk {
             coEvery { ensureCurrentWallet() } returns currentWalletId
@@ -77,6 +79,7 @@ class AppViewModelTest {
         return AppViewModel(
             session,
             config,
+            securityPreferences,
             passwordProtection,
             sync,
             skip,
@@ -152,12 +155,14 @@ class AppViewModelTest {
 
     @Test
     fun `enabling authentication during onboarding protects the wallet password`() = runTest(dispatcher) {
+        val securityPreferences: SecurityPreferences = mockk(relaxed = true)
         val passwordProtection: WalletPasswordProtection = mockk(relaxed = true)
-        val model = viewModel(passwordProtection = passwordProtection)
+        val model = viewModel(securityPreferences = securityPreferences, passwordProtection = passwordProtection)
 
         model.onAuthenticationOffered(enabled = true)
         advanceUntilIdle()
 
+        verify { securityPreferences.setAuthRequired(true) }
         coVerify { passwordProtection.setAuthenticationRequired(true) }
     }
 }

@@ -7,7 +7,9 @@ interface SecurityPreferences {
 
     fun setAuthRequired(enabled: Boolean)
 
-    fun getAuthRequired(): Flow<Boolean>
+    fun isLockEnabled(): Boolean
+
+    fun getLockEnabled(): Flow<Boolean>
 
     fun getLockInterval(): Flow<Int>
 

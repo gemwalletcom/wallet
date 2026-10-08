@@ -1,51 +1,15 @@
 package com.gemwallet.android.data.services.gemstone.config
 
-import android.content.Context
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
-import com.gemwallet.android.application.security.cases.SecurityPreferences
-import com.gemwallet.android.data.services.store.ConfigStore
-import com.gemwallet.android.ext.chainIds
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Appearance
-import com.wallet.core.primitives.ChartPeriod
-import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import uniffi.gemstone.GemPreferencesObserver
-import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesServiceInterface
-import uniffi.gemstone.GemSecureStore
-import uniffi.gemstone.lockPeriodFromMinutes
 
-private val Context.dataStore by preferencesDataStore(name = "user_config")
-
-class UserConfig(private val context: Context, private val configStore: ConfigStore, private val preferencesService: GemPreferencesServiceInterface, private val secureStore: GemSecureStore) :
-    ObservablePreferences,
-    SecurityPreferences {
-
-    private val authRequiredState by lazy { MutableStateFlow(authRequired()) }
-
-    override fun authRequired(): Boolean = secureStore.get(SecureKey.Auth.string)?.toBooleanStrictOrNull() ?: configStore.getBoolean(ConfigKey.Auth.string)
-
-    override fun setAuthRequired(enabled: Boolean) {
-        secureStore.set(SecureKey.Auth.string, enabled.toString())
-        configStore.putBoolean(ConfigKey.Auth.string, enabled)
-        authRequiredState.value = enabled
-    }
-
-    override fun getAuthRequired(): Flow<Boolean> = flow { emitAll(authRequiredState) }
+class UserConfig(private val preferencesService: GemPreferencesServiceInterface) : ObservablePreferences {
 
     override fun developEnabled(): Boolean = preferencesService.isDeveloperEnabled()
 
@@ -63,9 +27,6 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())
     private val appearanceState = MutableStateFlow(preferencesService.getAppearance().toPrimitives())
     private val termsAcceptedState = MutableStateFlow(preferencesService.isAcceptTermsCompleted())
-    private val lockIntervalState = MutableStateFlow(
-        secureStore.get(SecureKey.LockInterval.string)?.toIntOrNull() ?: lockPeriodFromMinutes(null).minutes().toInt(),
-    )
 
     override fun isHideBalances(): Flow<Boolean> = hideBalancesState
 
@@ -103,20 +64,6 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
     }
 
-    override fun getLockInterval(): Flow<Int> = lockIntervalState.onStart { migrateLockInterval() }
-
-    override suspend fun setLockInterval(minutes: Int) {
-        secureStore.set(SecureKey.LockInterval.string, minutes.toString())
-        lockIntervalState.value = minutes
-    }
-
-    private suspend fun migrateLockInterval() {
-        if (secureStore.get(SecureKey.LockInterval.string) != null) {
-            return
-        }
-        setLockInterval(read(Key.LockInterval, lockPeriodFromMinutes(null).minutes().toInt()).first())
-    }
-
     fun isTermsAccepted(): Flow<Boolean> = termsAcceptedState
 
     fun acceptTerms() {
@@ -124,28 +71,9 @@ class UserConfig(private val context: Context, private val configStore: ConfigSt
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
     }
 
-    fun shouldOfferAuthentication(isAvailable: Boolean): Boolean = preferencesService.shouldOfferAuthentication(isAvailable, authRequired())
+    fun shouldOfferAuthentication(isAvailable: Boolean, authRequired: Boolean): Boolean = preferencesService.shouldOfferAuthentication(isAvailable, authRequired)
 
     fun setAuthenticationOffered() {
         preferencesService.setAuthenticationOffered()
-    }
-
-    private fun <T> read(key: Preferences.Key<T>, default: T): Flow<T> = context.dataStore.data.map { it[key] ?: default }
-
-    private suspend fun <T> write(key: Preferences.Key<T>, value: T) {
-        context.dataStore.edit { it[key] = value }
-    }
-
-    private enum class ConfigKey(val string: String) {
-        Auth("auth"),
-    }
-
-    private enum class SecureKey(val string: String) {
-        Auth("auth_required"),
-        LockInterval("lock_interval"),
-    }
-
-    private object Key {
-        val LockInterval = intPreferencesKey("lock_interval")
     }
 }

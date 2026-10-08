@@ -42,6 +42,7 @@ class SecurityViewModelTest {
     private fun securityPreferences(authRequired: Boolean = false, lockMinutes: Int = 0) = mockk<SecurityPreferences>(relaxed = true) {
         every { getLockInterval() } returns flowOf(lockMinutes)
         every { this@mockk.authRequired() } returns authRequired
+        every { isLockEnabled() } returns authRequired
     }
 
     private fun protection(protected: Boolean = false) = mockk<WalletPasswordProtection>(relaxed = true) {
@@ -134,15 +135,6 @@ class SecurityViewModelTest {
 
         verify(exactly = 0) { security.setAuthRequired(any()) }
         assertEquals(false, model.isUpdatingAuthentication.value)
-    }
-
-    @Test
-    fun `a protected keyset shows authentication on even when the preference was tampered off`() = runTest(dispatcher) {
-        val settings = settings()
-        SecurityViewModel(securityPreferences(authRequired = false), protection(protected = true), preferences(), settings, dispatcher, context())
-        advanceUntilIdle()
-
-        verify { settings.securitySections(match { it.authenticationEnabled }) }
     }
 
     private fun context(): Context = mockk { every { getString(any()) } answers { firstArg<Int>().toString() } }

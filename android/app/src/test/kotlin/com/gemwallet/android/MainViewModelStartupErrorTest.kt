@@ -2,6 +2,7 @@ package com.gemwallet.android
 
 import android.util.Log
 import com.gemwallet.android.application.WalletPasswordProtection
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.wallet.core.primitives.Appearance
 import io.mockk.coEvery
@@ -110,10 +111,10 @@ class MainViewModelStartupErrorTest {
         coordinator: PendingNavigationCoordinator = coordinator(),
     ): MainViewModel {
         val userConfig = mockk<UserConfig>()
-        every { userConfig.authRequired() } returns authRequired
         every { userConfig.appearance() } returns flowOf(Appearance.System)
         return MainViewModel(
             userConfig = userConfig,
+            securityPreferences = mockk<SecurityPreferences> { every { authRequired() } returns authRequired },
             passwordProtection = protection,
             isWalletConnectEnabledCase = mockk(relaxed = true),
             pairWalletConnect = mockk(relaxed = true),

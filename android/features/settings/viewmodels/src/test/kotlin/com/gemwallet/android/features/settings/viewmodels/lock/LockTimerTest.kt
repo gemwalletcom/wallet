@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.settings.viewmodels.lock
 
 import android.text.format.DateUtils
-import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.security.cases.SecurityPreferences
 import io.mockk.every
 import io.mockk.mockk
@@ -49,20 +48,10 @@ class LockTimerTest {
         assertTrue("an open request never holds the lock off", timer.shouldRelock(now = Long.MAX_VALUE))
     }
 
-    @Test
-    fun protectedPasswordStillRelocksWhenPreferenceIsFalse() = runTest {
-        val securityPreferences = mockk<SecurityPreferences> {
-            every { authRequired() } returns false
-            every { getLockInterval() } returns flowOf(0)
-        }
-        val protection = mockk<WalletPasswordProtection> { every { authenticationRequired() } returns true }
-        assertTrue(LockTimer(securityPreferences, protection, GemSecurityService()).shouldRelock(now = 1L))
-    }
-
     private fun lockTimer(authRequired: Boolean, lockIntervalMinutes: Int): LockTimer {
         val securityPreferences = mockk<SecurityPreferences>()
-        every { securityPreferences.authRequired() } returns authRequired
+        every { securityPreferences.isLockEnabled() } returns authRequired
         every { securityPreferences.getLockInterval() } returns flowOf(lockIntervalMinutes)
-        return LockTimer(securityPreferences, mockk<WalletPasswordProtection> { every { authenticationRequired() } returns false }, GemSecurityService())
+        return LockTimer(securityPreferences, GemSecurityService())
     }
 }

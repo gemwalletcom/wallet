@@ -1,25 +1,31 @@
 package com.gemwallet.android.data.services.gemstone.config
 
 import android.content.Context
+import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.data.services.store.ConfigStore
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSecureStore
 
-class UserConfigAuthTest {
+class AppLockPreferencesTest {
 
     private val configStore = mockk<ConfigStore>(relaxed = true)
     private val secureStore = mockk<GemSecureStore>(relaxed = true)
-    private val preferencesService = mockk<GemPreferencesService>(relaxed = true) {
-        every { getAppearance() } returns uniffi.gemstone.Appearance.SYSTEM
+    private val passwordProtection = mockk<WalletPasswordProtection> { every { authenticationRequired() } returns false }
+
+    @Test
+    fun creatingItReadsNoSecureValue() {
+        subject()
+
+        verify(exactly = 0) { secureStore.get(any()) }
     }
 
     @Test
@@ -44,6 +50,27 @@ class UserConfigAuthTest {
         every { configStore.getBoolean("auth", any()) } returns false
 
         assertFalse(subject().authRequired())
+    }
+
+    @Test
+    fun lockStaysEnabledForAProtectedPasswordKeysetWhenTheFlagWasTamperedOff() = runTest {
+        every { secureStore.get("auth_required") } returns "false"
+        every { passwordProtection.authenticationRequired() } returns true
+        val subject = subject()
+
+        assertTrue(subject.isLockEnabled())
+        assertTrue(subject.getLockEnabled().first())
+    }
+
+    @Test
+    fun lockEnabledFollowsTheStoredFlag() = runTest {
+        every { secureStore.get("auth_required") } returns "false"
+        val subject = subject()
+        assertFalse(subject.getLockEnabled().first())
+
+        subject.setAuthRequired(true)
+
+        assertTrue(subject.getLockEnabled().first())
     }
 
     @Test
@@ -72,10 +99,11 @@ class UserConfigAuthTest {
         verify { configStore.putBoolean("auth", true) }
     }
 
-    private fun subject() = UserConfig(
+    private fun subject() = AppLockPreferences(
         context = mockk<Context>(relaxed = true),
         configStore = configStore,
-        preferencesService = preferencesService,
         secureStore = secureStore,
+        passwordProtection = passwordProtection,
+        ioDispatcher = UnconfinedTestDispatcher(),
     )
 }
