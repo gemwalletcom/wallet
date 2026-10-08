@@ -9,19 +9,19 @@ import SwiftUI
 
 struct CandlestickCanvas: View {
     private enum Metrics {
-        static let labelOverlapSpacing: CGFloat = 115
-        static let lineStyle = StrokeStyle(lineWidth: 1, dash: [4, 3])
-        static let currentPriceStyle = StrokeStyle(lineWidth: 1, dash: [2, 3])
-        static let selectionStyle = StrokeStyle(lineWidth: .space1, dash: [5])
+        static let labelGap: CGFloat = .small
+        static let lineStyle = StrokeStyle(lineWidth: .space1, dash: [.space4, .space4])
+        static let currentPriceStyle = StrokeStyle(lineWidth: .space1, dash: [.space2, .space2])
+        static let selectionStyle = StrokeStyle(lineWidth: .space1, dash: [.space4])
         static let cornerRatio: CGFloat = 0.15
-        static let axisTickLength: CGFloat = 4
+        static let axisTickLength: CGFloat = .space4
         static let priceLabelOffset: CGFloat = axisTickLength + .extraSmall
         static let pricePillPadding: CGFloat = .extraSmall
         static let priceColumnTrailing: CGFloat = .small
         static let selectionDotSize: CGFloat = .space12
 
         static var priceFont: UIFont {
-            .monospacedDigitSystemFont(ofSize: UIFont.preferredFont(forTextStyle: .caption2).pointSize, weight: .regular)
+            .monospacedDigitSystemFont(ofSize: Font.app.captionSize, weight: .regular)
         }
     }
 
@@ -101,14 +101,17 @@ extension CandlestickCanvas {
     }
 
     private func drawLines(in context: inout GraphicsContext) {
+        var previousBadgeMaxX = plot.frame.minX
         for line in plot.chart.layout.lines {
             let y = plot.y(for: line.price.value)
             context.stroke(self.line(from: CGPoint(x: plot.frame.minX, y: y), to: CGPoint(x: plot.frame.maxX, y: y)), with: .color(line.kind.color.opacity(.semiStrong)), style: Metrics.lineStyle)
             let label = context.resolve(Text(line.label.text).font(.app.caption).foregroundStyle(Colors.whiteSolid))
             let size = label.measure(in: plot.frame.size)
-            let badge = CGRect(x: plot.frame.minX + CGFloat(line.overlapLevel) * Metrics.labelOverlapSpacing, y: y - size.height / 2 - .tiny, width: size.width + .tiny * 2, height: size.height + .tiny * 2)
+            let x = line.overlapLevel == 0 ? plot.frame.minX : previousBadgeMaxX + Metrics.labelGap
+            let badge = CGRect(x: x, y: y - size.height / 2 - .tiny, width: size.width + .tiny * 2, height: size.height + .tiny * 2)
             context.fill(Path(roundedRect: badge, cornerRadius: .tiny), with: .color(line.kind.color))
             context.draw(label, at: CGPoint(x: badge.midX, y: badge.midY), anchor: .center)
+            previousBadgeMaxX = badge.maxX
         }
     }
 
@@ -139,7 +142,7 @@ extension CandlestickCanvas {
 
     private func drawTimeLabels(in context: inout GraphicsContext) {
         for tick in plot.chart.xTicks {
-            let label = context.resolve(Text(dateFormatter.string(for: tick)).font(.caption2).foregroundStyle(Colors.gray))
+            let label = context.resolve(Text(dateFormatter.string(for: tick)).font(.system(size: Font.app.captionSize)).foregroundStyle(Colors.gray))
             context.draw(label, at: CGPoint(x: plot.x(for: tick.date), y: plot.frame.maxY + Spacing.small), anchor: .top)
         }
     }

@@ -24,7 +24,9 @@ public extension Font {
 
         public static let footnote: Font = .system(size: 12, weight: .medium)
 
-        public static let caption: Font = .system(size: 10, weight: .semibold)
+        public static let captionSize: CGFloat = 10
+
+        public static let caption: Font = .system(size: captionSize, weight: .semibold)
 
         public enum Widget {
             public static let title: Font = .system(size: 32, weight: .bold)

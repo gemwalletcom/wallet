@@ -185,7 +185,7 @@ extension ChartView {
 
     private func boundLabel(_ text: String) -> some View {
         Text(text)
-            .font(.caption2)
+            .font(.system(size: Font.app.captionSize))
             .foregroundStyle(Colors.gray)
             .frame(width: Metrics.labelWidth)
     }
