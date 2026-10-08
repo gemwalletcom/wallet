@@ -1,7 +1,0 @@
-# name|METHOD|path|body|auth
-health|GET|/health||none
-config|GET|/v1/config||none
-asset|GET|/v1/assets/ethereum||none
-assets_post|POST|/v1/assets|["ethereum","bitcoin","solana","smartchain","polygon","arbitrum","optimism","base","avalanchec","tron","ton","sui","aptos","near","xrp","stellar","cosmos","osmosis","celestia","injective"]|none
-device_subscriptions|GET|/v2/devices/subscriptions||device
-device_assets|GET|/v2/devices/assets||device-wallet
