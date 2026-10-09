@@ -91,6 +91,10 @@ pub fn swap_error_display(error: SwapperError, pay_asset: Option<Asset>) -> GemS
 }
 
 impl GemSwapSession {
+    fn is_transfer_loading(&self) -> bool {
+        matches!(self.transfer_phase, GemSwapTransferPhase::Loading { .. })
+    }
+
     fn quote_error(&self) -> Option<SwapperError> {
         match &self.quote_phase {
             GemSwapQuotePhase::Failed { error, .. } => Some(error.clone()),
@@ -443,10 +447,6 @@ impl GemSwapSession {
 
     pub fn quote(&self) -> Option<SwapperQuote> {
         self.current_quote().cloned()
-    }
-
-    pub fn is_transfer_loading(&self) -> bool {
-        matches!(self.transfer_phase, GemSwapTransferPhase::Loading { .. })
     }
 
     pub fn refreshes_quotes(&self, is_screen_active: bool) -> bool {
