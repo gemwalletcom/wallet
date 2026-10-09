@@ -65,7 +65,7 @@ dependencies = [
 
 [[package]]
 name = "alchemy"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "gem_client",
  "gem_jsonrpc",
@@ -449,7 +449,7 @@ dependencies = [
 
 [[package]]
 name = "ankr"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "gem_client",
  "gem_jsonrpc",
@@ -518,7 +518,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "api"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "axum",
  "chain_providers",
@@ -1431,7 +1431,7 @@ dependencies = [
 
 [[package]]
 name = "block_explorers"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "primitives",
  "url",
@@ -1452,7 +1452,7 @@ dependencies = [
 
 [[package]]
 name = "blockscout"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "gem_client",
  "num-bigint 0.5.1",
@@ -1594,7 +1594,7 @@ dependencies = [
 
 [[package]]
 name = "cacher"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "config_keys",
@@ -1687,7 +1687,7 @@ dependencies = [
 
 [[package]]
 name = "chain_primitives"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "gem_evm",
@@ -1697,7 +1697,7 @@ dependencies = [
 
 [[package]]
 name = "chain_providers"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alchemy",
  "chain_traits",
@@ -1732,7 +1732,7 @@ dependencies = [
 
 [[package]]
 name = "chain_traits"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1821,7 +1821,7 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "cli"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "chain_providers",
  "clap",
@@ -1859,7 +1859,7 @@ dependencies = [
 
 [[package]]
 name = "coingecko"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "chain_primitives",
  "chrono",
@@ -1872,7 +1872,7 @@ dependencies = [
 
 [[package]]
 name = "coinmarketcap"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "futures",
  "gem_client",
@@ -1944,7 +1944,7 @@ dependencies = [
 
 [[package]]
 name = "config_keys"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "primitives",
  "serde",
@@ -2224,7 +2224,7 @@ dependencies = [
 
 [[package]]
 name = "daemon"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "axum",
@@ -2325,7 +2325,7 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 
 [[package]]
 name = "defi"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "base64 0.23.0",
@@ -2442,7 +2442,7 @@ dependencies = [
 
 [[package]]
 name = "dexscreener"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "gem_client",
  "primitives",
@@ -2584,7 +2584,7 @@ checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 
 [[package]]
 name = "dynode"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "axum",
  "bytes",
@@ -2769,7 +2769,7 @@ dependencies = [
 
 [[package]]
 name = "etherscan"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "gem_client",
  "primitives",
@@ -2801,7 +2801,7 @@ dependencies = [
 
 [[package]]
 name = "everstake"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -2868,7 +2868,7 @@ dependencies = [
 
 [[package]]
 name = "fiat"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "chain_primitives",
@@ -3174,7 +3174,7 @@ dependencies = [
 
 [[package]]
 name = "gas-bench"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "clap",
  "etherscan",
@@ -3191,7 +3191,7 @@ dependencies = [
 
 [[package]]
 name = "gem_algorand"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "chain_traits",
@@ -3212,7 +3212,7 @@ dependencies = [
 
 [[package]]
 name = "gem_api"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "gem_auth",
@@ -3227,7 +3227,7 @@ dependencies = [
 
 [[package]]
 name = "gem_aptos"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "bcs 0.2.1",
@@ -3252,7 +3252,7 @@ dependencies = [
 
 [[package]]
 name = "gem_auth"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "ed25519-dalek",
@@ -3268,7 +3268,7 @@ dependencies = [
 
 [[package]]
 name = "gem_bitcoin"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "bech32 0.12.0",
@@ -3294,7 +3294,7 @@ dependencies = [
 
 [[package]]
 name = "gem_bsc"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -3310,7 +3310,7 @@ dependencies = [
 
 [[package]]
 name = "gem_cardano"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "bech32 0.12.0",
@@ -3335,7 +3335,7 @@ dependencies = [
 
 [[package]]
 name = "gem_client"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "hex",
@@ -3349,7 +3349,7 @@ dependencies = [
 
 [[package]]
 name = "gem_cosmos"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "bech32 0.12.0",
@@ -3374,7 +3374,7 @@ dependencies = [
 
 [[package]]
 name = "gem_crypto"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "gem_hash",
  "getrandom 0.4.3",
@@ -3384,7 +3384,7 @@ dependencies = [
 
 [[package]]
 name = "gem_derivation"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "bitcoin",
  "bs58",
@@ -3413,7 +3413,7 @@ dependencies = [
 
 [[package]]
 name = "gem_encoding"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "base64 0.23.0",
  "data-encoding",
@@ -3421,7 +3421,7 @@ dependencies = [
 
 [[package]]
 name = "gem_evm"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alchemy",
  "alloy-consensus",
@@ -3452,7 +3452,7 @@ dependencies = [
 
 [[package]]
 name = "gem_hash"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "blake2b_simd",
  "hex",
@@ -3465,7 +3465,7 @@ dependencies = [
 
 [[package]]
 name = "gem_hypercore"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "async-trait",
@@ -3492,7 +3492,7 @@ dependencies = [
 
 [[package]]
 name = "gem_jsonrpc"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "gem_client",
@@ -3506,7 +3506,7 @@ dependencies = [
 
 [[package]]
 name = "gem_keystore"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "aes 0.9.3",
  "aes-gcm",
@@ -3529,7 +3529,7 @@ dependencies = [
 
 [[package]]
 name = "gem_monad"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -3548,7 +3548,7 @@ dependencies = [
 
 [[package]]
 name = "gem_near"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "bs58",
@@ -3573,7 +3573,7 @@ dependencies = [
 
 [[package]]
 name = "gem_optimism"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -3586,7 +3586,7 @@ dependencies = [
 
 [[package]]
 name = "gem_polkadot"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "bs58",
@@ -3610,7 +3610,7 @@ dependencies = [
 
 [[package]]
 name = "gem_solana"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "borsh",
@@ -3639,7 +3639,7 @@ dependencies = [
 
 [[package]]
 name = "gem_stellar"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "chain_traits",
@@ -3664,7 +3664,7 @@ dependencies = [
 
 [[package]]
 name = "gem_sui"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "bcs 0.2.1",
@@ -3691,7 +3691,7 @@ dependencies = [
 
 [[package]]
 name = "gem_tempo"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -3712,7 +3712,7 @@ dependencies = [
 
 [[package]]
 name = "gem_ton"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "chain_traits",
@@ -3735,7 +3735,7 @@ dependencies = [
 
 [[package]]
 name = "gem_tracing"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -3743,7 +3743,7 @@ dependencies = [
 
 [[package]]
 name = "gem_tron"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-sol-types",
  "async-trait",
@@ -3772,7 +3772,7 @@ dependencies = [
 
 [[package]]
 name = "gem_wallet_connect"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "base64 0.23.0",
  "bs58",
@@ -3789,7 +3789,7 @@ dependencies = [
 
 [[package]]
 name = "gem_xrp"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "bigdecimal",
@@ -3815,7 +3815,7 @@ dependencies = [
 
 [[package]]
 name = "gemstone"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "base64 0.23.0",
@@ -3881,7 +3881,7 @@ dependencies = [
 
 [[package]]
 name = "generate"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "config",
  "fluent-syntax",
@@ -4209,7 +4209,7 @@ dependencies = [
 
 [[package]]
 name = "http_server"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "axum",
  "gem_tracing",
@@ -4531,7 +4531,7 @@ dependencies = [
 
 [[package]]
 name = "in_app_notifications"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "localizer",
  "number_formatter",
@@ -4731,7 +4731,7 @@ dependencies = [
 
 [[package]]
 name = "job_runner"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "gem_tracing",
@@ -4779,7 +4779,7 @@ dependencies = [
 
 [[package]]
 name = "jupiter"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "gem_client",
  "reqwest",
@@ -4915,7 +4915,7 @@ checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
 name = "lists"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "coingecko",
@@ -4930,7 +4930,7 @@ checksum = "92daf443525c4cce67b150400bc2316076100ce0b3686209eb8cf3c31612e6f0"
 
 [[package]]
 name = "localizer"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "i18n-embed",
  "i18n-embed-fl",
@@ -4992,7 +4992,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "metrics"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "prometheus-client",
 ]
@@ -5064,7 +5064,7 @@ dependencies = [
 
 [[package]]
 name = "model_derive"
-version = "2.114.67"
+version = "2.114.68"
 
 [[package]]
 name = "moka"
@@ -5085,7 +5085,7 @@ dependencies = [
 
 [[package]]
 name = "name_resolver"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-ens",
  "alloy-primitives",
@@ -5117,7 +5117,7 @@ checksum = "27b02d87554356db9e9a873add8782d4ea6e3e58ea071a9adb9a2e8ddb884a8b"
 
 [[package]]
 name = "nft"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alchemy",
  "async-trait",
@@ -5136,7 +5136,7 @@ dependencies = [
 
 [[package]]
 name = "node_probes"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "chain_traits",
  "primitives",
@@ -5144,7 +5144,7 @@ dependencies = [
 
 [[package]]
 name = "nodecheck"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "chain_providers",
  "chain_traits",
@@ -5270,7 +5270,7 @@ dependencies = [
 
 [[package]]
 name = "number_formatter"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "bigdecimal",
  "num-bigint 0.5.1",
@@ -5426,7 +5426,7 @@ checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
 name = "payment"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "futures",
@@ -5665,7 +5665,7 @@ dependencies = [
 
 [[package]]
 name = "prices"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "chrono",
@@ -5723,7 +5723,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "chrono",
  "hex",
@@ -5817,7 +5817,7 @@ dependencies = [
 
 [[package]]
 name = "push_notification"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "primitives",
  "serde",
@@ -5827,7 +5827,7 @@ dependencies = [
 
 [[package]]
 name = "pusher"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "gem_client",
@@ -6178,7 +6178,7 @@ checksum = "1e061d1b48cb8d38042de4ae0a7a6401009d6143dc80d2e2d6f31f0bdd6470c7"
 
 [[package]]
 name = "rewards"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "async-trait",
@@ -6642,7 +6642,7 @@ dependencies = [
 
 [[package]]
 name = "search_index"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "primitives",
@@ -6731,7 +6731,7 @@ dependencies = [
 
 [[package]]
 name = "security"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "chain_primitives",
@@ -6862,7 +6862,7 @@ dependencies = [
 
 [[package]]
 name = "serde_serializers"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "hex",
  "num-bigint 0.5.1",
@@ -6935,7 +6935,7 @@ dependencies = [
 
 [[package]]
 name = "services"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "cacher",
@@ -6984,7 +6984,7 @@ dependencies = [
 
 [[package]]
 name = "settings"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "config",
  "gem_client",
@@ -7121,7 +7121,7 @@ dependencies = [
 
 [[package]]
 name = "signer"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "bs58",
@@ -7169,7 +7169,7 @@ dependencies = [
 
 [[package]]
 name = "simulation"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -7266,7 +7266,7 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "storage"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "chrono",
  "config_keys",
@@ -7283,7 +7283,7 @@ dependencies = [
 
 [[package]]
 name = "streamer"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "async-trait",
  "futures",
@@ -7366,7 +7366,7 @@ dependencies = [
 
 [[package]]
 name = "support"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "primitives",
  "url",
@@ -7374,7 +7374,7 @@ dependencies = [
 
 [[package]]
 name = "swapper"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
@@ -8085,7 +8085,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "uniffi",
 ]
@@ -8749,7 +8749,7 @@ dependencies = [
 
 [[package]]
 name = "yielder"
-version = "2.114.67"
+version = "2.114.68"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
