@@ -115,10 +115,8 @@ class SwapViewModel @Inject constructor(
 
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val refreshEnabled = MutableStateFlow(false)
-    private val quoteRefreshEnabled = combine(
-        refreshEnabled,
-        session.distinctUntilChangedBy { it.isTransferLoading() to it.refreshPausedUntilRestart },
-    ) { isEnabled, quoteSession -> quoteSession.refreshesQuotes(isEnabled) }
+    private val quoteRefreshEnabled = combine(refreshEnabled, session) { isEnabled, quoteSession -> quoteSession.refreshesQuotes(isEnabled) }
+        .distinctUntilChanged()
 
     private val payAssetIdFlow = savedStateHandle.getStateFlow<String?>(RouteArgument.FromAssetId.key, null)
         .map { it?.toAssetId() }
@@ -145,13 +143,13 @@ class SwapViewModel @Inject constructor(
                 return@flatMapLatest flowOf<GemSwapQuotesResult?>(null)
             }
 
-            val isSettled = payValueFlow.value == settledPayValue.value || payValueFlow.value == presetPayValue
-            val debounce = if (isSettled) Duration.ZERO else GemConstants.swapQuoteDebounce
             quoteRefreshEnabled.flatMapLatest { isEnabled ->
                 if (!isEnabled) {
                     return@flatMapLatest emptyFlow()
                 }
 
+                val isSettled = payValueFlow.value == settledPayValue.value || payValueFlow.value == presetPayValue
+                val debounce = if (isSettled) Duration.ZERO else GemConstants.swapQuoteDebounce
                 merge(flowOf(debounce), refreshRequests.map { Duration.ZERO })
                     .transformLatest { wait ->
                         delay(wait)
