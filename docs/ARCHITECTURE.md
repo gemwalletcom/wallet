@@ -1418,8 +1418,9 @@ Android likewise calls the service directly for commands and point reads. [`Pric
 private val alertsEnabled = MutableStateFlow(service.isEnabled())
 
 fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
+    alertsEnabled.value = enable
     runCatchingCancellable { service.setEnabled(enable) }
-        .onFailure { Log.e(TAG, "setting price alerts enabled failed", it) }
+        .onFailure { errorState.value = it.errorText().text(context) }
     alertsEnabled.update { service.isEnabled() }
 }
 ```
@@ -1866,7 +1867,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualViewModel` (+ `PerpetualQuery`, `PerpetualPositionsQuery`) |
 | `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualsViewModel` (+ `RecentActivityQuery`, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioViewModel` |
-| `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `SetPriceAlertSceneViewModel` | `PriceAlertsViewModel`, `SetPriceAlertViewModel` |
+| `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `AssetPriceAlertsSceneViewModel`, `SetPriceAlertSceneViewModel` | `PriceAlertsViewModel`, `AssetPriceAlertsViewModel`, `SetPriceAlertViewModel` |
 | `GemReceiveService` | `GemReceiveSession` (the network list stays anchored to the asset the screen opened on) | `ReceiveSceneViewModel` | `ReceiveViewModel` |
 | `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsViewModel` vended by `SelectAssetSceneViewModel` and `PerpetualsSceneViewModel` | `RecentsViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |

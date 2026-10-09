@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -12,6 +11,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsAction
 import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsScreen
+import com.gemwallet.android.features.price_alerts.presents.AssetPriceAlertsScreen
 import com.gemwallet.android.features.price_alerts.presents.PriceAlertsScreen
 import com.gemwallet.android.features.price_alerts.presents.SetPriceAlertScreen
 import com.gemwallet.android.features.settings.presents.NotificationsScreen
@@ -127,20 +127,22 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
     }
 
     entry<PriceAlertsRoute> { key ->
-        priceAlertsScreenContent(
+        PriceAlertsScreen(
             message = routeMessage(key),
             onMessageShown = { onRouteMessageShown(key) },
-            onAction = onAction,
+            onChart = { onAction(SettingsAction.Chart(it)) },
+            onCancel = onCancel,
         )
     }
 
     entry<AssetPriceAlertsRoute>(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) { key ->
-        priceAlertsScreenContent(
+        AssetPriceAlertsScreen(
             message = routeMessage(key),
             onMessageShown = { onRouteMessageShown(key) },
-            onAction = onAction,
+            onSetPriceAlert = { onAction(SettingsAction.SetPriceAlert(it)) },
+            onCancel = onCancel,
         )
     }
 
@@ -194,15 +196,4 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
             )
         }
     }
-}
-
-@Composable
-private fun priceAlertsScreenContent(message: RouteMessage?, onMessageShown: () -> Unit, onAction: (SettingsAction) -> Unit) {
-    PriceAlertsScreen(
-        message = message,
-        onMessageShown = onMessageShown,
-        onChart = { onAction(SettingsAction.Chart(it)) },
-        onSetPriceAlert = { onAction(SettingsAction.SetPriceAlert(it)) },
-        onCancel = { onAction(SettingsAction.Cancel) },
-    )
 }
