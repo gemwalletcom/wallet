@@ -1,0 +1,227 @@
+[files.apps]
+include = ["ios/Features/**/*.swift", "ios/Packages/**/*.swift", "ios/Gem/**/*.swift", "ios/GemPriceWidget/**/*.swift", "android/**/*.kt"]
+exclude = [
+    "**/build/**", "**/.build/**", "**/generated/**", "**/Submodules/**", "**/DerivedData/**",
+    "**/test/**", "**/androidTest/**", "**/testFixtures/**", "**/Tests/**", "**/TestKit/**",
+    "**/Gemstone.swift", "**/gemstone.kt",
+]
+
+[files.gemstone]
+include = ["core/gemstone/src/**/*.rs"]
+
+[files.services]
+include = ["core/crates/services/src/**/*.rs"]
+
+[files.storage]
+include = ["core/crates/storage/src/**/*.rs"]
+
+[files.rust]
+include = ["core/**/*.rs"]
+exclude = ["**/target/**"]
+
+[files.cargo]
+include = ["core/**/Cargo.toml"]
+exclude = ["core/Cargo.toml", "**/target/**"]
+
+[files.gradle_features]
+include = ["android/features/**/build.gradle.kts"]
+exclude = ["**/build/**"]
+
+[files.ios_migrations]
+include = ["ios/Packages/Store/Sources/Migrations.swift"]
+
+
+[[rule]]
+id = "services-are-injected"
+doc = "docs/ARCHITECTURE.md § 8"
+why = "A service comes from the composition root, never from a call site."
+kind = "forbid"
+files = "apps"
+allowed = ["**/ServicesFactory.swift", "**/ViewModelFactory*.swift", "**/Gateway/GatewayService.swift", "**/LocalKeystore+Services.swift", "**/di/**"]
+pattern = '\b(Gem\w*Service)\s*\('
+skip_names = { files = "gemstone", pattern = 'pub struct (Gem\w*Service)\s*\{\s*\}' }
+message = "builds {name} outside the composition root"
+
+[[rule]]
+id = "one-localization-mapper"
+doc = "docs/ARCHITECTURE.md § 5"
+why = "One mapper per app names every Core key it renders, in one place."
+kind = "forbid"
+files = "apps"
+allowed = ["**/Gemstone+Localized.swift", "**/GemstoneText.kt"]
+pattern = '(?:extension GemLocalizedText\b(?!: Sendable)|fun GemLocalizedText\.)'
+message = "renders GemLocalizedText outside its module mapper"
+examples = { violates = ["extension GemLocalizedText {", "fun GemLocalizedText.title(): String"], passes = ["extension GemLocalizedText: Sendable {}"] }
+
+[[rule]]
+id = "keystore-stays-in-its-layer"
+doc = "docs/ARCHITECTURE.md § 8"
+why = "An app takes the services that sign, never the keystore they sign with."
+kind = "forbid"
+files = "apps"
+allowed = ["ios/Packages/GemstoneServices/**", "android/data/services/gemstone/**"]
+pattern = '\bGemKeystore\b'
+message = "reaches for the keystore outside its layer"
+
+[[rule]]
+id = "biometry-prompt-is-marked"
+doc = "docs/ARCHITECTURE.md § 14"
+why = "A Face ID or passcode prompt starts only where it is marked on SystemPrompt, so the privacy cover stays down behind it."
+kind = "forbid"
+files = "apps"
+allowed = ["ios/Packages/GemstoneServices/Sources/Keystore/BiometryAuthenticationService.swift"]
+pattern = '\.evaluatePolicy\('
+message = "starts a Face ID or passcode prompt outside BiometryAuthenticationService"
+
+[[rule]]
+id = "keychain-protection-is-marked"
+doc = "docs/ARCHITECTURE.md § 14"
+why = "A keychain item that prompts on read is protected only where it is marked on SystemPrompt."
+kind = "forbid"
+files = "apps"
+allowed = ["ios/Packages/Keychain/**", "ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystorePassword.swift"]
+pattern = 'authenticationPolicy:(?!\s*(?:\[\]|AuthenticationPolicy\b(?!\s*\.)))'
+message = "protects a keychain item outside LocalKeystorePassword"
+examples = { violates = ["authenticationPolicy: .biometryCurrentSet", "authenticationPolicy: AuthenticationPolicy.userPresence"], passes = ["authenticationPolicy: []", "authenticationPolicy: AuthenticationPolicy"] }
+
+[[rule]]
+id = "notification-permission-is-marked"
+doc = "docs/ARCHITECTURE.md § 14"
+why = "The notification permission prompt starts only where it is marked on SystemPrompt."
+kind = "forbid"
+files = "apps"
+allowed = ["ios/Packages/GemstoneServices/Sources/Notifications/PushNotificationService.swift"]
+pattern = '\.requestAuthorization\((?!\s*for:)'
+message = "asks for notification permission outside PushNotificationEnablerService"
+examples = { violates = ["center.requestAuthorization(options: [.alert])"], passes = ["store.requestAuthorization(for: .photos)"] }
+
+[[rule]]
+id = "native-stores-speak-primitives"
+doc = "docs/ARCHITECTURE.md § 4"
+why = "The native store never references Gemstone; its adapter maps at the boundary."
+kind = "forbid"
+files = "apps"
+within = ["ios/Packages/Store/**", "android/data/services/store/**"]
+pattern = '\bGemstone\w*|\buniffi\.gemstone\b'
+message = "references Gemstone from the native store"
+
+[[rule]]
+id = "store-traits-live-in-their-adapters"
+doc = "docs/ARCHITECTURE.md § 4"
+why = "A Core store trait is implemented only in the Gemstone adapter layer, never by a DAO, a native store or a feature."
+kind = "implements"
+files = "apps"
+allowed = ["ios/Packages/GemstoneServices/**", "android/data/services/gemstone/**"]
+names = { files = "gemstone", pattern = 'pub trait (Gem\w+Store)\b' }
+message = "implements {name} outside the store adapters"
+
+[[rule]]
+id = "ios-features-never-hold-a-store"
+doc = "docs/ARCHITECTURE.md § 7"
+why = "A feature reads through queries and calls services; a store is the database side of a Core service."
+kind = "forbid"
+files = "apps"
+within = ["ios/Features/**"]
+names = { files = ["ios/Packages/Store/Sources/Stores/**/*.swift"], pattern = '^public (?:final )?(?:class|struct|actor) (\w+Store)\b' }
+pattern = '\b(?:{names})\b'
+message = "holds a store; read through a query and call the service"
+
+[[rule]]
+id = "android-features-never-hold-a-store"
+doc = "docs/ARCHITECTURE.md § 7"
+why = "A feature reads through queries and calls services; a store is the database side of a Core service."
+kind = "forbid"
+files = "apps"
+within = ["android/features/**"]
+pattern = '\b(?:Gemstone\w*Store|\w+Dao)\b'
+message = "holds a store; read through a query and call the service"
+
+[[rule]]
+id = "android-features-stay-off-data-internals"
+doc = "docs/ARCHITECTURE.md § 5"
+why = "An Android feature observes through requests and calls Core services, never the data layer behind them."
+kind = "forbid"
+files = "gradle_features"
+pattern = 'project\(":data:(?:services:gemstone|coordinators)"\)'
+message = "depends on :data:services:gemstone or :data:coordinators"
+
+[[rule]]
+id = "ios-start-migrations-only-create"
+doc = "docs/ARCHITECTURE.md § 4"
+why = "run() only creates or recreates tables; a column change belongs in runChanges(), after the tables it alters exist."
+kind = "forbid"
+files = "ios_migrations"
+between = { start = 'mutating func run\(', end = 'mutating func runChanges\(' }
+pattern = '\balter\(table:|\baddColumnIfMissing\(|\bdrop\(column:'
+message = "alters a table in run()"
+
+[[rule]]
+id = "ios-migrations-fail-loudly"
+doc = "docs/ARCHITECTURE.md § 4"
+why = "A migration checks what exists instead of swallowing the error with try?."
+kind = "forbid"
+files = "ios_migrations"
+pattern = 'try\?'
+message = "swallows a migration error with try?"
+
+[[rule]]
+id = "room-version-ships-with-its-migration"
+doc = "docs/ARCHITECTURE.md § 4"
+why = "The Room version has its exported schema and a registered migration that reaches it."
+kind = "room_migration"
+database = "android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/database/GemDatabase.kt"
+migrations = "android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/database/di"
+registry = "GemDatabaseMigrations.kt"
+schemas = "android/data/services/store/schemas/com.gemwallet.android.data.services.store.database.GemDatabase"
+
+[[rule]]
+id = "room-never-drops-user-data"
+doc = "docs/ARCHITECTURE.md § 4"
+why = "A missing migration is a bug to fix, never a reason to wipe the database."
+kind = "forbid"
+files = "apps"
+within = ["android/**"]
+pattern = '\bfallbackToDestructiveMigration\w*\('
+message = "falls back to a destructive migration"
+
+[[rule]]
+id = "only-services-reach-infra"
+doc = "core/skills/architecture.md § Backend Layers"
+why = "Only services depends on infra crates."
+kind = "dependencies"
+files = "cargo"
+crates = ["storage", "cacher", "streamer", "search_index", "pusher"]
+dependents = { services = "*", daemon = ["streamer"] }
+message = "depends on infra crate {name}"
+
+[[rule]]
+id = "services-reach-postgres-through-repositories"
+doc = "core/skills/architecture.md § Repository Pattern"
+why = "Only repository adapters and composition roots touch Database, DatabaseClient or a storage repository trait."
+kind = "forbid"
+files = "services"
+allowed = ["core/crates/services/src/**/repository.rs", "core/crates/services/src/**/repository/**", "core/crates/services/src/**/backend.rs", "core/crates/services/src/**/workers.rs", "core/crates/services/src/**/consumers.rs", "core/crates/services/src/**/testkit/**"]
+names = { files = "storage", pattern = 'pub trait (\w+Repository)\b' }
+pattern = '\b(?:Database|DatabaseClient|{names})\b'
+message = "touches Postgres outside a repository adapter"
+
+[[rule]]
+id = "only-storage-takes-the-client"
+doc = "core/skills/architecture.md § Repository Pattern"
+why = "Outside storage no function takes a DatabaseClient; only an adapter's run or transaction closure holds it."
+kind = "parameters"
+files = "rust"
+allowed = ["core/crates/storage/**"]
+type = '\bDatabaseClient\b'
+message = "takes a DatabaseClient outside storage"
+
+[[rule]]
+id = "repository-methods-use-the-five-verbs"
+doc = "core/skills/architecture.md § Repository Pattern"
+why = "Storage repositories and service ports name every method with get, add, set, update or delete."
+kind = "trait_methods"
+files = ["core/crates/storage/src/**/*.rs", "core/crates/services/src/**/*.rs"]
+exclude = ["**/testkit/**", "**/testkit.rs"]
+trait = '\b(?:pub trait \w+Repository|pub\(crate\) trait Repository)\b[^{;]*\{'
+verbs = ["get", "add", "set", "update", "delete"]
+message = "{name} does not start with a repository verb"

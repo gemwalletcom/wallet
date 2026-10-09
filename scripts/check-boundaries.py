@@ -1,384 +1,244 @@
 #!/usr/bin/env python3
-"""Check the boundary rules that a regex can decide exactly.
+"""Check the boundary rules declared in check-boundaries.toml.
 
-Every rule here comes from a section of [ARCHITECTURE.md](../docs/ARCHITECTURE.md)
-and holds only where the allowed paths can be named without guessing. A rule
-that would need to read intent belongs in review, not here, so this file grows
-one exact rule at a time rather than one heuristic at a time.
+The config holds the rules; this file only knows how to check each kind of rule.
+A rule holds only where the allowed paths can be named without guessing: a rule
+that would need to read intent belongs in review, not here.
+
+Every rule has an `id`, the `doc` section that states it, `why` it exists, its `kind`
+and the `files` it reads: the name of a `[files.*]` set or a list of globs. `exclude`
+and `within` narrow the files, `allowed` names the files the rule does not apply to,
+and `known` lists files that still break a new rule (a file that stops breaking it
+is reported, so the list only shrinks). `message` may use `{name}` for the name a
+rule found.
+
+Kinds:
+- forbid: no line matches `pattern`. `names` collects the first group of a pattern over
+  other files into `{names}`, `skip_names` lets those names through, `between` limits the
+  check to the text between two patterns, and `examples` lists lines that must and must
+  not match.
+- implements: no Swift or Kotlin type declares conformance to one of `names`.
+- parameters: no function has a parameter whose type matches `type`.
+- trait_methods: every method of a trait whose header matches `trait` starts with one of `verbs`.
+- dependencies: only `dependents` depend on `crates`; `"*"` allows every crate.
+- room_migration: the Room `database` version has its exported schema and a migration in `registry`.
+
+Usage: check-boundaries.py [--rule ID ...] [--list]
 """
 
+import argparse
+import functools
 import pathlib
 import re
+import subprocess
 import sys
 
+try:
+    import tomllib
+except ModuleNotFoundError:
+    sys.exit("check-boundaries needs Python 3.11 or newer for tomllib, for example `brew install python`")
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-CORE = ROOT / "core/gemstone/src"
+CONFIG = pathlib.Path(__file__).with_suffix(".toml")
 
-SOURCES = [("ios/Features", "ios/Packages", "ios/Gem", "ios/GemPriceWidget"), ("android",)]
-SUFFIXES = {".swift", ".kt"}
-SKIP_DIRS = {"build", ".build", "generated", "Submodules", "DerivedData", "test", "androidTest", "testFixtures", "Tests", "TestKit"}
-SKIP_FILES = {"Gemstone.swift", "gemstone.kt"}
 
-SERVICE_STRUCT = re.compile(r"pub struct (Gem\w*Service)\s*(\{[^}]*\})", re.S)
-SERVICE_FIELD = re.compile(r"^\s*(?:pub(?:\([^)]*\))?\s+)?\w+\s*:", re.M)
-SERVICE_CALL = re.compile(r"\b(Gem\w*Service)\s*\(")
-# The composition roots § 8 names: the factory that owns the graph, the
-# per-screen factory it hands to views, the gateway both build from, the
-# keystore layer that builds what it will not hand out, and Android's
-# dependency injection modules.
-COMPOSITION = re.compile(r"(ServicesFactory\.swift|ViewModelFactory[^/]*\.swift|Gateway/GatewayService\.swift|LocalKeystore\+Services\.swift|/di/)")
+# Files
 
-LOCALIZED_MAPPER = re.compile(r"(?:extension GemLocalizedText\b(?!: Sendable)|fun GemLocalizedText\.)")
-LOCALIZED_HOMES = {"Gemstone+Localized.swift", "GemstoneText.kt"}
 
-SYSTEM_PROMPTS = (
-    (re.compile(r"\.evaluatePolicy\("), ("ios/Packages/GemstoneServices/Sources/Keystore/BiometryAuthenticationService.swift",), "starts a Face ID or passcode prompt outside BiometryAuthenticationService"),
-    (re.compile(r"authenticationPolicy:(?!\s*(?:\[\]|AuthenticationPolicy\b(?!\s*\.)))"), ("ios/Packages/Keychain/", "ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystorePassword.swift"), "protects a keychain item outside LocalKeystorePassword"),
-    (re.compile(r"\.requestAuthorization\((?!\s*for:)"), ("ios/Packages/GemstoneServices/Sources/Notifications/PushNotificationService.swift",), "asks for notification permission outside PushNotificationEnablerService"),
-)
-KEYSTORE = re.compile(r"\bGemKeystore\b")
-KEYSTORE_LAYERS = re.compile(r"(ios/Packages/GemstoneServices/|android/data/services/gemstone/)")
+@functools.cache
+def repository_files():
+    listed = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=ROOT, capture_output=True, check=True).stdout
+    return sorted(path for path in listed.decode().split("\0") if path and (ROOT / path).is_file())
 
-NATIVE_STORES = ("ios/Packages/Store/", "android/data/services/store/")
-GEMSTONE = re.compile(r"\bGemstone\w*|\buniffi\.gemstone\b")
 
-STORE_TRAIT = re.compile(r"pub trait (Gem\w+Store)\b")
-STORE_ADAPTERS = ("ios/Packages/GemstoneServices/", "android/data/services/gemstone/")
+@functools.cache
+def glob(pattern):
+    parts = re.split(r"(\*\*/|\*\*|\*|\?)", pattern)
+    wildcards = {"**/": "(?:.*/)?", "**": ".*", "*": "[^/]*", "?": "[^/]"}
+    return re.compile("".join(wildcards.get(part, re.escape(part)) for part in parts))
+
+
+def matches(path, globs):
+    return any(glob(pattern).fullmatch(path) for pattern in globs)
+
+
+@functools.cache
+def read(path):
+    return (ROOT / path).read_text()
+
+
+def line_of(text, offset):
+    return text.count("\n", 0, offset) + 1
+
+
+def select(spec, sets, exclude=(), within=None):
+    include, set_exclude = (sets[spec]["include"], sets[spec].get("exclude", [])) if isinstance(spec, str) else (spec, [])
+    return [
+        path
+        for path in repository_files()
+        if matches(path, include) and not matches(path, [*set_exclude, *exclude]) and (within is None or matches(path, within))
+    ]
+
+
+def collect_names(spec, sets):
+    pattern = re.compile(spec["pattern"], re.M)
+    return {name for path in select(spec["files"], sets) for name in pattern.findall(read(path))}
+
+
+# Kinds
+
+
+def forbid(rule, files, sets):
+    names = "|".join(sorted(collect_names(rule["names"], sets))) if "names" in rule else ""
+    pattern = re.compile(rule["pattern"].replace("{names}", names or "(?!)"))
+    skipped = collect_names(rule["skip_names"], sets) if "skip_names" in rule else set()
+    for path in files:
+        text = read(path)
+        region = section(text, rule.get("between"))
+        if region is None:
+            yield path, None, f"no longer has the {rule['between']['start']} section this rule reads"
+            continue
+        first, last = line_of(text, region[0]), line_of(text, region[1])
+        for number, line in enumerate(text.splitlines()[first - 1 : last], start=first):
+            for match in pattern.finditer(line):
+                name = match.group(1) if pattern.groups else None
+                if name not in skipped:
+                    yield path, number, rule["message"].format(name=name)
+
+
+def section(text, between):
+    if between is None:
+        return 0, len(text)
+    match = re.search(f"{between['start']}.*?{between['end']}", text, re.S)
+    return (match.start(), match.end()) if match else None
+
+
 SWIFT_CONFORMANCE = re.compile(r"\b(?:class|struct|actor|enum|extension)\s+[\w.]+(?:<[^>]*>)?\s*:\s*([^{]*)\{")
 KOTLIN_SUPERTYPES = re.compile(r"\b(?:class|object|interface)\s+\w+(?:\s*\((?:[^()]|\([^()]*\))*\))?\s*:\s*([^{=]*)")
 
-IOS_MIGRATIONS = ROOT / "ios/Packages/Store/Sources/Migrations.swift"
-IOS_START_MIGRATIONS = re.compile(r"mutating func run\(.*?mutating func runChanges\(", re.S)
-ALTERATION = re.compile(r"\balter\(table:|\baddColumnIfMissing\(|\bdrop\(column:")
 
-ROOM_DATABASE = ROOT / "android/data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/database/GemDatabase.kt"
-ROOM_MIGRATIONS = ROOM_DATABASE.parent / "di"
-ROOM_SCHEMAS = ROOT / "android/data/services/store/schemas/com.gemwallet.android.data.services.store.database.GemDatabase"
-ROOM_VERSION = re.compile(r"^\s*version\s*=\s*(\d+)", re.M)
-ROOM_MIGRATION = re.compile(r"\b(?:object|class)\s+(\w+)[^:{]*:\s*Migration\((\d+),\s*(\d+)\)")
-DESTRUCTIVE_FALLBACK = re.compile(r"\bfallbackToDestructiveMigration\w*\(")
-
-
-def app_files():
-    for roots in SOURCES:
-        for root in roots:
-            for path in sorted((ROOT / root).rglob("*")):
-                if path.suffix not in SUFFIXES or path.name in SKIP_FILES:
-                    continue
-                if set(path.relative_to(ROOT).parts) & SKIP_DIRS:
-                    continue
-                yield path
-
-
-def stateless_services():
-    """A service Core declares with no fields carries no state to substitute."""
-    names = set()
-    for path in CORE.rglob("*.rs"):
-        for name, body in SERVICE_STRUCT.findall(path.read_text()):
-            if not SERVICE_FIELD.search(body):
-                names.add(name)
-    return names
-
-
-def services_are_injected():
-    """§ 8: a service comes from the composition root, never from a call site."""
-    stateless = stateless_services()
-    for path in app_files():
-        relative = str(path.relative_to(ROOT))
-        if COMPOSITION.search(relative):
-            continue
-        for number, line in enumerate(path.read_text().splitlines(), start=1):
-            for name in SERVICE_CALL.findall(line):
-                if name not in stateless:
-                    yield f"{relative}:{number} builds {name} outside the composition root"
-
-
-def one_localization_mapper():
-    """One mapper per app names every Core key it renders, in one place."""
-    for path in app_files():
-        if path.name in LOCALIZED_HOMES:
-            continue
-        for number, line in enumerate(path.read_text().splitlines(), start=1):
-            if LOCALIZED_MAPPER.search(line):
-                yield f"{path.relative_to(ROOT)}:{number} renders GemLocalizedText outside its module mapper"
-
-
-def the_keystore_stays_in_its_layer():
-    """§ 8: an app takes the services that sign, never the keystore they sign with."""
-    for path in app_files():
-        relative = str(path.relative_to(ROOT))
-        if KEYSTORE_LAYERS.search(relative):
-            continue
-        for number, line in enumerate(path.read_text().splitlines(), start=1):
-            if KEYSTORE.search(line):
-                yield f"{relative}:{number} reaches for the keystore outside its layer"
-
-
-def system_prompts_start_where_they_are_marked():
-    """§ 14: a prompt Gem shows starts only where it is marked on SystemPrompt, so the privacy cover stays down behind it."""
-    for path in app_files():
-        relative = str(path.relative_to(ROOT))
-        for number, line in enumerate(path.read_text().splitlines(), start=1):
-            for pattern, homes, message in SYSTEM_PROMPTS:
-                if pattern.search(line) and not relative.startswith(homes):
-                    yield f"{relative}:{number} {message}"
-
-
-def native_stores_speak_primitives():
-    """§ 4: the native store never references Gemstone; its adapter maps at the boundary."""
-    for path in app_files():
-        relative = str(path.relative_to(ROOT))
-        if not relative.startswith(NATIVE_STORES):
-            continue
-        for number, line in enumerate(path.read_text().splitlines(), start=1):
-            if GEMSTONE.search(line):
-                yield f"{relative}:{number} references Gemstone from the native store"
-
-
-def store_traits():
-    return {name for path in CORE.rglob("*.rs") for name in STORE_TRAIT.findall(path.read_text())}
-
-
-def store_traits_live_in_their_adapters():
-    """§ 4: a Core store trait is implemented only in the Gemstone adapter layer, never by a DAO, a native store or a feature."""
-    traits = store_traits()
-    for path in app_files():
-        relative = str(path.relative_to(ROOT))
-        if relative.startswith(STORE_ADAPTERS):
-            continue
-        text = path.read_text()
-        declaration = SWIFT_CONFORMANCE if path.suffix == ".swift" else KOTLIN_SUPERTYPES
+def implements(rule, files, sets):
+    traits = collect_names(rule["names"], sets)
+    for path in files:
+        text = read(path)
+        declaration = SWIFT_CONFORMANCE if path.endswith(".swift") else KOTLIN_SUPERTYPES
         for match in declaration.finditer(text):
             for name in sorted(traits & set(re.findall(r"\b\w+\b", match.group(1)))):
-                number = text.count("\n", 0, match.start()) + 1
-                yield f"{relative}:{number} implements {name} outside the store adapters"
-
-
-def ios_start_migrations_only_create():
-    """§ 4: run() only creates or recreates tables; a column change belongs in runChanges(), after the tables it alters exist."""
-    text = IOS_MIGRATIONS.read_text()
-    start = IOS_START_MIGRATIONS.search(text)
-    if start is None:
-        yield f"{IOS_MIGRATIONS.relative_to(ROOT)} no longer has run() before runChanges()"
-        return
-    for match in ALTERATION.finditer(start.group(0)):
-        number = text.count("\n", 0, start.start() + match.start()) + 1
-        yield f"{IOS_MIGRATIONS.relative_to(ROOT)}:{number} alters a table in run()"
-
-
-def ios_migrations_fail_loudly():
-    """§ 4: a migration checks what exists instead of swallowing the error with try?."""
-    for number, line in enumerate(IOS_MIGRATIONS.read_text().splitlines(), start=1):
-        if "try?" in line:
-            yield f"{IOS_MIGRATIONS.relative_to(ROOT)}:{number} swallows a migration error with try?"
-
-
-def room_version_ships_with_its_migration():
-    """§ 4: the Room version has its exported schema and a registered migration that reaches it."""
-    version = int(ROOM_VERSION.search(ROOM_DATABASE.read_text()).group(1))
-    if not (ROOM_SCHEMAS / f"{version}.json").exists():
-        yield f"{ROOM_SCHEMAS.relative_to(ROOT)}/{version}.json is missing for version {version}"
-    registered = set(re.findall(r"\b(Migration_\w+)\b", (ROOM_MIGRATIONS / "GemDatabaseMigrations.kt").read_text()))
-    reaching = [name for path in ROOM_MIGRATIONS.glob("Migration_*.kt") for name, _, end in ROOM_MIGRATION.findall(path.read_text()) if int(end) == version]
-    if not set(reaching) & registered:
-        yield f"{ROOM_MIGRATIONS.relative_to(ROOT)}/GemDatabaseMigrations.kt registers no migration to version {version}"
-
-
-def room_never_drops_user_data():
-    """§ 4: a missing migration is a bug to fix, never a reason to wipe the database."""
-    for path in app_files():
-        if path.suffix != ".kt":
-            continue
-        for number, line in enumerate(path.read_text().splitlines(), start=1):
-            if DESTRUCTIVE_FALLBACK.search(line):
-                yield f"{path.relative_to(ROOT)}:{number} falls back to a destructive migration"
-
-BACKEND = ROOT / "core"
-INFRA_CRATES = {"storage", "cacher", "streamer", "search_index", "pusher"}
-INFRA_DEPENDENTS = {
-    "services": INFRA_CRATES,
-    "daemon": {"streamer"},
-}
-CARGO_SECTION = re.compile(r"^\[(.+)\]\s*$")
-CARGO_KEY = re.compile(r"^([A-Za-z0-9_-]+)\s*=\s*(.*)$")
-DEPENDENCY_SECTIONS = {"dependencies", "dev-dependencies", "build-dependencies"}
-
-
-def cargo_packages():
-    for path in sorted(BACKEND.rglob("Cargo.toml")):
-        if "target" in path.relative_to(BACKEND).parts or path.parent == BACKEND:
-            continue
-        name, section, dependencies = None, None, set()
-        for line in path.read_text().splitlines():
-            header = CARGO_SECTION.match(line)
-            if header:
-                section = header.group(1)
-                continue
-            key = CARGO_KEY.match(line)
-            if not key or section is None:
-                continue
-            if section == "package" and key.group(1) == "name":
-                name = key.group(2).strip().strip('"')
-            elif section.split(".")[-1] in DEPENDENCY_SECTIONS:
-                dependencies.add(key.group(1))
-        yield path.relative_to(ROOT), name, dependencies
-
-
-def only_services_reach_infra():
-    """core/skills/architecture.md § Backend Layers: only services depends on infra crates."""
-    for path, name, dependencies in cargo_packages():
-        if name in INFRA_CRATES:
-            continue
-        used = dependencies & INFRA_CRATES
-        allowed = INFRA_DEPENDENTS.get(name, set())
-        for crate in sorted(used - allowed):
-            yield f"{path} depends on infra crate {crate}"
-        if name != "services":
-            for crate in sorted(allowed - used):
-                yield f"{path} no longer depends on {crate}; remove it from INFRA_DEPENDENTS"
-
-
-SERVICES_SRC = ROOT / "core/crates/services/src"
-STORAGE_SRC = ROOT / "core/crates/storage/src"
-STORAGE_TRAIT = re.compile(r"pub trait (\w+Repository)\b")
-# The repository adapters and the composition roots that build them.
-SERVICE_ADAPTERS = re.compile(r"(?:^|/)(?:repository\.rs$|repository/|backend\.rs$|workers\.rs$|consumers\.rs$|testkit/)")
-
-
-def services_reach_postgres_through_repositories():
-    """core/skills/architecture.md § Repository Pattern: only repository adapters and composition roots touch Database, DatabaseClient or a storage repository trait."""
-    traits = {name for path in STORAGE_SRC.rglob("*.rs") for name in STORAGE_TRAIT.findall(path.read_text())}
-    pattern = re.compile(r"\b(?:Database|DatabaseClient|" + "|".join(sorted(traits)) + r")\b")
-    for path in sorted(SERVICES_SRC.rglob("*.rs")):
-        if SERVICE_ADAPTERS.search(str(path.relative_to(SERVICES_SRC))):
-            continue
-        for number, line in enumerate(path.read_text().splitlines(), start=1):
-            if pattern.search(line):
-                yield f"{path.relative_to(ROOT)}:{number} touches Postgres outside a repository adapter"
+                yield path, line_of(text, match.start()), rule["message"].format(name=name)
 
 
 FUNCTION = re.compile(r"\bfn\s+\w+\s*(?:<[^{;()]*>)?\s*\(")
-DATABASE_CLIENT = re.compile(r"\bDatabaseClient\b")
 
 
-def function_parameters(text):
-    for match in FUNCTION.finditer(text):
-        depth, index = 1, match.end()
-        while depth and index < len(text):
-            depth += {"(": 1, ")": -1}.get(text[index], 0)
-            index += 1
-        yield match.start(), text[match.end() : index - 1]
+def parameters(rule, files, sets):
+    parameter_type = re.compile(rule["type"])
+    for path in files:
+        text = read(path)
+        for match in FUNCTION.finditer(text):
+            depth, index = 1, match.end()
+            while depth and index < len(text):
+                depth += {"(": 1, ")": -1}.get(text[index], 0)
+                index += 1
+            if parameter_type.search(text[match.end() : index - 1]):
+                yield path, line_of(text, match.start()), rule["message"]
 
 
-def only_storage_takes_the_client():
-    """core/skills/architecture.md § Repository Pattern: outside storage no function takes a DatabaseClient; only an adapter's run or transaction closure holds it."""
-    for path in sorted(BACKEND.rglob("*.rs")):
-        if "target" in path.relative_to(BACKEND).parts or path.is_relative_to(STORAGE_SRC.parent):
-            continue
-        text = path.read_text()
-        for start, parameters in function_parameters(text):
-            if DATABASE_CLIENT.search(parameters):
-                yield f"{path.relative_to(ROOT)}:{text.count(chr(10), 0, start) + 1} takes a DatabaseClient outside storage"
-
-
-REPOSITORY_VERBS = {"get", "add", "set", "update", "delete"}
-REPOSITORY_TRAIT = re.compile(r"\b(?:pub trait \w+Repository|pub\(crate\) trait Repository)\b[^{;]*\{")
 TRAIT_METHOD = re.compile(r"^\s+(?:async\s+)?fn\s+([a-z_0-9]+)\s*\(", re.M)
 
 
-def repository_methods_start_with_a_verb():
-    """core/skills/architecture.md § Repository Pattern: storage repositories and service ports name every method by its verb."""
-    for root in (STORAGE_SRC, SERVICES_SRC):
-        for path in sorted(root.rglob("*.rs")):
-            if "testkit" in path.relative_to(root).parts:
-                continue
-            text = path.read_text()
-            for trait in REPOSITORY_TRAIT.finditer(text):
-                end = text.index("\n}\n", trait.end())
-                for method in TRAIT_METHOD.finditer(text, trait.end(), end):
-                    name = method.group(1)
-                    if name.split("_")[0] in REPOSITORY_VERBS:
-                        continue
-                    yield f"{path.relative_to(ROOT)}:{text.count(chr(10), 0, method.start()) + 1} {name} does not start with a repository verb"
+def trait_methods(rule, files, sets):
+    header = re.compile(rule["trait"])
+    verbs = set(rule["verbs"])
+    for path in files:
+        text = read(path)
+        for trait in header.finditer(text):
+            for method in TRAIT_METHOD.finditer(text, trait.end(), text.index("\n}\n", trait.end())):
+                if method.group(1).split("_")[0] not in verbs:
+                    yield path, line_of(text, method.start()), rule["message"].format(name=method.group(1))
 
 
-ANDROID_FEATURES = ROOT / "android/features"
-DATA_INTERNALS = re.compile(r'project\(":data:(?:services:gemstone|coordinators)"\)')
-DATA_INTERNAL_DEPENDENTS = set()
+DEPENDENCY_SECTIONS = {"dependencies", "dev-dependencies", "build-dependencies"}
 
 
-def android_features_stay_off_data_internals():
-    """§ 5: an Android feature observes through requests and calls Core services, never the data layer behind them."""
-    found = set()
-    for path in sorted(ANDROID_FEATURES.rglob("build.gradle.kts")):
-        if "build" in path.relative_to(ANDROID_FEATURES).parts[:-1]:
+def dependencies(rule, files, sets):
+    crates = set(rule["crates"])
+    for path in files:
+        manifest = tomllib.loads(read(path))
+        name = manifest.get("package", {}).get("name")
+        if name in crates:
             continue
-        relative = str(path.relative_to(ROOT))
-        if DATA_INTERNALS.search(path.read_text()):
-            found.add(relative)
-            if relative not in DATA_INTERNAL_DEPENDENTS:
-                yield f"{relative} depends on :data:services:gemstone or :data:coordinators"
-    for relative in sorted(DATA_INTERNAL_DEPENDENTS - found):
-        yield f"{relative} no longer depends on the data internals; remove it from DATA_INTERNAL_DEPENDENTS"
+        tables = [manifest, *manifest.get("target", {}).values()]
+        used = {crate for table in tables for section_name in DEPENDENCY_SECTIONS for crate in table.get(section_name, {})}
+        allowed = crates if rule["dependents"].get(name) == "*" else set(rule["dependents"].get(name, []))
+        for crate in sorted(used & crates - allowed):
+            yield path, None, rule["message"].format(name=crate)
+        if rule["dependents"].get(name) != "*":
+            for crate in sorted(allowed - used):
+                yield path, None, f"no longer depends on {crate}; remove it from {rule['id']} dependents"
 
 
-IOS_STORES = ROOT / "ios/Packages/Store/Sources/Stores"
-IOS_STORE_TYPE = re.compile(r"^public (?:final )?(?:class|struct|actor) (\w+Store)\b", re.M)
-ANDROID_STORE_TYPE = re.compile(r"\b(?:Gemstone\w*Store|\w+Dao)\b")
-STORE_HOLDING_FEATURES = set()
+def room_migration(rule, files, sets):
+    version = int(re.search(r"^\s*version\s*=\s*(\d+)", read(rule["database"]), re.M).group(1))
+    if not (ROOT / rule["schemas"] / f"{version}.json").exists():
+        yield f"{rule['schemas']}/{version}.json", None, f"is missing for version {version}"
+    registry = f"{rule['migrations']}/{rule['registry']}"
+    registered = set(re.findall(r"\b(Migration_\w+)\b", read(registry)))
+    migration = re.compile(r"\b(?:object|class)\s+(\w+)[^:{]*:\s*Migration\((\d+),\s*(\d+)\)")
+    reaching = {name for path in (ROOT / rule["migrations"]).glob("Migration_*.kt") for name, _, end in migration.findall(path.read_text()) if int(end) == version}
+    if not reaching & registered:
+        yield registry, None, f"registers no migration to version {version}"
 
 
-def features_never_hold_a_store():
-    """§ 7: a feature reads through queries and calls services; a store is the database side of a Core service."""
-    ios_stores = {name for path in IOS_STORES.rglob("*.swift") for name in IOS_STORE_TYPE.findall(path.read_text())}
-    ios_store_type = re.compile(r"\b(?:" + "|".join(sorted(ios_stores)) + r")\b")
-    found = set()
-    for path in app_files():
-        relative = str(path.relative_to(ROOT))
-        if relative.startswith("ios/Features/"):
-            pattern = ios_store_type
-        elif relative.startswith("android/features/"):
-            pattern = ANDROID_STORE_TYPE
-        else:
-            continue
-        for number, line in enumerate(path.read_text().splitlines(), start=1):
-            if pattern.search(line):
-                found.add(relative)
-                if relative not in STORE_HOLDING_FEATURES:
-                    yield f"{relative}:{number} holds a store; read through a query and call the service"
-    for relative in sorted(STORE_HOLDING_FEATURES - found):
-        yield f"{relative} no longer holds a store; remove it from STORE_HOLDING_FEATURES"
+KINDS = {kind.__name__: kind for kind in (forbid, implements, parameters, trait_methods, dependencies, room_migration)}
 
 
-RULES = [
-    ("services are injected, never constructed at a call site", services_are_injected),
-    ("one localization mapper names every Core key it renders", one_localization_mapper),
-    ("the keystore stays in its layer", the_keystore_stays_in_its_layer),
-    ("system prompts start where they are marked", system_prompts_start_where_they_are_marked),
-    ("the native store speaks primitives only", native_stores_speak_primitives),
-    ("store traits live in their adapters", store_traits_live_in_their_adapters),
-    ("iOS start migrations only create tables", ios_start_migrations_only_create),
-    ("iOS migrations fail loudly", ios_migrations_fail_loudly),
-    ("the Room version ships with its migration", room_version_ships_with_its_migration),
-    ("Room never drops user data", room_never_drops_user_data),
-    ("only services depends on infra crates", only_services_reach_infra),
-    ("services reach Postgres through repository adapters", services_reach_postgres_through_repositories),
-    ("only storage functions take the DatabaseClient", only_storage_takes_the_client),
-    ("repository methods start with a verb", repository_methods_start_with_a_verb),
-    ("Android features stay off the data internals", android_features_stay_off_data_internals),
-    ("features never hold a store", features_never_hold_a_store),
-]
+# Rules
+
+
+def examples_hold(rule):
+    if "examples" not in rule:
+        return
+    pattern = re.compile(rule["pattern"])
+    examples = rule["examples"]
+    yield from (f"example no longer matches: {line}" for line in examples.get("violates", []) if not pattern.search(line))
+    yield from (f"example now matches: {line}" for line in examples.get("passes", []) if pattern.search(line))
+
+
+def check(rule, sets):
+    selected = select(rule["files"], sets, rule.get("exclude", ()), rule.get("within")) if "files" in rule else []
+    files = [path for path in selected if not matches(path, rule.get("allowed", []))]
+    found = set(KINDS[rule["kind"]](rule, files, sets))
+    known = set(rule.get("known", []))
+    violations = sorted(f"{path}:{number} {message}" if number else f"{path} {message}" for path, number, message in found if path not in known)
+    stale = sorted(f"{path} no longer breaks this rule; remove it from known" for path in known - {path for path, _, _ in found})
+    return [*examples_hold(rule), *violations, *stale]
 
 
 def main():
-    failures = 0
-    for rule, check in RULES:
-        found = sorted(check())
-        for line in found:
-            print(f"  {line}")
-        failures += len(found)
-    print(f"checked {len(RULES)} boundary rules")
+    parser = argparse.ArgumentParser(description="Check the boundary rules declared in check-boundaries.toml.")
+    parser.add_argument("--rule", action="append", help="check only this rule id; repeatable")
+    parser.add_argument("--list", action="store_true", help="list the rules and exit")
+    arguments = parser.parse_args()
 
+    config = tomllib.loads(CONFIG.read_text())
+    rules = [rule for rule in config["rule"] if not arguments.rule or rule["id"] in arguments.rule]
+    unknown = set(arguments.rule or []) - {rule["id"] for rule in config["rule"]}
+    if unknown:
+        sys.exit(f"unknown rule: {', '.join(sorted(unknown))}")
+    if arguments.list:
+        for rule in rules:
+            print(f"{rule['id']}: {rule['why']} ({rule['doc']})")
+        return 0
+
+    failures = 0
+    for rule in rules:
+        lines = check(rule, config["files"])
+        if lines:
+            print(f"{rule['id']}: {rule['why']} ({rule['doc']})")
+        for line in lines:
+            print(f"  {line}")
+        failures += len(lines)
+    print(f"checked {len(rules)} boundary rules")
     return 1 if failures else 0
 
 
