@@ -216,7 +216,7 @@ fun SelectAssetScene(
             modifier = Modifier.fillMaxWidth(),
             state = listState,
         ) {
-            recent(recent, onSelectRecent, onOpenRecentsSheet)
+            recentAssets(recent, onSelectRecent, onOpenRecentsSheet)
             assets(popular, GemAssetSectionKind.POPULAR, onSelect, onItemAction, longPressedAsset, contextActions)
             if (pinned.isNotEmpty() || pinnedPerpetualRows.isNotEmpty()) {
                 item { AssetSectionHeaderItem(GemAssetSectionKind.PINNED) }
@@ -363,7 +363,7 @@ fun LazyListScope.searchState(state: GemSelectAssetState, empty: GemEmptyState =
     }
 }
 
-private fun LazyListScope.recent(items: List<Asset>, onSelect: ((Asset) -> Unit)?, onOpenRecentsSheet: (() -> Unit)? = null) {
+fun LazyListScope.recentAssets(items: List<Asset>, onSelect: (Asset) -> Unit, onOpenRecentsSheet: (() -> Unit)?) {
     if (items.isEmpty()) {
         return
     }
@@ -380,7 +380,7 @@ private fun LazyListScope.recent(items: List<Asset>, onSelect: ((Asset) -> Unit)
                     modifier = Modifier
                         .clip(RoundedCornerShape(paddingDefault))
                         .background(MaterialTheme.colorScheme.background)
-                        .clickable(onClick = { onSelect?.invoke(asset) })
+                        .clickable { onSelect(asset) }
                         .padding(paddingSmall),
                     horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                     verticalAlignment = Alignment.CenterVertically,

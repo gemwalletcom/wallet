@@ -1,33 +1,23 @@
 package com.gemwallet.android.features.perpetuals.presents.perpetuals
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.assets.presents.select.recentAssets
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualListItem
 import com.gemwallet.android.features.perpetuals.presents.components.previewPerpetual
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualPositionRowUIModel
@@ -36,7 +26,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.empty.EmptyContentView
-import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
 import com.gemwallet.android.ui.components.list_head.ValueListHead
 import com.gemwallet.android.ui.components.list_item.AssetListItem
@@ -50,10 +39,6 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.paddingHalfSmall
-import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -144,10 +129,10 @@ internal fun PerpetualsScene(
                             }
                         }
 
-                        GemPerpetualMarketSection.RECENTS -> recentPerpetuals(
+                        GemPerpetualMarketSection.RECENTS -> recentAssets(
                             items = recent,
-                            onSeeAll = { onAction(PerpetualsAction.OpenRecentsSheet) },
                             onSelect = { asset -> onAction(PerpetualsAction.OpenRecent(asset)) },
+                            onOpenRecentsSheet = { onAction(PerpetualsAction.OpenRecentsSheet) },
                         )
 
                         GemPerpetualMarketSection.POSITIONS -> {
@@ -200,39 +185,6 @@ internal fun PerpetualsScene(
                                 .fillParentMaxSize(),
                         )
                     }
-                }
-            }
-        }
-    }
-}
-
-private fun LazyListScope.recentPerpetuals(items: List<Asset>, onSeeAll: () -> Unit, onSelect: (Asset) -> Unit) {
-    if (items.isEmpty()) {
-        return
-    }
-    item { SubheaderItem(R.string.recent_activity_title, onClick = onSeeAll) }
-    item {
-        LazyRow(
-            modifier = Modifier.padding(
-                top = paddingHalfSmall,
-                start = paddingDefault,
-                bottom = paddingSmall,
-                end = paddingDefault,
-            ),
-            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
-        ) {
-            items(items) { asset ->
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(paddingDefault))
-                        .background(MaterialTheme.colorScheme.background)
-                        .clickable { onSelect(asset) }
-                        .padding(paddingSmall),
-                    horizontalArrangement = Arrangement.spacedBy(paddingSmall),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    AssetIcon(asset, size = smallIconSize)
-                    Text(asset.symbol)
                 }
             }
         }
