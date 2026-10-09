@@ -505,6 +505,40 @@ class SwapViewModelTest {
     }
 
     @Test
+    fun `quote retry after a typed amount fails requests quotes at once`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        failQuote(viewModel, SwapperException.ComputeQuoteException("offline"))
+
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {})
+        runCurrent()
+
+        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
+    }
+
+    @Test
+    fun `quote retry after a failed refresh and a handed off transfer requests quotes again`() = runTest(testDispatcher) {
+        every { getSession() } returns MutableStateFlow(mockSession(wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))))
+        coEvery { swapQuoteService.transferData(any()) } throws SwapperException.TransactionException("offline")
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        seedReadyQuote(viewModel)
+        viewModel.swap {}
+        awaitCondition { viewModel.viewState.value.buttonAction == GemSwapButtonAction.RetryTransfer }
+        failQuote(viewModel, SwapperException.ComputeQuoteException("offline"))
+        stubBuildConfirmInput()
+        viewModel.onPrimaryAction(onConfirm = { viewModel.setRefreshEnabled(false) }, onShowPriceImpactWarning = {})
+        awaitCondition { !viewModel.viewState.value.isTransferLoading && viewModel.viewState.value.buttonAction == GemSwapButtonAction.RetryQuote }
+        viewModel.setRefreshEnabled(true)
+        runCurrent()
+
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {})
+        advanceUntilIdle()
+
+        coVerify(exactly = 3) { swapQuoteService.getQuotes(any()) }
+    }
+
+    @Test
     fun `a quote refresh in flight when the swap starts does not replace swapping state`() = runTest(testDispatcher) {
         val confirmInputGate = CompletableDeferred<Unit>()
         stubBuildConfirmInput { confirmInputGate.await() }
