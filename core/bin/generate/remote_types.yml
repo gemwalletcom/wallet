@@ -324,7 +324,6 @@ mocks:
   - GemSwapQuotesResult
   - GemSwapRequest
   - GemSwapSession
-  - GemSwapTransfer
   - GemTransactionAmount
   - GemTransactionDetailRows
   - GemTransactionFeeRow

@@ -2,17 +2,18 @@
 
 import BigInt
 import Foundation
-import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
 import typealias Gemstone.Currency
 import struct Gemstone.GemSwapPairFailure
 import struct Gemstone.GemSwapPairSelection
 import struct Gemstone.GemSwapPairSuggestion
+import struct Gemstone.GemSwapQuoteInput
 import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapQuoteSummary
 import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
-import struct Gemstone.GemSwapTransfer
+import struct Gemstone.GemTransferData
+import struct Gemstone.SwapData
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapProviderData
 import struct Gemstone.SwapQuote
@@ -20,6 +21,7 @@ import struct Gemstone.SwapQuoteData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
+import PrimitivesTestKit
 
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
     public var isAvailableValue = true
@@ -100,20 +102,21 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         return []
     }
 
-    public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: BigUInt, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
+    public func getQuotes(input: GemSwapQuoteInput) async throws -> [SwapperQuote] {
         if let quotesError {
             throw quotesError
         }
-        return try await quotes(BigInt(value))
+        return try await quotes(BigInt(input.request.value))
     }
 
-    public func getTransfer(quote: SwapperQuote) async throws -> GemSwapTransfer {
-        if let transferError { throw transferError }
-        return GemSwapTransfer(
-            quote: quote.swapQuote,
-            data: quoteData,
-            recipient: quote.request.destinationAddress,
-            value: quote.request.value,
+    public func transferData(quote: SwapperQuote) async throws -> GemTransferData {
+        if let transferError {
+            throw transferError
+        }
+        return GemTransferData.mock(
+            inputType: .swap(fromAsset: Asset.mock().toGem(), toAsset: Asset.mock().toGem(), swapData: SwapData(quote: quote.swapQuote, data: quoteData)),
+            recipient: .mock(address: quote.request.destinationAddress),
+            value: BigInt(quote.request.value),
             useMaxAmount: quote.request.options.useMaxAmount,
         )
     }

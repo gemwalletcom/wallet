@@ -1,18 +1,21 @@
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Currency, Feature};
+use primitives::{Asset, AssetId, Currency, Feature, Wallet};
 use swapper::{Quote, SwapperError};
 
 use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::rules;
-use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession, GemSwapTransfer};
-use crate::models::custom_types::{GemBigInt, GemBigUint};
+use super::session::GemSwapQuoteInput;
+use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession};
+use crate::models::custom_types::GemBigInt;
+use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::{StepFailure, record_result};
 use crate::services::preferences::GemPreferencesService;
 use crate::services::stream::GemStreamSubscriptionService;
+use crate::services::transfer::GemTransferData;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -38,6 +41,7 @@ impl StepFailure for GemSwapPairFailure {
 #[derive(uniffi::Object)]
 pub struct GemSwapQuoteService {
     swap: Arc<GemSwapService>,
+    assets: Arc<GemAssetsService>,
     preferences: Arc<GemPreferencesService>,
     balances: Arc<GemBalanceService>,
     stream: Arc<GemStreamSubscriptionService>,
@@ -48,9 +52,18 @@ pub struct GemSwapQuoteService {
 #[uniffi::export]
 impl GemSwapQuoteService {
     #[uniffi::constructor]
-    pub fn new(swap: Arc<GemSwapService>, preferences: Arc<GemPreferencesService>, balances: Arc<GemBalanceService>, stream: Arc<GemStreamSubscriptionService>, session: Arc<GemWalletSessionService>, config: Arc<GemConfigService>) -> Self {
+    pub fn new(
+        swap: Arc<GemSwapService>,
+        assets: Arc<GemAssetsService>,
+        preferences: Arc<GemPreferencesService>,
+        balances: Arc<GemBalanceService>,
+        stream: Arc<GemStreamSubscriptionService>,
+        session: Arc<GemWalletSessionService>,
+        config: Arc<GemConfigService>,
+    ) -> Self {
         Self {
             swap,
+            assets,
             preferences,
             balances,
             stream,
@@ -87,9 +100,10 @@ impl GemSwapQuoteService {
         rules::amount_for_percent(&available, percent)
     }
 
-    pub async fn get_quotes(&self, from_asset: Asset, to_asset: Asset, value: GemBigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<Vec<Quote>, SwapperError> {
-        let wallet = self.session.require_current_wallet().await.map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
-        self.swap.get_quotes(wallet, from_asset, to_asset, value, use_max_amount, slippage_bps).await
+    pub async fn get_quotes(&self, input: GemSwapQuoteInput) -> Result<Vec<Quote>, SwapperError> {
+        let request = input.request;
+        let (wallet, from_asset, to_asset) = self.pair(request.pay_asset_id, request.receive_asset_id).await.map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
+        self.swap.get_quotes(wallet, from_asset, to_asset, request.value, input.use_max_amount, request.slippage_bps).await
     }
 
     pub async fn suggest_pair(&self, pay_asset_id: Option<AssetId>) -> Option<GemSwapPairSuggestion> {
@@ -97,9 +111,11 @@ impl GemSwapQuoteService {
         self.swap.suggest_pair(wallet, pay_asset_id).await.ok().flatten()
     }
 
-    pub async fn get_transfer(&self, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {
-        let wallet = self.session.require_current_wallet().await.map_err(|error| SwapperError::TransactionError(error.to_string()))?;
-        self.swap.get_transfer(wallet, quote).await
+    pub async fn transfer_data(&self, quote: Quote) -> Result<GemTransferData, SwapperError> {
+        let from_asset_id = AssetId::new(&quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
+        let to_asset_id = AssetId::new(&quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
+        let (wallet, from_asset, to_asset) = self.pair(from_asset_id, to_asset_id).await.map_err(|error| SwapperError::TransactionError(error.to_string()))?;
+        Ok(self.swap.get_transfer(wallet, quote).await?.transfer_data(from_asset, to_asset))
     }
 
     pub async fn refresh_pair(&self, asset_ids: Vec<AssetId>) -> Vec<GemSwapPairFailure> {
@@ -120,17 +136,78 @@ impl GemSwapQuoteService {
     }
 }
 
+impl GemSwapQuoteService {
+    async fn pair(&self, from_asset_id: AssetId, to_asset_id: AssetId) -> Result<(Wallet, Asset, Asset), GemServiceError> {
+        futures::try_join!(self.session.require_current_wallet(), self.assets.ensure_asset(from_asset_id), self.assets.ensure_asset(to_asset_id))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
     use primitives::Chain;
     use std::sync::atomic::Ordering;
 
+    use primitives::TransactionInputType;
+    use swapper::testkit::MockSwapper;
+    use swapper::{FetchQuoteData, SwapperProvider};
+
+    use super::super::session::GemSwapRequest;
     use super::super::testkit::SwapQuoteTestkit;
     use super::*;
 
     fn pair() -> Vec<AssetId> {
         vec![AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Solana)]
+    }
+
+    fn echoing_swapper() -> MockSwapper {
+        MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request)))
+    }
+
+    const ONE_ETH: u64 = 1_000_000_000_000_000_000;
+
+    fn eth_to_usdc() -> GemSwapQuoteInput {
+        GemSwapQuoteInput {
+            request: GemSwapRequest {
+                pay_asset_id: Asset::mock_eth().id,
+                receive_asset_id: Asset::mock_ethereum_usdc().id,
+                value: ONE_ETH.into(),
+                slippage_bps: Some(150),
+            },
+            use_max_amount: true,
+        }
+    }
+
+    #[test]
+    fn test_quotes_ask_for_the_stored_pair_the_input_names() {
+        block_on(async {
+            let testkit = SwapQuoteTestkit::with_swapper(echoing_swapper(), vec![Asset::mock_eth(), Asset::mock_ethereum_usdc()]);
+
+            let quotes = testkit.service.get_quotes(eth_to_usdc()).await.unwrap();
+
+            let wallet = testkit.discovery.session.require_current_wallet().await.unwrap();
+            let direct = testkit.swap.get_quotes(wallet, Asset::mock_eth(), Asset::mock_ethereum_usdc(), ONE_ETH.into(), true, Some(150)).await.unwrap();
+            assert_eq!(quotes, direct, "the input names the same quotes the assets used to");
+        })
+    }
+
+    #[test]
+    fn test_the_transfer_carries_the_stored_assets_of_the_quote() {
+        block_on(async {
+            let swapper = echoing_swapper();
+            let builds = swapper.builds();
+            let testkit = SwapQuoteTestkit::with_swapper(swapper, vec![Asset::mock_eth(), Asset::mock_ethereum_usdc()]);
+            let quote = testkit.service.get_quotes(eth_to_usdc()).await.unwrap().remove(0);
+
+            let transfer = testkit.service.transfer_data(quote).await.unwrap();
+
+            let TransactionInputType::Swap { from_asset, to_asset, .. } = &transfer.input_type else {
+                panic!("a swap builds swap data: {:?}", transfer.input_type)
+            };
+            assert_eq!(from_asset, &Asset::mock_eth());
+            assert_eq!(to_asset, &Asset::mock_ethereum_usdc());
+            assert_eq!(builds.lock().unwrap().clone(), vec![FetchQuoteData::None], "the transfer is built without a signature");
+        })
     }
 
     #[test]

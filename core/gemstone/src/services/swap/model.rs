@@ -144,7 +144,7 @@ pub struct GemSwapRequote {
     pub transfer: GemTransferData,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemSwapTransfer {
     pub quote: SwapQuote,
     pub data: SwapQuoteData,
@@ -153,7 +153,6 @@ pub struct GemSwapTransfer {
     pub use_max_amount: bool,
 }
 
-#[uniffi::export]
 impl GemSwapTransfer {
     pub fn transfer_data(&self, from_asset: Asset, to_asset: Asset) -> GemTransferData {
         GemTransferData {

@@ -1801,20 +1801,6 @@ fun mockGemSwapSession(
     payValue = payValue,
 )
 
-fun mockGemSwapTransfer(
-    quote: uniffi.gemstone.SwapQuote = mockSwapQuote(),
-    data: uniffi.gemstone.SwapQuoteData = mockSwapQuoteData(),
-    recipient: String = "",
-    value: java.math.BigInteger = java.math.BigInteger.ZERO,
-    useMaxAmount: Boolean = false,
-) = uniffi.gemstone.GemSwapTransfer(
-    quote = quote,
-    data = data,
-    recipient = recipient,
-    value = value,
-    useMaxAmount = useMaxAmount,
-)
-
 fun mockGemTransactionAmount(
     asset: uniffi.gemstone.Asset = mockAsset().toGem(),
     value: java.math.BigInteger = java.math.BigInteger.ZERO,
