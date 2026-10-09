@@ -4,7 +4,7 @@
 [![iOS CI](https://github.com/gemwalletcom/wallet/actions/workflows/ios-ci.yml/badge.svg)](https://github.com/gemwalletcom/wallet/actions/workflows/ios-ci.yml)
 [![Android CI](https://github.com/gemwalletcom/wallet/actions/workflows/android-ci.yml/badge.svg)](https://github.com/gemwalletcom/wallet/actions/workflows/android-ci.yml)
 [![License](https://badgen.net/github/license/gemwalletcom/wallet)](https://github.com/gemwalletcom/wallet/blob/main/LICENSE)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gemwalletcom/wallet)
+[![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-blue)](https://deepwiki.com/gemwalletcom/wallet)
 [![Gem Wallet Discord](https://img.shields.io/discord/974531300394434630?style=plastic)](https://discord.gg/aWkq5sj7SY)
 [![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/GemWallet)](https://x.com/GemWallet)
 

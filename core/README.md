@@ -1,93 +1,52 @@
 # Gem Wallet Core
 
-[![Rust](https://img.shields.io/badge/language-Rust-orange?logo=rust)](https://www.rust-lang.org/)
-[![GitHub release](https://img.shields.io/github/v/release/gemwalletcom/wallet)](https://github.com/gemwalletcom/wallet/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gemwalletcom/wallet)
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white)](https://t.me/gemwallet_developers)
-![GitHub Repo stars](https://img.shields.io/github/stars/gemwalletcom/wallet?style=social)
+Shared Rust libraries, mobile bindings, and backend services for [Gem Wallet](../README.md). See the root README for app setup, contributing, security reporting, and community links.
 
-[![Core CI](https://github.com/gemwalletcom/wallet/actions/workflows/core-ci.yml/badge.svg)](https://github.com/gemwalletcom/wallet/actions/workflows/core-ci.yml)
+## Layout
 
-# Introduction
+- [`crates/`](crates/): shared models, blockchain implementations, signing, swaps, storage, and provider integrations
+- [`gemstone/`](gemstone/): UniFFI library consumed by the iOS and Android apps
+- [`apps/`](apps/): API, daemon, and Dynode backend services
+- [`bin/`](bin/): command-line tools and code generators
 
-Gem Wallet Core is the core engine powering [Gem Wallet](https://gemwallet.com/), a fully open source, secure and decentralized crypto wallet designed for Bitcoin, Ethereum, Solana, BNB Chain, Base, Sui and much more. Built in Rust, it ensures high performance, safety, and reliability.
+See the [Core features and providers comparison](../docs/FEATURES.md) for supported capabilities.
 
-## Gem Wallet Features:
+## Development
 
-- 🚀 High-Performance: Completely native UI and Core is written in Rust for speed and safety.
-- 🔐 Secure: Utilizes strong cryptographic standards.
-- 🛠 Extensible: Designed to support additional features and integrations.
-- 🤝 Open Source: Community-driven and actively maintained.
+Run the following commands from `core/`. First-time prerequisites and build cache configuration are in [Setup](skills/setup.md).
 
-Gem Wallet Core serves as the backbone for both backend and frontend apps, handling various tasks, including:
-
-- Transaction indexing and push notifications
-- Asset price, charts and alerts
-- Fiat on and off-ramps
-- ENS, Solana and more name resolution
-- NFTs
-- Native and cross-chain swaps
-- Native BNB Chain and Sui staking
-- Hyperliquid perpetual futures trading
-- More
-- ...
-
-See the [Core features and providers comparison](../docs/FEATURES.md).
-
-## Running API
-
-### Install dependencies
-
-Run `just install` to install rust
-
-### Setup DB
-
-- Create a new database `api` and grant privileges to `username` role
-- Run `diesel migration run` to create tables and do migrations
-
-Run API locally: `cargo run --package api`
-
-## Security Scanning
-
-Run `just audit` to execute [`cargo-audit`](https://github.com/RustSec/rustsec/tree/main/cargo-audit) across the entire workspace. The command installs `cargo-audit` if needed and reports vulnerable or unmaintained dependencies surfaced via the RustSec advisory database. Treat the warnings as action items when possible, and file follow-up issues if immediate remediation is not feasible.
-
-## Gemstone
-
-Cross platform Rust library for iOS and Android with native async networking support.
-
-### iOS
-
-From the wallet repo root, run `just generate-stone` to generate the local Swift bindings and Rust static libraries consumed by the iOS app.
-
-### Android
-
-Build the Gemstone Android AAR from source and publish it to the local Maven cache:
-
-```bash
-just gemstone build-android
+```sh
+just build
+just test
+just test primitives
+just format
+just lint
+just audit
 ```
 
-Then consume it from `mavenLocal()` in your Android project.
+`just test <CRATE>` runs a specific crate's unit tests. `just audit` checks dependencies for known vulnerabilities and installs `cargo-audit` if needed. See [Development Commands](skills/development-commands.md) for integration tests and other recipes.
 
-# Contributing
+## Running the API
 
-We welcome contributions! To get started:
+Install the PostgreSQL client libraries and Diesel CLI described in [Setup](skills/setup.md). With Docker available, start the local backend dependencies:
 
-- Look for issues with the `help wanted` labels.
-- Fork the repository.
-- Create a new branch (feature-xyz).
-- Commit your changes and push.
-- Open a Pull Request.
+```sh
+just setup-services
+```
 
-# License
+This starts PostgreSQL, Redis, Meilisearch, and RabbitMQ using [docker-compose.yml](docker-compose.yml). Configure `DATABASE_URL` for Diesel to point to the local database, then run:
 
-This project is licensed under the [MIT](./LICENSE) License.
+```sh
+just migrate
+cargo run --package api
+```
 
-# Community & Support
+The API reads [Settings.yaml](Settings.yaml) from the working directory, with environment variable overrides such as `POSTGRES_URL` and `REDIS_URL`. Configure service endpoints and any required provider credentials for your environment before starting it.
 
-- 💬 Join our [Discord](https://discord.com/invite/aWkq5sj7SY) or [Telegram](https://t.me/gemwallet_developers)
-- 📖 Read the [Docs](https://docs.gemwallet.com/)
-- 🐦 Follow us on [X](https://x.com/gemwallet)
+## Mobile Integration
 
-Made with ❤️ by the Gem Wallet community.
+Gemstone exposes Core functionality to Swift and Kotlin through UniFFI. Follow the [root README](../README.md) to build the apps and [Development Commands](skills/development-commands.md#generating-bindings-when-core-changes-affect-mobile-apis) for binding generation and standalone Gemstone examples.
+
+## License
+
+Gem Wallet Core is licensed under the [MIT License](LICENSE).
