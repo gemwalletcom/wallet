@@ -24,7 +24,7 @@ impl PriceAlertClient {
     }
 
     pub async fn get_price_alerts(&self, device_id: &str, asset_id: Option<&AssetId>) -> Result<PriceAlerts, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.device_price_alerts(device_id.to_string(), asset_id.cloned()).await?)
+        Ok(self.repository.get_device_price_alerts(device_id.to_string(), asset_id.cloned()).await?)
     }
 
     pub async fn add_price_alerts(&self, device_id: &str, price_alerts: PriceAlerts) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -39,7 +39,7 @@ impl PriceAlertClient {
     pub async fn get_devices_to_alert(&self, rules: PriceAlertRules, primary_price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, Box<dyn Error + Send + Sync>> {
         let now = Utc::now();
         let cooldown = TimeDelta::seconds(rules.notification_cooldown.as_secs() as i64);
-        Ok(self.repository.notify_price_alerts(rules, (now - cooldown).naive_utc(), now.naive_utc(), primary_price_max_age).await?)
+        Ok(self.repository.update_notified_price_alerts(rules, (now - cooldown).naive_utc(), now.naive_utc(), primary_price_max_age).await?)
     }
 
     pub fn get_notifications_for_price_alerts(&self, notifications: Vec<PriceAlertNotification>) -> Vec<GorushNotification> {

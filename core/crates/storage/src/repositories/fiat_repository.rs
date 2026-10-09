@@ -57,14 +57,14 @@ impl FiatTransactionRecord {
 
 pub trait FiatRepository {
     fn add_fiat_assets(&mut self, values: Vec<FiatAsset>) -> Result<usize, DatabaseError>;
-    fn sync_fiat_assets(&mut self, provider: FiatProviderName, values: Vec<FiatAsset>) -> Result<usize, DatabaseError>;
+    fn set_fiat_assets(&mut self, provider: FiatProviderName, values: Vec<FiatAsset>) -> Result<usize, DatabaseError>;
     fn add_fiat_providers(&mut self, providers: Vec<FiatProviderName>) -> Result<usize, DatabaseError>;
     fn add_fiat_providers_countries(&mut self, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError>;
-    fn sync_fiat_providers_countries(&mut self, provider: FiatProviderName, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError>;
+    fn set_fiat_providers_countries(&mut self, provider: FiatProviderName, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError>;
     fn get_fiat_providers_countries(&mut self) -> Result<Vec<FiatProviderCountry>, DatabaseError>;
     fn get_fiat_transactions_by_device_id(&mut self, device_id: i32) -> Result<Vec<FiatTransaction>, DatabaseError>;
     fn get_fiat_transactions_by_device_and_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<Vec<FiatTransaction>, DatabaseError>;
-    fn count_fiat_transactions_by_device_and_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<i64, DatabaseError>;
+    fn get_fiat_transactions_count_by_device_and_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<i64, DatabaseError>;
     fn get_fiat_asset_ids_by_filter(&mut self, filters: Vec<FiatAssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_fiat_assets_popular(&mut self, from: NaiveDateTime, limit: i64) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_fiat_assets_for_asset_id(&mut self, asset_id: &AssetId) -> Result<Vec<FiatAsset>, DatabaseError>;
@@ -233,7 +233,7 @@ impl FiatRepository for DatabaseClient {
         Ok(add_fiat_assets(self, rows)?)
     }
 
-    fn sync_fiat_assets(&mut self, provider_name: FiatProviderName, values: Vec<FiatAsset>) -> Result<usize, DatabaseError> {
+    fn set_fiat_assets(&mut self, provider_name: FiatProviderName, values: Vec<FiatAsset>) -> Result<usize, DatabaseError> {
         use crate::schema::fiat_assets::dsl::*;
         let rows = values.into_iter().map(FiatAssetRow::from_primitive).collect::<Result<Vec<_>, _>>()?;
         if rows.is_empty() {
@@ -256,7 +256,7 @@ impl FiatRepository for DatabaseClient {
         Ok(add_fiat_providers_countries(self, values.into_iter().map(FiatProviderCountryRow::from_primitive).collect())?)
     }
 
-    fn sync_fiat_providers_countries(&mut self, provider_name: FiatProviderName, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError> {
+    fn set_fiat_providers_countries(&mut self, provider_name: FiatProviderName, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError> {
         use crate::schema::fiat_providers_countries::dsl::*;
         let rows: Vec<FiatProviderCountryRow> = values.into_iter().map(FiatProviderCountryRow::from_primitive).collect();
         if rows.is_empty() {
@@ -286,7 +286,7 @@ impl FiatRepository for DatabaseClient {
         result.into_iter().map(|row| row.as_primitive()).collect()
     }
 
-    fn count_fiat_transactions_by_device_and_wallet_id(&mut self, device_id_value: i32, wallet_id_value: i32) -> Result<i64, DatabaseError> {
+    fn get_fiat_transactions_count_by_device_and_wallet_id(&mut self, device_id_value: i32, wallet_id_value: i32) -> Result<i64, DatabaseError> {
         use crate::schema::fiat_transactions;
 
         Ok(fiat_transactions::table
@@ -456,8 +456,8 @@ mod database_integration_tests {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
                 client.add_fiat_providers(vec![PROVIDER])?;
-                client.sync_fiat_assets(PROVIDER, vec![fiat_asset("test_keep"), fiat_asset("test_drop")])?;
-                client.sync_fiat_assets(PROVIDER, vec![fiat_asset("test_keep")])?;
+                client.set_fiat_assets(PROVIDER, vec![fiat_asset("test_keep"), fiat_asset("test_drop")])?;
+                client.set_fiat_assets(PROVIDER, vec![fiat_asset("test_keep")])?;
                 client.get_fiat_assets_for_asset_id(&AssetId::from_chain(Chain::Ethereum))
             })
             .await
@@ -466,7 +466,7 @@ mod database_integration_tests {
         let enabled = |code: &str| assets.iter().find(|asset| asset.provider == PROVIDER && asset.id == code).map(|asset| asset.enabled);
         assert_eq!(enabled("test_keep"), Some(true));
         assert_eq!(enabled("test_drop"), Some(false));
-        assert_eq!(database.run(|client| client.sync_fiat_assets(PROVIDER, vec![])).await.unwrap(), 0);
+        assert_eq!(database.run(|client| client.set_fiat_assets(PROVIDER, vec![])).await.unwrap(), 0);
     }
 
     #[tokio::test]
@@ -475,8 +475,8 @@ mod database_integration_tests {
         let countries = database
             .run(|client| -> Result<_, DatabaseError> {
                 client.add_fiat_providers(vec![PROVIDER])?;
-                client.sync_fiat_providers_countries(PROVIDER, vec![country("FR"), country("DE")])?;
-                client.sync_fiat_providers_countries(PROVIDER, vec![country("FR")])?;
+                client.set_fiat_providers_countries(PROVIDER, vec![country("FR"), country("DE")])?;
+                client.set_fiat_providers_countries(PROVIDER, vec![country("FR")])?;
                 client.get_fiat_providers_countries()
             })
             .await

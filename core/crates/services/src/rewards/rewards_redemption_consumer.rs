@@ -6,7 +6,7 @@ use rewards::{RedemptionAsset, RedemptionRequest, RedemptionService};
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
-use storage::RedemptionUpdate;
+use storage::{RedemptionFilter, RedemptionUpdate};
 use streamer::consumer::MessageConsumer;
 use streamer::{InAppNotificationPayload, RewardsRedemptionPayload, StreamProducerQueue};
 
@@ -58,13 +58,13 @@ impl<S: RedemptionService> RewardsRedemptionConsumer<S> {
 impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionStatus> for RewardsRedemptionConsumer<S> {
     async fn should_consume(&self, payload: &RewardsRedemptionPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let redemption_id = payload.redemption_id;
-        let redemption = self.repository.redemption(redemption_id).await?;
+        let redemption = self.repository.get_redemption(redemption_id).await?;
         Ok(redemption.status == RedemptionStatus::Pending)
     }
 
     async fn consume(&self, payload: RewardsRedemptionPayload) -> Result<RedemptionStatus, Box<dyn Error + Send + Sync>> {
         let redemption_id = payload.redemption_id;
-        let RedemptionStart { redemption, recipient_address, option } = self.repository.start_redemption(redemption_id).await?;
+        let RedemptionStart { redemption, recipient_address, option } = self.repository.update_redemption_processing(redemption_id).await?;
 
         let asset_id = option.asset.as_ref().map(|a| a.id.clone());
         let asset_id_str = asset_id.as_ref().map(ToString::to_string);
@@ -78,7 +78,7 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionS
         match self.redeem_with_retry(request).await {
             Ok(transaction_id) => {
                 let updates = vec![RedemptionUpdate::TransactionId(transaction_id.clone()), RedemptionUpdate::Status(RedemptionStatus::Completed)];
-                self.repository.update_redemption(redemption_id, updates).await?;
+                self.repository.update_redemptions(vec![RedemptionFilter::Ids(vec![redemption_id])], updates).await?;
 
                 if let Some(id) = &asset_id {
                     let pending_tx_id = TransactionId::new(id.chain, transaction_id.clone());
@@ -103,7 +103,7 @@ impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionS
             Err(error) => {
                 let error_msg = error.to_string();
                 let updates = vec![RedemptionUpdate::Status(RedemptionStatus::Failed), RedemptionUpdate::Error(error_msg.clone())];
-                self.repository.update_redemption(redemption_id, updates).await?;
+                self.repository.update_redemptions(vec![RedemptionFilter::Ids(vec![redemption_id])], updates).await?;
                 info_with_fields!("redemption failed", id = payload.redemption_id, asset = asset_id_str.as_deref().unwrap_or("none"), value = value, error = error_msg);
                 Ok(RedemptionStatus::Failed)
             }

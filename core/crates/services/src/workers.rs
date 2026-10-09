@@ -21,7 +21,7 @@ use crate::notifications::{StakeRewardsConfig, StakingRewardsNotifier};
 use crate::perpetuals::{PerpetualAddressRefresher, PerpetualPositionClassifier, PerpetualPositionClassifierConfig, PerpetualPositionObserver};
 use crate::prices::{
     AssetsProviders, ChartsHistoryConfig, ChartsHistoryUpdater, ChartsUpdater, MarketsClient, MarketsUpdater, MissingPricesPublisher, ObservedPricesConfig, ObservedPricesUpdater, PriceAlertClient, PriceAlertSender, PriceClient,
-    PricesCleanupUpdater, PricesMetricsUpdater, PricesUpdater,
+    PricesCleanupUpdater, PricesUpdater,
 };
 use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
 use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater, SearchSyncClient};
@@ -212,10 +212,6 @@ impl PriceJobs {
 
     pub fn cleanup_updater(&self, kind: PriceProvider) -> PricesCleanupUpdater {
         PricesCleanupUpdater::new(self.prices_repository(), self.charts_history.clone(), self.config.clone(), kind)
-    }
-
-    pub fn metrics_updater(&self, kind: PriceProvider) -> PricesMetricsUpdater {
-        PricesMetricsUpdater::new(self.prices_repository(), kind)
     }
 
     pub fn charts_history_updater(&self, kind: PriceProvider, config: ChartsHistoryConfig) -> ChartsHistoryUpdater {

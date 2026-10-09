@@ -52,7 +52,7 @@ impl StakingRewardsNotifier {
     pub async fn check_chain(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let since = chrono::Utc::now().naive_utc() - chrono::Duration::from_std(self.config.lookback)?;
         let kinds = TransactionType::staking_types();
-        let addresses = self.repository.addresses_with_transactions(chain, kinds, since).await?;
+        let addresses = self.repository.get_addresses_with_transactions(chain, kinds, since).await?;
 
         let mut notified = 0;
         for address in &addresses {

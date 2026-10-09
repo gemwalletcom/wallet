@@ -46,7 +46,7 @@ impl PricesUpdater {
 
     pub async fn publish_assets_metadata(&self, cooldowns: &dyn PriceMetadataCacher, config: &ConfigCacher) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
-        let (mappings, enabled) = self.repository.provider_price_assets(provider, vec![AssetFilter::IsEnabled(true)]).await?;
+        let (mappings, enabled) = self.repository.get_provider_price_assets(provider, vec![AssetFilter::IsEnabled(true)]).await?;
         let retry = config.get_duration(ConfigKey::PriceMetadataRetryInterval).await?;
         let mut ids: Vec<_> = mappings.into_iter().filter(|mapping| enabled.contains(&mapping.asset_id)).map(|mapping| mapping.price_id).collect();
         ids.sort_by_cached_key(PriceId::id);
@@ -65,13 +65,13 @@ impl PricesUpdater {
 
     pub async fn update_prices_all(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
-        let mappings = self.repository.price_mappings(provider, None).await?;
+        let mappings = self.repository.get_price_mappings(provider, None).await?;
         self.update_prices(mappings).await
     }
 
     pub async fn update_prices_window(&self, offset: usize, limit: usize) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let provider = self.provider.provider();
-        let mappings = self.repository.price_mappings(provider, Some((offset, limit))).await?;
+        let mappings = self.repository.get_price_mappings(provider, Some((offset, limit))).await?;
         self.update_prices(mappings).await
     }
 
@@ -89,7 +89,7 @@ impl PricesUpdater {
 
         for chunk in assets.chunks(BATCH_SIZE) {
             let asset_ids: Vec<AssetId> = chunk.iter().map(|a| a.mapping.asset_id.clone()).collect();
-            let existing: HashSet<AssetId> = self.repository.asset_ids(vec![AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect())]).await?.into_iter().collect();
+            let existing: HashSet<AssetId> = self.repository.get_asset_ids(vec![AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect())]).await?.into_iter().collect();
             let (known, missing): (Vec<&PriceProviderAsset>, Vec<&PriceProviderAsset>) = chunk.iter().partition(|asset| existing.contains(&asset.mapping.asset_id));
 
             if !missing.is_empty() {

@@ -31,7 +31,7 @@ impl PortfolioClient {
     pub async fn get_portfolio_charts(&self, assets: Vec<PortfolioAsset>, period: ChartPeriod) -> Result<PortfolioAssets, Box<dyn Error + Send + Sync>> {
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let asset_ids = assets.iter().map(|asset| asset.asset_id.clone()).collect();
-        let prices = self.repository.portfolio_prices(asset_ids, period, primary_price_max_age).await?;
+        let prices = self.repository.get_portfolio_prices(asset_ids, period, primary_price_max_age).await?;
         let assets: Vec<ResolvedAsset> = assets.into_iter().zip(prices).filter_map(|(input, price)| Self::resolved_asset(input, price?)).collect();
         let chart_data = Self::chart_values(&assets);
         Ok(Self::build_portfolio(assets, chart_data))

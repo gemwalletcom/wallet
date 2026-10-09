@@ -24,7 +24,7 @@ impl PerpetualsIndexUpdater {
             list_tags,
             perpetuals_tags,
             associated_asset_ids,
-        } = self.repository.perpetuals().await?;
+        } = self.repository.get_perpetuals().await?;
         let public_tag_ids = list_tags.into_iter().filter_map(|tag| tag.is_public().then_some(tag.id)).collect::<HashSet<_>>();
 
         if perpetuals.is_empty() {
@@ -32,7 +32,7 @@ impl PerpetualsIndexUpdater {
         }
 
         let asset_ids = perpetuals.iter().map(|p| p.asset_id.clone()).chain(associated_asset_ids.values().cloned()).collect::<Vec<_>>();
-        let assets = self.repository.assets(asset_ids).await?;
+        let assets = self.repository.get_assets(asset_ids).await?;
 
         let assets_map: HashMap<String, Asset> = assets.into_iter().map(|a| (a.id.to_string(), a)).collect();
         let perpetuals_tags_map: HashMap<String, Vec<String>> = perpetuals_tags.into_iter().filter(|tag| public_tag_ids.contains(&tag.tag_id)).fold(HashMap::new(), |mut acc, tag| {

@@ -33,7 +33,7 @@ impl DevicesClient {
     }
 
     pub async fn get_admin_device(&self, device_id: &str, wallets: &WalletsClient) -> Result<AdminDevice, Box<dyn Error + Send + Sync>> {
-        let (device, price_alert_count) = self.repository.device_with_price_alert_count(device_id.to_string()).await?;
+        let (device, price_alert_count) = self.repository.get_device_with_price_alert_count(device_id.to_string()).await?;
         Ok(AdminDevice {
             price_alert_count,
             wallets: wallets.get_wallet_overviews(device.id).await?,
@@ -46,7 +46,7 @@ impl DevicesClient {
     }
 
     pub async fn send_push_notification_device(&self, device_id: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let device = self.repository.device(device_id.to_string()).await?;
+        let device = self.repository.get_device(device_id.to_string()).await?;
         let notifications: Vec<_> = GorushNotification::from_device(
             device,
             "Test Notification".to_string(),
@@ -62,14 +62,14 @@ impl DevicesClient {
     }
 
     pub async fn is_device_registered(&self, device_id: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.device_exists(device_id.to_string()).await?)
+        Ok(self.repository.get_device_exists(device_id.to_string()).await?)
     }
 
     pub async fn find_device_record(&self, device_id: &str) -> Result<Option<DeviceRecord>, DatabaseError> {
-        self.repository.device_record(device_id.to_string()).await
+        self.repository.get_device_record(device_id.to_string()).await
     }
 
     pub async fn find_device_wallet(&self, device_id: &str, wallet_id: &str) -> Result<DeviceWalletLookup, DatabaseError> {
-        self.repository.device_wallet(device_id.to_string(), wallet_id.to_string()).await
+        self.repository.get_device_wallet(device_id.to_string(), wallet_id.to_string()).await
     }
 }

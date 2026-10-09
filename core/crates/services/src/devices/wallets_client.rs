@@ -26,7 +26,7 @@ impl WalletsClient {
     }
 
     pub async fn get_subscriptions(&self, device_row_id: i32) -> Result<Vec<WalletSubscriptionChains>, Box<dyn Error + Send + Sync>> {
-        let rows = self.repository.subscriptions(device_row_id).await?;
+        let rows = self.repository.get_subscriptions(device_row_id).await?;
 
         Ok(rows
             .into_iter()
@@ -43,7 +43,7 @@ impl WalletsClient {
     }
 
     pub async fn get_wallet_subscriptions(&self, device_id: &str) -> Result<Vec<WalletSubscription>, Box<dyn Error + Send + Sync>> {
-        let rows = self.repository.device_subscriptions(device_id.to_string()).await?;
+        let rows = self.repository.get_device_subscriptions(device_id.to_string()).await?;
         let mut subscriptions = BTreeMap::<String, (WalletId, WalletSource, BTreeMap<String, BTreeSet<Chain>>)>::new();
 
         for (wallet, subscription) in rows {
@@ -60,11 +60,11 @@ impl WalletsClient {
     }
 
     pub async fn get_wallet_overviews(&self, device_row_id: i32) -> Result<Vec<AdminWalletOverview>, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.wallet_overviews(device_row_id).await?)
+        Ok(self.repository.get_wallet_overviews(device_row_id).await?)
     }
 
     pub async fn get_wallet_subscription(&self, device_id: &str, wallet_id: &str) -> Result<WalletSubscription, Box<dyn Error + Send + Sync>> {
-        let (wallet, rows) = self.repository.device_wallet_subscriptions(device_id.to_string(), wallet_id.to_string()).await?;
+        let (wallet, rows) = self.repository.get_device_wallet_subscriptions(device_id.to_string(), wallet_id.to_string()).await?;
         let mut addresses = BTreeMap::<String, BTreeSet<Chain>>::new();
 
         for subscription in rows {

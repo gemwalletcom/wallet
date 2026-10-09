@@ -26,7 +26,7 @@ impl FiatWebhookConsumer {
     }
 
     async fn send_fiat_notification(&self, updated: &FiatTransactionRecord) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let NotificationContext { asset, wallet_id, devices } = self.repository.notification_context(updated.asset_id.clone(), updated.wallet_id).await?;
+        let NotificationContext { asset, wallet_id, devices } = self.repository.get_notification_context(updated.asset_id.clone(), updated.wallet_id).await?;
 
         let Some(crypto_value) = updated.value.as_deref() else {
             return Ok(());

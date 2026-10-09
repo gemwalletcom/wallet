@@ -31,7 +31,7 @@ impl FetchTransactionConsumer {
     }
 
     async fn stored_transaction(&self, id: TransactionId) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
-        let transactions = self.repository.transactions_by_hash(id.hash.clone()).await?;
+        let transactions = self.repository.get_transactions_by_hash(id.hash.clone()).await?;
         Ok(transactions.into_iter().find(|transaction| transaction.id == id))
     }
 }

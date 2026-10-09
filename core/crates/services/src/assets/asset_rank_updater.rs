@@ -17,7 +17,7 @@ impl AssetRankUpdater {
     }
 
     pub async fn update_suspicious_assets(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let assets = self.repository.enabled_assets_at_or_below(AssetRank::Trivial).await?;
+        let assets = self.repository.get_enabled_assets_at_or_below(AssetRank::Trivial).await?;
         let risks = assets
             .into_iter()
             .filter_map(|asset| self.classification_rules.classify(asset.score.rank, &asset.asset.name, &asset.asset.symbol).map(|risk| (asset.asset.id, risk)))
@@ -27,7 +27,7 @@ impl AssetRankUpdater {
 
         Ok(self
             .repository
-            .disable_assets_with_ranks(vec![
+            .update_asset_ranks(vec![
                 RankChange { asset_ids: spam, rank: AssetRank::Spam },
                 RankChange {
                     asset_ids: fraudulent,

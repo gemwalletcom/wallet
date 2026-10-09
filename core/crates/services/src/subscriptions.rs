@@ -33,10 +33,10 @@ impl SubscriptionLookup {
 
         let ttl = match self.cache_duration().await {
             Ok(Some(ttl)) => ttl,
-            Ok(None) => return Ok(self.repository.subscriptions_for_addresses(chain, addresses.into_iter().collect()).await?),
+            Ok(None) => return Ok(self.repository.get_subscriptions_for_addresses(chain, addresses.into_iter().collect()).await?),
             Err(error) => {
                 warn_with_fields!("subscription address cache duration unavailable", error = &error);
-                return Ok(self.repository.subscriptions_for_addresses(chain, addresses.into_iter().collect()).await?);
+                return Ok(self.repository.get_subscriptions_for_addresses(chain, addresses.into_iter().collect()).await?);
             }
         };
         let cache_addresses = addresses.iter().cloned().collect::<Vec<_>>();
@@ -51,7 +51,7 @@ impl SubscriptionLookup {
             return Ok(vec![]);
         }
 
-        let subscriptions = self.repository.subscriptions_for_addresses(chain, addresses.clone()).await?;
+        let subscriptions = self.repository.get_subscriptions_for_addresses(chain, addresses.clone()).await?;
         let subscribed = subscriptions.iter().map(|subscription| subscription.address.as_str()).collect::<HashSet<_>>();
         let unsubscribed = addresses.into_iter().filter(|address| !subscribed.contains(address.as_str())).collect::<Vec<_>>();
         if !unsubscribed.is_empty()

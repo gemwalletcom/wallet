@@ -12,7 +12,7 @@ pub(crate) struct ScanRecords {
 
 #[async_trait]
 pub(crate) trait Repository: Send + Sync {
-    async fn scan_records(&self, addresses: Vec<(Chain, String)>, asset_ids: Vec<AssetId>, targets: Vec<String>, detection_max_age: Option<Duration>) -> Result<ScanRecords, DatabaseError>;
+    async fn get_scan_records(&self, addresses: Vec<(Chain, String)>, asset_ids: Vec<AssetId>, targets: Vec<String>, detection_max_age: Option<Duration>) -> Result<ScanRecords, DatabaseError>;
     async fn add_scan_detections(&self, verdicts: Vec<ScanVerdict>) -> Result<usize, DatabaseError>;
 }
 
@@ -28,7 +28,7 @@ impl PostgresRepository {
 
 #[async_trait]
 impl Repository for PostgresRepository {
-    async fn scan_records(&self, addresses: Vec<(Chain, String)>, asset_ids: Vec<AssetId>, targets: Vec<String>, detection_max_age: Option<Duration>) -> Result<ScanRecords, DatabaseError> {
+    async fn get_scan_records(&self, addresses: Vec<(Chain, String)>, asset_ids: Vec<AssetId>, targets: Vec<String>, detection_max_age: Option<Duration>) -> Result<ScanRecords, DatabaseError> {
         self.database
             .run(move |client| {
                 let queries = addresses.iter().map(|(chain, address)| (*chain, address.as_str())).collect::<Vec<_>>();

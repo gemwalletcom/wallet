@@ -36,7 +36,7 @@ impl AssetCatalogClient {
             return Ok(catalog);
         }
 
-        let catalog = self.repository.asset_catalog().await?;
+        let catalog = self.repository.get_asset_catalog().await?;
         match self.config.get_duration(ConfigKey::AssetsCatalogCacheDuration).await {
             Ok(ttl) if !ttl.is_zero() => {
                 if let Err(error) = self.cacher.set_asset_catalog(&catalog, ttl).await {

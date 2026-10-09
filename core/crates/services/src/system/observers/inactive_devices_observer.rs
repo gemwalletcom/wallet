@@ -20,9 +20,9 @@ impl InactiveDevicesObserver {
     }
 
     pub async fn observe(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let devices = self.repository.inactive_devices(10, 14, Some(true)).await?;
+        let devices = self.repository.get_inactive_devices(10, 14, Some(true)).await?;
         for device in &devices {
-            let subscriptions = self.repository.device_subscriptions(device.id.clone()).await?;
+            let subscriptions = self.repository.get_device_subscriptions(device.id.clone()).await?;
             if subscriptions.is_empty() {
                 continue;
             }

@@ -22,11 +22,11 @@ pub struct TransactionSwapRecord {
 }
 
 pub trait TransactionsSwapsRepository {
-    fn upsert_transaction_swap(&mut self, id: &TransactionId, record: TransactionSwapRecord) -> Result<usize, DatabaseError>;
+    fn set_transaction_swap(&mut self, id: &TransactionId, record: TransactionSwapRecord) -> Result<usize, DatabaseError>;
 }
 
 impl TransactionsSwapsRepository for DatabaseClient {
-    fn upsert_transaction_swap(&mut self, id: &TransactionId, record: TransactionSwapRecord) -> Result<usize, DatabaseError> {
+    fn set_transaction_swap(&mut self, id: &TransactionId, record: TransactionSwapRecord) -> Result<usize, DatabaseError> {
         use crate::schema::transactions_swaps::dsl::*;
         let row = NewTransactionSwapRow {
             transaction_id: transaction_row_id(self, id)?,

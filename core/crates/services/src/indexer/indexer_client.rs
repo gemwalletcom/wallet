@@ -37,7 +37,7 @@ impl IndexerClient {
     }
 
     pub async fn fetch_asset_status(&self, asset_id: AssetId) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.assets.asset(asset_id.clone()).await?;
+        self.assets.get_asset(asset_id.clone()).await?;
         self.stream_producer.publish_fetch_asset_status(asset_id).await?;
         Ok(())
     }

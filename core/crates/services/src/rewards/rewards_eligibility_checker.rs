@@ -29,7 +29,7 @@ impl RewardsEligibilityChecker {
             transactions_required: self.config.get_i64(ConfigKey::RewardsEligibilityTransactionsCount).await?,
         };
 
-        let usernames = self.repository.usernames_with_status(RewardStatus::Unverified).await?;
+        let usernames = self.repository.get_usernames_with_status(RewardStatus::Unverified).await?;
         let mut promoted = 0;
 
         for username in usernames {
@@ -54,7 +54,7 @@ impl RewardsEligibilityChecker {
     }
 
     async fn evaluate_and_promote(&self, username: &str, eligibility: RewardsEligibilityConfig) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let promotion = self.repository.promote_if_eligible(username.to_string(), eligibility).await?;
+        let promotion = self.repository.update_rewards_verified_if_eligible(username.to_string(), eligibility).await?;
         let Some((wallet_id, reward_event_ids)) = promotion else {
             return Ok(false);
         };

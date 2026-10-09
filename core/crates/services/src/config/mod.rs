@@ -61,7 +61,7 @@ impl ConfigCacher {
         if let Some(value) = self.get_cached(&cache_key) {
             return Ok(value);
         }
-        let value = self.repository.config_value(key).await?;
+        let value = self.repository.get_config_value(key).await?;
         self.set_cached(cache_key, value.clone());
         Ok(value)
     }
@@ -153,7 +153,7 @@ impl ConfigCacher {
             return Ok(value);
         }
         let param = *param;
-        let value = param_value_or_default(self.repository.config_param_value(param).await, &param)?;
+        let value = param_value_or_default(self.repository.get_config_param_value(param).await, &param)?;
         self.set_cached(key, value.clone());
         Ok(value)
     }

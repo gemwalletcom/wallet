@@ -4,8 +4,8 @@ use storage::{Database, DatabaseError, DevicesRepository, SupportSessionsReposit
 
 #[async_trait]
 pub(crate) trait Repository: Send + Sync {
-    async fn device(&self, device_id: String) -> Result<Option<Device>, DatabaseError>;
-    async fn session_token(&self, device_id: i32) -> Result<Option<String>, DatabaseError>;
+    async fn get_device(&self, device_id: String) -> Result<Option<Device>, DatabaseError>;
+    async fn get_session_token(&self, device_id: i32) -> Result<Option<String>, DatabaseError>;
     async fn set_session_token(&self, device_id: i32, auth_token: String) -> Result<usize, DatabaseError>;
 }
 
@@ -21,7 +21,7 @@ impl PostgresRepository {
 
 #[async_trait]
 impl Repository for PostgresRepository {
-    async fn device(&self, device_id: String) -> Result<Option<Device>, DatabaseError> {
+    async fn get_device(&self, device_id: String) -> Result<Option<Device>, DatabaseError> {
         self.database
             .run(move |client| match client.get_device(&device_id) {
                 Ok(device) => Ok(Some(device)),
@@ -31,7 +31,7 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn session_token(&self, device_id: i32) -> Result<Option<String>, DatabaseError> {
+    async fn get_session_token(&self, device_id: i32) -> Result<Option<String>, DatabaseError> {
         self.database.run(move |client| client.get_support_session_token(device_id)).await
     }
 

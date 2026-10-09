@@ -24,12 +24,12 @@ pub(crate) struct PerpetualsIndexData {
 
 #[async_trait]
 pub(crate) trait Repository: Send + Sync {
-    async fn assets_markets(&self, filters: Vec<AssetsWithPricesFilter>, price_max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError>;
-    async fn usage_ranks_and_assets_tags(&self) -> Result<(Vec<(AssetId, i32)>, Vec<AssetTagLink>), DatabaseError>;
-    async fn asset_lists(&self, searchable_filters: Vec<AssetFilter>) -> Result<AssetListsIndexData, DatabaseError>;
-    async fn perpetuals(&self) -> Result<PerpetualsIndexData, DatabaseError>;
-    async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
-    async fn nft_collections(&self, filters: Vec<NftCollectionFilter>) -> Result<Vec<NFTCollection>, DatabaseError>;
+    async fn get_assets_markets(&self, filters: Vec<AssetsWithPricesFilter>, price_max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError>;
+    async fn get_usage_ranks_and_assets_tags(&self) -> Result<(Vec<(AssetId, i32)>, Vec<AssetTagLink>), DatabaseError>;
+    async fn get_asset_lists(&self, searchable_filters: Vec<AssetFilter>) -> Result<AssetListsIndexData, DatabaseError>;
+    async fn get_perpetuals(&self) -> Result<PerpetualsIndexData, DatabaseError>;
+    async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
+    async fn get_nft_collections(&self, filters: Vec<NftCollectionFilter>) -> Result<Vec<NFTCollection>, DatabaseError>;
 }
 
 pub(crate) struct PostgresRepository {
@@ -44,15 +44,15 @@ impl PostgresRepository {
 
 #[async_trait]
 impl Repository for PostgresRepository {
-    async fn assets_markets(&self, filters: Vec<AssetsWithPricesFilter>, price_max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError> {
+    async fn get_assets_markets(&self, filters: Vec<AssetsWithPricesFilter>, price_max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError> {
         self.database.run(move |client| client.get_assets_markets(filters, price_max_age)).await
     }
 
-    async fn usage_ranks_and_assets_tags(&self) -> Result<(Vec<(AssetId, i32)>, Vec<AssetTagLink>), DatabaseError> {
+    async fn get_usage_ranks_and_assets_tags(&self) -> Result<(Vec<(AssetId, i32)>, Vec<AssetTagLink>), DatabaseError> {
         self.database.run(|client| Ok((client.get_all_usage_ranks()?, client.get_assets_tags()?))).await
     }
 
-    async fn asset_lists(&self, searchable_filters: Vec<AssetFilter>) -> Result<AssetListsIndexData, DatabaseError> {
+    async fn get_asset_lists(&self, searchable_filters: Vec<AssetFilter>) -> Result<AssetListsIndexData, DatabaseError> {
         self.database
             .run(move |client| {
                 let tags = [client.get_asset_list_tags()?, client.get_perpetual_list_tags()?].concat();
@@ -70,7 +70,7 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn perpetuals(&self) -> Result<PerpetualsIndexData, DatabaseError> {
+    async fn get_perpetuals(&self) -> Result<PerpetualsIndexData, DatabaseError> {
         self.database
             .run(|client| {
                 Ok(PerpetualsIndexData {
@@ -83,11 +83,11 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError> {
+    async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError> {
         self.database.run(move |client| client.get_assets(asset_ids)).await
     }
 
-    async fn nft_collections(&self, filters: Vec<NftCollectionFilter>) -> Result<Vec<NFTCollection>, DatabaseError> {
+    async fn get_nft_collections(&self, filters: Vec<NftCollectionFilter>) -> Result<Vec<NFTCollection>, DatabaseError> {
         self.database.run(move |client| client.get_nft_collections(filters)).await
     }
 }

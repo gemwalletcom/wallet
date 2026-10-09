@@ -53,7 +53,7 @@ pub fn asset_ids_for_defillama_id(provider_price_id: &str) -> Vec<AssetId> {
 }
 
 pub fn map_price(mapping: AssetPriceMapping, coin: &CoinPrice) -> AssetPriceFull {
-    AssetPriceFull::simple(mapping, coin.price, 0.0, PriceProvider::DefiLlama)
+    AssetPriceFull::simple(mapping, coin.price, None, PriceProvider::DefiLlama)
 }
 
 fn chain_to_defillama_slug(chain: Chain) -> Option<&'static str> {
@@ -100,9 +100,9 @@ mod tests {
 
         let full = map_price(mapping, coin);
 
-        assert_eq!(full.price.price, 67000.0);
-        assert_eq!(full.price.price_change_percentage_24h, 0.0);
-        assert_eq!(full.price.provider, PriceProvider::DefiLlama);
+        assert_eq!(full.price, 67000.0);
+        assert_eq!(full.price_change_percentage_24h, None);
+        assert_eq!(full.provider, PriceProvider::DefiLlama);
         assert!(full.market.is_none());
     }
 }

@@ -43,11 +43,11 @@ impl ConfigClient {
 
     async fn get_features(&self, ip_address: &str) -> Result<Features, Box<dyn Error + Send + Sync>> {
         let country = self.ip_address_provider.get_ip_address(ip_address).await?;
-        let policies = self.repository.features().await?;
+        let policies = self.repository.get_features().await?;
         Ok(Features::for_country(&policies, &country.alpha2))
     }
 
     async fn get_releases(&self) -> Result<Vec<Release>, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.releases().await?)
+        Ok(self.repository.get_releases().await?)
     }
 }

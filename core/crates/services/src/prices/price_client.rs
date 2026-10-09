@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use cacher::{CacheError, ObservedAssetsCacher, PriceCacher};
-use chrono::NaiveDateTime;
+use chrono::{Duration as ChronoDuration, NaiveDateTime, Utc};
 use config_keys::ConfigKey;
 use gem_tracing::{error_with_fields, warn_with_fields};
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviders};
@@ -44,7 +44,7 @@ impl PriceClient {
             Ok(None) => {}
             Err(error) => warn_with_fields!("price providers cache read failed", error = error.as_ref()),
         }
-        let providers = self.repository.price_providers().await?;
+        let providers = self.repository.get_price_providers().await?;
         if let Err(error) = self.cache.set_price_providers(&providers).await {
             warn_with_fields!("price providers cache write failed", error = error.as_ref());
         }
@@ -52,7 +52,8 @@ impl PriceClient {
     }
 
     pub(crate) async fn store_prices(&self, prices: Vec<PriceData>, max_age: Duration) -> Result<Vec<AssetPriceInfo>, Box<dyn Error + Send + Sync>> {
-        let prices = self.repository.store_prices(prices).await?;
+        let prices = self.with_price_changes(prices).await?;
+        let prices = self.repository.set_prices(prices).await?;
         if prices.is_empty() {
             return Ok(vec![]);
         }
@@ -64,18 +65,37 @@ impl PriceClient {
         Ok(by_asset.into_values().filter_map(|prices| primary_price(&providers, &prices, max_age, AssetPriceInfo::as_price_primitive).cloned()).collect())
     }
 
+    async fn with_price_changes(&self, prices: Vec<PriceData>) -> Result<Vec<PriceData>, Box<dyn Error + Send + Sync>> {
+        let price_ids: Vec<String> = prices.iter().filter(|price| price.price_change_percentage_24h.is_none()).map(|price| price.id.to_string()).collect();
+        if price_ids.is_empty() {
+            return Ok(prices);
+        }
+        let now = Utc::now();
+        let prices_24h_ago = self
+            .repository
+            .get_chart_prices(price_ids, (now - ChronoDuration::hours(25)).naive_utc(), (now - ChronoDuration::hours(24)).naive_utc())
+            .await?;
+        Ok(prices
+            .into_iter()
+            .map(|price| {
+                let price_24h_ago = prices_24h_ago.get(&price.id.to_string()).copied();
+                price.with_price_change_from(price_24h_ago)
+            })
+            .collect())
+    }
+
     pub async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.fiat_rates().await?)
+        Ok(self.repository.get_fiat_rates().await?)
     }
 
     pub async fn get_fiat_rate(&self, currency: &Currency) -> Result<FiatRate, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.fiat_rate(currency.clone()).await?)
+        Ok(self.repository.get_fiat_rate(currency.clone()).await?)
     }
 
     pub async fn get_asset_price(&self, asset_id: &AssetId, currency: &Currency) -> Result<AssetMarketPrice, Box<dyn Error + Send + Sync>> {
         let rate = self.get_fiat_rate(currency).await?.rate;
         let price = self.get_cache_price(asset_id).await?;
-        let prices = self.repository.prices_for_asset(asset_id.clone()).await?.into_iter().map(|price| price.as_price().with_rate(rate)).collect();
+        let prices = self.repository.get_prices_for_asset(asset_id.clone()).await?.into_iter().map(|price| price.as_price().with_rate(rate)).collect();
         Ok(AssetMarketPrice {
             price: Some(price.as_price_primitive_with_rate(rate)),
             market: Some(price.as_market_with_rate(rate)),
@@ -113,7 +133,7 @@ impl PriceClient {
     }
 
     pub async fn aggregate_charts(&self, timeframe: ChartTimeframe) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.aggregate_charts(timeframe).await?)
+        Ok(self.repository.update_chart_aggregates(timeframe).await?)
     }
 
     pub async fn delete_charts(&self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -185,7 +205,7 @@ impl PriceClient {
             return Ok(vec![]);
         }
         let asset_ids = mappings.iter().map(|mapping| mapping.asset_id.to_string()).collect();
-        let existing: HashSet<AssetId> = self.repository.asset_ids(vec![AssetFilter::Ids(asset_ids)]).await?.into_iter().collect();
+        let existing: HashSet<AssetId> = self.repository.get_asset_ids(vec![AssetFilter::Ids(asset_ids)]).await?.into_iter().collect();
         Ok(mappings.into_iter().filter(|m| existing.contains(&m.asset_id)).collect())
     }
 
@@ -205,14 +225,13 @@ impl PriceClient {
                 price_id: PriceId::new(provider, price.mapping.provider_price_id.clone()),
             })
             .collect();
-        self.repository.save_prices(new_prices, price_assets).await?;
+        self.repository.add_prices(new_prices, price_assets).await?;
         Ok(prices.len())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use chrono::{Duration as ChronoDuration, Utc};
     use primitives::{AssetMarket, Chain, HOUR, Price};
 
     use super::*;
@@ -300,7 +319,7 @@ mod tests {
             provider: PriceProvider::Jupiter,
             provider_price_id: "So11111111111111111111111111111111111111112".to_string(),
             price: fresh.price.price,
-            price_change_percentage_24h: fresh.price.price_change_percentage_24h,
+            price_change_percentage_24h: Some(fresh.price.price_change_percentage_24h),
             last_updated_at: fresh.price.updated_at,
             ..PriceData::mock()
         };
@@ -312,5 +331,32 @@ mod tests {
         assert_eq!(selected[0].market.market_cap, fresh.market.market_cap);
         assert_eq!(repository.provider_reads(), 0);
         assert_eq!(repository.stored_price_ids(), vec![vec![incoming.id]]);
+    }
+
+    #[tokio::test]
+    async fn test_store_prices_fills_a_missing_24h_change_from_the_price_a_day_ago() {
+        let missing = PriceData {
+            price: 110.0,
+            price_change_percentage_24h: None,
+            ..PriceData::mock()
+        };
+        let sent = PriceData {
+            id: PriceId::new(PriceProvider::Coingecko, "ethereum".to_string()),
+            provider_price_id: "ethereum".to_string(),
+            ..PriceData::mock_with(2000.0, 3.0)
+        };
+        let repository = Arc::new(MemoryPricesRepository::default().with_chart_prices(HashMap::from([(missing.id.to_string(), 100.0), (sent.id.to_string(), 1000.0)])));
+        let client = PriceClient::new(
+            repository.clone(),
+            Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new()))),
+            Arc::new(MemoryPriceCacher::new(vec![])),
+            Arc::new(UnusedObservedCacher),
+        );
+
+        client.store_prices(vec![missing, sent], HOUR).await.unwrap();
+
+        let stored = repository.stored_prices().remove(0);
+        assert!((stored[0].price_change_percentage_24h.unwrap() - 10.0).abs() < 1e-9);
+        assert_eq!(stored[1].price_change_percentage_24h, Some(3.0));
     }
 }

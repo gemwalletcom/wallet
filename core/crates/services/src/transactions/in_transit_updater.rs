@@ -67,7 +67,7 @@ impl InTransitUpdater {
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let scan_limit = self.config.scan_limit();
-        let transactions = self.repository.transactions(vec![TransactionFilter::States(vec![TransactionState::InTransit])], scan_limit).await?;
+        let transactions = self.repository.get_transactions(vec![TransactionFilter::States(vec![TransactionState::InTransit])], scan_limit).await?;
         let vault_addresses = self.vault_client.get_deposit_address_map().await?;
         self.metrics.record_queue(TransactionQueue::InTransit, in_transit_counts(&transactions, &vault_addresses));
 
@@ -132,7 +132,9 @@ impl InTransitUpdater {
 
     async fn save_and_publish(&self, chain: Chain, transaction: &Transaction, state: TransactionState, metadata: Option<serde_json::Value>) -> Result<(), Box<dyn Error + Send + Sync>> {
         let updates = swap_state_updates(state, metadata.as_ref());
-        self.repository.update_transaction(chain, transaction.id.hash.clone(), updates).await?;
+        self.repository
+            .update_transactions(vec![TransactionFilter::Chain(chain.as_ref().to_string()), TransactionFilter::Hash(transaction.id.hash.clone())], updates)
+            .await?;
 
         let transaction = transaction.clone().with_swap_state(state, metadata.clone());
         self.stream_producer.publish_transactions(TransactionsPayload::new_state_change_with_notify(chain, vec![transaction])).await?;

@@ -37,7 +37,7 @@ impl MessageConsumer<WalletStreamPayload, usize> for WalletStreamConsumer {
 
     async fn consume(&self, payload: WalletStreamPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let wallet_row_id = payload.wallet_id;
-        let (wallet, devices) = self.repository.wallet_with_devices(wallet_row_id).await?;
+        let (wallet, devices) = self.repository.get_wallet_with_devices(wallet_row_id).await?;
         let events = stream_events(wallet.wallet_id, payload.event);
         let expires_at = unix_timestamp().saturating_add(self.retention.as_secs()) as f64;
 

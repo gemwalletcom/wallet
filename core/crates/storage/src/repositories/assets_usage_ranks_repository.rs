@@ -7,13 +7,13 @@ use crate::models::AssetUsageRankRow;
 use crate::{DatabaseClient, DatabaseError};
 
 pub trait AssetsUsageRanksRepository {
-    fn upsert_usage_ranks(&mut self, values: &[(AssetId, i32)]) -> Result<usize, DatabaseError>;
+    fn set_usage_ranks(&mut self, values: &[(AssetId, i32)]) -> Result<usize, DatabaseError>;
     fn delete_usage_ranks_before(&mut self, before: NaiveDateTime) -> Result<usize, DatabaseError>;
     fn get_all_usage_ranks(&mut self) -> Result<Vec<(AssetId, i32)>, DatabaseError>;
 }
 
 impl AssetsUsageRanksRepository for DatabaseClient {
-    fn upsert_usage_ranks(&mut self, values: &[(AssetId, i32)]) -> Result<usize, DatabaseError> {
+    fn set_usage_ranks(&mut self, values: &[(AssetId, i32)]) -> Result<usize, DatabaseError> {
         use crate::schema::assets_usage_ranks::dsl::*;
         if values.is_empty() {
             return Ok(0);

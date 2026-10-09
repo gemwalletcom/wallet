@@ -23,7 +23,7 @@ impl AddressDetailsClient {
 
     pub async fn get_address_details(&self, request: ChainAddress) -> Result<AddressDetails, Box<dyn Error + Send + Sync>> {
         let detection_max_age = self.config.get_duration(ConfigKey::ScanDetectionMaxAge).await?;
-        let AddressRecords { assets, scan_addresses, verdicts } = self.repository.address_records(request.clone(), detection_max_age).await?;
+        let AddressRecords { assets, scan_addresses, verdicts } = self.repository.get_address_records(request.clone(), detection_max_age).await?;
         let details = map_address_details(request, assets.into_iter().next(), scan_addresses.into_iter().next(), &verdicts);
         let balances = match details.address_type {
             AddressType::Address => self.get_balances(&details).await,

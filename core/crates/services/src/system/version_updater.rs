@@ -33,7 +33,7 @@ impl VersionUpdater {
     }
 
     pub async fn update_store(&self, store: PlatformStore) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        if !self.repository.is_update_enabled(store).await? {
+        if !self.repository.get_update_enabled(store).await? {
             return Ok(None);
         }
 

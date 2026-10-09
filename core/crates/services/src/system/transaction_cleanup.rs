@@ -34,7 +34,7 @@ impl TransactionCleanup {
             addresses,
             transactions_addresses,
             transactions_deleted,
-        }) = self.repository.cleanup_heavy_addresses(address_max_count, address_limit, since).await?
+        }) = self.repository.delete_heavy_addresses(address_max_count, address_limit, since).await?
         else {
             return Ok(HashMap::new());
         };

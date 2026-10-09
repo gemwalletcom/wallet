@@ -11,9 +11,10 @@ use crate::repositories::assets_links_repository::AssetsLinksRepository;
 use crate::repositories::perpetuals_repository::PerpetualsRepository;
 use crate::repositories::prices_repository::primary_price_rows;
 use crate::repositories::tag_repository::asset_tag_ids;
+use crate::repositories::{Condition, QueryFilter, matching};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AssetUpdate {
     IsEnabled(bool),
     IsSwappable(bool),
@@ -25,9 +26,10 @@ pub enum AssetUpdate {
     HasPrice(bool),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AssetFilter {
     Ids(Vec<String>),
+    ExcludeIds(Vec<String>),
     IsEnabled(bool),
     IsSwappable(bool),
     IsBuyable(bool),
@@ -39,61 +41,38 @@ pub enum AssetFilter {
     RankGt(i32),
 }
 
+impl QueryFilter<crate::schema::assets::table> for AssetFilter {
+    fn condition(self) -> Condition<crate::schema::assets::table> {
+        use crate::schema::assets::dsl::*;
+        match self {
+            AssetFilter::Ids(values) => Box::new(id.eq_any(values)),
+            AssetFilter::ExcludeIds(values) => Box::new(id.ne_all(values)),
+            AssetFilter::IsEnabled(value) => Box::new(is_enabled.eq(value)),
+            AssetFilter::IsBuyable(value) => Box::new(is_buyable.eq(value)),
+            AssetFilter::IsSellable(value) => Box::new(is_sellable.eq(value)),
+            AssetFilter::IsSwappable(value) => Box::new(is_swappable.eq(value)),
+            AssetFilter::HasImage(value) => Box::new(has_image.eq(value)),
+            AssetFilter::HasPrice(value) => Box::new(has_price.eq(value)),
+            AssetFilter::Chain(value) => Box::new(chain.eq(value)),
+            AssetFilter::RankLte(value) => Box::new(rank.le(value)),
+            AssetFilter::RankGt(value) => Box::new(rank.gt(value)),
+        }
+    }
+}
+
 pub trait AssetsRepository {
     fn add_assets(&mut self, values: Vec<AssetBasic>) -> Result<usize, DatabaseError>;
-    fn update_assets(&mut self, asset_ids: Vec<AssetId>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError>;
-    fn upsert_assets(&mut self, values: Vec<Asset>) -> Result<usize, DatabaseError>;
+    fn update_assets(&mut self, filters: Vec<AssetFilter>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError>;
+    fn set_assets(&mut self, values: Vec<Asset>) -> Result<usize, DatabaseError>;
     fn get_assets_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetBasic>, DatabaseError>;
     fn get_asset_ids_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_asset(&mut self, asset_id: &AssetId) -> Result<Asset, DatabaseError>;
-    fn upsert_asset_associations(&mut self, id: &str, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError>;
+    fn set_asset_associations(&mut self, id: &str, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError>;
     fn get_asset_full(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<AssetFull, DatabaseError>;
     fn get_assets(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
     fn get_assets_basic(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, DatabaseError>;
     fn get_assets_with_prices(&mut self, filters: Vec<AssetFilter>, max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError>;
     fn get_asset_catalog(&mut self) -> Result<AssetCatalog, DatabaseError>;
-}
-
-fn filter_assets(filters: Vec<AssetFilter>) -> crate::schema::assets::BoxedQuery<'static, diesel::pg::Pg> {
-    use crate::schema::assets::dsl::*;
-    let mut query = assets.into_boxed();
-
-    for filter in filters {
-        match filter {
-            AssetFilter::Ids(values) => {
-                query = query.filter(id.eq_any(values));
-            }
-            AssetFilter::IsEnabled(value) => {
-                query = query.filter(is_enabled.eq(value));
-            }
-            AssetFilter::IsBuyable(value) => {
-                query = query.filter(is_buyable.eq(value));
-            }
-            AssetFilter::IsSellable(value) => {
-                query = query.filter(is_sellable.eq(value));
-            }
-            AssetFilter::IsSwappable(value) => {
-                query = query.filter(is_swappable.eq(value));
-            }
-            AssetFilter::HasImage(value) => {
-                query = query.filter(has_image.eq(value));
-            }
-            AssetFilter::HasPrice(value) => {
-                query = query.filter(has_price.eq(value));
-            }
-            AssetFilter::Chain(value) => {
-                query = query.filter(chain.eq(value));
-            }
-            AssetFilter::RankLte(value) => {
-                query = query.filter(rank.le(value));
-            }
-            AssetFilter::RankGt(value) => {
-                query = query.filter(rank.gt(value));
-            }
-        }
-    }
-
-    query
 }
 
 fn asset_row(client: &mut DatabaseClient, asset_id: &str) -> Result<AssetRow, diesel::result::Error> {
@@ -147,15 +126,10 @@ impl AssetsRepository for DatabaseClient {
         Ok(diesel::insert_into(assets).values(rows).on_conflict_do_nothing().execute(&mut self.connection)?)
     }
 
-    fn update_assets(&mut self, asset_ids: Vec<AssetId>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError> {
+    fn update_assets(&mut self, filters: Vec<AssetFilter>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError> {
         use crate::schema::assets::dsl::*;
-        let asset_ids = asset_ids.ids();
-        if asset_ids.is_empty() || updates.is_empty() {
-            return Ok(0);
-        }
-
         Ok(updates.into_iter().try_fold(0, |total, update| {
-            let target = assets.filter(id.eq_any(&asset_ids));
+            let target = assets.filter(matching(filters.clone()));
             let updated = match update {
                 AssetUpdate::IsEnabled(value) => diesel::update(target).set(is_enabled.eq(value)).execute(&mut self.connection)?,
                 AssetUpdate::IsSwappable(value) => diesel::update(target).set(is_swappable.eq(value)).execute(&mut self.connection)?,
@@ -170,19 +144,25 @@ impl AssetsRepository for DatabaseClient {
         })?)
     }
 
-    fn upsert_assets(&mut self, values: Vec<Asset>) -> Result<usize, DatabaseError> {
+    fn set_assets(&mut self, values: Vec<Asset>) -> Result<usize, DatabaseError> {
         use crate::schema::assets::dsl::*;
         let rows = values.into_iter().map(NewAssetRow::from_primitive_default).collect::<Vec<_>>();
         Ok(diesel::insert_into(assets).values(rows).on_conflict(id).do_update().set((rank.eq(excluded(rank)),)).execute(&mut self.connection)?)
     }
 
     fn get_assets_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetBasic>, DatabaseError> {
-        Ok(filter_assets(filters).select(AssetRow::as_select()).load(&mut self.connection)?.into_iter().map(|x| x.as_basic_primitive()).collect())
+        Ok(crate::schema::assets::table
+            .filter(matching(filters))
+            .select(AssetRow::as_select())
+            .load(&mut self.connection)?
+            .into_iter()
+            .map(|x| x.as_basic_primitive())
+            .collect())
     }
 
     fn get_asset_ids_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
         use crate::schema::assets::dsl::*;
-        let ids: Vec<String> = filter_assets(filters).select(id).load(&mut self.connection)?;
+        let ids: Vec<String> = assets.filter(matching(filters)).select(id).load(&mut self.connection)?;
         Ok(ids.into_iter().filter_map(|value| AssetId::new(&value)).collect())
     }
 
@@ -191,7 +171,7 @@ impl AssetsRepository for DatabaseClient {
         Ok(asset_row(self, &id).or_not_found(id.clone())?.as_primitive())
     }
 
-    fn upsert_asset_associations(&mut self, association_id: &str, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError> {
+    fn set_asset_associations(&mut self, association_id: &str, values: Vec<AssetAssociation>) -> Result<usize, DatabaseError> {
         use crate::schema::assets_associations::dsl::*;
 
         if values.is_empty() {
@@ -263,7 +243,7 @@ impl AssetsRepository for DatabaseClient {
     }
 
     fn get_assets_with_prices(&mut self, filters: Vec<AssetFilter>, max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
-        let assets: Vec<AssetRow> = filter_assets(filters).select(AssetRow::as_select()).load(&mut self.connection)?;
+        let assets: Vec<AssetRow> = crate::schema::assets::table.filter(matching(filters)).select(AssetRow::as_select()).load(&mut self.connection)?;
         let prices = primary_price_rows(self, &assets.iter().map(AssetRow::as_asset_id).collect::<Vec<_>>(), max_age)?
             .into_iter()
             .map(|(asset_id, price)| (asset_id, price.as_primitive()))

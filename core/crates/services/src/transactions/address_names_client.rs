@@ -23,7 +23,7 @@ impl AddressNamesClient {
         }
 
         let asset_ids = requests.iter().map(|request| AssetId::from(request.chain, Some(request.address.clone()))).collect::<Vec<_>>();
-        let (scan_rows, assets) = self.repository.address_name_records(requests.clone(), asset_ids).await?;
+        let (scan_rows, assets) = self.repository.get_address_name_records(requests.clone(), asset_ids).await?;
         let scan_names = scan_rows
             .into_iter()
             .filter_map(|scan_address| scan_address.address_name())

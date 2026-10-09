@@ -6,7 +6,7 @@ use futures::future;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{AssetId, asset_score::AssetRank};
 use security::{TokenScanProviders, TokenTarget};
-use storage::AssetUpdate;
+use storage::{AssetFilter, AssetUpdate};
 use streamer::consumer::MessageConsumer;
 
 use crate::assets::repository::Repository;
@@ -72,7 +72,9 @@ impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
         let verdict = AssetStatusVerdict::from_provider_results(&provider_results);
 
         if verdict.is_malicious {
-            self.repository.update_assets(vec![asset_id], vec![AssetUpdate::Rank(AssetRank::Fraudulent.threshold()), AssetUpdate::IsEnabled(false)]).await?;
+            self.repository
+                .update_assets(vec![AssetFilter::Ids(vec![asset_id.to_string()])], vec![AssetUpdate::Rank(AssetRank::Fraudulent.threshold()), AssetUpdate::IsEnabled(false)])
+                .await?;
         }
         let failed_providers = verdict.failed_providers.join(",");
         info_with_fields!(
@@ -137,8 +139,8 @@ mod tests {
         assert!(is_malicious);
         let updates = repository.updates();
         assert_eq!(updates.len(), 1);
-        assert_eq!(updates[0].0, vec![AssetId::from_token(Chain::Ethereum, "0x1")]);
-        assert_eq!(format!("{:?}", updates[0].1), format!("{:?}", vec![AssetUpdate::Rank(AssetRank::Fraudulent.threshold()), AssetUpdate::IsEnabled(false)]));
+        assert_eq!(updates[0].0, vec![AssetFilter::Ids(vec![AssetId::from_token(Chain::Ethereum, "0x1").to_string()])]);
+        assert_eq!(updates[0].1, vec![AssetUpdate::Rank(AssetRank::Fraudulent.threshold()), AssetUpdate::IsEnabled(false)]);
     }
 
     #[tokio::test]

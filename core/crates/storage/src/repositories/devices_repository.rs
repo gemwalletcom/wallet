@@ -4,15 +4,17 @@ use primitives::Device;
 
 use crate::models::{DeviceRow, UpdateDeviceRow};
 use crate::repositories::wallets_repository::delete_subscriptions_for_device_ids;
+use crate::repositories::{Condition, QueryFilter, matching};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
-#[derive(Debug, Clone)]
-pub enum DeviceFieldUpdate {
+#[derive(Debug, Clone, PartialEq)]
+pub enum DeviceUpdate {
     IsPushEnabled(bool),
 }
 
-#[derive(Debug, Clone)]
-enum DeviceFilter {
+#[derive(Debug, Clone, PartialEq)]
+pub enum DeviceFilter {
+    Ids(Vec<String>),
     IsPushEnabled(bool),
     CreatedBetween { start: NaiveDateTime, end: NaiveDateTime },
 }
@@ -34,6 +36,21 @@ impl DeviceRecord {
     }
 }
 
+impl QueryFilter<crate::schema::devices::table> for DeviceFilter {
+    fn condition(self) -> Condition<crate::schema::devices::table> {
+        use crate::schema::devices::dsl::*;
+        match self {
+            DeviceFilter::Ids(values) => Box::new(identifier.eq_any(values)),
+            DeviceFilter::IsPushEnabled(enabled) => Box::new(is_push_enabled.eq(enabled)),
+            DeviceFilter::CreatedBetween { start, end } => Box::new(
+                created_at
+                    .between(start, end)
+                    .and(diesel::dsl::sql::<diesel::sql_types::Bool>("DATE_TRUNC('hour', updated_at) = DATE_TRUNC('hour', created_at)")),
+            ),
+        }
+    }
+}
+
 pub trait DevicesRepository {
     fn add_device(&mut self, device: Device) -> Result<Device, DatabaseError>;
     fn get_device(&mut self, device_id: &str) -> Result<Device, DatabaseError>;
@@ -41,9 +58,9 @@ pub trait DevicesRepository {
     fn get_device_exist(&mut self, device_id: &str) -> Result<bool, DatabaseError>;
     fn get_device_row_id(&mut self, device_id: &str) -> Result<i32, DatabaseError>;
     fn update_device(&mut self, device: Device) -> Result<Device, DatabaseError>;
-    fn update_device_fields(&mut self, device_ids: Vec<String>, updates: Vec<DeviceFieldUpdate>) -> Result<usize, DatabaseError>;
+    fn update_devices(&mut self, filters: Vec<DeviceFilter>, updates: Vec<DeviceUpdate>) -> Result<usize, DatabaseError>;
     fn delete_devices_subscriptions_after_days(&mut self, days: i64) -> Result<usize, DatabaseError>;
-    fn devices_inactive_days(&mut self, min_days: i64, max_days: i64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError>;
+    fn get_inactive_devices(&mut self, min_days: i64, max_days: i64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError>;
 }
 
 pub(crate) fn device_row(client: &mut DatabaseClient, device_id_value: &str) -> Result<DeviceRow, diesel::result::Error> {
@@ -98,23 +115,15 @@ impl DevicesRepository for DatabaseClient {
             .as_primitive())
     }
 
-    fn update_device_fields(&mut self, device_ids: Vec<String>, updates: Vec<DeviceFieldUpdate>) -> Result<usize, DatabaseError> {
+    fn update_devices(&mut self, filters: Vec<DeviceFilter>, updates: Vec<DeviceUpdate>) -> Result<usize, DatabaseError> {
         use crate::schema::devices::dsl::*;
-
-        if updates.is_empty() || device_ids.is_empty() {
-            return Ok(0);
-        }
-
-        let mut total_updated = 0;
-        for update in updates {
-            let target = devices.filter(identifier.eq_any(&device_ids));
+        Ok(updates.into_iter().try_fold(0, |total, update| {
+            let target = devices.filter(matching(filters.clone()));
             let updated = match update {
-                DeviceFieldUpdate::IsPushEnabled(value) => diesel::update(target).set(is_push_enabled.eq(value)).execute(&mut self.connection)?,
+                DeviceUpdate::IsPushEnabled(value) => diesel::update(target).set(is_push_enabled.eq(value)).execute(&mut self.connection)?,
             };
-            total_updated += updated;
-        }
-
-        Ok(total_updated)
+            Ok::<_, diesel::result::Error>(total + updated)
+        })?)
     }
 
     fn delete_devices_subscriptions_after_days(&mut self, days: i64) -> Result<usize, DatabaseError> {
@@ -126,39 +135,24 @@ impl DevicesRepository for DatabaseClient {
         Ok(delete_subscriptions_for_device_ids(self, device_ids)?)
     }
 
-    fn devices_inactive_days(&mut self, min_days: i64, max_days: i64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError> {
+    fn get_inactive_devices(&mut self, min_days: i64, max_days: i64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError> {
         let min_days_cutoff = Utc::now() - Duration::days(min_days);
         let max_days_cutoff = Utc::now() - Duration::days(max_days);
 
-        let mut filters = vec![DeviceFilter::CreatedBetween {
+        let filters = [DeviceFilter::CreatedBetween {
             start: max_days_cutoff.naive_utc(),
             end: min_days_cutoff.naive_utc(),
-        }];
-
-        if let Some(enabled) = push_enabled {
-            filters.push(DeviceFilter::IsPushEnabled(enabled));
-        }
-
-        use crate::schema::devices::dsl::*;
-
-        let mut query = devices.into_boxed();
-
-        for filter in filters {
-            match filter {
-                DeviceFilter::IsPushEnabled(enabled) => {
-                    query = query.filter(is_push_enabled.eq(enabled));
-                }
-                DeviceFilter::CreatedBetween { start, end } => {
-                    query = query.filter(
-                        created_at
-                            .between(start, end)
-                            .and(diesel::dsl::sql::<diesel::sql_types::Bool>("DATE_TRUNC('hour', updated_at) = DATE_TRUNC('hour', created_at)")),
-                    );
-                }
-            }
-        }
-
-        Ok(query.select(DeviceRow::as_select()).load(&mut self.connection)?.into_iter().map(|x| x.as_primitive()).collect())
+        }]
+        .into_iter()
+        .chain(push_enabled.map(DeviceFilter::IsPushEnabled))
+        .collect();
+        Ok(crate::schema::devices::table
+            .filter(matching(filters))
+            .select(DeviceRow::as_select())
+            .load(&mut self.connection)?
+            .into_iter()
+            .map(|x| x.as_primitive())
+            .collect())
     }
 }
 

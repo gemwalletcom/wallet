@@ -11,7 +11,7 @@ use crate::{DatabaseClient, DatabaseError};
 pub trait ApiClientsRepository {
     fn add_api_client_grants(&mut self, values: Vec<ApiClientGrant>) -> Result<usize, DatabaseError>;
     fn set_api_client_secret(&mut self, name: &str, secret: &str) -> Result<usize, DatabaseError>;
-    fn has_enabled_api_client(&mut self, secret: &str, scope: ApiClientScope, resource: ApiClientResource) -> Result<bool, DatabaseError>;
+    fn get_api_client_enabled(&mut self, secret: &str, scope: ApiClientScope, resource: ApiClientResource) -> Result<bool, DatabaseError>;
 }
 
 impl ApiClientsRepository for DatabaseClient {
@@ -59,7 +59,7 @@ impl ApiClientsRepository for DatabaseClient {
         Ok(diesel::update(api_clients::table.filter(api_clients::name.eq(name))).set(api_clients::secret.eq(secret)).execute(&mut self.connection)?)
     }
 
-    fn has_enabled_api_client(&mut self, secret_value: &str, scope_value: ApiClientScope, resource_value: ApiClientResource) -> Result<bool, DatabaseError> {
+    fn get_api_client_enabled(&mut self, secret_value: &str, scope_value: ApiClientScope, resource_value: ApiClientResource) -> Result<bool, DatabaseError> {
         Ok(api_clients::table
             .inner_join(api_client_scopes::table)
             .filter(api_clients::secret.eq(secret_value))

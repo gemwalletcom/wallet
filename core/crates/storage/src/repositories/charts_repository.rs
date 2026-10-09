@@ -75,7 +75,7 @@ pub(crate) fn aggregate_chart_rows(client: &mut DatabaseClient, values: Vec<(Str
 pub trait ChartsRepository {
     fn add_charts(&mut self, timeframe: ChartTimeframe, values: Vec<ChartPoint>) -> Result<usize, DatabaseError>;
     fn get_charts(&mut self, price_id: &str, period: &ChartPeriod) -> Result<Vec<ChartResult>, DatabaseError>;
-    fn aggregate_charts(&mut self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError>;
+    fn update_chart_aggregates(&mut self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError>;
     fn delete_charts(&mut self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, DatabaseError>;
     fn get_charts_by_filter(&mut self, filters: Vec<ChartFilter>) -> Result<Vec<(String, f64)>, DatabaseError>;
 }
@@ -115,7 +115,7 @@ impl ChartsRepository for DatabaseClient {
         })
     }
 
-    fn aggregate_charts(&mut self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError> {
+    fn update_chart_aggregates(&mut self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError> {
         let query = match timeframe {
             ChartTimeframe::Raw => return Ok(0),
             ChartTimeframe::Hourly => "SELECT aggregate_hourly_charts();",

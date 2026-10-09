@@ -28,7 +28,7 @@ impl MemorySubscriptionRepository {
 
 #[async_trait]
 impl Repository for MemorySubscriptionRepository {
-    async fn subscriptions_for_addresses(&self, chain: Chain, addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError> {
+    async fn get_subscriptions_for_addresses(&self, chain: Chain, addresses: Vec<String>) -> Result<Vec<DeviceSubscription>, DatabaseError> {
         *self.reads.lock().unwrap() += 1;
         let addresses = addresses.into_iter().collect::<HashSet<_>>();
         Ok(self

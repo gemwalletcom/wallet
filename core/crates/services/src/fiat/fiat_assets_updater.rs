@@ -2,7 +2,8 @@ use cacher::AssetCatalogCacher;
 use chrono::{Duration, Utc};
 use fiat::{FiatProvider, model::FiatProviderAsset};
 use gem_tracing::{info_with_fields, warn_with_fields};
-use primitives::{AssetId, AssetTag, FiatProviderName, currency::Currency};
+use primitives::{AssetId, AssetIdVecExt, AssetTag, FiatProviderName, currency::Currency};
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use storage::{AssetFilter, AssetUpdate, FiatAssetFilter};
@@ -13,6 +14,22 @@ use super::repository::Repository;
 enum FiatAssetDirection {
     Buy,
     Sell,
+}
+
+impl FiatAssetDirection {
+    fn asset_filter(&self, value: bool) -> AssetFilter {
+        match self {
+            Self::Buy => AssetFilter::IsBuyable(value),
+            Self::Sell => AssetFilter::IsSellable(value),
+        }
+    }
+
+    fn asset_update(&self, value: bool) -> AssetUpdate {
+        match self {
+            Self::Buy => AssetUpdate::IsBuyable(value),
+            Self::Sell => AssetUpdate::IsSellable(value),
+        }
+    }
 }
 
 pub struct FiatAssetsUpdater {
@@ -27,15 +44,21 @@ impl FiatAssetsUpdater {
     }
 
     pub async fn update_buyable_assets(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-        let asset_filters = vec![AssetFilter::IsEnabled(true), AssetFilter::IsBuyable(true)];
-        let updated = self.repository.sync_asset_flag(Self::fiat_asset_filters(FiatAssetDirection::Buy), asset_filters, AssetUpdate::IsBuyable).await?;
-        self.invalidate_catalog(updated).await;
-        Ok(updated)
+        self.update_asset_flags(FiatAssetDirection::Buy).await
     }
 
     pub async fn update_sellable_assets(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-        let asset_filters = vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)];
-        let updated = self.repository.sync_asset_flag(Self::fiat_asset_filters(FiatAssetDirection::Sell), asset_filters, AssetUpdate::IsSellable).await?;
+        self.update_asset_flags(FiatAssetDirection::Sell).await
+    }
+
+    async fn update_asset_flags(&self, direction: FiatAssetDirection) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
+        let ids = self.repository.get_fiat_asset_ids(Self::fiat_asset_filters(direction)).await?.ids();
+        let added = self.repository.update_assets(vec![AssetFilter::Ids(ids.clone()), direction.asset_filter(false)], vec![direction.asset_update(true)]).await?;
+        let removed = self
+            .repository
+            .update_assets(vec![AssetFilter::IsEnabled(true), direction.asset_filter(true), AssetFilter::ExcludeIds(ids)], vec![direction.asset_update(false)])
+            .await?;
+        let updated = added + removed;
         self.invalidate_catalog(updated).await;
         Ok(updated)
     }
@@ -86,7 +109,16 @@ impl FiatAssetsUpdater {
         let assets = provider.get_assets().await?;
         let asset_count = assets.len();
 
-        let disabled = self.repository.sync_fiat_assets(provider_name, assets, Self::map_fiat_asset).await?;
+        let asset_ids: Vec<AssetId> = assets.iter().filter_map(FiatProviderAsset::asset_id).collect();
+        let known: HashSet<AssetId> = self.repository.get_asset_ids(vec![AssetFilter::Ids(asset_ids.ids())]).await?.into_iter().collect();
+        let fiat_assets = assets
+            .into_iter()
+            .map(|asset| {
+                let asset_id = asset.asset_id().filter(|asset_id| known.contains(asset_id));
+                Self::map_fiat_asset(asset, asset_id)
+            })
+            .collect();
+        let disabled = self.repository.set_fiat_assets(provider_name, fiat_assets).await?;
 
         info_with_fields!("fiat update assets", provider = provider_name.id(), assets = asset_count, disabled = disabled);
 
@@ -97,7 +129,7 @@ impl FiatAssetsUpdater {
         let provider = self.get_provider(provider_name)?;
         let countries = provider.get_countries().await?;
         let country_count = countries.len();
-        let disabled = self.repository.sync_countries(provider_name, countries).await?;
+        let disabled = self.repository.set_countries(provider_name, countries).await?;
         info_with_fields!("fiat update countries", provider = provider_name.id(), countries = country_count, disabled = disabled);
         Ok(country_count)
     }

@@ -28,7 +28,7 @@ impl StoreTransactionsPerpetualsConsumer {
         let (Some(referral_fee), Some(provider)) = (metadata.referral_fee, metadata.provider) else {
             return Ok(None);
         };
-        let decimals = self.repository.asset(referral_fee.asset_id).await?.decimals;
+        let decimals = self.repository.get_asset(referral_fee.asset_id).await?.decimals;
         Ok(Some(TransactionPerpetualRecord {
             provider,
             asset_id: transaction.asset_id.clone(),
@@ -49,11 +49,11 @@ impl MessageConsumer<TransactionId, usize> for StoreTransactionsPerpetualsConsum
     }
 
     async fn consume(&self, payload: TransactionId) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let transaction = self.repository.transaction(payload.clone()).await?;
+        let transaction = self.repository.get_transaction(payload.clone()).await?;
         let Some(record) = self.perpetual_record(&transaction).await? else {
             return Ok(0);
         };
-        Ok(self.repository.upsert_transaction_perpetual(payload, record).await?)
+        Ok(self.repository.set_transaction_perpetual(payload, record).await?)
     }
 }
 

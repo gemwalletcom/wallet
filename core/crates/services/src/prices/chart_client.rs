@@ -21,7 +21,7 @@ impl ChartClient {
 
     pub async fn get_charts_prices(&self, asset_id: &AssetId, period: ChartPeriod, currency: &Currency) -> Result<Vec<ChartValue>, Box<dyn Error + Send + Sync>> {
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
-        let ChartData { base_rate, rate, charts } = self.repository.chart_data(asset_id.clone(), currency.clone(), period, primary_price_max_age).await?;
+        let ChartData { base_rate, rate, charts } = self.repository.get_chart_data(asset_id.clone(), currency.clone(), period, primary_price_max_age).await?;
         let rate_multiplier = rate.multiplier(base_rate.rate);
         Ok(charts
             .into_iter()

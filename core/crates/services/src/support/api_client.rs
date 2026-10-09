@@ -80,7 +80,7 @@ impl SupportApiClient {
     }
 
     async fn get_session(&self, device_id: i32) -> Result<Option<ChatwootSession>, Box<dyn Error + Send + Sync>> {
-        let auth_token = self.repository.session_token(device_id).await?;
+        let auth_token = self.repository.get_session_token(device_id).await?;
         Ok(auth_token.map(|auth_token| ChatwootSession { auth_token }))
     }
 

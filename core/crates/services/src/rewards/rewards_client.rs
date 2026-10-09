@@ -8,7 +8,7 @@ use localizer::LanguageLocalizer;
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
 use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, now};
 use pusher::PushProvider;
-use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoringInput, UsernameError};
+use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoringInput, UsernameError, UsernameRules};
 use storage::{DatabaseError, DeviceRecord, WalletRecord};
 use streamer::{RewardsNotificationPayload, StreamProducerQueue};
 
@@ -63,7 +63,7 @@ impl RewardsClient {
     pub async fn get_rewards_by_wallet_id(&self, device: &DeviceRecord, wallet_id: i32, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
         let rules = username_rules(&self.config).await?;
         let eligibility_days = self.referral_eligibility_days().await?;
-        match self.repository.wallet_rewards(wallet_id, device.id, device.created_at, rules, eligibility_days).await {
+        match self.wallet_rewards(device, wallet_id, rules, eligibility_days).await {
             Ok(rewards) => Ok(Rewards {
                 disable_reason: rewards.disable_reason.map(|_| LanguageLocalizer::new_with_language(locale).notification_rewards_disabled_description()),
                 ..rewards
@@ -73,16 +73,25 @@ impl RewardsClient {
         }
     }
 
+    async fn wallet_rewards(&self, device: &DeviceRecord, wallet_id: i32, rules: UsernameRules, eligibility_days: i64) -> Result<Rewards, DatabaseError> {
+        let rewards = self.repository.get_rewards(wallet_id, rules).await?;
+        let facts = self.repository.get_referral_use_facts(wallet_id, device.id).await?;
+        Ok(Rewards {
+            use_referral_code_until: Some(facts.eligibility_ends_at(device.created_at, eligibility_days).and_utc()),
+            ..rewards
+        })
+    }
+
     pub async fn get_rewards_events_by_wallet_id(&self, wallet_id: i32) -> Result<Vec<RewardEvent>, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.reward_events(wallet_id).await?)
+        Ok(self.repository.get_reward_events(wallet_id).await?)
     }
 
     pub async fn get_rewards_leaderboard(&self) -> Result<ReferralLeaderboard, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.leaderboard().await?)
+        Ok(self.repository.get_leaderboard().await?)
     }
 
     pub async fn get_rewards_redemption_option(&self, code: &str) -> Result<RewardRedemptionOption, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.redemption_option(code.to_string()).await?)
+        Ok(self.repository.get_redemption_option(code.to_string()).await?)
     }
 
     pub async fn create_username(&self, address: &str, code: &str, device_id: i32, ip_address: &str, locale: &str) -> Result<Rewards, RewardsServiceError> {
@@ -97,18 +106,19 @@ impl RewardsClient {
             .map_err(|error| self.map_username_error(error, locale))?;
 
         let rules = username_rules(&self.config).await?;
-        let (rewards, event_id) = self
+        let event_id = self
             .repository
-            .create_username(wallet.id, code.to_string(), rules)
+            .add_username(wallet.id, code.to_string(), rules)
             .await
             .map_err(|error| self.map_username_error(UsernameError::internal(error), locale))?
             .map_err(|error| RewardsError::Username(UsernameError::Validation(error).localize(locale)))?;
+        let rewards = self.repository.get_rewards(wallet.id, rules).await.map_err(|error| self.map_username_error(UsernameError::internal(error), locale))?;
         self.publish_events(vec![event_id]).await?;
         Ok(rewards)
     }
 
     async fn multicoin_wallet(&self, address: &str) -> Result<WalletRecord, DatabaseError> {
-        self.repository.multicoin_wallet(address.to_string()).await
+        self.repository.get_or_add_multicoin_wallet(address.to_string()).await
     }
 
     async fn consume_username_creation_limits(&self, ip_address: &str, device_id: i32) -> Result<(), UsernameError> {
@@ -143,12 +153,17 @@ impl RewardsClient {
             wallet_id,
             device_id,
             device_created_at: device.created_at,
-            verification_config,
         };
-        let referral = self.repository.apply_referral_code(request).await?.map_err(|error| RewardsServiceError::referral(error, locale))?;
+        let referral = self.repository.get_referral_code_use(request).await?.map_err(|error| RewardsServiceError::referral(error, locale))?;
 
         let referrer_username = match referral {
-            ReferralCodeUse::Applied(events) => return Ok(events),
+            ReferralCodeUse::Apply { referrer_username, referrer_status } => {
+                return self
+                    .repository
+                    .set_referral(referrer_username, referrer_status, wallet_id, device_id, None, verification_config)
+                    .await?
+                    .map_err(|error| RewardsServiceError::referral(error, locale));
+            }
             ReferralCodeUse::NeedsScoring(referrer_username) => referrer_username,
         };
 
@@ -156,7 +171,7 @@ impl RewardsClient {
             ReferralProcessResult::Success { risk_signal_id, referrer_status } => {
                 let events = self
                     .repository
-                    .verify_referral(referrer_username, referrer_status, wallet_id, device_id, Some(risk_signal_id), verification_config)
+                    .set_referral(referrer_username, referrer_status, wallet_id, device_id, Some(risk_signal_id), verification_config)
                     .await?
                     .map_err(|error| RewardsServiceError::referral(error, locale))?;
                 Ok(events)
@@ -194,7 +209,7 @@ impl RewardsClient {
         ])
         .await?;
 
-        let referrer_info = self.repository.referrer_info(referrer_username.to_string()).await.map_err(ReferralError::internal)?;
+        let referrer_info = self.repository.get_referrer_info(referrer_username.to_string()).await.map_err(ReferralError::internal)?;
         if !referrer_info.status.is_verified() {
             return Err(ReferralValidationError::RewardsNotEnabled(referrer_username.to_string()).into());
         }
@@ -215,7 +230,7 @@ impl RewardsClient {
             cooldown_since: current.ago(cooldown),
             eligibility_days,
         };
-        self.repository.check_referral_use(check).await.map_err(ReferralError::internal)??;
+        self.repository.get_referral_use_check(check).await.map_err(ReferralError::internal)??;
 
         if device.device.platform == Platform::Android {
             match self.pusher.is_device_token_valid(&device.device.token, device.device.platform.as_i32()).await {
@@ -253,7 +268,7 @@ impl RewardsClient {
             user_agent: user_agent.to_string(),
         };
         let referrer_status = referrer_info.status;
-        let assessment = self.repository.assess_referral_risk(scoring_input, risk_score_config, since).await.map_err(ReferralError::internal)??;
+        let assessment = self.repository.add_referral_risk_signal(scoring_input, risk_score_config, since).await.map_err(ReferralError::internal)??;
 
         Ok(match assessment {
             RiskAssessment::Allowed { risk_signal_id } => ReferralProcessResult::Success { risk_signal_id, referrer_status },

@@ -72,7 +72,7 @@ impl ScanClient {
         let mut targets = subjects.iter().map(|subject| subject.target.clone()).collect::<Vec<_>>();
         targets.dedup();
         let detection_max_age = if targets.is_empty() { None } else { Some(config.detection_max_age) };
-        let ScanRecords { addresses, assets, verdicts } = self.repository.scan_records(addresses, asset_ids, targets, detection_max_age).await?;
+        let ScanRecords { addresses, assets, verdicts } = self.repository.get_scan_records(addresses, asset_ids, targets, detection_max_age).await?;
         Ok(TransactionScanInput {
             payload,
             enforced: config.enforced.clone(),

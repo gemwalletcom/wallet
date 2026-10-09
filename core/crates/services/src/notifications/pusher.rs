@@ -25,7 +25,7 @@ impl Pusher {
     }
 
     pub async fn get_address(&self, chain: Chain, address: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
-        match self.repository.scan_address(chain, address.to_string()).await {
+        match self.repository.get_scan_address(chain, address.to_string()).await {
             Ok(address) => Ok(address.name.unwrap_or_default()),
             Err(DatabaseError::ConnectionPool) => Err(DatabaseError::ConnectionPool.into()),
             Err(_) => Ok(AddressFormatter::format(address, Some(chain), AddressFormatStyle::Short)),

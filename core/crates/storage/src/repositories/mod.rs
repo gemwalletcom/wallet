@@ -29,3 +29,18 @@ pub mod transactions_perpetuals_repository;
 pub mod transactions_repository;
 pub mod transactions_swaps_repository;
 pub mod wallets_repository;
+
+use diesel::dsl::sql;
+use diesel::pg::Pg;
+use diesel::sql_types::Bool;
+use diesel::{BoolExpressionMethods, BoxableExpression};
+
+pub(crate) type Condition<T> = Box<dyn BoxableExpression<T, Pg, SqlType = Bool>>;
+
+pub(crate) trait QueryFilter<T> {
+    fn condition(self) -> Condition<T>;
+}
+
+pub(crate) fn matching<T: 'static, F: QueryFilter<T>>(filters: Vec<F>) -> Condition<T> {
+    filters.into_iter().map(QueryFilter::condition).fold(Box::new(sql::<Bool>("TRUE")), |all, condition| Box::new(all.and(condition)))
+}

@@ -15,7 +15,7 @@ pub trait PerpetualsRepository {
 
     fn get_associated_asset_ids(&mut self) -> Result<HashMap<PerpetualId, AssetId>, DatabaseError>;
 
-    fn perpetuals_update(&mut self, values: Vec<Perpetual>) -> Result<usize, DatabaseError>;
+    fn update_perpetuals(&mut self, values: Vec<Perpetual>) -> Result<usize, DatabaseError>;
 
     fn get_perpetuals(&mut self) -> Result<Vec<Perpetual>, DatabaseError>;
 }
@@ -51,7 +51,7 @@ impl PerpetualsRepository for DatabaseClient {
             .collect())
     }
 
-    fn perpetuals_update(&mut self, values: Vec<Perpetual>) -> Result<usize, DatabaseError> {
+    fn update_perpetuals(&mut self, values: Vec<Perpetual>) -> Result<usize, DatabaseError> {
         if values.is_empty() {
             return Ok(0);
         }
