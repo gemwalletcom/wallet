@@ -7,6 +7,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.format.rowDateFormatter
@@ -15,7 +16,6 @@ import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 import uniffi.gemstone.GemChartData
 import java.time.ZoneId
-import androidx.compose.ui.platform.LocalConfiguration
 
 @Composable
 fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {

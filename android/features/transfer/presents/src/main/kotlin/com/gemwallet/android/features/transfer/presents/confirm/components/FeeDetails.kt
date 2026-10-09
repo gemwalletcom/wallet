@@ -97,7 +97,6 @@ fun FeeDetails(
     onCancel: () -> Unit,
 ) {
     screen ?: return
-    val context = LocalContext.current
     val feeAsset = remember(screen.feeAsset) { screen.feeAsset?.toFeeAssetUIModel() }
     val feeAssets = remember(screen.feeAssets) { screen.feeAssets.map { it.toFeeAssetUIModel() } }
 

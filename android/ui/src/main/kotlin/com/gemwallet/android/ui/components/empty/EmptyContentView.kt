@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.title
@@ -13,7 +14,6 @@ import uniffi.gemstone.GemEmptyState
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.emptyState
-import androidx.compose.ui.res.stringResource
 
 @Composable
 fun EmptyContentView(kind: GemEmptyStateKind, modifier: Modifier = Modifier, symbol: String = "", onAction: ((GemEmptyStateAction) -> Unit)? = null) {
