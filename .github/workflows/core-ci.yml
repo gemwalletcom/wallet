@@ -67,7 +67,10 @@ jobs:
 
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:18.4-trixie
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
           POSTGRES_DB: postgres
           POSTGRES_PASSWORD: postgres
