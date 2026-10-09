@@ -12,11 +12,7 @@ use super::{DeviceError, VerifiedRequest};
 use crate::error::ApiError;
 
 pub fn verified(parts: &Parts) -> Result<VerifiedRequest, ApiError> {
-    parts
-        .extensions
-        .get::<VerifiedRequest>()
-        .cloned()
-        .ok_or_else(|| ApiError::internal("Device authentication is not configured for this route"))
+    parts.extensions.get::<VerifiedRequest>().cloned().ok_or_else(|| ApiError::internal("Device authentication is not configured for this route"))
 }
 
 fn has_json_content_type(parts: &Parts) -> bool {

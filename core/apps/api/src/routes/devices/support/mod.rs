@@ -37,10 +37,7 @@ pub async fn post_image(
     State(client): State<Arc<SupportApiClient>>,
     body: DeviceBody,
 ) -> Result<ApiResponse<SupportMessage>, ApiError> {
-    let content_type = headers
-        .get(CONTENT_TYPE)
-        .and_then(|value| value.to_str().ok())
-        .ok_or_else(|| ApiError::bad_request("Missing header: Content-Type"))?;
+    let content_type = headers.get(CONTENT_TYPE).and_then(|value| value.to_str().ok()).ok_or_else(|| ApiError::bad_request("Missing header: Content-Type"))?;
     let image = validate_support_image_upload(&config, query.file_name, content_type, body.0.to_vec())?;
     Ok(client.send_image(&device.record, image.data, image.file_name, image.content_type).await?.into())
 }

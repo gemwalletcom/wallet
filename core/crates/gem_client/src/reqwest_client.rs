@@ -159,7 +159,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_a_failed_request_never_reports_what_the_url_carried() {
-        let client = ReqwestClient::new("http://gem:hunter2@127.0.0.1:1".to_string(), crate::reqwest_client());
+        let reqwest_client = crate::client_config::builder().no_proxy().build().unwrap();
+        let client = ReqwestClient::new("http://gem:hunter2@127.0.0.1:1".to_string(), reqwest_client);
         let error = client.get_with::<serde_json::Value>("/v1/wallets/secret?api_key=shhh", HashMap::new()).await.unwrap_err();
 
         let ClientError::Network(message) = error else {

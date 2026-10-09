@@ -1,4 +1,4 @@
-FROM mirror.gcr.io/library/rust:1.97.0-trixie AS chef
+FROM mirror.gcr.io/library/rust:1.99.0-trixie AS chef
 RUN cargo install --locked cargo-chef --version 0.1.77
 WORKDIR /app
 ENV CARGO_INCREMENTAL=0 \

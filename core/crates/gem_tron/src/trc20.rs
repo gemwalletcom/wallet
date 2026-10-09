@@ -47,7 +47,7 @@ pub fn decode_approval(data: &[u8]) -> Option<ApprovalCall> {
 pub fn decode_gasfree_permit_transfer_hex(data: &str) -> Option<(TronAddress, TronAddress, BigUint)> {
     let data = hex::decode(data).ok()?;
     let arguments = data.strip_prefix(&GASFREE_PERMIT_TRANSFER_SELECTOR)?;
-    let mut words = arguments.chunks_exact(ABI_WORD_LEN);
+    let mut words = arguments.as_chunks::<ABI_WORD_LEN>().0.iter();
     let token = TronAddress::from_abi_word(words.next()?)?;
     words.next()?;
     let receiver = TronAddress::from_abi_word(words.next()?)?;

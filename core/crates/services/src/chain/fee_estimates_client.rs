@@ -67,7 +67,7 @@ fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd
     let map_estimates = |estimates| map_estimates_by_priority(estimates, rate_decimals, asset_decimals, price_usd);
     Ok(ChainFeeEstimates {
         transfer: map_estimates(estimates.transfer)?,
-        token_transfer: estimates.token_transfer.map(&map_estimates).transpose()?,
+        token_transfer: estimates.token_transfer.map(map_estimates).transpose()?,
         swap: estimates.swap.map(map_estimates).transpose()?,
         block_time: chain.block_time(),
         token_type: chain.default_asset_type(),

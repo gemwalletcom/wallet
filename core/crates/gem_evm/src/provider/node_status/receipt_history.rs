@@ -45,7 +45,7 @@ async fn get_receipt_at_age<C: Client + Clone>(provider: &EthereumProvider<C>, l
     let block_time = u64::from(provider.get_chain().block_time()).max(1);
     let block_depth = age.as_secs().saturating_mul(1_000).div_ceil(block_time).max(1);
     let unavailable = |error| format!("not available: {age_label} back: {error}");
-    let transaction_hash = find_transaction_hash(provider, latest_block, block_depth).await.map_err(&unavailable)?;
+    let transaction_hash = find_transaction_hash(provider, latest_block, block_depth).await.map_err(unavailable)?;
     get_receipt(provider, &transaction_hash, "transaction receipt not found".to_string())
         .await
         .map(|block_number| format!("available at block {block_number}, {age_label} back"))

@@ -85,10 +85,7 @@ impl<'a> Decoder<'a> {
     }
 
     fn read_arrays<const N: usize>(&mut self, count: usize, missing: &'static str) -> Result<Vec<[u8; N]>> {
-        self.read_bytes(count.saturating_mul(N), missing)?
-            .chunks_exact(N)
-            .map(|chunk| chunk.try_into().map_err(|_| invalid_transaction(missing)))
-            .collect()
+        Ok(self.read_bytes(count.saturating_mul(N), missing)?.as_chunks::<N>().0.to_vec())
     }
 
     fn read_length(&mut self) -> Result<usize> {

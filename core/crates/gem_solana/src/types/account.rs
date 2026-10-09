@@ -46,10 +46,7 @@ impl AddressLookupTableAccount {
             return Err(SolanaError::InvalidMessage);
         }
 
-        let addresses = address_data
-            .chunks_exact(32)
-            .map(|chunk| chunk.try_into().map(Pubkey::new).map_err(|_| SolanaError::InvalidMessage))
-            .collect::<Result<Vec<_>>>()?;
+        let addresses = address_data.as_chunks::<32>().0.iter().copied().map(Pubkey::new).collect();
 
         Ok(Self { key, addresses })
     }
