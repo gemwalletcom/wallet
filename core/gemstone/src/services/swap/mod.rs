@@ -23,7 +23,7 @@ use crate::services::assets::GemAssetAction;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemTransferData;
 use gem_wallet_connect::SignDigestType;
-pub use model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapRequote, GemSwapTransfer, swap_quote_summary};
+pub use model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapRequote, swap_quote_summary};
 use primitives::AssetId;
 pub use session::{GemSwapQuotePhase, GemSwapQuotesResult, GemSwapRequest, GemSwapSession, GemSwapSessionAction, GemSwapTransferPhase};
 pub use store::GemSwapStore;
@@ -63,9 +63,9 @@ impl GemSwapService {
         }))
     }
 
-    pub async fn get_transfer(&self, wallet: Wallet, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {
-        let data = self.swapper.get_quote_data(&quote, FetchQuoteData::None).await?;
-        rules::swap_transfer(&wallet, &quote, data)
+    pub async fn build_transfer(&self, wallet: &Wallet, quote: &Quote, assets: (Asset, Asset), data: FetchQuoteData) -> Result<GemTransferData, SwapperError> {
+        let data = self.swapper.get_quote_data(quote, data).await?;
+        rules::swap_transfer(wallet, quote, data, assets)
     }
 
     pub async fn requote(&self, wallet: &Wallet, transfer: &GemTransferData) -> Result<GemSwapRequote, SwapperError> {
@@ -75,7 +75,7 @@ impl GemSwapService {
     pub async fn requote_at(&self, wallet: &Wallet, transfer: &GemTransferData, value: &GemBigInt) -> Result<GemSwapRequote, SwapperError> {
         let (provider, request) = rules::requote_request(wallet, transfer, value)?;
         let quote = self.swapper.get_quote_by_provider(&provider, &request).await?;
-        let transfer = self.build_transfer(wallet, &quote, transfer, FetchQuoteData::None).await?;
+        let transfer = self.build_transfer(wallet, &quote, rules::swap_assets(transfer)?, FetchQuoteData::None).await?;
         Ok(GemSwapRequote { quote, transfer })
     }
 
@@ -89,7 +89,7 @@ impl GemSwapService {
     ) -> Result<GemTransferData, E> {
         let (permit_single, message) = self.permit2_message(quote, approval)?;
         let signature = sign(message)?;
-        Ok(self.build_transfer(wallet, quote, transfer, FetchQuoteData::Permit2(Permit2Data { permit_single, signature })).await?)
+        Ok(self.build_transfer(wallet, quote, rules::swap_assets(transfer)?, FetchQuoteData::Permit2(Permit2Data { permit_single, signature })).await?)
     }
 
     pub fn pair_for_asset(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
@@ -102,12 +102,6 @@ impl GemSwapService {
 }
 
 impl GemSwapService {
-    async fn build_transfer(&self, wallet: &Wallet, quote: &Quote, transfer: &GemTransferData, data: FetchQuoteData) -> Result<GemTransferData, SwapperError> {
-        let (from_asset, to_asset) = rules::swap_assets(transfer)?;
-        let data = self.swapper.get_quote_data(quote, data).await?;
-        Ok(rules::swap_transfer(wallet, quote, data)?.transfer_data(from_asset, to_asset))
-    }
-
     fn permit2_message(&self, quote: &Quote, approval: &Permit2ApprovalData) -> Result<(PermitSingle, SignMessage), SwapperError> {
         let chain = quote.request.from_asset.chain();
         let now = unix_seconds().map_err(|error| SwapperError::TransactionError(error.to_string()))?;

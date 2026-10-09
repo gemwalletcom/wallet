@@ -1,7 +1,7 @@
 use crate::models::custom_types::GemBigInt;
 use crate::models::custom_types::GemBigUint;
-use crate::services::transfer::{GemRecipient, GemTransferData};
-use primitives::swap::{SlippageMode, SwapData, SwapQuote, SwapQuoteData};
+use crate::services::transfer::GemTransferData;
+use primitives::swap::{SlippageMode, SwapQuote};
 use primitives::{Asset, AssetId, Currency};
 use swapper::{Quote, SwapperError};
 
@@ -16,7 +16,6 @@ use crate::percentage::GemPercentageStyle;
 use crate::precision::GemValueStyle;
 use crate::services::localization::GemLocalizedText;
 use num_bigint::BigInt;
-use primitives::TransactionInputType;
 use primitives::swap::SwapPriceImpact;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -142,38 +141,6 @@ pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset, 
 pub struct GemSwapRequote {
     pub quote: Quote,
     pub transfer: GemTransferData,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct GemSwapTransfer {
-    pub quote: SwapQuote,
-    pub data: SwapQuoteData,
-    pub recipient: String,
-    pub value: GemBigUint,
-    pub use_max_amount: bool,
-}
-
-impl GemSwapTransfer {
-    pub fn transfer_data(&self, from_asset: Asset, to_asset: Asset) -> GemTransferData {
-        GemTransferData {
-            input_type: TransactionInputType::Swap {
-                from_asset,
-                to_asset,
-                swap_data: SwapData {
-                    quote: self.quote.clone(),
-                    data: self.data.clone(),
-                },
-            },
-            recipient: GemRecipient {
-                address: self.recipient.clone(),
-                name: None,
-                memo: self.data.memo.clone(),
-                references: vec![],
-            },
-            value: self.value.clone().into(),
-            use_max_amount: self.use_max_amount,
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

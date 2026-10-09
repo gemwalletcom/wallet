@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Currency, Feature, Wallet};
-use swapper::{Quote, SwapperError};
+use swapper::{FetchQuoteData, Quote, SwapperError};
 
 use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::rules;
@@ -115,7 +115,7 @@ impl GemSwapQuoteService {
         let from_asset_id = AssetId::new(&quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let to_asset_id = AssetId::new(&quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let (wallet, from_asset, to_asset) = self.pair(from_asset_id, to_asset_id).await.map_err(|error| SwapperError::TransactionError(error.to_string()))?;
-        Ok(self.swap.get_transfer(wallet, quote).await?.transfer_data(from_asset, to_asset))
+        self.swap.build_transfer(&wallet, &quote, (from_asset, to_asset), FetchQuoteData::None).await
     }
 
     pub async fn refresh_pair(&self, asset_ids: Vec<AssetId>) -> Vec<GemSwapPairFailure> {

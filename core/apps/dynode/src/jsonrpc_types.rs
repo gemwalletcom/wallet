@@ -144,7 +144,6 @@ impl RequestType {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bytes::Bytes;
     use serde_json::json;
 
     #[test]

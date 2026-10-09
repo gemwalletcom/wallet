@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::{Arc, PoisonError, RwLock};
+use std::sync::{PoisonError, RwLock};
 use std::time::Duration;
 
 use primitives::Chain;
@@ -37,9 +37,9 @@ impl NamespaceCache {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default)]
 pub struct RequestCache {
-    namespaces: Arc<HashMap<CacheScope, NamespaceCache>>,
+    namespaces: HashMap<CacheScope, NamespaceCache>,
     max_memory: usize,
 }
 
@@ -59,7 +59,7 @@ impl RequestCache {
 
     fn new(max_memory: usize, rules: impl IntoIterator<Item = (CacheScope, CacheRules)>) -> Self {
         Self {
-            namespaces: Arc::new(rules.into_iter().map(|(scope, rules)| (scope, NamespaceCache::new(rules))).collect()),
+            namespaces: rules.into_iter().map(|(scope, rules)| (scope, NamespaceCache::new(rules))).collect(),
             max_memory,
         }
     }
@@ -160,8 +160,8 @@ mod tests {
     use crate::proxy::CacheStatus;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
 
-    #[tokio::test]
-    async fn test_set_and_get_cache() {
+    #[test]
+    fn test_set_and_get_cache() {
         let cache = RequestCache::mock();
         let chain = Chain::Ethereum;
 
@@ -292,8 +292,8 @@ mod tests {
         assert_eq!(ttl, None);
     }
 
-    #[tokio::test]
-    async fn test_cache_namespaces_and_provider_headers() {
+    #[test]
+    fn test_cache_namespaces_and_provider_headers() {
         let nodes = RequestCache::mock();
         let cache = RequestCache::mock_providers(&CacheConfig::mock());
         let node = ProxyResponse::with_content_type(200, Bytes::from_static(b"node"), JSON_CONTENT_TYPE);
@@ -330,8 +330,8 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_chain_and_provider_caches_have_independent_budgets() {
+    #[test]
+    fn test_chain_and_provider_caches_have_independent_budgets() {
         let response = ProxyResponse::with_content_type(200, Bytes::from_static(b"response"), JSON_CONTENT_TYPE);
         let size = CacheEntry::new(response.clone(), MINUTE).size();
         let node_config = CacheConfig { memory: MemoryConfig { max: 2 * size } };
@@ -345,7 +345,7 @@ mod tests {
         nodes.set(&Chain::Ethereum, "second".into(), response.clone(), MINUTE);
         nodes.set(&Chain::Optimism, "other".into(), response.clone(), MINUTE);
         for key in ["first", "second", "third"] {
-            providers.clone().set_provider("evm", "ethereum", key.into(), response.clone(), MINUTE);
+            providers.set_provider("evm", "ethereum", key.into(), response.clone(), MINUTE);
         }
 
         assert_eq!(nodes.get(&Chain::Ethereum, "first"), None);
@@ -365,8 +365,8 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_expired_entries_are_removed_in_both_caches() {
+    #[test]
+    fn test_expired_entries_are_removed_in_both_caches() {
         let nodes = RequestCache::mock();
         let providers = RequestCache::mock_providers(&CacheConfig::mock());
         let response = ProxyResponse::with_content_type(200, Bytes::from_static(b"expired"), JSON_CONTENT_TYPE);

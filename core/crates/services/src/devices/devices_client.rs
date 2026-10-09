@@ -32,10 +32,6 @@ impl DevicesClient {
         Ok(self.repository.add_device(device).await?)
     }
 
-    pub async fn get_device(&self, device_id: &str) -> Result<Device, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.device(device_id.to_string()).await?)
-    }
-
     pub async fn get_admin_device(&self, device_id: &str, wallets: &WalletsClient) -> Result<AdminDevice, Box<dyn Error + Send + Sync>> {
         let (device, price_alert_count) = self.repository.device_with_price_alert_count(device_id.to_string()).await?;
         Ok(AdminDevice {
@@ -50,7 +46,7 @@ impl DevicesClient {
     }
 
     pub async fn send_push_notification_device(&self, device_id: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let device = self.get_device(device_id).await?;
+        let device = self.repository.device(device_id.to_string()).await?;
         let notifications: Vec<_> = GorushNotification::from_device(
             device,
             "Test Notification".to_string(),

@@ -2,7 +2,7 @@ use crate::formatted_number::GemFormattedNumber;
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::swap::{SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
+use primitives::swap::{SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Chain, TransactionInputType, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
 use swapper::{AssetList, Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
@@ -15,9 +15,9 @@ use crate::services::amount::model::GemNumberFormat;
 use crate::services::amount::rules::value_from_input;
 use crate::services::assets::{GemAssetAction, GemAssetFilter};
 use crate::services::localization::GemLocalizedText;
-use crate::services::swap::model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSelection, GemSwapPairSuggestion, GemSwapPriceImpactRow, GemSwapRate, GemSwapSide, GemSwapTransfer};
+use crate::services::swap::model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSelection, GemSwapPairSuggestion, GemSwapPriceImpactRow, GemSwapRate, GemSwapSide};
 use crate::services::swap::session::{GemSwapQuoteInput, GemSwapRequest};
-use crate::services::transfer::GemTransferData;
+use crate::services::transfer::{GemRecipient, GemTransferData};
 use std::collections::HashMap;
 
 pub fn price_impact_row(impact: SwapPriceImpact, pay_symbol: String) -> GemSwapPriceImpactRow {
@@ -127,13 +127,19 @@ pub fn slippage_check(bps: u32, config: &SwapConfig) -> GemSlippageCheck {
     }
 }
 
-pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData) -> Result<GemSwapTransfer, SwapperError> {
+pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData, (from_asset, to_asset): (Asset, Asset)) -> Result<GemTransferData, SwapperError> {
     let to_chain = AssetId::new(&quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?.chain;
-    Ok(GemSwapTransfer {
-        quote: swap_quote(quote),
-        data,
-        recipient: account_address(wallet, to_chain)?,
-        value: quote.request.value.clone(),
+    Ok(GemTransferData {
+        recipient: GemRecipient {
+            memo: data.memo.clone(),
+            ..GemRecipient::address(account_address(wallet, to_chain)?)
+        },
+        input_type: TransactionInputType::Swap {
+            from_asset,
+            to_asset,
+            swap_data: SwapData { quote: swap_quote(quote), data },
+        },
+        value: quote.request.value.clone().into(),
         use_max_amount: quote.request.options.use_max_amount,
     })
 }
@@ -565,29 +571,26 @@ mod tests {
         };
         let data = SwapQuoteData::mock_contract_call("0xrouter", "100", "0x", Some("swap-memo"));
 
-        let transfer = swap_transfer(&wallet, &quote, data.clone()).unwrap();
+        let assets = (Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana));
 
-        let transfer_data = transfer.transfer_data(Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana));
-        assert_eq!(transfer_data.recipient.address, "solana-address");
-        assert_eq!(transfer_data.recipient.memo.as_deref(), Some("swap-memo"));
-        assert_eq!(transfer_data.value, num_bigint::BigInt::from(100u64));
-        assert!(transfer_data.use_max_amount);
-        assert!(matches!(&transfer_data.input_type, primitives::TransactionInputType::Swap { swap_data, .. } if swap_data.data == data));
+        let transfer = swap_transfer(&wallet, &quote, data.clone(), assets.clone()).unwrap();
 
-        assert_eq!(transfer.recipient, "solana-address");
-        assert_eq!(transfer.value, BigUint::from(100u64));
+        assert_eq!(transfer.recipient.address, "solana-address");
+        assert_eq!(transfer.recipient.memo.as_deref(), Some("swap-memo"));
+        assert_eq!(transfer.value, BigInt::from(100u64));
         assert!(transfer.use_max_amount);
-        assert_eq!(transfer.data, data);
-        assert_eq!(transfer.quote.from_address, "ethereum-address");
-        assert_eq!(transfer.quote.to_address, "solana-address");
-        assert_eq!(transfer.quote.from_value, BigUint::from(99u64));
-        assert_eq!(transfer.quote.min_from_value, Some(BigUint::from(90u64)));
-        assert_eq!(transfer.quote.provider_data.provider, swapper::SwapperProvider::Jupiter);
-        assert_eq!((transfer.quote.slippage_bps, transfer.quote.slippage_mode), (50, SwapperSlippageMode::Exact));
-        assert_eq!(transfer.quote.use_max_amount, Some(true));
+        let TransactionInputType::Swap { swap_data, .. } = transfer.input_type else { panic!("expected a swap input") };
+        assert_eq!(swap_data.data, data);
+        assert_eq!(swap_data.quote.from_address, "ethereum-address");
+        assert_eq!(swap_data.quote.to_address, "solana-address");
+        assert_eq!(swap_data.quote.from_value, BigUint::from(99u64));
+        assert_eq!(swap_data.quote.min_from_value, Some(BigUint::from(90u64)));
+        assert_eq!(swap_data.quote.provider_data.provider, swapper::SwapperProvider::Jupiter);
+        assert_eq!((swap_data.quote.slippage_bps, swap_data.quote.slippage_mode), (50, SwapperSlippageMode::Exact));
+        assert_eq!(swap_data.quote.use_max_amount, Some(true));
 
         let ethereum_only = Wallet::mock_with_chains(&[Chain::Ethereum]);
-        assert_eq!(swap_transfer(&ethereum_only, &quote, data), Err(SwapperError::NotSupportedChain));
+        assert_eq!(swap_transfer(&ethereum_only, &quote, data, assets).unwrap_err(), SwapperError::NotSupportedChain);
     }
 
     #[test]

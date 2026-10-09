@@ -12,19 +12,19 @@ use crate::proxy::ProxyResponse;
 use crate::proxy::constants::JSON_CONTENT_TYPE;
 use crate::proxy::proxy_request::ProxyRequest;
 
-pub(super) async fn get(call: &JsonRpcCall, request: &ProxyRequest, cache: &RequestCache) -> Option<JsonRpcResult> {
+pub(super) fn get(call: &JsonRpcCall, request: &ProxyRequest, cache: &RequestCache) -> Option<JsonRpcResult> {
     cache.get(&request.chain, &call.cache_key(&request.host, &request.path_with_query)).and_then(|response| result(call, &response))
 }
 
-pub(super) async fn get_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], request: &ProxyRequest, cache: &RequestCache) -> Vec<Option<JsonRpcResult>> {
+pub(super) fn get_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], request: &ProxyRequest, cache: &RequestCache) -> Vec<Option<JsonRpcResult>> {
     let mut results = Vec::with_capacity(calls.len());
     for (call, ttl) in calls.iter().zip(ttls) {
-        results.push(if ttl.is_some() { get(call, request, cache).await } else { None });
+        results.push(if ttl.is_some() { get(call, request, cache) } else { None });
     }
     results
 }
 
-pub(super) async fn set_result(call: &JsonRpcCall, result: &Value, ttl: Duration, request: &ProxyRequest, cache: &RequestCache) -> Result<(), BoxError> {
+pub(super) fn set_result(call: &JsonRpcCall, result: &Value, ttl: Duration, request: &ProxyRequest, cache: &RequestCache) -> Result<(), BoxError> {
     let result = Bytes::from(serde_json::to_vec(result)?);
     let size = result.len();
     let cached = ProxyResponse::with_content_type(StatusCode::OK.as_u16(), result, JSON_CONTENT_TYPE);
@@ -43,7 +43,7 @@ pub(super) async fn set_result(call: &JsonRpcCall, result: &Value, ttl: Duration
     Ok(())
 }
 
-pub(super) async fn set_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], responses: &[Value], request: &ProxyRequest, cache: &RequestCache) -> Result<(), BoxError> {
+pub(super) fn set_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], responses: &[Value], request: &ProxyRequest, cache: &RequestCache) -> Result<(), BoxError> {
     if calls.len() != ttls.len() || calls.len() != responses.len() {
         return Ok(());
     }
@@ -53,7 +53,7 @@ pub(super) async fn set_many(calls: &[JsonRpcCall], ttls: &[Option<Duration>], r
 
     for ((call, ttl), response) in calls.iter().zip(ttls).zip(responses) {
         if let (Some(ttl), Some(result)) = (ttl, response.get("result")) {
-            set_result(call, result, *ttl, request, cache).await?;
+            set_result(call, result, *ttl, request, cache)?;
         }
     }
     Ok(())
@@ -77,8 +77,8 @@ mod tests {
     use super::*;
     use crate::config::{CacheConfig, ChainConfig, ChainTypesConfig};
 
-    #[tokio::test]
-    async fn test_result_cache_roundtrip_rebuilds_request_id() {
+    #[test]
+    fn test_result_cache_roundtrip_rebuilds_request_id() {
         let policies: ChainTypesConfig = serde_json::from_value(json!({
             "ethereum": { "cache": [{ "rpc_method": "eth_chainId", "ttl": "1m" }] }
         }))
@@ -86,13 +86,13 @@ mod tests {
         let cache = RequestCache::for_chains(&CacheConfig::mock(), &policies, [ChainConfig::mock(Chain::Ethereum)].iter());
         let request = ProxyRequest::from_http(Method::POST, HeaderMap::from_iter([(HOST, HeaderValue::from_static("example.com"))]), Bytes::new(), "/ethereum", Chain::Ethereum).unwrap();
         let call = JsonRpcCall::mock(1, "eth_chainId");
-        set_result(&call, &json!("0x1"), MINUTE, &request, &cache).await.unwrap();
+        set_result(&call, &json!("0x1"), MINUTE, &request, &cache).unwrap();
         let stored = cache.get(&Chain::Ethereum, &call.cache_key(&request.host, &request.path_with_query)).unwrap();
         assert_eq!(stored.body, br#""0x1""#.to_vec());
         assert_eq!(stored.headers, HeaderMap::from_iter([(CONTENT_TYPE, HeaderValue::from_static(JSON_CONTENT_TYPE))]));
         for id in [1, 42] {
             assert_eq!(
-                serde_json::to_value(get(&JsonRpcCall::mock(id, "eth_chainId"), &request, &cache).await.unwrap()).unwrap(),
+                serde_json::to_value(get(&JsonRpcCall::mock(id, "eth_chainId"), &request, &cache).unwrap()).unwrap(),
                 json!({ "jsonrpc": "2.0", "result": "0x1", "id": id })
             );
         }

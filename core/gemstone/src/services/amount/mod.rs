@@ -14,7 +14,6 @@ pub use model::{
 use model::{GemNumberFormat, GemPerpetualAmountSession};
 
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::GemListRow;
 use crate::services::error::{GemServiceError, required_account};
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules as perpetual_rules;
@@ -68,7 +67,10 @@ impl GemAmountService {
                     selection,
                     direction: session.action.data().direction.clone(),
                 }),
-                autoclose: session.action.shows_autoclose().then(|| self.perpetual_autoclose_row(&session.action.data().asset, session)),
+                autoclose: session.action.shows_autoclose().then(|| {
+                    let (take_profit, stop_loss) = session.autoclose.prices(&session.format.decimal_separator);
+                    perpetual_rules::amount_autoclose_row(&session.action.data().asset, take_profit, stop_loss)
+                }),
             },
         }
     }
@@ -102,12 +104,5 @@ impl GemAmountService {
                 Ok(perpetual_rules::order_transfer(session.action, value, use_max_amount, leverage, take_profit, stop_loss))
             }
         }
-    }
-}
-
-impl GemAmountService {
-    fn perpetual_autoclose_row(&self, asset: &Asset, session: &GemPerpetualAmountSession) -> GemListRow {
-        let (take_profit, stop_loss) = session.autoclose.prices(&session.format.decimal_separator);
-        perpetual_rules::amount_autoclose_row(asset, take_profit, stop_loss)
     }
 }
