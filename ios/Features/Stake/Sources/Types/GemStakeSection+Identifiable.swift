@@ -11,8 +11,4 @@ extension GemStakeSection: @retroactive Identifiable {
     public var id: Self { self }
 }
 
-extension GemStakeDelegationItem: @retroactive Identifiable {
-    public var id: String {
-        delegation.toPrimitives().id
-    }
-}
+extension GemStakeDelegationItem: @retroactive Identifiable {}

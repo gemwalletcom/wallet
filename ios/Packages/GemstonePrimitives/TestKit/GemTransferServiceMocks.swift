@@ -218,7 +218,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
             actions: actions,
             resourceRows: [],
             delegations: zip(input.delegations, Gemstone.delegationListRows(delegations: input.delegations, asset: input.assetData.asset, price: input.assetData.price?.price, currency: input.currency)).map {
-                GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
+                GemStakeDelegationItem(id: $0.base.delegationId, delegation: $0, row: $1, destination: .details)
             },
             delegationsPhase: loadedPhase(state: input.state, hasRows: !input.delegations.isEmpty, kind: .stake),
             docsUrl: nil,
@@ -259,7 +259,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     public func earnView(input: GemEarnInput) -> GemEarnView {
         let delegations = input.delegations.filter { BigInt($0.base.balance) > 0 }
         let positions = zip(delegations, Gemstone.delegationListRows(delegations: delegations, asset: input.asset, price: input.price, currency: input.currency)).map {
-            GemStakeDelegationItem(delegation: $0, row: $1, destination: .details)
+            GemStakeDelegationItem(id: $0.base.delegationId, delegation: $0, row: $1, destination: .details)
         }
         let depositProvider = input.walletType == .view ? nil : input.providers.first
         return GemEarnView(

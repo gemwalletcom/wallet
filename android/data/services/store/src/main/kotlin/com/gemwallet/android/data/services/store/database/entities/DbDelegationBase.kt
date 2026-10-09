@@ -52,8 +52,8 @@ data class DbDelegationBase(
     val completionDate: Long? = null,
 )
 
-fun DelegationBase.toRecord(walletId: WalletId): DbDelegationBase = DbDelegationBase(
-    id = delegationRecordId(assetId.toIdentifier(), validatorId, state, delegationId),
+fun DelegationBase.toRecord(id: String, walletId: WalletId): DbDelegationBase = DbDelegationBase(
+    id = id,
     walletId = walletId.id,
     assetId = assetId.toIdentifier(),
     validatorId = validatorRecordId(chain = assetId.chain, validatorId = validatorId),
@@ -64,7 +64,3 @@ fun DelegationBase.toRecord(walletId: WalletId): DbDelegationBase = DbDelegation
     rewards = rewards.toString(),
     completionDate = completionDate,
 )
-
-fun List<DelegationBase>.toRecord(walletId: WalletId) = map { it.toRecord(walletId) }
-
-internal fun delegationRecordId(assetId: String, validatorId: String, state: DelegationState, delegationId: String): String = "${assetId}_${validatorId}_${state.string}_$delegationId"

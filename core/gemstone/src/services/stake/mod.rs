@@ -25,8 +25,8 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use model::{
-    GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem, GemStakeActionKind,
-    GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow, GemValidatorSection,
+    GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationRecord, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem,
+    GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow, GemValidatorSection,
 };
 pub use store::GemStakeStore;
 
@@ -171,7 +171,7 @@ impl GemStakeService {
         let positions = self.gateway.get_earn_positions(address, asset_id.clone()).await?;
         let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Earn).await?;
         let delete_ids = rules::stale_delegation_ids(existing_ids, &positions);
-        self.store.update_delegations(wallet_id, positions, delete_ids).await
+        self.store.update_delegations(wallet_id, positions.into_iter().map(GemDelegationRecord::new).collect(), delete_ids).await
     }
 
     async fn current_account(&self, chain: Chain) -> Result<(WalletId, String), GemServiceError> {
@@ -215,14 +215,15 @@ impl GemStakeService {
         let incoming = rules::delegations_with_state(delegations, &validators);
         let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Stake).await?;
         let delete_ids = rules::stale_delegation_ids(existing_ids, &incoming);
-        self.store.update_delegations(wallet_id, incoming, delete_ids).await
+        self.store.update_delegations(wallet_id, incoming.into_iter().map(GemDelegationRecord::new).collect(), delete_ids).await
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::model::GemDelegationRecord;
     use super::rules::*;
-    use primitives::{Chain, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
+    use primitives::{AssetId, Chain, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
     use std::collections::HashMap;
 
     #[test]
@@ -279,6 +280,28 @@ mod tests {
         let stale = stale_delegation_ids(vec![incoming[0].id(), "old".to_string()], &incoming);
         assert_eq!(stale, vec!["old".to_string()]);
         assert!(stale_delegation_ids(vec!["a".to_string()], &[]).contains(&"a".to_string()));
+    }
+
+    #[test]
+    fn test_delegation_record_id_keeps_stored_row_ids() {
+        let monad = DelegationBase {
+            asset_id: AssetId::from_chain(Chain::Monad),
+            state: DelegationState::Activating,
+            delegation_id: "0xbae:16:activating:0".to_string(),
+            validator_id: "16".to_string(),
+            ..DelegationBase::mock()
+        };
+        let earn = DelegationBase {
+            asset_id: AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+            state: DelegationState::AwaitingWithdrawal,
+            delegation_id: "position".to_string(),
+            validator_id: "aave".to_string(),
+            ..DelegationBase::mock()
+        };
+
+        assert_eq!(GemDelegationRecord::new(monad.clone()).id, "monad_16_activating_0xbae:16:activating:0");
+        assert_eq!(GemDelegationRecord::new(earn).id, "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7_aave_awaitingwithdrawal_position");
+        assert_eq!(GemDelegationRecord::new(DelegationBase { balance: 200u32.into(), ..monad.clone() }).id, GemDelegationRecord::new(monad).id);
     }
 
     #[test]

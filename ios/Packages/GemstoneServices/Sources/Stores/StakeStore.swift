@@ -2,8 +2,8 @@
 
 import Foundation
 import typealias Gemstone.AssetId
-import struct Gemstone.DelegationBase
 import struct Gemstone.DelegationValidator
+import struct Gemstone.GemDelegationRecord
 import protocol Gemstone.GemStakeStore
 import typealias Gemstone.StakeProviderType
 import GemstonePrimitives
@@ -33,10 +33,10 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
         try store.getDelegationIds(walletId: walletId, assetId: assetId, providerType: providerType.toPrimitives())
     }
 
-    public func updateDelegations(walletId: WalletId, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {
+    public func updateDelegations(walletId: WalletId, delegations: [GemDelegationRecord], deleteIds: [String]) async throws {
         try store.updateAndDelete(
             walletId: walletId,
-            delegations: delegations.map { $0.toPrimitives() },
+            delegations: delegations.map { (id: $0.id, delegation: $0.delegation.toPrimitives()) },
             deleteIds: deleteIds,
         )
     }

@@ -67,7 +67,14 @@ class DelegationsQueryTest {
         database.assetsDao().insert(DbAsset(id = "cosmos", chain = Chain.Cosmos, name = "Cosmos", symbol = "ATOM", decimals = 6, type = AssetType.NATIVE))
         database.assetsDao().insert(DbAsset(id = "osmosis", chain = Chain.Osmosis, name = "Osmosis", symbol = "OSMO", decimals = 6, type = AssetType.NATIVE))
         database.stakeDao().upsertValidators(listOf(stakeValidator, earnValidator, osmoValidator).map { it.toRecord() })
-        database.stakeDao().upsertDelegations(listOf(staked.base, earning.base, osmo.base).toRecord(wallet1) + listOf(otherWallet.base).toRecord(wallet2))
+        database.stakeDao().upsertDelegations(
+            listOf(
+                staked.base.toRecord("staked", wallet1),
+                earning.base.toRecord("earning", wallet1),
+                osmo.base.toRecord("osmo", wallet1),
+                otherWallet.base.toRecord("other", wallet2),
+            ),
+        )
     }
 
     @After
@@ -89,7 +96,7 @@ class DelegationsQueryTest {
     @Test
     fun severalDelegationsOfTheWalletAreAllListed() = runBlocking(Dispatchers.IO) {
         val second = mockDelegation(base = mockDelegationBase(assetId = cosmos, balance = BigInteger("7"), shares = BigInteger("7"), delegationId = "d5", validatorId = "stake"), validator = stakeValidator)
-        database.stakeDao().upsertDelegations(listOf(second.base).toRecord(wallet1))
+        database.stakeDao().upsertDelegations(listOf(second.base.toRecord("second", wallet1)))
 
         assertEquals(setOf(staked, second), query(wallet1, cosmos, StakeProviderType.Stake).first().toSet())
     }

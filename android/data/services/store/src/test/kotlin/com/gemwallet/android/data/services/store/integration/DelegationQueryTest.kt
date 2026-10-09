@@ -56,7 +56,13 @@ class DelegationQueryTest {
         }
         database.assetsDao().insert(DbAsset(id = "cosmos", chain = Chain.Cosmos, name = "Cosmos", symbol = "ATOM", decimals = 6, type = AssetType.NATIVE))
         database.stakeDao().upsertValidators(listOf(stakeValidator, earnValidator).map { it.toRecord() })
-        database.stakeDao().upsertDelegations(listOf(own.base, ownEarn.base).toRecord(wallet1) + listOf(otherWallet.base).toRecord(wallet2))
+        database.stakeDao().upsertDelegations(
+            listOf(
+                own.base.toRecord("own", wallet1),
+                ownEarn.base.toRecord("ownEarn", wallet1),
+                otherWallet.base.toRecord("other", wallet2),
+            ),
+        )
     }
 
     @After
