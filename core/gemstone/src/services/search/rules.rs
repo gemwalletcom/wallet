@@ -1,7 +1,5 @@
-use crate::services::chain::rules::chain_matches_query;
-
 use primitives::perpetual::{PerpetualData, PerpetualMetadata, PerpetualSearchData};
-use primitives::{Asset, AssetBasic, AssetId, Chain, PerpetualId, Wallet, WalletType};
+use primitives::{Asset, AssetBasic, AssetId, AssetType, Chain, PerpetualId, Wallet, WalletType};
 
 use super::model::GemSearchScope;
 
@@ -10,10 +8,15 @@ pub fn matching_assets(assets: Vec<Asset>, query: &str) -> Vec<Asset> {
     if trimmed.is_empty() {
         return assets;
     }
-    assets
+    assets.into_iter().filter(|asset| asset_matches_query(asset, &trimmed)).collect()
+}
+
+fn asset_matches_query(asset: &Asset, query: &str) -> bool {
+    let chain = (asset.asset_type == AssetType::NATIVE).then(|| asset.id.chain.as_ref());
+    [Some(asset.name.as_str()), Some(asset.symbol.as_str()), asset.token_id(), chain]
         .into_iter()
-        .filter(|asset| asset.name.to_lowercase().contains(&trimmed) || asset.symbol.to_lowercase().contains(&trimmed) || chain_matches_query(asset.chain(), &trimmed))
-        .collect()
+        .flatten()
+        .any(|value| value.to_lowercase().contains(query))
 }
 
 impl GemSearchScope {
@@ -123,5 +126,13 @@ mod tests {
         assert_eq!(matching_assets(assets.clone(), "bitcoin").len(), 1);
         assert_eq!(matching_assets(assets.clone(), " ").len(), 2);
         assert!(matching_assets(assets, "dogecoin").is_empty());
+    }
+
+    #[test]
+    fn test_a_chain_name_matches_the_native_asset_and_a_contract_matches_its_token() {
+        let assets = vec![Asset::mock_eth(), Asset::mock_ethereum_usdc()];
+
+        assert_eq!(matching_assets(assets.clone(), "ethereum"), vec![Asset::mock_eth()]);
+        assert_eq!(matching_assets(assets, "0XA0B86991"), vec![Asset::mock_ethereum_usdc()]);
     }
 }

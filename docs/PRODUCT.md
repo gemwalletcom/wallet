@@ -1,6 +1,6 @@
 # Product behavior
 
-This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: numbers, asset logos, the Network Fee, names, charts, secrets and feature availability. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
+This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: numbers, asset logos, the Network Fee, names, asset search, charts, secrets and feature availability. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
 
 Before changing how an area works, read its page. A change that breaks a rule written there is a product decision, not a cleanup: ask first, and update the page in the same change when the intent moves.
 
@@ -162,6 +162,16 @@ Wherever the user types an address (Send, Import Wallet, Contacts), a name such 
 | A typed name is not registered, or has no address for the network | not found | a name never becomes an empty or zero address |
 | A `.sol` name is typed while SRS resolution is paused | not found | `.sol` is never guessed from `.sns`; the two names can have different owners |
 | The name service cannot be reached | an error, not a missing name | |
+
+## Asset search
+
+Wallet search, every asset picker and its recents match typed text the same way.
+
+| When the user types | Expected | Why |
+|---|---|---|
+| Part of a name or symbol: `teth`, `usd` | every asset whose name or symbol contains it | |
+| A network: `ethereum` | that network's coin, ETH, and not its tokens | otherwise one word lists every token on the network |
+| Part of a contract address: `0xdac17` | the token with that contract | |
 
 ## Charts
 
