@@ -177,6 +177,7 @@ extension AssetsQuery {
         var request = AssetRecord
             .including(all: AssetRecord.priceAlerts)
             .including(optional: AssetRecord.price)
+            .joining(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))
             .filter(AssetRecord.Columns.rank >= 0)
             .order(AssetRecord.Columns.rank.desc)
 
