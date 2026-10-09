@@ -139,7 +139,6 @@ pub struct PerpetualOpenLine {
     pub size: Option<GemFormattedNumber>,
 }
 
-#[uniffi::export]
 pub fn perpetual_open_row(asset_id: AssetId, title: String, direction: PerpetualDirection, leverage: u8, size: f64) -> GemAssetItemRow {
     let line = rules::open_row(direction, leverage, size);
     GemAssetItemRow {
@@ -427,21 +426,18 @@ pub enum GemPerpetualPositionAction {
     Reduce { data: GemPerpetualTransferData, position: PerpetualPosition },
 }
 
-#[uniffi::export]
-impl GemPerpetualPositionAction {
-    pub fn transfer_data(&self) -> GemPerpetualTransferData {
-        self.data().clone()
-    }
-
-    pub fn shows_autoclose(&self) -> bool {
-        matches!(self, Self::Open { .. })
-    }
-}
-
 impl GemPerpetualPositionAction {
     pub fn data(&self) -> &GemPerpetualTransferData {
         match self {
             Self::Open { data } | Self::Increase { data } | Self::Reduce { data, .. } => data,
+        }
+    }
+
+    #[allow(clippy::match_like_matches_macro)]
+    pub fn shows_autoclose(&self) -> bool {
+        match self {
+            Self::Open { .. } => true,
+            Self::Increase { .. } | Self::Reduce { .. } => false,
         }
     }
 }

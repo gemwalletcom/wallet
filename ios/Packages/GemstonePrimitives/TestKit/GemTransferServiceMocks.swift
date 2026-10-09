@@ -20,9 +20,8 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         Primitives.Currency.usd.toGem()
     }
 
-    public func perpetualLeverageSelection(maxLeverage: UInt8) -> GemLeverageSelection? {
-        let options = stride(from: UInt8(1), through: maxLeverage, by: 1).map { GemPickerOption(value: $0, label: .text(text: "\($0)x")) }
-        return options.first { $0.value == min(5, maxLeverage) }.map { GemLeverageSelection(options: options, selected: $0) }
+    public func newPerpetualSession(action: GemPerpetualPositionAction, format: GemNumberFormat) -> GemPerpetualAmountSession {
+        builder.newPerpetualSession(action: action, format: format)
     }
 
     public func transferData(asset: Gemstone.Asset, request: GemAmountRequest, value: Gemstone.GemBigInt, useMaxAmount: Bool) async throws -> GemTransferData {
@@ -30,12 +29,6 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
             throw AnyError("not stubbed")
         }
         return try await builder.transferData(asset: asset, request: request, value: value, useMaxAmount: useMaxAmount)
-    }
-
-    public var perpetualAutocloseValue: @Sendable (UInt8) -> GemPerpetualAutoclose = { _ in GemPerpetualAutoclose(takeProfit: nil, stopLoss: nil) }
-
-    public func perpetualAutoclose(action _: GemPerpetualPositionAction, leverage: UInt8, decimalSeparator _: String) -> GemPerpetualAutoclose {
-        perpetualAutocloseValue(leverage)
     }
 
     public func extras(request: GemAmountRequest, asset: Gemstone.Asset) -> GemAmountExtras {

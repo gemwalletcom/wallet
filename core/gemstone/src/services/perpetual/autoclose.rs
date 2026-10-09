@@ -366,7 +366,6 @@ pub fn autoclose_session(perpetual: Perpetual, asset: Asset, position: Perpetual
     .with_format(format)
 }
 
-#[uniffi::export]
 pub fn autoclose_open_session(direction: PerpetualDirection, market_price: f64, size: f64, leverage: u8, decimals: u32, provider: PerpetualProvider, format: GemNumberFormat) -> GemAutocloseSession {
     let empty = |tpsl_type: TpslType| GemAutocloseField {
         tpsl_type,
@@ -410,7 +409,6 @@ pub struct GemAutocloseDraft {
     pub stop_loss: GemAutocloseDraftField,
 }
 
-#[uniffi::export]
 pub fn autoclose_draft(take_profit: Option<String>, stop_loss: Option<String>) -> GemAutocloseDraft {
     GemAutocloseDraft {
         take_profit: GemAutocloseDraftField { value: take_profit, is_edited: false },
@@ -418,7 +416,6 @@ pub fn autoclose_draft(take_profit: Option<String>, stop_loss: Option<String>) -
     }
 }
 
-#[uniffi::export]
 impl GemAutocloseDraft {
     pub fn on_defaults(&self, take_profit: Option<String>, stop_loss: Option<String>) -> GemAutocloseDraft {
         GemAutocloseDraft {
@@ -439,9 +436,7 @@ impl GemAutocloseDraft {
             },
         }
     }
-}
 
-impl GemAutocloseDraft {
     pub fn prices(&self, decimal_separator: &str) -> (Option<f64>, Option<f64>) {
         (self.take_profit.price(decimal_separator), self.stop_loss.price(decimal_separator))
     }

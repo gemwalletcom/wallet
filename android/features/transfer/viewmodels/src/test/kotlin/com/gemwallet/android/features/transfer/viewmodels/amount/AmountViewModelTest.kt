@@ -226,7 +226,6 @@ class AmountViewModelTest {
                 stakeService = stakeService,
                 getCurrentWalletId = getCurrentWalletId,
                 assetQuery = assetQuery,
-                perpetualQuery = mockk(relaxed = true),
                 delegationQuery = mockk(relaxed = true),
                 validatorQuery = mockk(relaxed = true),
                 validatorsQuery = mockk { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList<DelegationValidator>()) },

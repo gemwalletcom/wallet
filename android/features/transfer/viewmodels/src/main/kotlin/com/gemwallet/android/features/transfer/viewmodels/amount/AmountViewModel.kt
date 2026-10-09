@@ -12,7 +12,6 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.data.services.store.queries.DelegationQuery
-import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
@@ -80,7 +79,6 @@ class AmountViewModel @Inject constructor(
     stakeService: GemStakeServiceInterface,
     getCurrentWalletId: GetCurrentWalletId,
     assetQuery: AssetQuery,
-    perpetualQuery: PerpetualQuery,
     delegationQuery: DelegationQuery,
     validatorQuery: ValidatorQuery,
     validatorsQuery: ValidatorsQuery,
@@ -94,7 +92,7 @@ class AmountViewModel @Inject constructor(
 
     private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), stakeService, viewModelScope, ioDispatcher) }
 
-    val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, context, service, getCurrentWalletId, assetQuery, perpetualQuery, viewModelScope) }
+    val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, service, getCurrentWalletId, assetQuery, viewModelScope) }
 
     private val assetInfo: StateFlow<AssetData?> = perpetualProvider?.assetInfo
         ?: getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, params.assetId) }

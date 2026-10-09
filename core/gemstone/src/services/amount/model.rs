@@ -4,12 +4,14 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::GemInfoTopic;
 use crate::payment::GemPaymentRecipient;
 use crate::precision::GemValueStyle;
+use crate::services::assets::model::GemAssetItemRow;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::GemPerpetualPositionAction;
-use crate::services::perpetual::autoclose::GemAutocloseDraft;
+use crate::services::perpetual::autoclose::{GemAutocloseDraft, GemAutocloseSession, autoclose_draft, autoclose_open_session};
+use crate::services::perpetual::model::perpetual_open_row;
 use crate::services::stake::model::{GemStakeAmountInput, GemValidatorRow};
-use primitives::{Asset, AssetData, Currency, Delegation, PerpetualDirection, Resource};
+use primitives::{Asset, AssetData, Currency, Delegation, PerpetualDirection, Resource, TpslType};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -66,21 +68,10 @@ pub enum GemAmountTransfer {
 #[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemAmountRequest {
-    Transfer {
-        transfer: GemAmountTransfer,
-    },
-    Stake {
-        input: GemStakeAmountInput,
-    },
-    Earn {
-        earn_type: GemEarnType,
-    },
-    Perpetual {
-        action: GemPerpetualPositionAction,
-        leverage: u8,
-        draft: GemAutocloseDraft,
-        decimal_separator: String,
-    },
+    Transfer { transfer: GemAmountTransfer },
+    Stake { input: GemStakeAmountInput },
+    Earn { earn_type: GemEarnType },
+    Perpetual { session: GemPerpetualAmountSession },
 }
 
 #[uniffi::export]
@@ -90,7 +81,7 @@ impl GemAmountRequest {
             Self::Transfer { transfer } => super::rules::transfer_amount_type(transfer),
             Self::Stake { input } => input.amount_type(),
             Self::Earn { earn_type } => super::rules::earn_amount_type(earn_type.clone()),
-            Self::Perpetual { action, leverage, .. } => super::rules::perpetual_amount_type(action, *leverage),
+            Self::Perpetual { session } => super::rules::perpetual_amount_type(&session.action, session.leverage()),
         }
     }
 
@@ -212,7 +203,7 @@ pub struct GemAmountMaxEntry {
     pub value: GemBigInt,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemPerpetualAutoclose {
     pub take_profit: Option<String>,
     pub stop_loss: Option<String>,
@@ -420,10 +411,84 @@ impl GemLeverageSelection {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualAmountSession {
+    pub action: GemPerpetualPositionAction,
+    pub leverage: Option<GemLeverageSelection>,
+    pub take_profit_percent: u8,
+    pub stop_loss_percent: u8,
+    pub autoclose: GemAutocloseDraft,
+    pub format: GemNumberFormat,
+}
+
+#[uniffi::export]
+impl GemPerpetualAmountSession {
+    pub fn on_leverage(&self, leverage: u8) -> Self {
+        Self {
+            leverage: self.leverage.clone().map(|selection| selection.picked(leverage)),
+            ..self.clone()
+        }
+        .with_defaults()
+    }
+
+    pub fn on_autoclose(&self, take_profit: String, stop_loss: String) -> Self {
+        Self {
+            autoclose: self.autoclose.on_edited(TpslType::TakeProfit, Some(take_profit)).on_edited(TpslType::StopLoss, Some(stop_loss)),
+            ..self.clone()
+        }
+    }
+
+    pub fn autoclose_session(&self, amount: String) -> GemAutocloseSession {
+        let data = self.action.data();
+        autoclose_open_session(data.direction.clone(), data.price, self.size(amount), self.leverage(), data.asset.decimals, data.provider.clone(), self.format.clone())
+            .on_input(TpslType::TakeProfit, self.autoclose.take_profit.value.clone().unwrap_or_default())
+            .on_input(TpslType::StopLoss, self.autoclose.stop_loss.value.clone().unwrap_or_default())
+    }
+
+    pub fn open_row(&self, amount: String) -> GemAssetItemRow {
+        let data = self.action.data();
+        perpetual_open_row(data.asset.id.clone(), data.asset.symbol.clone(), data.direction.clone(), self.leverage(), self.size(amount))
+    }
+}
+
+impl GemPerpetualAmountSession {
+    pub fn new(action: GemPerpetualPositionAction, preferred_leverage: u8, take_profit_percent: u8, stop_loss_percent: u8, format: GemNumberFormat) -> Self {
+        Self {
+            leverage: match &action {
+                GemPerpetualPositionAction::Open { data } => super::rules::perpetual_leverage_selection(data.leverage, preferred_leverage),
+                GemPerpetualPositionAction::Increase { .. } | GemPerpetualPositionAction::Reduce { .. } => None,
+            },
+            action,
+            take_profit_percent,
+            stop_loss_percent,
+            autoclose: autoclose_draft(None, None),
+            format,
+        }
+        .with_defaults()
+    }
+
+    pub fn leverage(&self) -> u8 {
+        self.leverage.as_ref().map_or(self.action.data().leverage, |selection| selection.selected.value)
+    }
+
+    fn size(&self, amount: String) -> f64 {
+        self.format.plain(amount).parse().unwrap_or(0.0)
+    }
+
+    fn with_defaults(self) -> Self {
+        let defaults = super::rules::perpetual_autoclose(&self.action, self.leverage(), self.take_profit_percent, self.stop_loss_percent, &self.format.decimal_separator);
+        Self {
+            autoclose: self.autoclose.on_defaults(defaults.take_profit, defaults.stop_loss),
+            ..self
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::formatted_number::GemNumberUnit;
+    use crate::services::perpetual::model::GemPerpetualTransferData;
     use primitives::Chain;
 
     #[test]
@@ -476,6 +541,85 @@ mod tests {
 
         assert_eq!(selection.clone().picked(10).selected, option(10));
         assert_eq!(selection.picked(40).selected, option(5), "a leverage the market no longer offers falls back to the default");
+    }
+
+    fn perpetual_session(action: GemPerpetualPositionAction, decimal_separator: &str) -> GemPerpetualAmountSession {
+        GemPerpetualAmountSession::new(
+            action,
+            10,
+            50,
+            20,
+            GemNumberFormat {
+                decimal_separator: decimal_separator.to_string(),
+            },
+        )
+    }
+
+    fn open(max_leverage: u8) -> GemPerpetualPositionAction {
+        GemPerpetualPositionAction::Open {
+            data: GemPerpetualTransferData {
+                leverage: max_leverage,
+                ..GemPerpetualTransferData::mock()
+            },
+        }
+    }
+
+    #[test]
+    fn test_a_perpetual_open_offers_leverage_up_to_the_market_and_refills_the_autoclose_defaults_on_a_change() {
+        let session = perpetual_session(open(20), ",");
+        let selection = session.leverage.clone().unwrap();
+        assert_eq!(selection.options.last().map(|option| option.value), Some(20));
+        assert_eq!(session.leverage(), 10);
+        assert_eq!(session.autoclose.take_profit.value.as_deref(), Some("105"));
+        assert_eq!(session.autoclose.stop_loss.value.as_deref(), Some("98"));
+
+        let five = session.on_leverage(5);
+        assert_eq!(five.leverage(), 5);
+        assert_eq!(five.autoclose.take_profit.value.as_deref(), Some("110"));
+        assert_eq!(five.autoclose.stop_loss.value.as_deref(), Some("96"));
+        assert_eq!(five.on_leverage(40).leverage(), 5, "a leverage the market does not offer keeps the current one");
+    }
+
+    #[test]
+    fn test_an_autoclose_price_the_user_set_survives_a_leverage_change() {
+        let session = perpetual_session(open(20), ".").on_autoclose("120".to_string(), " ".to_string()).on_leverage(5);
+
+        assert_eq!(session.autoclose.take_profit.value.as_deref(), Some("120"));
+        assert_eq!(session.autoclose.stop_loss.value, None, "a cleared field stays cleared");
+        assert_eq!(session.autoclose.prices("."), (Some(120.0), None));
+    }
+
+    #[test]
+    fn test_increase_and_reduce_keep_the_position_leverage_and_take_no_autoclose() {
+        let increase = perpetual_session(GemPerpetualPositionAction::Increase { data: GemPerpetualTransferData::mock() }, ".");
+
+        assert_eq!(increase.leverage, None);
+        assert_eq!(increase.leverage(), 3);
+        assert_eq!(increase.autoclose, autoclose_draft(None, None));
+        assert_eq!(increase.on_leverage(10).leverage(), 3);
+    }
+
+    #[test]
+    fn test_the_autoclose_sheet_opens_at_the_order_price_with_the_typed_size_and_the_draft() {
+        let session = perpetual_session(open(20), ",");
+        let sheet = session.autoclose_session("1 000,5".to_string());
+
+        assert_eq!(sheet.prices.market, 100.0);
+        assert_eq!(sheet.estimate.entry_price, 100.0);
+        assert_eq!(sheet.estimate.size, 1000.5);
+        assert_eq!(sheet.estimate.leverage, 10);
+        assert_eq!(sheet.take_profit_text, "105");
+        assert_eq!(sheet.stop_loss_text, "98");
+        assert_eq!(sheet.modify.take_profit.price, Some(105.0));
+        assert_eq!(session.autoclose_session("abc".to_string()).estimate.size, 0.0);
+    }
+
+    #[test]
+    fn test_the_open_row_shows_the_picked_leverage_and_the_typed_size() {
+        let session = perpetual_session(open(20), ".").on_leverage(5);
+
+        assert_eq!(session.open_row("250".to_string()), perpetual_open_row(Asset::mock().id, "ETH".to_string(), PerpetualDirection::Long, 5, 250.0));
+        assert_eq!(session.open_row(String::new()).trailing, crate::services::assets::model::GemAssetItemTrailing::None);
     }
 
     #[test]

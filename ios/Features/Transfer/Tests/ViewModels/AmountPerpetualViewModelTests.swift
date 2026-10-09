@@ -4,7 +4,6 @@ import BigInt
 import struct Gemstone.GemAmountInput
 import class Gemstone.GemAmountService
 import enum Gemstone.GemListRow
-import struct Gemstone.GemPerpetualAutoclose
 import struct Gemstone.GemTransferData
 import enum Gemstone.PerpetualType
 import GemstonePrimitivesTestKit
@@ -56,7 +55,7 @@ struct AmountPerpetualViewModelTests {
         #expect(model.autoclose?.listItemModel()?.subtitle == "-")
         #expect(model.autoclose?.listItemModel()?.subtitleExtra == nil)
 
-        model.updateAutoclose(takeProfit: "100", stopLoss: nil)
+        model.updateAutoclose(takeProfit: "100", stopLoss: "")
         #expect(model.autoclose?.listItemModel()?.subtitle == "TP: $100.00")
 
         model.updateAutoclose(takeProfit: "100", stopLoss: "50")
@@ -64,20 +63,19 @@ struct AmountPerpetualViewModelTests {
     }
 
     @Test
-    func aLeverageChangeRefreshesUntouchedDefaultsAndKeepsEditedPrices() throws {
-        let service = GemAmountServiceMock(builder: GemAmountService.mock())
-        service.perpetualAutocloseValue = { leverage in GemPerpetualAutoclose(takeProfit: "\(100 + Int(leverage))", stopLoss: "\(50 - Int(leverage))") }
-        let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)), service: service)
-        let selection = try #require(model.leverageSelection)
-        let other = try #require(selection.options.first { $0 != selection.selected })
+    func aLeverageChangeReachesTheRequestAndKeepsEditedPrices() {
+        let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)))
+        model.updateAutoclose(takeProfit: "150", stopLoss: "")
 
-        model.updateAutoclose(takeProfit: "150", stopLoss: model.stopLoss)
-        let untouchedStopLoss = model.stopLoss
-        selection.selected = other
-        model.onChangeLeverage()
+        model.onChangeLeverage(10)
 
-        #expect(model.takeProfit == "150")
-        #expect(model.stopLoss != untouchedStopLoss)
+        guard case let .perpetual(_, _, _, leverage, _) = model.request.amountType() else {
+            Issue.record("not a perpetual amount")
+            return
+        }
+        #expect(leverage == 10)
+        #expect(model.leverageSelection?.selected.value == 10)
+        #expect(model.autoclose?.listItemModel()?.subtitle == "TP: $150.00")
     }
 
     @Test
@@ -85,7 +83,7 @@ struct AmountPerpetualViewModelTests {
         let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 3)))
         model.updateAutoclose(takeProfit: "110", stopLoss: "90")
 
-        let viewState = model.autocloseSession(size: 1000).viewState()
+        let viewState = model.autocloseSession(amount: "1000").viewState()
 
         #expect(viewState.takeProfit.text == "110")
         #expect(viewState.stopLoss.text == "90")
@@ -97,11 +95,11 @@ struct AmountPerpetualViewModelTests {
     func openPositionRow() {
         let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .short, price: 100, leverage: 3)))
 
-        let sized = model.openPositionRow(size: 250)
+        let sized = model.openPositionRow(amount: "250")
 
         #expect(sized.subtitle?.tone == .negative)
         #expect(sized.trailing != .none)
-        #expect(model.openPositionRow(size: 0).trailing == .none)
+        #expect(model.openPositionRow(amount: "").trailing == .none)
     }
 
     @Test
@@ -152,7 +150,7 @@ struct AmountPerpetualViewModelTests {
 
 private extension AmountPerpetualViewModel {
     var autoclose: GemListRow? {
-        guard case let .perpetual(_, autoclose) = GemAmountService.mock().extras(request: request, asset: asset.toGem()) else { return nil }
+        guard case let .perpetual(_, autoclose) = GemAmountService.mock().extras(request: request, asset: Asset.mock().toGem()) else { return nil }
         return autoclose
     }
 }
