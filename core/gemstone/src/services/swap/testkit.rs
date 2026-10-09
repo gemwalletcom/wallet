@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use num_bigint::{BigInt, BigUint};
 use primitives::{Asset, AssetData, AssetId, Balance, Chain, RecentActivityType, WalletId};
+use swapper::testkit::MockSwapper;
 use swapper::{Quote, SwapperProvider};
 
 use super::GemSwapService;
@@ -120,24 +121,37 @@ impl GemSwapSession {
 
 pub struct SwapQuoteTestkit {
     pub service: GemSwapQuoteService,
+    pub swap: Arc<GemSwapService>,
     pub discovery: DiscoveryTestkit,
     pub connection: Arc<MemoryStreamConnection>,
 }
 
 impl SwapQuoteTestkit {
     pub fn with_status(status: u16) -> Self {
+        Self::new(status, GemSwapService::mock(Arc::new(MemorySwapStore::default())))
+    }
+
+    pub fn with_swapper(swapper: MockSwapper, assets: Vec<Asset>) -> Self {
+        let testkit = Self::new(200, GemSwapService::mock_with_swappers(vec![Box::new(swapper)]));
+        *testkit.discovery.asset_store.assets.lock().unwrap() = assets.iter().map(Asset::as_basic_primitive).collect();
+        testkit
+    }
+
+    fn new(status: u16, swap: GemSwapService) -> Self {
         let provider = Arc::new(TestAlienProvider::with_status(status));
         let discovery = DiscoveryTestkit::with_provider(provider.clone(), Wallet::mock());
         let subscription = SubscriptionTestkit::new(&[], &[]);
         let connection = subscription.connection.clone();
+        let swap = Arc::new(swap);
         let service = GemSwapQuoteService::new(
-            Arc::new(GemSwapService::mock(Arc::new(MemorySwapStore::default()))),
+            swap.clone(),
+            discovery.assets.clone(),
             discovery.preferences.clone(),
             discovery.balance.clone(),
             Arc::new(subscription.service),
             discovery.session.clone(),
             Arc::new(GemConfigService::mock(provider)),
         );
-        Self { service, discovery, connection }
+        Self { service, swap, discovery, connection }
     }
 }

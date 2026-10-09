@@ -1892,7 +1892,7 @@ These primarily serve Core composition or native lifecycle integration. Reuse th
 | Core service | Held by |
 | --- | --- |
 | `GemBalanceService` | composed by `app_start`, `asset_discovery`, `assets`, `confirm`, `fiat`, `navigation`, `payment`, `perpetual`, `receive`, `rewards`, `search`, `stream`, `swap`, `transaction_state`, `transactions`, `wallet_home`; the only writer of balance rows |
-| `GemAssetsService` | composed by `app_start`, `assets`, `balance`, `confirm`, `fiat`, `receive`, `search`, `transactions`, `wallet_connect` |
+| `GemAssetsService` | composed by `app_start`, `assets`, `balance`, `confirm`, `fiat`, `receive`, `search`, `swap`, `transactions`, `wallet_connect` |
 | `GemExplorerService` | composed by `address_details`, `assets`, `chart`, `confirm`, `nft`, `node`, `stake`, `transactions`, `wallet`, `wallet_connect` |
 | `GemPriceService` | composed by `assets`, `chart`, `confirm`, `currency`, `perpetual`, `portfolio`, `search`, `stream` |
 | `GemStreamSubscriptionService` | composed by `assets`, `balance`, `stream`, `swap` |

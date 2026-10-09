@@ -1138,24 +1138,6 @@ public extension Gemstone.GemSwapSession {
     }
 }
 
-public extension Gemstone.GemSwapTransfer {
-    static func mock(
-        quote: Gemstone.SwapQuote = .mock(),
-        data: Gemstone.SwapQuoteData = .mock(),
-        recipient: String = "",
-        value: BigUInt = 0,
-        useMaxAmount: Bool = false,
-    ) -> Gemstone.GemSwapTransfer {
-        Gemstone.GemSwapTransfer(
-            quote: quote,
-            data: data,
-            recipient: recipient,
-            value: value,
-            useMaxAmount: useMaxAmount,
-        )
-    }
-}
-
 public extension Gemstone.GemTransactionAmount {
     static func mock(
         asset: Gemstone.Asset = Primitives.Asset.mock().toGem(),
