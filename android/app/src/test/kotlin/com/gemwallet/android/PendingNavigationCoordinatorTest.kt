@@ -150,6 +150,20 @@ class PendingNavigationCoordinatorTest {
     }
 
     @Test
+    fun buildRoutes_paymentWithoutRoutes_clearsAndReturnsNotSupported() = runTest {
+        val uri = "solana:https%3A%2F%2Fexample.com%2Fpay"
+        val payment = (GemDeeplinkService().urlAction(uri) as UrlAction.Payment).payment
+        coEvery { navigationService.openCode(uri) } returns GemCodeOutcome.Payment(payment, showsLoading = false)
+        coEvery { paymentNavigation.routes(payment) } returns emptyList()
+        coordinator.pendScan(uri)
+
+        val text = coordinator.buildRoutes(NoOpWalletConnect)
+
+        assertEquals(GemErrorText.NotSupported, text)
+        assertNull(coordinator.pendingNavigation.value)
+    }
+
+    @Test
     fun buildRoutes_notificationPayload_storesRouteFromNotificationNavigation() = runTest {
         val expected = PendingNavigation.Routes(listOf(RewardsRoute(code = "from-notification")), GemNavigationTab.SETTINGS)
         coEvery { notificationNavigation.prepareNavigation("rewards", null) } returns expected
