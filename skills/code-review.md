@@ -1,61 +1,51 @@
 # Code Review
 
-Use this guide as repository-specific criteria for coding agents' built-in review workflows. Keep the agent's native review mechanics and output format, but apply these checks when reviewing local changes, pull requests, or a proposed patch before implementation.
+Apply these repository-specific checks within the agent's native review workflow and output format. Review only unless fixes are requested; topic and platform guides remain the source of truth.
 
-This guide is not a standalone command and does not replace platform guides, security rules, or the agent's built-in review behavior. By default, review only and report findings. Fix issues only when the user explicitly asks for fixes.
+## Setup and Scope
 
-The source-of-truth details stay in the topic-specific skills. This file should point review attention to those rules instead of copying their full checklists.
+1. Follow [Task Workflow](task-workflow.md) and `AGENTS.md` precedence. Read each affected platform guide and [Security](security.md) for wallet-critical flows or external payload parsing.
+2. Fix the review range: the PR's actual base and head commits, explicitly identifying the PR from a detached checkout. For large refactors, establish the architectural starting point and affected surfaces. Refresh affected evidence if the head moves, or mark it stale; do not claim coverage beyond completed review work.
+3. Read the diff, changed files, callers, exports, configuration, and relevant documented examples.
+4. Keep the original feature contract across rounds. Recheck the complete patch for missed defects and regressions from fixes. Restore invariants at all affected sites without expanding unrelated additions into new requirements. Stop when behavior is correct, focused checks pass, and no material defect or required check remains unresolved.
 
-## Review Setup
+## Correctness and Consistency
 
-1. Follow the task setup and guidance precedence in `AGENTS.md` and `skills/task-workflow.md`.
-2. Read the platform guide for every changed area: `ios/AGENTS.md`, `android/AGENTS.md`, or `core/AGENTS.md`.
-3. Read `skills/security.md` before reviewing key management, wallet import/export, seed phrases, signing, transaction construction, auth, secure storage, external payload parsing, or cryptographic flows.
-4. Fix the review range with `skills/task-workflow.md` § 1 and § 2: a PR's actual base rather than `main`, the PR addressed explicitly from a detached checkout, and for a large refactor the architectural start and every affected surface before the range is frozen. Do not claim full coverage while inventory, discovery, validation, or attack-path work is incomplete.
-5. Inspect the diff, then read the changed files, callers, exports, configuration, and relevant examples before judging the change.
-6. Check whether generated files, localization outputs, or mobile bindings were edited directly. Generated outputs must come from the source inputs.
+- Derive expected behavior from the task, current contracts, and callers. For non-trivial changes, challenge assumptions with reachable counterexamples: empty or malformed inputs, unsupported assets, repeated operations, partial failure, a wallet switch during an async request, a superseded quote, or cancellation before persistence.
+- Trace behavior through decoding, transaction construction, signing, app consumption, and runtime loading as applicable. Registrations, generated types, and successful builds alone do not establish runtime support.
+- Apply [Fix Causes, Not Symptoms](engineering-principles.md#fix-causes-not-symptoms); verify producer fixes and any explicitly temporary symptom relief.
+- Apply [Cross-Platform Awareness](cross-platform-awareness.md) for parity, localization, generation, and bindings. Generated outputs must trace to source inputs. Check stale callers, missing migrations or localization keys, and feature-flag behavior.
+- Check numeric input and output under comma-decimal locales and non-Latin digits such as `٥٠`, following the [number-parsing contract](../docs/ARCHITECTURE.md#number-parsing-human-input-vs-machine-strings).
+- Tests may share the implementation's assumptions. Reproduce useful checks and probe missed scenarios; confirm tests fail when the protected rule is inverted. Preserve error context and fail closed when safe continuation is impossible.
+- Verify compatibility against repository exports, bindings, configuration, and shipped tags, separately from upstream compatibility. Support changing protocol/provider/fee/release claims with authoritative sources and a revision, block, tag, or observation time. Limited live samples are indicative; corroborate transport/TLS/rate-limit failures before attributing them to product or protocol behavior.
 
-## 1. Correct Implementation and Cross-Platform Consistency
+## Design and Style
 
-- Verify the change implements the requested behavior, not just code that compiles.
-- Verify the change removes the cause, not the symptom. A retry, fallback, wider timeout, or special case at the point where a bad value is observed is a finding unless the producer is fixed too, or the author has named it as temporary symptom relief with the root cause as follow-up (`skills/engineering-principles.md` § Fix Causes, Not Symptoms).
-- Trace the runtime path that establishes the behavior. A registered chain/asset/provider, generated type, or successful build is insufficient when response decoding, transaction construction, signer support, app consumption, or runtime loading is unverified.
-- Check edge cases, failure paths, empty states, invalid inputs, retries, cancellation, and unsupported chains or assets. Read every number written into or parsed from a field under a comma-decimal locale and typed in a non-Latin script such as `٥٠` ([rule](../docs/ARCHITECTURE.md#number-parsing-human-input-vs-machine-strings)).
-- Apply `skills/cross-platform-awareness.md` for shared app behavior, generated files, localization, and `core/` regeneration requirements.
-- Confirm tests assert the business rule. A test that would still pass after flipping the rule is not meaningful coverage.
-- Look for stale call sites, unused additions, unreachable branches, missing migrations, missing localization keys, and behavior hidden behind feature flags.
-- Verify error handling preserves useful context while still failing closed where the app cannot safely continue.
-- For compatibility claims, inspect the repository's exports, bindings, configuration, and shipped release tags as applicable. State repository-specific compatibility separately from general upstream compatibility.
-- Tie drift-prone protocol, provider, contract, fee, minimum, or release claims to a current authoritative source and a named revision, block, tag, or observation time. Label limited live samples as indicative rather than universal.
-- Separate network-level behavior from provider-specific behavior, and corroborate transport/TLS/rate-limit failures before treating them as product or protocol defects.
+Apply [Engineering Principles](engineering-principles.md) and platform conventions against the existing owner and documented examples. Each new abstraction or public symbol needs a current consumer or required contract. Flag unnecessary wrappers, duplicate paths, and hypothetical infrastructure; keep unrelated refactors out.
 
-## 2. Coding Style, Codebase Convention, and Reviewability
+## Security
 
-- Apply [Engineering Principles](engineering-principles.md#clean-code-principles) and the affected platform style. Compare the implementation with the existing owner and the relevant documented example.
-- For each new abstraction or public symbol, identify its current consumer or required contract. Flag forwarding-only wrappers, duplicate loading paths, ad hoc parsers, and new infrastructure whose need is hypothetical.
-- Keep unrelated formatting and refactors out. Shared syntax alone does not justify merging different domain rules.
+Apply [Security](security.md) to the changed paths:
 
-## 3. Adversary Review and Security Hardening
-
-Review the change as if a hostile user, compromised website, malicious deep link, broken RPC, or tampered backend response is trying to exploit it.
-
-- Apply `skills/security.md` as the source of truth for wallet-critical rules and optional external security skills.
-- Identify trust boundaries and challenge every value crossing them, especially external payloads, RPC responses, browser or dapp handoff, files, URLs, and clipboard content.
-- Check whether one chain, wallet, account, dapp, session, or cached response can influence another path it should not control.
-- Confirm fallback, retry, cache, and recovery paths cannot silently accept stale, attacker-controlled, or unverifiable data.
-- Look for injection risks where strings become commands, SQL, URLs, rendered HTML or Markdown, JavaScript bridge messages, or protocol payloads.
+- Challenge external values from RPCs, dapps, deep links, files, URLs, and clipboard content at trust boundaries.
+- Check isolation between chains, wallets, accounts, dapps, sessions, and cached responses.
+- Ensure fallback, retry, cache, and recovery paths reject stale, attacker-controlled, or unverifiable security state.
+- Trace injection risks where strings become commands, SQL, URLs, HTML/Markdown, JavaScript bridge messages, or protocol payloads.
+- For signing, secure storage, transaction construction, or other wallet-critical boundaries, include a compact matrix of normal, boundary, and hostile scenarios, expected behavior, and covering tests. Record uncovered cases as verification gaps.
 
 ## Reporting
 
-Report findings first, ordered by severity, with file and line references. Keep each finding concrete: describe the bug or risk, the user or security impact, and the smallest reasonable fix.
+Report findings by severity with file and line references. Each correctness/security finding needs a reachable failing scenario, expected versus actual behavior, impact, and the smallest reasonable fix. Trace callers and guards, compare with the base revision, and distinguish reproduction from code inspection.
 
-If no issues are found, say that clearly and list any residual risk or checks not run. Include the exact verification commands that were run, skipped, or blocked.
+For explicit repository-contract violations, cite the rule and concrete mismatch; rate by demonstrated impact. Style preferences, speculation, duplication, or missing tests alone are not correctness findings. Optional cleanup belongs in the author's cleanup rounds.
 
-When the agent's built-in review workflow has its own severity labels, use those labels. Otherwise use:
+Separate verification gaps (uncovered scenarios, missing regression coverage, skipped checks) from pre-existing bugs verified against the base. Gaps are not proof of defects; required checks still gate completion. Report exact commands run, skipped, or blocked. If no findings remain, say so and disclose residual risks or gaps.
 
-- Critical: security issues, wallet-critical correctness bugs, data loss, signing or transaction integrity failures
-- High: likely user-facing regressions, cross-platform parity breaks, broken builds, missing migrations, or invalid generated bindings
-- Medium: edge-case correctness bugs, brittle error handling, test gaps for changed behavior, or maintainability issues that slow review
-- Low: small style or convention issues that are safe to batch with other edits
+Use native severity labels when available; otherwise:
 
-When asked to fix issues, apply the authorized scope (selected findings or all findings), make the smallest complete patch, rerun affected [Quality Checks](quality-checks.md), and re-review the diff.
+- Critical: security compromise, wallet-critical correctness, data loss, signing or transaction integrity failures
+- High: likely user-facing regressions, parity breaks, broken builds, missing migrations, invalid bindings
+- Medium: edge-case correctness bugs or incorrect error handling
+- Low: minor correctness bugs with limited impact
+
+For authorized fixes, make the smallest complete patch within scope, run affected [Quality Checks](quality-checks.md), and re-review the diff.
