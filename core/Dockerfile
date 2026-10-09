@@ -1,5 +1,4 @@
-# syntax=docker/dockerfile:1
-FROM rust:1.97.0-trixie AS chef
+FROM mirror.gcr.io/library/rust:1.97.0-trixie AS chef
 RUN cargo install --locked cargo-chef --version 0.1.77
 WORKDIR /app
 ENV CARGO_INCREMENTAL=0 \
@@ -24,7 +23,7 @@ COPY . .
 RUN cargo build --release --package dynode && cp target/release/dynode /app/
 
 # Shared runtime base
-FROM debian:trixie-slim AS runtime-base
+FROM mirror.gcr.io/library/debian:trixie-slim AS runtime-base
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
