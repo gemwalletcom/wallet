@@ -1,10 +1,8 @@
 package com.gemwallet.android.model
 
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -51,9 +49,7 @@ sealed interface AmountParams {
 
     @Serializable
     @SerialName("perpetual")
-    data class Perpetual(override val assetId: AssetId, val perpetualId: PerpetualId, val positionAction: @Contextual GemPerpetualPositionAction) : AmountParams {
-        val direction: PerpetualDirection get() = positionAction.transferData().direction.toPrimitives()
-    }
+    data class Perpetual(override val assetId: AssetId, val perpetualId: PerpetualId, val positionAction: @Contextual GemPerpetualPositionAction) : AmountParams
 
     companion object {
         fun unpack(input: String): AmountParams? = unpackRoutePayload(input)

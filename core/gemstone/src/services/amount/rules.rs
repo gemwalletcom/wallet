@@ -4,9 +4,10 @@ use num_bigint::{BigInt, BigUint};
 use primitives::{Asset, AutocloseEstimator, Chain, Currency, EarnType, StakeChain, TpslType};
 
 use super::model::{
-    GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTitle, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+    GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTitle, GemAmountTransfer, GemAmountType, GemLeverageSelection,
+    GemPerpetualAutoclose,
 };
-use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
+use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT, leverage_options, select_leverage};
 use crate::config::stake::get_stake_config;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
@@ -18,6 +19,7 @@ use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules::margin_amount_value;
+use crate::services::settings::rules::{GemPickerOption, leverage_option};
 use crate::services::stake::model::GemStakeAmountInput;
 use crate::services::stake::rules as stake_rules;
 use crate::services::transfer::rules as transfer_rules;
@@ -286,6 +288,14 @@ impl GemAmountType {
             },
         }
     }
+}
+
+pub fn perpetual_leverage_selection(max_leverage: u8, preferred_leverage: u8) -> Option<GemLeverageSelection> {
+    let options = leverage_options(max_leverage);
+    let selected = select_leverage(preferred_leverage, &options);
+    let options: Vec<GemPickerOption> = options.into_iter().map(leverage_option).collect();
+    let selected = options.iter().find(|option| option.value == selected)?.clone();
+    Some(GemLeverageSelection { options, selected })
 }
 
 pub fn perpetual_autoclose(action: &GemPerpetualPositionAction, leverage: u8, take_profit_percent: u8, stop_loss_percent: u8, decimal_separator: &str) -> GemPerpetualAutoclose {
