@@ -9,6 +9,6 @@ import Testing
 struct PerpetualDetailsViewModelTests {
     @Test
     func summaryReadsTheCoreText() {
-        #expect(PerpetualDetailsViewModel.mock(.close(data: .mock(pnl: 500, marginAmount: 1000))).listItemModel.subtitle == "+$500.00 (+50.00%)")
+        #expect(PerpetualDetailsViewModel.mock(.close(data: .mock(closing: .mock(pnl: 500, initialMargin: 1000)))).listItemModel.subtitle == "+$500.00 (+50.00%)")
     }
 }
