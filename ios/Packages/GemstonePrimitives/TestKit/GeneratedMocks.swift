@@ -1630,6 +1630,20 @@ public extension Gemstone.Permit2ApprovalData {
     }
 }
 
+public extension Gemstone.PerpetualClosingPosition {
+    static func mock(
+        pnl: Double = 0,
+        entryPrice: Double = 0,
+        initialMargin: Double = 0,
+    ) -> Gemstone.PerpetualClosingPosition {
+        Gemstone.PerpetualClosingPosition(
+            pnl: pnl,
+            entryPrice: entryPrice,
+            initialMargin: initialMargin,
+        )
+    }
+}
+
 public extension Gemstone.PerpetualConfirmData {
     static func mock(
         direction: Gemstone.PerpetualDirection = .short,
@@ -1641,8 +1655,7 @@ public extension Gemstone.PerpetualConfirmData {
         size: String = "",
         slippage: Double = 0,
         leverage: UInt8 = 0,
-        pnl: Double? = nil,
-        entryPrice: Double? = nil,
+        closing: Gemstone.PerpetualClosingPosition? = nil,
         marketPrice: Double = 0,
         marginAmount: Double = 0,
         takeProfit: String? = nil,
@@ -1658,8 +1671,7 @@ public extension Gemstone.PerpetualConfirmData {
             size: size,
             slippage: slippage,
             leverage: leverage,
-            pnl: pnl,
-            entryPrice: entryPrice,
+            closing: closing,
             marketPrice: marketPrice,
             marginAmount: marginAmount,
             takeProfit: takeProfit,

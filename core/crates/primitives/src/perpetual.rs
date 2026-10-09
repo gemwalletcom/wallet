@@ -138,12 +138,18 @@ pub struct PerpetualConfirmData {
     pub size: String,
     pub slippage: f64,
     pub leverage: u8,
-    pub pnl: Option<f64>,
-    pub entry_price: Option<f64>,
+    pub closing: Option<PerpetualClosingPosition>,
     pub market_price: f64,
     pub margin_amount: f64,
     pub take_profit: Option<String>,
     pub stop_loss: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PerpetualClosingPosition {
+    pub pnl: f64,
+    pub entry_price: f64,
+    pub initial_margin: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -2185,6 +2185,16 @@ fun mockPermit2ApprovalData(
     permit2Nonce = permit2Nonce,
 )
 
+fun mockPerpetualClosingPosition(
+    pnl: Double = 0.0,
+    entryPrice: Double = 0.0,
+    initialMargin: Double = 0.0,
+) = uniffi.gemstone.PerpetualClosingPosition(
+    pnl = pnl,
+    entryPrice = entryPrice,
+    initialMargin = initialMargin,
+)
+
 fun mockPerpetualConfirmData(
     direction: uniffi.gemstone.PerpetualDirection = uniffi.gemstone.PerpetualDirection.SHORT,
     marginType: uniffi.gemstone.PerpetualMarginType = uniffi.gemstone.PerpetualMarginType.CROSS,
@@ -2195,8 +2205,7 @@ fun mockPerpetualConfirmData(
     size: String = "",
     slippage: Double = 0.0,
     leverage: UByte = 0u,
-    pnl: Double? = null,
-    entryPrice: Double? = null,
+    closing: uniffi.gemstone.PerpetualClosingPosition? = null,
     marketPrice: Double = 0.0,
     marginAmount: Double = 0.0,
     takeProfit: String? = null,
@@ -2211,8 +2220,7 @@ fun mockPerpetualConfirmData(
     size = size,
     slippage = slippage,
     leverage = leverage,
-    pnl = pnl,
-    entryPrice = entryPrice,
+    closing = closing,
     marketPrice = marketPrice,
     marginAmount = marginAmount,
     takeProfit = takeProfit,

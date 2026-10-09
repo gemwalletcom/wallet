@@ -9,15 +9,16 @@ use primitives::{
     CoreListItemBadge, CoreListItemIcon, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, DeviceLocale, EarnType, FeePriority, FeeUnitType, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatQuoteUrl,
     FiatRate, FiatTransaction, FiatTransactionAssetData, FiatTransactionData, FiatTransactionStatus, GasPriceType, InAppNotification, Latency, LatencyType, LinkType, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType, NFTCollection,
     NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, PaymentType,
-    PaymentVerification, Permit2ApprovalData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualMetadata,
-    PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPosition, PerpetualPositionData, PerpetualPrice, PerpetualProvider, PerpetualReduceData, PerpetualSearchData, PerpetualTriggerOrder, PerpetualType,
-    Platform, PlatformStore, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceProvider,
-    RecentActivityType, RecentAsset, RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportReason, Resource, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus,
-    Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
-    SimulationWarningApproval, SimulationWarningType, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus, SwapData,
-    SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType, Transaction, TransactionDirection, TransactionExtended, TransactionInputType,
-    TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, Wallet, WalletAddressItem, WalletConnection,
-    WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletListItem, WalletSource, WalletType, YieldProvider,
+    PaymentVerification, Permit2ApprovalData, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualBasic, PerpetualClosingPosition, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData,
+    PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPosition, PerpetualPositionData, PerpetualPrice, PerpetualProvider, PerpetualReduceData, PerpetualSearchData,
+    PerpetualTriggerOrder, PerpetualType, Platform, PlatformStore, PortfolioChartData, PortfolioChartType, PortfolioData, PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData, PriceAlertDirection,
+    PriceAlertNotificationType, PriceProvider, RecentActivityType, RecentAsset, RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportReason, Resource, RewardRedemption,
+    RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
+    SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, StakeProviderType, StakeType, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus,
+    SupportTyping, SupportTypingStatus, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProvider, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType, TPSLOrderData, TotalFiatValue, TpslType, Transaction,
+    TransactionDirection, TransactionExtended, TransactionInputType, TransactionListItem, TransactionState, TransactionType, TransactionUtxoInput, TransactionsFilter, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
+    VerificationStatus, Wallet, WalletAddressItem, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState, WalletConnectionVerificationStatus, WalletListItem, WalletSource, WalletType,
+    YieldProvider,
 };
 use std::str::FromStr;
 
@@ -1380,6 +1381,13 @@ pub struct PerpetualBasic {
 }
 
 #[uniffi::remote(Record)]
+pub struct PerpetualClosingPosition {
+    pub pnl: f64,
+    pub entry_price: f64,
+    pub initial_margin: f64,
+}
+
+#[uniffi::remote(Record)]
 pub struct PerpetualConfirmData {
     pub direction: PerpetualDirection,
     pub margin_type: PerpetualMarginType,
@@ -1390,8 +1398,7 @@ pub struct PerpetualConfirmData {
     pub size: String,
     pub slippage: f64,
     pub leverage: u8,
-    pub pnl: Option<f64>,
-    pub entry_price: Option<f64>,
+    pub closing: Option<PerpetualClosingPosition>,
     pub market_price: f64,
     pub margin_amount: f64,
     pub take_profit: Option<String>,
