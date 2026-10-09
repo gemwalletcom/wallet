@@ -31,7 +31,7 @@ use crate::services::error::GemServiceError;
 use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTriggerOrder};
 use crate::services::transfer::GemTransferData;
 use num_bigint::BigUint;
-use primitives::{PerpetualConfirmData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, PerpetualType};
+use primitives::{PerpetualClosingPosition, PerpetualConfirmData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, PerpetualType};
 use std::collections::{HashMap, HashSet};
 
 use crate::models::asset::wallet_default_assets;
@@ -85,7 +85,7 @@ pub fn confirm_details(asset: &Asset, perpetual_type: &PerpetualType) -> Option<
         PerpetualType::Reduce { data } => (data.position_direction.clone(), &data.data, SummarisedBy::Change(GemPositionChange::Reduce)),
         PerpetualType::Modify { .. } => return None,
     };
-    let pnl = data.pnl.map(|pnl| pnl_text(pnl, data.margin_amount));
+    let pnl = data.closing.as_ref().map(|closing| pnl_text(closing.pnl, closing.initial_margin));
     let summary = match summarised_by {
         SummarisedBy::Position => GemPerpetualConfirmDetailsSummary {
             text: Some(position_text(&direction, data.leverage)),
@@ -129,8 +129,8 @@ fn details_sections(asset: &Asset, direction: &PerpetualDirection, data: &Perpet
     }
 
     let mut price_rows = vec![amount(GemListRowTitle::MarketPrice, display_price(asset, data.market_price))];
-    if let Some(entry_price) = data.entry_price {
-        price_rows.push(amount(GemListRowTitle::EntryPrice, display_price(asset, entry_price)));
+    if let Some(closing) = &data.closing {
+        price_rows.push(amount(GemListRowTitle::EntryPrice, display_price(asset, closing.entry_price)));
     }
     price_rows.push(amount(GemListRowTitle::Slippage, GemFormattedNumber::percentage(data.slippage, GemPercentageStyle::Unsigned)));
 
@@ -211,16 +211,20 @@ fn direction_tone(direction: &PerpetualDirection) -> GemValueTone {
     }
 }
 
-fn pnl_text(pnl: f64, margin_amount: f64) -> (GemLocalizedText, GemValueTone) {
+fn pnl_text(pnl: f64, initial_margin: f64) -> (GemLocalizedText, GemValueTone) {
     let amount = GemFormattedNumber::signed_usd(pnl);
     let tone = amount.tone;
     (
         GemLocalizedText::Pnl {
             amount,
-            percent: GemFormattedNumber::percentage(PriceChangeCalculator::pnl_percentage(pnl, margin_amount), GemPercentageStyle::Signed),
+            percent: GemFormattedNumber::percentage(PriceChangeCalculator::pnl_percentage(pnl, initial_margin), GemPercentageStyle::Signed),
         },
         tone,
     )
+}
+
+fn initial_margin(entry_price: f64, size: f64, leverage: u8) -> f64 {
+    entry_price * size / f64::from(leverage)
 }
 
 pub fn autoclose_row(asset: &Asset, data: &PerpetualModifyConfirmData) -> Option<GemListRow> {
@@ -489,8 +493,7 @@ pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Perp
         size: formatter.format_size(size, input.asset.decimals),
         slippage,
         leverage: input.leverage,
-        pnl: None,
-        entry_price: None,
+        closing: None,
         market_price: input.price,
         margin_amount,
         take_profit: input.take_profit,
@@ -632,8 +635,11 @@ pub fn close_order(provider: PerpetualProvider, input: GemPerpetualCloseInput) -
         size: formatter.format_size(size, input.asset.decimals),
         slippage,
         leverage: input.leverage,
-        pnl: Some(input.pnl),
-        entry_price: Some(input.entry_price),
+        closing: Some(PerpetualClosingPosition {
+            pnl: input.pnl,
+            entry_price: input.entry_price,
+            initial_margin: initial_margin(input.entry_price, size, input.leverage),
+        }),
         market_price: input.market_price,
         margin_amount: input.margin_amount,
         take_profit: None,
@@ -743,7 +749,7 @@ pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPo
 }
 
 fn position_line(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosition) -> PerpetualPositionLine {
-    let (pnl, pnl_tone) = pnl_text(position.pnl, position.margin_amount);
+    let (pnl, pnl_tone) = pnl_text(position.pnl, initial_margin(position.entry_price, position.size, position.leverage));
     PerpetualPositionLine {
         icon: crate::services::assets::icon::asset_icon(&asset.id),
         id: position.id.clone(),
@@ -786,7 +792,10 @@ fn position_details(asset: &Asset, position: &PerpetualPosition) -> Vec<GemPerpe
     let label = |title: GemListRowTitle, text: GemLocalizedText, tone: GemValueTone, info: Option<GemInfoTopic>| GemListRow::Label { title, text, tone, info, progress: false };
     let pnl = GemLocalizedText::Pnl {
         amount: GemFormattedNumber::signed_usd(position.pnl),
-        percent: GemFormattedNumber::percentage(PriceChangeCalculator::pnl_percentage(position.pnl, position.margin_amount), GemPercentageStyle::Signed),
+        percent: GemFormattedNumber::percentage(
+            PriceChangeCalculator::pnl_percentage(position.pnl, initial_margin(position.entry_price, position.size, position.leverage)),
+            GemPercentageStyle::Signed,
+        ),
     };
     let margin = GemLocalizedText::Margin {
         amount: GemFormattedNumber::usd(position.margin_amount),
@@ -1156,6 +1165,7 @@ mod tests {
     fn test_position_details_carry_finished_values() {
         let position = PerpetualPosition {
             pnl: 5.0,
+            margin_amount: 25.0,
             funding: Some(-1.5),
             take_profit: Some(primitives::PerpetualTriggerOrder {
                 price: 120.0,
@@ -1536,7 +1546,14 @@ mod tests {
         assert_eq!(row.margin.unit, crate::formatted_number::GemNumberUnit::Currency { code: "USD".to_string() });
         assert_eq!(row.pnl_tone, GemValueTone::Negative, "a losing position reads as a loss on both apps");
         assert_eq!(row.direction_tone, GemValueTone::Negative, "a short reads red on both apps");
-        assert!(matches!(&row.pnl, GemLocalizedText::Pnl { amount, .. } if amount.value == -0.25));
+        assert_eq!(
+            row.pnl,
+            GemLocalizedText::Pnl {
+                amount: GemFormattedNumber::signed_usd(-0.25),
+                percent: GemFormattedNumber::percentage(-1.25, GemPercentageStyle::Signed),
+            },
+            "the percent is the return on the margin the position opened with, as Hyperliquid and Auto Close read it"
+        );
         assert_eq!(
             row.position,
             GemLocalizedText::Position {
@@ -1885,8 +1902,12 @@ mod tests {
     #[test]
     fn test_confirm_details_sections_carry_finished_rows_and_the_trigger_prices_the_provider_sent() {
         let data = PerpetualConfirmData {
-            pnl: Some(5.0),
-            entry_price: Some(100.0),
+            closing: Some(PerpetualClosingPosition {
+                pnl: 5.0,
+                entry_price: 100.0,
+                initial_margin: 50.0,
+            }),
+            margin_amount: 62.5,
             ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, Some("12.345".to_string()), None)
         };
         let sections = confirm_details(&Asset::mock_perpetual(), &PerpetualType::Close { data }).unwrap().sections;
@@ -2035,8 +2056,15 @@ mod tests {
             },
         );
 
-        assert_eq!(data.pnl, Some(12.5));
-        assert_eq!(data.entry_price, Some(90.0));
+        assert_eq!(
+            data.closing,
+            Some(PerpetualClosingPosition {
+                pnl: 12.5,
+                entry_price: 90.0,
+                initial_margin: 45.0,
+            }),
+            "the margin the position opened with, not the margin in use"
+        );
         assert_eq!(data.fiat_value, 196.0);
     }
 
