@@ -25,6 +25,20 @@ struct StakeStoreTests {
     }
 
     @Test
+    func delegationsAreStoredAndDeletedByTheGivenId() throws {
+        let wallet = Wallet.mock(id: .multicoin(address: "0xtest"), accounts: [.mock(chain: .cosmos)])
+        let store = StakeStore(db: .mock(wallets: [wallet]))
+        try store.updateValidators([DelegationValidator.mock(chain: .cosmos, id: "validator", isActive: true)])
+        let delegation = DelegationBase.mock(assetId: Chain.cosmos.assetId, delegationId: "d1", validatorId: "validator")
+
+        try store.updateAndDelete(walletId: wallet.id, delegations: [(id: "cosmos_validator_active_d1", delegation: delegation)], deleteIds: [])
+        #expect(try store.getDelegationIds(walletId: wallet.id, assetId: Chain.cosmos.assetId, providerType: .stake) == ["cosmos_validator_active_d1"])
+
+        try store.updateAndDelete(walletId: wallet.id, delegations: [], deleteIds: ["cosmos_validator_active_d1"])
+        #expect(try store.getDelegationIds(walletId: wallet.id, assetId: Chain.cosmos.assetId, providerType: .stake).isEmpty)
+    }
+
+    @Test
     func deactivateValidatorsKeepsOtherChain() throws {
         let store = StakeStore(db: .mock(chains: [.cosmos, .celestia]))
         let sharedId = "valoper1shared"

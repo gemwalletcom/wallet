@@ -6,9 +6,9 @@ import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.first
+import uniffi.gemstone.GemDelegationRecord
 import uniffi.gemstone.GemStakeStore
 
 class GemstoneStakeStore(private val stakeDao: StakeDao) : GemStakeStore {
@@ -29,8 +29,8 @@ class GemstoneStakeStore(private val stakeDao: StakeDao) : GemStakeStore {
 
     override suspend fun getDelegationIds(walletId: String, assetId: String, providerType: uniffi.gemstone.StakeProviderType): List<String> = stakeDao.getDelegationIds(WalletId(walletId), AssetId(assetId), providerType.toPrimitives())
 
-    override suspend fun updateDelegations(walletId: String, delegations: List<uniffi.gemstone.DelegationBase>, deleteIds: List<String>) {
+    override suspend fun updateDelegations(walletId: String, delegations: List<GemDelegationRecord>, deleteIds: List<String>) {
         val wallet = WalletId(walletId)
-        stakeDao.updateAndDeleteDelegations(wallet, delegations.map { it.toPrimitives() }.toRecord(wallet), deleteIds)
+        stakeDao.updateAndDeleteDelegations(wallet, delegations.map { it.delegation.toPrimitives().toRecord(it.id, wallet) }, deleteIds)
     }
 }

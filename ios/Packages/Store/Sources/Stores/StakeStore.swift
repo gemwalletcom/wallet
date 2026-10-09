@@ -11,10 +11,10 @@ public struct StakeStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func updateAndDelete(walletId: WalletId, delegations: [DelegationBase], deleteIds: [String]) throws {
+    public func updateAndDelete(walletId: WalletId, delegations: [(id: String, delegation: DelegationBase)], deleteIds: [String]) throws {
         try db.write { db in
-            for delegation in delegations {
-                try delegation.record(walletId: walletId.id).upsert(db)
+            for value in delegations {
+                try value.delegation.record(id: value.id, walletId: walletId.id).upsert(db)
             }
 
             try StakeDelegationRecord

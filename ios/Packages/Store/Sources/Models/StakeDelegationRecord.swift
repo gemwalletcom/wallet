@@ -78,7 +78,7 @@ extension StakeDelegationRecord: CreateTable {
 }
 
 extension DelegationBase {
-    func record(walletId: String) -> StakeDelegationRecord {
+    func record(id: String, walletId: String) -> StakeDelegationRecord {
         StakeDelegationRecord(
             id: id,
             assetId: assetId,

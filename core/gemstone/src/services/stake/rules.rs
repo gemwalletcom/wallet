@@ -303,6 +303,7 @@ pub fn stake_view_state(input: GemStakeInput, platform: Platform) -> GemStakeVie
         delegations: delegations
             .into_iter()
             .map(|delegation| GemStakeDelegationItem {
+                id: delegation.base.id(),
                 row: delegation_list_row(&delegation, asset, price, currency.clone()),
                 destination: delegation_destination(wallet_type, asset.clone(), delegation.clone()),
                 delegation,
@@ -570,6 +571,7 @@ pub fn earn_view(input: GemEarnInput) -> GemEarnView {
     let positions: Vec<GemStakeDelegationItem> = sorted_delegations(positions(delegations))
         .into_iter()
         .map(|delegation| GemStakeDelegationItem {
+            id: delegation.base.id(),
             row: delegation_list_row(&delegation, &asset, price, currency.clone()),
             destination: delegation_destination(wallet_type, asset.clone(), delegation.clone()),
             delegation,
@@ -1374,6 +1376,10 @@ mod tests {
         assert_eq!(state.delegations.iter().map(|item| item.delegation.clone()).collect::<Vec<_>>(), sorted);
         assert_eq!(state.sections, stake_sections(uses_freeze(Chain::Cosmos), !state.actions.is_empty(), true));
         assert_eq!(state.delegations[0].row, delegation_list_row(&sorted[0], &asset, None, Currency::USD));
+        assert_eq!(
+            state.delegations.iter().map(|item| item.id.clone()).collect::<Vec<_>>(),
+            sorted.iter().map(|delegation| delegation.base.id()).collect::<Vec<_>>()
+        );
         assert!(state.resource_rows.is_empty());
         assert_eq!(state.docs_url, Some(DocsUrl::Staking(StakeChain::Cosmos).url_for(Platform::IOS)), "the screen links its chain's staking guide");
     }

@@ -8,7 +8,7 @@ use crate::services::assets::icon::GemAssetIcon;
 use crate::services::assets::model::{GemAssetText, GemValueHeader};
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, AssetData, BlockExplorerLink, Currency, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
+use primitives::{Asset, AssetData, BlockExplorerLink, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemStakeSection {
@@ -63,6 +63,18 @@ pub enum GemDelegationAction {
     Redelegate,
     Withdraw,
     Deposit,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemDelegationRecord {
+    pub id: String,
+    pub delegation: DelegationBase,
+}
+
+impl GemDelegationRecord {
+    pub fn new(delegation: DelegationBase) -> Self {
+        Self { id: delegation.id(), delegation }
+    }
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -128,6 +140,7 @@ pub struct GemStakeInput {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStakeDelegationItem {
+    pub id: String,
     pub delegation: Delegation,
     pub row: GemDelegationListRow,
     pub destination: GemDelegationDestination,
