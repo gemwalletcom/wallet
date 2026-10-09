@@ -56,7 +56,7 @@ impl PriceAssetsProvider for PythProvider {
 
         Ok(mappings
             .into_iter()
-            .filter_map(|mapping| prices_by_feed_id.get(&mapping.provider_price_id).map(|price| AssetPriceFull::simple(mapping, *price, 0.0, PriceProvider::Pyth)))
+            .filter_map(|mapping| prices_by_feed_id.get(&mapping.provider_price_id).map(|price| AssetPriceFull::simple(mapping, *price, None, PriceProvider::Pyth)))
             .collect())
     }
 }
@@ -88,8 +88,8 @@ mod price_integration_tests {
         let mapping = AssetPriceMapping::new(Chain::Bitcoin.as_asset_id(), feed_id.to_string());
         let prices = provider.get_prices(vec![mapping]).await?;
         assert_eq!(prices.len(), 1);
-        assert!(prices[0].price.price.is_finite());
-        assert!(prices[0].price.price > 0.0);
+        assert!(prices[0].price.is_finite());
+        assert!(prices[0].price > 0.0);
         Ok(())
     }
 }

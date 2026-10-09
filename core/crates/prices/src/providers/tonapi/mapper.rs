@@ -49,7 +49,7 @@ pub fn map_price(mapping: AssetPriceMapping, response: &RatesResponse) -> Option
     if !price.is_finite() || price <= 0.0 {
         return None;
     }
-    let price_change_percentage_24h = rates.diff_24h.get("USD").and_then(|value| value.trim_end_matches('%').replace('−', "-").parse::<f64>().ok()).unwrap_or_default();
+    let price_change_percentage_24h = rates.diff_24h.get("USD").and_then(|value| value.trim_end_matches('%').replace('−', "-").parse::<f64>().ok());
     Some(AssetPriceFull::simple(mapping, price, price_change_percentage_24h, PriceProvider::TonApi))
 }
 
@@ -89,13 +89,13 @@ mod tests {
         assert_eq!(mapping_for_stonfi_asset(excluded).map(|mapping| mapping.asset_id), None);
 
         let response: RatesResponse = serde_json::from_str(include_str!("../../../testdata/tonapi/rates.json")).unwrap();
-        let native_price = map_price(mapping_for_asset_id(&native).unwrap(), &response).unwrap().price;
+        let native_price = map_price(mapping_for_asset_id(&native).unwrap(), &response).unwrap();
         assert_eq!(native_price.price, 3.42);
-        assert_eq!(native_price.price_change_percentage_24h, -4.58);
-        let dust_price = map_price(mapping_for_asset_id(&dust).unwrap(), &response).unwrap().price;
+        assert_eq!(native_price.price_change_percentage_24h, Some(-4.58));
+        let dust_price = map_price(mapping_for_asset_id(&dust).unwrap(), &response).unwrap();
         assert_eq!(dust_price.price, 0.62784);
-        assert_eq!(dust_price.price_change_percentage_24h, 2.14);
+        assert_eq!(dust_price.price_change_percentage_24h, Some(2.14));
         let zero = AssetPriceMapping::new(dust, "ZERO".to_string());
-        assert_eq!(map_price(zero, &response).map(|price| price.price.price), None);
+        assert_eq!(map_price(zero, &response).map(|price| price.price), None);
     }
 }

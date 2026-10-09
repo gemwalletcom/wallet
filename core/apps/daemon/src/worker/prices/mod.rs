@@ -94,17 +94,6 @@ async fn add_provider_jobs<'a>(builder: JobPlanBuilder<'a>, prices: &PriceJobs, 
         }
     });
 
-    let metrics_variant = JobVariant::labeled(WorkerJob::UpdatePricesMetrics, kind)
-        .with_param_duration(&config, &ConfigParamKey::PriceProviderMetricsDuration(kind))
-        .await?;
-    builder = builder.job(metrics_variant, {
-        let prices = prices.clone();
-        move |_| {
-            let updater = prices.metrics_updater(kind);
-            async move { updater.update().await }
-        }
-    });
-
     let history_config = ChartsHistoryConfig {
         hourly_duration: config.get_param_duration(&ConfigParamKey::PriceProviderChartsHourlyDuration(kind)).await?,
     };

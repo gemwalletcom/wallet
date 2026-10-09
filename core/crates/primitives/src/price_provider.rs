@@ -59,13 +59,6 @@ impl PriceProvider {
             Self::TonApi => 3,
         }
     }
-
-    pub fn supports_price_change_24h(&self) -> bool {
-        match self {
-            Self::Coingecko | Self::Jupiter | Self::TonApi => true,
-            Self::Pyth | Self::DefiLlama => false,
-        }
-    }
 }
 
 impl fmt::Display for PriceProvider {

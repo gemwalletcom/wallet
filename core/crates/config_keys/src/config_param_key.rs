@@ -125,7 +125,6 @@ pub enum ConfigParamKey {
     PriceProviderAssetsMetadataDuration(PriceProvider),
     PriceProviderPricesDuration(PriceProvider),
     PriceProviderChartsHourlyDuration(PriceProvider),
-    PriceProviderMetricsDuration(PriceProvider),
     PriceProviderCleanOutdatedDuration(PriceProvider),
     ListProviderUpdateDuration(ListProviderName),
     ScanProviderEnable(ScanProvider),
@@ -145,7 +144,6 @@ impl ConfigParamKey {
         let assets_metadata = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsMetadataDuration);
         let prices = PriceProvider::all().into_iter().map(Self::PriceProviderPricesDuration);
         let charts_hourly = PriceProvider::all().into_iter().map(Self::PriceProviderChartsHourlyDuration);
-        let metrics = PriceProvider::all().into_iter().map(Self::PriceProviderMetricsDuration);
         let clean_outdated = PriceProvider::all().into_iter().map(Self::PriceProviderCleanOutdatedDuration);
         let scan_providers = ScanProvider::all().into_iter().map(Self::ScanProviderEnable);
         let scan_types = ScanType::all().into_iter().map(Self::ScanTypeEnable);
@@ -161,7 +159,6 @@ impl ConfigParamKey {
             .chain(assets_metadata)
             .chain(prices)
             .chain(charts_hourly)
-            .chain(metrics)
             .chain(clean_outdated)
             .chain(lists)
             .chain(scan_providers)
@@ -182,7 +179,6 @@ impl ConfigParamKey {
             Self::PriceProviderAssetsMetadataDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderPricesDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderChartsHourlyDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
-            Self::PriceProviderMetricsDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderCleanOutdatedDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::ListProviderUpdateDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::ScanProviderEnable(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
@@ -204,7 +200,6 @@ impl ConfigParamKey {
             Self::PriceProviderAssetsMetadataDuration(_) => "30d".to_string(),
             Self::PriceProviderPricesDuration(_) => "60s".to_string(),
             Self::PriceProviderChartsHourlyDuration(_) => "7d".to_string(),
-            Self::PriceProviderMetricsDuration(_) => "5m".to_string(),
             Self::PriceProviderCleanOutdatedDuration(_) => "1d".to_string(),
             Self::ListProviderUpdateDuration(_) => "1d".to_string(),
             Self::ScanProviderEnable(_) => "true".to_string(),

@@ -2,16 +2,14 @@ use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 use prices::{AssetPriceMapping, PriceAlertNotification, PriceAlertRules, PriceProviderAssetMetadata};
 use primitives::currency::Currency;
 use primitives::{Asset, AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceProvider, PriceProviderConfig};
 use storage::{
     AssetFilter, AssetUpdate, AssetsLinksRepository, AssetsRepository, AssetsUsageRanksRepository, ChartFilter, ChartPoint, ChartResult, ChartsRepository, Database, DatabaseClient, DatabaseError, FiatRepository, PriceAlertsRepository,
-    PriceAsset, PriceFilter, PriceUpdate, PricesProvidersRepository, PricesRepository, TagRepository,
+    PriceAsset, PriceFilter, PricesProvidersRepository, PricesRepository, TagRepository,
 };
-
-use super::prices_metrics_updater::price_changes;
 
 pub(crate) struct PortfolioPrice {
     pub(crate) asset: Asset,
@@ -47,7 +45,6 @@ pub(crate) trait Repository: Send + Sync {
     async fn price_mappings(&self, provider: PriceProvider, window: Option<(usize, usize)>) -> Result<Vec<AssetPriceMapping>, DatabaseError>;
     async fn primary_prices(&self, asset_ids: Vec<AssetId>, price_max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError>;
     async fn store_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
-    async fn update_price_changes(&self, provider: PriceProvider, from: NaiveDateTime, until: NaiveDateTime) -> Result<usize, DatabaseError>;
     async fn delete_prices(&self, filters: Vec<PriceFilter>) -> Result<(Vec<String>, usize), DatabaseError>;
     async fn usage_ranks_and_priced_assets(&self) -> Result<(Vec<(AssetId, i32)>, HashSet<AssetId>), DatabaseError>;
     async fn price_providers(&self) -> Result<Vec<PriceProviderConfig>, DatabaseError>;
@@ -194,30 +191,12 @@ impl Repository for PostgresRepository {
     async fn store_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
         self.database
             .run(move |client| {
+                let prices = with_price_changes(client, prices)?;
                 let asset_ids = client.set_prices(prices)?;
                 if asset_ids.is_empty() {
                     return Ok(vec![]);
                 }
                 client.get_price_infos(&asset_ids)
-            })
-            .await
-    }
-
-    async fn update_price_changes(&self, provider: PriceProvider, from: NaiveDateTime, until: NaiveDateTime) -> Result<usize, DatabaseError> {
-        self.database
-            .run(move |client| {
-                let rows = client.get_prices_by_filter(vec![PriceFilter::Provider(provider)])?;
-                if rows.is_empty() {
-                    return Ok(0);
-                }
-                let price_ids: Vec<String> = rows.iter().map(|price| price.id.to_string()).collect();
-                let previous: HashMap<String, f64> = client
-                    .get_charts_by_filter(vec![ChartFilter::CreatedBefore(until), ChartFilter::CreatedAfter(from), ChartFilter::PriceIds(price_ids)])?
-                    .into_iter()
-                    .collect();
-                price_changes(&rows, &previous)
-                    .into_iter()
-                    .try_fold(0, |updated, (price_id, change)| Ok(updated + client.update_prices(vec![price_id], vec![PriceUpdate::PriceChangePercentage24h(change)])?))
             })
             .await
     }
@@ -312,4 +291,25 @@ impl Repository for PostgresRepository {
 fn asset_ids_with_filters(client: &mut DatabaseClient, price_assets: &[PriceAsset], asset_filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
     let ids = AssetFilter::Ids(price_assets.iter().map(|price_asset| price_asset.asset_id.to_string()).collect());
     client.get_asset_ids_by_filter([vec![ids], asset_filters].concat())
+}
+
+fn with_price_changes(client: &mut DatabaseClient, prices: Vec<PriceData>) -> Result<Vec<PriceData>, DatabaseError> {
+    let price_ids: Vec<String> = prices.iter().filter(|price| price.price_change_percentage_24h.is_none()).map(|price| price.id.to_string()).collect();
+    if price_ids.is_empty() {
+        return Ok(prices);
+    }
+    let now = Utc::now();
+    let filters = vec![
+        ChartFilter::CreatedAfter((now - chrono::Duration::hours(25)).naive_utc()),
+        ChartFilter::CreatedBefore((now - chrono::Duration::hours(24)).naive_utc()),
+        ChartFilter::PriceIds(price_ids),
+    ];
+    let prices_24h_ago: HashMap<String, f64> = client.get_charts_by_filter(filters)?.into_iter().collect();
+    Ok(prices
+        .into_iter()
+        .map(|price| {
+            let price_24h_ago = prices_24h_ago.get(&price.id.to_string()).copied();
+            price.with_price_change_from(price_24h_ago)
+        })
+        .collect())
 }

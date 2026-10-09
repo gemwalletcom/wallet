@@ -300,7 +300,7 @@ mod tests {
             provider: PriceProvider::Jupiter,
             provider_price_id: "So11111111111111111111111111111111111111112".to_string(),
             price: fresh.price.price,
-            price_change_percentage_24h: fresh.price.price_change_percentage_24h,
+            price_change_percentage_24h: Some(fresh.price.price_change_percentage_24h),
             last_updated_at: fresh.price.updated_at,
             ..PriceData::mock()
         };

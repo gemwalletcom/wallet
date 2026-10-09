@@ -41,9 +41,10 @@ impl PriceAlertRules {
 
         if let Some(target_percent) = price_alert.price_percent_change {
             let direction = price_alert.price_direction.as_ref()?;
+            let price_change = price_data.price_change_percentage_24h?;
             return match direction {
-                PriceAlertDirection::Up if price_data.price_change_percentage_24h >= target_percent => Some((PriceAlertType::PricePercentChangeUp, None)),
-                PriceAlertDirection::Down if price_data.price_change_percentage_24h <= -target_percent => Some((PriceAlertType::PricePercentChangeDown, None)),
+                PriceAlertDirection::Up if price_change >= target_percent => Some((PriceAlertType::PricePercentChangeUp, None)),
+                PriceAlertDirection::Down if price_change <= -target_percent => Some((PriceAlertType::PricePercentChangeDown, None)),
                 _ => None,
             };
         }
@@ -52,16 +53,17 @@ impl PriceAlertRules {
             return Some((PriceAlertType::AllTimeHigh, None));
         }
 
-        let price_24h_ago = price_24h_ago(price, price_data.price_change_percentage_24h);
+        let price_change = price_data.price_change_percentage_24h?;
+        let price_24h_ago = price_24h_ago(price, price_change);
         if let Some(milestone) = self.crossed_milestone(price_24h_ago, price) {
             return Some((PriceAlertType::PriceMilestone, Some(milestone)));
         }
 
         let threshold = self.change_threshold(price_data.market_cap_rank.unwrap_or(0));
-        if price_data.price_change_percentage_24h > threshold {
+        if price_change > threshold {
             return Some((PriceAlertType::PriceChangesUp, None));
         }
-        if price_data.price_change_percentage_24h < -threshold {
+        if price_change < -threshold {
             return Some((PriceAlertType::PriceChangesDown, None));
         }
 
@@ -164,6 +166,13 @@ mod tests {
         assert_eq!(rules.evaluate(&auto, &device(Currency::EUR), &PriceData::mock_with(78_987.0, 6.0), &TEST_RATES), trigger(PriceAlertType::PriceChangesUp, EUR));
         assert_eq!(rules.evaluate(&auto, &device(Currency::JPY), &PriceData::mock_with(78_987.0, 6.0), &TEST_RATES), None);
         assert_eq!(rules.evaluate(&auto, &usd, &PriceData::mock_with(78_987.0, 1.0), &TEST_RATES), None);
+        let unknown_change = PriceData {
+            price_change_percentage_24h: None,
+            ..PriceData::mock_with(78_987.0, 0.0)
+        };
+        assert_eq!(rules.evaluate(&percent_up, &usd, &unknown_change, &TEST_RATES), None);
+        assert_eq!(rules.evaluate(&auto, &usd, &unknown_change, &TEST_RATES), None);
+        assert_eq!(rules.evaluate(&under, &usd, &unknown_change, &TEST_RATES), target(PriceAlertType::PriceDown, 71_000.0, EUR));
         assert_eq!(
             rules.evaluate(
                 &auto,

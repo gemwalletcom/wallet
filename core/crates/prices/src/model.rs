@@ -1,5 +1,5 @@
-use chrono::Utc;
-use primitives::{AssetId, AssetLink, AssetMarket, Price, PriceData, PriceId, PriceProvider};
+use chrono::{DateTime, Utc};
+use primitives::{AssetId, AssetLink, AssetMarket, PriceData, PriceId, PriceProvider};
 
 #[derive(Debug, Clone)]
 pub struct AssetPriceMapping {
@@ -57,35 +57,41 @@ impl PriceProviderAssetMetadata {
 #[derive(Debug, Clone)]
 pub struct AssetPriceFull {
     pub mapping: AssetPriceMapping,
-    pub price: Price,
+    pub price: f64,
+    pub price_change_percentage_24h: Option<f64>,
+    pub updated_at: DateTime<Utc>,
+    pub provider: PriceProvider,
     pub market: Option<AssetMarket>,
 }
 
 impl AssetPriceFull {
-    pub fn new(mapping: AssetPriceMapping, price: Price, market: Option<AssetMarket>) -> Self {
-        Self { mapping, price, market }
+    pub fn new(mapping: AssetPriceMapping, price: f64, price_change_percentage_24h: Option<f64>, updated_at: DateTime<Utc>, provider: PriceProvider, market: Option<AssetMarket>) -> Self {
+        Self {
+            mapping,
+            price,
+            price_change_percentage_24h,
+            updated_at,
+            provider,
+            market,
+        }
     }
 
-    pub fn simple(mapping: AssetPriceMapping, price: f64, price_change_percentage_24h: f64, provider: PriceProvider) -> Self {
-        Self::new(mapping, Price::new(price, price_change_percentage_24h, Utc::now(), provider), None)
+    pub fn simple(mapping: AssetPriceMapping, price: f64, price_change_percentage_24h: Option<f64>, provider: PriceProvider) -> Self {
+        Self::new(mapping, price, price_change_percentage_24h, Utc::now(), provider, None)
     }
 
     pub fn from_provider_asset(asset: PriceProviderAsset, provider: PriceProvider) -> Self {
-        Self::new(
-            asset.mapping,
-            Price::new(asset.price.unwrap_or_default(), asset.price_change_percentage_24h.unwrap_or_default(), Utc::now(), provider),
-            asset.market,
-        )
+        Self::new(asset.mapping, asset.price.unwrap_or_default(), asset.price_change_percentage_24h, Utc::now(), provider, asset.market)
     }
 
     pub fn as_price_data(&self) -> PriceData {
         let market = self.market.clone().unwrap_or_default();
         PriceData {
-            id: PriceId::new(self.price.provider, self.mapping.provider_price_id.clone()),
-            provider: self.price.provider,
+            id: PriceId::new(self.provider, self.mapping.provider_price_id.clone()),
+            provider: self.provider,
             provider_price_id: self.mapping.provider_price_id.clone(),
-            price: self.price.price,
-            price_change_percentage_24h: self.price.price_change_percentage_24h,
+            price: self.price,
+            price_change_percentage_24h: self.price_change_percentage_24h,
             all_time_high: market.all_time_high.unwrap_or_default(),
             all_time_high_date: market.all_time_high_date,
             all_time_low: market.all_time_low.unwrap_or_default(),
@@ -97,7 +103,7 @@ impl AssetPriceFull {
             circulating_supply: market.circulating_supply,
             total_supply: market.total_supply,
             max_supply: market.max_supply,
-            last_updated_at: self.price.updated_at,
+            last_updated_at: self.updated_at,
         }
     }
 }

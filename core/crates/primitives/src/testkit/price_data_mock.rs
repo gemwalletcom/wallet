@@ -13,7 +13,7 @@ impl PriceData {
             provider: PriceProvider::Coingecko,
             provider_price_id: "bitcoin".to_string(),
             price,
-            price_change_percentage_24h,
+            price_change_percentage_24h: Some(price_change_percentage_24h),
             all_time_high: 126_080.0,
             all_time_high_date: None,
             all_time_low: 67.81,

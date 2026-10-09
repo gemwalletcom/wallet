@@ -46,8 +46,7 @@ pub struct TokenAudit {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenStats {
-    #[serde(default)]
-    pub price_change: f64,
+    pub price_change: Option<f64>,
     pub buy_volume: Option<f64>,
     pub sell_volume: Option<f64>,
 }

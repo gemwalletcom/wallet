@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
 use coingecko::{Coin, CoinInfo, CoinMarket, get_asset_ids_for_coin, model::MarketChart};
-use primitives::{AssetId, AssetLink, AssetMarket, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, Price, PriceProvider};
+use primitives::{AssetId, AssetLink, AssetMarket, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, PriceProvider};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
 
@@ -53,7 +53,7 @@ pub fn map_coin_market(market: CoinMarket, mapping: AssetPriceMapping) -> AssetP
     let updated_at = market.last_updated.unwrap_or_else(Utc::now);
     let price = market.current_price.unwrap_or_default();
     let market_data = coin_market_to_asset_market(&market);
-    AssetPriceFull::new(mapping, Price::new(price, market.price_change_percentage_24h.unwrap_or_default(), updated_at, PriceProvider::Coingecko), Some(market_data))
+    AssetPriceFull::new(mapping, price, market.price_change_percentage_24h, updated_at, PriceProvider::Coingecko, Some(market_data))
 }
 
 pub fn coin_market_to_asset_market(market: &CoinMarket) -> AssetMarket {
@@ -204,9 +204,21 @@ mod tests {
         assert_eq!(prices[0].mapping.provider_price_id, ethereum.provider_price_id);
         assert_eq!(prices[1].mapping.asset_id, smartchain.asset_id);
         assert_eq!(prices[1].mapping.provider_price_id, smartchain.provider_price_id);
-        assert_eq!(prices[0].price.price, 0.12);
-        assert_eq!(prices[1].price.price, 0.12);
+        assert_eq!(prices[0].price, 0.12);
+        assert_eq!(prices[1].price, 0.12);
         assert_eq!(prices[0].market.as_ref().and_then(|m| m.total_volume), Some(10.0));
         assert_eq!(prices[1].market.as_ref().and_then(|m| m.total_volume), Some(10.0));
+    }
+
+    #[test]
+    fn test_map_coin_market_keeps_unknown_price_change() {
+        let mapping = AssetPriceMapping::new(AssetId::from_chain(Chain::Bitcoin), "bitcoin".to_string());
+        let unknown = CoinMarket {
+            price_change_percentage_24h: None,
+            ..CoinMarket::mock_with_id("bitcoin")
+        };
+
+        assert_eq!(map_coin_market(unknown, mapping.clone()).as_price_data().price_change_percentage_24h, None);
+        assert_eq!(map_coin_market(CoinMarket::mock_with_id("bitcoin"), mapping).as_price_data().price_change_percentage_24h, Some(1.5));
     }
 }

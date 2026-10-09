@@ -159,10 +159,6 @@ impl Repository for MemoryPricesRepository {
         Ok(self.price_infos.clone())
     }
 
-    async fn update_price_changes(&self, _provider: PriceProvider, _from: NaiveDateTime, _until: NaiveDateTime) -> Result<usize, DatabaseError> {
-        Ok(0)
-    }
-
     async fn delete_prices(&self, _filters: Vec<PriceFilter>) -> Result<(Vec<String>, usize), DatabaseError> {
         Ok((vec![], 0))
     }

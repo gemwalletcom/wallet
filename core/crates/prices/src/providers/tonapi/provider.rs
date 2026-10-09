@@ -63,7 +63,7 @@ impl PriceAssetsProvider for TonApiProvider {
             .await?
             .into_iter()
             .take(limit)
-            .map(|price| PriceProviderAsset::with_price(price.mapping, None, Some(price.price.price), Some(price.price.price_change_percentage_24h)))
+            .map(|price| PriceProviderAsset::with_price(price.mapping, None, Some(price.price), price.price_change_percentage_24h))
             .collect())
     }
 

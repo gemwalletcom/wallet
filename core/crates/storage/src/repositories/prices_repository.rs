@@ -50,7 +50,6 @@ pub struct AssetWithMarket {
 pub enum PriceUpdate {
     AllTimeHigh { value: f64, date: Option<NaiveDateTime> },
     AllTimeLow { value: f64, date: Option<NaiveDateTime> },
-    PriceChangePercentage24h(f64),
 }
 
 pub trait PricesRepository {
@@ -450,7 +449,7 @@ mod database_integration_tests {
             id: coingecko_id.clone(),
             provider_price_id: coingecko_id.provider_price_id.clone(),
             price: 42.0,
-            price_change_percentage_24h: 5.0,
+            price_change_percentage_24h: Some(5.0),
             market_cap: Some(12_600.0),
             circulating_supply: Some(300.0),
             last_updated_at: Utc::now(),

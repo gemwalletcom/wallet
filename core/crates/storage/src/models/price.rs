@@ -59,7 +59,6 @@ pub struct PricesChangeset {
     all_time_high_date: Option<Option<NaiveDateTime>>,
     all_time_low: Option<f64>,
     all_time_low_date: Option<Option<NaiveDateTime>>,
-    price_change_percentage_24h: Option<f64>,
 }
 
 impl PricesChangeset {
@@ -74,9 +73,6 @@ impl PricesChangeset {
                     acc.all_time_low = Some(value);
                     acc.all_time_low_date = Some(date);
                 }
-                PriceUpdate::PriceChangePercentage24h(value) => {
-                    acc.price_change_percentage_24h = Some(value);
-                }
             }
             acc
         })
@@ -89,7 +85,7 @@ impl NewPriceRow {
             id: data.id.into(),
             provider: data.provider.into(),
             price: data.price,
-            price_change_percentage_24h: data.provider.supports_price_change_24h().then_some(data.price_change_percentage_24h),
+            price_change_percentage_24h: data.price_change_percentage_24h,
             all_time_high: data.all_time_high,
             all_time_high_date: data.all_time_high_date.map(|date| date.naive_utc()),
             all_time_low: data.all_time_low,
@@ -250,7 +246,7 @@ impl PriceRow {
             provider: self.provider_value(),
             provider_price_id: self.provider_price_id().to_string(),
             price: self.price,
-            price_change_percentage_24h: self.price_change_percentage_24h.unwrap_or(0.0),
+            price_change_percentage_24h: self.price_change_percentage_24h,
             all_time_high: self.all_time_high,
             all_time_high_date: self.all_time_high_date.map(|d| d.and_utc()),
             all_time_low: self.all_time_low,
@@ -271,7 +267,7 @@ impl PriceRow {
             id: data.id.into(),
             provider: data.provider.into(),
             price: data.price,
-            price_change_percentage_24h: data.provider.supports_price_change_24h().then_some(data.price_change_percentage_24h),
+            price_change_percentage_24h: data.price_change_percentage_24h,
             all_time_high: data.all_time_high,
             all_time_high_date: data.all_time_high_date.map(|d| d.naive_utc()),
             all_time_low: data.all_time_low,
