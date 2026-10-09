@@ -129,6 +129,16 @@ class AssetsQueryTest {
     }
 
     @Test
+    fun aChainNameMatchesTheNativeAssetAndAContractMatchesItsToken() = runBlocking(Dispatchers.IO) {
+        val usdt = AssetId(Chain.Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")
+
+        AssetsQueryScope.entries.forEach { scope ->
+            assertEquals(listOf(AssetId(Chain.Ethereum)), query(WalletId("wallet-1"), "ethereum", scope, emptySet(), 10).first().map { it.asset.id })
+            assertEquals(listOf(usdt), query(WalletId("wallet-1"), "0XDAC17", scope, emptySet(), 10).first().map { it.asset.id })
+        }
+    }
+
+    @Test
     fun aWalletSearchAppliesTheFiltersAndTheLimit() = runBlocking(Dispatchers.IO) {
         val usdt = AssetsQueryFilter.ChainsOrAssets(emptyList(), listOf("ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7"))
 

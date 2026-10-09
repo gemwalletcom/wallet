@@ -258,7 +258,7 @@ interface AssetsDao {
             AND assetRank >= 0
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
-            OR asset_info.id LIKE '%' || :query || '%'
+            OR SUBSTR(asset_info.id, LENGTH(chain) + 2) LIKE '%' || :query || '%'
             OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
             AND (NOT :enabled OR isEnabled = 1)
             AND (NOT :buyable OR isBuyEnabled = 1)
@@ -361,6 +361,7 @@ interface AssetsDao {
             AND
             (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
+            OR SUBSTR(asset_info.id, LENGTH(chain) + 2) LIKE '%' || :query || '%'
             OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
             AND (NOT :enabled OR isEnabled = 1)
             AND (NOT :buyable OR isBuyEnabled = 1)
