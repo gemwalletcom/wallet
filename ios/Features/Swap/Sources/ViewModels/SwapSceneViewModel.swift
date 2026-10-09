@@ -357,14 +357,11 @@ extension SwapSceneViewModel {
             isPresentingInfoSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
             return
         }
-        guard let fromAsset, let toAsset, let started = session.startTransfer(), let quote = started.quote() else { return }
+        guard let started = session.startTransfer(), let quote = started.quote() else { return }
         let transfer = started.transferPhase
         session = started
         do {
-            let transferData = try await service.getTransfer(quote: quote).transferData(
-                fromAsset: fromAsset.asset.toGem(),
-                toAsset: toAsset.asset.toGem(),
-            )
+            let transferData = try await service.transferData(quote: quote)
             guard session.transferPhase == transfer else { return }
             onSwap?(transferData)
             session = session.onTransferHandedOff(transfer: transfer)
@@ -374,20 +371,10 @@ extension SwapSceneViewModel {
     }
 
     private func loadQuotes(input: GemSwapQuoteInput) async {
-        guard
-            !isTransferDataLoading,
-            let fromAsset, fromAsset.asset.id == input.request.payAssetId,
-            let toAsset, toAsset.asset.id == input.request.receiveAssetId
-        else { return }
+        guard !isTransferDataLoading else { return }
         session = session.onFetchStarted(request: input.request)
         do {
-            let swapQuotes = try await service.getQuotes(
-                fromAsset: fromAsset.asset.toGem(),
-                toAsset: toAsset.asset.toGem(),
-                value: input.request.value,
-                useMaxAmount: input.useMaxAmount,
-                slippageBps: input.request.slippageBps,
-            )
+            let swapQuotes = try await service.getQuotes(input: input)
             try Task.checkCancellation()
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
         } catch {
