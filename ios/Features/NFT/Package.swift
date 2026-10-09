@@ -74,6 +74,7 @@ let package = Package(
                 "NFTTestKit",
                 "Store",
                 "Primitives",
+                "Style",
             ],
         ),
     ],

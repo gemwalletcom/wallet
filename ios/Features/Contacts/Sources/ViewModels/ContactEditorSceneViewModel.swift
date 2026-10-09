@@ -29,6 +29,7 @@ public final class ContactEditorSceneViewModel {
 
     private let service: any GemContactEditorServiceProtocol
     private let nameService: any GemNameServiceProtocol
+    private let toastPresenter: ToastPresenter
     private let mode: Mode
 
     private(set) var session: GemContactSession
@@ -42,10 +43,12 @@ public final class ContactEditorSceneViewModel {
     public init(
         service: any GemContactEditorServiceProtocol,
         nameService: any GemNameServiceProtocol,
+        toastPresenter: ToastPresenter,
         mode: Mode,
     ) {
         self.service = service
         self.nameService = nameService
+        self.toastPresenter = toastPresenter
         self.mode = mode
 
         nameInputModel = InputValidationViewModel()
@@ -177,6 +180,10 @@ public final class ContactEditorSceneViewModel {
             defer { session = session.onSaving(isSaving: false) }
             do {
                 _ = try await service.saveContact(input: session.input(avatar: avatarInput()))
+                switch mode {
+                case .add: toastPresenter.present(.success(Localized.Contacts.createNewContact))
+                case .edit: break
+                }
                 dismiss()
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)

@@ -167,7 +167,9 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         )
     }
 
-    public func setPinned(perpetualId _: PerpetualId, pinned _: Bool) async throws {}
+    public func setPinned(perpetualId _: PerpetualId, name: String, pinned: Bool) async throws -> GemToast {
+        GemToast(text: .pinned(name: name, pinned: pinned), icon: pinned ? .pin : .unpin)
+    }
 
     public func addRecent(action _: Gemstone.GemAssetAction, asset _: Gemstone.Asset) async throws {}
 }

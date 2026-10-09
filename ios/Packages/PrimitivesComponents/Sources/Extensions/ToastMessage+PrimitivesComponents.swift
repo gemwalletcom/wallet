@@ -34,13 +34,6 @@ public extension ToastMessage {
         ToastMessage(title: Localized.Asset.addedToWallet, image: SystemImage.plusCircle)
     }
 
-    static func showAsset(visible: Bool) -> ToastMessage {
-        ToastMessage(
-            title: visible ? Localized.Asset.addedToWallet : Localized.Asset.hiddenFromWallet,
-            image: visible ? SystemImage.plusCircle : SystemImage.minusCircle,
-        )
-    }
-
     static func priceAlert(message: String) -> ToastMessage {
         ToastMessage(title: message, image: SystemImage.bellFill)
     }

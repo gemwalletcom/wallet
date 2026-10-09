@@ -34,6 +34,7 @@ use crate::services::failures::record;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use crate::services::stream::rules::hyperliquid_account;
+use crate::services::toast::GemToast;
 use crate::services::transfer::{GemRecentActivityScope, GemRecentActivityService};
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -130,8 +131,9 @@ impl GemPerpetualService {
         Ok(self.should_connect_perpetuals(wallet))
     }
 
-    pub async fn set_pinned(&self, perpetual_id: PerpetualId, pinned: bool) -> Result<(), GemServiceError> {
-        self.store.set_pinned(vec![perpetual_id], pinned).await
+    pub async fn set_pinned(&self, perpetual_id: PerpetualId, name: String, pinned: bool) -> Result<GemToast, GemServiceError> {
+        self.store.set_pinned(vec![perpetual_id], pinned).await?;
+        Ok(GemToast::pinned(name, pinned))
     }
 
     pub async fn connection(&self, wallet: Wallet) -> Result<Option<GemPerpetualConnection>, GemServiceError> {

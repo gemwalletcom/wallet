@@ -8,6 +8,7 @@ import NFTTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
+import Style
 import Testing
 
 @MainActor
@@ -31,8 +32,9 @@ struct CollectibleSceneViewModelTests {
 
         await model.saveToGallery()
 
-        #expect(model.isPresentingToast == nil)
-        #expect(model.isPresentingAlertMessage?.message == Localized.Errors.errorOccurred)
+        #expect(model.isPresentingToast?.title == Localized.Errors.errorOccurred)
+        #expect(model.isPresentingToast?.image == SystemImage.xmarkCircle)
+        #expect(model.isPresentingAlertMessage == nil)
     }
 
     @Test

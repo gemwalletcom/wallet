@@ -40,7 +40,6 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val loadingMessage = stringResource(R.string.common_loading)
     val insufficientPointsMessage = stringResource(R.string.rewards_insufficient_points)
     val doneMessage = stringResource(R.string.common_done)
 
@@ -94,7 +93,6 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
                 return@RewardsScene
             }
             context.requestAuth(AuthRequest.Default) {
-                scope.launch { snackbar.showSnackbar(loadingMessage, R.drawable.ic_refresh) }
                 viewModel.redeem(it) { error ->
                     if (error == null) {
                         scope.launch { snackbar.showSnackbar(doneMessage, R.drawable.ic_check_circle) }
@@ -105,6 +103,7 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
             }
         },
         onClose = onClose,
+        onError = { showErrorDialog = it },
         snackbar = snackbar,
     )
 

@@ -71,7 +71,7 @@ class AuthRequestViewModel @Inject constructor(
         .map { buttonState(loading = it is AuthRequestUIState.Approving) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Enabled)
 
-    fun onRequest(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onNotify: (String) -> Unit) {
+    fun onRequest(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onError: (String) -> Unit) {
         if (authRequest?.id == request.id) {
             return
         }
@@ -86,7 +86,7 @@ class AuthRequestViewModel @Inject constructor(
                     return@launch
                 }
                 if (err is GemWalletConnectException.InvalidOrigin) {
-                    onNotify(err.errorText().text(context))
+                    onError(err.errorText().text(context))
                     hasResponded = true
                     approveWalletConnectAuthentication.rejectAuthentication(request)
                     finish(request)

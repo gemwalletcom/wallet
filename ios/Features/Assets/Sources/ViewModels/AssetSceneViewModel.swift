@@ -303,16 +303,15 @@ public extension AssetSceneViewModel {
         }
     }
 
-    func onSelectEnable() {
+    func onSelectAddToWallet() {
         Task {
-            let enabled = !assetData.metadata.isBalanceEnabled
             do {
-                try await service.setAssetsEnabled(assetIds: [asset.id], enabled: enabled)
-                isPresentingToastMessage = .showAsset(visible: enabled)
+                try await service.setAssetsEnabled(assetIds: [asset.id], enabled: true)
+                isPresentingToastMessage = .addedToWallet()
             } catch let error as GemServiceError {
                 isPresentingToastMessage = .error(error.localizedDescription)
             } catch {
-                debugLog("onSelectEnable error: \(error)")
+                debugLog("onSelectAddToWallet error: \(error)")
             }
         }
     }

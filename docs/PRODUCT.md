@@ -1,6 +1,6 @@
 # Product behavior
 
-This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: numbers, asset logos, the Network Fee, names, asset search, charts, secrets and feature availability. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
+This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: numbers, asset logos, the Network Fee, names, asset search, charts, secrets, feature availability and toasts. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
 
 Before changing how an area works, read its page. A change that breaks a rule written there is a product decision, not a cleanup: ask first, and update the page in the same change when the intent moves.
 
@@ -210,6 +210,48 @@ If an action is unavailable, show the Not Available sheet and stop. Learn More o
 | Rewards | Invite Friends, before opening the share sheet |
 
 Load config at startup and use the stored flags for actions. Features default to enabled until config is loaded. Keep quotes visible, and Withdraw and Close available.
+
+## Toasts
+
+A toast is the short message at the bottom of the screen that confirms what the user just did, or says why it failed. Each area lists the toasts it shows in a Toasts section on its page, and the ones no area owns are below. Anything not listed shows no toast.
+
+```mermaid
+flowchart LR
+    A[The user acts] --> B{Does the screen stay open?}
+    B -- yes: pin, copy, add a token --> C[Toast on that screen]
+    B -- no: Confirm or the contact editor closes --> D[Toast on the screen the user lands on]
+```
+
+The emoji in a Toast column stands for the icon the toast shows:
+
+| Icon | Means |
+|---|---|
+| ✅ | done |
+| ❌ | failed, with the reason |
+| 📌 | pinned or unpinned |
+| ➕ | added to the wallet |
+| 🔔 | price alert |
+| 📋 | copied |
+| 🌐 | connecting or loading |
+
+| When | Toast | Shows on |
+|---|---|---|
+| An address is copied | 📋 Copied: Ethereum (0x12…34) | where it was copied |
+| The Secret Phrase is copied | 📋 Copied: Secret Phrase | Show Secret Phrase |
+| A private key is copied | 📋 Copied: Private Key | Show Private Key |
+| Any other value is copied | 📋 Copied: 0x5f…e3 | where it was copied |
+| A link or a notification cannot open | ❌ the reason | any screen |
+| A scanned QR code cannot be read | ❌ Failed to decode the QR code. Please try again with a different QR code. | the scanner |
+
+| When | iOS | Android | Expected |
+|---|---|---|---|
+| A value is copied | 📋 Copied: Ethereum (0x12…34) | Android 13 and newer show the system's own clipboard notice; older versions toast "Copied to clipboard" | Intentional: Android already confirms every copy |
+
+- A toast confirms or explains; it never asks for a decision. Anything the user must act on is an alert or a sheet.
+- A toast reuses the words the user tapped or already saw: a menu item, a button, an action's name. No toast has wording of its own.
+- A transaction never shows a toast: its Pending row in Activity and its push say how it went. Only an action that leaves no transaction to follow, such as a perpetual order, shows one after Confirm.
+- When the screen the action happened on closes, the toast shows on the screen the user lands on, whichever it is; it is never lost because that screen has nowhere to show it.
+- A failure shows ❌ with the reason; a success never shows ❌.
 
 ## Areas
 

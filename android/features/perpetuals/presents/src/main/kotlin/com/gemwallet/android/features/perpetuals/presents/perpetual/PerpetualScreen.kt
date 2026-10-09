@@ -90,7 +90,7 @@ fun PerpetualScreen(
     ) {
         AutocloseNavGraph(
             onDismiss = { showAutoclose = false },
-            finishAction = FinishConfirmAction { _, _ -> viewModel.refreshPerpetual() },
+            finishAction = FinishConfirmAction { viewModel.refreshPerpetual() },
             confirmContent = confirmContent,
         )
     }

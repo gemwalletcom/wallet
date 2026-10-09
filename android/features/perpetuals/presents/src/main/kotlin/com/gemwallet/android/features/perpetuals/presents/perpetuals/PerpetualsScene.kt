@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -68,10 +69,12 @@ internal fun PerpetualsScene(
     marketView: GemPerpetualMarketView,
     isSearching: Boolean,
     onAction: (PerpetualsAction) -> Unit,
+    snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val longPressedAsset = remember { mutableStateOf<PerpetualId?>(null) }
 
     Scene(
+        snackbar = snackbar,
         titleContent = {
             if (isSearching) {
                 SearchBar(

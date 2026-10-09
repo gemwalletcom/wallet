@@ -7,6 +7,7 @@ import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.WalletPasswordProtectionService
 import com.gemwallet.android.data.services.gemstone.keystore.GemMigrateKeystoreOperator
 import com.gemwallet.android.data.services.gemstone.keystore.MigrateKeystoreOperator
+import com.gemwallet.android.ui.models.ToastPresenter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,4 +32,8 @@ object InteractsModule {
 
     @Provides
     fun providePasswordProtection(service: WalletPasswordProtectionService): WalletPasswordProtection = service
+
+    @Provides
+    @Singleton
+    fun provideToastPresenter(): ToastPresenter = ToastPresenter()
 }

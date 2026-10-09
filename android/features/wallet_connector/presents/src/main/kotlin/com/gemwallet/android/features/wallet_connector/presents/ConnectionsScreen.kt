@@ -54,9 +54,20 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
 
     var pairError by remember { mutableStateOf("") }
 
-    val connectionToastText = stringResource(id = R.string.wallet_connect_connection_title)
+    val connectingText = "${stringResource(id = R.string.wallet_connect_brand_name)}..."
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
+    val connect: (String) -> Unit = { uri ->
+        scope.launch { snackbar.showSnackbar(connectingText, R.drawable.ic_refresh) }
+        viewModel.addPairing(
+            uri,
+            onSuccess = {},
+            onError = { error ->
+                snackbar.currentSnackbarData?.dismiss()
+                pairError = error
+            },
+        )
+    }
 
     Scene(
         title = stringResource(id = R.string.wallet_connect_title),
@@ -71,13 +82,7 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
                 ListItem(
                     model = viewModel.pasteListItem,
                     listPosition = ListPosition.First,
-                    modifier = Modifier.clickable {
-                        viewModel.addPairing(
-                            clipboardManager.getPlainText() ?: return@clickable,
-                            { scope.launch { snackbar.showSnackbar(connectionToastText, R.drawable.ic_check_circle) } },
-                            { pairError = it },
-                        )
-                    },
+                    modifier = Modifier.clickable { connect(clipboardManager.getPlainText() ?: return@clickable) },
                 )
             }
             item {
@@ -110,7 +115,7 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
         scanType = QRScanType.WalletConnect,
         onDismissRequest = { scannerShowed = false },
         onResult = {
-            viewModel.addPairing(it, onSuccess = {}, onError = { error -> pairError = error })
+            connect(it)
             scannerShowed = false
         },
     )

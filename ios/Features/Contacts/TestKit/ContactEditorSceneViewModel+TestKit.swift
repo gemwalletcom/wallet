@@ -3,6 +3,7 @@
 import Contacts
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
+import PrimitivesComponents
 
 public extension ContactEditorSceneViewModel {
     @MainActor
@@ -10,6 +11,7 @@ public extension ContactEditorSceneViewModel {
         ContactEditorSceneViewModel(
             service: GemContactEditorServiceMock(),
             nameService: GemNameServiceMock(),
+            toastPresenter: ToastPresenter(),
             mode: mode,
         )
     }

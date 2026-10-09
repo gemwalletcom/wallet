@@ -8,6 +8,7 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.ui.models.ToastPresenter
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Account
 import io.mockk.every
@@ -24,6 +25,7 @@ import uniffi.gemstone.GemTransferData
 class ConfirmTransferRule(dispatcher: TestDispatcher, private val account: Account) : MainDispatcherRule(dispatcher) {
 
     val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
+    val toastPresenter = ToastPresenter()
     private var model: ConfirmTransferViewModel? = null
 
     fun viewModel(transfer: GemTransferData) = viewModel(SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))))
@@ -35,6 +37,7 @@ class ConfirmTransferRule(dispatcher: TestDispatcher, private val account: Accou
         confirmService = confirmService,
         savedStateHandle = handle,
         observeRefreshInterval = mockk(relaxed = true),
+        toastPresenter = toastPresenter,
         ioDispatcher = dispatcher,
         context = mockk<Context> {
             every { getString(any()) } returns "Error"

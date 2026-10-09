@@ -1,11 +1,9 @@
 package com.gemwallet.android
 
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,6 +35,7 @@ internal fun WalletConnectorRequestContent(activeRequest: ActiveWalletConnectReq
             request = current.request,
             verifyContext = current.verifyContext,
             onOpenAddress = onOpenAddress,
+            onError = onError,
         )
 
         is WalletConnectUserRequest.SessionProposal -> ConnectionProposalScreen(
@@ -65,15 +64,11 @@ private fun SessionRequestContent(
     viewModel: WalletConnectorRequestViewModel = hiltViewModel(),
 ) {
     BackHandler(onBack = viewModel::onReject)
-    val context = LocalContext.current
 
     LaunchedEffect(request.topic, request.request.id) {
         viewModel.onRequest(
             sessionRequest = request,
             verifyContext = verifyContext,
-            onNotify = { message ->
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-            },
             onError = onError,
         )
     }
@@ -98,7 +93,7 @@ private fun SessionRequestContent(
         is WalletConnectorRequestUIState.Transaction -> ConfirmTransferScreen(
             input = state.input,
             simulationResult = state.simulation,
-            finishAction = FinishConfirmAction { hash, _ -> viewModel.onResult(hash) },
+            finishAction = FinishConfirmAction(viewModel::onResult),
             onGetAsset = onGetAsset,
             onOpenAddress = onOpenAddress,
             cancelAction = CancelAction(viewModel::onReject),

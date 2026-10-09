@@ -167,7 +167,7 @@ extension CollectibleSceneViewModel {
         } catch {
             switch error {
             case .wrongURL, .invalidData, .invalidResponse, .unexpectedStatusCode, .urlSessionError, .saveFailed:
-                isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)
+                isPresentingToast = .error(Localized.Errors.errorOccurred)
             case .permissionDenied:
                 isPresentingAlertMessage = AlertMessage(
                     title: Localized.Permissions.accessDenied,
@@ -195,7 +195,7 @@ extension CollectibleSceneViewModel {
                 try await setWalletAvatar()
                 isPresentingToast = .success(Localized.Nft.setAsAvatar)
             } catch {
-                isPresentingAlertMessage = AlertMessage(error: error)
+                isPresentingToast = .error(error)
             }
         }
     }
@@ -216,8 +216,7 @@ extension CollectibleSceneViewModel {
                 try await service.refreshAsset(assetId: assetId.identifier)
                 isPresentingToast = .success(Localized.Common.refresh)
             } catch {
-                debugLog("Refresh nft asset error: \(error)")
-                isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)
+                isPresentingToast = .error(error)
             }
         }
     }

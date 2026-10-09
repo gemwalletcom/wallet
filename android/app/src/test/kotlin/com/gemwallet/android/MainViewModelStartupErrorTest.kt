@@ -4,6 +4,9 @@ import android.util.Log
 import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.models.ToastMessage
+import com.gemwallet.android.ui.models.ToastPresenter
 import com.wallet.core.primitives.Appearance
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -14,9 +17,11 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -29,6 +34,7 @@ import uniffi.gemstone.InternalException
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelStartupErrorTest {
     private val dispatcher = UnconfinedTestDispatcher()
+    private val toastPresenter = ToastPresenter()
 
     @Before
     fun setUp() {
@@ -87,14 +93,14 @@ class MainViewModelStartupErrorTest {
     }
 
     @Test
-    fun unexpectedLinkFailure_isShownAndClearsThePendingLink() {
+    fun unexpectedLinkFailure_isShownAndClearsThePendingLink() = runTest(dispatcher) {
         val coordinator = coordinator(PendingNavigation.FromLink("gem://unexpected"))
         coEvery { coordinator.buildRoutes(any()) } throws InternalException("panic")
         val viewModel = mainViewModel(coordinator = coordinator)
 
         viewModel.maintain(flowOf(true))
 
-        assertEquals("panic", viewModel.uiState.value.navigationError)
+        assertEquals(ToastMessage("panic", R.drawable.ic_error), toastPresenter.toastEvents.first())
         coVerify(exactly = 1) { coordinator.clear() }
     }
 
@@ -123,6 +129,7 @@ class MainViewModelStartupErrorTest {
             walletService = walletService,
             migratePriceAlertsPreference = mockk(relaxed = true),
             pendingNavigationCoordinator = coordinator,
+            toastPresenter = toastPresenter,
             ioDispatcher = dispatcher,
             context = mockk(relaxed = true),
         )

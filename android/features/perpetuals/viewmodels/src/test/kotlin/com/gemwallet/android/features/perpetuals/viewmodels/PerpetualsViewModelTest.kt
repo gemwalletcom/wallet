@@ -169,6 +169,7 @@ class PerpetualsViewModelTest {
             perpetualObserver = perpetualObserver,
             ioDispatcher = dispatcher,
             observeRefreshInterval = mockk(relaxed = true),
+            context = mockk(relaxed = true),
         ).also { model = it }
     }
 

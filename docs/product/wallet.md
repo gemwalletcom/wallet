@@ -93,6 +93,17 @@ flowchart LR
 
 Showing and copying a Secret Phrase or private key follow the shared [Secrets](../PRODUCT.md#secrets) section.
 
+## Toasts
+
+Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
+
+| When | Toast | Shows on |
+|---|---|---|
+| An asset is pinned | 📌 Pinned: Bitcoin | the wallet or search |
+| An asset is unpinned | 📌 Unpinned: Bitcoin | the wallet or search |
+| A token is added from search or a network's assets | ➕ Added to wallet | where it was added |
+| A token is added but its balance cannot load | ❌ the reason | where it was added |
+
 ## Platform differences
 
 | When | iOS | Android | Expected |

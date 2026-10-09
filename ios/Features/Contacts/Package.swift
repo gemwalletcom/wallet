@@ -52,6 +52,7 @@ let package = Package(
             dependencies: [
                 "Contacts",
                 "Gemstone",
+                "PrimitivesComponents",
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
             ],

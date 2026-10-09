@@ -14,9 +14,12 @@ import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressI
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorPage
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorUIState
 import com.gemwallet.android.features.contacts.viewmodels.models.listItemImage
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.ToastMessage
+import com.gemwallet.android.ui.models.ToastPresenter
 import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.ui.models.navigation.ContactAddressDraft
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -49,6 +52,7 @@ class ContactEditorViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val service: GemContactEditorServiceInterface,
     nameService: GemNameServiceInterface,
+    private val toastPresenter: ToastPresenter,
     savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -235,7 +239,13 @@ class ContactEditorViewModel @Inject constructor(
                 },
             )
             runCatchingCancellable { service.saveContact(input) }
-                .onSuccess { state.update { it.copy(saved = true) } }
+                .onSuccess {
+                    when (mode) {
+                        is Mode.Add -> toastPresenter.emitToast(ToastMessage(context.getString(R.string.contacts_create_new_contact), R.drawable.ic_check_circle))
+                        is Mode.Edit -> Unit
+                    }
+                    state.update { it.copy(saved = true) }
+                }
                 .onFailure { error ->
                     state.update { it.copy(session = it.session.onSaving(false), errorText = error.errorText().text(context)) }
                 }

@@ -120,16 +120,16 @@ class AuthRequestViewModelTest {
     }
 
     @Test
-    fun `a malicious origin notifies the scene and rejects the request`() = runTest(dispatcher) {
-        val notified = CompletableDeferred<String>()
+    fun `a malicious origin reports an error and rejects the request`() = runTest(dispatcher) {
+        val error = CompletableDeferred<String>()
         val approve = approval()
         val service = service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) }
         coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.InvalidOrigin()
         val model = viewModel(service, approve)
 
-        model.onRequest(request, verifyContext) { notified.complete(it) }
+        model.onRequest(request, verifyContext) { error.complete(it) }
 
-        assertEquals("Malicious origin", notified.await())
+        assertEquals("Malicious origin", error.await())
         verify { approve.rejectAuthentication(request, any(), any()) }
         assertTrue(model.state.value is AuthRequestUIState.Loading)
     }

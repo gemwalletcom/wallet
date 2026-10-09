@@ -6,6 +6,7 @@ import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockPaymentLink
 import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.ui.models.ToastPresenter
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
 import io.mockk.every
@@ -37,6 +38,7 @@ class PaymentVerificationViewModelTest {
         val viewModel = PaymentVerificationViewModel(
             getSession = mockk<GetSession> { every { this@mockk() } returns MutableStateFlow(mockSession()) },
             paymentService = paymentService,
+            toastPresenter = ToastPresenter(),
             savedStateHandle = SavedStateHandle(
                 mapOf(
                     RouteArgument.PaymentLink.key to requireNotNull(mockPaymentLink().packRoutePayload()),

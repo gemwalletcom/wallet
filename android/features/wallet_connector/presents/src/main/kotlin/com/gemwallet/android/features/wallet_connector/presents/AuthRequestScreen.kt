@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.wallet_connector.presents
 
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
@@ -10,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,17 +27,14 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.ChainAddress
 
 @Composable
-fun AuthRequestScreen(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onOpenAddress: (ChainAddress) -> Unit) {
-    val context = LocalContext.current
+fun AuthRequestScreen(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onOpenAddress: (ChainAddress) -> Unit, onError: (String) -> Unit) {
     val viewModel: AuthRequestViewModel = hiltViewModel()
     BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     LaunchedEffect(request.id) {
-        viewModel.onRequest(request, verifyContext) { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-        }
+        viewModel.onRequest(request, verifyContext, onError)
     }
 
     when (val currentState = state) {

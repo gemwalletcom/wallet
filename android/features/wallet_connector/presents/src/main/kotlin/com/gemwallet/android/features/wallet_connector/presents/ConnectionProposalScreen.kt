@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.wallet_connector.presents
 
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,9 +30,7 @@ fun ConnectionProposalScreen(proposal: WalletConnectSessionProposal, verifyConte
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
     LaunchedEffect(viewModel) {
-        viewModel.refusalMessages.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-        }
+        viewModel.refusalMessages.collect(onError)
     }
 
     when (val currentPeer = peer) {

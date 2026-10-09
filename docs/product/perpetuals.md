@@ -58,6 +58,21 @@ flowchart LR
 
 Pinching and touching the chart follow the shared [Charts](../PRODUCT.md#charts) section.
 
+## Toasts
+
+Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
+
+| When | Toast | Shows on |
+|---|---|---|
+| A long position is opened | ✅ Open Long | where the user lands after Confirm |
+| A short position is opened | ✅ Open Short | where the user lands after Confirm |
+| A position is increased | ✅ Increase Position | where the user lands after Confirm |
+| A position is reduced | ✅ Reduce Position | where the user lands after Confirm |
+| A position is closed | ✅ Close position | where the user lands after Confirm |
+| A position's Auto Close is set or changed | ✅ Modify Position | where the user lands after Confirm |
+| A market is pinned | 📌 Pinned: BTC | where it was pinned |
+| A market is unpinned | 📌 Unpinned: BTC | where it was unpinned |
+
 ## Platform differences
 
 None recorded.

@@ -112,8 +112,8 @@ private fun AutocloseNavGraphContent(onDismiss: () -> Unit, finishAction: Finish
             transfer?.let { input ->
                 confirmContent(
                     input,
-                    FinishConfirmAction { hash, warning ->
-                        finishAction(hash, warning)
+                    FinishConfirmAction { hash ->
+                        finishAction(hash)
                         onDismiss()
                     },
                     CancelAction { popInternal() },

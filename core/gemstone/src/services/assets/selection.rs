@@ -118,8 +118,7 @@ impl GemAssetSelectionService {
     }
 
     pub async fn set_perpetual_pinned(&self, perpetual_id: PerpetualId, name: String, pinned: bool) -> Result<GemToast, GemServiceError> {
-        self.perpetuals.set_pinned(perpetual_id, pinned).await?;
-        Ok(GemToast::pinned(name, pinned))
+        self.perpetuals.set_pinned(perpetual_id, name, pinned).await
     }
 
     pub async fn add_recent(&self, action: GemAssetAction, asset: Asset) -> Result<(), GemServiceError> {

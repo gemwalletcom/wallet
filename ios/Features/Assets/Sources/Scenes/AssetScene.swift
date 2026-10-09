@@ -132,7 +132,7 @@ extension AssetScene {
         case (.pin, _):
             NavigationCustomLink(with: label(), action: model.onSelectPin)
         case (.addToWallet, _):
-            NavigationCustomLink(with: label(), action: model.onSelectEnable)
+            NavigationCustomLink(with: label(), action: model.onSelectAddToWallet)
         default:
             label()
         }

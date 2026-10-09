@@ -14,6 +14,7 @@ import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
+import com.gemwallet.android.ui.models.ToastPresenter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -32,6 +33,7 @@ import javax.inject.Inject
 class PaymentVerificationViewModel @Inject constructor(
     private val getSession: GetSession,
     private val paymentService: GemPaymentServiceInterface,
+    private val toastPresenter: ToastPresenter,
     savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
@@ -46,8 +48,13 @@ class PaymentVerificationViewModel @Inject constructor(
     val confirm: StateFlow<ConfirmTransferInput?> = confirmState.asStateFlow()
     private val failedState = MutableStateFlow(false)
     val isFailed: StateFlow<Boolean> = failedState.asStateFlow()
-    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified) { failedState.value = true }
+    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified, ::onPaymentVerificationFailed)
     private var verifying: Job? = null
+
+    private fun onPaymentVerificationFailed() {
+        toastPresenter.emitToast(ToastMessage(context.getString(R.string.errors_error_occurred), R.drawable.ic_error))
+        failedState.value = true
+    }
 
     private fun onPaymentVerified() {
         if (verifying?.isActive == true) return
@@ -62,7 +69,7 @@ class PaymentVerificationViewModel @Inject constructor(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                emitToast(ToastMessage(error.errorText().text(context), R.drawable.ic_warning))
+                emitToast(ToastMessage(error.errorText().text(context), R.drawable.ic_error))
             }
         }
     }

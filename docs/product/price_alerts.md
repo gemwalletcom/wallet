@@ -25,6 +25,19 @@ flowchart LR
 | The user enables an alert but refuses notifications | nothing changes: no alert is kept, no confirmation is shown, the Enable Price Alerts switch stays off | an alert that can never be delivered is not kept |
 | The user adds an alert while Enable Price Alerts is on but notifications are off | the app asks for notifications first; allowed turns notifications back on and keeps the alert, refused keeps nothing | the server pushes price alerts only to a device with notifications on |
 
+## Toasts
+
+Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
+
+| When | Toast | Shows on |
+|---|---|---|
+| An asset is added to Price Alerts | 🔔 Price alert enabled for Bitcoin | Price Alerts |
+| An alert is set for a price over | 🔔 Alert added for price over $70,000.00 | the screen Set Price Alert was opened from |
+| An alert is set for a price under | 🔔 Alert added for price under $60,000.00 | the screen Set Price Alert was opened from |
+| An alert is set for a price increase | 🔔 Alert added for price increase of 5% | the screen Set Price Alert was opened from |
+| An alert is set for a price decrease | 🔔 Alert added for price decrease of 5% | the screen Set Price Alert was opened from |
+| Turning an alert on or off, or deleting one, fails | ❌ the reason | where it happened |
+
 ## Platform differences
 
 | When | iOS | Android | Expected |

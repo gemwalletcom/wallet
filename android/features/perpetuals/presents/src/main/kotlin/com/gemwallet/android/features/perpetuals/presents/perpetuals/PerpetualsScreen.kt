@@ -1,10 +1,12 @@
 package com.gemwallet.android.features.perpetuals.presents.perpetuals
 
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -17,6 +19,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.infoSheet
+import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.wallet.core.primitives.RecentActivityType
@@ -45,6 +48,8 @@ fun PerpetualsScreen(
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
     val query = rememberTextFieldState()
     val scope = rememberCoroutineScope()
+    val snackbar = remember { SnackbarHostState() }
+    ToastEffect(viewModel.toastEvents, snackbar)
 
     LaunchedEffect(query) {
         snapshotFlow { query.text.toString() }.collect(viewModel::setQuery)
@@ -72,6 +77,7 @@ fun PerpetualsScreen(
         query = query,
         marketView = marketView,
         isSearching = isSearching,
+        snackbar = snackbar,
         onAction = { action ->
             when (action) {
                 PerpetualsAction.Refresh -> viewModel.onRefresh()

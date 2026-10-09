@@ -32,7 +32,6 @@ public enum SystemImage {
     public static let info = "info.circle"
     public static let plus = "plus"
     public static let plusCircle = "plus.circle"
-    public static let minusCircle = "minus.circle"
     public static let eye = "eye.fill"
     public static let search = "magnifyingglass"
     public static let exclamationmarkTriangleFill = "exclamationmark.triangle.fill"

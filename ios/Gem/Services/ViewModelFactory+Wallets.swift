@@ -65,6 +65,6 @@ public extension ViewModelFactory {
 
     @MainActor
     func contactEditorScene(mode: ContactEditorSceneViewModel.Mode) -> ContactEditorSceneViewModel {
-        ContactEditorSceneViewModel(service: contactEditorService, nameService: nameService, mode: mode)
+        ContactEditorSceneViewModel(service: contactEditorService, nameService: nameService, toastPresenter: toastPresenter, mode: mode)
     }
 }

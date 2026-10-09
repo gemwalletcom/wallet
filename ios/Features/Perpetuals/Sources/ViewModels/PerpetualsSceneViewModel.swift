@@ -49,6 +49,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     var isPresentingInfoSheet: InfoSheetModel?
+    var isPresentingToastMessage: ToastMessage?
     var isSearchPresented: Bool = false
     private var session = GemPerpetualMarketSession(query: .empty, isSearching: false)
 
@@ -173,7 +174,8 @@ extension PerpetualsSceneViewModel {
     func onPinPerpetual(_ perpetualData: PerpetualData) {
         Task {
             do {
-                try await service.setPinned(perpetualId: perpetualData.perpetual.id, pinned: !perpetualData.metadata.isPinned)
+                let toast = try await service.setPinned(perpetualId: perpetualData.perpetual.id, name: perpetualData.perpetual.name, pinned: !perpetualData.metadata.isPinned)
+                isPresentingToastMessage = ToastMessage(toast: toast)
             } catch {
                 debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")
             }

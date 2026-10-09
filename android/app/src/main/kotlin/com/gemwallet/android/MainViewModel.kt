@@ -14,7 +14,10 @@ import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.services.MigrateV3KeystoreService
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.ToastMessage
+import com.gemwallet.android.ui.models.ToastPresenter
 import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -50,6 +53,7 @@ class MainViewModel @Inject constructor(
     private val walletService: GemWalletServiceInterface,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
+    private val toastPresenter: ToastPresenter,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -58,6 +62,8 @@ class MainViewModel @Inject constructor(
     val uiState: StateFlow<MainUIState> = _uiState.asStateFlow()
 
     internal val pendingNavigation: StateFlow<PendingNavigation?> = pendingNavigationCoordinator.pendingNavigation
+
+    val toastEvents: Flow<ToastMessage> = toastPresenter.toastEvents
 
     val isWalletConnectEnabled: Boolean = isWalletConnectEnabledCase.isWalletConnectEnabled()
 
@@ -89,15 +95,22 @@ class MainViewModel @Inject constructor(
                 .filter { it }
                 .collect {
                     try {
-                        pendingNavigationCoordinator.buildRoutes(walletConnectHandler)?.let { text ->
-                            _uiState.update { it.copy(navigationError = text.text(context)) }
-                        }
+                        pendingNavigationCoordinator.buildRoutes(walletConnectHandler)?.let { text -> showError(text.text(context)) }
                     } catch (error: CancellationException) {
                         throw error
                     } catch (error: Exception) {
                         onNavigationFailed(error)
                     }
                 }
+        }
+        viewModelScope.launch {
+            combine(
+                isUnlocked.distinctUntilChanged(),
+                pendingNavigation,
+            ) { unlocked, pending -> unlocked && pending is PendingNavigation.Loading }
+                .distinctUntilChanged()
+                .filter { it }
+                .collect { toastPresenter.emitToast(ToastMessage(context.getString(R.string.common_loading), R.drawable.ic_refresh)) }
         }
         viewModelScope.launch(ioDispatcher) { appStartService.run().forEach(::logAppStartFailure) }
         viewModelScope.launch(ioDispatcher) {
@@ -136,18 +149,13 @@ class MainViewModel @Inject constructor(
         pendingNavigationCoordinator.clear()
         when (input) {
             null, is PendingNavigation.FromNotification -> Log.e("MainViewModel", "notification navigation failed", error)
-            else -> _uiState.update { it.copy(navigationError = error.errorText().text(context)) }
+            else -> showError(error.errorText().text(context))
         }
-    }
-
-    fun dismissWalletConnectPairingToast() {
-        _uiState.update { it.copy(isWalletConnectPairingToastVisible = false) }
     }
 
     fun resetError() {
         _uiState.update {
             it.copy(
-                navigationError = null,
                 walletConnectError = null,
                 startupError = null,
                 isWalletConnectUnsupportedVisible = false,
@@ -175,18 +183,16 @@ class MainViewModel @Inject constructor(
     }
 
     private fun showWalletConnectPairingToast() {
-        _uiState.update { it.copy(isWalletConnectPairingToastVisible = true) }
+        toastPresenter.emitToast(ToastMessage("${context.getString(R.string.wallet_connect_brand_name)}...", R.drawable.ic_refresh))
+    }
+
+    private fun showError(text: String) {
+        toastPresenter.emitToast(ToastMessage(text, R.drawable.ic_error))
     }
 
     private fun showWalletConnectUnsupported() {
         _uiState.update { it.copy(isWalletConnectUnsupportedVisible = true) }
     }
 
-    data class MainUIState(
-        val isWalletConnectPairingToastVisible: Boolean = false,
-        val walletConnectError: String? = null,
-        val navigationError: String? = null,
-        val startupError: String? = null,
-        val isWalletConnectUnsupportedVisible: Boolean = false,
-    )
+    data class MainUIState(val walletConnectError: String? = null, val startupError: String? = null, val isWalletConnectUnsupportedVisible: Boolean = false)
 }

@@ -1,12 +1,9 @@
 package com.gemwallet.android.features.transfer.presents.confirm
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,6 +38,10 @@ fun PaymentVerificationScreen(onCancel: () -> Unit, onConfirm: ConfirmTransactio
         confirm?.let { onConfirm(it) }
     }
 
+    LaunchedEffect(isFailed) {
+        if (isFailed) onCancel()
+    }
+
     Scene(
         title = stringResource(R.string.info_payment_verification_title),
         closeIcon = true,
@@ -61,17 +62,5 @@ fun PaymentVerificationScreen(onCancel: () -> Unit, onConfirm: ConfirmTransactio
 
     if (isInfoVisible) {
         InfoBottomSheet(GemInfoTopic.PaymentVerification.infoSheet()) { isInfoVisible = false }
-    }
-
-    if (isFailed) {
-        AlertDialog(
-            onDismissRequest = onCancel,
-            confirmButton = {
-                Button(onCancel) { Text(stringResource(R.string.common_done)) }
-            },
-            text = {
-                Text(stringResource(R.string.errors_error_occurred))
-            },
-        )
     }
 }

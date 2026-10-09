@@ -36,6 +36,18 @@ flowchart LR
 | A WalletConnect Pay verification page is anywhere else | it opens in the browser | |
 | The verification page reports a failure | it closes and the user sees an error instead of waiting on it | |
 
+## Toasts
+
+Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
+
+| When | Toast | Shows on |
+|---|---|---|
+| A WalletConnect link is scanned, pasted or opened | 🌐 WalletConnect... | any screen, until the connection sheet opens |
+| A payment link is being prepared | 🌐 Loading | any screen, until the payment opens |
+| A payment's gateway reports a problem after paying | ❌ the gateway's message | where the user lands after Confirm |
+| A payment's verification fails | ❌ An error occurred! | where the user lands |
+| A verified payment cannot be prepared | ❌ the reason | Payment verification |
+
 ## Platform differences
 
 | When | iOS | Android | Expected |

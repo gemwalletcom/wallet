@@ -51,6 +51,7 @@ import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemSecurityReminderItem
+import uniffi.gemstone.GemSubmitMessage
 import uniffi.gemstone.GemSupportBubbleSide
 import uniffi.gemstone.GemSwapProgressMarker
 import uniffi.gemstone.GemSwapProgressStep
@@ -95,6 +96,12 @@ fun GemToastIcon.iconRes(): Int = when (this) {
     GemToastIcon.PIN -> R.drawable.ic_push_pin
     GemToastIcon.UNPIN -> R.drawable.keep_off
     GemToastIcon.PRICE_ALERT -> R.drawable.ic_notifications
+}
+
+@DrawableRes
+fun GemSubmitMessage.iconRes(): Int = when (this) {
+    is GemSubmitMessage.Warning -> R.drawable.ic_error
+    is GemSubmitMessage.Confirmed -> R.drawable.ic_check_circle
 }
 
 @DrawableRes

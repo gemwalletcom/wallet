@@ -28,9 +28,12 @@ import com.gemwallet.android.ui.localization.broadcastLabel
 import com.gemwallet.android.ui.localization.label
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.ToastMessage
+import com.gemwallet.android.ui.models.ToastPresenter
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.style.iconRes
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
@@ -93,6 +96,7 @@ class ConfirmTransferViewModel @Inject constructor(
     private val confirmService: GemConfirmTransferServiceInterface,
     private val savedStateHandle: SavedStateHandle,
     observeRefreshInterval: ObserveRefreshInterval,
+    private val toastPresenter: ToastPresenter,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -320,7 +324,8 @@ class ConfirmTransferViewModel @Inject constructor(
                 is GemSubmitResult.Signed -> result.data.first() to result.message
                 is GemSubmitResult.Sent -> result.hashes.last() to result.message
             }
-            finishAction(transactionHash, message?.text(context))
+            message?.let { toastPresenter.emitToast(ToastMessage(it.text(context), it.iconRes())) }
+            finishAction(transactionHash)
         } catch (error: CancellationException) {
             throw error
         } catch (_: GemConfirmException.Cancelled) {

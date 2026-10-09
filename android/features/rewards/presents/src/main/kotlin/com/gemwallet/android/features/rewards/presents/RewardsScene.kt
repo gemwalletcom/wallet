@@ -31,7 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.rewards.presents.components.rewardsHead
 import com.gemwallet.android.features.rewards.presents.components.rewardsInfo
 import com.gemwallet.android.features.rewards.presents.dialogs.CreateRewardsCodeDialog
@@ -51,7 +50,6 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.requestAuth
@@ -95,6 +93,7 @@ fun RewardsScene(
     onRedeem: (GemRewardsRedemption) -> Unit,
     onClose: () -> Unit,
     onInvite: () -> Unit,
+    onError: (Throwable) -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val context = LocalContext.current
@@ -112,13 +111,9 @@ fun RewardsScene(
     val scope = rememberCoroutineScope()
 
     val onCodeResult = fun (error: Throwable?) {
-        val message = error?.errorText()?.text(context)
-        scope.launch {
-            if (message == null) {
-                snackbar.showSnackbar(successStr, R.drawable.ic_check_circle)
-            } else {
-                snackbar.showSnackbar(message, R.drawable.ic_error)
-            }
+        when (error) {
+            null -> scope.launch { snackbar.showSnackbar(successStr, R.drawable.ic_check_circle) }
+            else -> onError(error)
         }
     }
 
@@ -277,6 +272,7 @@ private fun RewardsScenePreview() {
             onRedeem = {},
             onClose = {},
             onInvite = {},
+            onError = {},
         )
     }
 }
@@ -305,6 +301,7 @@ private fun RewardsSceneNoRewardsPreview() {
             onRedeem = {},
             onClose = {},
             onInvite = {},
+            onError = {},
         )
     }
 }

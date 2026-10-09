@@ -57,7 +57,7 @@ class WalletConnectorRequestViewModel @Inject constructor(
         .map { it.uiState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, WalletConnectorRequestUIState.Loading)
 
-    fun onRequest(sessionRequest: WalletConnectSessionRequest, verifyContext: WalletConnectVerifyContext, onNotify: (String) -> Unit, onError: (String) -> Unit) {
+    fun onRequest(sessionRequest: WalletConnectSessionRequest, verifyContext: WalletConnectVerifyContext, onError: (String) -> Unit) {
         if (state.value.sessionRequest == sessionRequest) {
             return
         }
@@ -81,8 +81,7 @@ class WalletConnectorRequestViewModel @Inject constructor(
             }
             when (val failure = outcome.failure) {
                 null -> Unit
-                GemWalletConnectFailure.MaliciousOrigin, GemWalletConnectFailure.Expired -> onNotify(failure.text(context))
-                is GemWalletConnectFailure.Failed -> onError(failure.text(context))
+                GemWalletConnectFailure.MaliciousOrigin, GemWalletConnectFailure.Expired, is GemWalletConnectFailure.Failed -> onError(failure.text(context))
             }
             when (val response = outcome.response) {
                 null -> activeRequest.finish(sessionRequest)

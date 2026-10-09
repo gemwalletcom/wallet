@@ -1,13 +1,21 @@
 package com.gemwallet.android
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
@@ -16,7 +24,13 @@ import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.features.settings.viewmodels.lock.models.LockUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
+import com.gemwallet.android.ui.components.screen.SnackbarHost
+import com.gemwallet.android.ui.components.screen.ToastEffect
+import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.theme.WalletTheme
+import com.gemwallet.android.ui.theme.mainActionHeight
+import com.gemwallet.android.ui.theme.paddingLarge
+import kotlinx.coroutines.flow.Flow
 import com.gemwallet.android.R as AppR
 
 @Composable
@@ -28,10 +42,10 @@ internal fun MainContent(
     systemAuthEnrollmentMissing: Boolean,
     activeWalletConnectRequest: ActiveWalletConnectRequest,
     walletConnectEnabled: Boolean,
+    toastEvents: Flow<ToastMessage>,
     onSystemAuthRequired: () -> Unit,
     onPendingNavigationConsumed: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
-    onWalletConnectPairingToastShown: () -> Unit,
     onWalletConnectError: (String) -> Unit,
     onErrorDismiss: () -> Unit,
 ) {
@@ -67,6 +81,7 @@ internal fun MainContent(
                     activeWalletConnectRequest = activeWalletConnectRequest.takeIf { walletConnectEnabled },
                     onWalletConnectError = onWalletConnectError,
                 )
+                AppToastHost(toastEvents)
             }
 
             if (isEnrollmentRequired) {
@@ -81,25 +96,24 @@ internal fun MainContent(
             }
         }
 
-        if (walletConnectEnabled) {
-            MessageToast(
-                visible = state.isWalletConnectPairingToastVisible,
-                message = R.string.wallet_connect_connection_title,
-                onShown = onWalletConnectPairingToastShown,
-            )
-        }
-        MessageToast(
-            visible = isWalletUnlocked && pendingNavigation is PendingNavigation.Loading,
-            message = R.string.common_loading,
-            onShown = {},
-        )
-        MessageToast(
-            message = state.navigationError,
-            onShown = onErrorDismiss,
-        )
         ErrorDialog(
             error = state.walletConnectError ?: unsupportedWalletConnectError ?: state.startupError,
             onDismiss = onErrorDismiss,
         )
+    }
+}
+
+@Composable
+private fun AppToastHost(events: Flow<ToastMessage>) {
+    val snackbar = remember { SnackbarHostState() }
+    ToastEffect(events, snackbar)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+            .padding(bottom = mainActionHeight + paddingLarge),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        SnackbarHost(snackbar)
     }
 }

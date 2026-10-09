@@ -21,6 +21,14 @@ flowchart LR
 
 Names follow the shared [Names](../PRODUCT.md#names) section.
 
+## Toasts
+
+Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
+
+| When | Toast | Shows on |
+|---|---|---|
+| A new contact is saved | ✅ Create New Contact | where the user lands: Contacts, or the screen it was saved from |
+
 ## Platform differences
 
 None recorded.

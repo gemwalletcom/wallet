@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.perpetuals.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,12 +19,16 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualPositionRowUIModel
+import com.gemwallet.android.ui.components.screen.message
+import com.gemwallet.android.ui.models.ToastEmitter
+import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.RecentActivityType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
@@ -73,7 +78,9 @@ class PerpetualsViewModel @Inject constructor(
     private val perpetualObserver: PerpetualObserver,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val observeRefreshInterval: ObserveRefreshInterval,
-) : ViewModel() {
+    @param:ApplicationContext private val context: Context,
+) : ViewModel(),
+    ToastEmitter by ToastEmitterImpl() {
 
     val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
 
@@ -192,7 +199,8 @@ class PerpetualsViewModel @Inject constructor(
 
     fun onTogglePin(perpetualId: PerpetualId) = viewModelScope.launch(ioDispatcher) {
         val item = (pinnedPerpetuals.value + unpinnedPerpetuals.value).firstOrNull { it.data.perpetual.id == perpetualId.toIdentifier() } ?: return@launch
-        runCatchingCancellable { service.setPinned(perpetualId.toIdentifier(), !item.data.metadata.isPinned) }
+        runCatchingCancellable { service.setPinned(perpetualId.toIdentifier(), item.data.perpetual.name, !item.data.metadata.isPinned) }
+            .onSuccess { emitToast(it.message(context)) }
             .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
     }
 

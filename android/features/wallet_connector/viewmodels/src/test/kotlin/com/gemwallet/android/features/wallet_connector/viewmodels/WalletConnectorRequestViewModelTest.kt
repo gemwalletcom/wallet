@@ -100,44 +100,42 @@ class WalletConnectorRequestViewModelTest {
     private suspend fun WalletConnectorRequestViewModel.awaitContent(): WalletConnectorRequestUIState = uiState.first { it !is WalletConnectorRequestUIState.Loading }
 
     @Test
-    fun `a malicious origin notifies without responding`() = runTest(dispatcher) {
-        val notified = CompletableDeferred<String>()
+    fun `a malicious origin reports an error without responding`() = runTest(dispatcher) {
+        val error = CompletableDeferred<String>()
         val respond = mockk<RespondWalletConnectRequest>(relaxed = true)
         val model = viewModel(
             service = service { GemWalletConnectOutcome(response = null, failure = GemWalletConnectFailure.MaliciousOrigin) },
             respond = respond,
         )
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = { notified.complete(it) }, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = { error.complete(it) })
 
-        assertEquals("Malicious origin", notified.await())
+        assertEquals("Malicious origin", error.await())
         verify(exactly = 0) { respond.respond(any(), any(), any(), any(), any()) }
     }
 
     @Test
-    fun `an expired request notifies as expired`() = runTest(dispatcher) {
-        val notified = CompletableDeferred<String>()
+    fun `an expired request reports that it expired`() = runTest(dispatcher) {
+        val error = CompletableDeferred<String>()
         val model = viewModel(
             service = service { GemWalletConnectOutcome(response = null, failure = GemWalletConnectFailure.Expired) },
         )
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = { notified.complete(it) }, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = { error.complete(it) })
 
-        assertEquals("Request expired", notified.await())
+        assertEquals("Request expired", error.await())
     }
 
     @Test
-    fun `a failed request reports an error without a notification`() = runTest(dispatcher) {
+    fun `a failed request reports its error`() = runTest(dispatcher) {
         val error = CompletableDeferred<String>()
-        val notified = mutableListOf<String>()
         val model = viewModel(
             service = service { GemWalletConnectOutcome(response = null, failure = GemWalletConnectFailure.Failed(GemErrorText.Message("Request failed"))) },
         )
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = { notified.add(it) }, onError = { error.complete(it) })
+        model.onRequest(sessionRequest, verifyContext, onError = { error.complete(it) })
 
         assertEquals("Request failed", error.await())
-        assertTrue(notified.isEmpty())
     }
 
     @Test
@@ -150,7 +148,7 @@ class WalletConnectorRequestViewModelTest {
             },
         )
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = {})
 
         val request = sent.await()
         assertEquals(topic, request.topic)
@@ -181,7 +179,7 @@ class WalletConnectorRequestViewModelTest {
             respond = respond,
         )
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = {})
 
         assertEquals(
             Triple(topic, 42L, WalletConnectJsonRpcResponse.Result("0xsignature")),
@@ -195,11 +193,11 @@ class WalletConnectorRequestViewModelTest {
         val service = service()
         val model = viewModel(service = service, requests = requests)
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = {})
         val job = pending(requests)
         model.awaitContent()
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = {})
         advanceUntilIdle()
 
         assertNotNull(requests.current.value)
@@ -213,7 +211,7 @@ class WalletConnectorRequestViewModelTest {
         val requests = WalletConnectPendingRequests()
         val model = viewModel(requests = requests)
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = {})
         val job = pending(requests)
 
         val state = model.awaitContent()
@@ -231,7 +229,7 @@ class WalletConnectorRequestViewModelTest {
         val transfer = mockGemTransferData(value = BigInteger.TEN)
         val simulation = mockSimulationResult()
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = {})
         val job = launch {
             runCatching {
                 requests.signTransaction(mockGemWalletConnectTransactionRequest(sessionId = topic, wallet = wallet.toGem(), session = mockWalletConnectionSession(sessionId = topic).toGem(), simulation = simulation, transfer = transfer))
@@ -252,7 +250,7 @@ class WalletConnectorRequestViewModelTest {
         val respond = mockk<RespondWalletConnectRequest>(relaxed = true)
         val model = viewModel(respond = respond, requests = requests)
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = {})
         val job = pending(requests)
         model.awaitContent()
 
@@ -268,7 +266,7 @@ class WalletConnectorRequestViewModelTest {
         val requests = WalletConnectPendingRequests()
         val model = viewModel(requests = requests)
 
-        model.onRequest(sessionRequest, verifyContext, onNotify = {}, onError = {})
+        model.onRequest(sessionRequest, verifyContext, onError = {})
         val signature = CompletableDeferred<String>()
         val job = pending(requests, signature)
         model.awaitContent()

@@ -61,3 +61,17 @@ flowchart LR
 | The custom token is unverified | "Know What You're Adding" shows before it is added | |
 | The user picks an asset | Recents: the assets the user recently used, per wallet, most recent first | |
 | The list below Recents is filtered | Recents follow the same filters | picking an asset to sell never offers one that cannot be sold |
+
+## Toasts
+
+Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
+
+| When | Toast | Shows on |
+|---|---|---|
+| An asset is pinned | 📌 Pinned: Bitcoin | the asset or the asset picker |
+| An asset is unpinned | 📌 Unpinned: Bitcoin | the asset or the asset picker |
+| A token is added | ➕ Added to wallet | the asset or the asset picker |
+| Price alerts for the asset are turned on | 🔔 Price alert enabled for Bitcoin | the asset |
+| Price alerts for the asset are turned off | 🔔 Price alert disabled for Bitcoin | the asset |
+| A token is added but its balance cannot load | ❌ the reason | the asset or the asset picker |
+| Turning price alerts on or off fails | ❌ the reason | the asset |

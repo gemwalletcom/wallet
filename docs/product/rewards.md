@@ -42,6 +42,15 @@ flowchart LR
 | No wallet is Multi-Coin and a referral link opens Rewards | it says a Multi-Coin wallet is needed | Settings hides Rewards for the same wallets |
 | A referral link opens Rewards with several Multi-Coin wallets | it asks for confirmation once the wallet has loaded; with one wallet the code is redeemed directly | |
 
+## Toasts
+
+Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
+
+| When | Toast | Shows on |
+|---|---|---|
+| A referral code is activated | ✅ Done | Rewards |
+| Points are redeemed | ✅ Done | Rewards |
+
 ## Platform differences
 
 None recorded.

@@ -12,6 +12,8 @@ interface ToastEmitter {
     fun emitToast(toast: ToastMessage)
 }
 
+class ToastPresenter : ToastEmitter by ToastEmitterImpl()
+
 class ToastEmitterImpl : ToastEmitter {
     private val channel = Channel<ToastMessage>(Channel.BUFFERED)
 

@@ -15,6 +15,7 @@ import com.gemwallet.android.testkit.mockGemConfirmScreen
 import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -27,6 +28,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -36,7 +38,11 @@ import org.junit.Test
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmPhase
 import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemPerpetualConfirmedAction
 import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemSubmitMessage
+import uniffi.gemstone.GemSubmitResult
 import uniffi.gemstone.GemTransferAmount
 import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemTransferData
@@ -88,7 +94,7 @@ class ConfirmTransferViewModelRetryTest {
         coVerify(exactly = 1) { confirmation.load(any()) }
         assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
 
-        viewModel.send(FinishConfirmAction { _, _ -> })
+        viewModel.send(FinishConfirmAction {})
         advanceUntilIdle()
 
         coVerify(exactly = 2) { confirmation.load(any()) }
@@ -100,6 +106,24 @@ class ConfirmTransferViewModelRetryTest {
         advanceUntilIdle()
         coVerify(exactly = 4) { confirmation.load(any()) }
         coVerify(exactly = 2) { confirmation.load(match { it.feeSelection == GemConfirmFeeSelection.Priority(FeePriority.Fast.toGem()) }) }
+    }
+
+    @Test
+    fun aConfirmedOrderShowsItsToastOnWhicheverScreenTheUserLandsOn() = runTest(testDispatcher) {
+        val viewModel = viewModel(mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE))
+        coEvery { confirmation.submit() } returns GemSubmitResult.Sent(
+            hashes = listOf("0xhash"),
+            message = GemSubmitMessage.Confirmed(GemLocalizedText.PerpetualConfirmed(GemPerpetualConfirmedAction.Open(uniffi.gemstone.PerpetualDirection.LONG))),
+        )
+        viewModel.send(FinishConfirmAction {})
+        advanceUntilIdle()
+        val finished = mutableListOf<String>()
+
+        viewModel.send(FinishConfirmAction(finished::add))
+        advanceUntilIdle()
+
+        assertEquals(listOf("0xhash"), finished)
+        assertEquals(R.drawable.ic_check_circle, confirm.toastPresenter.toastEvents.first().image)
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmTransferViewModel {

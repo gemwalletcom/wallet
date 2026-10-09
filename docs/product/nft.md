@@ -23,6 +23,19 @@ flowchart LR
 | The wallet has no NFTs | "Your NFTs will appear here. Receive your first NFT" | |
 | An NFT the wallet no longer holds is opened from a transaction | it is fetched; the screen keeps a way back while it loads and shows the error if the fetch fails | a sent or burned NFT is not stored on the device |
 
+## Toasts
+
+Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
+
+| When | Toast | Shows on |
+|---|---|---|
+| An NFT is saved to Photos | ✅ Save to Photos | the NFT |
+| An NFT is set as the wallet's avatar | ✅ Set as Avatar | the NFT |
+| An NFT is refreshed | ✅ Refresh | the NFT |
+| An NFT is reported | ✅ Successful | the NFT |
+| Saving, refreshing or setting the avatar fails | ❌ the reason | the NFT |
+| Refreshing collections fails | ❌ the reason | NFT collections |
+
 ## Platform differences
 
 | When | iOS | Android | Expected |
