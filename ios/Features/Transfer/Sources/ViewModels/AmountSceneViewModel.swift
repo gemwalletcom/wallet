@@ -81,7 +81,7 @@ public final class AmountSceneViewModel {
             stake = model
             baseRequest = model.request
         case let .perpetual(action):
-            let model = AmountPerpetualViewModel(asset: input.asset, action: action, service: service)
+            let model = AmountPerpetualViewModel(action: action, service: service)
             perpetual = model
             baseRequest = model.request
         }
@@ -240,8 +240,7 @@ extension AmountSceneViewModel {
 
     func onSelectAutoclose() {
         guard let perpetual else { return }
-        let amount = NumberInput.double(amountInputModel.text) ?? .zero
-        isPresentingSheet = .autoclose(session: perpetual.autocloseSession(size: amount), row: perpetual.openPositionRow(size: amount))
+        isPresentingSheet = .autoclose(session: perpetual.autocloseSession(amount: amountInputModel.text), row: perpetual.openPositionRow(amount: amountInputModel.text))
     }
 
     public func onAutocloseComplete(takeProfit: String, stopLoss: String) {
@@ -261,9 +260,9 @@ extension AmountSceneViewModel {
         )
     }
 
-    public func onChangeLeverage(_: LeverageOption, _: LeverageOption) {
+    public func onChangeLeverage(_: LeverageOption, _ leverage: LeverageOption) {
+        perpetual?.onChangeLeverage(leverage.value)
         refreshEntry()
-        perpetual?.onChangeLeverage()
     }
 
     public func onValidatorSelected(_ row: GemValidatorRow) {

@@ -18,10 +18,12 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockBalance
+import com.gemwallet.android.testkit.mockGemRecipient
 import com.gemwallet.android.testkit.mockGemSwapSession
-import com.gemwallet.android.testkit.mockGemSwapTransfer
+import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockSwapData
 import com.gemwallet.android.testkit.mockSwapQuote
 import com.gemwallet.android.testkit.mockSwapperQuote
 import com.gemwallet.android.testkit.mockSwapperQuoteAsset
@@ -67,12 +69,15 @@ import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
+import uniffi.gemstone.GemSwapQuoteInput
 import uniffi.gemstone.GemSwapQuoteServiceInterface
+import uniffi.gemstone.GemSwapRequest
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.InternalException
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperQuote
+import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -105,7 +110,7 @@ class SwapViewModelTest {
     }
     private val quoteAnswers = Channel<Result<List<SwapperQuote>>>(Channel.UNLIMITED)
     private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
-        coEvery { getQuotes(any(), any(), any(), any(), any()) } coAnswers { quoteAnswers.receive().getOrThrow() }
+        coEvery { getQuotes(any()) } coAnswers { quoteAnswers.receive().getOrThrow() }
         every { isAvailable() } returns true
         every { slippageBps() } returns null
         coEvery { suggestPair(any()) } returns null
@@ -149,7 +154,7 @@ class SwapViewModelTest {
         assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
         assertEquals(quote, subject.viewState.value.quote)
         assertEquals(0, confirmations)
-        coVerify(exactly = 0) { swapQuoteService.getTransfer(any()) }
+        coVerify(exactly = 0) { swapQuoteService.transferData(any()) }
     }
 
     private fun createViewModel(savedStateHandle: SavedStateHandle) = SwapViewModel(
@@ -334,7 +339,7 @@ class SwapViewModelTest {
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "0.5")
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(solAsset.toGem(), usdcAsset.toGem(), BigInteger("500000000"), false, 200u) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(quoteInput(value = BigInteger("500000000"), slippageBps = 200u)) }
     }
 
     @Test
@@ -345,7 +350,7 @@ class SwapViewModelTest {
         viewModel.setRefreshEnabled(true)
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { swapQuoteService.getQuotes(any()) }
     }
 
     @Test
@@ -359,8 +364,8 @@ class SwapViewModelTest {
         advanceTimeBy(GemConstants.swapQuoteDebounce.inWholeMilliseconds / 2)
         requestQuote(viewModel, "0.25")
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), BigInteger("250000000"), any(), any()) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(match { it.request.value == BigInteger("250000000") }) }
     }
 
     @Test
@@ -372,7 +377,7 @@ class SwapViewModelTest {
         requestQuote(viewModel, "0.5")
         requestQuote(viewModel, "0.25")
 
-        coVerify(exactly = 2) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
         assertTrue(viewModel.viewState.value.isQuoteLoading)
         assertNull(viewModel.viewState.value.error)
     }
@@ -405,7 +410,7 @@ class SwapViewModelTest {
         Snapshot.sendApplyNotifications()
         advanceTimeBy(GemConstants.swapQuoteDebounce.inWholeMilliseconds * 2)
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
         assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
     }
 
@@ -419,12 +424,12 @@ class SwapViewModelTest {
         viewModel.payValue.setTextAndPlaceCursorAtEnd("0.25")
         Snapshot.sendApplyNotifications()
         runCurrent()
-        coVerify(exactly = 0) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { swapQuoteService.getQuotes(any()) }
 
         viewModel.onSelectPercent(50)
         Snapshot.sendApplyNotifications()
         runCurrent()
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), BigInteger("500000000"), any(), any()) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(match { it.request.value == BigInteger("500000000") }) }
     }
 
     @Test
@@ -438,7 +443,7 @@ class SwapViewModelTest {
         viewModel.onSelect(SwapItemType.Receive, usdcAsset.id)
         runCurrent()
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(solAsset.toGem(), usdcAsset.toGem(), BigInteger("500000000"), false, null) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(quoteInput(value = BigInteger("500000000"), slippageBps = null)) }
     }
 
     @Test
@@ -452,10 +457,10 @@ class SwapViewModelTest {
 
         advanceTimeBy(GemConstants.swapQuoteRefreshInterval.inWholeMilliseconds - 1)
         runCurrent()
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
 
         advanceUntilIdle()
-        coVerify(exactly = 2) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
     }
 
     @Test
@@ -465,7 +470,7 @@ class SwapViewModelTest {
 
         failQuote(viewModel, SwapperException.ComputeQuoteException("boom"))
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
         assertNotNull(viewModel.viewState.value.error)
     }
 
@@ -492,11 +497,45 @@ class SwapViewModelTest {
 
         viewModel.setRefreshEnabled(false)
         advanceUntilIdle()
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
 
         viewModel.setRefreshEnabled(true)
         advanceUntilIdle()
-        coVerify(exactly = 2) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
+    }
+
+    @Test
+    fun `quote retry after a typed amount fails requests quotes at once`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        failQuote(viewModel, SwapperException.ComputeQuoteException("offline"))
+
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {})
+        runCurrent()
+
+        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
+    }
+
+    @Test
+    fun `quote retry after a failed refresh and a handed off transfer requests quotes again`() = runTest(testDispatcher) {
+        every { getSession() } returns MutableStateFlow(mockSession(wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))))
+        coEvery { swapQuoteService.transferData(any()) } throws SwapperException.TransactionException("offline")
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        seedReadyQuote(viewModel)
+        viewModel.swap {}
+        awaitCondition { viewModel.viewState.value.buttonAction == GemSwapButtonAction.RetryTransfer }
+        failQuote(viewModel, SwapperException.ComputeQuoteException("offline"))
+        stubBuildConfirmInput()
+        viewModel.onPrimaryAction(onConfirm = { viewModel.setRefreshEnabled(false) }, onShowPriceImpactWarning = {})
+        awaitCondition { !viewModel.viewState.value.isTransferLoading && viewModel.viewState.value.buttonAction == GemSwapButtonAction.RetryQuote }
+        viewModel.setRefreshEnabled(true)
+        runCurrent()
+
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {})
+        advanceUntilIdle()
+
+        coVerify(exactly = 3) { swapQuoteService.getQuotes(any()) }
     }
 
     @Test
@@ -535,7 +574,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             mockSession(wallet = wallet),
         )
-        coEvery { swapQuoteService.getTransfer(any()) } throws SwapperException.NoQuoteAvailable()
+        coEvery { swapQuoteService.transferData(any()) } throws SwapperException.NoQuoteAvailable()
 
         val viewModel = createViewModel(
             swapSavedState(),
@@ -555,7 +594,7 @@ class SwapViewModelTest {
     fun `an unexpected transfer error releases loading and offers transfer retry`() = runTest(testDispatcher) {
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(mockSession(wallet = wallet))
-        coEvery { swapQuoteService.getTransfer(any()) } throws IllegalStateException("unexpected transfer failure")
+        coEvery { swapQuoteService.transferData(any()) } throws IllegalStateException("unexpected transfer failure")
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
         seedReadyQuote(viewModel)
@@ -579,7 +618,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             mockSession(wallet = wallet),
         )
-        coEvery { swapQuoteService.getTransfer(any()) } throws SwapperException.InvalidRoute()
+        coEvery { swapQuoteService.transferData(any()) } throws SwapperException.InvalidRoute()
 
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
@@ -594,7 +633,7 @@ class SwapViewModelTest {
         assertEquals(ButtonState.Enabled, state.buttonState.buttonState())
         assertEquals(2.5, viewModel.viewState.value.details?.provider?.amount?.value)
 
-        coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(recipient = solInfo.account.address)
+        coEvery { swapQuoteService.transferData(any()) } returns mockGemTransferData(recipient = mockGemRecipient(address = solInfo.account.address))
 
         var confirmed: GemTransferData? = null
         viewModel.onPrimaryAction(
@@ -612,7 +651,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             mockSession(wallet = wallet),
         )
-        coEvery { swapQuoteService.getTransfer(any()) } throws SwapperException.NoQuoteAvailable()
+        coEvery { swapQuoteService.transferData(any()) } throws SwapperException.NoQuoteAvailable()
 
         val viewModel = createViewModel(
             swapSavedState(),
@@ -654,13 +693,13 @@ class SwapViewModelTest {
         confirmInputGate.complete(Unit)
         awaitCondition { viewModel.viewState.value.buttonState.buttonState() == ButtonState.Enabled && viewModel.viewState.value.error == null }
         advanceUntilIdle()
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
 
         viewModel.setRefreshEnabled(false)
         advanceUntilIdle()
         viewModel.setRefreshEnabled(true)
         advanceUntilIdle()
-        coVerify(exactly = 2) { swapQuoteService.getQuotes(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
     }
 
     @Test
@@ -808,6 +847,11 @@ class SwapViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
     }
 
+    private fun quoteInput(value: BigInteger, slippageBps: UInt?) = GemSwapQuoteInput(
+        request = GemSwapRequest(payAssetId = solAsset.id.toIdentifier(), receiveAssetId = usdcAsset.id.toIdentifier(), value = value, slippageBps = slippageBps),
+        useMaxAmount = false,
+    )
+
     private fun requestQuote(viewModel: SwapViewModel, text: String) {
         viewModel.payValue.setTextAndPlaceCursorAtEnd(text)
         Snapshot.sendApplyNotifications()
@@ -815,12 +859,16 @@ class SwapViewModelTest {
     }
 
     private fun stubBuildConfirmInput(beforeReturn: suspend () -> Unit = {}) {
-        coEvery { swapQuoteService.getTransfer(any()) } coAnswers {
+        coEvery { swapQuoteService.transferData(any()) } coAnswers {
             beforeReturn()
             val quote = firstArg<SwapperQuote>()
-            mockGemSwapTransfer(
-                quote = mockSwapQuote(fromValue = quote.fromValue, toValue = quote.toValue, useMaxAmount = quote.request.options.useMaxAmount),
-                recipient = solInfo.account.address,
+            mockGemTransferData(
+                inputType = TransactionInputType.Swap(
+                    fromAsset = solAsset.toGem(),
+                    toAsset = usdcAsset.toGem(),
+                    swapData = mockSwapData(quote = mockSwapQuote(fromValue = quote.fromValue, toValue = quote.toValue, useMaxAmount = quote.request.options.useMaxAmount)),
+                ),
+                recipient = mockGemRecipient(address = solInfo.account.address),
                 value = quote.fromValue,
                 useMaxAmount = quote.request.options.useMaxAmount,
             )

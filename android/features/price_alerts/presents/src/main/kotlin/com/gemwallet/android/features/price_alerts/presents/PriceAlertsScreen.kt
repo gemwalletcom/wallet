@@ -2,7 +2,6 @@ package com.gemwallet.android.features.price_alerts.presents
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -12,7 +11,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.price_alerts.viewmodels.PriceAlertsViewModel
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.components.screen.showSnackbar
@@ -21,25 +19,16 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
 
 @Composable
-fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onSetPriceAlert: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertsViewModel = hiltViewModel()) {
+fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertsViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
     val error by viewModel.error.collectAsStateWithLifecycle()
-    val errorMessage = error
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
-            snackbar.showSnackbar(it, R.drawable.ic_error)
-            viewModel.clearError()
-        }
-    }
+    val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
     var selectingAsset by remember { mutableStateOf(false) }
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val assetAlerts by viewModel.assetAlerts.collectAsStateWithLifecycle()
-    val asset by viewModel.asset.collectAsStateWithLifecycle()
-    val priceAlertEnabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
+    val enabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val phase by viewModel.phase.collectAsStateWithLifecycle()
 
@@ -59,27 +48,22 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
             )
 
             false -> PriceAlertsScene(
-                phase = phase,
-                asset = asset,
                 sections = sections,
-                assetAlerts = assetAlerts,
-                enabled = priceAlertEnabled == true,
+                phase = phase,
                 syncState = isRefreshing,
-                isAssetView = viewModel.isAssetManage(),
                 snackbar = snackbar,
-                onAction = { action ->
-                    when (action) {
-                        is PriceAlertsAction.TogglePriceAlerts -> viewModel.togglePriceAlerts(action.enabled)
-                        is PriceAlertsAction.ToggleAutoAlert -> viewModel.toggleAutoAlert(action.enabled)
-                        is PriceAlertsAction.Exclude -> viewModel.excludeAsset(action.id)
-                        PriceAlertsAction.Refresh -> viewModel.refresh()
-                        PriceAlertsAction.Add -> selectingAsset = true
-                        PriceAlertsAction.Close -> onCancel()
-                        is PriceAlertsAction.OpenChart -> onChart(action.assetId)
-                        is PriceAlertsAction.SetPriceAlert -> onSetPriceAlert(action.assetId)
-                    }
-                },
-            )
+                error = error,
+                onErrorShown = viewModel::clearError,
+                header = { priceAlertsToggle(enabled, viewModel::togglePriceAlerts) },
+                onChart = onChart,
+            ) { action ->
+                when (action) {
+                    PriceAlertsAction.Refresh -> viewModel.refresh()
+                    PriceAlertsAction.Close -> onCancel()
+                    PriceAlertsAction.Add -> selectingAsset = true
+                    is PriceAlertsAction.Exclude -> viewModel.excludeAsset(action.id)
+                }
+            }
         }
     }
 }

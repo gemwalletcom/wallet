@@ -142,7 +142,7 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     use chain_traits::{ChainBlockTransactions, ChainTransaction};
-    use gem_client::{ClientError, testkit::MockClient};
+    use gem_client::testkit::MockClient;
     use primitives::{Chain, Transaction, TransactionIdRequest, TransactionType, asset_constants::NEAR_USDT_ASSET_ID};
     use serde_json::Value;
 
@@ -160,7 +160,7 @@ mod tests {
         sender_transfers: Option<&'static str>,
         receiver_transfers: Option<&'static str>,
         transactions: Option<&'static str>,
-        block: Option<Result<&'static str, ClientError>>,
+        block: Option<&'static str>,
     }
 
     fn mock_client(requests: MockRequests, responses: MockResponses) -> MockClient {
@@ -169,7 +169,7 @@ mod tests {
             match path {
                 "/v0/block" => {
                     requests.blocks.lock().unwrap().push(request);
-                    responses.block.clone().unwrap().map(|response| response.as_bytes().to_vec())
+                    Ok(responses.block.unwrap().as_bytes().to_vec())
                 }
                 "/v0/transfers" => {
                     let response = match request["direction"].as_str().unwrap() {
@@ -315,7 +315,7 @@ mod tests {
         let client = mock_client(
             requests.clone(),
             MockResponses {
-                block: Some(Ok(include_str!("../../../testdata/fastnear_block.json"))),
+                block: Some(include_str!("../../../testdata/fastnear_block.json")),
                 transactions: Some(include_str!("../../../testdata/fastnear_usdt_transaction.json")),
                 ..Default::default()
             },
@@ -336,7 +336,7 @@ mod tests {
         let client = mock_client(
             requests.clone(),
             MockResponses {
-                block: Some(Ok(include_str!("../../../testdata/fastnear_block.json"))),
+                block: Some(include_str!("../../../testdata/fastnear_block.json")),
                 transactions: Some(include_str!("../../../testdata/fastnear_usdt_transaction.json")),
                 ..Default::default()
             },
@@ -353,7 +353,7 @@ mod tests {
         let client = mock_client(
             MockRequests::default(),
             MockResponses {
-                block: Some(Ok(r#"{"block":{"block_height":211048907},"block_txs":[]}"#)),
+                block: Some(r#"{"block":{"block_height":211048907},"block_txs":[]}"#),
                 ..Default::default()
             },
         );
@@ -367,7 +367,7 @@ mod tests {
         let client = mock_client(
             MockRequests::default(),
             MockResponses {
-                block: Some(Ok(r#"{"block":null}"#)),
+                block: Some(r#"{"block":null}"#),
                 ..Default::default()
             },
         );
@@ -381,7 +381,7 @@ mod tests {
         let client = mock_client(
             MockRequests::default(),
             MockResponses {
-                block: Some(Ok(r#"{"block":{"block_height":211048907}}"#)),
+                block: Some(r#"{"block":{"block_height":211048907}}"#),
                 ..Default::default()
             },
         );
@@ -395,7 +395,7 @@ mod tests {
         let client = mock_client(
             MockRequests::default(),
             MockResponses {
-                block: Some(Ok(include_str!("../../../testdata/fastnear_block.json"))),
+                block: Some(include_str!("../../../testdata/fastnear_block.json")),
                 transactions: Some(include_str!("../../../testdata/fastnear_empty_transactions.json")),
                 ..Default::default()
             },
@@ -410,7 +410,7 @@ mod tests {
         let client = mock_client(
             MockRequests::default(),
             MockResponses {
-                block: Some(Ok(r#"{"block":{"block_height":211048906},"block_txs":[]}"#)),
+                block: Some(r#"{"block":{"block_height":211048906},"block_txs":[]}"#),
                 ..Default::default()
             },
         );

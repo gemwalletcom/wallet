@@ -38,10 +38,6 @@ import com.wallet.core.primitives.TpslType
 @Composable
 internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualProvider, amount: String, onDismiss: () -> Unit) {
     if (!isVisible) return
-    if (provider.perpetual.collectAsStateWithLifecycle().value == null) {
-        onDismiss()
-        return
-    }
     var focused: TpslType? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) { provider.onAutocloseOpened(amount) }
@@ -70,7 +66,7 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
                     .weight(1f)
                     .verticalScroll(rememberScrollState()),
             ) {
-                provider.openPositionRow(amount)?.let { AssetListItem(row = it, listPosition = ListPosition.Single) }
+                AssetListItem(row = provider.openPositionRow(amount), listPosition = ListPosition.Single)
                 Spacer16()
                 viewState.priceRows.forEachIndexed { index, row ->
                     GemListRowView(row = row, listPosition = ListPosition.getPosition(index, viewState.priceRows.size))

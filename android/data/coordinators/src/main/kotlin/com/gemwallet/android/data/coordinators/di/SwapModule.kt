@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.AlienProvider
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemNodeService
@@ -40,6 +41,7 @@ object SwapModule {
     @Provides
     fun provideGemSwapQuoteService(
         swapService: GemSwapService,
+        assetsService: GemAssetsService,
         preferencesService: GemPreferencesService,
         balanceService: GemBalanceService,
         streamSubscriptionService: GemStreamSubscriptionService,
@@ -47,6 +49,7 @@ object SwapModule {
         configService: GemConfigService,
     ): GemSwapQuoteServiceInterface = GemSwapQuoteService(
         swap = swapService,
+        assets = assetsService,
         preferences = preferencesService,
         balances = balanceService,
         stream = streamSubscriptionService,

@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.price_alerts.viewmodels
 
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
@@ -10,66 +11,64 @@ import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ui.localization.footer
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.text
-import com.gemwallet.android.ui.localization.title
 import com.gemwallet.android.ui.models.ListSection
-import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireAssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemAssetPriceAlerts
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertItem
-import uniffi.gemstone.GemPriceAlertList
-import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPriceAlertServiceInterface
-import uniffi.gemstone.GemToast
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class PriceAlertsViewModel @Inject constructor(
+class AssetPriceAlertsViewModel @Inject constructor(
     priceAlertsQuery: PriceAlertsQuery,
-    private val getCurrentWalletId: GetCurrentWalletId,
-    private val assetQuery: AssetQueryOptional,
+    getCurrentWalletId: GetCurrentWalletId,
+    assetQuery: AssetQueryOptional,
     private val service: GemPriceAlertServiceInterface,
     private val priceAlertFormatter: PriceAlertFormatter,
+    savedStateHandle: SavedStateHandle,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
+    val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
+
     private val refreshState = MutableStateFlow(false)
-    private val alertsEnabled = MutableStateFlow(service.isEnabled())
     private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
-    private val list: StateFlow<GemPriceAlertList?> = combine(priceAlertsQuery(), loadState) { alerts, state ->
-        priceAlertFormatter.list(alerts.map { it.toGem() }, service.getCurrency(), state)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val sections: StateFlow<List<ListSection<GemPriceAlertItem>>> = list.map { list ->
-        list?.sections.orEmpty().map { section -> ListSection(id = section.kind.sectionId(), title = section.kind.title(), items = section.items, footer = section.kind.footer(context)) }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val phase: StateFlow<GemListPhase?> = list.map { it?.phase }
+    private val assetInfo = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val priceAlertEnabled = alertsEnabled.asStateFlow()
+    val assetAlerts: StateFlow<GemAssetPriceAlerts?> = combine(assetInfo, priceAlertsQuery(assetId), loadState) { info, alerts, state ->
+        info ?: return@combine null
+        priceAlertFormatter.assetAlerts(info.asset.toGem(), info.price?.toGem(), alerts.map { it.toGem() }, service.getCurrency(), state)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val sections: StateFlow<List<ListSection<GemPriceAlertItem>>> = assetAlerts.map { assetAlerts ->
+        assetAlerts?.alerts.orEmpty().takeIf { it.isNotEmpty() }?.let { alerts ->
+            listOf(ListSection(id = assetId.toIdentifier(), title = context.getString(R.string.stake_active), items = alerts))
+        }.orEmpty()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val isRefreshing = refreshState.asStateFlow()
 
@@ -92,34 +91,20 @@ class PriceAlertsViewModel @Inject constructor(
     }
 
     private suspend fun sync() {
-        loadState.update { service.refresh(null) }
+        loadState.update { service.refresh(assetId.toIdentifier()) }
     }
 
-    fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
-        alertsEnabled.value = enable
-        runCatchingCancellable { service.setEnabled(enable) }
+    fun toggleAutoAlert(enabled: Boolean) = viewModelScope.launch(ioDispatcher) {
+        val asset = assetInfo.value?.asset ?: return@launch
+        runCatchingCancellable { service.setAutoAlert(asset.toGem(), enabled) }
             .onFailure { errorState.value = it.errorText().text(context) }
-        alertsEnabled.update { service.isEnabled() }
     }
 
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(ioDispatcher) {
-        val alert = list.value?.sections.orEmpty().flatMap { it.items }.firstOrNull { it.id == priceAlertId } ?: return@launch
+        val alert = assetAlerts.value?.alerts.orEmpty().firstOrNull { it.id == priceAlertId } ?: return@launch
         runCatchingCancellable { service.deletePriceAlerts(listOf(alert.data.priceAlert)) }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 
-    fun includeAsset(assetId: AssetId, callback: (GemToast) -> Unit) = viewModelScope.launch(ioDispatcher) {
-        val asset = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }.firstOrNull()?.asset ?: return@launch
-        val toast = runCatchingCancellable { service.setAutoAlert(asset.toGem(), true) }
-            .onFailure { errorState.value = it.errorText().text(context) }
-            .getOrNull() ?: return@launch
-        withContext(Dispatchers.Main) { callback(toast) }
-    }
-
     fun clearError() = errorState.update { null }
-}
-
-private fun GemPriceAlertSectionKind.sectionId(): String = when (this) {
-    GemPriceAlertSectionKind.Auto -> "auto"
-    is GemPriceAlertSectionKind.Asset -> assetId
 }

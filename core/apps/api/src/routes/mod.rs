@@ -80,20 +80,12 @@ pub async fn log_failed_requests(request: Request<Body>, next: Next) -> Response
     let device = device_fields(authorization.as_ref());
     match error {
         Some(ApiError { detail: Some(detail), .. }) => error_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = format!("{detail}{device}"), user_agent = user_agent),
-        Some(error) => info_with_fields!(
+        _ => info_with_fields!(
             "Request failed",
             method = method.as_str(),
             uri = uri,
             status = status.as_u16(),
-            error = format!("{}{device}", error.message),
-            user_agent = user_agent
-        ),
-        None => info_with_fields!(
-            "Request failed",
-            method = method.as_str(),
-            uri = uri,
-            status = status.as_u16(),
-            error = format!("{}{device}", status_message(status)),
+            error = format!("{}{device}", error.map_or_else(|| status_message(status), |error| error.message.clone())),
             user_agent = user_agent
         ),
     }

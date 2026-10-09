@@ -59,7 +59,7 @@ impl JsonRpcHandler {
     ) -> Result<ProxyResponse, BoxError> {
         let cache_ttl = cache.should_cache_call(&request.chain, call);
         if cache_ttl.is_some()
-            && let Some(response) = cache::get(call, request, cache).await
+            && let Some(response) = cache::get(call, request, cache)
         {
             metrics.add_cache_hit(request.chain.as_ref(), &call.method);
             let request_id = request.id.as_str();
@@ -121,7 +121,7 @@ impl JsonRpcHandler {
         } else {
             vec![None; calls.len()]
         };
-        let cached_results = cache::get_many(calls, &cache_ttls, request, cache).await;
+        let cached_results = cache::get_many(calls, &cache_ttls, request, cache);
         for ((call, ttl), result) in calls.iter().zip(&cache_ttls).zip(&cached_results) {
             if ttl.is_some() {
                 if result.is_some() {
@@ -142,20 +142,19 @@ impl JsonRpcHandler {
         } else {
             let (body, missing_status) = Self::send_upstream(&missing_calls, request, metrics, url, client, forward_headers).await?;
             let response = Self::single_call_batch_response(&missing_calls, Self::parse_response(missing_status, &body)?);
-            let (body, status, cache_status) = if response.is_array() {
-                let ordered = Self::order_batch(&missing_calls, response, missing_status)?;
-                let Value::Array(results) = ordered else {
-                    return Err(ResponseError::InvalidBatch { status: missing_status, detail: "shape" }.into());
-                };
+            let (body, status, cache_status) = if let Value::Array(results) = response {
+                let results = Self::order_batch(&missing_calls, results, missing_status)?;
                 if missing_status == StatusCode::OK.as_u16() {
-                    cache::set_many(&missing_calls, &missing_ttls, &results, request, cache).await?;
+                    cache::set_many(&missing_calls, &missing_ttls, &results, request, cache)?;
                 }
                 let cache_status = if cache_hits == 0 { CacheStatus::Miss } else { CacheStatus::Partial };
                 (Bytes::from(serde_json::to_vec(&Self::merge_batch_results(cached_results, results, missing_status)?)?), missing_status, cache_status)
             } else if cache_hits > 0 {
                 let (body, status) = Self::send_upstream(calls, request, metrics, url, client, forward_headers).await?;
-                let response: Value = Self::parse_response(status, &body)?;
-                let body = if response.is_array() { Bytes::from(serde_json::to_vec(&Self::order_batch(calls, response, status)?)?) } else { body };
+                let body = match Self::parse_response(status, &body)? {
+                    Value::Array(results) => Bytes::from(serde_json::to_vec(&Self::order_batch(calls, results, status)?)?),
+                    _ => body,
+                };
                 for call in calls {
                     metrics.add_proxy_upstream_response(request.chain.as_ref(), &call.method, url.url.host_str().unwrap_or_default(), status, request.elapsed().as_millis());
                 }
@@ -220,7 +219,7 @@ impl JsonRpcHandler {
         if status == StatusCode::OK.as_u16()
             && let (JsonRpcResult::Success(success), Some(ttl)) = (&result, cache_ttl)
         {
-            cache::set_result(call, &success.result, ttl, request, cache).await?;
+            cache::set_result(call, &success.result, ttl, request, cache)?;
         }
 
         Ok((result, status, body))
@@ -233,14 +232,10 @@ impl JsonRpcHandler {
         }
     }
 
-    fn order_batch(calls: &[JsonRpcCall], response: Value, status: u16) -> Result<Value, ResponseError> {
-        let Value::Array(results) = response else {
-            return Ok(response);
-        };
-
+    fn order_batch(calls: &[JsonRpcCall], results: Vec<Value>, status: u16) -> Result<Vec<Value>, ResponseError> {
         let request_ids = calls.iter().map(|call| call.id).collect::<HashSet<_>>();
         if request_ids.len() != calls.len() {
-            return Ok(Value::Array(results));
+            return Ok(results);
         }
         if results.len() != calls.len() {
             return Err(ResponseError::InvalidBatch { status, detail: "length" });
@@ -251,8 +246,7 @@ impl JsonRpcHandler {
             return Err(ResponseError::InvalidBatch { status, detail: "ids" });
         }
 
-        let ordered = calls.iter().filter_map(|call| results_by_id.remove(&call.id)).collect();
-        Ok(Value::Array(ordered))
+        Ok(calls.iter().filter_map(|call| results_by_id.remove(&call.id)).collect())
     }
 
     fn merge_batch_results(cached_results: Vec<Option<JsonRpcResult>>, upstream_results: Vec<Value>, status: u16) -> Result<Vec<Value>, BoxError> {
@@ -319,53 +313,30 @@ mod tests {
     #[test]
     fn test_order_batch_matches_response_ids() {
         let calls = vec![JsonRpcCall::mock(7, "cached"), JsonRpcCall::mock(3, "failed")];
-        let response = json!([
-            {
-                "jsonrpc": "2.0",
-                "error": {
-                    "code": -32000,
-                    "message": "upstream error",
-                    "data": { "retry": true }
-                },
-                "id": 3
+        let failed = json!({
+            "jsonrpc": "2.0",
+            "error": {
+                "code": -32000,
+                "message": "upstream error",
+                "data": { "retry": true }
             },
-            {
-                "jsonrpc": "2.0",
-                "result": "cached",
-                "id": 7
-            }
-        ]);
+            "id": 3
+        });
+        let cached = json!({
+            "jsonrpc": "2.0",
+            "result": "cached",
+            "id": 7
+        });
 
-        let ordered = JsonRpcHandler::order_batch(&calls, response, 200).unwrap();
-        assert_eq!(
-            ordered,
-            json!([
-                {
-                    "jsonrpc": "2.0",
-                    "result": "cached",
-                    "id": 7
-                },
-                {
-                    "jsonrpc": "2.0",
-                    "error": {
-                        "code": -32000,
-                        "message": "upstream error",
-                        "data": { "retry": true }
-                    },
-                    "id": 3
-                }
-            ])
-        );
+        let ordered = JsonRpcHandler::order_batch(&calls, vec![failed.clone(), cached.clone()], 200).unwrap();
+        assert_eq!(ordered, vec![cached, failed]);
 
-        let duplicate = json!([
-            { "jsonrpc": "2.0", "result": "first", "id": 7 },
-            { "jsonrpc": "2.0", "result": "second", "id": 7 }
-        ]);
+        let duplicate = vec![json!({ "jsonrpc": "2.0", "result": "first", "id": 7 }), json!({ "jsonrpc": "2.0", "result": "second", "id": 7 })];
         let error = JsonRpcHandler::order_batch(&calls, duplicate, 200).unwrap_err();
         assert_eq!(FailureReason::from_error(&error).to_string(), "invalid_rpc_batch");
         assert_eq!(error.to_string(), "invalid_rpc_batch status=200 detail=ids");
 
-        let error = JsonRpcHandler::order_batch(&calls, json!([]), 429).unwrap_err();
+        let error = JsonRpcHandler::order_batch(&calls, Vec::new(), 429).unwrap_err();
         assert_eq!(FailureReason::from_error(&error).to_string(), "status=429");
         assert_eq!(FailureReason::error_detail(&error), "invalid_rpc_batch status=429 detail=length");
     }

@@ -87,6 +87,7 @@ remote:
   - PerpetualPrice
   - PerpetualProvider
   - PerpetualTriggerOrder
+  - PerpetualClosingPosition
   - PerpetualConfirmData
   - CancelOrderData
   - TPSLOrderData
@@ -324,7 +325,6 @@ mocks:
   - GemSwapQuotesResult
   - GemSwapRequest
   - GemSwapSession
-  - GemSwapTransfer
   - GemTransactionAmount
   - GemTransactionDetailRows
   - GemTransactionFeeRow
@@ -359,6 +359,7 @@ mocks:
   - PaymentPrice
   - PaymentQuote
   - Perpetual
+  - PerpetualClosingPosition
   - PerpetualConfirmData
   - PerpetualData
   - PerpetualMetadata

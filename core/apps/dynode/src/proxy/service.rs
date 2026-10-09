@@ -79,7 +79,7 @@ impl ProxyRequestService {
         let cache_ttl = self.cache.should_cache_request(&chain, request_type);
         let cache_key = cache_ttl.and_then(|_| request_type.cache_key(&request.host));
         if let Some(key) = &cache_key
-            && let Some(response) = self.try_cache_hit(key, request, &methods_for_metrics).await
+            && let Some(response) = self.try_cache_hit(key, request, &methods_for_metrics)
         {
             return Ok(response);
         }
@@ -143,7 +143,7 @@ impl ProxyRequestService {
         Ok(ProxyResponse::new(status, headers, body).with_proxy_headers(request.id.as_str(), response_latency, CacheStatus::Miss))
     }
 
-    async fn try_cache_hit(&self, cache_key: &str, request: &ProxyRequest, methods_for_metrics: &[String]) -> Option<ProxyResponse> {
+    fn try_cache_hit(&self, cache_key: &str, request: &ProxyRequest, methods_for_metrics: &[String]) -> Option<ProxyResponse> {
         if let Some(cached) = self.cache.get(&request.chain, cache_key) {
             for method_name in methods_for_metrics {
                 self.metrics.add_cache_hit(request.chain.as_ref(), method_name);

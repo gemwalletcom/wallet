@@ -1418,8 +1418,9 @@ Android likewise calls the service directly for commands and point reads. [`Pric
 private val alertsEnabled = MutableStateFlow(service.isEnabled())
 
 fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
+    alertsEnabled.value = enable
     runCatchingCancellable { service.setEnabled(enable) }
-        .onFailure { Log.e(TAG, "setting price alerts enabled failed", it) }
+        .onFailure { errorState.value = it.errorText().text(context) }
     alertsEnabled.update { service.isEnabled() }
 }
 ```
@@ -1866,7 +1867,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualViewModel` (+ `PerpetualQuery`, `PerpetualPositionsQuery`) |
 | `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualsViewModel` (+ `RecentActivityQuery`, `PerpetualsQuery`, `PerpetualPositionsQuery`, `PerpetualWalletBalanceQuery`) |
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioViewModel` |
-| `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `SetPriceAlertSceneViewModel` | `PriceAlertsViewModel`, `SetPriceAlertViewModel` |
+| `GemPriceAlertService` | — | `PriceAlertsSceneViewModel`, `AssetPriceAlertsSceneViewModel`, `SetPriceAlertSceneViewModel` | `PriceAlertsViewModel`, `AssetPriceAlertsViewModel`, `SetPriceAlertViewModel` |
 | `GemReceiveService` | `GemReceiveSession` (the network list stays anchored to the asset the screen opened on) | `ReceiveSceneViewModel` | `ReceiveViewModel` |
 | `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsViewModel` vended by `SelectAssetSceneViewModel` and `PerpetualsSceneViewModel` | `RecentsViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
@@ -1892,7 +1893,7 @@ These primarily serve Core composition or native lifecycle integration. Reuse th
 | Core service | Held by |
 | --- | --- |
 | `GemBalanceService` | composed by `app_start`, `asset_discovery`, `assets`, `confirm`, `fiat`, `navigation`, `payment`, `perpetual`, `receive`, `rewards`, `search`, `stream`, `swap`, `transaction_state`, `transactions`, `wallet_home`; the only writer of balance rows |
-| `GemAssetsService` | composed by `app_start`, `assets`, `balance`, `confirm`, `fiat`, `receive`, `search`, `transactions`, `wallet_connect` |
+| `GemAssetsService` | composed by `app_start`, `assets`, `balance`, `confirm`, `fiat`, `receive`, `search`, `swap`, `transactions`, `wallet_connect` |
 | `GemExplorerService` | composed by `address_details`, `assets`, `chart`, `confirm`, `nft`, `node`, `stake`, `transactions`, `wallet`, `wallet_connect` |
 | `GemPriceService` | composed by `assets`, `chart`, `confirm`, `currency`, `perpetual`, `portfolio`, `search`, `stream` |
 | `GemStreamSubscriptionService` | composed by `assets`, `balance`, `stream`, `swap` |

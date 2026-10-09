@@ -134,6 +134,7 @@ public extension ViewModelFactory {
         SwapSceneViewModel(
             service: GemSwapQuoteService(
                 swap: swapService,
+                assets: assetsService,
                 preferences: preferencesService,
                 balances: balanceService,
                 stream: streamSubscriptionService,
