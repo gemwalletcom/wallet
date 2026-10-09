@@ -25,15 +25,16 @@ pub trait NftRepository {
     fn get_nft_asset_ids(&mut self, identifiers: Vec<String>) -> Result<Vec<NFTAssetId>, DatabaseError>;
     fn get_nft_collection_ids(&mut self, identifiers: Vec<String>) -> Result<Vec<NFTCollectionId>, DatabaseError>;
     fn get_nft_assets(&mut self, identifiers: Vec<String>) -> Result<Vec<NFTAsset>, DatabaseError>;
+    fn get_nft_asset(&mut self, identifier: &str) -> Result<NFTAsset, DatabaseError>;
     fn get_nft_collections(&mut self, filters: Vec<NftCollectionFilter>) -> Result<Vec<NFTCollection>, DatabaseError>;
     fn get_nft_collection(&mut self, identifier: &str) -> Result<NFTCollection, DatabaseError>;
     fn get_nft_asset_ids_for_address(&mut self, chain: Chain, address: &str) -> Result<Vec<NFTAssetId>, DatabaseError>;
     fn add_nft_collections(&mut self, collections: Vec<NFTCollection>) -> Result<usize, DatabaseError>;
-    fn upsert_nft_collection(&mut self, collection: NFTCollection) -> Result<(), DatabaseError>;
+    fn set_nft_collection(&mut self, collection: NFTCollection) -> Result<(), DatabaseError>;
     fn add_nft_assets(&mut self, assets: Vec<NFTAsset>) -> Result<usize, DatabaseError>;
-    fn upsert_nft_asset(&mut self, collection_id: &NFTCollectionId, asset: NFTAsset) -> Result<(), DatabaseError>;
+    fn set_nft_asset(&mut self, collection_id: &NFTCollectionId, asset: NFTAsset) -> Result<(), DatabaseError>;
     fn set_nft_asset_associations(&mut self, address: &str, chains: Vec<Chain>, asset_ids: Vec<NFTAssetId>) -> Result<(), DatabaseError>;
-    fn count_nft_assets_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<Chain>) -> Result<i64, DatabaseError>;
+    fn get_nft_assets_count_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<Chain>) -> Result<i64, DatabaseError>;
     fn add_nft_report(&mut self, device_id: &str, collection_id: &str, asset_id: Option<String>, reason: Option<String>) -> Result<usize, DatabaseError>;
 }
 
@@ -159,6 +160,10 @@ impl NftRepository for DatabaseClient {
             .collect())
     }
 
+    fn get_nft_asset(&mut self, identifier: &str) -> Result<NFTAsset, DatabaseError> {
+        self.get_nft_assets(vec![identifier.to_string()])?.into_iter().next().ok_or_else(|| DatabaseError::not_found("NftAsset", identifier))
+    }
+
     fn get_nft_collections(&mut self, filters: Vec<NftCollectionFilter>) -> Result<Vec<NFTCollection>, DatabaseError> {
         let rows = nft_collection_rows(self, filters)?;
         Ok(collections_with_links(self, rows)?)
@@ -202,7 +207,7 @@ impl NftRepository for DatabaseClient {
         Ok(inserted)
     }
 
-    fn upsert_nft_collection(&mut self, collection: NFTCollection) -> Result<(), DatabaseError> {
+    fn set_nft_collection(&mut self, collection: NFTCollection) -> Result<(), DatabaseError> {
         use crate::schema::nft_collections::dsl::*;
         use crate::schema::nft_collections_links::dsl::{collection_id, nft_collections_links};
         let links = collection.links.clone();
@@ -235,7 +240,7 @@ impl NftRepository for DatabaseClient {
         Ok(diesel::insert_into(nft_assets).values(rows).on_conflict_do_nothing().execute(&mut self.connection)?)
     }
 
-    fn upsert_nft_asset(&mut self, collection_identifier: &NFTCollectionId, asset: NFTAsset) -> Result<(), DatabaseError> {
+    fn set_nft_asset(&mut self, collection_identifier: &NFTCollectionId, asset: NFTAsset) -> Result<(), DatabaseError> {
         use crate::schema::nft_assets::dsl::*;
         let collection_pk = get_nft_collection(self, &collection_identifier.to_string()).or_not_found(collection_identifier.to_string())?.id;
         let value = NewNftAssetRow::from_primitive(asset, collection_pk);
@@ -274,7 +279,7 @@ impl NftRepository for DatabaseClient {
         Ok(diesel::insert_into(nft_reports).values(report).on_conflict_do_nothing().execute(&mut self.connection)?)
     }
 
-    fn count_nft_assets_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<Chain>) -> Result<i64, DatabaseError> {
+    fn get_nft_assets_count_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<Chain>) -> Result<i64, DatabaseError> {
         use crate::schema::nft_assets::dsl::{chain as asset_chain, id as asset_pk, nft_assets};
         use crate::schema::nft_assets_associations::dsl::*;
         use crate::schema::wallets_addresses::dsl::{address as wallet_address, id as wallet_address_pk, wallets_addresses};
@@ -351,7 +356,7 @@ mod database_integration_tests {
                 let collections = client.get_nft_collections(vec![NftCollectionFilter::Identifiers(vec![collection_id])])?;
                 let assets = client.get_nft_assets(vec![asset("1").id.to_string()])?;
                 let owned_ids = client.get_nft_asset_ids_for_address(Chain::Ethereum, OWNER)?;
-                let count = client.count_nft_assets_by_addresses(vec![OWNER.to_string()], vec![Chain::Ethereum])?;
+                let count = client.get_nft_assets_count_by_addresses(vec![OWNER.to_string()], vec![Chain::Ethereum])?;
                 Ok((collections, assets, owned_ids, count))
             })
             .await

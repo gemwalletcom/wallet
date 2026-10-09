@@ -41,7 +41,7 @@ impl MessageConsumer<InAppNotificationPayload, usize> for InAppNotificationsCons
     async fn consume(&self, payload: InAppNotificationPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let redeem: Option<NotificationRewardsRedeemMetadata> = payload.metadata.decode();
         let redeem_asset = match (&redeem, payload.asset_id.clone()) {
-            (Some(_), Some(asset_id)) => self.repository.asset(asset_id).await.ok(),
+            (Some(_), Some(asset_id)) => self.repository.get_asset(asset_id).await.ok(),
             _ => None,
         };
         let reward_value = redeem
@@ -56,7 +56,7 @@ impl MessageConsumer<InAppNotificationPayload, usize> for InAppNotificationsCons
             notification_type: payload.notification_type,
             metadata: payload.metadata.clone(),
         };
-        let devices: Vec<Device> = self.repository.create_notification(notification).await?;
+        let devices: Vec<Device> = self.repository.add_notification(notification).await?;
 
         let notifications: Vec<GorushNotification> = devices
             .iter()

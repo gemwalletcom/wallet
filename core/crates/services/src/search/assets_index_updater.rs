@@ -24,13 +24,13 @@ impl AssetsIndexUpdater {
         let sync = self.sync_client.for_key(ConfigKey::SearchAssetsLastUpdatedAt).await?;
         let filters = sync.since().map(AssetsWithPricesFilter::UpdatedSince).into_iter().collect();
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
-        let assets = self.repository.assets_markets(filters, primary_price_max_age).await?;
+        let assets = self.repository.get_assets_markets(filters, primary_price_max_age).await?;
 
         if assets.is_empty() {
             return sync.write(ASSETS_INDEX_NAME, Vec::<AssetDocument>::new()).await;
         }
 
-        let (usage_ranks, assets_tags) = self.repository.usage_ranks_and_assets_tags().await?;
+        let (usage_ranks, assets_tags) = self.repository.get_usage_ranks_and_assets_tags().await?;
         let assets_tags_map = Self::asset_tags_by_asset(assets_tags);
         let usage_ranks_map: HashMap<String, i32> = usage_ranks.into_iter().map(|(asset_id, usage_rank)| (asset_id.to_string(), usage_rank)).collect();
 

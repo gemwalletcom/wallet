@@ -15,7 +15,7 @@ pub async fn run_setup(settings: Settings) -> Result<(), Box<dyn std::error::Err
 
     let services = Services::new(Arc::new(settings))?;
     let repository = services.setup_repository();
-    repository.run_migrations().await?;
+    repository.update_schema().await?;
     info_with_fields!("setup", step = "postgres migrations complete");
 
     seed_database(repository.as_ref()).await?;
@@ -40,7 +40,7 @@ pub(super) async fn seed_database(repository: &dyn Repository) -> Result<(), Box
         config_keys: ConfigKey::all(),
         config_params: ConfigParamKey::all(),
     };
-    repository.seed(seed).await?;
+    repository.set_seed(seed).await?;
     Ok(())
 }
 

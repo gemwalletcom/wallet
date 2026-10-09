@@ -10,17 +10,17 @@ use super::admin_device::AdminWalletOverview;
 #[async_trait]
 pub(crate) trait Repository: Send + Sync {
     async fn add_device(&self, device: Device) -> Result<Device, DatabaseError>;
-    async fn device(&self, device_id: String) -> Result<Device, DatabaseError>;
+    async fn get_device(&self, device_id: String) -> Result<Device, DatabaseError>;
     async fn update_device(&self, device: Device) -> Result<Device, DatabaseError>;
-    async fn device_exists(&self, device_id: String) -> Result<bool, DatabaseError>;
-    async fn device_record(&self, device_id: String) -> Result<Option<DeviceRecord>, DatabaseError>;
-    async fn device_wallet(&self, device_id: String, wallet_id: String) -> Result<DeviceWalletLookup, DatabaseError>;
-    async fn device_with_price_alert_count(&self, device_id: String) -> Result<(DeviceRecord, i64), DatabaseError>;
-    async fn subscriptions(&self, device_row_id: i32) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError>;
-    async fn device_subscriptions(&self, device_id: String) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError>;
-    async fn wallet_subscriptions(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<ChainAddress>, DatabaseError>;
-    async fn device_wallet_subscriptions(&self, device_id: String, wallet_id: String) -> Result<(WalletRecord, Vec<ChainAddress>), DatabaseError>;
-    async fn wallet_overviews(&self, device_row_id: i32) -> Result<Vec<AdminWalletOverview>, DatabaseError>;
+    async fn get_device_exists(&self, device_id: String) -> Result<bool, DatabaseError>;
+    async fn get_device_record(&self, device_id: String) -> Result<Option<DeviceRecord>, DatabaseError>;
+    async fn get_device_wallet(&self, device_id: String, wallet_id: String) -> Result<DeviceWalletLookup, DatabaseError>;
+    async fn get_device_with_price_alert_count(&self, device_id: String) -> Result<(DeviceRecord, i64), DatabaseError>;
+    async fn get_subscriptions(&self, device_row_id: i32) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError>;
+    async fn get_device_subscriptions(&self, device_id: String) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError>;
+    async fn get_wallet_subscriptions(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<ChainAddress>, DatabaseError>;
+    async fn get_device_wallet_subscriptions(&self, device_id: String, wallet_id: String) -> Result<(WalletRecord, Vec<ChainAddress>), DatabaseError>;
+    async fn get_wallet_overviews(&self, device_row_id: i32) -> Result<Vec<AdminWalletOverview>, DatabaseError>;
     async fn add_subscriptions(&self, device_row_id: i32, wallet_subscriptions: Vec<WalletSubscription>) -> Result<usize, DatabaseError>;
     async fn delete_subscriptions(&self, device_row_id: i32, subscriptions: Vec<WalletSubscriptionChains>) -> Result<usize, DatabaseError>;
 }
@@ -41,7 +41,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.add_device(device)).await
     }
 
-    async fn device(&self, device_id: String) -> Result<Device, DatabaseError> {
+    async fn get_device(&self, device_id: String) -> Result<Device, DatabaseError> {
         self.database.run(move |client| client.get_device(&device_id)).await
     }
 
@@ -49,15 +49,15 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.update_device(device)).await
     }
 
-    async fn device_exists(&self, device_id: String) -> Result<bool, DatabaseError> {
+    async fn get_device_exists(&self, device_id: String) -> Result<bool, DatabaseError> {
         self.database.run(move |client| client.get_device_exist(&device_id)).await
     }
 
-    async fn device_record(&self, device_id: String) -> Result<Option<DeviceRecord>, DatabaseError> {
+    async fn get_device_record(&self, device_id: String) -> Result<Option<DeviceRecord>, DatabaseError> {
         self.database.run(move |client| optional_record(client.get_device_record(&device_id))).await
     }
 
-    async fn device_wallet(&self, device_id: String, wallet_id: String) -> Result<DeviceWalletLookup, DatabaseError> {
+    async fn get_device_wallet(&self, device_id: String, wallet_id: String) -> Result<DeviceWalletLookup, DatabaseError> {
         self.database
             .run(move |client| {
                 let Some(device) = optional_record(client.get_device_record(&device_id))? else {
@@ -72,21 +72,21 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn device_with_price_alert_count(&self, device_id: String) -> Result<(DeviceRecord, i64), DatabaseError> {
+    async fn get_device_with_price_alert_count(&self, device_id: String) -> Result<(DeviceRecord, i64), DatabaseError> {
         self.database
             .run(move |client| {
                 let device = client.get_device_record(&device_id)?;
-                let price_alert_count = client.count_price_alerts_for_device_id(device.id)?;
+                let price_alert_count = client.get_price_alerts_count_for_device_id(device.id)?;
                 Ok((device, price_alert_count))
             })
             .await
     }
 
-    async fn subscriptions(&self, device_row_id: i32) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError> {
+    async fn get_subscriptions(&self, device_row_id: i32) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError> {
         self.database.run(move |client| client.get_subscriptions(device_row_id)).await
     }
 
-    async fn device_subscriptions(&self, device_id: String) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError> {
+    async fn get_device_subscriptions(&self, device_id: String) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError> {
         self.database
             .run(move |client| {
                 let device_row_id = client.get_device_row_id(&device_id)?;
@@ -95,11 +95,11 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn wallet_subscriptions(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<ChainAddress>, DatabaseError> {
+    async fn get_wallet_subscriptions(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<ChainAddress>, DatabaseError> {
         self.database.run(move |client| client.get_subscriptions_by_wallet_id(device_row_id, wallet_id)).await
     }
 
-    async fn device_wallet_subscriptions(&self, device_id: String, wallet_id: String) -> Result<(WalletRecord, Vec<ChainAddress>), DatabaseError> {
+    async fn get_device_wallet_subscriptions(&self, device_id: String, wallet_id: String) -> Result<(WalletRecord, Vec<ChainAddress>), DatabaseError> {
         self.database
             .run(move |client| {
                 let device_row_id = client.get_device_row_id(&device_id)?;
@@ -110,7 +110,7 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn wallet_overviews(&self, device_row_id: i32) -> Result<Vec<AdminWalletOverview>, DatabaseError> {
+    async fn get_wallet_overviews(&self, device_row_id: i32) -> Result<Vec<AdminWalletOverview>, DatabaseError> {
         self.database
             .run(move |client| {
                 let rows = client.get_subscriptions(device_row_id)?;
@@ -134,9 +134,9 @@ impl Repository for PostgresRepository {
                         let chains = wallet.chains.into_iter().collect::<Vec<_>>();
                         let addresses = wallet.addresses.into_iter().collect::<Vec<_>>();
                         Ok(AdminWalletOverview {
-                            transaction_count: client.count_transactions_by_addresses(addresses.clone(), chains.iter().map(|chain| chain.as_ref().to_string()).collect())?,
-                            fiat_transaction_count: client.count_fiat_transactions_by_device_and_wallet_id(device_row_id, wallet.wallet_id)?,
-                            nft_count: client.count_nft_assets_by_addresses(addresses, chains.clone())?,
+                            transaction_count: client.get_transactions_count_by_addresses(addresses.clone(), chains.iter().map(|chain| chain.as_ref().to_string()).collect())?,
+                            fiat_transaction_count: client.get_fiat_transactions_count_by_device_and_wallet_id(device_row_id, wallet.wallet_id)?,
+                            nft_count: client.get_nft_assets_count_by_addresses(addresses, chains.clone())?,
                             chains,
                             id: wallet.identifier,
                             source: wallet.source,
@@ -167,7 +167,7 @@ impl Repository for PostgresRepository {
 
                 if !new_wallets.is_empty() {
                     let new_identifiers: Vec<String> = new_wallets.iter().map(|x| x.wallet_id.id()).collect();
-                    client.create_wallets(new_wallets)?;
+                    client.add_wallets(new_wallets)?;
                     wallet_ids.extend(client.get_wallets(new_identifiers)?.into_iter().map(|x| (x.wallet_id.id(), x.id)));
                 }
 

@@ -18,7 +18,7 @@ impl MessageConsumer<RewardsNotificationPayload, usize> for RewardsConsumer {
     }
 
     async fn consume(&self, payload: RewardsNotificationPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let notifications = self.repository.event_notifications(payload.event_id).await?;
+        let notifications = self.repository.get_event_notifications(payload.event_id).await?;
         let count = notifications.len();
         self.stream_producer.publish_in_app_notifications(notifications).await?;
         Ok(count)

@@ -35,23 +35,23 @@ impl TransactionsClient {
             limit,
             offset,
         };
-        Ok(self.repository.wallet_transactions(query).await?)
+        Ok(self.repository.get_wallet_transactions(query).await?)
     }
 
     pub async fn get_transactions_by_device_id(&self, device_id: &str) -> Result<TransactionsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.device_transactions(device_id.to_string()).await?)
+        Ok(self.repository.get_device_transactions(device_id.to_string()).await?)
     }
 
     pub async fn get_transaction_by_id(&self, id: &TransactionId) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.transaction(id.clone()).await?)
+        Ok(self.repository.get_transaction(id.clone()).await?)
     }
 
     pub async fn get_transaction_by_wallet_id(&self, device_row_id: i32, wallet_id: i32, id: &TransactionId) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        let (addresses, transaction) = self.repository.wallet_transaction(device_row_id, wallet_id, id.clone()).await?;
+        let (addresses, transaction) = self.repository.get_wallet_transaction(device_row_id, wallet_id, id.clone()).await?;
         Ok(transaction.finalize(addresses).without_utxo())
     }
 
     pub async fn get_transactions_by_hash(&self, hash: &str) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.transactions_by_hash(hash.to_string()).await?)
+        Ok(self.repository.get_transactions_by_hash(hash.to_string()).await?)
     }
 }

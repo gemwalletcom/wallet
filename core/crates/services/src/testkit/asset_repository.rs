@@ -22,7 +22,7 @@ pub(crate) struct MemoryAssetRepository {
     ranks: Mutex<Vec<AssetRank>>,
     changes: Mutex<Vec<RankChange>>,
     price_queries: Mutex<Vec<(Vec<AssetFilter>, Duration)>>,
-    updates: Mutex<Vec<(Vec<AssetId>, Vec<AssetUpdate>)>>,
+    updates: Mutex<Vec<(Vec<AssetFilter>, Vec<AssetUpdate>)>>,
     added: Mutex<Vec<AssetBasic>>,
     tags: Vec<Tag>,
     list_assets: Mutex<Vec<ListAssets>>,
@@ -74,7 +74,7 @@ impl MemoryAssetRepository {
         self.price_queries.lock().unwrap().clone()
     }
 
-    pub(crate) fn updates(&self) -> Vec<(Vec<AssetId>, Vec<AssetUpdate>)> {
+    pub(crate) fn updates(&self) -> Vec<(Vec<AssetFilter>, Vec<AssetUpdate>)> {
         self.updates.lock().unwrap().clone()
     }
 
@@ -85,22 +85,22 @@ impl MemoryAssetRepository {
 
 #[async_trait]
 impl Repository for MemoryAssetRepository {
-    async fn enabled_assets_at_or_below(&self, rank: AssetRank) -> Result<Vec<AssetBasic>, DatabaseError> {
+    async fn get_enabled_assets_at_or_below(&self, rank: AssetRank) -> Result<Vec<AssetBasic>, DatabaseError> {
         self.ranks.lock().unwrap().push(rank);
         Ok(self.candidates.clone())
     }
 
-    async fn disable_assets_with_ranks(&self, changes: Vec<RankChange>) -> Result<usize, DatabaseError> {
+    async fn update_asset_ranks(&self, changes: Vec<RankChange>) -> Result<usize, DatabaseError> {
         let count = changes.iter().map(|change| change.asset_ids.len()).sum();
         self.changes.lock().unwrap().extend(changes);
         Ok(count)
     }
 
-    async fn asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError> {
+    async fn get_asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError> {
         Ok(self.find(&asset_id)?.asset.clone())
     }
 
-    async fn asset_full(&self, asset_id: AssetId, _price_max_age: Duration) -> Result<AssetFull, DatabaseError> {
+    async fn get_asset_full(&self, asset_id: AssetId, _price_max_age: Duration) -> Result<AssetFull, DatabaseError> {
         let asset = self.find(&asset_id)?;
         Ok(AssetFull {
             asset: asset.asset.clone(),
@@ -110,16 +110,16 @@ impl Repository for MemoryAssetRepository {
         })
     }
 
-    async fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError> {
+    async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError> {
         Ok(self.candidates.iter().filter(|asset| asset_ids.contains(&asset.asset.id)).map(|asset| asset.asset.clone()).collect())
     }
 
-    async fn assets_with_prices(&self, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
+    async fn get_assets_with_prices(&self, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
         self.price_queries.lock().unwrap().push((filters, price_max_age));
         Ok(vec![])
     }
 
-    async fn wallet_assets_with_prices(&self, _device_id: i32, _wallet_id: i32, _since: Option<NaiveDateTime>, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
+    async fn get_wallet_assets_with_prices(&self, _device_id: i32, _wallet_id: i32, _since: Option<NaiveDateTime>, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
         self.price_queries.lock().unwrap().push((filters, price_max_age));
         Ok(vec![])
     }
@@ -130,13 +130,12 @@ impl Repository for MemoryAssetRepository {
         Ok(count)
     }
 
-    async fn update_assets(&self, asset_ids: Vec<AssetId>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError> {
-        let count = asset_ids.len();
-        self.updates.lock().unwrap().push((asset_ids, updates));
-        Ok(count)
+    async fn update_assets(&self, filters: Vec<AssetFilter>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError> {
+        self.updates.lock().unwrap().push((filters, updates));
+        Ok(1)
     }
 
-    async fn upsert_asset_associations(&self, _id: String, associations: Vec<AssetAssociation>) -> Result<usize, DatabaseError> {
+    async fn set_asset_associations(&self, _id: String, associations: Vec<AssetAssociation>) -> Result<usize, DatabaseError> {
         Ok(associations.len())
     }
 
@@ -168,16 +167,16 @@ impl Repository for MemoryAssetRepository {
         Ok(Ok(perpetuals.len()))
     }
 
-    async fn asset_catalog(&self) -> Result<AssetCatalog, DatabaseError> {
+    async fn get_asset_catalog(&self) -> Result<AssetCatalog, DatabaseError> {
         self.catalog_reads.fetch_add(1, Ordering::Relaxed);
         Ok(self.catalog.clone())
     }
 
-    async fn list_tag(&self, tag_id: String) -> Result<Option<Tag>, DatabaseError> {
+    async fn get_list_tag(&self, tag_id: String) -> Result<Option<Tag>, DatabaseError> {
         Ok(self.tags.iter().find(|tag| tag.id == tag_id).cloned())
     }
 
-    async fn list_tags(&self) -> Result<Vec<Tag>, DatabaseError> {
+    async fn get_list_tags(&self) -> Result<Vec<Tag>, DatabaseError> {
         Ok(self.tags.clone())
     }
 

@@ -18,7 +18,7 @@ impl ParserStateService {
     }
 
     pub async fn get_state(&self) -> Result<ParserState, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.parser_state(self.chain).await?)
+        Ok(self.repository.get_parser_state(self.chain).await?)
     }
 
     pub async fn set_current_block(&self, block: i64) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -38,6 +38,6 @@ impl Services {
     }
 
     pub async fn parser_chains(&self) -> Result<Vec<Chain>, Box<dyn Error + Send + Sync>> {
-        Ok(self.transactions_repository().parser_states().await?.into_iter().map(|state| state.chain).collect())
+        Ok(self.transactions_repository().get_parser_states().await?.into_iter().map(|state| state.chain).collect())
     }
 }

@@ -21,7 +21,7 @@ impl ListsClient {
     }
 
     pub async fn add_list(&self, id: String, list_id: ListId) -> Result<Option<AssetList>, Box<dyn Error + Send + Sync>> {
-        let tag = self.repository.list_tag(id.clone()).await?;
+        let tag = self.repository.get_list_tag(id.clone()).await?;
         if tag.as_ref().is_some_and(|tag| tag.list_id.as_ref() != Some(&list_id)) {
             return Ok(None);
         }
@@ -45,7 +45,7 @@ impl ListsClient {
     }
 
     pub async fn update_lists(&self, provider: ListProviderName) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let tags = self.repository.list_tags().await?;
+        let tags = self.repository.get_list_tags().await?;
         let mut count = 0;
         for tag in tags {
             let Some(list_id) = tag.list_id else {

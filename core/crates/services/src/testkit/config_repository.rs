@@ -48,11 +48,11 @@ impl MemoryConfigRepository {
 
 #[async_trait]
 impl Repository for MemoryConfigRepository {
-    async fn config_value(&self, key: ConfigKey) -> Result<String, DatabaseError> {
+    async fn get_config_value(&self, key: ConfigKey) -> Result<String, DatabaseError> {
         self.value(key.as_ref().to_string())
     }
 
-    async fn config_param_value(&self, param: ConfigParamKey) -> Result<String, DatabaseError> {
+    async fn get_config_param_value(&self, param: ConfigParamKey) -> Result<String, DatabaseError> {
         self.value(param.key())
     }
 

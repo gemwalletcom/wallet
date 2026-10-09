@@ -5,6 +5,7 @@ use primitives::rewards::{RedemptionStatus as PrimitiveRedemptionStatus, RewardR
 
 use crate::models::{AssetRow, NewRewardRedemptionRow, RedemptionOptionFull, RewardRedemptionOptionRow, RewardRedemptionRow};
 use crate::repositories::rewards_repository::{RewardsFilter, get_rewards_by_filter};
+use crate::repositories::{Condition, QueryFilter, matching};
 use crate::sql_types::{RedemptionStatus, RewardRedemptionType};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
@@ -17,6 +18,20 @@ pub struct RedemptionRecord {
 }
 
 #[derive(Debug, Clone)]
+pub enum RedemptionFilter {
+    Ids(Vec<i32>),
+}
+
+impl QueryFilter<crate::schema::rewards_redemptions::table> for RedemptionFilter {
+    fn condition(self) -> Condition<crate::schema::rewards_redemptions::table> {
+        use crate::schema::rewards_redemptions::dsl::*;
+        match self {
+            RedemptionFilter::Ids(values) => Box::new(id.eq_any(values)),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum RedemptionUpdate {
     Status(PrimitiveRedemptionStatus),
     TransactionId(String),
@@ -26,10 +41,10 @@ pub enum RedemptionUpdate {
 pub trait RewardsRedemptionsRepository {
     fn add_redemption(&mut self, username: &str, option_id: &str, device_id: i32, wallet_id: i32) -> Result<RewardRedemption, DatabaseError>;
     fn get_redemption(&mut self, redemption_id: i32) -> Result<RedemptionRecord, DatabaseError>;
-    fn update_redemption(&mut self, redemption_id: i32, updates: Vec<RedemptionUpdate>) -> Result<(), DatabaseError>;
+    fn update_redemptions(&mut self, filters: Vec<RedemptionFilter>, updates: Vec<RedemptionUpdate>) -> Result<usize, DatabaseError>;
     fn get_redemption_options(&mut self, types: &[PrimitiveRewardRedemptionType]) -> Result<Vec<RewardRedemptionOption>, DatabaseError>;
     fn get_redemption_option(&mut self, id: &str) -> Result<RewardRedemptionOption, DatabaseError>;
-    fn count_redemptions_since(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
+    fn get_redemptions_count_since(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
 }
 
 fn insert_redemption(client: &mut DatabaseClient, username: &str, points: i32, redemption: NewRewardRedemptionRow) -> Result<i32, DieselError> {
@@ -125,23 +140,17 @@ impl RewardsRedemptionsRepository for DatabaseClient {
         })
     }
 
-    fn update_redemption(&mut self, redemption_id: i32, updates: Vec<RedemptionUpdate>) -> Result<(), DatabaseError> {
+    fn update_redemptions(&mut self, filters: Vec<RedemptionFilter>, updates: Vec<RedemptionUpdate>) -> Result<usize, DatabaseError> {
         use crate::schema::rewards_redemptions::dsl;
-
-        if updates.is_empty() {
-            return Ok(());
-        }
-
-        for update in updates {
-            let target = dsl::rewards_redemptions.find(redemption_id);
-            match update {
+        Ok(updates.into_iter().try_fold(0, |total, update| {
+            let target = dsl::rewards_redemptions.filter(matching(filters.clone()));
+            let updated = match update {
                 RedemptionUpdate::Status(value) => diesel::update(target).set(dsl::status.eq(RedemptionStatus::from(value))).execute(&mut self.connection)?,
                 RedemptionUpdate::TransactionId(value) => diesel::update(target).set(dsl::transaction_hash.eq(value)).execute(&mut self.connection)?,
                 RedemptionUpdate::Error(value) => diesel::update(target).set(dsl::error.eq(value)).execute(&mut self.connection)?,
             };
-        }
-
-        Ok(())
+            Ok::<_, DieselError>(total + updated)
+        })?)
     }
 
     fn get_redemption_options(&mut self, types: &[PrimitiveRewardRedemptionType]) -> Result<Vec<RewardRedemptionOption>, DatabaseError> {
@@ -159,7 +168,7 @@ impl RewardsRedemptionsRepository for DatabaseClient {
         redemption_option(self, id).or_not_found(id.to_string())?.as_primitive()
     }
 
-    fn count_redemptions_since(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+    fn get_redemptions_count_since(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
         use crate::schema::rewards_redemptions::dsl;
         Ok(dsl::rewards_redemptions.filter(dsl::username.eq(username)).filter(dsl::created_at.ge(since)).count().get_result(&mut self.connection)?)
     }

@@ -60,7 +60,7 @@ impl RewardsAbuseChecker {
         let config = AbuseDetectionConfig::from_config(&self.config).await?;
         let since = now().ago(config.lookback);
 
-        let facts = self.repository.abuse_facts(since, config.min_referrals_to_evaluate, config.velocity_window.as_secs() as i64).await?;
+        let facts = self.repository.get_abuse_facts(since, config.min_referrals_to_evaluate, config.velocity_window.as_secs() as i64).await?;
         let mut evaluations: Vec<AbuseEvaluation> = facts.into_iter().map(|facts| Self::evaluate_user(facts, &config)).collect();
 
         evaluations.sort_by(|a, b| b.abuse_percent.partial_cmp(&a.abuse_percent).unwrap_or(std::cmp::Ordering::Equal));
@@ -187,7 +187,7 @@ impl RewardsAbuseChecker {
             eval.patterns.signals_in_velocity_window,
             eval.referrer_disabled
         );
-        let event_id = self.repository.disable_rewards(eval.username.clone(), reason.to_string(), comment).await?;
+        let event_id = self.repository.set_rewards_disabled(eval.username.clone(), reason.to_string(), comment).await?;
 
         Ok(Some(event_id))
     }

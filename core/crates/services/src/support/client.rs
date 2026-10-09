@@ -30,7 +30,7 @@ impl SupportClient {
     }
 
     pub async fn get_device(&self, device_id: &str) -> Result<Option<Device>, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.device(device_id.to_string()).await?)
+        Ok(self.repository.get_device(device_id.to_string()).await?)
     }
 
     pub async fn publish_webhook(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {

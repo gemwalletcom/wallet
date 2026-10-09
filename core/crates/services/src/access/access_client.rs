@@ -15,12 +15,12 @@ impl AccessClient {
     }
 
     pub async fn is_api_client_allowed(&self, secret: &str, scope: ApiClientScope) -> Result<bool, DatabaseError> {
-        self.repository.has_enabled_api_client(secret.to_string(), scope, ApiClientResource::Global).await
+        self.repository.get_api_client_enabled(secret.to_string(), scope, ApiClientResource::Global).await
     }
 
     pub async fn is_webhook_sender_allowed(&self, secret: &str, kind: WebhookKind, sender: &str) -> Result<bool, DatabaseError> {
         self.repository
-            .has_enabled_api_client(secret.to_string(), ApiClientScope::webhook(kind), ApiClientResource::WebhookSender(sender.to_string()))
+            .get_api_client_enabled(secret.to_string(), ApiClientScope::webhook(kind), ApiClientResource::WebhookSender(sender.to_string()))
             .await
     }
 }

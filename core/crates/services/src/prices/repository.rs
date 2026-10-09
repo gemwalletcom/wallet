@@ -2,13 +2,13 @@ use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use chrono::{NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use prices::{AssetPriceMapping, PriceAlertNotification, PriceAlertRules, PriceProviderAssetMetadata};
 use primitives::currency::Currency;
 use primitives::{Asset, AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceProvider, PriceProviderConfig};
 use storage::{
-    AssetFilter, AssetUpdate, AssetsLinksRepository, AssetsRepository, AssetsUsageRanksRepository, ChartFilter, ChartPoint, ChartResult, ChartsRepository, Database, DatabaseClient, DatabaseError, FiatRepository, PriceAlertsRepository,
-    PriceAsset, PriceFilter, PricesProvidersRepository, PricesRepository, TagRepository,
+    AssetFilter, AssetUpdate, AssetsLinksRepository, AssetsRepository, AssetsUsageRanksRepository, ChartFilter, ChartPoint, ChartResult, ChartsRepository, Database, DatabaseError, FiatRepository, PriceAlertFilter, PriceAlertUpdate,
+    PriceAlertsRepository, PriceAsset, PriceFilter, PricesProvidersRepository, PricesRepository, TagRepository,
 };
 
 pub(crate) struct PortfolioPrice {
@@ -26,34 +26,35 @@ pub(crate) struct ChartData {
 #[async_trait]
 pub(crate) trait Repository: Send + Sync {
     async fn set_fiat_rates(&self, provider: FiatRateProvider, rates: Vec<FiatRate>) -> Result<(usize, Vec<FiatRate>), DatabaseError>;
-    async fn fiat_rates(&self) -> Result<Vec<FiatRate>, DatabaseError>;
-    async fn fiat_rate(&self, currency: Currency) -> Result<FiatRate, DatabaseError>;
-    async fn prices_for_asset(&self, asset_id: AssetId) -> Result<Vec<PriceData>, DatabaseError>;
-    async fn prices(&self, filters: Vec<PriceFilter>) -> Result<Vec<PriceData>, DatabaseError>;
-    async fn save_prices(&self, prices: Vec<PriceData>, price_assets: Vec<PriceAsset>) -> Result<usize, DatabaseError>;
-    async fn price_assets(&self, price_ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError>;
-    async fn asset_ids(&self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
-    async fn tag_asset_ids(&self, tags: Vec<String>) -> Result<Vec<Vec<AssetId>>, DatabaseError>;
+    async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, DatabaseError>;
+    async fn get_fiat_rate(&self, currency: Currency) -> Result<FiatRate, DatabaseError>;
+    async fn get_prices_for_asset(&self, asset_id: AssetId) -> Result<Vec<PriceData>, DatabaseError>;
+    async fn get_prices(&self, filters: Vec<PriceFilter>) -> Result<Vec<PriceData>, DatabaseError>;
+    async fn add_prices(&self, prices: Vec<PriceData>, price_assets: Vec<PriceAsset>) -> Result<usize, DatabaseError>;
+    async fn get_price_assets(&self, price_ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError>;
+    async fn get_asset_ids(&self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
+    async fn get_tag_asset_ids(&self, tags: Vec<String>) -> Result<Vec<Vec<AssetId>>, DatabaseError>;
     async fn set_tag_asset_ids(&self, tag: String, asset_ids: Vec<AssetId>) -> Result<usize, DatabaseError>;
-    async fn chart_data(&self, asset_id: AssetId, currency: Currency, period: ChartPeriod, price_max_age: Duration) -> Result<ChartData, DatabaseError>;
+    async fn get_chart_data(&self, asset_id: AssetId, currency: Currency, period: ChartPeriod, price_max_age: Duration) -> Result<ChartData, DatabaseError>;
     async fn add_charts(&self, timeframe: ChartTimeframe, points: Vec<ChartPoint>) -> Result<usize, DatabaseError>;
-    async fn aggregate_charts(&self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError>;
+    async fn update_chart_aggregates(&self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError>;
     async fn delete_charts(&self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, DatabaseError>;
     async fn update_extremes_for_price(&self, price_id: String) -> Result<usize, DatabaseError>;
-    async fn provider_price_assets(&self, provider: PriceProvider, asset_filters: Vec<AssetFilter>) -> Result<(Vec<PriceAsset>, HashSet<AssetId>), DatabaseError>;
-    async fn price_asset_ids(&self, price_id: String, asset_filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
-    async fn price_mappings(&self, provider: PriceProvider, window: Option<(usize, usize)>) -> Result<Vec<AssetPriceMapping>, DatabaseError>;
-    async fn primary_prices(&self, asset_ids: Vec<AssetId>, price_max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError>;
-    async fn store_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
+    async fn get_provider_price_assets(&self, provider: PriceProvider, asset_filters: Vec<AssetFilter>) -> Result<(Vec<PriceAsset>, HashSet<AssetId>), DatabaseError>;
+    async fn get_price_asset_ids(&self, price_id: String, asset_filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
+    async fn get_price_mappings(&self, provider: PriceProvider, window: Option<(usize, usize)>) -> Result<Vec<AssetPriceMapping>, DatabaseError>;
+    async fn get_primary_prices(&self, asset_ids: Vec<AssetId>, price_max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError>;
+    async fn get_chart_prices(&self, price_ids: Vec<String>, from: NaiveDateTime, until: NaiveDateTime) -> Result<HashMap<String, f64>, DatabaseError>;
+    async fn set_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
     async fn delete_prices(&self, filters: Vec<PriceFilter>) -> Result<(Vec<String>, usize), DatabaseError>;
-    async fn usage_ranks_and_priced_assets(&self) -> Result<(Vec<(AssetId, i32)>, HashSet<AssetId>), DatabaseError>;
-    async fn price_providers(&self) -> Result<Vec<PriceProviderConfig>, DatabaseError>;
+    async fn get_usage_ranks_and_priced_assets(&self) -> Result<(Vec<(AssetId, i32)>, HashSet<AssetId>), DatabaseError>;
+    async fn get_price_providers(&self) -> Result<Vec<PriceProviderConfig>, DatabaseError>;
     async fn update_assets_metadata(&self, metadata: Vec<PriceProviderAssetMetadata>) -> Result<(), DatabaseError>;
-    async fn portfolio_prices(&self, asset_ids: Vec<AssetId>, period: ChartPeriod, price_max_age: Duration) -> Result<Vec<Option<PortfolioPrice>>, DatabaseError>;
-    async fn device_price_alerts(&self, device_id: String, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, DatabaseError>;
+    async fn get_portfolio_prices(&self, asset_ids: Vec<AssetId>, period: ChartPeriod, price_max_age: Duration) -> Result<Vec<Option<PortfolioPrice>>, DatabaseError>;
+    async fn get_device_price_alerts(&self, device_id: String, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, DatabaseError>;
     async fn add_price_alerts(&self, device_id: String, price_alerts: PriceAlerts) -> Result<usize, DatabaseError>;
     async fn delete_price_alerts(&self, device_id: String, ids: Vec<String>) -> Result<usize, DatabaseError>;
-    async fn notify_price_alerts(&self, rules: PriceAlertRules, notified_before: NaiveDateTime, now: NaiveDateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError>;
+    async fn update_notified_price_alerts(&self, rules: PriceAlertRules, notified_before: NaiveDateTime, now: NaiveDateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError>;
 }
 
 pub(crate) struct PostgresRepository {
@@ -72,23 +73,23 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| Ok((client.set_fiat_rates(provider, rates)?, client.get_fiat_rates()?))).await
     }
 
-    async fn fiat_rates(&self) -> Result<Vec<FiatRate>, DatabaseError> {
+    async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, DatabaseError> {
         self.database.run(FiatRepository::get_fiat_rates).await
     }
 
-    async fn fiat_rate(&self, currency: Currency) -> Result<FiatRate, DatabaseError> {
+    async fn get_fiat_rate(&self, currency: Currency) -> Result<FiatRate, DatabaseError> {
         self.database.run(move |client| client.get_fiat_rate(&currency)).await
     }
 
-    async fn prices_for_asset(&self, asset_id: AssetId) -> Result<Vec<PriceData>, DatabaseError> {
+    async fn get_prices_for_asset(&self, asset_id: AssetId) -> Result<Vec<PriceData>, DatabaseError> {
         self.database.run(move |client| client.get_prices_for_asset(&asset_id)).await
     }
 
-    async fn prices(&self, filters: Vec<PriceFilter>) -> Result<Vec<PriceData>, DatabaseError> {
+    async fn get_prices(&self, filters: Vec<PriceFilter>) -> Result<Vec<PriceData>, DatabaseError> {
         self.database.run(move |client| client.get_prices_by_filter(filters)).await
     }
 
-    async fn save_prices(&self, prices: Vec<PriceData>, price_assets: Vec<PriceAsset>) -> Result<usize, DatabaseError> {
+    async fn add_prices(&self, prices: Vec<PriceData>, price_assets: Vec<PriceAsset>) -> Result<usize, DatabaseError> {
         self.database
             .run(move |client| {
                 client.add_prices(prices)?;
@@ -97,15 +98,15 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn price_assets(&self, price_ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError> {
+    async fn get_price_assets(&self, price_ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError> {
         self.database.run(move |client| client.get_prices_assets_for_price_ids(price_ids)).await
     }
 
-    async fn asset_ids(&self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
+    async fn get_asset_ids(&self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
         self.database.run(move |client| client.get_asset_ids_by_filter(filters)).await
     }
 
-    async fn tag_asset_ids(&self, tags: Vec<String>) -> Result<Vec<Vec<AssetId>>, DatabaseError> {
+    async fn get_tag_asset_ids(&self, tags: Vec<String>) -> Result<Vec<Vec<AssetId>>, DatabaseError> {
         self.database.run(move |client| tags.iter().map(|tag| client.get_asset_ids_for_tag(tag)).collect()).await
     }
 
@@ -113,7 +114,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.set_assets_tags_for_tag(&tag, asset_ids)).await
     }
 
-    async fn chart_data(&self, asset_id: AssetId, currency: Currency, period: ChartPeriod, price_max_age: Duration) -> Result<ChartData, DatabaseError> {
+    async fn get_chart_data(&self, asset_id: AssetId, currency: Currency, period: ChartPeriod, price_max_age: Duration) -> Result<ChartData, DatabaseError> {
         self.database
             .run(move |client| {
                 let base_rate = client.get_fiat_rate(&Currency::USD)?;
@@ -132,8 +133,8 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.add_charts(timeframe, points)).await
     }
 
-    async fn aggregate_charts(&self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError> {
-        self.database.run(move |client| client.aggregate_charts(timeframe)).await
+    async fn update_chart_aggregates(&self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError> {
+        self.database.run(move |client| client.update_chart_aggregates(timeframe)).await
     }
 
     async fn delete_charts(&self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, DatabaseError> {
@@ -144,26 +145,26 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.update_extremes_for_price(&price_id)).await
     }
 
-    async fn provider_price_assets(&self, provider: PriceProvider, asset_filters: Vec<AssetFilter>) -> Result<(Vec<PriceAsset>, HashSet<AssetId>), DatabaseError> {
+    async fn get_provider_price_assets(&self, provider: PriceProvider, asset_filters: Vec<AssetFilter>) -> Result<(Vec<PriceAsset>, HashSet<AssetId>), DatabaseError> {
         self.database
             .run(move |client| {
                 let price_assets = client.get_prices_assets_by_provider(provider)?;
-                let asset_ids = asset_ids_with_filters(client, &price_assets, asset_filters)?.into_iter().collect();
+                let asset_ids = client.get_asset_ids_by_filter(price_asset_filters(&price_assets, asset_filters))?.into_iter().collect();
                 Ok((price_assets, asset_ids))
             })
             .await
     }
 
-    async fn price_asset_ids(&self, price_id: String, asset_filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
+    async fn get_price_asset_ids(&self, price_id: String, asset_filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
         self.database
             .run(move |client| {
                 let price_assets = client.get_prices_assets_for_price_ids(vec![price_id])?;
-                asset_ids_with_filters(client, &price_assets, asset_filters)
+                client.get_asset_ids_by_filter(price_asset_filters(&price_assets, asset_filters))
             })
             .await
     }
 
-    async fn price_mappings(&self, provider: PriceProvider, window: Option<(usize, usize)>) -> Result<Vec<AssetPriceMapping>, DatabaseError> {
+    async fn get_price_mappings(&self, provider: PriceProvider, window: Option<(usize, usize)>) -> Result<Vec<AssetPriceMapping>, DatabaseError> {
         self.database
             .run(move |client| {
                 let prices = client.get_prices_by_filter(vec![PriceFilter::Provider(provider)])?;
@@ -184,14 +185,22 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn primary_prices(&self, asset_ids: Vec<AssetId>, price_max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError> {
+    async fn get_primary_prices(&self, asset_ids: Vec<AssetId>, price_max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError> {
         self.database.run(move |client| client.get_primary_prices(&asset_ids, price_max_age)).await
     }
 
-    async fn store_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
+    async fn get_chart_prices(&self, price_ids: Vec<String>, from: NaiveDateTime, until: NaiveDateTime) -> Result<HashMap<String, f64>, DatabaseError> {
         self.database
             .run(move |client| {
-                let prices = with_price_changes(client, prices)?;
+                let filters = vec![ChartFilter::CreatedAfter(from), ChartFilter::CreatedBefore(until), ChartFilter::PriceIds(price_ids)];
+                Ok(client.get_charts_by_filter(filters)?.into_iter().collect())
+            })
+            .await
+    }
+
+    async fn set_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError> {
+        self.database
+            .run(move |client| {
                 let asset_ids = client.set_prices(prices)?;
                 if asset_ids.is_empty() {
                     return Ok(vec![]);
@@ -214,11 +223,11 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn usage_ranks_and_priced_assets(&self) -> Result<(Vec<(AssetId, i32)>, HashSet<AssetId>), DatabaseError> {
+    async fn get_usage_ranks_and_priced_assets(&self) -> Result<(Vec<(AssetId, i32)>, HashSet<AssetId>), DatabaseError> {
         self.database.run(|client| Ok((client.get_all_usage_ranks()?, client.get_prices_asset_ids()?.into_iter().collect()))).await
     }
 
-    async fn price_providers(&self) -> Result<Vec<PriceProviderConfig>, DatabaseError> {
+    async fn get_price_providers(&self) -> Result<Vec<PriceProviderConfig>, DatabaseError> {
         self.database.run(PricesProvidersRepository::get_prices_providers).await
     }
 
@@ -226,7 +235,7 @@ impl Repository for PostgresRepository {
         self.database
             .run(move |client| {
                 for asset in metadata {
-                    client.update_assets(vec![asset.asset_id.clone()], vec![AssetUpdate::Rank(asset.rank)])?;
+                    client.update_assets(vec![AssetFilter::Ids(vec![asset.asset_id.to_string()])], vec![AssetUpdate::Rank(asset.rank)])?;
                     client.add_assets_links(&asset.asset_id, asset.links)?;
                 }
                 Ok(())
@@ -234,7 +243,7 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn portfolio_prices(&self, asset_ids: Vec<AssetId>, period: ChartPeriod, price_max_age: Duration) -> Result<Vec<Option<PortfolioPrice>>, DatabaseError> {
+    async fn get_portfolio_prices(&self, asset_ids: Vec<AssetId>, period: ChartPeriod, price_max_age: Duration) -> Result<Vec<Option<PortfolioPrice>>, DatabaseError> {
         self.database
             .run(move |client| {
                 let assets: HashMap<AssetId, Asset> = client.get_assets(asset_ids.clone())?.into_iter().map(|asset| (asset.id.clone(), asset)).collect();
@@ -252,7 +261,7 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn device_price_alerts(&self, device_id: String, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, DatabaseError> {
+    async fn get_device_price_alerts(&self, device_id: String, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, DatabaseError> {
         self.database
             .run(move |client| Ok(client.get_price_alerts_for_device_id(&device_id, asset_id.as_ref())?.into_iter().map(|row| row.price_alert).collect()))
             .await
@@ -266,7 +275,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.delete_price_alerts(&device_id, ids)).await
     }
 
-    async fn notify_price_alerts(&self, rules: PriceAlertRules, notified_before: NaiveDateTime, now: NaiveDateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError> {
+    async fn update_notified_price_alerts(&self, rules: PriceAlertRules, notified_before: NaiveDateTime, now: NaiveDateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError> {
         self.database
             .run(move |client| {
                 let price_alerts = client.get_price_alerts(notified_before, price_max_age)?;
@@ -281,35 +290,14 @@ impl Repository for PostgresRepository {
                     let asset = client.get_asset(&price_alert.asset_id)?;
                     notifications.push(PriceAlertNotification::new(device, asset, price_alert, &price_data, trigger));
                 }
-                client.update_price_alerts_set_notified_at(notified_ids.into_iter().collect(), now)?;
+                client.update_price_alerts(vec![PriceAlertFilter::Ids(notified_ids.into_iter().collect())], vec![PriceAlertUpdate::LastNotifiedAt(now)])?;
                 Ok(notifications)
             })
             .await
     }
 }
 
-fn asset_ids_with_filters(client: &mut DatabaseClient, price_assets: &[PriceAsset], asset_filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
+fn price_asset_filters(price_assets: &[PriceAsset], asset_filters: Vec<AssetFilter>) -> Vec<AssetFilter> {
     let ids = AssetFilter::Ids(price_assets.iter().map(|price_asset| price_asset.asset_id.to_string()).collect());
-    client.get_asset_ids_by_filter([vec![ids], asset_filters].concat())
-}
-
-fn with_price_changes(client: &mut DatabaseClient, prices: Vec<PriceData>) -> Result<Vec<PriceData>, DatabaseError> {
-    let price_ids: Vec<String> = prices.iter().filter(|price| price.price_change_percentage_24h.is_none()).map(|price| price.id.to_string()).collect();
-    if price_ids.is_empty() {
-        return Ok(prices);
-    }
-    let now = Utc::now();
-    let filters = vec![
-        ChartFilter::CreatedAfter((now - chrono::Duration::hours(25)).naive_utc()),
-        ChartFilter::CreatedBefore((now - chrono::Duration::hours(24)).naive_utc()),
-        ChartFilter::PriceIds(price_ids),
-    ];
-    let prices_24h_ago: HashMap<String, f64> = client.get_charts_by_filter(filters)?.into_iter().collect();
-    Ok(prices
-        .into_iter()
-        .map(|price| {
-            let price_24h_ago = prices_24h_ago.get(&price.id.to_string()).copied();
-            price.with_price_change_from(price_24h_ago)
-        })
-        .collect())
+    [vec![ids], asset_filters].concat()
 }

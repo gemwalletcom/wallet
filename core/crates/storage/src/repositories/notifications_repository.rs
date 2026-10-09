@@ -22,8 +22,8 @@ pub struct NewNotification {
 
 pub trait NotificationsRepository {
     fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>, limit: usize) -> Result<Vec<NotificationData>, DatabaseError>;
-    fn create_notifications(&mut self, notifications: Vec<NewNotification>) -> Result<usize, DatabaseError>;
-    fn mark_all_as_read(&mut self, device_id: &str) -> Result<usize, DatabaseError>;
+    fn add_notifications(&mut self, notifications: Vec<NewNotification>) -> Result<usize, DatabaseError>;
+    fn set_notifications_read(&mut self, device_id: &str) -> Result<usize, DatabaseError>;
 }
 
 impl NotificationsRepository for DatabaseClient {
@@ -44,7 +44,7 @@ impl NotificationsRepository for DatabaseClient {
         Ok(rows.into_iter().map(|(row, wallet_identifier, asset_row)| row.as_primitive(wallet_identifier, asset_row.map(|a| a.as_primitive()))).collect())
     }
 
-    fn create_notifications(&mut self, values: Vec<NewNotification>) -> Result<usize, DatabaseError> {
+    fn add_notifications(&mut self, values: Vec<NewNotification>) -> Result<usize, DatabaseError> {
         let rows: Vec<NewNotificationRow> = values
             .into_iter()
             .map(|value| NewNotificationRow {
@@ -57,7 +57,7 @@ impl NotificationsRepository for DatabaseClient {
         Ok(diesel::insert_into(notifications::table).values(&rows).execute(&mut self.connection)?)
     }
 
-    fn mark_all_as_read(&mut self, device_id: &str) -> Result<usize, DatabaseError> {
+    fn set_notifications_read(&mut self, device_id: &str) -> Result<usize, DatabaseError> {
         Ok(diesel::update(notifications::table)
             .filter(notifications::wallet_id.eq_any(wallet_ids_by_device_id(device_id)))
             .filter(notifications::is_read.eq(false))

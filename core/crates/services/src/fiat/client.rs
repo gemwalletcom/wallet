@@ -73,12 +73,12 @@ impl FiatClient {
     }
 
     pub async fn get_transactions_by_device_wallet_id(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<FiatTransactionData>, Box<dyn Error + Send + Sync>> {
-        let transactions = self.repository.wallet_fiat_transactions(device_row_id, wallet_id).await?;
+        let transactions = self.repository.get_wallet_fiat_transactions(device_row_id, wallet_id).await?;
         Ok(transactions.into_iter().map(fiat::fiat_transaction_info).collect())
     }
 
     pub async fn get_transactions_by_device_id(&self, device_id: &str) -> Result<Vec<FiatTransactionData>, Box<dyn Error + Send + Sync>> {
-        let transactions = self.repository.device_fiat_transactions(device_id.to_string()).await?;
+        let transactions = self.repository.get_device_fiat_transactions(device_id.to_string()).await?;
         Ok(transactions.into_iter().map(fiat::fiat_transaction_info).collect())
     }
 
@@ -165,7 +165,7 @@ impl FiatClient {
             countries: providers_countries,
             fiat_assets,
             providers: db_providers,
-        } = self.repository.quote_context(asset.id.clone()).await?;
+        } = self.repository.get_quote_context(asset.id.clone()).await?;
         let ip_address_info = self
             .ip_address_provider
             .get_ip_address(ip_address)
@@ -259,11 +259,11 @@ impl FiatClient {
     }
 
     async fn get_asset(&self, asset_id: &AssetId) -> Result<Asset, DatabaseError> {
-        self.repository.asset(asset_id.clone()).await
+        self.repository.get_asset(asset_id.clone()).await
     }
 
     async fn subscription_address(&self, context: &FiatDeviceContext, chain: Chain) -> Result<WalletAddress, FiatServiceError> {
-        match self.repository.subscription_address(context.device_id, context.wallet_id, chain).await {
+        match self.repository.get_subscription_address(context.device_id, context.wallet_id, chain).await {
             Ok(address) => Ok(address),
             Err(error) if error.is_not_found() => Err(RequestError::Forbidden.into()),
             Err(error) => Err(error.into()),

@@ -23,7 +23,7 @@ impl AssetListsIndexUpdater {
             assets_tags,
             searchable_asset_ids,
             perpetuals_tags,
-        } = self.repository.asset_lists(vec![AssetFilter::IsEnabled(true), AssetFilter::RankGt(AssetRank::Trivial.threshold())]).await?;
+        } = self.repository.get_asset_lists(vec![AssetFilter::IsEnabled(true), AssetFilter::RankGt(AssetRank::Trivial.threshold())]).await?;
         let assets_tags = assets_tags.into_iter().filter(|tag| searchable_asset_ids.contains(&tag.asset_id)).collect::<Vec<_>>();
         let documents = Self::build_documents(tags, &assets_tags, &perpetuals_tags);
 

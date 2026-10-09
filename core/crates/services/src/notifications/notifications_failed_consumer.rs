@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use storage::DeviceFieldUpdate;
+use storage::{DeviceFilter, DeviceUpdate};
 use streamer::{NotificationsFailedPayload, consumer::MessageConsumer};
 
 use super::repository::Repository;
@@ -30,7 +30,7 @@ impl MessageConsumer<NotificationsFailedPayload, usize> for NotificationsFailedC
             return Ok(0);
         }
 
-        Ok(self.repository.update_device_fields(device_ids, vec![DeviceFieldUpdate::IsPushEnabled(false)]).await?)
+        Ok(self.repository.update_devices(vec![DeviceFilter::Ids(device_ids)], vec![DeviceUpdate::IsPushEnabled(false)]).await?)
     }
 }
 
@@ -70,7 +70,6 @@ mod tests {
         assert_eq!(count, 1);
         let updates = repository.device_updates();
         assert_eq!(updates.len(), 1);
-        assert_eq!(updates[0].0, vec!["invalid".to_string()]);
-        assert!(matches!(updates[0].1.as_slice(), [DeviceFieldUpdate::IsPushEnabled(false)]));
+        assert_eq!(updates[0], (vec![DeviceFilter::Ids(vec!["invalid".to_string()])], vec![DeviceUpdate::IsPushEnabled(false)]));
     }
 }

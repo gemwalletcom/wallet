@@ -8,15 +8,35 @@ use primitives::{AssetId, Device, DevicePriceAlert, PriceAlert, PriceAlerts, Pri
 use crate::models::{DeviceRow, PriceAlertRow};
 use crate::repositories::devices_repository::device_row;
 use crate::repositories::prices_repository::PricesRepository;
+use crate::repositories::{Condition, QueryFilter, matching};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
+
+#[derive(Debug, Clone)]
+pub enum PriceAlertFilter {
+    Ids(Vec<String>),
+}
+
+#[derive(Debug, Clone)]
+pub enum PriceAlertUpdate {
+    LastNotifiedAt(NaiveDateTime),
+}
+
+impl QueryFilter<crate::schema::price_alerts::table> for PriceAlertFilter {
+    fn condition(self) -> Condition<crate::schema::price_alerts::table> {
+        use crate::schema::price_alerts::dsl::*;
+        match self {
+            PriceAlertFilter::Ids(values) => Box::new(identifier.eq_any(values)),
+        }
+    }
+}
 
 pub trait PriceAlertsRepository {
     fn get_price_alerts(&mut self, after_notified_at: NaiveDateTime, max_age: Duration) -> Result<Vec<(PriceAlert, PriceData, Device)>, DatabaseError>;
     fn get_price_alerts_for_device_id(&mut self, device_id: &str, asset_id: Option<&AssetId>) -> Result<Vec<DevicePriceAlert>, DatabaseError>;
-    fn count_price_alerts_for_device_id(&mut self, device_id: i32) -> Result<i64, DatabaseError>;
+    fn get_price_alerts_count_for_device_id(&mut self, device_id: i32) -> Result<i64, DatabaseError>;
     fn add_price_alerts(&mut self, device_id: &str, price_alerts: PriceAlerts) -> Result<usize, DatabaseError>;
     fn delete_price_alerts(&mut self, device_id: &str, ids: Vec<String>) -> Result<usize, DatabaseError>;
-    fn update_price_alerts_set_notified_at(&mut self, ids: Vec<String>, last_notified_at: NaiveDateTime) -> Result<usize, DatabaseError>;
+    fn update_price_alerts(&mut self, filters: Vec<PriceAlertFilter>, updates: Vec<PriceAlertUpdate>) -> Result<usize, DatabaseError>;
 }
 
 impl PriceAlertsRepository for DatabaseClient {
@@ -64,7 +84,7 @@ impl PriceAlertsRepository for DatabaseClient {
             .collect())
     }
 
-    fn count_price_alerts_for_device_id(&mut self, device_id_value: i32) -> Result<i64, DatabaseError> {
+    fn get_price_alerts_count_for_device_id(&mut self, device_id_value: i32) -> Result<i64, DatabaseError> {
         use crate::schema::price_alerts::dsl::*;
         Ok(price_alerts.filter(device_id.eq(device_id_value)).count().get_result(&mut self.connection)?)
     }
@@ -87,8 +107,14 @@ impl PriceAlertsRepository for DatabaseClient {
         Ok(diesel::delete(price_alerts.filter(device_id.eq(device.id).and(identifier.eq_any(ids)))).execute(&mut self.connection)?)
     }
 
-    fn update_price_alerts_set_notified_at(&mut self, ids: Vec<String>, last_notified_at_value: NaiveDateTime) -> Result<usize, DatabaseError> {
+    fn update_price_alerts(&mut self, filters: Vec<PriceAlertFilter>, updates: Vec<PriceAlertUpdate>) -> Result<usize, DatabaseError> {
         use crate::schema::price_alerts::dsl::*;
-        Ok(diesel::update(price_alerts).filter(identifier.eq_any(&ids)).set(last_notified_at.eq(last_notified_at_value)).execute(&mut self.connection)?)
+        Ok(updates.into_iter().try_fold(0, |total, update| {
+            let target = price_alerts.filter(matching(filters.clone()));
+            let updated = match update {
+                PriceAlertUpdate::LastNotifiedAt(value) => diesel::update(target).set(last_notified_at.eq(value)).execute(&mut self.connection)?,
+            };
+            Ok::<_, diesel::result::Error>(total + updated)
+        })?)
     }
 }

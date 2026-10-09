@@ -21,7 +21,7 @@ impl NftsIndexUpdater {
     pub async fn update(&self) -> Result<SearchSyncResult, Box<dyn std::error::Error + Send + Sync>> {
         let sync = self.sync_client.for_key(ConfigKey::SearchNftsLastUpdatedAt).await?;
         let filters = sync.since().map(NftCollectionFilter::UpdatedSince).into_iter().collect();
-        let collections = self.repository.nft_collections(filters).await?;
+        let collections = self.repository.get_nft_collections(filters).await?;
 
         let documents = Self::build_documents(collections);
 

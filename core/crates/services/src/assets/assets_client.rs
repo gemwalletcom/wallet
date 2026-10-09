@@ -22,26 +22,26 @@ impl AssetsClient {
     }
 
     pub async fn get_asset(&self, asset_id: &AssetId) -> Result<Asset, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.asset(asset_id.clone()).await?)
+        Ok(self.repository.get_asset(asset_id.clone()).await?)
     }
 
     pub async fn get_assets(&self, asset_ids: Vec<AssetId>, rate: f64) -> Result<Vec<AssetBasic>, Box<dyn Error + Send + Sync>> {
         let max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let filters = vec![AssetFilter::Ids(asset_ids.iter().map(ToString::to_string).collect())];
-        let assets = self.repository.assets_with_prices(filters, max_age).await?;
+        let assets = self.repository.get_assets_with_prices(filters, max_age).await?;
         Ok(assets.into_iter().map(|asset| asset.asset_basic_with_rate(rate)).collect())
     }
 
     pub async fn get_asset_full(&self, asset_id: &AssetId) -> Result<AssetFull, Box<dyn Error + Send + Sync>> {
         let max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
-        Ok(self.repository.asset_full(asset_id.clone(), max_age).await?)
+        Ok(self.repository.get_asset_full(asset_id.clone(), max_age).await?)
     }
 
     pub async fn get_assets_by_wallet_id(&self, device_id: i32, wallet_id: i32, from_timestamp: Option<u64>) -> Result<Vec<AssetId>, Box<dyn Error + Send + Sync>> {
         let since = from_timestamp.and_then(|ts| DateTime::<Utc>::from_timestamp(ts as i64, 0).map(|dt| dt.naive_utc()));
         let max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let filters = vec![AssetFilter::IsEnabled(true), AssetFilter::HasPrice(true), AssetFilter::RankGt(AssetRank::Trivial.threshold())];
-        let assets = self.repository.wallet_assets_with_prices(device_id, wallet_id, since, filters, max_age).await?;
+        let assets = self.repository.get_wallet_assets_with_prices(device_id, wallet_id, since, filters, max_age).await?;
         Ok(assets.into_iter().map(|asset| asset.asset.asset.id).collect())
     }
 }

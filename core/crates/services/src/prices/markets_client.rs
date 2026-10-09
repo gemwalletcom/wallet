@@ -31,7 +31,7 @@ impl MarketsClient {
 
     pub async fn get_asset_ids_for_provider_price_ids(&self, provider: PriceProvider, provider_price_ids: Vec<String>) -> Result<Vec<AssetId>, Box<dyn Error + Send + Sync>> {
         let price_ids: Vec<String> = provider_price_ids.iter().map(|id| PriceId::id_for(provider, id)).collect();
-        let assets = self.repository.price_assets(price_ids.clone()).await?;
+        let assets = self.repository.get_price_assets(price_ids.clone()).await?;
         let asset_map: HashMap<_, _> = assets.into_iter().map(|price_asset| (price_asset.price_id.to_string(), price_asset.asset_id)).collect();
         Ok(price_ids.into_iter().filter_map(|price_id| asset_map.get(&price_id).cloned()).collect())
     }
@@ -41,12 +41,12 @@ impl MarketsClient {
     }
 
     pub async fn get_asset_ids_for_tag(&self, tag: AssetTag) -> Result<Vec<AssetId>, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.tag_asset_ids(vec![tag.as_ref().to_string()]).await?.into_iter().flatten().collect())
+        Ok(self.repository.get_tag_asset_ids(vec![tag.as_ref().to_string()]).await?.into_iter().flatten().collect())
     }
 
     pub async fn get_market_assets(&self) -> Result<MarketsAssets, Box<dyn Error + Send + Sync>> {
         let tags = [AssetTag::Trending, AssetTag::Gainers, AssetTag::Losers].map(|tag| tag.as_ref().to_string()).to_vec();
-        let [trending, gainers, losers]: [Vec<AssetId>; 3] = self.repository.tag_asset_ids(tags).await?.try_into().map_err(|_| "market tags query returned an unexpected shape")?;
+        let [trending, gainers, losers]: [Vec<AssetId>; 3] = self.repository.get_tag_asset_ids(tags).await?.try_into().map_err(|_| "market tags query returned an unexpected shape")?;
         Ok(MarketsAssets { trending, gainers, losers })
     }
 }

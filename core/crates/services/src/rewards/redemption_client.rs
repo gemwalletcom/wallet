@@ -25,7 +25,7 @@ impl RewardsRedemptionClient {
 
     pub async fn redeem_by_wallet_id(&self, wallet_id: i32, id: &str, device_id: i32, locale: &str) -> Result<RedemptionResult, RewardsServiceError> {
         let rules = username_rules(&self.config).await?;
-        let rewards = self.repository.rewards(wallet_id, rules).await?;
+        let rewards = self.repository.get_rewards(wallet_id, rules).await?;
 
         if !rewards.status.is_verified() {
             return Err(RewardsServiceError::redemption(RewardsRedemptionError::NotEligible, locale));
@@ -37,7 +37,7 @@ impl RewardsRedemptionClient {
 
         let response = self
             .repository
-            .redeem_points(username, rewards.points, id.to_string(), device_id, wallet_id)
+            .add_redemption(username, rewards.points, id.to_string(), device_id, wallet_id)
             .await?
             .map_err(|error| RewardsServiceError::redemption(error, locale))?;
         self.stream_producer.publish_rewards_redemption(RewardsRedemptionPayload::new(response.redemption_id)).await?;
@@ -55,7 +55,7 @@ impl RewardsRedemptionClient {
         }
 
         let window_limits = RateLimitWindow::ALL.iter().map(|window| (current.ago(window.duration()), config.limits.get(*window))).collect();
-        self.repository.check_redemption_limits(username.to_string(), current.ago(config.cooldown_after_referral), window_limits).await
+        self.repository.get_redemption_limit_check(username.to_string(), current.ago(config.cooldown_after_referral), window_limits).await
     }
 }
 

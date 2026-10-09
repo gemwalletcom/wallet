@@ -257,6 +257,51 @@ def services_reach_postgres_through_repositories():
                 yield f"{path.relative_to(ROOT)}:{number} touches Postgres outside a repository adapter"
 
 
+FUNCTION = re.compile(r"\bfn\s+\w+\s*(?:<[^{;()]*>)?\s*\(")
+DATABASE_CLIENT = re.compile(r"\bDatabaseClient\b")
+
+
+def function_parameters(text):
+    for match in FUNCTION.finditer(text):
+        depth, index = 1, match.end()
+        while depth and index < len(text):
+            depth += {"(": 1, ")": -1}.get(text[index], 0)
+            index += 1
+        yield match.start(), text[match.end() : index - 1]
+
+
+def only_storage_takes_the_client():
+    """core/skills/architecture.md § Repository Pattern: outside storage no function takes a DatabaseClient; only an adapter's run or transaction closure holds it."""
+    for path in sorted(BACKEND.rglob("*.rs")):
+        if "target" in path.relative_to(BACKEND).parts or path.is_relative_to(STORAGE_SRC.parent):
+            continue
+        text = path.read_text()
+        for start, parameters in function_parameters(text):
+            if DATABASE_CLIENT.search(parameters):
+                yield f"{path.relative_to(ROOT)}:{text.count(chr(10), 0, start) + 1} takes a DatabaseClient outside storage"
+
+
+REPOSITORY_VERBS = {"get", "add", "set", "update", "delete"}
+REPOSITORY_TRAIT = re.compile(r"\b(?:pub trait \w+Repository|pub\(crate\) trait Repository)\b[^{;]*\{")
+TRAIT_METHOD = re.compile(r"^\s+(?:async\s+)?fn\s+([a-z_0-9]+)\s*\(", re.M)
+
+
+def repository_methods_start_with_a_verb():
+    """core/skills/architecture.md § Repository Pattern: storage repositories and service ports name every method by its verb."""
+    for root in (STORAGE_SRC, SERVICES_SRC):
+        for path in sorted(root.rglob("*.rs")):
+            if "testkit" in path.relative_to(root).parts:
+                continue
+            text = path.read_text()
+            for trait in REPOSITORY_TRAIT.finditer(text):
+                end = text.index("\n}\n", trait.end())
+                for method in TRAIT_METHOD.finditer(text, trait.end(), end):
+                    name = method.group(1)
+                    if name.split("_")[0] in REPOSITORY_VERBS:
+                        continue
+                    yield f"{path.relative_to(ROOT)}:{text.count(chr(10), 0, method.start()) + 1} {name} does not start with a repository verb"
+
+
 ANDROID_FEATURES = ROOT / "android/features"
 DATA_INTERNALS = re.compile(r'project\(":data:(?:services:gemstone|coordinators)"\)')
 DATA_INTERNAL_DEPENDENTS = set()
@@ -318,6 +363,8 @@ RULES = [
     ("Room never drops user data", room_never_drops_user_data),
     ("only services depends on infra crates", only_services_reach_infra),
     ("services reach Postgres through repository adapters", services_reach_postgres_through_repositories),
+    ("only storage functions take the DatabaseClient", only_storage_takes_the_client),
+    ("repository methods start with a verb", repository_methods_start_with_a_verb),
     ("Android features stay off the data internals", android_features_stay_off_data_internals),
     ("features never hold a store", features_never_hold_a_store),
 ]

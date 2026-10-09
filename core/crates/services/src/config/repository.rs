@@ -4,8 +4,8 @@ use storage::{ConfigRepository, Database, DatabaseError};
 
 #[async_trait]
 pub(crate) trait Repository: Send + Sync {
-    async fn config_value(&self, key: ConfigKey) -> Result<String, DatabaseError>;
-    async fn config_param_value(&self, param: ConfigParamKey) -> Result<String, DatabaseError>;
+    async fn get_config_value(&self, key: ConfigKey) -> Result<String, DatabaseError>;
+    async fn get_config_param_value(&self, param: ConfigParamKey) -> Result<String, DatabaseError>;
     async fn set_config_value(&self, key: ConfigKey, value: String) -> Result<usize, DatabaseError>;
 }
 
@@ -21,11 +21,11 @@ impl PostgresRepository {
 
 #[async_trait]
 impl Repository for PostgresRepository {
-    async fn config_value(&self, key: ConfigKey) -> Result<String, DatabaseError> {
+    async fn get_config_value(&self, key: ConfigKey) -> Result<String, DatabaseError> {
         self.database.run(move |client| client.get_config(key)).await
     }
 
-    async fn config_param_value(&self, param: ConfigParamKey) -> Result<String, DatabaseError> {
+    async fn get_config_param_value(&self, param: ConfigParamKey) -> Result<String, DatabaseError> {
         self.database.run(move |client| client.get_config_param(param)).await
     }
 

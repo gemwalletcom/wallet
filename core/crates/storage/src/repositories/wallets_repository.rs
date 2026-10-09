@@ -57,11 +57,11 @@ pub trait WalletsRepository {
     fn get_wallet_by_id(&mut self, id: i32) -> Result<WalletRecord, DatabaseError>;
     fn get_wallets(&mut self, identifiers: Vec<String>) -> Result<Vec<WalletRecord>, DatabaseError>;
     fn get_device_multicoin_wallet_ids(&mut self, device_id: i32, chain: Chain) -> Result<Vec<i32>, DatabaseError>;
-    fn create_wallets(&mut self, wallets: Vec<NewWallet>) -> Result<usize, DatabaseError>;
+    fn add_wallets(&mut self, wallets: Vec<NewWallet>) -> Result<usize, DatabaseError>;
     fn get_or_create_wallet(&mut self, wallet: NewWallet) -> Result<WalletRecord, DatabaseError>;
     fn get_subscriptions(&mut self, device_id: i32) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError>;
     fn get_subscriptions_by_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<Vec<ChainAddress>, DatabaseError>;
-    fn subscriptions_wallet_address_for_chain(&mut self, device_id: i32, wallet_id: i32, chain: Chain) -> Result<WalletAddress, DatabaseError>;
+    fn get_subscriptions_wallet_address_for_chain(&mut self, device_id: i32, wallet_id: i32, chain: Chain) -> Result<WalletAddress, DatabaseError>;
     fn get_devices_by_wallet_id(&mut self, wallet_id: i32) -> Result<Vec<Device>, DatabaseError>;
     fn add_subscriptions(&mut self, device_id: i32, subscriptions: Vec<(i32, Chain, String)>) -> Result<usize, DatabaseError>;
     fn delete_subscriptions(&mut self, device_id: i32, subscriptions: Vec<(i32, Chain, String)>) -> Result<usize, DatabaseError>;
@@ -160,7 +160,7 @@ impl WalletsRepository for DatabaseClient {
         Ok(rows.into_iter().map(WalletRecord::from_row).collect())
     }
 
-    fn create_wallets(&mut self, new_wallets: Vec<NewWallet>) -> Result<usize, DatabaseError> {
+    fn add_wallets(&mut self, new_wallets: Vec<NewWallet>) -> Result<usize, DatabaseError> {
         let rows: Vec<NewWalletRow> = new_wallets.iter().map(NewWallet::as_row).collect();
         Ok(diesel::insert_into(wallets::table).values(&rows).on_conflict(wallets::identifier).do_nothing().execute(&mut self.connection)?)
     }
@@ -198,7 +198,7 @@ impl WalletsRepository for DatabaseClient {
         Ok(rows.into_iter().map(|(subscription, address)| ChainAddress::new(subscription.chain.0, address.address)).collect())
     }
 
-    fn subscriptions_wallet_address_for_chain(&mut self, device_id: i32, wallet_id: i32, chain: Chain) -> Result<WalletAddress, DatabaseError> {
+    fn get_subscriptions_wallet_address_for_chain(&mut self, device_id: i32, wallet_id: i32, chain: Chain) -> Result<WalletAddress, DatabaseError> {
         let row = wallets_subscriptions::table
             .inner_join(wallets_addresses::table)
             .filter(wallets_subscriptions::device_id.eq(device_id))

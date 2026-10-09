@@ -19,11 +19,11 @@ pub struct TransactionPerpetualRecord {
 }
 
 pub trait TransactionsPerpetualsRepository {
-    fn upsert_transaction_perpetual(&mut self, id: &TransactionId, record: TransactionPerpetualRecord) -> Result<usize, DatabaseError>;
+    fn set_transaction_perpetual(&mut self, id: &TransactionId, record: TransactionPerpetualRecord) -> Result<usize, DatabaseError>;
 }
 
 impl TransactionsPerpetualsRepository for DatabaseClient {
-    fn upsert_transaction_perpetual(&mut self, id: &TransactionId, record: TransactionPerpetualRecord) -> Result<usize, DatabaseError> {
+    fn set_transaction_perpetual(&mut self, id: &TransactionId, record: TransactionPerpetualRecord) -> Result<usize, DatabaseError> {
         use crate::schema::transactions_perpetuals::dsl::*;
         let row = NewTransactionPerpetualRow {
             transaction_id: transaction_row_id(self, id)?,

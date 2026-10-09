@@ -53,7 +53,7 @@ impl ChartsHistoryUpdater {
         let provider_id = provider.id();
 
         let synced = self.history.synced_prices(provider).await?;
-        let prices: Vec<PriceData> = self.repository.prices(vec![PriceFilter::Provider(provider)]).await?.into_iter().filter(|p| !synced.contains(&p.id.to_string())).collect();
+        let prices: Vec<PriceData> = self.repository.get_prices(vec![PriceFilter::Provider(provider)]).await?.into_iter().filter(|p| !synced.contains(&p.id.to_string())).collect();
 
         for price in &prices {
             let provider_price_id = price.provider_price_id.as_str();

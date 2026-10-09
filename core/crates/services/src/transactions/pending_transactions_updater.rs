@@ -133,7 +133,7 @@ impl PendingTransactionsUpdater {
             return Ok(true);
         }
 
-        if self.repository.transaction_exists(transaction_id).await? {
+        if self.repository.get_transaction_exists(transaction_id).await? {
             info_with_fields!("pending exists", chain = chain.as_ref(), identifier = identifier);
             return Ok(true);
         }

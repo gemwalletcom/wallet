@@ -23,7 +23,7 @@ pub struct FetchPricesMetadataConsumer {
 #[async_trait]
 impl MessageConsumer<PriceId, usize> for FetchPricesMetadataConsumer {
     async fn should_consume(&self, price_id: &PriceId) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let providers = self.repository.price_providers().await?;
+        let providers = self.repository.get_price_providers().await?;
         Ok(providers.into_iter().any(|provider| provider.provider == price_id.provider && provider.enabled))
     }
 
@@ -34,7 +34,7 @@ impl MessageConsumer<PriceId, usize> for FetchPricesMetadataConsumer {
         self.cooldowns.start_cooldown(&price_id, retry).await?;
         let mappings: Vec<_> = self
             .repository
-            .price_asset_ids(id.clone(), vec![AssetFilter::IsEnabled(true)])
+            .get_price_asset_ids(id.clone(), vec![AssetFilter::IsEnabled(true)])
             .await?
             .into_iter()
             .map(|asset_id| AssetPriceMapping::new(asset_id, price_id.provider_price_id.clone()))

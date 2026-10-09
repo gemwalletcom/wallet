@@ -8,12 +8,27 @@ use primitives::{AssetId, ChainAddress, Transaction, TransactionId, TransactionS
 
 use crate::models::*;
 use crate::repositories::wallets_repository::wallet_addresses;
+use crate::repositories::{Condition, QueryFilter, matching};
 use crate::schema::{transactions::dsl as transactions_dsl, transactions_addresses, wallets_addresses};
 use crate::sql_types::{AssetId as AssetIdRow, ChainRow, TransactionState, TransactionType};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
+#[derive(Debug, Clone)]
 pub enum TransactionFilter {
     States(Vec<PrimitiveTransactionState>),
+    Chain(String),
+    Hash(String),
+}
+
+impl QueryFilter<crate::schema::transactions::table> for TransactionFilter {
+    fn condition(self) -> Condition<crate::schema::transactions::table> {
+        use crate::schema::transactions::dsl;
+        match self {
+            TransactionFilter::States(states) => Box::new(dsl::state.eq_any(transaction_states(states))),
+            TransactionFilter::Chain(value) => Box::new(dsl::chain.eq(value)),
+            TransactionFilter::Hash(value) => Box::new(dsl::hash.eq(value)),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -39,7 +54,7 @@ pub trait TransactionsRepository {
     fn get_transaction_by_id(&mut self, id: &TransactionId, wallet_addresses: Vec<String>) -> Result<Transaction, DatabaseError>;
     fn get_transactions_by_hash(&mut self, hash: &str) -> Result<Vec<Transaction>, DatabaseError>;
     fn get_transaction_exists(&mut self, id: &TransactionId) -> Result<bool, DatabaseError>;
-    fn upsert_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, DatabaseError>;
+    fn set_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, DatabaseError>;
     fn get_transactions_by_device_id(
         &mut self,
         _device_id: &str,
@@ -50,13 +65,13 @@ pub trait TransactionsRepository {
         limit: usize,
         offset: usize,
     ) -> Result<Vec<Transaction>, DatabaseError>;
-    fn count_transactions_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, DatabaseError>;
+    fn get_transactions_count_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, DatabaseError>;
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<ChainAddress>, DatabaseError>;
     fn delete_transactions_addresses(&mut self, chain_addresses: Vec<ChainAddress>) -> Result<Vec<i64>, DatabaseError>;
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, DatabaseError>;
     fn get_asset_usage_counts(&mut self, since: NaiveDateTime) -> Result<Vec<(AssetId, i64)>, DatabaseError>;
     fn get_transactions_by_filter(&mut self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<Transaction>, DatabaseError>;
-    fn update_transaction(&mut self, chain: &str, hash: &str, updates: Vec<TransactionUpdate>) -> Result<usize, DatabaseError>;
+    fn update_transactions(&mut self, filters: Vec<TransactionFilter>, updates: Vec<TransactionUpdate>) -> Result<usize, DatabaseError>;
     fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<PrimitiveTransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError>;
 }
 
@@ -160,17 +175,17 @@ pub(crate) fn transactions_by_wallet_since(client: &mut DatabaseClient, wallet_i
     use crate::schema::transactions_addresses::dsl as addr_dsl;
     use crate::schema::wallets_subscriptions::dsl as wallet_sub_dsl;
 
-    let query = tx_dsl::transactions
-        .inner_join(addr_dsl::transactions_addresses.on(tx_dsl::id.eq(addr_dsl::transaction_id)))
+    let wallet_transaction_ids = addr_dsl::transactions_addresses
         .inner_join(wallet_sub_dsl::wallets_subscriptions.on(addr_dsl::address_id.eq(wallet_sub_dsl::address_id)))
-        .into_boxed()
         .filter(wallet_sub_dsl::wallet_id.eq(wallet_id))
-        .filter(tx_dsl::created_at.ge(since));
-    let query = filters.into_iter().fold(query, |query, filter| match filter {
-        TransactionFilter::States(states) => query.filter(tx_dsl::state.eq_any(transaction_states(states))),
-    });
+        .select(addr_dsl::transaction_id);
 
-    query.distinct().select(TransactionRow::as_select()).load(&mut client.connection)
+    tx_dsl::transactions
+        .filter(matching(filters))
+        .filter(tx_dsl::created_at.ge(since))
+        .filter(tx_dsl::id.eq_any(wallet_transaction_ids))
+        .select(TransactionRow::as_select())
+        .load(&mut client.connection)
 }
 
 impl TransactionsRepository for DatabaseClient {
@@ -194,7 +209,7 @@ impl TransactionsRepository for DatabaseClient {
         Ok(get_transaction_exists(self, id.chain.as_ref(), &id.hash)?)
     }
 
-    fn upsert_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, DatabaseError> {
+    fn set_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, DatabaseError> {
         let addresses = transactions
             .iter()
             .flat_map(Transaction::assets_addresses)
@@ -240,7 +255,7 @@ impl TransactionsRepository for DatabaseClient {
         transactions_with_addresses(rows, &addresses)
     }
 
-    fn count_transactions_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, DatabaseError> {
+    fn get_transactions_count_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, DatabaseError> {
         use crate::schema::transactions::dsl::*;
 
         if addresses.is_empty() || chains.is_empty() {
@@ -336,40 +351,23 @@ impl TransactionsRepository for DatabaseClient {
 
     fn get_transactions_by_filter(&mut self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<Transaction>, DatabaseError> {
         use crate::schema::transactions::dsl;
-        let mut query = dsl::transactions.into_boxed();
-
-        for filter in filters {
-            match filter {
-                TransactionFilter::States(states) => {
-                    query = query.filter(dsl::state.eq_any(transaction_states(states)));
-                }
-            }
-        }
+        let query = dsl::transactions.filter(matching(filters)).into_boxed();
 
         let rows: Vec<TransactionRow> = query.order(dsl::created_at.asc()).limit(limit).select(TransactionRow::as_select()).load(&mut self.connection)?;
         Ok(rows.iter().map(|row| row.as_primitive(row.get_addresses())).collect::<Result<Vec<_>, _>>()?)
     }
 
-    fn update_transaction(&mut self, chain: &str, hash: &str, updates: Vec<TransactionUpdate>) -> Result<usize, DatabaseError> {
+    fn update_transactions(&mut self, filters: Vec<TransactionFilter>, updates: Vec<TransactionUpdate>) -> Result<usize, DatabaseError> {
         use crate::schema::transactions::dsl;
-
-        if updates.is_empty() {
-            return Ok(0);
-        }
-
-        let target = dsl::transactions.filter(dsl::chain.eq(chain).and(dsl::hash.eq(hash)));
-        let mut total = 0;
-
-        for update in updates {
+        Ok(updates.into_iter().try_fold(0, |total, update| {
+            let target = dsl::transactions.filter(matching(filters.clone()));
             let updated = match update {
                 TransactionUpdate::State(state) => diesel::update(target).set(dsl::state.eq(TransactionState::from(state))).execute(&mut self.connection)?,
                 TransactionUpdate::Kind(kind) => diesel::update(target).set(dsl::kind.eq(TransactionType::from(kind))).execute(&mut self.connection)?,
                 TransactionUpdate::Metadata(metadata) => diesel::update(target).set(dsl::metadata.eq(metadata)).execute(&mut self.connection)?,
             };
-            total += updated;
-        }
-
-        Ok(total)
+            Ok::<_, diesel::result::Error>(total + updated)
+        })?)
     }
 
     fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<PrimitiveTransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError> {
@@ -414,7 +412,7 @@ mod database_integration_tests {
             .run(move |client| -> Result<_, DatabaseError> {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
-                client.upsert_transactions(vec![transaction])?;
+                client.set_transactions(vec![transaction])?;
                 Ok((
                     client.get_transaction_by_id(&id, vec!["0xto".to_string()])?,
                     client.get_transaction_by_id(&id, vec!["0xfrom".to_string()])?,
@@ -443,7 +441,7 @@ mod database_integration_tests {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
                 add_wallet_addresses(client, &["0xfrom", "0xto"])?;
-                client.upsert_transactions(vec![transaction])?;
+                client.set_transactions(vec![transaction])?;
                 client.get_transactions_by_device_id("", vec!["0xfrom".to_string(), "0xto".to_string()], vec![Chain::Ethereum.to_string()], None, None, 10, 0)
             })
             .await
@@ -468,12 +466,12 @@ mod database_integration_tests {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
                 add_wallet_addresses(client, &["0xlinkto"])?;
-                client.upsert_transactions(vec![transaction.clone()])?;
-                let from_before = client.count_transactions_by_addresses(vec!["0xlinkfrom".to_string()], chains.clone())?;
-                let to_before = client.count_transactions_by_addresses(vec!["0xlinkto".to_string()], chains.clone())?;
+                client.set_transactions(vec![transaction.clone()])?;
+                let from_before = client.get_transactions_count_by_addresses(vec!["0xlinkfrom".to_string()], chains.clone())?;
+                let to_before = client.get_transactions_count_by_addresses(vec!["0xlinkto".to_string()], chains.clone())?;
                 add_wallet_addresses(client, &["0xlinkfrom"])?;
-                client.upsert_transactions(vec![transaction])?;
-                let from_after = client.count_transactions_by_addresses(vec!["0xlinkfrom".to_string()], chains)?;
+                client.set_transactions(vec![transaction])?;
+                let from_after = client.get_transactions_count_by_addresses(vec!["0xlinkfrom".to_string()], chains)?;
                 Ok((from_before, to_before, from_after))
             })
             .await

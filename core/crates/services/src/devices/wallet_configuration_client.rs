@@ -53,7 +53,7 @@ impl WalletConfigurationClient {
     }
 
     async fn subscribed_addresses(&self, device_id: i32, wallet_id: i32) -> Result<HashSet<ChainAddress>, Box<dyn Error + Send + Sync>> {
-        let subscriptions = self.repository.wallet_subscriptions(device_id, wallet_id).await?;
+        let subscriptions = self.repository.get_wallet_subscriptions(device_id, wallet_id).await?;
         Ok(subscriptions.into_iter().filter(|subscription| ADDRESS_STATUS_CHAINS.contains(&subscription.chain)).collect())
     }
 

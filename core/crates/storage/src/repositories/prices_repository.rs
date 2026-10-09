@@ -14,6 +14,7 @@ use crate::models::{ChartRow, PriceAssetRow, PriceRow, price::NewPriceRow, price
 use crate::repositories::assets_repository::{all_asset_ids, asset_ids_updated_since, asset_rows};
 use crate::repositories::charts_repository::{ChartResult, aggregate_chart_rows, chart_extremes, chart_price_at, insert_chart_rows};
 use crate::repositories::prices_providers_repository::PricesProvidersRepository;
+use crate::repositories::{Condition, QueryFilter, matching};
 use crate::sql_types::PriceProviderRow;
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
@@ -67,7 +68,7 @@ pub trait PricesRepository {
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError>;
     fn delete_prices(&mut self, ids: Vec<String>) -> Result<usize, DatabaseError>;
     fn get_assets_markets(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError>;
-    fn update_prices(&mut self, price_ids: Vec<String>, updates: Vec<PriceUpdate>) -> Result<usize, DatabaseError>;
+    fn update_prices(&mut self, filters: Vec<PriceFilter>, updates: Vec<PriceUpdate>) -> Result<usize, DatabaseError>;
     fn update_extremes_for_price(&mut self, price_id: &str) -> Result<usize, DatabaseError>;
 }
 
@@ -110,14 +111,20 @@ fn price_assets_for_price_ids(client: &mut DatabaseClient, ids: Vec<String>) -> 
     prices_assets.filter(price_id.eq_any(ids)).select(PriceAssetRow::as_select()).load(&mut client.connection)
 }
 
+impl QueryFilter<crate::schema::prices::table> for PriceFilter {
+    fn condition(self) -> Condition<crate::schema::prices::table> {
+        use crate::schema::prices::dsl::*;
+        match self {
+            PriceFilter::Provider(value) => Box::new(provider.eq(PriceProviderRow::from(value))),
+            PriceFilter::UpdatedBefore(time) => Box::new(last_updated_at.lt(time).or(last_updated_at.is_null())),
+            PriceFilter::Ids(ids) => Box::new(id.eq_any(ids)),
+        }
+    }
+}
+
 fn prices_by_filter(client: &mut DatabaseClient, filters: Vec<PriceFilter>) -> Result<Vec<PriceRow>, diesel::result::Error> {
     use crate::schema::prices::dsl::*;
-    let query = filters.into_iter().fold(prices.into_boxed(), |q, filter| match filter {
-        PriceFilter::Provider(p) => q.filter(provider.eq(PriceProviderRow::from(p))),
-        PriceFilter::UpdatedBefore(time) => q.filter(last_updated_at.lt(time).or(last_updated_at.is_null())),
-        PriceFilter::Ids(ids) => q.filter(id.eq_any(ids)),
-    });
-    query.order(market_cap_rank.asc().nulls_last()).select(PriceRow::as_select()).load(&mut client.connection)
+    prices.filter(matching(filters)).order(market_cap_rank.asc().nulls_last()).select(PriceRow::as_select()).load(&mut client.connection)
 }
 
 pub(crate) fn primary_price_rows(client: &mut DatabaseClient, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<(AssetId, PriceRow)>, DatabaseError> {
@@ -251,16 +258,13 @@ impl PricesRepository for DatabaseClient {
         Ok(diesel::delete(prices.filter(id.eq_any(ids))).execute(&mut self.connection)?)
     }
 
-    fn update_prices(&mut self, price_ids: Vec<String>, updates: Vec<PriceUpdate>) -> Result<usize, DatabaseError> {
+    fn update_prices(&mut self, filters: Vec<PriceFilter>, updates: Vec<PriceUpdate>) -> Result<usize, DatabaseError> {
         if updates.is_empty() {
             return Ok(0);
         }
         let changeset = PricesChangeset::from_updates(updates);
         use crate::schema::prices::dsl::*;
-        if price_ids.is_empty() {
-            return Ok(0);
-        }
-        Ok(diesel::update(prices.filter(id.eq_any(&price_ids))).set(&changeset).execute(&mut self.connection)?)
+        Ok(diesel::update(prices.filter(matching(filters))).set(&changeset).execute(&mut self.connection)?)
     }
 
     fn update_extremes_for_price(&mut self, price_id: &str) -> Result<usize, DatabaseError> {
@@ -272,7 +276,7 @@ impl PricesRepository for DatabaseClient {
             min: extremes.iter().filter_map(|e| e.min).min_by(|a, b| a.value.total_cmp(&b.value)),
         };
         let updates = row.merge_extremes_from_charts(combined);
-        self.update_prices(vec![price_id.to_string()], updates)
+        self.update_prices(vec![PriceFilter::Ids(vec![price_id.to_string()])], updates)
     }
 
     fn set_prices(&mut self, prices: Vec<PriceData>) -> Result<Vec<AssetId>, DatabaseError> {
@@ -302,7 +306,7 @@ impl PricesRepository for DatabaseClient {
                 })
                 .collect();
             for (id, updates) in extreme_updates {
-                client.update_prices(vec![id], updates)?;
+                client.update_prices(vec![PriceFilter::Ids(vec![id])], updates)?;
             }
 
             let chart_updates: Vec<(String, NaiveDateTime)> = current_prices.iter().map(|price| (price.id.to_string(), price.last_updated_at)).collect();

@@ -9,7 +9,7 @@ pub trait ReleasesRepository {
     fn get_releases(&mut self) -> Result<Vec<Release>, DatabaseError>;
     fn add_releases(&mut self, values: Vec<Release>) -> Result<usize, DatabaseError>;
     fn update_release(&mut self, release: Release) -> Result<usize, DatabaseError>;
-    fn is_update_enabled(&mut self, store: PlatformStore) -> Result<bool, DatabaseError>;
+    fn get_update_enabled(&mut self, store: PlatformStore) -> Result<bool, DatabaseError>;
 }
 
 impl ReleasesRepository for DatabaseClient {
@@ -36,7 +36,7 @@ impl ReleasesRepository for DatabaseClient {
             .execute(&mut self.connection)?)
     }
 
-    fn is_update_enabled(&mut self, store: PlatformStore) -> Result<bool, DatabaseError> {
+    fn get_update_enabled(&mut self, store: PlatformStore) -> Result<bool, DatabaseError> {
         let store: PlatformStoreRow = store.into();
         use crate::schema::releases::dsl::*;
         let release = releases.filter(platform_store.eq(&store)).select(ReleaseRow::as_select()).first(&mut self.connection).optional()?;

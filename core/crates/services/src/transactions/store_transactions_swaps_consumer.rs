@@ -66,7 +66,7 @@ impl StoreTransactionsSwapsConsumer {
     }
 
     async fn asset_value(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<AssetValue, Box<dyn Error + Send + Sync>> {
-        let AssetPriceHistory { assets, price_at: price, prices } = self.repository.asset_price_history(asset_id.clone(), at).await?;
+        let AssetPriceHistory { assets, price_at: price, prices } = self.repository.get_asset_price_history(asset_id.clone(), at).await?;
         let asset = assets.into_iter().next().ok_or_else(|| format!("asset {asset_id} not found"))?;
         let amount = BigNumberFormatter::value_as_f64(value, asset.asset.decimals)?;
         let max_age = Duration::from_std(DAY)?;
@@ -83,12 +83,12 @@ impl MessageConsumer<TransactionId, usize> for StoreTransactionsSwapsConsumer {
     }
 
     async fn consume(&self, payload: TransactionId) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let transaction = self.repository.transaction(payload.clone()).await?;
+        let transaction = self.repository.get_transaction(payload.clone()).await?;
         let config = StoreTransactionsSwapsConsumerConfig::read(&self.config).await?;
         let Some(record) = self.swap_record(&config, &transaction).await? else {
             return Ok(0);
         };
-        Ok(self.repository.upsert_transaction_swap(payload, record).await?)
+        Ok(self.repository.set_transaction_swap(payload, record).await?)
     }
 }
 

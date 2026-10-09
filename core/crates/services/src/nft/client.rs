@@ -30,19 +30,19 @@ impl NFTClient {
         let collection = self.provider_client.get_nft_collection(collection_id.clone()).await?;
         self.upsert_collection(collection).await?;
         let asset = self.provider_client.get_nft_asset(asset_id).await?;
-        self.repository.upsert_asset(collection_id, asset).await?;
+        self.repository.set_asset(collection_id, asset).await?;
         Ok(())
     }
 
     pub async fn get_wallet_assets(&self, device_id: i32, wallet_id: i32) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
-        let subscriptions = self.repository.wallet_subscriptions(device_id, wallet_id).await?;
+        let subscriptions = self.repository.get_wallet_subscriptions(device_id, wallet_id).await?;
 
         let mut asset_ids: HashSet<NFTAssetId> = HashSet::new();
         for subscription in subscriptions {
             let chain = subscription.chain;
             let ids = match self.provider_client.get_nft_asset_ids(chain, &subscription.address).await {
                 Ok(ids) => ids,
-                Err(_) => self.repository.address_asset_ids(chain, subscription.address).await?,
+                Err(_) => self.repository.get_address_asset_ids(chain, subscription.address).await?,
             };
             asset_ids.extend(ids);
         }
@@ -51,7 +51,7 @@ impl NFTClient {
     }
 
     pub async fn get_nft_asset_data(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, Box<dyn Error + Send + Sync>> {
-        let (asset, collection) = self.repository.asset_with_collection(asset_id.to_string()).await?;
+        let (asset, collection) = self.repository.get_asset_with_collection(asset_id.to_string()).await?;
 
         Ok(NFTAssetData {
             collection: self.with_urls_collection(collection),
@@ -79,7 +79,7 @@ impl NFTClient {
     }
 
     async fn upsert_collection(&self, collection: NFTCollection) -> Result<(), Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.upsert_collection(collection).await?)
+        Ok(self.repository.set_collection(collection).await?)
     }
 
     async fn preload(&self, assets: Vec<NFTAssetId>) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
@@ -91,7 +91,7 @@ impl NFTClient {
 
     async fn preload_collections(&self, collection_ids: Vec<NFTCollectionId>) -> Result<(), Box<dyn Error + Send + Sync>> {
         let identifiers: Vec<String> = collection_ids.iter().map(ToString::to_string).collect();
-        let existing: HashSet<NFTCollectionId> = self.repository.collection_ids(identifiers).await?.into_iter().collect();
+        let existing: HashSet<NFTCollectionId> = self.repository.get_collection_ids(identifiers).await?.into_iter().collect();
 
         let mut new_collections: Vec<NFTCollection> = Vec::new();
         for id in collection_ids.into_iter().filter(|id| !existing.contains(id)) {
@@ -109,7 +109,7 @@ impl NFTClient {
 
     async fn preload_assets(&self, asset_ids: &[NFTAssetId]) -> Result<(), Box<dyn Error + Send + Sync>> {
         let identifiers: Vec<String> = asset_ids.iter().map(ToString::to_string).collect();
-        let existing: HashSet<NFTAssetId> = self.repository.asset_ids(identifiers).await?.into_iter().collect();
+        let existing: HashSet<NFTAssetId> = self.repository.get_asset_ids(identifiers).await?.into_iter().collect();
 
         let mut new_assets: Vec<NFTAsset> = Vec::new();
         for id in asset_ids.iter().filter(|id| !existing.contains(id)).cloned() {
@@ -127,16 +127,16 @@ impl NFTClient {
 
     async fn get_nfts(&self, assets: Vec<NFTAssetId>) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
         let identifiers = assets.into_iter().map(|asset| asset.to_string()).collect();
-        let nfts = self.repository.nfts(identifiers).await?;
+        let nfts = self.repository.get_nfts(identifiers).await?;
         Ok(nfts.into_iter().map(|data| self.with_urls_data(data)).collect())
     }
 
     pub async fn load_nft_asset(&self, asset_id: &str) -> Result<NFTAsset, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.asset(asset_id.to_string()).await?)
+        Ok(self.repository.get_asset(asset_id.to_string()).await?)
     }
 
     pub async fn load_nft_collection(&self, collection_id: &str) -> Result<NFTCollection, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.collection(collection_id.to_string()).await?)
+        Ok(self.repository.get_collection(collection_id.to_string()).await?)
     }
 
     pub async fn update_assets_for_addresses(&self, addresses: HashMap<Chain, String>) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {

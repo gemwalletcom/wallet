@@ -21,7 +21,7 @@ impl MissingPricesPublisher {
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let (ranks, priced) = self.repository.usage_ranks_and_priced_assets().await?;
+        let (ranks, priced) = self.repository.get_usage_ranks_and_priced_assets().await?;
         let asset_ids: Vec<AssetId> = missing_assets(ranks, &priced).into_iter().take(MAX_ASSETS_PER_RUN).collect();
         let count = asset_ids.len();
         self.stream_producer.publish_fetch_prices_assets(asset_ids.clone()).await?;
