@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -32,6 +33,7 @@ public struct PriceAlertsScene: View {
                     NavigationLink(value: model.chart(item)) {
                         PriceAlertItemView(item: item, onDelete: { onDelete(alert: $0) })
                     }
+                    .assetIdentifier(item.data.asset.toPrimitives().id)
                 },
             )
         }

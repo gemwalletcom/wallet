@@ -1,0 +1,15 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn:
+    id: "activitiesTab"
+- extendedWaitUntil:
+    visible:
+      id: "transaction"
+    timeout: 30000
+- takeScreenshot: ${output.journey}_activity
+- tapOn:
+    id: "transaction"
+- assertVisible:
+    id: "transaction_details"
+- takeScreenshot: ${output.journey}_transaction

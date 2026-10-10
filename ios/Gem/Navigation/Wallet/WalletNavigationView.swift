@@ -73,6 +73,7 @@ struct WalletNavigationView: View {
                     Button(action: model.onToggleSearch) {
                         model.searchImage
                     }
+                    .accessibilityIdentifier("search")
                 }
             }
         }

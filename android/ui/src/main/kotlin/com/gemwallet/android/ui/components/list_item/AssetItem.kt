@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,7 +65,7 @@ fun AssetListItem(row: GemAssetItemRow, listPosition: ListPosition, modifier: Mo
         is GemAssetItemTrailing.Value -> getBalanceInfo(value.value, value.extra, hidden)
 
         is GemAssetItemTrailing.Toggle -> {
-            { Switch(checked = value.isOn, onCheckedChange = { onAction?.invoke(AssetItemAction.Switch(it)) }) }
+            { Switch(checked = value.isOn, onCheckedChange = { onAction?.invoke(AssetItemAction.Switch(it)) }, modifier = Modifier.testTag("asset_toggle")) }
         }
 
         GemAssetItemTrailing.Copy -> {

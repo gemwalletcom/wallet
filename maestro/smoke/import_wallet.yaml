@@ -1,6 +1,10 @@
 appId: ${APP_ID}
 ---
+- evalScript: ${output.journey = 'import'}
 - runFlow: subflows/import_wallet.yaml
-- assertVisible:
-    id: "bitcoin"
-- takeScreenshot: import_wallet
+- runFlow: subflows/wallet_tour.yaml
+- runFlow:
+    file: subflows/receive_bitcoin.yaml
+    env:
+      ADDRESS: ${BITCOIN_ADDRESS}
+- runFlow: subflows/open_transaction.yaml

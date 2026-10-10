@@ -40,11 +40,12 @@ maestro --device <id> test -e APP_ID=com.gemwallet.android flow.yaml
 
 ## Smoke Suite
 
-`just maestro-smoke <ios|android> <device id>` runs every top-level flow in `maestro/smoke` (onboarding and a few basic wallet features) with the dedicated test seed, and writes screenshots and a JUnit report to `build/maestro/<platform>`.
+`just maestro-smoke <ios|android> [device id]` runs every top-level flow in `maestro/smoke` with the dedicated test seed showing each step live, and writes screenshots and failure details to `build/maestro/<platform>`. Without a device id it boots the automation device (the "Gem Maestro" simulator on the newest iPhone Pro and iOS, or the `Gem_Maestro` emulator), creating it if missing, and installs the current local build.
 
 - Run it only on a simulator or emulator kept for automation: every flow clears app data.
 - Run one platform at a time: the iOS and Android drivers both use local port 7001, and a concurrent run fails every flow at once.
-- Each flow starts from a clean install and imports or creates its own wallet, so one failure never cascades into the next flow.
+- There are two journeys, one per kind of user: `create_wallet` (a new wallet) and `import_wallet` (the test seed, which has a known address and transactions). Both start from a clean install, so one failure never cascades into the other, then run the same tour of screens in `subflows/`; add a new screen check there so both kinds of user get it.
+- Each tour step starts with `launchApp` to return to the wallet home, and a step that changes state either restores it (the asset toggle) or checks it first (the price alert), so a step can be rerun on its own.
 - Primary buttons carry the `main_action` id on both apps (iOS `StateButton`, Android `MainActionButton`); a caller's own id overrides it.
 
 ## Authoring Rules
@@ -61,8 +62,8 @@ If the element you need has no id, **adding the id to the app is part of writing
 
 | Platform | Add the id | Existing example |
 |----------|-----------|------------------|
-| SwiftUI | `.accessibilityIdentifier("assetsManageAction")` | `AssetScene.swift` (`price`, `stake`, `earn`) |
-| Compose | `Modifier.testTag("assetsManageAction")` | `WalletTopBar.kt`, `MainScreen.kt` (`mainTab`, `settingsTab`) |
+| SwiftUI | `.accessibilityIdentifier("search")` | `AssetScene.swift` (`price`, `stake`, `earn`) |
+| Compose | `Modifier.testTag("search")` | `WalletTopBar.kt`, `MainScreen.kt` (`mainTab`, `settingsTab`) |
 
 Use the **same id string on both platforms** so one flow logic runs on both. `id` is regex — keep ids specific so they do not substring-match a neighbor.
 
@@ -111,15 +112,15 @@ appId: ${APP_ID}
 - launchApp:
     clearState: false          # a regression flow uses clearState:true + a dedicated test seed
 - assertVisible:
-    id: "assetsManageAction"   # Assets (home) top bar rendered
+    id: "search"   # Assets (home) top bar rendered
 - tapOn:
     id: "settingsTab"
 - assertNotVisible:
-    id: "assetsManageAction"   # navigated to Settings — Assets top bar gone
+    id: "search"   # navigated to Settings — Assets top bar gone
 - tapOn:
     id: "mainTab"
 - assertVisible:
-    id: "assetsManageAction"   # back on home
+    id: "search"   # back on home
 - takeScreenshot: home-nav
 ```
 

@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
@@ -89,6 +90,7 @@ fun GemListRowView(
     val uriHandler = LocalUriHandler.current
     val clipboardManager = context.clipboardManager()
     val selectAction = onSelect?.let { action ?: row.action() }
+    val rowModifier = row.action()?.let { modifier.testTag(it.testTag) } ?: modifier
 
     when (val row = row.uiModel(context)) {
         is GemListRowUIModel.Notice -> WarningItem(
@@ -104,7 +106,7 @@ fun GemListRowView(
             ListItem(
                 model = row.model,
                 listPosition = listPosition,
-                modifier = modifier.then(openContract?.let { Modifier.clickable(onClick = it) } ?: Modifier),
+                modifier = rowModifier.then(openContract?.let { Modifier.clickable(onClick = it) } ?: Modifier),
                 minHeight = ListItemDefaults.plainMinHeight,
                 accessory = if (openContract == null) accessory else ({ DataBadgeChevron() }),
             )
@@ -116,7 +118,7 @@ fun GemListRowView(
             ListItem(
                 model = row.model,
                 listPosition = listPosition,
-                modifier = modifier.then(menuModifier).then(
+                modifier = rowModifier.then(menuModifier).then(
                     when {
                         openAddress != null -> Modifier.clickable(onClick = openAddress)
                         row.url != null -> Modifier.clickable { uriHandler.open(context, row.url) }
@@ -254,3 +256,6 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit 
         },
     )
 }
+
+private val GemRowAction.testTag: String
+    get() = javaClass.simpleName.replaceFirstChar { it.lowercase() }

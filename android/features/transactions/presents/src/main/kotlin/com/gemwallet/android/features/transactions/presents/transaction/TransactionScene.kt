@@ -9,6 +9,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.features.transactions.presents.transaction.components.TransactionSwapProgressItem
@@ -43,7 +44,7 @@ internal fun TransactionScene(title: String, sections: List<ListSection<GemTrans
         },
         onClose = { onAction(TransactionAction.Close) },
     ) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.fillMaxSize().testTag("transaction_details")) {
             listSections(sections) { position, row ->
                 when (row) {
                     is GemTransactionDetailRow.Participant -> AddressPropertyItem(

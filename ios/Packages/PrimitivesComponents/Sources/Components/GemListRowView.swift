@@ -42,6 +42,7 @@ public struct GemListRowView: View {
 
     public var body: some View {
         content
+            .accessibilityIdentifier(row.action()?.identifier ?? "")
     }
 
     @ViewBuilder
@@ -140,5 +141,11 @@ extension GemListRowView {
             },
             set: { presentation = $0.map { .url($0) } },
         )
+    }
+}
+
+private extension GemRowAction {
+    var identifier: String {
+        String(String(describing: self).prefix { $0 != "(" })
     }
 }

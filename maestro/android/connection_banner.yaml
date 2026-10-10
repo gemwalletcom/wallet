@@ -23,7 +23,7 @@ appId: com.gemwallet.android
 - tapOn:
     id: "mainTab"
 - tapOn:
-    id: "assetsManageAction"
+    id: "search"
 - assertVisible:
     id: "connectionStatusBanner"
 - back

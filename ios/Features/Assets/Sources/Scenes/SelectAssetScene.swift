@@ -74,7 +74,7 @@ public struct SelectAssetScene: View {
         let rows = assetItems.rows(assets.map(model.displayAssetData))
         return ForEach(Array(zip(assets, rows)), id: \.0.id) { assetData, row in
             let itemView = ListAssetItemView(row: row) { model.onAssetAction(action: $0, assetData: assetData) }
-                .accessibilityIdentifier(assetData.asset.id.identifier)
+                .assetIdentifier(assetData.asset.id)
             switch model.flow.rowAction {
             case .navigate:
                 NavigationCustomLink(with: itemView) {

@@ -26,6 +26,7 @@ struct AssetNavigationView: View {
                         Button(action: model.onTogglePriceAlert) {
                             priceAlertsImage
                         }
+                        .accessibilityIdentifier("price_alert_button")
                     }
 
                     AdaptiveActionMenu(

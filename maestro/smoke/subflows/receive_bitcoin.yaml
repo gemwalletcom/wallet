@@ -1,0 +1,10 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn:
+    id: "receive_button"
+- tapOn:
+    id: "bitcoin"
+- assertVisible:
+    id: ${ADDRESS}
+- takeScreenshot: ${output.journey}_receive

@@ -1,0 +1,8 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn:
+    id: "activitiesTab"
+- assertNotVisible:
+    id: "transaction"
+- takeScreenshot: ${output.journey}_activity

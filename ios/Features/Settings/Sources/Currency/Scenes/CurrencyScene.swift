@@ -2,6 +2,7 @@
 
 import Components
 import struct Gemstone.GemCurrencyRow
+import GemstonePrimitives
 import PrimitivesComponents
 import SwiftUI
 
@@ -25,6 +26,7 @@ public struct CurrencyScene: View {
                     ) { _ in
                         onSelectCurrency(row)
                     }
+                    .accessibilityIdentifier(row.currency.toPrimitives().rawValue)
                 }
             }
         }

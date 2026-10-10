@@ -1,0 +1,11 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn:
+    id: "search"
+- inputText: "Cardano"
+- extendedWaitUntil:
+    visible:
+      id: "cardano"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_search

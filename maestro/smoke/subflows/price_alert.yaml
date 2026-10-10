@@ -1,0 +1,32 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn:
+    id: "bitcoin"
+- extendedWaitUntil:
+    visible:
+      id: "price_alert_button"
+    timeout: 15000
+- runFlow:
+    when:
+      notVisible:
+        id: "priceAlerts"
+    commands:
+      - tapOn:
+          id: "price_alert_button"
+- extendedWaitUntil:
+    visible:
+      id: "priceAlerts"
+    timeout: 15000
+- launchApp
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "notifications"
+- tapOn:
+    id: "priceAlerts"
+- extendedWaitUntil:
+    visible:
+      id: "bitcoin"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_price_alerts

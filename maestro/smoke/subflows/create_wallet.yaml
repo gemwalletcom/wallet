@@ -1,0 +1,104 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+    permissions:
+      notifications: allow
+- tapOn:
+    id: "create"
+- runFlow: accept_terms.yaml
+- tapOn:
+    id: "main_action"
+- extendedWaitUntil:
+    visible:
+      id: "word_11"
+    timeout: 10000
+- copyTextFrom:
+    id: "word_0"
+- evalScript: ${output.word0 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_1"
+- evalScript: ${output.word1 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_2"
+- evalScript: ${output.word2 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_3"
+- evalScript: ${output.word3 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_4"
+- evalScript: ${output.word4 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_5"
+- evalScript: ${output.word5 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_6"
+- evalScript: ${output.word6 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_7"
+- evalScript: ${output.word7 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_8"
+- evalScript: ${output.word8 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_9"
+- evalScript: ${output.word9 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_10"
+- evalScript: ${output.word10 = maestro.copiedText}
+- copyTextFrom:
+    id: "word_11"
+- evalScript: ${output.word11 = maestro.copiedText}
+- tapOn:
+    id: "main_action"
+- tapOn:
+    id: "word_option"
+    text: ${output.word0}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word1}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word2}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word3}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word4}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word5}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word6}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word7}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word8}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word9}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word10}
+    enabled: true
+- tapOn:
+    id: "word_option"
+    text: ${output.word11}
+    enabled: true
+- tapOn:
+    id: "main_action"
+- runFlow: finish_onboarding.yaml

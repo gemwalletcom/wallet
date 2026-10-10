@@ -1,0 +1,8 @@
+appId: ${APP_ID}
+---
+- runFlow: home_prices.yaml
+- runFlow: asset_chart.yaml
+- runFlow: price_alert.yaml
+- runFlow: search.yaml
+- runFlow: manage_assets.yaml
+- runFlow: currency.yaml

@@ -1,0 +1,40 @@
+appId: ${APP_ID}
+---
+- launchApp
+- scrollUntilVisible:
+    element:
+      id: "manage"
+- tapOn:
+    id: "manage"
+- tapOn:
+    id: "asset_toggle"
+    checked: true
+    childOf:
+      id: "ethereum"
+- assertVisible:
+    id: "asset_toggle"
+    checked: false
+    childOf:
+      id: "ethereum"
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "bitcoin"
+    timeout: 15000
+- assertNotVisible:
+    id: "ethereum"
+- scrollUntilVisible:
+    element:
+      id: "manage"
+- tapOn:
+    id: "manage"
+- tapOn:
+    id: "asset_toggle"
+    checked: false
+    childOf:
+      id: "ethereum"
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "ethereum"
+    timeout: 15000

@@ -12,8 +12,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.vector
@@ -39,7 +41,7 @@ fun RowScope.AssetDetailsMenu(details: GemAssetDetails, onPriceAlert: () -> Unit
     }
 
     details.state.priceAlert?.let { priceAlert ->
-        IconButton(onClick = onPriceAlert) {
+        IconButton(onClick = onPriceAlert, modifier = Modifier.testTag("price_alert_button")) {
             Icon(priceAlert.symbol().vector(), "")
         }
     }

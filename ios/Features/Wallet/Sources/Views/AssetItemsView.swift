@@ -15,6 +15,7 @@ struct AssetItemsView: View {
         ForEach(Array(zip(items, itemsModel.rows(items))), id: \.0.id) { assetData, row in
             NavigationCustomLink(
                 with: ListAssetItemView(row: row)
+                    .assetIdentifier(assetData.asset.id)
                     .contextMenuOnOpen { contextMenuItems(assetData) },
                 action: { onSelect(assetData.asset) },
             )

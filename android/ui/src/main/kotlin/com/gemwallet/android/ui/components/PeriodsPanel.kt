@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.gemwallet.android.ui.R
@@ -35,18 +36,18 @@ fun PeriodsPanel(period: ChartPeriod, onSelect: (ChartPeriod) -> Unit, periods: 
         verticalAlignment = Alignment.CenterVertically,
     ) {
         periods.forEach {
-            PeriodButton(stringResource(it.stringRes()), it == period) { onSelect(it) }
+            PeriodButton(stringResource(it.stringRes()), it == period, Modifier.testTag("period_${it.string}")) { onSelect(it) }
         }
     }
 }
 
 @Composable
-private fun RowScope.PeriodButton(title: String, isSelected: Boolean, onClick: () -> Unit) {
+private fun RowScope.PeriodButton(title: String, isSelected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val shape = RoundedCornerShape(paddingSmall)
     val bgColor = if (isSelected) MaterialTheme.colorScheme.background else Color.Transparent
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .weight(1f)
             .clip(shape)
             .background(bgColor)

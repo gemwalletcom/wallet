@@ -18,6 +18,7 @@ public struct TransactionScene: View {
         ListSectionView(sections: model.sections) { row in
             content(for: row)
         }
+        .accessibilityIdentifier("transaction_details")
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
         .background(Colors.grayBackground)

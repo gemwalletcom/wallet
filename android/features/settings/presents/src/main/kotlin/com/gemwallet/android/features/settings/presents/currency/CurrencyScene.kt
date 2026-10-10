@@ -9,6 +9,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
@@ -50,9 +51,9 @@ fun CurrencyScene(list: GemCurrencyList?, query: TextFieldState, snackbar: Snack
                     ListItem(
                         model = ListItemModel(title = row.title),
                         listPosition = position,
-                        modifier = Modifier.clickable {
-                            onSelect(row)
-                        },
+                        modifier = Modifier
+                            .clickable { onSelect(row) }
+                            .testTag(row.currency.name),
                         minHeight = ListItemDefaults.plainMinHeight,
                         accessory = if (row.isSelected) {
                             { SelectionCheckmark() }

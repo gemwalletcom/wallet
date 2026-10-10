@@ -26,7 +26,7 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemWalletRow
 
 private const val ScanActionTag = "assetsScanAction"
-private const val ManageActionTag = "assetsManageAction"
+private const val SearchActionTag = "search"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +74,7 @@ internal fun WalletTopBar(walletRow: GemWalletRow?, onShowWallets: () -> Unit, o
         actions = {
             IconButton(
                 onClick = onSearch,
-                Modifier.testTag(ManageActionTag),
+                Modifier.testTag(SearchActionTag),
             ) {
                 Icon(
                     imageVector = AppIcons.Search,

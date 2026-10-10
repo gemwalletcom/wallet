@@ -23,7 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -171,7 +173,8 @@ private fun LazyListScope.assets(revealable: MutableState<String?>, sections: Li
                     )
                     .onSizeChanged {
                         minActionWidth = with(density) { it.height.toDp() }
-                    },
+                    }
+                    .testTag(item.data.asset.toPrimitives().id.toIdentifier()),
                 item = item,
                 listPosition = position,
             )

@@ -19,6 +19,7 @@ public struct TransactionsList: View {
                     NavigationLink(value: Scenes.Transaction(id: row.id)) {
                         TransactionView(row: row)
                     }
+                    .accessibilityIdentifier("transaction")
                 }
             } header: {
                 section.title.map { Text($0) }

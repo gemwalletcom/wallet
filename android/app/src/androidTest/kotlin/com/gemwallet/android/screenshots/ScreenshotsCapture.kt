@@ -89,7 +89,7 @@ class ScreenshotsCapture {
         setLanguage(language, country, context)
         val path = "$language${if (country.isEmpty()) "" else "-$country"}"
 
-        device.wait(Until.hasObject(By.res("assetsManageAction")), 5_000)
+        device.wait(Until.hasObject(By.res("search")), 5_000)
         takeScreenshot().writeToTestStorage("$path/0_assets_list")
 
         device.findObject(By.res("assets_list"))
@@ -118,8 +118,8 @@ class ScreenshotsCapture {
 
         device.pressBack()
         device.pressBack()
-        device.wait(Until.hasObject(By.res("assetsManageAction")), 5_000)
-        device.findObject(By.res("assetsManageAction")).click()
+        device.wait(Until.hasObject(By.res("search")), 5_000)
+        device.findObject(By.res("search")).click()
         runBlocking { delay(SCREEN_TIMEOUT) }
         takeScreenshot().writeToTestStorage("$path/5_asset_manage")
         runBlocking { delay(SCREEN_TIMEOUT) }
@@ -166,7 +166,7 @@ class ScreenshotsCapture {
 
         val importButton = device.wait(Until.findObject(By.res("import")), LAUNCH_TIMEOUT * 5)
         if (importButton == null) {
-            if (device.wait(Until.hasObject(By.res("assetsManageAction")), SCREEN_TIMEOUT) == true) {
+            if (device.wait(Until.hasObject(By.res("search")), SCREEN_TIMEOUT) == true) {
                 return
             }
             throw AssertionError("Expected UI object 'import' to appear")

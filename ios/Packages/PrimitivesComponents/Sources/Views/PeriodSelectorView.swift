@@ -30,6 +30,7 @@ public struct PeriodSelectorView: View {
                         .cornerRadius(8)
                 }
                 .buttonStyle(.borderless)
+                .accessibilityIdentifier("period_\(period.rawValue)")
             }
         }
         .padding(.bottom, .space12)

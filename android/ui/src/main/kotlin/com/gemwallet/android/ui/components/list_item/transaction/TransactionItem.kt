@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -70,7 +71,9 @@ private val badgeStartPadding = 5.dp
 fun TransactionItem(data: GemTransactionRow, listPosition: ListPosition, onClick: () -> Unit) {
     val context = LocalContext.current
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .testTag("transaction"),
         minHeight = ListItemDefaults.iconMinHeight,
         titleSubtitleSpacing = space0,
         leading = { TransactionIcon(data) },
