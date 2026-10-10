@@ -3,16 +3,13 @@ package com.gemwallet.android.features.transfer.presents.amount
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,28 +20,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ui.R
+import com.gemwallet.android.features.transfer.presents.components.ContinueScene
 import com.gemwallet.android.ui.components.InfoBottomSheet
-import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.fields.AmountField
 import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.infoSheet
-import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoItem
-import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.style.amountSymbol
 import com.gemwallet.android.ui.style.keyboardType
-import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.secondaryFaded
@@ -79,31 +69,12 @@ internal fun AmountScene(
 ) {
     val focusRequester = remember { FocusRequester() }
     var showsErrorInfo by remember { mutableStateOf(false) }
-    val isKeyBoardOpen = WindowInsets.isKeyboardVisible
-    val density = LocalDensity.current
-    val isSmallScreen = with(density) {
-        LocalWindowInfo.current.containerSize.height.toDp() < SceneSizing.compactContentHeight
-    }
 
-    Scene(
+    ContinueScene(
         title = title,
+        buttonState = buttonState,
         onClose = { onAction(AmountAction.Cancel) },
-        mainAction = {
-            if (!isKeyBoardOpen || !isSmallScreen) {
-                MainActionButton(
-                    title = stringResource(id = R.string.common_continue),
-                    state = buttonState,
-                    onClick = { onAction(AmountAction.Next) },
-                )
-            }
-        },
-        actions = {
-            TextButton(
-                onClick = { onAction(AmountAction.Next) },
-                enabled = buttonState == ButtonState.Enabled,
-                colors = ButtonDefaults.textButtonColors().copy(contentColor = MaterialTheme.colorScheme.primary),
-            ) { Text(stringResource(R.string.common_continue).uppercase()) }
-        },
+        onContinue = { onAction(AmountAction.Next) },
     ) {
         LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
             item {
