@@ -12,14 +12,7 @@ use crate::{
 
 pub(crate) fn sign_transaction(transaction: &mut VersionedTransaction, private_key: &[u8]) -> Result<SignatureBytes, SignerError> {
     let wallet = Pubkey::new(Ed25519KeyPair::from_private_key(private_key)?.public_key_bytes);
-    let required_signers = transaction.num_required_signatures() as usize;
-    let wallet_slots = transaction
-        .account_keys()
-        .iter()
-        .take(required_signers)
-        .enumerate()
-        .filter_map(|(index, account)| (*account == wallet).then_some(index))
-        .collect::<Vec<_>>();
+    let wallet_slots = transaction.signer_slots(&wallet);
 
     if wallet_slots.is_empty() {
         return Err(SignerError::invalid_input("wallet account is not a required signer of the Solana transaction"));

@@ -132,6 +132,7 @@ mod tests {
     use super::*;
     use crate::{SwapperProviderMode, SwapperQuoteAsset, testkit::mock_quote};
     use gem_client::testkit::MockClient;
+    use gem_solana::{SignatureBytes, VersionedTransaction, decode_transaction};
     use primitives::{
         AssetId,
         asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID, TRON_USDT_TOKEN_ID},
@@ -209,9 +210,16 @@ mod tests {
         let quote = provider.get_quote(&mock_solana_request()).await.unwrap();
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
 
-        assert_eq!(quote_data.to, "RouterAddr");
+        let response: serde_json::Value = serde_json::from_str(include_str!("testdata/swap_sol_to_usdc.json")).unwrap();
+        let okx_bytes = bs58::decode(response["data"][0]["tx"]["data"].as_str().unwrap()).into_vec().unwrap();
+        let okx_transaction = VersionedTransaction::deserialize_with_version(&okx_bytes).unwrap();
+        let mut unsigned = okx_transaction.clone();
+        *unsigned.signatures_mut() = vec![SignatureBytes::default()];
+
+        assert_ne!(okx_transaction, unsigned, "OKX fills the wallet signature slot with a placeholder");
+        assert_eq!(decode_transaction(&quote_data.data).unwrap(), unsigned);
+        assert_eq!(quote_data.to, "proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u");
         assert_eq!(quote_data.value, BigUint::from(0u64));
-        assert_eq!(quote_data.data, "aGVsbG8=");
         assert!(quote_data.approval.is_none());
         assert!(quote_data.gas_limit.is_none());
     }

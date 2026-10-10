@@ -11,6 +11,7 @@ use crate::{
 use alloy_primitives::U256;
 use gem_encoding::encode_base64;
 use gem_evm::provider::preload_mapper::calculate_gas_limit_with_increase;
+use gem_solana::{Pubkey, VersionedTransaction};
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 use primitives::{
@@ -22,7 +23,7 @@ use std::{str::FromStr, sync::Arc};
 pub(super) async fn build_swap_quote_data(transaction_data: &TransactionData, from_asset: &QuoteAsset, from_value: &str, chain: Chain, owner: &str, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapQuoteData, SwapperError> {
     match chain.chain_type() {
         ChainType::Ethereum => build_evm_quote_data(transaction_data, from_asset, from_value, chain, owner, rpc_provider).await,
-        ChainType::Solana => build_solana_quote_data(transaction_data),
+        ChainType::Solana => build_solana_quote_data(transaction_data, owner),
         ChainType::Tron => build_tron_quote_data(transaction_data, from_asset, from_value, owner, rpc_provider).await,
         _ => Err(SwapperError::NotSupportedChain),
     }
@@ -53,11 +54,14 @@ pub(super) async fn build_tron_quote_data(transaction_data: &TransactionData, fr
     ))
 }
 
-pub(super) fn build_solana_quote_data(transaction_data: &TransactionData) -> Result<SwapQuoteData, SwapperError> {
+pub(super) fn build_solana_quote_data(transaction_data: &TransactionData, owner: &str) -> Result<SwapQuoteData, SwapperError> {
     let bytes = bs58::decode(&transaction_data.data)
         .into_vec()
         .map_err(|error| SwapperError::TransactionError(format!("invalid swap transaction data: {error}")))?;
-    Ok(SwapQuoteData::new_contract(transaction_data.to.clone(), BigUint::from(0u64), encode_base64(&bytes), None, None))
+    let mut transaction = VersionedTransaction::deserialize_with_version(&bytes).map_err(SwapperError::transaction_error)?;
+    transaction.clear_signature(&Pubkey::from_base58(owner).map_err(SwapperError::transaction_error)?);
+    let data = encode_base64(&transaction.serialize().map_err(SwapperError::transaction_error)?);
+    Ok(SwapQuoteData::new_contract(transaction_data.to.clone(), BigUint::from(0u64), data, None, None))
 }
 
 fn buffered_gas_limit(gas: &str) -> Option<String> {

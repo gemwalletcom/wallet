@@ -67,6 +67,23 @@ impl VersionedTransaction {
         self.signatures_mut().push(signature);
     }
 
+    pub fn signer_slots(&self, signer: &Pubkey) -> Vec<usize> {
+        self.account_keys()
+            .iter()
+            .take(self.num_required_signatures() as usize)
+            .enumerate()
+            .filter_map(|(index, account)| (account == signer).then_some(index))
+            .collect()
+    }
+
+    pub fn clear_signature(&mut self, signer: &Pubkey) {
+        for slot in self.signer_slots(signer) {
+            if let Some(signature) = self.signatures_mut().get_mut(slot) {
+                *signature = SignatureBytes::default();
+            }
+        }
+    }
+
     pub fn get_compute_unit_price(&self) -> Option<u64> {
         match self {
             Self::Legacy { .. } | Self::V0 { .. } => find_unique_compute_unit_price(self.compute_budget_data()),
@@ -180,11 +197,25 @@ impl VersionedTransaction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::{TEST_LEGACY_TX, TEST_MAYAN_V0_TX, mock_transaction_with_accounts, mock_v1_mainnet_transaction_bytes, mock_v1_transaction};
+    use crate::testkit::{TEST_LEGACY_TX, TEST_MAYAN_V0_TX, mock_transaction_with_accounts, mock_v1_mainnet_transaction_bytes, mock_v1_transaction, test_wallet_pubkey};
     use gem_encoding::decode_base64;
 
     fn decode(transaction_base64: &str) -> VersionedTransaction {
         VersionedTransaction::deserialize_with_version(&decode_base64(transaction_base64).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn test_clear_signature() {
+        let mut transaction = mock_v1_transaction(2, 1);
+        let co_signer_signature = transaction.signatures()[0];
+        transaction.signatures_mut()[1] = SignatureBytes::new([9; 64]);
+
+        transaction.clear_signature(&Pubkey::new([42; 32]));
+        assert_eq!(transaction.signatures(), &[co_signer_signature, SignatureBytes::new([9; 64])]);
+
+        transaction.clear_signature(&test_wallet_pubkey());
+        assert_eq!(transaction.signer_slots(&test_wallet_pubkey()), vec![1]);
+        assert_eq!(transaction.signatures(), &[co_signer_signature, SignatureBytes::default()]);
     }
 
     #[test]
