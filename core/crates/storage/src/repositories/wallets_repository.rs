@@ -56,7 +56,6 @@ pub trait WalletsRepository {
     fn get_wallet_by_device_and_identifier(&mut self, device_id: i32, identifier: &str) -> Result<WalletRecord, DatabaseError>;
     fn get_wallet_by_id(&mut self, id: i32) -> Result<WalletRecord, DatabaseError>;
     fn get_wallets(&mut self, identifiers: Vec<String>) -> Result<Vec<WalletRecord>, DatabaseError>;
-    fn get_device_multicoin_wallet_ids(&mut self, device_id: i32, chain: Chain) -> Result<Vec<i32>, DatabaseError>;
     fn add_wallets(&mut self, wallets: Vec<NewWallet>) -> Result<usize, DatabaseError>;
     fn get_or_create_wallet(&mut self, wallet: NewWallet) -> Result<WalletRecord, DatabaseError>;
     fn get_subscriptions(&mut self, device_id: i32) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError>;
@@ -114,6 +113,18 @@ pub(crate) fn first_subscription_date_by_wallet_id(client: &mut DatabaseClient, 
         .optional()
 }
 
+pub(crate) fn device_multicoin_wallet_ids(client: &mut DatabaseClient, device_id: i32, chain: Chain) -> Result<Vec<i32>, DatabaseError> {
+    let mut wallet_ids = Vec::new();
+    for address in device_addresses(client, device_id, ChainRow::from(chain))? {
+        match wallet_row(client, &WalletId::Multicoin(address).id()) {
+            Ok(wallet) => wallet_ids.push(wallet.id),
+            Err(diesel::result::Error::NotFound) => {}
+            Err(error) => return Err(error.into()),
+        }
+    }
+    Ok(wallet_ids)
+}
+
 fn delete_address_subscriptions(client: &mut DatabaseClient, device_id: i32, wallet_id: i32, chain: ChainRow, address_ids: Vec<i32>) -> Result<usize, diesel::result::Error> {
     diesel::delete(wallets_subscriptions::table)
         .filter(wallets_subscriptions::device_id.eq(device_id))
@@ -141,18 +152,6 @@ impl WalletsRepository for DatabaseClient {
 
     fn get_wallet_by_id(&mut self, id: i32) -> Result<WalletRecord, DatabaseError> {
         Ok(WalletRecord::from_row(wallet_row_by_id(self, id)?))
-    }
-
-    fn get_device_multicoin_wallet_ids(&mut self, device_id: i32, chain: Chain) -> Result<Vec<i32>, DatabaseError> {
-        let mut wallet_ids = Vec::new();
-        for address in device_addresses(self, device_id, ChainRow::from(chain))? {
-            match wallet_row(self, &WalletId::Multicoin(address).id()) {
-                Ok(wallet) => wallet_ids.push(wallet.id),
-                Err(diesel::result::Error::NotFound) => {}
-                Err(error) => return Err(error.into()),
-            }
-        }
-        Ok(wallet_ids)
     }
 
     fn get_wallets(&mut self, identifiers: Vec<String>) -> Result<Vec<WalletRecord>, DatabaseError> {

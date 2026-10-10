@@ -7,8 +7,8 @@ use diesel::{prelude::*, upsert::excluded};
 use primitives::{Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetType, fiat_assets::AssetCatalog};
 
 use crate::models::{AssetAssociationRow, AssetRow, NewAssetRow, PriceRow};
-use crate::repositories::assets_links_repository::AssetsLinksRepository;
-use crate::repositories::perpetuals_repository::PerpetualsRepository;
+use crate::repositories::assets_links_repository::asset_links;
+use crate::repositories::perpetuals_repository::{associated_asset_id, perpetuals_for_asset};
 use crate::repositories::prices_repository::primary_price_rows;
 use crate::repositories::tag_repository::asset_tag_ids;
 use crate::repositories::{Condition, QueryFilter, matching};
@@ -193,10 +193,9 @@ impl AssetsRepository for DatabaseClient {
         let price_row = primary_price_rows(self, slice::from_ref(asset_id), max_age)?.into_iter().next().map(|(_, row)| row);
         let market = price_row.as_ref().map(PriceRow::as_market_primitive);
         let price = price_row.as_ref().map(PriceRow::as_primitive);
-        let links = self.get_asset_links(asset_id)?;
+        let links = asset_links(self, asset_id)?;
         let associations = match asset.asset_type.0 {
-            AssetType::PERPETUAL => self
-                .get_associated_asset_id(asset_id)?
+            AssetType::PERPETUAL => associated_asset_id(self, asset_id)?
                 .map(|asset_id| AssetAssociation {
                     asset_id,
                     association_type: AssetAssociationType::Official,
@@ -218,7 +217,7 @@ impl AssetsRepository for DatabaseClient {
             | AssetType::SPOT => asset_associations(self, &id)?.into_iter().map(AssetAssociationRow::into_primitive).collect(),
         };
         let tags = asset_tag_ids(self, asset_id)?;
-        let perpetuals = self.get_perpetuals_for_asset(asset_id)?;
+        let perpetuals = perpetuals_for_asset(self, asset_id)?;
         let perpetuals = perpetuals.into_iter().map(|x| x.as_basic()).collect();
 
         Ok(AssetFull {

@@ -7,9 +7,9 @@ use primitives::{Chain, NaiveDateTimeExt, ReferralLeader, ReferralLeaderboard, R
 
 use crate::models::{NewRewardEventRow, NewRewardReferralRow, NewRewardsRow, NewUsernameRow, ReferralAttemptRow, RewardEventRow, RewardReferralRow, RewardsRow, UsernameRow};
 use crate::repositories::transactions_repository::{TransactionFilter, transactions_by_wallet_since};
-use crate::repositories::wallets_repository::{device_rows_by_wallet_id, first_subscription_date_by_wallet_id, wallet_row_by_id};
+use crate::repositories::wallets_repository::{device_multicoin_wallet_ids, device_rows_by_wallet_id, first_subscription_date_by_wallet_id, wallet_row_by_id};
 use crate::sql_types::{RewardEventType, RewardStatus, UsernameStatus};
-use crate::{DatabaseClient, DatabaseError, DieselResultExt, WalletsRepository};
+use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone)]
 enum ReferralUpdate {
@@ -255,7 +255,7 @@ fn require_username(client: &mut DatabaseClient, lookup: UsernameLookup<'_>) -> 
     }
 }
 
-fn require_rewards(client: &mut DatabaseClient, username: &str) -> Result<RewardsRow, DatabaseError> {
+pub(crate) fn require_rewards(client: &mut DatabaseClient, username: &str) -> Result<RewardsRow, DatabaseError> {
     get_rewards_by_filter(client, vec![RewardsFilter::Username(username.to_string())])?
         .into_iter()
         .next()
@@ -484,9 +484,7 @@ pub trait RewardsRepository {
     fn set_username(&mut self, wallet_id: i32, username: &str) -> Result<i32, DatabaseError>;
     fn get_referral_code(&mut self, code: &str) -> Result<Option<String>, DatabaseError>;
     fn get_referrer_info(&mut self, username: &str) -> Result<ReferrerInfo, DatabaseError>;
-    fn get_referred_username(&mut self, wallet_id: i32) -> Result<String, DatabaseError>;
     fn get_rewards_verification(&mut self, username: &str) -> Result<RewardsVerification, DatabaseError>;
-    fn get_referral_by_referred_device(&mut self, device_id: i32) -> Result<Option<ReferralRecord>, DatabaseError>;
     fn get_referral_use_facts(&mut self, wallet_id: i32, device_id: i32) -> Result<ReferralUseFactsRecord, DatabaseError>;
     fn get_referral_by_referred_username(&mut self, username: &str) -> Result<Option<ReferralRecord>, DatabaseError>;
     fn delete_rewards_verification_delay(&mut self, username: &str) -> Result<(), DatabaseError>;
@@ -502,11 +500,9 @@ pub trait RewardsRepository {
         referrer_status: &PrimitiveRewardStatus,
     ) -> Result<Vec<RewardEvent>, DatabaseError>;
     fn add_referral_attempt(&mut self, referrer_username: &str, referred_wallet_id: i32, device_id: i32, risk_signal_id: Option<i32>, reason: &str) -> Result<(), DatabaseError>;
-    fn get_first_subscription_date_by_wallet_id(&mut self, wallet_id: i32) -> Result<Option<NaiveDateTime>, DatabaseError>;
     fn get_wallet_id_by_username(&mut self, username: &str) -> Result<i32, DatabaseError>;
     fn get_referrer_username(&mut self, referred_username: &str) -> Result<Option<String>, DatabaseError>;
     fn get_address_by_username(&mut self, username: &str) -> Result<String, DatabaseError>;
-    fn get_status_by_username(&mut self, username: &str) -> Result<PrimitiveRewardStatus, DatabaseError>;
     fn get_referrals_count_since(&mut self, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
     fn get_rewards_leaderboard(&mut self) -> Result<ReferralLeaderboard, DatabaseError>;
     fn set_rewards_disabled(&mut self, username: &str, reason: &str, comment: &str) -> Result<i32, DatabaseError>;
@@ -567,10 +563,6 @@ impl RewardsRepository for DatabaseClient {
         })
     }
 
-    fn get_referred_username(&mut self, wallet_id: i32) -> Result<String, DatabaseError> {
-        referred_username(self, wallet_id)
-    }
-
     fn get_rewards_verification(&mut self, username: &str) -> Result<RewardsVerification, DatabaseError> {
         let rewards = require_rewards(self, username)?;
         Ok(RewardsVerification {
@@ -580,15 +572,14 @@ impl RewardsRepository for DatabaseClient {
     }
 
     fn get_referral_use_facts(&mut self, wallet_id: i32, device_id: i32) -> Result<ReferralUseFactsRecord, DatabaseError> {
-        let referred_username = self.get_referred_username(wallet_id)?;
+        let referred_username = referred_username(self, wallet_id)?;
         let referred_status = self.get_rewards_verification(&referred_username).ok().map(|verification| verification.status);
-        let wallet_first_subscription_at = self.get_first_subscription_date_by_wallet_id(wallet_id)?;
-        let device_wallets = self
-            .get_device_multicoin_wallet_ids(device_id, Chain::Ethereum)?
+        let wallet_first_subscription_at = first_subscription_date_by_wallet_id(self, wallet_id)?;
+        let device_wallets = device_multicoin_wallet_ids(self, device_id, Chain::Ethereum)?
             .into_iter()
-            .map(|wallet_id| Ok((wallet_id, self.get_first_subscription_date_by_wallet_id(wallet_id)?)))
+            .map(|wallet_id| Ok((wallet_id, first_subscription_date_by_wallet_id(self, wallet_id)?)))
             .collect::<Result<Vec<_>, DatabaseError>>()?;
-        let device_referral = self.get_referral_by_referred_device(device_id)?;
+        let device_referral = get_referral_by_referred_device_id(self, device_id)?.map(ReferralRecord::from);
         Ok(ReferralUseFactsRecord {
             referred_username,
             referred_status,
@@ -596,10 +587,6 @@ impl RewardsRepository for DatabaseClient {
             device_wallets,
             device_referral,
         })
-    }
-
-    fn get_referral_by_referred_device(&mut self, device_id: i32) -> Result<Option<ReferralRecord>, DatabaseError> {
-        Ok(get_referral_by_referred_device_id(self, device_id)?.map(ReferralRecord::from))
     }
 
     fn get_referral_by_referred_username(&mut self, username: &str) -> Result<Option<ReferralRecord>, DatabaseError> {
@@ -649,10 +636,6 @@ impl RewardsRepository for DatabaseClient {
         Ok(())
     }
 
-    fn get_first_subscription_date_by_wallet_id(&mut self, wallet_id: i32) -> Result<Option<NaiveDateTime>, DatabaseError> {
-        Ok(first_subscription_date_by_wallet_id(self, wallet_id)?)
-    }
-
     fn get_wallet_id_by_username(&mut self, username: &str) -> Result<i32, DatabaseError> {
         let username = require_username(self, UsernameLookup::Username(username))?;
         Ok(username.wallet_id)
@@ -667,11 +650,6 @@ impl RewardsRepository for DatabaseClient {
         let username_row = require_username(self, UsernameLookup::Username(username))?;
         let wallet = wallet_row_by_id(self, username_row.wallet_id)?;
         Ok(wallet.wallet_id.address().to_string())
-    }
-
-    fn get_status_by_username(&mut self, username: &str) -> Result<PrimitiveRewardStatus, DatabaseError> {
-        let rewards = require_rewards(self, username)?;
-        Ok(*rewards.status)
     }
 
     fn get_referrals_count_since(&mut self, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
