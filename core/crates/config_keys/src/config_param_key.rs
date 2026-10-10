@@ -118,6 +118,7 @@ impl RateLimit {
 pub enum ConfigParamKey {
     TransactionsRequestLimit(Chain),
     TransactionsPendingErrorMaxAge(Chain),
+    TransactionsFeeEstimatesCacheDuration(Chain),
     SwapperVaultAddresses(SwapProvider),
     PriceProviderAssetsLimit(PriceProvider),
     PriceProviderAssetsDuration(PriceProvider),
@@ -137,6 +138,7 @@ impl ConfigParamKey {
     pub fn all() -> Vec<Self> {
         let transactions = Chain::all().into_iter().map(Self::TransactionsRequestLimit);
         let pending_transactions = Chain::all().into_iter().map(Self::TransactionsPendingErrorMaxAge);
+        let fee_estimates = Chain::all().into_iter().map(Self::TransactionsFeeEstimatesCacheDuration);
         let swapper = SwapProvider::cross_chain_providers().into_iter().map(Self::SwapperVaultAddresses);
         let assets_limit = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsLimit);
         let assets = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsDuration);
@@ -152,6 +154,7 @@ impl ConfigParamKey {
         let rate_limits = RateLimitKey::iter().flat_map(|key| RateLimitWindow::ALL.into_iter().map(move |window| Self::RateLimit(key, window)));
         transactions
             .chain(pending_transactions)
+            .chain(fee_estimates)
             .chain(swapper)
             .chain(assets_limit)
             .chain(assets)
@@ -172,6 +175,7 @@ impl ConfigParamKey {
         match self {
             Self::TransactionsRequestLimit(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
             Self::TransactionsPendingErrorMaxAge(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
+            Self::TransactionsFeeEstimatesCacheDuration(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
             Self::SwapperVaultAddresses(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderAssetsLimit(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderAssetsDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
@@ -192,6 +196,7 @@ impl ConfigParamKey {
         match self {
             Self::TransactionsRequestLimit(_) => "100".to_string(),
             Self::TransactionsPendingErrorMaxAge(_) => "3d".to_string(),
+            Self::TransactionsFeeEstimatesCacheDuration(_) => "1m".to_string(),
             Self::SwapperVaultAddresses(_) => "5m".to_string(),
             Self::PriceProviderAssetsLimit(PriceProvider::TonApi) => "1000".to_string(),
             Self::PriceProviderAssetsLimit(_) => "5000".to_string(),
@@ -231,6 +236,15 @@ mod tests {
 
         assert_eq!(bitcoin.key(), "transactionsPendingErrorMaxAge.bitcoin");
         assert_eq!(bitcoin.default_value(), "3d");
+    }
+
+    #[test]
+    fn test_transactions_fee_estimates_cache_duration() {
+        let key = ConfigParamKey::TransactionsFeeEstimatesCacheDuration(Chain::Tron);
+
+        assert_eq!(key.key(), "transactionsFeeEstimatesCacheDuration.tron");
+        assert_eq!(key.default_value(), "1m");
+        assert_eq!(ConfigParamKey::all().iter().filter(|key| matches!(key, ConfigParamKey::TransactionsFeeEstimatesCacheDuration(_))).count(), Chain::all().len());
     }
 
     #[test]

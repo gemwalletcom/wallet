@@ -3,6 +3,7 @@ use primitives::{SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE};
 
 const SECONDS_PER_YEAR: u64 = 365 * SECONDS_PER_DAY;
 
+#[derive(Clone, Copy)]
 pub(crate) enum CacheKey<'a> {
     ReferralIpCheck(&'a str),
 
@@ -56,7 +57,6 @@ pub(crate) enum CacheKey<'a> {
     PendingTransactions(&'a str),
     TransactionCheckSchedule(&'a str),
     TransactionFeeEstimates(&'a str),
-    TransactionFeeEstimatesFresh(&'a str),
 
     ScanSafe(&'a str, &'a str, u64),
 }
@@ -101,8 +101,7 @@ impl CacheKey<'_> {
             Self::PerpetualObserverCheckpoint(chain, address) => format!("perpetual:last_seen:{}:{}", chain, address),
             Self::PendingTransactions(chain) => format!("transactions:pending:{}", chain),
             Self::TransactionCheckSchedule(queue) => format!("transactions:check_schedule:{}", queue),
-            Self::TransactionFeeEstimates(chain) => format!("transactions:fee_estimates:{}", chain),
-            Self::TransactionFeeEstimatesFresh(chain) => format!("transactions:fee_estimates:fresh:{}", chain),
+            Self::TransactionFeeEstimates(chain) => format!("transactions:fee_estimates:v2:{}", chain),
             Self::ScanSafe(scan_type, target, _) => format!("scan:safe:{}:{}", scan_type, target),
         }
     }
@@ -145,7 +144,6 @@ impl CacheKey<'_> {
             Self::PerpetualObserverCheckpoint(_, _) => 30 * SECONDS_PER_DAY,
             Self::PendingTransactions(_) | Self::TransactionCheckSchedule(_) => 30 * SECONDS_PER_DAY,
             Self::TransactionFeeEstimates(_) => 5 * SECONDS_PER_YEAR,
-            Self::TransactionFeeEstimatesFresh(_) => SECONDS_PER_HOUR,
             Self::ScanSafe(_, _, ttl) => *ttl,
         }
     }
@@ -167,6 +165,12 @@ mod tests {
         let key = CacheKey::ScanSafe("website", "example.com", 3600);
         assert_eq!(key.key(), "scan:safe:website:example.com");
         assert_eq!(key.ttl(), 3600);
+    }
+
+    #[test]
+    fn test_fee_estimates_schema_and_retention() {
+        assert_eq!(CacheKey::TransactionFeeEstimates("tron").key(), "transactions:fee_estimates:v2:tron");
+        assert_eq!(CacheKey::TransactionFeeEstimates("tron").ttl(), 5 * 365 * SECONDS_PER_DAY);
     }
 
     #[test]

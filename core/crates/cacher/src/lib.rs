@@ -4,9 +4,11 @@ use redis::{AsyncCommands, Client, aio::ConnectionManager};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
+mod cache;
 mod cachers;
 mod error;
 mod keys;
+pub use cache::CacheFuture;
 pub use cachers::*;
 pub use error::*;
 pub(crate) use keys::CacheKey;

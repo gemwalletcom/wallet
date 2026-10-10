@@ -491,6 +491,20 @@
       }
     }
   },
+  "v1_chain_fee_estimates": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v1_chain_fee_estimates_bad": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid chain: mars"
+      }
+    }
+  },
   "v1_fee_estimates": {
     "status": 200,
     "content_type": "application/json",

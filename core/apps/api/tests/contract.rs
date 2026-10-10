@@ -358,6 +358,8 @@ fn public_cases() -> Vec<Case> {
         Case::new("v1_markets", Method::GET, "/v1/markets"),
         Case::new("v1_rewards_leaderboard", Method::GET, "/v1/rewards/leaderboard"),
         Case::new("v1_fee_estimates", Method::GET, "/v1/chain/fee-estimates").volatile(),
+        Case::new("v1_chain_fee_estimates", Method::GET, "/v1/chain/fee-estimates/tron").volatile(),
+        Case::new("v1_chain_fee_estimates_bad", Method::GET, "/v1/chain/fee-estimates/mars"),
         Case::new("v1_nft_asset_preview", Method::GET, "/v1/nft/assets/ethereum_0x0000000000000000000000000000000000000001::1/preview").volatile(),
         Case::new("v1_nft_asset_preview_bad", Method::GET, "/v1/nft/assets/not-an-id/preview"),
         Case::new("v1_nft_collection_preview", Method::GET, "/v1/nft/collections/ethereum_0x0000000000000000000000000000000000000001/preview").volatile(),

@@ -21,7 +21,7 @@ These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5, then VM294 (scenes) in the same way.
 
-Waiting on the owner: BD29 and BD50 (server), VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174.
+Waiting on the owner: BD29 (server), VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455. Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174.
 
 ## Screen coverage and existing infrastructure
 
@@ -166,10 +166,6 @@ Differences between the apps, or between an app and the server, each with its de
 ### Same rule, different answers
 
 - **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
-
-### Freshness
-
-- **BD50** **S** **Public `/chain/fee-estimates` can serve very old estimates.** `all_estimates` in `core/crates/services/src/chain/fee_estimates_client.rs` has no freshness check (TTL 5 years, `core/crates/cacher/src/keys.rs:155`); the per-chain route refreshes (`get_chain_fee_estimates` through `fresh_estimates`). Used by the website, not the apps. **Needs a decision (2026-09-24):** either the public route drops entries past the one-hour fresh key (the website loses chains nobody requested lately) or it refreshes them (a public route then triggers node calls).
 
 ## 10. Module layout and names
 

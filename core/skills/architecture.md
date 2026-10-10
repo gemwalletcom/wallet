@@ -150,6 +150,10 @@ Redis is reached through cachers in the `cacher` crate, one `src/cachers/<name>.
 
 Reference: `crates/cacher/src/cachers/mod.rs`.
 
+For cache-or-fetch operations, reuse the generic helpers in `crates/cacher/src/cache.rs`: `get_or_fetch` returns a fresh value or fetches a replacement; `get_or_fetch_with_fallback` also returns the previous value when refresh fails. `Cached<T>` stores the value and its update time together. The runtime duration controls freshness; the key's much longer Redis TTL controls retention. A failed refresh never rewrites the previous value or extends its freshness. Version the cache key when its serialized schema changes.
+
+Website fee estimates use the fallback helper with per-chain `transactionsFeeEstimatesCacheDuration.{chain}` config (default `1m`) and five-year retention. Public `/chain/fee-estimates/{chain}` returns one chain and refreshes it when stale or missing. `/chain/fee-estimates` only reads retained cached values and never calls nodes. Website chain pages request their own chain directly; overview and related-network rows read the aggregate.
+
 ## RPC Clients
 
 - Follow [Architecture § 12](../../docs/ARCHITECTURE.md#12-a-clients-requests-are-one-enum-the-client-only-sends) for request targets, client responsibilities, deliberate transport exceptions, and reference implementations

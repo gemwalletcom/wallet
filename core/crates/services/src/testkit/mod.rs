@@ -1,6 +1,7 @@
 pub mod abuse_detection_config_mock;
 mod asset_repository;
 mod config_repository;
+mod fee_estimates_cacher;
 mod notifications_repository;
 mod observed_assets_cacher;
 pub mod perpetual_position_classifier_config_mock;
@@ -15,6 +16,7 @@ mod transactions_repository;
 
 pub(crate) use asset_repository::{ListAssets, MemoryAssetRepository};
 pub(crate) use config_repository::MemoryConfigRepository;
+pub(crate) use fee_estimates_cacher::MemoryFeeEstimatesCacher;
 pub(crate) use notifications_repository::MemoryNotificationsRepository;
 pub(crate) use observed_assets_cacher::UnusedObservedCacher;
 pub(crate) use price_cacher::MemoryPriceCacher;
