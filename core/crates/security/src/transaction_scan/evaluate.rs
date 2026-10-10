@@ -138,7 +138,7 @@ mod tests {
 
         assert_eq!(result.scan.is_malicious, Some(true));
         assert_eq!(result.scan.malicious_website.as_deref(), Some("https://bnbdaily.finance/path"));
-        assert_eq!(result.scan.is_scan_complete, true);
+        assert!(result.scan.is_scan_complete);
         assert_eq!(result.detections[0].provider, ScanProvider::Internal);
         assert_eq!(result.new_verdicts, vec![]);
     }
@@ -150,7 +150,7 @@ mod tests {
 
         let unmatched = evaluate_transaction_scan(&input, plan_transaction_scan(&input, &HashSet::from([ScanProvider::Internal])), vec![]);
         assert_eq!(unmatched.scan.is_malicious, Some(false));
-        assert_eq!(unmatched.scan.is_scan_complete, false);
+        assert!(!unmatched.scan.is_scan_complete);
 
         input.payload.website = Some("https://bnbdaily.finance/path".to_string());
         let disabled_provider = evaluate_transaction_scan(&input, plan_transaction_scan(&input, &HashSet::new()), vec![]);

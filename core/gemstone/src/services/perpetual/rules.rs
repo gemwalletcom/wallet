@@ -790,13 +790,7 @@ pub fn details(perpetual: &Perpetual, asset: &Asset, positions: Vec<PerpetualPos
 fn position_details(asset: &Asset, position: &PerpetualPosition) -> Vec<GemPerpetualPositionDetail> {
     let amount = |title: GemListRowTitle, amount: GemFormattedNumber, info: Option<GemInfoTopic>| GemListRow::Amount { title, amount, info };
     let label = |title: GemListRowTitle, text: GemLocalizedText, tone: GemValueTone, info: Option<GemInfoTopic>| GemListRow::Label { title, text, tone, info, progress: false };
-    let pnl = GemLocalizedText::Pnl {
-        amount: GemFormattedNumber::signed_usd(position.pnl),
-        percent: GemFormattedNumber::percentage(
-            PriceChangeCalculator::pnl_percentage(position.pnl, initial_margin(position.entry_price, position.size, position.leverage)),
-            GemPercentageStyle::Signed,
-        ),
-    };
+    let (pnl, pnl_tone) = pnl_text(position.pnl, initial_margin(position.entry_price, position.size, position.leverage));
     let margin = GemLocalizedText::Margin {
         amount: GemFormattedNumber::usd(position.margin_amount),
         margin_type: position.margin_type.clone(),
@@ -821,7 +815,7 @@ fn position_details(asset: &Asset, position: &PerpetualPosition) -> Vec<GemPerpe
         ),
     };
     [
-        (GemPerpetualPositionDetailRow::Pnl, Some(label(GemListRowTitle::Pnl, pnl, GemValueTone::of(position.pnl), None))),
+        (GemPerpetualPositionDetailRow::Pnl, Some(label(GemListRowTitle::Pnl, pnl, pnl_tone, None))),
         (
             GemPerpetualPositionDetailRow::Autoclose,
             Some(GemListRow::Lines {
