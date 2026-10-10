@@ -48,7 +48,7 @@ struct MainTabView: View {
                 .id(wallet.id)
             }
             .tabItem {
-                tabItem(Localized.Wallet.title, Images.Tabs.wallet)
+                tabItem(Localized.Wallet.title, Images.Tabs.wallet, id: "mainTab")
             }
             .tag(TabItem.wallet)
 
@@ -59,7 +59,7 @@ struct MainTabView: View {
                 .id(wallet.id)
             }
             .tabItem {
-                tabItem(Localized.Activity.title, Images.Tabs.activity)
+                tabItem(Localized.Activity.title, Images.Tabs.activity, id: "activitiesTab")
             }
             .badge(model.transactions)
             .tag(TabItem.activity)
@@ -72,7 +72,7 @@ struct MainTabView: View {
                 .id(wallet.id)
             }
             .tabItem {
-                tabItem(Localized.Settings.title, Images.Tabs.settings)
+                tabItem(Localized.Settings.title, Images.Tabs.settings, id: "settingsTab")
             }
             .tag(TabItem.settings)
         }
@@ -100,11 +100,12 @@ struct MainTabView: View {
 // MARK: - UI Components
 
 extension MainTabView {
-    private func tabItem(_ title: String, _ image: Image) -> Label<Text, Image> {
+    private func tabItem(_ title: String, _ image: Image, id: String) -> some View {
         Label(
             title: { Text(title) },
             icon: { image },
         )
+        .accessibilityIdentifier(id)
     }
 }
 

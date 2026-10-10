@@ -1,0 +1,17 @@
+appId: ${APP_ID}
+---
+- runFlow: subflows/import_wallet.yaml
+- tapOn:
+    id: "activitiesTab"
+- assertNotVisible:
+    id: "bitcoin"
+- takeScreenshot: activity_tab
+- tapOn:
+    id: "settingsTab"
+- assertNotVisible:
+    id: "bitcoin"
+- takeScreenshot: settings_tab
+- tapOn:
+    id: "mainTab"
+- assertVisible:
+    id: "bitcoin"

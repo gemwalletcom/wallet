@@ -1,0 +1,10 @@
+appId: ${APP_ID}
+---
+- runFlow: subflows/import_wallet.yaml
+- tapOn:
+    id: "receive_button"
+- tapOn:
+    id: "bitcoin"
+- assertVisible:
+    id: ${BITCOIN_ADDRESS}
+- takeScreenshot: receive_bitcoin

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.model.AuthRequest
@@ -45,7 +46,8 @@ fun EnableAuthenticationScene(onEnable: () -> Unit, onSkip: () -> Unit) {
                     onClick = onSkip,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = paddingDefault),
+                        .padding(top = paddingDefault)
+                        .testTag("skip"),
                 ) {
                     Text(
                         text = stringResource(R.string.common_skip),

@@ -67,6 +67,7 @@ public struct StateButton: View {
             }
             .buttonStyle(.variant(type))
             .disabled(type.isDisabled)
+            .accessibilityIdentifier("main_action")
         }
     }
 }

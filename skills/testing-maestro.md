@@ -38,6 +38,15 @@ maestro --device <id> test -e APP_ID=com.gemwallet.android flow.yaml
 
 `--device` accepts a simulator UDID or an emulator id (e.g. `emulator-5554`); `--udid` is the same flag.
 
+## Smoke Suite
+
+`just maestro-smoke <ios|android> <device id>` runs every top-level flow in `maestro/smoke` (onboarding and a few basic wallet features) with the dedicated test seed, and writes screenshots and a JUnit report to `build/maestro/<platform>`.
+
+- Run it only on a simulator or emulator kept for automation: every flow clears app data.
+- Run one platform at a time: the iOS and Android drivers both use local port 7001, and a concurrent run fails every flow at once.
+- Each flow starts from a clean install and imports or creates its own wallet, so one failure never cascades into the next flow.
+- Primary buttons carry the `main_action` id on both apps (iOS `StateButton`, Android `MainActionButton`); a caller's own id overrides it.
+
 ## Authoring Rules
 
 These are the core of this doc. A flow that breaks them is worse than no flow.

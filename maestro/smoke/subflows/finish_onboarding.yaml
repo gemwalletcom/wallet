@@ -1,0 +1,9 @@
+appId: ${APP_ID}
+---
+- tapOn:
+    id: "skip"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "mainTab"
+    timeout: 30000

@@ -15,3 +15,5 @@ core/gemstone/src/.build/
 .claude/*
 !.claude/skills
 !.claude/settings.json
+
+/build/

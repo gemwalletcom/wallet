@@ -1,0 +1,18 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    clearState: true
+    permissions:
+      notifications: allow
+- tapOn:
+    id: "import"
+- runFlow: accept_terms.yaml
+- tapOn:
+    id: "multicoin_item"
+- tapOn:
+    id: "importInputField"
+- inputText: ${TEST_PHRASE}
+- hideKeyboard
+- tapOn:
+    id: "main_action"
+- runFlow: finish_onboarding.yaml

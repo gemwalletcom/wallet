@@ -48,7 +48,9 @@ internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, 
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             BasicTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("importInputField"),
                 onValueChange = onValueChange,
                 value = inputState,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(

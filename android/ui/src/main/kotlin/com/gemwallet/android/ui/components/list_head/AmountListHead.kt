@@ -260,7 +260,7 @@ fun AssetHeadActions(actions: GemHeaderActions, onAction: (GemHeaderButtonAction
             AmountHeadAction(
                 modifier = Modifier
                     .weight(1f)
-                    .then(if (button.kind == GemHeaderButtonKind.BUY) Modifier.testTag("assetBuy") else Modifier),
+                    .testTag("${button.kind.name.lowercase()}_button"),
                 title = title,
                 imageVector = ImageVector.vectorResource(button.kind.iconRes()),
                 enabled = button.isEnabled,

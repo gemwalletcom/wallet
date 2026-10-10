@@ -37,6 +37,7 @@ struct EnableAuthenticationScene: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("skip")
             }
             .frame(maxWidth: .scene.button.maxWidth)
             .padding(.bottom, .scene.bottom)

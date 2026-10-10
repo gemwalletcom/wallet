@@ -98,8 +98,8 @@ class ScreenshotsCapture {
         runBlocking { delay(SCREEN_TIMEOUT * 2) }
         takeScreenshot().writeToTestStorage("$path/1_asset_details")
 
-        device.wait(Until.hasObject(By.res("assetChart")), 5_000)
-        device.findObject(By.res("assetChart")).click()
+        device.wait(Until.hasObject(By.res("price")), 5_000)
+        device.findObject(By.res("price")).click()
         runBlocking { delay(SCREEN_TIMEOUT * 3) }
         takeScreenshot().writeToTestStorage("$path/2_asset_chart")
         runBlocking { delay(SCREEN_TIMEOUT) }
@@ -111,8 +111,8 @@ class ScreenshotsCapture {
         takeScreenshot().writeToTestStorage("$path/3_asset_stake")
 
         device.pressBack()
-        device.wait(Until.hasObject(By.res("assetBuy")), 5_000)
-        device.findObject(By.res("assetBuy")).click()
+        device.wait(Until.hasObject(By.res("buy_button")), 5_000)
+        device.findObject(By.res("buy_button")).click()
         runBlocking { delay(SCREEN_TIMEOUT * 5) }
         takeScreenshot().writeToTestStorage("$path/4_asset_buy")
 

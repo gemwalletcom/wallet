@@ -25,10 +25,12 @@ public struct OnboardingScene: View {
                     text: Localized.Wallet.createNewWallet,
                     action: { isPresentingCreateWalletSheet = true },
                 )
+                .accessibilityIdentifier("create")
                 StateButton(
                     text: Localized.Wallet.importExistingWallet,
                     action: { isPresentingImportWalletSheet = true },
                 )
+                .accessibilityIdentifier("import")
             }
             .frame(maxWidth: .scene.button.maxWidth)
             .padding(.scene.bottom * 2)

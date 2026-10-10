@@ -1,0 +1,6 @@
+appId: ${APP_ID}
+---
+- runFlow: subflows/import_wallet.yaml
+- assertVisible:
+    id: "bitcoin"
+- takeScreenshot: import_wallet

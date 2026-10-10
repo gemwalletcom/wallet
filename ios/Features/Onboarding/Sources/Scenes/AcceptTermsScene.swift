@@ -20,13 +20,13 @@ struct AcceptTermsScene: View {
             CalloutView(style: .header(title: model.message))
                 .cleanListRow()
 
-            ForEach(model.viewState.rows, id: \.item) { row in
+            ForEach(Array(model.viewState.rows.enumerated()), id: \.element.item) { index, row in
                 Section {
                     Toggle(isOn: Binding(get: { row.isAccepted }, set: { _ in model.onToggle(row.item) })) {
                         Text(row.item.message)
                             .textStyle(row.isAccepted ? .body : TextStyle(font: .body, color: Colors.black.opacity(.strong)))
                     }
-                    .accessibilityIdentifier(row.item.message)
+                    .accessibilityIdentifier("term_\(index + 1)")
                     .toggleStyle(CheckboxStyle(position: .left))
                 }
             }

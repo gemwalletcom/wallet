@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -70,6 +71,7 @@ private fun PhraseWordItem(word: PhraseWord, isHighlighted: Boolean, modifier: M
             Spacer(modifier = Modifier.width(space6))
             Text(
                 text = word.word,
+                modifier = Modifier.testTag("word_${word.index}"),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,

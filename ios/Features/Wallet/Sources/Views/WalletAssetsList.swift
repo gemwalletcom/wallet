@@ -40,6 +40,7 @@ struct WalletAssetsList: View {
         ForEach(Array(zip(assets, itemsModel.rows(assets))), id: \.0.id) { asset, row in
             NavigationLink(value: Scenes.Asset(asset: asset.asset)) {
                 ListAssetItemView(row: row, isPrivacyEnabled: $showBalancePrivacy)
+                    .accessibilityIdentifier(asset.asset.id.identifier)
                     .contextMenuOnOpen {
                         AssetContextMenu.items(
                             for: asset,

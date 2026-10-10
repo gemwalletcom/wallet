@@ -1,0 +1,10 @@
+appId: ${APP_ID}
+---
+- tapOn:
+    id: "term_1"
+- tapOn:
+    id: "term_2"
+- tapOn:
+    id: "term_3"
+- tapOn:
+    id: "main_action"

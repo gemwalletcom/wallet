@@ -36,6 +36,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -322,7 +323,7 @@ fun SelectAssetRow(
         onClick = { onSelect?.invoke(item.asset) },
     ) { rowModifier ->
         AssetListItem(
-            modifier = rowModifier,
+            modifier = rowModifier.testTag(item.id.toIdentifier()),
             listPosition = position,
             asset = item,
             onAction = onItemAction?.let { handler -> { action -> handler(item, action) } },

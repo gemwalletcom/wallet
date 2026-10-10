@@ -24,6 +24,7 @@ struct ImportWalletTypeScene: View {
                 NavigationLink(value: ImportWalletType.multicoin) {
                     ListItemView(model: model.multicoinListItem(types))
                 }
+                .accessibilityIdentifier("multicoin_item")
             }
 
             if case let .empty(state) = types.phase {

@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -212,7 +213,8 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
                     modifier = Modifier
                         .width(imageSize)
                         .padding(horizontal = imagePadding)
-                        .clickable(onCopyClick),
+                        .clickable(onCopyClick)
+                        .testTag(assetInfo.account.address),
                     text = assetInfo.account.address,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.secondary,

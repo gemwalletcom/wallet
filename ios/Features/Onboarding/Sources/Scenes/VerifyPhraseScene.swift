@@ -38,6 +38,7 @@ struct VerifyPhraseScene: View {
                                     .buttonStyle(.lightGray(paddingHorizontal: .small, paddingVertical: .tiny, glassEffect: .disabled))
                                     .disabled(true)
                                     .fixedSize()
+                                    .accessibilityIdentifier("word_option")
                                 } else {
                                     Button {
                                         model.pickWord(index: row)
@@ -46,6 +47,7 @@ struct VerifyPhraseScene: View {
                                     }
                                     .buttonStyle(.blueGrayPressed(paddingHorizontal: .small, paddingVertical: .tiny, glassEffect: .disabled))
                                     .fixedSize()
+                                    .accessibilityIdentifier("word_option")
                                 }
                             }
                         }
