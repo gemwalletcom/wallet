@@ -69,15 +69,17 @@ impl ScanClient {
     async fn get_scan_input(&self, config: &ScanConfig, payload: ScanTransactionPayload, subjects: &[ScanSubject], safe: HashSet<ScanType>) -> Result<TransactionScanInput, Box<dyn Error + Send + Sync>> {
         let addresses = vec![(payload.origin.asset_id.chain, payload.origin.address.clone()), (payload.target.asset_id.chain, payload.target.address.clone())];
         let asset_ids = token_asset_ids(&payload);
+        let website_hosts = subjects.iter().filter(|subject| subject.scan_type == ScanType::Website).map(|subject| subject.target.clone()).collect();
         let mut targets = subjects.iter().map(|subject| subject.target.clone()).collect::<Vec<_>>();
         targets.dedup();
         let detection_max_age = if targets.is_empty() { None } else { Some(config.detection_max_age) };
-        let ScanRecords { addresses, assets, verdicts } = self.repository.get_scan_records(addresses, asset_ids, targets, detection_max_age).await?;
+        let ScanRecords { addresses, assets, websites, verdicts } = self.repository.get_scan_records(addresses, asset_ids, website_hosts, targets, detection_max_age).await?;
         Ok(TransactionScanInput {
             payload,
             enforced: config.enforced.clone(),
             addresses,
             assets,
+            websites,
             verdicts,
             safe,
             required_successes: config.required_successes,

@@ -168,8 +168,11 @@ Core's session-wide method list, consumed by both platform approval paths and by
 
 Security checks cover malicious addresses, address poisoning, websites, and tokens. Core confirmation requests transaction scans only for `Transfer`, `Swap`, `TokenApprove`, `Generic`, and `Payment` inputs. All other input types skip the scan API entirely. Staking requests from older clients still use local security checks only on the backend. Each check type has a backend flag, `scanTypeEnable.address`, `scanTypeEnable.address_poisoning`, `scanTypeEnable.website`, and `scanTypeEnable.asset` (default `true`); a disabled type still runs and is recorded, but never blocks and does not count toward a complete scan. A locally verified destination on the matching chain skips provider checks after local fraud and token checks pass. Cross-chain address-name fallbacks do not carry verification. Transaction providers have independent `scanProviderEnable.internal`, `scanProviderEnable.goplus`, `scanProviderEnable.hashdit`, and `scanProviderEnable.tronscan` flags (default `true`). The API reads all of these flags through its 60-second config cache, so a change applies within a minute without a restart.
 
+The internal provider blocks manually flagged addresses, exact website hosts in `scan_websites`, and spam-ranked assets. Unlisted websites still need a remote website provider for a complete scan.
+
 | Provider | Address security | Address poisoning | Website security | Token security |
 | --- | --- | --- | :---: | --- |
+| Internal | Manual address blocks | ❌ | Manual host blocks | Spam-ranked assets |
 | [GoPlus](../core/crates/security/src/providers/goplus/provider.rs) | [EVM subset](../core/crates/security/src/providers/goplus/mapper.rs), Tron | ❌ | ❌ | [EVM subset](../core/crates/security/src/providers/goplus/mapper.rs), Tron |
 | [HashDit](../core/crates/security/src/providers/hashdit/provider.rs) | [EVM subset](../core/crates/security/src/providers/hashdit/mapper.rs) | [EVM subset](../core/crates/security/src/providers/hashdit/mapper.rs), Tron | ✅ | [EVM subset](../core/crates/security/src/providers/hashdit/mapper.rs), Solana |
 | [Jupiter](../core/crates/security/src/providers/jupiter/provider.rs) | ❌ | ❌ | ❌ | Solana |

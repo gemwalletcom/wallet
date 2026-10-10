@@ -129,6 +129,39 @@ mod tests {
     }
 
     #[test]
+    fn test_internal_website_blocks_without_remote_provider() {
+        let mut input = input(TransactionType::SmartContractCall, Some("https://bnbdaily.finance/path"));
+        input.websites = vec!["bnbdaily.finance".to_string()];
+        let plan = plan_transaction_scan(&input, &HashSet::from([ScanProvider::Internal]));
+
+        let result = evaluate_transaction_scan(&input, plan, vec![]);
+
+        assert_eq!(result.scan.is_malicious, Some(true));
+        assert_eq!(result.scan.malicious_website.as_deref(), Some("https://bnbdaily.finance/path"));
+        assert_eq!(result.scan.is_scan_complete, true);
+        assert_eq!(result.detections[0].provider, ScanProvider::Internal);
+        assert_eq!(result.new_verdicts, vec![]);
+    }
+
+    #[test]
+    fn test_internal_website_requires_matching_host_and_enabled_flags() {
+        let mut input = input(TransactionType::SmartContractCall, Some("https://other.bnbdaily.finance/path"));
+        input.websites = vec!["bnbdaily.finance".to_string()];
+
+        let unmatched = evaluate_transaction_scan(&input, plan_transaction_scan(&input, &HashSet::from([ScanProvider::Internal])), vec![]);
+        assert_eq!(unmatched.scan.is_malicious, Some(false));
+        assert_eq!(unmatched.scan.is_scan_complete, false);
+
+        input.payload.website = Some("https://bnbdaily.finance/path".to_string());
+        let disabled_provider = evaluate_transaction_scan(&input, plan_transaction_scan(&input, &HashSet::new()), vec![]);
+        assert_eq!(disabled_provider.scan.is_malicious, Some(false));
+
+        input.enforced.remove(&ScanType::Website);
+        let disabled_type = evaluate_transaction_scan(&input, plan_transaction_scan(&input, &HashSet::from([ScanProvider::Internal])), vec![]);
+        assert_eq!(disabled_type.scan.is_malicious, Some(false));
+    }
+
+    #[test]
     fn test_dry_run_finding_is_logged_but_not_returned_or_stored() {
         let mut input = input(TransactionType::SmartContractCall, Some("https://example.com"));
         input.enforced.remove(&ScanType::Website);

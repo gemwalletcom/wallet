@@ -915,6 +915,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    scan_websites (host) {
+        #[max_length = 253]
+        host -> Varchar,
+        is_fraudulent -> Bool,
+        updated_at -> Timestamp,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     subscriptions_addresses_exclude (address) {
         #[max_length = 256]
         address -> Varchar,
@@ -1214,6 +1224,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     rewards_risk_signals,
     scan_addresses,
     scan_detections,
+    scan_websites,
     subscriptions_addresses_exclude,
     support_sessions,
     tags,

@@ -15,9 +15,11 @@ pub fn plan_transaction_scan(input: &TransactionScanInput, enabled_providers: &H
         .into_iter()
         .filter(|detection| enabled_providers.contains(&detection.provider))
         .collect::<Vec<_>>();
-    let mut detections = local_detections(input);
-    detections.retain(|detection| enabled_providers.contains(&detection.provider));
-    detections.extend(cached.iter().cloned());
+    let detections = local_detections(input, &subjects)
+        .into_iter()
+        .filter(|detection| enabled_providers.contains(&detection.provider))
+        .chain(cached.iter().cloned())
+        .collect::<Vec<_>>();
 
     let has_website = subjects.iter().any(|subject| subject.scan_type == ScanType::Website);
     let is_resolved = detections.iter().any(|detection| detection.is_enforced) || (is_target_verified && !has_website);
@@ -41,7 +43,7 @@ fn is_address_type(scan_type: ScanType) -> bool {
     matches!(scan_type, ScanType::Address | ScanType::AddressPoisoning)
 }
 
-fn local_detections(input: &TransactionScanInput) -> Vec<ScanDetection> {
+fn local_detections(input: &TransactionScanInput, subjects: &[ScanSubject]) -> Vec<ScanDetection> {
     let addresses = input
         .addresses
         .iter()
@@ -53,7 +55,12 @@ fn local_detections(input: &TransactionScanInput) -> Vec<ScanDetection> {
         .iter()
         .filter(|asset| asset.score.rank <= AssetRank::Spam.threshold())
         .map(|asset| ScanDetection::internal(ScanType::Asset, ScanFinding::Asset(asset.asset.id.clone()), asset.asset.id.to_string(), "spam", is_asset_enforced));
-    addresses.chain(assets).collect()
+    let is_website_enforced = input.enforced.contains(&ScanType::Website);
+    let websites = subjects
+        .iter()
+        .filter(|subject| subject.scan_type == ScanType::Website && input.websites.contains(&subject.target))
+        .map(|subject| ScanDetection::internal(ScanType::Website, subject.finding.clone(), subject.target.clone(), "manual", is_website_enforced));
+    addresses.chain(assets).chain(websites).collect()
 }
 
 fn cached_detections(input: &TransactionScanInput, subjects: &[ScanSubject], is_target_verified: bool) -> Vec<ScanDetection> {
