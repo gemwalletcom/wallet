@@ -164,6 +164,7 @@ impl AssetDetailsTestkit {
                 device_api.clone(),
                 preferences.clone(),
                 Arc::new(MemoryPriceAlertStore::default()),
+                discovery.assets.clone(),
                 GemDeviceService::mock(device_api, discovery.session.clone(), preferences),
                 Arc::new(DeniedNotificationPermissions),
             )),

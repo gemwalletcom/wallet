@@ -110,6 +110,7 @@ struct ServicesFactory {
             api: deviceApiClient,
             preferences: preferencesService,
             store: GemstonePriceAlertStore(store: stores.priceAlertStore),
+            assets: assetsService,
             device: deviceService,
             permissions: notificationPermissions,
         )

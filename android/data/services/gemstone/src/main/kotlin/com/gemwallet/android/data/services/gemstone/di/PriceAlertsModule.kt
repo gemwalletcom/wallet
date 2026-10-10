@@ -6,6 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemNotificationPermissions
@@ -34,12 +35,14 @@ object PriceAlertsModule {
         apiClient: GemDeviceApiClient,
         preferencesService: GemPreferencesService,
         store: GemPriceAlertStore,
+        assetsService: GemAssetsService,
         deviceService: GemDeviceService,
         notificationPermissions: GemNotificationPermissions,
     ): GemPriceAlertService = GemPriceAlertService(
         api = apiClient,
         preferences = preferencesService,
         store = store,
+        assets = assetsService,
         device = deviceService,
         permissions = notificationPermissions,
     )

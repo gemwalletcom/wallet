@@ -14,6 +14,7 @@ use primitives::{Asset, AssetId, Currency, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::amount::model::GemNumberFormat;
+use crate::services::assets::GemAssetsService;
 use crate::services::banner::GemNotificationPermissions;
 use crate::services::device::GemDeviceService;
 use crate::services::preferences::GemPreferencesService;
@@ -26,6 +27,7 @@ pub struct GemPriceAlertService {
     api: Arc<GemDeviceApiClient>,
     preferences: Arc<GemPreferencesService>,
     store: Arc<dyn GemPriceAlertStore>,
+    assets: Arc<GemAssetsService>,
     device: Arc<GemDeviceService>,
     permissions: Arc<dyn GemNotificationPermissions>,
 }
@@ -33,11 +35,19 @@ pub struct GemPriceAlertService {
 #[uniffi::export]
 impl GemPriceAlertService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, preferences: Arc<GemPreferencesService>, store: Arc<dyn GemPriceAlertStore>, device: Arc<GemDeviceService>, permissions: Arc<dyn GemNotificationPermissions>) -> Self {
+    pub fn new(
+        api: Arc<GemDeviceApiClient>,
+        preferences: Arc<GemPreferencesService>,
+        store: Arc<dyn GemPriceAlertStore>,
+        assets: Arc<GemAssetsService>,
+        device: Arc<GemDeviceService>,
+        permissions: Arc<dyn GemNotificationPermissions>,
+    ) -> Self {
         Self {
             api,
             preferences,
             store,
+            assets,
             device,
             permissions,
         }
@@ -132,6 +142,7 @@ impl GemPriceAlertService {
         if changes.delete_ids.is_empty() && changes.alerts.is_empty() {
             return Ok(());
         }
+        self.assets.sync_missing_assets(changes.alerts.iter().map(|alert| alert.asset_id.clone()).collect()).await?;
         self.store.update_price_alerts(changes.alerts, changes.delete_ids).await
     }
 
@@ -157,7 +168,7 @@ mod tests {
     use crate::services::price_alert::store::GemPriceAlertStore;
     use crate::testkit::TestAlienProvider;
     use futures::executor::block_on;
-    use primitives::{Asset, Chain, PriceAlert};
+    use primitives::{Asset, AssetId, Chain, PriceAlert};
     use std::sync::Arc;
 
     #[test]
@@ -236,6 +247,25 @@ mod tests {
 
         assert_eq!(block_on(kit.service.add_price_alerts(vec![PriceAlert::mock(Chain::Bitcoin, Some(1.0))])), Err(error));
         assert!(kit.provider.requested_paths().is_empty());
+    }
+
+    #[test]
+    fn test_synced_alerts_are_kept_and_the_assets_they_name_are_stored() {
+        let bitcoin = PriceAlert::mock(Chain::Bitcoin, Some(1.0));
+        let unknown = PriceAlert {
+            asset_id: AssetId::from_token(Chain::Ethereum, "0xunknown"),
+            ..PriceAlert::mock(Chain::Ethereum, Some(2.0))
+        };
+        let alerts = serde_json::to_string(&vec![bitcoin.clone(), unknown.clone()]).unwrap();
+        let assets = serde_json::to_string(&vec![Asset::from_chain(Chain::Bitcoin).as_basic_primitive()]).unwrap();
+        let provider = TestAlienProvider::with_json_by_path(200, &[("price-alerts", &alerts), ("/v1/assets", &assets)]);
+        let kit = PriceAlertTestkit::with_provider(Arc::new(provider), Arc::new(GrantedNotificationPermissions));
+
+        block_on(kit.service.sync(None)).unwrap();
+
+        assert_eq!(kit.store.identifiers(), vec![bitcoin.id(), unknown.id()], "an alert whose asset the API does not know is still kept");
+        let stored: Vec<AssetId> = kit.asset_store.assets.lock().unwrap().iter().map(|basic| basic.asset.id.clone()).collect();
+        assert_eq!(stored, vec![bitcoin.asset_id]);
     }
 
     #[test]

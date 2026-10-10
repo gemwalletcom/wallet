@@ -30,6 +30,7 @@ public extension GemBalanceService {
             api: api,
             preferences: preferences,
             store: GemstonePriceAlertStore(store: PriceAlertStore(db: db)),
+            assets: .mock(),
             device: device,
             permissions: GemNotificationPermissionsMock(),
         )
