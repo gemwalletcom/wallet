@@ -10,8 +10,8 @@ use gem_tracing::info_with_fields;
 use primitives::currency::Currency;
 use primitives::{AssetBasic, AssetTag, Chain, ChartTimeframe, FiatProviderName, FiatRate, FiatRateProvider, PriceProvider, Release, ScanAddress};
 use storage::{
-    ApiClientGrant, ApiClientsRepository, AssetsRepository, ChainsRepository, ChartsRepository, ConfigRepository, Database, DatabaseError, DevicesRepository, FiatRepository, MigrationsRepository, NotificationsRepository,
-    ParserStateRepository, PriceAlertsRepository, PricesProvidersRepository, PricesRepository, ReleasesRepository, ScanAddressesRepository, TagRepository, WalletsRepository,
+    ApiClientGrant, ApiClientsRepository, AssetFilter, AssetUpdate, AssetsRepository, ChainsRepository, ChartsRepository, ConfigRepository, Database, DatabaseError, DevicesRepository, FiatRepository, MigrationsRepository,
+    NotificationsRepository, ParserStateRepository, PriceAlertsRepository, PricesProvidersRepository, PricesRepository, ReleasesRepository, ScanAddressesRepository, TagRepository, WalletsRepository,
 };
 
 use crate::setup::api_clients::{SETUP_DEV_API_CLIENT_NAME, SETUP_DEV_API_CLIENT_SECRET, api_client_access_grants};
@@ -66,7 +66,11 @@ impl Repository for PostgresRepository {
                 }
 
                 info_with_fields!("setup", step = "assets");
+                let stakeable = seed.assets.iter().filter(|asset| asset.properties.is_stakeable).map(|asset| asset.asset.id.to_string()).collect();
                 let _ = client.add_assets(seed.assets);
+
+                info_with_fields!("setup", step = "stakeable assets");
+                client.update_assets(vec![AssetFilter::Ids(stakeable), AssetFilter::IsStakeable(false)], vec![AssetUpdate::IsStakeable(true)])?;
 
                 info_with_fields!("setup", step = "fiat providers");
                 let _ = client.add_fiat_providers(seed.fiat_providers);
