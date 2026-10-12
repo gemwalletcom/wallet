@@ -57,7 +57,7 @@ Facts the code relies on:
 - Token options usually carry their actions inline; coin options and `build` options need `/fetch`. The gateway refuses a `/fetch` for an option that already carries actions ("corrupted contents"), so inline actions are used as they are.
 - The built transaction and the typed data carry the quote's deadline. A late signature fails on chain instead of being credited, so the app keeps no expiry timer.
 - `/confirm` answering `succeeded` or `processing` is success; any other status is `PaymentError::Status`, which the app toasts as a localized `GemErrorText`.
-- Identity data is collected per account (chain and address). The response-level `collectData` URL covers every account that was sent; an option's URL covers only that account. `Verify` uses the response-level one first. Only `/fetch` refusing with `IC data required` opens the form; `collectData` URLs on options are not a signal.
+- Identity data is collected per account (chain and address). The response-level `collectData` URL covers every account that was sent; an option's URL covers only that account. `Verify` uses the response-level one first. A quote that carries `collectData` opens the form before `/fetch` or any signature, inline actions included: the gateway refuses `/fetch` on those with "corrupted contents" and only refuses `/confirm` for the missing data. `collectData` disappears from `/options` once the form is done, so loading the link again lands on a signable transfer. `/fetch` refusing with `IC data required` opens the form too.
 
 ## Actions
 

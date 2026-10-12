@@ -77,6 +77,9 @@ impl<C: Client> WalletConnectPayProvider<C> {
     }
 
     async fn get_actions(&self, quote: &Quote) -> Result<PaymentActions, PaymentError> {
+        if quote.collect_data_url.is_some() {
+            return Ok(PaymentActions::CollectData);
+        }
         match quote.actions.first() {
             None => self.client.get_actions(&self.payment_id, &quote.id, String::new()).await,
             Some(WalletConnectPayAction::Build(build)) => self.client.get_actions(&self.payment_id, &quote.id, build.data.clone()).await,
@@ -229,6 +232,15 @@ mod tests {
                 }
             }),
             "a token quote carries its actions, the gateway is not asked to build them"
+        );
+        assert_eq!(
+            provider(gateway(OPTIONS_IDENTITY_REQUIRED, Ok(FETCH_SEND))).select_asset(&addresses(TEST_ACCOUNT), usdc.clone()).await,
+            Ok(PaymentLoad::Verify {
+                invoice: invoice(OPTIONS_IDENTITY_REQUIRED),
+                asset_id: usdc.clone(),
+                url: testkit::invoice(options(OPTIONS_IDENTITY_REQUIRED), &accounts(TEST_ACCOUNT)).collect_data_url.unwrap(),
+            }),
+            "a quote that collects data asks for the form, even when it carries its actions"
         );
         assert_eq!(
             provider(gateway(OPTIONS, Ok(FETCH_SEND))).select_asset(&addresses(TEST_ACCOUNT), AssetId::from_chain(Chain::Polygon)).await,
