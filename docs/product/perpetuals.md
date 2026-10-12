@@ -10,7 +10,7 @@ flowchart LR
 
 1. The user switches Perpetuals on in Settings or from the "Trade Perpetuals on Hyperliquid" banner; the wallet screen gains a Perpetuals section and the Portfolio a Perpetuals view.
 2. The Perpetuals list shows the balance with Deposit and Withdraw, then Positions, Pinned and Markets; prices and their 24h change move live.
-3. A market shows a candlestick chart with a period picker, Long and Short, Volume, Open Interest and Funding APR, and its activity.
+3. A market shows a candlestick chart with a period picker, Long and Short, Volume, Open Interest and Funding APR, the asset it tracks, and its activity.
 4. Long or Short takes the USDC margin, a leverage from `1x` to the market's cap, and an Auto Close prefilled from the default take profit and stop loss.
 5. Confirm shows the position ("Long 5x"), the size, the price with `2%` slippage, and the take profit and stop loss prices.
 6. After a position is opened, closed, increased, reduced or modified, a message confirms what was done ("Open Long", "Close position").
@@ -55,6 +55,7 @@ flowchart LR
 | The user taps Deposit on a unified Hyperliquid account | straight to the Arbitrum USDC amount | the spot USDC already is the perpetual balance |
 | The user taps Deposit with no USDC to deposit | straight to the Arbitrum USDC amount, which shows the zero balance | the Arbitrum USDC deposits on every account |
 | A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen | one rule decides which screen an asset opens, for both apps |
+| A market tracks an asset Gem lists as its official association (Bitcoin, CAKE on BNB Chain) | the asset shows under the market info, offline too, and opens its asset screen; a market without one shows nothing there; the link is checked at most once an hour | the user can buy, swap or receive the asset itself, which a perpetual cannot offer |
 
 Pinching and touching the chart follow the shared [Charts](../PRODUCT.md#charts) section.
 

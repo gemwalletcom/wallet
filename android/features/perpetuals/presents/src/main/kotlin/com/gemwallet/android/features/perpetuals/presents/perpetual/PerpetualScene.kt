@@ -7,13 +7,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualActions
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetuals.presents.components.positionProperties
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
@@ -29,6 +33,7 @@ import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemPerpetualAssociatedAssetRow
 import uniffi.gemstone.GemPerpetualButton
 import uniffi.gemstone.GemPerpetualButtonRow
 import uniffi.gemstone.GemPerpetualDetails
@@ -42,6 +47,7 @@ import uniffi.gemstone.GemValueTone
 internal fun PerpetualScene(
     details: GemPerpetualDetails?,
     transactions: List<GemTransactionRow>,
+    associatedAssets: List<GemPerpetualAssociatedAssetRow>,
     chart: StateViewType<GemCandleChart>,
     period: ChartPeriod,
     isRefreshing: Boolean,
@@ -103,6 +109,14 @@ internal fun PerpetualScene(
                         }
                     }
                 }
+                itemsPositioned(associatedAssets) { position, associatedAsset ->
+                    AssetListItem(
+                        row = associatedAsset.row,
+                        listPosition = position,
+                        modifier = Modifier.clickable { onAction(PerpetualAction.OpenAsset(associatedAsset.asset.toPrimitives().id)) },
+                        accessory = { DataBadgeChevron() },
+                    )
+                }
                 if (transactions.isNotEmpty()) {
                     transactionsList(transactionSections) { onAction(PerpetualAction.OpenTransaction(it)) }
                 }
@@ -156,6 +170,7 @@ private fun PerpetualScenePreview() {
                 positionRow = null,
             ),
             transactions = emptyList(),
+            associatedAssets = emptyList(),
             chart = StateViewType.Loading,
             period = ChartPeriod.Day,
             isRefreshing = false,

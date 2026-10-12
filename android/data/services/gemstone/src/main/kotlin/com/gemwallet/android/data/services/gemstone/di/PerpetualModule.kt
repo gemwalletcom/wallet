@@ -80,9 +80,10 @@ object PerpetualModule {
     fun provideGemPerpetualDetailsService(
         perpetualService: GemPerpetualService,
         transactionsService: GemTransactionsService,
+        assetsService: GemAssetsService,
         preferencesService: GemPreferencesService,
         walletSessionService: GemWalletSessionService,
-    ): GemPerpetualDetailsServiceInterface = GemPerpetualDetailsService(perpetualService, transactionsService, preferencesService, walletSessionService)
+    ): GemPerpetualDetailsServiceInterface = GemPerpetualDetailsService(perpetualService, transactionsService, assetsService, preferencesService, walletSessionService)
 
     @Provides
     @Singleton

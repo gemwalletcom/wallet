@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.data.services.store.queries.AssociatedAssetsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.ext.toIdentifier
@@ -97,9 +98,13 @@ class PerpetualViewModelTest {
             every { getTransactions(any(), any()) } returns emptyFlow()
             every { stored(any(), any()) } returns emptyList()
         }
+        val associatedAssets: AssociatedAssetsQuery = mockk {
+            every { this@mockk(any(), any()) } returns flowOf(emptyList())
+        }
         return PerpetualViewModel(
             perpetual,
             positions,
+            associatedAssets,
             transactions,
             observer,
             service,

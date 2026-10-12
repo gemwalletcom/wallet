@@ -9,6 +9,7 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.data.services.store.queries.AssociatedAssetsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
@@ -25,6 +26,7 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.flatMap
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.wallet.core.primitives.AssetAssociationType
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionsFilter
@@ -60,10 +62,12 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
+import uniffi.gemstone.GemPerpetualAssociatedAssetRow
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.candleSession
+import uniffi.gemstone.perpetualAssociatedAssetRows
 import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
@@ -73,6 +77,7 @@ import javax.inject.Inject
 class PerpetualViewModel @Inject constructor(
     private val perpetualQuery: PerpetualQuery,
     private val perpetualPositionsQuery: PerpetualPositionsQuery,
+    private val associatedAssetsQuery: AssociatedAssetsQuery,
     private val getTransactions: GetTransactions,
     private val perpetualObserver: PerpetualObserver,
     private val service: GemPerpetualDetailsServiceInterface,
@@ -132,6 +137,11 @@ class PerpetualViewModel @Inject constructor(
     ) { transactions, _ -> transactions }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, GemConstants.transactionsListLimit))
+
+    val associatedAssets: StateFlow<List<GemPerpetualAssociatedAssetRow>> = associatedAssetsQuery(assetId, AssetAssociationType.Official)
+        .map { assets -> perpetualAssociatedAssetRows(assets.map { it.toGem() }) }
+        .flowOn(ioDispatcher)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val candles = MutableStateFlow(candleSession(service.chartPeriod()))
 

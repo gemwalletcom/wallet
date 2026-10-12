@@ -42,7 +42,7 @@ public extension ViewModelFactory {
         PerpetualSceneViewModel(
             wallet: wallet,
             asset: asset,
-            service: GemPerpetualDetailsService(perpetuals: perpetualService, transactions: transactionsService, preferences: preferencesService, session: walletSessionService),
+            service: GemPerpetualDetailsService(perpetuals: perpetualService, transactions: transactionsService, assets: assetsService, preferences: preferencesService, session: walletSessionService),
             observerService: hyperliquidObserverService,
             onTransferData: onTransferData,
             onPerpetualPosition: onPerpetualPosition,

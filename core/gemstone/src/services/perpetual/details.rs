@@ -7,6 +7,7 @@ use super::model::{GemPerpetualDetails, GemPerpetualPositionAction, GemPerpetual
 use super::{GemPerpetualService, rules};
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::models::state::GemLoadState;
+use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::record_result;
 use crate::services::preferences::GemPreferencesService;
@@ -18,6 +19,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 pub struct GemPerpetualDetailsService {
     perpetuals: Arc<GemPerpetualService>,
     transactions: Arc<GemTransactionsService>,
+    assets: Arc<GemAssetsService>,
     preferences: Arc<GemPreferencesService>,
     session: Arc<GemWalletSessionService>,
 }
@@ -25,10 +27,11 @@ pub struct GemPerpetualDetailsService {
 #[uniffi::export]
 impl GemPerpetualDetailsService {
     #[uniffi::constructor]
-    pub fn new(perpetuals: Arc<GemPerpetualService>, transactions: Arc<GemTransactionsService>, preferences: Arc<GemPreferencesService>, session: Arc<GemWalletSessionService>) -> Self {
+    pub fn new(perpetuals: Arc<GemPerpetualService>, transactions: Arc<GemTransactionsService>, assets: Arc<GemAssetsService>, preferences: Arc<GemPreferencesService>, session: Arc<GemWalletSessionService>) -> Self {
         Self {
             perpetuals,
             transactions,
+            assets,
             preferences,
             session,
         }
@@ -77,9 +80,10 @@ impl GemPerpetualDetailsService {
 
     pub async fn refresh(&self, asset_id: AssetId) -> Vec<GemPerpetualRefreshFailure> {
         let mut failures = Vec::new();
-        let (positions, transactions) = futures::join!(self.sync_positions(), self.sync_transactions(asset_id));
+        let (positions, transactions, asset) = futures::join!(self.sync_positions(), self.sync_transactions(asset_id.clone()), self.assets.update_asset(asset_id));
         record_result(&mut failures, GemPerpetualRefreshStep::Positions, positions);
         record_result(&mut failures, GemPerpetualRefreshStep::Transactions, transactions);
+        record_result(&mut failures, GemPerpetualRefreshStep::Asset, asset);
         failures
     }
 }
@@ -103,6 +107,7 @@ impl GemPerpetualDetailsService {
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
+    use gem_hypercore::models::metadata::perpetual_asset_id;
     use primitives::Chain;
 
     use super::super::testkit::PerpetualTestkit;
@@ -119,6 +124,18 @@ mod tests {
             assert!(steps.contains(&GemPerpetualRefreshStep::Transactions), "a later take profit never arrives without this one");
             let paths = testkit.provider.requested_paths();
             assert!(paths.iter().any(|path| path.contains("devices/transactions") && path.contains("asset_id=hypercore")), "{paths:?}");
+        })
+    }
+
+    #[test]
+    fn test_refresh() {
+        block_on(async {
+            let testkit = PerpetualTestkit::new().details_service();
+
+            testkit.service.refresh(perpetual_asset_id("CAKE")).await;
+
+            let asset_paths: Vec<String> = testkit.provider.requested_paths().into_iter().filter(|path| path.starts_with("/v1/assets/")).collect();
+            assert_eq!(asset_paths, vec!["/v1/assets/hypercore_perpetual::CAKE"]);
         })
     }
 

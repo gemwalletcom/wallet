@@ -203,9 +203,10 @@ impl PerpetualTestkit {
 
     pub fn details_service(self) -> DetailsTestkit {
         let device_api = Arc::new(GemDeviceApiClient::new(self.provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+        let assets = Arc::new(GemAssetsService::mock(self.provider.clone(), self.asset_store.clone()));
         let transactions = Arc::new(GemTransactionsService::new(
             device_api.clone(),
-            Arc::new(GemAssetsService::mock(self.provider.clone(), self.asset_store.clone())),
+            assets.clone(),
             self.balance.clone(),
             Arc::new(MemoryTransactionStateStore::default()),
             Arc::new(GemNameService::new(device_api, Arc::new(MemoryAddressStore::default()))),
@@ -213,7 +214,7 @@ impl PerpetualTestkit {
             self.session.clone(),
             Arc::new(RecordingTransactionStatus::default()),
         ));
-        let service = GemPerpetualDetailsService::new(Arc::new(self.service), transactions, self.preferences.clone(), self.session.clone());
+        let service = GemPerpetualDetailsService::new(Arc::new(self.service), transactions, assets, self.preferences.clone(), self.session.clone());
         DetailsTestkit {
             service,
             session: self.session,

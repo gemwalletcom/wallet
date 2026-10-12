@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.perpetuals.presents.perpetual
 
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionId
@@ -17,4 +18,5 @@ internal sealed interface PerpetualAction {
     data class ZoomChart(val magnification: Float, val anchor: Float) : PerpetualAction
     data class PanChart(val fraction: Float) : PerpetualAction
     data class OpenTransaction(val transactionId: TransactionId) : PerpetualAction
+    data class OpenAsset(val assetId: AssetId) : PerpetualAction
 }

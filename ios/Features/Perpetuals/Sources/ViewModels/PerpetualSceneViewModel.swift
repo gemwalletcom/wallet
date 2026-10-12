@@ -3,12 +3,14 @@
 import Components
 import Foundation
 import enum Gemstone.GemInfoTopic
+import struct Gemstone.GemPerpetualAssociatedAssetRow
 import enum Gemstone.GemPerpetualButton
 import struct Gemstone.GemPerpetualDetails
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
 import struct Gemstone.GemTransactionRow
+import func Gemstone.perpetualAssociatedAssetRows
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -31,6 +33,7 @@ public final class PerpetualSceneViewModel {
     public let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
     public let perpetualQuery: ObservableQuery<PerpetualQuery>
     public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
+    public let associatedAssetsQuery: ObservableQuery<MappedQuery<AssociatedAssetsQuery, [GemPerpetualAssociatedAssetRow]>>
 
     public var positions: [PerpetualPositionData] {
         positionsQuery.value
@@ -42,6 +45,10 @@ public final class PerpetualSceneViewModel {
 
     var transactionSections: [ListSection<GemTransactionRow>] {
         transactionsQuery.value
+    }
+
+    var associatedAssets: [GemPerpetualAssociatedAssetRow] {
+        associatedAssetsQuery.value
     }
 
     let chart: PerpetualChartViewModel
@@ -73,6 +80,10 @@ public final class PerpetualSceneViewModel {
                 TransactionsQuery.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
                 transform: transactionListSections,
             ),
+            initialValue: [],
+        )
+        associatedAssetsQuery = ObservableQuery(
+            MappedQuery(AssociatedAssetsQuery(assetId: asset.id, type: .official)) { perpetualAssociatedAssetRows(assets: $0.map { $0.toGem() }) },
             initialValue: [],
         )
     }

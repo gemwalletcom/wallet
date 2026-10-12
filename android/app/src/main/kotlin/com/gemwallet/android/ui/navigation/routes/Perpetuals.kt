@@ -29,6 +29,7 @@ data object PerpetualDepositSelectRoute : NavKey
 fun EntryProviderScope<NavKey>.perpetualsScreen(
     onCancel: () -> Unit,
     onOpenPerpetual: AssetIdAction,
+    onOpenAsset: AssetIdAction,
     onOpenPortfolio: () -> Unit,
     amountAction: AmountTransactionAction,
     onSelectDepositAsset: () -> Unit,
@@ -61,6 +62,7 @@ fun EntryProviderScope<NavKey>.perpetualsScreen(
             confirmAction = confirmAction,
             onClose = onCancel,
             onTransaction = onTransaction,
+            onOpenAsset = onOpenAsset,
             confirmContent = { input, finishAction, cancelAction, onOpenAddress ->
                 ConfirmTransferScreen(
                     input = input,
