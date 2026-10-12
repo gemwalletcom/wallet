@@ -44,7 +44,6 @@ import com.gemwallet.android.ui.localization.quotesMessage
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.style.amountSymbol
 import com.gemwallet.android.ui.style.keyboardType
@@ -53,7 +52,6 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space1
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 import uniffi.gemstone.GemFiatButtonAction
 import uniffi.gemstone.GemFiatQuotePhase
@@ -68,7 +66,7 @@ private val quotesMessagePadding = 20.dp
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun FiatScene(
+internal fun FiatScene(
     asset: Asset,
     assetInfo: AssetInfoDataAggregate?,
     viewState: GemFiatViewState,
@@ -79,23 +77,17 @@ fun FiatScene(
     rateRow: GemListRow?,
     fiatAmount: String,
     suggestedAmounts: List<GemFiatSuggestedAmount>,
-    cancelAction: CancelAction,
     snackbar: SnackbarHostState,
     titleContent: @Composable () -> Unit,
-    onLotSelect: (GemFiatSuggestedAmount) -> Unit,
-    onAmount: (String) -> Unit,
-    onProviderSelect: (FiatProviderName) -> Unit,
-    onRetry: () -> Unit,
-    onFiatTransactions: () -> Unit,
-    onBuy: () -> Unit,
+    onAction: (FiatAction) -> Unit,
 ) {
     val isShowProviders = remember { mutableStateOf(false) }
     Scene(
         titleContent = titleContent,
-        onClose = { cancelAction() },
+        onClose = { onAction(FiatAction.Cancel) },
         snackbar = snackbar,
         actions = {
-            IconButton(onClick = onFiatTransactions) {
+            IconButton(onClick = { onAction(FiatAction.OpenTransactions) }) {
                 Icon(
                     imageVector = AppIcons.History,
                     contentDescription = stringResource(R.string.activity_title),
@@ -106,9 +98,11 @@ fun FiatScene(
             MainActionButton(
                 title = stringResource(viewState.buttonAction.stringRes()),
                 state = viewState.buttonState.buttonState(),
-                onClick = when (viewState.buttonAction) {
-                    GemFiatButtonAction.RETRY_QUOTE -> onRetry
-                    GemFiatButtonAction.CONTINUE -> onBuy
+                onClick = {
+                    when (viewState.buttonAction) {
+                        GemFiatButtonAction.RETRY_QUOTE -> onAction(FiatAction.RetryQuote)
+                        GemFiatButtonAction.CONTINUE -> onAction(FiatAction.Continue)
+                    }
                 },
             )
         },
@@ -120,7 +114,7 @@ fun FiatScene(
             symbol = viewState.amountField.amountSymbol(),
             equivalent = selectedProvider?.let { it.cryptoEstimateText(it.cryptoAmount.text()) } ?: " ",
             error = viewState.amountError?.string(LocalContext.current).orEmpty(),
-            onValueChange = onAmount,
+            onValueChange = { onAction(FiatAction.SetAmount(it)) },
             keyboardType = viewState.amountField.keyboard.keyboardType(),
             maximumFractionDigits = 0,
             textStyle = MaterialTheme.typography.displayMedium,
@@ -134,7 +128,7 @@ fun FiatScene(
             trailing = {
                 FiatSuggestionRow(
                     suggestedAmounts = suggestedAmounts,
-                    onLotSelect = onLotSelect,
+                    onLotSelect = { onAction(FiatAction.SelectAmount(it)) },
                 )
             },
         )
@@ -190,7 +184,7 @@ fun FiatScene(
     FiatProvidersList(
         isShow = isShowProviders,
         providers = providers,
-        onProviderSelect = onProviderSelect,
+        onProviderSelect = { onAction(FiatAction.SelectProvider(it)) },
     )
 }
 
