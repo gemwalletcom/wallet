@@ -20,9 +20,12 @@ fun SecurityScreen(onCancel: () -> Unit, viewModel: SecurityViewModel = hiltView
         error = error,
         isUpdatingAuthentication = isUpdatingAuthentication,
         onErrorShown = viewModel::clearError,
-        onAuthRequired = viewModel::setAuthRequired,
-        onHideBalances = viewModel::setHideBalances,
-        onLockInterval = { viewModel.setLockInterval(it) },
-        onCancel = onCancel,
-    )
+    ) { action ->
+        when (action) {
+            SecurityAction.Cancel -> onCancel()
+            is SecurityAction.SetAuthRequired -> viewModel.setAuthRequired(action.required)
+            SecurityAction.HideBalances -> viewModel.setHideBalances()
+            is SecurityAction.SetLockInterval -> viewModel.setLockInterval(action.minutes)
+        }
+    }
 }
