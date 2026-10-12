@@ -5,7 +5,7 @@ use std::str::FromStr;
 use primitives::{Chain, EVMChain, SwapProvider};
 
 use crate::explorers::{
-    AcrossScan, AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, BridgersScan, Cardanocan, ChainflipScan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, MayanScan, Metadata,
+    AcrossScan, AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, BridgersScan, CardanoScan, ChainflipScan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, MayanScan, Metadata,
     NearBlocks, NearIntents, OkxExplorer, RelayScan, RouteScan, RuneScan, SkipExplorer, SubScan, SwapsXyzScan, TempoExplorer, TonScan, TronScan, Viewblock, XrpScan, ZkSync, aptos, blockchair, mempool, mintscan, solana, stellar_expert, sui,
     threexpl, ton,
 };
@@ -115,7 +115,7 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::Sonic => vec![EtherScan::boxed(EVMChain::Sonic), RouteScan::new_sonic()],
         Chain::Algorand => vec![AlgorandAllo::boxed(), AlgorandPera::boxed()],
         Chain::Polkadot => vec![SubScan::new_polkadot(), blockchair::new_polkadot()],
-        Chain::Cardano => vec![Cardanocan::boxed()],
+        Chain::Cardano => vec![CardanoScan::boxed()],
         Chain::Abstract => vec![EtherScan::boxed(EVMChain::Abstract)],
         Chain::Berachain => vec![EtherScan::boxed(EVMChain::Berachain)],
         Chain::Ink => vec![RouteScan::new_ink(), BlockScout::new_ink(), OkxExplorer::new_ink()],

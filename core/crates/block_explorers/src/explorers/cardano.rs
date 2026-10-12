@@ -1,9 +1,9 @@
 use crate::BlockExplorer;
 use crate::explorers::metadata::{Explorer, Metadata};
 
-pub struct Cardanocan;
+pub struct CardanoScan;
 
-impl Cardanocan {
+impl CardanoScan {
     pub fn boxed() -> Box<dyn BlockExplorer> {
         Explorer::boxed(Metadata::blockchair("CardanoScan", "https://cardanoscan.io"))
     }
