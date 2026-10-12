@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.components
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import android.view.ViewGroup
 import android.webkit.WebResourceRequest
 import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ fun WebView(url: String, bridge: WebViewBridge? = null, modifier: Modifier = Mod
             modifier = modifier,
             factory = { context ->
                 AndroidWebView(context).apply {
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
                     val client = HostWebViewClient(url.toUri().host.orEmpty())
