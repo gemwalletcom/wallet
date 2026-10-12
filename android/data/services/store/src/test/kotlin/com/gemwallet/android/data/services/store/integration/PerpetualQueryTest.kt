@@ -4,11 +4,17 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.GemDatabase
+import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockPerpetual
+import com.wallet.core.primitives.AssetAssociation
+import com.wallet.core.primitives.AssetAssociationType
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
@@ -30,7 +36,7 @@ class PerpetualQueryTest {
         InstrumentationRegistry.getInstrumentation().targetContext,
         GemDatabase::class.java,
     ).build()
-    private val query = PerpetualQuery(database.perpetualDao())
+    private val query = PerpetualQuery(database.perpetualDao(), database.assetsDao())
     private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u)
     private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
     private val bitcoin = PerpetualData(
@@ -68,6 +74,30 @@ class PerpetualQueryTest {
     fun theMarketIsFoundByItsIdWithItsExactValues() = runBlocking(Dispatchers.IO) {
         assertEquals(bitcoin, query(bitcoin.perpetual.id).first())
         assertEquals(ethereum, query(ethereum.perpetual.id).first())
+    }
+
+    @Test
+    fun theMarketListsItsOfficialAssociatedAssets() = runBlocking(Dispatchers.IO) {
+        val perpetualAssetId = AssetId(Chain.HyperCore, "perpetual::CAKE")
+        val wrapped = AssetId(Chain.Ethereum, "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599")
+        database.assetsDao().insert(
+            listOf(
+                DbAsset(
+                    id = perpetualAssetId.toIdentifier(),
+                    chain = Chain.HyperCore,
+                    name = "CAKE",
+                    symbol = "CAKE",
+                    decimals = 1,
+                    type = AssetType.PERPETUAL,
+                    associations = listOf(AssetAssociation(ethereumAsset.id, AssetAssociationType.Official), AssetAssociation(wrapped, AssetAssociationType.Wrapped)),
+                ),
+                DbAsset(id = wrapped.toIdentifier(), chain = Chain.Ethereum, name = "Wrapped BTC", symbol = "WBTC", decimals = 8, type = AssetType.ERC20),
+            ),
+        )
+        database.perpetualDao().insert(listOf(mockPerpetual().copy(id = PerpetualId(PerpetualProvider.Hypercore, "CAKE"), name = "CAKE", assetId = perpetualAssetId, identifier = "2").toRecord()))
+
+        assertEquals(listOf(ethereumAsset.id), query.associatedAssets(perpetualAssetId).first().map { it.id })
+        assertEquals(emptyList<AssetId>(), query.associatedAssets(ethereumAsset.id).first().map { it.id })
     }
 
     @Test

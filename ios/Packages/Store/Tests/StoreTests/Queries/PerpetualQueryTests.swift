@@ -45,11 +45,11 @@ struct PerpetualQueryTests {
             let result = try PerpetualQuery(assetId: eth).fetch(db)
             let notFound = try PerpetualQuery(assetId: AssetId(chain: .bitcoin)).fetch(db)
 
-            #expect(result.perpetual.id == perpetual.id)
-            #expect(result.perpetual.price == 2500.0)
-            #expect(result.perpetual.isIsolatedOnly == true)
-            #expect(result.asset.id == eth)
-            #expect(result.metadata.isPinned == true)
+            #expect(result.data.perpetual.id == perpetual.id)
+            #expect(result.data.perpetual.price == 2500.0)
+            #expect(result.data.perpetual.isIsolatedOnly == true)
+            #expect(result.data.asset.id == eth)
+            #expect(result.data.metadata.isPinned == true)
             #expect(notFound == .empty)
         }
     }
@@ -87,15 +87,34 @@ struct PerpetualQueryTests {
             let result = try PerpetualQuery(assetId: newAssetId).fetch(db)
             let stale = try PerpetualQuery(assetId: oldAssetId).fetch(db)
 
-            #expect(result.perpetual.id == updated.id)
-            #expect(result.perpetual.assetId == newAssetId)
-            #expect(result.perpetual.name == "ETH-PERP")
-            #expect(result.perpetual.price == 3000.0)
-            #expect(result.perpetual.maxLeverage == 75)
-            #expect(result.perpetual.isIsolatedOnly == true)
-            #expect(result.asset.id == newAssetId)
-            #expect(result.metadata.isPinned == true)
+            #expect(result.data.perpetual.id == updated.id)
+            #expect(result.data.perpetual.assetId == newAssetId)
+            #expect(result.data.perpetual.name == "ETH-PERP")
+            #expect(result.data.perpetual.price == 3000.0)
+            #expect(result.data.perpetual.maxLeverage == 75)
+            #expect(result.data.perpetual.isIsolatedOnly == true)
+            #expect(result.data.asset.id == newAssetId)
+            #expect(result.data.metadata.isPinned == true)
             #expect(stale == .empty)
+        }
+    }
+
+    @Test
+    func associatedAssets() throws {
+        let perpetualAssetId = AssetId(chain: .hyperCore, tokenId: "perpetual::BTC")
+        let bitcoin = Asset.mock(id: AssetId(chain: .bitcoin))
+        let wrapped = Asset.mock(id: AssetId(chain: .ethereum, tokenId: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"), type: .erc20)
+        let db = DB.mock(assets: [.mock(asset: .mock(id: perpetualAssetId, type: .perpetual)), .mock(asset: bitcoin), .mock(asset: wrapped)])
+        try PerpetualStore(db: db).upsertPerpetuals([.mock(assetId: perpetualAssetId)])
+        try AssetStore(db: db).updateAssociations(assetId: perpetualAssetId, associations: [
+            AssetAssociation(assetId: bitcoin.id, type: .official),
+            AssetAssociation(assetId: wrapped.id, type: .wrapped),
+        ])
+
+        try db.dbQueue.read { db in
+            let result = try PerpetualQuery(assetId: perpetualAssetId).fetch(db)
+
+            #expect(result.associatedAssets == [bitcoin])
         }
     }
 
@@ -123,11 +142,11 @@ struct PerpetualQueryTests {
         try db.dbQueue.read { db in
             let result = try PerpetualQuery(assetId: eth).fetch(db)
 
-            #expect(result.perpetual.price == 2236.45)
-            #expect(result.perpetual.pricePercentChange24h == 5.12)
-            #expect(result.perpetual.openInterest == 1_538_967.4595)
-            #expect(result.perpetual.volume24h == 1_169_046.29406)
-            #expect(result.perpetual.funding == 0.00125)
+            #expect(result.data.perpetual.price == 2236.45)
+            #expect(result.data.perpetual.pricePercentChange24h == 5.12)
+            #expect(result.data.perpetual.openInterest == 1_538_967.4595)
+            #expect(result.data.perpetual.volume24h == 1_169_046.29406)
+            #expect(result.data.perpetual.funding == 0.00125)
         }
     }
 
@@ -151,9 +170,9 @@ struct PerpetualQueryTests {
         try db.dbQueue.read { db in
             let result = try PerpetualQuery(assetId: eth).fetch(db)
 
-            #expect(result.perpetual.price == 2236.45)
-            #expect(result.perpetual.pricePercentChange24h == 5.12)
-            #expect(result.perpetual.openInterest == 1_538_967.4595)
+            #expect(result.data.perpetual.price == 2236.45)
+            #expect(result.data.perpetual.pricePercentChange24h == 5.12)
+            #expect(result.data.perpetual.openInterest == 1_538_967.4595)
         }
     }
 }

@@ -4,6 +4,18 @@ import Foundation
 import GRDB
 import Primitives
 
+public struct PerpetualResult: Equatable, Sendable {
+    public let data: PerpetualData
+    public let associatedAssets: [Asset]
+
+    public init(data: PerpetualData, associatedAssets: [Asset]) {
+        self.data = data
+        self.associatedAssets = associatedAssets
+    }
+
+    public static let empty = PerpetualResult(data: .empty, associatedAssets: [])
+}
+
 public struct PerpetualQuery: DatabaseQueryable {
     public let assetId: AssetId
 
@@ -11,15 +23,21 @@ public struct PerpetualQuery: DatabaseQueryable {
         self.assetId = assetId
     }
 
-    public func fetch(_ db: Database) throws -> PerpetualData {
-        let result = try PerpetualRecord
+    public func fetch(_ db: Database) throws -> PerpetualResult {
+        guard let info = try PerpetualRecord
             .including(required: PerpetualRecord.asset)
             .filter(PerpetualRecord.Columns.assetId == assetId.identifier)
             .asRequest(of: PerpetualInfo.self)
-            .fetchOne(db)?
-            .mapToPerpetualData()
-
-        return result ?? .empty
+            .fetchOne(db)
+        else {
+            return .empty
+        }
+        let assetIds = info.asset.associations.filter { $0.type == .official }.map(\.assetId.identifier)
+        let associatedAssets = try AssetRecord
+            .filter(assetIds.contains(AssetRecord.Columns.id))
+            .fetchAll(db)
+            .map { $0.mapToAsset() }
+        return PerpetualResult(data: info.mapToPerpetualData(), associatedAssets: associatedAssets)
     }
 }
 

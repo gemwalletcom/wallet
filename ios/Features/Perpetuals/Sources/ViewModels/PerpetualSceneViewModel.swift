@@ -33,14 +33,13 @@ public final class PerpetualSceneViewModel {
     public let positionsQuery: ObservableQuery<PerpetualPositionsQuery>
     public let perpetualQuery: ObservableQuery<PerpetualQuery>
     public let transactionsQuery: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
-    public let associatedAssetsQuery: ObservableQuery<MappedQuery<AssociatedAssetsQuery, [GemPerpetualAssociatedAssetRow]>>
 
     public var positions: [PerpetualPositionData] {
         positionsQuery.value
     }
 
     var perpetualData: PerpetualData {
-        perpetualQuery.value
+        perpetualQuery.value.data
     }
 
     var transactionSections: [ListSection<GemTransactionRow>] {
@@ -48,7 +47,7 @@ public final class PerpetualSceneViewModel {
     }
 
     var associatedAssets: [GemPerpetualAssociatedAssetRow] {
-        associatedAssetsQuery.value
+        perpetualAssociatedAssetRows(assets: perpetualQuery.value.associatedAssets.map { $0.toGem() })
     }
 
     let chart: PerpetualChartViewModel
@@ -80,10 +79,6 @@ public final class PerpetualSceneViewModel {
                 TransactionsQuery.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
                 transform: transactionListSections,
             ),
-            initialValue: [],
-        )
-        associatedAssetsQuery = ObservableQuery(
-            MappedQuery(AssociatedAssetsQuery(assetId: asset.id, type: .official)) { perpetualAssociatedAssetRows(assets: $0.map { $0.toGem() }) },
             initialValue: [],
         )
     }
