@@ -306,6 +306,15 @@ pub struct GemCandleChart {
     pub body_width: f64,
     pub x_ticks: Vec<GemCandleTick>,
     pub is_zoomed: bool,
+    pub markers: Vec<GemCandleMarker>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCandleMarker {
+    pub date: DateTime<Utc>,
+    pub price: f64,
+    pub direction: PerpetualDirection,
+    pub level: u32,
 }
 
 #[uniffi::export]

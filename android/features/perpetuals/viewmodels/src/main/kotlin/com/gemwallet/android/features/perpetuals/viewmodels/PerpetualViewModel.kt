@@ -145,7 +145,7 @@ class PerpetualViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean> = candleViewState.map { it.isRefreshing }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val chart: StateFlow<StateViewType<GemCandleChart>> = combine(candles, perpetual.map { it?.asset }.distinctUntilChanged(), position) { session, asset, position ->
+    val chart: StateFlow<StateViewType<GemCandleChart>> = combine(candles, perpetual.map { it?.asset }.distinctUntilChanged(), position, transactions) { session, asset, position, transactions ->
         when (val state = session.viewState().state) {
             GemLoadState.Loading -> StateViewType.Loading
 
@@ -155,7 +155,7 @@ class PerpetualViewModel @Inject constructor(
 
             GemLoadState.Data ->
                 asset
-                    ?.let { session.chart(it.toGem(), position?.toGem(), ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds) }
+                    ?.let { session.chart(it.toGem(), position?.toGem(), transactions, ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds) }
                     ?.let { StateViewType.Data(it) } ?: StateViewType.NoData
         }
     }

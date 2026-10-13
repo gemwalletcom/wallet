@@ -1,6 +1,6 @@
 use crate::transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata};
 use crate::{AssetId, Chain, PerpetualDirection, SwapProvider, Transaction, TransactionDirection, TransactionId, TransactionPerpetualMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionUtxoInput};
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 
 impl Transaction {
@@ -38,6 +38,19 @@ impl Transaction {
             None,
             Utc::now(),
         )
+    }
+
+    pub fn mock_perpetual(transaction_type: TransactionType, direction: PerpetualDirection, created_at: DateTime<Utc>) -> Self {
+        Self {
+            transaction_type,
+            created_at,
+            metadata: serde_json::to_value(TransactionPerpetualMetadata {
+                direction,
+                ..TransactionPerpetualMetadata::mock()
+            })
+            .ok(),
+            ..Self::mock()
+        }
     }
 
     pub fn mock_with_state(transaction_type: TransactionType, state: TransactionState, direction: TransactionDirection) -> Self {

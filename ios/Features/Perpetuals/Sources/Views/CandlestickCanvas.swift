@@ -3,6 +3,8 @@
 import struct Gemstone.ChartCandleStick
 import struct Gemstone.GemFormattedNumber
 import struct Gemstone.GemPerpetualChartLayout
+import enum Gemstone.PerpetualDirection
+import GemstonePrimitives
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -19,6 +21,8 @@ struct CandlestickCanvas: View {
         static let pricePillPadding: CGFloat = .extraSmall
         static let priceColumnTrailing: CGFloat = .small
         static let selectionDotSize: CGFloat = .space12
+        static let markerRingWidth: CGFloat = .space1
+        static let markerGlyphInsetRatio: CGFloat = 0.25
 
         static var priceFont: UIFont {
             .monospacedDigitSystemFont(ofSize: Font.app.captionSize, weight: .regular)
@@ -45,6 +49,7 @@ struct CandlestickCanvas: View {
             drawVolumes(in: &context)
             drawCandles(in: &context)
             drawLines(in: &context)
+            drawMarkers(in: &context)
             drawSelection(in: &context)
             drawPriceLabels(levels, in: &context)
             drawTimeLabels(in: &context)
@@ -112,6 +117,29 @@ extension CandlestickCanvas {
             context.fill(Path(roundedRect: badge, cornerRadius: .tiny), with: .color(line.kind.color))
             context.draw(label, at: CGPoint(x: badge.midX, y: badge.midY), anchor: .center)
             previousBadgeMaxX = badge.maxX
+        }
+    }
+
+    private func drawMarkers(in context: inout GraphicsContext) {
+        for marker in plot.markers {
+            let rect = plot.marker(marker)
+            context.fill(Path(ellipseIn: rect.insetBy(dx: -Metrics.markerRingWidth, dy: -Metrics.markerRingWidth)), with: .color(Colors.white))
+            context.fill(Path(ellipseIn: rect), with: .color(marker.direction.toPrimitives().color))
+            context.fill(arrow(in: rect, direction: marker.direction), with: .color(Colors.white))
+        }
+    }
+
+    private func arrow(in rect: CGRect, direction: PerpetualDirection) -> Path {
+        let glyph = rect.insetBy(dx: rect.width * Metrics.markerGlyphInsetRatio, dy: rect.height * Metrics.markerGlyphInsetRatio)
+        let (tip, base) = switch direction {
+        case .long: (glyph.minY, glyph.maxY)
+        case .short: (glyph.maxY, glyph.minY)
+        }
+        return Path { path in
+            path.move(to: CGPoint(x: glyph.midX, y: tip))
+            path.addLine(to: CGPoint(x: glyph.minX, y: base))
+            path.addLine(to: CGPoint(x: glyph.maxX, y: base))
+            path.closeSubpath()
         }
     }
 

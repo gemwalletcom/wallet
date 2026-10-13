@@ -3,6 +3,7 @@
 import Foundation
 import struct Gemstone.ChartCandleStick
 import struct Gemstone.GemCandleChart
+import struct Gemstone.GemCandleMarker
 import Style
 
 struct CandlestickPlot {
@@ -12,6 +13,9 @@ struct CandlestickPlot {
         static let volumeBandFraction: CGFloat = 0.18
         static let volumeBandGap: CGFloat = Spacing.tiny
         static let wickWidthRatio: CGFloat = 0.12
+        static let markerSize: CGFloat = .space12
+        static let markerStepRatio: CGFloat = 0.75
+        static let markerGap: CGFloat = .space4
     }
 
     let chart: GemCandleChart
@@ -61,6 +65,16 @@ struct CandlestickPlot {
         let width = min(max(bodyWidth * Metrics.wickWidthRatio, .space1), .space2)
         let high = y(for: candle.high)
         return CGRect(x: x(for: candle.date) - width / 2, y: high, width: width, height: max(width, y(for: candle.low) - high))
+    }
+
+    var markers: [GemCandleMarker] {
+        chart.markers.filter { (frame.minX ... frame.maxX).contains(x(for: $0.date)) }
+    }
+
+    func marker(_ marker: GemCandleMarker) -> CGRect {
+        let bottom = y(for: marker.price) - Metrics.markerGap - CGFloat(marker.level) * Metrics.markerSize * Metrics.markerStepRatio
+        let top = max(bottom - Metrics.markerSize, frame.minY)
+        return CGRect(x: x(for: marker.date) - Metrics.markerSize / 2, y: top, width: Metrics.markerSize, height: Metrics.markerSize)
     }
 
     func volume(of candle: ChartCandleStick) -> CGRect {

@@ -1,17 +1,20 @@
+use std::collections::BTreeMap;
 use std::ops::RangeInclusive;
 
 use chrono::{DateTime, Datelike, NaiveTime, TimeDelta, Utc};
 use primitives::chart::ChartCandleStick;
-use primitives::{ChartPeriod, PerpetualPosition};
+use primitives::{ChartPeriod, PerpetualDirection, PerpetualPosition, TransactionState};
 
-use super::model::{GemCandleChart, GemCandleTick, GemCandleTickFormat};
+use super::model::{GemCandleChart, GemCandleMarker, GemCandleTick, GemCandleTickFormat};
 use super::rules::chart_layout;
 use crate::services::chart::rules::{RIGHT_PADDING, date_style, fraction_of};
 use crate::services::chart::zoom::MIN_VISIBLE_POINTS;
 use crate::services::chart::{GemChartZoom, candlestick_header};
+use crate::services::transactions::model::{GemTransactionRow, GemTransactionTitle};
 
 const CANDLE_BODY_FRACTION: f64 = 0.7;
 const LONE_CANDLE_INTERVAL: TimeDelta = TimeDelta::minutes(1);
+const CANDLE_MARKER_LIMIT: usize = 4;
 const X_TICK_COUNT: usize = 4;
 const X_TICK_INSET_FRACTION: f64 = 0.1;
 const X_TICK_YEAR: TimeDelta = TimeDelta::days(360);
@@ -43,7 +46,7 @@ const X_TICK_STEPS: [TimeDelta; 23] = [
 const X_TICK_STEP_MONTHS: [i64; 6] = [1, 2, 3, 6, 12, 24];
 const X_TICK_MONTH: TimeDelta = TimeDelta::days(30);
 
-pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, price_decimals: u32, position: Option<&PerpetualPosition>, zoom: GemChartZoom, utc_offset: TimeDelta) -> Option<GemCandleChart> {
+pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, price_decimals: u32, position: Option<&PerpetualPosition>, transactions: &[GemTransactionRow], zoom: GemChartZoom, utc_offset: TimeDelta) -> Option<GemCandleChart> {
     let (first, last) = (candles.first()?, candles.last()?);
     let interval = candles
         .iter()
@@ -72,7 +75,40 @@ pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, price_dec
         body_width: interval.num_milliseconds() as f64 * CANDLE_BODY_FRACTION / (end - start).num_milliseconds() as f64,
         x_ticks: x_ticks(visible, start..=end, interval, utc_offset),
         is_zoomed: zoom.is_zoomed(),
+        markers: candle_markers(visible, interval, transactions),
     })
+}
+
+fn candle_markers(candles: &[ChartCandleStick], interval: TimeDelta, transactions: &[GemTransactionRow]) -> Vec<GemCandleMarker> {
+    candles
+        .iter()
+        .enumerate()
+        .flat_map(|(index, candle)| {
+            let end = candles.get(index + 1).map_or(candle.date + interval, |next| next.date);
+            let trades: BTreeMap<_, _> = transactions
+                .iter()
+                .enumerate()
+                .filter(|(_, row)| row.state == TransactionState::Confirmed && (candle.date..end).contains(&row.created_at))
+                .filter_map(|(position, row)| Some(((row.created_at, position), trade_direction(&row.title)?)))
+                .collect();
+            let hidden = trades.len().saturating_sub(CANDLE_MARKER_LIMIT);
+            trades.into_values().skip(hidden).enumerate().map(move |(level, direction)| GemCandleMarker {
+                date: candle.date,
+                price: candle.high,
+                direction,
+                level: level as u32,
+            })
+        })
+        .collect()
+}
+
+fn trade_direction(title: &GemTransactionTitle) -> Option<PerpetualDirection> {
+    match title {
+        GemTransactionTitle::PerpetualOpen { direction } => direction.clone(),
+        GemTransactionTitle::PerpetualClose { direction: Some(PerpetualDirection::Long) } => Some(PerpetualDirection::Short),
+        GemTransactionTitle::PerpetualClose { direction: Some(PerpetualDirection::Short) } => Some(PerpetualDirection::Long),
+        _ => None,
+    }
 }
 
 fn x_ticks(candles: &[ChartCandleStick], window: RangeInclusive<DateTime<Utc>>, interval: TimeDelta, utc_offset: TimeDelta) -> Vec<GemCandleTick> {
@@ -155,7 +191,7 @@ mod tests {
     fn test_candle_chart() {
         let at = |seconds: i64| DateTime::from_timestamp(seconds, 0).unwrap();
         let candles = ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 40);
-        let chart = |candles: &[ChartCandleStick], scale: f64, offset: f64| candle_chart(candles, ChartPeriod::Hour, 2, None, GemChartZoom { scale, offset }, TimeDelta::zero()).unwrap();
+        let chart = |candles: &[ChartCandleStick], scale: f64, offset: f64| candle_chart(candles, ChartPeriod::Hour, 2, None, &[], GemChartZoom { scale, offset }, TimeDelta::zero()).unwrap();
         let whole = chart(&candles, 1.0, 0.0);
         let zoomed = chart(&candles, 2.0, 0.0);
         let panned = chart(&candles, 2.0, 0.25);
@@ -178,7 +214,37 @@ mod tests {
             "a selection is measured from the period's first close"
         );
         assert_eq!((lone.start, lone.end, lone.body_width), (at(-810), at(30), 0.05), "a lone candle is drawn at the fourteen-candle width");
-        assert_eq!(candle_chart(&[], ChartPeriod::Hour, 2, None, GemChartZoom::default(), TimeDelta::zero()), None);
+        assert_eq!(candle_chart(&[], ChartPeriod::Hour, 2, None, &[], GemChartZoom::default(), TimeDelta::zero()), None);
+    }
+
+    #[test]
+    fn test_candle_markers() {
+        use crate::services::transactions::rules::row;
+        use primitives::PerpetualDirection::{Long, Short};
+        use primitives::TransactionType::{PerpetualClosePosition as Close, PerpetualModifyPosition as Modify, PerpetualOpenPosition as Open};
+        use primitives::{Transaction, TransactionListItem, TransactionType};
+        let trade = |kind: TransactionType, direction, seconds| Transaction::mock_perpetual(kind, direction, DateTime::from_timestamp(seconds, 0).unwrap());
+        let markers = |candles: &[ChartCandleStick], trades: &[Transaction]| {
+            let rows: Vec<GemTransactionRow> = trades.iter().map(|trade| row(&TransactionListItem::mock_transaction(trade.clone()))).collect();
+            let chart = candle_chart(candles, ChartPeriod::Hour, 2, None, &rows, GemChartZoom::default(), TimeDelta::zero()).unwrap();
+            chart.markers.into_iter().map(|marker| (marker.date.timestamp(), marker.direction, marker.level, marker.price)).collect::<Vec<_>>()
+        };
+        let minutes = ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 40);
+        let months: Vec<ChartCandleStick> = (0..3)
+            .map(|month| ChartCandleStick::mock(DateTime::UNIX_EPOCH.checked_add_months(chrono::Months::new(month)).unwrap().timestamp(), 100.0))
+            .collect();
+        let pending = Transaction {
+            state: TransactionState::Pending,
+            ..trade(Open, Long, 125)
+        };
+
+        assert_eq!(
+            markers(&minutes, &[trade(Close, Long, 170), trade(Open, Short, 150), trade(Close, Short, 140), trade(Open, Long, 125), trade(Open, Short, 121)]),
+            vec![(120, Long, 0, 103.0), (120, Long, 1, 103.0), (120, Short, 2, 103.0), (120, Short, 3, 103.0)],
+            "a candle stacks its latest four trades over its high, the oldest lowest, a close marked as the side it trades"
+        );
+        assert_eq!(markers(&minutes, &[pending, trade(Modify, Long, 125), trade(Open, Long, 2400)]), vec![], "only filled trades on the drawn candles are marked");
+        assert_eq!(markers(&months, &[trade(Open, Long, 29 * 86_400)]), vec![(0, Long, 0, 101.0)], "a trade late in a long month stays on its candle");
     }
 
     #[test]
@@ -186,7 +252,12 @@ mod tests {
         use GemCandleTickFormat::{Day, MonthYear, Time};
         let at = |date: &str| DateTime::parse_from_rfc3339(date).unwrap().to_utc();
         let axis = |candles: &[ChartCandleStick], zoom: GemChartZoom, utc_offset: TimeDelta| -> Vec<(DateTime<Utc>, GemCandleTickFormat)> {
-            candle_chart(candles, ChartPeriod::Day, 2, None, zoom, utc_offset).unwrap().x_ticks.into_iter().map(|tick| (tick.date, tick.format)).collect()
+            candle_chart(candles, ChartPeriod::Day, 2, None, &[], zoom, utc_offset)
+                .unwrap()
+                .x_ticks
+                .into_iter()
+                .map(|tick| (tick.date, tick.format))
+                .collect()
         };
         let monthly: Vec<ChartCandleStick> = (0..14)
             .map(|month| ChartCandleStick::mock(at("2025-08-07T00:00:00Z").checked_add_months(chrono::Months::new(month)).unwrap().timestamp(), 1.0))

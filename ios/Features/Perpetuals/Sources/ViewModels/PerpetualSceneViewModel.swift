@@ -44,6 +44,10 @@ public final class PerpetualSceneViewModel {
         transactionsQuery.value
     }
 
+    var transactions: [GemTransactionRow] {
+        transactionSections.flatMap(\.values)
+    }
+
     let chart: PerpetualChartViewModel
 
     public var isPresentingInfoSheet: InfoSheetModel?

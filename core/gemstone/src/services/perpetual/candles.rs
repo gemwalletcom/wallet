@@ -7,6 +7,7 @@ use crate::models::perpetual::GemChartCandleStick;
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::perpetual::GemPerpetual;
 use crate::services::chart::GemChartZoom;
+use crate::services::transactions::model::GemTransactionRow;
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemCandleRequest {
@@ -117,10 +118,10 @@ impl GemCandleSession {
         self.symbol.clone().filter(|_| needs_candles).map(|symbol| GemCandleRequest { symbol, period: self.period })
     }
 
-    pub fn chart(&self, asset: Asset, position: Option<PerpetualPosition>, utc_offset_seconds: i32) -> Option<GemCandleChart> {
+    pub fn chart(&self, asset: Asset, position: Option<PerpetualPosition>, transactions: Vec<GemTransactionRow>, utc_offset_seconds: i32) -> Option<GemCandleChart> {
         let provider = rules::provider(asset.chain())?;
         let price_decimals = GemPerpetual::new(provider).price_decimals(self.candles.last()?.close, asset.decimals);
-        chart::candle_chart(&self.candles, self.period, price_decimals, position.as_ref(), self.zoom, TimeDelta::seconds(i64::from(utc_offset_seconds)))
+        chart::candle_chart(&self.candles, self.period, price_decimals, position.as_ref(), &transactions, self.zoom, TimeDelta::seconds(i64::from(utc_offset_seconds)))
     }
 
     pub fn view_state(&self) -> GemCandleViewState {
@@ -246,7 +247,7 @@ mod tests {
         let refreshing = zoomed.on_refresh();
 
         assert_eq!(zoomed.zoom, GemChartZoom { scale: 5.0, offset: 0.0 }, "the session clamps against the candles it holds");
-        assert_eq!(zoomed.chart(Asset::mock_perpetual(), None, 0).map(|chart| chart.candles.len()), Some(15), "the chart draws the zoomed window");
+        assert_eq!(zoomed.chart(Asset::mock_perpetual(), None, vec![], 0).map(|chart| chart.candles.len()), Some(15), "the chart draws the zoomed window");
         assert_eq!(refreshing.on_result(loaded(refreshing.request().unwrap(), candles)).zoom, zoomed.zoom, "a refresh keeps the zoom");
         assert_eq!(zoomed.on_select_period(ChartPeriod::Week).zoom, GemChartZoom::default(), "a new period starts unzoomed");
     }
@@ -254,7 +255,7 @@ mod tests {
     #[test]
     fn test_chart() {
         let shown = |close: f64| session().on_result(loaded(session().request().unwrap(), vec![GemChartCandleStick { close, ..candle(1) }]));
-        let chart = |close: f64, decimals: u32| shown(close).chart(Asset { decimals, ..Asset::mock_perpetual() }, None, 0).unwrap();
+        let chart = |close: f64, decimals: u32| shown(close).chart(Asset { decimals, ..Asset::mock_perpetual() }, None, vec![], 0).unwrap();
         let xrp = chart(1.4251, 0);
 
         assert_eq!(
@@ -269,7 +270,7 @@ mod tests {
         );
         assert_eq!(chart(4512.3, 4).price_decimals, 1, "five significant figures");
         assert_eq!(chart(0.5, 4).price_decimals, 2, "no more places than the market's size decimals leave");
-        assert_eq!(shown(1.4251).chart(Asset::mock(), None, 0), None, "an asset with no perpetual market has no candle chart");
+        assert_eq!(shown(1.4251).chart(Asset::mock(), None, vec![], 0), None, "an asset with no perpetual market has no candle chart");
     }
 
     #[test]

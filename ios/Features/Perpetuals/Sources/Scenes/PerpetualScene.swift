@@ -28,6 +28,7 @@ public struct PerpetualScene: View {
                 PerpetualChartSection(
                     chart: model.chart,
                     position: details.position,
+                    transactions: model.transactions,
                     onPeriodChange: model.onPeriodChange,
                 )
             }

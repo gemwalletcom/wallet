@@ -7,6 +7,7 @@ import struct Gemstone.GemCandleChart
 import struct Gemstone.GemCandleSession
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualSubscription
+import struct Gemstone.GemTransactionRow
 import struct Gemstone.PerpetualPosition
 import GemstonePrimitives
 import GemstoneServices
@@ -38,8 +39,8 @@ public final class PerpetualChartViewModel {
         session = candleSession(period: service.chartPeriod())
     }
 
-    public func state(position: PerpetualPosition?) -> StateViewType<GemCandleChart> {
-        session.viewState().state.stateViewType(session.chart(asset: asset.toGem(), position: position, utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT())))
+    public func state(position: PerpetualPosition?, transactions: [GemTransactionRow]) -> StateViewType<GemCandleChart> {
+        session.viewState().state.stateViewType(session.chart(asset: asset.toGem(), position: position, transactions: transactions, utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT())))
     }
 }
 

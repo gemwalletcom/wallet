@@ -3,11 +3,13 @@ package com.gemwallet.android.ui.components.chart
 import androidx.compose.ui.geometry.Rect
 import uniffi.gemstone.ChartCandleStick
 import uniffi.gemstone.GemCandleChart
+import uniffi.gemstone.GemCandleMarker
 import kotlin.math.max
 import kotlin.math.min
 
 private const val VOLUME_BAND_FRACTION = 0.18f
 private const val WICK_WIDTH_RATIO = 0.12f
+private const val MARKER_STEP_RATIO = 0.75f
 
 internal class CandlestickPlot(
     private val chart: GemCandleChart,
@@ -15,6 +17,8 @@ internal class CandlestickPlot(
     volumeBandGap: Float,
     private val minWickWidth: Float,
     private val maxWickWidth: Float,
+    private val markerSize: Float,
+    private val markerGap: Float,
     private val priceViewport: ChartViewport,
     private val volumeViewport: ChartViewport?,
 ) {
@@ -23,6 +27,7 @@ internal class CandlestickPlot(
     val volumeBand = Rect(frame.left, frame.bottom - frame.height * VOLUME_BAND_FRACTION, frame.right, frame.bottom)
     val priceBottom = volumeBand.top - volumeBandGap
     val bodyWidth = max(1f, chart.bodyWidth.toFloat() * frame.width)
+    val markers = chart.markers.filter { x(it.date) in frame.left..frame.right }
 
     fun x(date: Long): Float = frame.left + (date - chart.start) / span * frame.width
 
@@ -36,6 +41,12 @@ internal class CandlestickPlot(
     fun wick(candle: ChartCandleStick): Rect {
         val width = (bodyWidth * WICK_WIDTH_RATIO).coerceIn(minWickWidth, maxWickWidth)
         return Rect(x(candle.date) - width / 2f, y(candle.high), x(candle.date) + width / 2f, y(candle.low))
+    }
+
+    fun marker(marker: GemCandleMarker): Rect {
+        val bottom = y(marker.price) - markerGap - marker.level.toFloat() * markerSize * MARKER_STEP_RATIO
+        val top = max(bottom - markerSize, frame.top)
+        return Rect(x(marker.date) - markerSize / 2f, top, x(marker.date) + markerSize / 2f, top + markerSize)
     }
 
     fun volume(candle: ChartCandleStick): Rect? {

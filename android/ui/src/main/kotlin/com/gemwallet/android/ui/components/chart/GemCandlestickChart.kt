@@ -17,6 +17,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -41,6 +42,7 @@ import com.gemwallet.android.ui.theme.alpha60
 import com.gemwallet.android.ui.theme.captionFontSize
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space1
+import com.gemwallet.android.ui.theme.space12
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.space4
@@ -54,6 +56,7 @@ import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemPerpetualChartLine
 import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.PerpetualDirection
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -86,11 +89,15 @@ private object CandlestickMetrics {
     val referenceBadgeVerticalPadding = space4
     val badgeCornerRadius = space4
     val referenceLabelGap = space8
+    val markerSize = space12
+    val markerGap = space4
+    val markerRingWidth = space1
 
     const val SELECTION_LINE_ALPHA = 0.50f
     const val BODY_CORNER_RATIO = 0.15f
     const val VOLUME_ALPHA = 0.12f
     const val TEXT_CACHE_SIZE = 32
+    const val MARKER_GLYPH_INSET_RATIO = 0.25f
 }
 
 @Composable
@@ -111,6 +118,7 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
     val gridGuidelineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.13f)
     val volumeColor = MaterialTheme.colorScheme.onSurface.copy(alpha = CandlestickMetrics.VOLUME_ALPHA)
     val selectionAccentColor = MaterialTheme.colorScheme.primary
+    val markerRingColor = MaterialTheme.colorScheme.surface
     val currentPriceLineColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f)
     val referenceColorByRole = referenceColors()
 
@@ -145,6 +153,9 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
     val referenceBadgeVerticalPaddingPx = with(density) { CandlestickMetrics.referenceBadgeVerticalPadding.toPx() }
     val badgeCornerRadiusPx = with(density) { CandlestickMetrics.badgeCornerRadius.toPx() }
     val referenceLabelGapPx = with(density) { CandlestickMetrics.referenceLabelGap.toPx() }
+    val markerSizePx = with(density) { CandlestickMetrics.markerSize.toPx() }
+    val markerRingWidthPx = with(density) { CandlestickMetrics.markerRingWidth.toPx() }
+    val markerGapPx = with(density) { CandlestickMetrics.markerGap.toPx() }
     val topPaddingPx = with(density) { CandlestickMetrics.topPadding.toPx() }
     val bottomPaddingPx = with(density) { CandlestickMetrics.bottomPadding.toPx() }
     val leftPaddingPx = with(density) { CandlestickMetrics.leftPadding.toPx() }
@@ -166,7 +177,7 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
         val frame = Rect(leftPaddingPx, topPaddingPx, chartSize.width - rightAxisWidthPx, chartSize.height - bottomPaddingPx)
         if (frame.width <= 0 || frame.height <= 0) return@Box
         val priceViewport = priceRange.viewport ?: return@Box
-        val plot = CandlestickPlot(chart, frame, volumeBandGapPx, minWickWidthPx, maxWickWidthPx, priceViewport, volumeRange.viewport)
+        val plot = CandlestickPlot(chart, frame, volumeBandGapPx, minWickWidthPx, maxWickWidthPx, markerSizePx, markerGapPx, priceViewport, volumeRange.viewport)
 
         val candleIndex by rememberUpdatedState { fraction: Float -> chart.indexAt(fraction.toDouble())?.toInt() }
         val selectionChanged by rememberUpdatedState(onSelectionChanged)
@@ -208,6 +219,13 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
                 badgeCornerRadiusPx = badgeCornerRadiusPx,
                 textMeasurer = textMeasurer,
             )
+            plot.markers.forEach { marker ->
+                val color = when (marker.direction) {
+                    PerpetualDirection.LONG -> upColor
+                    PerpetualDirection.SHORT -> downColor
+                }
+                drawMarker(plot.marker(marker), marker.direction, color, markerRingColor, markerRingWidthPx)
+            }
             drawCurrentPriceBadge(
                 price = layout.currentPrice.value,
                 tone = layout.currentTone,
@@ -387,6 +405,23 @@ private fun DrawScope.drawCurrentPriceBadge(
         verticalPaddingPx = badgeVerticalPaddingPx,
         cornerRadiusPx = badgeCornerRadiusPx,
     )
+}
+
+private fun DrawScope.drawMarker(bounds: Rect, direction: PerpetualDirection, color: Color, ringColor: Color, ringWidth: Float) {
+    val glyph = bounds.deflate(bounds.width * CandlestickMetrics.MARKER_GLYPH_INSET_RATIO)
+    val (tipY, baseY) = when (direction) {
+        PerpetualDirection.LONG -> glyph.top to glyph.bottom
+        PerpetualDirection.SHORT -> glyph.bottom to glyph.top
+    }
+    drawCircle(color = ringColor, radius = bounds.width / 2f + ringWidth, center = bounds.center)
+    drawCircle(color = color, radius = bounds.width / 2f, center = bounds.center)
+    val triangle = Path().apply {
+        moveTo(glyph.center.x, tipY)
+        lineTo(glyph.left, baseY)
+        lineTo(glyph.right, baseY)
+        close()
+    }
+    drawPath(triangle, ringColor)
 }
 
 private fun DrawScope.drawSelection(
