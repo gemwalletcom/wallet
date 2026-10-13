@@ -195,11 +195,6 @@ pub fn perpetual_position_rows(positions: Vec<PerpetualPositionData>) -> Vec<Gem
     positions.iter().map(|data| rules::position_row(&data.perpetual, &data.asset, &data.position)).collect()
 }
 
-#[uniffi::export]
-pub fn perpetual_associated_asset_rows(assets: Vec<Asset>) -> Vec<GemPerpetualAssociatedAssetRow> {
-    assets.into_iter().map(GemPerpetualAssociatedAssetRow::from).collect()
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct PerpetualMarketLine {
     pub asset_id: AssetId,
@@ -408,6 +403,7 @@ pub struct GemPerpetualDetails {
     pub modify_buttons: Vec<GemPerpetualButtonRow>,
     pub position: Option<PerpetualPosition>,
     pub position_row: Option<GemPerpetualPositionRow>,
+    pub associated_assets: Vec<GemPerpetualAssociatedAssetRow>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

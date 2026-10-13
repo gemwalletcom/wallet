@@ -1629,12 +1629,14 @@ fun mockGemPerpetualDetails(
     modifyButtons: List<uniffi.gemstone.GemPerpetualButtonRow> = emptyList(),
     position: uniffi.gemstone.PerpetualPosition? = null,
     positionRow: uniffi.gemstone.GemPerpetualPositionRow? = null,
+    associatedAssets: List<uniffi.gemstone.GemPerpetualAssociatedAssetRow> = emptyList(),
 ) = uniffi.gemstone.GemPerpetualDetails(
     title = title,
     sections = sections,
     modifyButtons = modifyButtons,
     position = position,
     positionRow = positionRow,
+    associatedAssets = associatedAssets,
 )
 
 fun mockGemPerpetualTransferData(

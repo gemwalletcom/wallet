@@ -13,10 +13,10 @@ use primitives::{
 use strum::IntoEnumIterator;
 
 use super::model::{
-    GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput,
-    GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDepositTarget, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery, GemPerpetualMarketSection, GemPerpetualMarketView,
-    GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData,
-    PerpetualMarketLine, PerpetualOpenLine, PerpetualPositionLine,
+    GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualAssociatedAssetRow, GemPerpetualButton, GemPerpetualButtonRow, GemPerpetualChartLayout, GemPerpetualChartLine,
+    GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualConfirmDetails, GemPerpetualConfirmDetailsSummary, GemPerpetualDepositTarget, GemPerpetualDetails, GemPerpetualMarketCounts, GemPerpetualMarketQuery,
+    GemPerpetualMarketSection, GemPerpetualMarketView, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionDetail, GemPerpetualPositionDetailRow, GemPerpetualPositionKind,
+    GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData, PerpetualMarketLine, PerpetualOpenLine, PerpetualPositionLine,
 };
 use crate::formatted_number::{GemFormattedNumber, GemValueTone, value_tone};
 use crate::models::custom_types::GemBigInt;
@@ -762,7 +762,7 @@ fn position_line(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosit
     }
 }
 
-pub fn details(perpetual: &Perpetual, asset: &Asset, positions: Vec<PerpetualPosition>) -> GemPerpetualDetails {
+pub fn details(perpetual: &Perpetual, asset: &Asset, positions: Vec<PerpetualPosition>, associated_assets: Vec<Asset>) -> GemPerpetualDetails {
     let position = positions.into_iter().next();
     let market = market_row(perpetual, asset);
     GemPerpetualDetails {
@@ -780,6 +780,7 @@ pub fn details(perpetual: &Perpetual, asset: &Asset, positions: Vec<PerpetualPos
         modify_buttons: button_rows(&[GemPerpetualButton::Increase, GemPerpetualButton::Reduce]),
         position_row: position.as_ref().map(|position| position_row(perpetual, asset, position)),
         position,
+        associated_assets: associated_assets.into_iter().map(GemPerpetualAssociatedAssetRow::from).collect(),
     }
 }
 
@@ -984,7 +985,7 @@ mod tests {
         let modify_buttons = button_rows(&[GemPerpetualButton::Increase, GemPerpetualButton::Reduce]);
 
         assert_eq!(
-            details(&perpetual, &asset, vec![]),
+            details(&perpetual, &asset, vec![], vec![Asset::mock()]),
             GemPerpetualDetails {
                 title: market_row(&perpetual, &asset).title,
                 sections: vec![GemPerpetualSection::Info {
@@ -994,10 +995,11 @@ mod tests {
                 modify_buttons: modify_buttons.clone(),
                 position: None,
                 position_row: None,
+                associated_assets: vec![GemPerpetualAssociatedAssetRow::from(Asset::mock())],
             }
         );
         assert_eq!(
-            details(&perpetual, &asset, vec![position.clone()]),
+            details(&perpetual, &asset, vec![position.clone()], vec![]),
             GemPerpetualDetails {
                 title: market_row(&perpetual, &asset).title,
                 sections: vec![
@@ -1010,6 +1012,7 @@ mod tests {
                 modify_buttons,
                 position_row: Some(position_row(&perpetual, &asset, &position)),
                 position: Some(position),
+                associated_assets: vec![],
             }
         );
 

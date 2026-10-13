@@ -228,7 +228,7 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         return try positionActionResult.get()
     }
 
-    public func details(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, positions _: [Gemstone.PerpetualPosition]) -> GemPerpetualDetails {
+    public func details(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, positions _: [Gemstone.PerpetualPosition], associatedAssets _: [Gemstone.Asset]) -> GemPerpetualDetails {
         detailsValue
     }
 

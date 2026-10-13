@@ -41,8 +41,8 @@ impl GemPerpetualDetailsService {
         self.perpetuals.is_available()
     }
 
-    pub fn details(&self, perpetual: Perpetual, asset: Asset, positions: Vec<PerpetualPosition>) -> GemPerpetualDetails {
-        rules::details(&perpetual, &asset, positions)
+    pub fn details(&self, perpetual: Perpetual, asset: Asset, positions: Vec<PerpetualPosition>, associated_assets: Vec<Asset>) -> GemPerpetualDetails {
+        rules::details(&perpetual, &asset, positions, associated_assets)
     }
 
     pub fn position_action(&self, perpetual: Perpetual, asset: Asset, position: Option<PerpetualPosition>, kind: GemPerpetualPositionKind) -> Result<GemPerpetualPositionAction, GemServiceError> {

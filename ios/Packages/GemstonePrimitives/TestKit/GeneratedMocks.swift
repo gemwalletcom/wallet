@@ -903,6 +903,7 @@ public extension Gemstone.GemPerpetualDetails {
         modifyButtons: [Gemstone.GemPerpetualButtonRow] = [],
         position: Gemstone.PerpetualPosition? = nil,
         positionRow: Gemstone.GemPerpetualPositionRow? = nil,
+        associatedAssets: [Gemstone.GemPerpetualAssociatedAssetRow] = [],
     ) -> Gemstone.GemPerpetualDetails {
         Gemstone.GemPerpetualDetails(
             title: title,
@@ -910,6 +911,7 @@ public extension Gemstone.GemPerpetualDetails {
             modifyButtons: modifyButtons,
             position: position,
             positionRow: positionRow,
+            associatedAssets: associatedAssets,
         )
     }
 }

@@ -3,14 +3,12 @@
 import Components
 import Foundation
 import enum Gemstone.GemInfoTopic
-import struct Gemstone.GemPerpetualAssociatedAssetRow
 import enum Gemstone.GemPerpetualButton
 import struct Gemstone.GemPerpetualDetails
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
 import struct Gemstone.GemTransactionRow
-import func Gemstone.perpetualAssociatedAssetRows
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -44,10 +42,6 @@ public final class PerpetualSceneViewModel {
 
     var transactionSections: [ListSection<GemTransactionRow>] {
         transactionsQuery.value
-    }
-
-    var associatedAssets: [GemPerpetualAssociatedAssetRow] {
-        perpetualAssociatedAssetRows(assets: perpetualQuery.value.associatedAssets.map { $0.toGem() })
     }
 
     let chart: PerpetualChartViewModel
@@ -84,7 +78,12 @@ public final class PerpetualSceneViewModel {
     }
 
     var details: GemPerpetualDetails {
-        service.details(perpetual: perpetual.toGem(), asset: asset.toGem(), positions: positions.map { $0.position.toGem() })
+        service.details(
+            perpetual: perpetual.toGem(),
+            asset: asset.toGem(),
+            positions: positions.map { $0.position.toGem() },
+            associatedAssets: perpetualQuery.value.associatedAssets.map { $0.toGem() },
+        )
     }
 
     var modifyTitle: String {

@@ -48,7 +48,6 @@ fun PerpetualScreen(
     InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val details by viewModel.details.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
-    val associatedAssets by viewModel.associatedAssets.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
@@ -60,7 +59,6 @@ fun PerpetualScreen(
     PerpetualScene(
         details = details,
         transactions = transactions,
-        associatedAssets = associatedAssets,
         chart = chart,
         period = period,
         isRefreshing = isRefreshing,

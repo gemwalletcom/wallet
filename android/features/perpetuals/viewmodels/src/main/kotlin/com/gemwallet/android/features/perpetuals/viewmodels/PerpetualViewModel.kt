@@ -60,12 +60,10 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
-import uniffi.gemstone.GemPerpetualAssociatedAssetRow
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.candleSession
-import uniffi.gemstone.perpetualAssociatedAssetRows
 import java.time.Instant
 import java.time.ZoneId
 import javax.inject.Inject
@@ -122,8 +120,8 @@ class PerpetualViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val details: StateFlow<GemPerpetualDetails?> = combine(perpetual, position) { perpetual, position ->
-        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.toGem())) }
+    val details: StateFlow<GemPerpetualDetails?> = combine(perpetual, position, perpetualQuery.associatedAssets(assetId)) { perpetual, position, associatedAssets ->
+        perpetual?.let { service.details(it.perpetual.toGem(), it.asset.toGem(), listOfNotNull(position?.toGem()), associatedAssets.map { asset -> asset.toGem() }) }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -134,11 +132,6 @@ class PerpetualViewModel @Inject constructor(
     ) { transactions, _ -> transactions }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, GemConstants.transactionsListLimit))
-
-    val associatedAssets: StateFlow<List<GemPerpetualAssociatedAssetRow>> = perpetualQuery.associatedAssets(assetId)
-        .map { assets -> perpetualAssociatedAssetRows(assets.map { it.toGem() }) }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val candles = MutableStateFlow(candleSession(service.chartPeriod()))
 

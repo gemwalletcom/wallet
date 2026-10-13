@@ -34,7 +34,6 @@ import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLocalizedText
-import uniffi.gemstone.GemPerpetualAssociatedAssetRow
 import uniffi.gemstone.GemPerpetualButton
 import uniffi.gemstone.GemPerpetualButtonRow
 import uniffi.gemstone.GemPerpetualDetails
@@ -48,7 +47,6 @@ import uniffi.gemstone.GemValueTone
 internal fun PerpetualScene(
     details: GemPerpetualDetails?,
     transactions: List<GemTransactionRow>,
-    associatedAssets: List<GemPerpetualAssociatedAssetRow>,
     chart: StateViewType<GemCandleChart>,
     period: ChartPeriod,
     isRefreshing: Boolean,
@@ -112,7 +110,7 @@ internal fun PerpetualScene(
                         }
                     }
                 }
-                itemsPositioned(associatedAssets) { position, associatedAsset ->
+                itemsPositioned(details?.associatedAssets.orEmpty()) { position, associatedAsset ->
                     AssetListItem(
                         row = associatedAsset.row,
                         listPosition = position,
@@ -171,9 +169,9 @@ private fun PerpetualScenePreview() {
                 ),
                 position = null,
                 positionRow = null,
+                associatedAssets = emptyList(),
             ),
             transactions = emptyList(),
-            associatedAssets = emptyList(),
             chart = StateViewType.Loading,
             period = ChartPeriod.Day,
             isRefreshing = false,
