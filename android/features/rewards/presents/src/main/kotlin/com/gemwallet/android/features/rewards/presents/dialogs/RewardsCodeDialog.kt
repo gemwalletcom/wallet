@@ -31,20 +31,20 @@ import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
-internal fun CreateRewardsCodeDialog(isVisible: Boolean, isLoading: Boolean, onUsername: (String) -> Unit, onDismiss: () -> Unit) {
-    var username by remember(isVisible) { mutableStateOf("") }
+internal fun RewardsCodeDialog(isVisible: Boolean, title: String, label: String, text: String, isLoading: Boolean, onDone: (String) -> Unit, onDismiss: () -> Unit, info: String? = null) {
+    var input by remember(isVisible, text) { mutableStateOf(text) }
     val context = LocalContext.current
 
     val focusRequester = remember { FocusRequester() }
 
     val doneAction: () -> Unit = done@{
-        if (username.isEmpty() || isLoading) return@done
-        context.requestAuth(AuthRequest.Default) { onUsername(username) }
+        if (input.isEmpty() || isLoading) return@done
+        context.requestAuth(AuthRequest.Default) { onDone(input) }
     }
     val done: @Composable () -> Unit = {
         TextButton(
             onClick = doneAction,
-            enabled = username.isNotEmpty() && !isLoading,
+            enabled = input.isNotEmpty() && !isLoading,
         ) {
             if (isLoading) {
                 CircularProgressIndicator16()
@@ -56,7 +56,7 @@ internal fun CreateRewardsCodeDialog(isVisible: Boolean, isLoading: Boolean, onU
 
     FormDialog(
         isVisible = isVisible,
-        title = stringResource(R.string.rewards_create_referral_code_title),
+        title = title,
         onDismiss = onDismiss,
         doneAction = done,
     ) {
@@ -65,25 +65,27 @@ internal fun CreateRewardsCodeDialog(isVisible: Boolean, isLoading: Boolean, onU
         }
         GemTextField(
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-            label = stringResource(id = R.string.rewards_username),
-            value = username,
+            label = label,
+            value = input,
             onValueChange = {
-                username = it
+                input = it
             },
             singleLine = true,
             keyboardActions = KeyboardActions(onDone = { doneAction() }),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         )
-        Spacer8()
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = paddingDefault),
-            text = stringResource(R.string.rewards_create_referral_code_info),
-            color = MaterialTheme.colorScheme.secondary,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Companion.Center,
-        )
+        info?.let {
+            Spacer8()
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = paddingDefault),
+                text = it,
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+        }
         Spacer16()
     }
 }

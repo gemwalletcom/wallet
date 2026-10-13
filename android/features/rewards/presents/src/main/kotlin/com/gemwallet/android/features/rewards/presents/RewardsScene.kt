@@ -29,8 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.rewards.presents.components.rewardsHead
 import com.gemwallet.android.features.rewards.presents.components.rewardsInfo
-import com.gemwallet.android.features.rewards.presents.dialogs.CreateRewardsCodeDialog
-import com.gemwallet.android.features.rewards.presents.dialogs.RedeemRewardsCodeDialog
+import com.gemwallet.android.features.rewards.presents.dialogs.RewardsCodeDialog
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSheetType
 import com.gemwallet.android.model.AuthRequest
@@ -119,7 +118,7 @@ internal fun RewardsScene(
                     )
                     Icon(
                         imageVector = AppIcons.KeyboardArrowDown,
-                        contentDescription = "select wallet",
+                        contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimary,
                     )
                 }
@@ -206,18 +205,24 @@ internal fun RewardsScene(
         }
     }
 
-    CreateRewardsCodeDialog(
+    RewardsCodeDialog(
         isVisible = sheet == RewardsSheetType.CreateCode,
+        title = stringResource(R.string.rewards_create_referral_code_title),
+        label = stringResource(R.string.rewards_username),
+        text = "",
+        info = stringResource(R.string.rewards_create_referral_code_info),
         isLoading = isLoading,
-        onUsername = { onAction(RewardsAction.CreateReferral(it)) },
+        onDone = { onAction(RewardsAction.CreateReferral(it)) },
         onDismiss = { onAction(RewardsAction.DismissSheet) },
     )
 
-    RedeemRewardsCodeDialog(
+    RewardsCodeDialog(
         isVisible = sheet is RewardsSheetType.ActivateCode,
-        referralCode = (sheet as? RewardsSheetType.ActivateCode)?.code.orEmpty(),
+        title = stringResource(R.string.rewards_referral_code),
+        label = stringResource(R.string.rewards_referral_code),
+        text = (sheet as? RewardsSheetType.ActivateCode)?.code.orEmpty(),
         isLoading = isLoading,
-        onCode = { onAction(RewardsAction.UseCode(it)) },
+        onDone = { onAction(RewardsAction.UseCode(it)) },
         onDismiss = { onAction(RewardsAction.DismissSheet) },
     )
 }

@@ -126,10 +126,10 @@ class RewardsViewModel @Inject constructor(
     val sections: StateFlow<List<RewardsSectionUIModel>> = rewardsState.map { it.sectionModels(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val redemptions: StateFlow<List<GemRewardsRedemption>> = rewardsState.map { state -> state.redemptions }
+    val redemptions: StateFlow<List<GemRewardsRedemption>> = rewardsState.map { it.redemptions }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val referralLink = rewardsState.map { it.referralLink }
+    val referralLink: StateFlow<String?> = rewardsState.map { it.referralLink }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {

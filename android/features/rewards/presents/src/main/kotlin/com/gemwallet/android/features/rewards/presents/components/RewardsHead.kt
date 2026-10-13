@@ -30,6 +30,9 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemRewardsInviteAction
 
+private val giftEmojiSize = 64.sp
+private val introEmojiSize = 26.sp
+
 internal fun LazyListScope.rewardsHead(description: String, intro: List<GemRewardsIntroItem>, action: GemRewardsInviteAction?, onGetStarted: () -> Unit, onShare: () -> Unit) {
     item {
         Column(
@@ -40,7 +43,7 @@ internal fun LazyListScope.rewardsHead(description: String, intro: List<GemRewar
             verticalArrangement = Arrangement.spacedBy(paddingDefault),
         ) {
             Spacer16()
-            Text("\uD83C\uDF81", fontSize = 64.sp)
+            Text("\uD83C\uDF81", fontSize = giftEmojiSize)
             Text(
                 text = parseMarkdownToAnnotatedString(
                     markdown = stringResource(R.string.rewards_invite_friends_title),
@@ -68,7 +71,7 @@ internal fun LazyListScope.rewardsHead(description: String, intro: List<GemRewar
                     ) {
                         Text(
                             text = item.emoji(),
-                            fontSize = 26.sp,
+                            fontSize = introEmojiSize,
                         )
                         Text(
                             text = stringResource(item.titleRes()),
@@ -88,7 +91,7 @@ internal fun LazyListScope.rewardsHead(description: String, intro: List<GemRewar
                 GemRewardsInviteAction.SHARE -> MainActionButton(
                     onClick = onShare,
                 ) {
-                    Icon(AppIcons.Share, contentDescription = "share")
+                    Icon(AppIcons.Share, contentDescription = null)
                     Spacer8()
                     Text(stringResource(R.string.rewards_invite_friends_title))
                 }
