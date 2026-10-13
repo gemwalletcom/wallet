@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -30,9 +29,6 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemRewardsInviteAction
 
-private val giftEmojiSize = 64.sp
-private val introEmojiSize = 26.sp
-
 internal fun LazyListScope.rewardsHead(description: String, intro: List<GemRewardsIntroItem>, action: GemRewardsInviteAction?, onGetStarted: () -> Unit, onShare: () -> Unit) {
     item {
         Column(
@@ -43,7 +39,7 @@ internal fun LazyListScope.rewardsHead(description: String, intro: List<GemRewar
             verticalArrangement = Arrangement.spacedBy(paddingDefault),
         ) {
             Spacer16()
-            Text("\uD83C\uDF81", fontSize = giftEmojiSize)
+            Text("\uD83C\uDF81", style = MaterialTheme.typography.displayLarge)
             Text(
                 text = parseMarkdownToAnnotatedString(
                     markdown = stringResource(R.string.rewards_invite_friends_title),
@@ -71,7 +67,7 @@ internal fun LazyListScope.rewardsHead(description: String, intro: List<GemRewar
                     ) {
                         Text(
                             text = item.emoji(),
-                            fontSize = introEmojiSize,
+                            style = MaterialTheme.typography.titleLarge,
                         )
                         Text(
                             text = stringResource(item.titleRes()),
