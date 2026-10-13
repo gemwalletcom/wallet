@@ -1199,23 +1199,23 @@ public extension GemAcceptTermsItem {
 public extension GemSecurityReminderItem {
     var title: String {
         switch self {
-        case .keepSafe: Localized.Onboarding.Security.CreateWallet.KeepSafe.title
-        case .doNotShare: Localized.Onboarding.Security.CreateWallet.DoNotShare.title
-        case .noRecovery: Localized.Onboarding.Security.CreateWallet.NoRecovery.title
-        case .privateKeyKeepSafe: Localized.PrivateKey.Reminder.KeepSafe.title
-        case .privateKeyDoNotShare: Localized.PrivateKey.Reminder.DoNotShare.title
-        case .privateKeyNoRecovery: Localized.PrivateKey.Reminder.NoRecovery.title
+        case .keepSafe(.phrase): Localized.Onboarding.Security.CreateWallet.KeepSafe.title
+        case .keepSafe(.privateKey): Localized.PrivateKey.Reminder.KeepSafe.title
+        case .doNotShare(.phrase): Localized.Onboarding.Security.CreateWallet.DoNotShare.title
+        case .doNotShare(.privateKey): Localized.PrivateKey.Reminder.DoNotShare.title
+        case .noRecovery(.phrase): Localized.Onboarding.Security.CreateWallet.NoRecovery.title
+        case .noRecovery(.privateKey): Localized.PrivateKey.Reminder.NoRecovery.title
         }
     }
 
     var subtitle: String {
         switch self {
-        case .keepSafe: Localized.Onboarding.Security.CreateWallet.KeepSafe.subtitle
-        case .doNotShare: Localized.Onboarding.Security.CreateWallet.DoNotShare.subtitle
-        case .noRecovery: Localized.Onboarding.Security.CreateWallet.NoRecovery.subtitle
-        case .privateKeyKeepSafe: Localized.PrivateKey.Reminder.KeepSafe.subtitle
-        case .privateKeyDoNotShare: Localized.PrivateKey.Reminder.DoNotShare.subtitle
-        case .privateKeyNoRecovery: Localized.PrivateKey.Reminder.NoRecovery.subtitle
+        case .keepSafe(.phrase): Localized.Onboarding.Security.CreateWallet.KeepSafe.subtitle
+        case .keepSafe(.privateKey): Localized.PrivateKey.Reminder.KeepSafe.subtitle
+        case .doNotShare(.phrase): Localized.Onboarding.Security.CreateWallet.DoNotShare.subtitle
+        case .doNotShare(.privateKey): Localized.PrivateKey.Reminder.DoNotShare.subtitle
+        case .noRecovery(.phrase): Localized.Onboarding.Security.CreateWallet.NoRecovery.subtitle
+        case .noRecovery(.privateKey): Localized.PrivateKey.Reminder.NoRecovery.subtitle
         }
     }
 }

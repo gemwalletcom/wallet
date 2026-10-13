@@ -161,10 +161,7 @@ pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -
 }
 
 pub fn security_reminder_items(kind: GemWalletSecretKind) -> Vec<GemSecurityReminderItem> {
-    match kind {
-        GemWalletSecretKind::Phrase => vec![GemSecurityReminderItem::KeepSafe, GemSecurityReminderItem::DoNotShare, GemSecurityReminderItem::NoRecovery],
-        GemWalletSecretKind::PrivateKey => vec![GemSecurityReminderItem::PrivateKeyKeepSafe, GemSecurityReminderItem::PrivateKeyDoNotShare, GemSecurityReminderItem::PrivateKeyNoRecovery],
-    }
+    vec![GemSecurityReminderItem::KeepSafe { kind }, GemSecurityReminderItem::DoNotShare { kind }, GemSecurityReminderItem::NoRecovery { kind }]
 }
 
 pub fn row(wallet: &WalletListItem) -> GemWalletRow {
@@ -543,10 +540,10 @@ mod tests {
 
     #[test]
     fn test_the_security_reminder_names_the_secret_it_protects() {
-        assert_eq!(security_reminder_items(GemWalletSecretKind::Phrase).first(), Some(&GemSecurityReminderItem::KeepSafe));
+        let kind = GemWalletSecretKind::PrivateKey;
         assert_eq!(
-            security_reminder_items(GemWalletSecretKind::PrivateKey),
-            vec![GemSecurityReminderItem::PrivateKeyKeepSafe, GemSecurityReminderItem::PrivateKeyDoNotShare, GemSecurityReminderItem::PrivateKeyNoRecovery],
+            security_reminder_items(kind),
+            vec![GemSecurityReminderItem::KeepSafe { kind }, GemSecurityReminderItem::DoNotShare { kind }, GemSecurityReminderItem::NoRecovery { kind }],
             "a key wallet never sees the Secret Phrase reminder (#1394)"
         );
     }
