@@ -32,10 +32,9 @@ flowchart LR
 | The simulation finds a risk | the risk shows before the user confirms | |
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |
 | The network rejects the sent transaction | the network's own reason | it is often the only explanation there is |
-| A DOT send other than Max would leave less than 0.01 DOT | it is refused | Polkadot Asset Hub removes an account below its 0.01 DOT existential deposit, and the remainder is lost |
 | A Dash payment is sent | Pending until the transaction is mined | the network may lock it with InstantSend, but the provider does not report that lock yet |
 
-Names and the Network Fee follow the shared [Names](../PRODUCT.md#names) and [Network Fee](../PRODUCT.md#network-fee) sections.
+Names, the Network Fee, and account requirements follow the shared [Names](../PRODUCT.md#names), [Network Fee](../PRODUCT.md#network-fee), and [Network minimums and activation](../PRODUCT.md#network-minimums-and-activation) sections.
 
 ## Scanned codes and payment links
 

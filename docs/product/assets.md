@@ -27,6 +27,8 @@ flowchart LR
 | Receive opens for an asset that was never refreshed, or not in the last hour | the asset is refreshed, so the network selector lists every network the wallet holds it on | the networks are known only once the asset has been fetched |
 | The user switches network on Receive | the selector keeps every network it listed when Receive opened, the first one included | the user can switch back without leaving the screen |
 
+Account requirements follow the shared [Network minimums and activation](../PRODUCT.md#network-minimums-and-activation) section.
+
 ## Market
 
 ```mermaid
