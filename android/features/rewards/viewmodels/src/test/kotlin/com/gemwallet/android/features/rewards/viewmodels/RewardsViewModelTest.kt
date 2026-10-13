@@ -287,6 +287,22 @@ class RewardsViewModelTest {
     }
 
     @Test
+    fun `a second submit while a code is being used is ignored`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        try {
+            runCurrent()
+            viewModel.useCode("friend")
+            viewModel.useCode("friend")
+            runCurrent()
+
+            coVerify(exactly = 1) { service.useReferralCode(wallet.id.id, "friend") }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
     fun `a failed code keeps the sheet open and shows the error`() = runTest(testDispatcher) {
         coEvery { service.useReferralCode(any(), any()) } throws GemServiceException.Api("code already used")
         val viewModel = createViewModel()

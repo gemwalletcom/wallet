@@ -65,8 +65,8 @@ class RewardsViewModel @Inject constructor(
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
 
-    private val isLoadingState = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = isLoadingState.asStateFlow()
+    private val loadingState = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = loadingState.asStateFlow()
 
     fun inviteFriends(onInvite: () -> Unit) {
         if (!service.isAvailable()) {
@@ -166,31 +166,39 @@ class RewardsViewModel @Inject constructor(
     }
 
     fun createReferral(username: String) {
+        if (loadingState.value) return
         val walletId = session.value.wallet?.id ?: return
-        isLoadingState.value = true
+        loadingState.value = true
         viewModelScope.launch(ioDispatcher) {
-            runCatchingCancellable { service.createReferral(walletId, username) }
-                .onSuccess { rewards ->
-                    session.update { it.onRewards(walletId, rewards) }
-                    dismissSheet()
-                }
-                .onFailure(::showError)
-            isLoadingState.value = false
+            try {
+                runCatchingCancellable { service.createReferral(walletId, username) }
+                    .onSuccess { rewards ->
+                        session.update { it.onRewards(walletId, rewards) }
+                        dismissSheet()
+                    }
+                    .onFailure(::showError)
+            } finally {
+                loadingState.value = false
+            }
         }
     }
 
     fun useCode(code: String) {
+        if (loadingState.value) return
         val walletId = session.value.wallet?.id ?: return
-        isLoadingState.value = true
+        loadingState.value = true
         viewModelScope.launch(ioDispatcher) {
-            runCatchingCancellable { service.useReferralCode(walletId, code) }
-                .onSuccess { rewards ->
-                    session.update { it.onRewards(walletId, rewards) }
-                    dismissSheet()
-                    showDoneToast()
-                }
-                .onFailure(::showError)
-            isLoadingState.value = false
+            try {
+                runCatchingCancellable { service.useReferralCode(walletId, code) }
+                    .onSuccess { rewards ->
+                        session.update { it.onRewards(walletId, rewards) }
+                        dismissSheet()
+                        showDoneToast()
+                    }
+                    .onFailure(::showError)
+            } finally {
+                loadingState.value = false
+            }
         }
     }
 
