@@ -59,6 +59,9 @@ pub enum GemSecurityReminderItem {
     KeepSafe,
     DoNotShare,
     NoRecovery,
+    PrivateKeyKeepSafe,
+    PrivateKeyDoNotShare,
+    PrivateKeyNoRecovery,
 }
 
 #[cfg(test)]

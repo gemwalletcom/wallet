@@ -362,9 +362,9 @@ fun GemPriceAlertToggle.symbol(): ListItemSymbol = when (this) {
 }
 
 fun GemSecurityReminderItem.emoji(): String = when (this) {
-    GemSecurityReminderItem.KEEP_SAFE -> Emoji.lock
-    GemSecurityReminderItem.DO_NOT_SHARE -> Emoji.warning
-    GemSecurityReminderItem.NO_RECOVERY -> Emoji.gem
+    GemSecurityReminderItem.KEEP_SAFE, GemSecurityReminderItem.PRIVATE_KEY_KEEP_SAFE -> Emoji.lock
+    GemSecurityReminderItem.DO_NOT_SHARE, GemSecurityReminderItem.PRIVATE_KEY_DO_NOT_SHARE -> Emoji.warning
+    GemSecurityReminderItem.NO_RECOVERY, GemSecurityReminderItem.PRIVATE_KEY_NO_RECOVERY -> Emoji.gem
 }
 
 @Composable

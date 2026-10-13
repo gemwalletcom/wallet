@@ -1202,6 +1202,9 @@ public extension GemSecurityReminderItem {
         case .keepSafe: Localized.Onboarding.Security.CreateWallet.KeepSafe.title
         case .doNotShare: Localized.Onboarding.Security.CreateWallet.DoNotShare.title
         case .noRecovery: Localized.Onboarding.Security.CreateWallet.NoRecovery.title
+        case .privateKeyKeepSafe: Localized.PrivateKey.Reminder.KeepSafe.title
+        case .privateKeyDoNotShare: Localized.PrivateKey.Reminder.DoNotShare.title
+        case .privateKeyNoRecovery: Localized.PrivateKey.Reminder.NoRecovery.title
         }
     }
 
@@ -1210,11 +1213,21 @@ public extension GemSecurityReminderItem {
         case .keepSafe: Localized.Onboarding.Security.CreateWallet.KeepSafe.subtitle
         case .doNotShare: Localized.Onboarding.Security.CreateWallet.DoNotShare.subtitle
         case .noRecovery: Localized.Onboarding.Security.CreateWallet.NoRecovery.subtitle
+        case .privateKeyKeepSafe: Localized.PrivateKey.Reminder.KeepSafe.subtitle
+        case .privateKeyDoNotShare: Localized.PrivateKey.Reminder.DoNotShare.subtitle
+        case .privateKeyNoRecovery: Localized.PrivateKey.Reminder.NoRecovery.subtitle
         }
     }
 }
 
 public extension GemWalletSecret {
+    var kind: GemWalletSecretKind {
+        switch self {
+        case .words: .phrase
+        case .privateKey: .privateKey
+        }
+    }
+
     var title: String {
         switch self {
         case .words: Localized.Common.secretPhrase

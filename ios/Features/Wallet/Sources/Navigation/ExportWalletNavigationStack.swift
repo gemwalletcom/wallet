@@ -18,6 +18,7 @@ struct ExportWalletNavigationStack: View {
             SecurityReminderScene(
                 model: SecurityReminderViewModel(
                     title: flow.title,
+                    kind: flow.kind,
                     onNext: onNext,
                 ),
             )

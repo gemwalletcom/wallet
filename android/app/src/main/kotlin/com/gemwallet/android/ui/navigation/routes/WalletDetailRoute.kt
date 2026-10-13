@@ -51,6 +51,7 @@ fun EntryProviderScope<NavKey>.walletDetailScreen(onBoard: () -> Unit, onCancel:
         val context = LocalContext.current
         SecurityReminderScene(
             title = stringResource(key.input.kind.stringRes()),
+            kind = key.input.kind,
             onAccept = { context.requestAuth(AuthRequest.Default) { onSecurityReminderAccepted(key.input) } },
             onCancel = onCancel,
         )

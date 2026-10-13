@@ -88,6 +88,7 @@ flowchart LR
 | The user edits the name | it is saved as typed; a blank name keeps the last one | |
 | The wallet has a single network | its screen shows the address with an explorer link | |
 | The wallet is watch-only | no "Show Secret Phrase" or "Show Private Key" row | |
+| A wallet imported from a private key shows its key | the security reminders and the warning above the key name the private key, never the Secret Phrase | the phrase wording on a key screen misled users (#1394) |
 | A wallet is deleted | the app switches to the next wallet: Multi-Coin first, then the oldest | |
 | The last wallet is deleted | the app returns to onboarding | |
 
