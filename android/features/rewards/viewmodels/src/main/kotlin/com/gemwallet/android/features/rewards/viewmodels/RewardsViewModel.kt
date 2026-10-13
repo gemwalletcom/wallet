@@ -11,6 +11,7 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
+import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSheetType
 import com.gemwallet.android.features.rewards.viewmodels.models.sectionModels
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.string
@@ -22,7 +23,6 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -65,6 +65,9 @@ class RewardsViewModel @Inject constructor(
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
 
+    private val isLoadingState = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = isLoadingState.asStateFlow()
+
     fun inviteFriends(onInvite: () -> Unit) {
         if (!service.isAvailable()) {
             infoSheet.value = GemInfoTopic.RegionUnavailable
@@ -89,6 +92,12 @@ class RewardsViewModel @Inject constructor(
 
     val incomingCode: StateFlow<GemIncomingCode?> = viewState.map { it.incomingCode }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val sheetState = MutableStateFlow<RewardsSheetType?>(null)
+
+    val sheet: StateFlow<RewardsSheetType?> = combine(sheetState, incomingCode) { sheet, code ->
+        sheet ?: (code as? GemIncomingCode.Confirm)?.let { RewardsSheetType.ActivateCode(it.code) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val rewardsState = viewState.map { it.rewards }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.rewards)
@@ -147,28 +156,43 @@ class RewardsViewModel @Inject constructor(
         session.update { it.onResult(result) }
     }
 
-    fun createReferral(username: String, callback: (Throwable?) -> Unit) {
+    fun showSheet(sheet: RewardsSheetType) {
+        sheetState.value = sheet
+    }
+
+    fun dismissSheet() {
+        sheetState.value = null
+        onCodeHandled()
+    }
+
+    fun createReferral(username: String) {
         val walletId = session.value.wallet?.id ?: return
+        isLoadingState.value = true
         viewModelScope.launch(ioDispatcher) {
             runCatchingCancellable { service.createReferral(walletId, username) }
-                .onSuccess { rewards -> session.update { it.onRewards(walletId, rewards) } }
-                .report(callback)
+                .onSuccess { rewards ->
+                    session.update { it.onRewards(walletId, rewards) }
+                    dismissSheet()
+                }
+                .onFailure(::showError)
+            isLoadingState.value = false
         }
     }
 
-    fun useCode(code: String, callback: (Throwable?) -> Unit) {
+    fun useCode(code: String) {
         val walletId = session.value.wallet?.id ?: return
+        isLoadingState.value = true
         viewModelScope.launch(ioDispatcher) {
             runCatchingCancellable { service.useReferralCode(walletId, code) }
                 .onSuccess { rewards ->
                     session.update { it.onRewards(walletId, rewards) }
+                    dismissSheet()
                     showDoneToast()
                 }
-                .report(callback)
+                .onFailure(::showError)
+            isLoadingState.value = false
         }
     }
-
-    fun activateCode(code: String) = useCode(code) { error -> error?.let(::showError) }
 
     fun onSelectRedemption(redemption: GemRewardsRedemption, onRedeem: () -> Unit) {
         if (!redemption.canRedeem) {
@@ -191,10 +215,6 @@ class RewardsViewModel @Inject constructor(
     }
 
     fun clearError() = errorState.update { null }
-
-    private suspend fun <T> Result<T>.report(callback: (Throwable?) -> Unit) = withContext(Dispatchers.Main) {
-        callback(exceptionOrNull())
-    }
 
     fun onCodeHandled() {
         session.update { it.onCodeHandled() }

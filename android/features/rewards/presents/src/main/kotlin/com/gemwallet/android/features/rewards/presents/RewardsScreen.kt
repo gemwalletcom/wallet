@@ -40,6 +40,8 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     var isShowSelectWallets by remember { mutableStateOf(false) }
 
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val sheet by viewModel.sheet.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val wallet by viewModel.wallet.collectAsStateWithLifecycle()
     val referralLink by viewModel.referralLink.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -70,8 +72,8 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         inviteDescription = inviteDescription,
         sections = sections,
         redemptions = redemptions,
-        onUsername = viewModel::createReferral,
-        onCode = viewModel::useCode,
+        sheet = sheet,
+        isLoading = isLoading,
         snackbar = snackbar,
         onAction = { action ->
             when (action) {
@@ -87,7 +89,13 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
 
                 RewardsAction.CodeHandled -> viewModel.onCodeHandled()
 
-                is RewardsAction.ActivateCode -> viewModel.activateCode(action.code)
+                RewardsAction.DismissSheet -> viewModel.dismissSheet()
+
+                is RewardsAction.ShowSheet -> viewModel.showSheet(action.sheet)
+
+                is RewardsAction.CreateReferral -> viewModel.createReferral(action.username)
+
+                is RewardsAction.UseCode -> viewModel.useCode(action.code)
 
                 is RewardsAction.Redeem -> viewModel.onSelectRedemption(action.redemption) {
                     context.requestAuth(AuthRequest.Default) { viewModel.redeem(action.redemption.id) }

@@ -16,10 +16,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +32,7 @@ import com.gemwallet.android.features.rewards.presents.components.rewardsInfo
 import com.gemwallet.android.features.rewards.presents.dialogs.CreateRewardsCodeDialog
 import com.gemwallet.android.features.rewards.presents.dialogs.RedeemRewardsCodeDialog
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
+import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSheetType
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
@@ -81,28 +79,19 @@ internal fun RewardsScene(
     inviteDescription: String,
     sections: List<RewardsSectionUIModel>,
     redemptions: List<GemRewardsRedemption>,
+    sheet: RewardsSheetType?,
+    isLoading: Boolean,
     incomingCode: GemIncomingCode? = null,
-    onUsername: (String, (Throwable?) -> Unit) -> Unit,
-    onCode: (String, (Throwable?) -> Unit) -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
     onAction: (RewardsAction) -> Unit,
 ) {
     val context = LocalContext.current
 
-    var getStartedDialogShow by remember(inviteAction) { mutableStateOf(false) }
-    var codeDialogShow by remember { mutableStateOf(false) }
-    var codeRetryShow by remember { mutableStateOf(false) }
-    val referralCode = when (incomingCode) {
-        is GemIncomingCode.Activate -> incomingCode.code
-        is GemIncomingCode.Confirm -> incomingCode.code
-        null -> null
-    }
-
     LaunchedEffect(incomingCode) {
         val code = (incomingCode as? GemIncomingCode.Activate)?.code ?: return@LaunchedEffect
-        context.requestAuth(AuthRequest.Default, onCancel = { codeRetryShow = true }) {
+        context.requestAuth(AuthRequest.Default, onCancel = { onAction(RewardsAction.ShowSheet(RewardsSheetType.ActivateCode(code))) }) {
             onAction(RewardsAction.CodeHandled)
-            onAction(RewardsAction.ActivateCode(code))
+            onAction(RewardsAction.UseCode(code))
         }
     }
 
@@ -148,7 +137,7 @@ internal fun RewardsScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(RewardsAction.Refresh) },
         ) {
-            val onGetStarted: () -> Unit = { getStartedDialogShow = true }
+            val onGetStarted: () -> Unit = { onAction(RewardsAction.ShowSheet(RewardsSheetType.CreateCode)) }
             val onShare: () -> Unit = { onAction(RewardsAction.InviteFriends) }
             val onRedeem: (GemRewardsRedemption) -> Unit = { onAction(RewardsAction.Redeem(it)) }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -183,7 +172,7 @@ internal fun RewardsScene(
                                     containerColor = Color.White,
                                     contentColor = Color.Black,
                                 ),
-                            ) { codeDialogShow = true }
+                            ) { onAction(RewardsAction.ShowSheet(RewardsSheetType.ActivateCode(""))) }
                         }
                         Spacer8()
                         Text(
@@ -206,7 +195,7 @@ internal fun RewardsScene(
                                     title = stringResource(R.string.transfer_confirm),
                                     state = buttonState(enabled = pending.isEnabled),
                                 ) {
-                                    context.requestAuth(AuthRequest.Default) { onAction(RewardsAction.ActivateCode(pending.code)) }
+                                    context.requestAuth(AuthRequest.Default) { onAction(RewardsAction.UseCode(pending.code)) }
                                 }
                             }
                         }
@@ -217,19 +206,20 @@ internal fun RewardsScene(
         }
     }
 
-    CreateRewardsCodeDialog(isVisible = getStartedDialogShow, onUsername = onUsername) {
-        getStartedDialogShow = false
-    }
+    CreateRewardsCodeDialog(
+        isVisible = sheet == RewardsSheetType.CreateCode,
+        isLoading = isLoading,
+        onUsername = { onAction(RewardsAction.CreateReferral(it)) },
+        onDismiss = { onAction(RewardsAction.DismissSheet) },
+    )
 
     RedeemRewardsCodeDialog(
-        isVisible = codeDialogShow || codeRetryShow || incomingCode is GemIncomingCode.Confirm,
-        referralCode = referralCode,
-        onCode = onCode,
-    ) {
-        codeDialogShow = false
-        codeRetryShow = false
-        onAction(RewardsAction.CodeHandled)
-    }
+        isVisible = sheet is RewardsSheetType.ActivateCode,
+        referralCode = (sheet as? RewardsSheetType.ActivateCode)?.code.orEmpty(),
+        isLoading = isLoading,
+        onCode = { onAction(RewardsAction.UseCode(it)) },
+        onDismiss = { onAction(RewardsAction.DismissSheet) },
+    )
 }
 
 @Preview
@@ -248,8 +238,8 @@ private fun RewardsScenePreview() {
             inviteDescription = "Invite friends and earn 100 points",
             sections = emptyList(),
             redemptions = emptyList(),
-            onUsername = { _, _ -> },
-            onCode = { _, _ -> },
+            sheet = null,
+            isLoading = false,
             onAction = {},
         )
     }
@@ -271,8 +261,8 @@ private fun RewardsSceneNoRewardsPreview() {
             inviteDescription = "Invite friends and earn 100 points",
             sections = emptyList(),
             redemptions = emptyList(),
-            onUsername = { _, _ -> },
-            onCode = { _, _ -> },
+            sheet = null,
+            isLoading = false,
             onAction = {},
         )
     }
