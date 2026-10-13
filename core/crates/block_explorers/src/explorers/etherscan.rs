@@ -1,6 +1,6 @@
 use crate::BlockExplorer;
 use crate::explorers::metadata::{Explorer, Metadata};
-use crate::explorers::{OkxExplorer, RouteScan, TempoExplorer};
+use crate::explorers::{BlockScout, OkxExplorer, RouteScan, TempoExplorer};
 use primitives::EVMChain;
 
 pub struct EtherScan;
@@ -17,9 +17,9 @@ impl EtherScan {
             EVMChain::Base => Explorer::boxed(Metadata::with_token("BaseScan", "https://basescan.org")),
             EVMChain::AvalancheC => Explorer::boxed(Metadata::with_token("SnowScan", "https://snowscan.xyz")),
             EVMChain::OpBNB => Explorer::boxed(Metadata::with_token("opBNBScan", "https://opbnb.bscscan.com")),
-            EVMChain::Fantom => Explorer::boxed(Metadata::with_token("FTMScan", "https://ftmscan.com")),
+            EVMChain::Fantom => Explorer::boxed(Metadata::new("Fantom Explorer", "https://explorer.fantom.network")),
             EVMChain::Gnosis => Explorer::boxed(Metadata::with_token("GnosisScan", "https://gnosisscan.io")),
-            EVMChain::Manta => Explorer::boxed(Metadata::with_token("Socialscan", "https://manta.socialscan.io")),
+            EVMChain::Manta => BlockScout::new_manta(),
             EVMChain::Blast => Explorer::boxed(Metadata::with_token("BlastScan", "https://blastscan.io")),
             EVMChain::Linea => Explorer::boxed(Metadata::with_token("LineaScan", "https://lineascan.build")),
             EVMChain::ZkSync => Explorer::boxed(Metadata::with_token("zkSync Era Explorer", "https://era.zksync.network")),

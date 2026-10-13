@@ -3,7 +3,6 @@
 import Assets
 import Components
 import FiatConnect
-import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents

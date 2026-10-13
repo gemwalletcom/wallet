@@ -14,7 +14,6 @@ import struct Gemstone.GemAmountSession
 import enum Gemstone.GemAmountType
 import enum Gemstone.GemInfoAction
 import enum Gemstone.GemInfoTopic
-import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
 import struct Gemstone.GemValidatorRow
 import func Gemstone.newAmountSession

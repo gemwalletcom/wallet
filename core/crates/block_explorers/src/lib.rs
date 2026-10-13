@@ -5,7 +5,7 @@ use std::str::FromStr;
 use primitives::{Chain, EVMChain, SwapProvider};
 
 use crate::explorers::{
-    AcrossScan, AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, BridgersScan, Cardanocan, ChainflipScan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, MayanScan, Metadata,
+    AcrossScan, AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, BridgersScan, CardanoScan, ChainflipScan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, MayanScan, Metadata,
     NearBlocks, NearIntents, OkxExplorer, RelayScan, RouteScan, RuneScan, SkipExplorer, SubScan, SwapsXyzScan, TempoExplorer, TonScan, TronScan, Viewblock, XrpScan, ZkSync, aptos, blockchair, mempool, mintscan, solana, stellar_expert, sui,
     threexpl, ton,
 };
@@ -85,7 +85,7 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::OpBNB => vec![EtherScan::boxed(EVMChain::OpBNB), blockchair::new_opbnb()],
         Chain::Fantom => vec![EtherScan::boxed(EVMChain::Fantom), blockchair::new_fantom()],
         Chain::Gnosis => vec![EtherScan::boxed(EVMChain::Gnosis), blockchair::new_gnosis()],
-        Chain::Manta => vec![BlockScout::new_manta(), EtherScan::boxed(EVMChain::Manta)],
+        Chain::Manta => vec![BlockScout::new_manta()],
         Chain::Blast => vec![EtherScan::boxed(EVMChain::Blast)],
         Chain::Linea => vec![EtherScan::boxed(EVMChain::Linea), blockchair::new_linea()],
         Chain::Celo => vec![BlockScout::new_celo(), EtherScan::boxed(EVMChain::Celo)],
@@ -115,12 +115,12 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::Sonic => vec![EtherScan::boxed(EVMChain::Sonic), RouteScan::new_sonic()],
         Chain::Algorand => vec![AlgorandAllo::boxed(), AlgorandPera::boxed()],
         Chain::Polkadot => vec![SubScan::new_polkadot(), blockchair::new_polkadot()],
-        Chain::Cardano => vec![Cardanocan::boxed()],
+        Chain::Cardano => vec![CardanoScan::boxed()],
         Chain::Abstract => vec![EtherScan::boxed(EVMChain::Abstract)],
         Chain::Berachain => vec![EtherScan::boxed(EVMChain::Berachain)],
         Chain::Ink => vec![RouteScan::new_ink(), BlockScout::new_ink(), OkxExplorer::new_ink()],
         Chain::Unichain => vec![EtherScan::boxed(EVMChain::Unichain)],
-        Chain::Hyperliquid => vec![EtherScan::boxed(EVMChain::Hyperliquid), BlockScout::new_hyperliquid()],
+        Chain::Hyperliquid => vec![EtherScan::boxed(EVMChain::Hyperliquid)],
         Chain::HyperCore => vec![HyperliquidExplorer::boxed(), HypurrScan::boxed(), FlowScan::boxed()],
         Chain::Monad => vec![EtherScan::boxed(EVMChain::Monad), BlockVision::new_monad()],
         Chain::XLayer => vec![OkxExplorer::new_xlayer()],

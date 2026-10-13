@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemConnection
 import struct Gemstone.GemConnectionDetails
 import struct Gemstone.GemConnectionsView
 import protocol Gemstone.GemWalletConnectServiceProtocol

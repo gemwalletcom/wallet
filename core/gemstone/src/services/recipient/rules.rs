@@ -34,7 +34,7 @@ pub fn recipient(chain: Chain, input: &str, state: &GemNameRecordState, memo: Op
     Ok(GemRecipient {
         address: address(chain, input, name_record),
         name: name_record.map(|record| record.name.clone()),
-        memo,
+        memo: memo.map(|memo| memo.trim().to_string()).filter(|memo| !memo.is_empty()),
         references,
     })
 }
@@ -305,7 +305,7 @@ mod tests {
         let tron = "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC";
         let tron_recipient = recipient(Chain::Tron, tron, &GemNameRecordState::None, Some("  memo ".into()), vec!["a".into(), "b".into()]).unwrap();
         assert_eq!(tron_recipient.address, tron);
-        assert_eq!(tron_recipient.memo.as_deref(), Some("  memo "));
+        assert_eq!(tron_recipient.memo.as_deref(), Some("memo"));
         assert_eq!(tron_recipient.references, vec!["a".to_string(), "b".to_string()]);
         assert_eq!(
             recipient(Chain::Tron, &tron.to_lowercase(), &GemNameRecordState::None, None, vec![]),

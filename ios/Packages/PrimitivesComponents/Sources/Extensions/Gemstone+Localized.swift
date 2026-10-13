@@ -93,7 +93,6 @@ import enum Gemstone.GemWalletSecretKind
 import enum Gemstone.GemWalletSectionKind
 import enum Gemstone.GemWalletSubtitle
 import enum Gemstone.LinkType
-import enum Gemstone.MessageType
 import enum Gemstone.PaymentStatus
 import enum Gemstone.PerpetualDirection
 import class Gemstone.PriceChangeCalculator

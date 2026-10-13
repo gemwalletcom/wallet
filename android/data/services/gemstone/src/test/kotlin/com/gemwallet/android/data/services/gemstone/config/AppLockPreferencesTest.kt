@@ -55,6 +55,17 @@ class AppLockPreferencesTest {
     }
 
     @Test
+    fun lockChecksReadTheEncryptedValueOnce() {
+        every { secureStore.get("auth_required") } returns "true"
+        val subject = subject()
+
+        assertTrue(subject.isLockEnabled())
+        assertTrue(subject.authRequired())
+
+        verify(exactly = 1) { secureStore.get("auth_required") }
+    }
+
+    @Test
     fun lockStaysEnabledForAProtectedPasswordKeysetWhenTheFlagWasTamperedOff() = runTest {
         every { secureStore.get("auth_required") } returns "false"
         every { passwordProtection.authenticationRequired() } returns true

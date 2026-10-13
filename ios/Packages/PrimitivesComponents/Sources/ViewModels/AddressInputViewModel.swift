@@ -3,7 +3,6 @@
 import Foundation
 import enum Gemstone.GemNameRecordState
 import protocol Gemstone.GemNameServiceProtocol
-import struct Gemstone.GemRecipient
 import struct Gemstone.GemRecipientValidation
 import GemstonePrimitives
 import Primitives

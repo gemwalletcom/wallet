@@ -23,12 +23,10 @@ import com.gemwallet.android.features.support.viewmodels.SupportChatDay
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.format.SectionDateFormatter
-import com.gemwallet.android.ui.format.gemDay
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.SupportMessage
 import uniffi.gemstone.GemSupportChatGroup
-import java.time.LocalDate
 
 private sealed interface ChatRow {
     val key: String
@@ -47,9 +45,8 @@ internal fun SupportMessagesList(days: List<SupportChatDay>, typingAgentName: St
     val todayLabel = stringResource(R.string.date_today)
     val yesterdayLabel = stringResource(R.string.date_yesterday)
     val dayTimeTemplate = stringResource(R.string.date_day_time)
-    val boundaries = LocalDate.now().gemDay().boundaries()
-    val dateFormatter = remember(todayLabel, yesterdayLabel, dayTimeTemplate, boundaries) {
-        SectionDateFormatter(todayLabel, yesterdayLabel, dayTimeTemplate, boundaries)
+    val dateFormatter = remember(todayLabel, yesterdayLabel, dayTimeTemplate) {
+        SectionDateFormatter(todayLabel, yesterdayLabel, dayTimeTemplate)
     }
     val rows = remember(days) {
         buildList {
@@ -106,7 +103,7 @@ internal fun SupportMessagesList(days: List<SupportChatDay>, typingAgentName: St
 @Composable
 private fun SupportDateSeparator(day: SupportChatDay, formatter: SectionDateFormatter) {
     Text(
-        text = formatter.format(day.date, LocalConfiguration.current.locales[0]),
+        text = formatter.format(day.label, day.date, LocalConfiguration.current.locales[0]),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.secondary,
         textAlign = TextAlign.Center,

@@ -38,7 +38,7 @@ pub use blockvision::BlockVision;
 mod subscan;
 pub use subscan::SubScan;
 mod cardano;
-pub use cardano::Cardanocan;
+pub use cardano::CardanoScan;
 mod okx;
 pub use okx::OkxExplorer;
 mod routescan;

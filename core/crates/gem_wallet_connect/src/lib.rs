@@ -19,5 +19,5 @@ pub use response_handler::WalletConnectResponseHandler;
 pub use session::config_session_properties;
 pub use sign_type::SignDigestType;
 pub use siws::validate_sign_message_account;
-pub use validator::{SignMessageValidation, validate_send_transaction, validate_sign_message};
+pub use validator::{SignMessageValidation, validate_domain, validate_send_transaction, validate_sign_message};
 pub use verifier::WalletConnectVerifier;

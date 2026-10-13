@@ -17,7 +17,7 @@ use primitives::InMemoryPreferences;
 #[cfg(test)]
 use serde_json::Value;
 #[cfg(test)]
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 impl AssetPositions {
     pub fn mock() -> Self {
@@ -173,6 +173,21 @@ impl HyperCoreClient<MockClient> {
             responses
                 .iter()
                 .find(|(expected_type, _)| *expected_type == request_type)
+                .map(|(_, response)| response.clone())
+                .ok_or_else(|| ClientError::Http { status: 404, body: body.to_vec() })
+        }))
+    }
+
+    pub fn mock_with_responses_by_request(responses: Vec<(Value, Vec<u8>)>, seen_requests: Arc<Mutex<Vec<Value>>>) -> Self {
+        Self::mock_with_client(MockClient::new().with_post(move |path, body| {
+            assert_eq!(path, "/info");
+
+            let request: Value = serde_json::from_slice(body).unwrap();
+            seen_requests.lock().unwrap().push(request.clone());
+
+            responses
+                .iter()
+                .find(|(expected_request, _)| *expected_request == request)
                 .map(|(_, response)| response.clone())
                 .ok_or_else(|| ClientError::Http { status: 404, body: body.to_vec() })
         }))

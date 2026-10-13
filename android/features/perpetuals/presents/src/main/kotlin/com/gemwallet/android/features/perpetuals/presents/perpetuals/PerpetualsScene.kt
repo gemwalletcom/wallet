@@ -107,6 +107,8 @@ internal fun PerpetualsScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(PerpetualsAction.Refresh) },
         ) {
+            val onSelectRecent: (Asset) -> Unit = { asset -> onAction(PerpetualsAction.OpenRecent(asset)) }
+            val onOpenRecentsSheet: () -> Unit = { onAction(PerpetualsAction.OpenRecentsSheet) }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
             ) {
@@ -135,8 +137,8 @@ internal fun PerpetualsScene(
 
                         GemPerpetualMarketSection.RECENTS -> recentAssets(
                             items = recent,
-                            onSelect = { asset -> onAction(PerpetualsAction.OpenRecent(asset)) },
-                            onOpenRecentsSheet = { onAction(PerpetualsAction.OpenRecentsSheet) },
+                            onSelect = onSelectRecent,
+                            onOpenRecentsSheet = onOpenRecentsSheet,
                         )
 
                         GemPerpetualMarketSection.POSITIONS -> {

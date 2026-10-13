@@ -30,11 +30,13 @@ pub struct GemConfirmation {
     state: Mutex<Option<ConfirmState>>,
     latest_load: AtomicU64,
     created_at: Instant,
+    authentication: GemKeystoreAuthentication,
 }
 
 impl GemConfirmation {
     pub(super) fn new(service: Arc<GemConfirmTransferService>, wallet: Wallet, transfer: GemTransferData, simulation: Option<SimulationResult>) -> Self {
         Self {
+            authentication: service.authentication(),
             service,
             wallet,
             transfer: Mutex::new(transfer),
@@ -81,10 +83,6 @@ impl GemConfirmation {
             ..screen?
         };
         Ok(screen.with_fee(fee, requested, swap))
-    }
-
-    fn authentication(&self) -> GemKeystoreAuthentication {
-        self.service.authentication()
     }
 
     fn simulation_warnings(&self, state: Option<&ConfirmState>) -> Vec<GemListRow> {
@@ -166,7 +164,7 @@ impl GemConfirmation {
         let verification = transfer.verification();
         let details = self.details(&transfer, load);
         GemConfirmViewState {
-            button: screen.button().authenticated(self.authentication()),
+            button: screen.button().authenticated(self.authentication),
             details,
             fee_row: GemConfirmFeeRow::new(
                 screen.fee_value(load.cloned()),
@@ -337,7 +335,7 @@ mod tests {
 
         let state = confirmation.view_state(screen.clone());
 
-        assert_eq!(state.button, screen.button().authenticated(confirmation.authentication()));
+        assert_eq!(state.button, screen.button().authenticated(confirmation.authentication));
         assert_eq!(state.fee_row, super::super::GemConfirmFeeRow::new(screen.fee_value(None), confirmation.transfer().fee_asset(), false));
         assert_eq!(
             confirmation.network_fee_screen(crate::services::amount::model::GemNumberFormat { decimal_separator: ".".to_string() }),
@@ -347,6 +345,24 @@ mod tests {
         assert_eq!(details(&state), confirmation.row_contents(None));
         assert_eq!(state.title, confirmation.transfer().title());
         assert_eq!(state.verification, None);
+    }
+
+    #[test]
+    fn test_view_state_reads_the_authentication_once_per_screen() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+        let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+        let transfer = GemTransferData {
+            recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
+            ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
+        };
+        let confirmation = testkit.service.confirmation(wallet, transfer, None);
+        let screen = confirmation.screen();
+
+        for _ in 0..3 {
+            confirmation.view_state(screen.clone());
+        }
+
+        assert_eq!(testkit.passwords.authentication_reads.load(Ordering::SeqCst), 1);
     }
 
     #[test]

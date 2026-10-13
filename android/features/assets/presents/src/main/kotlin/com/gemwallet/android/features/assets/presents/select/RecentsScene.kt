@@ -78,7 +78,7 @@ fun RecentsScene(isVisible: Boolean, viewState: GemRecentsViewState, query: Text
                 }
             }
             SearchBar(query = query)
-            val sections = rememberDaySections(viewState.days, day = { it.day }, items = { day -> day.recents.map { it.toPrimitives() } })
+            val sections = rememberDaySections(viewState.days, day = { it.day }, label = { it.label }, items = { day -> day.recents.map { it.toPrimitives() } })
             val empty = viewState.sections.empty
             if (empty != null) {
                 RecentsEmptyStateView(empty)

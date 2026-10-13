@@ -20,12 +20,13 @@ internal fun SelectWalletSheet(isVisible: Boolean, walletSections: List<GemWalle
         dragHandle = { BottomSheetDefaults.DragHandle() },
         onDismissRequest = onDismissRequest,
     ) {
+        val onSelectWallet: (String) -> Unit = { id ->
+            onWalletSelected(WalletId(id))
+            onDismissRequest()
+        }
         LazyColumn {
             item { SubheaderItem(R.string.wallets_title) }
-            walletSections(walletSections, selectedWalletId?.id) { id ->
-                onWalletSelected(WalletId(id))
-                onDismissRequest()
-            }
+            walletSections(walletSections, selectedWalletId?.id, onSelectWallet)
         }
     }
 }

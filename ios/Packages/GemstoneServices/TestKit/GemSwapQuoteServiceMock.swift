@@ -9,7 +9,6 @@ import struct Gemstone.GemSwapPairSelection
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapQuoteInput
 import protocol Gemstone.GemSwapQuoteServiceProtocol
-import struct Gemstone.GemSwapQuoteSummary
 import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
 import struct Gemstone.GemTransferData

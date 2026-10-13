@@ -58,11 +58,11 @@ public final class RecentsSceneViewModel {
     }
 
     var viewState: GemRecentsViewState {
-        service.viewState(recents: recentAssets.map { $0.toGem() }, days: recentAssets.map(\.createdAt.gemDay), query: searchQuery)
+        service.viewState(recents: recentAssets.map { $0.toGem() }, days: recentAssets.map(\.createdAt.gemDay), boundaries: .current, query: searchQuery)
     }
 
     func title(for day: GemRecentsDay) -> String {
-        TransactionDateFormatter(date: day.day.date).section
+        TransactionDateFormatter(date: day.day.date, label: day.label).section
     }
 
     func emptyModel(_ sections: GemRecentsSections) -> any EmptyContentViewable {

@@ -11,12 +11,11 @@ struct SupportChatDayBuilder {
     let messages: [SupportMessage]
 
     func build() -> [SupportChatDay] {
-        let boundaries = GemDayBoundaries.current
-        return boundaries.sections(days: messages.map(\.createdAt.gemDay), newestFirst: false).map { section in
+        GemDayBoundaries.current.sections(days: messages.map(\.createdAt.gemDay), newestFirst: false).map { section in
             let date = section.day.date
             return SupportChatDay(
                 date: date,
-                title: TransactionDateFormatter(date: date, boundaries: boundaries).section,
+                title: TransactionDateFormatter(date: date, label: section.label).section,
                 groups: supportChatGroups(messages: section.positions.map { messages[Int($0)].toGem() }),
             )
         }

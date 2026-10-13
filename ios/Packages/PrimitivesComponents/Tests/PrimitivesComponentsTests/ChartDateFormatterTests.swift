@@ -2,7 +2,6 @@
 
 import Foundation
 import struct Gemstone.GemCandleTick
-import enum Gemstone.GemChartDateStyle
 import Primitives
 @testable import PrimitivesComponents
 import Testing

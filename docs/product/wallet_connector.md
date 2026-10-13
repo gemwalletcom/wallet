@@ -31,6 +31,8 @@ flowchart LR
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
 | A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
 | A permit to sign names a flagged spender | a critical warning on the review | |
+| A one-click sign-in names a different site than the app asking | it is refused and the app is told so | the signature would log the user in to that other site |
+| A transaction approves a token: an approval, an allowance increase or a Permit2 approval | the review shows a token approval with the token, spender and amount; a flagged spender or token stops Confirm | the spender is who can move the token afterwards |
 | A WalletConnect Pay link | a payment review instead of a connection (see [Transfer](transfer.md)) | |
 | A WalletConnect Pay verification page is over https on the payment's own host | it loads | |
 | A WalletConnect Pay verification page is anywhere else | it opens in the browser | |

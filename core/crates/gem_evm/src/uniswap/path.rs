@@ -126,7 +126,7 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::Polygon => POLYGON_USDT_TOKEN_ID,
         EVMChain::Arbitrum => ARBITRUM_USDT_TOKEN_ID,
         EVMChain::Optimism => OPTIMISM_USDT_TOKEN_ID,
-        EVMChain::Base => "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
+        EVMChain::Base => BASE_USDT_TOKEN_ID,
         EVMChain::AvalancheC => AVALANCHE_USDT_TOKEN_ID,
         EVMChain::Celo => CELO_USDT_TOKEN_ID,
         EVMChain::SmartChain => SMARTCHAIN_USDT_TOKEN_ID,

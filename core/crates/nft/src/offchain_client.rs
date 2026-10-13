@@ -16,22 +16,33 @@ pub(crate) struct OffchainClient {
 impl OffchainClient {
     pub(crate) fn new(config: OffchainClientConfig) -> Self {
         let timeout = Duration::from_secs(config.timeout);
-        let client = gem_client::builder().timeout(timeout).connect_timeout(timeout).no_proxy().build().expect("Failed to build offchain client");
+        let client = gem_client::builder()
+            .timeout(timeout)
+            .connect_timeout(timeout)
+            .no_proxy()
+            .no_gzip()
+            .no_brotli()
+            .no_deflate()
+            .build()
+            .expect("Failed to build offchain client");
         Self { client, limit: config.limit }
     }
 
     pub(crate) async fn get<T: DeserializeOwned>(&self, url: &str) -> Result<T, Box<dyn Error + Send + Sync>> {
         let url = Self::validated_url(url)?;
-        let response = self.client.get(url).send().await?.error_for_status()?;
+        let mut response = self.client.get(url).send().await?.error_for_status()?;
         if response.content_length().is_some_and(|length| length > self.limit as u64) {
             return Err(format!("Offchain response exceeds {} bytes", self.limit).into());
         }
 
-        let bytes = response.bytes().await?;
-        if bytes.len() > self.limit {
-            return Err(format!("Offchain response exceeds {} bytes", self.limit).into());
+        let mut body = Vec::new();
+        while let Some(chunk) = response.chunk().await? {
+            if body.len() + chunk.len() > self.limit {
+                return Err(format!("Offchain response exceeds {} bytes", self.limit).into());
+            }
+            body.extend_from_slice(&chunk);
         }
-        Ok(serde_json::from_slice(&bytes)?)
+        Ok(serde_json::from_slice(&body)?)
     }
 
     fn validated_url(url: &str) -> Result<Url, Box<dyn Error + Send + Sync>> {

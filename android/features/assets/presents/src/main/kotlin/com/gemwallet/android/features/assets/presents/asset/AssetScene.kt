@@ -36,6 +36,7 @@ import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.TransactionId
 import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemListPhase
@@ -81,6 +82,7 @@ internal fun AssetScene(
         snackbar = snackBar,
     ) {
         val transactionSections = rememberDateSections(transactions) { it.createdAt }
+        val onTransactionClick: (TransactionId) -> Unit = { onAction(AssetAction.OpenTransaction(it)) }
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = isRefreshing,
@@ -133,7 +135,7 @@ internal fun AssetScene(
 
                     GemListPhase.Rows, null -> Unit
                 }
-                transactionsList(transactionSections) { onAction(AssetAction.OpenTransaction(it)) }
+                transactionsList(transactionSections, onTransactionClick)
             }
         }
     }

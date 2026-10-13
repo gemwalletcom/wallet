@@ -11,11 +11,9 @@ import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerDestination
 import struct Gemstone.GemBannerKey
 import struct Gemstone.GemEmptyState
-import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListPhase
-import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemTransactionRow

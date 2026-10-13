@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemStakeDelegationItem
-import enum Gemstone.GemStakeDestination
 import enum Gemstone.GemStakeSection
 import GemstonePrimitives
 import Primitives

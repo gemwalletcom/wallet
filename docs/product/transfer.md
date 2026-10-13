@@ -34,7 +34,7 @@ flowchart LR
 | The network rejects the sent transaction | the network's own reason | it is often the only explanation there is |
 | A Dash payment is sent | Pending until the transaction is mined | the network may lock it with InstantSend, but the provider does not report that lock yet |
 
-Names and the Network Fee follow the shared [Names](../PRODUCT.md#names) and [Network Fee](../PRODUCT.md#network-fee) sections.
+Names, the Network Fee, and account requirements follow the shared [Names](../PRODUCT.md#names), [Network Fee](../PRODUCT.md#network-fee), and [Network minimums and activation](../PRODUCT.md#network-minimums-and-activation) sections.
 
 ## Scanned codes and payment links
 

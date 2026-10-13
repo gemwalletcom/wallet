@@ -213,9 +213,9 @@ class AuthRequestViewModel @Inject constructor(
     }
 
     private suspend fun requestContent(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext): AuthRequestUIState.Request {
-        val prepared = walletConnectService.prepareSessionProposal(
-            requiredChainIds = emptyList(),
-            optionalChainIds = walletConnectService.authenticationChainIds(request.payloadParams.chains),
+        val prepared = walletConnectService.prepareAuthentication(
+            chainIds = request.payloadParams.chains,
+            domain = request.payloadParams.domain,
             metadata = walletConnectService.applicationMetadata(
                 request.metadata?.name.orEmpty(),
                 request.metadata?.description.orEmpty(),

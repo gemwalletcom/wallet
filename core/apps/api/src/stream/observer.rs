@@ -9,7 +9,7 @@ use redis::aio::MultiplexedConnection;
 use services::prices::PriceClient;
 use std::sync::Arc;
 
-use super::price_handler::PriceHandler;
+use super::price_handler::{PriceHandler, StreamPricesConfig};
 use super::redis::decode_push_message;
 
 pub struct StreamObserver {
@@ -19,12 +19,12 @@ pub struct StreamObserver {
 }
 
 impl StreamObserver {
-    pub fn new(device_id: String, version: Version, price_client: Arc<PriceClient>) -> Self {
+    pub fn new(device_id: String, version: Version, price_client: Arc<PriceClient>, prices: StreamPricesConfig) -> Self {
         let device_channel = device_stream_channel(&device_id);
         Self {
             device_id,
             device_channel,
-            price_handler: PriceHandler::new(price_client, version),
+            price_handler: PriceHandler::new(price_client, version, prices),
         }
     }
 

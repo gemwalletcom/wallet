@@ -84,9 +84,29 @@
         "confirms": "461/30",
         "chainFee": "0.030000",
         "refundChainFee": 0
+      },
+      {
+        "hash": "0x2a4584e087ce428bef3b0ee907be7b1b475c4b27d244bf2e681e5c7579e09022",
+        "status": "receive_complete",
+        "fromChain": "XLayer",
+        "toChain": "BSC",
+        "fromTokenAddress": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "toTokenAddress": "0x55d398326f99059ff775485246999027b3197955",
+        "fromAmount": "184463564813506330",
+        "toAmount": "22785689000000000000"
+      },
+      {
+        "hash": "0xdf16a54fe4952f5704f907181c1291d2767221801a39fbb7cb4dd98a8591c0e5",
+        "status": "receive_complete",
+        "fromChain": "XLayer",
+        "toChain": "BSC",
+        "fromTokenAddress": "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
+        "toTokenAddress": "0x55d398326f99059ff775485246999027b3197955",
+        "fromAmount": "20000000",
+        "toAmount": "19930000000000000000"
       }
     ],
-    "total": 2,
+    "total": 4,
     "pageNo": 1
   }
 }

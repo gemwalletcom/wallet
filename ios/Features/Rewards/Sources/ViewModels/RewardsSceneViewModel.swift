@@ -2,9 +2,7 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemIncomingCode
 import enum Gemstone.GemInfoTopic
-import enum Gemstone.GemListRow
 import enum Gemstone.GemRewardsIntroItem
 import enum Gemstone.GemRewardsInviteAction
 import struct Gemstone.GemRewardsPendingReferral

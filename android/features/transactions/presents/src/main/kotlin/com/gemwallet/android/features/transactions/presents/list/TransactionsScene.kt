@@ -28,6 +28,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.space0
+import com.wallet.core.primitives.TransactionId
 import uniffi.gemstone.GemEmptyStateAction
 import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
@@ -66,6 +67,7 @@ internal fun TransactionsScene(
         },
     ) {
         val transactionSections = rememberDateSections(transactions.orEmpty()) { it.createdAt }
+        val onTransactionClick: (TransactionId) -> Unit = { onAction(TransactionsAction.OpenTransaction(it)) }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(TransactionsAction.Refresh) },
@@ -100,7 +102,7 @@ internal fun TransactionsScene(
                 ) {
                     transactionsList(
                         sections = transactionSections,
-                        onTransactionClick = { onAction(TransactionsAction.OpenTransaction(it)) },
+                        onTransactionClick = onTransactionClick,
                     )
                 }
             }

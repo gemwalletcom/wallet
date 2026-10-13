@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use primitives::{Asset, AssetId, RecentActivityType, RecentAsset, WalletId};
 
-use crate::day_section::GemDay;
+use crate::day_section::{GemDay, GemDayBoundaries, GemDayLabel};
 use crate::services::assets::GemAssetAction;
 use crate::services::empty_state::GemEmptyStateKind;
 use crate::services::error::GemServiceError;
@@ -48,7 +48,7 @@ impl GemRecentActivityService {
         self.clear_in(GemRecentActivityScope::Wallet { wallet_id }, types).await
     }
 
-    pub fn view_state(&self, recents: Vec<RecentAsset>, days: Vec<GemDay>, query: String) -> GemRecentsViewState {
+    pub fn view_state(&self, recents: Vec<RecentAsset>, days: Vec<GemDay>, boundaries: GemDayBoundaries, query: String) -> GemRecentsViewState {
         let count = recents.len() as u32;
         let matching: HashSet<AssetId> = matching_assets(recents.iter().map(|recent| recent.asset.clone()).collect(), &query).into_iter().map(|asset| asset.id).collect();
         let dated: Vec<(GemDay, RecentAsset)> = days.into_iter().zip(recents).filter(|(_, recent)| matching.contains(&recent.asset.id)).collect();
@@ -58,17 +58,21 @@ impl GemRecentActivityService {
                 matching: dated.len() as u32,
             }
             .sections(!query.trim().is_empty()),
-            days: recent_days(dated),
+            days: recent_days(dated, &boundaries),
         }
     }
 }
 
-fn recent_days(mut dated: Vec<(GemDay, RecentAsset)>) -> Vec<GemRecentsDay> {
+fn recent_days(mut dated: Vec<(GemDay, RecentAsset)>, boundaries: &GemDayBoundaries) -> Vec<GemRecentsDay> {
     dated.sort_by_key(|(_, recent)| std::cmp::Reverse(recent.created_at));
     dated.into_iter().fold(Vec::new(), |mut days: Vec<GemRecentsDay>, (day, recent)| {
         match days.iter_mut().find(|section| section.day == day) {
             Some(section) => section.recents.push(recent),
-            None => days.push(GemRecentsDay { day, recents: vec![recent] }),
+            None => days.push(GemRecentsDay {
+                day,
+                label: boundaries.label(day),
+                recents: vec![recent],
+            }),
         }
         days
     })
@@ -123,35 +127,36 @@ mod tests {
         let today = GemDay { year: 2026, month: 3, day: 2 };
         let recents = vec![recent(Chain::Ethereum, 1), recent(Chain::Bitcoin, 2)];
         let days = vec![today, today];
+        let boundaries = today.boundaries();
 
-        let listed = service.view_state(recents.clone(), days.clone(), String::new());
+        let listed = service.view_state(recents.clone(), days.clone(), boundaries, String::new());
         assert_eq!(listed.days.iter().map(|day| day.recents.len()).sum::<usize>(), 2);
         assert!(listed.sections.shows_items && listed.sections.shows_clear);
 
-        let searched = service.view_state(recents.clone(), days.clone(), "bitcoin".to_string());
+        let searched = service.view_state(recents.clone(), days.clone(), boundaries, "bitcoin".to_string());
         assert_eq!(searched.days[0].recents, vec![recent(Chain::Bitcoin, 2)]);
         assert!(!searched.sections.shows_clear, "a search hides the clear action");
 
-        let missed = service.view_state(recents, days, "  nothing  ".to_string());
+        let missed = service.view_state(recents, days, boundaries, "  nothing  ".to_string());
         assert_eq!(missed.sections.empty, Some(GemEmptyStateKind::SearchAssets));
         assert!(missed.days.is_empty());
         assert_eq!(listed.sections.empty, None);
 
-        assert_eq!(service.view_state(vec![], vec![], String::new()).sections.empty, Some(GemEmptyStateKind::Recents));
+        assert_eq!(service.view_state(vec![], vec![], boundaries, String::new()).sections.empty, Some(GemEmptyStateKind::Recents));
     }
 
     #[test]
-    fn test_recents_are_grouped_by_their_day_newest_first() {
+    fn test_recents_are_grouped_by_their_labelled_day_newest_first() {
         let service = GemRecentActivityService::mock(Arc::new(MemoryRecentActivityStore::default()), None);
         let today = GemDay { year: 2026, month: 3, day: 2 };
         let yesterday = GemDay { year: 2026, month: 3, day: 1 };
         let recents = vec![recent(Chain::Ethereum, 10), recent(Chain::Bitcoin, 30), recent(Chain::Solana, 20)];
 
-        let days = service.view_state(recents, vec![yesterday, today, today], String::new()).days;
+        let days = service.view_state(recents, vec![yesterday, today, today], today.boundaries(), String::new()).days;
 
         assert_eq!(
-            days.iter().map(|day| (day.day, day.recents.iter().map(|recent| recent.asset.chain()).collect::<Vec<_>>())).collect::<Vec<_>>(),
-            vec![(today, vec![Chain::Bitcoin, Chain::Solana]), (yesterday, vec![Chain::Ethereum])]
+            days.iter().map(|day| (day.day, day.label, day.recents.iter().map(|recent| recent.asset.chain()).collect::<Vec<_>>())).collect::<Vec<_>>(),
+            vec![(today, GemDayLabel::Today, vec![Chain::Bitcoin, Chain::Solana]), (yesterday, GemDayLabel::Yesterday, vec![Chain::Ethereum])]
         );
     }
 
@@ -186,6 +191,7 @@ pub struct GemRecentsCounts {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRecentsDay {
     pub day: GemDay,
+    pub label: GemDayLabel,
     pub recents: Vec<RecentAsset>,
 }
 

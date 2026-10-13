@@ -40,9 +40,6 @@ impl GemSwapper {
     pub fn supported_chains_for_from_asset(&self, asset_id: &AssetId) -> SwapperAssetList {
         self.inner.supported_chains_for_from_asset(asset_id)
     }
-    pub async fn preload_routes(&self, from_asset: AssetId, to_asset: AssetId) {
-        self.inner.preload_routes(&from_asset, &to_asset).await
-    }
     pub async fn get_quote_by_provider(&self, provider: &SwapperProvider, request: &SwapperQuoteRequest) -> Result<SwapperQuote, SwapperError> {
         self.inner.get_quote_by_provider(provider, request).await
     }

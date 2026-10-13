@@ -10,7 +10,6 @@ import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
 import class Gemstone.GemBalanceService
 import class Gemstone.GemBannerService
-import class Gemstone.GemChainService
 import class Gemstone.GemConfigService
 import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemContactEditorService

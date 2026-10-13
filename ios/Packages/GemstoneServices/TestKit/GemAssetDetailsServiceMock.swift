@@ -3,7 +3,6 @@
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
-import typealias Gemstone.BannerEvent
 import struct Gemstone.BlockExplorerLink
 import typealias Gemstone.Deeplink
 import struct Gemstone.GemAssetDetails
@@ -11,13 +10,10 @@ import struct Gemstone.GemAssetDetailsInput
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemAssetDetailsState
 import struct Gemstone.GemAssetRefresh
-import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
-import struct Gemstone.GemFormattedNumber
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemToast
 import struct Gemstone.GemValueHeader
-import enum Gemstone.WalletType
 import GemstonePrimitivesTestKit
 import Primitives
 

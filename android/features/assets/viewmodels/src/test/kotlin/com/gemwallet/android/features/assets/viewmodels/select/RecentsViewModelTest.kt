@@ -30,6 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemDay
+import uniffi.gemstone.GemDayLabel
 import uniffi.gemstone.GemRecentActivityService
 import uniffi.gemstone.GemRecentsDay
 import uniffi.gemstone.GemRecentsSections
@@ -55,11 +56,11 @@ class RecentsViewModelTest {
     }
     private val recentActivityQuery = mockk<RecentActivityQuery>(relaxed = true)
     private val recentActivityService = mockk<GemRecentActivityService>(relaxed = true) {
-        every { viewState(any(), any(), any()) } answers {
+        every { viewState(any(), any(), any(), any()) } answers {
             val recents = firstArg<List<uniffi.gemstone.RecentAsset>>()
             GemRecentsViewState(
                 sections = GemRecentsSections(showsItems = recents.isNotEmpty(), showsClear = recents.isNotEmpty(), empty = null),
-                days = secondArg<List<GemDay>>().firstOrNull()?.let { listOf(GemRecentsDay(it, recents)) }.orEmpty(),
+                days = secondArg<List<GemDay>>().firstOrNull()?.let { listOf(GemRecentsDay(it, GemDayLabel.DATE, recents)) }.orEmpty(),
             )
         }
     }

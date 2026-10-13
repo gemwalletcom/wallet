@@ -1,5 +1,6 @@
 use std::{collections::BTreeSet, sync::LazyLock};
 
+use chain_primitives::checksum_address;
 use primitives::{
     AssetId, Chain,
     asset_constants::{
@@ -136,7 +137,12 @@ fn token_address(asset_id: &AssetId) -> String {
 
 pub(super) fn get_asset_id(code: &str, address: &str) -> Option<AssetId> {
     let chain = NETWORKS.iter().find(|network| network.code == code)?.chain;
-    TOKENS.iter().map(|(id, _)| id).find(|id| id.chain == chain && token_address(id) == address).cloned()
+    let address = checksum_address(address, chain);
+    TOKENS
+        .iter()
+        .map(|(id, _)| id)
+        .find(|id| id.chain == chain && checksum_address(&token_address(id), chain) == address)
+        .map(|id| AssetId::from(chain, id.token_id.as_ref().map(|_| address)))
 }
 
 pub(super) fn supported_assets() -> Vec<SwapperChainAsset> {
@@ -167,5 +173,20 @@ mod tests {
         assert_eq!(Network::from_source_chain(Chain::OpBNB).unwrap().code, "opBNB");
         assert_eq!(Network::from_source_chain(Chain::Bitcoin).unwrap_err(), SwapperError::NotSupportedChain);
         assert_eq!(Network::from_source_chain(Chain::Tron).unwrap_err(), SwapperError::NotSupportedChain);
+    }
+
+    #[test]
+    fn test_get_asset_id() {
+        assert_eq!(get_asset_id("BSC", &token_address(&SMARTCHAIN_USDT_ASSET_ID).to_lowercase()), Some(SMARTCHAIN_USDT_ASSET_ID.clone()));
+        assert_eq!(get_asset_id("BSC", &token_address(&SMARTCHAIN_USDT_ASSET_ID)), Some(SMARTCHAIN_USDT_ASSET_ID.clone()));
+        assert_eq!(get_asset_id("BSC", EVM_NATIVE_TOKEN_ADDRESS), Some(AssetId::from_chain(Chain::SmartChain)));
+        assert_eq!(get_asset_id("BSC", &EVM_NATIVE_TOKEN_ADDRESS.to_lowercase()), Some(AssetId::from_chain(Chain::SmartChain)));
+        assert_eq!(
+            get_asset_id("XLayer", "0x779Ded0c9e1022225f8E0630b35a9b54bE713736"),
+            Some(AssetId::from_token(Chain::XLayer, "0x779Ded0c9e1022225f8E0630b35a9b54bE713736"))
+        );
+        assert_eq!(get_asset_id("SOLANA", &token_address(&SOLANA_USDC_ASSET_ID)), Some(SOLANA_USDC_ASSET_ID.clone()));
+        assert_eq!(get_asset_id("SOLANA", &token_address(&SOLANA_USDC_ASSET_ID).to_lowercase()), None);
+        assert_eq!(get_asset_id("BSC", &token_address(&ARBITRUM_USDC_ASSET_ID)), None);
     }
 }

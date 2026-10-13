@@ -4,7 +4,6 @@ import BigInt
 import func Gemstone.assetListRow
 import func Gemstone.feeAmount
 import enum Gemstone.FeeOption
-import struct Gemstone.GemAssetItemRow
 import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemCustomFeeField
 import struct Gemstone.GemCustomFeeSession

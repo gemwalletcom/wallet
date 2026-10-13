@@ -31,8 +31,8 @@ import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space4
 
 @Composable
-fun SubheaderItem(@StringRes title: Int, vararg formatArgs: Any) {
-    SubheaderItem(stringResource(title, formatArgs))
+fun SubheaderItem(@StringRes title: Int) {
+    SubheaderItem(stringResource(title))
 }
 
 @Composable

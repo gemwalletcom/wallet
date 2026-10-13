@@ -1,5 +1,4 @@
 import Components
-import enum Gemstone.GemPerpetualPositionAction
 import Perpetuals
 import Store
 import Style

@@ -51,15 +51,17 @@ fun ChartScreen(
             },
             containerColor = PullToRefreshDefaults.indicatorContainerColor,
         ) {
+            val onSelectAddress: (String) -> Unit = { onOpenAddress(ChainAddress(viewModel.assetId.chain, it)) }
+            val onSelectRow: (GemRowAction) -> Unit = { action ->
+                when (action) {
+                    GemRowAction.PriceAlerts -> onPriceAlerts(viewModel.assetId)
+                    GemRowAction.SetPriceAlert -> onSetPriceAlert(viewModel.assetId)
+                    else -> Unit
+                }
+            }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { Chart(viewModel) }
-                gemListSections(sections, onSelectAddress = { onOpenAddress(ChainAddress(viewModel.assetId.chain, it)) }) { action ->
-                    when (action) {
-                        GemRowAction.PriceAlerts -> onPriceAlerts(viewModel.assetId)
-                        GemRowAction.SetPriceAlert -> onSetPriceAlert(viewModel.assetId)
-                        else -> Unit
-                    }
-                }
+                gemListSections(sections, onSelectAddress, onSelectRow)
             }
         }
     }

@@ -10,6 +10,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.transfer.presents.components.ContinueScene
 import com.gemwallet.android.features.transfer.presents.recipient.components.RecipientHead
 import com.gemwallet.android.features.transfer.presents.recipient.components.destinationView
+import com.gemwallet.android.features.transfer.viewmodels.recipient.models.QrScanField
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientHeadUIModel
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientRowUIModel
 import com.gemwallet.android.ui.R
@@ -41,6 +42,10 @@ internal fun RecipientScene(
         onClose = { onAction(RecipientAction.Cancel) },
         onContinue = { onAction(RecipientAction.Next) },
     ) {
+        val onAddress: (String) -> Unit = { onAction(RecipientAction.SetAddress(it)) }
+        val onMemo: (String) -> Unit = { onAction(RecipientAction.SetMemo(it)) }
+        val onQrScan: (QrScanField) -> Unit = { onAction(RecipientAction.Scan(it)) }
+        val onSubmitAddress: () -> Unit = { onAction(RecipientAction.ValidateAddress) }
         LazyColumn(
             contentPadding = PaddingValues(bottom = paddingDefault),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -52,10 +57,10 @@ internal fun RecipientScene(
                 addressError = addressError,
                 nameResolveIndicator = nameResolveIndicator,
                 memo = memo,
-                onAddress = { onAction(RecipientAction.SetAddress(it)) },
-                onMemo = { onAction(RecipientAction.SetMemo(it)) },
-                onQrScan = { onAction(RecipientAction.Scan(it)) },
-                onSubmitAddress = { onAction(RecipientAction.ValidateAddress) },
+                onAddress = onAddress,
+                onMemo = onMemo,
+                onQrScan = onQrScan,
+                onSubmitAddress = onSubmitAddress,
             )
             listSections(sections) { position, item ->
                 ListItem(

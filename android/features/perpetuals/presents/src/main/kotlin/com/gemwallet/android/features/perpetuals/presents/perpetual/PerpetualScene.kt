@@ -28,6 +28,7 @@ import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.TransactionId
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemListRow
@@ -73,6 +74,8 @@ internal fun PerpetualScene(
         snackbar = snackbar,
     ) {
         val transactionSections = rememberDateSections(transactions) { it.createdAt }
+        val onAutocloseClick: () -> Unit = { onAction(PerpetualAction.Autoclose) }
+        val onTransactionClick: (TransactionId) -> Unit = { onAction(PerpetualAction.OpenTransaction(it)) }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(PerpetualAction.Refresh) },
@@ -96,7 +99,7 @@ internal fun PerpetualScene(
                             positionProperties(
                                 position = details?.positionRow?.row,
                                 rows = section.rows,
-                                onAutocloseClick = { onAction(PerpetualAction.Autoclose) },
+                                onAutocloseClick = onAutocloseClick,
                             )
                         }
 
@@ -118,7 +121,7 @@ internal fun PerpetualScene(
                     )
                 }
                 if (transactions.isNotEmpty()) {
-                    transactionsList(transactionSections) { onAction(PerpetualAction.OpenTransaction(it)) }
+                    transactionsList(transactionSections, onTransactionClick)
                 }
             }
         }

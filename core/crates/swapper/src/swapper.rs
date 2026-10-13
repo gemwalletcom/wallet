@@ -146,22 +146,6 @@ impl GemSwapper {
         Ok(providers)
     }
 
-    pub async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
-        if from_asset == to_asset {
-            return;
-        }
-        let preloads = self
-            .swappers
-            .iter()
-            .filter(|provider| Self::filter_by_provider_mode(&provider.provider().mode, from_asset.chain, to_asset.chain))
-            .filter(|provider| {
-                let supported_assets = provider.supported_assets();
-                Self::supports_asset(&supported_assets, from_asset) && Self::supports_asset(&supported_assets, to_asset)
-            })
-            .map(|provider| provider.preload_routes(from_asset, to_asset));
-        futures::future::join_all(preloads).await;
-    }
-
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<Vec<Quote>, SwapperError> {
         let SwapQuotes { quotes, errors } = self.get_quotes(request).await?;
         if quotes.is_empty() {
@@ -172,10 +156,12 @@ impl GemSwapper {
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<SwapQuotes, SwapperError> {
         let provider_ids: BTreeSet<_> = self.get_providers_for_request(request)?.into_iter().map(|p| p.id).collect();
+        let (from_asset, to_asset) = (&request.from_asset.asset_id(), &request.to_asset.asset_id());
         let quotes_futures = self.swappers.iter().filter(|x| provider_ids.contains(&x.provider().id)).map(|x| {
             let provider_id = x.provider().id.id().to_string();
             async move {
                 let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|error| (provider_id.clone(), error))?;
+                x.preload_routes(from_asset, to_asset).await;
                 x.get_quote(&request).await.map_err(|error| (provider_id, error))
             }
         });
@@ -512,13 +498,10 @@ mod swap_integration_tests {
     use crate::{QuoteRequest, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
 
     async fn report(swapper: &GemSwapper, request: &QuoteRequest, round: &str) {
-        let started = Instant::now();
-        swapper.preload_routes(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
-        println!("{round} preload total: {}ms", started.elapsed().as_millis());
-
         let provider_ids: BTreeSet<_> = swapper.get_providers_for_request(request).unwrap().into_iter().map(|provider| provider.id).collect();
         let timings = swapper.swappers.iter().filter(|swapper| provider_ids.contains(&swapper.provider().id)).map(|provider| async move {
             let started = Instant::now();
+            provider.preload_routes(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
             let outcome = provider.get_quote(request).await;
             (provider.provider().id.id().to_string(), started.elapsed().as_millis(), outcome.is_ok())
         });

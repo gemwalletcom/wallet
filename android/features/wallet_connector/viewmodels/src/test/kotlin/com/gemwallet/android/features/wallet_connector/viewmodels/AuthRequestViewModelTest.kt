@@ -84,12 +84,11 @@ class AuthRequestViewModelTest {
 
     private fun service(accounts: (String) -> List<GemWalletConnectAuthAccount>): GemWalletConnectServiceInterface = mockk(relaxed = true) {
         every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata(name = "Uniswap").toGem()
-        coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
+        coEvery { prepareAuthentication(any(), any(), any(), any(), any()) } returns GemSessionProposal(
             proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
             verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
             canChooseWallet = true,
         )
-        every { authenticationChainIds(any()) } returns listOf("eip155:1")
         every { authenticationMethods() } returns listOf("personal_sign")
         every { authenticationAccounts(any(), any()) } answers { accounts(secondArg<uniffi.gemstone.Wallet>().id) }
         coEvery { signMessage(any(), any()) } returns "0xsignature"
@@ -124,7 +123,7 @@ class AuthRequestViewModelTest {
         val error = CompletableDeferred<String>()
         val approve = approval()
         val service = service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) }
-        coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.InvalidOrigin()
+        coEvery { service.prepareAuthentication(any(), any(), any(), any(), any()) } throws GemWalletConnectException.InvalidOrigin()
         val model = viewModel(service, approve)
 
         model.onRequest(request, verifyContext) { error.complete(it) }

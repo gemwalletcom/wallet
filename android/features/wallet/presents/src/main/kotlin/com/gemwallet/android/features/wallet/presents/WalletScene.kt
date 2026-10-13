@@ -103,6 +103,7 @@ internal fun WalletScene(
             onRefresh = onRefresh,
         ) {
             val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
+            val onAssetClick: (AssetId) -> Unit = { onAction(WalletAction.OpenAsset(it)) }
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -180,14 +181,14 @@ internal fun WalletScene(
                     items = pinnedAssets,
                     longPressState = longPressedAsset,
                     group = GemAssetSectionKind.PINNED,
-                    onAssetClick = { onAction(WalletAction.OpenAsset(it)) },
+                    onAssetClick = onAssetClick,
                     actions = assetActions,
                 )
                 assets(
                     items = unpinnedAssets,
                     longPressState = longPressedAsset,
                     group = GemAssetSectionKind.ASSETS,
-                    onAssetClick = { onAction(WalletAction.OpenAsset(it)) },
+                    onAssetClick = onAssetClick,
                     actions = assetActions,
                 )
                 if (homeState?.showCollections == true) {

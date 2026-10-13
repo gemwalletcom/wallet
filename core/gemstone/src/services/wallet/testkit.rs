@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use primitives::{AddressName, Chain, Wallet, WalletId};
 
@@ -97,6 +98,7 @@ impl GemWalletStore for MemoryWalletStore {
 pub struct MemoryKeystorePassword {
     pub wallet_passwords: Mutex<HashMap<String, String>>,
     pub create_requests: Mutex<Vec<bool>>,
+    pub authentication_reads: AtomicUsize,
 }
 
 impl GemKeystorePassword for MemoryKeystorePassword {
@@ -112,6 +114,7 @@ impl GemKeystorePassword for MemoryKeystorePassword {
         Ok(())
     }
     fn authentication(&self) -> Result<GemKeystoreAuthentication, GemServiceError> {
+        self.authentication_reads.fetch_add(1, Ordering::SeqCst);
         Ok(GemKeystoreAuthentication::None)
     }
 }

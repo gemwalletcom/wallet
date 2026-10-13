@@ -45,7 +45,6 @@ impl GemSwapService {
 impl GemSwapService {
     pub async fn get_quotes(&self, wallet: Wallet, from_asset: Asset, to_asset: Asset, value: GemBigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<Vec<Quote>, SwapperError> {
         let request = rules::quote_request(&wallet, &from_asset, &to_asset, value, use_max_amount, slippage_bps)?;
-        self.swapper.preload_routes(from_asset.id, to_asset.id).await;
         self.swapper.get_quote(&request).await
     }
 

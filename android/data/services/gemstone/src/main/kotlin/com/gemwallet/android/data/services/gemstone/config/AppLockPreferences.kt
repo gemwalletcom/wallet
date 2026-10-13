@@ -28,10 +28,10 @@ class AppLockPreferences(
     private val ioDispatcher: CoroutineDispatcher,
 ) : SecurityPreferences {
 
-    private val authRequiredState by lazy { MutableStateFlow(authRequired()) }
+    private val authRequiredState by lazy { MutableStateFlow(read(SecureKey.Auth)?.toBooleanStrictOrNull() ?: configStore.getBoolean(ConfigKey.Auth.string)) }
     private val lockIntervalState by lazy { MutableStateFlow(read(SecureKey.LockInterval)?.toIntOrNull() ?: defaultLockInterval) }
 
-    override fun authRequired(): Boolean = read(SecureKey.Auth)?.toBooleanStrictOrNull() ?: configStore.getBoolean(ConfigKey.Auth.string)
+    override fun authRequired(): Boolean = authRequiredState.value
 
     override fun setAuthRequired(enabled: Boolean) {
         secureStore.set(SecureKey.Auth.string, enabled.toString())

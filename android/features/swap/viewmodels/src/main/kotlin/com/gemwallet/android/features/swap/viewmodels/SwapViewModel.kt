@@ -174,6 +174,7 @@ class SwapViewModel @Inject constructor(
     val viewState: StateFlow<GemSwapViewState> = combine(session, payAsset, receiveAsset) { quoteSession, pay, receive ->
         quoteSession.viewState(pay?.toGem(), receive?.toGem(), currency)
     }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(null, null, currency))
 
     init {
@@ -182,9 +183,12 @@ class SwapViewModel @Inject constructor(
         }
         combine(payValueFlow, payAsset, receiveAsset, selectedSlippageBps) { text, pay, receive, slippageBps ->
             session.update { it.onInputChanged(text, pay?.asset?.toGem(), receive?.asset?.toGem(), pay?.balance?.available ?: BigInteger.ZERO, slippageBps, numberFormat()) }
-        }.launchIn(viewModelScope)
+        }
+            .flowOn(ioDispatcher)
+            .launchIn(viewModelScope)
         quoteResults
             .onEach(::onQuoteResults)
+            .flowOn(ioDispatcher)
             .launchIn(viewModelScope)
         viewState.map { it.receiveAmount?.text().orEmpty() }
             .distinctUntilChanged()

@@ -3,7 +3,6 @@
 import Components
 import func Gemstone.chainRow
 import enum Gemstone.GemAddNodeError
-import enum Gemstone.GemAddNodePhase
 import struct Gemstone.GemAddNodeSession
 import struct Gemstone.GemChainRow
 import protocol Gemstone.GemChainSettingsServiceProtocol

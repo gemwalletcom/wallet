@@ -4,7 +4,6 @@ import Components
 import struct Gemstone.GemCopy
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListRow
-import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemRowAction
 import enum Gemstone.GemRowMenuItem
 import Primitives

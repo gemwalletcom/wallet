@@ -3,6 +3,8 @@ mod observer;
 mod price_handler;
 mod redis;
 
+pub use price_handler::StreamPricesConfig;
+
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -32,6 +34,7 @@ pub const MISSED_PONGS_LIMIT: u32 = 2;
 pub struct StreamObserverConfig {
     pub redis_url: String,
     pub device_stream: DeviceStreamClient,
+    pub prices: StreamPricesConfig,
 }
 
 #[derive(Clone)]
@@ -88,7 +91,7 @@ async fn stream(device: AuthenticatedDevice, State(state): State<StreamState>, u
         .on_failed_upgrade(|error: axum::Error| info_with_fields!("websocket upgrade failed", error = error.to_string()))
         .on_upgrade(move |socket: WebSocket| {
             connections.track_future(async move {
-                let mut observer = observer::StreamObserver::new(device_id, version, state.prices.clone());
+                let mut observer = observer::StreamObserver::new(device_id, version, state.prices.clone(), state.observer.prices);
                 client::run(&state.observer.redis_url, &state.observer.device_stream, &mut observer, socket, state.shutdown.clone()).await;
             })
         }))

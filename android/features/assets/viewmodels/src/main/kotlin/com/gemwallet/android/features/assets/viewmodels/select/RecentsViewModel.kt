@@ -35,6 +35,7 @@ import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemRecentActivityServiceInterface
 import uniffi.gemstone.GemRecentsViewState
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -65,7 +66,7 @@ class RecentsViewModel @Inject constructor(
             )
         }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, recentActivityService.viewState(emptyList(), emptyList(), ""))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, recentActivityService.viewState(emptyList(), emptyList(), LocalDate.now().gemDay().boundaries(), ""))
 
     fun show(filters: Set<GemAssetFilter> = emptySet(), types: List<RecentActivityType> = RecentActivityType.entries) {
         query.clearText()
@@ -86,7 +87,7 @@ class RecentsViewModel @Inject constructor(
 
     private fun viewState(items: List<RecentAsset>, searchText: String): GemRecentsViewState {
         val zone = ZoneId.systemDefault()
-        return recentActivityService.viewState(items.map { it.toGem() }, items.map { Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate().gemDay() }, searchText)
+        return recentActivityService.viewState(items.map { it.toGem() }, items.map { Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalDate().gemDay() }, LocalDate.now(zone).gemDay().boundaries(), searchText)
     }
 
     private data class Config(val filters: Set<GemAssetFilter>, val types: List<RecentActivityType>)

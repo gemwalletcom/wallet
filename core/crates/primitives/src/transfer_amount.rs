@@ -439,6 +439,20 @@ mod tests {
 
         let token = TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock_spl_token() }, 10_000_000, 10_000_000, 10_000);
         assert!(token.calculate().is_ok());
+
+        let dot = TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Polkadot) };
+        assert!(
+            TransferAmountInput::mock(dot.clone(), 10_000_000_000, 15_000_000_000, 15_000_000_000).calculate().is_ok(),
+            "leaving 0.5 DOT keeps the account on Asset Hub"
+        );
+        assert_eq!(
+            TransferAmountInput::mock(dot, 10_000_000_000, 10_100_004_999, 10_100_004_999).calculate().unwrap_err(),
+            TransferAmountError::MinimumAccountBalanceTooLow {
+                asset_id: AssetId::from_chain(Chain::Polkadot),
+                required: BigInt::from(100_000_000),
+                available: BigInt::from(99_999_999),
+            }
+        );
     }
 
     #[test]

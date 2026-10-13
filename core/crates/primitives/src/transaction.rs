@@ -305,7 +305,7 @@ impl Transaction {
             TransactionType::Swap => self
                 .swap_metadata()
                 .map(|metadata| [Some(metadata.from_asset), Some(metadata.to_asset), metadata.referral_fee.map(|fee| fee.asset_id)].into_iter().flatten().collect())
-                .unwrap_or_default(),
+                .unwrap_or_else(|| vec![self.asset_id.clone()]),
         };
         if let Some(metadata) = self.asset_transfers_metadata() {
             asset_ids.extend(metadata.asset_transfers.into_iter().map(|transfer| transfer.asset_id));
@@ -424,6 +424,17 @@ mod tests {
             ..Transaction::mock()
         };
         assert_eq!(transaction.asset_ids().len(), 2);
+    }
+
+    #[test]
+    fn test_asset_ids_incomplete_swap_uses_primary_asset() {
+        let transaction = Transaction {
+            transaction_type: TransactionType::Swap,
+            metadata: None,
+            ..Transaction::mock()
+        };
+
+        assert_eq!(transaction.asset_ids(), vec![transaction.asset_id]);
     }
 
     #[test]

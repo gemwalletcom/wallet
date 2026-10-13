@@ -1,12 +1,13 @@
 use alloy_sol_types::SolCall;
 use num_bigint::BigUint;
-use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult};
+use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, contract_constants::UNISWAP_PERMIT2_CONTRACT};
 
 use super::{approval_method::ApprovalMethod, approval_request::ApprovalRequest, approval_value::ApprovalValue};
 use gem_evm::{
     contracts::{IERC20, IERC721, IERC1155},
     eip712::{EIP712Field, EIP712Message, EIP712TypedValue, find_field_string, find_field_struct},
     ethereum_address_checksum,
+    permit2::IAllowanceTransfer,
 };
 
 pub fn simulate_eip712_message(chain: Chain, message: &EIP712Message) -> SimulationResult {
@@ -58,6 +59,27 @@ pub(crate) fn decode_evm_approval(chain: Chain, calldata: &[u8], contract_addres
         && let Ok(call) = <IERC20::approveCall as SolCall>::abi_decode(calldata)
     {
         return ApprovalRequest::erc20(chain, contract_address, format!("{:#x}", call.spender), call.value.to_string());
+    }
+
+    if calldata.starts_with(&<IERC20::increaseAllowanceCall as SolCall>::SELECTOR)
+        && let Ok(call) = <IERC20::increaseAllowanceCall as SolCall>::abi_decode(calldata)
+    {
+        return ApprovalRequest::erc20(chain, contract_address, format!("{:#x}", call.spender), call.addedValue.to_string());
+    }
+
+    if calldata.starts_with(&<IAllowanceTransfer::approveCall as SolCall>::SELECTOR)
+        && contract_address.eq_ignore_ascii_case(UNISWAP_PERMIT2_CONTRACT)
+        && let Ok(call) = <IAllowanceTransfer::approveCall as SolCall>::abi_decode_validate(calldata)
+    {
+        return ApprovalRequest::permit(
+            chain,
+            contract_address.to_string(),
+            format!("{:#x}", call.spender),
+            call.amount.to_string(),
+            Some(call.expiration.to_string()),
+            Some(format!("{:#x}", call.token)),
+            ApprovalMethod::Approve,
+        );
     }
 
     if calldata.starts_with(&<IERC721::setApprovalForAllCall as SolCall>::SELECTOR)
@@ -222,9 +244,9 @@ fn batch_warning_expiration(details: &[&[EIP712Field]], message_fields: &[EIP712
 
 #[cfg(test)]
 mod tests {
-    use alloy_primitives::{U256, address};
+    use alloy_primitives::{U160, U256, address, aliases::U48};
     use alloy_sol_types::SolCall;
-    use gem_evm::eip712::parse_eip712_json;
+    use gem_evm::{eip712::parse_eip712_json, permit2::IAllowanceTransfer};
     use primitives::{
         Chain, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationResult, SimulationWarningType,
         asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID},
@@ -409,6 +431,56 @@ mod tests {
         );
         assert_eq!(result.payload[0].value, "Approve");
         assert_eq!(result.payload[3].value, "Unlimited");
+    }
+
+    #[test]
+    fn erc20_increase_allowance_simulates_as_approve() {
+        let spender = address!("1111111111111111111111111111111111111111");
+        let calldata = gem_evm::contracts::IERC20::increaseAllowanceCall { spender, addedValue: U256::from(100) }.abi_encode();
+
+        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
+
+        assert!(is_token_warning(warning(&result)));
+        assert_eq!(result.payload[0].value, "Approve");
+        assert_eq!(result.payload[2].value, "0x1111111111111111111111111111111111111111");
+        assert_eq!(result.payload[3].value, "100");
+        assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
+    }
+
+    #[test]
+    fn permit2_approve_simulates_token_spender_and_expiration() {
+        let call = IAllowanceTransfer::approveCall {
+            token: address!("A0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+            spender: address!("1111111111111111111111111111111111111111"),
+            amount: U160::MAX,
+            expiration: U48::from(1_800_000_000u64),
+        };
+        let calldata = call.abi_encode();
+
+        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, UNISWAP_PERMIT2_CONTRACT);
+
+        assert!(is_token_warning(&result.warnings[0].warning));
+        assert_eq!(
+            kinds(&result),
+            vec![
+                SimulationPayloadFieldKind::Method,
+                SimulationPayloadFieldKind::Contract,
+                SimulationPayloadFieldKind::Spender,
+                SimulationPayloadFieldKind::Token,
+                SimulationPayloadFieldKind::Value,
+                SimulationPayloadFieldKind::Expiration,
+            ]
+        );
+        assert_eq!(result.payload[0].value, "Approve");
+        assert_eq!(result.payload[1].value, UNISWAP_PERMIT2_CONTRACT);
+        assert_eq!(result.payload[2].value, "0x1111111111111111111111111111111111111111");
+        assert_eq!(result.payload[3].value, ETHEREUM_USDC_TOKEN_ID);
+        assert_eq!(result.payload[4].value, "Unlimited");
+        assert_eq!(result.payload[5].value, "1800000000");
+        assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
+
+        let other_contract = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x2222222222222222222222222222222222222222");
+        assert_eq!(kinds(&other_contract), vec![SimulationPayloadFieldKind::Contract]);
     }
 
     #[test]

@@ -43,7 +43,7 @@ impl NameResolver for EnsProvider {
     }
 
     async fn resolve(&self, query: &NameQuery, _chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        let Ok(name) = query.ascii_domain() else {
+        let Some(name) = ens_name(query) else {
             return Ok(None);
         };
         let resolver = self.client.get_resolver(&name).await?;
@@ -52,5 +52,22 @@ impl NameResolver for EnsProvider {
         }
         let address = self.client.get_address(&resolver, &name).await?;
         Ok((!address.is_zero()).then(|| address.to_string()))
+    }
+}
+
+fn ens_name(query: &NameQuery) -> Option<String> {
+    query.ascii_domain().ok().filter(|name| !name.split('.').any(|label| label.starts_with("xn--")))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ens_name() {
+        assert_eq!(ens_name(&NameQuery::new("Vitalik.ETH")).as_deref(), Some("vitalik.eth"));
+        assert_eq!(ens_name(&NameQuery::new("🐈.eth")), None);
+        assert_eq!(ens_name(&NameQuery::new("xn--zn8h.eth")), None);
+        assert_eq!(ens_name(&NameQuery::new("mañana.eth")), None);
     }
 }

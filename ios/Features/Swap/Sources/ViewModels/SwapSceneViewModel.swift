@@ -8,7 +8,6 @@ import func Gemstone.formattedPercentage
 import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemProviderRow
 import enum Gemstone.GemSlippageSelection
-import enum Gemstone.GemSwapButtonAction
 import struct Gemstone.GemSwapDetails
 import enum Gemstone.GemSwapErrorDisplay
 import struct Gemstone.GemSwapPairSelection
@@ -22,7 +21,6 @@ import struct Gemstone.GemSwapViewState
 import func Gemstone.swapErrorDisplay
 import enum Gemstone.SwapperError
 import enum Gemstone.SwapProvider
-import struct Gemstone.SwapQuote
 import GemstonePrimitives
 import InfoSheet
 import Localization

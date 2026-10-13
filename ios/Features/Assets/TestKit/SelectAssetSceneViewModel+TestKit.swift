@@ -4,7 +4,6 @@
 import Components
 import Foundation
 import protocol Gemstone.GemAssetSelectionServiceProtocol
-import protocol Gemstone.GemBalanceServiceProtocol
 import class Gemstone.GemPaymentService
 import class Gemstone.GemRecentActivityService
 import GemstonePrimitives

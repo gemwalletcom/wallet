@@ -224,7 +224,7 @@ chains:
   osmosis:
     url: "https://osmosis-rest.publicnode.com"
   thorchain:
-    url: "https://thornode.thorchain.liquify.com"
+    url: "https://gateway.liquify.com/chain/thorchain_api"
   mayachain:
     url: "https://mayanode.mayachain.info"
   tron:

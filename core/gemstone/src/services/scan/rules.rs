@@ -1,5 +1,5 @@
 use primitives::{
-    Chain, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType, TransactionPreloadInput,
+    AssetId, Chain, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType, TransactionPreloadInput,
     TransactionType,
 };
 
@@ -41,6 +41,14 @@ fn scan_target(input: &TransactionPreloadInput) -> ScanAddressTarget {
         return ScanAddressTarget {
             asset_id: from_asset.id.clone(),
             address: swap_data.data.to.clone(),
+        };
+    }
+    if let TransactionInputType::Generic { asset, extra, .. } = &input.input_type
+        && let Some(approval) = &extra.approval
+    {
+        return ScanAddressTarget {
+            asset_id: AssetId::from_token(asset.chain(), &approval.token),
+            address: approval.spender.clone(),
         };
     }
     ScanAddressTarget {
@@ -153,6 +161,32 @@ mod tests {
         .unwrap()
         .target;
         assert_eq!(without_contract.address, "recipient", "a swap with no contract falls back to the recipient");
+    }
+
+    #[test]
+    fn test_a_dapp_approval_scans_the_spender_and_the_token() {
+        let approval = GemTransactionPreloadInput {
+            input_type: TransactionInputType::Generic {
+                asset: Asset::mock_eth(),
+                metadata: ApplicationMetadata::mock(),
+                extra: TransferDataExtra {
+                    transaction_type: TransactionType::TokenApproval,
+                    approval: Some(ApprovalData {
+                        token: "0xtoken".to_string(),
+                        spender: "0xspender".to_string(),
+                        ..ApprovalData::mock()
+                    }),
+                    ..TransferDataExtra::mock()
+                },
+            },
+            sender_address: "sender".to_string(),
+            destination_address: "0xpermit2".to_string(),
+            references: vec![],
+        };
+
+        let target = transaction_payload(approval).unwrap().target;
+        assert_eq!(target.address, "0xspender", "the scan asks about who can spend, not the contract called");
+        assert_eq!(target.asset_id, AssetId::from_token(Chain::Ethereum, "0xtoken"));
     }
 
     #[test]

@@ -36,6 +36,8 @@ import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.AssetData
 import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemStakeActionKind
+import uniffi.gemstone.GemStakeDestination
 import uniffi.gemstone.GemStakeSection
 import uniffi.gemstone.GemStakeViewState
 
@@ -59,6 +61,7 @@ internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeVi
             isRefreshing = inSync,
             onRefresh = { onAction(StakeAction.Refresh) },
         ) {
+            val onOpen: (GemStakeActionKind, GemStakeDestination) -> Unit = { kind, destination -> onAction(StakeAction.Open(kind, destination)) }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
                     CenteredListHead(
@@ -75,7 +78,7 @@ internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeVi
                     when (section) {
                         GemStakeSection.MANAGE -> stakeActions(
                             actions = state.actions,
-                            onOpen = { kind, destination -> onAction(StakeAction.Open(kind, destination)) },
+                            onOpen = onOpen,
                         )
 
                         GemStakeSection.RESOURCES -> itemsIndexed(state.resourceRows) { index, row ->

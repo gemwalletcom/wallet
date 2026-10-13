@@ -4,7 +4,6 @@ import Components
 import Foundation
 import func Gemstone.autocloseSession
 import struct Gemstone.GemAssetItemRow
-import enum Gemstone.GemAutocloseConfirmPolicy
 import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemAutocloseViewState
 import GemstonePrimitives

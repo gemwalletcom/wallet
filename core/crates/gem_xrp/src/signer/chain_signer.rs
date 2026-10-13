@@ -21,7 +21,7 @@ impl ChainSigner for XrpChainSigner {
 
     fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let amount = token_amount(input, &input.value.to_string())?;
-        sign_payment(input, private_key, amount, &input.destination_address, token_memo(input.get_memo())?)
+        sign_payment(input, private_key, amount, &input.destination_address, payment_memo(input.get_memo())?)
     }
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
@@ -66,25 +66,13 @@ fn trust_line_limit_amount(input: &SignerInput) -> Result<XrpAmount, SignerError
 }
 
 fn payment_memo(memo: Option<&str>) -> Result<XrpPaymentMemo, SignerError> {
-    let Some(memo) = memo else {
+    let Some(memo) = memo.map(str::trim).filter(|memo| !memo.is_empty()) else {
         return Ok(XrpPaymentMemo::None);
     };
 
     match memo.parse::<u64>() {
-        Ok(0) => Ok(XrpPaymentMemo::None),
         Ok(value) => Ok(XrpPaymentMemo::DestinationTag(u32::try_from(value).map_err(SignerError::from_display)?)),
         Err(_) => Ok(XrpPaymentMemo::Memo(memo.strip_prefix("0x").unwrap_or(memo).as_bytes().to_vec())),
-    }
-}
-
-fn token_memo(memo: Option<&str>) -> Result<XrpPaymentMemo, SignerError> {
-    let Some(memo) = memo else {
-        return Ok(XrpPaymentMemo::None);
-    };
-
-    match memo.parse::<u64>() {
-        Ok(0) | Err(_) => Ok(XrpPaymentMemo::None),
-        Ok(value) => Ok(XrpPaymentMemo::DestinationTag(u32::try_from(value).map_err(SignerError::from_display)?)),
     }
 }
 
@@ -165,11 +153,11 @@ mod tests {
         assert_eq!(payment_memo(Some("123")).unwrap(), XrpPaymentMemo::DestinationTag(123));
         assert_eq!(payment_memo(Some("memo")).unwrap(), XrpPaymentMemo::Memo(b"memo".to_vec()));
         assert_eq!(payment_memo(Some("0xhello")).unwrap(), XrpPaymentMemo::Memo(b"hello".to_vec()));
-        assert_eq!(payment_memo(Some("0")).unwrap(), XrpPaymentMemo::None);
+        assert_eq!(payment_memo(Some("0")).unwrap(), XrpPaymentMemo::DestinationTag(0));
+        assert_eq!(payment_memo(Some(" 123456\n")).unwrap(), XrpPaymentMemo::DestinationTag(123456));
+        assert_eq!(payment_memo(Some("  ")).unwrap(), XrpPaymentMemo::None);
         assert_eq!(payment_memo(None).unwrap(), XrpPaymentMemo::None);
-        assert_eq!(token_memo(Some("123")).unwrap(), XrpPaymentMemo::DestinationTag(123));
-        assert_eq!(token_memo(Some("0")).unwrap(), XrpPaymentMemo::None);
-        assert_eq!(token_memo(Some("memo")).unwrap(), XrpPaymentMemo::None);
+        assert!(payment_memo(Some("4294967296")).is_err());
     }
 
     #[test]

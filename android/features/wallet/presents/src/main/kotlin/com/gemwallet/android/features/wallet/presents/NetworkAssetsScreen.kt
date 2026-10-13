@@ -25,6 +25,7 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.icons.AppIcons
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemEmptyStateAction
@@ -37,6 +38,7 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
     val hidden by viewModel.hidden.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
+    val onSelect: (Asset) -> Unit = { onSelectAsset(it.id) }
     val activeActions = remember(viewModel) {
         AssetContextActions(onTogglePin = viewModel::togglePin, onHide = viewModel::hideAsset)
     }
@@ -60,12 +62,12 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             if (pinned.isNotEmpty()) {
                 item { AssetSectionHeaderItem(GemAssetSectionKind.PINNED) }
-                networkAssetRows(pinned, "pinned", onSelectAsset, longPressedAsset, activeActions)
+                networkAssetRows(pinned, "pinned", onSelect, longPressedAsset, activeActions)
             }
-            networkAssetRows(unpinned, "unpinned", onSelectAsset, longPressedAsset, activeActions)
+            networkAssetRows(unpinned, "unpinned", onSelect, longPressedAsset, activeActions)
             if (hidden.isNotEmpty()) {
                 item { SubheaderItem(R.string.common_hidden) }
-                networkAssetRows(hidden, "hidden", onSelectAsset, longPressedAsset, hiddenActions)
+                networkAssetRows(hidden, "hidden", onSelect, longPressedAsset, hiddenActions)
             }
             (sections.phase as? GemListPhase.Empty)?.let { empty ->
                 item {
@@ -85,11 +87,11 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
     }
 }
 
-private fun LazyListScope.networkAssetRows(items: List<AssetInfoDataAggregate>, keyPrefix: String, onSelect: (AssetId) -> Unit, longPressedAsset: MutableState<AssetId?>, contextActions: AssetContextActions) {
+private fun LazyListScope.networkAssetRows(items: List<AssetInfoDataAggregate>, keyPrefix: String, onSelect: (Asset) -> Unit, longPressedAsset: MutableState<AssetId?>, contextActions: AssetContextActions) {
     assetRows(
         items = items,
         keyPrefix = keyPrefix,
-        onSelect = { onSelect(it.id) },
+        onSelect = onSelect,
         longPressedAsset = longPressedAsset,
         contextActions = contextActions,
     )

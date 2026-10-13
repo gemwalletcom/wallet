@@ -7,7 +7,6 @@ import protocol Gemstone.GemAppStartServiceProtocol
 import struct Gemstone.GemAppUpdateOffer
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemNotificationsServiceProtocol
-import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstonePrimitives
 import GemstoneServices

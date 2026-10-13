@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.onboarding.presents.terms
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,6 +46,7 @@ import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import uniffi.gemstone.GemAcceptTermsItem
 import uniffi.gemstone.PublicUrl
 import uniffi.gemstone.newTermsSession
 
@@ -76,6 +76,7 @@ fun AcceptTermsScene(onCancel: CancelAction, onAccept: () -> Unit) {
             }
         },
     ) {
+        val onToggle: (GemAcceptTermsItem) -> Unit = { session = session.onToggle(it) }
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -94,10 +95,11 @@ fun AcceptTermsScene(onCancel: CancelAction, onAccept: () -> Unit) {
             }
             state.rows.forEachIndexed { index, row ->
                 termItem(
+                    item = row.item,
                     isUnderstand = row.isAccepted,
-                    description = row.item.stringRes(),
                     testTag = "term_${index + 1}",
-                ) { session = session.onToggle(row.item) }
+                    onToggle = onToggle,
+                )
             }
 
             item { Spacer(modifier = Modifier.size(it.calculateBottomPadding())) }
@@ -105,13 +107,13 @@ fun AcceptTermsScene(onCancel: CancelAction, onAccept: () -> Unit) {
     }
 }
 
-private fun LazyListScope.termItem(isUnderstand: Boolean, @StringRes description: Int, testTag: String, onClick: () -> Unit) {
+private fun LazyListScope.termItem(item: GemAcceptTermsItem, isUnderstand: Boolean, testTag: String, onToggle: (GemAcceptTermsItem) -> Unit) {
     item {
         Card(
             modifier = Modifier
                 .testTag(testTag)
                 .clip(shape = RoundedCornerShape(paddingDefault))
-                .clickable(onClick = onClick),
+                .clickable { onToggle(item) },
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             elevation = CardDefaults.cardElevation(paddingHalfSmall),
             shape = RoundedCornerShape(paddingDefault),
@@ -121,7 +123,7 @@ private fun LazyListScope.termItem(isUnderstand: Boolean, @StringRes description
                 Spacer16()
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(description),
+                        text = stringResource(item.stringRes()),
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (isUnderstand) {
                             MaterialTheme.colorScheme.onSurface

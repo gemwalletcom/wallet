@@ -5,7 +5,6 @@ import Foundation
 import struct Gemstone.GemDelegationActionItem
 import struct Gemstone.GemDelegationDetails
 import struct Gemstone.GemDelegationListRow
-import enum Gemstone.GemListRow
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
 import GemstonePrimitives

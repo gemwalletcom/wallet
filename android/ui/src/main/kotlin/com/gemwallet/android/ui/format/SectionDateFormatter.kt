@@ -22,7 +22,9 @@ class SectionDateFormatter(private val todayLabel: String, private val yesterday
         boundaries = LocalDate.now(clock).gemDay().boundaries(),
     )
 
-    fun format(date: LocalDate, locale: Locale): String = when (boundaries.label(date.gemDay())) {
+    fun format(date: LocalDate, locale: Locale): String = format(boundaries.label(date.gemDay()), date, locale)
+
+    fun format(label: GemDayLabel, date: LocalDate, locale: Locale): String = when (label) {
         GemDayLabel.TODAY -> todayLabel
 
         GemDayLabel.YESTERDAY -> yesterdayLabel

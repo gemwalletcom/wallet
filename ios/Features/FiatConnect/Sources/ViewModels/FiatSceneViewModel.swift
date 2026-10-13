@@ -6,7 +6,6 @@ import Foundation
 import func Gemstone.assetListRow
 import enum Gemstone.FiatProviderName
 import struct Gemstone.GemAssetItemRow
-import enum Gemstone.GemFiatAmountCheck
 import protocol Gemstone.GemFiatQuoteServiceProtocol
 import struct Gemstone.GemFiatSession
 import struct Gemstone.GemFiatSuggestedAmount

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemServiceError
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Primitives

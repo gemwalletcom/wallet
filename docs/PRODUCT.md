@@ -153,6 +153,30 @@ Confirm and Transaction details show the Network Fee the same way.
 | The user sets a custom fee on an EVM network | two fields in Gwei that open empty with what Normal signs as the placeholder: Base Fee, the most they agree to pay the network, never under the base fee Normal signs; and Priority Fee, the tip, never under the network's minimum tip; an empty field means the suggested value and keeps following the network after a refresh, only typed values are kept; each field is capped at ten times the Normal price; a network whose base fee is zero (BNB Chain) shows only the Priority Fee field | a custom fee never has less headroom than Normal, so it does not get stuck more easily, and the tip is what makes it faster |
 | Transaction details show the fee | as on Confirm: `$0.01`, or without a price `0.000021 ETH`; a tap shows `0.000021 ETH` over `$0.01` | the fee the user approved reads the same afterwards |
 
+## Network minimums and activation
+
+Some networks require a balance to keep an account open, a minimum payment to activate a new account, or native coins to create a token account. These are the amounts the wallet uses:
+
+| Network | Requirement | Amount |
+|---|---|---|
+| Polkadot Asset Hub | Minimum remaining balance | 0.01 DOT |
+| Solana | Minimum remaining balance | 0.00089088 SOL |
+| Solana | Recipient token account creation | 0.00148844 SOL |
+| XRP | New account activation and base reserve | 1 XRP |
+| XRP | Additional reserve per owned object, including a token trust line | 0.2 XRP |
+| Stellar | New account activation and base reserve | 1 XLM |
+| Algorand | New account activation | 0.1 ALGO |
+| Tron | New account creation charge | Network's current charges and the sender's bandwidth |
+
+| When | Expected | Why |
+|---|---|---|
+| Spending a native coin, other than Max, would leave less than its minimum balance after the fee | it is refused and the minimum is shown | the network can remove an account below its minimum and the remainder can be lost |
+| The user picks Max | the minimum remaining balance check is skipped; reserved balances stay unavailable | the user can empty an account where the network allows it |
+| A native coin send or payment to a new account is below its activation amount | it is refused and the required amount is shown | the recipient's account cannot be created with that amount |
+| A Solana token transfer needs a recipient token account | its creation amount is included in the Network Fee | the sender funds the new token account |
+
+Account reserves are excluded from the available balance. Algorand reports its account's reserve, which can grow with its assets. Tron account creation is included in the Network Fee using the network's current charges and the sender's bandwidth.
+
 ## Names
 
 Wherever the user types an address (Send, Import Wallet, Contacts), a name such as `vitalik.eth` can stand in for it.
@@ -161,6 +185,7 @@ Wherever the user types an address (Send, Import Wallet, Contacts), a name such 
 |---|---|---|
 | A registered name is longer than 20 characters | it resolves according to its name service’s rules | name services have different length rules |
 | A typed name is not registered, or has no address for the network | not found | a name never becomes an empty or zero address |
+| An ENS name (`.eth`, `.com`, `.xyz`, `.dev`) with characters beyond a–z, 0–9 and hyphen, such as an emoji | not found | ENS keeps records under the Unicode name; its punycode form is a different name anyone can register |
 | A `.sol` name is typed while SRS resolution is paused | not found | `.sol` is never guessed from `.sns`; the two names can have different owners |
 | The name service cannot be reached | an error, not a missing name | |
 

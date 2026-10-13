@@ -16,21 +16,26 @@ internal class PrivacyCover(private val scope: CoroutineScope, private val isGem
     var isLockEnabled = false
     private var hasFocus = true
     private var showsGemPrompt = false
+    private var promptEndedAway = false
     private var pendingCover: Job? = null
 
     fun onPromptShown() {
         showsGemPrompt = true
+        promptEndedAway = false
     }
 
     fun onPromptEnded() {
-        if (hasFocus) showsGemPrompt = false
+        if (hasFocus) showsGemPrompt = false else promptEndedAway = true
     }
 
     fun onFocusChanged(focused: Boolean) {
         hasFocus = focused
         pendingCover?.cancel()
         if (focused) {
-            showsGemPrompt = false
+            if (promptEndedAway) {
+                showsGemPrompt = false
+                promptEndedAway = false
+            }
             _isCovered.value = false
             return
         }

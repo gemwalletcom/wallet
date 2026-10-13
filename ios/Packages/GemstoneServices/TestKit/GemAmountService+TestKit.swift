@@ -4,7 +4,6 @@ import Foundation
 import class Gemstone.GemAmountService
 import class Gemstone.GemApiClient
 import class Gemstone.GemConfigService
-import class Gemstone.GemNameService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemStaticApiClient
 import class Gemstone.GemWalletSessionService

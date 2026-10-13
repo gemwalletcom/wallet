@@ -28,6 +28,11 @@ fun FiatTransactionsScene(transactions: List<GemFiatTransactionRow>, phase: GemL
         val uriHandler = LocalUriHandler.current
         val context = LocalContext.current
         val sections = rememberDateSections(transactions) { it.createdAt }
+        val onTransactionClick: (GemFiatTransactionRow) -> Unit = { row ->
+            row.detailsUrl?.let { url ->
+                uriHandler.open(context, url)
+            }
+        }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
@@ -44,11 +49,7 @@ fun FiatTransactionsScene(transactions: List<GemFiatTransactionRow>, phase: GemL
                 GemListPhase.Rows -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     fiatTransactionsList(
                         sections = sections,
-                        onTransactionClick = { row ->
-                            row.detailsUrl?.let { url ->
-                                uriHandler.open(context, url)
-                            }
-                        },
+                        onTransactionClick = onTransactionClick,
                     )
                 }
             }

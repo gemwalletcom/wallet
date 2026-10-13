@@ -3,7 +3,6 @@
 import Foundation
 import enum Gemstone.GemAmountRequest
 import enum Gemstone.GemStakeAmountInput
-import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import Primitives

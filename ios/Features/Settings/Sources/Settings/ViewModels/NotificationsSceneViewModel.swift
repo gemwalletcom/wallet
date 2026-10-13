@@ -4,7 +4,6 @@ import Components
 import Foundation
 import struct Gemstone.GemListSection
 import protocol Gemstone.GemNotificationsServiceProtocol
-import enum Gemstone.GemPushResult
 import enum Gemstone.GemRowAction
 import func Gemstone.notificationsSections
 import Localization

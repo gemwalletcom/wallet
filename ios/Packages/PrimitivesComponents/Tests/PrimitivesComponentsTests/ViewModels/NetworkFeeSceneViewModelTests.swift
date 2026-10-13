@@ -2,9 +2,7 @@
 
 import BigInt
 import Foundation
-import enum Gemstone.GemConfirmFeeSelection
 import struct Gemstone.GemFeeRateRow
-import struct Gemstone.GemFeeRateRows
 import struct Gemstone.GemFormattedNumber
 import enum Gemstone.GemLocalizedText
 import GemstonePrimitives

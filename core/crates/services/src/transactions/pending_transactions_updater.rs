@@ -135,6 +135,7 @@ impl PendingTransactionsUpdater {
 
         if self.repository.get_transaction_exists(transaction_id).await? {
             info_with_fields!("pending exists", chain = chain.as_ref(), identifier = identifier);
+            self.metrics.record_completion(TransactionQueue::Pending, TransactionQueueGroup::new(chain, None), None, elapsed_duration);
             return Ok(true);
         }
 
@@ -142,9 +143,8 @@ impl PendingTransactionsUpdater {
         match self.providers.get_transaction_by_hash(TransactionIdRequest::new(chain, identifier.to_string(), None)).await {
             Ok(Some(transaction)) => {
                 info_with_fields!("pending loaded", chain = chain.as_ref(), identifier = identifier, elapsed = elapsed, latency = DurationMs(start.elapsed()));
-                self.metrics.record_completion(TransactionQueue::Pending, TransactionQueueGroup::new(chain, None), None, elapsed_duration);
                 self.stream_producer.publish_transactions(TransactionsPayload::new_with_notify(chain, vec![], vec![transaction])).await?;
-                Ok(true)
+                Ok(false)
             }
             Ok(None) => {
                 info_with_fields!("pending waiting", chain = chain.as_ref(), identifier = identifier, latency = DurationMs(start.elapsed()));

@@ -7,7 +7,6 @@ import class Gemstone.GemDeviceApiClient
 import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemExplorerService
 import class Gemstone.GemNftService
-import protocol Gemstone.GemNftServiceProtocol
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import NativeProviderService

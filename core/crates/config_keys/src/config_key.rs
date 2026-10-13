@@ -166,6 +166,7 @@ pub enum ConfigKey {
     DeviceTimerInactiveObserver,
     DeviceStreamRetention,
     DeviceStreamHistoryLimit,
+    DeviceStreamPricesLimit,
 
     VersionTimerUpdateStoreVersions,
 
@@ -365,6 +366,7 @@ impl ConfigKey {
             Self::DeviceTimerInactiveObserver => "1d",
             Self::DeviceStreamRetention => "7d",
             Self::DeviceStreamHistoryLimit => "25",
+            Self::DeviceStreamPricesLimit => "1000",
             Self::VersionTimerUpdateStoreVersions => "1h",
             Self::TransactionTimerCleanup => "1d",
             Self::TransactionTimerInTransitUpdate => "60s",

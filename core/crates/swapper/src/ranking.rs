@@ -6,9 +6,17 @@ use crate::{Quote, QuoteRequest, SwapAmountMode};
 
 pub(crate) fn rank_quotes(request: &QuoteRequest, mut quotes: Vec<Quote>, preferences: &[QuotePreference], amount_mode: impl Fn(&Quote) -> Option<SwapAmountMode>) -> Vec<Quote> {
     quotes.sort_by(|a, b| b.to_value.cmp(&a.to_value));
+    let Some(best) = quotes.first().map(|quote| quote.to_value.clone()) else {
+        return quotes;
+    };
     for preference in preferences {
         match preference {
-            QuotePreference::DustFreeMaxAmount { tolerance_bps } => prefer_dust_free_max_amount(request, &mut quotes, *tolerance_bps, &amount_mode),
+            QuotePreference::Provider { provider, tolerance_bps } => prefer(&mut quotes, &best, *tolerance_bps, |quote| quote.data.provider.id == *provider),
+            QuotePreference::DustFreeMaxAmount { tolerance_bps } => {
+                if request.options.use_max_amount && request.from_asset.is_native() {
+                    prefer(&mut quotes, &best, *tolerance_bps, |quote| leaves_no_dust(quote, amount_mode(quote)));
+                }
+            }
         }
     }
     quotes
@@ -21,15 +29,9 @@ fn leaves_no_dust(quote: &Quote, amount_mode: Option<SwapAmountMode>) -> bool {
     }
 }
 
-fn prefer_dust_free_max_amount(request: &QuoteRequest, quotes: &mut Vec<Quote>, tolerance_bps: u32, amount_mode: &impl Fn(&Quote) -> Option<SwapAmountMode>) {
-    if !request.options.use_max_amount || !request.from_asset.is_native() {
-        return;
-    }
-    let Some(best) = quotes.first().map(|quote| quote.to_value.clone()) else {
-        return;
-    };
+fn prefer(quotes: &mut Vec<Quote>, best: &BigUint, tolerance_bps: u32, is_preferred: impl Fn(&Quote) -> bool) {
     let floor = best * BigUint::from(10_000 - tolerance_bps.min(10_000)) / BigUint::from(10_000u32);
-    if let Some(index) = quotes.iter().position(|quote| leaves_no_dust(quote, amount_mode(quote)) && quote.to_value >= floor) {
+    if let Some(index) = quotes.iter().position(|quote| is_preferred(quote) && quote.to_value >= floor) {
         let preferred = quotes.remove(index);
         quotes.insert(0, preferred);
     }
@@ -38,7 +40,7 @@ fn prefer_dust_free_max_amount(request: &QuoteRequest, quotes: &mut Vec<Quote>, 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Options, SwapperProvider, SwapperQuoteAsset, testkit::mock_quote};
+    use crate::{Options, SwapperProvider, SwapperQuoteAsset, config::quote_preferences, testkit::mock_quote};
     use primitives::{AssetId, Chain, asset_constants::ETHEREUM_USDC_ASSET_ID};
 
     fn request(from: AssetId, use_max_amount: bool) -> QuoteRequest {
@@ -152,5 +154,43 @@ mod tests {
         );
         assert_eq!(close(&solana_max, &[]), vec![SwapperProvider::UniswapV3, SwapperProvider::NearIntents], "with no preference configured the best quote wins");
         assert_eq!(providers(rank_quotes(&solana_max, vec![], &preferences, deposit_only_near_intents)), vec![]);
+    }
+
+    #[test]
+    fn test_across_is_preferred_within_10_bps_of_the_best_quote() {
+        let ethereum = request(AssetId::from_chain(Chain::Ethereum), false);
+        let rank = |across_out: &str| {
+            providers(rank_quotes(
+                &ethereum,
+                vec![
+                    quote(&ethereum, SwapperProvider::Relay, "10000"),
+                    quote(&ethereum, SwapperProvider::Across, across_out),
+                    quote(&ethereum, SwapperProvider::Mayan, "9995"),
+                ],
+                &quote_preferences(),
+                deposit_only_near_intents,
+            ))
+        };
+
+        assert_eq!(rank("9990"), vec![SwapperProvider::Across, SwapperProvider::Relay, SwapperProvider::Mayan]);
+        assert_eq!(rank("9989"), vec![SwapperProvider::Relay, SwapperProvider::Mayan, SwapperProvider::Across], "further than 10 bps, the best quote wins");
+        assert_eq!(rank("10001"), vec![SwapperProvider::Across, SwapperProvider::Relay, SwapperProvider::Mayan]);
+    }
+
+    #[test]
+    fn test_a_max_swap_that_leaves_nothing_behind_outranks_the_across_preference() {
+        let solana_max = request(AssetId::from_chain(Chain::Solana), true);
+        let ranked = rank_quotes(
+            &solana_max,
+            vec![
+                quote(&solana_max, SwapperProvider::Relay, "10000"),
+                quote(&solana_max, SwapperProvider::Across, "9995"),
+                quote(&solana_max, SwapperProvider::NearIntents, "9980"),
+            ],
+            &quote_preferences(),
+            deposit_only_near_intents,
+        );
+
+        assert_eq!(providers(ranked), vec![SwapperProvider::NearIntents, SwapperProvider::Across, SwapperProvider::Relay]);
     }
 }

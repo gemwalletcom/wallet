@@ -553,7 +553,7 @@ sell_title = 出售%@
 
 # Info
 
-info_region_unavailable_description = 此功能在您所在的地区不可用。 可用性取决于当地规定和服务提供商的要求。
+info_region_unavailable_description = 此功能在当前地区不可用。是否可用取决于当地规定和服务提供商的要求。
 
 info_network_fee_title = 网络费用
 info_watch_wallet_title = 观察钱包

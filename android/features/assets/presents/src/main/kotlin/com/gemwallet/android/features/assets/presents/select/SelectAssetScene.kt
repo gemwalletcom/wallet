@@ -221,6 +221,7 @@ fun SelectAssetScene(
         if (searchable) {
             SearchBar(query = query)
         }
+        val onAddAsset: () -> Unit = { onAction(SelectAssetAction.AddAsset) }
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
             state = listState,
@@ -257,7 +258,7 @@ fun SelectAssetScene(
                 state = state,
                 empty = empty,
                 topOffset = 0,
-                onAddAsset = { onAction(SelectAssetAction.AddAsset) },
+                onAddAsset = onAddAsset,
             )
         }
     }

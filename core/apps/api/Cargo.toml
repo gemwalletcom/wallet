@@ -37,6 +37,7 @@ chain_providers = { path = "../../crates/chain_providers" }
 name_resolver = { path = "../../crates/name_resolver" }
 primitives = { path = "../../crates/primitives" }
 services = { path = "../../crates/services" }
+config_keys = { path = "../../crates/config_keys" }
 defi = { path = "../../crates/defi" }
 nft = { path = "../../crates/nft" }
 gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }

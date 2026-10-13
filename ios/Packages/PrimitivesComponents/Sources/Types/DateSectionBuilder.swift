@@ -21,12 +21,11 @@ public struct DateSectionBuilder<Item, T: Sendable & Identifiable> {
     }
 
     public func build() -> [ListSection<T>] {
-        let boundaries = GemDayBoundaries.current
-        return boundaries.sections(days: items.map { $0[keyPath: dateKeyPath].gemDay }, newestFirst: true).map { section in
+        GemDayBoundaries.current.sections(days: items.map { $0[keyPath: dateKeyPath].gemDay }, newestFirst: true).map { section in
             let date = section.day.date
             return ListSection(
                 id: date.ISO8601Format(),
-                title: TransactionDateFormatter(date: date, boundaries: boundaries).section,
+                title: TransactionDateFormatter(date: date, label: section.label).section,
                 image: nil,
                 values: section.positions.map { transform(items[Int($0)]) },
             )

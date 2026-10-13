@@ -2,6 +2,7 @@
 
 import Foundation
 import struct Gemstone.GemDayBoundaries
+import enum Gemstone.GemDayLabel
 import GemstonePrimitives
 import Localization
 import os
@@ -10,7 +11,7 @@ public struct TransactionDateFormatter: Sendable {
     private static let formatters = OSAllocatedUnfairLock<[FormatterKey: DateFormatter]>(initialState: [:])
 
     private let date: Date?
-    private let boundaries: GemDayBoundaries
+    private let label: GemDayLabel?
     private let locale: Locale
     private let timeZone: TimeZone
 
@@ -21,7 +22,19 @@ public struct TransactionDateFormatter: Sendable {
         timeZone: TimeZone = .current,
     ) {
         self.date = date
-        self.boundaries = boundaries
+        label = date.map { boundaries.label(day: $0.gemDay(in: timeZone)) }
+        self.locale = locale
+        self.timeZone = timeZone
+    }
+
+    public init(
+        date: Date,
+        label: GemDayLabel,
+        locale: Locale = .current,
+        timeZone: TimeZone = .current,
+    ) {
+        self.date = date
+        self.label = label
         self.locale = locale
         self.timeZone = timeZone
     }
@@ -59,7 +72,7 @@ public struct TransactionDateFormatter: Sendable {
     }
 
     private var dayLabel: String? {
-        date.flatMap { boundaries.label(day: $0.gemDay(in: timeZone)).title }
+        label?.title
     }
 
     private func formatter(dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style) -> DateFormatter {

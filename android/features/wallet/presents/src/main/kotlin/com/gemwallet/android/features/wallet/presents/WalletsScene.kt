@@ -12,6 +12,7 @@ import com.gemwallet.android.features.wallet.presents.components.WalletsActions
 import com.gemwallet.android.features.wallet.presents.components.wallets
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
+import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSection
 
 @Composable
@@ -25,6 +26,10 @@ internal fun WalletsScene(sections: List<GemWalletSection>, snackbar: SnackbarHo
         snackbar = snackbar,
         onClose = { onAction(WalletsAction.Cancel) },
     ) {
+        val onEdit: (GemWalletRow) -> Unit = { onAction(WalletsAction.Edit(it)) }
+        val onSelectWallet: (GemWalletRow) -> Unit = { onAction(WalletsAction.Select(it)) }
+        val onDeleteWallet: (GemWalletRow) -> Unit = { onAction(WalletsAction.Delete(it)) }
+        val onTogglePin: (GemWalletRow) -> Unit = { onAction(WalletsAction.TogglePin(it)) }
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 WalletsActions(
@@ -36,10 +41,10 @@ internal fun WalletsScene(sections: List<GemWalletSection>, snackbar: SnackbarHo
                 wallets(
                     section = section,
                     longPressedWallet = longPressedWallet,
-                    onEdit = { onAction(WalletsAction.Edit(it)) },
-                    onSelectWallet = { onAction(WalletsAction.Select(it)) },
-                    onDeleteWallet = { onAction(WalletsAction.Delete(it)) },
-                    onTogglePin = { onAction(WalletsAction.TogglePin(it)) },
+                    onEdit = onEdit,
+                    onSelectWallet = onSelectWallet,
+                    onDeleteWallet = onDeleteWallet,
+                    onTogglePin = onTogglePin,
                 )
             }
         }

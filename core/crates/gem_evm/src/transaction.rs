@@ -1,9 +1,11 @@
 use crate::u256::u256_to_biguint;
-use alloy_primitives::{U160, U256, hex};
+use alloy_primitives::{Address, U160, U256, hex};
 use alloy_sol_types::SolCall;
+use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
 use primitives::swap::ApprovalData;
 
 use crate::contracts::erc20::IERC20;
+use crate::permit2::IAllowanceTransfer;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum EvmTransactionKind {
@@ -12,7 +14,7 @@ pub enum EvmTransactionKind {
     TokenApproval(ApprovalData),
 }
 
-pub fn decode_transaction_kind(token: &str, input: Option<&str>) -> Result<EvmTransactionKind, String> {
+pub fn decode_transaction_kind(to: &str, input: Option<&str>) -> Result<EvmTransactionKind, String> {
     let calldata = input
         .map(|value| value.strip_prefix("0x").unwrap_or(value))
         .map(hex::decode)
@@ -24,20 +26,33 @@ pub fn decode_transaction_kind(token: &str, input: Option<&str>) -> Result<EvmTr
         [] => Ok(EvmTransactionKind::Transfer),
         selector if selector.starts_with(&IERC20::approveCall::SELECTOR) => {
             let approval = IERC20::approveCall::abi_decode(&calldata).map_err(|error| error.to_string())?;
-            Ok(EvmTransactionKind::TokenApproval(ApprovalData {
-                token: token.to_string(),
-                spender: approval.spender.to_string(),
-                value: u256_to_biguint(&approval.value),
-                is_unlimited: approval.value == U256::MAX || approval.value == U256::from(U160::MAX),
-            }))
+            Ok(token_approval(to.to_string(), approval.spender, approval.value))
+        }
+        selector if selector.starts_with(&IERC20::increaseAllowanceCall::SELECTOR) => {
+            let approval = IERC20::increaseAllowanceCall::abi_decode(&calldata).map_err(|error| error.to_string())?;
+            Ok(token_approval(to.to_string(), approval.spender, approval.addedValue))
+        }
+        selector if selector.starts_with(&IAllowanceTransfer::approveCall::SELECTOR) && to.eq_ignore_ascii_case(UNISWAP_PERMIT2_CONTRACT) => {
+            let approval = IAllowanceTransfer::approveCall::abi_decode_validate(&calldata).map_err(|error| error.to_string())?;
+            Ok(token_approval(approval.token.to_string(), approval.spender, U256::from(approval.amount)))
         }
         _ => Ok(EvmTransactionKind::ContractCall),
     }
 }
 
+fn token_approval(token: String, spender: Address, value: U256) -> EvmTransactionKind {
+    EvmTransactionKind::TokenApproval(ApprovalData {
+        token,
+        spender: spender.to_string(),
+        value: u256_to_biguint(&value),
+        is_unlimited: value == U256::MAX || value == U256::from(U160::MAX),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloy_primitives::{address, aliases::U48};
     use num_bigint::BigUint;
 
     #[test]
@@ -82,5 +97,41 @@ mod tests {
         );
         assert!(decode_transaction_kind(token, Some("0x095ea7b3abcd")).is_err());
         assert!(decode_transaction_kind(token, Some("invalid")).is_err());
+    }
+
+    #[test]
+    fn test_decode_allowance_approvals() {
+        let token = address!("0x111122223333444455556666777788889999aaaa");
+        let spender = address!("0x22223333444455556666777788889999aaaabbbb");
+        let increase = hex::encode_prefixed(IERC20::increaseAllowanceCall { spender, addedValue: U256::from(100) }.abi_encode());
+        let permit2 = hex::encode_prefixed(
+            IAllowanceTransfer::approveCall {
+                token,
+                spender,
+                amount: U160::MAX,
+                expiration: U48::from(1_800_000_000u64),
+            }
+            .abi_encode(),
+        );
+
+        assert_eq!(
+            decode_transaction_kind(&token.to_string(), Some(&increase)).unwrap(),
+            EvmTransactionKind::TokenApproval(ApprovalData {
+                token: token.to_string(),
+                spender: spender.to_string(),
+                value: BigUint::from(100u64),
+                is_unlimited: false,
+            })
+        );
+        assert_eq!(
+            decode_transaction_kind(UNISWAP_PERMIT2_CONTRACT, Some(&permit2)).unwrap(),
+            EvmTransactionKind::TokenApproval(ApprovalData {
+                token: token.to_string(),
+                spender: spender.to_string(),
+                value: u256_to_biguint(&U256::from(U160::MAX)),
+                is_unlimited: true,
+            })
+        );
+        assert_eq!(decode_transaction_kind(&token.to_string(), Some(&permit2)).unwrap(), EvmTransactionKind::ContractCall);
     }
 }

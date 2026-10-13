@@ -76,6 +76,7 @@ flowchart LR
 | The amount, an asset or the slippage changes | You Receive clears | |
 | An answer arrives for an amount or pair the user has already changed | it is thrown away | |
 | The price impact is a loss of more than `1%` | Details shows the Price Impact | |
+| Across quotes within `0.1%` of the best quote | Across is chosen; for a 100% swap, a provider that leaves nothing behind within `0.25%` still comes first | Across settles in seconds through a direct deposit on the paying network |
 | The user picks another provider | the choice survives refreshes | |
 | A chosen Slippage is `3%` or more | a warning | |
 | Slippage is Auto, including Solana's `3%` | no warning | |

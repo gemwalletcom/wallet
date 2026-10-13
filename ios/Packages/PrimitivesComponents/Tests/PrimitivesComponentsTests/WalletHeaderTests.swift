@@ -1,7 +1,6 @@
 import func Gemstone.formattedCurrency
 import func Gemstone.formattedPercentage
 import struct Gemstone.GemFormattedNumber
-import struct Gemstone.GemHeaderButton
 import enum Gemstone.GemLocalizedText
 import struct Gemstone.GemRowText
 import struct Gemstone.GemValueHeader

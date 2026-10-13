@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemPaymentRecipient
 import enum Gemstone.GemRecipientErrorDisplay
 import struct Gemstone.GemTransferData
 import struct Gemstone.NameRecord

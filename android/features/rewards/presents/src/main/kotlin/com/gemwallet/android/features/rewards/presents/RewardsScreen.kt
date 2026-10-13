@@ -112,11 +112,12 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         onDismissRequest = { isShowSelectWallets = false },
         title = stringResource(R.string.wallets_title),
     ) {
+        val onSelectWallet: (String) -> Unit = { id ->
+            viewModel.setWallet(walletId = id)
+            isShowSelectWallets = false
+        }
         LazyColumn {
-            walletSections(wallet?.sections.orEmpty(), wallet?.row?.id) { id ->
-                viewModel.setWallet(walletId = id)
-                isShowSelectWallets = false
-            }
+            walletSections(wallet?.sections.orEmpty(), wallet?.row?.id, onSelectWallet)
         }
     }
 

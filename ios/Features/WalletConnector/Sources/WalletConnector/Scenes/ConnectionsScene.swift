@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemConnection
 import Localization
 import Primitives
 import PrimitivesComponents

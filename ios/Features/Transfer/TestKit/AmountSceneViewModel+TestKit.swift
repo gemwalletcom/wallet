@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAmountService
-import class Gemstone.GemStakeService
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit

@@ -4,7 +4,6 @@ import BigInt
 import Foundation
 import Gemstone
 import enum Gemstone.GemNameInputStep
-import struct Gemstone.GemPriceAlertSession
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit

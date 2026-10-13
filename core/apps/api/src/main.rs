@@ -16,6 +16,7 @@ use std::{error::Error, str::FromStr, sync::Arc};
 use ::defi::{DefiProviderClient, DefiProviderConfig};
 use ::nft::{NFTProviderClient, NFTProviderConfig};
 use chain_providers::ProviderFactory;
+use config_keys::ConfigKey;
 use gem_tracing::info_with_fields;
 use http_server::{ServeConfig, ShutdownReceiver, serve, shutdown_channel, spawn_signal_handler};
 use model::APIService;
@@ -32,7 +33,7 @@ use tower_http::normalize_path::NormalizePathLayer;
 use crate::auth::device::{DeviceAuthConfig, JwtConfig};
 use crate::routes::devices::support::SupportImageUploadConfig;
 use crate::state::{AppState, Clients};
-use crate::stream::{StreamObserverConfig, StreamState};
+use crate::stream::{StreamObserverConfig, StreamPricesConfig, StreamState};
 
 fn device_auth_config(settings: &Settings) -> Arc<DeviceAuthConfig> {
     let jwt = JwtConfig {
@@ -120,6 +121,9 @@ async fn stream_state(settings: &Settings, shutdown: ShutdownReceiver) -> Result
         observer: Arc::new(StreamObserverConfig {
             redis_url: settings.redis.url.clone(),
             device_stream: services.device_stream(cacher_client).await?,
+            prices: StreamPricesConfig {
+                limit: services.config().get_usize(ConfigKey::DeviceStreamPricesLimit).await?,
+            },
         }),
         shutdown,
         connections: TaskTracker::new(),

@@ -2,7 +2,6 @@
 
 import Foundation
 import protocol Gemstone.GemNotificationsServiceProtocol
-import enum Gemstone.GemPushResult
 import struct Gemstone.GemPushState
 
 public final class GemNotificationsServiceMock: GemNotificationsServiceProtocol, @unchecked Sendable {

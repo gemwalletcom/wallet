@@ -44,6 +44,15 @@ struct TransactionDateFormatterTests {
     }
 
     @Test
+    func aSectionReadsTheDayLabelCoreGave() throws {
+        let older = try #require(calendar.date(from: DateComponents(year: 2025, month: 2, day: 2, hour: 10, minute: 25)))
+
+        #expect(TransactionDateFormatter(date: older, label: .today, locale: locale, timeZone: timeZone).section == "Today")
+        #expect(TransactionDateFormatter(date: older, label: .yesterday, locale: locale, timeZone: timeZone).section == "Yesterday")
+        #expect(TransactionDateFormatter(date: older, label: .date, locale: locale, timeZone: timeZone).section == "February 2, 2025")
+    }
+
+    @Test
     func aChangedLocaleOrClockFormatsAfresh() throws {
         let morning = try #require(calendar.date(from: DateComponents(year: 2025, month: 2, day: 2, hour: 7, minute: 5)))
         var twentyFourHour = Locale.Components(locale: locale)

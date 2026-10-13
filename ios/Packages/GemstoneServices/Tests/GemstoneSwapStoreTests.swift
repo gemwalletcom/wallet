@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemAssetFilter
 @testable import GemstoneServices
 import Primitives
 import PrimitivesTestKit

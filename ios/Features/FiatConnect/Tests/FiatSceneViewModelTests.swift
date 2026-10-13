@@ -5,7 +5,6 @@ import BigInt
 import FiatConnectTestKit
 import Foundation
 import struct Gemstone.FiatQuote
-import func Gemstone.formattedCurrency
 import struct Gemstone.GemFiatQuoteRequest
 import struct Gemstone.GemProviderRow
 import GemstonePrimitives

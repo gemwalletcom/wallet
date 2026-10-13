@@ -7,19 +7,26 @@ use std::sync::Arc;
 
 use crate::routes::fiat_rates::filter_fiat_rates;
 
+#[derive(Debug, Clone, Copy)]
+pub struct StreamPricesConfig {
+    pub limit: usize,
+}
+
 pub struct PriceHandler {
     price_client: Arc<PriceClient>,
     version: Version,
+    config: StreamPricesConfig,
     assets: HashSet<AssetId>,
     prices_to_publish: HashMap<String, AssetPrice>,
     interval: tokio::time::Interval,
 }
 
 impl PriceHandler {
-    pub fn new(price_client: Arc<PriceClient>, version: Version) -> Self {
+    pub fn new(price_client: Arc<PriceClient>, version: Version, config: StreamPricesConfig) -> Self {
         Self {
             price_client,
             version,
+            config,
             assets: HashSet::new(),
             prices_to_publish: HashMap::new(),
             interval: tokio::time::interval(std::time::Duration::from_secs(5)),
@@ -59,12 +66,12 @@ impl PriceHandler {
     }
 
     async fn get_prices(&self, message: &StreamMessagePrices) -> Result<StreamEvent, Box<dyn Error + Send + Sync>> {
-        self.price_event(message.assets.clone(), false).await
+        self.price_event(message.assets.iter().take(self.config.limit).cloned().collect(), false).await
     }
 
     async fn subscribe_prices(&mut self, message: &StreamMessagePrices, redis_connection: &mut MultiplexedConnection) -> Result<StreamEvent, Box<dyn Error + Send + Sync>> {
         let old_channels = self.get_channel_ids();
-        self.assets = message.assets.iter().cloned().collect();
+        self.assets = message.assets.iter().take(self.config.limit).cloned().collect();
         self.prices_to_publish.clear();
         if !old_channels.is_empty() {
             redis_connection.unsubscribe(old_channels).await?;
@@ -75,7 +82,8 @@ impl PriceHandler {
     }
 
     async fn add_prices(&mut self, message: &StreamMessagePrices, redis_connection: &mut MultiplexedConnection) -> Result<StreamEvent, Box<dyn Error + Send + Sync>> {
-        let new_assets: Vec<AssetId> = message.assets.iter().filter(|asset| !self.assets.contains(*asset)).cloned().collect();
+        let capacity = self.config.limit.saturating_sub(self.assets.len());
+        let new_assets: Vec<AssetId> = message.assets.iter().filter(|asset| !self.assets.contains(*asset)).take(capacity).cloned().collect();
         let new_channels: Vec<String> = new_assets.iter().map(price_channel).collect();
         self.assets.extend(new_assets);
         let event = self.price_event(self.assets.iter().cloned().collect(), false).await?;

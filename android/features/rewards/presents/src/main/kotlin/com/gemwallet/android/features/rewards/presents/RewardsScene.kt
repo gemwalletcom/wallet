@@ -167,6 +167,7 @@ fun RewardsScene(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
         ) {
+            val onGetStarted: () -> Unit = { getStartedDialogShow = true }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 when (state) {
                     GemLoadState.NoData -> {
@@ -185,7 +186,7 @@ fun RewardsScene(
                     description = inviteDescription,
                     intro = introItems,
                     action = inviteAction,
-                    onGetStarted = { getStartedDialogShow = true },
+                    onGetStarted = onGetStarted,
                     onShare = onInvite,
                 )
 

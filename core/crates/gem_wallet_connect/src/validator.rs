@@ -43,7 +43,7 @@ fn validate_siwe(input: &SignMessageValidation) -> Result<(), String> {
         return Ok(());
     };
     message.validate(input.chain)?;
-    validate_session_domain(&message, input.session_domain)
+    validate_domain(&message.domain, input.session_domain)
 }
 
 fn decode_text(data: &str) -> Option<String> {
@@ -54,11 +54,11 @@ fn decode_text(data: &str) -> Option<String> {
     }
 }
 
-fn validate_session_domain(message: &SiweMessage, session_domain: &str) -> Result<(), String> {
+pub fn validate_domain(domain: &str, session_domain: &str) -> Result<(), String> {
     let session_host = host_only(session_domain).ok_or_else(|| "Invalid session origin".to_string())?;
-    let message_host = host_only(&message.domain).ok_or_else(|| "Invalid SIWE domain".to_string())?;
+    let message_host = host_only(domain).ok_or_else(|| "Invalid SIWE domain".to_string())?;
     if session_host != message_host {
-        return Err(format!("Domain mismatch: SIWE domain {} does not match session origin {}", message.domain, session_domain));
+        return Err(format!("Domain mismatch: SIWE domain {domain} does not match session origin {session_domain}"));
     }
     Ok(())
 }

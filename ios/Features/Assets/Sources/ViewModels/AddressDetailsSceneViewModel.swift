@@ -4,7 +4,6 @@ import Foundation
 import struct Gemstone.GemAddressDetails
 import protocol Gemstone.GemAddressDetailsServiceProtocol
 import struct Gemstone.GemCopy
-import enum Gemstone.GemListRow
 import struct Gemstone.GemListSection
 import GemstonePrimitives
 import Localization

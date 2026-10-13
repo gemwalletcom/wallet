@@ -85,6 +85,7 @@ internal fun PriceAlertsScene(
             isRefreshing = syncState,
             onRefresh = { onAction(PriceAlertsAction.Refresh) },
         ) {
+            val onExclude: (String) -> Unit = { onAction(PriceAlertsAction.Exclude(it)) }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 (phase as? GemListPhase.Error)?.let { item { GemListRowView(row = GemListRow.Error(it.error), listPosition = ListPosition.Single) } }
                 header()
@@ -93,7 +94,7 @@ internal fun PriceAlertsScene(
                     revealable = revealable,
                     sections = sections,
                     onChart = onChart,
-                    onExclude = { onAction(PriceAlertsAction.Exclude(it)) },
+                    onExclude = onExclude,
                 )
             }
         }

@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
-use gem_wallet_connect::{WalletConnectVerifier, validate_sign_message_account};
+use gem_wallet_connect::{WalletConnectVerifier, validate_domain, validate_sign_message_account};
 use primitives::{Account, ApplicationMetadata, Chain, Platform, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId};
 
 use crate::application;
@@ -120,10 +120,6 @@ impl GemWalletConnectService {
         self.wallet_connect.config_session_properties(properties, caip2_chains, accounts)
     }
 
-    pub fn authentication_chain_ids(&self, chain_ids: Vec<String>) -> Vec<String> {
-        rules::authentication_chain_ids(&chain_ids)
-    }
-
     pub fn authentication_accounts(&self, chain_ids: Vec<String>, wallet: Wallet) -> Vec<GemWalletConnectAuthAccount> {
         rules::authentication_accounts(&chain_ids, &wallet)
     }
@@ -163,6 +159,18 @@ impl GemWalletConnectService {
             proposal: WalletConnectionSessionProposal { default_wallet, wallets, metadata },
             verification_status,
         })
+    }
+
+    pub async fn prepare_authentication(
+        &self,
+        chain_ids: Vec<String>,
+        domain: String,
+        metadata: ApplicationMetadata,
+        origin: Option<String>,
+        validation: WalletConnectionVerificationStatus,
+    ) -> Result<GemSessionProposal, GemWalletConnectError> {
+        validate_domain(&domain, &metadata.url).map_err(|_| GemWalletConnectError::InvalidOrigin)?;
+        self.prepare_session_proposal(vec![], rules::authentication_chain_ids(&chain_ids), metadata, origin, validation).await
     }
 
     pub fn connections_view(&self, connections: Vec<WalletConnection>) -> GemConnectionsView {
@@ -672,6 +680,28 @@ mod tests {
 
             let messages = signer.messages.lock().unwrap();
             assert!(!messages[0].simulation.warnings.iter().any(|warning| warning.warning == primitives::SimulationWarningType::SuspiciousSpender));
+        })
+    }
+
+    #[test]
+    fn test_a_one_click_sign_in_must_name_the_app_it_comes_from() {
+        block_on(async {
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0x1111111111111111111111111111111111111111")]);
+            let service = GemWalletConnectService::mock(Ok("0xsignature".to_string()), wallet).await;
+            let prepare = |domain: &str| {
+                service.prepare_authentication(
+                    vec!["eip155:1".to_string()],
+                    domain.to_string(),
+                    ApplicationMetadata::mock(),
+                    Some("https://example.com".to_string()),
+                    WalletConnectionVerificationStatus::Verified,
+                )
+            };
+
+            assert_eq!(prepare("app.uniswap.org").await.err(), Some(GemWalletConnectError::InvalidOrigin), "a login for another site is refused");
+            assert_eq!(prepare("").await.err(), Some(GemWalletConnectError::InvalidOrigin));
+            assert_eq!(prepare("example.com").await.unwrap().verification_status, WalletConnectionVerificationStatus::Verified);
+            assert_eq!(prepare("https://EXAMPLE.com/login").await.unwrap().verification_status, WalletConnectionVerificationStatus::Verified);
         })
     }
 

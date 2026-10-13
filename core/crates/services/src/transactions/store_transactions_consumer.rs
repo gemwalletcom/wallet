@@ -5,6 +5,7 @@ use std::{collections::HashMap, error::Error};
 
 use async_trait::async_trait;
 use futures::{StreamExt, TryStreamExt, stream};
+use gem_tracing::info_with_fields;
 use primitives::{AssetAddress, AssetIdVecExt, AssetPriceMetadata, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
 use storage::AssetFilter;
 use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
@@ -37,9 +38,10 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
 
     async fn consume(&self, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let config = StoreTransactionsConsumerConfig::read(&self.config).await?;
-        let referral_transactions = payload.transactions.iter().filter(|transaction| referral_queue(transaction).is_some()).cloned().collect();
+        let cross_chain_and_referral_transactions = payload.transactions.clone();
+        let notification_type = payload.notification_type.clone();
         let count = self.store_subscribed_transactions(&config, payload).await?;
-        self.store_referral_transactions(&config, referral_transactions).await?;
+        self.store_cross_chain_and_referral_transactions(&config, cross_chain_and_referral_transactions, &notification_type).await?;
         Ok(count)
     }
 }
@@ -49,12 +51,14 @@ impl StoreTransactionsConsumer {
         let is_notify_devices = payload.should_notify_devices();
         let subscriptions = self.get_subscriptions(payload.chain, &payload.transactions).await?;
         if subscriptions.is_empty() {
+            info_with_fields!("transaction storage skipped", chain = payload.chain.as_ref(), stage = "subscriptions", transactions = payload.transactions.len());
             return Ok(0);
         }
 
         let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
-        let transactions = Self::subscribed_transactions_for_storage(config, payload.transactions, &subscriptions, &deposit_addresses, &send_addresses);
+        let transactions = Self::subscribed_transactions_for_storage(config, payload.transactions, &subscriptions, &deposit_addresses, &send_addresses, &payload.notification_type);
         if transactions.is_empty() {
+            info_with_fields!("transaction storage skipped", chain = payload.chain.as_ref(), stage = "transaction_filters", subscriptions = subscriptions.len());
             return Ok(0);
         }
 
@@ -62,6 +66,7 @@ impl StoreTransactionsConsumer {
         let subscribed_transactions = Self::subscribed_transactions(config, &subscriptions, &transactions, &assets);
         let transactions_map = subscribed_transactions.iter().map(|(_, transaction)| (transaction.id.clone(), (*transaction).clone())).collect::<HashMap<_, _>>();
         if transactions_map.is_empty() {
+            info_with_fields!("transaction storage skipped", chain = payload.chain.as_ref(), stage = "asset_filters", transactions = transactions.len(), assets = assets.len());
             return Ok(0);
         }
         let assets_addresses = Self::assets_addresses(&subscribed_transactions, &assets);
@@ -85,18 +90,24 @@ impl StoreTransactionsConsumer {
         Ok(transaction_count)
     }
 
-    async fn store_referral_transactions(&self, config: &StoreTransactionsConsumerConfig, transactions: Vec<Transaction>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn store_cross_chain_and_referral_transactions(&self, config: &StoreTransactionsConsumerConfig, transactions: Vec<Transaction>, notification_type: &TransactionNotificationType) -> Result<(), Box<dyn Error + Send + Sync>> {
         if transactions.is_empty() {
             return Ok(());
         }
         let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
-        let transactions = Self::transactions_for_storage(transactions, &deposit_addresses, &send_addresses);
+        let transactions = Self::transactions_for_storage(transactions, &deposit_addresses, &send_addresses, notification_type)
+            .into_iter()
+            .filter(|transaction| cross_chain::is_cross_chain_swap(transaction, &deposit_addresses) || referral_processing_queue(transaction).is_some())
+            .collect::<Vec<_>>();
+        if transactions.is_empty() {
+            return Ok(());
+        }
         let asset_ids: Vec<AssetId> = transactions.iter().flat_map(Transaction::asset_ids).collect::<HashSet<_>>().into_iter().collect();
         let existing_ids = self.repository.get_assets(asset_ids.clone()).await?.into_iter().map(|asset| asset.id).collect::<HashSet<_>>();
         self.stream_producer.publish_fetch_assets(asset_ids.into_iter().filter(|id| !existing_ids.contains(id)).collect()).await?;
 
         let transactions = transactions.into_iter().filter(|transaction| transaction.asset_ids().iter().all(|id| existing_ids.contains(id))).collect::<Vec<_>>();
-        let referrals = transactions.iter().filter_map(|transaction| Some((referral_queue(transaction)?, transaction.id.clone()))).collect::<Vec<_>>();
+        let referrals = transactions.iter().filter_map(|transaction| Some((referral_processing_queue(transaction)?, transaction.id.clone()))).collect::<Vec<_>>();
         self.upsert_transactions(transactions, config.batch_size).await?;
         for (queue, transaction_id) in referrals {
             self.stream_producer.publish_referral_transaction(queue, transaction_id).await?;
@@ -115,9 +126,10 @@ impl StoreTransactionsConsumer {
         subscriptions: &[DeviceSubscription],
         deposit_addresses: &DepositAddressMap,
         send_addresses: &SendAddressMap,
+        notification_type: &TransactionNotificationType,
     ) -> Vec<Transaction> {
         let subscription_addresses: HashSet<_> = subscriptions.iter().map(|subscription| &subscription.address).collect();
-        Self::transactions_for_storage(transactions, deposit_addresses, send_addresses)
+        Self::transactions_for_storage(transactions, deposit_addresses, send_addresses, notification_type)
             .into_iter()
             .filter(|transaction| config.is_transaction_within_asset_transfer_limit(transaction))
             .filter(|transaction| transaction.addresses().iter().any(|address| subscription_addresses.contains(address)))
@@ -263,7 +275,7 @@ impl StoreTransactionsConsumer {
             .collect()
     }
 
-    fn transactions_for_storage(transactions: Vec<Transaction>, deposit_addresses: &DepositAddressMap, send_addresses: &SendAddressMap) -> Vec<Transaction> {
+    fn transactions_for_storage(transactions: Vec<Transaction>, deposit_addresses: &DepositAddressMap, send_addresses: &SendAddressMap, notification_type: &TransactionNotificationType) -> Vec<Transaction> {
         transactions
             .into_iter()
             .filter_map(|mut transaction| {
@@ -271,7 +283,7 @@ impl StoreTransactionsConsumer {
                     return None;
                 }
 
-                if Self::should_mark_in_transit(&transaction, deposit_addresses) {
+                if matches!(notification_type, TransactionNotificationType::NewTransaction) && Self::should_mark_in_transit(&transaction, deposit_addresses) {
                     transaction.state = TransactionState::InTransit;
                 }
 
@@ -283,7 +295,7 @@ impl StoreTransactionsConsumer {
     fn should_mark_in_transit(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> bool {
         transaction.state == TransactionState::Confirmed
             && CROSS_CHAIN_SOURCE_TYPES.contains(&transaction.transaction_type)
-            && !(transaction.transaction_type == TransactionType::Swap && transaction.metadata.is_some())
+            && !(transaction.transaction_type == TransactionType::Swap && transaction.swap_metadata().is_some())
             && cross_chain::is_cross_chain_swap(transaction, deposit_addresses)
     }
 
@@ -309,7 +321,7 @@ impl StoreTransactionsConsumer {
     }
 }
 
-fn referral_queue(transaction: &Transaction) -> Option<QueueName> {
+fn referral_processing_queue(transaction: &Transaction) -> Option<QueueName> {
     match transaction.transaction_type {
         TransactionType::Swap => transaction.swap_metadata()?.referral_fee.map(|_| QueueName::StoreTransactionsSwaps),
         TransactionType::PerpetualOpenPosition | TransactionType::PerpetualClosePosition => transaction.perpetual_metadata()?.referral_fee.map(|_| QueueName::StoreTransactionsPerpetuals),
@@ -362,7 +374,7 @@ mod tests {
         };
         let transaction = map_transaction(&source, response.result.block_time).unwrap();
         let deposit_addresses = DepositAddressMap::from([(SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID.to_string(), SwapProvider::Mayan)]);
-        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new());
+        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction);
 
         assert_eq!(transactions.len(), 1);
         let transaction = &transactions[0];
@@ -370,7 +382,7 @@ mod tests {
         assert_eq!(transaction.state, TransactionState::InTransit);
         assert_eq!(transaction.asset_id, AssetId::from_token(Chain::Solana, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"));
         assert_eq!(transaction.value, BigUint::from(1_000_000_000u64));
-        assert_eq!(transaction.metadata, None);
+        assert_eq!(transaction.asset_ids(), vec![AssetId::from_token(Chain::Solana, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB")]);
         assert_eq!(cross_chain::swap_provider_with_vault_addresses(transaction, &deposit_addresses), Some(SwapProvider::Mayan));
     }
 
@@ -383,7 +395,7 @@ mod tests {
         };
         let transaction = map_transaction(&source, response.result.block_time).unwrap();
         let deposit_addresses = DepositAddressMap::from([(SOLANA_RELAY_DEPOSITORY_PROGRAM_ID.to_string(), SwapProvider::Relay)]);
-        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new());
+        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction);
 
         assert_eq!(transactions.len(), 1);
         let transaction = &transactions[0];
@@ -438,7 +450,7 @@ mod tests {
     }
 
     #[test]
-    fn test_referral_queue() {
+    fn test_referral_processing_queue() {
         let referral_fee = TransactionSwapReferralFee {
             asset_id: AssetId::from_chain(Chain::Ethereum),
             value: BigUint::from(1u32),
@@ -457,11 +469,11 @@ mod tests {
             ..Transaction::mock()
         };
 
-        assert_eq!(referral_queue(&referral_swap), Some(QueueName::StoreTransactionsSwaps));
-        assert_eq!(referral_queue(&referral_perpetual), Some(QueueName::StoreTransactionsPerpetuals));
-        assert_eq!(referral_queue(&Transaction::mock_swap()), None);
+        assert_eq!(referral_processing_queue(&referral_swap), Some(QueueName::StoreTransactionsSwaps));
+        assert_eq!(referral_processing_queue(&referral_perpetual), Some(QueueName::StoreTransactionsPerpetuals));
+        assert_eq!(referral_processing_queue(&Transaction::mock_swap()), None);
         assert_eq!(
-            referral_queue(&Transaction {
+            referral_processing_queue(&Transaction {
                 transaction_type: TransactionType::PerpetualOpenPosition,
                 metadata: serde_json::to_value(TransactionPerpetualMetadata::mock()).ok(),
                 ..Transaction::mock()
@@ -469,11 +481,27 @@ mod tests {
             None
         );
         assert_eq!(
-            referral_queue(&Transaction {
+            referral_processing_queue(&Transaction {
                 transaction_type: TransactionType::Transfer,
                 ..referral_swap
             }),
             None
+        );
+    }
+
+    #[test]
+    fn test_transactions_for_storage_state_change_without_swap_metadata() {
+        let deposit_addresses = DepositAddressMap::from([("vault".to_string(), SwapProvider::Bridgers)]);
+        let transaction = Transaction {
+            to: "vault".to_string(),
+            transaction_type: TransactionType::Swap,
+            metadata: None,
+            ..Transaction::mock()
+        };
+
+        assert_eq!(
+            StoreTransactionsConsumer::transactions_for_storage(vec![transaction.clone()], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::StateChange),
+            vec![transaction]
         );
     }
 
@@ -495,7 +523,7 @@ mod tests {
             ..Transaction::mock()
         };
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![cross_chain], &deposit_addresses, &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![cross_chain], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::InTransit
         );
 
@@ -505,12 +533,12 @@ mod tests {
         };
         let deposit_addresses_bc = DepositAddressMap::from([("bc1qvault".to_string(), SwapProvider::Thorchain)]);
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![vault_no_memo], &deposit_addresses_bc, &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![vault_no_memo], &deposit_addresses_bc, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::Confirmed
         );
 
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![Transaction::mock()], &DepositAddressMap::new(), &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![Transaction::mock()], &DepositAddressMap::new(), &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::Confirmed
         );
 
@@ -520,7 +548,7 @@ mod tests {
             ..Transaction::mock()
         };
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![swap_type], &DepositAddressMap::new(), &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![swap_type], &DepositAddressMap::new(), &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::Confirmed
         );
 
@@ -530,7 +558,7 @@ mod tests {
             ..Transaction::mock()
         };
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![cross_chain_swap_type], &deposit_addresses, &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![cross_chain_swap_type], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::InTransit
         );
 
@@ -550,7 +578,7 @@ mod tests {
             ..Transaction::mock()
         };
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![confirmed_cross_chain_swap_update], &deposit_addresses, &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![confirmed_cross_chain_swap_update], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::Confirmed
         );
 
@@ -560,7 +588,7 @@ mod tests {
             ..Transaction::mock()
         };
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![token_approval], &DepositAddressMap::new(), &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![token_approval], &DepositAddressMap::new(), &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::Confirmed
         );
 
@@ -570,13 +598,13 @@ mod tests {
             ..Transaction::mock()
         };
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![pending], &DepositAddressMap::new(), &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![pending], &DepositAddressMap::new(), &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::Pending
         );
 
         let near_intents = Transaction { to: near_vault, ..Transaction::mock() };
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![near_intents], &deposit_addresses, &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![near_intents], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::InTransit
         );
 
@@ -586,7 +614,7 @@ mod tests {
             ..Transaction::mock()
         };
         assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![relay], &deposit_addresses, &SendAddressMap::new())[0].state,
+            StoreTransactionsConsumer::transactions_for_storage(vec![relay], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
             TransactionState::InTransit
         );
 
@@ -596,7 +624,7 @@ mod tests {
         };
         let regular = Transaction::mock();
 
-        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![outbound, regular.clone()], &DepositAddressMap::new(), &send_addresses);
+        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![outbound, regular.clone()], &DepositAddressMap::new(), &send_addresses, &TransactionNotificationType::NewTransaction);
 
         assert_eq!(transactions, vec![regular]);
     }

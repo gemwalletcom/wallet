@@ -118,12 +118,12 @@ impl GemWalletConnectService {
         store
             .add_connection(WalletConnection {
                 session: WalletConnectionSession::mock("topic", &chains),
-                wallet,
+                wallet: wallet.clone(),
             })
             .await
             .unwrap();
         let provider: Arc<dyn AlienProvider> = provider;
-        let wallet_session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default())));
+        let wallet_session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::with_wallets(vec![wallet]))));
         let sign_message = Arc::new(GemSignMessageService::new(
             Arc::new(GemNameService::new(
                 Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),

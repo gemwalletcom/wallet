@@ -44,14 +44,18 @@ private fun ClipboardManager.setClip(context: Context, data: String, isSensitive
 private fun ClipboardManager.clearExpiredClip(label: String) {
     val current = primaryClipDescription
     if (current == null || current.label == label) {
-        clearPrimaryClip()
+        clear()
     }
 }
 
 fun ClipboardManager.getPlainText(): String? = primaryClip?.getItemAt(0)?.text?.toString()
 
 fun ClipboardManager.clear() {
-    clearPrimaryClip()
+    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
+        setPrimaryClip(ClipData.newPlainText("", ""))
+    } else {
+        clearPrimaryClip()
+    }
 }
 
 fun Context.clipboardManager(): ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.Chain
 import struct Gemstone.Contact
 import struct Gemstone.ContactAddress
 import struct Gemstone.GemContactAddressSession

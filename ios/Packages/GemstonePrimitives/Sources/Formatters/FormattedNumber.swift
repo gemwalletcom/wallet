@@ -3,10 +3,6 @@
 import Formatters
 import Foundation
 import struct Gemstone.GemFormattedNumber
-import enum Gemstone.GemNumberDisplay
-import enum Gemstone.GemNumberNotation
-import enum Gemstone.GemNumberRounding
-import enum Gemstone.GemNumberUnit
 import enum Gemstone.GemPrecision
 
 public extension GemFormattedNumber {

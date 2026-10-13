@@ -3,9 +3,7 @@
 @testable import Assets
 import AssetsTestKit
 import struct Gemstone.GemAssetBalanceRow
-import class Gemstone.GemDeeplinkService
 import struct Gemstone.GemFormattedNumber
-import protocol Gemstone.GemPriceAlertServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
 import GemstonePrimitives
 import GemstonePrimitivesTestKit

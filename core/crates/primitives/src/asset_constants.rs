@@ -20,12 +20,6 @@ pub static ARBITRUM_ARB_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::
 pub const SMARTCHAIN_CAKE_TOKEN_ID: &str = "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82";
 pub static SMARTCHAIN_CAKE_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::SmartChain, SMARTCHAIN_CAKE_TOKEN_ID));
 
-pub const ARBITRUM_DAI_TOKEN_ID: &str = "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1";
-pub static ARBITRUM_DAI_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arbitrum, ARBITRUM_DAI_TOKEN_ID));
-
-pub const BASE_DAI_TOKEN_ID: &str = "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1";
-pub static BASE_DAI_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Base, BASE_DAI_TOKEN_ID));
-
 pub const ETHEREUM_XAUT_TOKEN_ID: &str = "0x68749665FF8D2d112Fa859AA293F07A622782F38";
 pub static ETHEREUM_XAUT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ethereum, ETHEREUM_XAUT_TOKEN_ID));
 
@@ -34,18 +28,6 @@ pub static ETHEREUM_DAI_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::
 
 pub const LINEA_LINEA_TOKEN_ID: &str = "0x1789e0043623282D5DCc7F213d703C6D8BAfBB04";
 pub static LINEA_LINEA_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Linea, LINEA_LINEA_TOKEN_ID));
-
-pub const LINEA_DAI_TOKEN_ID: &str = "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1";
-pub static LINEA_DAI_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Linea, LINEA_DAI_TOKEN_ID));
-
-pub const OPTIMISM_DAI_TOKEN_ID: &str = "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1";
-pub static OPTIMISM_DAI_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Optimism, OPTIMISM_DAI_TOKEN_ID));
-
-pub const POLYGON_DAI_TOKEN_ID: &str = "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063";
-pub static POLYGON_DAI_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Polygon, POLYGON_DAI_TOKEN_ID));
-
-pub const ZKSYNC_DAI_TOKEN_ID: &str = "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1";
-pub static ZKSYNC_DAI_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::ZkSync, ZKSYNC_DAI_TOKEN_ID));
 
 pub const UNICHAIN_DAI_TOKEN_ID: &str = "0x20CAb320A855b39F724131C69424240519573f81";
 pub static UNICHAIN_DAI_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Unichain, UNICHAIN_DAI_TOKEN_ID));
@@ -58,6 +40,8 @@ pub static ARBITRUM_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId:
 
 pub const BASE_USDC_TOKEN_ID: &str = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 pub static BASE_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Base, BASE_USDC_TOKEN_ID));
+
+pub const BASE_USDT_TOKEN_ID: &str = "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2";
 
 pub const ETHEREUM_USDC_TOKEN_ID: &str = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 pub static ETHEREUM_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID));
@@ -192,7 +176,6 @@ pub const NEAR_USDT_TOKEN_ID: &str = "usdt.tether-token.near";
 pub static NEAR_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Near, NEAR_USDT_TOKEN_ID));
 
 pub const INK_USDT_TOKEN_ID: &str = "0x3baD7AD0728f9917d1Bf08af5782dCbD516cDd96";
-pub static INK_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ink, INK_USDT_TOKEN_ID));
 
 pub const INK_USDT0_TOKEN_ID: &str = "0x0200C29006150606B650577BBE7B6248F58470c1";
 pub static INK_USDT0_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ink, INK_USDT0_TOKEN_ID));
@@ -204,6 +187,7 @@ pub const SEIEVM_USDT_TOKEN_ID: &str = "0x9151434b16b9763660705744891fA906F660Ec
 pub static SEIEVM_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::SeiEvm, SEIEVM_USDT_TOKEN_ID));
 
 pub const UNICHAIN_USDT0_TOKEN_ID: &str = "0x9151434b16b9763660705744891fA906F660EcC5";
+pub static UNICHAIN_USDT0_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Unichain, UNICHAIN_USDT0_TOKEN_ID));
 
 pub const PLASMA_USDT_TOKEN_ID: &str = "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb";
 pub static PLASMA_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Plasma, PLASMA_USDT_TOKEN_ID));

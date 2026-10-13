@@ -1,18 +1,11 @@
 package com.gemwallet.android.ui.components.list_item
 
-import androidx.annotation.StringRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-
-@Composable
-fun ListItemSupportText(@StringRes stringId: Int, vararg formatArgs: Any) {
-    ListItemSupportText(stringResource(stringId, *formatArgs))
-}
 
 @Composable
 fun ListItemSupportText(text: String, color: Color = MaterialTheme.colorScheme.secondary, maxLines: Int = 1) {

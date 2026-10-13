@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemAddAssetPhase
 import protocol Gemstone.GemAddAssetServiceProtocol
 import struct Gemstone.GemAddAssetSession
 import struct Gemstone.GemAddAssetViewState

@@ -3,8 +3,6 @@
 import BigInt
 import Foundation
 import Gemstone
-import enum Gemstone.GemNameInputStep
-import struct Gemstone.GemPriceAlertSession
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -46,10 +44,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         []
     }
 
-    public func authenticationChainIds(chainIds: [String]) -> [String] {
-        chainIds
-    }
-
     public func authenticationMethods() -> [String] {
         []
     }
@@ -79,6 +73,16 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
 
     public func hasSessions() async throws -> Bool {
         hasSessionsValue
+    }
+
+    public func prepareAuthentication(
+        chainIds _: [String],
+        domain _: String,
+        metadata: Gemstone.ApplicationMetadata,
+        origin: String?,
+        validation: Gemstone.WalletConnectionVerificationStatus,
+    ) async throws -> GemSessionProposal {
+        try await prepareSessionProposal(requiredChainIds: [], optionalChainIds: [], metadata: metadata, origin: origin, validation: validation)
     }
 
     public func prepareSessionProposal(

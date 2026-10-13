@@ -5,6 +5,7 @@ import com.wallet.core.primitives.SupportAgent
 import com.wallet.core.primitives.SupportMessageSender
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemDayLabel
 import uniffi.gemstone.GemSupportBubbleSide
 
 class SupportChatDayBuilderTest {
@@ -28,6 +29,13 @@ class SupportChatDayBuilderTest {
         assertEquals(2, days.size)
         assertEquals(listOf("a"), days[0].groups.flatMap { it.rows }.map { it.message.id })
         assertEquals(listOf("b"), days[1].groups.flatMap { it.rows }.map { it.message.id })
+    }
+
+    @Test
+    fun daysCarryTheLabelCoreGives() {
+        val days = buildSupportChatDays(listOf(mockSupportMessage(id = "a", content = "a", sender = user, createdAt = day1), mockSupportMessage(id = "b", content = "b", sender = user, createdAt = System.currentTimeMillis())))
+
+        assertEquals(listOf(GemDayLabel.DATE, GemDayLabel.TODAY), days.map { it.label })
     }
 
     @Test
