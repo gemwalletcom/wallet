@@ -31,7 +31,7 @@ import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer16
 
 @Composable
-fun RedeemRewardsCodeDialog(isVisible: Boolean, referralCode: String?, onCode: (String, (Throwable?) -> Unit) -> Unit, onDismiss: () -> Unit) {
+internal fun RedeemRewardsCodeDialog(isVisible: Boolean, referralCode: String?, onCode: (String, (Throwable?) -> Unit) -> Unit, onDismiss: () -> Unit) {
     var code by remember(referralCode) { mutableStateOf(referralCode ?: "") }
     var showError by remember { mutableStateOf<Throwable?>(null) }
     var showProgress by remember { mutableStateOf(false) }

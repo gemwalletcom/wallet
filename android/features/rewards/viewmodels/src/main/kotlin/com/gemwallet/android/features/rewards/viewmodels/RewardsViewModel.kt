@@ -7,11 +7,17 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSectionUIModel
 import com.gemwallet.android.features.rewards.viewmodels.models.sectionModels
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.ToastEmitter
+import com.gemwallet.android.ui.models.ToastEmitterImpl
+import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -20,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -50,9 +57,13 @@ class RewardsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : ViewModel() {
+) : ViewModel(),
+    ToastEmitter by ToastEmitterImpl() {
 
     val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
+
+    private val errorState = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = errorState.asStateFlow()
 
     fun inviteFriends(onInvite: () -> Unit) {
         if (!service.isAvailable()) {
@@ -149,19 +160,37 @@ class RewardsViewModel @Inject constructor(
         val walletId = session.value.wallet?.id ?: return
         viewModelScope.launch(ioDispatcher) {
             runCatchingCancellable { service.useReferralCode(walletId, code) }
-                .onSuccess { rewards -> session.update { it.onRewards(walletId, rewards) } }
+                .onSuccess { rewards ->
+                    session.update { it.onRewards(walletId, rewards) }
+                    showDoneToast()
+                }
                 .report(callback)
         }
     }
 
-    fun redeem(redemption: GemRewardsRedemption, callback: (Throwable?) -> Unit) {
+    fun activateCode(code: String) = useCode(code) { error -> error?.let(::showError) }
+
+    fun onSelectRedemption(redemption: GemRewardsRedemption, onRedeem: () -> Unit) {
+        if (!redemption.canRedeem) {
+            errorState.value = context.getString(R.string.rewards_insufficient_points)
+            return
+        }
+        onRedeem()
+    }
+
+    fun redeem(redemptionId: String) {
         val walletId = session.value.wallet?.id ?: return
         viewModelScope.launch(ioDispatcher) {
-            runCatchingCancellable { service.redeem(walletId, redemption.id) }
-                .onSuccess { sync() }
-                .report(callback)
+            runCatchingCancellable { service.redeem(walletId, redemptionId) }
+                .onSuccess {
+                    showDoneToast()
+                    sync()
+                }
+                .onFailure(::showError)
         }
     }
+
+    fun clearError() = errorState.update { null }
 
     private suspend fun <T> Result<T>.report(callback: (Throwable?) -> Unit) = withContext(Dispatchers.Main) {
         callback(exceptionOrNull())
@@ -171,4 +200,10 @@ class RewardsViewModel @Inject constructor(
         session.update { it.onCodeHandled() }
         savedStateHandle[RouteArgument.Code.key] = null
     }
+
+    private fun showError(error: Throwable) {
+        errorState.value = error.errorText().text(context)
+    }
+
+    private fun showDoneToast() = emitToast(ToastMessage(context.getString(R.string.common_done), R.drawable.ic_check_circle))
 }

@@ -19,7 +19,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,7 +47,6 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.buttonState
@@ -58,7 +56,6 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import kotlinx.coroutines.launch
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemListRow
@@ -72,7 +69,7 @@ import uniffi.gemstone.GemRewardsWallet
 private val referralCodeMaxWidth = 250.dp
 
 @Composable
-fun RewardsScene(
+internal fun RewardsScene(
     state: GemLoadState,
     isRefreshing: Boolean,
     wallet: GemRewardsWallet?,
@@ -87,14 +84,8 @@ fun RewardsScene(
     incomingCode: GemIncomingCode? = null,
     onUsername: (String, (Throwable?) -> Unit) -> Unit,
     onCode: (String, (Throwable?) -> Unit) -> Unit,
-    onCodeHandled: () -> Unit,
-    onRefresh: () -> Unit,
-    onWallet: () -> Unit,
-    onRedeem: (GemRewardsRedemption) -> Unit,
-    onClose: () -> Unit,
-    onInvite: () -> Unit,
-    onError: (Throwable) -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
+    onAction: (RewardsAction) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -107,21 +98,11 @@ fun RewardsScene(
         null -> null
     }
 
-    val successStr = stringResource(R.string.common_done)
-    val scope = rememberCoroutineScope()
-
-    val onCodeResult = fun (error: Throwable?) {
-        when (error) {
-            null -> scope.launch { snackbar.showSnackbar(successStr, R.drawable.ic_check_circle) }
-            else -> onError(error)
-        }
-    }
-
     LaunchedEffect(incomingCode) {
         val code = (incomingCode as? GemIncomingCode.Activate)?.code ?: return@LaunchedEffect
         context.requestAuth(AuthRequest.Default, onCancel = { codeRetryShow = true }) {
-            onCodeHandled()
-            onCode(code, onCodeResult)
+            onAction(RewardsAction.CodeHandled)
+            onAction(RewardsAction.ActivateCode(code))
         }
     }
 
@@ -136,7 +117,7 @@ fun RewardsScene(
                         .padding(horizontal = sceneContentPadding())
                         .clip(RoundedCornerShape(paddingDefault))
                         .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(paddingDefault))
-                        .clickable(onWallet)
+                        .clickable { onAction(RewardsAction.SelectWallet) }
                         .padding(start = paddingDefault, end = paddingSmall)
                         .padding(vertical = paddingSmall),
                     verticalAlignment = Alignment.CenterVertically,
@@ -155,7 +136,7 @@ fun RewardsScene(
                 }
             }
         },
-        onClose = onClose,
+        onClose = { onAction(RewardsAction.Close) },
     ) {
         if (state == GemLoadState.Loading) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -165,9 +146,11 @@ fun RewardsScene(
         }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = onRefresh,
+            onRefresh = { onAction(RewardsAction.Refresh) },
         ) {
             val onGetStarted: () -> Unit = { getStartedDialogShow = true }
+            val onShare: () -> Unit = { onAction(RewardsAction.InviteFriends) }
+            val onRedeem: (GemRewardsRedemption) -> Unit = { onAction(RewardsAction.Redeem(it)) }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 when (state) {
                     GemLoadState.NoData -> {
@@ -187,7 +170,7 @@ fun RewardsScene(
                     intro = introItems,
                     action = inviteAction,
                     onGetStarted = onGetStarted,
-                    onShare = onInvite,
+                    onShare = onShare,
                 )
 
                 if (canUseReferralCode) {
@@ -223,7 +206,7 @@ fun RewardsScene(
                                     title = stringResource(R.string.transfer_confirm),
                                     state = buttonState(enabled = pending.isEnabled),
                                 ) {
-                                    context.requestAuth(AuthRequest.Default) { onCode(pending.code, onCodeResult) }
+                                    context.requestAuth(AuthRequest.Default) { onAction(RewardsAction.ActivateCode(pending.code)) }
                                 }
                             }
                         }
@@ -245,7 +228,7 @@ fun RewardsScene(
     ) {
         codeDialogShow = false
         codeRetryShow = false
-        onCodeHandled()
+        onAction(RewardsAction.CodeHandled)
     }
 }
 
@@ -267,13 +250,7 @@ private fun RewardsScenePreview() {
             redemptions = emptyList(),
             onUsername = { _, _ -> },
             onCode = { _, _ -> },
-            onCodeHandled = {},
-            onRefresh = {},
-            onWallet = {},
-            onRedeem = {},
-            onClose = {},
-            onInvite = {},
-            onError = {},
+            onAction = {},
         )
     }
 }
@@ -296,13 +273,7 @@ private fun RewardsSceneNoRewardsPreview() {
             redemptions = emptyList(),
             onUsername = { _, _ -> },
             onCode = { _, _ -> },
-            onCodeHandled = {},
-            onRefresh = {},
-            onWallet = {},
-            onRedeem = {},
-            onClose = {},
-            onInvite = {},
-            onError = {},
+            onAction = {},
         )
     }
 }

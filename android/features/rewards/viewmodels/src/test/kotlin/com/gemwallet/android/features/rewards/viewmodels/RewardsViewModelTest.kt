@@ -27,6 +27,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -243,6 +244,55 @@ class RewardsViewModelTest {
             assertNull(subject.infoSheet.value)
         } finally {
             subject.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `an activated code shows done`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        try {
+            runCurrent()
+            viewModel.activateCode("friend")
+            runCurrent()
+
+            assertEquals(R.drawable.ic_check_circle, viewModel.toastEvents.first().image)
+            assertNull(viewModel.error.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `a failed activation shows the error`() = runTest(testDispatcher) {
+        coEvery { service.useReferralCode(any(), any()) } throws GemServiceException.Api("code already used")
+        val viewModel = createViewModel()
+
+        try {
+            runCurrent()
+            viewModel.activateCode("friend")
+            runCurrent()
+
+            assertEquals("code already used", viewModel.error.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `a failed redemption shows the error`() = runTest(testDispatcher) {
+        coEvery { service.redeem(any(), any()) } throws GemServiceException.Api("out of stock")
+        val viewModel = createViewModel()
+
+        try {
+            runCurrent()
+            viewModel.redeem("option-7")
+            runCurrent()
+
+            assertEquals("out of stock", viewModel.error.value)
+            coVerify { service.redeem(wallet.id.id, "option-7") }
+        } finally {
+            viewModel.viewModelScope.cancel()
         }
     }
 
