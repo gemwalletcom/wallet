@@ -66,6 +66,25 @@ class PrivacyCoverTest {
     }
 
     @Test
+    fun gemGainingFocusBeforeItsPromptAppearsKeepsTheCoverDown() = runTest {
+        val cover = cover()
+        cover.onFocusChanged(false)
+        settle()
+
+        cover.onPromptShown()
+        cover.onFocusChanged(true)
+        cover.onFocusChanged(false)
+        settle()
+        assertFalse(cover.isCovered.value)
+
+        cover.onPromptEnded()
+        cover.onFocusChanged(true)
+        cover.onFocusChanged(false)
+        settle()
+        assertTrue(cover.isCovered.value)
+    }
+
+    @Test
     fun aPromptThatEndedBeforeLeavingDoesNotKeepTheCoverDown() = runTest {
         val cover = cover()
 
