@@ -1064,6 +1064,36 @@ public enum Localized {
       }
     }
   }
+  public enum PrivateKey {
+    public enum DoNotShare {
+      /// If someone has your private key they will have full control of this account!
+      public static let description = Localized.tr("Localizable", "private_key.do_not_share.description", fallback: "If someone has your private key they will have full control of this account!")
+      /// Do not share your Private Key!
+      public static let title = Localized.tr("Localizable", "private_key.do_not_share.title", fallback: "Do not share your Private Key!")
+    }
+    public enum Reminder {
+      /// This private key is your wallet's only backup.
+      public static let intro = Localized.tr("Localizable", "private_key.reminder.intro", fallback: "This private key is your wallet's only backup.")
+      public enum DoNotShare {
+        /// Anyone who gets your private key can take full control of your wallet.
+        public static let subtitle = Localized.tr("Localizable", "private_key.reminder.do_not_share.subtitle", fallback: "Anyone who gets your private key can take full control of your wallet.")
+        /// Do Not Share It With Anyone
+        public static let title = Localized.tr("Localizable", "private_key.reminder.do_not_share.title", fallback: "Do Not Share It With Anyone")
+      }
+      public enum KeepSafe {
+        /// Your private key is the only way to access your wallet.
+        public static let subtitle = Localized.tr("Localizable", "private_key.reminder.keep_safe.subtitle", fallback: "Your private key is the only way to access your wallet.")
+        /// Store It Somewhere Safe
+        public static let title = Localized.tr("Localizable", "private_key.reminder.keep_safe.title", fallback: "Store It Somewhere Safe")
+      }
+      public enum NoRecovery {
+        /// If you lose your private key, you lose access to your wallet.
+        public static let subtitle = Localized.tr("Localizable", "private_key.reminder.no_recovery.subtitle", fallback: "If you lose your private key, you lose access to your wallet.")
+        /// We Can't Help You Recover It
+        public static let title = Localized.tr("Localizable", "private_key.reminder.no_recovery.title", fallback: "We Can't Help You Recover It")
+      }
+    }
+  }
   public enum Receive {
     /// This is your address — send only %@ on the %@ network.
     public static func warning(_ p1: Any, _ p2: Any) -> String {

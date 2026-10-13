@@ -365,6 +365,15 @@
   <string name="secret_phrase_screenshot_detected_title">Screenshot Detected</string>
   <string name="secret_phrase_screenshot_detected_description">Screenshots may be accessible to other apps, they can put your secret phrase at risk if saved this way.</string>
   <string name="secret_phrase_content_hidden_description">Content hidden during screen recording</string>
+  <string name="private_key_reminder_intro">This private key is your wallet\'s only backup.</string>
+  <string name="private_key_reminder_keep_safe_title">Store It Somewhere Safe</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Your private key is the only way to access your wallet.</string>
+  <string name="private_key_reminder_do_not_share_title">Do Not Share It With Anyone</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Anyone who gets your private key can take full control of your wallet.</string>
+  <string name="private_key_reminder_no_recovery_title">We Can\'t Help You Recover It</string>
+  <string name="private_key_reminder_no_recovery_subtitle">If you lose your private key, you lose access to your wallet.</string>
+  <string name="private_key_do_not_share_title">Do not share your Private Key!</string>
+  <string name="private_key_do_not_share_description">If someone has your private key they will have full control of this account!</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = 检测到屏幕截图
 secret_phrase_screenshot_detected_description = 屏幕截图可能会被其他应用访问；以此方式保存助记词会带来泄露风险。
 secret_phrase_content_hidden_description = 屏幕录制过程中隐藏的内容
 
+# Private Key
+
+private_key_reminder_intro = 此私钥是您钱包的唯一备份。
+private_key_reminder_keep_safe_title = 妥善备份私钥
+private_key_reminder_keep_safe_subtitle = 请抄写私钥，并保存在只有您能取用的安全位置。
+private_key_reminder_do_not_share_title = 切勿泄露私钥
+private_key_reminder_do_not_share_subtitle = 任何人拿到私钥，都能控制钱包并转走资产。
+private_key_reminder_no_recovery_title = 我们无法找回私钥
+private_key_reminder_no_recovery_subtitle = 请保管好备份，以免设备丢失或损坏后无法恢复钱包。
+private_key_do_not_share_title = 切勿泄露私钥！
+private_key_do_not_share_description = 任何人只要拥有私钥，就能完全控制这个账户！
+
 # Social
 
 social_x = X（前 Twitter）

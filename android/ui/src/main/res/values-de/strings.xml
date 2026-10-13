@@ -365,6 +365,15 @@
   <string name="secret_phrase_screenshot_detected_title">Screenshot erkannt</string>
   <string name="secret_phrase_screenshot_detected_description">Screenshots können von anderen Apps eingesehen werden und gefährden so Ihre geheime Phrase.</string>
   <string name="secret_phrase_content_hidden_description">Inhalte, die während der Bildschirmaufnahme ausgeblendet wurden.</string>
+  <string name="private_key_reminder_intro">Dieser private Schlüssel ist die einzige Sicherung Ihrer Wallet.</string>
+  <string name="private_key_reminder_keep_safe_title">Bewahren Sie ihn an einem sicheren Ort auf</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Der private Schlüssel ist die einzige Möglichkeit, auf Ihre Wallet zuzugreifen.</string>
+  <string name="private_key_reminder_do_not_share_title">Geben Sie ihn an niemanden weiter</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Jeder, der Ihren privaten Schlüssel erhält, kann die vollständige Kontrolle über Ihre Wallet übernehmen.</string>
+  <string name="private_key_reminder_no_recovery_title">Wir können Ihnen nicht bei der Wiederherstellung helfen</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Wenn Sie Ihren privaten Schlüssel verlieren, verlieren Sie den Zugriff auf Ihre Wallet.</string>
+  <string name="private_key_do_not_share_title">Geben Sie Ihren privaten Schlüssel nicht weiter!</string>
+  <string name="private_key_do_not_share_description">Wenn jemand Ihren privaten Schlüssel hat, hat er die vollständige Kontrolle über dieses Konto!</string>
   <string name="social_x">X (ehemals Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

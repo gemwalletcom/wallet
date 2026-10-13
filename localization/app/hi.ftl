@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = स्क्रीनशॉट का 
 secret_phrase_screenshot_detected_description = स्क्रीनशॉट अन्य ऐप्स के लिए सुलभ हो सकते हैं, यदि वे इस तरह से सहेजे गए तो वे आपके गुप्त वाक्यांश को खतरे में डाल सकते हैं।
 secret_phrase_content_hidden_description = स्क्रीन रिकॉर्डिंग के दौरान सामग्री छिपाई गई
 
+# Private Key
+
+private_key_reminder_intro = यह निजी कुंजी आपके वॉलेट का एकमात्र बैकअप है।
+private_key_reminder_keep_safe_title = इसे किसी सुरक्षित स्थान पर रखें
+private_key_reminder_keep_safe_subtitle = निजी कुंजी आपके वॉलेट तक पहुंचने का एकमात्र तरीका है।
+private_key_reminder_do_not_share_title = इसे किसी के साथ साझा न करें
+private_key_reminder_do_not_share_subtitle = आपकी निजी कुंजी प्राप्त करने वाला कोई भी व्यक्ति आपके वॉलेट पर पूर्ण नियंत्रण कर सकता है।
+private_key_reminder_no_recovery_title = हम इसे पुनर्प्राप्त करने में आपकी सहायता नहीं कर सकते
+private_key_reminder_no_recovery_subtitle = यदि आप अपनी निजी कुंजी खो देते हैं, तो आप अपने वॉलेट तक पहुंच खो देंगे।
+private_key_do_not_share_title = अपनी निजी कुंजी साझा न करें!
+private_key_do_not_share_description = यदि किसी के पास आपकी निजी कुंजी है तो इस खाते पर उनका पूरा नियंत्रण होगा!
+
 # Social
 
 social_x = X (formerly Twitter)

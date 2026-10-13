@@ -807,6 +807,27 @@ secret_phrase_screenshot_detected_description = Screenshots may be accessible to
 # Used in secret UI for the phrase content hidden description.
 secret_phrase_content_hidden_description = Content hidden during screen recording
 
+# Private Key
+
+# Used as the intro text of the security reminder shown before revealing the private key of a wallet imported from one.
+private_key_reminder_intro = This private key is your wallet's only backup.
+# Used as the title of the first private key reminder item; mirrors onboarding_security_create_wallet_keep_safe_title.
+private_key_reminder_keep_safe_title = Store It Somewhere Safe
+# Used as the description of the first private key reminder item.
+private_key_reminder_keep_safe_subtitle = Your private key is the only way to access your wallet.
+# Used as the title of the second private key reminder item; mirrors onboarding_security_create_wallet_do_not_share_title.
+private_key_reminder_do_not_share_title = Do Not Share It With Anyone
+# Used as the description of the second private key reminder item.
+private_key_reminder_do_not_share_subtitle = Anyone who gets your private key can take full control of your wallet.
+# Used as the title of the third private key reminder item; mirrors onboarding_security_create_wallet_no_recovery_title.
+private_key_reminder_no_recovery_title = We Can't Help You Recover It
+# Used as the description of the third private key reminder item.
+private_key_reminder_no_recovery_subtitle = If you lose your private key, you lose access to your wallet.
+# Used as the warning title on the private key reveal screen.
+private_key_do_not_share_title = Do not share your Private Key!
+# Used as the warning description on the private key reveal screen.
+private_key_do_not_share_description = If someone has your private key they will have full control of this account!
+
 # Social
 
 # Used in external social link list for the x label.

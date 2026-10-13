@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = スクリーンショットが検出�
 secret_phrase_screenshot_detected_description = スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でリカバリーフレーズを保存すると、漏えいするおそれがあります。
 secret_phrase_content_hidden_description = 画面録画中はコンテンツが非表示になります
 
+# Private Key
+
+private_key_reminder_intro = このプライベートキーが、ウォレットの唯一のバックアップです。
+private_key_reminder_keep_safe_title = 安全な場所に保管する
+private_key_reminder_keep_safe_subtitle = プライベートキーは、ウォレットにアクセスする唯一の手段です。
+private_key_reminder_do_not_share_title = 誰とも共有しないでください
+private_key_reminder_do_not_share_subtitle = プライベートキーを知った人は誰でも、このウォレットを完全に操作できます。
+private_key_reminder_no_recovery_title = 紛失したプライベートキーは復元できません
+private_key_reminder_no_recovery_subtitle = プライベートキーを紛失すると、ウォレットにアクセスできなくなります。
+private_key_do_not_share_title = プライベートキーを共有しないでください。
+private_key_do_not_share_description = プライベートキーを知った人は、このアカウントを完全に操作できます。
+
 # Social
 
 social_x = エックス（旧ツイッター）

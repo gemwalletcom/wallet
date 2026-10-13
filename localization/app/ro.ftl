@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Captură de ecran detectată
 secret_phrase_screenshot_detected_description = Capturile de ecran pot fi accesibile altor aplicații și pot pune în pericol fraza ta secretă dacă sunt salvate în acest fel.
 secret_phrase_content_hidden_description = Conținut ascuns în timpul înregistrării ecranului
 
+# Private Key
+
+private_key_reminder_intro = Această cheie privată este singura copie de rezervă a portofelului tău.
+private_key_reminder_keep_safe_title = Păstreaz-o într-un loc sigur
+private_key_reminder_keep_safe_subtitle = Cheia privată este singura modalitate de a-ți accesa portofelul.
+private_key_reminder_do_not_share_title = Nu o împărtăși cu nimeni
+private_key_reminder_do_not_share_subtitle = Oricine obține cheia ta privată poate prelua controlul total asupra portofelului tău.
+private_key_reminder_no_recovery_title = Nu te putem ajuta să o recuperezi
+private_key_reminder_no_recovery_subtitle = Dacă îți pierzi cheia privată, pierzi accesul la portofel.
+private_key_do_not_share_title = Nu împărtăși cheia ta privată!
+private_key_do_not_share_description = Dacă cineva are cheia ta privată, va avea control total asupra acestui cont!
+
 # Social
 
 social_x = X (fost Twitter)

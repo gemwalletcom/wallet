@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = An Gano Hoton Hoton
 secret_phrase_screenshot_detected_description = Za a iya samun damar ɗaukar hotuna zuwa wasu ƙa'idodi, za su iya sanya kalmar sirrin ku cikin haɗari idan an ajiye su ta wannan hanyar.
 secret_phrase_content_hidden_description = Abubuwan da ke ɓoye yayin rikodin allo
 
+# Private Key
+
+private_key_reminder_intro = Wannan keɓaɓɓen maɓalli shi ne kawai madadin walat ɗin ku.
+private_key_reminder_keep_safe_title = Ajiye Shi Wani Wuri Mai Aminci
+private_key_reminder_keep_safe_subtitle = Keɓaɓɓen maɓalli shi ne kawai hanyar samun damar walat ɗin ku.
+private_key_reminder_do_not_share_title = Kada Ku Raba Shi Ga Kowa
+private_key_reminder_do_not_share_subtitle = Duk wanda ya sami keɓaɓɓen maɓallin ku na iya ɗaukar cikakken iko da walat ɗin ku.
+private_key_reminder_no_recovery_title = Ba Za Mu Iya Taimaka Muku Dawo Da Shi Ba
+private_key_reminder_no_recovery_subtitle = Idan ka rasa keɓaɓɓen maɓallinka, ka rasa damar shiga walat ɗinka.
+private_key_do_not_share_title = Kada ku raba Keɓaɓɓen Maɓallinku!
+private_key_do_not_share_description = Idan wani yana da keɓaɓɓen maɓallinku zai sami cikakken iko akan wannan asusun!
+
 # Social
 
 social_x = X (formerly Twitter)

@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Wykryto zrzut ekranu
 secret_phrase_screenshot_detected_description = Zrzuty ekranu mogą być dostępne dla innych aplikacji, a zapisanie ich w ten sposób może narazić Twoją tajną frazę na ryzyko.
 secret_phrase_content_hidden_description = Zawartość ukryta podczas nagrywania ekranu
 
+# Private Key
+
+private_key_reminder_intro = Ten klucz prywatny to jedyna kopia zapasowa Twojego portfela.
+private_key_reminder_keep_safe_title = Przechowuj go w bezpiecznym miejscu
+private_key_reminder_keep_safe_subtitle = Klucz prywatny to jedyny sposób dostępu do Twojego portfela.
+private_key_reminder_do_not_share_title = Nie udostępniaj go nikomu
+private_key_reminder_do_not_share_subtitle = Każda osoba, która pozna Twój klucz prywatny, będzie mogła przejąć pełną kontrolę nad Twoim portfelem.
+private_key_reminder_no_recovery_title = Nie możemy pomóc Ci go odzyskać
+private_key_reminder_no_recovery_subtitle = Jeśli zgubisz swój klucz prywatny, stracisz dostęp do swojego portfela.
+private_key_do_not_share_title = Nie udostępniaj swojego klucza prywatnego!
+private_key_do_not_share_description = Jeśli ktoś zna Twój klucz prywatny, będzie miał pełną kontrolę nad tym kontem!
+
 # Social
 
 social_x = X (dawniej Twitter)

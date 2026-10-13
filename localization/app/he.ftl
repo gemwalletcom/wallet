@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = זוהה צילום מסך
 secret_phrase_screenshot_detected_description = צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את משפט הסוד שלך אם יישמרו בדרך זו.
 secret_phrase_content_hidden_description = תוכן מוסתר במהלך הקלטת מסך
 
+# Private Key
+
+private_key_reminder_intro = המפתח הפרטי הזה הוא הגיבוי היחיד של הארנק שלך.
+private_key_reminder_keep_safe_title = אחסן אותו במקום בטוח
+private_key_reminder_keep_safe_subtitle = המפתח הפרטי הוא הדרך היחידה לגשת לארנק שלך.
+private_key_reminder_do_not_share_title = אל תשתף אותו עם אף אחד
+private_key_reminder_do_not_share_subtitle = כל מי שמקבל את המפתח הפרטי שלך יכול להשתלט על הארנק שלך.
+private_key_reminder_no_recovery_title = אנחנו לא יכולים לעזור לך לשחזר אותו
+private_key_reminder_no_recovery_subtitle = אם אתה מאבד את המפתח הפרטי שלך, אתה מאבד את הגישה לארנק שלך.
+private_key_do_not_share_title = אל תשתף את המפתח הפרטי שלך!
+private_key_do_not_share_description = אם למישהו יש את המפתח הפרטי שלך, תהיה לו שליטה מלאה בחשבון הזה!
+
 # Social
 
 social_x = X (לשעבר Twitter)

@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Screenshot erkannt
 secret_phrase_screenshot_detected_description = Screenshots können von anderen Apps eingesehen werden und gefährden so Ihre geheime Phrase.
 secret_phrase_content_hidden_description = Inhalte, die während der Bildschirmaufnahme ausgeblendet wurden.
 
+# Private Key
+
+private_key_reminder_intro = Dieser private Schlüssel ist die einzige Sicherung Ihrer Wallet.
+private_key_reminder_keep_safe_title = Bewahren Sie ihn an einem sicheren Ort auf
+private_key_reminder_keep_safe_subtitle = Der private Schlüssel ist die einzige Möglichkeit, auf Ihre Wallet zuzugreifen.
+private_key_reminder_do_not_share_title = Geben Sie ihn an niemanden weiter
+private_key_reminder_do_not_share_subtitle = Jeder, der Ihren privaten Schlüssel erhält, kann die vollständige Kontrolle über Ihre Wallet übernehmen.
+private_key_reminder_no_recovery_title = Wir können Ihnen nicht bei der Wiederherstellung helfen
+private_key_reminder_no_recovery_subtitle = Wenn Sie Ihren privaten Schlüssel verlieren, verlieren Sie den Zugriff auf Ihre Wallet.
+private_key_do_not_share_title = Geben Sie Ihren privaten Schlüssel nicht weiter!
+private_key_do_not_share_description = Wenn jemand Ihren privaten Schlüssel hat, hat er die vollständige Kontrolle über dieses Konto!
+
 # Social
 
 social_x = X (ehemals Twitter)

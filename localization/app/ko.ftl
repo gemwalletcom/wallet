@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = 스크린샷이 감지되었습니다
 secret_phrase_screenshot_detected_description = 스크린샷은 다른 앱에서 접근할 수 있으며, 이런 방식으로 저장할 경우 비밀번호가 위험에 노출될 수 있습니다.
 secret_phrase_content_hidden_description = 화면 녹화 중 숨겨진 콘텐츠
 
+# Private Key
+
+private_key_reminder_intro = 이 개인 키가 지갑의 유일한 백업입니다.
+private_key_reminder_keep_safe_title = 안전한 곳에 보관하세요
+private_key_reminder_keep_safe_subtitle = 개인 키는 지갑에 접근할 수 있는 유일한 방법입니다.
+private_key_reminder_do_not_share_title = 누구와도 공유하지 마세요
+private_key_reminder_do_not_share_subtitle = 누구든지 개인 키를 알아내면 지갑을 완전히 장악할 수 있습니다.
+private_key_reminder_no_recovery_title = 저희가 복구해 드릴 수 없습니다
+private_key_reminder_no_recovery_subtitle = 개인 키를 잃어버리면 지갑에 접근할 수 없게 됩니다.
+private_key_do_not_share_title = 개인 키를 공유하지 마세요!
+private_key_do_not_share_description = 누군가 개인 키를 알고 있다면 이 계정을 완전히 통제하게 됩니다!
+
 # Social
 
 social_x = X (formerly Twitter)

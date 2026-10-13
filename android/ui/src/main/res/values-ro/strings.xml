@@ -365,6 +365,15 @@
   <string name="secret_phrase_screenshot_detected_title">Captură de ecran detectată</string>
   <string name="secret_phrase_screenshot_detected_description">Capturile de ecran pot fi accesibile altor aplicații și pot pune în pericol fraza ta secretă dacă sunt salvate în acest fel.</string>
   <string name="secret_phrase_content_hidden_description">Conținut ascuns în timpul înregistrării ecranului</string>
+  <string name="private_key_reminder_intro">Această cheie privată este singura copie de rezervă a portofelului tău.</string>
+  <string name="private_key_reminder_keep_safe_title">Păstreaz-o într-un loc sigur</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Cheia privată este singura modalitate de a-ți accesa portofelul.</string>
+  <string name="private_key_reminder_do_not_share_title">Nu o împărtăși cu nimeni</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Oricine obține cheia ta privată poate prelua controlul total asupra portofelului tău.</string>
+  <string name="private_key_reminder_no_recovery_title">Nu te putem ajuta să o recuperezi</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Dacă îți pierzi cheia privată, pierzi accesul la portofel.</string>
+  <string name="private_key_do_not_share_title">Nu împărtăși cheia ta privată!</string>
+  <string name="private_key_do_not_share_description">Dacă cineva are cheia ta privată, va avea control total asupra acestui cont!</string>
   <string name="social_x">X (fost Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Tangkapan Layar Terdeteksi
 secret_phrase_screenshot_detected_description = Tangkapan layar mungkin dapat diakses oleh aplikasi lain, namun hal itu dapat membahayakan frasa rahasia Anda jika disimpan dengan cara ini.
 secret_phrase_content_hidden_description = Konten tersembunyi selama perekaman layar
 
+# Private Key
+
+private_key_reminder_intro = Kunci privat ini adalah satu-satunya cadangan dompet Anda.
+private_key_reminder_keep_safe_title = Simpan di Tempat yang Aman
+private_key_reminder_keep_safe_subtitle = Kunci privat adalah satu-satunya cara untuk mengakses dompet Anda.
+private_key_reminder_do_not_share_title = Jangan Bagikan Dengan Siapa Pun
+private_key_reminder_do_not_share_subtitle = Siapa pun yang mendapatkan kunci privat Anda dapat mengambil alih dompet Anda sepenuhnya.
+private_key_reminder_no_recovery_title = Kami Tidak Dapat Membantu Anda Memulihkannya
+private_key_reminder_no_recovery_subtitle = Jika Anda kehilangan kunci privat, Anda kehilangan akses ke dompet Anda.
+private_key_do_not_share_title = Jangan bagikan Kunci Privat Anda!
+private_key_do_not_share_description = Jika seseorang memiliki kunci privat Anda, mereka akan memiliki kendali penuh atas akun ini!
+
 # Social
 
 social_x = X (sebelumnya Twitter)

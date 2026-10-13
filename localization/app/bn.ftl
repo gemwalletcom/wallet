@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = স্ক্রিনশট সনা�
 secret_phrase_screenshot_detected_description = স্ক্রিনশটগুলি অন্যান্য অ্যাপের কাছে অ্যাক্সেসযোগ্য হতে পারে, যদি এইভাবে সংরক্ষণ করা হয় তবে এগুলি আপনার গোপন বাক্যাংশকে ঝুঁকির মধ্যে ফেলতে পারে।
 secret_phrase_content_hidden_description = স্ক্রিন রেকর্ডিংয়ের সময় লুকানো কন্টেন্ট
 
+# Private Key
+
+private_key_reminder_intro = এই ব্যক্তিগত কী-ই আপনার ওয়ালেটের একমাত্র ব্যাকআপ।
+private_key_reminder_keep_safe_title = এটি কোথাও নিরাপদে সংরক্ষণ করুন
+private_key_reminder_keep_safe_subtitle = আপনার ব্যক্তিগত কী আপনার ওয়ালেট অ্যাক্সেস করার একমাত্র উপায়।
+private_key_reminder_do_not_share_title = কারো সাথে শেয়ার করবেন না
+private_key_reminder_do_not_share_subtitle = যে কেউ আপনার ব্যক্তিগত কী পায় সে আপনার ওয়ালেটের সম্পূর্ণ নিয়ন্ত্রণ নিতে পারে।
+private_key_reminder_no_recovery_title = আমরা আপনাকে এটি পুনরুদ্ধার করতে সাহায্য করতে পারি না
+private_key_reminder_no_recovery_subtitle = আপনি যদি আপনার ব্যক্তিগত কী হারান, আপনি আপনার ওয়ালেটের অ্যাক্সেস হারাবেন।
+private_key_do_not_share_title = আপনার ব্যক্তিগত কী শেয়ার করবেন না!
+private_key_do_not_share_description = কারো কাছে আপনার ব্যক্তিগত কী থাকলে তারা এই অ্যাকাউন্টের সম্পূর্ণ নিয়ন্ত্রণ পাবে!
+
 # Social
 
 social_x = X (formerly Twitter)

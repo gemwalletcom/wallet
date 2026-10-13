@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = ตรวจพบภาพหน้�
 secret_phrase_screenshot_detected_description = ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น แต่หากบันทึกในลักษณะนี้ อาจทำให้รหัสผ่านของคุณตกอยู่ในความเสี่ยง
 secret_phrase_content_hidden_description = เนื้อหาที่ซ่อนอยู่ระหว่างการบันทึกหน้าจอ
 
+# Private Key
+
+private_key_reminder_intro = คีย์ส่วนตัวนี้เป็นข้อมูลสำรองเพียงอย่างเดียวของกระเป๋าเงินคุณ
+private_key_reminder_keep_safe_title = เก็บไว้ในที่ปลอดภัย
+private_key_reminder_keep_safe_subtitle = คีย์ส่วนตัวเป็นวิธีเดียวที่จะเข้าถึงกระเป๋าเงินของคุณ
+private_key_reminder_do_not_share_title = อย่าแบ่งปันกับใคร
+private_key_reminder_do_not_share_subtitle = ใครก็ตามที่ได้คีย์ส่วนตัวของคุณ สามารถควบคุมกระเป๋าเงินของคุณได้อย่างสมบูรณ์
+private_key_reminder_no_recovery_title = เราไม่สามารถช่วยคุณกู้คืนได้
+private_key_reminder_no_recovery_subtitle = หากคุณทำคีย์ส่วนตัวหาย คุณจะสูญเสียการเข้าถึงกระเป๋าเงินของคุณ
+private_key_do_not_share_title = อย่าเปิดเผยคีย์ส่วนตัวของคุณ!
+private_key_do_not_share_description = หากมีใครมีคีย์ส่วนตัวของคุณ พวกเขาจะควบคุมบัญชีนี้ได้อย่างเต็มที่!
+
 # Social
 
 social_x = X (เดิมคือ Twitter)

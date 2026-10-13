@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Скриншот обнаружен
 secret_phrase_screenshot_detected_description = Скриншоты могут быть доступны другим приложениям, и если сохранить их таким образом, они могут поставить под угрозу вашу секретную фразу.
 secret_phrase_content_hidden_description = Контент, скрытый во время записи экрана
 
+# Private Key
+
+private_key_reminder_intro = Этот приватный ключ — единственная резервная копия вашего кошелька.
+private_key_reminder_keep_safe_title = Храните в безопасном месте
+private_key_reminder_keep_safe_subtitle = Приватный ключ — это единственный способ получить доступ к своему кошельку.
+private_key_reminder_do_not_share_title = Никому его не передавайте
+private_key_reminder_do_not_share_subtitle = Любой, кто узнает ваш приватный ключ, может получить полный контроль над вашим кошельком.
+private_key_reminder_no_recovery_title = Мы не сможем его восстановить
+private_key_reminder_no_recovery_subtitle = Если вы потеряете приватный ключ, вы потеряете доступ к своему кошельку.
+private_key_do_not_share_title = Не делитесь своим приватным ключом!
+private_key_do_not_share_description = Если кто-то узнает ваш приватный ключ, он получит полный контроль над этим аккаунтом!
+
 # Social
 
 social_x = X (бывший Twitter)

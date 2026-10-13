@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Schermafbeelding gedetecteerd
 secret_phrase_screenshot_detected_description = Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps, maar ze kunnen uw geheime zin in gevaar brengen als u ze op deze manier opslaat.
 secret_phrase_content_hidden_description = Inhoud verborgen tijdens schermopname
 
+# Private Key
+
+private_key_reminder_intro = Deze privésleutel is de enige back-up van uw portemonnee.
+private_key_reminder_keep_safe_title = Bewaar hem op een veilige plek
+private_key_reminder_keep_safe_subtitle = De privésleutel is de enige manier om toegang te krijgen tot uw portemonnee.
+private_key_reminder_do_not_share_title = Deel hem met niemand
+private_key_reminder_do_not_share_subtitle = Iedereen die uw privésleutel te pakken krijgt, kan de volledige controle over uw portemonnee overnemen.
+private_key_reminder_no_recovery_title = Wij kunnen u niet helpen hem te herstellen
+private_key_reminder_no_recovery_subtitle = Als u uw privésleutel verliest, verliest u de toegang tot uw portemonnee.
+private_key_do_not_share_title = Deel uw privésleutel niet!
+private_key_do_not_share_description = Als iemand uw privésleutel heeft, heeft diegene volledige controle over dit account!
+
 # Social
 
 social_x = X (voorheen Twitter)

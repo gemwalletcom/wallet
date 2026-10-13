@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Detekován snímek obrazovky
 secret_phrase_screenshot_detected_description = Snímky obrazovky mohou být přístupné jiným aplikacím, pokud se uloží tímto způsobem, mohou ohrozit vaši tajnou frázi.
 secret_phrase_content_hidden_description = Obsah skrytý během nahrávání obrazovky
 
+# Private Key
+
+private_key_reminder_intro = Tento soukromý klíč je jedinou zálohou vaší peněženky.
+private_key_reminder_keep_safe_title = Uložte ho na bezpečné místo
+private_key_reminder_keep_safe_subtitle = Soukromý klíč je jediný způsob, jak se dostat do vaší peněženky.
+private_key_reminder_do_not_share_title = S nikým ho nesdílejte
+private_key_reminder_do_not_share_subtitle = Každý, kdo získá váš soukromý klíč, může převzít plnou kontrolu nad vaší peněženkou.
+private_key_reminder_no_recovery_title = Nemůžeme vám pomoci ho získat zpět
+private_key_reminder_no_recovery_subtitle = Pokud ztratíte soukromý klíč, ztratíte přístup ke své peněžence.
+private_key_do_not_share_title = Nesdílejte svůj soukromý klíč!
+private_key_do_not_share_description = Pokud má někdo váš soukromý klíč, bude mít plnou kontrolu nad tímto účtem!
+
 # Social
 
 social_x = X (formerly Twitter)

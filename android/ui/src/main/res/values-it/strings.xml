@@ -365,6 +365,15 @@
   <string name="secret_phrase_screenshot_detected_title">Screenshot rilevato</string>
   <string name="secret_phrase_screenshot_detected_description">Gli screenshot potrebbero essere accessibili ad altre app e, se salvati in questo modo, potrebbero mettere a rischio la tua frase segreta.</string>
   <string name="secret_phrase_content_hidden_description">Contenuto nascosto durante la registrazione dello schermo</string>
+  <string name="private_key_reminder_intro">Questa chiave privata è l\'unico backup del tuo portafoglio.</string>
+  <string name="private_key_reminder_keep_safe_title">Conservala in un posto sicuro</string>
+  <string name="private_key_reminder_keep_safe_subtitle">La chiave privata è l\'unico modo per accedere al tuo portafoglio.</string>
+  <string name="private_key_reminder_do_not_share_title">Non condividerla con nessuno</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Chiunque scopra la tua chiave privata può assumere il controllo totale del tuo portafoglio.</string>
+  <string name="private_key_reminder_no_recovery_title">Non possiamo aiutarti a recuperarla</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Se perdi la tua chiave privata, perderai l\'accesso al tuo portafoglio.</string>
+  <string name="private_key_do_not_share_title">Non condividere la tua chiave privata!</string>
+  <string name="private_key_do_not_share_description">Se qualcuno conosce la tua chiave privata avrà il pieno controllo di questo account!</string>
   <string name="social_x">X (ex Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

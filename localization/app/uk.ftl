@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Виявлено знімок екра
 secret_phrase_screenshot_detected_description = Знімки екрана можуть бути доступні іншим програмам, і якщо їх зберегти таким чином, ваша секретна фраза може бути під загрозою.
 secret_phrase_content_hidden_description = Вміст прихований під час запису екрана
 
+# Private Key
+
+private_key_reminder_intro = Цей приватний ключ — єдина резервна копія вашого гаманця.
+private_key_reminder_keep_safe_title = Зберігайте його в безпечному місці
+private_key_reminder_keep_safe_subtitle = Приватний ключ — це єдиний спосіб отримати доступ до вашого гаманця.
+private_key_reminder_do_not_share_title = Нікому його не передавайте
+private_key_reminder_do_not_share_subtitle = Кожен, хто дізнається ваш приватний ключ, може повністю контролювати ваш гаманець.
+private_key_reminder_no_recovery_title = Ми не можемо допомогти вам його відновити
+private_key_reminder_no_recovery_subtitle = Якщо ви втратите приватний ключ, ви втратите доступ до свого гаманця.
+private_key_do_not_share_title = Не діліться своїм приватним ключем!
+private_key_do_not_share_description = Якщо у когось є ваш приватний ключ, він отримає повний контроль над цим обліковим записом!
+
 # Social
 
 social_x = X (раніше Twitter)

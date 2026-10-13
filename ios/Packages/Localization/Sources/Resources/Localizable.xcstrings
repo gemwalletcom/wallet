@@ -69334,6 +69334,1725 @@
         }
       }
     },
+    "private_key.do_not_share.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إذا حصل شخص ما على مفتاحك الخاص، فسيكون لديه السيطرة الكاملة على هذا الحساب!"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কারো কাছে আপনার ব্যক্তিগত কী থাকলে তারা এই অ্যাকাউন্টের সম্পূর্ণ নিয়ন্ত্রণ পাবে!"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokud má někdo váš soukromý klíč, bude mít plnou kontrolu nad tímto účtem!"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hvis nogen har din private nøgle, vil de have fuld kontrol over denne konto!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn jemand Ihren privaten Schlüssel hat, hat er die vollständige Kontrolle über dieses Konto!"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If someone has your private key they will have full control of this account!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Si alguien tiene tu clave privada tendrá control total de esta cuenta!"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگر کسی کلید خصوصی شما را داشته باشد، کنترل کامل این حساب را خواهد داشت!"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kung may hawak ng iyong pribadong susi, magkakaroon sila ng ganap na kontrol sa account na ito!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si quelqu'un connaît votre clé privée, il aura le contrôle total de ce compte !"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idan wani yana da keɓaɓɓen maɓallinku zai sami cikakken iko akan wannan asusun!"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אם למישהו יש את המפתח הפרטי שלך, תהיה לו שליטה מלאה בחשבון הזה!"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यदि किसी के पास आपकी निजी कुंजी है तो इस खाते पर उनका पूरा नियंत्रण होगा!"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jika seseorang memiliki kunci privat Anda, mereka akan memiliki kendali penuh atas akun ini!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se qualcuno conosce la tua chiave privata avrà il pieno controllo di questo account!"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライベートキーを知った人は、このアカウントを完全に操作できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누군가 개인 키를 알고 있다면 이 계정을 완전히 통제하게 됩니다!"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jika seseorang mempunyai kunci peribadi anda, mereka akan mempunyai kawalan penuh ke atas akaun ini!"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als iemand uw privésleutel heeft, heeft diegene volledige controle over dit account!"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeśli ktoś zna Twój klucz prywatny, będzie miał pełną kontrolę nad tym kontem!"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se alguém tiver sua chave privada, terá controle total desta conta!"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dacă cineva are cheia ta privată, va avea control total asupra acestui cont!"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Если кто-то узнает ваш приватный ключ, он получит полный контроль над этим аккаунтом!"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikiwa mtu ana ufunguo wako wa kibinafsi atakuwa na udhibiti kamili wa akaunti hii!"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "หากมีใครมีคีย์ส่วนตัวของคุณ พวกเขาจะควบคุมบัญชีนี้ได้อย่างเต็มที่!"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birisi özel anahtarınızı ele geçirirse, bu hesabın tam kontrolüne sahip olacaktır!"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Якщо у когось є ваш приватний ключ, він отримає повний контроль над цим обліковим записом!"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگر کسی کے پاس آپ کی نجی کلید ہے تو اس کے پاس اس اکاؤنٹ کا مکمل کنٹرول ہوگا!"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nếu ai đó có khóa riêng của bạn, họ sẽ có toàn quyền kiểm soát tài khoản này!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何人只要拥有私钥，就能完全控制这个账户！"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何人只要擁有私鑰，就能完全控制這個帳戶！"
+          }
+        }
+      }
+    },
+    "private_key.do_not_share.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا تشارك مفتاحك الخاص!"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার ব্যক্তিগত কী শেয়ার করবেন না!"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nesdílejte svůj soukromý klíč!"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Del ikke din private nøgle!"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geben Sie Ihren privaten Schlüssel nicht weiter!"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do not share your Private Key!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡No compartas tu clave privada!"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کلید خصوصی خود را با کسی به اشتراک نگذارید!"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huwag ibahagi ang iyong Pribadong Susi!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne partagez pas votre clé privée !"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kada ku raba Keɓaɓɓen Maɓallinku!"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אל תשתף את המפתח הפרטי שלך!"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपनी निजी कुंजी साझा न करें!"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jangan bagikan Kunci Privat Anda!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non condividere la tua chiave privata!"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライベートキーを共有しないでください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인 키를 공유하지 마세요!"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jangan kongsi Kunci Peribadi anda!"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deel uw privésleutel niet!"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udostępniaj swojego klucza prywatnego!"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não compartilhe sua chave privada!"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu împărtăși cheia ta privată!"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не делитесь своим приватным ключом!"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usishiriki Ufunguo wako wa Kibinafsi!"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "อย่าเปิดเผยคีย์ส่วนตัวของคุณ!"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel Anahtarınızı paylaşmayın!"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не діліться своїм приватним ключем!"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اپنی نجی کلید شیئر نہ کریں!"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đừng chia sẻ Khóa riêng của bạn!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切勿泄露私钥！"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切勿洩漏私鑰！"
+          }
+        }
+      }
+    },
+    "private_key.reminder.do_not_share.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن لأي شخص يحصل على مفتاحك الخاص أن يتولى السيطرة الكاملة على محفظتك."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যে কেউ আপনার ব্যক্তিগত কী পায় সে আপনার ওয়ালেটের সম্পূর্ণ নিয়ন্ত্রণ নিতে পারে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Každý, kdo získá váš soukromý klíč, může převzít plnou kontrolu nad vaší peněženkou."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enhver, der får din private nøgle, kan tage fuld kontrol over din tegnebog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder, der Ihren privaten Schlüssel erhält, kann die vollständige Kontrolle über Ihre Wallet übernehmen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anyone who gets your private key can take full control of your wallet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cualquiera que obtenga tu clave privada podrá tomar control total de tu billetera."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هر کسی که کلید خصوصی شما را دریافت کند می‌تواند کنترل کامل کیف پول شما را در دست بگیرد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ang sinumang makakakuha ng iyong pribadong susi ay maaaring ganap na makontrol ang iyong wallet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiconque obtient votre clé privée peut prendre le contrôle total de votre portefeuille."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duk wanda ya sami keɓaɓɓen maɓallin ku na iya ɗaukar cikakken iko da walat ɗin ku."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כל מי שמקבל את המפתח הפרטי שלך יכול להשתלט על הארנק שלך."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी निजी कुंजी प्राप्त करने वाला कोई भी व्यक्ति आपके वॉलेट पर पूर्ण नियंत्रण कर सकता है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siapa pun yang mendapatkan kunci privat Anda dapat mengambil alih dompet Anda sepenuhnya."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiunque scopra la tua chiave privata può assumere il controllo totale del tuo portafoglio."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライベートキーを知った人は誰でも、このウォレットを完全に操作できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누구든지 개인 키를 알아내면 지갑을 완전히 장악할 수 있습니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesiapa sahaja yang mendapat kunci peribadi anda boleh mengawal sepenuhnya dompet anda."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iedereen die uw privésleutel te pakken krijgt, kan de volledige controle over uw portemonnee overnemen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Każda osoba, która pozna Twój klucz prywatny, będzie mogła przejąć pełną kontrolę nad Twoim portfelem."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualquer um que descobrir sua chave privada poderá assumir o controle total da sua carteira."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oricine obține cheia ta privată poate prelua controlul total asupra portofelului tău."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Любой, кто узнает ваш приватный ключ, может получить полный контроль над вашим кошельком."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mtu yeyote anayepata ufunguo wako wa kibinafsi anaweza kuchukua udhibiti kamili wa pochi yako."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ใครก็ตามที่ได้คีย์ส่วนตัวของคุณ สามารถควบคุมกระเป๋าเงินของคุณได้อย่างสมบูรณ์"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel anahtarınızı ele geçiren herkes cüzdanınızın tüm kontrolünü ele geçirebilir."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кожен, хто дізнається ваш приватний ключ, може повністю контролювати ваш гаманець."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جو کوئی بھی آپ کی نجی کلید حاصل کرتا ہے وہ آپ کے بٹوے کا مکمل کنٹرول لے سکتا ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bất kỳ ai có được khóa riêng của bạn đều có thể kiểm soát hoàn toàn ví của bạn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何人拿到私钥，都能控制钱包并转走资产。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何人取得私鑰，都能控制錢包並轉走資產。"
+          }
+        }
+      }
+    },
+    "private_key.reminder.do_not_share.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا تشاركه مع أي شخص"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কারো সাথে শেয়ার করবেন না"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S nikým ho nesdílejte"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Del den ikke med nogen"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geben Sie ihn an niemanden weiter"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do Not Share It With Anyone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No la compartas con nadie"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آن را با کسی به اشتراک نگذارید"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huwag Ibahagi Ito Kaninuman"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne la partagez avec personne"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kada Ku Raba Shi Ga Kowa"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אל תשתף אותו עם אף אחד"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इसे किसी के साथ साझा न करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jangan Bagikan Dengan Siapa Pun"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non condividerla con nessuno"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "誰とも共有しないでください"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누구와도 공유하지 마세요"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jangan Kongsi Dengan Sesiapa"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deel hem met niemand"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udostępniaj go nikomu"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não compartilhe com ninguém"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu o împărtăși cu nimeni"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Никому его не передавайте"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usimshirikishe Mtu Yeyote"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "อย่าแบ่งปันกับใคร"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kimseyle Paylaşmayın"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нікому його не передавайте"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اسے کسی کے ساتھ شیئر نہ کریں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không Chia Sẻ Với Bất Kỳ Ai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切勿泄露私钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切勿洩漏私鑰"
+          }
+        }
+      }
+    },
+    "private_key.reminder.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذا المفتاح الخاص هو النسخة الاحتياطية الوحيدة لمحفظتك."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ব্যক্তিগত কী-ই আপনার ওয়ালেটের একমাত্র ব্যাকআপ।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento soukromý klíč je jedinou zálohou vaší peněženky."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne private nøgle er din tegnebogs eneste backup."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser private Schlüssel ist die einzige Sicherung Ihrer Wallet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This private key is your wallet's only backup."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta clave privada es la única copia de seguridad de tu billetera."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "این کلید خصوصی تنها نسخه پشتیبان کیف پول شماست."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ang pribadong susing ito ang tanging backup ng iyong wallet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette clé privée est la seule sauvegarde de votre portefeuille."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wannan keɓaɓɓen maɓalli shi ne kawai madadin walat ɗin ku."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "המפתח הפרטי הזה הוא הגיבוי היחיד של הארנק שלך."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह निजी कुंजी आपके वॉलेट का एकमात्र बैकअप है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci privat ini adalah satu-satunya cadangan dompet Anda."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa chiave privata è l'unico backup del tuo portafoglio."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このプライベートキーが、ウォレットの唯一のバックアップです。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 개인 키가 지갑의 유일한 백업입니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci peribadi ini ialah satu-satunya sandaran dompet anda."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze privésleutel is de enige back-up van uw portemonnee."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten klucz prywatny to jedyna kopia zapasowa Twojego portfela."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta chave privada é o único backup da sua carteira."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Această cheie privată este singura copie de rezervă a portofelului tău."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Этот приватный ключ — единственная резервная копия вашего кошелька."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ufunguo huu wa kibinafsi ndio nakala pekee ya pochi yako."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คีย์ส่วนตัวนี้เป็นข้อมูลสำรองเพียงอย่างเดียวของกระเป๋าเงินคุณ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu özel anahtar cüzdanınızın tek yedeğidir."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей приватний ключ — єдина резервна копія вашого гаманця."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یہ نجی کلید آپ کے بٹوے کا واحد بیک اپ ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khóa riêng này là bản sao lưu duy nhất của ví bạn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此私钥是您钱包的唯一备份。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此私鑰是您錢包的唯一備份。"
+          }
+        }
+      }
+    },
+    "private_key.reminder.keep_safe.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مفتاحك الخاص هو الطريقة الوحيدة للوصول إلى محفظتك."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার ব্যক্তিগত কী আপনার ওয়ালেট অ্যাক্সেস করার একমাত্র উপায়।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soukromý klíč je jediný způsob, jak se dostat do vaší peněženky."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den private nøgle er den eneste måde at få adgang til din tegnebog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der private Schlüssel ist die einzige Möglichkeit, auf Ihre Wallet zuzugreifen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your private key is the only way to access your wallet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clave privada es la única forma de acceder a tu billetera."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کلید خصوصی تنها راه دسترسی به کیف پول شماست."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ang pribadong susi ang tanging paraan upang ma-access ang iyong wallet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clé privée est le seul moyen d'accéder à votre portefeuille."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keɓaɓɓen maɓalli shi ne kawai hanyar samun damar walat ɗin ku."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "המפתח הפרטי הוא הדרך היחידה לגשת לארנק שלך."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "निजी कुंजी आपके वॉलेट तक पहुंचने का एकमात्र तरीका है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci privat adalah satu-satunya cara untuk mengakses dompet Anda."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La chiave privata è l'unico modo per accedere al tuo portafoglio."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライベートキーは、ウォレットにアクセスする唯一の手段です。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인 키는 지갑에 접근할 수 있는 유일한 방법입니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci peribadi adalah satu-satunya cara untuk mengakses dompet anda."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De privésleutel is de enige manier om toegang te krijgen tot uw portemonnee."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klucz prywatny to jedyny sposób dostępu do Twojego portfela."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A chave privada é a única maneira de acessar sua carteira."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cheia privată este singura modalitate de a-ți accesa portofelul."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приватный ключ — это единственный способ получить доступ к своему кошельку."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ufunguo wa kibinafsi ndiyo njia pekee ya kufikia pochi yako."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คีย์ส่วนตัวเป็นวิธีเดียวที่จะเข้าถึงกระเป๋าเงินของคุณ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cüzdanınıza erişmenin tek yolu özel anahtarınızdır."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приватний ключ — це єдиний спосіб отримати доступ до вашого гаманця."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نجی کلید آپ کے بٹوے تک رسائی کا واحد طریقہ ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khóa riêng là cách duy nhất để truy cập vào ví của bạn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请抄写私钥，并保存在只有您能取用的安全位置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請抄寫私鑰，並保存在只有您能取用的安全位置。"
+          }
+        }
+      }
+    },
+    "private_key.reminder.keep_safe.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خزّنه في مكان آمن"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এটি কোথাও নিরাপদে সংরক্ষণ করুন"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uložte ho na bezpečné místo"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opbevar den et sikkert sted"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewahren Sie ihn an einem sicheren Ort auf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store It Somewhere Safe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guárdala en un lugar seguro"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آن را در جایی امن ذخیره کنید"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itago Ito sa Ligtas na Lugar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rangez-la dans un endroit sûr"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajiye Shi Wani Wuri Mai Aminci"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אחסן אותו במקום בטוח"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इसे किसी सुरक्षित स्थान पर रखें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simpan di Tempat yang Aman"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conservala in un posto sicuro"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全な場所に保管する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "안전한 곳에 보관하세요"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simpan Di Tempat yang Selamat"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewaar hem op een veilige plek"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przechowuj go w bezpiecznym miejscu"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarde em algum lugar seguro"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Păstreaz-o într-un loc sigur"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Храните в безопасном месте"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uhifadhi Mahali Salama"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เก็บไว้ในที่ปลอดภัย"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Güvenli Bir Yerde Saklayın"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зберігайте його в безпечному місці"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اسے کہیں محفوظ رکھیں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lưu trữ nó ở nơi an toàn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "妥善备份私钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "妥善備份私鑰"
+          }
+        }
+      }
+    },
+    "private_key.reminder.no_recovery.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إذا فقدت مفتاحك الخاص، فإنك تفقد القدرة على الوصول إلى محفظتك."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনি যদি আপনার ব্যক্তিগত কী হারান, আপনি আপনার ওয়ালেটের অ্যাক্সেস হারাবেন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokud ztratíte soukromý klíč, ztratíte přístup ke své peněžence."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hvis du mister din private nøgle, mister du adgangen til din tegnebog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn Sie Ihren privaten Schlüssel verlieren, verlieren Sie den Zugriff auf Ihre Wallet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you lose your private key, you lose access to your wallet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si pierdes tu clave privada, perderás el acceso a tu billetera."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگر کلید خصوصی خود را گم کنید، دسترسی به کیف پول خود را از دست خواهید داد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kung mawala mo ang iyong pribadong susi, mawawalan ka ng access sa iyong wallet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si vous perdez votre clé privée, vous perdez l'accès à votre portefeuille."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idan ka rasa keɓaɓɓen maɓallinka, ka rasa damar shiga walat ɗinka."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אם אתה מאבד את המפתח הפרטי שלך, אתה מאבד את הגישה לארנק שלך."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यदि आप अपनी निजी कुंजी खो देते हैं, तो आप अपने वॉलेट तक पहुंच खो देंगे।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jika Anda kehilangan kunci privat, Anda kehilangan akses ke dompet Anda."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se perdi la tua chiave privata, perderai l'accesso al tuo portafoglio."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライベートキーを紛失すると、ウォレットにアクセスできなくなります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인 키를 잃어버리면 지갑에 접근할 수 없게 됩니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jika anda kehilangan kunci peribadi anda, anda kehilangan akses kepada dompet anda."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als u uw privésleutel verliest, verliest u de toegang tot uw portemonnee."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeśli zgubisz swój klucz prywatny, stracisz dostęp do swojego portfela."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se você perder sua chave privada, perderá o acesso à sua carteira."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dacă îți pierzi cheia privată, pierzi accesul la portofel."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Если вы потеряете приватный ключ, вы потеряете доступ к своему кошельку."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ukipoteza ufunguo wako wa kibinafsi, utapoteza ufikiaji wa pochi yako."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "หากคุณทำคีย์ส่วนตัวหาย คุณจะสูญเสียการเข้าถึงกระเป๋าเงินของคุณ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel anahtarınızı kaybederseniz cüzdanınıza erişiminizi kaybedersiniz."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Якщо ви втратите приватний ключ, ви втратите доступ до свого гаманця."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگر آپ اپنی نجی کلید کھو دیتے ہیں، تو آپ اپنے بٹوے تک رسائی کھو دیتے ہیں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nếu bạn làm mất khóa riêng, bạn sẽ mất quyền truy cập vào ví của mình."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请保管好备份，以免设备丢失或损坏后无法恢复钱包。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請保管好備份，以免裝置遺失或損壞後無法復原錢包。"
+          }
+        }
+      }
+    },
+    "private_key.reminder.no_recovery.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يمكننا مساعدتك في استعادته"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমরা আপনাকে এটি পুনরুদ্ধার করতে সাহায্য করতে পারি না"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nemůžeme vám pomoci ho získat zpět"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vi kan ikke hjælpe dig med at gendanne den"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir können Ihnen nicht bei der Wiederherstellung helfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We Can't Help You Recover It"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No podemos ayudarte a recuperarla"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ما نمی‌توانیم به شما کمک کنیم آن را بازیابی کنید"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi Ka Namin Matutulungang Mabawi Ito"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous ne pouvons pas vous aider à la récupérer"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ba Za Mu Iya Taimaka Muku Dawo Da Shi Ba"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אנחנו לא יכולים לעזור לך לשחזר אותו"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हम इसे पुनर्प्राप्त करने में आपकी सहायता नहीं कर सकते"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami Tidak Dapat Membantu Anda Memulihkannya"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non possiamo aiutarti a recuperarla"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紛失したプライベートキーは復元できません"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저희가 복구해 드릴 수 없습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami Tidak Dapat Membantu Anda Memulihkannya"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wij kunnen u niet helpen hem te herstellen"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie możemy pomóc Ci go odzyskać"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não podemos ajudar você a recuperá-la"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu te putem ajuta să o recuperezi"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мы не сможем его восстановить"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hatuwezi Kukusaidia Kuurejesha"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เราไม่สามารถช่วยคุณกู้คืนได้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onu Kurtarmanıza Yardımcı Olamayız"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ми не можемо допомогти вам його відновити"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ہم اسے بحال کرنے میں آپ کی مدد نہیں کر سکتے"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chúng tôi không thể giúp bạn khôi phục nó"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们无法找回私钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我們無法找回私鑰"
+          }
+        }
+      }
+    },
     "receive.warning": {
       "extractionState": "manual",
       "localizations": {

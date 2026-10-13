@@ -365,6 +365,15 @@
   <string name="secret_phrase_screenshot_detected_title">Skærmbillede fundet</string>
   <string name="secret_phrase_screenshot_detected_description">Skærmbilleder kan være tilgængelige for andre apps, og de kan bringe din hemmelige frase i fare, hvis de gemmes på denne måde.</string>
   <string name="secret_phrase_content_hidden_description">Indhold skjult under skærmoptagelse</string>
+  <string name="private_key_reminder_intro">Denne private nøgle er din tegnebogs eneste backup.</string>
+  <string name="private_key_reminder_keep_safe_title">Opbevar den et sikkert sted</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Den private nøgle er den eneste måde at få adgang til din tegnebog.</string>
+  <string name="private_key_reminder_do_not_share_title">Del den ikke med nogen</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Enhver, der får din private nøgle, kan tage fuld kontrol over din tegnebog.</string>
+  <string name="private_key_reminder_no_recovery_title">Vi kan ikke hjælpe dig med at gendanne den</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Hvis du mister din private nøgle, mister du adgangen til din tegnebog.</string>
+  <string name="private_key_do_not_share_title">Del ikke din private nøgle!</string>
+  <string name="private_key_do_not_share_description">Hvis nogen har din private nøgle, vil de have fuld kontrol over denne konto!</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Đã phát hiện ảnh chụp màn h�
 secret_phrase_screenshot_detected_description = Ảnh chụp màn hình có thể được các ứng dụng khác truy cập, nhưng chúng có thể khiến cụm từ bí mật của bạn gặp rủi ro nếu được lưu theo cách này.
 secret_phrase_content_hidden_description = Nội dung bị ẩn trong quá trình ghi màn hình
 
+# Private Key
+
+private_key_reminder_intro = Khóa riêng này là bản sao lưu duy nhất của ví bạn.
+private_key_reminder_keep_safe_title = Lưu trữ nó ở nơi an toàn
+private_key_reminder_keep_safe_subtitle = Khóa riêng là cách duy nhất để truy cập vào ví của bạn.
+private_key_reminder_do_not_share_title = Không Chia Sẻ Với Bất Kỳ Ai
+private_key_reminder_do_not_share_subtitle = Bất kỳ ai có được khóa riêng của bạn đều có thể kiểm soát hoàn toàn ví của bạn.
+private_key_reminder_no_recovery_title = Chúng tôi không thể giúp bạn khôi phục nó
+private_key_reminder_no_recovery_subtitle = Nếu bạn làm mất khóa riêng, bạn sẽ mất quyền truy cập vào ví của mình.
+private_key_do_not_share_title = Đừng chia sẻ Khóa riêng của bạn!
+private_key_do_not_share_description = Nếu ai đó có khóa riêng của bạn, họ sẽ có toàn quyền kiểm soát tài khoản này!
+
 # Social
 
 social_x = X (trước đây là Twitter)

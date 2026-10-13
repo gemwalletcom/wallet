@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Natukoy ang screenshot
 secret_phrase_screenshot_detected_description = Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong sikretong parirala kung ise-save sa ganitong paraan.
 secret_phrase_content_hidden_description = Nakatago ang content habang nagre-record ng screen
 
+# Private Key
+
+private_key_reminder_intro = Ang pribadong susing ito ang tanging backup ng iyong wallet.
+private_key_reminder_keep_safe_title = Itago Ito sa Ligtas na Lugar
+private_key_reminder_keep_safe_subtitle = Ang pribadong susi ang tanging paraan upang ma-access ang iyong wallet.
+private_key_reminder_do_not_share_title = Huwag Ibahagi Ito Kaninuman
+private_key_reminder_do_not_share_subtitle = Ang sinumang makakakuha ng iyong pribadong susi ay maaaring ganap na makontrol ang iyong wallet.
+private_key_reminder_no_recovery_title = Hindi Ka Namin Matutulungang Mabawi Ito
+private_key_reminder_no_recovery_subtitle = Kung mawala mo ang iyong pribadong susi, mawawalan ka ng access sa iyong wallet.
+private_key_do_not_share_title = Huwag ibahagi ang iyong Pribadong Susi!
+private_key_do_not_share_description = Kung may hawak ng iyong pribadong susi, magkakaroon sila ng ganap na kontrol sa account na ito!
+
 # Social
 
 social_x = X (formerly Twitter)

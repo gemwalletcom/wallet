@@ -365,6 +365,15 @@
   <string name="secret_phrase_screenshot_detected_title">تم اكتشاف لقطة شاشة</string>
   <string name="secret_phrase_screenshot_detected_description">قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، ولكنها قد تعرض عبارة المرور الخاصة بك للخطر إذا تم حفظها بهذه الطريقة.</string>
   <string name="secret_phrase_content_hidden_description">المحتوى المخفي أثناء تسجيل الشاشة</string>
+  <string name="private_key_reminder_intro">هذا المفتاح الخاص هو النسخة الاحتياطية الوحيدة لمحفظتك.</string>
+  <string name="private_key_reminder_keep_safe_title">خزّنه في مكان آمن</string>
+  <string name="private_key_reminder_keep_safe_subtitle">مفتاحك الخاص هو الطريقة الوحيدة للوصول إلى محفظتك.</string>
+  <string name="private_key_reminder_do_not_share_title">لا تشاركه مع أي شخص</string>
+  <string name="private_key_reminder_do_not_share_subtitle">يمكن لأي شخص يحصل على مفتاحك الخاص أن يتولى السيطرة الكاملة على محفظتك.</string>
+  <string name="private_key_reminder_no_recovery_title">لا يمكننا مساعدتك في استعادته</string>
+  <string name="private_key_reminder_no_recovery_subtitle">إذا فقدت مفتاحك الخاص، فإنك تفقد القدرة على الوصول إلى محفظتك.</string>
+  <string name="private_key_do_not_share_title">لا تشارك مفتاحك الخاص!</string>
+  <string name="private_key_do_not_share_description">إذا حصل شخص ما على مفتاحك الخاص، فسيكون لديه السيطرة الكاملة على هذا الحساب!</string>
   <string name="social_x">X (تويتر سابقًا)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

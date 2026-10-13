@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Captura de pantalla detectada
 secret_phrase_screenshot_detected_description = Las capturas de pantalla pueden ser accesibles a otras aplicaciones y, si se guardan de esta manera, pueden poner en riesgo tu frase secreta.
 secret_phrase_content_hidden_description = Contenido oculto durante la grabación de pantalla
 
+# Private Key
+
+private_key_reminder_intro = Esta clave privada es la única copia de seguridad de tu billetera.
+private_key_reminder_keep_safe_title = Guárdala en un lugar seguro
+private_key_reminder_keep_safe_subtitle = La clave privada es la única forma de acceder a tu billetera.
+private_key_reminder_do_not_share_title = No la compartas con nadie
+private_key_reminder_do_not_share_subtitle = Cualquiera que obtenga tu clave privada podrá tomar control total de tu billetera.
+private_key_reminder_no_recovery_title = No podemos ayudarte a recuperarla
+private_key_reminder_no_recovery_subtitle = Si pierdes tu clave privada, perderás el acceso a tu billetera.
+private_key_do_not_share_title = ¡No compartas tu clave privada!
+private_key_do_not_share_description = ¡Si alguien tiene tu clave privada tendrá control total de esta cuenta!
+
 # Social
 
 social_x = X (formerly Twitter)

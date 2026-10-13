@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Skærmbillede fundet
 secret_phrase_screenshot_detected_description = Skærmbilleder kan være tilgængelige for andre apps, og de kan bringe din hemmelige frase i fare, hvis de gemmes på denne måde.
 secret_phrase_content_hidden_description = Indhold skjult under skærmoptagelse
 
+# Private Key
+
+private_key_reminder_intro = Denne private nøgle er din tegnebogs eneste backup.
+private_key_reminder_keep_safe_title = Opbevar den et sikkert sted
+private_key_reminder_keep_safe_subtitle = Den private nøgle er den eneste måde at få adgang til din tegnebog.
+private_key_reminder_do_not_share_title = Del den ikke med nogen
+private_key_reminder_do_not_share_subtitle = Enhver, der får din private nøgle, kan tage fuld kontrol over din tegnebog.
+private_key_reminder_no_recovery_title = Vi kan ikke hjælpe dig med at gendanne den
+private_key_reminder_no_recovery_subtitle = Hvis du mister din private nøgle, mister du adgangen til din tegnebog.
+private_key_do_not_share_title = Del ikke din private nøgle!
+private_key_do_not_share_description = Hvis nogen har din private nøgle, vil de have fuld kontrol over denne konto!
+
 # Social
 
 social_x = X (formerly Twitter)

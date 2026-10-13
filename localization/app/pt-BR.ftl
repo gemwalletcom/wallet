@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Captura de tela detectada
 secret_phrase_screenshot_detected_description = Capturas de tela podem ser acessíveis a outros aplicativos e, se salvas dessa forma, podem colocar sua frase secreta em risco.
 secret_phrase_content_hidden_description = Conteúdo oculto durante a gravação de tela
 
+# Private Key
+
+private_key_reminder_intro = Esta chave privada é o único backup da sua carteira.
+private_key_reminder_keep_safe_title = Guarde em algum lugar seguro
+private_key_reminder_keep_safe_subtitle = A chave privada é a única maneira de acessar sua carteira.
+private_key_reminder_do_not_share_title = Não compartilhe com ninguém
+private_key_reminder_do_not_share_subtitle = Qualquer um que descobrir sua chave privada poderá assumir o controle total da sua carteira.
+private_key_reminder_no_recovery_title = Não podemos ajudar você a recuperá-la
+private_key_reminder_no_recovery_subtitle = Se você perder sua chave privada, perderá o acesso à sua carteira.
+private_key_do_not_share_title = Não compartilhe sua chave privada!
+private_key_do_not_share_description = Se alguém tiver sua chave privada, terá controle total desta conta!
+
 # Social
 
 social_x = X (ex-Twitter)

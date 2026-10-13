@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = تم اكتشاف لقطة شاشة
 secret_phrase_screenshot_detected_description = قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، ولكنها قد تعرض عبارة المرور الخاصة بك للخطر إذا تم حفظها بهذه الطريقة.
 secret_phrase_content_hidden_description = المحتوى المخفي أثناء تسجيل الشاشة
 
+# Private Key
+
+private_key_reminder_intro = هذا المفتاح الخاص هو النسخة الاحتياطية الوحيدة لمحفظتك.
+private_key_reminder_keep_safe_title = خزّنه في مكان آمن
+private_key_reminder_keep_safe_subtitle = مفتاحك الخاص هو الطريقة الوحيدة للوصول إلى محفظتك.
+private_key_reminder_do_not_share_title = لا تشاركه مع أي شخص
+private_key_reminder_do_not_share_subtitle = يمكن لأي شخص يحصل على مفتاحك الخاص أن يتولى السيطرة الكاملة على محفظتك.
+private_key_reminder_no_recovery_title = لا يمكننا مساعدتك في استعادته
+private_key_reminder_no_recovery_subtitle = إذا فقدت مفتاحك الخاص، فإنك تفقد القدرة على الوصول إلى محفظتك.
+private_key_do_not_share_title = لا تشارك مفتاحك الخاص!
+private_key_do_not_share_description = إذا حصل شخص ما على مفتاحك الخاص، فسيكون لديه السيطرة الكاملة على هذا الحساب!
+
 # Social
 
 social_x = X (تويتر سابقًا)

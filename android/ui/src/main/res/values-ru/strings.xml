@@ -365,6 +365,15 @@
   <string name="secret_phrase_screenshot_detected_title">Скриншот обнаружен</string>
   <string name="secret_phrase_screenshot_detected_description">Скриншоты могут быть доступны другим приложениям, и если сохранить их таким образом, они могут поставить под угрозу вашу секретную фразу.</string>
   <string name="secret_phrase_content_hidden_description">Контент, скрытый во время записи экрана</string>
+  <string name="private_key_reminder_intro">Этот приватный ключ — единственная резервная копия вашего кошелька.</string>
+  <string name="private_key_reminder_keep_safe_title">Храните в безопасном месте</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Приватный ключ — это единственный способ получить доступ к своему кошельку.</string>
+  <string name="private_key_reminder_do_not_share_title">Никому его не передавайте</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Любой, кто узнает ваш приватный ключ, может получить полный контроль над вашим кошельком.</string>
+  <string name="private_key_reminder_no_recovery_title">Мы не сможем его восстановить</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Если вы потеряете приватный ключ, вы потеряете доступ к своему кошельку.</string>
+  <string name="private_key_do_not_share_title">Не делитесь своим приватным ключом!</string>
+  <string name="private_key_do_not_share_description">Если кто-то узнает ваш приватный ключ, он получит полный контроль над этим аккаунтом!</string>
   <string name="social_x">X (бывший Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

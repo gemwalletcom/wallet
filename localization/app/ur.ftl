@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = اسکرین شاٹ کا پتہ چلا
 secret_phrase_screenshot_detected_description = اسکرین شاٹس دیگر ایپس کے لیے قابل رسائی ہو سکتے ہیں، اگر اس طرح محفوظ کیا جائے تو وہ آپ کے خفیہ جملے کو خطرے میں ڈال سکتے ہیں۔
 secret_phrase_content_hidden_description = اسکرین ریکارڈنگ کے دوران چھپا ہوا مواد
 
+# Private Key
+
+private_key_reminder_intro = یہ نجی کلید آپ کے بٹوے کا واحد بیک اپ ہے۔
+private_key_reminder_keep_safe_title = اسے کہیں محفوظ رکھیں
+private_key_reminder_keep_safe_subtitle = نجی کلید آپ کے بٹوے تک رسائی کا واحد طریقہ ہے۔
+private_key_reminder_do_not_share_title = اسے کسی کے ساتھ شیئر نہ کریں
+private_key_reminder_do_not_share_subtitle = جو کوئی بھی آپ کی نجی کلید حاصل کرتا ہے وہ آپ کے بٹوے کا مکمل کنٹرول لے سکتا ہے۔
+private_key_reminder_no_recovery_title = ہم اسے بحال کرنے میں آپ کی مدد نہیں کر سکتے
+private_key_reminder_no_recovery_subtitle = اگر آپ اپنی نجی کلید کھو دیتے ہیں، تو آپ اپنے بٹوے تک رسائی کھو دیتے ہیں۔
+private_key_do_not_share_title = اپنی نجی کلید شیئر نہ کریں!
+private_key_do_not_share_description = اگر کسی کے پاس آپ کی نجی کلید ہے تو اس کے پاس اس اکاؤنٹ کا مکمل کنٹرول ہوگا!
+
 # Social
 
 social_x = X (formerly Twitter)

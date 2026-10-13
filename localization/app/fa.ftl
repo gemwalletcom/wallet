@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = تصویر صفحه شناسایی ش�
 secret_phrase_screenshot_detected_description = اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند رمز عبور شما را در معرض خطر قرار دهند.
 secret_phrase_content_hidden_description = محتوای پنهان شده هنگام ضبط صفحه نمایش
 
+# Private Key
+
+private_key_reminder_intro = این کلید خصوصی تنها نسخه پشتیبان کیف پول شماست.
+private_key_reminder_keep_safe_title = آن را در جایی امن ذخیره کنید
+private_key_reminder_keep_safe_subtitle = کلید خصوصی تنها راه دسترسی به کیف پول شماست.
+private_key_reminder_do_not_share_title = آن را با کسی به اشتراک نگذارید
+private_key_reminder_do_not_share_subtitle = هر کسی که کلید خصوصی شما را دریافت کند می‌تواند کنترل کامل کیف پول شما را در دست بگیرد.
+private_key_reminder_no_recovery_title = ما نمی‌توانیم به شما کمک کنیم آن را بازیابی کنید
+private_key_reminder_no_recovery_subtitle = اگر کلید خصوصی خود را گم کنید، دسترسی به کیف پول خود را از دست خواهید داد.
+private_key_do_not_share_title = کلید خصوصی خود را با کسی به اشتراک نگذارید!
+private_key_do_not_share_description = اگر کسی کلید خصوصی شما را داشته باشد، کنترل کامل این حساب را خواهد داشت!
+
 # Social
 
 social_x = X (توییتر سابق)

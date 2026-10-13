@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Ekran Görüntüsü Algılandı
 secret_phrase_screenshot_detected_description = Ekran görüntüleri diğer uygulamalar tarafından erişilebilir olabilir, bu şekilde kaydedilirse gizli ifadeniz riske girebilir.
 secret_phrase_content_hidden_description = Ekran kaydı sırasında içerik gizlendi
 
+# Private Key
+
+private_key_reminder_intro = Bu özel anahtar cüzdanınızın tek yedeğidir.
+private_key_reminder_keep_safe_title = Güvenli Bir Yerde Saklayın
+private_key_reminder_keep_safe_subtitle = Cüzdanınıza erişmenin tek yolu özel anahtarınızdır.
+private_key_reminder_do_not_share_title = Kimseyle Paylaşmayın
+private_key_reminder_do_not_share_subtitle = Özel anahtarınızı ele geçiren herkes cüzdanınızın tüm kontrolünü ele geçirebilir.
+private_key_reminder_no_recovery_title = Onu Kurtarmanıza Yardımcı Olamayız
+private_key_reminder_no_recovery_subtitle = Özel anahtarınızı kaybederseniz cüzdanınıza erişiminizi kaybedersiniz.
+private_key_do_not_share_title = Özel Anahtarınızı paylaşmayın!
+private_key_do_not_share_description = Birisi özel anahtarınızı ele geçirirse, bu hesabın tam kontrolüne sahip olacaktır!
+
 # Social
 
 social_x = X (eski adıyla Twitter)

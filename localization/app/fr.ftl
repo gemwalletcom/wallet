@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Capture d'écran détectée
 secret_phrase_screenshot_detected_description = Les captures d'écran peuvent être accessibles à d'autres applications ; si elles sont enregistrées de cette manière, votre phrase secrète peut être compromise.
 secret_phrase_content_hidden_description = Contenu masqué pendant l'enregistrement d'écran
 
+# Private Key
+
+private_key_reminder_intro = Cette clé privée est la seule sauvegarde de votre portefeuille.
+private_key_reminder_keep_safe_title = Rangez-la dans un endroit sûr
+private_key_reminder_keep_safe_subtitle = La clé privée est le seul moyen d'accéder à votre portefeuille.
+private_key_reminder_do_not_share_title = Ne la partagez avec personne
+private_key_reminder_do_not_share_subtitle = Quiconque obtient votre clé privée peut prendre le contrôle total de votre portefeuille.
+private_key_reminder_no_recovery_title = Nous ne pouvons pas vous aider à la récupérer
+private_key_reminder_no_recovery_subtitle = Si vous perdez votre clé privée, vous perdez l'accès à votre portefeuille.
+private_key_do_not_share_title = Ne partagez pas votre clé privée !
+private_key_do_not_share_description = Si quelqu'un connaît votre clé privée, il aura le contrôle total de ce compte !
+
 # Social
 
 social_x = X (anciennement Twitter)

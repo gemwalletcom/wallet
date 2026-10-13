@@ -432,6 +432,18 @@ secret_phrase_screenshot_detected_title = Picha ya skrini imegunduliwa
 secret_phrase_screenshot_detected_description = Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka maneno yako ya siri hatarini ikiwa yamehifadhiwa kwa njia hii.
 secret_phrase_content_hidden_description = Maudhui yaliyofichwa wakati wa kurekodi skrini
 
+# Private Key
+
+private_key_reminder_intro = Ufunguo huu wa kibinafsi ndio nakala pekee ya pochi yako.
+private_key_reminder_keep_safe_title = Uhifadhi Mahali Salama
+private_key_reminder_keep_safe_subtitle = Ufunguo wa kibinafsi ndiyo njia pekee ya kufikia pochi yako.
+private_key_reminder_do_not_share_title = Usimshirikishe Mtu Yeyote
+private_key_reminder_do_not_share_subtitle = Mtu yeyote anayepata ufunguo wako wa kibinafsi anaweza kuchukua udhibiti kamili wa pochi yako.
+private_key_reminder_no_recovery_title = Hatuwezi Kukusaidia Kuurejesha
+private_key_reminder_no_recovery_subtitle = Ukipoteza ufunguo wako wa kibinafsi, utapoteza ufikiaji wa pochi yako.
+private_key_do_not_share_title = Usishiriki Ufunguo wako wa Kibinafsi!
+private_key_do_not_share_description = Ikiwa mtu ana ufunguo wako wa kibinafsi atakuwa na udhibiti kamili wa akaunti hii!
+
 # Social
 
 social_x = X (formerly Twitter)

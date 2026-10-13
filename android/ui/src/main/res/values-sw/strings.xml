@@ -365,6 +365,15 @@
   <string name="secret_phrase_screenshot_detected_title">Picha ya skrini imegunduliwa</string>
   <string name="secret_phrase_screenshot_detected_description">Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka maneno yako ya siri hatarini ikiwa yamehifadhiwa kwa njia hii.</string>
   <string name="secret_phrase_content_hidden_description">Maudhui yaliyofichwa wakati wa kurekodi skrini</string>
+  <string name="private_key_reminder_intro">Ufunguo huu wa kibinafsi ndio nakala pekee ya pochi yako.</string>
+  <string name="private_key_reminder_keep_safe_title">Uhifadhi Mahali Salama</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Ufunguo wa kibinafsi ndiyo njia pekee ya kufikia pochi yako.</string>
+  <string name="private_key_reminder_do_not_share_title">Usimshirikishe Mtu Yeyote</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Mtu yeyote anayepata ufunguo wako wa kibinafsi anaweza kuchukua udhibiti kamili wa pochi yako.</string>
+  <string name="private_key_reminder_no_recovery_title">Hatuwezi Kukusaidia Kuurejesha</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Ukipoteza ufunguo wako wa kibinafsi, utapoteza ufikiaji wa pochi yako.</string>
+  <string name="private_key_do_not_share_title">Usishiriki Ufunguo wako wa Kibinafsi!</string>
+  <string name="private_key_do_not_share_description">Ikiwa mtu ana ufunguo wako wa kibinafsi atakuwa na udhibiti kamili wa akaunti hii!</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
