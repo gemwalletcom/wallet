@@ -1,0 +1,21 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn:
+    id: "bitcoin"
+- waitForAnimationToEnd
+- tapOn:
+    id: "send_button"
+- tapOn:
+    id: "addressInputField"
+- inputText: ${BITCOIN_ADDRESS}
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      id: "main_action"
+      enabled: true
+    timeout: 15000
+- tapOn:
+    id: "main_action"
+- runFlow: amount_over_balance.yaml
+- takeScreenshot: ${output.journey}_send

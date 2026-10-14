@@ -1,0 +1,8 @@
+appId: ${APP_ID}
+---
+- tapOn:
+    id: "amountInputField"
+- inputText: "1"
+- assertVisible:
+    id: "main_action"
+    enabled: false

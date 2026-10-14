@@ -2,6 +2,8 @@ package com.gemwallet.android.features.transfer.presents.recipient.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.QrScanField
 import com.gemwallet.android.ui.R
@@ -28,6 +30,7 @@ fun LazyListScope.destinationView(
                 indicator = nameResolveIndicator,
                 error = addressError,
                 onValueChange = onAddress,
+                modifier = Modifier.testTag("addressInputField"),
                 onQrScanner = { onQrScan(QrScanField.Address) },
                 onSubmit = onSubmitAddress,
             )

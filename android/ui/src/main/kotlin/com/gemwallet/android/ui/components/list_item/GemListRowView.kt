@@ -257,5 +257,5 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit 
     )
 }
 
-private val GemRowAction.testTag: String
+val GemRowAction.testTag: String
     get() = javaClass.simpleName.replaceFirstChar { it.lowercase() }
