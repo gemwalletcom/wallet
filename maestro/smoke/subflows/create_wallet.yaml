@@ -4,6 +4,10 @@ appId: ${APP_ID}
     clearState: true
     permissions:
       notifications: allow
+- extendedWaitUntil:
+    visible:
+      id: "create"
+    timeout: 30000
 - tapOn:
     id: "create"
 - runFlow: accept_terms.yaml

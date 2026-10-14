@@ -4,6 +4,10 @@ appId: ${APP_ID}
     clearState: true
     permissions:
       notifications: allow
+- extendedWaitUntil:
+    visible:
+      id: "import"
+    timeout: 30000
 - tapOn:
     id: "import"
 - runFlow: accept_terms.yaml
@@ -12,7 +16,6 @@ appId: ${APP_ID}
 - tapOn:
     id: "importInputField"
 - inputText: ${TEST_PHRASE}
-- hideKeyboard
 - tapOn:
     id: "main_action"
 - runFlow: finish_onboarding.yaml
