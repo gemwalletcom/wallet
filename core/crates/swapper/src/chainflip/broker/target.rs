@@ -5,6 +5,8 @@ pub enum BrokerTarget {
     Assets,
     Quotes,
     Rpc,
+    DepositChannel,
+    StatusByTransactionHash,
 }
 
 impl Target for BrokerTarget {
@@ -13,6 +15,8 @@ impl Target for BrokerTarget {
             Self::Assets => "/assets".to_string(),
             Self::Quotes => "/quotes-native".to_string(),
             Self::Rpc => "/rpc".to_string(),
+            Self::DepositChannel => "/deposit_channel".to_string(),
+            Self::StatusByTransactionHash => "/status-by-transaction-hash".to_string(),
         }
     }
 }

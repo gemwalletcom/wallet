@@ -1,4 +1,6 @@
 use num_traits::ToPrimitive;
+#[cfg(any(test, feature = "rpc"))]
+use primitives::TransactionInputType;
 use primitives::{SignerError, TransactionLoadInput, TransactionLoadMetadata, hex::decode_hex_array};
 #[cfg(any(test, feature = "rpc"))]
 use signer::Ed25519KeyPair;
@@ -26,10 +28,22 @@ pub(crate) fn fee_estimation_transaction(input: &TransactionLoadInput) -> Result
 #[cfg(any(test, feature = "rpc"))]
 fn fee_estimation_transaction_with_private_key(input: &TransactionLoadInput, private_key: &[u8; 32]) -> Result<String, SignerError> {
     let key_pair = Ed25519KeyPair::from_private_key(private_key)?;
-    let transaction = NativeTransferTransaction::from_input(input, key_pair.public_key_bytes)?;
+    let transaction = NativeTransferTransaction::from_input(&transfer_input(input), key_pair.public_key_bytes)?;
     let signing_payload = transaction.signing_payload();
     let signature = key_pair.sign(signing_payload.as_ref());
     Ok(transaction.encode_hex(&signature))
+}
+
+#[cfg(any(test, feature = "rpc"))]
+fn transfer_input(input: &TransactionLoadInput) -> TransactionLoadInput {
+    match &input.input_type {
+        TransactionInputType::Swap { swap_data, .. } => TransactionLoadInput {
+            destination_address: swap_data.data.to.clone(),
+            value: swap_data.data.value.clone(),
+            ..input.clone()
+        },
+        _ => input.clone(),
+    }
 }
 
 pub(crate) struct NativeTransferTransaction {
@@ -284,6 +298,22 @@ mod tests {
         let expected_hash = gem_hash::blake2::blake2b_256(&payload);
 
         assert_eq!(SigningPayload::new(payload).as_ref(), expected_hash);
+    }
+
+    #[test]
+    fn test_fee_estimation_transaction_sends_swap_to_deposit_address() {
+        let transfer = TransactionLoadInput::mock_polkadot();
+        let swap = TransactionLoadInput {
+            input_type: TransactionInputType::Swap {
+                from_asset: primitives::Asset::from_chain(primitives::Chain::Polkadot),
+                to_asset: primitives::Asset::from_chain(primitives::Chain::Ethereum),
+                swap_data: primitives::SwapData::mock_transfer(primitives::SwapProvider::Chainflip, "10000", "1", &transfer.destination_address),
+            },
+            destination_address: "0x2578f4fa0f36138c76389095bf74331a4f57bcc0".to_string(),
+            ..transfer.clone()
+        };
+
+        assert_eq!(fee_estimation_transaction_with_private_key(&swap, &[1; 32]).unwrap(), fee_estimation_transaction_with_private_key(&transfer, &[1; 32]).unwrap());
     }
 
     #[test]

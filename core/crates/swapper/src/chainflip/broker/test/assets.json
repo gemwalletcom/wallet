@@ -75,6 +75,14 @@
       "ticker": "DOT",
       "network": "Assethub",
       "minimalAmountNative": "40000000000"
+    },
+    {
+      "id": "usdc.eth",
+      "enabled": true,
+      "direction": "both",
+      "ticker": "USDC",
+      "network": "Ethereum",
+      "minimalAmountNative": "20000000"
     }
   ]
 }

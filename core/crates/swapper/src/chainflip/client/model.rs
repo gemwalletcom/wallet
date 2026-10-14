@@ -163,7 +163,7 @@ pub static SUPPORTED_ASSETS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
     chains.into_iter().map(|(chain, tokens)| SwapperChainAsset::Assets(chain, tokens)).collect()
 });
 
-fn chainflip_asset_to_asset_id(chain: Chain, asset: &str) -> Option<AssetId> {
+pub(crate) fn chainflip_asset_to_asset_id(chain: Chain, asset: &str) -> Option<AssetId> {
     ASSETS.iter().find(|(symbol, id)| id.chain == chain && *symbol == asset).map(|(_, id)| id.clone())
 }
 

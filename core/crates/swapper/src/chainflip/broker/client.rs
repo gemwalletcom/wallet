@@ -1,5 +1,6 @@
+use super::status::StatusByTransactionHashRequest;
 use super::{
-    AssetsResponse, QuoteRequest, QuoteResponse, VaultSwapExtras, VaultSwapResponse,
+    AssetsResponse, BrokerStatusResponse, DepositChannelRequest, DepositChannelResponse, QuoteRequest, QuoteResponse, VaultSwapExtras, VaultSwapResponse,
     jsonrpc::RequestSwapParameterEncoding,
     model::{ChainflipAsset, DcaParameters},
     target::BrokerTarget,
@@ -15,14 +16,15 @@ where
     C: Client + Clone + Debug,
 {
     client: C,
+    deposit_channel_client: C,
 }
 
 impl<C> BrokerClient<C>
 where
     C: Client + Clone + Debug,
 {
-    pub fn new(client: C) -> Self {
-        Self { client }
+    pub fn new(client: C, deposit_channel_client: C) -> Self {
+        Self { client, deposit_channel_client }
     }
 
     pub async fn get_assets(&self) -> Result<AssetsResponse, SwapperError> {
@@ -54,6 +56,22 @@ where
         }
         .to_jsonrpc_request(1);
         let response: JsonRpcResult<VaultSwapResponse> = self.client.post(BrokerTarget::Rpc, &request).await?;
+        response.take().map_err(SwapperError::from)
+    }
+
+    pub async fn get_status_by_transaction_hash(&self, transaction_hash: &str) -> Result<Option<BrokerStatusResponse>, SwapperError> {
+        let request = StatusByTransactionHashRequest {
+            transaction_hash: transaction_hash.to_string(),
+        };
+        match self.client.get(BrokerTarget::StatusByTransactionHash).query(&request).await {
+            Ok(response) => Ok(Some(response)),
+            Err(error) if error.status() == Some(404) => Ok(None),
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    pub async fn request_deposit_channel(&self, request: &DepositChannelRequest) -> Result<DepositChannelResponse, SwapperError> {
+        let response: JsonRpcResult<DepositChannelResponse> = self.deposit_channel_client.post(BrokerTarget::DepositChannel, request).await?;
         response.take().map_err(SwapperError::from)
     }
 }

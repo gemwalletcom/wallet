@@ -12,8 +12,8 @@ use std::{fmt::Debug, sync::Arc, time::Duration};
 use super::{
     ChainflipRouteData,
     broker::{
-        AssetsResponse, BrokerClient, ChainflipAsset, DcaParameters, QuoteDetails, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, QuoteType, RefundParameters, TronVaultSwapResponse, VaultSwapChainExtras, VaultSwapExtras,
-        VaultSwapResponse, VaultSwapSolanaExtras,
+        AssetsResponse, BrokerClient, ChainflipAsset, DcaParameters, DepositChannelRequest, QuoteDetails, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, QuoteType, RefundParameters, TronVaultSwapResponse, VaultSwapChainExtras,
+        VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras,
     },
     client::{ChainflipClient, SUPPORTED_ASSETS, map_swap_result},
     price::{price_after_slippage, price_to_hex_price},
@@ -87,10 +87,11 @@ fn vault_deposit_addresses() -> Vec<String> {
 }
 
 fn build_quote_request(request: &QuoteRequest, assets: &AssetsResponse) -> Result<(ChainflipQuoteRequest, BigUint), SwapperError> {
-    match request.from_asset.chain().chain_type() {
-        ChainType::Ethereum | ChainType::Solana | ChainType::Tron => {}
+    let is_vault_swap = match request.from_asset.chain().chain_type() {
+        ChainType::Ethereum | ChainType::Solana | ChainType::Tron => true,
+        ChainType::Polkadot => false,
         _ => return Err(SwapperError::NotSupportedChain),
-    }
+    };
     let source_asset = ChainflipAsset::from_asset_id(&request.from_asset.asset_id())?;
     let destination_asset = ChainflipAsset::from_asset_id(&request.to_asset.asset_id())?;
     let source_broker_asset = assets.asset(&source_asset).filter(|asset| asset.supports_ingress()).ok_or(SwapperError::NoQuoteAvailable)?;
@@ -102,7 +103,7 @@ fn build_quote_request(request: &QuoteRequest, assets: &AssetsResponse) -> Resul
             source_asset: source_broker_asset.id.clone(),
             destination_asset: destination_broker_asset.id.clone(),
             commission_bps: DEFAULT_FEE_BPS,
-            is_vault_swap: true,
+            is_vault_swap,
         },
         source_broker_asset.minimal_amount_native.clone(),
     ))
@@ -218,8 +219,11 @@ where
         SUPPORTED_ASSETS.clone()
     }
 
-    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
-        SwapAmountMode::Fixed
+    fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode {
+        match request.from_asset.chain().chain_type() {
+            ChainType::Polkadot => SwapAmountMode::Flexible,
+            _ => SwapAmountMode::Fixed,
+        }
     }
 
     async fn preload_routes(&self, _from_asset: &AssetId, _to_asset: &AssetId) {
@@ -268,6 +272,18 @@ where
         let base_asset_decimals = quote.request.from_asset.decimals;
         let min_price = price_to_hex_price(price_slippage, quote_asset_decimals, base_asset_decimals).map_err(SwapperError::TransactionError)?;
         let source_chain_type = from_asset.chain.chain_type();
+        if source_chain_type == ChainType::Polkadot {
+            let request = DepositChannelRequest {
+                source_asset,
+                destination_asset,
+                destination_address: quote.request.destination_address.clone(),
+                boost_fee: route_data.boost_fee,
+                refund_parameters: refund_parameters(REFUND_RETRY_BLOCKS, &quote.request.wallet_address, &min_price),
+                dca_parameters: route_data.dca_parameters,
+            };
+            let response = self.broker_client.request_deposit_channel(&request).await?;
+            return Ok(SwapperQuoteData::new_transfer(response.deposit_address()?, input_amount, None));
+        }
         let extra_params = match source_chain_type {
             ChainType::Ethereum => VaultSwapExtras::Evm(VaultSwapChainExtras {
                 chain,
@@ -341,6 +357,10 @@ where
     }
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
+        if request.chain.chain_type() == ChainType::Polkadot {
+            let (assets, response) = futures::try_join!(self.get_assets(), self.broker_client.get_status_by_transaction_hash(&request.transaction_hash))?;
+            return Ok(response.map_or_else(SwapResult::pending, |response| response.status.swap_result(&assets)));
+        }
         let response = self.chainflip_client.get_tx_status(&request.transaction_hash).await?;
         Ok(map_swap_result(&response))
     }
@@ -353,6 +373,8 @@ mod tests {
     use gem_client::testkit::MockClient;
     use primitives::AssetId;
     use primitives::Chain;
+    use primitives::swap::SwapStatus;
+    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_POLKADOT_SENDER};
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[test]
@@ -384,7 +406,7 @@ mod tests {
             }
             _ => panic!("unexpected path: {path}"),
         });
-        let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(broker_client), Arc::new(ProviderMock::new(String::new())));
+        let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(broker_client, MockClient::new()), Arc::new(ProviderMock::new(String::new())));
         let mut request = QuoteRequest::mock(Chain::Solana, None);
         request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin));
         provider.preload_routes(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
@@ -400,17 +422,94 @@ mod tests {
     }
 
     #[test]
-    fn test_build_quote_request_rejects_destination_only_sources() {
-        for chain in [Chain::Bitcoin, Chain::Polkadot] {
-            let request = QuoteRequest {
-                from_asset: SwapperQuoteAsset::from(AssetId::from_chain(chain)),
-                to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-                value: BigUint::from(89100u64),
-                ..QuoteRequest::mock(chain, None)
-            };
+    fn test_build_quote_request_rejects_bitcoin_source() {
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
+            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
+            value: BigUint::from(89100u64),
+            ..QuoteRequest::mock(Chain::Bitcoin, None)
+        };
 
-            assert_eq!(build_quote_request(&request, &AssetsResponse::mock()).unwrap_err(), SwapperError::NotSupportedChain);
-        }
+        assert_eq!(build_quote_request(&request, &AssetsResponse::mock()).unwrap_err(), SwapperError::NotSupportedChain);
+    }
+
+    #[test]
+    fn test_build_quote_request_uses_deposit_channel_for_polkadot() {
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Polkadot)),
+            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
+            value: BigUint::from(40_000_000_000u64),
+            ..QuoteRequest::mock(Chain::Polkadot, None)
+        };
+
+        let (quote_request, minimum_amount) = build_quote_request(&request, &AssetsResponse::mock()).unwrap();
+        assert_eq!(
+            gem_client::build_path_with_query("/quotes-native", &quote_request),
+            "/quotes-native?amount=40000000000&sourceAsset=dot.hub&destinationAsset=eth.eth&commissionBps=45&isVaultSwap=false"
+        );
+        assert_eq!(minimum_amount, BigUint::from(40_000_000_000u64));
+    }
+
+    #[test]
+    fn test_amount_mode() {
+        let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(MockClient::new(), MockClient::new()), Arc::new(ProviderMock::new(String::new())));
+
+        assert_eq!(provider.amount_mode(&QuoteRequest::mock(Chain::Polkadot, None)), SwapAmountMode::Flexible);
+        assert_eq!(provider.amount_mode(&QuoteRequest::mock(Chain::Ethereum, None)), SwapAmountMode::Fixed);
+    }
+
+    #[tokio::test]
+    async fn test_quote_data_sends_polkadot_to_deposit_channel() {
+        let deposit_channel = MockClient::new().with_post(|path, body| {
+            assert_eq!(path, "/deposit_channel");
+            let request: DepositChannelRequest = serde_json::from_slice(body).unwrap();
+            assert_eq!(
+                request.source_asset,
+                ChainflipAsset {
+                    chain: "Assethub".into(),
+                    asset: "DOT".into()
+                }
+            );
+            assert_eq!(request.destination_address, TEST_EVM_RECIPIENT);
+            assert_eq!(request.refund_parameters.refund_address, TEST_POLKADOT_SENDER);
+            Ok(br#"{"jsonrpc":"2.0","id":1,"result":{"address":"0xb72845b75b44e7e2ee29a390e9cf2e71291f2a1823299eedf5d016662fdb96cf","issued_block":15237919,"channel_id":23}}"#.to_vec())
+        });
+        let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(MockClient::new(), deposit_channel), Arc::new(ProviderMock::new(String::new())));
+        let mut quote = Quote::mock(Chain::Polkadot, None);
+        quote.request.wallet_address = TEST_POLKADOT_SENDER.to_string();
+        quote.request.destination_address = TEST_EVM_RECIPIENT.to_string();
+        quote.request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum));
+        quote.from_value = BigUint::from(40_000_000_000u64);
+        quote.data.routes = vec![Route {
+            input: quote.request.from_asset.asset_id(),
+            output: quote.request.to_asset.asset_id(),
+            route_data: serde_json::to_string(&ChainflipRouteData {
+                boost_fee: None,
+                estimated_price: 0.0004,
+                dca_parameters: None,
+            })
+            .unwrap(),
+        }];
+
+        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        assert_eq!(data, SwapperQuoteData::new_transfer("1599j8DFFZutdkvmxe81QNCpjNWAmmLD5pHSYph6gPVbp6av".to_string(), BigUint::from(40_000_000_000u64), None));
+    }
+
+    #[tokio::test]
+    async fn test_polkadot_swap_result_uses_broker_status() {
+        let broker = MockClient::new().with_get(|path| match path {
+            "/assets" => Ok(include_str!("./broker/test/assets.json").as_bytes().to_vec()),
+            "/status-by-transaction-hash?transactionHash=0xcompleted" => Ok(include_str!("./broker/test/status_dot_to_eth.json").as_bytes().to_vec()),
+            "/status-by-transaction-hash?transactionHash=0xunknown" => Err(gem_client::ClientError::Http { status: 404, body: vec![] }),
+            _ => panic!("unexpected path: {path}"),
+        });
+        let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(broker, MockClient::new()), Arc::new(ProviderMock::new(String::new())));
+
+        let result = provider.get_swap_result(&SwapResultRequest::new(Chain::Polkadot, "0xcompleted")).await.unwrap();
+        assert_eq!(result.status, SwapStatus::Completed);
+        assert_eq!(result.metadata.unwrap().from_asset, AssetId::from_chain(Chain::Polkadot));
+
+        assert_eq!(provider.get_swap_result(&SwapResultRequest::new(Chain::Polkadot, "0xunknown")).await.unwrap(), SwapResult::pending());
     }
 
     #[test]
@@ -495,7 +594,7 @@ mod tests {
             }))
             .unwrap())
         });
-        let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(broker), Arc::new(ProviderMock::new(String::new())));
+        let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(broker, MockClient::new()), Arc::new(ProviderMock::new(String::new())));
         let mut quote = Quote::mock(Chain::Tron, None);
         quote.request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum));
         quote.data.routes = vec![Route {
