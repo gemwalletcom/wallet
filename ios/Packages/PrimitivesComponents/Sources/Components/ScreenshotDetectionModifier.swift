@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemWalletSecretKind
+import GemstonePrimitives
 import Localization
 import SwiftUI
 

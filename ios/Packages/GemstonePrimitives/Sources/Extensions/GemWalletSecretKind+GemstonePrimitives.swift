@@ -2,7 +2,6 @@
 
 import Foundation
 import enum Gemstone.GemWalletSecretKind
-import GemstonePrimitives
 
 public extension GemWalletSecretKind {
     var securityDocsUrl: URL {
