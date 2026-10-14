@@ -34,6 +34,7 @@ struct ContactAddressEditorScene: View {
             ToolbarItem(placement: .primaryAction) {
                 Button("", systemImage: SystemImage.checkmark, action: onComplete)
                     .disabled(model.buttonState == .disabled)
+                    .accessibilityIdentifier("save_address")
             }
         }
         .listStyle(.insetGrouped)
@@ -83,6 +84,7 @@ extension ContactAddressEditorScene {
                 onSelectPaste: model.onSelectPaste,
             )
             .focused($focusedField, equals: .address)
+            .accessibilityIdentifier("addressInputField")
         }
     }
 

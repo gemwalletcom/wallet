@@ -7,6 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
@@ -30,7 +32,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
         title = stringResource(R.string.common_address),
         onClose = { onAction(ContactAddressEditorAction.Cancel) },
         actions = {
-            IconButton(onClick = { onAction(ContactAddressEditorAction.Confirm) }, enabled = input.isAddressValid) {
+            IconButton(onClick = { onAction(ContactAddressEditorAction.Confirm) }, enabled = input.isAddressValid, modifier = Modifier.testTag("save_address")) {
                 Icon(imageVector = AppIcons.Check, contentDescription = "")
             }
         },
@@ -47,6 +49,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
             label = stringResource(R.string.common_address),
             indicator = input.nameResolveIndicator,
             onValueChange = onAddressChange,
+            modifier = Modifier.testTag("addressInputField"),
             error = input.addressError,
             onPaste = onPaste,
             onQrScanner = { scanning = true },

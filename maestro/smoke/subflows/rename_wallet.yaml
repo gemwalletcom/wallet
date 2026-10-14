@@ -1,0 +1,21 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "wallet_edit"
+- waitForAnimationToEnd
+- tapOn:
+    id: "nameInputField"
+- eraseText
+- inputText: "Maestro"
+- runFlow: launch.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*Maestro.*"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_renamed_wallet

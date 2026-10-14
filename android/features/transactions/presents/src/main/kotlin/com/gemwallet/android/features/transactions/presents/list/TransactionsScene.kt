@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -53,7 +54,7 @@ internal fun TransactionsScene(
         title = stringResource(id = R.string.activity_title),
         mainActionPadding = PaddingValues(space0),
         actions = {
-            IconButton(onClick = { showFilters = !showFilters }) {
+            IconButton(onClick = { showFilters = !showFilters }, modifier = Modifier.testTag("filter")) {
                 Icon(
                     imageVector = AppIcons.FilterAlt,
                     tint = if (filterView.isFiltered) {

@@ -1,0 +1,55 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "preferences"
+- tapOn:
+    id: "contacts"
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      notVisible:
+        id: "contact_row"
+    commands:
+      - tapOn:
+          id: "add_contact"
+      - waitForAnimationToEnd
+      - tapOn:
+          id: "nameInputField"
+      - inputText: "Satoshi"
+      - tapOn:
+          id: "add_address"
+      - waitForAnimationToEnd
+      - runFlow:
+          when:
+            visible:
+              id: "bitcoin"
+          commands:
+            - tapOn:
+                id: "bitcoin"
+      - tapOn:
+          id: "addressInputField"
+      - inputText: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+      - pressKey: Enter
+      - tapOn:
+          id: "save_address"
+      - waitForAnimationToEnd
+      - tapOn:
+          id: "save_contact"
+- extendedWaitUntil:
+    visible:
+      id: "contact_row"
+    timeout: 15000
+- runFlow: launch.yaml
+- tapOn:
+    id: "bitcoin"
+- waitForAnimationToEnd
+- tapOn:
+    id: "send_button"
+- waitForAnimationToEnd
+- tapOn:
+    id: "recipient_row"
+- runFlow: amount_over_balance.yaml
+- takeScreenshot: ${output.journey}_send_to_contact

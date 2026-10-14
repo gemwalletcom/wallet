@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "activitiesTab"
+- extendedWaitUntil:
+    visible:
+      id: "transaction"
+    timeout: 30000
+- tapOn:
+    id: "filter"
+- tapOn:
+    id: "filter_networks"
+- waitForAnimationToEnd
+- tapOn:
+    id: "bitcoin"
+- tapOn:
+    id: "main_action"
+- extendedWaitUntil:
+    notVisible:
+      id: "transaction"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_activity_filtered

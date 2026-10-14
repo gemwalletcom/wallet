@@ -28,6 +28,7 @@ public struct WalletDetailScene: View {
                 Section {
                     FloatTextField(Localized.Wallet.name, text: $model.nameInput, allowClean: focusedField == .name)
                         .focused($focusedField, equals: .name)
+                        .accessibilityIdentifier("nameInputField")
                 } header: {
                     HStack {
                         Spacer()

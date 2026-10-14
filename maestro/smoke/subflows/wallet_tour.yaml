@@ -7,6 +7,8 @@ appId: ${APP_ID}
 - runFlow: add_token.yaml
 - runFlow: buy.yaml
 - runFlow: send.yaml
+- runFlow: send_to_contact.yaml
 - runFlow: swap.yaml
 - runFlow: stake.yaml
+- runFlow: rename_wallet.yaml
 - runFlow: currency.yaml

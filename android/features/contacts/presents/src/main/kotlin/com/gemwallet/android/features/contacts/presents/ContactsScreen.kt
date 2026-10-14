@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,7 +43,7 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
         onClose = { onAction(ContactsAction.Cancel) },
         snackbar = snackbar,
         actions = {
-            IconButton(onClick = { onAction(ContactsAction.AddContact(viewModel.draft)) }) {
+            IconButton(onClick = { onAction(ContactsAction.AddContact(viewModel.draft)) }, modifier = Modifier.testTag("add_contact")) {
                 Icon(imageVector = AppIcons.Add, contentDescription = "")
             }
         },
@@ -81,7 +82,7 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
                                     null -> onAction(ContactsAction.OpenContact(item.contact.contact.id))
                                     else -> viewModel.addAddress(item.contact) { onAction(ContactsAction.Cancel) }
                                 }
-                            },
+                            }.testTag("contact_row"),
                             minHeight = ListItemDefaults.defaultMinHeight,
                             accessory = { DataBadgeChevron() },
                         )

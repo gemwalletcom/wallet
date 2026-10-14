@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.features.wallet.presents.components.WalletAddress
@@ -73,7 +74,7 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
         ) {
             WalletAvatarHeader(wallet = wallet, onClick = { onAction(WalletDetailAction.SelectImage) })
             GemTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("nameInputField"),
                 label = stringResource(id = R.string.wallet_name),
                 value = walletName,
                 onValueChange = {

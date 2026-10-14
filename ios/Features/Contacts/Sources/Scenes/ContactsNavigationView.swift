@@ -22,6 +22,7 @@ public struct ContactsNavigationView: View {
                     Button("", systemImage: SystemImage.plus, action: {
                         model.isPresentingAddContact = true
                     })
+                    .accessibilityIdentifier("add_contact")
                 }
             }
             .sheet(isPresented: $model.isPresentingAddContact) {

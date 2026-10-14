@@ -23,11 +23,13 @@ struct ContactsScene: View {
                 switch model.rowAction {
                 case .navigate:
                     NavigationLink(value: Scenes.Contact(contact: contact)) { item }
+                        .accessibilityIdentifier("contact_row")
                 case .select:
                     Button {
                         model.onSelect(contact: contact, dismiss: dismiss)
                     } label: { item }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier("contact_row")
                 }
             }
             .onDelete(perform: model.deleteContacts)

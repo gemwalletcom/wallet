@@ -86,6 +86,7 @@ public struct RecipientScene: View {
                                 model.onSelectRecipient(recipient)
                             },
                         )
+                        .accessibilityIdentifier("recipient_row")
                     }
                 } header: {
                     HStack {

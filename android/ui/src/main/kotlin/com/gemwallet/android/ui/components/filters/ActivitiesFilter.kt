@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ui.R
@@ -65,7 +66,7 @@ fun TransactionsFilter(
                         image = ListItemImage.Drawable(R.drawable.settings_networks),
                     ),
                     listPosition = ListPosition.First,
-                    modifier = Modifier.clickable { showedSubFilter = FilterType.ByChains },
+                    modifier = Modifier.clickable { showedSubFilter = FilterType.ByChains }.testTag("filter_networks"),
                     accessory = { DataBadgeChevron() },
                 )
             }

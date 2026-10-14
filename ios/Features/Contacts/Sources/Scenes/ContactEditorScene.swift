@@ -38,6 +38,7 @@ public struct ContactEditorScene: View {
             ToolbarItem(placement: .primaryAction) {
                 Button("", systemImage: SystemImage.checkmark, action: onSave)
                     .disabled(model.buttonState == .disabled)
+                    .accessibilityIdentifier("save_contact")
             }
         }
         .onChange(of: model.nameInputModel.text) { _, name in
@@ -99,6 +100,7 @@ extension ContactEditorScene {
             )
             .focused($focusedField, equals: .name)
             .textInputAutocapitalization(.words)
+            .accessibilityIdentifier("nameInputField")
 
             FloatTextField(
                 model.descriptionTitle,
@@ -124,6 +126,7 @@ extension ContactEditorScene {
                     Text(Localized.Common.address)
                 }
             }
+            .accessibilityIdentifier("add_address")
         } header: {
             Text(model.addressesSectionTitle)
         }
