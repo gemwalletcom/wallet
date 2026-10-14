@@ -1153,6 +1153,13 @@ public extension GemWalletSecretKind {
         case .privateKey: Localized.Common.privateKey
         }
     }
+
+    var screenshotDetectedDescription: String {
+        switch self {
+        case .phrase: Localized.SecretPhrase.ScreenshotDetected.description
+        case .privateKey: Localized.PrivateKey.ScreenshotDetected.description
+        }
+    }
 }
 
 public extension ReportReason {

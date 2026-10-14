@@ -401,6 +401,8 @@ mod tests {
             GemWalletImportKind::Address.resolves_names() && !GemWalletImportKind::Phrase.resolves_names() && !GemWalletImportKind::PrivateKey.resolves_names(),
             "only an address can be typed as a name"
         );
+        assert_eq!(GemWalletImportKind::PrivateKey.secret_kind(), Some(GemWalletSecretKind::PrivateKey), "a key import warns about the key, not a Secret Phrase");
+        assert_eq!(GemWalletImportKind::Address.secret_kind(), None, "an address is no secret");
     }
 
     #[test]

@@ -52,6 +52,14 @@ impl GemWalletImportKind {
     pub fn resolves_names(&self) -> bool {
         matches!(self, Self::Address)
     }
+
+    pub fn secret_kind(&self) -> Option<GemWalletSecretKind> {
+        match self {
+            Self::Phrase => Some(GemWalletSecretKind::Phrase),
+            Self::PrivateKey => Some(GemWalletSecretKind::PrivateKey),
+            Self::Address => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

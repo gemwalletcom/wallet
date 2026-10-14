@@ -28,7 +28,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.onboarding.viewmodels.create_wallet.CreateWalletViewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.DetectScreenshot
@@ -52,6 +51,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import uniffi.gemstone.GemButtonState
 import uniffi.gemstone.GemCopy
+import uniffi.gemstone.GemWalletSecretKind
 import uniffi.gemstone.secretPhraseCopy
 
 private val loadingDialogSize = 100.dp
@@ -59,7 +59,7 @@ private val loadingDialogSize = 100.dp
 @Composable
 fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
     DisableScreenShooting()
-    DetectScreenshot(AppUrl.howToSecureSecretPhrase)
+    DetectScreenshot(GemWalletSecretKind.PHRASE)
 
     val context = LocalContext.current
     val viewModel: CreateWalletViewModel = hiltViewModel()

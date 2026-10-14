@@ -49,7 +49,7 @@ import uniffi.gemstone.secretScreen
 @Composable
 fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hiltViewModel()) {
     DisableScreenShooting()
-    DetectScreenshot(AppUrl.howToSecureSecretPhrase)
+    DetectScreenshot(viewModel.secretKind)
 
     val result by viewModel.secret.collectAsStateWithLifecycle()
 
@@ -75,7 +75,7 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
         title = title,
         padding = sceneContentPaddingValues(),
         actions = {
-            DocsInfoButton(AppUrl.howToSecureSecretPhrase)
+            DocsInfoButton(AppUrl.secretSecurity(viewModel.secretKind))
         },
         onClose = onCancel,
     ) {

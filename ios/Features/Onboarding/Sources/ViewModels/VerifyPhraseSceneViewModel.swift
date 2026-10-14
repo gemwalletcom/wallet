@@ -46,10 +46,6 @@ final class VerifyPhraseSceneViewModel {
         Localized.VerifyPhrase.title
     }
 
-    var docsUrl: URL {
-        AppUrl.docs(.howToSecureSecretPhrase)
-    }
-
     var rows: [SecretPhraseRow] {
         SecretPhraseRow.rows(for: words.enumerated().map { $0.offset < Int(viewState.verifiedCount) ? $0.element : .empty })
     }

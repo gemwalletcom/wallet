@@ -118,7 +118,7 @@ struct ImportWalletScene: View {
         .taskOnce {
             focusedField = .input
         }
-        .detectScreenshots(docsUrl: model.docsUrl)
+        .detectScreenshots(kind: model.importType.secretKind())
         .protectFromScreenRecording()
     }
 

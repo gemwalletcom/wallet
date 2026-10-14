@@ -215,6 +215,7 @@ A Secret Phrase or private key shows when a wallet is created and from "Show Sec
 |---|---|---|
 | The user copies the Secret Phrase or private key | it leaves the clipboard after one minute and is kept off other devices; whatever the user copies after it stays | only a secret is dangerous to leave behind |
 | The user copies an address or anything else | it stays until something replaces it | only a secret is dangerous to leave behind |
+| A screenshot of a secret is detected, or the screen's info link is opened | the warning and the help page name the secret on screen: the Secret Phrase or the private key; entering an address shows no warning | phrase wording on a key screen misled users (#1394) |
 
 | When | iOS | Android | Expected |
 |---|---|---|---|

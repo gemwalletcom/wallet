@@ -15,9 +15,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.AppUrl
+import com.gemwallet.android.ui.localization.screenshotDetectedDescriptionRes
+import uniffi.gemstone.GemWalletSecretKind
 
 @Composable
-fun DetectScreenshot(docsUrl: String) {
+fun DetectScreenshot(kind: GemWalletSecretKind?) {
+    if (kind == null) return
     val context = LocalContext.current
     var showWarning by remember { mutableStateOf(false) }
 
@@ -34,21 +38,21 @@ fun DetectScreenshot(docsUrl: String) {
 
     if (showWarning) {
         ScreenshotDetectedDialog(
-            docsUrl = docsUrl,
+            kind = kind,
             onDismiss = { showWarning = false },
         )
     }
 }
 
 @Composable
-private fun ScreenshotDetectedDialog(docsUrl: String, onDismiss: () -> Unit) {
+private fun ScreenshotDetectedDialog(kind: GemWalletSecretKind, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = stringResource(R.string.secret_phrase_screenshot_detected_title)) },
-        text = { Text(text = stringResource(R.string.secret_phrase_screenshot_detected_description)) },
+        text = { Text(text = stringResource(kind.screenshotDetectedDescriptionRes())) },
         confirmButton = {
             Button(onClick = onDismiss) {
                 Text(text = stringResource(R.string.common_done))
@@ -57,7 +61,7 @@ private fun ScreenshotDetectedDialog(docsUrl: String, onDismiss: () -> Unit) {
         dismissButton = {
             TextButton(
                 onClick = {
-                    uriHandler.open(context, docsUrl)
+                    uriHandler.open(context, AppUrl.secretSecurity(kind))
                     onDismiss()
                 },
             ) {

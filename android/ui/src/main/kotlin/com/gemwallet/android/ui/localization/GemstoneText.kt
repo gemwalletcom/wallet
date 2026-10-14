@@ -533,6 +533,12 @@ fun GemWalletSecretKind.reminderIntroRes(): Int = when (this) {
 }
 
 @StringRes
+fun GemWalletSecretKind.screenshotDetectedDescriptionRes(): Int = when (this) {
+    GemWalletSecretKind.PHRASE -> R.string.secret_phrase_screenshot_detected_description
+    GemWalletSecretKind.PRIVATE_KEY -> R.string.private_key_screenshot_detected_description
+}
+
+@StringRes
 fun GemWalletSecretKind.stringRes(): Int = when (this) {
     GemWalletSecretKind.PHRASE -> R.string.common_secret_phrase
     GemWalletSecretKind.PRIVATE_KEY -> R.string.common_private_key
