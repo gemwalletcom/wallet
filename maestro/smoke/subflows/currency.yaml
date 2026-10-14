@@ -1,6 +1,6 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- runFlow: launch.yaml
 - tapOn:
     id: "settingsTab"
 - tapOn:
@@ -9,7 +9,7 @@ appId: ${APP_ID}
     id: "currency"
 - tapOn:
     id: "EUR"
-- launchApp
+- runFlow: launch.yaml
 - extendedWaitUntil:
     visible:
       id: "bitcoin"

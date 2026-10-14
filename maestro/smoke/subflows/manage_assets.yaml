@@ -1,6 +1,6 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- runFlow: launch.yaml
 - scrollUntilVisible:
     element:
       id: "manage"
@@ -16,7 +16,7 @@ appId: ${APP_ID}
     checked: false
     childOf:
       id: "ethereum"
-- launchApp
+- runFlow: launch.yaml
 - extendedWaitUntil:
     visible:
       id: "bitcoin"
@@ -33,7 +33,7 @@ appId: ${APP_ID}
     checked: false
     childOf:
       id: "ethereum"
-- launchApp
+- runFlow: launch.yaml
 - extendedWaitUntil:
     visible:
       id: "ethereum"

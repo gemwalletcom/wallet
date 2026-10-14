@@ -1,11 +1,12 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- runFlow: launch.yaml
 - tapOn:
     id: "bitcoin"
 - waitForAnimationToEnd
 - tapOn:
     id: "send_button"
+- waitForAnimationToEnd
 - tapOn:
     id: "addressInputField"
 - inputText: ${BITCOIN_ADDRESS}

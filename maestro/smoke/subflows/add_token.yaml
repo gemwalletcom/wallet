@@ -10,7 +10,7 @@ appId: ${APP_ID}
     commands:
       - tapOn:
           id: "addToWallet"
-- launchApp
+- runFlow: launch.yaml
 - extendedWaitUntil:
     visible:
       id: "bitcoin"
