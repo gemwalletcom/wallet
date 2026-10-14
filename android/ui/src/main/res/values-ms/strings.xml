@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Jika anda kehilangan kunci peribadi anda, anda kehilangan akses kepada dompet anda.</string>
   <string name="private_key_do_not_share_title">Jangan kongsi Kunci Peribadi anda!</string>
   <string name="private_key_do_not_share_description">Jika seseorang mempunyai kunci peribadi anda, mereka akan mempunyai kawalan penuh ke atas akaun ini!</string>
+  <string name="private_key_screenshot_detected_description">Tangkapan skrin mungkin boleh diakses oleh apl lain, ia boleh meletakkan kunci peribadi anda pada risiko jika disimpan dengan cara ini.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

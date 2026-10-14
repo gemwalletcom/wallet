@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = אנחנו לא יכולים לעזור
 private_key_reminder_no_recovery_subtitle = אם אתה מאבד את המפתח הפרטי שלך, אתה מאבד את הגישה לארנק שלך.
 private_key_do_not_share_title = אל תשתף את המפתח הפרטי שלך!
 private_key_do_not_share_description = אם למישהו יש את המפתח הפרטי שלך, תהיה לו שליטה מלאה בחשבון הזה!
+private_key_screenshot_detected_description = צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את המפתח הפרטי שלך אם יישמרו בדרך זו.
 
 # Social
 

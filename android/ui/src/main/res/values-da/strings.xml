@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Hvis du mister din private nøgle, mister du adgangen til din tegnebog.</string>
   <string name="private_key_do_not_share_title">Del ikke din private nøgle!</string>
   <string name="private_key_do_not_share_description">Hvis nogen har din private nøgle, vil de have fuld kontrol over denne konto!</string>
+  <string name="private_key_screenshot_detected_description">Skærmbilleder kan være tilgængelige for andre apps, og de kan bringe din private nøgle i fare, hvis de gemmes på denne måde.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

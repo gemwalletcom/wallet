@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Idan ka rasa keɓaɓɓen maɓallinka, ka rasa damar shiga walat ɗinka.</string>
   <string name="private_key_do_not_share_title">Kada ku raba Keɓaɓɓen Maɓallinku!</string>
   <string name="private_key_do_not_share_description">Idan wani yana da keɓaɓɓen maɓallinku zai sami cikakken iko akan wannan asusun!</string>
+  <string name="private_key_screenshot_detected_description">Za a iya samun damar ɗaukar hotuna zuwa wasu ƙa\'idodi, za su iya sanya keɓaɓɓen maɓallin ku cikin haɗari idan an ajiye su ta wannan hanyar.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Dacă îți pierzi cheia privată, pierzi accesul la portofel.</string>
   <string name="private_key_do_not_share_title">Nu împărtăși cheia ta privată!</string>
   <string name="private_key_do_not_share_description">Dacă cineva are cheia ta privată, va avea control total asupra acestui cont!</string>
+  <string name="private_key_screenshot_detected_description">Capturile de ecran pot fi accesibile altor aplicații și pot pune în pericol cheia ta privată dacă sunt salvate în acest fel.</string>
   <string name="social_x">X (fost Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Se você perder sua chave privada, perderá o acesso à sua carteira.</string>
   <string name="private_key_do_not_share_title">Não compartilhe sua chave privada!</string>
   <string name="private_key_do_not_share_description">Se alguém tiver sua chave privada, terá controle total desta conta!</string>
+  <string name="private_key_screenshot_detected_description">Capturas de tela podem ser acessíveis a outros aplicativos e, se salvas dessa forma, podem colocar sua chave privada em risco.</string>
   <string name="social_x">X (ex-Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

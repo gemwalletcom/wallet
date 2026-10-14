@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Hatuwezi Kukusaidia Kuurejesha
 private_key_reminder_no_recovery_subtitle = Ukipoteza ufunguo wako wa kibinafsi, utapoteza ufikiaji wa pochi yako.
 private_key_do_not_share_title = Usishiriki Ufunguo wako wa Kibinafsi!
 private_key_do_not_share_description = Ikiwa mtu ana ufunguo wako wa kibinafsi atakuwa na udhibiti kamili wa akaunti hii!
+private_key_screenshot_detected_description = Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka ufunguo wako wa kibinafsi hatarini ikiwa zimehifadhiwa kwa njia hii.
 
 # Social
 

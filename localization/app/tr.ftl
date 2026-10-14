@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Onu Kurtarmanıza Yardımcı Olamayız
 private_key_reminder_no_recovery_subtitle = Özel anahtarınızı kaybederseniz cüzdanınıza erişiminizi kaybedersiniz.
 private_key_do_not_share_title = Özel Anahtarınızı paylaşmayın!
 private_key_do_not_share_description = Birisi özel anahtarınızı ele geçirirse, bu hesabın tam kontrolüne sahip olacaktır!
+private_key_screenshot_detected_description = Ekran görüntüleri diğer uygulamalar tarafından erişilebilir olabilir, bu şekilde kaydedilirse özel anahtarınız riske girebilir.
 
 # Social
 

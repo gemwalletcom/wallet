@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">אם אתה מאבד את המפתח הפרטי שלך, אתה מאבד את הגישה לארנק שלך.</string>
   <string name="private_key_do_not_share_title">אל תשתף את המפתח הפרטי שלך!</string>
   <string name="private_key_do_not_share_description">אם למישהו יש את המפתח הפרטי שלך, תהיה לו שליטה מלאה בחשבון הזה!</string>
+  <string name="private_key_screenshot_detected_description">צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את המפתח הפרטי שלך אם יישמרו בדרך זו.</string>
   <string name="social_x">X (לשעבר Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

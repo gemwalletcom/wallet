@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = हम इसे पुनर्प्�
 private_key_reminder_no_recovery_subtitle = यदि आप अपनी निजी कुंजी खो देते हैं, तो आप अपने वॉलेट तक पहुंच खो देंगे।
 private_key_do_not_share_title = अपनी निजी कुंजी साझा न करें!
 private_key_do_not_share_description = यदि किसी के पास आपकी निजी कुंजी है तो इस खाते पर उनका पूरा नियंत्रण होगा!
+private_key_screenshot_detected_description = स्क्रीनशॉट अन्य ऐप्स के लिए सुलभ हो सकते हैं, यदि वे इस तरह से सहेजे गए तो वे आपकी निजी कुंजी को खतरे में डाल सकते हैं।
 
 # Social
 

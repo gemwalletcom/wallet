@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Мы не сможем его восс�
 private_key_reminder_no_recovery_subtitle = Если вы потеряете приватный ключ, вы потеряете доступ к своему кошельку.
 private_key_do_not_share_title = Не делитесь своим приватным ключом!
 private_key_do_not_share_description = Если кто-то узнает ваш приватный ключ, он получит полный контроль над этим аккаунтом!
+private_key_screenshot_detected_description = Скриншоты могут быть доступны другим приложениям, и если сохранить их таким образом, они могут поставить под угрозу ваш приватный ключ.
 
 # Social
 

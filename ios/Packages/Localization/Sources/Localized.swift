@@ -1093,6 +1093,10 @@ public enum Localized {
         public static let title = Localized.tr("Localizable", "private_key.reminder.no_recovery.title", fallback: "We Can't Help You Recover It")
       }
     }
+    public enum ScreenshotDetected {
+      /// Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.
+      public static let description = Localized.tr("Localizable", "private_key.screenshot_detected.description", fallback: "Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.")
+    }
   }
   public enum Receive {
     /// This is your address — send only %@ on the %@ network.

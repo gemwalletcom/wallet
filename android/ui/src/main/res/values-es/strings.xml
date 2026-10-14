@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Si pierdes tu clave privada, perderás el acceso a tu billetera.</string>
   <string name="private_key_do_not_share_title">¡No compartas tu clave privada!</string>
   <string name="private_key_do_not_share_description">¡Si alguien tiene tu clave privada tendrá control total de esta cuenta!</string>
+  <string name="private_key_screenshot_detected_description">Las capturas de pantalla pueden ser accesibles a otras aplicaciones y, si se guardan de esta manera, pueden poner en riesgo tu clave privada.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

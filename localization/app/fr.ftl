@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Nous ne pouvons pas vous aider à la r�
 private_key_reminder_no_recovery_subtitle = Si vous perdez votre clé privée, vous perdez l'accès à votre portefeuille.
 private_key_do_not_share_title = Ne partagez pas votre clé privée !
 private_key_do_not_share_description = Si quelqu'un connaît votre clé privée, il aura le contrôle total de ce compte !
+private_key_screenshot_detected_description = Les captures d'écran peuvent être accessibles à d'autres applications ; si elles sont enregistrées de cette manière, votre clé privée peut être compromise.
 
 # Social
 

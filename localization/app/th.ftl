@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = เราไม่สามารถช
 private_key_reminder_no_recovery_subtitle = หากคุณทำคีย์ส่วนตัวหาย คุณจะสูญเสียการเข้าถึงกระเป๋าเงินของคุณ
 private_key_do_not_share_title = อย่าเปิดเผยคีย์ส่วนตัวของคุณ!
 private_key_do_not_share_description = หากมีใครมีคีย์ส่วนตัวของคุณ พวกเขาจะควบคุมบัญชีนี้ได้อย่างเต็มที่!
+private_key_screenshot_detected_description = ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น หากบันทึกในลักษณะนี้ อาจทำให้คีย์ส่วนตัวของคุณตกอยู่ในความเสี่ยง
 
 # Social
 

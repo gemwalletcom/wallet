@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Hindi Ka Namin Matutulungang Mabawi Ito
 private_key_reminder_no_recovery_subtitle = Kung mawala mo ang iyong pribadong susi, mawawalan ka ng access sa iyong wallet.
 private_key_do_not_share_title = Huwag ibahagi ang iyong Pribadong Susi!
 private_key_do_not_share_description = Kung may hawak ng iyong pribadong susi, magkakaroon sila ng ganap na kontrol sa account na ito!
+private_key_screenshot_detected_description = Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong pribadong susi kung ise-save sa ganitong paraan.
 
 # Social
 

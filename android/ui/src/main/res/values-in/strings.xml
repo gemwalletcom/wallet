@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Jika Anda kehilangan kunci privat, Anda kehilangan akses ke dompet Anda.</string>
   <string name="private_key_do_not_share_title">Jangan bagikan Kunci Privat Anda!</string>
   <string name="private_key_do_not_share_description">Jika seseorang memiliki kunci privat Anda, mereka akan memiliki kendali penuh atas akun ini!</string>
+  <string name="private_key_screenshot_detected_description">Tangkapan layar mungkin dapat diakses oleh aplikasi lain dan dapat membahayakan kunci privat Anda jika disimpan dengan cara ini.</string>
   <string name="social_x">X (sebelumnya Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

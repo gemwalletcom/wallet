@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Pokud ztratíte soukromý klíč, ztratíte přístup ke své peněžence.</string>
   <string name="private_key_do_not_share_title">Nesdílejte svůj soukromý klíč!</string>
   <string name="private_key_do_not_share_description">Pokud má někdo váš soukromý klíč, bude mít plnou kontrolu nad tímto účtem!</string>
+  <string name="private_key_screenshot_detected_description">Snímky obrazovky mohou být přístupné jiným aplikacím, pokud se uloží tímto způsobem, mohou ohrozit váš soukromý klíč.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

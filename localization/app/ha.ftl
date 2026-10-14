@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Ba Za Mu Iya Taimaka Muku Dawo Da Shi B
 private_key_reminder_no_recovery_subtitle = Idan ka rasa keɓaɓɓen maɓallinka, ka rasa damar shiga walat ɗinka.
 private_key_do_not_share_title = Kada ku raba Keɓaɓɓen Maɓallinku!
 private_key_do_not_share_description = Idan wani yana da keɓaɓɓen maɓallinku zai sami cikakken iko akan wannan asusun!
+private_key_screenshot_detected_description = Za a iya samun damar ɗaukar hotuna zuwa wasu ƙa'idodi, za su iya sanya keɓaɓɓen maɓallin ku cikin haɗari idan an ajiye su ta wannan hanyar.
 
 # Social
 

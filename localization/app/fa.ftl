@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = ما نمی‌توانیم به شما 
 private_key_reminder_no_recovery_subtitle = اگر کلید خصوصی خود را گم کنید، دسترسی به کیف پول خود را از دست خواهید داد.
 private_key_do_not_share_title = کلید خصوصی خود را با کسی به اشتراک نگذارید!
 private_key_do_not_share_description = اگر کسی کلید خصوصی شما را داشته باشد، کنترل کامل این حساب را خواهد داشت!
+private_key_screenshot_detected_description = اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند کلید خصوصی شما را در معرض خطر قرار دهند.
 
 # Social
 

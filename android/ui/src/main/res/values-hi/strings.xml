@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">यदि आप अपनी निजी कुंजी खो देते हैं, तो आप अपने वॉलेट तक पहुंच खो देंगे।</string>
   <string name="private_key_do_not_share_title">अपनी निजी कुंजी साझा न करें!</string>
   <string name="private_key_do_not_share_description">यदि किसी के पास आपकी निजी कुंजी है तो इस खाते पर उनका पूरा नियंत्रण होगा!</string>
+  <string name="private_key_screenshot_detected_description">स्क्रीनशॉट अन्य ऐप्स के लिए सुलभ हो सकते हैं, यदि वे इस तरह से सहेजे गए तो वे आपकी निजी कुंजी को खतरे में डाल सकते हैं।</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

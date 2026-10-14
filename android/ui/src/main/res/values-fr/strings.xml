@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Si vous perdez votre clé privée, vous perdez l\'accès à votre portefeuille.</string>
   <string name="private_key_do_not_share_title">Ne partagez pas votre clé privée !</string>
   <string name="private_key_do_not_share_description">Si quelqu\'un connaît votre clé privée, il aura le contrôle total de ce compte !</string>
+  <string name="private_key_screenshot_detected_description">Les captures d\'écran peuvent être accessibles à d\'autres applications ; si elles sont enregistrées de cette manière, votre clé privée peut être compromise.</string>
   <string name="social_x">X (anciennement Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

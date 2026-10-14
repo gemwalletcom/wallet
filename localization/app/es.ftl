@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = No podemos ayudarte a recuperarla
 private_key_reminder_no_recovery_subtitle = Si pierdes tu clave privada, perderás el acceso a tu billetera.
 private_key_do_not_share_title = ¡No compartas tu clave privada!
 private_key_do_not_share_description = ¡Si alguien tiene tu clave privada tendrá control total de esta cuenta!
+private_key_screenshot_detected_description = Las capturas de pantalla pueden ser accesibles a otras aplicaciones y, si se guardan de esta manera, pueden poner en riesgo tu clave privada.
 
 # Social
 

@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = আমরা আপনাকে এট�
 private_key_reminder_no_recovery_subtitle = আপনি যদি আপনার ব্যক্তিগত কী হারান, আপনি আপনার ওয়ালেটের অ্যাক্সেস হারাবেন।
 private_key_do_not_share_title = আপনার ব্যক্তিগত কী শেয়ার করবেন না!
 private_key_do_not_share_description = কারো কাছে আপনার ব্যক্তিগত কী থাকলে তারা এই অ্যাকাউন্টের সম্পূর্ণ নিয়ন্ত্রণ পাবে!
+private_key_screenshot_detected_description = স্ক্রিনশটগুলি অন্যান্য অ্যাপের কাছে অ্যাক্সেসযোগ্য হতে পারে, যদি এইভাবে সংরক্ষণ করা হয় তবে এগুলি আপনার ব্যক্তিগত কী ঝুঁকির মধ্যে ফেলতে পারে।
 
 # Social
 

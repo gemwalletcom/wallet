@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Wij kunnen u niet helpen hem te herstel
 private_key_reminder_no_recovery_subtitle = Als u uw privésleutel verliest, verliest u de toegang tot uw portemonnee.
 private_key_do_not_share_title = Deel uw privésleutel niet!
 private_key_do_not_share_description = Als iemand uw privésleutel heeft, heeft diegene volledige controle over dit account!
+private_key_screenshot_detected_description = Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps en kunnen uw privésleutel in gevaar brengen als u ze op deze manier opslaat.
 
 # Social
 

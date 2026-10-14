@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Wenn Sie Ihren privaten Schlüssel verlieren, verlieren Sie den Zugriff auf Ihre Wallet.</string>
   <string name="private_key_do_not_share_title">Geben Sie Ihren privaten Schlüssel nicht weiter!</string>
   <string name="private_key_do_not_share_description">Wenn jemand Ihren privaten Schlüssel hat, hat er die vollständige Kontrolle über dieses Konto!</string>
+  <string name="private_key_screenshot_detected_description">Screenshots können von anderen Apps eingesehen werden und gefährden so Ihren privaten Schlüssel.</string>
   <string name="social_x">X (ehemals Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

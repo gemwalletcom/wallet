@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Vi kan ikke hjælpe dig med at gendanne
 private_key_reminder_no_recovery_subtitle = Hvis du mister din private nøgle, mister du adgangen til din tegnebog.
 private_key_do_not_share_title = Del ikke din private nøgle!
 private_key_do_not_share_description = Hvis nogen har din private nøgle, vil de have fuld kontrol over denne konto!
+private_key_screenshot_detected_description = Skærmbilleder kan være tilgængelige for andre apps, og de kan bringe din private nøgle i fare, hvis de gemmes på denne måde.
 
 # Social
 

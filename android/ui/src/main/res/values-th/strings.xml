@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">หากคุณทำคีย์ส่วนตัวหาย คุณจะสูญเสียการเข้าถึงกระเป๋าเงินของคุณ</string>
   <string name="private_key_do_not_share_title">อย่าเปิดเผยคีย์ส่วนตัวของคุณ!</string>
   <string name="private_key_do_not_share_description">หากมีใครมีคีย์ส่วนตัวของคุณ พวกเขาจะควบคุมบัญชีนี้ได้อย่างเต็มที่!</string>
+  <string name="private_key_screenshot_detected_description">ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น หากบันทึกในลักษณะนี้ อาจทำให้คีย์ส่วนตัวของคุณตกอยู่ในความเสี่ยง</string>
   <string name="social_x">X (เดิมคือ Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

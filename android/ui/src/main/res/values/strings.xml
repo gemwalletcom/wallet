@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">If you lose your private key, you lose access to your wallet.</string>
   <string name="private_key_do_not_share_title">Do not share your Private Key!</string>
   <string name="private_key_do_not_share_description">If someone has your private key they will have full control of this account!</string>
+  <string name="private_key_screenshot_detected_description">Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

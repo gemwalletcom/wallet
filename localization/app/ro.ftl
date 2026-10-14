@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Nu te putem ajuta să o recuperezi
 private_key_reminder_no_recovery_subtitle = Dacă îți pierzi cheia privată, pierzi accesul la portofel.
 private_key_do_not_share_title = Nu împărtăși cheia ta privată!
 private_key_do_not_share_description = Dacă cineva are cheia ta privată, va avea control total asupra acestui cont!
+private_key_screenshot_detected_description = Capturile de ecran pot fi accesibile altor aplicații și pot pune în pericol cheia ta privată dacă sunt salvate în acest fel.
 
 # Social
 

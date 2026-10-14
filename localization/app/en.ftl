@@ -827,6 +827,8 @@ private_key_reminder_no_recovery_subtitle = If you lose your private key, you lo
 private_key_do_not_share_title = Do not share your Private Key!
 # Used as the warning description on the private key reveal screen.
 private_key_do_not_share_description = If someone has your private key they will have full control of this account!
+# Used in the alert shown after a screenshot of a private key screen; mirrors secret_phrase_screenshot_detected_description.
+private_key_screenshot_detected_description = Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.
 
 # Social
 

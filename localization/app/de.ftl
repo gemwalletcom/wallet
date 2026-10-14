@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Wir können Ihnen nicht bei der Wiederh
 private_key_reminder_no_recovery_subtitle = Wenn Sie Ihren privaten Schlüssel verlieren, verlieren Sie den Zugriff auf Ihre Wallet.
 private_key_do_not_share_title = Geben Sie Ihren privaten Schlüssel nicht weiter!
 private_key_do_not_share_description = Wenn jemand Ihren privaten Schlüssel hat, hat er die vollständige Kontrolle über dieses Konto!
+private_key_screenshot_detected_description = Screenshots können von anderen Apps eingesehen werden und gefährden so Ihren privaten Schlüssel.
 
 # Social
 

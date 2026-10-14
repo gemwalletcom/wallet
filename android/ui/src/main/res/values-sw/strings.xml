@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Ukipoteza ufunguo wako wa kibinafsi, utapoteza ufikiaji wa pochi yako.</string>
   <string name="private_key_do_not_share_title">Usishiriki Ufunguo wako wa Kibinafsi!</string>
   <string name="private_key_do_not_share_description">Ikiwa mtu ana ufunguo wako wa kibinafsi atakuwa na udhibiti kamili wa akaunti hii!</string>
+  <string name="private_key_screenshot_detected_description">Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka ufunguo wako wa kibinafsi hatarini ikiwa zimehifadhiwa kwa njia hii.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

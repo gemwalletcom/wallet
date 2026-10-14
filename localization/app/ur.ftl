@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = ہم اسے بحال کرنے میں آ
 private_key_reminder_no_recovery_subtitle = اگر آپ اپنی نجی کلید کھو دیتے ہیں، تو آپ اپنے بٹوے تک رسائی کھو دیتے ہیں۔
 private_key_do_not_share_title = اپنی نجی کلید شیئر نہ کریں!
 private_key_do_not_share_description = اگر کسی کے پاس آپ کی نجی کلید ہے تو اس کے پاس اس اکاؤنٹ کا مکمل کنٹرول ہوگا!
+private_key_screenshot_detected_description = اسکرین شاٹس دیگر ایپس کے لیے قابل رسائی ہو سکتے ہیں، اگر اس طرح محفوظ کیا جائے تو وہ آپ کی نجی کلید کو خطرے میں ڈال سکتے ہیں۔
 
 # Social
 

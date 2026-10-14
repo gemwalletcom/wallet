@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Kami Tidak Dapat Membantu Anda Memulihk
 private_key_reminder_no_recovery_subtitle = Jika Anda kehilangan kunci privat, Anda kehilangan akses ke dompet Anda.
 private_key_do_not_share_title = Jangan bagikan Kunci Privat Anda!
 private_key_do_not_share_description = Jika seseorang memiliki kunci privat Anda, mereka akan memiliki kendali penuh atas akun ini!
+private_key_screenshot_detected_description = Tangkapan layar mungkin dapat diakses oleh aplikasi lain dan dapat membahayakan kunci privat Anda jika disimpan dengan cara ini.
 
 # Social
 

@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = 紛失したプライベートキーは
 private_key_reminder_no_recovery_subtitle = プライベートキーを紛失すると、ウォレットにアクセスできなくなります。
 private_key_do_not_share_title = プライベートキーを共有しないでください。
 private_key_do_not_share_description = プライベートキーを知った人は、このアカウントを完全に操作できます。
+private_key_screenshot_detected_description = スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でプライベートキーを保存すると、漏えいするおそれがあります。
 
 # Social
 

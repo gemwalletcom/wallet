@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Chúng tôi không thể giúp bạn kh
 private_key_reminder_no_recovery_subtitle = Nếu bạn làm mất khóa riêng, bạn sẽ mất quyền truy cập vào ví của mình.
 private_key_do_not_share_title = Đừng chia sẻ Khóa riêng của bạn!
 private_key_do_not_share_description = Nếu ai đó có khóa riêng của bạn, họ sẽ có toàn quyền kiểm soát tài khoản này!
+private_key_screenshot_detected_description = Ảnh chụp màn hình có thể được các ứng dụng khác truy cập và có thể khiến khóa riêng của bạn gặp rủi ro nếu được lưu theo cách này.
 
 # Social
 

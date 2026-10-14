@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = لا يمكننا مساعدتك في �
 private_key_reminder_no_recovery_subtitle = إذا فقدت مفتاحك الخاص، فإنك تفقد القدرة على الوصول إلى محفظتك.
 private_key_do_not_share_title = لا تشارك مفتاحك الخاص!
 private_key_do_not_share_description = إذا حصل شخص ما على مفتاحك الخاص، فسيكون لديه السيطرة الكاملة على هذا الحساب!
+private_key_screenshot_detected_description = قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، وقد تعرّض مفتاحك الخاص للخطر إذا تم حفظه بهذه الطريقة.
 
 # Social
 

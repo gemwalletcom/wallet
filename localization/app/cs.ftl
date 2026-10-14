@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = Nemůžeme vám pomoci ho získat zpět
 private_key_reminder_no_recovery_subtitle = Pokud ztratíte soukromý klíč, ztratíte přístup ke své peněžence.
 private_key_do_not_share_title = Nesdílejte svůj soukromý klíč!
 private_key_do_not_share_description = Pokud má někdo váš soukromý klíč, bude mít plnou kontrolu nad tímto účtem!
+private_key_screenshot_detected_description = Snímky obrazovky mohou být přístupné jiným aplikacím, pokud se uloží tímto způsobem, mohou ohrozit váš soukromý klíč.
 
 # Social
 

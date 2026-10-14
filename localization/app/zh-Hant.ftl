@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = 我們無法找回私鑰
 private_key_reminder_no_recovery_subtitle = 請保管好備份，以免裝置遺失或損壞後無法復原錢包。
 private_key_do_not_share_title = 切勿洩漏私鑰！
 private_key_do_not_share_description = 任何人只要擁有私鑰，就能完全控制這個帳戶！
+private_key_screenshot_detected_description = 螢幕截圖可能會被其他應用程式存取；以此方式儲存私鑰會帶來外洩風險。
 
 # Social
 

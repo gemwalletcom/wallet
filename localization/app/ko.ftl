@@ -443,6 +443,7 @@ private_key_reminder_no_recovery_title = 저희가 복구해 드릴 수 없습�
 private_key_reminder_no_recovery_subtitle = 개인 키를 잃어버리면 지갑에 접근할 수 없게 됩니다.
 private_key_do_not_share_title = 개인 키를 공유하지 마세요!
 private_key_do_not_share_description = 누군가 개인 키를 알고 있다면 이 계정을 완전히 통제하게 됩니다!
+private_key_screenshot_detected_description = 스크린샷은 다른 앱에서 접근할 수 있으며, 이런 방식으로 저장할 경우 개인 키가 위험에 노출될 수 있습니다.
 
 # Social
 

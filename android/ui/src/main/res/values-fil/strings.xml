@@ -374,6 +374,7 @@
   <string name="private_key_reminder_no_recovery_subtitle">Kung mawala mo ang iyong pribadong susi, mawawalan ka ng access sa iyong wallet.</string>
   <string name="private_key_do_not_share_title">Huwag ibahagi ang iyong Pribadong Susi!</string>
   <string name="private_key_do_not_share_description">Kung may hawak ng iyong pribadong susi, magkakaroon sila ng ganap na kontrol sa account na ito!</string>
+  <string name="private_key_screenshot_detected_description">Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong pribadong susi kung ise-save sa ganitong paraan.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
