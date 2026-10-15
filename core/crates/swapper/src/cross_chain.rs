@@ -39,6 +39,7 @@ fn deposit_address_provider(transaction: &Transaction, deposit_addresses: &Depos
         .or_else(|| deposit_addresses.get(&deposit_order_id(transaction)?).copied())
         .or_else(|| deposit_addresses.get(transaction.memo.as_deref()?).copied())
         .or_else(|| deposit_addresses.get(transaction.data.as_deref()?).copied())
+        .or_else(|| deposit_addresses.get(transaction.contract.as_deref()?).copied().filter(|provider| *provider == SwapperProvider::Chainflip))
 }
 
 fn deposit_order_id(transaction: &Transaction) -> Option<String> {
@@ -102,7 +103,7 @@ pub fn is_from_vault_address(transaction: &Transaction, send_addresses: &SendAdd
 mod tests {
     use super::*;
     use alloy_primitives::{Address, Bytes, U256, hex};
-    use primitives::{AssetId, TransactionSwapMetadata, TransactionUtxoInput};
+    use primitives::{AssetId, TransactionSwapMetadata, TransactionType, TransactionUtxoInput, contract_constants::SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID};
 
     #[test]
     fn test_vault_address_detected() {
@@ -325,6 +326,40 @@ mod tests {
         };
 
         assert_eq!(swap_provider_with_vault_addresses(&transaction, &deposit_addresses), Some(SwapperProvider::Chainflip));
+    }
+
+    #[test]
+    fn test_chainflip_solana_vault_program_call() {
+        let vault = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT".to_string();
+        let sender = "CabroWmzUzcqqGvprUoC7RnJznuwX6qf5W1tSSaomri7".to_string();
+        let deposit_addresses = DepositAddressMap::from([(vault.clone(), SwapperProvider::Chainflip)]);
+        let transaction = Transaction {
+            asset_id: AssetId::from_chain(Chain::Solana),
+            from: sender.clone(),
+            to: sender,
+            contract: Some(vault),
+            transaction_type: TransactionType::SmartContractCall,
+            ..Transaction::mock()
+        };
+
+        assert_eq!(swap_provider_with_vault_addresses(&transaction, &deposit_addresses), Some(SwapperProvider::Chainflip));
+        assert_eq!(in_transit_swap_provider(&transaction, &deposit_addresses), Some(SwapperProvider::Chainflip));
+    }
+
+    #[test]
+    fn test_program_call_to_other_provider_deposit_address() {
+        let sender = "BnPkG7QaDZQ4k4m2sPYb5mVEA2GgpphY9kgzWAHxjtvC".to_string();
+        let deposit_addresses = DepositAddressMap::from([(SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID.to_string(), SwapperProvider::Mayan)]);
+        let transaction = Transaction {
+            asset_id: AssetId::from_chain(Chain::Solana),
+            from: sender.clone(),
+            to: sender,
+            contract: Some(SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID.to_string()),
+            transaction_type: TransactionType::SmartContractCall,
+            ..Transaction::mock()
+        };
+
+        assert_eq!(swap_provider_with_vault_addresses(&transaction, &deposit_addresses), None);
     }
 
     #[test]

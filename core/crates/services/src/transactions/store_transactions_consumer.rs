@@ -398,6 +398,28 @@ mod tests {
     }
 
     #[test]
+    fn test_chainflip_solana_vault_swap_enters_cross_chain_processing() {
+        let response: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../../gem_solana/testdata/chainflip_vault_swap.json")).unwrap();
+        let transaction = map_transaction(&response.result, 1772283531).unwrap();
+        let mut deposit_addresses = DepositAddressMap::from([("J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT".to_string(), SwapProvider::Chainflip)]);
+        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction);
+
+        assert_eq!(transactions.len(), 1);
+        let transaction = &transactions[0];
+        assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(transaction.state, TransactionState::InTransit);
+        assert_eq!(cross_chain::swap_provider_with_vault_addresses(transaction, &deposit_addresses), Some(SwapProvider::Chainflip));
+
+        let deposit_ids = in_transit_deposit_ids(&transactions, &deposit_addresses);
+        assert_eq!(deposit_ids, BTreeMap::from([(SwapProvider::Chainflip, vec![transaction.id.to_string()])]));
+
+        let stored = Transaction { contract: None, ..transaction.clone() };
+        assert_eq!(cross_chain::in_transit_swap_provider(&stored, &deposit_addresses), None);
+        deposit_addresses.extend(deposit_ids.into_iter().flat_map(|(provider, ids)| ids.into_iter().map(move |id| (id, provider))));
+        assert_eq!(cross_chain::in_transit_swap_provider(&stored, &deposit_addresses), Some(SwapProvider::Chainflip));
+    }
+
+    #[test]
     fn test_relay_forward_token_enters_cross_chain_processing() {
         let response: JsonRpcResult<SingleTransaction> = serde_json::from_str(include_str!("../../../gem_solana/testdata/relay_forward_token.json")).unwrap();
         let source = BlockTransaction {
