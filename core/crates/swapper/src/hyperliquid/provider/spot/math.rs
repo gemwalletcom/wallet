@@ -4,7 +4,7 @@ use bigdecimal::{BigDecimal, Zero};
 use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::{ToPrimitive, Zero as NumZero};
-use number_formatter::BigNumberFormatter;
+use number_formatter::{BigNumberFormatter, precision::round_to_places};
 
 use crate::SwapperError;
 
@@ -84,11 +84,6 @@ pub(super) fn limit_price_with_slippage(limit_price: &BigDecimal, side: SpotSide
     BigDecimal::from_str(&formatted).map_err(|_| SwapperError::ComputeQuoteError("failed to format limit price".into()))
 }
 
-fn round_to_decimals(value: f64, decimals: u32) -> f64 {
-    let factor = 10f64.powi(decimals as i32);
-    (value * factor).round() / factor
-}
-
 fn round_to_significant_and_decimal(value: f64, sig_figs: u32, max_decimals: u32) -> f64 {
     if value == 0.0 {
         return 0.0;
@@ -98,7 +93,7 @@ fn round_to_significant_and_decimal(value: f64, sig_figs: u32, max_decimals: u32
     let magnitude = abs_value.log10().floor() as i32;
     let scale = 10f64.powi(sig_figs as i32 - magnitude - 1);
     let rounded = (abs_value * scale).round() / scale;
-    round_to_decimals(rounded.copysign(value), max_decimals)
+    round_to_places(rounded.copysign(value), max_decimals)
 }
 
 #[cfg(test)]

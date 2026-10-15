@@ -49,6 +49,11 @@ pub fn is_dust(magnitude: f64) -> bool {
     magnitude != 0.0 && magnitude.abs() < VALUE_DUST_THRESHOLD
 }
 
+pub fn round_to_places(value: f64, places: u32) -> f64 {
+    let factor = 10_f64.powi(places as i32);
+    (value * factor).round() / factor
+}
+
 const SMALL_VALUE_THRESHOLD: f64 = 0.99;
 const DUST_THRESHOLD: f64 = 1e-10;
 
