@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use gem_evm::address_deserializer::deserialize_ethereum_address_checksum;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_f64_from_str;
@@ -26,14 +27,28 @@ pub struct ReferrerState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReferrerData {
-    pub referral_states: Option<Vec<ReferralUser>>,
+    pub referral_states: Option<Vec<ReferralAddress>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ReferralUser {
+pub struct ReferralAddress {
     #[serde(deserialize_with = "deserialize_ethereum_address_checksum")]
     pub user: String,
+    #[serde(with = "chrono::serde::ts_milliseconds")]
+    pub time_joined: DateTime<Utc>,
+    #[serde(flatten)]
+    pub usdc: ReferralTokenState,
+    pub token_to_state: Option<Vec<(i32, ReferralTokenState)>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReferralTokenState {
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub cum_vlm: f64,
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub cum_fees_rewarded_to_referrer: f64,
 }
 
 #[cfg(test)]

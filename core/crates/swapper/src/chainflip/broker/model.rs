@@ -1,6 +1,11 @@
+use gem_jsonrpc::types::JsonRpcResult;
+use gem_polkadot::PolkadotAddress;
 use num_bigint::BigUint;
+use primitives::{Address, hex::decode_hex};
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_hex_str, serialize_biguint_to_hex_str};
+
+use crate::SwapperError;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct ChainflipAsset {
@@ -88,9 +93,62 @@ pub struct TronVaultSwapResponse {
     pub source_token_address: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct DepositChannelRequest {
+    pub source_asset: ChainflipAsset,
+    pub destination_asset: ChainflipAsset,
+    pub destination_address: String,
+    pub boost_fee: Option<u32>,
+    pub refund_parameters: RefundParameters,
+    pub dca_parameters: Option<DcaParameters>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DepositChannelResponse {
+    pub address: String,
+}
+
+impl DepositChannelResponse {
+    pub fn from_jsonrpc(data: &[u8]) -> Option<Self> {
+        serde_json::from_slice::<JsonRpcResult<Self>>(data).ok()?.take().ok()
+    }
+
+    pub fn deposit_address(&self) -> Result<String, SwapperError> {
+        let address = match PolkadotAddress::try_parse(&self.address) {
+            Some(address) => address,
+            None => {
+                let account_id: [u8; 32] = decode_hex(&self.address).ok().and_then(|bytes| bytes.try_into().ok()).ok_or(SwapperError::InvalidRoute)?;
+                PolkadotAddress::from_public_key(account_id)
+            }
+        };
+        Ok(address.encode())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
+
+    #[test]
+    fn test_deposit_channel_address() {
+        let response: DepositChannelResponse = serde_json::from_str(include_str!("./test/deposit_channel_assethub.json")).unwrap();
+        let address = "12NfZE9HvsZseFTYGAcwdTyw5NDxVNZUVsyggP5XTQN8j9xB";
+
+        assert_eq!(response.deposit_address().unwrap(), address);
+        assert_eq!(DepositChannelResponse { address: address.to_string() }.deposit_address().unwrap(), address);
+        assert_eq!(DepositChannelResponse { address: "0x1234".to_string() }.deposit_address(), Err(SwapperError::InvalidRoute));
+        assert_eq!(DepositChannelResponse { address: TEST_EVM_RECIPIENT.to_string() }.deposit_address(), Err(SwapperError::InvalidRoute));
+    }
+
+    #[test]
+    fn test_deposit_channel_from_jsonrpc() {
+        let channel = br#"{"jsonrpc":"2.0","id":1,"result":{"address":"0x3cc22d40b17571ee448414b0a21c7e8f6f2b96aaab95625363918412b4721550","issued_block":15242255,"channel_id":6}}"#;
+        let error = br#"{"jsonrpc":"2.0","id":1,"error":{"code":-32603,"message":"Invalid destination address"}}"#;
+
+        assert_eq!(DepositChannelResponse::from_jsonrpc(channel).unwrap().deposit_address().unwrap(), "12NfZE9HvsZseFTYGAcwdTyw5NDxVNZUVsyggP5XTQN8j9xB");
+        assert!(DepositChannelResponse::from_jsonrpc(error).is_none());
+    }
 
     #[test]
     fn test_tron_vault_swap_response_deserializes_before_evm() {

@@ -255,6 +255,22 @@ pub fn asset_row_text(asset: &Asset, style: GemAssetRowStyle) -> GemAssetRowText
     }
 }
 
+pub fn asset_row(asset: &Asset, style: GemAssetRowStyle) -> GemAssetItemRow {
+    let text = asset_row_text(asset, style);
+    GemAssetItemRow {
+        icon: match style.title {
+            GemAssetTitleStyle::Network => super::icon::chain_icon(asset.chain()),
+            GemAssetTitleStyle::Asset | GemAssetTitleStyle::CanonicalAsset => super::icon::asset_icon(&asset.id),
+        },
+        title: text.title,
+        title_extra: text.symbol,
+        subtitle: text.network.map(|network| GemRowText::neutral(GemLocalizedText::Text { text: network })),
+        subtitle_extra: None,
+        trailing: GemAssetItemTrailing::None,
+        masks_balance: false,
+    }
+}
+
 pub fn asset_list_row(data: &AssetData, currency: &Currency, scope: GemAssetBalanceScope, style: GemAssetRowStyle) -> GemAssetItemRow {
     let asset = &data.asset;
     let balance = GemAssetBalance::from(data);
@@ -264,19 +280,13 @@ pub fn asset_list_row(data: &AssetData, currency: &Currency, scope: GemAssetBala
     };
     let price = data.price.as_ref().map(|price| price.price).filter(|price| price.is_finite());
     let change = data.price.as_ref().map(|price| price.price_change_percentage_24h).filter(|change| change.is_finite());
-    let text = asset_row_text(asset, style);
+    let row = asset_row(asset, style);
     let prices = price_row(price, change, currency.clone(), GemCurrencyStyle::Short);
     let (subtitle, subtitle_extra) = match style.subtitle {
         GemAssetSubtitleStyle::Price => (prices.price.map(GemRowText::neutral_number), prices.change.map(GemRowText::number)),
-        GemAssetSubtitleStyle::Network => (text.network.map(|network| GemRowText::neutral(GemLocalizedText::Text { text: network })), None),
+        GemAssetSubtitleStyle::Network => (row.subtitle, None),
     };
     GemAssetItemRow {
-        icon: match style.title {
-            GemAssetTitleStyle::Network => super::icon::chain_icon(asset.chain()),
-            GemAssetTitleStyle::Asset | GemAssetTitleStyle::CanonicalAsset => super::icon::asset_icon(&asset.id),
-        },
-        title: text.title,
-        title_extra: text.symbol,
         subtitle,
         subtitle_extra,
         trailing: match style.trailing {
@@ -289,6 +299,7 @@ pub fn asset_list_row(data: &AssetData, currency: &Currency, scope: GemAssetBala
             GemAssetTrailingStyle::None => GemAssetItemTrailing::None,
         },
         masks_balance: style.trailing == GemAssetTrailingStyle::Balance,
+        ..row
     }
 }
 

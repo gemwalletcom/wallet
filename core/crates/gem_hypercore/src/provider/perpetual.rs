@@ -7,14 +7,13 @@ use gem_client::Client;
 use primitives::{
     ChartPeriod, PerpetualPosition,
     chart::ChartCandleStick,
-    perpetual::{PerpetualAccountMode, PerpetualAccountPositions, PerpetualBalance, PerpetualData, PerpetualPositionsSummary},
+    perpetual::{PerpetualAccountMode, PerpetualAccountPositions, PerpetualAddress, PerpetualBalance, PerpetualData, PerpetualPositionsSummary},
     portfolio::PerpetualPortfolio,
 };
 
 use crate::{
-    config::HypercoreConfig,
     models::{order::OpenOrder, perp_dex::PerpDex, position::AssetPositions},
-    provider::perpetual_mapper::{map_account_summary_aggregate, map_candlesticks, map_perpetual_balance_from_spot, map_perpetual_portfolio, map_perpetuals_data, map_positions, merge_perpetual_portfolios},
+    provider::perpetual_mapper::{map_account_summary_aggregate, map_candlesticks, map_perpetual_addresses, map_perpetual_balance_from_spot, map_perpetual_portfolio, map_perpetuals_data, map_positions, merge_perpetual_portfolios},
     rpc::client::HyperCoreClient,
 };
 
@@ -194,11 +193,9 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
         Ok(merge_perpetual_portfolios(portfolios, account_summary))
     }
 
-    async fn get_perpetual_referral_addresses(&self) -> Result<Vec<String>, Box<dyn Error + Sync + Send>> {
-        let config = HypercoreConfig::default();
-        let referral = self.get_referral(&config.builder_address).await?;
-        let referral_states = referral.referrer_state.and_then(|s| s.data).and_then(|d| d.referral_states).unwrap_or_default();
-        Ok(referral_states.into_iter().map(|r| r.user).collect())
+    async fn get_perpetual_addresses(&self) -> Result<Vec<PerpetualAddress>, Box<dyn Error + Sync + Send>> {
+        let referral = self.get_referral(&self.config.builder_address).await?;
+        Ok(map_perpetual_addresses(referral))
     }
 }
 
@@ -214,6 +211,19 @@ mod tests {
     use primitives::testkit::json::load_testdata;
     use primitives::{PerpetualId, PerpetualProvider};
     use serde_json::Value;
+
+    #[tokio::test]
+    async fn test_get_perpetual_addresses() {
+        let request: Value = serde_json::from_str(r#"{"type":"referral","user":"0x0000000000000000000000000000000000000001"}"#).unwrap();
+        let seen_requests = Arc::new(Mutex::new(vec![]));
+        let mut client = HyperCoreClient::mock_with_responses_by_request(vec![(request.clone(), include_bytes!("../../testdata/referral_addresses.json").to_vec())], seen_requests.clone());
+        client.config.builder_address = "0x0000000000000000000000000000000000000001".to_string();
+
+        let addresses = client.get_perpetual_addresses().await.unwrap();
+
+        assert_eq!(*seen_requests.lock().unwrap(), vec![request]);
+        assert_eq!(addresses.len(), 2);
+    }
 
     #[test]
     fn test_filter_active_dex_filters_inactive() {

@@ -2,6 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use chain_providers::ChainProviders;
+use number_formatter::precision::round_to_places;
 use primitives::Chain;
 use storage::{AssetFilter, AssetUpdate};
 
@@ -19,7 +20,7 @@ impl StakeApyUpdater {
 
     pub async fn update_chain(&self, chain: Chain) -> Result<f64, Box<dyn Error + Send + Sync>> {
         let apy = self.chain_providers.get_staking_apy(chain).await?;
-        let rounded = (apy * 100.0).round() / 100.0;
+        let rounded = round_to_places(apy, 2);
         self.repository
             .update_assets(vec![AssetFilter::Ids(vec![chain.as_asset_id().to_string()])], vec![AssetUpdate::StakingApr(Some(rounded))])
             .await?;

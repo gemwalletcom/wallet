@@ -51,3 +51,4 @@ uuid = { workspace = true }
 storage = { path = "../storage", features = ["testkit"] }
 gem_solana = { path = "../gem_solana", features = ["rpc"] }
 primitives = { path = "../primitives", features = ["testkit"] }
+swapper = { path = "../swapper", features = ["testkit"] }

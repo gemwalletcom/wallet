@@ -1,5 +1,4 @@
 pub(crate) mod hypercore;
-pub(crate) mod sui;
 
 use super::SwapType;
 use primitives::Chain;

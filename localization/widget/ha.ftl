@@ -7,4 +7,4 @@ widget_medium_description = Bibiyar farashin manyan cryptocurrencies
 # iOS small widget message when no price data is available.
 widget_empty_short = Babu bayanai
 # iOS widget message when no price data is available.
-widget_empty = Babu bayanan farashi samuwa
+widget_empty = Babu bayanan farashi da ake samu

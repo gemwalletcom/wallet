@@ -26,6 +26,7 @@ ios_device() {
     [ -n "$udid" ] || udid="$(xcrun simctl create "$SIMULATOR" "$(xcrun simctl list devicetypes | grep -E '^iPhone [0-9]+ Pro \(' | newest | grep -oE 'com\.apple[^)]+')" "${runtime##* - }")"
     xcrun simctl boot "$udid" 2>/dev/null || true
     xcrun simctl bootstatus "$udid" -b >/dev/null
+    xcrun simctl spawn "$udid" defaults write -g AppleLocale en_US
     xcrun simctl install "$udid" "$BUILD"
     echo "$udid"
 }

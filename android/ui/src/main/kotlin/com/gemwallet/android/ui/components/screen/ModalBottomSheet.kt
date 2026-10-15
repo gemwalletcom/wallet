@@ -25,11 +25,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.theme.SheetSizing
@@ -73,7 +76,7 @@ fun <T : Any> ModalBottomSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ModalBottomSheet(
     isVisible: Boolean,
@@ -117,7 +120,7 @@ fun ModalBottomSheet(
 
     androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        modifier = modifier.onFocusChanged { ownsKeyboard = it.hasFocus },
+        modifier = modifier.onFocusChanged { ownsKeyboard = it.hasFocus }.semantics { testTagsAsResourceId = true },
         sheetState = sheetState,
         scrimColor = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha20),
         shape = shape,

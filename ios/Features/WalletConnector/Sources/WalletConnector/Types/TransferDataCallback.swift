@@ -2,7 +2,7 @@
 
 import Foundation
 
-public final class TransferDataCallback<T: Identifiable & Sendable>: Sendable, Identifiable {
+public final class TransferDataCallback<T: Sendable>: Sendable {
     public typealias ConfirmTransferDelegate = @Sendable (Result<String, any Error>) -> Void
 
     public let payload: T
@@ -14,9 +14,5 @@ public final class TransferDataCallback<T: Identifiable & Sendable>: Sendable, I
     ) {
         self.payload = payload
         self.delegate = delegate
-    }
-
-    public var id: any Hashable {
-        payload.id
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.transfer.presents.components.ContinueScene
 import com.gemwallet.android.features.transfer.presents.recipient.components.RecipientHead
@@ -69,7 +70,7 @@ internal fun RecipientScene(
                     modifier = Modifier.clickable {
                         item.recipient.memo?.let { onAction(RecipientAction.SetMemo(it)) }
                         onAction(RecipientAction.Select(item.recipient))
-                    },
+                    }.testTag("recipient_row"),
                     accessory = { DataBadgeChevron() },
                 )
             }

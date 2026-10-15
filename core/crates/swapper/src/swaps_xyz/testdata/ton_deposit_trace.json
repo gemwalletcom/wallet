@@ -1,0 +1,26 @@
+{
+  "traces": [
+    {
+      "is_incomplete": false,
+      "actions": [],
+      "transactions_order": [
+        "j38g1fcnr1xvYy2U/2dscASaS1rq8L6XT4t0K2Zws3E="
+      ],
+      "transactions": {
+        "j38g1fcnr1xvYy2U/2dscASaS1rq8L6XT4t0K2Zws3E=": {
+          "hash": "j38g1fcnr1xvYy2U/2dscASaS1rq8L6XT4t0K2Zws3E=",
+          "now": 1787712874,
+          "total_fees": "401522",
+          "out_msgs": [],
+          "in_msg": {
+            "hash": "TQZE9z10bLHpIf8qHts+ZR57cI31nZyLcF0a7O292sw=",
+            "source": null,
+            "destination": "0:CC71F2336097857D9CF518B0B90D711DBA1554AB07BA8719D041BA9903BC0AC4",
+            "value": null,
+            "opcode": "0xf9bd55e7"
+          }
+        }
+      }
+    }
+  ]
+}

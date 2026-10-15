@@ -49,16 +49,26 @@ impl SuiProvider {
 mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, TEST_ADDRESS_EMPTY, create_sui_test_client};
-    use crate::transfer_builder::build_transfer_message_bytes;
+    use chain_traits::ChainTransactionLoad;
     use num_bigint::BigInt;
-    use primitives::AssetId;
+    use primitives::{AssetId, GasPriceType, TransactionLoadInput};
 
     #[tokio::test]
     async fn test_simulate_transaction_native_transfer() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
-        let encoded_transaction = build_transfer_message_bytes(&client, TEST_ADDRESS, TEST_ADDRESS_EMPTY, 100, None).await?;
+        let load = client
+            .get_transaction_load(TransactionLoadInput {
+                sender_address: TEST_ADDRESS.to_string(),
+                destination_address: TEST_ADDRESS_EMPTY.to_string(),
+                value: 100_u64.into(),
+                gas_price: GasPriceType::regular(client.get_gas_price().await?),
+                ..TransactionLoadInput::mock()
+            })
+            .await?;
+        let message = load.metadata.get_message_bytes()?;
+        let (encoded_transaction, _) = message.split_once('_').ok_or("Missing Sui digest")?;
 
-        let result = client.simulate_transaction(SimulationInput::new(encoded_transaction)).await?;
+        let result = client.simulate_transaction(SimulationInput::new(encoded_transaction.to_string())).await?;
 
         assert!(result.warnings.is_empty());
         let change = result.balance_changes.iter().find(|change| change.asset_id == AssetId::from_chain(Chain::Sui)).ok_or("missing sender SUI balance change")?;

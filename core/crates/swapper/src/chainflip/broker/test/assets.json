@@ -67,6 +67,14 @@
       "platforms": [
         "chainflip"
       ]
+    },
+    {
+      "id": "dot.hub",
+      "enabled": true,
+      "direction": "both",
+      "ticker": "DOT",
+      "network": "Assethub",
+      "minimalAmountNative": "40000000000"
     }
   ]
 }

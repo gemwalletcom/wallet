@@ -4,9 +4,10 @@ use primitives::{FiatProviderName, FiatQuote, FiatQuoteType};
 use super::model::{GemFiatAmountCheck, GemFiatAmountError, GemFiatQuoteRow};
 use super::rules;
 use crate::config::fiat_config::get_fiat_config;
+use crate::constants::FIAT_QUOTE_CURRENCY;
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemListRow, GemListRowTitle, GemProviderKind, GemProviderRow};
-use crate::services::amount::model::GemNumberFormat;
+use crate::services::amount::model::{GemAmountField, GemAmountKeyboard, GemAmountSymbol, GemAmountSymbolPlacement, GemNumberFormat};
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 
@@ -60,6 +61,7 @@ pub struct GemFiatOperation {
 pub struct GemFiatViewState {
     pub quote_type: FiatQuoteType,
     pub amount: String,
+    pub amount_field: GemAmountField,
     pub phase: GemFiatQuotePhase,
     pub provider_rows: Vec<GemProviderRow>,
     pub selected_quote_row: Option<GemFiatQuoteRow>,
@@ -202,6 +204,7 @@ impl GemFiatSession {
         GemFiatViewState {
             quote_type: operation.quote_type,
             amount: operation.amount.clone(),
+            amount_field: amount_field(),
             phase: operation.phase,
             provider_rows: self.provider_rows(asset_price),
             rate_row: selected_quote_row.as_ref().and_then(|row| row.rate.clone()).map(|rate| GemListRow::Rate {
@@ -346,6 +349,14 @@ impl GemFiatOperation {
 
     fn selected_quote(&self) -> Option<FiatQuote> {
         rules::selected_quote(&self.quotes, self.selected_provider)
+    }
+}
+
+fn amount_field() -> GemAmountField {
+    GemAmountField {
+        symbol: GemAmountSymbol::Currency { currency: FIAT_QUOTE_CURRENCY },
+        placement: GemAmountSymbolPlacement::Leading,
+        keyboard: GemAmountKeyboard::Whole,
     }
 }
 
@@ -643,10 +654,20 @@ mod tests {
     }
 
     #[test]
+    fn test_the_amount_is_whole_dollars_after_a_leading_symbol() {
+        let field = GemFiatSession::mock(FiatQuoteType::Buy, Some(50)).view_state(None, false, false).amount_field;
+
+        assert_eq!(field.symbol, GemAmountSymbol::Currency { currency: primitives::Currency::USD });
+        assert_eq!(field.placement, GemAmountSymbolPlacement::Leading);
+        assert_eq!(field.keyboard, GemAmountKeyboard::Whole);
+    }
+
+    #[test]
     fn test_the_quotes_message_follows_the_phase() {
         let state = |phase| GemFiatViewState {
             quote_type: FiatQuoteType::Buy,
             amount: String::new(),
+            amount_field: amount_field(),
             phase,
             provider_rows: Vec::new(),
             selected_quote_row: None,

@@ -6,8 +6,8 @@ pub mod model;
 pub mod price;
 pub mod provider;
 pub mod seed;
-#[cfg(test)]
-mod testkit;
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
 pub mod tx_builder;
 
 pub use model::*;

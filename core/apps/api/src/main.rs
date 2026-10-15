@@ -94,7 +94,8 @@ async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Sen
         near_intents: Arc::new(services.near_intents(deposit_addresses.clone())),
         swaps_xyz: Arc::new(services.swaps_xyz(deposit_addresses.clone())),
         relay: Arc::new(services.relay(deposit_addresses.clone())),
-        bridgers: Arc::new(services.bridgers(deposit_addresses)),
+        bridgers: Arc::new(services.bridgers(deposit_addresses.clone())),
+        chainflip: Arc::new(services.chainflip(deposit_addresses)),
         okx: Arc::new(OkxProviderProxy::new(
             settings.swap.okx.url.clone(),
             OkxClientConfig {

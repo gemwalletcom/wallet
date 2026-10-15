@@ -79,15 +79,15 @@ impl TransactionFee {
     }
 
     pub fn gas_price_u64(&self) -> Result<u64, SignerError> {
-        self.gas_price_type.gas_price().to_u64().ok_or_else(|| SignerError::invalid_input("invalid gas price"))
+        self.gas_price_type.gas_price_u64()
     }
 
     pub fn priority_fee_u64(&self) -> Result<u64, SignerError> {
-        self.gas_price_type.priority_fee().to_u64().ok_or_else(|| SignerError::invalid_input("invalid priority fee"))
+        self.gas_price_type.priority_fee_u64()
     }
 
     pub fn unit_price_u64(&self) -> Result<u64, SignerError> {
-        self.gas_price_type.unit_price().to_u64().ok_or_else(|| SignerError::invalid_input("invalid unit price"))
+        self.gas_price_type.unit_price_u64()
     }
 }
 

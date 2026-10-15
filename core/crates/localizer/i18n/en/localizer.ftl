@@ -26,7 +26,10 @@ notification_fiat_sale_title = 💰 Sold {$value}
 support_new_message_title = New message from Support
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 You earned {$value} points!
+notification_reward_title = 💎 You earned { $value ->
+     [one] {$value} point
+    *[other] {$value} points
+    }!
 notification_reward_create_username_description = Username ready. Invite friends to earn rewards.
 notification_reward_invite_description = Referral joined using your code.
 notification_rewards_joined_description = You joined using a referral code.

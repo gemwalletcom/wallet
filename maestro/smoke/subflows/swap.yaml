@@ -1,0 +1,14 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "ethereum"
+- waitForAnimationToEnd
+- tapOn:
+    id: "swap_button"
+- waitForAnimationToEnd
+- inputText: "1"
+- assertVisible:
+    id: "main_action"
+    enabled: false
+- takeScreenshot: ${output.journey}_swap

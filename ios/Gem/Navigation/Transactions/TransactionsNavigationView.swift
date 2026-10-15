@@ -30,6 +30,7 @@ struct TransactionsNavigationView: View {
                         isActive: model.filterModel.isAnyFilterSpecified,
                         action: model.onSelectFilterButton,
                     )
+                    .accessibilityIdentifier("filter")
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

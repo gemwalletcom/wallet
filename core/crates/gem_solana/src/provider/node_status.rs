@@ -44,7 +44,6 @@ impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
         let recorder = recorder.record_timed(method::GET_EPOCH_INFO, async { self.get_epoch_info().await.map(|result| result.epoch) }).await;
         let recorder = recorder.record_timed(method::GET_VOTE_ACCOUNTS, async { self.get_vote_accounts(false).await.map(|result| result.current.len()) }).await;
         let recorder = recorder.record_timed(method::GET_INFLATION_RATE, async { self.get_inflation_rate().await.map(|result| result.validator) }).await;
-        let recorder = recorder.record_timed(method::GET_SUPPLY, async { self.get_supply().await.map(|result| result.value.total) }).await;
         let recorder = recorder
             .record_timed(method::GET_ACCOUNT_INFO, async { self.get_token_data(USDC_TOKEN_MINT.to_string()).await.map(|result| result.symbol) })
             .await;

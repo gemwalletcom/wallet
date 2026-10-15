@@ -1,6 +1,6 @@
 appId: ${APP_ID}
 ---
-- launchApp
+- runFlow: launch.yaml
 - tapOn:
     id: "activitiesTab"
 - assertNotVisible:

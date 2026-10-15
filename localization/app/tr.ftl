@@ -32,7 +32,7 @@ common_type = Tip
 common_no_results_found = Sonuç bulunamadı
 common_no = Hayır
 common_none = Yok
-common_url = URL'si
+common_url = URL
 common_private_key = Özel Anahtar
 common_latency_in_ms = %d ms
 common_open_settings = Ayarları aç
@@ -77,7 +77,7 @@ wallet_swap = Takas
 wallet_import_title = Cüzdanı İçe Aktar
 wallet_new_title = Yeni Cüzdan
 wallet_name = İsim
-wallet_import_action = Cüzdanı İçe Aktar
+wallet_import_action = İçe Aktar
 wallet_multicoin = Çoklu Coin
 wallet_import_address_field = Adres veya Ad
 wallet_manage_token_list = Jetonları Yönet
@@ -147,7 +147,7 @@ transfer_insufficient_balance = Yetersiz %@ bakiye.
 transfer_insufficient_network_fee_balance = Ağ ücretlerini karşılamak için yetersiz %@ bakiyesi.
 transfer_approve_title = Onayla
 transfer_stake_title = Stake
-transfer_claim_rewards_title = Ödüller
+transfer_claim_rewards_title = Ödülleri Talep Et
 transfer_unstake_title = Stake'i Kaldır
 transfer_redelegate_title = Yeniden Delege Et
 transfer_withdraw_title = Para Çek
@@ -292,7 +292,7 @@ transaction_status_pending = Beklemede
 transaction_status_failed = Başarısız
 transaction_status_reverted = Geri alındı
 transaction_title_received = Alındı
-transaction_title_sent = Gönderilmiş
+transaction_title_sent = Gönderildi
 transaction_swap_again = Tekrar Değiştir
 transaction_status_completed = Tamamlandı
 transaction_status_inprogress = Devam Ediyor
@@ -426,7 +426,7 @@ sign_message_view_full_message = Mesajın Tamamını Görüntüle
 
 secret_phrase_do_not_share_title = Gizli İfadenizi paylaşmayın!
 secret_phrase_do_not_share_description = Birisi gizli ifadenizi ele geçirirse, cüzdanınızın tam kontrolüne sahip olacaktır!
-secret_phrase_save_phrase_safely = Gizli İfadenizi güvenli bir yere kaydedin\n bunu yalnızca sen kontrol edebilirsin.
+secret_phrase_save_phrase_safely = Gizli İfadenizi yalnızca sizin kontrol ettiğiniz\n güvenli bir yere kaydedin.
 secret_phrase_confirm_quick_test_title = Her şeyi doğru şekilde kaydettiğinizi doğrulamak için bu hızlı testi tamamlayın.
 secret_phrase_screenshot_detected_title = Ekran Görüntüsü Algılandı
 secret_phrase_screenshot_detected_description = Ekran görüntüleri diğer uygulamalar tarafından erişilebilir olabilir, bu şekilde kaydedilirse gizli ifadeniz riske girebilir.
@@ -496,15 +496,15 @@ fee_rate_base = Temel Ücret
 
 banner_account_activation_title = Hesap Aktivasyon Ücreti
 banner_account_activation_description = %@ ağı, tek seferlik bir ücret gerektirir %@.
-banner_stake_title = %@ bahisine başla
+banner_stake_title = %@ stake etmeye başlayın
 banner_stake_description = Uyurken %@ ödül kazanın.
 banner_activate_asset_description = %@ varlığını kullanmak için, öncelikle ağın özel gereksinimlerini karşılayarak %@ ağında etkinleştirmeniz gerekir.
 banner_asset_status_title = Şüpheli Öğe
 banner_asset_status_description = Token güvenli olmayabilir veya yanıltıcı olabilir. Yalnızca tamamen güveniyorsanız devam edin.
 banner_onboarding_title = Cüzdanınız hazır
 banner_onboarding_description = Başlamak için kripto satın alın veya alın
-banner_perpetuals_title = Hyperliquid'de Sürekli İşlemler Yapın
-banner_perpetuals_description = Hyperliquid kalıcı varlıklarıyla para yatırın, ticaret yapın ve kazanın
+banner_perpetuals_title = Hyperliquid'de Perpetuals işlemi yapın
+banner_perpetuals_description = Hyperliquid Perpetuals ile para yatırın, işlem yapın ve kazanın
 
 # Filter
 
@@ -569,7 +569,7 @@ sell_title = %@ sat
 info_region_unavailable_description = Bu özellik bölgenizde kullanılamıyor. Kullanılabilirlik, yerel kurallara ve sağlayıcıların gereksinimlerine bağlıdır.
 
 info_network_fee_title = Ağ Ücreti
-info_watch_wallet_title = Cüzdanı İzle
+info_watch_wallet_title = İzleme Cüzdanı
 info_watch_wallet_description = Erişiminizin olmadığı, ancak işlemlerini ve hareketlerini izleyebileceğiniz bir cüzdan.
 info_payment_verification_title = Ödeme Doğrulaması
 info_payment_verification_description = Satıcı ödemeden önce ek bilgi gerektiriyor.
@@ -578,7 +578,7 @@ info_transaction_error_description = İşlem, yetersiz fon, geçersiz giriş vey
 info_transaction_pending_description = İşlem gönderildi ve ağda onay bekleniyor. İşlem süreleri değişiklik gösterebilir. Lütfen güncellemeler için tekrar kontrol edin.
 info_estimated_confirmation_description = Bu tahmin işlem ücreti ve mevcut %@ ağı etkinliğine dayanır. Gerçek onay süresi değişebilir ve garanti edilmez.
 info_transaction_success_description = İşlem tamamlandı ve ağda onaylandı. Durumunu doğrulamak için ayrıntıları inceleyebilirsiniz.
-info_lock_time_description = Kilitlenme süresi, aynı zamanda bağlanmayı kaldırma veya dondurmayı kaldırma dönemi olarak da bilinir, stake edilen varlıklara, siz onları stake etmeye karar verdikten sonra erişilemez olduğu süredir.
+info_lock_time_description = Kilitlenme süresi (bağ çözme veya dondurmayı kaldırma dönemi olarak da bilinir), stake'i kaldırmaya karar verdikten sonra stake edilen varlıklarınıza erişemediğiniz süredir.
 info_price_impact_description = Fiyat etkisi, işlem boyutunuzdan kaynaklanan token fiyatındaki değişikliktir. Daha yüksek fiyat etkisi, düşük likidite veya büyük sipariş boyutu nedeniyle daha az token aldığınız anlamına gelir.
 info_slippage_description = Kayma, bir işlemin beklenen fiyatı ile gerçekleştirildiği gerçek fiyat arasındaki farkı ifade eder.
 info_asset_status_unverified_description = Doğrulanmamış token'lar güvenilir üçüncü taraf hizmetleri tarafından yeterince doğrulanmamıştır. Airdrop'lar, transferler veya manuel içe aktarmalar nedeniyle cüzdanınızda görünebilirler.
@@ -654,9 +654,9 @@ networks_state_empty_search_title = Hiçbir ağ bulunamadı
 
 onboarding_security_create_wallet_intro_title = Gizli bir İfade alacaksınız; bu, cüzdanınıza erişmenin tek yoludur.
 onboarding_security_create_wallet_do_not_share_title = Kimseyle Paylaşmayın
-onboarding_security_create_wallet_do_not_share_subtitle = Gizli cümlenizi ele geçiren herkes cüzdanınızın tüm kontrolünü ele geçirebilir.
+onboarding_security_create_wallet_do_not_share_subtitle = Gizli İfadenizi ele geçiren herkes cüzdanınızın tüm kontrolünü ele geçirebilir.
 onboarding_security_create_wallet_keep_safe_subtitle = Cüzdanınıza erişmenin tek yolu gizli ifadedir.
-onboarding_security_create_wallet_no_recovery_subtitle = Gizli cümlenizi kaybederseniz cüzdanınıza erişiminizi kaybedersiniz.
+onboarding_security_create_wallet_no_recovery_subtitle = Gizli İfadenizi kaybederseniz cüzdanınıza erişiminizi kaybedersiniz.
 onboarding_security_create_wallet_keep_safe_title = Güvenli Bir Yerde Saklayın
 onboarding_security_create_wallet_no_recovery_title = Onu Kurtarmanıza Yardımcı Olamayız
 onboarding_accept_terms_title = Şartları Kabul Et
@@ -683,8 +683,8 @@ perpetual_entry_price = Giriş Fiyatı
 perpetual_modify = Değiştir
 perpetual_reduce_position = Pozisyonu Azalt
 perpetual_increase_position = Pozisyonu Artır
-perpetual_open_direction = %@ yi aç
-perpetual_close_direction = %@ yi kapatın
+perpetual_open_direction = %@ Pozisyon Aç
+perpetual_close_direction = %@ Pozisyonu Kapat
 perpetual_leverage = Kaldıraç
 perpetual_auto_close = Otomatik Kapatma
 perpetual_auto_close_take_profit = Kar al
@@ -709,19 +709,19 @@ perpetual_margin_isolated = İzole
 
 # Perpetuals
 
-perpetuals_title = Sürekliler
+perpetuals_title = Perpetuals
 # Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
-perpetuals_trade = Süreklileri al-sat
+perpetuals_trade = Perpetuals al-sat
 perpetuals_markets = Piyasalar
 perpetuals_empty_state_no_markets_found = Hiçbir pazar bulunamadı
 
 # Rewards
 
 rewards_title = Ödüller
-rewards_share_text = Katılmak Gem Wallet Benim referans linkimi kullanarak kayıt olun ve ödüller kazanın: %@
+rewards_share_text = Referans linkimle Gem Wallet'a katılın ve ödüller kazanın: %@
 rewards_my_referral_code = Benim referans kodum
 rewards_invite_friends_title = Arkadaşlarınızı Davet Edin
-rewards_invite_friends_description = Para kazanmak %@ Katılan her arkadaş için puan kazanacaksınız.
+rewards_invite_friends_description = Katılan her arkadaşınız için %@ puan kazanın.
 rewards_referral_code = Yönlendirme Kodu
 rewards_invited_by = Davet Eden
 rewards_points = Puanlar
@@ -734,11 +734,11 @@ rewards_create_referral_code_title = Kullanıcı Adı Oluştur
 rewards_create_referral_code_info = Bu, mevcut cüzdanınız için kullanacağınız kişisel takma adınız olacak.
 rewards_username = Kullanıcı adı
 rewards_ways_spend_title = Harcama Yolları
-rewards_ways_spend_asset_title = Elde etmek %@
+rewards_ways_spend_asset_title = %@ Alın
 rewards_insufficient_points = Yetersiz puan
-rewards_confirm_redeem = Elde etmek %@ için %@!
+rewards_confirm_redeem = %2$@ karşılığında %1$@ alın!
 rewards_pending_title = Bonus Beklemede
-rewards_pending_description = Mevcuttur %@
+rewards_pending_description = %@ içinde kullanılabilir
 rewards_pending_description_ready = Bonusunuz hazır!
 rewards_nickname = Takma ad
 rewards_unverified_title = Ödüller henüz aktif değil.
@@ -760,7 +760,7 @@ notifications_inapp_state_empty_description = Bildirimlerinizle ilgili güncelle
 # Earn
 
 earn_state_empty_title = Pozisyonlarınız burada görünecektir.
-earn_state_empty_description = İlk para yatırma işleminizi gerçekleştirin. %@
+earn_state_empty_description = İlk %@ yatırma işleminizi yapın
 
 # Contacts
 

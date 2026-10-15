@@ -64,7 +64,7 @@ common_required_field = %@ является обязательным
 
 # Welcome
 
-welcome_title = Добро пожаловать в Gem семью
+welcome_title = Добро пожаловать в семью Gem
 
 # Wallet
 
@@ -98,7 +98,7 @@ wallet_add_token_title = Добавить токен
 wallet_sell = Продать
 wallet_receive_collection = Получить коллекцию
 wallet_more = Ещё
-wallet_import_contract_address_field = Контракт или токен ID
+wallet_import_contract_address_field = Контракт или ID токена
 wallet_import_address_warning = Вы можете просматривать балансы и транзакции для этого адреса, но **не можете отправлять или продавать средства**.
 wallet_deposit = Внести
 wallet_withdraw = Вывести
@@ -118,7 +118,7 @@ wallets_title = Кошельки
 
 # Receive
 
-receive_warning = Это ваш адрес — отправляйте только %@ на %@ сеть.
+receive_warning = Это ваш адрес — отправляйте только %@ в сети %@.
 
 # Buy
 
@@ -129,7 +129,7 @@ buy_no_results = Нет доступных котировок
 
 # Transfer
 
-transfer_network_fee = Сетевая плата
+transfer_network_fee = Комиссия сети
 transfer_pay_with = Оплатить с помощью
 transfer_payment_title = Платёж
 transfer_memo = Мемо
@@ -143,8 +143,8 @@ transfer_balance = Баланс: %@
 transfer_title = Перевод
 transfer_recipient_address_field = Адрес или имя
 transfer_send_title = Отправить
-transfer_insufficient_balance = Недостаточный %@ баланс.
-transfer_insufficient_network_fee_balance = Недостаточно %@ баланса для покрытия сетевых платежей.
+transfer_insufficient_balance = Недостаточный баланс %@.
+transfer_insufficient_network_fee_balance = Недостаточно %@ для оплаты комиссии сети.
 transfer_approve_title = Одобрить
 transfer_stake_title = Стейк
 transfer_claim_rewards_title = Получить награду
@@ -161,7 +161,7 @@ transfer_destination_account_activation = Адрес назначения тре
 transfer_smart_contract_title = Смарт-контракт
 transfer_other_title = Прочее
 transfer_maximum_amount = Максимальная сумма %@
-transfer_reserved_fees = Мы оставили %@ на вашем балансе для покрытия будущих сетевых сборов.
+transfer_reserved_fees = Мы оставили %@ на вашем балансе для оплаты будущих комиссий сети.
 transfer_freeze_title = Заморозить
 transfer_unfreeze_title = Разморозить
 transfer_review_request = Просмотр запроса
@@ -246,7 +246,7 @@ errors_connections_not_found = Это подключение больше не �
 errors_connections_relay_unavailable = Не удаётся связаться с WalletConnect. Проверьте подключение к интернету и попробуйте снова.
 errors_swap_amount_too_small = Сумма слишком мала
 errors_scan_transaction_malicious_description = Эту транзакцию невозможно завершить — адрес кошелька назначения связан с подозрительной или вредоносной активностью.
-errors_scan_transaction_memo_required = %@ адрес кошелька назначения требует тега назначения / заметки
+errors_scan_transaction_memo_required = Адрес кошелька назначения %@ требует тег назначения / мемо
 errors_scan_transaction_malicious_title = Подозрительная активность
 errors_connections_malicious_origin = Это соединение получено из ненадежного источника.
 errors_no_data_available = Данные отсутствуют.
@@ -311,10 +311,10 @@ asset_circulating_supply = В обороте
 asset_balances_reserved = Зарезервировано
 asset_view_token_on = Посмотреть токен на %@
 asset_view_address_on = Посмотреть адрес на %@
-asset_name = Имя
+asset_name = Название
 asset_symbol = Символ
-asset_decimals = Десятичные дроби
-asset_token_id = Токен ID
+asset_decimals = Десятичные знаки
+asset_token_id = ID токена
 asset_contract = Контракт
 asset_state_empty_title = Ваши транзакции будут отображаться здесь
 asset_state_empty_description = Получить, обменять или купить %@
@@ -372,7 +372,7 @@ wallet_connect_request_expired = Срок запроса истёк
 
 swap_you_pay = Вы платите
 swap_you_receive = Вы получаете
-swap_price_impact = Влияние цены
+swap_price_impact = Влияние на цену
 swap_slippage = Проскальзывание
 swap_slippage_warning = Высокое проскальзывание. Обмен может пройти по цене хуже ожидаемой.
 swap_slippage_auto = Авто
@@ -426,11 +426,11 @@ sign_message_view_full_message = Посмотреть полное сообще�
 
 secret_phrase_do_not_share_title = Не делитесь своей секретной фразой!
 secret_phrase_do_not_share_description = Если кто-то узнает вашу секретную фразу, он получит полный контроль над вашим кошельком!
-secret_phrase_save_phrase_safely = Сохраните свою секретную фразу в надежном месте. \nкоторое контролируете только вы.
+secret_phrase_save_phrase_safely = Сохраните свою секретную фразу в надежном месте, \nкоторое контролируете только вы.
 secret_phrase_confirm_quick_test_title = Пройдите этот быстрый тест, чтобы убедиться, что вы все сохранили правильно.
 secret_phrase_screenshot_detected_title = Скриншот обнаружен
 secret_phrase_screenshot_detected_description = Скриншоты могут быть доступны другим приложениям, и если сохранить их таким образом, они могут поставить под угрозу вашу секретную фразу.
-secret_phrase_content_hidden_description = Контент, скрытый во время записи экрана
+secret_phrase_content_hidden_description = Контент скрыт во время записи экрана
 
 # Private Key
 
@@ -489,22 +489,22 @@ fee_rates_normal = Нормальный
 fee_rate_satvB = sat/vB
 fee_rate_gwei = gwei
 fee_rate_custom = Свой
-fee_rate_priority = Приоритет
-fee_rate_base = Базовая плата
+fee_rate_priority = Приоритетная комиссия
+fee_rate_base = Базовая комиссия
 
 # Banner
 
 banner_account_activation_title = Плата за активацию аккаунта
 banner_account_activation_description = Сеть %@ требует единовременную плату в размере %@.
 banner_stake_title = Начните стейкинг %@
-banner_stake_description = Зарабатывайте %@ наград за свою стейк, пока спите.
+banner_stake_description = Зарабатывайте награды в %@ за свой стейк, пока спите.
 banner_activate_asset_description = Чтобы использовать актив %@, необходимо сначала включить его в сети %@ выполнив особые требования сети.
 banner_asset_status_title = Подозрительный актив
 banner_asset_status_description = Токен может быть небезопасным или вводить в заблуждение. Продолжайте, только если вы полностью ему доверяете.
 banner_onboarding_title = Ваш кошелек готов
 banner_onboarding_description = Купите или получите криптовалюту, чтобы начать
-banner_perpetuals_title = Торгуйте бессрочными контрактами на Hyperliquid
-banner_perpetuals_description = Вносите депозит, торгуйте и зарабатывайте с бессрочными контрактами Hyperliquid
+banner_perpetuals_title = Торгуйте перпами на Hyperliquid
+banner_perpetuals_description = Вносите депозит, торгуйте и зарабатывайте на перпах Hyperliquid
 
 # Filter
 
@@ -568,8 +568,8 @@ sell_title = Продать %@
 
 info_region_unavailable_description = Эта функция недоступна в вашем регионе. Доступность зависит от местных правил и требований провайдеров.
 
-info_network_fee_title = Сетевая плата
-info_watch_wallet_title = Смотреть кошелек
+info_network_fee_title = Комиссия сети
+info_watch_wallet_title = Кошелек для наблюдения
 info_watch_wallet_description = Кошелек, к которому у вас нет доступа, но вы можете следить за его транзакциями и движениями.
 info_payment_verification_title = Проверка платежа
 info_payment_verification_description = Продавцу требуется дополнительная информация перед оплатой.
@@ -579,7 +579,7 @@ info_transaction_pending_description = Транзакция была отпра�
 info_estimated_confirmation_description = Эта оценка основана на комиссии транзакции и текущей активности сети %@. Фактическое время подтверждения может измениться и не гарантируется.
 info_transaction_success_description = Транзакция завершена и подтверждена в сети. Вы можете просмотреть детали, чтобы проверить ее статус.
 info_lock_time_description = Время блокировки, также известное как период разблокировки или размораживания, — это период времени, в течение которого активы недоступны после вывода стейка.
-info_price_impact_description = Влияние цены — это изменение цены токена, вызванное размером вашей сделки. Более высокое влияние цены означает, что вы получаете меньше токенов из-за низкой ликвидности или большого размера заказа.
+info_price_impact_description = Влияние на цену — это изменение цены токена, вызванное размером вашей сделки. Более высокое влияние на цену означает, что вы получаете меньше токенов из-за низкой ликвидности или большого размера заказа.
 info_slippage_description = Проскальзывание означает разницу между ожидаемой ценой сделки и фактической ценой, по которой она исполняется.
 info_asset_status_unverified_description = Неподтверждённые токены не прошли достаточную проверку со стороны надёжных сторонних сервисов. Они могут появиться в вашем кошельке в результате airdrop'ов, переводов или ручного импорта.
 info_asset_status_suspicious_description = Подозрительные или спам‑токены помечаются как потенциальные мошеннические или вредоносные активы. Они могут появиться в вашем кошельке в результате airdrop‑раздач, переводов или ручного добавления.
@@ -589,7 +589,7 @@ info_insufficient_balance_title = Недостаточный баланс
 info_balance_required_description = Для этой транзакции требуется %@, но доступно только %@. Для продолжения вам нужно еще %@.
 info_account_minimum_balance_title = Минимальный баланс
 info_perpetual_funding_payments_title = Платежи по финансированию
-info_perpetual_funding_payments_description = Платежи финансирования — это периодические платежи между трейдерами, позволяющие поддерживать цену бессрочного контракта близкой к спотовой цене базового актива. Положительное финансирование означает, что длинные позиции оплачиваются короткими позициями, а отрицательное финансирование означает, что короткие позиции оплачиваются длинными позициями.
+info_perpetual_funding_payments_description = Платежи финансирования — это периодические платежи между трейдерами, позволяющие поддерживать цену бессрочного контракта близкой к спотовой цене базового актива. Положительное финансирование означает, что длинные позиции платят коротким, а отрицательное — что короткие позиции платят длинным.
 info_perpetual_liquidation_price_title = Цена ликвидации
 info_perpetual_liquidation_price_description = Цена ликвидации — это уровень цен, при котором ваша позиция будет автоматически закрыта, чтобы предотвратить дальнейшие убытки. Когда рыночная цена достигает этого уровня, ваша позиция ликвидируется, и вы теряете свою маржу.
 info_perpetual_open_interest_title = Открытый интерес
@@ -607,7 +607,7 @@ info_circulating_supply_description = Количество монет, дост�
 info_total_supply_description = Общее количество существующих монет, включая заблокированные или зарезервированные монеты.
 info_max_supply_title = Максимальное предложение
 info_max_supply_description = Максимальное количество монет, которое когда-либо будет существовать.
-info_perpetual_funding_apr_title = Финансирование годовых
+info_perpetual_funding_apr_title = APR финансирования
 info_perpetual_funding_apr_description = Годовая ставка, по которой длинные позиции платят коротким позициям (если она отрицательная, короткие позиции платят длинным позициям). Никаких комиссий, связанных с финансированием, которое представляет собой одноранговую передачу между пользователями для подталкивания цен к спотовой цене.
 info_minimum_amount_title = Минимальная сумма
 info_minimum_amount_description = В сети %@ минимальная сумма для этой транзакции составляет %@.
@@ -658,7 +658,7 @@ onboarding_security_create_wallet_do_not_share_subtitle = Любой, кто у�
 onboarding_security_create_wallet_keep_safe_subtitle = Секретная фраза – это единственный способ получить доступ к своему кошельку.
 onboarding_security_create_wallet_no_recovery_subtitle = Если вы потеряете секретную фразу, вы потеряете доступ к своему кошельку.
 onboarding_security_create_wallet_keep_safe_title = Храните в безопасном месте
-onboarding_security_create_wallet_no_recovery_title = Мы не можем помочь вам восстановить его.
+onboarding_security_create_wallet_no_recovery_title = Мы не можем помочь вам восстановить его
 onboarding_accept_terms_title = Принять условия
 onboarding_accept_terms_message = Прежде чем продолжить, пожалуйста, прочтите и примите следующие условия.
 onboarding_accept_terms_item1_message = Я понимаю, что ответственность за безопасность и резервное копирование моих кошельков несу исключительно я, а не Gem.
@@ -692,10 +692,10 @@ perpetual_market_price = Рыночная цена
 perpetual_take_profit = TP
 perpetual_stop_loss = SL
 perpetual_liquidation = Liq
-perpetual_increase_direction = Увеличение %@
+perpetual_increase_direction = Увеличить %@
 perpetual_reduce_direction = Уменьшить %@
 perpetual_auto_close_expected_profit = Ожидаемая прибыль
-perpetual_auto_close_expected_loss = Ожидаемые потери
+perpetual_auto_close_expected_loss = Ожидаемый убыток
 perpetual_modify_position = Изменить позицию
 perpetual_auto_close_stop_loss = Стоп-лосс
 perpetual_value = Стоимость
@@ -709,19 +709,19 @@ perpetual_margin_isolated = Изолированная
 
 # Perpetuals
 
-perpetuals_title = Перпетуалы
+perpetuals_title = Перпы
 # Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
-perpetuals_trade = Торговать перпетуалами
+perpetuals_trade = Торговать перпами
 perpetuals_markets = Рынки
 perpetuals_empty_state_no_markets_found = Рынки не найдены
 
 # Rewards
 
 rewards_title = Награды
-rewards_share_text = Создайте Gem Wallet по моей реферальной ссылке и получите вознаграждение: %@
+rewards_share_text = Присоединяйтесь к Gem Wallet по моей реферальной ссылке и получайте награды: %@
 rewards_my_referral_code = Мой реферальный код
 rewards_invite_friends_title = Пригласите друзей
-rewards_invite_friends_description = Зарабатывай %@ баллов за каждого друга, который присоединится.
+rewards_invite_friends_description = Зарабатывайте %@ баллов за каждого друга, который присоединится.
 rewards_referral_code = Реферальный код
 rewards_invited_by = Пригласил
 rewards_points = Баллы
@@ -738,7 +738,7 @@ rewards_ways_spend_asset_title = Получить %@
 rewards_insufficient_points = Недостаточно баллов
 rewards_confirm_redeem = Получить %@ за %@!
 rewards_pending_title = Ожидается выплата бонуса
-rewards_pending_description = Доступно в %@
+rewards_pending_description = Доступно через %@
 rewards_pending_description_ready = Ваш бонус готов!
 rewards_nickname = Никнейм
 rewards_unverified_title = Награды пока неактивны.
@@ -774,11 +774,11 @@ contacts_add_to_existing_contact = Добавить в контакт
 
 # Simulation
 
-simulation_header_unlimited_asset = Без ограничений %@
+simulation_header_unlimited_asset = %@ без ограничений
 simulation_warning_unlimited_token_approval_description = Это даёт получателю одобрения доступ к использованию этого токена до тех пор, пока вы не отзовёте разрешение или оно не истечёт.
 simulation_warning_externally_owned_spender_description = Это разрешение позволяет обычному адресу кошелька (EOA) использовать ваши активы. Подтверждайте только если доверяете этому адресу.
 simulation_warning_nft_collection_approval_title = Запрошен полный доступ к коллекции NFT.
-simulation_warning_unlimited_token_approval_title = Неограниченное количество одобрений токенов
+simulation_warning_unlimited_token_approval_title = Неограниченное одобрение токена
 
 # Application
 

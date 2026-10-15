@@ -1,6 +1,6 @@
 # WalletConnect
 
-Connect the wallet to a dapp by scanning or pasting its code, then approve or reject what the dapp asks: sign a message, sign a transaction, or switch network.
+Connect the wallet to a dapp by scanning or pasting its code, then approve or reject what the dapp asks to sign: a message or a transaction. A switch to another network follows the dapp without a review.
 
 ```mermaid
 flowchart LR
@@ -27,12 +27,16 @@ flowchart LR
 | The dapp fails verification | the proposal shows it before the user connects | |
 | A request to sign comes for a wallet that is not the current one | that wallet becomes current before the request shows, the wallet's screens return to its main screen, and it stays current after the user signs or rejects | the request, its fee and any Buy, Swap or Receive it offers all belong to the connected wallet |
 | The user rejects a request | a refusal goes back to the dapp | |
+| A new request arrives while another one is on screen | the new request shows and the earlier one is refused, so its dapp is told | the earlier review is gone and can no longer be approved |
 | The same connection code is opened again while its proposal is on screen | the proposal stays; approving or rejecting it closes it | the SDK delivers a pending proposal again when its code is paired twice |
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
 | A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
 | A permit to sign names a flagged spender | a critical warning on the review | |
 | A one-click sign-in names a different site than the app asking | it is refused and the app is told so | the signature would log the user in to that other site |
 | A transaction approves a token: an approval, an allowance increase or a Permit2 approval | the review shows a token approval with the token, spender and amount; a flagged spender or token stops Confirm | the spender is who can move the token afterwards |
+| A dapp asks to switch to a network Gem supports where the wallet has an account | the network joins the connection and the dapp switches, with no review | the address is the same on every Ethereum-style network, so nothing new is shared |
+| A dapp asks to switch to a network Gem does not support | the dapp is told the network is unknown; nothing shows | |
+| A dapp connected only on non-Ethereum networks asks to switch | the dapp is told the network is unknown | it was never given the Ethereum address |
 | A WalletConnect Pay link | a payment review instead of a connection (see [Transfer](transfer.md)) | |
 | A WalletConnect Pay verification page is over https on the payment's own host | it loads | |
 | A WalletConnect Pay verification page is anywhere else | it opens in the browser | |
@@ -55,6 +59,7 @@ Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
 | When | iOS | Android | Expected |
 |---|---|---|---|
 | A dapp asks to sign in with one-click authentication | not supported | supported | Intentional |
+| A new request comes from a different connection while another one is on screen | the earlier one is refused | the earlier one gets no answer and its dapp times out | Android to match iOS |
 
 ## Rules
 

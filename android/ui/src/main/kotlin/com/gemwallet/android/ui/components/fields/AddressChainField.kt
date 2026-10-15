@@ -29,6 +29,7 @@ fun ColumnScope.AddressChainField(
     value: String,
     label: String,
     onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     indicator: GemNameIndicator? = null,
     error: String = "",
     editable: Boolean = true,
@@ -39,7 +40,7 @@ fun ColumnScope.AddressChainField(
     val clipboardManager = LocalContext.current.clipboardManager()
 
     GemTextField(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .keyboardFollowsFocus(),
         value = value,

@@ -6,6 +6,7 @@ import class Gemstone.GemChainService
 import enum Gemstone.GemWalletConnectError
 import enum Gemstone.GemWalletConnectFailure
 import enum Gemstone.GemWalletConnectRejectionReason
+import enum Gemstone.GemWalletConnectResponse
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import struct Gemstone.GemWalletConnectSessionRequest
 import protocol Gemstone.GemWalletSessionServiceProtocol
@@ -178,17 +179,39 @@ extension WalletConnectorService {
                 validation: verifyContext?.validation.map() ?? .unknown,
                 expiry: request.expiryTimestamp,
             ))
-            if let response = outcome.response {
-                do {
-                    try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: response.map())
-                } catch {
-                    debugLog("Error responding to request: \(error)")
-                }
-            }
-            if let failure = outcome.failure {
+            switch outcome {
+            case .ignored:
+                break
+            case let .respond(response):
+                await respond(request, response: response)
+            case let .fail(error, failure):
+                await respond(request, response: .error(error: error))
                 debugLog("Session request failed: \(String(describing: failure)) params: \(params)")
                 await walletConnectorInteractor.sessionReject(error: failure.error)
+            case let .addSessionAccount(account):
+                await addSessionAccount(account, topic: request.topic)
+                await respond(request, response: .null)
             }
+        }
+    }
+
+    private func respond(_ request: Request, response: GemWalletConnectResponse) async {
+        do {
+            try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: response.map())
+        } catch {
+            debugLog("Error responding to request: \(error)")
+        }
+    }
+
+    private func addSessionAccount(_ account: String, topic: String) async {
+        guard let account = Account(account), let session = WalletKit.instance.getSessions().first(where: { $0.topic == topic }) else {
+            debugLog("Error adding session account: no session \(topic) for \(account)")
+            return
+        }
+        do {
+            try await WalletKit.instance.update(topic: topic, namespaces: session.namespaces.adding(account))
+        } catch {
+            debugLog("Error adding session account: \(error)")
         }
     }
 

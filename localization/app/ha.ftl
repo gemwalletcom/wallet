@@ -57,7 +57,7 @@ common_method = Hanyar
 common_token = Alamar Token
 common_expiration = Ƙarewa
 common_suspicious_address = Adireshin da ake zargi
-common_suspicious_address_description = Wannan adireshin yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.
+common_suspicious_address_description = Wannan adireshin yana da alaƙa da ayyukan da ake zargi ko masu cutarwa.
 common_refresh = Sabuntawa
 common_grant_permission = Ba da izini
 common_required_field = %@ ana bukata
@@ -238,7 +238,7 @@ errors_swap_no_quote_available = Babu farashi a halin yanzu.
 errors_swap_not_supported_asset = Ba a goyan bayan kadari.
 errors_connections_no_supported_wallets = Babu goyan bayan walat.
 errors_connections_unsupported_chain = Ba a tallafawa sarkar da aka bayar.
-errors_authentication_unavailable = Ba a saita tabbatarwa a wannan na'urar ba. Kunna biometrics ko lambar sirri a cikin saitunan na'urar.
+errors_authentication_unavailable = Ba a saita tabbatarwa a wannan na'urar ba. Kunna biometrics ko lambar wucewa a cikin saitunan na'urar.
 errors_authentication_locked_out = An yi ƙoƙari da yawa da suka gaza. Da fatan za a sake gwadawa daga baya.
 errors_authentication_failed = Tabbatarwa ta gaza. Da fatan za a sake gwadawa.
 errors_connections_expired = Wannan hanyar haɗin ta ƙare. Samo sabon lambar QR ka sake gwadawa.
@@ -397,10 +397,10 @@ stake_lock_time = Lokacin Kulle
 stake_activating = Kunnawa
 stake_deactivating = Yana kashewa
 stake_awaiting_withdrawal = Ana jiran Janyewa
-stake_active_in = Active In
+stake_active_in = Zai fara aiki cikin
 stake_minimum_amount = Mafi ƙarancin adadin
 stake_state_empty_title = Hannun jarinku zai bayyana a nan
-stake_state_empty_description = Bada %@ na farko
+stake_state_empty_description = Saka hannun jari da %@ ɗinku na farko
 stake_state_empty_validators_title = Ba a sami masu tabbatarwa ba
 stake_resource = Albarkatu
 stake_resource_energy = Makamashi
@@ -428,8 +428,8 @@ secret_phrase_do_not_share_title = Kada ku raba Kalmar sirrinku!
 secret_phrase_do_not_share_description = Idan wani yana da kalmar sirrin ku za su sami cikakken iko akan walat ɗin ku!
 secret_phrase_save_phrase_safely = Ajiye kalmar sirrin ku a wuri mai tsaro \nwanda kai kadai ke sarrafa.
 secret_phrase_confirm_quick_test_title = Kammala wannan gwajin gaggawar don tabbatar da cewa kun adana komai daidai.
-secret_phrase_screenshot_detected_title = An Gano Hoton Hoton
-secret_phrase_screenshot_detected_description = Za a iya samun damar ɗaukar hotuna zuwa wasu ƙa'idodi, za su iya sanya kalmar sirrin ku cikin haɗari idan an ajiye su ta wannan hanyar.
+secret_phrase_screenshot_detected_title = An Gano Hoton Allo
+secret_phrase_screenshot_detected_description = Hotunan allo na iya kasancewa a bayyane ga wasu app, kuma za su iya sanya kalmar sirrin ku cikin haɗari idan an ajiye ta ta wannan hanyar.
 secret_phrase_content_hidden_description = Abubuwan da ke ɓoye yayin rikodin allo
 
 # Private Key
@@ -440,10 +440,10 @@ private_key_reminder_keep_safe_subtitle = Keɓaɓɓen maɓalli shi ne kawai hany
 private_key_reminder_do_not_share_title = Kada Ku Raba Shi Ga Kowa
 private_key_reminder_do_not_share_subtitle = Duk wanda ya sami keɓaɓɓen maɓallin ku na iya ɗaukar cikakken iko da walat ɗin ku.
 private_key_reminder_no_recovery_title = Ba Za Mu Iya Taimaka Muku Dawo Da Shi Ba
-private_key_reminder_no_recovery_subtitle = Idan ka rasa keɓaɓɓen maɓallinka, ka rasa damar shiga walat ɗinka.
+private_key_reminder_no_recovery_subtitle = Idan kun rasa keɓaɓɓen maɓallinku, za ku rasa damar shiga walat ɗinku.
 private_key_do_not_share_title = Kada ku raba Keɓaɓɓen Maɓallinku!
 private_key_do_not_share_description = Idan wani yana da keɓaɓɓen maɓallinku zai sami cikakken iko akan wannan asusun!
-private_key_screenshot_detected_description = Za a iya samun damar ɗaukar hotuna zuwa wasu ƙa'idodi, za su iya sanya keɓaɓɓen maɓallin ku cikin haɗari idan an ajiye su ta wannan hanyar.
+private_key_screenshot_detected_description = Hotunan allo na iya kasancewa a bayyane ga wasu app, kuma za su iya sanya keɓaɓɓen maɓallin ku cikin haɗari idan an ajiye shi ta wannan hanyar.
 
 # Social
 
@@ -496,8 +496,8 @@ fee_rate_base = Kudin tushe
 
 banner_account_activation_title = Kudin Kunna Asusu
 banner_account_activation_description = Cibiyar sadarwar %@ tana buƙatar kuɗin lokaci ɗaya na %@.
-banner_stake_title = Fara tarawa %@
-banner_stake_description = Sami %@ lada akan gungumen ku yayin barci.
+banner_stake_title = Fara saka hannun jari da %@
+banner_stake_description = Sami ladan %@ akan hannun jarinku yayin da kuke barci.
 banner_activate_asset_description = Don amfani da kadarar %@, dole ne ka fara kunna ta akan hanyar sadarwar %@ ta hanyar cika takamaiman buƙatun cibiyar sadarwa.
 banner_asset_status_title = Dukiyar da ake tuhuma
 banner_asset_status_description = Alamar na iya zama mara lafiya ko yaudara. Ci gaba kawai idan kun amince da shi sosai.
@@ -532,7 +532,7 @@ price_alerts_added_price_over = An ƙara faɗakarwa don farashi sama da %@
 price_alerts_added_price_under = An ƙara faɗakarwa don farashi ƙasa da %@
 price_alerts_added_increases_by = An ƙara faɗakarwa don ƙaruwar farashi da %@
 price_alerts_added_decreases_by = An ƙara faɗakarwa don raguwar farashi da %@
-price_alerts_state_empty_title = Faɗin farashin ku zai bayyana anan
+price_alerts_state_empty_title = Faɗakarwar farashinku za ta bayyana a nan
 price_alerts_state_empty_description = Kunna su ta ƙara tsabar kudi don waƙa
 price_alerts_auto_footer = Faɗakarwa yana haifar da ƙaƙƙarfan motsin farashi.
 price_alerts_set_alert_title = Saita Faɗakarwar Farashi
@@ -543,14 +543,14 @@ lock_immediately = Nan take
 lock_one_minute = Minti 1
 lock_five_minutes = Minti 5
 lock_fifteen_minutes = Minti 15
-lock_one_hour = awa 1
-lock_six_hours = 6 hours
+lock_one_hour = Awa 1
+lock_six_hours = Awa 6
 lock_require_authentication = Bukatar tantancewa
 lock_unlock = Buɗe
 lock_footer = Kare damar shiga wannan app akan na'urarka
 lock_passcode = Lambar wucewa
-lock_passcode_off_title = An kashe lambar sirrin na'ura
-lock_passcode_off_description = An kulle Gem da lambar sirrin na'urarka. Kunna lambar sirri a cikin saitunan na'urar don buɗe Gem. Walat ɗinka suna cikin aminci.
+lock_passcode_off_title = An kashe lambar wucewar na'ura
+lock_passcode_off_description = An kulle Gem da lambar wucewar na'urarka. Kunna lambar wucewa a cikin saitunan na'urar don buɗe Gem. Walat ɗinka suna cikin aminci.
 
 # Verify
 
@@ -675,7 +675,7 @@ perpetual_positions = Matsayi
 perpetual_size = Girman
 perpetual_margin = Margin
 perpetual_position = Matsayi
-perpetual_close_position = Matsayin kusa
+perpetual_close_position = Rufe matsayi
 perpetual_pnl = PnL
 perpetual_long = Doguwa
 perpetual_short = Gajere
@@ -685,7 +685,7 @@ perpetual_reduce_position = Rage Matsayi
 perpetual_increase_position = Ƙara Matsayi
 perpetual_open_direction = Bude %@
 perpetual_close_direction = Rufe %@
-perpetual_leverage = Amfani
+perpetual_leverage = Leverage
 perpetual_auto_close = Rufe atomatik
 perpetual_auto_close_take_profit = Ci riba
 perpetual_market_price = Farashin Kasuwa
@@ -702,16 +702,16 @@ perpetual_value = darajar
 perpetual_unrealized_pnl = PnL mara Gaskiya
 perpetual_volume = Ƙarar girma
 perpetual_all_time_pnl = PnL na Duk Lokaci
-perpetual_margin_usage = Amfani da Gefen
-perpetual_account_leverage = Amfani da Asusu
-perpetual_margin_cross = Ketare
+perpetual_margin_usage = Amfani da Margin
+perpetual_account_leverage = Leverage na Asusu
+perpetual_margin_cross = Cross
 perpetual_margin_isolated = Ware
 
 # Perpetuals
 
 perpetuals_title = Perpetuals
 # Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
-perpetuals_trade = Ciniki Perpetuals
+perpetuals_trade = Yi cinikin Perpetuals
 perpetuals_markets = Kasuwanni
 perpetuals_empty_state_no_markets_found = Babu kasuwanni da aka samu
 
@@ -719,16 +719,16 @@ perpetuals_empty_state_no_markets_found = Babu kasuwanni da aka samu
 
 rewards_title = Lada
 rewards_share_text = Shiga Gem Wallet tare da hanyar haɗin yanar gizo na kuma sami lada: %@
-rewards_my_referral_code = Lambar da na bayar ta hanyar sadarwa
+rewards_my_referral_code = Lambar gayyatata
 rewards_invite_friends_title = Gayyaci Abokai
 rewards_invite_friends_description = Sami %@ maki ga kowane aboki da ya shiga.
-rewards_referral_code = Lambar Shawara
+rewards_referral_code = Lambar Gayyata
 rewards_invited_by = Gayyatar Ta
 rewards_points = Maki
 rewards_referrals = Shawarwari
 rewards_earn_points_title = Sami Maki
 rewards_get_rewards_title = Sami Lada
-rewards_activate_referral_code_description = Kuna da lambar turawa daga aboki?
+rewards_activate_referral_code_description = Kuna da lambar gayyata daga aboki?
 rewards_activate_referral_code_title = Fanshe lambar
 rewards_create_referral_code_title = Ƙirƙiri Sunan mai amfani
 rewards_create_referral_code_info = Wannan zai zama sunan barkwancinka na sirri don walat ɗin da ke yanzu.
@@ -741,7 +741,7 @@ rewards_pending_title = Karin Kudi Ana Jira
 rewards_pending_description = Akwai a cikin %@
 rewards_pending_description_ready = Karin kyautar ku a shirye take!
 rewards_nickname = Laƙabi
-rewards_unverified_title = Ladabi bai yi aiki ba tukuna.
+rewards_unverified_title = Lada bai fara aiki ba tukuna.
 rewards_unverified_description = Lada yana kunna ta atomatik yayin da kake amfani da app ɗin sosai.
 rewards_state_empty_title = Lada yana buƙatar Wallet na Multi-Coin
 rewards_state_empty_description = Ƙirƙiri ko shigo da Wallet na Multi-Coin don gayyatar abokai da samun maki.
@@ -774,7 +774,7 @@ contacts_add_to_existing_contact = Ƙara zuwa lamba
 
 # Simulation
 
-simulation_header_unlimited_asset = Unlimited %@
+simulation_header_unlimited_asset = %@ mara iyaka
 simulation_warning_unlimited_token_approval_description = Wannan yana ba mai kashewa damar amfani da wannan alamar har sai kun soke amincewa ko kuma ta ƙare.
 simulation_warning_externally_owned_spender_description = Wannan amincewar tana ba adireshin walat na yau da kullum (EOA) damar amfani da kadarorinku. Tabbatar kawai idan kun amince da wannan adireshin.
 simulation_warning_nft_collection_approval_title = An nemi cikakken damar tattara NFT

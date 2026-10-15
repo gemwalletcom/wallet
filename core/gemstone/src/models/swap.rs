@@ -1,4 +1,4 @@
-use number_formatter::BigNumberFormatter;
+use number_formatter::{BigNumberFormatter, precision::round_to_places};
 use primitives::swap::{SwapPriceImpact, SwapPriceImpactType, SwapQuoteData};
 
 use crate::config::swap_config::get_swap_config;
@@ -68,11 +68,6 @@ fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> 
         is_high: rounded_percentage.abs() >= get_swap_config().high_price_impact_percent as f64,
         shows_in_summary: matches!(impact_type, SwapPriceImpactType::Medium | SwapPriceImpactType::High),
     })
-}
-
-fn round_to_places(value: f64, places: i32) -> f64 {
-    let factor = 10_f64.powi(places);
-    (value * factor).round() / factor
 }
 
 #[cfg(test)]

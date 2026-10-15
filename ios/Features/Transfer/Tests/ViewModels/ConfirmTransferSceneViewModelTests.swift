@@ -557,7 +557,7 @@ struct ConfirmTransferSceneViewModelTests {
         }
         #expect(sheet.title == .balanceRequired(symbol: "TRX"))
         #expect(sheet.description.text == Localized.Info.balanceRequiredDescription(
-            "36.79 TRX".boldMarkdown(),
+            "36.7983 TRX".boldMarkdown(),
             "36.07 TRX".boldMarkdown(),
             "0.7283 TRX".boldMarkdown(),
         ))

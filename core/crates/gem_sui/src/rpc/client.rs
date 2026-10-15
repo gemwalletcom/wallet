@@ -154,14 +154,14 @@ impl SuiClient {
         Ok(self.service_info().await?.checkpoint_height.ok_or("missing Sui checkpoint height")?)
     }
 
-    pub async fn get_gas_price(&self) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
+    pub async fn get_gas_price(&self) -> Result<u64, Box<dyn Error + Send + Sync>> {
         let request = GetEpochRequest {
             epoch: None,
             read_mask: Some(FieldMask::from_path_string("reference_gas_price")),
         };
         let response: GetEpochResponse = self.grpc_unary(PATH_GET_EPOCH, request).await?;
         let epoch = response.epoch.ok_or("missing Sui epoch")?;
-        Ok(BigInt::from(epoch.reference_gas_price.ok_or("missing Sui reference gas price")?))
+        Ok(epoch.reference_gas_price.ok_or("missing Sui reference gas price")?)
     }
 
     pub async fn get_coins(&self, address: &str, coin_type: &str) -> Result<OwnedCoins<Coin>, Box<dyn Error + Send + Sync>> {

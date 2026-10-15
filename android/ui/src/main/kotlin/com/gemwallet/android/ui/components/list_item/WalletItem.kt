@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.icons.AppIcons
@@ -64,7 +65,7 @@ fun WalletItem(row: GemWalletRow, isCurrent: Boolean, modifier: Modifier = Modif
 
 @Composable
 private fun WalletEditButton(onClick: () -> Unit) {
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, modifier = Modifier.testTag("wallet_edit")) {
         Icon(
             imageVector = AppIcons.SettingsOutlined,
             contentDescription = "edit",

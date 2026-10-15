@@ -39,14 +39,15 @@ impl WalletConnectRequestHandler {
                 operation: WalletConnectChainOperation::GetChainId,
             }),
             WalletConnectionMethods::WalletAddEthereumChain => Ok(WalletConnectAction::ChainOperation {
-                operation: WalletConnectChainOperation::AddChain,
+                operation: WalletConnectChainOperation::AddChain {
+                    chain_id: Self::parse_chain_id_param(&params)?,
+                },
             }),
-            WalletConnectionMethods::WalletSwitchEthereumChain => {
-                let chain = Self::parse_switch_chain_id(&params)?;
-                Ok(WalletConnectAction::ChainOperation {
-                    operation: WalletConnectChainOperation::SwitchChain { chain },
-                })
-            }
+            WalletConnectionMethods::WalletSwitchEthereumChain => Ok(WalletConnectAction::ChainOperation {
+                operation: WalletConnectChainOperation::SwitchChain {
+                    chain_id: Self::parse_chain_id_param(&params)?,
+                },
+            }),
             method @ (WalletConnectionMethods::SolanaSignMessage | WalletConnectionMethods::SolanaSignTransaction | WalletConnectionMethods::SolanaSignAndSendTransaction | WalletConnectionMethods::SolanaSignAllTransactions) => {
                 SolanaRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Solana)?, params, &domain)
             }
@@ -81,10 +82,9 @@ impl WalletConnectRequestHandler {
         Ok(chain)
     }
 
-    fn parse_switch_chain_id(params: &Value) -> Result<Chain, String> {
+    fn parse_chain_id_param(params: &Value) -> Result<u64, String> {
         let chain_id_text = params.at(0)?.get_value("chainId")?.string()?;
-        let chain_id = hex::parse_u64_from_hex_or_decimal(chain_id_text).map_err(|error| error.to_string())?;
-        Chain::from_chain_id(chain_id).ok_or_else(|| "Unsupported chain".to_string())
+        hex::parse_u64_from_hex_or_decimal(chain_id_text).map_err(|error| error.to_string())
     }
 }
 
@@ -141,32 +141,49 @@ mod tests {
 
     #[test]
     fn test_chain_operation_add_chain() {
-        let request = WalletConnectRequest::mock("wallet_addEthereumChain", "{}", None);
+        let request = WalletConnectRequest::mock("wallet_addEthereumChain", r#"[{"chainId":"0x13e31","chainName":"Blast"}]"#, None);
         assert_eq!(
             WalletConnectRequestHandler::parse_request(request).unwrap(),
             WalletConnectAction::ChainOperation {
-                operation: WalletConnectChainOperation::AddChain,
+                operation: WalletConnectChainOperation::AddChain { chain_id: 81457 },
             }
         );
     }
 
     #[test]
     fn test_chain_operation_switch_chain() {
-        let params = r#"[{"chainId":"0x1"}]"#;
-        let request = WalletConnectRequest::mock("wallet_switchEthereumChain", params, None);
+        let switch_chain = |chain_id: &str| {
+            let request = WalletConnectRequest::mock("wallet_switchEthereumChain", &format!(r#"[{{"chainId":"{chain_id}"}}]"#), None);
+            WalletConnectRequestHandler::parse_request(request).unwrap()
+        };
+
         assert_eq!(
-            WalletConnectRequestHandler::parse_request(request).unwrap(),
+            switch_chain("0x1"),
             WalletConnectAction::ChainOperation {
-                operation: WalletConnectChainOperation::SwitchChain { chain: Chain::Ethereum },
+                operation: WalletConnectChainOperation::SwitchChain { chain_id: 1 },
             }
+        );
+        assert_eq!(
+            switch_chain("0x13e31"),
+            WalletConnectAction::ChainOperation {
+                operation: WalletConnectChainOperation::SwitchChain { chain_id: 81457 },
+            }
+        );
+        assert_eq!(
+            switch_chain("0xdeadbeef"),
+            WalletConnectAction::ChainOperation {
+                operation: WalletConnectChainOperation::SwitchChain { chain_id: 3_735_928_559 },
+            },
+            "a chain Gem does not know is still parsed so the wallet can answer that it is unrecognized"
         );
     }
 
     #[test]
-    fn test_chain_operation_switch_chain_missing_chain_id() {
-        let params = r#"[{}]"#;
-        let request = WalletConnectRequest::mock("wallet_switchEthereumChain", params, None);
-        assert!(WalletConnectRequestHandler::parse_request(request).is_err());
+    fn test_chain_operation_missing_chain_id() {
+        for method in ["wallet_switchEthereumChain", "wallet_addEthereumChain"] {
+            let request = WalletConnectRequest::mock(method, r#"[{}]"#, None);
+            assert!(WalletConnectRequestHandler::parse_request(request).is_err(), "{method}");
+        }
     }
 
     #[test]

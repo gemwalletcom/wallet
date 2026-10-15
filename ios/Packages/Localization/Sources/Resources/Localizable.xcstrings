@@ -169,7 +169,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اپنا پہلا لین دین کریں۔"
+            "value": "اپنا پہلا لین دین کریں"
           }
         },
         "vi": {
@@ -742,7 +742,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "آپ کی سرگرمی یہاں ظاہر ہوگی۔"
+            "value": "آپ کی سرگرمی یہاں ظاہر ہوگی"
           }
         },
         "vi": {
@@ -1124,7 +1124,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "بٹوے میں شامل کریں۔"
+            "value": "بٹوے میں شامل کریں"
           }
         },
         "vi": {
@@ -2150,7 +2150,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "رزرو شده."
+            "value": "رزرو شده"
           }
         },
         "fil": {
@@ -2174,7 +2174,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "שָׁמוּר"
+            "value": "שמור"
           }
         },
         "hi": {
@@ -2747,7 +2747,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "חוֹזֶה"
+            "value": "חוזה"
           }
         },
         "hi": {
@@ -3004,7 +3004,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Десятичные дроби"
+            "value": "Десятичные знаки"
           }
         },
         "sw": {
@@ -3768,7 +3768,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Имя"
+            "value": "Название"
           }
         },
         "sw": {
@@ -4538,7 +4538,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shughuli zako za malipo zitaonekana hapa"
+            "value": "Miamala yako itaonekana hapa"
           }
         },
         "th": {
@@ -4914,7 +4914,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Токен ID"
+            "value": "ID токена"
           }
         },
         "sw": {
@@ -5421,7 +5421,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "חָשׁוּד"
+            "value": "חשוד"
           }
         },
         "hi": {
@@ -5803,7 +5803,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "מְאוּמָת"
+            "value": "מאומת"
           }
         },
         "hi": {
@@ -6155,7 +6155,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sepa lo que está agregando"
+            "value": "Revisa lo que estás agregando"
           }
         },
         "fa": {
@@ -6281,7 +6281,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "جانیں کہ آپ کیا شامل کر رہے ہیں۔"
+            "value": "جانیں کہ آپ کیا شامل کر رہے ہیں"
           }
         },
         "vi": {
@@ -6352,7 +6352,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "آدرس را در %@ مشاهده کنید."
+            "value": "آدرس را در %@ مشاهده کنید"
           }
         },
         "fil": {
@@ -6543,7 +6543,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "توکن را در %@ مشاهده کنید."
+            "value": "توکن را در %@ مشاهده کنید"
           }
         },
         "fil": {
@@ -6734,7 +6734,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "افزودن توکن دلخواه/سفارشی."
+            "value": "افزودن توکن سفارشی"
           }
         },
         "fil": {
@@ -6854,7 +6854,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "حسب ضرورت ٹوکن شامل کریں۔"
+            "value": "حسب ضرورت ٹوکن شامل کریں"
           }
         },
         "vi": {
@@ -6925,7 +6925,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "دارایی یافت نشد."
+            "value": "دارایی یافت نشد"
           }
         },
         "fil": {
@@ -7427,7 +7427,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اثاثہ منتخب کریں۔"
+            "value": "اثاثہ منتخب کریں"
           }
         },
         "vi": {
@@ -7618,7 +7618,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "آپ اسے دستی طور پر شامل کرنے کی کوشش کر سکتے ہیں۔"
+            "value": "آپ اسے دستی طور پر شامل کرنے کی کوشش کر سکتے ہیں"
           }
         },
         "vi": {
@@ -7713,7 +7713,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "חָדָשׁ"
+            "value": "חדש"
           }
         },
         "hi": {
@@ -8262,7 +8262,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "کارمزد فعال سازی حساب."
+            "value": "کارمزد فعال سازی حساب"
           }
         },
         "fil": {
@@ -8447,7 +8447,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Para utilizar el activo %@, primero debe habilitarlo en la red %@ cumpliendo con los requisitos específicos de la red."
+            "value": "Para utilizar el activo %@, primero debes habilitarlo en la red %@ cumpliendo con los requisitos específicos de la red."
           }
         },
         "fa": {
@@ -8638,7 +8638,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El token puede ser inseguro o engañoso. Continúe sólo si confía plenamente en ello."
+            "value": "El token puede ser inseguro o engañoso. Continúa solo si confías plenamente en él."
           }
         },
         "fa": {
@@ -9181,7 +9181,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "তোমার মানিব্যাগ প্রস্তুত।"
+            "value": "আপনার ওয়ালেট প্রস্তুত"
           }
         },
         "cs": {
@@ -9337,7 +9337,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "آپ کا والیٹ تیار ہے۔"
+            "value": "آپ کا والیٹ تیار ہے"
           }
         },
         "vi": {
@@ -9438,7 +9438,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hyperliquid शाश्वत के साथ जमा करें, व्यापार करें और कमाएं"
+            "value": "Hyperliquid पर्पेचुअल्स के साथ जमा करें, ट्रेड करें और कमाएं"
           }
         },
         "id": {
@@ -9498,7 +9498,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вносите депозит, торгуйте и зарабатывайте с бессрочными контрактами Hyperliquid"
+            "value": "Вносите депозит, торгуйте и зарабатывайте на перпах Hyperliquid"
           }
         },
         "sw": {
@@ -9516,7 +9516,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hyperliquid kalıcı varlıklarıyla para yatırın, ticaret yapın ve kazanın"
+            "value": "Hyperliquid Perpetuals ile para yatırın, işlem yapın ve kazanın"
           }
         },
         "uk": {
@@ -9599,7 +9599,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "معاملات دائمی در Hyperliquid"
+            "value": "معامله Perpetuals در Hyperliquid"
           }
         },
         "fil": {
@@ -9623,7 +9623,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "סחר נצחים ב-Hyperliquid"
+            "value": "מסחר ב-Perpetuals ב-Hyperliquid"
           }
         },
         "hi": {
@@ -9671,7 +9671,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Handluj instrumentami perpetuals na Hyperliquid"
+            "value": "Handluj Perpetuals na Hyperliquid"
           }
         },
         "pt-BR": {
@@ -9689,7 +9689,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Торгуйте бессрочными контрактами на Hyperliquid"
+            "value": "Торгуйте перпами на Hyperliquid"
           }
         },
         "sw": {
@@ -9707,7 +9707,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hyperliquid'de Sürekli İşlemler Yapın"
+            "value": "Hyperliquid'de Perpetuals işlemi yapın"
           }
         },
         "uk": {
@@ -9719,7 +9719,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hyperliquid پر مستقل تجارت"
+            "value": "Hyperliquid پر Perpetuals ٹریڈ کریں"
           }
         },
         "vi": {
@@ -9754,7 +9754,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনি যখন ঘুমান তখন আপনার বাজিতে %@ পুরষ্কার অর্জন করুন।"
+            "value": "আপনি যখন ঘুমান তখনও আপনার স্টেকে %@ পুরস্কার অর্জন করুন।"
           }
         },
         "cs": {
@@ -9808,13 +9808,13 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sami %@ lada akan gungumen ku yayin barci."
+            "value": "Sami ladan %@ akan hannun jarinku yayin da kuke barci."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "זכה בתגמולים של %@ על ההימור שלך בזמן שאתה ישן."
+            "value": "קבל תגמולי %@ על הסטייקינג שלך בזמן שאתה ישן."
           }
         },
         "hi": {
@@ -9850,7 +9850,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Peroleh %@ ganjaran pada pertaruhan anda semasa anda tidur."
+            "value": "Peroleh %@ ganjaran daripada staking anda semasa anda tidur."
           }
         },
         "nl": {
@@ -9862,7 +9862,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zdobądź %@ nagród na swojej stawce podczas snu."
+            "value": "Zdobywaj nagrody w %@ ze stakingu, nawet gdy śpisz."
           }
         },
         "pt-BR": {
@@ -9874,13 +9874,13 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Câștigă %@ recompense pe miza ta în timp ce dormi."
+            "value": "Câștigă recompense în %@ din staking în timp ce dormi."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Зарабатывайте %@ наград за свою стейк, пока спите."
+            "value": "Зарабатывайте награды в %@ за свой стейк, пока спите."
           }
         },
         "sw": {
@@ -9916,7 +9916,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kiếm %@ phần thưởng cho số tiền đặt cược của bạn khi bạn ngủ."
+            "value": "Kiếm %@ phần thưởng cho số tiền đặt cọc của bạn khi bạn ngủ."
           }
         },
         "zh-Hans": {
@@ -9951,7 +9951,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Začněte sázet %@"
+            "value": "Začněte stakovat %@"
           }
         },
         "da": {
@@ -9981,7 +9981,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "شروع به استیک کردن %@."
+            "value": "شروع به استیک کردن %@"
           }
         },
         "fil": {
@@ -9999,7 +9999,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fara tarawa %@"
+            "value": "Fara saka hannun jari da %@"
           }
         },
         "he": {
@@ -10041,7 +10041,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mula mempertaruhkan %@"
+            "value": "Mula staking %@"
           }
         },
         "nl": {
@@ -10053,19 +10053,19 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zacznij stawiać %@"
+            "value": "Zacznij stakować %@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Comece staking %@"
+            "value": "Comece a fazer stake de %@"
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Începeți miza %@"
+            "value": "Începe staking cu %@"
           }
         },
         "ru": {
@@ -10077,7 +10077,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anza kugoma %@"
+            "value": "Anza kuweka hisa %@"
           }
         },
         "th": {
@@ -10089,7 +10089,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ bahisine başla"
+            "value": "%@ stake etmeye başlayın"
           }
         },
         "uk": {
@@ -10107,7 +10107,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bắt đầu đặt cược %@"
+            "value": "Bắt đầu đặt cọc %@"
           }
         },
         "zh-Hans": {
@@ -10292,7 +10292,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کوئی اقتباسات دستیاب نہیں ہیں۔"
+            "value": "کوئی اقتباسات دستیاب نہیں ہیں"
           }
         },
         "vi": {
@@ -10369,7 +10369,7 @@
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mga tagapagbigay"
+            "value": "Mga Provider"
           }
         },
         "fr": {
@@ -10548,7 +10548,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarifa"
+            "value": "Tasa"
           }
         },
         "fa": {
@@ -10894,7 +10894,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الجميع"
+            "value": "الكل"
           }
         },
         "bn": {
@@ -11849,7 +11849,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتغير"
+            "value": "التغيير"
           }
         },
         "bn": {
@@ -11885,7 +11885,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambiar"
+            "value": "Cambio"
           }
         },
         "fa": {
@@ -11915,7 +11915,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְשַׁנוֹת"
+            "value": "שינוי"
           }
         },
         "hi": {
@@ -12040,13 +12040,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يغلق"
+            "value": "الإغلاق"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "বন্ধ করা"
+            "value": "বন্ধ"
           }
         },
         "cs": {
@@ -12082,7 +12082,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "بستن"
+            "value": "بسته شدن"
           }
         },
         "fil": {
@@ -12106,13 +12106,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לִסְגוֹר"
+            "value": "סגירה"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "बंद करना"
+            "value": "बंद"
           }
         },
         "id": {
@@ -12231,7 +12231,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "عالي"
+            "value": "الأعلى"
           }
         },
         "bn": {
@@ -12297,7 +12297,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "גָבוֹהַ"
+            "value": "גבוה"
           }
         },
         "hi": {
@@ -12422,7 +12422,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "قليل"
+            "value": "الأدنى"
           }
         },
         "bn": {
@@ -12488,7 +12488,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "נָמוּך"
+            "value": "נמוך"
           }
         },
         "hi": {
@@ -12613,7 +12613,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يفتح"
+            "value": "الافتتاح"
           }
         },
         "bn": {
@@ -12655,7 +12655,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "باز"
+            "value": "باز شدن"
           }
         },
         "fil": {
@@ -12679,7 +12679,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לִפְתוֹחַ"
+            "value": "פתיחה"
           }
         },
         "hi": {
@@ -12775,7 +12775,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کھولیں۔"
+            "value": "کھلا"
           }
         },
         "vi": {
@@ -12840,7 +12840,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "1W"
+            "value": "1S"
           }
         },
         "fa": {
@@ -13377,7 +13377,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الجميع"
+            "value": "الكل"
           }
         },
         "bn": {
@@ -13485,7 +13485,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allemaal"
+            "value": "Alle"
           }
         },
         "pl": {
@@ -13634,7 +13634,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "גִלגוּל"
+            "value": "אווטאר"
           }
         },
         "hi": {
@@ -13777,7 +13777,7 @@
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ophæve"
+            "value": "Annuller"
           }
         },
         "de": {
@@ -13825,7 +13825,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְבַטֵל"
+            "value": "בטל"
           }
         },
         "hi": {
@@ -13843,7 +13843,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancellare"
+            "value": "Annulla"
           }
         },
         "ja": {
@@ -13885,7 +13885,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anula"
+            "value": "Anulează"
           }
         },
         "ru": {
@@ -13921,7 +13921,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "منسوخ کریں۔"
+            "value": "منسوخ کریں"
           }
         },
         "vi": {
@@ -13950,7 +13950,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يكمل"
+            "value": "متابعة"
           }
         },
         "bn": {
@@ -14374,7 +14374,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ کپی شد."
+            "value": "%@ کپی شد"
           }
         },
         "fil": {
@@ -14786,7 +14786,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "प्रतिलिपि"
+            "value": "कॉपी करें"
           }
         },
         "id": {
@@ -14941,7 +14941,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Borrar"
+            "value": "Eliminar"
           }
         },
         "fa": {
@@ -15067,7 +15067,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "حذف کریں۔"
+            "value": "حذف کریں"
           }
         },
         "vi": {
@@ -15126,7 +15126,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Are sure you want to delete %@?"
+            "value": "Are you sure you want to delete %@?"
           }
         },
         "es": {
@@ -15353,7 +15353,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "תֵאוּר"
+            "value": "תיאור"
           }
         },
         "hi": {
@@ -15693,7 +15693,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erledigt"
+            "value": "Fertig"
           }
         },
         "en": {
@@ -17932,7 +17932,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "لوڈ ہو رہا ہے۔"
+            "value": "لوڈ ہو رہا ہے"
           }
         },
         "vi": {
@@ -18123,7 +18123,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "انتظام کریں۔"
+            "value": "انتظام کریں"
           }
         },
         "vi": {
@@ -18958,7 +18958,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "هیچ نتیجه ای یافت نشد."
+            "value": "هیچ نتیجه ای یافت نشد"
           }
         },
         "fil": {
@@ -19651,7 +19651,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ترتیبات کھولیں۔"
+            "value": "ترتیبات کھولیں"
           }
         },
         "vi": {
@@ -19842,7 +19842,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "چسپاں کریں۔"
+            "value": "چسپاں کریں"
           }
         },
         "vi": {
@@ -19937,7 +19937,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אֲחוּזִים"
+            "value": "אחוזים"
           }
         },
         "hi": {
@@ -20379,7 +20379,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pin"
+            "value": "Fixează"
           }
         },
         "ru": {
@@ -20677,7 +20677,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ پین شد."
+            "value": "%@ پین شد"
           }
         },
         "fil": {
@@ -21465,7 +21465,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְרַעֲנֵן"
+            "value": "רענן"
           }
         },
         "hi": {
@@ -21525,7 +21525,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reîmprospăta"
+            "value": "Reîmprospătează"
           }
         },
         "ru": {
@@ -21561,7 +21561,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ریفریش کریں۔"
+            "value": "ریفریش کریں"
           }
         },
         "vi": {
@@ -21943,7 +21943,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "شیئر کریں۔"
+            "value": "شیئر کریں"
           }
         },
         "vi": {
@@ -22038,7 +22038,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְהַצִיג %@"
+            "value": "הצג %@"
           }
         },
         "hi": {
@@ -22420,7 +22420,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְדַלֵג"
+            "value": "דלג"
           }
         },
         "hi": {
@@ -22516,7 +22516,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "چھوڑیں۔"
+            "value": "چھوڑیں"
           }
         },
         "vi": {
@@ -22796,7 +22796,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wannan adireshin yana da alaƙa da ayyuka masu ban tsoro ko cutarwa."
+            "value": "Wannan adireshin yana da alaƙa da ayyukan da ake zargi ko masu cutarwa."
           }
         },
         "he": {
@@ -22993,7 +22993,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אֲסִימוֹן"
+            "value": "אסימון"
           }
         },
         "hi": {
@@ -23280,7 +23280,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "دوبارہ کوشش کریں۔"
+            "value": "دوبارہ کوشش کریں"
           }
         },
         "vi": {
@@ -23536,7 +23536,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desanclar"
+            "value": "Desfijar"
           }
         },
         "fa": {
@@ -23626,7 +23626,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anulați fixarea"
+            "value": "Anulează fixarea"
           }
         },
         "ru": {
@@ -23662,7 +23662,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "پن کھول دیں۔"
+            "value": "پن کھول دیں"
           }
         },
         "vi": {
@@ -23733,7 +23733,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ از پین خارج شد."
+            "value": "%@ از پین خارج شد"
           }
         },
         "fil": {
@@ -24032,7 +24032,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "URL'si"
+            "value": "URL"
           }
         },
         "uk": {
@@ -24330,7 +24330,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אַזהָרָה"
+            "value": "אזהרה"
           }
         },
         "hi": {
@@ -24903,7 +24903,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "מַגָע"
+            "value": "איש קשר"
           }
         },
         "hi": {
@@ -24999,7 +24999,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "رابطہ کریں۔"
+            "value": "رابطہ"
           }
         },
         "vi": {
@@ -25255,7 +25255,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guarde sus direcciones de uso frecuente"
+            "value": "Guarda tus direcciones de uso frecuente"
           }
         },
         "fa": {
@@ -25792,7 +25792,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, %@"
+            "value": "%@، %@"
           }
         },
         "bn": {
@@ -25834,7 +25834,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, %@"
+            "value": "%@، %@"
           }
         },
         "fil": {
@@ -25882,7 +25882,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, %@"
+            "value": "%@ %@"
           }
         },
         "ko": {
@@ -25936,7 +25936,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, %@"
+            "value": "%@ %@"
           }
         },
         "tr": {
@@ -25954,7 +25954,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, %@"
+            "value": "%@، %@"
           }
         },
         "vi": {
@@ -25966,13 +25966,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, %@"
+            "value": "%@ %@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, %@"
+            "value": "%@ %@"
           }
         }
       }
@@ -26515,7 +26515,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "İlk para yatırma işleminizi gerçekleştirin. %@"
+            "value": "İlk %@ yatırma işleminizi yapın"
           }
         },
         "uk": {
@@ -26533,7 +26533,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gửi khoản tiền đầu tiên của bạn %@"
+            "value": "Nạp %@ đầu tiên của bạn"
           }
         },
         "zh-Hans": {
@@ -26652,7 +26652,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "귀하의 직책이 여기에 표시됩니다."
+            "value": "포지션이 여기에 표시됩니다"
           }
         },
         "ms": {
@@ -26724,7 +26724,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vị trí của bạn sẽ hiển thị ở đây"
+            "value": "Vị thế của bạn sẽ hiển thị ở đây"
           }
         },
         "zh-Hans": {
@@ -26783,7 +26783,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La autenticación falló. Inténtelo de nuevo."
+            "value": "La autenticación falló. Inténtalo de nuevo."
           }
         },
         "fa": {
@@ -26974,7 +26974,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Demasiados intentos fallidos. Inténtelo de nuevo más tarde."
+            "value": "Demasiados intentos fallidos. Inténtalo de nuevo más tarde."
           }
         },
         "fa": {
@@ -27165,7 +27165,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La autenticación no está configurada en este dispositivo. Active la biometría o un código de acceso en los ajustes del dispositivo."
+            "value": "La autenticación no está configurada en este dispositivo. Activa la biometría o un código de acceso en los ajustes del dispositivo."
           }
         },
         "fa": {
@@ -27189,7 +27189,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ba a saita tabbatarwa a wannan na'urar ba. Kunna biometrics ko lambar sirri a cikin saitunan na'urar."
+            "value": "Ba a saita tabbatarwa a wannan na'urar ba. Kunna biometrics ko lambar wucewa a cikin saitunan na'urar."
           }
         },
         "he": {
@@ -27547,7 +27547,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Permiso de cámara no concedido. Habilite el acceso a la cámara en la configuración para escanear el código QR."
+            "value": "Permiso de cámara no concedido. Habilita el acceso a la cámara en la configuración para escanear el código QR."
           }
         },
         "fa": {
@@ -27929,7 +27929,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Este enlace de conexión ha caducado. Obtenga un nuevo código QR e inténtelo de nuevo."
+            "value": "Este enlace de conexión ha caducado. Obtén un nuevo código QR e inténtalo de nuevo."
           }
         },
         "fa": {
@@ -28693,7 +28693,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudo conectar con WalletConnect. Compruebe su conexión a internet e inténtelo de nuevo."
+            "value": "No se pudo conectar con WalletConnect. Comprueba tu conexión a internet e inténtalo de nuevo."
           }
         },
         "fa": {
@@ -28765,7 +28765,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "WalletConnect is niet bereikbaar. Controleer je internetverbinding en probeer het opnieuw."
+            "value": "WalletConnect is niet bereikbaar. Controleer uw internetverbinding en probeer het opnieuw."
           }
         },
         "pl": {
@@ -29075,13 +29075,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usuario cancelado"
+            "value": "Cancelado por el usuario"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "توسط کاربر لغو شد."
+            "value": "توسط کاربر لغو شد"
           }
         },
         "fil": {
@@ -29201,7 +29201,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "صارف نے منسوخ کر دیا۔"
+            "value": "صارف نے منسوخ کر دیا"
           }
         },
         "vi": {
@@ -29457,7 +29457,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudo decodificar el código QR. Inténtelo de nuevo con un código QR diferente."
+            "value": "No se pudo decodificar el código QR. Inténtalo de nuevo con un código QR diferente."
           }
         },
         "fa": {
@@ -30514,7 +30514,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ufunguo wa faragha si sahihi"
+            "value": "Ufunguo wa kibinafsi si sahihi"
           }
         },
         "th": {
@@ -30609,7 +30609,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "عبارات خصوصی نامعتبر."
+            "value": "عبارت مخفی نامعتبر"
           }
         },
         "fil": {
@@ -30663,7 +30663,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "잘못된 비밀번호 문구"
+            "value": "잘못된 비밀 문구"
           }
         },
         "ms": {
@@ -30800,7 +30800,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "عبارت خصوصی نامعتبر: %@"
+            "value": "کلمه نامعتبر در عبارت مخفی: %@"
           }
         },
         "fil": {
@@ -30991,7 +30991,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "نام یا آدرس نامعتبر."
+            "value": "نام یا آدرس نامعتبر"
           }
         },
         "fil": {
@@ -31182,7 +31182,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "مبلغ نامعتبر."
+            "value": "مبلغ نامعتبر"
           }
         },
         "fil": {
@@ -31373,7 +31373,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "آدرس %@ نامعتبر است."
+            "value": "آدرس %@ نامعتبر است"
           }
         },
         "fil": {
@@ -31564,7 +31564,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "شناسه شبکه نامعتبر است."
+            "value": "شناسه شبکه نامعتبر است"
           }
         },
         "fil": {
@@ -31749,7 +31749,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "URL invalida"
+            "value": "URL no válida"
           }
         },
         "fa": {
@@ -32639,7 +32639,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کوئی ڈیٹا دستیاب نہیں ہے۔"
+            "value": "کوئی ڈیٹا دستیاب نہیں ہے"
           }
         },
         "vi": {
@@ -33092,7 +33092,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "پشتیبانی نمی شود."
+            "value": "پشتیبانی نمی شود"
           }
         },
         "fil": {
@@ -33212,7 +33212,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعاون یافتہ نہیں۔"
+            "value": "تعاون یافتہ نہیں"
           }
         },
         "vi": {
@@ -33277,7 +33277,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Este dispositivo no admite el escaneo de códigos QR. Solo puede seleccionar la imagen del código QR de la biblioteca."
+            "value": "Este dispositivo no admite el escaneo de códigos QR. Solo puedes seleccionar la imagen del código QR de la biblioteca."
           }
         },
         "fa": {
@@ -33665,7 +33665,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "دسترسی داده نشده."
+            "value": "دسترسی داده نشده"
           }
         },
         "fil": {
@@ -33785,7 +33785,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اجازت نہیں دی گئی۔"
+            "value": "اجازت نہیں دی گئی"
           }
         },
         "vi": {
@@ -34614,7 +34614,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ La dirección de la billetera de destino requiere una etiqueta/nota de destino."
+            "value": "La dirección de destino de %@ requiere una etiqueta de destino / nota"
           }
         },
         "fa": {
@@ -34710,7 +34710,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ адрес кошелька назначения требует тега назначения / заметки"
+            "value": "Адрес кошелька назначения %@ требует тег назначения / мемо"
           }
         },
         "sw": {
@@ -34931,7 +34931,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "رقم بہت چھوٹی ہے۔"
+            "value": "رقم بہت چھوٹی ہے"
           }
         },
         "vi": {
@@ -35575,7 +35575,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "شناسه توکن نامعتبر است."
+            "value": "شناسه توکن نامعتبر است"
           }
         },
         "fil": {
@@ -35886,7 +35886,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "منتقلی کی خرابی۔"
+            "value": "منتقلی کی خرابی"
           }
         },
         "vi": {
@@ -36811,7 +36811,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Базовая плата"
+            "value": "Базовая комиссия"
           }
         },
         "sw": {
@@ -37384,7 +37384,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Приоритет"
+            "value": "Приоритетная комиссия"
           }
         },
         "sw": {
@@ -37963,7 +37963,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kasi ya ununuzi imedhamiriwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao."
+            "value": "Kasi ya muamala huamuliwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao."
           }
         },
         "th": {
@@ -38052,7 +38052,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Normales"
+            "value": "Normal"
           }
         },
         "fa": {
@@ -38560,7 +38560,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "توازن رکھتا ہے۔"
+            "value": "بیلنس موجود"
           }
         },
         "vi": {
@@ -39897,7 +39897,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ درکار ہے۔"
+            "value": "%@ درکار ہے"
           }
         },
         "vi": {
@@ -41072,7 +41072,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "وقت القفل، المعروف أيضًا باسم فترة إلغاء التجميد أو إلغاء التجميد، هو المدة التي لا يمكن خلالها الوصول إلى الأصول المرهونة بعد أن تقرر إلغاء ملكيتها."
+            "value": "وقت القفل، المعروف أيضًا بفترة إلغاء الربط أو إلغاء التجميد، هو المدة التي لا يمكن خلالها الوصول إلى الأصول المخزّنة بعد أن تقرر إلغاء تخزينها."
           }
         },
         "bn": {
@@ -41084,7 +41084,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Doba uzamčení, známá také jako období rozvázání nebo rozmrazení, je doba, po kterou jsou vsazená aktiva nepřístupná poté, co se je rozhodnete zrušit."
+            "value": "Doba uzamčení, známá také jako období rozvázání nebo rozmrazení, je doba, po kterou jsou stakovaná aktiva nepřístupná poté, co se rozhodnete zrušit jejich staking."
           }
         },
         "da": {
@@ -41114,7 +41114,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "زمان قفل، که به عنوان دوره باز کردن یا انجماد نیز شناخته می‌شود، مدت زمانی است که در طی آن دارایی‌های شرط‌بندی شده پس از اینکه تصمیم به رها کردن آن‌ها دارید، غیرقابل دسترسی هستند."
+            "value": "زمان قفل، که دوره آزادسازی یا لغو فریز نیز نامیده می‌شود، مدت زمانی است که پس از تصمیم به لغو استیک، دارایی‌های استیک‌شده در دسترس نیستند."
           }
         },
         "fil": {
@@ -41138,19 +41138,19 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "זמן הנעילה, המכונה גם תקופת ביטול ההצמדה או ההקפאה, הוא משך הזמן שבו נכסים בהימור אינם נגישים לאחר שהחלטת לבטל אותם."
+            "value": "זמן הנעילה, המכונה גם תקופת ה-unbonding או ההפשרה, הוא משך הזמן שבו נכסים בסטייקינג אינם נגישים לאחר שהחלטת לבטל את הסטייקינג שלהם."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लॉक टाइम, जिसे अनबॉन्डिंग या अनफ़्रीज़िंग अवधि के रूप में भी जाना जाता है, वह अवधि है जिसके दौरान आपके द्वारा दांव से हटाने का निर्णय लेने के बाद दांव पर लगी संपत्तियों तक पहुंच नहीं हो पाती है।"
+            "value": "लॉक टाइम, जिसे अनबॉन्डिंग या अनफ़्रीज़िंग अवधि भी कहा जाता है, वह अवधि है जिसके दौरान अनस्टेक करने का निर्णय लेने के बाद स्टेक की गई संपत्तियों तक पहुंच नहीं होती।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waktu penguncian, juga dikenal sebagai periode unbonding atau unfreezing, adalah durasi di mana aset yang dipertaruhkan tidak dapat diakses setelah Anda memutuskan untuk melepaskannya."
+            "value": "Waktu penguncian, juga dikenal sebagai periode unbonding atau unfreezing, adalah durasi di mana aset staking tidak dapat diakses setelah Anda memutuskan untuk membatalkan staking."
           }
         },
         "it": {
@@ -41174,7 +41174,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Masa kunci, juga dikenali sebagai tempoh nyah ikatan atau nyahbeku, ialah tempoh di mana aset dipertaruhkan tidak boleh diakses selepas anda memutuskan untuk menyahtaruhnya."
+            "value": "Masa kunci, juga dikenali sebagai tempoh nyah ikatan atau nyahbeku, ialah tempoh di mana aset staking tidak boleh diakses selepas anda memutuskan untuk menghentikan staking."
           }
         },
         "nl": {
@@ -41186,19 +41186,19 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Czas blokady, znany również jako okres odłączenia lub odmrożenia, to czas, podczas którego postawione aktywa są niedostępne po podjęciu decyzji o ich odstawieniu."
+            "value": "Czas blokady, znany również jako okres odłączenia lub odmrożenia, to czas, podczas którego stakowane aktywa są niedostępne po podjęciu decyzji o wycofaniu ich ze stakingu."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O tempo de bloqueio, também conhecido como período de desvinculação ou descongelamento, é a duração durante a qual os ativos apostados ficam inacessíveis após você decidir desfazê-los."
+            "value": "O tempo de bloqueio, também conhecido como período de desvinculação ou descongelamento, é o período durante o qual os ativos em stake ficam inacessíveis após você decidir remover o stake."
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Timpul de blocare, cunoscut și ca perioada de dezlegare sau dezghețare, este durata în care activele mizate sunt inaccesibile după ce decideți să le dezlegați."
+            "value": "Timpul de blocare, cunoscut și ca perioada de dezlegare sau dezghețare, este durata în care activele din staking sunt inaccesibile după ce decideți să le retrageți din staking."
           }
         },
         "ru": {
@@ -41210,7 +41210,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Muda wa kufunga, unaojulikana pia kama kipindi cha kuunganisha au kufungia, ni muda ambao mali zilizowekwa kwenye hisa haziwezi kufikiwa baada ya kuamua kuziondoa."
+            "value": "Muda wa kufunga, unaojulikana pia kama kipindi cha unbonding au cha kuondoa kuganda, ni muda ambao mali zilizowekwa kwenye hisa haziwezi kufikiwa baada ya kuamua kuziondoa kwenye hisa."
           }
         },
         "th": {
@@ -41222,13 +41222,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kilitlenme süresi, aynı zamanda bağlanmayı kaldırma veya dondurmayı kaldırma dönemi olarak da bilinir, stake edilen varlıklara, siz onları stake etmeye karar verdikten sonra erişilemez olduğu süredir."
+            "value": "Kilitlenme süresi (bağ çözme veya dondurmayı kaldırma dönemi olarak da bilinir), stake'i kaldırmaya karar verdikten sonra stake edilen varlıklarınıza erişemediğiniz süredir."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Час блокування, також відомий як період розблокування або розморожування, — це тривалість, протягом якої ставлені активи недоступні після того, як ви вирішили їх скасувати."
+            "value": "Час блокування, також відомий як період розблокування або розморожування, — це період, протягом якого активи в стейкінгу недоступні після того, як ви вирішили вивести їх зі стейкінгу."
           }
         },
         "ur": {
@@ -41240,7 +41240,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Thời gian khóa, còn được gọi là thời gian hủy liên kết hoặc hủy đóng băng, là khoảng thời gian mà tài sản đã đặt cược không thể truy cập được sau khi bạn quyết định hủy đặt cược chúng."
+            "value": "Thời gian khóa, còn được gọi là thời gian hủy liên kết hoặc hủy đóng băng, là khoảng thời gian mà tài sản đã đặt cọc không thể truy cập được sau khi bạn quyết định hủy đặt cọc chúng."
           }
         },
         "zh-Hans": {
@@ -41490,7 +41490,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suministro máximo"
+            "value": "Oferta máxima"
           }
         },
         "fa": {
@@ -42057,13 +42057,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees varies based on network usage."
+            "value": "Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees vary based on network usage."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cada transacción en la red %@ requiere una tarifa en %@ pagada a los mineros para procesar su transacción, no a Gem Wallet. Las tarifas de red varían según el uso de la red."
+            "value": "Cada transacción en la red %@ requiere una tarifa en %@ pagada a los mineros para procesar tu transacción, no a Gem Wallet. Las tarifas de red varían según el uso de la red."
           }
         },
         "fa": {
@@ -42350,7 +42350,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Сетевая плата"
+            "value": "Комиссия сети"
           }
         },
         "sw": {
@@ -43496,7 +43496,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Финансирование годовых"
+            "value": "APR финансирования"
           }
         },
         "sw": {
@@ -43591,7 +43591,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los pagos de financiación son pagos periódicos entre comerciantes para mantener el precio del contrato perpetuo cerca del precio al contado del activo subyacente. La financiación positiva significa que las posiciones largas pagan posiciones cortas, mientras que la financiación negativa significa que las posiciones cortas pagan posiciones largas."
+            "value": "Los pagos de financiación son pagos periódicos entre operadores para mantener el precio del contrato perpetuo cerca del precio al contado del activo subyacente. La financiación positiva significa que las posiciones largas pagan a las posiciones cortas, mientras que la financiación negativa significa que las posiciones cortas pagan a las posiciones largas."
           }
         },
         "fa": {
@@ -43687,7 +43687,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Платежи финансирования — это периодические платежи между трейдерами, позволяющие поддерживать цену бессрочного контракта близкой к спотовой цене базового актива. Положительное финансирование означает, что длинные позиции оплачиваются короткими позициями, а отрицательное финансирование означает, что короткие позиции оплачиваются длинными позициями."
+            "value": "Платежи финансирования — это периодические платежи между трейдерами, позволяющие поддерживать цену бессрочного контракта близкой к спотовой цене базового актива. Положительное финансирование означает, что длинные позиции платят коротким, а отрицательное — что короткие позиции платят длинным."
           }
         },
         "sw": {
@@ -43973,7 +43973,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El precio de liquidación es el nivel de precio en el que su posición se cerrará automáticamente para evitar mayores pérdidas. Cuando el precio de mercado alcanza este nivel, su posición se liquida y pierde su margen."
+            "value": "El precio de liquidación es el nivel de precio en el que tu posición se cerrará automáticamente para evitar mayores pérdidas. Cuando el precio de mercado alcanza este nivel, tu posición se liquida y pierdes tu margen."
           }
         },
         "fa": {
@@ -44325,7 +44325,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "উন্মুক্ত সুদ সমস্ত অসামান্য চিরস্থায়ী চুক্তির মোট মূল্যের প্রতিনিধিত্ব করে যা নিষ্পত্তি করা হয়নি। এটি বাজারের কার্যকলাপ এবং তারল্য সম্পর্কে অন্তর্দৃষ্টি প্রদান করে।"
+            "value": "ওপেন ইন্টারেস্ট হলো এখনও নিষ্পত্তি না হওয়া সমস্ত পারপেচুয়াল চুক্তির মোট মূল্য। এটি বাজারের কার্যকলাপ এবং তারল্য সম্পর্কে ধারণা দেয়।"
           }
         },
         "cs": {
@@ -44737,7 +44737,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El impacto en el precio es el cambio en el precio del token causado por el tamaño de la operación. Un mayor impacto en el precio significa que recibe menos tokens debido a una baja liquidez o a un gran tamaño de la orden."
+            "value": "El impacto en el precio es el cambio en el precio del token causado por el tamaño de la operación. Un mayor impacto en el precio significa que recibes menos tokens debido a una baja liquidez o a un gran tamaño de la orden."
           }
         },
         "fa": {
@@ -44833,7 +44833,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Влияние цены — это изменение цены токена, вызванное размером вашей сделки. Более высокое влияние цены означает, что вы получаете меньше токенов из-за низкой ликвидности или большого размера заказа."
+            "value": "Влияние на цену — это изменение цены токена, вызванное размером вашей сделки. Более высокое влияние на цену означает, что вы получаете меньше токенов из-за низкой ликвидности или большого размера заказа."
           }
         },
         "sw": {
@@ -44916,7 +44916,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Funktion ist in deiner Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab."
+            "value": "Diese Funktion ist in Ihrer Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab."
           }
         },
         "en": {
@@ -44934,7 +44934,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "این قابلیت در منطقه شما در دسترس نیست. دسترسی به قوانین محلی و الزامات ارائه‌دهندگان بستگی دارد."
+            "value": "این قابلیت در منطقه شما در دسترس نیست. در دسترس بودن آن به قوانین محلی و الزامات ارائه‌دهندگان بستگی دارد."
           }
         },
         "fil": {
@@ -44982,7 +44982,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "この機能はお住まいの地域では利用できません。 利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。"
+            "value": "この機能はお住まいの地域では利用できません。利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。"
           }
         },
         "ko": {
@@ -45000,7 +45000,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deze functie is niet beschikbaar in je regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders."
+            "value": "Deze functie is niet beschikbaar in uw regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders."
           }
         },
         "pl": {
@@ -45274,13 +45274,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "معدل النسبة السنوية (APR) هو معدل المكافأة السنوي لمراهنة العملة المشفرة الخاصة بك."
+            "value": "معدل النسبة السنوية (APR) هو معدل المكافأة السنوي لتخزين عملتك المشفرة."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "বার্ষিক শতাংশ হার (এপিআর) হল আপনার ক্রিপ্টোকারেন্সি শেয়ার করার জন্য বার্ষিক পুরষ্কারের হার।"
+            "value": "বার্ষিক শতাংশ হার (এপিআর) হল আপনার ক্রিপ্টোকারেন্সি স্টেক করার জন্য বার্ষিক পুরস্কারের হার।"
           }
         },
         "cs": {
@@ -45346,13 +45346,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "वार्षिक प्रतिशत दर (एपीआर) आपकी क्रिप्टोकरेंसी को दांव पर लगाने के लिए वार्षिक पुरस्कार दर है।"
+            "value": "वार्षिक प्रतिशत दर (एपीआर) आपकी क्रिप्टोकरेंसी को स्टेक करने पर मिलने वाली वार्षिक पुरस्कार दर है।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk mempertaruhkan mata uang kripto Anda."
+            "value": "Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk staking mata uang kripto Anda."
           }
         },
         "it": {
@@ -45376,7 +45376,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kadar Peratusan Tahunan (APR) ialah kadar ganjaran tahunan untuk mempertaruhkan mata wang kripto anda."
+            "value": "Kadar Peratusan Tahunan (APR) ialah kadar ganjaran tahunan untuk staking mata wang kripto anda."
           }
         },
         "nl": {
@@ -45442,7 +45442,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tỷ lệ phần trăm hàng năm (APR) là tỷ lệ phần thưởng hàng năm cho việc đặt cược tiền điện tử của bạn."
+            "value": "Tỷ lệ phần trăm hàng năm (APR) là tỷ lệ phần thưởng hàng năm cho việc đặt cọc tiền điện tử của bạn."
           }
         },
         "zh-Hans": {
@@ -45465,7 +45465,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يبقى مبلغ صغير في محفظتك لتغطية الرسوم الخاصة بالعمليات مثل إلغاء المراهنة أو المطالبة بالمكافآت."
+            "value": "يبقى مبلغ صغير في محفظتك لتغطية رسوم عمليات مثل إلغاء التخزين أو المطالبة بالمكافآت."
           }
         },
         "bn": {
@@ -45477,7 +45477,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Malá částka vám zůstane v peněžence na pokrytí poplatků za operace, jako je odstraňování sázek nebo nárokování odměn."
+            "value": "Malá částka vám zůstane v peněžence na pokrytí poplatků za operace, jako je zrušení stakingu nebo nárokování odměn."
           }
         },
         "da": {
@@ -45567,7 +45567,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sejumlah kecil kekal dalam dompet anda untuk menampung yuran untuk operasi seperti menanggalkan atau menuntut ganjaran."
+            "value": "Sejumlah kecil kekal dalam dompet anda untuk menampung yuran bagi operasi seperti menghentikan staking atau menuntut ganjaran."
           }
         },
         "nl": {
@@ -45579,7 +45579,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Niewielka kwota pozostaje w Twoim portfelu i służy pokryciu opłat za operacje, takie jak anulowanie transakcji lub odbieranie nagród."
+            "value": "Niewielka kwota pozostaje w Twoim portfelu i służy pokryciu opłat za operacje, takie jak wycofanie stakingu lub odbieranie nagród."
           }
         },
         "pt-BR": {
@@ -45603,7 +45603,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kiasi kidogo husalia kwenye mkoba wako ili kulipia ada za shughuli kama vile kutoweka au kudai zawadi."
+            "value": "Kiasi kidogo husalia kwenye mkoba wako ili kulipia ada za shughuli kama vile kuondoa hisa au kudai zawadi."
           }
         },
         "th": {
@@ -45859,7 +45859,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vsázení na TRONu má dva kroky. Nejprve zmrazte TRX, poté jej vsaďte a získejte odměny."
+            "value": "Staking na TRONu má dva kroky. Nejprve zmrazte TRX, poté jej stakujte a získejte odměny."
           }
         },
         "da": {
@@ -45919,7 +45919,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "TRON पर स्टेकिंग दो चरणों में होती है। पहले TRX जमाएं, फिर इनाम पाने के लिए उसे स्टेक करें।"
+            "value": "TRON पर स्टेकिंग दो चरणों में होती है। पहले TRX फ़्रीज़ करें, फिर इनाम पाने के लिए उसे स्टेक करें।"
           }
         },
         "id": {
@@ -45949,7 +45949,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pertaruhan di TRON melibatkan dua langkah. Bekukan TRX dahulu, kemudian pertaruhkannya untuk memperoleh ganjaran."
+            "value": "Staking di TRON melibatkan dua langkah. Bekukan TRX dahulu, kemudian lakukan staking untuk memperoleh ganjaran."
           }
         },
         "nl": {
@@ -45961,7 +45961,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Staking na TRON składa się z dwóch kroków. Najpierw zamroź TRX, a następnie postaw je, aby zdobyć nagrody."
+            "value": "Staking na TRON składa się z dwóch kroków. Najpierw zamroź TRX, a następnie stakuj je, aby zdobywać nagrody."
           }
         },
         "pt-BR": {
@@ -45973,7 +45973,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mizarea pe TRON are doi pași. Mai întâi îngheață TRX, apoi mizează-l pentru a câștiga recompense."
+            "value": "Stakingul pe TRON are doi pași. Mai întâi îngheață TRX, apoi pune-l în staking pentru a câștiga recompense."
           }
         },
         "ru": {
@@ -45985,7 +45985,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kuweka hisa kwenye TRON huhusisha hatua mbili. Kwanza ganda TRX, kisha uziweke hisa ili kupata zawadi."
+            "value": "Kuweka hisa kwenye TRON huhusisha hatua mbili. Kwanza gandisha TRX, kisha uziweke hisa ili kupata zawadi."
           }
         },
         "th": {
@@ -46050,7 +46050,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zmrazte TRX pro vsazení"
+            "value": "Zmrazte TRX pro staking"
           }
         },
         "da": {
@@ -46110,7 +46110,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "स्टेक करने के लिए TRX जमाएं"
+            "value": "स्टेक करने के लिए TRX फ़्रीज़ करें"
           }
         },
         "id": {
@@ -46140,7 +46140,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bekukan TRX untuk pertaruhan"
+            "value": "Bekukan TRX untuk staking"
           }
         },
         "nl": {
@@ -46152,7 +46152,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zamroź TRX, aby postawić stawkę"
+            "value": "Zamroź TRX, aby stakować"
           }
         },
         "pt-BR": {
@@ -46164,7 +46164,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Îngheață TRX pentru a miza"
+            "value": "Îngheață TRX pentru staking"
           }
         },
         "ru": {
@@ -46176,7 +46176,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ganda TRX ili kuweka hisa"
+            "value": "Gandisha TRX ili kuweka hisa"
           }
         },
         "th": {
@@ -46647,7 +46647,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La transacción no se pudo completar debido a un error, como fondos insuficientes, una entrada no válida o un rechazo de la red. Revise los detalles y vuelva a intentarlo."
+            "value": "La transacción no se pudo completar debido a un error, como fondos insuficientes, una entrada no válida o un rechazo de la red. Revisa los detalles y vuelve a intentarlo."
           }
         },
         "fa": {
@@ -46838,7 +46838,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La transacción se ha enviado y está pendiente de confirmación en la red. El tiempo de procesamiento puede variar. Por favor, vuelva a consultar para obtener actualizaciones."
+            "value": "La transacción se ha enviado y está pendiente de confirmación en la red. El tiempo de procesamiento puede variar. Vuelve a consultar más tarde para ver actualizaciones."
           }
         },
         "fa": {
@@ -47190,7 +47190,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "একটি মানিব্যাগ যা আপনার অ্যাক্সেস নেই, তবে আপনি এটির লেনদেন এবং গতিবিধি দেখতে পারেন।"
+            "value": "এমন একটি ওয়ালেট যাতে আপনার অ্যাক্সেস নেই, তবে আপনি এর লেনদেন ও গতিবিধি দেখতে পারেন।"
           }
         },
         "cs": {
@@ -47495,7 +47495,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Assistir carteira"
+            "value": "Carteira de observação"
           }
         },
         "ro": {
@@ -47507,7 +47507,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Смотреть кошелек"
+            "value": "Кошелек для наблюдения"
           }
         },
         "sw": {
@@ -47525,13 +47525,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cüzdanı İzle"
+            "value": "İzleme Cüzdanı"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Watch Wallet"
+            "value": "Гаманець для спостереження"
           }
         },
         "ur": {
@@ -47602,7 +47602,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Por favor ingrese la cantidad a %@"
+            "value": "Introduce la cantidad a %@"
           }
         },
         "fa": {
@@ -47919,7 +47919,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "فوٹو لائبریری سے منتخب کریں۔"
+            "value": "فوٹو لائبریری سے منتخب کریں"
           }
         },
         "vi": {
@@ -48366,7 +48366,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Proteger el acceso a esta aplicación en su dispositivo"
+            "value": "Protege el acceso a esta aplicación en tu dispositivo"
           }
         },
         "fa": {
@@ -48587,7 +48587,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "מִיָד"
+            "value": "מיד"
           }
         },
         "hi": {
@@ -48772,7 +48772,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "awa 1"
+            "value": "Awa 1"
           }
         },
         "he": {
@@ -49136,7 +49136,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "رمزعبور"
+            "value": "رمز عبور"
           }
         },
         "fil": {
@@ -49148,7 +49148,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mot de passe"
+            "value": "Code"
           }
         },
         "ha": {
@@ -49190,7 +49190,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "비밀번호"
+            "value": "암호"
           }
         },
         "ms": {
@@ -49303,7 +49303,7 @@
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine wallets er i sikkerhed."
+            "value": "Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine tegnebøger er i sikkerhed."
           }
         },
         "de": {
@@ -49321,7 +49321,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem está bloqueado con el código de su dispositivo. Active un código en los ajustes del dispositivo para abrir Gem. Sus billeteras están a salvo."
+            "value": "Gem está bloqueado con el código de tu dispositivo. Activa un código en los ajustes del dispositivo para abrir Gem. Tus billeteras están a salvo."
           }
         },
         "fa": {
@@ -49345,7 +49345,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "An kulle Gem da lambar sirrin na'urarka. Kunna lambar sirri a cikin saitunan na'urar don buɗe Gem. Walat ɗinka suna cikin aminci."
+            "value": "An kulle Gem da lambar wucewar na'urarka. Kunna lambar wucewa a cikin saitunan na'urar don buɗe Gem. Walat ɗinka suna cikin aminci."
           }
         },
         "he": {
@@ -49369,7 +49369,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi wallet sono al sicuro."
+            "value": "Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi portafogli sono al sicuro."
           }
         },
         "ja": {
@@ -49393,7 +49393,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem is vergrendeld met de toegangscode van je apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Je portemonnees zijn veilig."
+            "value": "Gem is vergrendeld met de toegangscode van uw apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Uw portemonnees zijn veilig."
           }
         },
         "pl": {
@@ -49476,7 +49476,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "رمز مرور الجهاز متوقف"
+            "value": "رمز مرور الجهاز غير مفعّل"
           }
         },
         "bn": {
@@ -49536,7 +49536,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "An kashe lambar sirrin na'ura"
+            "value": "An kashe lambar wucewar na'ura"
           }
         },
         "he": {
@@ -49829,7 +49829,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تصدیق کی ضرورت ہے۔"
+            "value": "تصدیق کی ضرورت ہے"
           }
         },
         "vi": {
@@ -49918,7 +49918,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "6 hours"
+            "value": "Awa 6"
           }
         },
         "he": {
@@ -49996,7 +49996,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "6 masaa"
+            "value": "Saa 6"
           }
         },
         "th": {
@@ -50211,7 +50211,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "غیر مقفل کریں۔"
+            "value": "غیر مقفل کریں"
           }
         },
         "vi": {
@@ -51261,7 +51261,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "זְכוּת יְוֹצרִים"
+            "value": "זכויות יוצרים"
           }
         },
         "hi": {
@@ -51643,7 +51643,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "זְדוֹנִי"
+            "value": "זדוני"
           }
         },
         "hi": {
@@ -52228,7 +52228,7 @@
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Laporan"
+            "value": "Laporkan"
           }
         },
         "it": {
@@ -52252,7 +52252,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Laporan"
+            "value": "Laporkan"
           }
         },
         "nl": {
@@ -52503,7 +52503,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تصاویر میں محفوظ کریں۔"
+            "value": "تصاویر میں محفوظ کریں"
           }
         },
         "vi": {
@@ -52694,7 +52694,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اوتار کے طور پر سیٹ کریں۔"
+            "value": "اوتار کے طور پر سیٹ کریں"
           }
         },
         "vi": {
@@ -52885,7 +52885,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اپنا پہلا NFT وصول کریں۔"
+            "value": "اپنا پہلا NFT وصول کریں"
           }
         },
         "vi": {
@@ -52980,7 +52980,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "ה-NFT שלך יופיע כאן"
+            "value": "פריטי ה-NFT שלך יופיעו כאן"
           }
         },
         "hi": {
@@ -53076,7 +53076,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "آپ کے NFTs یہاں ظاہر ہوں گے۔"
+            "value": "آپ کے NFTs یہاں ظاہر ہوں گے"
           }
         },
         "vi": {
@@ -53141,7 +53141,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem Wallet Node"
+            "value": "Nodo de Gem Wallet"
           }
         },
         "fa": {
@@ -54222,7 +54222,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "نوڈ شامل کریں۔"
+            "value": "نوڈ شامل کریں"
           }
         },
         "vi": {
@@ -54287,7 +54287,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los nodos personalizados pueden ser maliciosos y pueden exponer sus datos de transacciones o proporcionar información falsa."
+            "value": "Los nodos personalizados pueden ser maliciosos y pueden exponer tus datos de transacciones o proporcionar información falsa."
           }
         },
         "fa": {
@@ -54986,7 +54986,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ابھی تک کوئی اطلاع نہیں ہے۔"
+            "value": "ابھی تک کوئی اطلاع نہیں ہے"
           }
         },
         "vi": {
@@ -55815,7 +55815,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lea y acepte los siguientes términos antes de continuar."
+            "value": "Lee y acepta los siguientes términos antes de continuar."
           }
         },
         "fa": {
@@ -56132,7 +56132,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "شرائط قبول کریں۔"
+            "value": "شرائط قبول کریں"
           }
         },
         "vi": {
@@ -56209,7 +56209,7 @@
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ang sinumang makakakuha ng iyong sikretong parirala ay maaaring ganap na makontrol ang iyong pitaka."
+            "value": "Ang sinumang makakakuha ng iyong lihim na parirala ay maaaring ganap na makontrol ang iyong wallet."
           }
         },
         "fr": {
@@ -56257,7 +56257,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "누구든지 귀하의 비밀번호 문구를 알아내면 귀하의 지갑을 완전히 장악할 수 있습니다."
+            "value": "누구든지 비밀 문구를 알아내면 지갑을 완전히 장악할 수 있습니다."
           }
         },
         "ms": {
@@ -56311,7 +56311,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gizli cümlenizi ele geçiren herkes cüzdanınızın tüm kontrolünü ele geçirebilir."
+            "value": "Gizli İfadenizi ele geçiren herkes cüzdanınızın tüm kontrolünü ele geçirebilir."
           }
         },
         "uk": {
@@ -56388,7 +56388,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No lo compartas con nadie"
+            "value": "No la compartas con nadie"
           }
         },
         "fa": {
@@ -56508,13 +56508,13 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нікому не діліться"
+            "value": "Ні з ким нею не діліться"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اسے کسی کے ساتھ شیئر نہ کریں۔"
+            "value": "اسے کسی کے ساتھ شیئر نہ کریں"
           }
         },
         "vi": {
@@ -56549,7 +56549,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "তুমি একটি গোপন বাক্যাংশ পাবে — এটি তোমার ওয়ালেট অ্যাক্সেস করার একমাত্র উপায়।"
+            "value": "আপনি একটি গোপন বাক্যাংশ পাবেন — এটিই আপনার ওয়ালেট অ্যাক্সেস করার একমাত্র উপায়।"
           }
         },
         "cs": {
@@ -56591,7 +56591,7 @@
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Makakakuha ka ng Secret Phrase — ito lang ang paraan para ma-access ang iyong wallet."
+            "value": "Makakakuha ka ng Lihim na Parirala — ito lang ang paraan para ma-access ang iyong wallet."
           }
         },
         "fr": {
@@ -56764,7 +56764,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The secret phrase is only way to access your wallet."
+            "value": "The secret phrase is the only way to access your wallet."
           }
         },
         "es": {
@@ -56782,7 +56782,7 @@
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ang lihim na parirala ay tanging paraan upang ma-access ang iyong pitaka."
+            "value": "Ang lihim na parirala ang tanging paraan upang ma-access ang iyong wallet."
           }
         },
         "fr": {
@@ -56961,7 +56961,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guárdalo en un lugar seguro"
+            "value": "Guárdala en un lugar seguro"
           }
         },
         "fa": {
@@ -57152,7 +57152,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Si pierde su frase secreta, perderá el acceso a su billetera."
+            "value": "Si pierdes tu frase secreta, perderás el acceso a tu billetera."
           }
         },
         "fa": {
@@ -57164,7 +57164,7 @@
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kung mawala mo ang iyong sikretong parirala, mawawalan ka ng access sa iyong wallet."
+            "value": "Kung mawala mo ang iyong lihim na parirala, mawawalan ka ng access sa iyong wallet."
           }
         },
         "fr": {
@@ -57212,7 +57212,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "비밀번호 문구를 잃어버리면 지갑에 접근할 수 없게 됩니다."
+            "value": "비밀 문구를 잃어버리면 지갑에 접근할 수 없게 됩니다."
           }
         },
         "ms": {
@@ -57260,13 +57260,13 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "หากคุณสูญเสียรหัสลับ คุณจะสูญเสียการเข้าถึงกระเป๋าเงินของคุณ"
+            "value": "หากคุณทำวลีลับหาย คุณจะสูญเสียการเข้าถึงกระเป๋าเงินของคุณ"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gizli cümlenizi kaybederseniz cüzdanınıza erişiminizi kaybedersiniz."
+            "value": "Gizli İfadenizi kaybederseniz cüzdanınıza erişiminizi kaybedersiniz."
           }
         },
         "uk": {
@@ -57343,7 +57343,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No podemos ayudarle a recuperarlo"
+            "value": "No podemos ayudarte a recuperarla"
           }
         },
         "fa": {
@@ -57427,7 +57427,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não podemos ajudar você a recuperá-lo"
+            "value": "Não podemos ajudar você a recuperá-la"
           }
         },
         "ro": {
@@ -57439,7 +57439,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Мы не можем помочь вам восстановить его."
+            "value": "Мы не можем помочь вам восстановить его"
           }
         },
         "sw": {
@@ -57564,7 +57564,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הגִישָׁה נִדחֲתָה"
+            "value": "הגישה נדחתה"
           }
         },
         "hi": {
@@ -57660,7 +57660,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "رسائی سے انکار کر دیا گیا۔"
+            "value": "رسائی سے انکار کر دیا گیا"
           }
         },
         "vi": {
@@ -57940,7 +57940,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amfani da Asusu"
+            "value": "Leverage na Asusu"
           }
         },
         "he": {
@@ -58024,7 +58024,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "การใช้ประโยชน์จากบัญชี"
+            "value": "เลเวอเรจของบัญชี"
           }
         },
         "tr": {
@@ -58048,7 +58048,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tận dụng tài khoản"
+            "value": "Đòn bẩy tài khoản"
           }
         },
         "zh-Hans": {
@@ -58167,7 +58167,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "역대 최고 PnL"
+            "value": "전체 기간 PnL"
           }
         },
         "ms": {
@@ -58585,7 +58585,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ожидаемые потери"
+            "value": "Ожидаемый убыток"
           }
         },
         "sw": {
@@ -58871,7 +58871,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Detener la pérdida"
+            "value": "Stop Loss"
           }
         },
         "fa": {
@@ -58997,7 +58997,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "نقصان کو روکیں۔"
+            "value": "اسٹاپ لاس"
           }
         },
         "vi": {
@@ -59062,7 +59062,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tomar ganancias"
+            "value": "Take Profit"
           }
         },
         "fa": {
@@ -59194,7 +59194,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kiếm lợi nhuận"
+            "value": "Chốt lời"
           }
         },
         "zh-Hans": {
@@ -59367,7 +59367,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ yi kapatın"
+            "value": "%@ Pozisyonu Kapat"
           }
         },
         "uk": {
@@ -59468,13 +59468,13 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Matsayin kusa"
+            "value": "Rufe matsayi"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "סגירת מיקום"
+            "value": "סגירת פוזיציה"
           }
         },
         "hi": {
@@ -59504,7 +59504,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "닫기 위치"
+            "value": "포지션 종료"
           }
         },
         "ms": {
@@ -59552,7 +59552,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ตำแหน่งปิด"
+            "value": "ปิดตำแหน่ง"
           }
         },
         "tr": {
@@ -59570,7 +59570,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "پوزیشن بند کریں۔"
+            "value": "پوزیشن بند کریں"
           }
         },
         "vi": {
@@ -59826,7 +59826,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Incremento %@"
+            "value": "Aumentar %@"
           }
         },
         "fa": {
@@ -59922,7 +59922,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Увеличение %@"
+            "value": "Увеличить %@"
           }
         },
         "sw": {
@@ -60047,7 +60047,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הגדלת מיקום"
+            "value": "הגדלת פוזיציה"
           }
         },
         "hi": {
@@ -60077,7 +60077,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "위치 증가"
+            "value": "포지션 확대"
           }
         },
         "ms": {
@@ -60143,7 +60143,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "پوزیشن میں اضافہ کریں۔"
+            "value": "پوزیشن میں اضافہ کریں"
           }
         },
         "vi": {
@@ -60232,7 +60232,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amfani"
+            "value": "Leverage"
           }
         },
         "he": {
@@ -60620,13 +60620,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "ארוך"
+            "value": "לונג"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लंबा"
+            "value": "लॉन्ग"
           }
         },
         "id": {
@@ -60638,7 +60638,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lungo"
+            "value": "Long"
           }
         },
         "ja": {
@@ -60698,7 +60698,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ยาว"
+            "value": "Long"
           }
         },
         "tr": {
@@ -60716,13 +60716,13 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "لمبی"
+            "value": "لانگ"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dài"
+            "value": "Long"
           }
         },
         "zh-Hans": {
@@ -60841,7 +60841,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "여유"
+            "value": "마진"
           }
         },
         "ms": {
@@ -60889,7 +60889,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ระยะขอบ"
+            "value": "มาร์จิน"
           }
         },
         "tr": {
@@ -60972,7 +60972,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cruz"
+            "value": "Cruzado"
           }
         },
         "fa": {
@@ -60984,7 +60984,7 @@
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Krus"
+            "value": "Cross"
           }
         },
         "fr": {
@@ -60996,7 +60996,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ketare"
+            "value": "Cross"
           }
         },
         "he": {
@@ -61074,13 +61074,13 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Msalaba"
+            "value": "Cross"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ข้าม"
+            "value": "Cross"
           }
         },
         "tr": {
@@ -61223,7 +61223,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "절연"
+            "value": "격리"
           }
         },
         "ms": {
@@ -61271,7 +61271,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "โดดเดี่ยว"
+            "value": "Isolated"
           }
         },
         "tr": {
@@ -61295,7 +61295,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bị cô lập"
+            "value": "Cô lập"
           }
         },
         "zh-Hans": {
@@ -61378,7 +61378,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amfani da Gefen"
+            "value": "Amfani da Margin"
           }
         },
         "he": {
@@ -61700,7 +61700,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يُعدِّل"
+            "value": "تعديل"
           }
         },
         "bn": {
@@ -61826,7 +61826,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Modifica"
+            "value": "Modifică"
           }
         },
         "ru": {
@@ -61862,13 +61862,13 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ترمیم کریں۔"
+            "value": "ترمیم کریں"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Biến đổi"
+            "value": "Sửa đổi"
           }
         },
         "zh-Hans": {
@@ -61957,7 +61957,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "שינוי מיקום"
+            "value": "שינוי פוזיציה"
           }
         },
         "hi": {
@@ -61987,7 +61987,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "위치 수정"
+            "value": "포지션 수정"
           }
         },
         "ms": {
@@ -62053,7 +62053,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "پوزیشن میں ترمیم کریں۔"
+            "value": "پوزیشن میں ترمیم کریں"
           }
         },
         "vi": {
@@ -62208,7 +62208,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deschis %@"
+            "value": "Deschide %@"
           }
         },
         "ru": {
@@ -62232,7 +62232,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ yi aç"
+            "value": "%@ Pozisyon Aç"
           }
         },
         "uk": {
@@ -62560,7 +62560,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "위치"
+            "value": "포지션"
           }
         },
         "ms": {
@@ -62751,7 +62751,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "위치"
+            "value": "포지션"
           }
         },
         "ms": {
@@ -62793,7 +62793,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vyeo"
+            "value": "Nafasi"
           }
         },
         "th": {
@@ -63103,7 +63103,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הקטן את המיקום"
+            "value": "הקטנת פוזיציה"
           }
         },
         "hi": {
@@ -63133,7 +63133,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "위치 줄이기"
+            "value": "포지션 축소"
           }
         },
         "ms": {
@@ -63199,7 +63199,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "پوزیشن کو کم کریں۔"
+            "value": "پوزیشن کو کم کریں"
           }
         },
         "vi": {
@@ -63252,7 +63252,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kurz"
+            "value": "Short"
           }
         },
         "en": {
@@ -63294,13 +63294,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "קצר"
+            "value": "שורט"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लघु"
+            "value": "शॉर्ट"
           }
         },
         "id": {
@@ -63312,7 +63312,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Breve"
+            "value": "Short"
           }
         },
         "ja": {
@@ -63372,7 +63372,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "สั้น"
+            "value": "Short"
           }
         },
         "tr": {
@@ -63384,19 +63384,19 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Короткий"
+            "value": "Шорт"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "مختصر"
+            "value": "شارٹ"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ngắn"
+            "value": "Short"
           }
         },
         "zh-Hans": {
@@ -63419,7 +63419,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "مقاس"
+            "value": "الحجم"
           }
         },
         "bn": {
@@ -63485,7 +63485,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "גוֹדֶל"
+            "value": "גודל"
           }
         },
         "hi": {
@@ -64249,7 +64249,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "עֵרֶך"
+            "value": "ערך"
           }
         },
         "hi": {
@@ -64374,7 +64374,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "مقدار"
+            "value": "حجم التداول"
           }
         },
         "bn": {
@@ -64446,7 +64446,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आयतन"
+            "value": "वॉल्यूम"
           }
         },
         "id": {
@@ -64959,7 +64959,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Věčné"
+            "value": "Perpetuals"
           }
         },
         "da": {
@@ -64989,7 +64989,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "دائمی‌ها"
+            "value": "Perpetuals"
           }
         },
         "fil": {
@@ -65013,7 +65013,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "נצחיים"
+            "value": "Perpetuals"
           }
         },
         "hi": {
@@ -65049,7 +65049,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kekal"
+            "value": "Perpetuals"
           }
         },
         "nl": {
@@ -65061,7 +65061,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wieczyste"
+            "value": "Perpetuals"
           }
         },
         "pt-BR": {
@@ -65079,7 +65079,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Перпетуалы"
+            "value": "Перпы"
           }
         },
         "sw": {
@@ -65091,13 +65091,13 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "นิรันดร์"
+            "value": "Perpetuals"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sürekliler"
+            "value": "Perpetuals"
           }
         },
         "uk": {
@@ -65109,7 +65109,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "دائمی"
+            "value": "Perpetuals"
           }
         },
         "vi": {
@@ -65150,7 +65150,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obchodovat věčné"
+            "value": "Obchodovat Perpetuals"
           }
         },
         "da": {
@@ -65180,7 +65180,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "معامله دائمی‌ها"
+            "value": "معامله Perpetuals"
           }
         },
         "fil": {
@@ -65198,13 +65198,13 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ciniki Perpetuals"
+            "value": "Yi cinikin Perpetuals"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "מסחר בנצחיים"
+            "value": "מסחר ב-Perpetuals"
           }
         },
         "hi": {
@@ -65240,7 +65240,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dagangkan Kekal"
+            "value": "Dagang Perpetuals"
           }
         },
         "nl": {
@@ -65252,7 +65252,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Handluj wieczystymi"
+            "value": "Handluj Perpetuals"
           }
         },
         "pt-BR": {
@@ -65270,7 +65270,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Торговать перпетуалами"
+            "value": "Торговать перпами"
           }
         },
         "sw": {
@@ -65282,13 +65282,13 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "เทรดนิรันดร์"
+            "value": "ซื้อขาย Perpetuals"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Süreklileri al-sat"
+            "value": "Perpetuals al-sat"
           }
         },
         "uk": {
@@ -65300,7 +65300,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "دائمی ٹریڈ کریں"
+            "value": "Perpetuals ٹریڈ کریں"
           }
         },
         "vi": {
@@ -66446,7 +66446,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "سے کم ہوتا ہے۔"
+            "value": "سے کم ہوتا ہے"
           }
         },
         "vi": {
@@ -66637,7 +66637,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "سے بڑھتا ہے۔"
+            "value": "سے بڑھتا ہے"
           }
         },
         "vi": {
@@ -66690,7 +66690,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vorbei"
+            "value": "Über"
           }
         },
         "en": {
@@ -66702,7 +66702,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Más"
+            "value": "Sobre"
           }
         },
         "fa": {
@@ -67974,7 +67974,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "جب قیمت کم ہوتی ہے۔"
+            "value": "جب قیمت کم ہوتی ہے"
           }
         },
         "vi": {
@@ -68165,7 +68165,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "جب قیمت بڑھ جاتی ہے۔"
+            "value": "جب قیمت بڑھ جاتی ہے"
           }
         },
         "vi": {
@@ -68212,7 +68212,7 @@
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Når prisen er overstået"
+            "value": "Når prisen er over"
           }
         },
         "de": {
@@ -68356,7 +68356,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "جب قیمت ختم ہو جائے۔"
+            "value": "جب قیمت اس سے اوپر ہو"
           }
         },
         "vi": {
@@ -68547,7 +68547,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "جب قیمت کم ہو۔"
+            "value": "جب قیمت اس سے نیچے ہو"
           }
         },
         "vi": {
@@ -68738,7 +68738,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ہدف کی قیمت مقرر کریں۔"
+            "value": "ہدف کی قیمت مقرر کریں"
           }
         },
         "vi": {
@@ -68929,7 +68929,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "قیمت کا الرٹ سیٹ کریں۔"
+            "value": "قیمت کا الرٹ سیٹ کریں"
           }
         },
         "vi": {
@@ -68994,7 +68994,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Habilítelos agregando monedas para realizar un seguimiento"
+            "value": "Habilítalas agregando monedas para seguirlas"
           }
         },
         "fa": {
@@ -69173,7 +69173,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihre Benachrichtigungen werden hier angezeigt"
+            "value": "Ihre Preisalarme werden hier angezeigt"
           }
         },
         "en": {
@@ -69209,7 +69209,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Faɗin farashin ku zai bayyana anan"
+            "value": "Faɗakarwar farashinku za ta bayyana a nan"
           }
         },
         "he": {
@@ -69257,7 +69257,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw meldingen verschijnen hier"
+            "value": "Uw prijswaarschuwingen verschijnen hier"
           }
         },
         "pl": {
@@ -70737,7 +70737,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Idan ka rasa keɓaɓɓen maɓallinka, ka rasa damar shiga walat ɗinka."
+            "value": "Idan kun rasa keɓaɓɓen maɓallinku, za ku rasa damar shiga walat ɗinku."
           }
         },
         "he": {
@@ -71119,7 +71119,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Za a iya samun damar ɗaukar hotuna zuwa wasu ƙa'idodi, za su iya sanya keɓaɓɓen maɓallin ku cikin haɗari idan an ajiye su ta wannan hanyar."
+            "value": "Hotunan allo na iya kasancewa a bayyane ga wasu app, kuma za su iya sanya keɓaɓɓen maɓallin ku cikin haɗari idan an ajiye shi ta wannan hanyar."
           }
         },
         "he": {
@@ -71316,7 +71316,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "זוהי הכתובת שלך - שליחה בלבד %@ על ה- %@ רֶשֶׁת."
+            "value": "זוהי הכתובת שלך — יש לשלוח אליה רק %@ ברשת %@."
           }
         },
         "hi": {
@@ -71382,7 +71382,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Это ваш адрес — отправляйте только %@ на %@ сеть."
+            "value": "Это ваш адрес — отправляйте только %@ в сети %@."
           }
         },
         "sw": {
@@ -71477,7 +71477,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los recursos que has usado recientemente aparecerán aquí"
+            "value": "Los activos que has usado recientemente aparecerán aquí"
           }
         },
         "fa": {
@@ -71794,7 +71794,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "آپ کی حالیہ چیزیں یہاں ظاہر ہوں گی۔"
+            "value": "آپ کی حالیہ چیزیں یہاں ظاہر ہوں گی"
           }
         },
         "vi": {
@@ -72074,7 +72074,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kuna da lambar turawa daga aboki?"
+            "value": "Kuna da lambar gayyata daga aboki?"
           }
         },
         "he": {
@@ -72367,7 +72367,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کوڈ بھنائیں۔"
+            "value": "کوڈ بھنائیں"
           }
         },
         "vi": {
@@ -72396,19 +72396,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يحصل %@ ل %@!"
+            "value": "احصل على %@ مقابل %@!"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "পান %@ জন্য %@!"
+            "value": "%2$@ দিয়ে %1$@ পান!"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Získat %@ pro %@!"
+            "value": "Získat %@ za %@!"
           }
         },
         "da": {
@@ -72420,7 +72420,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erhalten %@ für %@!"
+            "value": "%@ für %@ erhalten!"
           }
         },
         "en": {
@@ -72432,13 +72432,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conseguir %@ para %@!"
+            "value": "¡Conseguir %@ por %@!"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "دریافت %@ برای %@!"
+            "value": "دریافت %@ در ازای %@!"
           }
         },
         "fil": {
@@ -72462,13 +72462,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְקַבֵּל %@ עֲבוּר %@!"
+            "value": "קבל %@ תמורת %@!"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "पाना %@ के लिए %@!"
+            "value": "%2$@ के बदले %1$@ पाएं!"
           }
         },
         "id": {
@@ -72492,7 +72492,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "얻다 %@ ~을 위한 %@!"
+            "value": "%2$@에 %1$@ 받기!"
           }
         },
         "ms": {
@@ -72516,7 +72516,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pegar %@ para %@!"
+            "value": "Obter %@ por %@!"
           }
         },
         "ro": {
@@ -72540,31 +72540,31 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "รับ %@ สำหรับ %@-"
+            "value": "รับ %@ ด้วย %@!"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Elde etmek %@ için %@!"
+            "value": "%2$@ karşılığında %1$@ alın!"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Отримати %@ для %@!"
+            "value": "Отримати %@ за %@!"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "حاصل کریں۔ %@ کے لیے %@!"
+            "value": "%2$@ کے بدلے %1$@ حاصل کریں!"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lấy %@ vì %@!"
+            "value": "Đổi %2$@ lấy %1$@!"
           }
         },
         "zh-Hans": {
@@ -73131,7 +73131,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "پوائنٹس حاصل کریں۔"
+            "value": "پوائنٹس حاصل کریں"
           }
         },
         "vi": {
@@ -73196,7 +73196,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obtenga recompensas"
+            "value": "Obtén recompensas"
           }
         },
         "fa": {
@@ -73322,7 +73322,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "انعامات حاصل کریں۔"
+            "value": "انعامات حاصل کریں"
           }
         },
         "vi": {
@@ -73447,7 +73447,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "점수가 부족합니다"
+            "value": "포인트가 부족합니다"
           }
         },
         "ms": {
@@ -73542,13 +73542,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يكسب %@ نقاط لكل صديق ينضم."
+            "value": "اكسب %@ من النقاط عن كل صديق ينضم."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আয় করুন %@ যোগদানকারী প্রতিটি বন্ধুর জন্য পয়েন্ট।"
+            "value": "যোগদানকারী প্রতিটি বন্ধুর জন্য %@ পয়েন্ট অর্জন করুন।"
           }
         },
         "cs": {
@@ -73566,7 +73566,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verdienen %@ Punkte für jeden geworbenen Freund."
+            "value": "Sammeln Sie %@ Punkte für jeden geworbenen Freund."
           }
         },
         "en": {
@@ -73578,13 +73578,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ganar %@ puntos por cada amigo que se una."
+            "value": "Gana %@ puntos por cada amigo que se una."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "کسب درآمد %@ امتیاز برای هر دوستی که عضو می‌شود."
+            "value": "برای هر دوستی که عضو می‌شود %@ امتیاز کسب کنید."
           }
         },
         "fil": {
@@ -73596,7 +73596,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gagner %@ Des points pour chaque ami qui s'inscrit."
+            "value": "Gagnez %@ points pour chaque ami qui s'inscrit."
           }
         },
         "ha": {
@@ -73608,13 +73608,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לִזכּוֹת %@ נקודות לכל חבר שמצטרף."
+            "value": "צברו %@ נקודות על כל חבר שמצטרף."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "कमाना %@ जितने दोस्त जुड़ेंगे, उतने ही पॉइंट्स मिलेंगे।"
+            "value": "जुड़ने वाले हर दोस्त के लिए %@ अंक कमाएं।"
           }
         },
         "id": {
@@ -73638,7 +73638,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "벌다 %@ 친구가 가입할 때마다 포인트를 획득합니다."
+            "value": "친구가 가입할 때마다 %@ 포인트를 받으세요."
           }
         },
         "ms": {
@@ -73662,7 +73662,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ganhar %@ Pontos para cada amigo que se inscrever."
+            "value": "Ganhe %@ pontos por cada amigo que se inscrever."
           }
         },
         "ro": {
@@ -73674,7 +73674,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Зарабатывай %@ баллов за каждого друга, который присоединится."
+            "value": "Зарабатывайте %@ баллов за каждого друга, который присоединится."
           }
         },
         "sw": {
@@ -73686,13 +73686,13 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ได้รับ %@ รับคะแนนสะสมสำหรับเพื่อนแต่ละคนที่เข้าร่วม"
+            "value": "รับ %@ คะแนนสำหรับเพื่อนแต่ละคนที่เข้าร่วม"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Para kazanmak %@ Katılan her arkadaş için puan kazanacaksınız."
+            "value": "Katılan her arkadaşınız için %@ puan kazanın."
           }
         },
         "uk": {
@@ -73704,7 +73704,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کمائیں %@ شامل ہونے والے ہر دوست کے لیے پوائنٹس۔"
+            "value": "شامل ہونے والے ہر دوست پر %@ پوائنٹس حاصل کریں۔"
           }
         },
         "vi": {
@@ -73895,7 +73895,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "دوستوں کو مدعو کریں۔"
+            "value": "دوستوں کو مدعو کریں"
           }
         },
         "vi": {
@@ -74175,7 +74175,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lambar da na bayar ta hanyar sadarwa"
+            "value": "Lambar gayyatata"
           }
         },
         "he": {
@@ -74509,13 +74509,13 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "K dispozici v %@"
+            "value": "K dispozici za %@"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tilgængelig i %@"
+            "value": "Tilgængelig om %@"
           }
         },
         "de": {
@@ -74569,7 +74569,7 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "उपलब्ध है %@"
+            "value": "%@ में उपलब्ध"
           }
         },
         "id": {
@@ -74611,7 +74611,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dostępne w %@"
+            "value": "Dostępne za %@"
           }
         },
         "pt-BR": {
@@ -74629,7 +74629,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Доступно в %@"
+            "value": "Доступно через %@"
           }
         },
         "sw": {
@@ -74641,25 +74641,25 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "มีจำหน่ายใน %@"
+            "value": "ใช้ได้ใน %@"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mevcuttur %@"
+            "value": "%@ içinde kullanılabilir"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Доступно в %@"
+            "value": "Доступно через %@"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "میں دستیاب ہے۔ %@"
+            "value": "%@ میں دستیاب"
           }
         },
         "vi": {
@@ -75226,7 +75226,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Очки"
+            "value": "Бали"
           }
         },
         "ur": {
@@ -75321,7 +75321,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lambar Shawara"
+            "value": "Lambar Gayyata"
           }
         },
         "he": {
@@ -75405,7 +75405,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "รหัสอ้างอิง"
+            "value": "รหัสแนะนำ"
           }
         },
         "tr": {
@@ -75596,7 +75596,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "การส่งต่อ"
+            "value": "การแนะนำ"
           }
         },
         "tr": {
@@ -75643,13 +75643,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ينضم Gem Wallet استخدم رابط الإحالة الخاص بي واحصل على مكافآت: %@"
+            "value": "انضم إلى Gem Wallet عبر رابط الإحالة الخاص بي واربح مكافآت: %@"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "যোগদান করুন Gem Wallet আমার রেফারেল লিঙ্ক দিয়ে পুরষ্কার জিতুন: %@"
+            "value": "আমার রেফারেল লিঙ্ক দিয়ে Gem Wallet-এ যোগ দিন এবং পুরস্কার অর্জন করুন: %@"
           }
         },
         "cs": {
@@ -75685,7 +75685,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "عضویت Gem Wallet با لینک معرفی من و کسب جوایز: %@"
+            "value": "با لینک معرفی من به Gem Wallet بپیوندید و پاداش کسب کنید: %@"
           }
         },
         "fil": {
@@ -75709,19 +75709,19 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְהִצְטַרֵף Gem Wallet בעזרת קישור ההפניה שלי וצברו פרסים: %@"
+            "value": "הצטרפו ל-Gem Wallet דרך קישור ההפניה שלי וצברו תגמולים: %@"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "जोड़ना Gem Wallet मेरे रेफरल लिंक का उपयोग करें और पुरस्कार अर्जित करें: %@"
+            "value": "मेरे रेफरल लिंक से Gem Wallet से जुड़ें और पुरस्कार कमाएं: %@"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bergabung Gem Wallet Gunakan tautan referensi saya dan dapatkan hadiah: %@"
+            "value": "Bergabunglah dengan Gem Wallet menggunakan tautan referensi saya dan dapatkan hadiah: %@"
           }
         },
         "it": {
@@ -75763,7 +75763,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Juntar Gem Wallet Use meu link de indicação e ganhe recompensas: %@"
+            "value": "Entre na Gem Wallet com meu link de indicação e ganhe recompensas: %@"
           }
         },
         "ro": {
@@ -75775,7 +75775,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Создайте Gem Wallet по моей реферальной ссылке и получите вознаграждение: %@"
+            "value": "Присоединяйтесь к Gem Wallet по моей реферальной ссылке и получайте награды: %@"
           }
         },
         "sw": {
@@ -75793,25 +75793,25 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katılmak Gem Wallet Benim referans linkimi kullanarak kayıt olun ve ödüller kazanın: %@"
+            "value": "Referans linkimle Gem Wallet'a katılın ve ödüller kazanın: %@"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Приєднатися Gem Wallet за моїм реферальним посиланням та отримуйте винагороди: %@"
+            "value": "Приєднуйтеся до Gem Wallet за моїм реферальним посиланням та отримуйте винагороди: %@"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "شمولیت Gem Wallet میرے ریفرل لنک کے ساتھ اور انعامات حاصل کریں: %@"
+            "value": "میرے ریفرل لنک کے ذریعے Gem Wallet میں شامل ہوں اور انعامات حاصل کریں: %@"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tham gia Gem Wallet Sử dụng liên kết giới thiệu của tôi và nhận phần thưởng: %@"
+            "value": "Tham gia Gem Wallet bằng liên kết giới thiệu của tôi và nhận phần thưởng: %@"
           }
         },
         "zh-Hans": {
@@ -76658,7 +76658,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ladabi bai yi aiki ba tukuna."
+            "value": "Lada bai fara aiki ba tukuna."
           }
         },
         "he": {
@@ -76867,7 +76867,7 @@
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nama belakang"
+            "value": "Nama pengguna"
           }
         },
         "it": {
@@ -76980,13 +76980,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يحصل %@"
+            "value": "احصل على %@"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "পান %@"
+            "value": "%@ পান"
           }
         },
         "cs": {
@@ -77004,7 +77004,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erhalten %@"
+            "value": "%@ erhalten"
           }
         },
         "en": {
@@ -77046,13 +77046,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְקַבֵּל %@"
+            "value": "קבל %@"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "पाना %@"
+            "value": "%@ पाएं"
           }
         },
         "id": {
@@ -77076,7 +77076,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "얻다 %@"
+            "value": "%@ 받기"
           }
         },
         "ms": {
@@ -77130,7 +77130,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Elde etmek %@"
+            "value": "%@ Alın"
           }
         },
         "uk": {
@@ -77142,7 +77142,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "حاصل کریں۔ %@"
+            "value": "%@ حاصل کریں"
           }
         },
         "vi": {
@@ -77237,7 +77237,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "דרכים להוציא כסף"
+            "value": "דרכים לממש נקודות"
           }
         },
         "hi": {
@@ -77267,7 +77267,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "돈을 쓰는 방법"
+            "value": "포인트 사용처"
           }
         },
         "ms": {
@@ -77398,7 +77398,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Su dispositivo parece tener jailbreak. Esto puede poner en riesgo su billetera y sus fondos."
+            "value": "Tu dispositivo parece tener jailbreak. Esto puede poner en riesgo tu billetera y tus fondos."
           }
         },
         "fa": {
@@ -77446,7 +77446,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Il tuo dispositivo sembra essere jailbroken. Questo può mettere a rischio il wallet e i fondi."
+            "value": "Il tuo dispositivo sembra essere jailbroken. Questo può mettere a rischio il tuo portafoglio e i tuoi fondi."
           }
         },
         "ja": {
@@ -77470,7 +77470,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uw apparaat lijkt gejailbreakt te zijn. Dit kan uw wallet en tegoeden in gevaar brengen."
+            "value": "Uw apparaat lijkt gejailbreakt te zijn. Dit kan uw portemonnee en tegoeden in gevaar brengen."
           }
         },
         "pl": {
@@ -77780,7 +77780,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verifique la ortografía o intente una nueva búsqueda."
+            "value": "Verifica la ortografía o intenta una nueva búsqueda."
           }
         },
         "fa": {
@@ -77971,7 +77971,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete esta prueba rápida para confirmar que ha guardado todo correctamente."
+            "value": "Completa esta prueba rápida para confirmar que has guardado todo correctamente."
           }
         },
         "fa": {
@@ -78258,7 +78258,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Контент, скрытый во время записи экрана"
+            "value": "Контент скрыт во время записи экрана"
           }
         },
         "sw": {
@@ -78323,7 +78323,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "কেউ যদি আপনার গোপন বাক্যাংশ থাকে তবে তারা আপনার মানিব্যাগের সম্পূর্ণ নিয়ন্ত্রণ থাকবে!"
+            "value": "কারো কাছে আপনার গোপন বাক্যাংশ থাকলে তারা আপনার ওয়ালেটের সম্পূর্ণ নিয়ন্ত্রণ পাবে!"
           }
         },
         "cs": {
@@ -78359,13 +78359,13 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "اگر کسی عبارات خصوصی کیف پول شمارا داشته باشد کنترل کامل در دارایی های شما خواهد داشت."
+            "value": "اگر کسی عبارت مخفی شما را داشته باشد، کنترل کامل کیف پول شما را خواهد داشت!"
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kung ang isang tao ay may iyong lihim na parirala magkakaroon sila ng ganap na kontrol sa iyong pitaka!"
+            "value": "Kung may hawak ng iyong lihim na parirala, magkakaroon sila ng ganap na kontrol sa iyong wallet!"
           }
         },
         "fr": {
@@ -78431,7 +78431,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jeśli ktoś zna Twoje tajne hasło, będzie miał pełną kontrolę nad Twoim portfelem!"
+            "value": "Jeśli ktoś zna Twoje tajne zdanie, będzie miał pełną kontrolę nad Twoim portfelem!"
           }
         },
         "pt-BR": {
@@ -78550,7 +78550,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "عبارات خصوصی خود را با کسی به اشتراک نگذارید."
+            "value": "عبارت مخفی خود را با کسی به اشتراک نگذارید!"
           }
         },
         "fil": {
@@ -78622,7 +78622,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nie udostępniaj swojego tajnego wyrażenia!"
+            "value": "Nie udostępniaj swojego tajnego zdania!"
           }
         },
         "pt-BR": {
@@ -78711,7 +78711,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uložte si tajnou frázi na bezpečné místo \n, které ovládáte pouze vy."
+            "value": "Uložte si tajnou frázi na bezpečné místo, \nkteré ovládáte pouze vy."
           }
         },
         "da": {
@@ -78735,7 +78735,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guarda tu Frase Secreta en un lugar seguro\n que solo tu controlas."
+            "value": "Guarda tu Frase Secreta en un lugar seguro \nque solo tú controlas."
           }
         },
         "fa": {
@@ -78813,7 +78813,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zapisz swoje tajne zdanie w bezpiecznym miejscu\n nad którymi tylko ty masz kontrolę."
+            "value": "Zapisz swoje tajne zdanie w bezpiecznym miejscu,\n nad którym tylko Ty masz kontrolę."
           }
         },
         "pt-BR": {
@@ -78831,7 +78831,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Сохраните свою секретную фразу в надежном месте. \nкоторое контролируете только вы."
+            "value": "Сохраните свою секретную фразу в надежном месте, \nкоторое контролируете только вы."
           }
         },
         "sw": {
@@ -78849,13 +78849,13 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gizli İfadenizi güvenli bir yere kaydedin\n bunu yalnızca sen kontrol edebilirsin."
+            "value": "Gizli İfadenizi yalnızca sizin kontrol ettiğiniz\n güvenli bir yere kaydedin."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Збережіть свою секретну фразу в надійному місці \nякі контролюєте тільки ви."
+            "value": "Збережіть свою секретну фразу в надійному місці, \nяке контролюєте тільки ви."
           }
         },
         "ur": {
@@ -78890,7 +78890,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، ولكنها قد تعرض عبارة المرور الخاصة بك للخطر إذا تم حفظها بهذه الطريقة."
+            "value": "قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، وقد تعرّض عبارتك السرية للخطر إذا تم حفظها بهذه الطريقة."
           }
         },
         "bn": {
@@ -78932,13 +78932,13 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند رمز عبور شما را در معرض خطر قرار دهند."
+            "value": "اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند عبارت مخفی شما را در معرض خطر قرار دهند."
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong sikretong parirala kung ise-save sa ganitong paraan."
+            "value": "Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong lihim na parirala kung ise-save sa ganitong paraan."
           }
         },
         "fr": {
@@ -78950,13 +78950,13 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Za a iya samun damar ɗaukar hotuna zuwa wasu ƙa'idodi, za su iya sanya kalmar sirrin ku cikin haɗari idan an ajiye su ta wannan hanyar."
+            "value": "Hotunan allo na iya kasancewa a bayyane ga wasu app, kuma za su iya sanya kalmar sirrin ku cikin haɗari idan an ajiye ta ta wannan hanyar."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את משפט הסוד שלך אם יישמרו בדרך זו."
+            "value": "צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את הביטוי הסודי שלך אם יישמרו בדרך זו."
           }
         },
         "hi": {
@@ -78986,7 +78986,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스크린샷은 다른 앱에서 접근할 수 있으며, 이런 방식으로 저장할 경우 비밀번호가 위험에 노출될 수 있습니다."
+            "value": "스크린샷은 다른 앱에서 접근할 수 있으며, 이런 방식으로 저장할 경우 비밀 문구가 위험에 노출될 수 있습니다."
           }
         },
         "ms": {
@@ -79034,7 +79034,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น แต่หากบันทึกในลักษณะนี้ อาจทำให้รหัสผ่านของคุณตกอยู่ในความเสี่ยง"
+            "value": "ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น หากบันทึกในลักษณะนี้ อาจทำให้วลีลับของคุณตกอยู่ในความเสี่ยง"
           }
         },
         "tr": {
@@ -79058,7 +79058,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ảnh chụp màn hình có thể được các ứng dụng khác truy cập, nhưng chúng có thể khiến cụm từ bí mật của bạn gặp rủi ro nếu được lưu theo cách này."
+            "value": "Ảnh chụp màn hình có thể được các ứng dụng khác truy cập và có thể khiến cụm từ bí mật của bạn gặp rủi ro nếu được lưu theo cách này."
           }
         },
         "zh-Hans": {
@@ -79141,7 +79141,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "An Gano Hoton Hoton"
+            "value": "An Gano Hoton Allo"
           }
         },
         "he": {
@@ -81344,7 +81344,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "پاس کوڈ کو فعال کریں۔"
+            "value": "پاس کوڈ کو فعال کریں"
           }
         },
         "vi": {
@@ -81726,7 +81726,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "بیلنس چھپائیں۔"
+            "value": "بیلنس چھپائیں"
           }
         },
         "vi": {
@@ -84304,7 +84304,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "תְמִיכָה"
+            "value": "תמיכה"
           }
         },
         "hi": {
@@ -85164,7 +85164,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ویب سائٹ ملاحظہ کریں۔"
+            "value": "ویب سائٹ ملاحظہ کریں"
           }
         },
         "vi": {
@@ -85623,7 +85623,7 @@
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Walang limitasyon %@"
+            "value": "Walang limitasyong %@"
           }
         },
         "fr": {
@@ -85635,13 +85635,13 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlimited %@"
+            "value": "%@ mara iyaka"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "בִּלתִי מוּגבָּל %@"
+            "value": "%@ ללא הגבלה"
           }
         },
         "hi": {
@@ -85653,7 +85653,7 @@
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tak terbatas %@"
+            "value": "%@ tanpa batas"
           }
         },
         "it": {
@@ -85677,7 +85677,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tidak terhad %@"
+            "value": "%@ tanpa had"
           }
         },
         "nl": {
@@ -85707,13 +85707,13 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Без ограничений %@"
+            "value": "%@ без ограничений"
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isiyo na kikomo %@"
+            "value": "%@ isiyo na kikomo"
           }
         },
         "th": {
@@ -85993,7 +85993,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esto le da al gastador acceso para usar este token hasta que revoque la aprobación o expire."
+            "value": "Esto permite a la dirección autorizada usar este token hasta que revoques la aprobación o expire."
           }
         },
         "fa": {
@@ -86035,7 +86035,7 @@
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ini memberi pihak yang mengeluarkan dana akses untuk menggunakan token ini hingga Anda mencabut persetujuan atau token tersebut kedaluwarsa."
+            "value": "Ini memberi pihak yang mengeluarkan dana akses untuk menggunakan token ini hingga Anda mencabut persetujuan atau persetujuan tersebut kedaluwarsa."
           }
         },
         "it": {
@@ -86059,7 +86059,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ini memberi pembeli akses untuk menggunakan token ini sehingga anda membatalkan kelulusan atau ia tamat tempoh."
+            "value": "Ini memberi akses kepada pembelanja untuk menggunakan token ini sehingga anda membatalkan kelulusan atau kelulusan itu tamat tempoh."
           }
         },
         "nl": {
@@ -86280,7 +86280,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Неограниченное количество одобрений токенов"
+            "value": "Неограниченное одобрение токена"
           }
         },
         "sw": {
@@ -88888,7 +88888,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אֲתַר אִינטֶרנֶט"
+            "value": "אתר אינטרנט"
           }
         },
         "hi": {
@@ -89049,7 +89049,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "X (formerly Twitter)"
+            "value": "X (antes Twitter)"
           }
         },
         "fa": {
@@ -89837,7 +89837,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Active In"
+            "value": "Zai fara aiki cikin"
           }
         },
         "he": {
@@ -90171,13 +90171,13 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dostupné v"
+            "value": "Dostupné za"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tilgængelig i"
+            "value": "Tilgængelig om"
           }
         },
         "de": {
@@ -90273,7 +90273,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dostępne w"
+            "value": "Dostępne za"
           }
         },
         "pt-BR": {
@@ -90303,7 +90303,7 @@
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "มีจำหน่ายใน"
+            "value": "ใช้ได้ใน"
           }
         },
         "tr": {
@@ -90321,7 +90321,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "میں دستیاب ہے۔"
+            "value": "میں دستیاب ہے"
           }
         },
         "vi": {
@@ -90512,7 +90512,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "واپسی کا انتظار ہے۔"
+            "value": "واپسی کا انتظار ہے"
           }
         },
         "vi": {
@@ -91341,7 +91341,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Monto minimo"
+            "value": "Monto mínimo"
           }
         },
         "fa": {
@@ -91753,7 +91753,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "מַשׁאָב"
+            "value": "משאב"
           }
         },
         "hi": {
@@ -92135,7 +92135,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אֵנֶרְגִיָה"
+            "value": "אנרגיה"
           }
         },
         "hi": {
@@ -92463,7 +92463,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vsaďte si první %@"
+            "value": "Stakujte svůj první %@"
           }
         },
         "da": {
@@ -92475,7 +92475,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Setzen Sie Ihre ersten %@ ein"
+            "value": "Staken Sie Ihre ersten %@"
           }
         },
         "en": {
@@ -92511,13 +92511,13 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bada %@ na farko"
+            "value": "Saka hannun jari da %@ ɗinku na farko"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "החזק את %@ הראשון שלך"
+            "value": "בצע את הסטייקינג הראשון שלך ב-%@"
           }
         },
         "hi": {
@@ -92535,7 +92535,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Punta i tuoi primi %@"
+            "value": "Metti in staking i tuoi primi %@"
           }
         },
         "ja": {
@@ -92553,7 +92553,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pertaruhkan %@ pertama anda"
+            "value": "Lakukan staking %@ pertama anda"
           }
         },
         "nl": {
@@ -92565,7 +92565,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Postaw swoją pierwszą %@"
+            "value": "Stakuj swoją pierwszą %@"
           }
         },
         "pt-BR": {
@@ -92577,7 +92577,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mizează primul tău %@"
+            "value": "Pune în staking primul tău %@"
           }
         },
         "ru": {
@@ -92589,7 +92589,7 @@
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shiriki %@ yako ya kwanza"
+            "value": "Weka %@ yako ya kwanza kwenye hisa"
           }
         },
         "th": {
@@ -92619,7 +92619,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Đặt cược %@ đầu tiên của bạn"
+            "value": "Đặt cọc %@ đầu tiên của bạn"
           }
         },
         "zh-Hans": {
@@ -92648,13 +92648,13 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনার বাজি এখানে প্রদর্শিত হবে।"
+            "value": "আপনার স্টেক এখানে প্রদর্শিত হবে"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vaše sázky se zobrazí zde"
+            "value": "Váš staking se zobrazí zde"
           }
         },
         "da": {
@@ -92666,7 +92666,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihre Einsätze werden hier angezeigt"
+            "value": "Ihre Staking-Positionen werden hier angezeigt"
           }
         },
         "en": {
@@ -92708,7 +92708,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "ההימור שלך יופיע כאן"
+            "value": "נכסי הסטייקינג שלך יופיעו כאן"
           }
         },
         "hi": {
@@ -92726,7 +92726,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le tue puntate appariranno qui"
+            "value": "Le tue posizioni in staking appariranno qui"
           }
         },
         "ja": {
@@ -92744,7 +92744,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pertaruhan anda akan muncul di sini"
+            "value": "Staking anda akan muncul di sini"
           }
         },
         "nl": {
@@ -92756,7 +92756,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Twoje stawki pojawią się tutaj"
+            "value": "Twoje stakowane środki pojawią się tutaj"
           }
         },
         "pt-BR": {
@@ -92768,7 +92768,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mizele tale vor apărea aici"
+            "value": "Pozițiile tale de staking vor apărea aici"
           }
         },
         "ru": {
@@ -92798,13 +92798,13 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваші стейкинги з'являться тут"
+            "value": "Ваші стейкінги з'являться тут"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "آپ کے اسٹیکس یہاں ظاہر ہوں گے۔"
+            "value": "آپ کے اسٹیکس یہاں ظاہر ہوں گے"
           }
         },
         "vi": {
@@ -94493,7 +94493,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Влияние цены"
+            "value": "Влияние на цену"
           }
         },
         "sw": {
@@ -95734,7 +95734,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utilice la cantidad mínima"
+            "value": "Usar cantidad mínima"
           }
         },
         "fa": {
@@ -95860,7 +95860,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کم سے کم رقم استعمال کریں۔"
+            "value": "کم سے کم رقم استعمال کریں"
           }
         },
         "vi": {
@@ -95925,7 +95925,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu pagas"
+            "value": "Pagas"
           }
         },
         "fa": {
@@ -97650,7 +97650,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "منقضی شد"
+            "value": "منقضی شده"
           }
         },
         "fil": {
@@ -98152,7 +98152,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "جاری ہے۔"
+            "value": "جاری ہے"
           }
         },
         "vi": {
@@ -98916,7 +98916,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "دوبارہ تبدیل کریں۔"
+            "value": "دوبارہ تبدیل کریں"
           }
         },
         "vi": {
@@ -98945,7 +98945,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تلقى"
+            "value": "تم الاستلام"
           }
         },
         "bn": {
@@ -98987,7 +98987,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "دریافت شده."
+            "value": "دریافت شده"
           }
         },
         "fil": {
@@ -99107,7 +99107,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "موصول ہوا۔"
+            "value": "موصول ہوا"
           }
         },
         "vi": {
@@ -99136,7 +99136,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "مرسل"
+            "value": "تم الإرسال"
           }
         },
         "bn": {
@@ -99178,7 +99178,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "فرستاده شده."
+            "value": "فرستاده شده"
           }
         },
         "fil": {
@@ -99286,7 +99286,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gönderilmiş"
+            "value": "Gönderildi"
           }
         },
         "uk": {
@@ -99680,7 +99680,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اثاثہ کو چالو کریں۔"
+            "value": "اثاثہ کو چالو کریں"
           }
         },
         "vi": {
@@ -99775,7 +99775,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לאשר"
+            "value": "אישור"
           }
         },
         "hi": {
@@ -99871,7 +99871,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "منظور کریں۔"
+            "value": "منظور کریں"
           }
         },
         "vi": {
@@ -100115,7 +100115,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Staking-Belohnungen einfordern."
+            "value": "Staking-Belohnungen einfordern"
           }
         },
         "en": {
@@ -100241,7 +100241,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ödüller"
+            "value": "Ödülleri Talep Et"
           }
         },
         "uk": {
@@ -100253,7 +100253,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "انعامات کا دعوی کریں۔"
+            "value": "انعامات کا دعوی کریں"
           }
         },
         "vi": {
@@ -100444,7 +100444,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تصدیق کریں۔"
+            "value": "تصدیق کریں"
           }
         },
         "vi": {
@@ -100730,13 +100730,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הַקפָּאָה"
+            "value": "הקפאה"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "जमाना"
+            "value": "फ़्रीज़ करें"
           }
         },
         "id": {
@@ -100826,7 +100826,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "منجمد کریں۔"
+            "value": "منجمد کریں"
           }
         },
         "vi": {
@@ -101178,7 +101178,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Недостаточный %@ баланс."
+            "value": "Недостаточный баланс %@."
           }
         },
         "sw": {
@@ -101369,7 +101369,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Недостаточно %@ баланса для покрытия сетевых платежей."
+            "value": "Недостаточно %@ для оплаты комиссии сети."
           }
         },
         "sw": {
@@ -102037,7 +102037,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Después de esto, debe quedar un saldo mínimo %@, a menos que utilice su saldo completo."
+            "value": "Después de esto, debe quedar un saldo mínimo de %@, a menos que uses tu saldo completo."
           }
         },
         "fa": {
@@ -102234,7 +102234,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "حداقل مبلغ %@ می باشد."
+            "value": "حداقل مبلغ %@ می باشد"
           }
         },
         "fil": {
@@ -102700,13 +102700,13 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Taxa de retea"
+            "value": "Taxa de rețea"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Сетевая плата"
+            "value": "Комиссия сети"
           }
         },
         "sw": {
@@ -103022,7 +103022,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לשלם באמצעות"
+            "value": "תשלום באמצעות"
           }
         },
         "hi": {
@@ -104144,7 +104144,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "تفویض اختیار"
+            "value": "تفویض مجدد"
           }
         },
         "fil": {
@@ -104264,7 +104264,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "دوبارہ تفویض کریں۔"
+            "value": "دوبارہ تفویض کریں"
           }
         },
         "vi": {
@@ -104329,7 +104329,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hemos dejado %@ en su saldo para cubrir futuras tarifas de red."
+            "value": "Hemos dejado %@ en tu saldo para cubrir futuras tarifas de red."
           }
         },
         "fa": {
@@ -104425,7 +104425,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Мы оставили %@ на вашем балансе для покрытия будущих сетевых сборов."
+            "value": "Мы оставили %@ на вашем балансе для оплаты будущих комиссий сети."
           }
         },
         "sw": {
@@ -104932,7 +104932,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לִשְׁלוֹחַ"
+            "value": "שליחה"
           }
         },
         "hi": {
@@ -105028,7 +105028,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "بھیجیں۔"
+            "value": "بھیجیں"
           }
         },
         "vi": {
@@ -105081,7 +105081,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Intelligenter Vertrag"
+            "value": "Smart Contract"
           }
         },
         "en": {
@@ -105260,7 +105260,7 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vsadit"
+            "value": "Stake"
           }
         },
         "da": {
@@ -105350,7 +105350,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pertaruhan"
+            "value": "Staking"
           }
         },
         "nl": {
@@ -105362,7 +105362,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stawka"
+            "value": "Stakuj"
           }
         },
         "pt-BR": {
@@ -105374,7 +105374,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mizează"
+            "value": "Staking"
           }
         },
         "ru": {
@@ -105410,7 +105410,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اسٹیک کریں۔"
+            "value": "اسٹیک کریں"
           }
         },
         "vi": {
@@ -105535,7 +105535,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "옮기다"
+            "value": "전송"
           }
         },
         "ms": {
@@ -105863,7 +105863,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "یخ‌زدایی"
+            "value": "لغو فریز"
           }
         },
         "fil": {
@@ -105887,7 +105887,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְהַפְשִׁיר"
+            "value": "הפשרה"
           }
         },
         "hi": {
@@ -105917,7 +105917,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "녹이다"
+            "value": "동결 해제"
           }
         },
         "ms": {
@@ -105983,7 +105983,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "غیر منجمد کریں۔"
+            "value": "غیر منجمد کریں"
           }
         },
         "vi": {
@@ -106114,7 +106114,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nyahpertaruhan"
+            "value": "Henti Staking"
           }
         },
         "nl": {
@@ -106138,7 +106138,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anulează miza"
+            "value": "Anulează staking-ul"
           }
         },
         "ru": {
@@ -106174,13 +106174,13 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اَن اسٹیک کریں۔"
+            "value": "اَن اسٹیک کریں"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hủy đặt cược"
+            "value": "Hủy đặt cọc"
           }
         },
         "zh-Hans": {
@@ -106203,7 +106203,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ينسحب"
+            "value": "سحب"
           }
         },
         "bn": {
@@ -106299,7 +106299,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "철회하다"
+            "value": "출금"
           }
         },
         "ms": {
@@ -106556,7 +106556,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اپ ڈیٹ کریں۔"
+            "value": "اپ ڈیٹ کریں"
           }
         },
         "vi": {
@@ -106621,7 +106621,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La versión %@ de la aplicación ya está disponible. Actualice y disfrute de las últimas funciones y mejoras."
+            "value": "La versión %@ de la aplicación ya está disponible. Actualiza y disfruta de las últimas funciones y mejoras."
           }
         },
         "fa": {
@@ -107033,7 +107033,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְאַשֵׁר"
+            "value": "אישור"
           }
         },
         "hi": {
@@ -107129,7 +107129,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تصدیق کریں۔"
+            "value": "تصدیق کریں"
           }
         },
         "vi": {
@@ -107200,7 +107200,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "افزودن توکن."
+            "value": "افزودن توکن"
           }
         },
         "fil": {
@@ -107320,7 +107320,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ٹوکن شامل کریں۔"
+            "value": "ٹوکن شامل کریں"
           }
         },
         "vi": {
@@ -107540,7 +107540,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يشتري"
+            "value": "شراء"
           }
         },
         "bn": {
@@ -107606,13 +107606,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לִקְנוֹת"
+            "value": "קנה"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "खरीदना"
+            "value": "खरीदें"
           }
         },
         "id": {
@@ -107666,7 +107666,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cumpăra"
+            "value": "Cumpără"
           }
         },
         "ru": {
@@ -107702,7 +107702,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "خریدیں۔"
+            "value": "خریدیں"
           }
         },
         "vi": {
@@ -107893,7 +107893,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ایڈریس کاپی کریں۔"
+            "value": "ایڈریس کاپی کریں"
           }
         },
         "vi": {
@@ -108561,7 +108561,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְהַפְקִיד"
+            "value": "הפקד"
           }
         },
         "hi": {
@@ -108943,7 +108943,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "יְבוּא"
+            "value": "ייבא"
           }
         },
         "hi": {
@@ -109027,7 +109027,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cüzdanı İçe Aktar"
+            "value": "İçe Aktar"
           }
         },
         "uk": {
@@ -109039,7 +109039,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "درآمد کریں۔"
+            "value": "درآمد کریں"
           }
         },
         "vi": {
@@ -109582,7 +109582,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Контракт или токен ID"
+            "value": "Контракт или ID токена"
           }
         },
         "sw": {
@@ -109803,7 +109803,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "والیٹ درآمد کریں۔"
+            "value": "والیٹ درآمد کریں"
           }
         },
         "vi": {
@@ -109868,7 +109868,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Puede ver los saldos y las transacciones de esta dirección, pero **no puede enviar ni vender fondos**."
+            "value": "Puedes ver los saldos y las transacciones de esta dirección, pero **no puedes enviar ni vender fondos**."
           }
         },
         "fa": {
@@ -109940,7 +109940,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "U kunt het saldo en de transacties voor dit adres bekijken, maar u kunt geen geld verzenden of verkopen."
+            "value": "U kunt het saldo en de transacties voor dit adres bekijken, maar **u kunt geen geld verzenden of verkopen**."
           }
         },
         "pl": {
@@ -110185,7 +110185,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ایک موجودہ والیٹ درآمد کریں۔"
+            "value": "ایک موجودہ والیٹ درآمد کریں"
           }
         },
         "vi": {
@@ -110376,7 +110376,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ٹوکنز کا نظم کریں۔"
+            "value": "ٹوکنز کا نظم کریں"
           }
         },
         "vi": {
@@ -110405,7 +110405,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "أكثر"
+            "value": "المزيد"
           }
         },
         "bn": {
@@ -110471,7 +110471,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "יוֹתֵר"
+            "value": "עוד"
           }
         },
         "hi": {
@@ -110853,7 +110853,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "שֵׁם"
+            "value": "שם"
           }
         },
         "hi": {
@@ -111426,7 +111426,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "תִיק"
+            "value": "תיק"
           }
         },
         "hi": {
@@ -111551,7 +111551,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يستلم"
+            "value": "استلام"
           }
         },
         "bn": {
@@ -111617,7 +111617,7 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְקַבֵּל"
+            "value": "קבל"
           }
         },
         "hi": {
@@ -111677,7 +111677,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Primi"
+            "value": "Primește"
           }
         },
         "ru": {
@@ -111713,7 +111713,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "وصول کریں۔"
+            "value": "وصول کریں"
           }
         },
         "vi": {
@@ -111784,7 +111784,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "نیازی به برچسب مقصد نیست."
+            "value": "نیازی به برچسب مقصد نیست"
           }
         },
         "fil": {
@@ -111904,7 +111904,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کسی منزل کے ٹیگ کی ضرورت نہیں ہے۔"
+            "value": "کسی منزل کے ٹیگ کی ضرورت نہیں ہے"
           }
         },
         "vi": {
@@ -111975,7 +111975,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "به یادداشت نیاز نیست."
+            "value": "به یادداشت نیاز نیست"
           }
         },
         "fil": {
@@ -112095,7 +112095,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "میمو کی ضرورت نہیں ہے۔"
+            "value": "میمو کی ضرورت نہیں ہے"
           }
         },
         "vi": {
@@ -112286,7 +112286,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "مجموعہ وصول کریں۔"
+            "value": "مجموعہ وصول کریں"
           }
         },
         "vi": {
@@ -112477,7 +112477,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "اسکین کریں۔"
+            "value": "اسکین کریں"
           }
         },
         "vi": {
@@ -113050,7 +113050,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کیو آر کوڈ اسکین کریں۔"
+            "value": "کیو آر کوڈ اسکین کریں"
           }
         },
         "vi": {
@@ -113079,7 +113079,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يبيع"
+            "value": "بيع"
           }
         },
         "bn": {
@@ -113145,13 +113145,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "מְכִירָה"
+            "value": "מכור"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "बेचना"
+            "value": "बेचें"
           }
         },
         "id": {
@@ -113270,7 +113270,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يرسل"
+            "value": "إرسال"
           }
         },
         "bn": {
@@ -113336,13 +113336,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לִשְׁלוֹחַ"
+            "value": "שלח"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "भेजना"
+            "value": "भेजें"
           }
         },
         "id": {
@@ -113432,7 +113432,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "بھیجیں۔"
+            "value": "بھیجیں"
           }
         },
         "vi": {
@@ -113563,7 +113563,7 @@
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pertaruhan"
+            "value": "Staking"
           }
         },
         "nl": {
@@ -113575,7 +113575,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Postaw"
+            "value": "Stakuj"
           }
         },
         "pt-BR": {
@@ -113587,7 +113587,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mizează"
+            "value": "Staking"
           }
         },
         "ru": {
@@ -113718,13 +113718,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לְהַחלִיף"
+            "value": "החלף"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "बदलना"
+            "value": "स्वैप"
           }
         },
         "id": {
@@ -113820,7 +113820,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tráo đổi"
+            "value": "Hoán đổi"
           }
         },
         "zh-Hans": {
@@ -114422,7 +114422,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনি এই মানিব্যাগ দেখছেন."
+            "value": "আপনি এই ওয়ালেটটি দেখছেন।"
           }
         },
         "cs": {
@@ -114607,7 +114607,7 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ينسحب"
+            "value": "سحب"
           }
         },
         "bn": {
@@ -114673,13 +114673,13 @@
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "משיכה"
+            "value": "משוך"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "निकालना"
+            "value": "निकालें"
           }
         },
         "id": {
@@ -114703,7 +114703,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "철회하다"
+            "value": "출금"
           }
         },
         "ms": {
@@ -114769,7 +114769,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "واپس لینا"
+            "value": "نکالیں"
           }
         },
         "vi": {
@@ -115342,7 +115342,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "جڑیں۔"
+            "value": "جڑیں"
           }
         },
         "vi": {
@@ -115795,7 +115795,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "اتصال فعالی یافت نشد."
+            "value": "اتصال فعالی یافت نشد"
           }
         },
         "fil": {
@@ -115915,7 +115915,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کوئی فعال کنکشن نہیں ہے۔"
+            "value": "کوئی فعال کنکشن نہیں ہے"
           }
         },
         "vi": {
@@ -116106,7 +116106,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "منظوری کی درخواستیں بھیجیں۔"
+            "value": "منظوری کی درخواستیں بھیجیں"
           }
         },
         "vi": {
@@ -116362,7 +116362,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Consulta tu saldo y actividad."
+            "value": "Ver tu saldo y actividad"
           }
         },
         "fa": {
@@ -116744,7 +116744,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escanee o pegue el código para conectarse a la DApp"
+            "value": "Escanea o pega el código para conectarte a la DApp"
           }
         },
         "fa": {
@@ -117317,7 +117317,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta cuenta de %@ puede estar controlada por otra persona. No envíe fondos a ella a menos que esté seguro de que la controla, o podría perder sus activos de forma permanente."
+            "value": "Esta cuenta de %@ puede estar controlada por otra persona. No le envíes fondos a menos que estés seguro de que la controlas, o podrías perder tus activos de forma permanente."
           }
         },
         "fa": {
@@ -117514,7 +117514,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "به خانواده Gem خوش آمدید."
+            "value": "به خانواده Gem خوش آمدید"
           }
         },
         "fil": {
@@ -117604,7 +117604,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Добро пожаловать в Gem семью"
+            "value": "Добро пожаловать в семью Gem"
           }
         },
         "sw": {

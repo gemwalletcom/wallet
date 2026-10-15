@@ -43,7 +43,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem Wallet necesita acceso a su cámara para escanear códigos QR."
+            "value": "Gem Wallet necesita acceso a tu cámara para escanear códigos QR."
           }
         },
         "fa": {
@@ -234,7 +234,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Habilitar Face ID ayuda a Gem Wallet a mantener sus activos seguros."
+            "value": "Habilitar Face ID ayuda a Gem Wallet a mantener tus activos seguros."
           }
         },
         "fa": {
@@ -425,7 +425,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta aplicación requiere acceso a su biblioteca de fotos para guardar NFT."
+            "value": "Esta aplicación requiere acceso a tu biblioteca de fotos para guardar NFT."
           }
         },
         "fa": {
@@ -616,7 +616,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Necesitamos acceso a su biblioteca de fotografías para permitirle seleccionar fotografías."
+            "value": "Necesitamos acceso a tu biblioteca de fotos para que puedas seleccionar fotos."
           }
         },
         "fa": {

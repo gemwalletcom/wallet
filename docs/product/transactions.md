@@ -39,6 +39,17 @@ flowchart LR
 
 The fee follows the shared [Network Fee](../PRODUCT.md#network-fee) section.
 
+## Transactions with several transfers
+
+One transaction can move funds to several addresses, such as an exchange payout or a batch send.
+
+| Network | Activity shows |
+|---|---|
+| Ethereum and other EVM networks, for tokens | each wallet sees only its own transfer |
+| Bitcoin, Bitcoin Cash, Litecoin, Dogecoin, Dash and Zcash | each wallet sees what it sent or received |
+| Cardano | each wallet sees the ADA it sent or received; other tokens in the same transaction are not shown |
+| Every other network | not supported yet: Activity shows one of the transfers, or none |
+
 ## Push notifications
 
 A settled transaction pushes to every device subscribed to the wallet. A failed one pushes only to the sender, naming the action with the same word as the successful push; a failed incoming transaction pushes nothing, because nothing arrived.

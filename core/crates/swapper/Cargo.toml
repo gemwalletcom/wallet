@@ -25,6 +25,7 @@ gem_hash = { path = "../gem_hash" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_client = { path = "../gem_client" }
 gem_hypercore = { path = "../gem_hypercore" }
+gem_polkadot = { path = "../gem_polkadot" }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 number_formatter = { path = "../number_formatter" }
 sui-types = { workspace = true }

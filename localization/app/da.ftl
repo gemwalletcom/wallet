@@ -1,6 +1,6 @@
 # Common
 
-common_cancel = Ophæve
+common_cancel = Annuller
 common_hidden = Skjulte
 common_done = Færdig
 common_maximum_value = Maksimal værdi er %@
@@ -391,7 +391,7 @@ stake_rewards = Belønninger
 stake_validator = Validator
 stake_validators = Validatorer
 stake_apr = ÅOP %@
-stake_available_in = Tilgængelig i
+stake_available_in = Tilgængelig om
 stake_inactive = Inaktiv
 stake_lock_time = Låsetid
 stake_activating = Aktiverer
@@ -522,7 +522,7 @@ price_alerts_direction_over = Over
 price_alerts_direction_under = Under
 price_alerts_direction_increases_by = Stiger med
 price_alerts_direction_decreases_by = Falder med
-price_alerts_set_alert_price_over = Når prisen er overstået
+price_alerts_set_alert_price_over = Når prisen er over
 price_alerts_set_alert_price_under = Når prisen er under
 price_alerts_set_alert_price_increases_by = Når prisen stiger med
 price_alerts_set_alert_price_decreases_by = Når prisen falder med
@@ -550,7 +550,7 @@ lock_unlock = Lås op
 lock_footer = Beskyt adgangen til denne app på din enhed
 lock_passcode = Adgangskode
 lock_passcode_off_title = Enhedens adgangskode er slået fra
-lock_passcode_off_description = Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine wallets er i sikkerhed.
+lock_passcode_off_description = Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine tegnebøger er i sikkerhed.
 
 # Verify
 
@@ -738,7 +738,7 @@ rewards_ways_spend_asset_title = Få %@
 rewards_insufficient_points = Utilstrækkelige point
 rewards_confirm_redeem = Få %@ for %@!
 rewards_pending_title = Bonus afventer
-rewards_pending_description = Tilgængelig i %@
+rewards_pending_description = Tilgængelig om %@
 rewards_pending_description_ready = Din bonus er klar!
 rewards_nickname = Kælenavn
 rewards_unverified_title = Belønninger er endnu ikke aktive.
@@ -797,6 +797,6 @@ application_name = Gem
 
 rootcheck_security_alert = Sikkerhedsadvarsel
 rootcheck_jailbreak_body = Din enhed ser ud til at være jailbroken. Det kan bringe din tegnebog og dine midler i fare.
-rootcheck_body = Din enhed ser ud til at have root-adgang, hvilket kan øge sikkerhedsrisiciene betydeligt. Brug af denne app på en rootet enhed kan udsætte dine aktiver for uautoriseret adgang og potentielt tab. Af hensyn til dine penges sikkerhed anbefaler vi kraftigt at bruge en enhed uden rod.
+rootcheck_body = Din enhed ser ud til at have root-adgang, hvilket kan øge sikkerhedsrisiciene betydeligt. Brug af denne app på en rootet enhed kan udsætte dine aktiver for uautoriseret adgang og potentielt tab. Af hensyn til dine penges sikkerhed anbefaler vi kraftigt at bruge en enhed, der ikke er rootet.
 rootcheck_ignore = Ignorer
 rootcheck_exit = Afslut

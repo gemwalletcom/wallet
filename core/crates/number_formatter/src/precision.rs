@@ -12,6 +12,13 @@ impl Precision {
     pub const UP_TO_TWO_PLACES: Self = Self::Fraction { min: 0, max: 2 };
     pub const UP_TO_FOUR_PLACES: Self = Self::Fraction { min: 0, max: 4 };
     pub const FULL: Self = Self::Fraction { min: 0, max: 32 };
+
+    pub fn fraction_places(&self, magnitude: f64) -> u32 {
+        match self {
+            Self::Fraction { max, .. } => *max,
+            Self::Significant { max } => zeros_after_point(magnitude).saturating_add(*max),
+        }
+    }
 }
 
 pub const ABBREVIATION_THRESHOLD: f64 = 100_000.0;
@@ -42,6 +49,11 @@ pub fn is_dust(magnitude: f64) -> bool {
     magnitude != 0.0 && magnitude.abs() < VALUE_DUST_THRESHOLD
 }
 
+pub fn round_to_places(value: f64, places: u32) -> f64 {
+    let factor = 10_f64.powi(places as i32);
+    (value * factor).round() / factor
+}
+
 const SMALL_VALUE_THRESHOLD: f64 = 0.99;
 const DUST_THRESHOLD: f64 = 1e-10;
 
@@ -63,12 +75,25 @@ pub fn currency(magnitude: f64) -> Precision {
 }
 
 fn zeros_after_point(magnitude: f64) -> u32 {
-    (-magnitude.abs().log10().floor() - 1.0) as u32
+    match magnitude == 0.0 {
+        true => 0,
+        false => (-magnitude.abs().log10().floor() - 1.0) as u32,
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_fraction_places_count_the_last_digit_shown() {
+        let places = |magnitude: f64| value(ValueStyle::Auto, magnitude).fraction_places(magnitude);
+
+        assert_eq!(places(1.5), 2);
+        assert_eq!(places(0.066488), 5);
+        assert_eq!(places(0.00000546), 9);
+        assert_eq!(places(0.0), 4, "zero has no zeros after the point to count");
+    }
 
     #[test]
     fn test_a_value_between_dust_and_one_reads_in_significant_digits() {

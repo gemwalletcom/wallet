@@ -1,11 +1,8 @@
 package com.gemwallet.android.data.services.store.integration
 
 import android.database.sqlite.SQLiteConstraintException
-import androidx.room.testing.MigrationTestHelper
-import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.di.Migration_91_92
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -20,12 +17,7 @@ class Migration_91_92Test {
     private val testDb = "migration-91-92-test"
 
     @get:Rule
-    val helper = MigrationTestHelper(
-        InstrumentationRegistry.getInstrumentation(),
-        GemDatabase::class.java,
-        emptyList(),
-        FrameworkSQLiteOpenHelperFactory(),
-    )
+    val helper = gemDatabaseMigrationTestHelper()
 
     @Before
     fun setUp() {

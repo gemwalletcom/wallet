@@ -8,3 +8,4 @@ appId: ${APP_ID}
     env:
       ADDRESS: ${BITCOIN_ADDRESS}
 - runFlow: subflows/open_transaction.yaml
+- runFlow: subflows/activity_filter.yaml

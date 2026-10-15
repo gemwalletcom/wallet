@@ -178,7 +178,7 @@ fun GemListRowView(
         is GemListRowUIModel.Toggle -> ListItem(
             model = row.model,
             listPosition = listPosition,
-            modifier = modifier,
+            modifier = rowModifier,
             minHeight = ListItemDefaults.plainMinHeight,
             accessory = { Switch(checked = row.isOn, onCheckedChange = { onToggle?.invoke(row.action, it) }) },
         )
@@ -186,7 +186,7 @@ fun GemListRowView(
         is GemListRowUIModel.Picker -> ListItem(
             model = row.model,
             listPosition = listPosition,
-            modifier = modifier.clickable { onSelect?.invoke(row.action) },
+            modifier = rowModifier.clickable { onSelect?.invoke(row.action) },
             minHeight = ListItemDefaults.plainMinHeight,
             accessory = {
                 DataBadgeChevron()
@@ -257,5 +257,5 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit 
     )
 }
 
-private val GemRowAction.testTag: String
+val GemRowAction.testTag: String
     get() = javaClass.simpleName.replaceFirstChar { it.lowercase() }

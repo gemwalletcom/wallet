@@ -10,6 +10,8 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectEvent
 import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
 import com.gemwallet.android.application.wallet_connect.WalletConnectSession
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
+import com.gemwallet.android.application.wallet_connect.addingAccount
+import com.gemwallet.android.application.wallet_connect.cases.AddWalletConnectSessionAccount
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
@@ -59,7 +61,8 @@ class WalletConnectCoordinator(
     DisconnectWalletConnection,
     ApproveWalletConnection,
     ApproveWalletConnectAuthentication,
-    RespondWalletConnectRequest {
+    RespondWalletConnectRequest,
+    AddWalletConnectSessionAccount {
 
     private val pendingEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 16)
     private val isWalletConnectInit = MutableStateFlow(false)
@@ -186,6 +189,23 @@ class WalletConnectCoordinator(
 
     override fun respond(topic: String, id: Long, response: WalletConnectJsonRpcResponse, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         walletConnectClient.respondSessionRequest(topic, id, response, onSuccess) { onError(clientErrorText(it)) }
+    }
+
+    override fun addSessionAccount(topic: String, account: String, onComplete: () -> Unit) {
+        val session = activeSessions()?.firstOrNull { it.topic == topic }
+        if (session == null) {
+            onComplete()
+            return
+        }
+        walletConnectClient.updateSession(
+            topic = topic,
+            namespaces = session.namespaces.addingAccount(account),
+            onSuccess = onComplete,
+            onError = {
+                Log.e("WalletConnect", "Add session account failed: $it")
+                onComplete()
+            },
+        )
     }
 
     override fun authPayloadParams(payloadParams: WalletConnectAuthPayloadParams, supportedChains: List<String>, supportedMethods: List<String>): WalletConnectAuthPayloadParams =

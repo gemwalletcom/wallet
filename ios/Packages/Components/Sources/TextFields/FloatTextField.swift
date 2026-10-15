@@ -121,10 +121,12 @@ extension FloatTextField {
             .scaleEffect(text.isEmpty ? 1 : style.placeholderScale, anchor: .leading)
             .offset(y: text.isEmpty ? .zero : -.space10)
             .animation(.smooth(duration: .AnimationDuration.fast), value: text.isEmpty)
+            .accessibilityHidden(true)
     }
 
     private var textField: some View {
         TextField("", text: $text)
+            .accessibilityLabel(placeholder)
             .offset(y: text.isEmpty ? .zero : .space10)
             .animation(.smooth(duration: .AnimationDuration.fast), value: text.isEmpty)
     }

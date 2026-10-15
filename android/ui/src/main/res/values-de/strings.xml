@@ -2,7 +2,7 @@
 <resources>
   <string name="common_cancel">Abbrechen</string>
   <string name="common_hidden">Ausgeblendet</string>
-  <string name="common_done">Erledigt</string>
+  <string name="common_done">Fertig</string>
   <string name="common_maximum_value">Maximaler Wert ist %1$s</string>
   <string name="common_minimum_value">Minimaler Wert ist %1$s</string>
   <string name="common_secret_phrase">Geheime Phrase</string>
@@ -126,7 +126,7 @@
   <string name="transfer_insufficient_network_fee_balance">Nicht ausreichendes %1$s -Guthaben zur Deckung der Netzwerkgebühren.</string>
   <string name="transfer_approve_title">Genehmigen</string>
   <string name="transfer_stake_title">Staking</string>
-  <string name="transfer_claim_rewards_title">Staking-Belohnungen einfordern.</string>
+  <string name="transfer_claim_rewards_title">Staking-Belohnungen einfordern</string>
   <string name="transfer_unstake_title">Staking beenden</string>
   <string name="transfer_redelegate_title">Umdelegieren</string>
   <string name="transfer_withdraw_title">Auszahlen</string>
@@ -137,7 +137,7 @@
   <string name="transfer_recipient_view_wallets">Wallets anzeigen</string>
   <string name="transfer_minimum_account_balance">Danach muss ein Mindestguthaben %1$s übrig bleiben, es sei denn, Sie nutzen Ihr gesamtes Guthaben.</string>
   <string name="transfer_destination_account_activation">Die Zieladresse erfordert ein Minimum von %1$s.</string>
-  <string name="transfer_smart_contract_title">Intelligenter Vertrag</string>
+  <string name="transfer_smart_contract_title">Smart Contract</string>
   <string name="transfer_other_title">Andere</string>
   <string name="transfer_maximum_amount">Der Höchstbetrag beträgt %1$s</string>
   <string name="transfer_reserved_fees">Wir haben %1$s auf Ihrem Guthaben belassen, um zukünftige Netzwerkgebühren abzudecken.</string>
@@ -342,8 +342,8 @@
   <string name="stake_awaiting_withdrawal">Warten auf Auszahlung</string>
   <string name="stake_active_in">Aktiv in</string>
   <string name="stake_minimum_amount">Mindestbetrag</string>
-  <string name="stake_state_empty_title">Ihre Einsätze werden hier angezeigt</string>
-  <string name="stake_state_empty_description">Setzen Sie Ihre ersten %1$s ein</string>
+  <string name="stake_state_empty_title">Ihre Staking-Positionen werden hier angezeigt</string>
+  <string name="stake_state_empty_description">Staken Sie Ihre ersten %1$s</string>
   <string name="stake_state_empty_validators_title">Keine Validatoren gefunden</string>
   <string name="stake_resource">Ressource</string>
   <string name="stake_resource_energy">Energie</string>
@@ -425,7 +425,7 @@
   <string name="price_alerts_enabled_for">Preisalarm aktiviert für %1$s</string>
   <string name="price_alerts_disabled_for">Preisalarm deaktiviert für %1$s</string>
   <string name="price_alerts_get_notified_explain_message">Lassen Sie sich benachrichtigen, wenn es bei Ihren bevorzugten Krypto-Assets zu einer erheblichen Preisänderung kommt.</string>
-  <string name="price_alerts_direction_over">Vorbei</string>
+  <string name="price_alerts_direction_over">Über</string>
   <string name="price_alerts_direction_under">Unter</string>
   <string name="price_alerts_direction_increases_by">Erhöht sich um</string>
   <string name="price_alerts_direction_decreases_by">Verringert sich um</string>
@@ -439,7 +439,7 @@
   <string name="price_alerts_added_price_under">Alarm hinzugefügt für Preis unter %1$s</string>
   <string name="price_alerts_added_increases_by">Alarm hinzugefügt für Preisanstieg um %1$s</string>
   <string name="price_alerts_added_decreases_by">Alarm hinzugefügt für Preisrückgang um %1$s</string>
-  <string name="price_alerts_state_empty_title">Ihre Benachrichtigungen werden hier angezeigt</string>
+  <string name="price_alerts_state_empty_title">Ihre Preisalarme werden hier angezeigt</string>
   <string name="price_alerts_state_empty_description">Aktivieren Sie sie, indem Sie Münzen zur Verfolgung hinzufügen</string>
   <string name="price_alerts_auto_footer">Bei erheblichen Preisbewegungen werden Warnungen ausgelöst.</string>
   <string name="price_alerts_set_alert_title">Preisalarm einstellen</string>
@@ -458,7 +458,7 @@
   <string name="verify_phrase_title">Bestätigen</string>
   <string name="warnings_externally_controlled_account">Dieses %1$s-Konto kann von jemand anderem kontrolliert werden. Senden Sie kein Geld darauf, es sei denn, Sie sind sicher, dass Sie es kontrollieren, sonst könnten Sie Ihr Vermögen dauerhaft verlieren.</string>
   <string name="sell_title">Verkaufen %1$s</string>
-  <string name="info_region_unavailable_description">Diese Funktion ist in deiner Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab.</string>
+  <string name="info_region_unavailable_description">Diese Funktion ist in Ihrer Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab.</string>
   <string name="info_network_fee_title">Netzwerk-Gebühr</string>
   <string name="info_watch_wallet_title">Beobachtungs-Wallet</string>
   <string name="info_watch_wallet_description">Eine Wallet, auf die Sie keinen Zugriff haben, deren Transaktionen und Bewegungen Sie jedoch beobachten können.</string>
@@ -542,7 +542,7 @@
   <string name="perpetual_close_position">Position schließen</string>
   <string name="perpetual_pnl">PnL</string>
   <string name="perpetual_long">Long</string>
-  <string name="perpetual_short">Kurz</string>
+  <string name="perpetual_short">Short</string>
   <string name="perpetual_entry_price">Eintrittspreis</string>
   <string name="perpetual_modify">Ändern</string>
   <string name="perpetual_reduce_position">Position reduzieren</string>
@@ -578,7 +578,7 @@
   <string name="rewards_share_text">Treten Sie Gem Wallet mit meinem Empfehlungslink bei und verdienen Sie Prämien: %1$s</string>
   <string name="rewards_my_referral_code">Mein Empfehlungscode</string>
   <string name="rewards_invite_friends_title">Freunde einladen</string>
-  <string name="rewards_invite_friends_description">Verdienen %1$s Punkte für jeden geworbenen Freund.</string>
+  <string name="rewards_invite_friends_description">Sammeln Sie %1$s Punkte für jeden geworbenen Freund.</string>
   <string name="rewards_referral_code">Empfehlungscode</string>
   <string name="rewards_invited_by">Eingeladen von</string>
   <string name="rewards_points">Punkte</string>
@@ -591,9 +591,9 @@
   <string name="rewards_create_referral_code_info">Dies wird Ihr persönlicher Spitzname für die aktuelle Wallet sein.</string>
   <string name="rewards_username">Benutzername</string>
   <string name="rewards_ways_spend_title">Möglichkeiten zum Ausgeben</string>
-  <string name="rewards_ways_spend_asset_title">Erhalten %1$s</string>
+  <string name="rewards_ways_spend_asset_title">%1$s erhalten</string>
   <string name="rewards_insufficient_points">Unzureichende Punkte</string>
-  <string name="rewards_confirm_redeem">Erhalten %1$s für %2$s!</string>
+  <string name="rewards_confirm_redeem">%1$s für %2$s erhalten!</string>
   <string name="rewards_pending_title">Bonus ausstehend</string>
   <string name="rewards_pending_description">Verfügbar in %1$s</string>
   <string name="rewards_pending_description_ready">Ihr Bonus ist bereit!</string>
@@ -626,5 +626,5 @@
   <string name="rootcheck_jailbreak_body">Ihr Gerät scheint einen Jailbreak zu haben. Das kann Ihre Wallet und Ihr Guthaben gefährden.</string>
   <string name="rootcheck_body">Ihr Gerät scheint Root-Zugriff zu haben, was die Sicherheitsrisiken erheblich erhöhen kann. Die Verwendung dieser App auf einem gerooteten Gerät kann Ihre Vermögenswerte einem unbefugten Zugriff und einem möglichen Verlust aussetzen. Zur Sicherheit Ihrer Gelder empfehlen wir dringend die Verwendung eines nicht gerooteten Geräts.</string>
   <string name="rootcheck_ignore">Ignorieren</string>
-  <string name="rootcheck_exit">Ausstieg</string>
+  <string name="rootcheck_exit">Beenden</string>
 </resources>

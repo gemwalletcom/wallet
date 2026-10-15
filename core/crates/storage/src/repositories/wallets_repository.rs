@@ -57,6 +57,7 @@ pub trait WalletsRepository {
     fn get_wallet_by_id(&mut self, id: i32) -> Result<WalletRecord, DatabaseError>;
     fn get_wallets(&mut self, identifiers: Vec<String>) -> Result<Vec<WalletRecord>, DatabaseError>;
     fn add_wallets(&mut self, wallets: Vec<NewWallet>) -> Result<usize, DatabaseError>;
+    fn add_wallet_addresses(&mut self, addresses: Vec<String>) -> Result<HashMap<String, i32>, DatabaseError>;
     fn get_or_create_wallet(&mut self, wallet: NewWallet) -> Result<WalletRecord, DatabaseError>;
     fn get_subscriptions(&mut self, device_id: i32) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError>;
     fn get_subscriptions_by_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<Vec<ChainAddress>, DatabaseError>;
@@ -213,6 +214,15 @@ impl WalletsRepository for DatabaseClient {
         Ok(device_rows_by_wallet_id(self, wallet_id)?.iter().map(DeviceRow::as_primitive).collect())
     }
 
+    fn add_wallet_addresses(&mut self, addresses: Vec<String>) -> Result<HashMap<String, i32>, DatabaseError> {
+        if addresses.is_empty() {
+            return Ok(HashMap::new());
+        }
+        let rows = addresses.iter().map(|address| NewWalletAddressRow { address: address.clone() }).collect::<Vec<_>>();
+        diesel::insert_into(wallets_addresses::table).values(&rows).on_conflict(wallets_addresses::address).do_nothing().execute(&mut self.connection)?;
+        Ok(wallet_addresses(self, addresses)?.into_iter().map(|row| (row.address, row.id)).collect())
+    }
+
     fn add_subscriptions(&mut self, device_id: i32, subscriptions: Vec<(i32, Chain, String)>) -> Result<usize, DatabaseError> {
         if subscriptions.is_empty() {
             return Ok(0);
@@ -220,44 +230,17 @@ impl WalletsRepository for DatabaseClient {
 
         let all_addresses: Vec<String> = subscriptions.iter().map(|(_, _, address)| address.clone()).collect::<HashSet<_>>().into_iter().collect();
 
-        let existing_rows = wallet_addresses(self, all_addresses.clone())?;
-        let existing_set: HashSet<String> = existing_rows.iter().map(|row| row.address.clone()).collect();
-
-        let missing_addresses: Vec<NewWalletAddressRow> = all_addresses
-            .iter()
-            .filter(|address| !existing_set.contains(*address))
-            .map(|address| NewWalletAddressRow { address: address.clone() })
-            .collect();
-
-        let new_rows = if missing_addresses.is_empty() {
-            vec![]
-        } else {
-            let missing_strs: Vec<String> = missing_addresses.iter().map(|a| a.address.clone()).collect();
-            diesel::insert_into(wallets_addresses::table)
-                .values(&missing_addresses)
-                .on_conflict(wallets_addresses::address)
-                .do_nothing()
-                .execute(&mut self.connection)?;
-            wallet_addresses(self, missing_strs)?
-        };
-
-        let address_map: HashMap<String, i32> = existing_rows.into_iter().chain(new_rows).map(|row| (row.address, row.id)).collect();
+        let address_map = self.add_wallet_addresses(all_addresses)?;
 
         let rows: Vec<NewWalletSubscriptionRow> = subscriptions
             .into_iter()
-            .filter_map(|(wallet_id, chain, address)| {
-                address_map.get(&address).map(|&address_id| NewWalletSubscriptionRow {
-                    wallet_id,
-                    device_id,
-                    chain: ChainRow::from(chain),
-                    address_id,
-                })
+            .map(|(wallet_id, chain, address)| NewWalletSubscriptionRow {
+                wallet_id,
+                device_id,
+                chain: ChainRow::from(chain),
+                address_id: address_map[&address],
             })
             .collect();
-
-        if rows.is_empty() {
-            return Ok(0);
-        }
 
         Ok(diesel::insert_into(wallets_subscriptions::table)
             .values(&rows)

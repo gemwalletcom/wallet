@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.contacts.viewmodels.models.ContactEditorUIState
@@ -44,7 +45,7 @@ fun ContactEditorScene(state: ContactEditorUIState, snackbar: SnackbarHostState?
         onClose = { onAction(ContactEditorAction.Cancel) },
         snackbar = snackbar,
         actions = {
-            IconButton(onClick = { onAction(ContactEditorAction.Save) }, enabled = state.isSaveEnabled) {
+            IconButton(onClick = { onAction(ContactEditorAction.Save) }, enabled = state.isSaveEnabled, modifier = Modifier.testTag("save_contact")) {
                 Icon(imageVector = AppIcons.Check, contentDescription = "")
             }
         },
@@ -74,6 +75,7 @@ fun ContactEditorScene(state: ContactEditorUIState, snackbar: SnackbarHostState?
                     value = state.name,
                     onValueChange = onNameChange,
                     label = stringResource(R.string.wallet_name),
+                    modifier = Modifier.testTag("nameInputField"),
                     listPosition = ListPosition.First,
                 )
             }
@@ -123,7 +125,7 @@ fun ContactEditorScene(state: ContactEditorUIState, snackbar: SnackbarHostState?
                         image = ListItemImage.Symbol(ListItemSymbol.Add, tint = ListItemTextStyle.Primary),
                     ),
                     listPosition = if (state.addressRows.isEmpty()) ListPosition.Single else ListPosition.Last,
-                    modifier = Modifier.clickable { onAction(ContactEditorAction.AddAddress) },
+                    modifier = Modifier.clickable { onAction(ContactEditorAction.AddAddress) }.testTag("add_address"),
                 )
             }
         }

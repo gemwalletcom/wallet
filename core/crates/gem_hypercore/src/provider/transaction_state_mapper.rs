@@ -74,11 +74,9 @@ pub fn map_transaction_state_order(fills: Vec<UserFill>, oid: u64, request_id: S
         FillDirection::Other(_) => return TransactionUpdate::new_state(TransactionState::Pending),
     }
 
-    if !last_fill.hash.is_empty() && last_fill.hash != request_id {
-        update.changes.push(TransactionChange::HashChange {
-            old: request_id,
-            new: last_fill.hash.clone(),
-        });
+    let transaction_id = last_fill.transaction_id();
+    if !last_fill.hash.is_empty() && transaction_id != request_id {
+        update.changes.push(TransactionChange::HashChange { old: request_id, new: transaction_id });
     }
 
     update
@@ -89,9 +87,9 @@ pub fn map_transaction_state_order_action(fills: Vec<UserFill>, nonce: u64, requ
         return TransactionUpdate::new_state(TransactionState::Pending);
     };
 
-    let hash = fill.hash.clone();
+    let transaction_id = fill.transaction_id();
     let matching_fills: Vec<_> = fills.iter().filter(|item| item.oid == fill.oid).collect();
-    let mut update = TransactionUpdate::new(TransactionState::Confirmed, vec![TransactionChange::HashChange { old: request_id, new: hash }]);
+    let mut update = TransactionUpdate::new(TransactionState::Confirmed, vec![TransactionChange::HashChange { old: request_id, new: transaction_id }]);
 
     if let Some(last_fill) = matching_fills.iter().max_by_key(|fill| fill.time)
         && let Some(changes) = perpetual_fill_changes(&matching_fills, last_fill)
@@ -259,7 +257,7 @@ mod tests {
         let hash_change = update.changes.iter().find_map(|change| if let TransactionChange::HashChange { old, new } = change { Some((old, new)) } else { None });
         let (old, new) = hash_change.unwrap();
         assert_eq!(old, &request_id);
-        assert_eq!(new, "0x9b4d63110c57f2e19cc7042ce90e300202f500f6a75b11b33f160e63cb5bcccc");
+        assert_eq!(new, "0x9b4d63110c57f2e19cc7042ce90e300202f500f6a75b11b33f160e63cb5bcccc:187530505765");
     }
 
     #[test]
@@ -308,7 +306,7 @@ mod tests {
             update.changes[0],
             TransactionChange::HashChange {
                 old: request_id,
-                new: "0xd16518b18533f577d2de043763f8ad020482009720371449752dc4044437cf62".to_string(),
+                new: "0xd16518b18533f577d2de043763f8ad020482009720371449752dc4044437cf62:355101232455".to_string(),
             }
         );
     }
@@ -324,7 +322,7 @@ mod tests {
             update.changes[0],
             TransactionChange::HashChange {
                 old: request_id,
-                new: "0x9b4d63110c57f2e19cc7042ce90e300202f500f6a75b11b33f160e63cb5bcccc".to_string(),
+                new: "0x9b4d63110c57f2e19cc7042ce90e300202f500f6a75b11b33f160e63cb5bcccc:187530505765".to_string(),
             }
         );
         let network_fee_change = update.changes.iter().find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
@@ -343,7 +341,7 @@ mod tests {
                 TransactionState::Confirmed,
                 vec![TransactionChange::HashChange {
                     old: request_id,
-                    new: "0xd16518b18533f577d2de043763f8ad020482009720371449752dc4044437cf62".to_string(),
+                    new: "0xd16518b18533f577d2de043763f8ad020482009720371449752dc4044437cf62:355101232455".to_string(),
                 }]
             )
         );

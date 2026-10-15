@@ -21,10 +21,16 @@ notification_nft_sent_title = 🖼️ Wysłano NFT: {$value}
 notification_nft_received_title = 🖼️ Otrzymano NFT: {$value}
 notification_onboarding_buy_asset_title = 🚀 Kup {$name}
 notification_onboarding_buy_asset_description = Kup {$name} bezpiecznie już dziś — prosto, niezawodnie i natychmiast.
+notification_fiat_purchase_title = 🚀 Kupiono {$value}
+notification_fiat_sale_title = 💰 Sprzedano {$value}
 support_new_message_title = Nowa wiadomość od Wsparcia
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 Zarobiłeś {$value} zwrotnica!
+notification_reward_title = 💎 Zdobyto { $value ->
+     [one] {$value} punkt
+     [few] {$value} punkty
+    *[other] {$value} punktów
+    }!
 notification_reward_create_username_description = Nazwa użytkownika gotowa. Zaproś znajomych i zdobądź nagrody.
 notification_reward_invite_description = Polecenie zostało dodane przy użyciu Twojego kodu.
 notification_rewards_joined_description = Dołączyłeś używając kodu polecającego.
@@ -59,28 +65,37 @@ rewards_error_redemption_cooldown = Po nowej aktywności poleceń wymiany są na
 rewards_error_redemption_not_enough_points = Masz za mało punktów na tę nagrodę.
 rewards_error_redemption_option_not_available = Ta nagroda nie jest już dostępna.
 rewards_error_redemption_no_username = Utwórz nazwę użytkownika, aby wymieniać nagrody.
-notification_price_alert_target_title = 🎯 {$symbol} osiągnięty {$price}
-notification_price_alert_target_description = Teraz w {$price} ({$change}).
+notification_price_alert_target_title = 🎯 {$symbol} osiągnął {$price}
+notification_price_alert_target_description = Teraz {$price} ({$change}).
 notification_stake_rewards_title = 🎁 Nagrody za staking
 notification_stake_rewards_description = {$value} nagrody dostępne dla {$chain}
-notification_rewards_enabled_title = 💎 Rewards Unlocked
-notification_rewards_enabled_description = You can now earn rewards by inviting friends.
-notification_rewards_redeem_points_title = 🎁 Reward Redeemed
-notification_rewards_redeem_points_description = You redeemed {$value} points.
-notification_perpetual_long_title = 📈 Long {$coin}
-notification_perpetual_open_description = Entered at {$price} 🚀
-notification_perpetual_short_title = 📉 Short {$coin}
-notification_perpetual_close_positive_description = You made {$pnl} 💰
-notification_perpetual_close_negative_description = You lost {$pnl} 😕
+notification_rewards_enabled_title = 💎 Nagrody odblokowane
+notification_rewards_enabled_description = Możesz teraz zdobywać nagrody, zapraszając znajomych.
+notification_rewards_redeem_points_title = 🎁 Nagroda odebrana
+notification_rewards_redeem_points_description = Wymieniono { $value ->
+     [one] {$value} punkt
+     [few] {$value} punkty
+    *[other] {$value} punktów
+    }.
+notification_rewards_redeem_points_for_description = Wymieniono { $points ->
+     [one] {$points} punkt
+     [few] {$points} punkty
+    *[other] {$points} punktów
+    } na {$value}.
+notification_perpetual_long_title = 📈 Pozycja długa {$coin}
+notification_perpetual_open_description = Cena wejścia: {$price} 🚀
+notification_perpetual_short_title = 📉 Pozycja krótka {$coin}
+notification_perpetual_close_positive_description = Zysk: {$pnl} 💰
+notification_perpetual_close_negative_description = Strata: {$pnl} 😕
 notification_action_transfer = Transfer
-notification_action_swap = Zamień
-notification_action_token_approval = Token Approval
-notification_action_stake = Stake
-notification_action_unstake = Unstake
-notification_action_redelegate = Redelegate
-notification_action_claim_rewards = Claim Rewards
-notification_action_withdraw = Withdraw
-notification_action_freeze = Zamroź
-notification_action_unfreeze = Odmroź
+notification_action_swap = Wymiana
+notification_action_token_approval = Zatwierdzenie tokena
+notification_action_stake = Staking
+notification_action_unstake = Wycofanie stakingu
+notification_action_redelegate = Ponowne delegowanie
+notification_action_claim_rewards = Odbiór nagród
+notification_action_withdraw = Wypłata
+notification_action_freeze = Zamrożenie
+notification_action_unfreeze = Odmrożenie
 notification_action_smart_contract = Inteligentny kontrakt
-notification_transaction_failed_title = ❌ {$action}: Nieudana
+notification_transaction_failed_title = ❌ {$action}: niepowodzenie

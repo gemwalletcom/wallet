@@ -21,6 +21,7 @@ public struct TransactionsFilterScene: View {
                 typeModel: model.chainsTypeModel,
                 action: model.onSelectChainsFilter,
             )
+            .accessibilityIdentifier("filter_networks")
             SelectFilterView(
                 typeModel: model.typesTypeModel,
                 action: model.onSelectTypesFilter,
@@ -50,7 +51,7 @@ public struct TransactionsFilterScene: View {
                         dismiss()
                     }
                 },
-                listContent: { ChainView(model: chainRow(chain: $0.rawValue)) },
+                listContent: { ChainView(model: chainRow(chain: $0.rawValue)).accessibilityIdentifier($0.rawValue) },
             )
         }
         .sheet(isPresented: $model.isPresentingTypes) {

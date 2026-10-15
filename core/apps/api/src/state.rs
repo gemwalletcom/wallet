@@ -19,7 +19,7 @@ use services::prices::{ChartClient, MarketsClient, PortfolioClient, PriceAlertCl
 use services::rewards::{RewardsClient, RewardsRedemptionClient};
 use services::security::ScanClient;
 use services::support::SupportApiClient;
-use services::swap::{BridgersProxyClient, NearIntentsProxyClient, RelayProxyClient, SwapClient, SwapsXyzProxyClient};
+use services::swap::{BridgersProxyClient, ChainflipProxyClient, NearIntentsProxyClient, RelayProxyClient, SwapClient, SwapsXyzProxyClient};
 use services::transactions::{AddressDetailsClient, AddressNamesClient, TransactionsClient};
 use services::webhooks::WebhooksClient;
 use swapper::RpcClient;
@@ -70,6 +70,7 @@ pub struct Clients {
     pub swaps_xyz: Arc<SwapsXyzProxyClient>,
     pub relay: Arc<RelayProxyClient>,
     pub bridgers: Arc<BridgersProxyClient>,
+    pub chainflip: Arc<ChainflipProxyClient>,
     pub okx: Arc<OkxProviderProxy<RpcClient>>,
     pub portfolio: Arc<PortfolioClient>,
     pub auth: Arc<AuthClient>,
@@ -130,6 +131,7 @@ state_clients! {
     swaps_xyz: SwapsXyzProxyClient,
     relay: RelayProxyClient,
     bridgers: BridgersProxyClient,
+    chainflip: ChainflipProxyClient,
     okx: OkxProviderProxy<RpcClient>,
     portfolio: PortfolioClient,
     auth: AuthClient,

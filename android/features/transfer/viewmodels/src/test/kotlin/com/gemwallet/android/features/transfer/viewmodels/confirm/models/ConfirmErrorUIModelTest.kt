@@ -70,7 +70,7 @@ class ConfirmErrorUIModelTest {
         )
 
         assertEquals(
-            listOf("1.23 ETH", "0.9876 ETH", "0.2469 ETH"),
+            listOf("1.2345 ETH", "0.9876 ETH", "0.2469 ETH"),
             error.amounts(),
         )
     }

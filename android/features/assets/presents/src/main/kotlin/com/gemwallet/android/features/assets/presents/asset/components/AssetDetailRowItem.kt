@@ -12,6 +12,7 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.testTag
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import uniffi.gemstone.GemAssetDetailRow
@@ -29,7 +30,7 @@ internal fun AssetDetailRowItem(row: GemAssetDetailRow, action: AssetAction?, li
                 info = GemInfoTopic.PendingUnconfirmedBalance.infoSheet().takeIf { row.row.row is GemBalanceRow.PendingUnconfirmed },
             ),
             listPosition = listPosition,
-            modifier = action?.let { selected -> Modifier.clickable { onAction(selected) }.testTag("assetStake") } ?: Modifier,
+            modifier = action?.let { selected -> Modifier.clickable { onAction(selected) }.testTag(row.action?.testTag.orEmpty()) } ?: Modifier,
             accessory = action?.let { { DataBadgeChevron() } },
         )
 

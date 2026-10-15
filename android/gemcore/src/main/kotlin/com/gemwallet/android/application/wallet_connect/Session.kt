@@ -38,6 +38,12 @@ fun GemSessionApproval.toSupportedNamespaces(chainService: GemChainServiceInterf
         }
 }
 
+fun Map<String, WalletConnectSessionNamespace>.addingAccount(account: String): Map<String, WalletConnectSessionNamespace> {
+    val key = account.substringBefore(':')
+    val namespace = get(key) ?: return this
+    return this + (key to namespace.copy(chains = namespace.chains?.plus(account.substringBeforeLast(':')), accounts = namespace.accounts + account))
+}
+
 private data class ApprovedAccount(val namespace: String, val chainId: String, val address: String) {
     val accountId: String get() = "$chainId:$address"
 }

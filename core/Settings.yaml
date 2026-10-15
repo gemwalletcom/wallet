@@ -120,6 +120,8 @@ swap:
     url: "https://api.relay.link"
   bridgers:
     url: "https://api.bridgers.xyz"
+  chainflip:
+    url: "https://chainflip-broker.io/rpc"
 
 prices:
   coingecko:

@@ -1,15 +1,15 @@
 notification_sent_title = 💸 Надіслано: {$value}
 notification_sent_description = На {$address}
 notification_received_title = 💰 Отримано: {$value}
-notification_received_description = От {$address}
-notification_unstake_title = 🔒 Відміна стейкінгу {$value}
+notification_received_description = Від {$address}
+notification_unstake_title = 🔒 Скасування стейкінгу {$value}
 notification_claim_rewards_title = 🎁 Отримано винагороду {$value}
-notification_withdraw_title = 🔓 Знятий стейкінг {$value}
+notification_withdraw_title = 🔓 Знято зі стейкінгу {$value}
 notification_redelegate_title = 🔄 Переделегувано {$value}
 notification_swap_title = 🔄 Обмін з {$from_symbol} на {$to_symbol}
 notification_swap_description = {$from_value} > {$to_value}
 notification_test = Тест
-notification_token_approval_title = ✅ Дозволен токен {$token}
+notification_token_approval_title = ✅ Дозволено токен {$token}
 notification_stake_title = 🔒 { notification_action_stake } {$value}
 notification_price_alert_up_title = 📈 {$symbol} Сповіщення про ціни
 notification_price_alert_up_description = Ціна зросла на {$price_change} до {$price}
@@ -21,10 +21,16 @@ notification_nft_sent_title = 🖼️ Відправлено NFT: {$value}
 notification_nft_received_title = 🖼️ Отримано NFT: {$value}
 notification_onboarding_buy_asset_title = 🚀 Купити {$name}
 notification_onboarding_buy_asset_description = Безпечно купуйте {$name} сьогодні — просто, надійно та миттєво.
+notification_fiat_purchase_title = 🚀 Куплено {$value}
+notification_fiat_sale_title = 💰 Продано {$value}
 support_new_message_title = Нове повідомлення від служби підтримки
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 Ви заробили {$value} бали!
+notification_reward_title = 💎 Ви заробили { $value ->
+     [one] {$value} бал
+     [few] {$value} бали
+    *[other] {$value} балів
+    }!
 notification_reward_create_username_description = Ім'я користувача готове. Запросіть друзів, щоб отримати винагороди.
 notification_reward_invite_description = Реферал приєднано за допомогою вашого коду.
 notification_rewards_joined_description = Ви приєдналися, використовуючи реферальний код.
@@ -46,7 +52,7 @@ rewards_error_referral_eligibility_expired = Реферальні коди мо�
      [few] за останні {$value} дні
     *[other] за останні {$value} днів
     }.
-notification_reward_pending_title = 💎 Нове реферале
+notification_reward_pending_title = 💎 Новий реферал
 rewards_error_username_too_short = Ім'я користувача надто коротке. Мінімальна довжина: {$value}.
 rewards_error_username_too_long = Ім'я користувача надто довге. Максимальна довжина: {$value}.
 rewards_error_username_invalid_characters = Ім'я користувача може містити лише літери A–Z і цифри 0–9.
@@ -64,15 +70,24 @@ notification_price_alert_target_title = 🎯 {$symbol} досяг {$price}
 notification_price_alert_target_description = Зараз о {$price} ({$change}).
 notification_stake_rewards_title = 🎁 Винагороди за стейкінг
 notification_stake_rewards_description = {$value} винагороди, доступні для {$chain}
-notification_rewards_enabled_title = 💎 Rewards Unlocked
-notification_rewards_enabled_description = You can now earn rewards by inviting friends.
-notification_rewards_redeem_points_title = 🎁 Reward Redeemed
-notification_rewards_redeem_points_description = You redeemed {$value} points.
-notification_perpetual_long_title = 📈 Long {$coin}
-notification_perpetual_open_description = Entered at {$price} 🚀
-notification_perpetual_short_title = 📉 Short {$coin}
-notification_perpetual_close_positive_description = You made {$pnl} 💰
-notification_perpetual_close_negative_description = You lost {$pnl} 😕
+notification_rewards_enabled_title = 💎 Винагороди розблоковано
+notification_rewards_enabled_description = Тепер ви можете отримувати винагороди, запрошуючи друзів.
+notification_rewards_redeem_points_title = 🎁 Винагороду отримано
+notification_rewards_redeem_points_description = Ви обміняли { $value ->
+     [one] {$value} бал
+     [few] {$value} бали
+    *[other] {$value} балів
+    }.
+notification_rewards_redeem_points_for_description = Ви обміняли { $points ->
+     [one] {$points} бал
+     [few] {$points} бали
+    *[other] {$points} балів
+    } на {$value}.
+notification_perpetual_long_title = 📈 Лонг {$coin}
+notification_perpetual_open_description = Вхідна ціна: {$price} 🚀
+notification_perpetual_short_title = 📉 Шорт {$coin}
+notification_perpetual_close_positive_description = Ви заробили {$pnl} 💰
+notification_perpetual_close_negative_description = Ви втратили {$pnl} 😕
 notification_action_transfer = Переказ
 notification_action_swap = Обмін
 notification_action_token_approval = Дозволити

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-  <string name="common_cancel">Cancellare</string>
+  <string name="common_cancel">Annulla</string>
   <string name="common_hidden">Nascosti</string>
   <string name="common_done">Fatto</string>
   <string name="common_maximum_value">Il valore massimo è %1$s</string>
@@ -342,8 +342,8 @@
   <string name="stake_awaiting_withdrawal">In attesa di ritiro</string>
   <string name="stake_active_in">Attivo dentro</string>
   <string name="stake_minimum_amount">Importo minimo</string>
-  <string name="stake_state_empty_title">Le tue puntate appariranno qui</string>
-  <string name="stake_state_empty_description">Punta i tuoi primi %1$s</string>
+  <string name="stake_state_empty_title">Le tue posizioni in staking appariranno qui</string>
+  <string name="stake_state_empty_description">Metti in staking i tuoi primi %1$s</string>
   <string name="stake_state_empty_validators_title">Nessun validatore trovato</string>
   <string name="stake_resource">Risorsa</string>
   <string name="stake_resource_energy">Energia</string>
@@ -454,7 +454,7 @@
   <string name="lock_footer">Proteggi l\'accesso a questa app sul tuo dispositivo</string>
   <string name="lock_passcode">Codice di accesso</string>
   <string name="lock_passcode_off_title">Il codice del dispositivo è disattivato</string>
-  <string name="lock_passcode_off_description">Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi wallet sono al sicuro.</string>
+  <string name="lock_passcode_off_description">Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi portafogli sono al sicuro.</string>
   <string name="verify_phrase_title">Confermare</string>
   <string name="warnings_externally_controlled_account">Questo account %1$s può essere controllato da qualcun altro. Non inviarvi fondi a meno che tu non sia certo di controllarlo, altrimenti potresti perdere definitivamente i tuoi beni.</string>
   <string name="sell_title">Vendi %1$s</string>
@@ -541,8 +541,8 @@
   <string name="perpetual_position">Posizione</string>
   <string name="perpetual_close_position">Chiudi posizione</string>
   <string name="perpetual_pnl">PnL</string>
-  <string name="perpetual_long">Lungo</string>
-  <string name="perpetual_short">Breve</string>
+  <string name="perpetual_long">Long</string>
+  <string name="perpetual_short">Short</string>
   <string name="perpetual_entry_price">Prezzo d\'ingresso</string>
   <string name="perpetual_modify">Modifica</string>
   <string name="perpetual_reduce_position">Riduci posizione</string>
@@ -623,7 +623,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">Approvazione token illimitata</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Avviso di sicurezza</string>
-  <string name="rootcheck_jailbreak_body">Il tuo dispositivo sembra essere jailbroken. Questo può mettere a rischio il wallet e i fondi.</string>
+  <string name="rootcheck_jailbreak_body">Il tuo dispositivo sembra essere jailbroken. Questo può mettere a rischio il tuo portafoglio e i tuoi fondi.</string>
   <string name="rootcheck_body">Il tuo dispositivo sembra avere accesso root, il che può aumentare significativamente i rischi per la sicurezza. L\'utilizzo di questa app su un dispositivo rooted potrebbe esporre i tuoi asset ad accessi non autorizzati e potenziali perdite. Per la sicurezza dei tuoi fondi, ti consigliamo vivamente di utilizzare un dispositivo non rooted.</string>
   <string name="rootcheck_ignore">Ignora</string>
   <string name="rootcheck_exit">Esci</string>

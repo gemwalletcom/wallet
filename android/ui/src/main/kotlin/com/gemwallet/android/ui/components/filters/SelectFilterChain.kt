@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ui.LocalChainService
 import com.gemwallet.android.ui.R
@@ -38,6 +39,7 @@ fun LazyListScope.selectFilterChain(matchingChains: List<GemChainRow>, chainFilt
             ChainItem(
                 row = row,
                 listPosition = ListPosition.getPosition(index, size),
+                modifier = Modifier.testTag(chain.string),
                 trailing = {
                     if (chainFilter.contains(chain)) {
                         SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))

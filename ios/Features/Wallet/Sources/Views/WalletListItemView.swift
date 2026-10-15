@@ -43,6 +43,7 @@ struct WalletListItemView: View {
                     },
                 )
                 .buttonStyle(.borderless)
+                .accessibilityIdentifier("wallet_edit")
             }
         }
         .contextMenu(

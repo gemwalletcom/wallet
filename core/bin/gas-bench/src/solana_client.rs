@@ -94,8 +94,8 @@ impl SolanaGasClient {
                 core_rates.push(CoreFeeRate {
                     transfer,
                     priority: rate.priority,
-                    unit_price: u64::try_from(rate.gas_price_type.unit_price())?,
-                    priority_fee: u64::try_from(rate.gas_price_type.priority_fee())?,
+                    unit_price: rate.gas_price_type.unit_price_u64()?,
+                    priority_fee: rate.gas_price_type.priority_fee_u64()?,
                     total_fee: u64::try_from(rate.gas_price_type.total_fee())?,
                 });
             }

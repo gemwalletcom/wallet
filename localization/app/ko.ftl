@@ -101,7 +101,7 @@ wallet_more = 더 보기
 wallet_import_contract_address_field = 계약 또는 토큰 ID
 wallet_import_address_warning = 이 주소에 대한 잔액과 거래 내역은 볼 수 있지만, **자금을 보내거나 판매할 수는 없습니다**.
 wallet_deposit = 입금
-wallet_withdraw = 철회하다
+wallet_withdraw = 출금
 wallet_available_balance = 사용 가능: %@
 # Used in the insufficient network fee sheet for the buy option subtitle.
 wallet_pay_with_card_or_bank = 카드 또는 은행으로 결제
@@ -140,7 +140,7 @@ transfer_max = 최대
 transfer_network = 회로망
 transfer_recipient_title = 받는 사람
 transfer_balance = 잔액: %@
-transfer_title = 옮기다
+transfer_title = 전송
 transfer_recipient_address_field = 주소 또는 이름
 transfer_send_title = 보내다
 transfer_insufficient_balance = %@ 잔액이 부족합니다.
@@ -150,7 +150,7 @@ transfer_stake_title = 스테이킹
 transfer_claim_rewards_title = 보상 청구
 transfer_unstake_title = 언스테이크
 transfer_redelegate_title = 재위임
-transfer_withdraw_title = 철회하다
+transfer_withdraw_title = 출금
 transfer_rewards_title = 보상
 transfer_minimum_amount = 최소 금액은 %@ 입니다.
 transfer_activate_asset_title = 자산 활성화
@@ -163,7 +163,7 @@ transfer_other_title = 기타
 transfer_maximum_amount = 최대 금액은 %@입니다.
 transfer_reserved_fees = 향후 네트워크 수수료를 충당하기 위해 잔액에 %@ 남겨두었습니다.
 transfer_freeze_title = 동결
-transfer_unfreeze_title = 녹이다
+transfer_unfreeze_title = 동결 해제
 transfer_review_request = 검토 요청
 transfer_amount = 금액
 
@@ -213,7 +213,7 @@ errors_create_wallet = 지갑 생성 오류: %@
 errors_invalid_address_name = 잘못된 주소 또는 이름
 errors_invalid_amount = 잘못된 금액
 errors_token_invalid_id = 잘못된 토큰 ID
-errors_import_invalid_secret_phrase = 잘못된 비밀번호 문구
+errors_import_invalid_secret_phrase = 잘못된 비밀 문구
 errors_import_invalid_secret_phrase_word = 잘못된 비밀 문구 단어: %@
 errors_import_invalid_private_key = 잘못된 개인 키
 errors_keystore_access = 이 기기에서 이 지갑의 키에 접근할 수 없습니다. 복구 문구가 있다면 이 지갑을 삭제한 후 다시 가져와 접근 권한을 복구하세요.
@@ -429,7 +429,7 @@ secret_phrase_do_not_share_description = 누군가가 귀하의 비밀 문구를
 secret_phrase_save_phrase_safely = 비밀 문구를 안전한 곳에 저장하세요\n 그건 당신만이 통제할 수 있어요.
 secret_phrase_confirm_quick_test_title = 이 빠른 테스트를 완료하여 모든 내용을 올바르게 저장했는지 확인하세요.
 secret_phrase_screenshot_detected_title = 스크린샷이 감지되었습니다
-secret_phrase_screenshot_detected_description = 스크린샷은 다른 앱에서 접근할 수 있으며, 이런 방식으로 저장할 경우 비밀번호가 위험에 노출될 수 있습니다.
+secret_phrase_screenshot_detected_description = 스크린샷은 다른 앱에서 접근할 수 있으며, 이런 방식으로 저장할 경우 비밀 문구가 위험에 노출될 수 있습니다.
 secret_phrase_content_hidden_description = 화면 녹화 중 숨겨진 콘텐츠
 
 # Private Key
@@ -548,7 +548,7 @@ lock_six_hours = 6시간
 lock_require_authentication = 인증 필요
 lock_unlock = 잠금 해제
 lock_footer = 기기에서 이 앱에 대한 액세스를 보호하세요
-lock_passcode = 비밀번호
+lock_passcode = 암호
 lock_passcode_off_title = 기기 암호가 꺼져 있습니다
 lock_passcode_off_description = Gem은 기기 암호로 잠겨 있습니다. Gem을 열려면 기기 설정에서 암호를 켜세요. 지갑은 안전합니다.
 
@@ -654,9 +654,9 @@ networks_state_empty_search_title = 네트워크를 찾을 수 없습니다
 
 onboarding_security_create_wallet_intro_title = 당신은 비밀 문구를 받게 될 것입니다. 이것이 당신의 지갑에 접근할 수 있는 유일한 방법입니다.
 onboarding_security_create_wallet_do_not_share_title = 누구와도 공유하지 마세요
-onboarding_security_create_wallet_do_not_share_subtitle = 누구든지 귀하의 비밀번호 문구를 알아내면 귀하의 지갑을 완전히 장악할 수 있습니다.
+onboarding_security_create_wallet_do_not_share_subtitle = 누구든지 비밀 문구를 알아내면 지갑을 완전히 장악할 수 있습니다.
 onboarding_security_create_wallet_keep_safe_subtitle = 비밀 문구는 지갑에 접근할 수 있는 유일한 방법입니다.
-onboarding_security_create_wallet_no_recovery_subtitle = 비밀번호 문구를 잃어버리면 지갑에 접근할 수 없게 됩니다.
+onboarding_security_create_wallet_no_recovery_subtitle = 비밀 문구를 잃어버리면 지갑에 접근할 수 없게 됩니다.
 onboarding_security_create_wallet_keep_safe_title = 안전한 곳에 보관하세요
 onboarding_security_create_wallet_no_recovery_title = 우리는 당신이 그것을 복구하는 데 도움을 줄 수 없습니다
 onboarding_accept_terms_title = 약관 동의
@@ -671,18 +671,18 @@ onboarding_accept_terms_continue = 동의하고 계속하세요
 
 # Perpetual
 
-perpetual_positions = 위치
+perpetual_positions = 포지션
 perpetual_size = 크기
-perpetual_margin = 여유
-perpetual_position = 위치
-perpetual_close_position = 닫기 위치
+perpetual_margin = 마진
+perpetual_position = 포지션
+perpetual_close_position = 포지션 종료
 perpetual_pnl = PnL
 perpetual_long = 롱
 perpetual_short = 숏
 perpetual_entry_price = 진입 가격
 perpetual_modify = 수정하다
-perpetual_reduce_position = 위치 줄이기
-perpetual_increase_position = 위치 증가
+perpetual_reduce_position = 포지션 축소
+perpetual_increase_position = 포지션 확대
 perpetual_open_direction = %@ 열기
 perpetual_close_direction = %@ 닫기
 perpetual_leverage = 레버리지
@@ -696,16 +696,16 @@ perpetual_increase_direction = %@ 증가
 perpetual_reduce_direction = %@ 줄이기
 perpetual_auto_close_expected_profit = 예상 이익
 perpetual_auto_close_expected_loss = 예상 손실
-perpetual_modify_position = 위치 수정
+perpetual_modify_position = 포지션 수정
 perpetual_auto_close_stop_loss = 손절매
 perpetual_value = 값
 perpetual_unrealized_pnl = 미실현 손익
 perpetual_volume = 거래량
-perpetual_all_time_pnl = 역대 최고 PnL
+perpetual_all_time_pnl = 전체 기간 PnL
 perpetual_margin_usage = 마진 사용
 perpetual_account_leverage = 계정 레버리지
 perpetual_margin_cross = 크로스
-perpetual_margin_isolated = 절연
+perpetual_margin_isolated = 격리
 
 # Perpetuals
 
@@ -721,7 +721,7 @@ rewards_title = 보상
 rewards_share_text = 제 추천 링크로 Gem Wallet에 가입하고 보상을 받으세요: %@
 rewards_my_referral_code = 내 추천 코드
 rewards_invite_friends_title = 친구 초대하기
-rewards_invite_friends_description = 벌다 %@ 친구가 가입할 때마다 포인트를 획득합니다.
+rewards_invite_friends_description = 친구가 가입할 때마다 %@ 포인트를 받으세요.
 rewards_referral_code = 추천 코드
 rewards_invited_by = 초대자
 rewards_points = 포인트
@@ -733,10 +733,10 @@ rewards_activate_referral_code_title = 코드 사용
 rewards_create_referral_code_title = 사용자 이름 생성
 rewards_create_referral_code_info = 이것은 현재 지갑에 사용할 개인 별명입니다.
 rewards_username = 사용자 이름
-rewards_ways_spend_title = 돈을 쓰는 방법
-rewards_ways_spend_asset_title = 얻다 %@
-rewards_insufficient_points = 점수가 부족합니다
-rewards_confirm_redeem = 얻다 %@ ~을 위한 %@!
+rewards_ways_spend_title = 포인트 사용처
+rewards_ways_spend_asset_title = %@ 받기
+rewards_insufficient_points = 포인트가 부족합니다
+rewards_confirm_redeem = %2$@에 %1$@ 받기!
 rewards_pending_title = 보너스 지급 예정
 rewards_pending_description = 다음에서 이용 가능합니다: %@
 rewards_pending_description_ready = 보너스가 지급되었습니다!
@@ -759,7 +759,7 @@ notifications_inapp_state_empty_description = 알림 관련 업데이트는 여�
 
 # Earn
 
-earn_state_empty_title = 귀하의 직책이 여기에 표시됩니다.
+earn_state_empty_title = 포지션이 여기에 표시됩니다
 earn_state_empty_description = 첫 입금 %@
 
 # Contacts

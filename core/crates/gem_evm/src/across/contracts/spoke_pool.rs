@@ -49,32 +49,6 @@ sol! {
             bytes message
         );
 
-        struct RelayExecutionInfo {
-            bytes32 updatedRecipient;
-            bytes32 updatedMessage;
-            uint256 updatedOutputAmount;
-            uint8 fillType;
-        }
-
-        event FilledRelay(
-            bytes32 inputToken,
-            bytes32 outputToken,
-            uint256 inputAmount,
-            uint256 outputAmount,
-            uint256 indexed originChainId,
-            uint256 indexed depositId,
-            uint256 destinationChainId,
-            uint32 quoteTimestamp,
-            uint32 fillDeadline,
-            bytes32 indexed depositor,
-            bytes32 recipient,
-            bytes32 exclusiveRelayer,
-            bytes32 relayer,
-            bytes32 settlementContract,
-            RelayExecutionInfo relayExecutionInfo
-        );
-
-        function getCurrentTime() public view virtual returns (uint256);
         function fillStatuses(bytes32 relayHash) external view returns (uint8);
 
         function depositV3(
@@ -93,22 +67,5 @@ sol! {
         ) external payable;
 
         function fillV3Relay(V3RelayData calldata relayData, uint256 repaymentChainId) external;
-
-        struct RelayData {
-            bytes32 depositor;
-            bytes32 recipient;
-            bytes32 exclusiveRelayer;
-            bytes32 inputToken;
-            bytes32 outputToken;
-            uint256 inputAmount;
-            uint256 outputAmount;
-            uint256 originChainId;
-            uint256 depositId;
-            uint32 fillDeadline;
-            uint32 exclusivityDeadline;
-            bytes message;
-        }
-
-        function fillRelay(RelayData calldata relayData, uint256 repaymentChainId, bytes32 repaymentAddress) external;
     }
 }

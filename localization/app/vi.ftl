@@ -73,7 +73,7 @@ wallet_import_existing_wallet = Nhập ví hiện có
 wallet_send = Gửi
 wallet_receive = Nhận được
 wallet_buy = Mua
-wallet_swap = Tráo đổi
+wallet_swap = Hoán đổi
 wallet_import_title = Nhập ví
 wallet_new_title = Ví mới
 wallet_name = Tên
@@ -148,7 +148,7 @@ transfer_insufficient_network_fee_balance = Số dư %@ không đủ để trả
 transfer_approve_title = Chấp thuận
 transfer_stake_title = Đặt cọc
 transfer_claim_rewards_title = Yêu cầu phần thưởng
-transfer_unstake_title = Hủy đặt cược
+transfer_unstake_title = Hủy đặt cọc
 transfer_redelegate_title = Ủy quyền lại
 transfer_withdraw_title = Rút
 transfer_rewards_title = Phần thưởng
@@ -400,7 +400,7 @@ stake_awaiting_withdrawal = Đang chờ rút tiền
 stake_active_in = Đang hoạt động ở
 stake_minimum_amount = Số tiền tối thiểu
 stake_state_empty_title = Khoản đặt cọc của bạn sẽ xuất hiện ở đây
-stake_state_empty_description = Đặt cược %@ đầu tiên của bạn
+stake_state_empty_description = Đặt cọc %@ đầu tiên của bạn
 stake_state_empty_validators_title = Không tìm thấy trình xác thực nào
 stake_resource = Tài nguyên
 stake_resource_energy = Năng lượng
@@ -429,7 +429,7 @@ secret_phrase_do_not_share_description = Nếu ai đó có cụm từ bí mật 
 secret_phrase_save_phrase_safely = Lưu cụm từ bí mật của bạn ở nơi an toàn\n mà chỉ có bạn kiểm soát.
 secret_phrase_confirm_quick_test_title = Hãy hoàn thành bài kiểm tra nhanh này để xác nhận rằng bạn đã lưu mọi thứ một cách chính xác.
 secret_phrase_screenshot_detected_title = Đã phát hiện ảnh chụp màn hình
-secret_phrase_screenshot_detected_description = Ảnh chụp màn hình có thể được các ứng dụng khác truy cập, nhưng chúng có thể khiến cụm từ bí mật của bạn gặp rủi ro nếu được lưu theo cách này.
+secret_phrase_screenshot_detected_description = Ảnh chụp màn hình có thể được các ứng dụng khác truy cập và có thể khiến cụm từ bí mật của bạn gặp rủi ro nếu được lưu theo cách này.
 secret_phrase_content_hidden_description = Nội dung bị ẩn trong quá trình ghi màn hình
 
 # Private Key
@@ -496,8 +496,8 @@ fee_rate_base = Phí cơ bản
 
 banner_account_activation_title = Phí kích hoạt tài khoản
 banner_account_activation_description = Mạng %@ yêu cầu một khoản phí một lần là %@.
-banner_stake_title = Bắt đầu đặt cược %@
-banner_stake_description = Kiếm %@ phần thưởng cho số tiền đặt cược của bạn khi bạn ngủ.
+banner_stake_title = Bắt đầu đặt cọc %@
+banner_stake_description = Kiếm %@ phần thưởng cho số tiền đặt cọc của bạn khi bạn ngủ.
 banner_activate_asset_description = Để sử dụng tài sản %@, trước tiên bạn phải bật nó trên mạng %@ bằng cách đáp ứng các yêu cầu cụ thể của mạng.
 banner_asset_status_title = Tài sản đáng ngờ
 banner_asset_status_description = Mã thông báo có thể không an toàn hoặc gây hiểu lầm. Chỉ tiếp tục nếu bạn hoàn toàn tin tưởng nó.
@@ -578,7 +578,7 @@ info_transaction_error_description = Giao dịch không thể hoàn tất do l�
 info_transaction_pending_description = Giao dịch đã được gửi và đang chờ xác nhận trên mạng. Thời gian xử lý có thể thay đổi. Vui lòng kiểm tra lại để cập nhật.
 info_estimated_confirmation_description = Ước tính này dựa trên phí giao dịch và hoạt động hiện tại của mạng %@. Thời gian xác nhận thực tế có thể thay đổi và không được đảm bảo.
 info_transaction_success_description = Giao dịch đã hoàn tất và được xác nhận trên mạng. Bạn có thể xem lại thông tin chi tiết để xác minh trạng thái của giao dịch.
-info_lock_time_description = Thời gian khóa, còn được gọi là thời gian hủy liên kết hoặc hủy đóng băng, là khoảng thời gian mà tài sản đã đặt cược không thể truy cập được sau khi bạn quyết định hủy đặt cược chúng.
+info_lock_time_description = Thời gian khóa, còn được gọi là thời gian hủy liên kết hoặc hủy đóng băng, là khoảng thời gian mà tài sản đã đặt cọc không thể truy cập được sau khi bạn quyết định hủy đặt cọc chúng.
 info_price_impact_description = Tác động giá là sự thay đổi về giá token do quy mô giao dịch của bạn gây ra. Tác động giá cao hơn có nghĩa là bạn nhận được ít token hơn do tính thanh khoản thấp hoặc quy mô lệnh lớn.
 info_slippage_description = Trượt giá là sự chênh lệch giữa giá dự kiến của một giao dịch và giá thực tế khi giao dịch đó được thực hiện.
 info_asset_status_unverified_description = Các mã thông báo chưa được xác minh chưa được xác minh đầy đủ bởi các dịch vụ của bên thứ ba đáng tin cậy. Chúng có thể xuất hiện trong ví của bạn do airdrop, chuyển khoản hoặc nhập thủ công.
@@ -597,7 +597,7 @@ info_perpetual_open_interest_description = Lãi suất mở thể hiện tổng 
 info_no_quote_description = Không thể trả về báo giá cho cặp mã thông báo đã chọn, có thể do số lượng thấp, thiếu thanh khoản hoặc hạn chế về mặt kỹ thuật.
 info_stake_reserved_title = Dành riêng cho Phí mạng
 info_stake_reserved_description = Một số tiền nhỏ sẽ được giữ lại trong ví của bạn để trang trải phí cho các hoạt động như hủy đặt cọc hoặc nhận phần thưởng.
-info_stake_apr_description = Tỷ lệ phần trăm hàng năm (APR) là tỷ lệ phần thưởng hàng năm cho việc đặt cược tiền điện tử của bạn.
+info_stake_apr_description = Tỷ lệ phần trăm hàng năm (APR) là tỷ lệ phần thưởng hàng năm cho việc đặt cọc tiền điện tử của bạn.
 info_stake_frozen_required_title = Đóng băng TRX để đặt cọc
 info_stake_frozen_required_description = Đặt cọc trên TRON gồm hai bước. Trước tiên hãy đóng băng TRX, sau đó đặt cọc để nhận phần thưởng.
 info_perpetual_auto_close_description = Tự động đóng vị thế của bạn ở mức giá đã đặt. Chốt lời khóa lợi nhuận, Cắt lỗ hạn chế thua lỗ.
@@ -677,17 +677,17 @@ perpetual_margin = Ký quỹ
 perpetual_position = Vị thế
 perpetual_close_position = Đóng vị thế
 perpetual_pnl = PnL
-perpetual_long = Dài
-perpetual_short = Ngắn
+perpetual_long = Long
+perpetual_short = Short
 perpetual_entry_price = Giá vào lệnh
-perpetual_modify = Biến đổi
+perpetual_modify = Sửa đổi
 perpetual_reduce_position = Giảm vị thế
 perpetual_increase_position = Tăng vị thế
 perpetual_open_direction = Mở %@
 perpetual_close_direction = Đóng %@
 perpetual_leverage = Đòn bẩy
 perpetual_auto_close = Tự động đóng
-perpetual_auto_close_take_profit = Kiếm lợi nhuận
+perpetual_auto_close_take_profit = Chốt lời
 perpetual_market_price = Giá thị trường
 perpetual_take_profit = TP
 perpetual_stop_loss = SL
@@ -703,9 +703,9 @@ perpetual_unrealized_pnl = Lợi nhuận và lỗ chưa thực hiện
 perpetual_volume = Khối lượng
 perpetual_all_time_pnl = Lợi nhuận và thua lỗ mọi thời đại
 perpetual_margin_usage = Sử dụng ký quỹ
-perpetual_account_leverage = Tận dụng tài khoản
+perpetual_account_leverage = Đòn bẩy tài khoản
 perpetual_margin_cross = Chéo
-perpetual_margin_isolated = Bị cô lập
+perpetual_margin_isolated = Cô lập
 
 # Perpetuals
 
@@ -718,7 +718,7 @@ perpetuals_empty_state_no_markets_found = Không tìm thấy thị trường
 # Rewards
 
 rewards_title = Phần thưởng
-rewards_share_text = Tham gia Gem Wallet Sử dụng liên kết giới thiệu của tôi và nhận phần thưởng: %@
+rewards_share_text = Tham gia Gem Wallet bằng liên kết giới thiệu của tôi và nhận phần thưởng: %@
 rewards_my_referral_code = Mã giới thiệu của tôi
 rewards_invite_friends_title = Mời bạn bè
 rewards_invite_friends_description = Kiếm %@ Điểm thưởng cho mỗi người bạn tham gia.
@@ -736,7 +736,7 @@ rewards_username = Tên người dùng
 rewards_ways_spend_title = Các cách chi tiêu
 rewards_ways_spend_asset_title = Lấy %@
 rewards_insufficient_points = Không đủ điểm
-rewards_confirm_redeem = Lấy %@ vì %@!
+rewards_confirm_redeem = Đổi %2$@ lấy %1$@!
 rewards_pending_title = Tiền thưởng đang chờ xử lý
 rewards_pending_description = Có sẵn trong %@
 rewards_pending_description_ready = Phần thưởng của bạn đã sẵn sàng!
@@ -759,8 +759,8 @@ notifications_inapp_state_empty_description = Bạn sẽ thấy các cập nhậ
 
 # Earn
 
-earn_state_empty_title = Vị trí của bạn sẽ hiển thị ở đây
-earn_state_empty_description = Gửi khoản tiền đầu tiên của bạn %@
+earn_state_empty_title = Vị thế của bạn sẽ hiển thị ở đây
+earn_state_empty_description = Nạp %@ đầu tiên của bạn
 
 # Contacts
 

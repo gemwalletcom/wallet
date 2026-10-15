@@ -1,13 +1,17 @@
-use num_traits::ToPrimitive;
 use std::error::Error;
 
-use gem_encoding::encode_base64;
 use num_bigint::BigInt;
+use num_traits::ToPrimitive;
+use primitives::swap::SwapQuoteDataType;
 use primitives::{FeePriority, FeeRate, GasPriceType, StakeType, TransactionInputType, TransactionLoadInput};
 
-use crate::{encode_split_and_stake, encode_token_transfer, encode_transfer, encode_unstake, models::*, validate_and_hash};
+use crate::{
+    encode_split_and_stake, encode_token_transfer, encode_transfer, encode_unstake,
+    models::{Coin, Gas, Object, OwnedCoins, StakeInput, SuiObject, TokenTransferInput, TransferInput, TxOutput, UnstakeInput},
+    validate_and_hash,
+};
 
-pub fn map_transaction_rate_rates(base_gas_price: BigInt) -> Vec<FeeRate> {
+pub fn map_transaction_fee_rates(base_gas_price: BigInt) -> Vec<FeeRate> {
     vec![
         FeeRate::new(FeePriority::Normal, GasPriceType::regular(&base_gas_price * BigInt::from(110) / BigInt::from(100))),
         FeeRate::new(FeePriority::Fast, GasPriceType::regular(&base_gas_price * BigInt::from(2))),
@@ -15,41 +19,21 @@ pub fn map_transaction_rate_rates(base_gas_price: BigInt) -> Vec<FeeRate> {
 }
 
 pub fn map_transaction_data(input: TransactionLoadInput, sui_coins: OwnedCoins<Coin>, token_coins: Option<OwnedCoins<Coin>>, objects: Vec<SuiObject>, gas_budget: u64) -> Result<String, Box<dyn Error + Send + Sync>> {
-    let gas_price = input.gas_price.gas_price().to_string().parse().unwrap_or(0);
+    let gas_price = input.gas_price.gas_price_u64()?;
 
-    match input.input_type {
-        TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } | TransactionInputType::Deposit { asset } => match asset.id.token_id.as_ref() {
-            None => {
-                let transfer_input = TransferInput {
-                    sender: input.sender_address,
-                    recipient: input.destination_address,
-                    amount: input.value.to_u64().ok_or("Sui amount is too large")?,
-                    coins: sui_coins,
-                    send_max: input.is_max_value,
-                    gas: Gas { budget: gas_budget, price: gas_price },
-                };
-                let tx_output = encode_transfer(&transfer_input)?;
-                let data = encode_base64(&tx_output.tx_data);
-                let digest = hex::encode(&tx_output.hash);
-                Ok(format!("{}_{}", data, digest))
-            }
-            Some(_token_id) => {
-                let gas_coin = sui_coins.coins.first().ok_or("No gas coins available for token transfer")?.clone();
-                let tokens = token_coins.ok_or("Missing token coins set for Sui token transfer")?;
-                let token_transfer_input = TokenTransferInput {
-                    sender: input.sender_address,
-                    recipient: input.destination_address,
-                    amount: input.value.to_u64().ok_or("Sui amount is too large")?,
-                    tokens,
-                    gas: Gas { budget: gas_budget, price: gas_price },
-                    gas_coin,
-                };
-                let tx_output = encode_token_transfer(&token_transfer_input)?;
-                let data = encode_base64(&tx_output.tx_data);
-                let digest = hex::encode(&tx_output.hash);
-                Ok(format!("{}_{}", data, digest))
-            }
-        },
+    let tx_output = match input.input_type {
+        TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } | TransactionInputType::Deposit { asset } => encode_asset_transfer(
+            TransferInput {
+                sender: input.sender_address,
+                recipient: input.destination_address,
+                amount: input.value.to_u64().ok_or("Sui amount is too large")?,
+                coins: sui_coins,
+                send_max: input.is_max_value,
+                gas: Gas { budget: gas_budget, price: gas_price },
+            },
+            asset.id.token_id.as_deref(),
+            token_coins,
+        ),
         TransactionInputType::Stake { stake_type, .. } => match stake_type {
             StakeType::Stake(validator) => {
                 let stake_input = StakeInput {
@@ -59,18 +43,15 @@ pub fn map_transaction_data(input: TransactionLoadInput, sui_coins: OwnedCoins<C
                     gas: Gas { budget: gas_budget, price: gas_price },
                     coins: sui_coins,
                 };
-                let tx_output = encode_split_and_stake(&stake_input)?;
-                let data = encode_base64(&tx_output.tx_data);
-                let digest = hex::encode(&tx_output.hash);
-                Ok(format!("{}_{}", data, digest))
+                encode_split_and_stake(&stake_input)
             }
             StakeType::Unstake(delegation) => {
                 let gas_coin = sui_coins.coins.first().ok_or("No gas coins available for unstake")?.clone();
                 let staked_object = objects.iter().find(|obj| obj.object_id == delegation.base.delegation_id).ok_or("Staked SUI object not found in provided objects")?;
 
-                let staked_sui = crate::models::Object {
+                let staked_sui = Object {
                     object_id: staked_object.object_id.parse().map_err(|error| format!("invalid staked Sui object id: {error}"))?,
-                    version: staked_object.version.parse().unwrap_or(0),
+                    version: staked_object.version.parse().map_err(|error| format!("invalid staked Sui object version: {error}"))?,
                     digest: staked_object.digest.parse().map_err(|error| format!("invalid staked Sui object digest: {error}"))?,
                 };
 
@@ -80,36 +61,127 @@ pub fn map_transaction_data(input: TransactionLoadInput, sui_coins: OwnedCoins<C
                     gas: Gas { budget: gas_budget, price: gas_price },
                     gas_coin,
                 };
-                let tx_output = encode_unstake(&unstake_input)?;
-                let data = encode_base64(&tx_output.tx_data);
-                let digest = hex::encode(&tx_output.hash);
-                Ok(format!("{}_{}", data, digest))
+                encode_unstake(&unstake_input)
             }
             StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => Err("Unsupported stake type for Sui".into()),
         },
-        TransactionInputType::Swap { swap_data: data, .. } => {
-            let tx_output = validate_and_hash(&data.data.data)?;
-            let data = encode_base64(&tx_output.tx_data);
-            let digest = hex::encode(&tx_output.hash);
-            Ok(format!("{}_{}", data, digest))
-        }
+        TransactionInputType::Swap { from_asset, swap_data, .. } => match swap_data.data.data_type {
+            SwapQuoteDataType::Transfer => encode_asset_transfer(
+                TransferInput {
+                    sender: input.sender_address,
+                    recipient: swap_data.data.to,
+                    amount: swap_data.data.value.to_u64().ok_or("Sui amount is too large")?,
+                    coins: sui_coins,
+                    send_max: false,
+                    gas: Gas { budget: gas_budget, price: gas_price },
+                },
+                from_asset.id.token_id.as_deref(),
+                token_coins,
+            ),
+            SwapQuoteDataType::Contract => validate_and_hash(&swap_data.data.data),
+        },
         TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => {
             let raw_data = extra.data.ok_or("Missing transaction data for Sui generic input")?;
             let encoded = String::from_utf8(raw_data).map_err(|_| "Invalid UTF-8 data for Sui generic input")?;
-            let tx_output = validate_and_hash(&encoded)?;
-            let data = encode_base64(&tx_output.tx_data);
-            let digest = hex::encode(&tx_output.hash);
-            Ok(format!("{}_{}", data, digest))
+            validate_and_hash(&encoded)
         }
-        _ => Err("Unsupported transaction type for Sui".into()),
+        TransactionInputType::TokenApprove { .. } | TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } | TransactionInputType::Perpetual { .. } | TransactionInputType::Earn { .. } => {
+            Err("Unsupported transaction type for Sui".into())
+        }
+    }?;
+    Ok(format!("{}_{}", tx_output.base64_encoded(), hex::encode(tx_output.hash)))
+}
+
+fn encode_asset_transfer(input: TransferInput, token_id: Option<&str>, token_coins: Option<OwnedCoins<Coin>>) -> Result<TxOutput, Box<dyn Error + Send + Sync>> {
+    match token_id {
+        None => encode_transfer(&input),
+        Some(_) => {
+            let gas_coin = input.coins.coins.into_iter().next().ok_or("No gas coins available for token transfer")?;
+            let tokens = token_coins.ok_or("Missing token coins set for Sui token transfer")?;
+            encode_token_transfer(&TokenTransferInput {
+                sender: input.sender,
+                recipient: input.recipient,
+                amount: input.amount,
+                tokens,
+                gas: input.gas,
+                gas_coin,
+            })
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::SuiObject;
-    use primitives::{Asset, Chain, Delegation, StakeType, TransactionInputType, TransactionLoadInput};
+    use crate::provider::testkit::TEST_ADDRESS_EMPTY;
+    use num_bigint::BigUint;
+    use primitives::{Asset, AssetType, Chain, Delegation, StakeType, SwapProvider, TransactionInputType, TransactionLoadInput, asset_constants::SUI_USDC_ASSET_ID, swap::SwapData};
+
+    #[test]
+    fn test_swap_transfer_uses_deposit_amount_and_recipient() {
+        let input = TransactionLoadInput {
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Sui),
+                to_asset: Asset::from_chain(Chain::Ton),
+                swap_data: SwapData::mock_transfer(SwapProvider::SwapsXyz, "2000000000", "1", TEST_ADDRESS_EMPTY),
+            },
+            is_max_value: true,
+            ..TransactionLoadInput::mock()
+        };
+        let normal_transfer = TransactionLoadInput {
+            destination_address: TEST_ADDRESS_EMPTY.to_string(),
+            value: BigUint::from(2_000_000_000_u64),
+            ..TransactionLoadInput::mock()
+        };
+        assert_eq!(
+            map_transaction_data(input, OwnedCoins::mock_sui(), None, vec![], 1_000_000).unwrap(),
+            map_transaction_data(normal_transfer, OwnedCoins::mock_sui(), None, vec![], 1_000_000).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_token_swap_transfer_uses_deposit_amount_and_recipient() {
+        let asset = Asset::new(SUI_USDC_ASSET_ID.clone(), "USDC".into(), "USDC".into(), 6, AssetType::TOKEN);
+        let input = TransactionLoadInput {
+            input_type: TransactionInputType::Swap {
+                from_asset: asset.clone(),
+                to_asset: Asset::from_chain(Chain::Ton),
+                swap_data: SwapData::mock_transfer(SwapProvider::NearIntents, "10000000", "1", TEST_ADDRESS_EMPTY),
+            },
+            is_max_value: true,
+            ..TransactionLoadInput::mock()
+        };
+        let normal_transfer = TransactionLoadInput {
+            input_type: TransactionInputType::Transfer { asset: asset.clone() },
+            destination_address: TEST_ADDRESS_EMPTY.to_string(),
+            value: BigUint::from(10_000_000_u64),
+            ..TransactionLoadInput::mock()
+        };
+        let token_coins = OwnedCoins::new(asset.id.token_id.unwrap(), vec![], 20_000_000);
+        assert_eq!(
+            map_transaction_data(input, OwnedCoins::mock_sui(), Some(token_coins.clone()), vec![], 1_000_000).unwrap(),
+            map_transaction_data(normal_transfer, OwnedCoins::mock_sui(), Some(token_coins), vec![], 1_000_000).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_contract_swap_preserves_payload() {
+        let message = map_transaction_data(TransactionLoadInput::mock(), OwnedCoins::mock_sui(), None, vec![], 25_000_000).unwrap();
+        let (payload, _) = message.split_once('_').unwrap();
+        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Swap {
+            from_asset: Asset::from_chain(Chain::Sui),
+            to_asset: Asset::from_chain(Chain::Sui),
+            swap_data: SwapData::mock_with_provider_data(SwapProvider::CetusClmm, payload, None),
+        });
+        assert_eq!(map_transaction_data(input, OwnedCoins::default(), None, vec![], 1_000_000).unwrap(), message);
+
+        let input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Swap {
+            from_asset: Asset::from_chain(Chain::Sui),
+            to_asset: Asset::from_chain(Chain::Sui),
+            swap_data: SwapData::mock_with_provider_data(SwapProvider::CetusClmm, "invalid transaction", None),
+        });
+        assert!(map_transaction_data(input, OwnedCoins::mock_sui(), None, vec![], 1_000_000).is_err());
+    }
 
     #[test]
     fn test_unstake_uses_object_reference() {
@@ -129,13 +201,17 @@ mod tests {
             digest: "CU86BjXRF1XHFRjKBasCYEuaQxhHuyGBpuoJyqsrYoX5".to_string(),
         }];
 
-        let result = map_transaction_data(input, gas_coins, None, objects, 25_000_000);
-        assert!(result.is_ok());
+        assert!(map_transaction_data(input.clone(), gas_coins.clone(), None, objects.clone(), 25_000_000).is_ok());
+        let invalid_objects = vec![SuiObject {
+            version: "invalid".to_string(),
+            ..objects[0].clone()
+        }];
+        assert!(map_transaction_data(input, gas_coins, None, invalid_objects, 25_000_000).is_err());
     }
 
     #[test]
-    fn test_map_transaction_rate_rates() {
-        let rates = map_transaction_rate_rates(BigInt::from(497));
+    fn test_map_transaction_fee_rates() {
+        let rates = map_transaction_fee_rates(BigInt::from(497));
 
         assert_eq!(rates.len(), 2);
         assert_eq!(rates[0].priority, FeePriority::Normal);

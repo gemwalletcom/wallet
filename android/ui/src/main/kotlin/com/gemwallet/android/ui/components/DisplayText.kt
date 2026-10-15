@@ -47,7 +47,7 @@ fun DisplayText(text: String, modifier: Modifier = Modifier, hideToggle: HideTog
         null
     } else {
         TextAutoSize.StepBased(
-            minFontSize = 20.sp,
+            minFontSize = 16.sp,
             maxFontSize = 42.sp,
             stepSize = 1.sp,
         )

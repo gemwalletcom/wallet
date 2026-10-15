@@ -1,3 +1,13 @@
+use std::collections::BTreeMap;
+
+use primitives::{
+    Asset, AssetType, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
+    chart::{ChartCandleStick, ChartDateValue},
+    known_assets::USDC_SYMBOL,
+    perpetual::{PerpetualAddress, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
+    portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData},
+};
+
 use crate::models::{
     balance::Balances,
     candlestick::Candlestick,
@@ -5,18 +15,37 @@ use crate::models::{
     order::OpenOrder,
     portfolio::HypercorePortfolioResponse,
     position::{AssetPositions, LeverageType, Position},
+    referral::{Referral, ReferralTokenState},
 };
-use primitives::{
-    Asset, AssetType, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
-    chart::{ChartCandleStick, ChartDateValue},
-    known_assets::USDC_SYMBOL,
-    perpetual::{PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
-    portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData},
-};
-use std::collections::BTreeMap;
 
 const HIP3_PERP_ASSET_OFFSET: u32 = 100_000;
 const HIP3_PERP_ASSET_STRIDE: u32 = 10_000;
+const USDC_TOKEN_INDEX: i32 = 0;
+
+pub(crate) fn map_perpetual_addresses(referral: Referral) -> Vec<PerpetualAddress> {
+    let addresses = referral.referrer_state.and_then(|state| state.data).and_then(|data| data.referral_states).unwrap_or_default();
+    addresses
+        .into_iter()
+        .map(|address| {
+            let totals = address
+                .token_to_state
+                .into_iter()
+                .flatten()
+                .filter(|(token, _)| *token != USDC_TOKEN_INDEX)
+                .fold(address.usdc, |totals, (_, state)| ReferralTokenState {
+                    cum_vlm: totals.cum_vlm + state.cum_vlm,
+                    cum_fees_rewarded_to_referrer: totals.cum_fees_rewarded_to_referrer + state.cum_fees_rewarded_to_referrer,
+                });
+            PerpetualAddress {
+                provider: PerpetualProvider::Hypercore,
+                address: address.user,
+                referred_at: address.time_joined,
+                cumulative_volume_usd: totals.cum_vlm,
+                cumulative_referral_earned_usd: totals.cum_fees_rewarded_to_referrer,
+            }
+        })
+        .collect()
+}
 
 pub fn create_perpetual_id(coin: &str) -> PerpetualId {
     PerpetualId::new(PerpetualProvider::Hypercore, coin)
@@ -297,7 +326,60 @@ mod tests {
         metadata::{AssetMetadata, HypercoreUniverseResponse, UniverseAsset},
         position::{AssetPosition, AssetPositions, CumulativeFunding, Leverage, LeverageType, MarginSummary, Position, PositionType},
     };
+    use chrono::DateTime;
     use primitives::{PerpetualDirection, PerpetualMarginType, perpetual_provider::PerpetualProvider};
+
+    #[test]
+    fn test_map_perpetual_addresses() {
+        let referral: Referral = serde_json::from_str(include_str!("../../testdata/referral_addresses.json")).unwrap();
+
+        assert_eq!(
+            map_perpetual_addresses(referral),
+            vec![
+                PerpetualAddress {
+                    provider: PerpetualProvider::Hypercore,
+                    address: "0x0000000000000000000000000000000000000001".to_string(),
+                    referred_at: DateTime::from_timestamp_millis(1753127993370).unwrap(),
+                    cumulative_volume_usd: 190.0,
+                    cumulative_referral_earned_usd: 19.0,
+                },
+                PerpetualAddress {
+                    provider: PerpetualProvider::Hypercore,
+                    address: "0x0000000000000000000000000000000000000002".to_string(),
+                    referred_at: DateTime::from_timestamp_millis(1753127994370).unwrap(),
+                    cumulative_volume_usd: 0.0,
+                    cumulative_referral_earned_usd: 0.0,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_map_perpetual_addresses_collects_new_tokens_and_legacy_stats() {
+        let mut referral: Referral = serde_json::from_str(include_str!("../../testdata/referral_addresses.json")).unwrap();
+        let addresses = referral.referrer_state.as_mut().unwrap().data.as_mut().unwrap().referral_states.as_mut().unwrap();
+        let state = addresses[0].token_to_state.as_ref().unwrap()[0].1.clone();
+        addresses[0].token_to_state.as_mut().unwrap().push((999, state));
+        addresses[1].token_to_state = None;
+        addresses[1].usdc.cum_vlm = 50.0;
+        addresses[1].usdc.cum_fees_rewarded_to_referrer = 5.0;
+
+        let addresses = map_perpetual_addresses(referral);
+
+        assert_eq!(addresses.len(), 2);
+        assert_eq!(addresses[0].cumulative_volume_usd, 290.0);
+        assert_eq!(addresses[0].cumulative_referral_earned_usd, 29.0);
+        assert_eq!(addresses[1].cumulative_volume_usd, 50.0);
+        assert_eq!(addresses[1].cumulative_referral_earned_usd, 5.0);
+    }
+
+    #[test]
+    fn test_map_perpetual_addresses_without_referrals() {
+        for payload in [include_str!("../../testdata/referral_need_to_trade.json"), include_str!("../../testdata/referral_need_to_create_code.json")] {
+            let referral = serde_json::from_str(payload).unwrap();
+            assert_eq!(map_perpetual_addresses(referral), vec![]);
+        }
+    }
 
     #[test]
     fn test_map_positions_basic() {

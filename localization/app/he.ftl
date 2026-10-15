@@ -1,6 +1,6 @@
 # Common
 
-common_cancel = לְבַטֵל
+common_cancel = בטל
 common_hidden = מוסתרים
 common_done = בוצע
 common_maximum_value = הערך המקסימלי הוא %@
@@ -20,7 +20,7 @@ common_delete = מחק
 common_delete_confirmation = האם אתה בטוח שאתה רוצה למחוק את %@?
 common_hide = הסתר
 common_wallet = ארנק
-common_show = לְהַצִיג %@
+common_show = הצג %@
 common_copied = הועתק: %@
 common_copied_to_clipboard = הועתק ללוח
 common_recommended = מומלץ
@@ -42,23 +42,23 @@ common_lists = רשימות
 common_unpin = בטל את ההצמדה
 common_pinned_asset = הוצמד: %@
 common_unpinned_asset = ההצמדה בוטלה: %@
-common_skip = לְדַלֵג
-common_warning = אַזהָרָה
+common_skip = דלג
+common_warning = אזהרה
 common_learn_more = למידע נוסף
-common_description = תֵאוּר
+common_description = תיאור
 common_emoji = אימוג'י
-common_avatar = גִלגוּל
-common_percentage = אֲחוּזִים
+common_avatar = אווטאר
+common_percentage = אחוזים
 common_details = פרטים
 common_info = מידע
 common_get_started = התחל
 common_earn = להרוויח
 common_method = אמצעי
-common_token = אֲסִימוֹן
+common_token = אסימון
 common_expiration = תפוגה
 common_suspicious_address = כתובת חשודה
 common_suspicious_address_description = כתובת זו קשורה לפעילות חשודה או מזיקה.
-common_refresh = לְרַעֲנֵן
+common_refresh = רענן
 common_grant_permission = תן רשות
 common_required_field = %@ נדרש
 
@@ -70,14 +70,14 @@ welcome_title = ברוכים הבאים למשפחת Gem
 
 wallet_create_new_wallet = צור ארנק חדש
 wallet_import_existing_wallet = ייבא ארנק קיים
-wallet_send = לִשְׁלוֹחַ
-wallet_receive = לְקַבֵּל
-wallet_buy = לִקְנוֹת
-wallet_swap = לְהַחלִיף
+wallet_send = שלח
+wallet_receive = קבל
+wallet_buy = קנה
+wallet_swap = החלף
 wallet_import_title = ייבוא ארנק
 wallet_new_title = ארנק חדש
-wallet_name = שֵׁם
-wallet_import_action = יְבוּא
+wallet_name = שם
+wallet_import_action = ייבא
 wallet_multicoin = רב מטבע
 wallet_import_address_field = כתובת או שם
 wallet_manage_token_list = ניהול אסימונים
@@ -95,13 +95,13 @@ wallet_receive_no_memo_required = אין צורך בתזכיר
 wallet_receive_no_destination_tag_required = אין צורך בתג יעד
 wallet_title = ארנק
 wallet_add_token_title = הוסף אסימון
-wallet_sell = מְכִירָה
+wallet_sell = מכור
 wallet_receive_collection = קבלת אוסף
-wallet_more = יוֹתֵר
+wallet_more = עוד
 wallet_import_contract_address_field = חוזה או מזהה טוקן
 wallet_import_address_warning = ניתן לצפות ביתרות ועסקאות עבור כתובת זו, אך **לא ניתן לשלוח או למכור כספים**.
-wallet_deposit = לְהַפְקִיד
-wallet_withdraw = משיכה
+wallet_deposit = הפקד
+wallet_withdraw = משוך
 wallet_available_balance = זמין: %@
 # Used in the insufficient network fee sheet for the buy option subtitle.
 wallet_pay_with_card_or_bank = שלם בכרטיס או בבנק
@@ -109,7 +109,7 @@ wallet_pay_with_card_or_bank = שלם בכרטיס או בבנק
 wallet_from_your_wallet_assets = מנכסי הארנק שלך
 # Used in the insufficient network fee sheet for the receive option subtitle.
 wallet_transfer_from_another_wallet = העבר מארנק אחר
-wallet_portfolio_title = תִיק
+wallet_portfolio_title = תיק
 wallet_import_already_imported_message = ארנק זה כבר יובא.
 
 # Wallets
@@ -118,7 +118,7 @@ wallets_title = ארנקים
 
 # Receive
 
-receive_warning = זוהי הכתובת שלך - שליחה בלבד %@ על ה- %@ רֶשֶׁת.
+receive_warning = זוהי הכתובת שלך — יש לשלוח אליה רק %@ ברשת %@.
 
 # Buy
 
@@ -130,7 +130,7 @@ buy_no_results = אין הצעות מחיר זמינות
 # Transfer
 
 transfer_network_fee = עמלת רשת
-transfer_pay_with = לשלם באמצעות
+transfer_pay_with = תשלום באמצעות
 transfer_payment_title = תשלום
 transfer_memo = תזכיר
 transfer_confirm = אשר
@@ -142,10 +142,10 @@ transfer_recipient_title = נמען
 transfer_balance = יתרה: %@
 transfer_title = העברה
 transfer_recipient_address_field = כתובת או שם
-transfer_send_title = לִשְׁלוֹחַ
+transfer_send_title = שליחה
 transfer_insufficient_balance = יתרת %@ לא מספקת.
 transfer_insufficient_network_fee_balance = יתרת %@ לא מספקת לכיסוי עמלות הרשת.
-transfer_approve_title = לאשר
+transfer_approve_title = אישור
 transfer_stake_title = סטייקינג
 transfer_claim_rewards_title = תבע תגמולים
 transfer_unstake_title = ביטול סטייקינג
@@ -162,8 +162,8 @@ transfer_smart_contract_title = חוזה חכם
 transfer_other_title = אחר
 transfer_maximum_amount = הכמות המקסימלית היא %@
 transfer_reserved_fees = השארנו %@ ביתרה שלך לכיסוי עמלות רשת עתידיות.
-transfer_freeze_title = הַקפָּאָה
-transfer_unfreeze_title = לְהַפְשִׁיר
+transfer_freeze_title = הקפאה
+transfer_unfreeze_title = הפשרה
 transfer_review_request = סקור בקשה
 transfer_amount = כמות
 
@@ -187,7 +187,7 @@ settings_enable_passcode = אפשר קוד גישה
 settings_security_authentication = אימות
 settings_notifications_title = התראות
 settings_language = שפה
-settings_support = תְמִיכָה
+settings_support = תמיכה
 settings_price_alerts_title = התראות על מחירים
 settings_hide_balance = הסתר יתרה
 settings_disable_value = השבת %@
@@ -308,18 +308,18 @@ asset_market_cap = שווי שוק
 asset_trading_volume = נפח מסחר (24 שעות)
 asset_total_supply = אספקה כוללת
 asset_circulating_supply = אספקה במחזור
-asset_balances_reserved = שָׁמוּר
+asset_balances_reserved = שמור
 asset_view_token_on = הצג את האסימון ב-%@
 asset_view_address_on = הצג כתובת ב-%@
 asset_name = שם
 asset_symbol = סמל
 asset_decimals = עשרוניות
 asset_token_id = מזהה אסימון
-asset_contract = חוֹזֶה
+asset_contract = חוזה
 asset_state_empty_title = העסקאות שלך יופיעו כאן
 asset_state_empty_description = קבל, החלף או קנה %@
 asset_verification_unverified = לא מאומת
-asset_verification_suspicious = חָשׁוּד
+asset_verification_suspicious = חשוד
 asset_verification_warning_title = דע מה אתה מוסיף
 asset_verification_warning_message = כל אחד יכול ליצור אחד - כולל אסימונים מזויפים או זדוניים.
 asset_buy_asset = קנה %@
@@ -328,7 +328,7 @@ asset_add_to_wallet = הוסף לארנק
 asset_added_to_wallet = נוסף לארנק
 asset_hidden_from_wallet = הוסתר מהארנק
 asset_resources = משאבים
-asset_verification_verified = מְאוּמָת
+asset_verification_verified = מאומת
 asset_all_time_high = שיא כל הזמנים
 asset_all_time_low = שפל של כל הזמנים
 
@@ -341,11 +341,11 @@ charts_month = 1M
 charts_year = 1Y
 charts_all = הכל
 charts_entry = כניסה
-charts_price_open = לִפְתוֹחַ
-charts_price_close = לִסְגוֹר
-charts_price_high = גָבוֹהַ
-charts_price_low = נָמוּך
-charts_price_change = לְשַׁנוֹת
+charts_price_open = פתיחה
+charts_price_close = סגירה
+charts_price_high = גבוה
+charts_price_low = נמוך
+charts_price_change = שינוי
 
 # Date
 
@@ -399,11 +399,11 @@ stake_deactivating = מנטרל
 stake_awaiting_withdrawal = ממתין למשיכה
 stake_active_in = פעיל בעוד
 stake_minimum_amount = סכום מינימלי
-stake_state_empty_title = ההימור שלך יופיע כאן
-stake_state_empty_description = החזק את %@ הראשון שלך
+stake_state_empty_title = נכסי הסטייקינג שלך יופיעו כאן
+stake_state_empty_description = בצע את הסטייקינג הראשון שלך ב-%@
 stake_state_empty_validators_title = לא נמצאו מאמתים
-stake_resource = מַשׁאָב
-stake_resource_energy = אֵנֶרְגִיָה
+stake_resource = משאב
+stake_resource_energy = אנרגיה
 stake_resource_bandwidth = רוחב פס
 stake_delegations = האצלות
 
@@ -413,7 +413,7 @@ assets_no_assets_found = לא נמצאו נכסים
 assets_add_custom_token = הוסף אסימון מותאם אישית
 assets_select_asset = בחר נכס
 assets_popular = נכסים פופולריים
-assets_tags_new = חָדָשׁ
+assets_tags_new = חדש
 assets_state_empty_search_description = אתה יכול לנסות להוסיף את זה ידנית
 assets_title = נכסים
 
@@ -429,7 +429,7 @@ secret_phrase_do_not_share_description = אם למישהו יש את הביטו�
 secret_phrase_save_phrase_safely = שמור את הביטוי הסודי שלך במקום מאובטח \nשרק אתה שולט בו.
 secret_phrase_confirm_quick_test_title = השלם את הבדיקה המהירה הזו כדי לוודא ששמרת הכל כהלכה.
 secret_phrase_screenshot_detected_title = זוהה צילום מסך
-secret_phrase_screenshot_detected_description = צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את משפט הסוד שלך אם יישמרו בדרך זו.
+secret_phrase_screenshot_detected_description = צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את הביטוי הסודי שלך אם יישמרו בדרך זו.
 secret_phrase_content_hidden_description = תוכן מוסתר במהלך הקלטת מסך
 
 # Private Key
@@ -456,7 +456,7 @@ social_youtube = YouTube
 social_links = קישורים
 social_facebook = Facebook
 social_coingecko = CoinGecko
-social_website = אֲתַר אִינטֶרנֶט
+social_website = אתר אינטרנט
 social_opensea = OpenSea
 social_magiceden = MagicEden
 social_instagram = Instagram
@@ -497,13 +497,13 @@ fee_rate_base = עמלת בסיס
 banner_account_activation_title = עמלת הפעלת חשבון
 banner_account_activation_description = הרשת %@ דורשת תשלום חד פעמי של %@.
 banner_stake_title = התחל להמר %@
-banner_stake_description = זכה בתגמולים של %@ על ההימור שלך בזמן שאתה ישן.
+banner_stake_description = קבל תגמולי %@ על הסטייקינג שלך בזמן שאתה ישן.
 banner_activate_asset_description = כדי להשתמש בנכס %@, תחילה עליך להפעיל אותו ברשת %@ על ידי מילוי הדרישות הספציפיות של הרשת.
 banner_asset_status_title = נכס חשוד
 banner_asset_status_description = האסימון עשוי להיות לא בטוח או מטעה. המשך רק אם אתה סומך עליו לחלוטין.
 banner_onboarding_title = הארנק שלך מוכן
 banner_onboarding_description = קנה או קבל קריפטו כדי להתחיל
-banner_perpetuals_title = סחר נצחים ב-Hyperliquid
+banner_perpetuals_title = מסחר ב-Perpetuals ב-Hyperliquid
 banner_perpetuals_description = הפקד, סחר והרוויח עם Hyperliquid Perpetuals
 
 # Filter
@@ -539,7 +539,7 @@ price_alerts_set_alert_title = הגדר התראת מחיר
 
 # Lock
 
-lock_immediately = מִיָד
+lock_immediately = מיד
 lock_one_minute = דקה אחת
 lock_five_minutes = 5 דקות
 lock_fifteen_minutes = 15 דקות
@@ -554,7 +554,7 @@ lock_passcode_off_description = Gem נעול באמצעות קוד הגישה ש
 
 # Verify
 
-verify_phrase_title = לְאַשֵׁר
+verify_phrase_title = אישור
 
 # Warnings
 
@@ -578,7 +578,7 @@ info_transaction_error_description = לא ניתן היה להשלים את הע
 info_transaction_pending_description = העסקה הוגשה וממתינה לאישור ברשת. זמני העיבוד עשויים להשתנות. אנא בדקו שוב לעדכונים.
 info_estimated_confirmation_description = הערכה זו מבוססת על עמלת העסקה ועל הפעילות הנוכחית ברשת %@. זמן האישור בפועל עשוי להשתנות ואינו מובטח.
 info_transaction_success_description = העסקה הושלמה ואושרה ברשת. באפשרותך לעיין בפרטים כדי לאמת את מצבה.
-info_lock_time_description = זמן הנעילה, המכונה גם תקופת ביטול ההצמדה או ההקפאה, הוא משך הזמן שבו נכסים בהימור אינם נגישים לאחר שהחלטת לבטל אותם.
+info_lock_time_description = זמן הנעילה, המכונה גם תקופת ה-unbonding או ההפשרה, הוא משך הזמן שבו נכסים בסטייקינג אינם נגישים לאחר שהחלטת לבטל את הסטייקינג שלהם.
 info_price_impact_description = השפעת המחיר היא השינוי במחיר האסימון שנגרם על ידי גודל המסחר שלך. השפעה גבוהה יותר על המחיר פירושה שאתה מקבל פחות אסימונים עקב נזילות נמוכה או גודל הזמנה גדול.
 info_slippage_description = החלקה (Slippage) מתייחסת להפרש בין המחיר הצפוי של עסקה לבין המחיר בפועל שבו היא מבוצעת.
 info_asset_status_unverified_description = אסימונים שלא אומתו לא אומתו כראוי על ידי שירותי צד שלישי מהימנים. ייתכן שהם יופיעו בארנק שלך עקב הטלות אוויר, העברות או ייבוא ידני.
@@ -624,18 +624,18 @@ nft_collections = אוספים
 nft_collection = אוסף
 nft_save_to_photos = שמור בתמונות
 nft_set_as_avatar = הגדר כאווטר
-nft_state_empty_title = ה-NFT שלך יופיע כאן
+nft_state_empty_title = פריטי ה-NFT שלך יופיעו כאן
 nft_state_empty_description = קבל את ה-NFT הראשון שלך
 nft_report_reason_spam = ספאם
-nft_report_reason_malicious = זְדוֹנִי
+nft_report_reason_malicious = זדוני
 nft_report_reason_inappropriate = תוכן לא הולם
-nft_report_reason_copyright = זְכוּת יְוֹצרִים
+nft_report_reason_copyright = זכויות יוצרים
 nft_report_reason_other = אחר
 nft_report_report_button_title = דווח
 
 # Permissions
 
-permissions_access_denied = הגִישָׁה נִדחֲתָה
+permissions_access_denied = הגישה נדחתה
 permissions_image_photo_access_denied_description = לאפליקציה הזו אין הרשאה לגשת לספריית התמונות שלך. אפשר גישה בהגדרות המכשיר שלך.
 
 # Markets
@@ -672,17 +672,17 @@ onboarding_accept_terms_continue = מסכים והמשך
 # Perpetual
 
 perpetual_positions = פוזיציות
-perpetual_size = גוֹדֶל
+perpetual_size = גודל
 perpetual_margin = מרג'ין
 perpetual_position = פוזיציה
-perpetual_close_position = סגירת מיקום
+perpetual_close_position = סגירת פוזיציה
 perpetual_pnl = PnL
-perpetual_long = ארוך
-perpetual_short = קצר
+perpetual_long = לונג
+perpetual_short = שורט
 perpetual_entry_price = מחיר כניסה
 perpetual_modify = שנה
-perpetual_reduce_position = הקטן את המיקום
-perpetual_increase_position = הגדלת מיקום
+perpetual_reduce_position = הקטנת פוזיציה
+perpetual_increase_position = הגדלת פוזיציה
 perpetual_open_direction = פתח %@
 perpetual_close_direction = סגור %@
 perpetual_leverage = מינוף
@@ -696,9 +696,9 @@ perpetual_increase_direction = הגדלה %@
 perpetual_reduce_direction = צמצום %@
 perpetual_auto_close_expected_profit = רווח צפוי
 perpetual_auto_close_expected_loss = הפסד צפוי
-perpetual_modify_position = שינוי מיקום
+perpetual_modify_position = שינוי פוזיציה
 perpetual_auto_close_stop_loss = עצירת הפסד
-perpetual_value = עֵרֶך
+perpetual_value = ערך
 perpetual_unrealized_pnl = רווח והפסד לא ממומשים
 perpetual_volume = נפח
 perpetual_all_time_pnl = כל הזמנים PnL
@@ -709,19 +709,19 @@ perpetual_margin_isolated = מבודד
 
 # Perpetuals
 
-perpetuals_title = נצחיים
+perpetuals_title = Perpetuals
 # Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
-perpetuals_trade = מסחר בנצחיים
+perpetuals_trade = מסחר ב-Perpetuals
 perpetuals_markets = שווקים
 perpetuals_empty_state_no_markets_found = לא נמצאו שווקים
 
 # Rewards
 
 rewards_title = תגמולים
-rewards_share_text = לְהִצְטַרֵף Gem Wallet בעזרת קישור ההפניה שלי וצברו פרסים: %@
+rewards_share_text = הצטרפו ל-Gem Wallet דרך קישור ההפניה שלי וצברו תגמולים: %@
 rewards_my_referral_code = קוד ההפניה שלי
 rewards_invite_friends_title = הזמן חברים
-rewards_invite_friends_description = לִזכּוֹת %@ נקודות לכל חבר שמצטרף.
+rewards_invite_friends_description = צברו %@ נקודות על כל חבר שמצטרף.
 rewards_referral_code = קוד הפניה
 rewards_invited_by = מוזמן על ידי
 rewards_points = נקודות
@@ -733,10 +733,10 @@ rewards_activate_referral_code_title = מימוש קוד
 rewards_create_referral_code_title = צור שם משתמש
 rewards_create_referral_code_info = זה יהיה הכינוי האישי שלך לארנק הנוכחי.
 rewards_username = שם משתמש
-rewards_ways_spend_title = דרכים להוציא כסף
-rewards_ways_spend_asset_title = לְקַבֵּל %@
+rewards_ways_spend_title = דרכים לממש נקודות
+rewards_ways_spend_asset_title = קבל %@
 rewards_insufficient_points = נקודות לא מספיקות
-rewards_confirm_redeem = לְקַבֵּל %@ עֲבוּר %@!
+rewards_confirm_redeem = קבל %@ תמורת %@!
 rewards_pending_title = בונוס ממתין
 rewards_pending_description = זמין ב %@
 rewards_pending_description_ready = הבונוס שלך מוכן!
@@ -765,7 +765,7 @@ earn_state_empty_description = הפקד את הראשון שלך %@
 # Contacts
 
 contacts_title = אנשי קשר
-contacts_contact = מַגָע
+contacts_contact = איש קשר
 contacts_addresses = כתובות
 contacts_state_empty_title = אין אנשי קשר
 contacts_state_empty_description = שמור את הכתובות שאתה משתמש בהן לעתים קרובות
@@ -774,7 +774,7 @@ contacts_add_to_existing_contact = הוסף לאיש קשר
 
 # Simulation
 
-simulation_header_unlimited_asset = בִּלתִי מוּגבָּל %@
+simulation_header_unlimited_asset = %@ ללא הגבלה
 simulation_warning_unlimited_token_approval_description = זה נותן למוציא גישה להשתמש באסימון זה עד שתבטל את האישור או שהוא יפוג תוקפו.
 simulation_warning_externally_owned_spender_description = אישור זה מאפשר לכתובת ארנק רגילה (EOA) להשתמש בנכסים שלך. אשר רק אם אתה סומך על כתובת זו.
 simulation_warning_nft_collection_approval_title = התבקשה גישה מלאה לאוסף NFT

@@ -157,7 +157,7 @@ fn build_fill_transaction(address: &str, last_fill: &UserFill, asset_id: AssetId
     let address = address.to_string();
 
     Some(Transaction::new(
-        last_fill.hash.clone(),
+        last_fill.transaction_id(),
         asset_id,
         address.clone(),
         address,
@@ -344,9 +344,9 @@ mod tests {
         let fills: Vec<UserFill> = serde_json::from_str(include_str!("../../testdata/user_fills_shared_hash.json")).unwrap();
         let transactions = map_user_fills("0xabc", fills, Some(&spot_meta()));
 
-        assert_eq!(transactions.len(), 2);
-        assert_eq!(transactions[0].hash(), "0xshared");
-        assert_eq!(transactions[1].hash(), "0xshared");
+        let mut hashes = transactions.iter().map(|transaction| transaction.hash()).collect::<Vec<_>>();
+        hashes.sort_unstable();
+        assert_eq!(hashes, vec!["0xshared:327271591086", "0xshared:327271591087"]);
 
         let mut fees = transactions.iter().map(|transaction| transaction.fee.to_string()).collect::<Vec<_>>();
         fees.sort_unstable();
@@ -360,7 +360,7 @@ mod tests {
 
         assert_eq!(transactions.len(), 1);
         assert_eq!(transactions[0].transaction_type, TransactionType::Swap);
-        assert_eq!(transactions[0].hash(), "0xd16518b18533f577d2de043763f8ad020482009720371449752dc4044437cf62");
+        assert_eq!(transactions[0].hash(), "0xd16518b18533f577d2de043763f8ad020482009720371449752dc4044437cf62:355101232455");
         assert_eq!(transactions[0].asset_id, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
         assert_eq!(transactions[0].fee, BigUint::from(1326708u64));
         assert_eq!(transactions[0].fee_asset_id, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
@@ -389,7 +389,7 @@ mod tests {
 
         assert_eq!(transactions.len(), 1);
         assert_eq!(transactions[0].transaction_type, TransactionType::Swap);
-        assert_eq!(transactions[0].hash(), "0xbf8b52bd13095a59c105043764964e02028200a2ae0c792b6353fe0fd20d3444");
+        assert_eq!(transactions[0].hash(), "0xbf8b52bd13095a59c105043764964e02028200a2ae0c792b6353fe0fd20d3444:355138434755");
         assert_eq!(transactions[0].asset_id, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
         assert_eq!(transactions[0].fee, BigUint::from(20159u64));
         assert_eq!(transactions[0].fee_asset_id, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());

@@ -45,6 +45,10 @@ impl SwapProxyClient {
         let Some(deposit_id) = deposit_id(&response, self.deposit_id_paths) else {
             return;
         };
+        self.cache_deposit_id(deposit_id).await;
+    }
+
+    pub(super) async fn cache_deposit_id(&self, deposit_id: String) {
         if let Err(error) = self.deposit_addresses.add_vault_addresses(self.provider, SwapVaultAddressKind::Deposit, &[deposit_id]).await {
             error_with_fields!("swap deposit address cache failed", &*error, provider = self.provider.as_ref());
         }

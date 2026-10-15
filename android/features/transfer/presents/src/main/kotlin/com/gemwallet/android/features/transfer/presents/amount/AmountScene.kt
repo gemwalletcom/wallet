@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer.presents.components.ContinueScene
@@ -80,7 +81,7 @@ internal fun AmountScene(
             item {
                 Spacer16()
                 AmountField(
-                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).testTag("amountInputField"),
                     amount = amount,
                     symbol = field?.amountSymbol() ?: AmountSymbolUIModel("", AmountSymbolPlacement.Trailing),
                     onInputTypeClick = if (canSwitchInputType) {

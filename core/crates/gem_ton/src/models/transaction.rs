@@ -206,6 +206,7 @@ impl MessageContent {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionInMessage {
+    pub hash: Option<String>,
     pub source: Option<String>,
     pub destination: String,
     #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]

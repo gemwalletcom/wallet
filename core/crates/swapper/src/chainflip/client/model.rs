@@ -121,6 +121,7 @@ pub struct SwapDetail {
 static ASSETS: LazyLock<Vec<(&'static str, AssetId)>> = LazyLock::new(|| {
     vec![
         ("BTC", AssetId::from_chain(Chain::Bitcoin)),
+        ("DOT", AssetId::from_chain(Chain::Polkadot)),
         ("ETH", AssetId::from_chain(Chain::Ethereum)),
         ("USDC", ETHEREUM_USDC.id.clone()),
         ("USDT", ETHEREUM_USDT.id.clone()),

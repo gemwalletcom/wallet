@@ -123,7 +123,7 @@ receive_warning = Ito ang iyong address — ipadala lamang %@ sa %@ network.
 # Buy
 
 buy_title = Bumili ng %@
-buy_providers_title = Mga tagapagbigay
+buy_providers_title = Mga Provider
 buy_rate = Rate
 buy_no_results = Walang available na quotes
 
@@ -425,11 +425,11 @@ sign_message_view_full_message = Tingnan ang Buong Mensahe
 # Secret Phrase
 
 secret_phrase_do_not_share_title = Huwag ibahagi ang iyong Lihim na Parirala!
-secret_phrase_do_not_share_description = Kung ang isang tao ay may iyong lihim na parirala magkakaroon sila ng ganap na kontrol sa iyong pitaka!
+secret_phrase_do_not_share_description = Kung may hawak ng iyong lihim na parirala, magkakaroon sila ng ganap na kontrol sa iyong wallet!
 secret_phrase_save_phrase_safely = I-save ang iyong Lihim na Parirala sa isang ligtas na lugar \nna ikaw lang ang kumokontrol.
 secret_phrase_confirm_quick_test_title = Kumpletuhin ang mabilisang pagsubok na ito upang kumpirmahin na na-save mo nang tama ang lahat.
 secret_phrase_screenshot_detected_title = Natukoy ang screenshot
-secret_phrase_screenshot_detected_description = Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong sikretong parirala kung ise-save sa ganitong paraan.
+secret_phrase_screenshot_detected_description = Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong lihim na parirala kung ise-save sa ganitong paraan.
 secret_phrase_content_hidden_description = Nakatago ang content habang nagre-record ng screen
 
 # Private Key
@@ -652,11 +652,11 @@ networks_state_empty_search_title = Walang nakitang mga network
 
 # Onboarding
 
-onboarding_security_create_wallet_intro_title = Makakakuha ka ng Secret Phrase — ito lang ang paraan para ma-access ang iyong wallet.
+onboarding_security_create_wallet_intro_title = Makakakuha ka ng Lihim na Parirala — ito lang ang paraan para ma-access ang iyong wallet.
 onboarding_security_create_wallet_do_not_share_title = Huwag Ibahagi Ito Kaninuman
-onboarding_security_create_wallet_do_not_share_subtitle = Ang sinumang makakakuha ng iyong sikretong parirala ay maaaring ganap na makontrol ang iyong pitaka.
-onboarding_security_create_wallet_keep_safe_subtitle = Ang lihim na parirala ay tanging paraan upang ma-access ang iyong pitaka.
-onboarding_security_create_wallet_no_recovery_subtitle = Kung mawala mo ang iyong sikretong parirala, mawawalan ka ng access sa iyong wallet.
+onboarding_security_create_wallet_do_not_share_subtitle = Ang sinumang makakakuha ng iyong lihim na parirala ay maaaring ganap na makontrol ang iyong wallet.
+onboarding_security_create_wallet_keep_safe_subtitle = Ang lihim na parirala ang tanging paraan upang ma-access ang iyong wallet.
+onboarding_security_create_wallet_no_recovery_subtitle = Kung mawala mo ang iyong lihim na parirala, mawawalan ka ng access sa iyong wallet.
 onboarding_security_create_wallet_keep_safe_title = Itago Ito sa Ligtas na Lugar
 onboarding_security_create_wallet_no_recovery_title = Hindi Ka Namin Matutulungang Mabawi Ito
 onboarding_accept_terms_title = Tanggapin ang Mga Tuntunin
@@ -704,7 +704,7 @@ perpetual_volume = Dami
 perpetual_all_time_pnl = All Time PnL
 perpetual_margin_usage = Paggamit ng Margin
 perpetual_account_leverage = Leverage ng Account
-perpetual_margin_cross = Krus
+perpetual_margin_cross = Cross
 perpetual_margin_isolated = Nakahiwalay
 
 # Perpetuals
@@ -774,7 +774,7 @@ contacts_add_to_existing_contact = Idagdag sa Contact
 
 # Simulation
 
-simulation_header_unlimited_asset = Walang limitasyon %@
+simulation_header_unlimited_asset = Walang limitasyong %@
 simulation_warning_unlimited_token_approval_description = Nagbibigay ito sa gumagastos ng access na gamitin ang token na ito hanggang sa bawiin mo ang pag-apruba o hanggang sa mag-expire ito.
 simulation_warning_externally_owned_spender_description = Hinahayaan ng pag-aprubang ito ang isang karaniwang wallet address (EOA) na gamitin ang iyong mga asset. Kumpirmahin lang kung pinagkakatiwalaan mo ang address na ito.
 simulation_warning_nft_collection_approval_title = Hiniling ang kumpletong access sa koleksyon ng NFT

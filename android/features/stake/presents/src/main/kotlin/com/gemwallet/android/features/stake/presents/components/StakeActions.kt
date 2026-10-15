@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -37,7 +38,7 @@ internal fun LazyListScope.stakeActions(actions: List<GemStakeActionItem>, onOpe
         ListItem(
             model = model,
             listPosition = position,
-            modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke() },
+            modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke() }.testTag("${item.kind.name.lowercase()}_action"),
             accessory = { DataBadgeChevron() },
         )
         model.info?.let { if (showInfo) InfoBottomSheet(it) { showInfo = false } }

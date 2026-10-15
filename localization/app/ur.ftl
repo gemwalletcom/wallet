@@ -1,22 +1,22 @@
 # Common
 
-common_cancel = منسوخ کریں۔
+common_cancel = منسوخ کریں
 common_hidden = پوشیدہ
 common_done = ہو گیا
 common_maximum_value = زیادہ سے زیادہ قدر %@ ہے
 common_minimum_value = کم از کم قدر %@ ہے
 common_secret_phrase = خفیہ جملہ
 common_copy = کاپی
-common_share = شیئر کریں۔
+common_share = شیئر کریں
 common_continue = جاری رکھیں
 common_continue_anyway = بہرحال جاری رکھیں
 common_sign_in_with = %@ کے ساتھ سائن ان کریں
 common_provider = فراہم کرنے والا
-common_loading = لوڈ ہو رہا ہے۔
+common_loading = لوڈ ہو رہا ہے
 common_address = پتہ
-common_try_again = دوبارہ کوشش کریں۔
-common_paste = چسپاں کریں۔
-common_delete = حذف کریں۔
+common_try_again = دوبارہ کوشش کریں
+common_paste = چسپاں کریں
+common_delete = حذف کریں
 common_delete_confirmation = کیا آپ واقعی %@ حذف کرنا چاہتے ہیں؟
 common_hide = چھپائیں
 common_wallet = والیٹ
@@ -27,7 +27,7 @@ common_recommended = تجویز کردہ
 common_all = تمام
 common_not_available = دستیاب نہیں
 common_phrase = جملہ
-common_manage = انتظام کریں۔
+common_manage = انتظام کریں
 common_type = قسم
 common_no_results_found = کوئی نتیجہ نہیں ملا
 common_no = نہیں
@@ -35,14 +35,14 @@ common_none = کوئی نہیں
 common_url = URL
 common_private_key = نجی کلید
 common_latency_in_ms = %d ms
-common_open_settings = ترتیبات کھولیں۔
+common_open_settings = ترتیبات کھولیں
 common_pin = پن
 common_pinned = پن لگا ہوا
 common_lists = فہرستیں
-common_unpin = پن کھول دیں۔
+common_unpin = پن کھول دیں
 common_pinned_asset = پن کر دیا گیا: %@
 common_unpinned_asset = پن ہٹا دیا گیا: %@
-common_skip = چھوڑیں۔
+common_skip = چھوڑیں
 common_warning = وارننگ
 common_learn_more = مزید جانیں
 common_description = تفصیل
@@ -58,9 +58,9 @@ common_token = ٹوکن
 common_expiration = میعاد ختم
 common_suspicious_address = مشکوک پتہ
 common_suspicious_address_description = یہ پتہ مشکوک یا نقصان دہ سرگرمی سے وابستہ ہے۔
-common_refresh = ریفریش کریں۔
-common_grant_permission = اجازت دیں۔
-common_required_field = %@ درکار ہے۔
+common_refresh = ریفریش کریں
+common_grant_permission = اجازت دیں
+common_required_field = %@ درکار ہے
 
 # Welcome
 
@@ -69,39 +69,39 @@ welcome_title = Gem Family میں خوش آمدید
 # Wallet
 
 wallet_create_new_wallet = ایک نیا والیٹ بنائیں
-wallet_import_existing_wallet = ایک موجودہ والیٹ درآمد کریں۔
-wallet_send = بھیجیں۔
-wallet_receive = وصول کریں۔
-wallet_buy = خریدیں۔
+wallet_import_existing_wallet = ایک موجودہ والیٹ درآمد کریں
+wallet_send = بھیجیں
+wallet_receive = وصول کریں
+wallet_buy = خریدیں
 wallet_swap = تبادلہ
-wallet_import_title = والیٹ درآمد کریں۔
+wallet_import_title = والیٹ درآمد کریں
 wallet_new_title = نیا والیٹ
 wallet_name = نام
-wallet_import_action = درآمد کریں۔
+wallet_import_action = درآمد کریں
 wallet_multicoin = ملٹی کوائن
 wallet_import_address_field = پتہ یا نام
-wallet_manage_token_list = ٹوکنز کا نظم کریں۔
-wallet_scan_qr_code = کیو آر کوڈ اسکین کریں۔
-wallet_scan = اسکین کریں۔
+wallet_manage_token_list = ٹوکنز کا نظم کریں
+wallet_scan_qr_code = کیو آر کوڈ اسکین کریں
+wallet_scan = اسکین کریں
 wallet_scan_hint = بھیجیں، ادائیگی کریں یا DApp سے منسلک ہوں
 wallet_scan_hint_address = والیٹ کا پتہ
 wallet_default_name = والیٹ #%d
 wallet_default_name_chain = %@ والیٹ #%d
-wallet_copy_address = ایڈریس کاپی کریں۔
+wallet_copy_address = ایڈریس کاپی کریں
 wallet_watch_tooltip_title = صرف دیکھنے کے لیے والیٹ۔ ان فنڈز پر آپ کا کنٹرول نہیں ہے۔
 wallet_watch_empty_state_title = آپ اس والیٹ کو دیکھ رہے ہیں۔
 wallet_stake = اسٹیک
-wallet_receive_no_memo_required = میمو کی ضرورت نہیں ہے۔
-wallet_receive_no_destination_tag_required = کسی منزل کے ٹیگ کی ضرورت نہیں ہے۔
+wallet_receive_no_memo_required = میمو کی ضرورت نہیں ہے
+wallet_receive_no_destination_tag_required = کسی منزل کے ٹیگ کی ضرورت نہیں ہے
 wallet_title = والیٹ
-wallet_add_token_title = ٹوکن شامل کریں۔
+wallet_add_token_title = ٹوکن شامل کریں
 wallet_sell = بیچنا
-wallet_receive_collection = مجموعہ وصول کریں۔
+wallet_receive_collection = مجموعہ وصول کریں
 wallet_more = مزید
 wallet_import_contract_address_field = کنٹریکٹ یا ٹوکن ID
 wallet_import_address_warning = آپ اس پتے کے بیلنس اور لین دین دیکھ سکتے ہیں، لیکن **فنڈز بھیج یا فروخت نہیں کر سکتے**۔
 wallet_deposit = جمع
-wallet_withdraw = واپس لینا
+wallet_withdraw = نکالیں
 wallet_available_balance = دستیاب: %@
 # Used in the insufficient network fee sheet for the buy option subtitle.
 wallet_pay_with_card_or_bank = کارڈ یا بینک سے ادائیگی کریں
@@ -125,7 +125,7 @@ receive_warning = یہ آپ کا پتہ ہے - صرف بھیجیں۔ %@ پر %@ 
 buy_title = خریدیں %@
 buy_providers_title = فراہم کرنے والے
 buy_rate = شرح
-buy_no_results = کوئی اقتباسات دستیاب نہیں ہیں۔
+buy_no_results = کوئی اقتباسات دستیاب نہیں ہیں
 
 # Transfer
 
@@ -133,7 +133,7 @@ transfer_network_fee = نیٹ ورک فیس
 transfer_pay_with = اس سے ادائیگی کریں
 transfer_payment_title = ادائیگی
 transfer_memo = میمو
-transfer_confirm = تصدیق کریں۔
+transfer_confirm = تصدیق کریں
 transfer_from = سے
 transfer_to = کو
 transfer_max = زیادہ سے زیادہ
@@ -142,18 +142,18 @@ transfer_recipient_title = وصول کنندہ
 transfer_balance = بیلنس: %@
 transfer_title = منتقلی
 transfer_recipient_address_field = پتہ یا نام
-transfer_send_title = بھیجیں۔
+transfer_send_title = بھیجیں
 transfer_insufficient_balance = ناکافی %@ بیلنس۔
 transfer_insufficient_network_fee_balance = نیٹ ورک فیس کو پورا کرنے کے لیے ناکافی %@ بیلنس۔
-transfer_approve_title = منظور کریں۔
-transfer_stake_title = اسٹیک کریں۔
-transfer_claim_rewards_title = انعامات کا دعوی کریں۔
-transfer_unstake_title = اَن اسٹیک کریں۔
-transfer_redelegate_title = دوبارہ تفویض کریں۔
+transfer_approve_title = منظور کریں
+transfer_stake_title = اسٹیک کریں
+transfer_claim_rewards_title = انعامات کا دعوی کریں
+transfer_unstake_title = اَن اسٹیک کریں
+transfer_redelegate_title = دوبارہ تفویض کریں
 transfer_withdraw_title = واپس لینا
 transfer_rewards_title = انعامات
 transfer_minimum_amount = کم از کم رقم %@ ہے
-transfer_activate_asset_title = اثاثہ کو چالو کریں۔
+transfer_activate_asset_title = اثاثہ کو چالو کریں
 transfer_recipient_my_wallets = میرے والیٹس
 transfer_recipient_view_wallets = بٹوے دیکھیں
 transfer_minimum_account_balance = اس کے بعد ایک کم از کم %@ بیلنس باقی رہنا چاہیے، جب تک کہ آپ اپنا پورا بیلنس استعمال نہ کر رہے ہوں۔
@@ -162,8 +162,8 @@ transfer_smart_contract_title = سمارٹ معاہدہ
 transfer_other_title = دیگر
 transfer_maximum_amount = زیادہ سے زیادہ رقم %@ ہے
 transfer_reserved_fees = ہم نے مستقبل کے نیٹ ورک فیس کو پورا کرنے کے لیے آپ کے بیلنس میں %@ چھوڑ دیا ہے۔
-transfer_freeze_title = منجمد کریں۔
-transfer_unfreeze_title = غیر منجمد کریں۔
+transfer_freeze_title = منجمد کریں
+transfer_unfreeze_title = غیر منجمد کریں
 transfer_review_request = درخواست کا جائزہ لیں
 transfer_amount = رقم
 
@@ -180,16 +180,16 @@ settings_networks_title = نیٹ ورکس
 settings_networks_source = ماخذ
 settings_networks_explorer = ایکسپلورر
 settings_currency = کرنسی
-settings_website = ویب سائٹ ملاحظہ کریں۔
+settings_website = ویب سائٹ ملاحظہ کریں
 settings_security = سیکورٹی
 settings_enable_value = %@ فعال کریں
-settings_enable_passcode = پاس کوڈ کو فعال کریں۔
+settings_enable_passcode = پاس کوڈ کو فعال کریں
 settings_security_authentication = تصدیق
 settings_notifications_title = اطلاعات
 settings_language = زبان
 settings_support = حمایت
 settings_price_alerts_title = قیمت کے انتباہات
-settings_hide_balance = بیلنس چھپائیں۔
+settings_hide_balance = بیلنس چھپائیں
 settings_disable_value = غیر فعال کریں %@
 settings_preferences_title = ترجیحات
 settings_preferences_perpetual_default_leverage = ڈیفالٹ لیوریج
@@ -223,14 +223,14 @@ errors_error_occurred = ایک خرابی پیش آگئی!
 errors_invalid_network_id = غلط نیٹ ورک ID
 errors_error = خرابی
 errors_cancelled = منسوخ کر دیا گیا
-errors_connections_user_cancelled = صارف نے منسوخ کر دیا۔
-errors_not_supported = تعاون یافتہ نہیں۔
-errors_permissions_not_granted = اجازت نہیں دی گئی۔
+errors_connections_user_cancelled = صارف نے منسوخ کر دیا
+errors_not_supported = تعاون یافتہ نہیں
+errors_permissions_not_granted = اجازت نہیں دی گئی
 errors_unknown = نامعلوم
 errors_not_supported_qr = یہ آلہ QR کوڈ اسکیننگ کو سپورٹ نہیں کرتا ہے۔ آپ لائبریری سے صرف QR کوڈ کی تصویر منتخب کر سکتے ہیں۔
 errors_camera_permissions_not_granted = کیمرے کی اجازت نہیں دی گئی۔ QR کوڈ اسکین کرنے کے لیے براہ کرم سیٹنگز میں کیمرے تک رسائی کو فعال کریں۔
 errors_decoding_qr = QR کوڈ کو ڈی کوڈ کرنے میں ناکام۔ براہ کرم ایک مختلف QR کوڈ کے ساتھ دوبارہ کوشش کریں۔
-errors_transfer_error = منتقلی کی خرابی۔
+errors_transfer_error = منتقلی کی خرابی
 errors_unable_estimate_network_fee = ہم فی الحال نیٹ ورک فیس کا حساب لگانے سے قاصر ہیں۔
 errors_invalid_asset_address = غلط %@ پتہ
 errors_dust_threshold = لین دین ناکام ہو گیا کیونکہ رقم %@ نیٹ ورک کی کم از کم ضرورت (دھول کی حد) کو پورا کرنے کے لیے بہت کم ہے۔ یہ حد یقینی بناتی ہے کہ لین دین کی قیمت فیسوں اور پروسیسنگ کے اخراجات کا احاطہ کرتی ہے۔
@@ -244,12 +244,12 @@ errors_authentication_failed = تصدیق ناکام ہو گئی۔ براہ کر
 errors_connections_expired = اس کنکشن لنک کی میعاد ختم ہو گئی ہے۔ نیا QR کوڈ حاصل کریں اور دوبارہ کوشش کریں۔
 errors_connections_not_found = یہ کنکشن اب موجود نہیں ہے۔
 errors_connections_relay_unavailable = WalletConnect تک رسائی نہیں ہو سکی۔ اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں۔
-errors_swap_amount_too_small = رقم بہت چھوٹی ہے۔
+errors_swap_amount_too_small = رقم بہت چھوٹی ہے
 errors_scan_transaction_malicious_description = یہ لین دین مکمل نہیں کیا جا سکتا — منزل مقصود والیٹ کا پتہ مشکوک یا نقصان دہ سرگرمی سے منسلک ہے۔
 errors_scan_transaction_memo_required = %@ منزل والے بٹوے کے پتے کے لیے منزل کا ٹیگ / میمو درکار ہے۔
 errors_scan_transaction_malicious_title = مشکوک سرگرمی
 errors_connections_malicious_origin = یہ کنکشن ایک ناقابل اعتماد ذریعہ سے آتا ہے۔
-errors_no_data_available = کوئی ڈیٹا دستیاب نہیں ہے۔
+errors_no_data_available = کوئی ڈیٹا دستیاب نہیں ہے
 errors_dust_threshold_short = نیٹ ورک اس رقم کو دھول سمجھتا ہے — فیس خود رقم سے زیادہ ہے۔
 errors_swap_minimum_amount = کم از کم تجارتی رقم %@ ہے۔ براہ کرم زیادہ رقم درج کریں۔
 errors_perpetual_trigger_price_lower = ٹرگر قیمت مارکیٹ قیمت سے کم ہونی چاہیے
@@ -265,8 +265,8 @@ errors_payment_status = ادائیگی: %@
 # Activity
 
 activity_title = سرگرمی
-activity_state_empty_title = آپ کی سرگرمی یہاں ظاہر ہوگی۔
-activity_state_empty_description = اپنا پہلا لین دین کریں۔
+activity_state_empty_title = آپ کی سرگرمی یہاں ظاہر ہوگی
+activity_state_empty_description = اپنا پہلا لین دین کریں
 activity_state_empty_search_description = اپنی سرگرمیوں کو تازہ کرنے کے لیے فلٹرز صاف کریں۔
 activity_state_empty_search_title = کوئی سرگرمیاں نہیں ملی
 
@@ -274,10 +274,10 @@ activity_state_empty_search_title = کوئی سرگرمیاں نہیں ملی
 
 update_app_title = نئی اپ ڈیٹ دستیاب ہے!
 update_app_description = ایپ کا ورژن %@ اب دستیاب ہے۔ تازہ ترین خصوصیات اور بہتریوں کو اپ ڈیٹ کریں اور ان سے لطف اندوز ہوں۔
-update_app_action = اپ ڈیٹ کریں۔
-update_app_permission_title = تنصیب کی اجازت دیں۔
+update_app_action = اپ ڈیٹ کریں
+update_app_permission_title = تنصیب کی اجازت دیں
 update_app_permission_description = ترتیبات پر جائیں اور بیرونی ذرائع سے انسٹالیشن کی اجازت دیں۔
-update_app_permission_open_settings = ترتیبات پر جائیں۔
+update_app_permission_open_settings = ترتیبات پر جائیں
 
 # Transaction
 
@@ -291,11 +291,11 @@ transaction_status_confirmed = کامیاب
 transaction_status_pending = زیر التواء
 transaction_status_failed = ناکام
 transaction_status_reverted = پلٹایا
-transaction_title_received = موصول ہوا۔
+transaction_title_received = موصول ہوا
 transaction_title_sent = بھیجا
-transaction_swap_again = دوبارہ تبدیل کریں۔
+transaction_swap_again = دوبارہ تبدیل کریں
 transaction_status_completed = مکمل
-transaction_status_inprogress = جاری ہے۔
+transaction_status_inprogress = جاری ہے
 transaction_status_refunded = رقم کی واپسی
 transaction_status_expired = میعاد ختم
 
@@ -320,11 +320,11 @@ asset_state_empty_title = آپ کے لین دین یہاں ظاہر ہوں گے�
 asset_state_empty_description = وصول کریں، تبادلہ کریں یا خریدیں %@
 asset_verification_unverified = غیر تصدیق شدہ
 asset_verification_suspicious = مشکوک
-asset_verification_warning_title = جانیں کہ آپ کیا شامل کر رہے ہیں۔
+asset_verification_warning_title = جانیں کہ آپ کیا شامل کر رہے ہیں
 asset_verification_warning_message = کوئی بھی ایک بنا سکتا ہے - بشمول جعلی یا نقصان دہ ٹوکن۔
 asset_buy_asset = خریدیں %@
 asset_get_asset = %@ حاصل کریں
-asset_add_to_wallet = بٹوے میں شامل کریں۔
+asset_add_to_wallet = بٹوے میں شامل کریں
 asset_added_to_wallet = بٹوے میں شامل کر دیا گیا
 asset_hidden_from_wallet = بٹوے سے چھپا دیا گیا
 asset_resources = وسائل
@@ -341,7 +341,7 @@ charts_month = 1M
 charts_year = 1Y
 charts_all = تمام
 charts_entry = داخلہ
-charts_price_open = کھولیں۔
+charts_price_open = کھلا
 charts_price_close = بند
 charts_price_high = اعلی
 charts_price_low = کم
@@ -351,21 +351,21 @@ charts_price_change = تبدیلی
 
 date_today = آج
 date_yesterday = کل
-date_day_time = %@, %@
+date_day_time = %@، %@
 
 # Wallet Connect
 
 wallet_connect_title = WalletConnect
 wallet_connect_connection_title = کنکشن
 wallet_connect_disconnect = منقطع کرنا
-wallet_connect_connect_title = جڑیں۔
+wallet_connect_connect_title = جڑیں
 wallet_connect_app = ایپ
 wallet_connect_brand_name = WalletConnect
-wallet_connect_no_active_connections = کوئی فعال کنکشن نہیں ہے۔
+wallet_connect_no_active_connections = کوئی فعال کنکشن نہیں ہے
 wallet_connect_state_empty_description = DApp سے جڑنے کے لیے کوڈ کو اسکین یا پیسٹ کریں۔
 wallet_connect_permissions_title = اجازتیں
 wallet_connect_permissions_view_balance = اپنا توازن اور سرگرمی دیکھیں
-wallet_connect_permissions_approval_requests = منظوری کی درخواستیں بھیجیں۔
+wallet_connect_permissions_approval_requests = منظوری کی درخواستیں بھیجیں
 wallet_connect_request_expired = درخواست کی میعاد ختم ہو گئی
 
 # Swap
@@ -381,7 +381,7 @@ swap_price_impact_warning_description = آپ اس تجارت میں %@ اپنے 
 swap_price_impact_warning_title = اعلی قیمت کا اثر
 swap_estimated_time_title = تخمینی وقت
 swap_min_receive = کم از کم وصولی
-swap_use_minimum_amount = کم سے کم رقم استعمال کریں۔
+swap_use_minimum_amount = کم سے کم رقم استعمال کریں
 
 # Stake
 
@@ -391,15 +391,15 @@ stake_rewards = انعامات
 stake_validator = تصدیق کنندہ
 stake_validators = تصدیق کرنے والے
 stake_apr = APR %@
-stake_available_in = میں دستیاب ہے۔
+stake_available_in = میں دستیاب ہے
 stake_inactive = غیر فعال
 stake_lock_time = لاک ٹائم
 stake_activating = چالو کرنا
 stake_deactivating = غیر فعال کرنا
-stake_awaiting_withdrawal = واپسی کا انتظار ہے۔
+stake_awaiting_withdrawal = واپسی کا انتظار ہے
 stake_active_in = میں ایکٹو
 stake_minimum_amount = کم از کم رقم
-stake_state_empty_title = آپ کے اسٹیکس یہاں ظاہر ہوں گے۔
+stake_state_empty_title = آپ کے اسٹیکس یہاں ظاہر ہوں گے
 stake_state_empty_description = اپنا پہلا حصہ %@
 stake_state_empty_validators_title = کوئی تصدیق کنندہ نہیں ملا
 stake_resource = وسیلہ
@@ -410,11 +410,11 @@ stake_delegations = تفویضات
 # Assets
 
 assets_no_assets_found = کوئی اثاثہ نہیں ملا
-assets_add_custom_token = حسب ضرورت ٹوکن شامل کریں۔
-assets_select_asset = اثاثہ منتخب کریں۔
+assets_add_custom_token = حسب ضرورت ٹوکن شامل کریں
+assets_select_asset = اثاثہ منتخب کریں
 assets_popular = مقبول اثاثے
 assets_tags_new = نیا
-assets_state_empty_search_description = آپ اسے دستی طور پر شامل کرنے کی کوشش کر سکتے ہیں۔
+assets_state_empty_search_description = آپ اسے دستی طور پر شامل کرنے کی کوشش کر سکتے ہیں
 assets_title = اثاثے
 
 # Sign Message
@@ -465,7 +465,7 @@ social_coinmarketcap = CoinMarketCap
 
 # Nodes
 
-nodes_import_node_title = نوڈ شامل کریں۔
+nodes_import_node_title = نوڈ شامل کریں
 nodes_import_node_chain_id = سلسلہ ID
 nodes_import_node_in_sync = مطابقت پذیری میں
 nodes_import_node_latest_block = تازہ ترین بلاک
@@ -476,7 +476,7 @@ nodes_import_node_warning_message = حسب ضرورت نوڈس بدنیتی پر
 
 # Library
 
-library_select_from_photo_library = فوٹو لائبریری سے منتخب کریں۔
+library_select_from_photo_library = فوٹو لائبریری سے منتخب کریں
 
 # Fee Rates
 
@@ -501,9 +501,9 @@ banner_stake_description = سوتے وقت اپنے اسٹیک پر %@ انعا�
 banner_activate_asset_description = %@ اثاثہ استعمال کرنے کے لیے، آپ کو پہلے نیٹ ورک کی مخصوص ضروریات کو پورا کرتے ہوئے اسے %@ نیٹ ورک پر فعال کرنا ہوگا۔
 banner_asset_status_title = مشکوک اثاثہ
 banner_asset_status_description = ٹوکن غیر محفوظ یا گمراہ کن ہو سکتا ہے۔ صرف اس صورت میں آگے بڑھیں جب آپ کو اس پر مکمل اعتماد ہو۔
-banner_onboarding_title = آپ کا والیٹ تیار ہے۔
+banner_onboarding_title = آپ کا والیٹ تیار ہے
 banner_onboarding_description = شروع کرنے کے لیے کریپٹو خریدیں یا وصول کریں۔
-banner_perpetuals_title = Hyperliquid پر مستقل تجارت
+banner_perpetuals_title = Hyperliquid پر Perpetuals ٹریڈ کریں
 banner_perpetuals_description = Hyperliquid perpetual کے ساتھ جمع کریں، تجارت کریں اور کمائیں۔
 
 # Filter
@@ -511,7 +511,7 @@ banner_perpetuals_description = Hyperliquid perpetual کے ساتھ جمع کر�
 filter_clear = صاف
 filter_title = فلٹرز
 filter_types = اقسام
-filter_has_balance = توازن رکھتا ہے۔
+filter_has_balance = بیلنس موجود
 
 # Price Alerts
 
@@ -520,13 +520,13 @@ price_alerts_disabled_for = قیمت کا الرٹ %@ کے لیے غیر فعا�
 price_alerts_get_notified_explain_message = جب آپ کے پسندیدہ کرپٹو اثاثوں میں قیمت میں نمایاں تبدیلی ہو تو اطلاع حاصل کریں۔
 price_alerts_direction_over = اوپر
 price_alerts_direction_under = کے تحت
-price_alerts_direction_increases_by = سے بڑھتا ہے۔
-price_alerts_direction_decreases_by = سے کم ہوتا ہے۔
-price_alerts_set_alert_price_over = جب قیمت ختم ہو جائے۔
-price_alerts_set_alert_price_under = جب قیمت کم ہو۔
-price_alerts_set_alert_price_increases_by = جب قیمت بڑھ جاتی ہے۔
-price_alerts_set_alert_price_decreases_by = جب قیمت کم ہوتی ہے۔
-price_alerts_set_alert_set_target_price = ہدف کی قیمت مقرر کریں۔
+price_alerts_direction_increases_by = سے بڑھتا ہے
+price_alerts_direction_decreases_by = سے کم ہوتا ہے
+price_alerts_set_alert_price_over = جب قیمت اس سے اوپر ہو
+price_alerts_set_alert_price_under = جب قیمت اس سے نیچے ہو
+price_alerts_set_alert_price_increases_by = جب قیمت بڑھ جاتی ہے
+price_alerts_set_alert_price_decreases_by = جب قیمت کم ہوتی ہے
+price_alerts_set_alert_set_target_price = ہدف کی قیمت مقرر کریں
 price_alerts_set_alert_current_price = موجودہ قیمت
 price_alerts_added_price_over = قیمت %@ سے اوپر جانے پر الرٹ شامل کر دیا گیا
 price_alerts_added_price_under = قیمت %@ سے نیچے جانے پر الرٹ شامل کر دیا گیا
@@ -535,7 +535,7 @@ price_alerts_added_decreases_by = قیمت %@ گھٹنے پر الرٹ شامل 
 price_alerts_state_empty_title = آپ کے الرٹس یہاں ظاہر ہوں گے۔
 price_alerts_state_empty_description = ٹریک میں سکے شامل کرکے انہیں فعال کریں۔
 price_alerts_auto_footer = انتباہات اہم قیمت کی چالوں پر متحرک ہوتے ہیں۔
-price_alerts_set_alert_title = قیمت کا الرٹ سیٹ کریں۔
+price_alerts_set_alert_title = قیمت کا الرٹ سیٹ کریں
 
 # Lock
 
@@ -545,8 +545,8 @@ lock_five_minutes = 5 منٹ
 lock_fifteen_minutes = 15 منٹ
 lock_one_hour = 1 گھنٹہ
 lock_six_hours = 6 گھنٹے
-lock_require_authentication = تصدیق کی ضرورت ہے۔
-lock_unlock = غیر مقفل کریں۔
+lock_require_authentication = تصدیق کی ضرورت ہے
+lock_unlock = غیر مقفل کریں
 lock_footer = اپنے آلے پر اس ایپ تک رسائی کی حفاظت کریں۔
 lock_passcode = پاس کوڈ
 lock_passcode_off_title = ڈیوائس کا پاس کوڈ بند ہے
@@ -554,7 +554,7 @@ lock_passcode_off_description = Gem آپ کی ڈیوائس کے پاس کوڈ س
 
 # Verify
 
-verify_phrase_title = تصدیق کریں۔
+verify_phrase_title = تصدیق کریں
 
 # Warnings
 
@@ -583,7 +583,7 @@ info_price_impact_description = قیمت کا اثر آپ کے تجارتی سا
 info_slippage_description = Slippage سے مراد تجارت کی متوقع قیمت اور اصل قیمت کے درمیان فرق ہے جس پر اس پر عمل درآمد ہوتا ہے۔
 info_asset_status_unverified_description = غیر تصدیق شدہ ٹوکنز کی بھروسہ مند فریق ثالث خدمات کے ذریعہ کافی تصدیق نہیں کی گئی ہے۔ وہ ایئر ڈراپس، ٹرانسفرز، یا دستی درآمدات کی وجہ سے آپ کے بٹوے میں ظاہر ہو سکتے ہیں۔
 info_asset_status_suspicious_description = مشکوک یا سپیم ٹوکنز کی شناخت ممکنہ گھوٹالوں یا نقصان دہ اثاثوں کے طور پر کی جاتی ہے۔ وہ ایئر ڈراپس، ٹرانسفرز، یا دستی درآمدات کی وجہ سے آپ کے بٹوے میں ظاہر ہو سکتے ہیں۔
-info_balance_required_title = %@ درکار ہے۔
+info_balance_required_title = %@ درکار ہے
 info_insufficient_network_fee_balance_description = اس لین دین کے لیے %@ نیٹ ورک فیس کی مد میں %@ درکار ہے، لیکن صرف %@ دستیاب ہے۔ جاری رکھنے کے لیے آپ کو مزید %@ درکار ہیں۔
 info_insufficient_balance_title = ناکافی بیلنس
 info_balance_required_description = اس لین دین کے لیے %@ درکار ہے، لیکن صرف %@ دستیاب ہے۔ جاری رکھنے کے لیے آپ کو مزید %@ درکار ہیں۔
@@ -622,10 +622,10 @@ input_enter_amount_to = براہ کرم %@ کرنے کے لیے رقم درج ک
 nft_properties = پراپرٹیز
 nft_collections = مجموعے
 nft_collection = مجموعہ
-nft_save_to_photos = تصاویر میں محفوظ کریں۔
-nft_set_as_avatar = اوتار کے طور پر سیٹ کریں۔
-nft_state_empty_title = آپ کے NFTs یہاں ظاہر ہوں گے۔
-nft_state_empty_description = اپنا پہلا NFT وصول کریں۔
+nft_save_to_photos = تصاویر میں محفوظ کریں
+nft_set_as_avatar = اوتار کے طور پر سیٹ کریں
+nft_state_empty_title = آپ کے NFTs یہاں ظاہر ہوں گے
+nft_state_empty_description = اپنا پہلا NFT وصول کریں
 nft_report_reason_spam = سپیم
 nft_report_reason_malicious = بدنیتی پر مبنی
 nft_report_reason_inappropriate = نامناسب مواد
@@ -635,7 +635,7 @@ nft_report_report_button_title = رپورٹ
 
 # Permissions
 
-permissions_access_denied = رسائی سے انکار کر دیا گیا۔
+permissions_access_denied = رسائی سے انکار کر دیا گیا
 permissions_image_photo_access_denied_description = اس ایپ کو آپ کی تصویری لائبریری تک رسائی کی اجازت نہیں ہے۔ براہ کرم اپنے آلے کی ترتیبات میں رسائی کو فعال کریں۔
 
 # Markets
@@ -653,13 +653,13 @@ networks_state_empty_search_title = کوئی نیٹ ورک نہیں ملا
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = آپ کو ایک خفیہ جملہ ملے گا - یہ آپ کے بٹوے تک رسائی کا واحد طریقہ ہے۔
-onboarding_security_create_wallet_do_not_share_title = اسے کسی کے ساتھ شیئر نہ کریں۔
+onboarding_security_create_wallet_do_not_share_title = اسے کسی کے ساتھ شیئر نہ کریں
 onboarding_security_create_wallet_do_not_share_subtitle = جو کوئی بھی آپ کا خفیہ جملہ حاصل کرتا ہے وہ آپ کے بٹوے کا مکمل کنٹرول لے سکتا ہے۔
 onboarding_security_create_wallet_keep_safe_subtitle = خفیہ جملہ آپ کے بٹوے تک رسائی کا واحد طریقہ ہے۔
 onboarding_security_create_wallet_no_recovery_subtitle = اگر آپ اپنا خفیہ جملہ کھو دیتے ہیں، تو آپ اپنے بٹوے تک رسائی کھو دیتے ہیں۔
 onboarding_security_create_wallet_keep_safe_title = اسے کہیں محفوظ رکھیں
 onboarding_security_create_wallet_no_recovery_title = ہم اسے بحال کرنے میں آپ کی مدد نہیں کر سکتے
-onboarding_accept_terms_title = شرائط قبول کریں۔
+onboarding_accept_terms_title = شرائط قبول کریں
 onboarding_accept_terms_message = جاری رکھنے سے پہلے براہ کرم درج ذیل شرائط کو پڑھیں اور ان سے اتفاق کریں۔
 onboarding_accept_terms_item1_message = میں سمجھتا ہوں کہ میں اپنے بٹوے کی حفاظت اور بیک اپ کے لیے مکمل طور پر ذمہ دار ہوں، Gem نہیں۔
 onboarding_accept_terms_item2_message = میں سمجھتا ہوں کہ Gem ایک بینک یا ایکسچینج نہیں ہے، اور اسے غیر قانونی مقاصد کے لیے استعمال کرنا سختی سے ممنوع ہے۔
@@ -675,14 +675,14 @@ perpetual_positions = عہدے
 perpetual_size = سائز
 perpetual_margin = مارجن
 perpetual_position = پوزیشن
-perpetual_close_position = پوزیشن بند کریں۔
+perpetual_close_position = پوزیشن بند کریں
 perpetual_pnl = PnL
-perpetual_long = لمبی
-perpetual_short = مختصر
+perpetual_long = لانگ
+perpetual_short = شارٹ
 perpetual_entry_price = داخلے کی قیمت
-perpetual_modify = ترمیم کریں۔
-perpetual_reduce_position = پوزیشن کو کم کریں۔
-perpetual_increase_position = پوزیشن میں اضافہ کریں۔
+perpetual_modify = ترمیم کریں
+perpetual_reduce_position = پوزیشن کو کم کریں
+perpetual_increase_position = پوزیشن میں اضافہ کریں
 perpetual_open_direction = کھولیں %@
 perpetual_close_direction = بند کریں %@
 perpetual_leverage = لیوریج
@@ -696,8 +696,8 @@ perpetual_increase_direction = اضافہ کریں %@
 perpetual_reduce_direction = کم کریں %@
 perpetual_auto_close_expected_profit = متوقع منافع
 perpetual_auto_close_expected_loss = متوقع نقصان
-perpetual_modify_position = پوزیشن میں ترمیم کریں۔
-perpetual_auto_close_stop_loss = نقصان کو روکیں۔
+perpetual_modify_position = پوزیشن میں ترمیم کریں
+perpetual_auto_close_stop_loss = اسٹاپ لاس
 perpetual_value = قدر
 perpetual_unrealized_pnl = غیر حقیقی PnL
 perpetual_volume = حجم
@@ -709,36 +709,36 @@ perpetual_margin_isolated = الگ تھلگ
 
 # Perpetuals
 
-perpetuals_title = دائمی
+perpetuals_title = Perpetuals
 # Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
-perpetuals_trade = دائمی ٹریڈ کریں
+perpetuals_trade = Perpetuals ٹریڈ کریں
 perpetuals_markets = منڈیاں
 perpetuals_empty_state_no_markets_found = کوئی بازار نہیں ملا
 
 # Rewards
 
 rewards_title = انعامات
-rewards_share_text = شمولیت Gem Wallet میرے ریفرل لنک کے ساتھ اور انعامات حاصل کریں: %@
+rewards_share_text = میرے ریفرل لنک کے ذریعے Gem Wallet میں شامل ہوں اور انعامات حاصل کریں: %@
 rewards_my_referral_code = میرا ریفرل کوڈ
-rewards_invite_friends_title = دوستوں کو مدعو کریں۔
-rewards_invite_friends_description = کمائیں %@ شامل ہونے والے ہر دوست کے لیے پوائنٹس۔
+rewards_invite_friends_title = دوستوں کو مدعو کریں
+rewards_invite_friends_description = شامل ہونے والے ہر دوست پر %@ پوائنٹس حاصل کریں۔
 rewards_referral_code = ریفرل کوڈ
 rewards_invited_by = کی طرف سے مدعو کیا گیا
 rewards_points = پوائنٹس
 rewards_referrals = حوالہ جات
-rewards_earn_points_title = پوائنٹس حاصل کریں۔
-rewards_get_rewards_title = انعامات حاصل کریں۔
+rewards_earn_points_title = پوائنٹس حاصل کریں
+rewards_get_rewards_title = انعامات حاصل کریں
 rewards_activate_referral_code_description = کسی دوست کا حوالہ کوڈ ہے؟
-rewards_activate_referral_code_title = کوڈ بھنائیں۔
+rewards_activate_referral_code_title = کوڈ بھنائیں
 rewards_create_referral_code_title = صارف نام بنائیں
 rewards_create_referral_code_info = موجودہ بٹوے کے لیے یہ آپ کا ذاتی عرفی نام ہوگا۔
 rewards_username = صارف نام
 rewards_ways_spend_title = خرچ کرنے کے طریقے
-rewards_ways_spend_asset_title = حاصل کریں۔ %@
+rewards_ways_spend_asset_title = %@ حاصل کریں
 rewards_insufficient_points = ناکافی پوائنٹس
-rewards_confirm_redeem = حاصل کریں۔ %@ کے لیے %@!
+rewards_confirm_redeem = %2$@ کے بدلے %1$@ حاصل کریں!
 rewards_pending_title = بونس زیر التواء
-rewards_pending_description = میں دستیاب ہے۔ %@
+rewards_pending_description = %@ میں دستیاب
 rewards_pending_description_ready = آپ کا بونس تیار ہے!
 rewards_nickname = عرفی نام
 rewards_unverified_title = انعامات ابھی فعال نہیں ہیں۔
@@ -749,12 +749,12 @@ rewards_state_empty_description = دوستوں کو مدعو کرنے اور پ�
 # Recent Activity
 
 recent_activity_title = حالیہ
-recent_activity_state_empty_title = آپ کی حالیہ چیزیں یہاں ظاہر ہوں گی۔
+recent_activity_state_empty_title = آپ کی حالیہ چیزیں یہاں ظاہر ہوں گی
 recent_activity_state_empty_description = وہ اثاثے جو آپ نے حال ہی میں استعمال کیے ہیں وہ یہاں ظاہر ہوں گے۔
 
 # Notifications
 
-notifications_inapp_state_empty_title = ابھی تک کوئی اطلاع نہیں ہے۔
+notifications_inapp_state_empty_title = ابھی تک کوئی اطلاع نہیں ہے
 notifications_inapp_state_empty_description = آپ یہاں اپنی اطلاعات کے بارے میں اپ ڈیٹس دیکھیں گے۔
 
 # Earn
@@ -765,7 +765,7 @@ earn_state_empty_description = اپنی پہلی جمع کروائیں۔ %@
 # Contacts
 
 contacts_title = رابطے
-contacts_contact = رابطہ کریں۔
+contacts_contact = رابطہ
 contacts_addresses = پتے
 contacts_state_empty_title = کوئی رابطے نہیں
 contacts_state_empty_description = اپنے اکثر استعمال ہونے والے پتے محفوظ کریں۔
@@ -799,4 +799,4 @@ rootcheck_security_alert = سیکیورٹی وارننگ
 rootcheck_jailbreak_body = لگتا ہے کہ آپ کے آلے پر جیل بریک کیا گیا ہے۔ اس سے آپ کا والیٹ اور فنڈز خطرے میں پڑ سکتے ہیں۔
 rootcheck_body = ایسا لگتا ہے کہ آپ کے آلے کو روٹ تک رسائی حاصل ہے، جس سے سیکورٹی کے خطرات میں نمایاں اضافہ ہو سکتا ہے۔ اس ایپ کو روٹڈ ڈیوائس پر استعمال کرنے سے آپ کے اثاثوں کو غیر مجاز رسائی اور ممکنہ نقصان کا سامنا کرنا پڑ سکتا ہے۔ آپ کے فنڈز کی حفاظت کے لیے، ہم ایک غیر جڑ والا آلہ استعمال کرنے کی سختی سے سفارش کرتے ہیں۔
 rootcheck_ignore = نظر انداز کرنا
-rootcheck_exit = باہر نکلیں۔
+rootcheck_exit = باہر نکلیں

@@ -13,6 +13,7 @@ pub mod migrations_repository;
 pub mod nft_repository;
 pub mod notifications_repository;
 pub mod parser_state_repository;
+pub mod perpetuals_addresses_repository;
 pub mod perpetuals_repository;
 pub mod price_alerts_repository;
 pub mod prices_providers_repository;

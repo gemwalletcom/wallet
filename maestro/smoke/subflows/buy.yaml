@@ -1,0 +1,14 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "buy_button"
+- waitForAnimationToEnd
+- tapOn:
+    id: "bitcoin"
+- extendedWaitUntil:
+    visible:
+      id: "main_action"
+      enabled: true
+    timeout: 30000
+- takeScreenshot: ${output.journey}_buy

@@ -1,6 +1,6 @@
 use super::{
     AppFee, DepositData, DepositMode, NearIntentsClient, NearIntentsExplorer, QuoteRequest as NearQuoteRequest, QuoteResponse, QuoteResponseError, QuoteResponseResult, SwapType, auto_quote_time_chains,
-    chain::{self, hypercore, sui},
+    chain::{self, hypercore},
     deposit_memo_chains, get_asset_id_from_near_asset, get_near_asset_id,
     model::{DEFAULT_WAIT_TIME_MS, DEPOSIT_TYPE_ORIGIN, ExplorerTransaction, RECIPIENT_TYPE_DESTINATION},
     supported_assets,
@@ -8,7 +8,6 @@ use super::{
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
     SwapperQuoteData, amount_to_value,
-    client_factory::create_sui_client,
     cross_chain::VaultAddresses,
     fees::DEFAULT_REFERRER,
     fees::default_referral_fees,
@@ -18,7 +17,6 @@ use async_trait::async_trait;
 #[cfg(test)]
 use chrono::DateTime;
 use chrono::{Duration, Utc};
-use gem_sui::SuiClient;
 use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::Zero;
@@ -52,6 +50,7 @@ pub const TREASURY_ADDRESSES: [(Chain, &str); 17] = [
     (Chain::Cardano, "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm"),
 ];
 
+#[derive(Debug)]
 pub struct NearIntents<C>
 where
     C: gem_client::Client + Clone + Send + Sync + Debug + 'static,
@@ -60,30 +59,18 @@ where
     client: NearIntentsClient<C>,
     explorer: NearIntentsExplorer<C>,
     supported_assets: Vec<SwapperChainAsset>,
-    sui_client: SuiClient,
-}
-
-impl<C> std::fmt::Debug for NearIntents<C>
-where
-    C: gem_client::Client + Clone + Send + Sync + Debug + 'static,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("NearIntents")
-            .field("provider", &self.provider)
-            .field("client", &self.client)
-            .field("explorer", &self.explorer)
-            .field("supported_assets", &self.supported_assets)
-            .field("sui_client", &"SuiClient")
-            .finish()
-    }
 }
 
 impl NearIntents<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
         let client = NearIntentsClient::new(RpcClient::new(base_url(), rpc_provider.clone()), None);
-        let explorer = NearIntentsExplorer::new(RpcClient::new(explorer_url(), rpc_provider.clone()));
-        let sui_client = create_sui_client(rpc_provider.clone()).ok()?;
-        Some(Self::with_client(client, explorer, sui_client))
+        let explorer = NearIntentsExplorer::new(RpcClient::new(explorer_url(), rpc_provider));
+        Some(Self {
+            provider: ProviderType::new(SwapperProvider::NearIntents),
+            client,
+            explorer,
+            supported_assets: supported_assets(),
+        })
     }
 }
 
@@ -91,15 +78,6 @@ impl<C> NearIntents<C>
 where
     C: gem_client::Client + Clone + Send + Sync + Debug + 'static,
 {
-    pub fn with_client(client: NearIntentsClient<C>, explorer: NearIntentsExplorer<C>, sui_client: SuiClient) -> Self {
-        Self {
-            provider: ProviderType::new(SwapperProvider::NearIntents),
-            client,
-            explorer,
-            supported_assets: supported_assets(),
-            sui_client,
-        }
-    }
     fn build_app_fee() -> Option<Vec<AppFee>> {
         let fee = default_referral_fees().near;
         if fee.address.is_empty() || fee.bps == 0 {
@@ -184,10 +162,9 @@ where
         if chain == Chain::Bitcoin { BITCOIN_DEADLINE_MINUTES } else { DEFAULT_DEADLINE_MINUTES }
     }
 
-    async fn build_deposit_data(&self, deposit_memo: Option<String>, from_asset: &SwapperQuoteAsset, wallet_address: &str, deposit_address: &str, amount_in: &str) -> Result<DepositData, SwapperError> {
+    fn build_deposit_data(deposit_memo: Option<String>, from_asset: &SwapperQuoteAsset, deposit_address: &str, amount_in: &str) -> Result<DepositData, SwapperError> {
         match from_asset.chain() {
             Chain::HyperCore => hypercore::build_deposit_data(from_asset, deposit_address, amount_in),
-            Chain::Sui => sui::build_deposit_data(&self.sui_client, from_asset, wallet_address, deposit_address, amount_in).await,
             _ => Ok(DepositData {
                 to: deposit_address.to_string(),
                 value: amount_in.to_string(),
@@ -334,7 +311,7 @@ where
             return Err(SwapperError::ComputeQuoteError("Near Intents Stellar deposit missing memo".into()));
         }
 
-        let data = self.build_deposit_data(deposit_memo, from_asset, &quote.request.wallet_address, &deposit_address, &amount_in).await?;
+        let data = Self::build_deposit_data(deposit_memo, from_asset, &deposit_address, &amount_in)?;
 
         let DepositData { to, value, data: payload, memo } = data;
 

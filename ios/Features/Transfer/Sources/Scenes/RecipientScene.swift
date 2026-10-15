@@ -52,6 +52,7 @@ public struct RecipientScene: View {
                     onSelectScan: { model.onSelectScan(field: .address) },
                 )
                 .focused($focusedField, equals: .address)
+                .accessibilityIdentifier("addressInputField")
             }
 
             if model.showMemo {
@@ -85,6 +86,7 @@ public struct RecipientScene: View {
                                 model.onSelectRecipient(recipient)
                             },
                         )
+                        .accessibilityIdentifier("recipient_row")
                     }
                 } header: {
                     HStack {

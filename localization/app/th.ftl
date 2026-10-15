@@ -351,7 +351,7 @@ charts_price_change = เปลี่ยน
 
 date_today = วันนี้
 date_yesterday = เมื่อวาน
-date_day_time = %@, %@
+date_day_time = %@ %@
 
 # Wallet Connect
 
@@ -391,7 +391,7 @@ stake_rewards = รางวัล
 stake_validator = ผู้ตรวจสอบ
 stake_validators = ผู้ตรวจสอบความถูกต้อง
 stake_apr = APR %@
-stake_available_in = มีจำหน่ายใน
+stake_available_in = ใช้ได้ใน
 stake_inactive = ไม่ได้ใช้งาน
 stake_lock_time = ล็อคเวลา
 stake_activating = กำลังเปิดใช้งาน
@@ -429,7 +429,7 @@ secret_phrase_do_not_share_description = หากมีใครมีวลี
 secret_phrase_save_phrase_safely = บันทึกวลีลับของคุณไว้ในที่ปลอดภัย \nที่มีเพียงคุณเท่านั้นที่ควบคุม
 secret_phrase_confirm_quick_test_title = ทำการทดสอบด่วนนี้ให้เสร็จสิ้นเพื่อยืนยันว่าคุณได้บันทึกทุกอย่างถูกต้อง
 secret_phrase_screenshot_detected_title = ตรวจพบภาพหน้าจอ
-secret_phrase_screenshot_detected_description = ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น แต่หากบันทึกในลักษณะนี้ อาจทำให้รหัสผ่านของคุณตกอยู่ในความเสี่ยง
+secret_phrase_screenshot_detected_description = ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น หากบันทึกในลักษณะนี้ อาจทำให้วลีลับของคุณตกอยู่ในความเสี่ยง
 secret_phrase_content_hidden_description = เนื้อหาที่ซ่อนอยู่ระหว่างการบันทึกหน้าจอ
 
 # Private Key
@@ -656,7 +656,7 @@ onboarding_security_create_wallet_intro_title = คุณจะได้รั�
 onboarding_security_create_wallet_do_not_share_title = อย่าแบ่งปันกับใคร
 onboarding_security_create_wallet_do_not_share_subtitle = ใครก็ตามที่รู้วลีลับของคุณ สามารถควบคุมกระเป๋าเงินของคุณได้อย่างสมบูรณ์
 onboarding_security_create_wallet_keep_safe_subtitle = วลีลับเป็นวิธีเดียวที่จะเข้าถึงกระเป๋าเงินของคุณ
-onboarding_security_create_wallet_no_recovery_subtitle = หากคุณสูญเสียรหัสลับ คุณจะสูญเสียการเข้าถึงกระเป๋าเงินของคุณ
+onboarding_security_create_wallet_no_recovery_subtitle = หากคุณทำวลีลับหาย คุณจะสูญเสียการเข้าถึงกระเป๋าเงินของคุณ
 onboarding_security_create_wallet_keep_safe_title = เก็บไว้ที่ไหนสักแห่งที่ปลอดภัย
 onboarding_security_create_wallet_no_recovery_title = เราไม่สามารถช่วยคุณกู้คืนมันได้
 onboarding_accept_terms_title = ยอมรับเงื่อนไข
@@ -673,12 +673,12 @@ onboarding_accept_terms_continue = เห็นด้วยและดำเน
 
 perpetual_positions = ตำแหน่ง
 perpetual_size = ขนาด
-perpetual_margin = ระยะขอบ
+perpetual_margin = มาร์จิน
 perpetual_position = ตำแหน่ง
-perpetual_close_position = ตำแหน่งปิด
+perpetual_close_position = ปิดตำแหน่ง
 perpetual_pnl = PnL
-perpetual_long = ยาว
-perpetual_short = สั้น
+perpetual_long = Long
+perpetual_short = Short
 perpetual_entry_price = ราคาเข้า
 perpetual_modify = แก้ไข
 perpetual_reduce_position = ลดตำแหน่ง
@@ -703,15 +703,15 @@ perpetual_unrealized_pnl = กำไรขาดทุนที่ยังไ�
 perpetual_volume = ปริมาณ
 perpetual_all_time_pnl = กำไรขาดทุนตลอดกาล
 perpetual_margin_usage = การใช้มาร์จิน
-perpetual_account_leverage = การใช้ประโยชน์จากบัญชี
-perpetual_margin_cross = ข้าม
-perpetual_margin_isolated = โดดเดี่ยว
+perpetual_account_leverage = เลเวอเรจของบัญชี
+perpetual_margin_cross = Cross
+perpetual_margin_isolated = Isolated
 
 # Perpetuals
 
-perpetuals_title = นิรันดร์
+perpetuals_title = Perpetuals
 # Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
-perpetuals_trade = เทรดนิรันดร์
+perpetuals_trade = ซื้อขาย Perpetuals
 perpetuals_markets = ตลาด
 perpetuals_empty_state_no_markets_found = ไม่พบตลาด
 
@@ -721,11 +721,11 @@ rewards_title = รางวัล
 rewards_share_text = เข้าร่วม Gem Wallet ใช้ลิงก์แนะนำของฉันเพื่อรับรางวัล: %@
 rewards_my_referral_code = รหัสแนะนำของฉัน
 rewards_invite_friends_title = เชิญเพื่อนๆ
-rewards_invite_friends_description = ได้รับ %@ รับคะแนนสะสมสำหรับเพื่อนแต่ละคนที่เข้าร่วม
-rewards_referral_code = รหัสอ้างอิง
+rewards_invite_friends_description = รับ %@ คะแนนสำหรับเพื่อนแต่ละคนที่เข้าร่วม
+rewards_referral_code = รหัสแนะนำ
 rewards_invited_by = ได้รับเชิญจาก
 rewards_points = คะแนน
-rewards_referrals = การส่งต่อ
+rewards_referrals = การแนะนำ
 rewards_earn_points_title = สะสมคะแนน
 rewards_get_rewards_title = รับรางวัล
 rewards_activate_referral_code_description = มีรหัสแนะนำจากเพื่อนไหม?
@@ -736,9 +736,9 @@ rewards_username = ชื่อผู้ใช้
 rewards_ways_spend_title = วิธีใช้จ่าย
 rewards_ways_spend_asset_title = รับ %@
 rewards_insufficient_points = คะแนนไม่เพียงพอ
-rewards_confirm_redeem = รับ %@ สำหรับ %@-
+rewards_confirm_redeem = รับ %@ ด้วย %@!
 rewards_pending_title = โบนัสรออนุมัติ
-rewards_pending_description = มีจำหน่ายใน %@
+rewards_pending_description = ใช้ได้ใน %@
 rewards_pending_description_ready = โบนัสของคุณพร้อมแล้ว!
 rewards_nickname = ชื่อเล่น
 rewards_unverified_title = ระบบรางวัลยังไม่เปิดใช้งาน

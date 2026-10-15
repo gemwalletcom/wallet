@@ -1,0 +1,13 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "solana"
+- waitForAnimationToEnd
+- tapOn:
+    id: "stake"
+- waitForAnimationToEnd
+- tapOn:
+    id: "stake_action"
+- runFlow: amount_over_balance.yaml
+- takeScreenshot: ${output.journey}_stake

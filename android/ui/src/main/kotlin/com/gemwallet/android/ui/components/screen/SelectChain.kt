@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ui.R
@@ -56,6 +57,7 @@ fun SelectChain(
                         listPosition = ListPosition.getPosition(index, list.rows.size),
                         trailing = trailing?.let { t -> @Composable { t(chain) } },
                         onClick = { onSelect(chain) },
+                        modifier = Modifier.testTag(chain.string),
                     )
                 }
             }

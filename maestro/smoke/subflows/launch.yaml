@@ -1,0 +1,7 @@
+appId: ${APP_ID}
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "mainTab"
+    timeout: 30000

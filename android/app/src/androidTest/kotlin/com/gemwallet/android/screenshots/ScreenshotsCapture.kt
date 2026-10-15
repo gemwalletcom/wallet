@@ -105,8 +105,8 @@ class ScreenshotsCapture {
         runBlocking { delay(SCREEN_TIMEOUT) }
 
         device.pressBack()
-        device.wait(Until.hasObject(By.res("assetStake")), 5_000)
-        device.findObject(By.res("assetStake")).click()
+        device.wait(Until.hasObject(By.res("stake")), 5_000)
+        device.findObject(By.res("stake")).click()
         runBlocking { delay(SCREEN_TIMEOUT * 5) }
         takeScreenshot().writeToTestStorage("$path/3_asset_stake")
 

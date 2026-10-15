@@ -452,7 +452,7 @@
   <string name="lock_require_authentication">Exiger une authentification</string>
   <string name="lock_unlock">Déverrouiller</string>
   <string name="lock_footer">Protégez l\'accès à cette application sur votre appareil</string>
-  <string name="lock_passcode">Mot de passe</string>
+  <string name="lock_passcode">Code</string>
   <string name="lock_passcode_off_title">Le code de l\'appareil est désactivé</string>
   <string name="lock_passcode_off_description">Gem est verrouillé par le code de votre appareil. Activez un code dans les réglages de l\'appareil pour ouvrir Gem. Vos portefeuilles sont en sécurité.</string>
   <string name="verify_phrase_title">Confirmer</string>
@@ -578,7 +578,7 @@
   <string name="rewards_share_text">Rejoignez Gem Wallet avec mon lien de parrainage et gagnez des récompenses : %1$s</string>
   <string name="rewards_my_referral_code">Mon code de parrainage</string>
   <string name="rewards_invite_friends_title">Inviter des amis</string>
-  <string name="rewards_invite_friends_description">Gagner %1$s Des points pour chaque ami qui s\'inscrit.</string>
+  <string name="rewards_invite_friends_description">Gagnez %1$s points pour chaque ami qui s\'inscrit.</string>
   <string name="rewards_referral_code">Code de parrainage</string>
   <string name="rewards_invited_by">Invité par</string>
   <string name="rewards_points">Points</string>

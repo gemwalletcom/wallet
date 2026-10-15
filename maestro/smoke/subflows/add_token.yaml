@@ -1,0 +1,21 @@
+appId: ${APP_ID}
+---
+- runFlow: search.yaml
+- tapOn:
+    id: "cardano"
+- runFlow:
+    when:
+      visible:
+        id: "addToWallet"
+    commands:
+      - tapOn:
+          id: "addToWallet"
+- runFlow: launch.yaml
+- extendedWaitUntil:
+    visible:
+      id: "bitcoin"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: "cardano"
+- takeScreenshot: ${output.journey}_added_token

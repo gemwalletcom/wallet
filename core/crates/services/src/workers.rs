@@ -18,6 +18,7 @@ use crate::assets::repository::{PostgresRepository, Repository};
 use crate::assets::{AssetClassificationRules, AssetRankUpdater, AssetsHasPriceUpdater, AssetsImagesUpdater, PerpetualUpdater, StakeApyUpdater, UsageRankUpdater, UsageRankUpdaterConfig, ValidatorScanner};
 use crate::fiat::{FiatAssetsUpdater, FiatRatesUpdater};
 use crate::notifications::{StakeRewardsConfig, StakingRewardsNotifier};
+use crate::perpetuals::repository::{PostgresRepository as PerpetualsPostgresRepository, Repository as PerpetualsRepository};
 use crate::perpetuals::{PerpetualAddressRefresher, PerpetualPositionClassifier, PerpetualPositionClassifierConfig, PerpetualPositionObserver};
 use crate::prices::{
     AssetsProviders, ChartsHistoryConfig, ChartsHistoryUpdater, ChartsUpdater, MarketsClient, MarketsUpdater, MissingPricesPublisher, ObservedPricesConfig, ObservedPricesUpdater, PriceAlertClient, PriceAlertSender, PriceClient,
@@ -121,6 +122,7 @@ impl FiatJobs {
 
 #[derive(Clone)]
 pub struct PerpetualJobs {
+    repository: Arc<dyn PerpetualsRepository>,
     addresses: Arc<dyn PerpetualAddressCacher>,
     config: Arc<ConfigCacher>,
     providers: Arc<ChainProviders>,
@@ -139,7 +141,7 @@ impl PerpetualJobs {
     }
 
     pub fn address_refresher(&self) -> PerpetualAddressRefresher {
-        PerpetualAddressRefresher::new(self.providers.clone(), self.subscription_lookup.clone(), self.addresses.clone())
+        PerpetualAddressRefresher::new(self.providers.clone(), self.repository.clone(), self.subscription_lookup.clone(), self.addresses.clone())
     }
 }
 
@@ -392,6 +394,7 @@ impl Services {
         let config = self.config();
         let cacher = self.cacher().await?;
         Ok(PerpetualJobs {
+            repository: Arc::new(PerpetualsPostgresRepository::new(self.database())),
             addresses: Arc::new(cacher.clone()),
             providers: Arc::new(self.chain_providers(&service_user_agent("daemon", Some("perpetual_observer")))),
             classifier_config: PerpetualPositionClassifierConfig {

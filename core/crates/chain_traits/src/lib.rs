@@ -8,7 +8,7 @@ use crate::node_check::{NodeCheckReport, NodeCheckRequest};
 use async_trait::async_trait;
 pub use primitives::TransactionIdRequest;
 use primitives::chart::ChartCandleStick;
-use primitives::perpetual::{PerpetualAccountMode, PerpetualAccountPositions, PerpetualData};
+use primitives::perpetual::{PerpetualAccountMode, PerpetualAccountPositions, PerpetualAddress, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
 use primitives::{
     AddressStatus, Asset, AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChartPeriod, DelegationBase, DelegationValidator, FeeRate, NodeStatus, NodeSyncStatus, PerpetualPosition, SimulationInput,
@@ -244,7 +244,7 @@ pub trait ChainPerpetual: Send + Sync {
         Err("Chain does not support perpetual portfolio".into())
     }
 
-    async fn get_perpetual_referral_addresses(&self) -> Result<Vec<String>, Box<dyn Error + Sync + Send>> {
+    async fn get_perpetual_addresses(&self) -> Result<Vec<PerpetualAddress>, Box<dyn Error + Sync + Send>> {
         Ok(vec![])
     }
 }

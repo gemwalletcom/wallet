@@ -1,5 +1,6 @@
 use crate::percentage::GemPercentageStyle;
 use crate::precision::{GemCurrencyStyle, GemPrecision, GemValueStyle};
+use number_formatter::precision::round_to_places;
 use primitives::Currency;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -109,7 +110,19 @@ impl GemFormattedNumber {
     }
 
     pub fn toned(self) -> Self {
-        Self { tone: GemValueTone::of(self.value), ..self }
+        Self {
+            tone: GemValueTone::of(self.rounded_value()),
+            ..self
+        }
+    }
+
+    fn rounded_value(&self) -> f64 {
+        match self.display {
+            GemNumberDisplay::Number {
+                precision: GemPrecision::Fraction { max, .. },
+            } => round_to_places(self.value, max),
+            _ => self.value,
+        }
     }
 
     pub fn with_places(self, places: u32) -> Self {
@@ -330,6 +343,13 @@ mod tests {
         );
 
         assert_eq!(GemFormattedNumber::percentage(5.0, GemPercentageStyle::Unsigned).notation, GemNumberNotation::Plain);
+    }
+
+    #[test]
+    fn test_a_stablecoin_change_that_rounds_to_zero_is_neither_up_nor_down() {
+        assert_eq!(GemFormattedNumber::percentage(-0.001, GemPercentageStyle::Signed).tone, GemValueTone::Neutral);
+        assert_eq!(GemFormattedNumber::percentage(0.004, GemPercentageStyle::Unsigned).toned().tone, GemValueTone::Neutral);
+        assert_eq!(GemFormattedNumber::percentage(-0.006, GemPercentageStyle::Signed).tone, GemValueTone::Negative);
     }
 
     #[test]

@@ -7,19 +7,52 @@ pub struct FlowScan;
 
 impl HyperliquidExplorer {
     pub fn boxed() -> Box<dyn BlockExplorer> {
-        Explorer::boxed(Metadata::with_token("Hyperliquid", "https://app.hyperliquid.xyz/explorer"))
+        HyperCoreExplorer::boxed(Metadata::with_token("Hyperliquid", "https://app.hyperliquid.xyz/explorer"))
     }
 }
 
 impl HypurrScan {
     pub fn boxed() -> Box<dyn BlockExplorer> {
-        Explorer::boxed(Metadata::new("HypurrScan", "https://hypurrscan.io"))
+        HyperCoreExplorer::boxed(Metadata::new("HypurrScan", "https://hypurrscan.io"))
     }
 }
 
 impl FlowScan {
     pub fn boxed() -> Box<dyn BlockExplorer> {
-        Explorer::boxed(Metadata::new("FlowScan", "https://www.flowscan.xyz"))
+        HyperCoreExplorer::boxed(Metadata::new("FlowScan", "https://www.flowscan.xyz"))
+    }
+}
+
+struct HyperCoreExplorer {
+    explorer: Box<dyn BlockExplorer>,
+}
+
+impl HyperCoreExplorer {
+    fn boxed(metadata: Metadata) -> Box<dyn BlockExplorer> {
+        Box::new(Self { explorer: Explorer::boxed(metadata) })
+    }
+}
+
+impl BlockExplorer for HyperCoreExplorer {
+    fn name(&self) -> String {
+        self.explorer.name()
+    }
+
+    fn get_tx_url(&self, transaction_id: &str) -> String {
+        let hash = transaction_id.split_once(':').map_or(transaction_id, |(hash, _)| hash);
+        self.explorer.get_tx_url(hash)
+    }
+
+    fn get_address_url(&self, address: &str) -> String {
+        self.explorer.get_address_url(address)
+    }
+
+    fn get_token_url(&self, token: &str) -> Option<String> {
+        self.explorer.get_token_url(token)
+    }
+
+    fn get_nft_url(&self, contract: &str, token_id: &str) -> Option<String> {
+        self.explorer.get_nft_url(contract, token_id)
     }
 }
 
@@ -34,6 +67,7 @@ mod tests {
         let result = explorer.get_tx_url(tx_hash);
 
         assert_eq!(result, "https://app.hyperliquid.xyz/explorer/tx/0x144bb14b70b1ea80c06a0427e862140000ea2b7bf051872ce50dd920fd547b86");
+        assert_eq!(explorer.get_tx_url(&format!("{tx_hash}:327271591086")), result);
     }
 
     #[test]
@@ -61,6 +95,7 @@ mod tests {
         let address = "0xE4bfadD038B5ec2cab0e5F0354F2249cCF5d38eE";
 
         assert_eq!(explorer.get_tx_url(tx_hash), "https://hypurrscan.io/tx/0x90effdc0864193549269042ff91b3702038900a62144b22634b8a91345456d3f");
+        assert_eq!(explorer.get_tx_url(&format!("{tx_hash}:327271591086")), explorer.get_tx_url(tx_hash));
         assert_eq!(explorer.get_address_url(address), "https://hypurrscan.io/address/0xE4bfadD038B5ec2cab0e5F0354F2249cCF5d38eE");
     }
 
@@ -71,6 +106,7 @@ mod tests {
         let address = "0xE4bfadD038B5ec2cab0e5F0354F2249cCF5d38eE";
 
         assert_eq!(explorer.get_tx_url(tx_hash), "https://www.flowscan.xyz/tx/0x09f4a204b1230fbd0b6e043023ef7200002fb9ea4c262e8fadbd4d577026e9a7");
+        assert_eq!(explorer.get_tx_url(&format!("{tx_hash}:327271591086")), explorer.get_tx_url(tx_hash));
         assert_eq!(explorer.get_address_url(address), "https://www.flowscan.xyz/address/0xE4bfadD038B5ec2cab0e5F0354F2249cCF5d38eE");
     }
 }

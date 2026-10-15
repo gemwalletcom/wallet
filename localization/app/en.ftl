@@ -37,7 +37,7 @@ common_paste = Paste
 # Used in shared app UI for the delete label.
 common_delete = Delete
 # Delete confirmation. %@ is the item name shown to the user.
-common_delete_confirmation = Are sure you want to delete %@?
+common_delete_confirmation = Are you sure you want to delete %@?
 # Used in shared app UI for the hide label.
 common_hide = Hide
 # Used in shared app UI for the wallet label.
@@ -1048,7 +1048,7 @@ info_payment_verification_title = Payment Verification
 # Used in Info bottom sheets for the payment verification description.
 info_payment_verification_description = The merchant requires additional information before the payment.
 # Used in Info bottom sheets for the network fee description. Contains 2 string placeholders.
-info_network_fee_description = Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees varies based on network usage.
+info_network_fee_description = Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees vary based on network usage.
 # Used in Info bottom sheets for the transaction error description.
 info_transaction_error_description = The transaction could not be completed due to an error, such as insufficient funds, invalid input, or rejection by the network. Please review the details and try again.
 # Used in Info bottom sheets for the transaction pending description.
@@ -1193,7 +1193,7 @@ onboarding_security_create_wallet_do_not_share_title = Do Not Share It With Anyo
 # Used in onboarding and terms acceptance screens for the security create wallet do not share subtitle.
 onboarding_security_create_wallet_do_not_share_subtitle = Anyone who gets your secret phrase can take full control of your wallet.
 # Used in onboarding and terms acceptance screens for the security create wallet keep safe subtitle.
-onboarding_security_create_wallet_keep_safe_subtitle = The secret phrase is only way to access your wallet.
+onboarding_security_create_wallet_keep_safe_subtitle = The secret phrase is the only way to access your wallet.
 # Used in onboarding and terms acceptance screens for the security create wallet no recovery subtitle.
 onboarding_security_create_wallet_no_recovery_subtitle = If you lose your secret phrase, you lose access to your wallet.
 # Used in onboarding and terms acceptance screens for the security create wallet keep safe title.

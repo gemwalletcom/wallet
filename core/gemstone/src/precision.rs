@@ -41,6 +41,10 @@ impl GemValueStyle {
         number_formatter::precision::value((*self).into(), magnitude).into()
     }
 
+    pub fn fraction_places(&self, magnitude: f64) -> u32 {
+        number_formatter::precision::value((*self).into(), magnitude).fraction_places(magnitude)
+    }
+
     pub fn abbreviates(&self, magnitude: f64) -> bool {
         number_formatter::precision::abbreviates_value((*self).into(), magnitude)
     }
