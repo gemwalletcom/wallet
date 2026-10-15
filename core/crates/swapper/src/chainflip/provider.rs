@@ -499,13 +499,16 @@ mod tests {
     async fn test_polkadot_swap_result_uses_broker_status() {
         let broker = MockClient::new().with_get(|path| match path {
             "/assets" => Ok(include_str!("./broker/test/assets.json").as_bytes().to_vec()),
-            "/status-by-transaction-hash?transactionHash=0xcompleted" => Ok(include_str!("./broker/test/status_dot_to_eth.json").as_bytes().to_vec()),
+            "/status-by-transaction-hash?transactionHash=0xe3e6e6d9177796e473696d4f3beec9475f2e645f02a8bd524a1d194cd93d0026" => Ok(include_str!("./broker/test/status_dot_to_sol.json").as_bytes().to_vec()),
             "/status-by-transaction-hash?transactionHash=0xunknown" => Err(gem_client::ClientError::Http { status: 404, body: vec![] }),
             _ => panic!("unexpected path: {path}"),
         });
         let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(broker, MockClient::new()), Arc::new(ProviderMock::new(String::new())));
 
-        let result = provider.get_swap_result(&SwapResultRequest::new(Chain::Polkadot, "0xcompleted")).await.unwrap();
+        let result = provider
+            .get_swap_result(&SwapResultRequest::new(Chain::Polkadot, "0xe3e6e6d9177796e473696d4f3beec9475f2e645f02a8bd524a1d194cd93d0026"))
+            .await
+            .unwrap();
         assert_eq!(result.status, SwapStatus::Completed);
         assert_eq!(result.metadata.unwrap().from_asset, AssetId::from_chain(Chain::Polkadot));
 

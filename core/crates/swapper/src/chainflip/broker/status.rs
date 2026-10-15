@@ -133,18 +133,18 @@ mod tests {
 
     #[test]
     fn test_swap_result_completed() {
-        let status = status(include_str!("./test/status_dot_to_eth.json"));
+        let status = status(include_str!("./test/status_dot_to_sol.json"));
         let result = status.swap_result(&AssetsResponse::mock());
 
         assert_eq!(result.status, SwapStatus::Completed);
         let metadata = result.metadata.unwrap();
         assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Polkadot));
-        assert_eq!(metadata.from_value, BigUint::from(50_000_000_000u64));
-        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(metadata.to_value, BigUint::from(2_160_000_000_000_000u64));
+        assert_eq!(metadata.from_value, BigUint::from(100_000_000_000u64));
+        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Solana));
+        assert_eq!(metadata.to_value, BigUint::from(102_937_756u64));
         let referral_fee = metadata.referral_fee.unwrap();
         assert_eq!(referral_fee.asset_id, primitives::known_assets::ETHEREUM_USDC.id.clone());
-        assert_eq!(referral_fee.value, BigUint::from(90_000u32));
+        assert_eq!(referral_fee.value, BigUint::from(47_576u32));
     }
 
     #[test]
