@@ -137,7 +137,10 @@ pub fn swap_explorer(provider: SwapProvider, chain: Chain) -> Option<Box<dyn Blo
         SwapProvider::Thorchain => Some(RuneScan::boxed()),
         SwapProvider::Mayachain => Some(MayaScan::boxed()),
         SwapProvider::Across => Some(AcrossScan::boxed()),
-        SwapProvider::Chainflip => Some(ChainflipScan::boxed()),
+        SwapProvider::Chainflip => match chain {
+            Chain::Polkadot => None,
+            _ => Some(ChainflipScan::boxed()),
+        },
         SwapProvider::NearIntents => Some(NearIntents::boxed()),
         SwapProvider::Relay => Some(RelayScan::boxed()),
         SwapProvider::Squid => Some(SkipExplorer::boxed(chain)),
@@ -162,6 +165,12 @@ pub fn swap_explorer(provider: SwapProvider, chain: Chain) -> Option<Box<dyn Blo
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_chainflip_explorer() {
+        assert_eq!(swap_explorer(SwapProvider::Chainflip, Chain::Solana).unwrap().name(), "Chainflip");
+        assert!(swap_explorer(SwapProvider::Chainflip, Chain::Polkadot).is_none());
+    }
 
     #[test]
     fn test_swaps_xyz_explorer() {

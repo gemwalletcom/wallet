@@ -280,6 +280,15 @@ mod tests {
     }
 
     #[test]
+    fn test_chainflip_polkadot_swap_url() {
+        let hash = "0xe3e6e6d9177796e473696d4f3beec9475f2e645f02a8bd524a1d194cd93d0026";
+        let url = Explorer { chain: Chain::Polkadot }.get_transaction_swap_url("SubScan", hash.into(), SwapperProvider::Chainflip.as_ref()).unwrap();
+
+        assert_eq!(url.name, "SubScan");
+        assert_eq!(url.url, format!("https://assethub-polkadot.subscan.io/extrinsic/{hash}"));
+    }
+
+    #[test]
     fn test_near_intents_swap_url() {
         let explorer = Explorer { chain: Chain::Near };
         let recipient = "aec8de30ed03c5e6f9d0dc90ae39d865f1b4f6f77c990f2ad16c93e873ea67de";
