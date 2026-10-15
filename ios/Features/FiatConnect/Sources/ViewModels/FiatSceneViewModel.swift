@@ -30,7 +30,6 @@ public final class FiatSceneViewModel {
 
     private let wallet: Wallet
     private let assetAddress: AssetAddress
-    private let currencyFormatter: CurrencyFormatter
     private let locale: Locale
 
     let priceUsdQuery: ObservableQuery<PriceUsdQuery>
@@ -55,7 +54,6 @@ public final class FiatSceneViewModel {
     ) {
         self.service = service
         self.locale = locale
-        currencyFormatter = CurrencyFormatter(locale: locale, currencyCode: GemConstants.fiatQuoteCurrency.rawValue)
         self.assetAddress = assetAddress
         self.wallet = wallet
         assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
@@ -100,7 +98,7 @@ public final class FiatSceneViewModel {
     func currencyInputConfig(_ viewState: GemFiatViewState) -> any CurrencyInputConfigurable {
         FiatCurrencyInputConfig(
             secondaryText: cryptoAmountValue(viewState),
-            currencySymbol: currencyFormatter.symbol,
+            field: viewState.amountField,
             numberFormat: NumberInput.format(locale),
         )
     }
