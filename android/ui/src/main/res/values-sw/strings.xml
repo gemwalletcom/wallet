@@ -185,7 +185,7 @@
   <string name="errors_token_invalid_id">Kitambulisho Batili cha Tokeni</string>
   <string name="errors_import_invalid_secret_phrase">Maneno ya Siri Batili</string>
   <string name="errors_import_invalid_secret_phrase_word">Neno batili la Neno la Siri: %1$s</string>
-  <string name="errors_import_invalid_private_key">Ufunguo wa faragha si sahihi</string>
+  <string name="errors_import_invalid_private_key">Ufunguo wa kibinafsi si sahihi</string>
   <string name="errors_keystore_access">Imeshindwa kufikia funguo za pochi hii kwenye kifaa hiki. Ikiwa una fungu lako la kurejesha, ondoa pochi hii kisha uiingize tena ili kurejesha ufikiaji.</string>
   <string name="errors_wallet_account_missing">Pochi hii haina akaunti ya mtandao huu</string>
   <string name="errors_invalid_url">URL batili</string>
@@ -274,7 +274,7 @@
   <string name="asset_decimals">Desimali</string>
   <string name="asset_token_id">Kitambulisho cha Tokeni</string>
   <string name="asset_contract">Mkataba</string>
-  <string name="asset_state_empty_title">Shughuli zako za malipo zitaonekana hapa</string>
+  <string name="asset_state_empty_title">Miamala yako itaonekana hapa</string>
   <string name="asset_state_empty_description">Pokea, badilisha au nunua %1$s</string>
   <string name="asset_verification_unverified">Haijathibitishwa</string>
   <string name="asset_verification_suspicious">Inatiliwa shaka</string>
@@ -343,7 +343,7 @@
   <string name="stake_active_in">Inayotumika Katika</string>
   <string name="stake_minimum_amount">Kiasi cha chini</string>
   <string name="stake_state_empty_title">Hisa zako zitaonekana hapa</string>
-  <string name="stake_state_empty_description">Shiriki %1$s yako ya kwanza</string>
+  <string name="stake_state_empty_description">Weka %1$s yako ya kwanza kwenye hisa</string>
   <string name="stake_state_empty_validators_title">Hakuna vithibitishaji vilivyopatikana</string>
   <string name="stake_resource">Rasilimali</string>
   <string name="stake_resource_energy">Nishati</string>
@@ -365,6 +365,16 @@
   <string name="secret_phrase_screenshot_detected_title">Picha ya skrini imegunduliwa</string>
   <string name="secret_phrase_screenshot_detected_description">Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka maneno yako ya siri hatarini ikiwa yamehifadhiwa kwa njia hii.</string>
   <string name="secret_phrase_content_hidden_description">Maudhui yaliyofichwa wakati wa kurekodi skrini</string>
+  <string name="private_key_reminder_intro">Ufunguo huu wa kibinafsi ndio nakala pekee ya pochi yako.</string>
+  <string name="private_key_reminder_keep_safe_title">Uhifadhi Mahali Salama</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Ufunguo wa kibinafsi ndiyo njia pekee ya kufikia pochi yako.</string>
+  <string name="private_key_reminder_do_not_share_title">Usimshirikishe Mtu Yeyote</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Mtu yeyote anayepata ufunguo wako wa kibinafsi anaweza kuchukua udhibiti kamili wa pochi yako.</string>
+  <string name="private_key_reminder_no_recovery_title">Hatuwezi Kukusaidia Kuurejesha</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Ukipoteza ufunguo wako wa kibinafsi, utapoteza ufikiaji wa pochi yako.</string>
+  <string name="private_key_do_not_share_title">Usishiriki Ufunguo wako wa Kibinafsi!</string>
+  <string name="private_key_do_not_share_description">Ikiwa mtu ana ufunguo wako wa kibinafsi atakuwa na udhibiti kamili wa akaunti hii!</string>
+  <string name="private_key_screenshot_detected_description">Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka ufunguo wako wa kibinafsi hatarini ikiwa zimehifadhiwa kwa njia hii.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
@@ -389,7 +399,7 @@
   <string name="nodes_stream">Mtiririko</string>
   <string name="nodes_import_node_warning_message">Nodi maalum zinaweza kuwa na nia mbaya na zinaweza kufichua data ya muamala wako au kutoa taarifa za uongo.</string>
   <string name="library_select_from_photo_library">Chagua kutoka kwa Maktaba ya Picha</string>
-  <string name="fee_rates_info">Kasi ya ununuzi imedhamiriwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao.</string>
+  <string name="fee_rates_info">Kasi ya muamala huamuliwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao.</string>
   <string name="fee_rates_fast">Haraka</string>
   <string name="fee_rates_normal">Kawaida</string>
   <string name="fee_rate_satvB">sat/vB</string>
@@ -399,7 +409,7 @@
   <string name="fee_rate_base">Ada ya Msingi</string>
   <string name="banner_account_activation_title">Ada ya Kuanzisha Akaunti</string>
   <string name="banner_account_activation_description">Mtandao wa %1$s unahitaji ada ya mara moja ya %2$s.</string>
-  <string name="banner_stake_title">Anza kugoma %1$s</string>
+  <string name="banner_stake_title">Anza kuweka hisa %1$s</string>
   <string name="banner_stake_description">Pata zawadi %1$s kwenye hisa yako unapolala.</string>
   <string name="banner_activate_asset_description">Ili kutumia kipengee %1$s, lazima kwanza uiwashe kwenye mtandao wa %2$s kwa kutimiza mahitaji mahususi ya mtandao.</string>
   <string name="banner_asset_status_title">Mali Inayotiliwa Shaka</string>
@@ -438,7 +448,7 @@
   <string name="lock_five_minutes">Dakika 5</string>
   <string name="lock_fifteen_minutes">Dakika 15</string>
   <string name="lock_one_hour">Saa 1</string>
-  <string name="lock_six_hours">6 masaa</string>
+  <string name="lock_six_hours">Saa 6</string>
   <string name="lock_require_authentication">Inahitaji uthibitishaji</string>
   <string name="lock_unlock">Fungua</string>
   <string name="lock_footer">Linda ufikiaji wa programu hii kwenye kifaa chako</string>
@@ -459,7 +469,7 @@
   <string name="info_transaction_pending_description">Muamala umewasilishwa na unasubiri uthibitisho kwenye mtandao. Nyakati za usindikaji zinaweza kutofautiana. Tafadhali angalia tena kwa sasisho.</string>
   <string name="info_estimated_confirmation_description">Makadirio haya yanategemea ada ya muamala na shughuli za sasa za mtandao wa %1$s. Muda halisi wa uthibitisho unaweza kubadilika na haujahakikishwa.</string>
   <string name="info_transaction_success_description">Muamala umekamilika na kuthibitishwa kwenye mtandao. Unaweza kukagua maelezo ili kuthibitisha hali yake.</string>
-  <string name="info_lock_time_description">Muda wa kufunga, unaojulikana pia kama kipindi cha kuunganisha au kufungia, ni muda ambao mali zilizowekwa kwenye hisa haziwezi kufikiwa baada ya kuamua kuziondoa.</string>
+  <string name="info_lock_time_description">Muda wa kufunga, unaojulikana pia kama kipindi cha unbonding au cha kuondoa kuganda, ni muda ambao mali zilizowekwa kwenye hisa haziwezi kufikiwa baada ya kuamua kuziondoa kwenye hisa.</string>
   <string name="info_price_impact_description">Athari ya bei ni mabadiliko ya bei ya tokeni yanayosababishwa na ukubwa wa biashara yako. Athari ya bei ya juu inamaanisha unapokea tokeni chache kutokana na ukwasi mdogo au ukubwa mkubwa wa agizo.</string>
   <string name="info_slippage_description">Slippage inarejelea tofauti kati ya bei inayotarajiwa ya biashara na bei halisi ambayo inatekelezwa.</string>
   <string name="info_asset_status_unverified_description">Tokeni ambazo hazijathibitishwa hazijathibitishwa vya kutosha na huduma zinazoaminika za wahusika wengine. Huenda zikaonekana kwenye mkoba wako kwa sababu ya matone ya hewa, uhamisho, au uagizaji wa mikono.</string>
@@ -477,10 +487,10 @@
   <string name="info_perpetual_open_interest_description">Riba ya wazi inawakilisha jumla ya thamani ya kandarasi zote za kudumu ambazo hazijatatuliwa. Inatoa maarifa juu ya shughuli za soko na ukwasi.</string>
   <string name="info_no_quote_description">Haikuweza kurejesha nukuu kwa jozi ya tokeni iliyochaguliwa, labda kwa sababu ya kiasi kidogo, ukosefu wa ukwasi, au vikwazo vya kiufundi.</string>
   <string name="info_stake_reserved_title">Imehifadhiwa kwa Ada ya Mtandao</string>
-  <string name="info_stake_reserved_description">Kiasi kidogo husalia kwenye mkoba wako ili kulipia ada za shughuli kama vile kutoweka au kudai zawadi.</string>
+  <string name="info_stake_reserved_description">Kiasi kidogo husalia kwenye mkoba wako ili kulipia ada za shughuli kama vile kuondoa hisa au kudai zawadi.</string>
   <string name="info_stake_apr_description">Kiwango cha Asilimia cha Mwaka (APR) ni kiwango cha tuzo cha kila mwaka cha kuweka sarafu yako ya cryptocurrency.</string>
-  <string name="info_stake_frozen_required_title">Ganda TRX ili kuweka hisa</string>
-  <string name="info_stake_frozen_required_description">Kuweka hisa kwenye TRON huhusisha hatua mbili. Kwanza ganda TRX, kisha uziweke hisa ili kupata zawadi.</string>
+  <string name="info_stake_frozen_required_title">Gandisha TRX ili kuweka hisa</string>
+  <string name="info_stake_frozen_required_description">Kuweka hisa kwenye TRON huhusisha hatua mbili. Kwanza gandisha TRX, kisha uziweke hisa ili kupata zawadi.</string>
   <string name="info_perpetual_auto_close_description">Funga nafasi yako kiotomatiki katika viwango vya bei vilivyowekwa. Take Profit hulinda faida, Stop Loss hupunguza hasara.</string>
   <string name="info_fully_diluted_valuation_title">Thamani Iliyopunguzwa Kikamilifu</string>
   <string name="info_fully_diluted_valuation_description">Thamani ya kinadharia ya soko ikiwa sarafu zote zilikuwa zikitumika. Imehesabiwa kama bei ikizidishwa na usambazaji wa juu zaidi.</string>
@@ -525,7 +535,7 @@
   <string name="onboarding_accept_terms_item2_message">Ninaelewa kuwa Gem si benki au ubadilishaji, na kuitumia kwa madhumuni yasiyo halali ni marufuku kabisa.</string>
   <string name="onboarding_accept_terms_item3_message">Ninaelewa kuwa nikipoteza ufikiaji wa pochi zangu, Gem haiwajibikiwi na haiwezi kusaidia kwa njia yoyote.</string>
   <string name="onboarding_accept_terms_continue">Kubali na Uendelee</string>
-  <string name="perpetual_positions">Vyeo</string>
+  <string name="perpetual_positions">Nafasi</string>
   <string name="perpetual_size">Ukubwa</string>
   <string name="perpetual_margin">Margin</string>
   <string name="perpetual_position">Nafasi</string>
@@ -558,7 +568,7 @@
   <string name="perpetual_all_time_pnl">PnL ya Wakati Wote</string>
   <string name="perpetual_margin_usage">Matumizi ya Margin</string>
   <string name="perpetual_account_leverage">Uwiano wa Mtaji wa Akaunti</string>
-  <string name="perpetual_margin_cross">Msalaba</string>
+  <string name="perpetual_margin_cross">Cross</string>
   <string name="perpetual_margin_isolated">Imetengwa</string>
   <string name="perpetuals_title">Perpetuals</string>
   <string name="perpetuals_trade">Fanya biashara ya Perpetuals</string>
@@ -606,7 +616,7 @@
   <string name="contacts_state_empty_description">Hifadhi anwani zako zinazotumiwa mara kwa mara</string>
   <string name="contacts_create_new_contact">Unda anwani mpya</string>
   <string name="contacts_add_to_existing_contact">Ongeza kwa anwani</string>
-  <string name="simulation_header_unlimited_asset">Isiyo na kikomo %1$s</string>
+  <string name="simulation_header_unlimited_asset">%1$s isiyo na kikomo</string>
   <string name="simulation_warning_unlimited_token_approval_description">Hii inampa mtumiaji uwezo wa kutumia tokeni hii hadi utakapobatilisha idhini au itakapoisha muda wake.</string>
   <string name="simulation_warning_externally_owned_spender_description">Idhini hii inaruhusu anwani ya kawaida ya pochi (EOA) kutumia mali zako. Thibitisha tu ikiwa unaiamini anwani hii.</string>
   <string name="simulation_warning_nft_collection_approval_title">Ufikiaji kamili wa ukusanyaji wa NFT umeombwa</string>

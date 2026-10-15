@@ -67,7 +67,7 @@ struct VerifyPhraseScene: View {
         .listSectionSpacing(.custom(.medium))
         .navigationTitle(model.title)
         .alertSheet($model.isPresentingAlertMessage)
-        .detectScreenshots(docsUrl: model.docsUrl)
+        .detectScreenshots(kind: .phrase)
         .protectFromScreenRecording()
     }
 }

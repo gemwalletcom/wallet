@@ -19,6 +19,7 @@ interface WalletConnectClient {
     fun generateApprovedNamespaces(proposal: WalletConnectSessionProposal, supportedNamespaces: Map<String, WalletConnectSessionNamespace>): Map<String, WalletConnectSessionNamespace>
     fun approveSession(proposal: WalletConnectSessionProposal, namespaces: Map<String, WalletConnectSessionNamespace>, properties: Map<String, String>, onSuccess: () -> Unit, onError: (String) -> Unit)
     fun rejectSession(proposal: WalletConnectSessionProposal, rejection: GemWalletConnectRejection, onSuccess: () -> Unit, onError: (String) -> Unit)
+    fun updateSession(topic: String, namespaces: Map<String, WalletConnectSessionNamespace>, onSuccess: () -> Unit, onError: (String) -> Unit)
     fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, onSuccess: () -> Unit, onError: (String) -> Unit)
     fun rejectAuthentication(request: WalletConnectAuthenticationRequest, onSuccess: () -> Unit, onError: (String) -> Unit)
     fun respondSessionRequest(topic: String, id: Long, response: WalletConnectJsonRpcResponse, onSuccess: () -> Unit, onError: (String) -> Unit)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-  <string name="common_cancel">Anula</string>
+  <string name="common_cancel">Anulează</string>
   <string name="common_hidden">Ascunse</string>
   <string name="common_done">Gata</string>
   <string name="common_maximum_value">Valoarea maximă este %1$s</string>
@@ -36,10 +36,10 @@
   <string name="common_private_key">Cheie privată</string>
   <string name="common_latency_in_ms">%1$d ms</string>
   <string name="common_open_settings">Deschideți setările</string>
-  <string name="common_pin">Pin</string>
+  <string name="common_pin">Fixează</string>
   <string name="common_pinned">Fixat</string>
   <string name="common_lists">Liste</string>
-  <string name="common_unpin">Anulați fixarea</string>
+  <string name="common_unpin">Anulează fixarea</string>
   <string name="common_pinned_asset">Fixat: %1$s</string>
   <string name="common_unpinned_asset">Fixare anulată: %1$s</string>
   <string name="common_skip">Sari peste</string>
@@ -58,15 +58,15 @@
   <string name="common_expiration">Expirare</string>
   <string name="common_suspicious_address">Adresă suspectă</string>
   <string name="common_suspicious_address_description">Această adresă este asociată cu o activitate suspectă sau dăunătoare.</string>
-  <string name="common_refresh">Reîmprospăta</string>
+  <string name="common_refresh">Reîmprospătează</string>
   <string name="common_grant_permission">Acordați permisiunea</string>
   <string name="common_required_field">%1$s este necesar</string>
   <string name="welcome_title">Bun venit la Gem Family</string>
   <string name="wallet_create_new_wallet">Creați un portofel nou</string>
   <string name="wallet_import_existing_wallet">Importați un portofel existent</string>
   <string name="wallet_send">Trimite</string>
-  <string name="wallet_receive">Primi</string>
-  <string name="wallet_buy">Cumpăra</string>
+  <string name="wallet_receive">Primește</string>
+  <string name="wallet_buy">Cumpără</string>
   <string name="wallet_swap">Schimb</string>
   <string name="wallet_import_title">Importați portofelul</string>
   <string name="wallet_new_title">Portofel nou</string>
@@ -84,7 +84,7 @@
   <string name="wallet_copy_address">Copiați adresa</string>
   <string name="wallet_watch_tooltip_title">Portofel doar pentru monitorizare. Nu controlezi aceste fonduri.</string>
   <string name="wallet_watch_empty_state_title">Te uiți la acest portofel.</string>
-  <string name="wallet_stake">Mizează</string>
+  <string name="wallet_stake">Staking</string>
   <string name="wallet_receive_no_memo_required">Nu este nevoie de notă</string>
   <string name="wallet_receive_no_destination_tag_required">Nu este necesară eticheta de destinație</string>
   <string name="wallet_title">Portofel</string>
@@ -108,7 +108,7 @@
   <string name="buy_providers_title">Furnizorii</string>
   <string name="buy_rate">Rata</string>
   <string name="buy_no_results">Nu există oferte disponibile</string>
-  <string name="transfer_network_fee">Taxa de retea</string>
+  <string name="transfer_network_fee">Taxa de rețea</string>
   <string name="transfer_pay_with">Plătește cu</string>
   <string name="transfer_payment_title">Plată</string>
   <string name="transfer_memo">Notă</string>
@@ -125,9 +125,9 @@
   <string name="transfer_insufficient_balance">Sold %1$s insuficient.</string>
   <string name="transfer_insufficient_network_fee_balance">Sold %1$s insuficient pentru a acoperi taxele de rețea.</string>
   <string name="transfer_approve_title">Aprobați</string>
-  <string name="transfer_stake_title">Mizează</string>
+  <string name="transfer_stake_title">Staking</string>
   <string name="transfer_claim_rewards_title">Solicitați recompense</string>
-  <string name="transfer_unstake_title">Anulează miza</string>
+  <string name="transfer_unstake_title">Anulează staking-ul</string>
   <string name="transfer_redelegate_title">Redelegare</string>
   <string name="transfer_withdraw_title">Retrage</string>
   <string name="transfer_rewards_title">Recompense</string>
@@ -342,8 +342,8 @@
   <string name="stake_awaiting_withdrawal">În așteptarea retragerii</string>
   <string name="stake_active_in">Activ în</string>
   <string name="stake_minimum_amount">Suma minimă</string>
-  <string name="stake_state_empty_title">Mizele tale vor apărea aici</string>
-  <string name="stake_state_empty_description">Mizează primul tău %1$s</string>
+  <string name="stake_state_empty_title">Pozițiile tale de staking vor apărea aici</string>
+  <string name="stake_state_empty_description">Pune în staking primul tău %1$s</string>
   <string name="stake_state_empty_validators_title">Nu s-au găsit validatori</string>
   <string name="stake_resource">Resursă</string>
   <string name="stake_resource_energy">Energie</string>
@@ -365,6 +365,16 @@
   <string name="secret_phrase_screenshot_detected_title">Captură de ecran detectată</string>
   <string name="secret_phrase_screenshot_detected_description">Capturile de ecran pot fi accesibile altor aplicații și pot pune în pericol fraza ta secretă dacă sunt salvate în acest fel.</string>
   <string name="secret_phrase_content_hidden_description">Conținut ascuns în timpul înregistrării ecranului</string>
+  <string name="private_key_reminder_intro">Această cheie privată este singura copie de rezervă a portofelului tău.</string>
+  <string name="private_key_reminder_keep_safe_title">Păstreaz-o într-un loc sigur</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Cheia privată este singura modalitate de a-ți accesa portofelul.</string>
+  <string name="private_key_reminder_do_not_share_title">Nu o împărtăși cu nimeni</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Oricine obține cheia ta privată poate prelua controlul total asupra portofelului tău.</string>
+  <string name="private_key_reminder_no_recovery_title">Nu te putem ajuta să o recuperezi</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Dacă îți pierzi cheia privată, pierzi accesul la portofel.</string>
+  <string name="private_key_do_not_share_title">Nu împărtăși cheia ta privată!</string>
+  <string name="private_key_do_not_share_description">Dacă cineva are cheia ta privată, va avea control total asupra acestui cont!</string>
+  <string name="private_key_screenshot_detected_description">Capturile de ecran pot fi accesibile altor aplicații și pot pune în pericol cheia ta privată dacă sunt salvate în acest fel.</string>
   <string name="social_x">X (fost Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
@@ -399,8 +409,8 @@
   <string name="fee_rate_base">Taxa de bază</string>
   <string name="banner_account_activation_title">Taxa de activare a contului</string>
   <string name="banner_account_activation_description">Rețeaua %1$s necesită o taxă unică de %2$s.</string>
-  <string name="banner_stake_title">Începeți miza %1$s</string>
-  <string name="banner_stake_description">Câștigă %1$s recompense pe miza ta în timp ce dormi.</string>
+  <string name="banner_stake_title">Începe staking cu %1$s</string>
+  <string name="banner_stake_description">Câștigă recompense în %1$s din staking în timp ce dormi.</string>
   <string name="banner_activate_asset_description">Pentru a utiliza activul %1$s, trebuie mai întâi să îl activați în rețeaua %2$s îndeplinind cerințele specifice ale rețelei.</string>
   <string name="banner_asset_status_title">Activ suspect</string>
   <string name="banner_asset_status_description">Tokenul poate fi nesigur sau înșelător. Continuați doar dacă aveți deplină încredere în el.</string>
@@ -459,7 +469,7 @@
   <string name="info_transaction_pending_description">Tranzacția a fost trimisă și așteaptă confirmarea în rețea. Timpii de procesare pot varia. Vă rugăm să verificați din nou pentru actualizări.</string>
   <string name="info_estimated_confirmation_description">Această estimare se bazează pe taxa tranzacției și pe activitatea curentă a rețelei %1$s. Timpul real de confirmare se poate modifica și nu este garantat.</string>
   <string name="info_transaction_success_description">Tranzacția a fost finalizată și confirmată în rețea. Puteți examina detaliile pentru a verifica starea acestuia.</string>
-  <string name="info_lock_time_description">Timpul de blocare, cunoscut și ca perioada de dezlegare sau dezghețare, este durata în care activele mizate sunt inaccesibile după ce decideți să le dezlegați.</string>
+  <string name="info_lock_time_description">Timpul de blocare, cunoscut și ca perioada de dezlegare sau dezghețare, este durata în care activele din staking sunt inaccesibile după ce decideți să le retrageți din staking.</string>
   <string name="info_price_impact_description">Impactul prețului este modificarea prețului tokenului cauzată de dimensiunea tranzacției dvs. Impactul mai mare al prețului înseamnă că primiți mai puține tokenuri din cauza lichidității scăzute sau a unei comenzi mari.</string>
   <string name="info_slippage_description">Alunecarea se referă la diferența dintre prețul așteptat al unei tranzacții și prețul real la care aceasta este executată.</string>
   <string name="info_asset_status_unverified_description">Token-urile neverificate nu au fost suficient verificate de servicii terțe de încredere. Acestea pot apărea în portofelul dvs. din cauza lansărilor prin airdrop, transferurilor sau importurilor manuale.</string>
@@ -479,8 +489,8 @@
   <string name="info_stake_reserved_title">Rezervat pentru comision de rețea</string>
   <string name="info_stake_reserved_description">O sumă mică rămâne în portofelul tău pentru a acoperi comisioanele aferente operațiunilor precum unstaking-ul sau revendicarea recompenselor.</string>
   <string name="info_stake_apr_description">Rata anuală procentuală (APR) este rata anuală de recompensă pentru plasarea criptomonedei tale.</string>
-  <string name="info_stake_frozen_required_title">Îngheață TRX pentru a miza</string>
-  <string name="info_stake_frozen_required_description">Mizarea pe TRON are doi pași. Mai întâi îngheață TRX, apoi mizează-l pentru a câștiga recompense.</string>
+  <string name="info_stake_frozen_required_title">Îngheață TRX pentru staking</string>
+  <string name="info_stake_frozen_required_description">Stakingul pe TRON are doi pași. Mai întâi îngheață TRX, apoi pune-l în staking pentru a câștiga recompense.</string>
   <string name="info_perpetual_auto_close_description">Închide automat poziția la nivelurile de preț stabilite. Funcția Take Profit blochează câștigurile, iar funcția Stop Loss limitează pierderile.</string>
   <string name="info_fully_diluted_valuation_title">Evaluare complet diluată</string>
   <string name="info_fully_diluted_valuation_description">Valoarea teoretică de piață ar rezulta în cazul în care toate monedele ar fi în circulație. Calculată ca preț înmulțit cu oferta maximă.</string>
@@ -534,10 +544,10 @@
   <string name="perpetual_long">Lung</string>
   <string name="perpetual_short">Scurt</string>
   <string name="perpetual_entry_price">Preț de intrare</string>
-  <string name="perpetual_modify">Modifica</string>
+  <string name="perpetual_modify">Modifică</string>
   <string name="perpetual_reduce_position">Reduceți poziția</string>
   <string name="perpetual_increase_position">Creșteți poziția</string>
-  <string name="perpetual_open_direction">Deschis %1$s</string>
+  <string name="perpetual_open_direction">Deschide %1$s</string>
   <string name="perpetual_close_direction">Închide %1$s</string>
   <string name="perpetual_leverage">Efect de levier</string>
   <string name="perpetual_auto_close">Închidere automată</string>
@@ -614,7 +624,7 @@
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Avertisment de securitate</string>
   <string name="rootcheck_jailbreak_body">Dispozitivul dvs. pare să aibă jailbreak. Acest lucru vă poate pune portofelul și fondurile în pericol.</string>
-  <string name="rootcheck_body">Dispozitivul dvs. pare să aibă acces root, ceea ce poate crește semnificativ riscurile de securitate. Utilizarea acestei aplicații pe un dispozitiv înrădăcinat poate expune activele dvs. la acces neautorizat și la o potențială pierdere. Pentru siguranța fondurilor dvs., vă recomandăm insistent să utilizați un dispozitiv care nu este rootat.</string>
-  <string name="rootcheck_ignore">Ignora</string>
+  <string name="rootcheck_body">Dispozitivul dvs. pare să aibă acces root, ceea ce poate crește semnificativ riscurile de securitate. Utilizarea acestei aplicații pe un dispozitiv cu acces root poate expune activele dvs. la acces neautorizat și la o potențială pierdere. Pentru siguranța fondurilor dvs., vă recomandăm insistent să utilizați un dispozitiv care nu este rootat.</string>
+  <string name="rootcheck_ignore">Ignoră</string>
   <string name="rootcheck_exit">Ieșire</string>
 </resources>

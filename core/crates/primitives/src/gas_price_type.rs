@@ -1,4 +1,7 @@
 use num_bigint::BigInt;
+use num_traits::ToPrimitive;
+
+use crate::SignerError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GasPriceType {
@@ -35,6 +38,10 @@ impl GasPriceType {
         }
     }
 
+    pub fn gas_price_u64(&self) -> Result<u64, SignerError> {
+        self.gas_price().to_u64().ok_or_else(|| SignerError::invalid_input("invalid gas price"))
+    }
+
     pub fn priority_fee(&self) -> BigInt {
         match self {
             GasPriceType::Regular { .. } => BigInt::from(0),
@@ -43,12 +50,20 @@ impl GasPriceType {
         }
     }
 
+    pub fn priority_fee_u64(&self) -> Result<u64, SignerError> {
+        self.priority_fee().to_u64().ok_or_else(|| SignerError::invalid_input("invalid priority fee"))
+    }
+
     pub fn unit_price(&self) -> BigInt {
         match self {
             GasPriceType::Regular { .. } => BigInt::from(0),
             GasPriceType::Eip1559 { .. } => BigInt::from(0),
             GasPriceType::Solana { unit_price, .. } => unit_price.clone(),
         }
+    }
+
+    pub fn unit_price_u64(&self) -> Result<u64, SignerError> {
+        self.unit_price().to_u64().ok_or_else(|| SignerError::invalid_input("invalid unit price"))
     }
 
     pub fn total_fee(&self) -> BigInt {
@@ -67,6 +82,22 @@ mod tests {
 
         let eip1559 = GasPriceType::eip1559(BigInt::from(2000u64), BigInt::from(500u64));
         assert_eq!(eip1559.gas_price(), BigInt::from(2000u64));
+    }
+
+    #[test]
+    fn test_u64_accessors() {
+        for value in [0, 1000, u64::MAX] {
+            let gas_price = GasPriceType::solana(value, value, value);
+            assert_eq!(gas_price.gas_price_u64().unwrap(), value);
+            assert_eq!(gas_price.priority_fee_u64().unwrap(), value);
+            assert_eq!(gas_price.unit_price_u64().unwrap(), value);
+        }
+        for value in [BigInt::from(-1), BigInt::from(u64::MAX) + 1] {
+            let gas_price = GasPriceType::solana(value.clone(), value.clone(), value);
+            assert_eq!(gas_price.gas_price_u64(), Err(SignerError::invalid_input("invalid gas price")));
+            assert_eq!(gas_price.priority_fee_u64(), Err(SignerError::invalid_input("invalid priority fee")));
+            assert_eq!(gas_price.unit_price_u64(), Err(SignerError::invalid_input("invalid unit price")));
+        }
     }
 
     #[test]

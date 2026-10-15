@@ -103,14 +103,27 @@ pub struct AmountLimits {
 #[serde(rename_all = "camelCase")]
 pub struct StatusResponse {
     pub status: String,
+    pub org: Option<StatusOrganization>,
     pub action_response: Option<StatusActionResponse>,
+    pub dst_tx: Option<StatusTransaction>,
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StatusOrganization {
+    pub app_id: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StatusTransaction {
+    pub payment_token: Option<TokenAmount>,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StatusActionResponse {
     pub amount_in: TokenAmount,
-    pub amount_out: TokenAmount,
     pub application_fee: Option<TokenAmount>,
 }
 

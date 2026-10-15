@@ -12,7 +12,7 @@ pub struct NearIntentsProxyClient {
 impl NearIntentsProxyClient {
     pub fn new(url: String, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> Self {
         Self {
-            client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::NearIntents, "/quote/depositAddress"),
+            client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::NearIntents, &["/quote/depositAddress"]),
         }
     }
 

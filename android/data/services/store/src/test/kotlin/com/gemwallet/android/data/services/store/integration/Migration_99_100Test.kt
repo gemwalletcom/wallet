@@ -1,11 +1,8 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.SimpleSQLiteQuery
-import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.buildTransactionListSql
 import com.gemwallet.android.data.services.store.database.di.Migration_99_100
 import com.gemwallet.android.ext.GemConstants
@@ -21,12 +18,7 @@ class Migration_99_100Test {
     private val testDb = "migration-99-100-test"
 
     @get:Rule
-    val helper = MigrationTestHelper(
-        InstrumentationRegistry.getInstrumentation(),
-        GemDatabase::class.java,
-        emptyList(),
-        FrameworkSQLiteOpenHelperFactory(),
-    )
+    val helper = gemDatabaseMigrationTestHelper()
 
     @Before
     fun setUp() {

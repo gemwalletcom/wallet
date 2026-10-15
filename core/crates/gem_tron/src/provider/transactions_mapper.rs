@@ -175,6 +175,7 @@ impl TransactionContext {
             .or_else(|| self.map_gasfree_transfer(contract_value, logs))
             .or_else(|| self.map_swap(contract_value, logs, internal_transactions))
             .or_else(|| self.map_token_transfer(contract_value, logs))
+            .or_else(|| self.map_contract_call(contract_value))
     }
 
     fn map_token_approval(&self, contract_value: &ContractParameterValue) -> Option<Transaction> {
@@ -203,6 +204,17 @@ impl TransactionContext {
         let asset_id = AssetId::from_token(self.chain, contract_value.contract_address.as_ref()?);
 
         Some(self.build_transaction(asset_id, from.encode(), to.encode(), TransactionType::Transfer, value, None))
+    }
+
+    fn map_contract_call(&self, contract_value: &ContractParameterValue) -> Option<Transaction> {
+        let contract = contract_value.contract_address.clone()?;
+        let data = contract_value.data.as_ref()?;
+        let value = BigUint::from(contract_value.call_value.unwrap_or_default());
+
+        Some(
+            self.build_transaction(self.fee_asset_id.clone(), self.from.clone(), contract, TransactionType::SmartContractCall, value, None)
+                .with_data(Some(format!("0x{data}"))),
+        )
     }
 
     fn map_gasfree_transfer(&self, contract_value: &ContractParameterValue, logs: &[TronLog]) -> Option<Transaction> {
@@ -389,6 +401,24 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.value, BigUint::from(25000000u64));
         assert_ne!(transaction.from, transaction.to);
+    }
+
+    #[test]
+    fn test_map_transaction_contract_call() {
+        let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_relay_deposit.json")).unwrap();
+        let receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_relay_deposit_receipt.json")).unwrap();
+
+        let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Tron));
+        assert_eq!(transaction.from, "THagQ7ZgwYwms18ytALb2F5TvqywGVNic2");
+        assert_eq!(transaction.to, "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN");
+        assert_eq!(transaction.value, BigUint::from(1534064u64));
+        assert_eq!(
+            transaction.data.as_deref(),
+            Some("0x49290c1c000000000000000000000000537e4f36cf498913f26942a71b59c8db188b880b57e85acead26d5fd307f5074d2d53e05311137cd85a6fc2b20a49d8b7f037757")
+        );
     }
 
     #[test]

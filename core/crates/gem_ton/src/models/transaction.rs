@@ -188,10 +188,25 @@ pub struct OutMessage {
     pub op_code: Option<String>,
     pub comment: Option<String>,
     pub decoded_body: Option<DecodedBody>,
+    pub message_content: Option<MessageContent>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageContent {
+    pub decoded: Option<serde_json::Value>,
+}
+
+impl MessageContent {
+    pub fn text_comment(&self) -> Option<&str> {
+        let decoded = self.decoded.as_ref()?;
+        (decoded.get("type")?.as_str()? == "text_comment").then_some(())?;
+        decoded.get("comment")?.as_str()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionInMessage {
+    pub hash: Option<String>,
     pub source: Option<String>,
     pub destination: String,
     #[serde(default, deserialize_with = "deserialize_option_biguint_from_str")]

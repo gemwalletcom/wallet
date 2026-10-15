@@ -18,17 +18,24 @@ internal class TinkEncryptedKeyValueStore(context: Context, private val config: 
 
     override fun contains(key: String): Boolean = synchronized(secureStorageLock) { sharedPreferences.contains(storageKey(key)) }
 
-    override fun getString(key: String): String? = synchronized(secureStorageLock) {
-        val encryptedValue = sharedPreferences.getString(storageKey(key), null) ?: return@synchronized null
-        val decryptedValue = aeadProvider().decrypt(Base64.getDecoder().decode(encryptedValue), associatedData(key))
-        String(decryptedValue, UTF_8)
+    override fun getString(key: String): String? {
+        if (!contains(key)) return null
+        val aead = aeadProvider()
+        return synchronized(secureStorageLock) {
+            val encryptedValue = sharedPreferences.getString(storageKey(key), null) ?: return@synchronized null
+            val decryptedValue = aead.decrypt(Base64.getDecoder().decode(encryptedValue), associatedData(key))
+            String(decryptedValue, UTF_8)
+        }
     }
 
-    override fun putString(key: String, value: String): Unit = synchronized(secureStorageLock) {
-        val encryptedValue = aeadProvider().encrypt(value.toByteArray(UTF_8), associatedData(key))
-        val encodedValue = Base64.getEncoder().encodeToString(encryptedValue)
-        if (!sharedPreferences.putStringDurably(storageKey(key), encodedValue)) {
-            throw IllegalStateException("Secure value write failed")
+    override fun putString(key: String, value: String) {
+        val aead = aeadProvider()
+        synchronized(secureStorageLock) {
+            val encryptedValue = aead.encrypt(value.toByteArray(UTF_8), associatedData(key))
+            val encodedValue = Base64.getEncoder().encodeToString(encryptedValue)
+            if (!sharedPreferences.putStringDurably(storageKey(key), encodedValue)) {
+                throw IllegalStateException("Secure value write failed")
+            }
         }
     }
 
@@ -63,8 +70,9 @@ internal class TinkAeadProvider(context: Context, private val config: TinkStoreC
 
     fun get(): Aead {
         aead?.let { return it }
+        val masterAead = masterAead()
         return synchronized(secureStorageLock) {
-            aead ?: keysetHandle().getPrimitive(RegistryConfiguration.get(), Aead::class.java).also { aead = it }
+            aead ?: keysetHandle(masterAead).getPrimitive(RegistryConfiguration.get(), Aead::class.java).also { aead = it }
         }
     }
 
@@ -72,14 +80,16 @@ internal class TinkAeadProvider(context: Context, private val config: TinkStoreC
         aead = null
     }
 
-    fun keysetHandle(): KeysetHandle {
+    fun keysetHandle(): KeysetHandle = keysetHandle(masterAead())
+
+    private fun keysetHandle(masterAead: Aead): KeysetHandle {
         AeadConfig.register()
         val preferences = context.securePreferences(config.keysetPreferencesFileName)
         val values = context.securePreferences(config.preferencesFileName)
         return encryptedKeyset(
             preferences = preferences,
             name = config.keysetName,
-            masterAead = masterAead(),
+            masterAead = masterAead,
             template = AesGcmKeyManager.aes256GcmTemplate().takeIf { values.all.isEmpty() },
         )
     }

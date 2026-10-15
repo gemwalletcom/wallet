@@ -1,10 +1,9 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.SupportMessagesQuery
 import com.gemwallet.android.testkit.mockSupportMessage
 import com.gemwallet.android.testkit.mockSupportMessageImage
@@ -40,10 +39,7 @@ class SupportMessagesQueryTest {
 
     @Before
     fun setUp() {
-        database = Room.inMemoryDatabaseBuilder(
-            InstrumentationRegistry.getInstrumentation().targetContext,
-            GemDatabase::class.java,
-        ).build()
+        database = mockGemDatabase()
         query = SupportMessagesQuery(database.supportMessagesDao())
     }
 

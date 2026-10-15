@@ -304,6 +304,21 @@ pub fn mock_swap_transfer(address: &str, permit2: Option<Permit2ApprovalData>) -
     }
 }
 
+const TEST_TRON_SENDER: &str = "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC";
+pub const TEST_TRON_RECIPIENT: &str = "THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV";
+
+pub fn mock_tron_wallet() -> Wallet {
+    Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, TEST_TRON_SENDER)])
+}
+
+pub fn mock_tron_transfer(value: BigInt) -> GemTransferData {
+    GemTransferData {
+        recipient: GemRecipient::address(TEST_TRON_RECIPIENT.into()),
+        value,
+        ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
+    }
+}
+
 pub fn broadcast_failed(error: &GemConfirmError) -> bool {
     matches!(error, GemConfirmError::Offline | GemConfirmError::Network { .. } | GemConfirmError::Broadcast { .. })
 }

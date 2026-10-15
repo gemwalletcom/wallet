@@ -1,12 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStateStore
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.RoomStoreTransactionRunner
 import com.gemwallet.android.data.services.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
@@ -32,10 +31,7 @@ import java.math.BigInteger
 class TransactionStateStoreTest {
     @Test
     fun hashUpdateKeepsTransactionAssetsForOtherWalletUntilLastReferenceIsMoved() = runBlocking(Dispatchers.IO) {
-        val database = Room.inMemoryDatabaseBuilder(
-            InstrumentationRegistry.getInstrumentation().targetContext,
-            GemDatabase::class.java,
-        ).build()
+        val database = mockGemDatabase()
         try {
             val runner = RoomStoreTransactionRunner(database)
             val store = GemstoneTransactionStateStore(database.transactionsDao(), runner)
@@ -76,10 +72,7 @@ class TransactionStateStoreTest {
 
     @Test
     fun stateUpdateReplacesTheTransactionAssetsCoreReports() = runBlocking(Dispatchers.IO) {
-        val database = Room.inMemoryDatabaseBuilder(
-            InstrumentationRegistry.getInstrumentation().targetContext,
-            GemDatabase::class.java,
-        ).build()
+        val database = mockGemDatabase()
         try {
             val store = GemstoneTransactionStateStore(database.transactionsDao(), RoomStoreTransactionRunner(database))
             val wallet = mockWallet()

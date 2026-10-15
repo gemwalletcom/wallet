@@ -365,6 +365,16 @@
   <string name="secret_phrase_screenshot_detected_title">Capture d\'écran détectée</string>
   <string name="secret_phrase_screenshot_detected_description">Les captures d\'écran peuvent être accessibles à d\'autres applications ; si elles sont enregistrées de cette manière, votre phrase secrète peut être compromise.</string>
   <string name="secret_phrase_content_hidden_description">Contenu masqué pendant l\'enregistrement d\'écran</string>
+  <string name="private_key_reminder_intro">Cette clé privée est la seule sauvegarde de votre portefeuille.</string>
+  <string name="private_key_reminder_keep_safe_title">Rangez-la dans un endroit sûr</string>
+  <string name="private_key_reminder_keep_safe_subtitle">La clé privée est le seul moyen d\'accéder à votre portefeuille.</string>
+  <string name="private_key_reminder_do_not_share_title">Ne la partagez avec personne</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Quiconque obtient votre clé privée peut prendre le contrôle total de votre portefeuille.</string>
+  <string name="private_key_reminder_no_recovery_title">Nous ne pouvons pas vous aider à la récupérer</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Si vous perdez votre clé privée, vous perdez l\'accès à votre portefeuille.</string>
+  <string name="private_key_do_not_share_title">Ne partagez pas votre clé privée !</string>
+  <string name="private_key_do_not_share_description">Si quelqu\'un connaît votre clé privée, il aura le contrôle total de ce compte !</string>
+  <string name="private_key_screenshot_detected_description">Les captures d\'écran peuvent être accessibles à d\'autres applications ; si elles sont enregistrées de cette manière, votre clé privée peut être compromise.</string>
   <string name="social_x">X (anciennement Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
@@ -442,7 +452,7 @@
   <string name="lock_require_authentication">Exiger une authentification</string>
   <string name="lock_unlock">Déverrouiller</string>
   <string name="lock_footer">Protégez l\'accès à cette application sur votre appareil</string>
-  <string name="lock_passcode">Mot de passe</string>
+  <string name="lock_passcode">Code</string>
   <string name="lock_passcode_off_title">Le code de l\'appareil est désactivé</string>
   <string name="lock_passcode_off_description">Gem est verrouillé par le code de votre appareil. Activez un code dans les réglages de l\'appareil pour ouvrir Gem. Vos portefeuilles sont en sécurité.</string>
   <string name="verify_phrase_title">Confirmer</string>
@@ -568,7 +578,7 @@
   <string name="rewards_share_text">Rejoignez Gem Wallet avec mon lien de parrainage et gagnez des récompenses : %1$s</string>
   <string name="rewards_my_referral_code">Mon code de parrainage</string>
   <string name="rewards_invite_friends_title">Inviter des amis</string>
-  <string name="rewards_invite_friends_description">Gagner %1$s Des points pour chaque ami qui s\'inscrit.</string>
+  <string name="rewards_invite_friends_description">Gagnez %1$s points pour chaque ami qui s\'inscrit.</string>
   <string name="rewards_referral_code">Code de parrainage</string>
   <string name="rewards_invited_by">Invité par</string>
   <string name="rewards_points">Points</string>

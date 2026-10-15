@@ -40,17 +40,17 @@ impl<C: Client + Clone> JsonRpcClient<C> {
 
     pub async fn request<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, request: T) -> Result<U, JsonRpcError> {
         let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap_or_default().as_secs();
-        let result: JsonRpcResult<U> = self.send_request(request.to_jsonrpc_request(timestamp)).await?;
+        let result: JsonRpcResult<U> = self.send_request(&request.to_jsonrpc_request(timestamp)).await?;
         result.take()
     }
 
-    pub async fn batch_request<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, requests: Vec<T>) -> Result<JsonRpcResults<U>, JsonRpcError> {
+    pub async fn requests<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, requests: Vec<T>) -> Result<JsonRpcResults<U>, JsonRpcError> {
         let requests: Vec<JsonRpcRequest> = requests.iter().enumerate().map(|(index, request)| request.to_jsonrpc_request(index as u64 + 1)).collect();
-        if requests.is_empty() {
-            return Ok(Default::default());
-        }
-
-        let mut results: Vec<JsonRpcResult<U>> = self.client.post("", &requests).await?;
+        let mut results: Vec<JsonRpcResult<U>> = match requests.as_slice() {
+            [] => return Ok(Default::default()),
+            [request] => return Ok(JsonRpcResults(vec![self.send_request(request).await?])),
+            requests => self.client.post("", &requests).await?,
+        };
         results.sort_by_key(JsonRpcResult::id);
 
         if results.len() != requests.len() || results.iter().enumerate().any(|(index, result)| result.id() != Some(index as u64 + 1)) {
@@ -64,8 +64,8 @@ impl<C: Client + Clone> JsonRpcClient<C> {
         Ok(JsonRpcResults(results))
     }
 
-    async fn send_request<T: DeserializeOwned + Send>(&self, request: JsonRpcRequest) -> Result<JsonRpcResult<T>, JsonRpcError> {
-        Ok(self.client.post("", &request).await?)
+    async fn send_request<T: DeserializeOwned + Send>(&self, request: &JsonRpcRequest) -> Result<JsonRpcResult<T>, JsonRpcError> {
+        Ok(self.client.post("", request).await?)
     }
 }
 
@@ -80,9 +80,43 @@ impl JsonRpcClient<gem_client::ReqwestClient> {
 
 #[cfg(test)]
 mod tests {
-    use gem_client::{Response, deserialize_response};
+    use gem_client::{Response, deserialize_response, testkit::MockClient};
 
     use super::*;
+
+    struct Method(&'static str);
+
+    impl ToJsonRpcRequest for Method {
+        fn method(&self) -> &'static str {
+            self.0
+        }
+
+        fn params(&self) -> Value {
+            Value::Array(vec![])
+        }
+    }
+
+    #[tokio::test]
+    async fn test_requests() {
+        let client = |batch: bool| {
+            JsonRpcClient::new(MockClient::new().with_post(move |_, body| {
+                let body: Value = serde_json::from_slice(body).unwrap();
+                assert_eq!(body.is_array(), batch);
+                let response = |request: &Value| serde_json::json!({ "jsonrpc": "2.0", "id": request["id"], "result": request["method"] });
+                let body = match body {
+                    Value::Array(requests) => Value::Array(requests.iter().map(response).collect()),
+                    request => response(&request),
+                };
+                Ok(serde_json::to_vec(&body).unwrap())
+            }))
+        };
+
+        let single = client(false).requests::<String, _>(vec![Method("a")]).await.unwrap();
+        let batch = client(true).requests::<String, _>(vec![Method("a"), Method("b")]).await.unwrap();
+
+        assert_eq!(single.take_all().unwrap(), vec!["a"]);
+        assert_eq!(batch.take_all().unwrap(), vec!["a", "b"]);
+    }
 
     #[test]
     fn test_http_status_preserves_jsonrpc_error() {

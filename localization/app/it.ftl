@@ -1,6 +1,6 @@
 # Common
 
-common_cancel = Cancellare
+common_cancel = Annulla
 common_hidden = Nascosti
 common_done = Fatto
 common_maximum_value = Il valore massimo è %@
@@ -399,8 +399,8 @@ stake_deactivating = Disattivazione
 stake_awaiting_withdrawal = In attesa di ritiro
 stake_active_in = Attivo dentro
 stake_minimum_amount = Importo minimo
-stake_state_empty_title = Le tue puntate appariranno qui
-stake_state_empty_description = Punta i tuoi primi %@
+stake_state_empty_title = Le tue posizioni in staking appariranno qui
+stake_state_empty_description = Metti in staking i tuoi primi %@
 stake_state_empty_validators_title = Nessun validatore trovato
 stake_resource = Risorsa
 stake_resource_energy = Energia
@@ -431,6 +431,19 @@ secret_phrase_confirm_quick_test_title = Completa questo rapido test per conferm
 secret_phrase_screenshot_detected_title = Screenshot rilevato
 secret_phrase_screenshot_detected_description = Gli screenshot potrebbero essere accessibili ad altre app e, se salvati in questo modo, potrebbero mettere a rischio la tua frase segreta.
 secret_phrase_content_hidden_description = Contenuto nascosto durante la registrazione dello schermo
+
+# Private Key
+
+private_key_reminder_intro = Questa chiave privata è l'unico backup del tuo portafoglio.
+private_key_reminder_keep_safe_title = Conservala in un posto sicuro
+private_key_reminder_keep_safe_subtitle = La chiave privata è l'unico modo per accedere al tuo portafoglio.
+private_key_reminder_do_not_share_title = Non condividerla con nessuno
+private_key_reminder_do_not_share_subtitle = Chiunque scopra la tua chiave privata può assumere il controllo totale del tuo portafoglio.
+private_key_reminder_no_recovery_title = Non possiamo aiutarti a recuperarla
+private_key_reminder_no_recovery_subtitle = Se perdi la tua chiave privata, perderai l'accesso al tuo portafoglio.
+private_key_do_not_share_title = Non condividere la tua chiave privata!
+private_key_do_not_share_description = Se qualcuno conosce la tua chiave privata avrà il pieno controllo di questo account!
+private_key_screenshot_detected_description = Gli screenshot potrebbero essere accessibili ad altre app e, se salvati in questo modo, potrebbero mettere a rischio la tua chiave privata.
 
 # Social
 
@@ -537,7 +550,7 @@ lock_unlock = Sblocca
 lock_footer = Proteggi l'accesso a questa app sul tuo dispositivo
 lock_passcode = Codice di accesso
 lock_passcode_off_title = Il codice del dispositivo è disattivato
-lock_passcode_off_description = Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi wallet sono al sicuro.
+lock_passcode_off_description = Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi portafogli sono al sicuro.
 
 # Verify
 
@@ -664,8 +677,8 @@ perpetual_margin = Margine
 perpetual_position = Posizione
 perpetual_close_position = Chiudi posizione
 perpetual_pnl = PnL
-perpetual_long = Lungo
-perpetual_short = Breve
+perpetual_long = Long
+perpetual_short = Short
 perpetual_entry_price = Prezzo d'ingresso
 perpetual_modify = Modifica
 perpetual_reduce_position = Riduci posizione
@@ -783,7 +796,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = Avviso di sicurezza
-rootcheck_jailbreak_body = Il tuo dispositivo sembra essere jailbroken. Questo può mettere a rischio il wallet e i fondi.
+rootcheck_jailbreak_body = Il tuo dispositivo sembra essere jailbroken. Questo può mettere a rischio il tuo portafoglio e i tuoi fondi.
 rootcheck_body = Il tuo dispositivo sembra avere accesso root, il che può aumentare significativamente i rischi per la sicurezza. L'utilizzo di questa app su un dispositivo rooted potrebbe esporre i tuoi asset ad accessi non autorizzati e potenziali perdite. Per la sicurezza dei tuoi fondi, ti consigliamo vivamente di utilizzare un dispositivo non rooted.
 rootcheck_ignore = Ignora
 rootcheck_exit = Esci

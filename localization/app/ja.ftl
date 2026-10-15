@@ -351,7 +351,7 @@ charts_price_change = 変動
 
 date_today = 今日
 date_yesterday = 昨日
-date_day_time = %@, %@
+date_day_time = %@ %@
 
 # Wallet Connect
 
@@ -431,6 +431,19 @@ secret_phrase_confirm_quick_test_title = この簡単なテストを完了して
 secret_phrase_screenshot_detected_title = スクリーンショットが検出されました
 secret_phrase_screenshot_detected_description = スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でリカバリーフレーズを保存すると、漏えいするおそれがあります。
 secret_phrase_content_hidden_description = 画面録画中はコンテンツが非表示になります
+
+# Private Key
+
+private_key_reminder_intro = このプライベートキーが、ウォレットの唯一のバックアップです。
+private_key_reminder_keep_safe_title = 安全な場所に保管する
+private_key_reminder_keep_safe_subtitle = プライベートキーは、ウォレットにアクセスする唯一の手段です。
+private_key_reminder_do_not_share_title = 誰とも共有しないでください
+private_key_reminder_do_not_share_subtitle = プライベートキーを知った人は誰でも、このウォレットを完全に操作できます。
+private_key_reminder_no_recovery_title = 紛失したプライベートキーは復元できません
+private_key_reminder_no_recovery_subtitle = プライベートキーを紛失すると、ウォレットにアクセスできなくなります。
+private_key_do_not_share_title = プライベートキーを共有しないでください。
+private_key_do_not_share_description = プライベートキーを知った人は、このアカウントを完全に操作できます。
+private_key_screenshot_detected_description = スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でプライベートキーを保存すると、漏えいするおそれがあります。
 
 # Social
 
@@ -553,7 +566,7 @@ sell_title = %@を売る
 
 # Info
 
-info_region_unavailable_description = この機能はお住まいの地域では利用できません。 利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。
+info_region_unavailable_description = この機能はお住まいの地域では利用できません。利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。
 
 info_network_fee_title = ネットワーク手数料
 info_watch_wallet_title = ウォッチウォレット

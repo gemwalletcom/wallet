@@ -157,7 +157,7 @@ Website fee estimates use the fallback helper with per-chain `transactionsFeeEst
 ## RPC Clients
 
 - Follow [Architecture § 12](../../docs/ARCHITECTURE.md#12-a-clients-requests-are-one-enum-the-client-only-sends) for request targets, client responsibilities, deliberate transport exceptions, and reference implementations
-- `gem_jsonrpc::JsonRpcClient` for blockchain RPC; `batch_request()` for batches; errors propagate as `JsonRpcError`
+- `gem_jsonrpc::JsonRpcClient` for blockchain RPC; `requests()` for several calls (one is sent plain, more as a batch); errors propagate as `JsonRpcError`
 - `primitives::hex` for hex encoding, not `alloy_primitives::hex`; RPC calls take hex strings directly, avoid double encoding
 - Never wrap an immutable request client in a shared `Mutex` or hold that client lock across network or database I/O. Use mutexes only for narrowly scoped mutable coordination
 

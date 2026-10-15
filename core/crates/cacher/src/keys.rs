@@ -39,7 +39,7 @@ pub(crate) enum CacheKey<'a> {
 
     Markets,
 
-    SwapDepositAddresses(&'a str),
+    SwapDepositIds(&'a str),
     SwapSendAddresses(&'a str),
 
     ChartsHistory(&'a str),
@@ -87,7 +87,7 @@ impl CacheKey<'_> {
             Self::AddressStatus(chain, address) => format!("address:status:{}:{}", chain, address),
             Self::JobStatus(name) => format!("jobs:status:{}", name),
             Self::Markets => "markets:markets".to_string(),
-            Self::SwapDepositAddresses(provider) => format!("swap:deposit_addresses:{}", provider),
+            Self::SwapDepositIds(provider) => format!("swap:deposit_ids:{}", provider),
             Self::SwapSendAddresses(provider) => format!("swap:send_addresses:{}", provider),
             Self::ChartsHistory(provider) => format!("charts:history:{}", provider),
             Self::AlerterStakeRewards(chain, address) => format!("alerter:stake_rewards:{}:{}", chain, address),
@@ -128,7 +128,7 @@ impl CacheKey<'_> {
             Self::AddressStatus(_, _) => SECONDS_PER_YEAR,
             Self::JobStatus(_) => 7 * SECONDS_PER_DAY,
             Self::Markets => SECONDS_PER_DAY,
-            Self::SwapDepositAddresses(_) => 7 * SECONDS_PER_DAY,
+            Self::SwapDepositIds(_) => 30 * SECONDS_PER_DAY,
             Self::SwapSendAddresses(_) => 7 * SECONDS_PER_DAY,
             Self::ChartsHistory(_) => 10 * 365 * SECONDS_PER_DAY,
             Self::AlerterStakeRewards(_, _) => 30 * SECONDS_PER_DAY,

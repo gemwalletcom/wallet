@@ -147,6 +147,17 @@ class ReownWalletConnectClient @Inject constructor(@param:ApplicationContext pri
         )
     }
 
+    override fun updateSession(topic: String, namespaces: Map<String, WalletConnectSessionNamespace>, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        WalletKit.updateSession(
+            params = Wallet.Params.SessionUpdate(
+                sessionTopic = topic,
+                namespaces = namespaces.mapValues { it.value.toReownSessionNamespace() },
+            ),
+            onSuccess = { onSuccess() },
+            onError = { onError(it.throwable.message.orEmpty()) },
+        )
+    }
+
     override fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, onSuccess: () -> Unit, onError: (String) -> Unit) {
         WalletKit.approveSessionAuthenticate(
             params = Wallet.Params.ApproveSessionAuthenticate(

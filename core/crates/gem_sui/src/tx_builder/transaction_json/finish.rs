@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 use futures::try_join;
-use num_traits::ToPrimitive;
 use sui_transaction_builder::ObjectInput;
 use sui_types::Address;
 
@@ -66,7 +65,7 @@ fn validate_expiration(transaction: &TransactionBuilderJson) -> Result<(), SuiEr
 async fn gas_price(client: &SuiClient, gas_data: &GasData) -> Result<u64, SuiError> {
     match gas_data.price {
         Some(price) => Ok(price),
-        None => client.get_gas_price().await.map_err(SuiError::from_display)?.to_u64().ok_or_else(|| SuiError::invalid_input("Sui gas price overflow")),
+        None => client.get_gas_price().await.map_err(SuiError::from_display),
     }
 }
 

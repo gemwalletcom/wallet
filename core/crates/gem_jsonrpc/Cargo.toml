@@ -21,3 +21,7 @@ primitives = { path = "../primitives", optional = true }
 reqwest = { workspace = true, optional = true }
 percent-encoding = { workspace = true, optional = true }
 uniffi = { workspace = true, optional = true }
+
+[dev-dependencies]
+gem_client = { path = "../gem_client", features = ["testkit"] }
+tokio = { workspace = true, features = ["macros", "rt"] }

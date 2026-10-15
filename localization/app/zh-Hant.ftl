@@ -351,7 +351,7 @@ charts_price_change = 漲跌幅
 
 date_today = 今天
 date_yesterday = 昨天
-date_day_time = %@, %@
+date_day_time = %@ %@
 
 # Wallet Connect
 
@@ -431,6 +431,19 @@ secret_phrase_confirm_quick_test_title = 完成這個快速測試，以確認已
 secret_phrase_screenshot_detected_title = 偵測到螢幕截圖
 secret_phrase_screenshot_detected_description = 螢幕截圖可能會被其他應用程式存取；以此方式儲存助記詞會帶來外洩風險。
 secret_phrase_content_hidden_description = 螢幕錄製過程中隱藏的內容
+
+# Private Key
+
+private_key_reminder_intro = 此私鑰是您錢包的唯一備份。
+private_key_reminder_keep_safe_title = 妥善備份私鑰
+private_key_reminder_keep_safe_subtitle = 請抄寫私鑰，並保存在只有您能取用的安全位置。
+private_key_reminder_do_not_share_title = 切勿洩漏私鑰
+private_key_reminder_do_not_share_subtitle = 任何人取得私鑰，都能控制錢包並轉走資產。
+private_key_reminder_no_recovery_title = 我們無法找回私鑰
+private_key_reminder_no_recovery_subtitle = 請保管好備份，以免裝置遺失或損壞後無法復原錢包。
+private_key_do_not_share_title = 切勿洩漏私鑰！
+private_key_do_not_share_description = 任何人只要擁有私鑰，就能完全控制這個帳戶！
+private_key_screenshot_detected_description = 螢幕截圖可能會被其他應用程式存取；以此方式儲存私鑰會帶來外洩風險。
 
 # Social
 

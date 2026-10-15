@@ -21,9 +21,7 @@ impl<C: Client> ChainBlockTransactions for AlgorandIndexer<C> {
 #[async_trait]
 impl<C: Client> ChainTransaction for AlgorandIndexer<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let hash = request.hash;
-        let transaction = self.get_transaction(&hash).await?;
-        Ok(map_transaction_by_hash(transaction))
+        Ok(self.get_transaction(&request.hash).await?.and_then(map_transaction_by_hash))
     }
 }
 
@@ -33,6 +31,30 @@ impl<C: Client> ChainTransactions for AlgorandIndexer<C> {
         let TransactionsRequest { address, .. } = request;
         let transactions = self.get_account_transactions(&address).await?;
         Ok(TransactionsResult::Transactions(map_transactions(transactions.transactions)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gem_client::{ClientError, testkit::MockClient};
+    use primitives::Chain;
+
+    #[tokio::test]
+    async fn test_get_transaction_by_hash() {
+        let indexer = AlgorandIndexer::new(MockClient::new().with_get(|_| {
+            Err(ClientError::Http {
+                status: 404,
+                body: br#"{"message":"no transaction found for transaction id"}"#.to_vec(),
+            })
+        }));
+
+        let transaction = indexer
+            .get_transaction_by_hash(TransactionIdRequest::new(Chain::Algorand, "MN2OHOKE4PFHRO35HQBJIBKNUJ3HJVHQTB3HVJ43ATNPD4ULW67A".to_string(), None))
+            .await
+            .unwrap();
+
+        assert_eq!(transaction, None);
     }
 }
 

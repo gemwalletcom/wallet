@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
+import com.gemwallet.android.application.wallet_connect.cases.AddWalletConnectSessionAccount
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
@@ -45,6 +46,7 @@ import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletConnectOutcome
 import uniffi.gemstone.GemWalletConnectResponse
+import uniffi.gemstone.GemWalletConnectRpcError
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletConnectSessionRequest
 import uniffi.gemstone.WalletConnectResponseType
@@ -68,7 +70,9 @@ class WalletConnectorRequestViewModelTest {
 
     private val topic = "topic-1"
 
-    private val idle = GemWalletConnectOutcome(response = null, failure = null)
+    private val idle = GemWalletConnectOutcome.Ignored
+
+    private val rejected = GemWalletConnectRpcError(code = 4001, message = "User rejected")
 
     private val sessionRequest = mockWalletConnectSessionRequest(id = 42L, topic = topic)
 
@@ -78,18 +82,23 @@ class WalletConnectorRequestViewModelTest {
         coEvery { requestOutcome(any()) } coAnswers { onProcess(firstArg()) }
     }
 
-    private fun viewModel(service: GemWalletConnectServiceInterface = service(), respond: RespondWalletConnectRequest = mockk(relaxed = true), requests: WalletConnectPendingRequests = WalletConnectPendingRequests()) =
-        WalletConnectorRequestViewModel(
-            service = service,
-            respondWalletConnectRequest = respond,
-            pendingRequests = requests,
-            activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
-            ioDispatcher = dispatcher,
-            context = mockk(relaxed = true) {
-                every { getString(R.string.errors_connections_malicious_origin) } returns "Malicious origin"
-                every { getString(R.string.wallet_connect_request_expired) } returns "Request expired"
-            },
-        ).also { models.add(it) }
+    private fun viewModel(
+        service: GemWalletConnectServiceInterface = service(),
+        respond: RespondWalletConnectRequest = mockk(relaxed = true),
+        addSessionAccount: AddWalletConnectSessionAccount = mockk(relaxed = true),
+        requests: WalletConnectPendingRequests = WalletConnectPendingRequests(),
+    ) = WalletConnectorRequestViewModel(
+        service = service,
+        respondWalletConnectRequest = respond,
+        addWalletConnectSessionAccount = addSessionAccount,
+        pendingRequests = requests,
+        activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
+        ioDispatcher = dispatcher,
+        context = mockk(relaxed = true) {
+            every { getString(R.string.errors_connections_malicious_origin) } returns "Malicious origin"
+            every { getString(R.string.wallet_connect_request_expired) } returns "Request expired"
+        },
+    ).also { models.add(it) }
 
     private fun TestScope.pending(requests: WalletConnectPendingRequests, signature: CompletableDeferred<String>? = null): Job = launch {
         runCatching {
@@ -100,25 +109,25 @@ class WalletConnectorRequestViewModelTest {
     private suspend fun WalletConnectorRequestViewModel.awaitContent(): WalletConnectorRequestUIState = uiState.first { it !is WalletConnectorRequestUIState.Loading }
 
     @Test
-    fun `a malicious origin reports an error without responding`() = runTest(dispatcher) {
+    fun `a malicious origin reports an error and refuses the request`() = runTest(dispatcher) {
         val error = CompletableDeferred<String>()
         val respond = mockk<RespondWalletConnectRequest>(relaxed = true)
         val model = viewModel(
-            service = service { GemWalletConnectOutcome(response = null, failure = GemWalletConnectFailure.MaliciousOrigin) },
+            service = service { GemWalletConnectOutcome.Fail(rejected, GemWalletConnectFailure.MaliciousOrigin) },
             respond = respond,
         )
 
         model.onRequest(sessionRequest, verifyContext, onError = { error.complete(it) })
 
         assertEquals("Malicious origin", error.await())
-        verify(exactly = 0) { respond.respond(any(), any(), any(), any(), any()) }
+        verify(exactly = 1) { respond.respond(topic, 42L, WalletConnectJsonRpcResponse.Error(4001, "User rejected"), any(), any()) }
     }
 
     @Test
     fun `an expired request reports that it expired`() = runTest(dispatcher) {
         val error = CompletableDeferred<String>()
         val model = viewModel(
-            service = service { GemWalletConnectOutcome(response = null, failure = GemWalletConnectFailure.Expired) },
+            service = service { GemWalletConnectOutcome.Fail(rejected, GemWalletConnectFailure.Expired) },
         )
 
         model.onRequest(sessionRequest, verifyContext, onError = { error.complete(it) })
@@ -130,7 +139,7 @@ class WalletConnectorRequestViewModelTest {
     fun `a failed request reports its error`() = runTest(dispatcher) {
         val error = CompletableDeferred<String>()
         val model = viewModel(
-            service = service { GemWalletConnectOutcome(response = null, failure = GemWalletConnectFailure.Failed(GemErrorText.Message("Request failed"))) },
+            service = service { GemWalletConnectOutcome.Fail(rejected, GemWalletConnectFailure.Failed(GemErrorText.Message("Request failed"))) },
         )
 
         model.onRequest(sessionRequest, verifyContext, onError = { error.complete(it) })
@@ -144,7 +153,7 @@ class WalletConnectorRequestViewModelTest {
         val model = viewModel(
             service = service { request ->
                 sent.complete(request)
-                GemWalletConnectOutcome(response = null, failure = null)
+                idle
             },
         )
 
@@ -169,12 +178,7 @@ class WalletConnectorRequestViewModelTest {
             }
         }
         val model = viewModel(
-            service = service {
-                GemWalletConnectOutcome(
-                    response = GemWalletConnectResponse.Response(WalletConnectResponseType.String("0xsignature")),
-                    failure = null,
-                )
-            },
+            service = service { GemWalletConnectOutcome.Respond(GemWalletConnectResponse.Response(WalletConnectResponseType.String("0xsignature"))) },
             respond = respond,
         )
 
@@ -184,6 +188,34 @@ class WalletConnectorRequestViewModelTest {
             Triple(topic, 42L, WalletConnectJsonRpcResponse.Result("0xsignature")),
             responded.await(),
         )
+    }
+
+    @Test
+    fun `a switch to a network outside the session adds the account before answering`() = runTest(dispatcher) {
+        val events = mutableListOf<String>()
+        val responded = CompletableDeferred<WalletConnectJsonRpcResponse>()
+        val addSessionAccount = mockk<AddWalletConnectSessionAccount> {
+            every { addSessionAccount(topic, "eip155:81457:0xabc", any()) } answers {
+                events.add("added")
+                thirdArg<() -> Unit>().invoke()
+            }
+        }
+        val respond = mockk<RespondWalletConnectRequest>(relaxed = true) {
+            every { respond(any(), any(), any(), any(), any()) } answers {
+                events.add("responded")
+                responded.complete(thirdArg())
+            }
+        }
+        val model = viewModel(
+            service = service { GemWalletConnectOutcome.AddSessionAccount("eip155:81457:0xabc") },
+            respond = respond,
+            addSessionAccount = addSessionAccount,
+        )
+
+        model.onRequest(sessionRequest, verifyContext, onError = {})
+
+        assertEquals(WalletConnectJsonRpcResponse.Result("null"), responded.await())
+        assertEquals(listOf("added", "responded"), events)
     }
 
     @Test

@@ -1,3 +1,5 @@
+use crate::services::wallet::model::GemWalletSecretKind;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAcceptTermsItem {
     SelfCustody,
@@ -56,9 +58,9 @@ pub fn new_terms_session() -> GemTermsSession {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemSecurityReminderItem {
-    KeepSafe,
-    DoNotShare,
-    NoRecovery,
+    KeepSafe { kind: GemWalletSecretKind },
+    DoNotShare { kind: GemWalletSecretKind },
+    NoRecovery { kind: GemWalletSecretKind },
 }
 
 #[cfg(test)]

@@ -13,11 +13,6 @@ pub mod provider;
 
 pub mod models;
 
-#[cfg(feature = "rpc")]
-pub mod transfer_builder;
-#[cfg(feature = "rpc")]
-pub use transfer_builder::*;
-
 pub mod error;
 pub mod gas_budget;
 pub mod tx_builder;

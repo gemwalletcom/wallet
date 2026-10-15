@@ -400,31 +400,35 @@ mod tests {
     }
 
     #[test]
-    fn test_build_quote_request_rejects_bitcoin_source() {
-        let request = QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-            value: BigUint::from(89100u64),
-            ..QuoteRequest::mock(Chain::Bitcoin, None)
-        };
+    fn test_build_quote_request_rejects_destination_only_sources() {
+        for chain in [Chain::Bitcoin, Chain::Polkadot] {
+            let request = QuoteRequest {
+                from_asset: SwapperQuoteAsset::from(AssetId::from_chain(chain)),
+                to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
+                value: BigUint::from(89100u64),
+                ..QuoteRequest::mock(chain, None)
+            };
 
-        assert!(build_quote_request(&request, &AssetsResponse::mock()).is_err());
+            assert_eq!(build_quote_request(&request, &AssetsResponse::mock()).unwrap_err(), SwapperError::NotSupportedChain);
+        }
     }
 
     #[test]
     fn test_build_quote_request_uses_broker_asset_ids() {
-        let request = QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
-            value: BigUint::parse_bytes(b"1000000000000000000", 10).unwrap(),
-            ..QuoteRequest::mock(Chain::Ethereum, None)
-        };
+        for (chain, asset_id) in [(Chain::Bitcoin, "btc.btc"), (Chain::Polkadot, "dot.hub")] {
+            let request = QuoteRequest {
+                from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
+                to_asset: SwapperQuoteAsset::from(AssetId::from_chain(chain)),
+                value: BigUint::parse_bytes(b"1000000000000000000", 10).unwrap(),
+                ..QuoteRequest::mock(Chain::Ethereum, None)
+            };
 
-        let (quote_request, _) = build_quote_request(&request, &AssetsResponse::mock()).unwrap();
-        assert_eq!(
-            gem_client::build_path_with_query("/quotes-native", &quote_request),
-            "/quotes-native?amount=1000000000000000000&sourceAsset=eth.eth&destinationAsset=btc.btc&commissionBps=45&isVaultSwap=true"
-        );
+            let (quote_request, _) = build_quote_request(&request, &AssetsResponse::mock()).unwrap();
+            assert_eq!(
+                gem_client::build_path_with_query("/quotes-native", &quote_request),
+                format!("/quotes-native?amount=1000000000000000000&sourceAsset=eth.eth&destinationAsset={asset_id}&commissionBps=45&isVaultSwap=true")
+            );
+        }
     }
 
     #[test]

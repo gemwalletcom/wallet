@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-  <string name="common_cancel">Ophæve</string>
+  <string name="common_cancel">Annuller</string>
   <string name="common_hidden">Skjulte</string>
   <string name="common_done">Færdig</string>
   <string name="common_maximum_value">Maksimal værdi er %1$s</string>
@@ -334,7 +334,7 @@
   <string name="stake_validator">Validator</string>
   <string name="stake_validators">Validatorer</string>
   <string name="stake_apr">ÅOP %1$s</string>
-  <string name="stake_available_in">Tilgængelig i</string>
+  <string name="stake_available_in">Tilgængelig om</string>
   <string name="stake_inactive">Inaktiv</string>
   <string name="stake_lock_time">Låsetid</string>
   <string name="stake_activating">Aktiverer</string>
@@ -365,6 +365,16 @@
   <string name="secret_phrase_screenshot_detected_title">Skærmbillede fundet</string>
   <string name="secret_phrase_screenshot_detected_description">Skærmbilleder kan være tilgængelige for andre apps, og de kan bringe din hemmelige frase i fare, hvis de gemmes på denne måde.</string>
   <string name="secret_phrase_content_hidden_description">Indhold skjult under skærmoptagelse</string>
+  <string name="private_key_reminder_intro">Denne private nøgle er din tegnebogs eneste backup.</string>
+  <string name="private_key_reminder_keep_safe_title">Opbevar den et sikkert sted</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Den private nøgle er den eneste måde at få adgang til din tegnebog.</string>
+  <string name="private_key_reminder_do_not_share_title">Del den ikke med nogen</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Enhver, der får din private nøgle, kan tage fuld kontrol over din tegnebog.</string>
+  <string name="private_key_reminder_no_recovery_title">Vi kan ikke hjælpe dig med at gendanne den</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Hvis du mister din private nøgle, mister du adgangen til din tegnebog.</string>
+  <string name="private_key_do_not_share_title">Del ikke din private nøgle!</string>
+  <string name="private_key_do_not_share_description">Hvis nogen har din private nøgle, vil de have fuld kontrol over denne konto!</string>
+  <string name="private_key_screenshot_detected_description">Skærmbilleder kan være tilgængelige for andre apps, og de kan bringe din private nøgle i fare, hvis de gemmes på denne måde.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
@@ -419,7 +429,7 @@
   <string name="price_alerts_direction_under">Under</string>
   <string name="price_alerts_direction_increases_by">Stiger med</string>
   <string name="price_alerts_direction_decreases_by">Falder med</string>
-  <string name="price_alerts_set_alert_price_over">Når prisen er overstået</string>
+  <string name="price_alerts_set_alert_price_over">Når prisen er over</string>
   <string name="price_alerts_set_alert_price_under">Når prisen er under</string>
   <string name="price_alerts_set_alert_price_increases_by">Når prisen stiger med</string>
   <string name="price_alerts_set_alert_price_decreases_by">Når prisen falder med</string>
@@ -444,7 +454,7 @@
   <string name="lock_footer">Beskyt adgangen til denne app på din enhed</string>
   <string name="lock_passcode">Adgangskode</string>
   <string name="lock_passcode_off_title">Enhedens adgangskode er slået fra</string>
-  <string name="lock_passcode_off_description">Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine wallets er i sikkerhed.</string>
+  <string name="lock_passcode_off_description">Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine tegnebøger er i sikkerhed.</string>
   <string name="verify_phrase_title">Bekræft</string>
   <string name="warnings_externally_controlled_account">Denne %1$s-konto kan være kontrolleret af en anden. Overfør ikke penge til den, medmindre du er sikker på, at du kontrollerer den, ellers kan du permanent miste dine aktiver.</string>
   <string name="sell_title">Sælg %1$s</string>
@@ -585,7 +595,7 @@
   <string name="rewards_insufficient_points">Utilstrækkelige point</string>
   <string name="rewards_confirm_redeem">Få %1$s for %2$s!</string>
   <string name="rewards_pending_title">Bonus afventer</string>
-  <string name="rewards_pending_description">Tilgængelig i %1$s</string>
+  <string name="rewards_pending_description">Tilgængelig om %1$s</string>
   <string name="rewards_pending_description_ready">Din bonus er klar!</string>
   <string name="rewards_nickname">Kælenavn</string>
   <string name="rewards_unverified_title">Belønninger er endnu ikke aktive.</string>
@@ -614,7 +624,7 @@
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Sikkerhedsadvarsel</string>
   <string name="rootcheck_jailbreak_body">Din enhed ser ud til at være jailbroken. Det kan bringe din tegnebog og dine midler i fare.</string>
-  <string name="rootcheck_body">Din enhed ser ud til at have root-adgang, hvilket kan øge sikkerhedsrisiciene betydeligt. Brug af denne app på en rootet enhed kan udsætte dine aktiver for uautoriseret adgang og potentielt tab. Af hensyn til dine penges sikkerhed anbefaler vi kraftigt at bruge en enhed uden rod.</string>
+  <string name="rootcheck_body">Din enhed ser ud til at have root-adgang, hvilket kan øge sikkerhedsrisiciene betydeligt. Brug af denne app på en rootet enhed kan udsætte dine aktiver for uautoriseret adgang og potentielt tab. Af hensyn til dine penges sikkerhed anbefaler vi kraftigt at bruge en enhed, der ikke er rootet.</string>
   <string name="rootcheck_ignore">Ignorer</string>
   <string name="rootcheck_exit">Afslut</string>
 </resources>

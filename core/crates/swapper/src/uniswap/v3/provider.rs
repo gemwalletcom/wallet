@@ -152,7 +152,7 @@ impl Swapper for UniswapV3 {
             })
             .collect::<Vec<_>>();
         let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = quote_calls.into_iter().unzip();
-        let results = client.batch_request(calls).await?;
+        let results = client.requests(calls).await?;
 
         let quote_result = get_best_quote(&results, &positions, super::quoter_v2::decode_quoter_response)?;
 

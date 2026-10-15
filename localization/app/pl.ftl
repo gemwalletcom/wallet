@@ -90,7 +90,7 @@ wallet_default_name_chain = %@ Portfel #%d
 wallet_copy_address = Skopiuj adres
 wallet_watch_tooltip_title = Portfel tylko do obserwacji. Nie kontrolujesz tych środków.
 wallet_watch_empty_state_title = Oglądasz ten portfel.
-wallet_stake = Postaw
+wallet_stake = Stakuj
 wallet_receive_no_memo_required = Nie jest wymagana żadna notatka
 wallet_receive_no_destination_tag_required = Nie jest wymagany tag miejsca docelowego
 wallet_title = Portfel
@@ -146,7 +146,7 @@ transfer_send_title = Wysłać
 transfer_insufficient_balance = Niewystarczające %@ saldo.
 transfer_insufficient_network_fee_balance = Niewystarczające saldo %@ na pokrycie opłat sieciowych.
 transfer_approve_title = Zatwierdź
-transfer_stake_title = Stawka
+transfer_stake_title = Stakuj
 transfer_claim_rewards_title = Odbierz nagrody
 transfer_unstake_title = Wycofaj stake
 transfer_redelegate_title = Ponowne delegowanie
@@ -391,7 +391,7 @@ stake_rewards = Nagrody
 stake_validator = Walidator
 stake_validators = Walidatory
 stake_apr = APR %@
-stake_available_in = Dostępne w
+stake_available_in = Dostępne za
 stake_inactive = Nieaktywny
 stake_lock_time = Czas blokady
 stake_activating = Aktywacja
@@ -399,8 +399,8 @@ stake_deactivating = Dezaktywacja
 stake_awaiting_withdrawal = Oczekiwanie na wypłatę
 stake_active_in = Aktywne w
 stake_minimum_amount = Minimalna kwota
-stake_state_empty_title = Twoje stawki pojawią się tutaj
-stake_state_empty_description = Postaw swoją pierwszą %@
+stake_state_empty_title = Twoje stakowane środki pojawią się tutaj
+stake_state_empty_description = Stakuj swoją pierwszą %@
 stake_state_empty_validators_title = Nie znaleziono walidatorów
 stake_resource = Zasób
 stake_resource_energy = Energia
@@ -424,13 +424,26 @@ sign_message_view_full_message = Wyświetl pełną wiadomość
 
 # Secret Phrase
 
-secret_phrase_do_not_share_title = Nie udostępniaj swojego tajnego wyrażenia!
-secret_phrase_do_not_share_description = Jeśli ktoś zna Twoje tajne hasło, będzie miał pełną kontrolę nad Twoim portfelem!
-secret_phrase_save_phrase_safely = Zapisz swoje tajne zdanie w bezpiecznym miejscu\n nad którymi tylko ty masz kontrolę.
+secret_phrase_do_not_share_title = Nie udostępniaj swojego tajnego zdania!
+secret_phrase_do_not_share_description = Jeśli ktoś zna Twoje tajne zdanie, będzie miał pełną kontrolę nad Twoim portfelem!
+secret_phrase_save_phrase_safely = Zapisz swoje tajne zdanie w bezpiecznym miejscu,\n nad którym tylko Ty masz kontrolę.
 secret_phrase_confirm_quick_test_title = Wykonaj ten szybki test, aby potwierdzić, że wszystko zostało poprawnie zapisane.
 secret_phrase_screenshot_detected_title = Wykryto zrzut ekranu
 secret_phrase_screenshot_detected_description = Zrzuty ekranu mogą być dostępne dla innych aplikacji, a zapisanie ich w ten sposób może narazić Twoją tajną frazę na ryzyko.
 secret_phrase_content_hidden_description = Zawartość ukryta podczas nagrywania ekranu
+
+# Private Key
+
+private_key_reminder_intro = Ten klucz prywatny to jedyna kopia zapasowa Twojego portfela.
+private_key_reminder_keep_safe_title = Przechowuj go w bezpiecznym miejscu
+private_key_reminder_keep_safe_subtitle = Klucz prywatny to jedyny sposób dostępu do Twojego portfela.
+private_key_reminder_do_not_share_title = Nie udostępniaj go nikomu
+private_key_reminder_do_not_share_subtitle = Każda osoba, która pozna Twój klucz prywatny, będzie mogła przejąć pełną kontrolę nad Twoim portfelem.
+private_key_reminder_no_recovery_title = Nie możemy pomóc Ci go odzyskać
+private_key_reminder_no_recovery_subtitle = Jeśli zgubisz swój klucz prywatny, stracisz dostęp do swojego portfela.
+private_key_do_not_share_title = Nie udostępniaj swojego klucza prywatnego!
+private_key_do_not_share_description = Jeśli ktoś zna Twój klucz prywatny, będzie miał pełną kontrolę nad tym kontem!
+private_key_screenshot_detected_description = Zrzuty ekranu mogą być dostępne dla innych aplikacji, a zapisanie ich w ten sposób może narazić Twój klucz prywatny na ryzyko.
 
 # Social
 
@@ -483,14 +496,14 @@ fee_rate_base = Opłata bazowa
 
 banner_account_activation_title = Opłata za aktywację konta
 banner_account_activation_description = Sieć %@ wymaga jednorazowej opłaty w wysokości %@.
-banner_stake_title = Zacznij stawiać %@
-banner_stake_description = Zdobądź %@ nagród na swojej stawce podczas snu.
+banner_stake_title = Zacznij stakować %@
+banner_stake_description = Zdobywaj nagrody w %@ ze stakingu, nawet gdy śpisz.
 banner_activate_asset_description = Aby użyć zasobu %@, należy najpierw włączyć go w sieci %@ spełniając określone wymagania sieciowe.
 banner_asset_status_title = Podejrzany zasób
 banner_asset_status_description = Token może być niebezpieczny lub wprowadzać w błąd. Kontynuuj tylko wtedy, gdy w pełni mu ufasz.
 banner_onboarding_title = Twój portfel jest gotowy
 banner_onboarding_description = Kup lub odbierz kryptowalutę, aby zacząć
-banner_perpetuals_title = Handluj instrumentami perpetuals na Hyperliquid
+banner_perpetuals_title = Handluj Perpetuals na Hyperliquid
 banner_perpetuals_description = Wpłacaj, handluj i zarabiaj dzięki Hyperliquid Perpetuals
 
 # Filter
@@ -565,7 +578,7 @@ info_transaction_error_description = Transakcja nie mogła zostać ukończona z 
 info_transaction_pending_description = Transakcja została wysłana i oczekuje na potwierdzenie w sieci. Czasy przetwarzania mogą się różnić. Sprawdź ponownie, czy są jakieś aktualizacje.
 info_estimated_confirmation_description = To oszacowanie opiera się na opłacie transakcyjnej i bieżącej aktywności sieci %@. Rzeczywisty czas potwierdzenia może się zmienić i nie jest gwarantowany.
 info_transaction_success_description = Transakcja została ukończona i potwierdzona w sieci. Możesz przejrzeć szczegóły, aby zweryfikować jej status.
-info_lock_time_description = Czas blokady, znany również jako okres odłączenia lub odmrożenia, to czas, podczas którego postawione aktywa są niedostępne po podjęciu decyzji o ich odstawieniu.
+info_lock_time_description = Czas blokady, znany również jako okres odłączenia lub odmrożenia, to czas, podczas którego stakowane aktywa są niedostępne po podjęciu decyzji o wycofaniu ich ze stakingu.
 info_price_impact_description = Wpływ ceny to zmiana ceny tokena spowodowana rozmiarem transakcji. Większy wpływ ceny oznacza, że otrzymujesz mniej tokenów z powodu niskiej płynności lub dużego rozmiaru zamówienia.
 info_slippage_description = Poślizg odnosi się do różnicy między oczekiwaną ceną transakcji a rzeczywistą ceną, po której została ona zrealizowana.
 info_asset_status_unverified_description = Niezweryfikowane tokeny nie zostały wystarczająco zweryfikowane przez zaufane usługi stron trzecich. Mogą pojawić się w Twoim portfelu z powodu airdropów, transferów lub ręcznych importów.
@@ -583,10 +596,10 @@ info_perpetual_open_interest_title = Otwarte zainteresowanie
 info_perpetual_open_interest_description = Otwarte odsetki reprezentują łączną wartość wszystkich pozostających do spłaty kontraktów wieczystych, które nie zostały rozliczone. Zapewnia wgląd w aktywność rynkową i płynność.
 info_no_quote_description = Nie można zwrócić wyceny dla wybranej pary tokenów, prawdopodobnie z powodu zbyt niskiej kwoty, braku płynności lub ograniczeń technicznych.
 info_stake_reserved_title = Zarezerwowane na opłatę sieciową
-info_stake_reserved_description = Niewielka kwota pozostaje w Twoim portfelu i służy pokryciu opłat za operacje, takie jak anulowanie transakcji lub odbieranie nagród.
+info_stake_reserved_description = Niewielka kwota pozostaje w Twoim portfelu i służy pokryciu opłat za operacje, takie jak wycofanie stakingu lub odbieranie nagród.
 info_stake_apr_description = Roczna stopa procentowa (APR) to roczna stopa nagrody za stakowanie kryptowaluty.
-info_stake_frozen_required_title = Zamroź TRX, aby postawić stawkę
-info_stake_frozen_required_description = Staking na TRON składa się z dwóch kroków. Najpierw zamroź TRX, a następnie postaw je, aby zdobyć nagrody.
+info_stake_frozen_required_title = Zamroź TRX, aby stakować
+info_stake_frozen_required_description = Staking na TRON składa się z dwóch kroków. Najpierw zamroź TRX, a następnie stakuj je, aby zdobywać nagrody.
 info_perpetual_auto_close_description = Automatycznie zamykaj pozycje po ustalonych cenach. Take Profit zabezpiecza zyski, Stop Loss ogranicza straty.
 info_fully_diluted_valuation_title = Wycena całkowicie rozwodniona
 info_fully_diluted_valuation_description = Teoretyczna wartość rynkowa, gdyby wszystkie monety były w obiegu. Obliczona jako iloczyn ceny i maksymalnej podaży.
@@ -696,9 +709,9 @@ perpetual_margin_isolated = Izolowana
 
 # Perpetuals
 
-perpetuals_title = Wieczyste
+perpetuals_title = Perpetuals
 # Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
-perpetuals_trade = Handluj wieczystymi
+perpetuals_trade = Handluj Perpetuals
 perpetuals_markets = Rynki
 perpetuals_empty_state_no_markets_found = Nie znaleziono rynków
 
@@ -725,7 +738,7 @@ rewards_ways_spend_asset_title = Zdobądź %@
 rewards_insufficient_points = Za mało punktów
 rewards_confirm_redeem = Zdobądź %@ za %@!
 rewards_pending_title = Bonus w toku
-rewards_pending_description = Dostępne w %@
+rewards_pending_description = Dostępne za %@
 rewards_pending_description_ready = Twój bonus jest gotowy!
 rewards_nickname = Przydomek
 rewards_unverified_title = Nagrody nie są jeszcze aktywne.

@@ -2,7 +2,6 @@ use std::time::Duration;
 
 use primitives::{BannerEvent, Currency, TransactionType};
 
-use crate::services::onboarding::GemSecurityReminderItem;
 use crate::services::security::GemLockPeriod;
 
 pub const SEARCH_DEBOUNCE: Duration = Duration::from_millis(250);
@@ -27,7 +26,6 @@ pub const WALLET_CONNECT_USER_REJECTED_ERROR_CODE: i32 = 4001;
 pub const WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE: &str = "User rejected the request";
 pub const WALLET_BANNER_EVENTS: &[BannerEvent] = &[BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding];
 pub const PERPETUAL_ACTIVITY_TYPES: &[TransactionType] = &[TransactionType::PerpetualOpenPosition, TransactionType::PerpetualClosePosition, TransactionType::PerpetualModifyPosition];
-pub const SECURITY_REMINDER_ITEMS: &[GemSecurityReminderItem] = &[GemSecurityReminderItem::KeepSafe, GemSecurityReminderItem::DoNotShare, GemSecurityReminderItem::NoRecovery];
 pub const LOCK_PERIODS: &[GemLockPeriod] = &[
     GemLockPeriod::Immediate,
     GemLockPeriod::OneMinute,
@@ -123,12 +121,6 @@ mod tests {
     fn test_limits_shared_with_other_crates_stay_in_step() {
         assert_eq!(TRANSACTIONS_LIST_LIMIT, primitives::TRANSACTIONS_LIMIT, "the apps list as many transactions as the API pages");
         assert_eq!(SERVICE_STATUS_TIMEOUT, gem_client::DEFAULT_REQUEST_TIMEOUT, "the status check waits as long as any request");
-    }
-
-    #[test]
-    fn test_onboarding_shows_every_reminder() {
-        assert_eq!(SECURITY_REMINDER_ITEMS.first(), Some(&GemSecurityReminderItem::KeepSafe));
-        assert_eq!(SECURITY_REMINDER_ITEMS.last(), Some(&GemSecurityReminderItem::NoRecovery));
     }
 
     #[test]

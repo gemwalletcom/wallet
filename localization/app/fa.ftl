@@ -21,7 +21,7 @@ common_delete_confirmation = آیا مطمئنید که می‌خواهید %@ �
 common_hide = پنهان کن
 common_wallet = کیف پول
 common_show = نمایش %@
-common_copied = %@ کپی شد.
+common_copied = %@ کپی شد
 common_copied_to_clipboard = در کلیپ‌بورد کپی شد
 common_recommended = پیشنهاد شده
 common_all = همه
@@ -29,7 +29,7 @@ common_not_available = در دسترس نیست
 common_phrase = عبارت
 common_manage = مدیریت
 common_type = نوع
-common_no_results_found = هیچ نتیجه ای یافت نشد.
+common_no_results_found = هیچ نتیجه ای یافت نشد
 common_no = نه
 common_none = هیچکدام
 common_url = URL
@@ -40,8 +40,8 @@ common_pin = پین کردن
 common_pinned = پین شده
 common_lists = فهرست‌ها
 common_unpin = از پین درآوردن
-common_pinned_asset = %@ پین شد.
-common_unpinned_asset = %@ از پین خارج شد.
+common_pinned_asset = %@ پین شد
+common_unpinned_asset = %@ از پین خارج شد
 common_skip = پرش کنید
 common_warning = هشدار
 common_learn_more = بیشتر بدانید
@@ -60,11 +60,11 @@ common_suspicious_address = آدرس مشکوک
 common_suspicious_address_description = این آدرس با فعالیت مشکوک یا مضر مرتبط است.
 common_refresh = تازه کردن
 common_grant_permission = اجازه بدهید
-common_required_field = %@ مورد نیاز است.
+common_required_field = %@ مورد نیاز است
 
 # Welcome
 
-welcome_title = به خانواده Gem خوش آمدید.
+welcome_title = به خانواده Gem خوش آمدید
 
 # Wallet
 
@@ -91,10 +91,10 @@ wallet_copy_address = کپی کردن آدرس
 wallet_watch_tooltip_title = کیف پول فقط برای مشاهده. شما کنترلی بر این وجوه ندارید.
 wallet_watch_empty_state_title = شما در حال تماشای این کیف پول هستید.
 wallet_stake = استیک
-wallet_receive_no_memo_required = به یادداشت نیاز نیست.
-wallet_receive_no_destination_tag_required = نیازی به برچسب مقصد نیست.
+wallet_receive_no_memo_required = به یادداشت نیاز نیست
+wallet_receive_no_destination_tag_required = نیازی به برچسب مقصد نیست
 wallet_title = کیف پول
-wallet_add_token_title = افزودن توکن.
+wallet_add_token_title = افزودن توکن
 wallet_sell = فروش
 wallet_receive_collection = دریافت مجموعه
 wallet_more = بیشتر
@@ -149,10 +149,10 @@ transfer_approve_title = اجازه دادن
 transfer_stake_title = استیک
 transfer_claim_rewards_title = برداشت پاداش ها
 transfer_unstake_title = لغو استیک
-transfer_redelegate_title = تفویض اختیار
+transfer_redelegate_title = تفویض مجدد
 transfer_withdraw_title = برداشت
 transfer_rewards_title = پاداش ها
-transfer_minimum_amount = حداقل مبلغ %@ می باشد.
+transfer_minimum_amount = حداقل مبلغ %@ می باشد
 transfer_activate_asset_title = دارایی را فعال کنید
 transfer_recipient_my_wallets = کیف پول‌های من
 transfer_recipient_view_wallets = مشاهده کیف پول‌ها
@@ -163,7 +163,7 @@ transfer_other_title = دیگر
 transfer_maximum_amount = حداکثر مقدار %@ است
 transfer_reserved_fees = ما %@ را برای پوشش هزینه‌های شبکه در آینده در موجودی شما باقی گذاشته‌ایم.
 transfer_freeze_title = فریز کردن
-transfer_unfreeze_title = یخ‌زدایی
+transfer_unfreeze_title = لغو فریز
 transfer_review_request = درخواست بررسی
 transfer_amount = مبلغ
 
@@ -210,29 +210,29 @@ support_message_placeholder = پیام
 
 errors_validation = خطای اعتبارسنجی: %@
 errors_create_wallet = خطای ایجاد کیف پول: %@
-errors_invalid_address_name = نام یا آدرس نامعتبر.
-errors_invalid_amount = مبلغ نامعتبر.
-errors_token_invalid_id = شناسه توکن نامعتبر است.
-errors_import_invalid_secret_phrase = عبارات خصوصی نامعتبر.
-errors_import_invalid_secret_phrase_word = عبارت خصوصی نامعتبر: %@
+errors_invalid_address_name = نام یا آدرس نامعتبر
+errors_invalid_amount = مبلغ نامعتبر
+errors_token_invalid_id = شناسه توکن نامعتبر است
+errors_import_invalid_secret_phrase = عبارت مخفی نامعتبر
+errors_import_invalid_secret_phrase_word = کلمه نامعتبر در عبارت مخفی: %@
 errors_import_invalid_private_key = کلید خصوصی نامعتبر
 errors_keystore_access = دسترسی به کلیدهای این کیف پول در این دستگاه ممکن نشد. اگر عبارت بازیابی خود را دارید، این کیف پول را حذف کنید و دوباره وارد کنید تا دسترسی بازیابی شود.
 errors_wallet_account_missing = این کیف پول برای این شبکه حسابی ندارد
 errors_invalid_url = URL نامعتبر
 errors_error_occurred = خطایی رخ داد!
-errors_invalid_network_id = شناسه شبکه نامعتبر است.
+errors_invalid_network_id = شناسه شبکه نامعتبر است
 errors_error = خطا
 errors_cancelled = لغو شد
-errors_connections_user_cancelled = توسط کاربر لغو شد.
-errors_not_supported = پشتیبانی نمی شود.
-errors_permissions_not_granted = دسترسی داده نشده.
+errors_connections_user_cancelled = توسط کاربر لغو شد
+errors_not_supported = پشتیبانی نمی شود
+errors_permissions_not_granted = دسترسی داده نشده
 errors_unknown = ناشناخته
 errors_not_supported_qr = این دستگاه اسکن بارکد را پشتیبانی نمیکند. شما فقط میتوانید تصویر بارکد را از گالری انتخاب کنید.
 errors_camera_permissions_not_granted = دسترسی به دوربین داده نشده. لطفا در تنظیمات خود دسارسی دوربین را فعال کنید و سپس برای اسکن امتحان کنید.
 errors_decoding_qr = خطا در خواندن بارکد. لطفا با بارکد دیگری دوباره امتحان کنید.
 errors_transfer_error = خطای انتقال
 errors_unable_estimate_network_fee = درحال حاضر قادر به محاسبه کارمزد شبکه نیستیم.
-errors_invalid_asset_address = آدرس %@ نامعتبر است.
+errors_invalid_asset_address = آدرس %@ نامعتبر است
 errors_dust_threshold = تراکنش به دلیل کم بودن مبلغ برای برآورده کردن حداقل لازم شبکه %@ (آستانه گرد و غبار) انجام نشد. این محدودیت تضمین می‌کند که ارزش تراکنش، کارمزدها و هزینه‌های پردازش را پوشش می‌دهد.
 errors_swap_no_quote_available = هیچ قیمتی در دسترس نیست.
 errors_swap_not_supported_asset = دارایی پشتیبانی نمی شود.
@@ -291,13 +291,13 @@ transaction_status_confirmed = موفق
 transaction_status_pending = در انتظار
 transaction_status_failed = ناموفق
 transaction_status_reverted = برگردانده شد
-transaction_title_received = دریافت شده.
-transaction_title_sent = فرستاده شده.
+transaction_title_received = دریافت شده
+transaction_title_sent = فرستاده شده
 transaction_swap_again = دوباره مبادله کنید
 transaction_status_completed = تکمیل شد
 transaction_status_inprogress = در حال انجام است
 transaction_status_refunded = بازپرداخت شد
-transaction_status_expired = منقضی شد
+transaction_status_expired = منقضی شده
 
 # Asset
 
@@ -308,9 +308,9 @@ asset_market_cap = ارزش بازار
 asset_trading_volume = حجم معاملات (24 ساعت)
 asset_total_supply = عرضه کل
 asset_circulating_supply = عرضه در گردش
-asset_balances_reserved = رزرو شده.
-asset_view_token_on = توکن را در %@ مشاهده کنید.
-asset_view_address_on = آدرس را در %@ مشاهده کنید.
+asset_balances_reserved = رزرو شده
+asset_view_token_on = توکن را در %@ مشاهده کنید
+asset_view_address_on = آدرس را در %@ مشاهده کنید
 asset_name = نام
 asset_symbol = نماد
 asset_decimals = اعشار ها
@@ -341,8 +341,8 @@ charts_month = ۱ ماه
 charts_year = 1 سال
 charts_all = همه
 charts_entry = ورود
-charts_price_open = باز
-charts_price_close = بستن
+charts_price_open = باز شدن
+charts_price_close = بسته شدن
 charts_price_high = بالا
 charts_price_low = کم
 charts_price_change = تغییر
@@ -351,7 +351,7 @@ charts_price_change = تغییر
 
 date_today = امروز
 date_yesterday = دیروز
-date_day_time = %@, %@
+date_day_time = %@، %@
 
 # Wallet Connect
 
@@ -361,7 +361,7 @@ wallet_connect_disconnect = قطع اتصال
 wallet_connect_connect_title = متصل شدن
 wallet_connect_app = برنامه
 wallet_connect_brand_name = WalletConnect
-wallet_connect_no_active_connections = اتصال فعالی یافت نشد.
+wallet_connect_no_active_connections = اتصال فعالی یافت نشد
 wallet_connect_state_empty_description = برای اتصال به DApp، کد را اسکن یا جای‌گذاری کنید
 wallet_connect_permissions_title = مجوزها
 wallet_connect_permissions_view_balance = مشاهده موجودی و فعالیت خود
@@ -409,8 +409,8 @@ stake_delegations = واگذاری‌ها
 
 # Assets
 
-assets_no_assets_found = دارایی یافت نشد.
-assets_add_custom_token = افزودن توکن دلخواه/سفارشی.
+assets_no_assets_found = دارایی یافت نشد
+assets_add_custom_token = افزودن توکن سفارشی
 assets_select_asset = یک دارایی را انتخاب کنید
 assets_popular = دارایی‌های محبوب
 assets_tags_new = جدید
@@ -424,13 +424,26 @@ sign_message_view_full_message = مشاهده کامل پیام
 
 # Secret Phrase
 
-secret_phrase_do_not_share_title = عبارات خصوصی خود را با کسی به اشتراک نگذارید.
-secret_phrase_do_not_share_description = اگر کسی عبارات خصوصی کیف پول شمارا داشته باشد کنترل کامل در دارایی های شما خواهد داشت.
+secret_phrase_do_not_share_title = عبارت مخفی خود را با کسی به اشتراک نگذارید!
+secret_phrase_do_not_share_description = اگر کسی عبارت مخفی شما را داشته باشد، کنترل کامل کیف پول شما را خواهد داشت!
 secret_phrase_save_phrase_safely = عبارت بازیابی خود را در مکانی امن ذخیره کنید \nکه فقط شما به آن دسترسی دارید.
 secret_phrase_confirm_quick_test_title = این آزمایش را کامل کنید تا تایید کنید همه چیز را به درسی ذخیره کرده اید.
 secret_phrase_screenshot_detected_title = تصویر صفحه شناسایی شد
-secret_phrase_screenshot_detected_description = اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند رمز عبور شما را در معرض خطر قرار دهند.
+secret_phrase_screenshot_detected_description = اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند عبارت مخفی شما را در معرض خطر قرار دهند.
 secret_phrase_content_hidden_description = محتوای پنهان شده هنگام ضبط صفحه نمایش
+
+# Private Key
+
+private_key_reminder_intro = این کلید خصوصی تنها نسخه پشتیبان کیف پول شماست.
+private_key_reminder_keep_safe_title = آن را در جایی امن ذخیره کنید
+private_key_reminder_keep_safe_subtitle = کلید خصوصی تنها راه دسترسی به کیف پول شماست.
+private_key_reminder_do_not_share_title = آن را با کسی به اشتراک نگذارید
+private_key_reminder_do_not_share_subtitle = هر کسی که کلید خصوصی شما را دریافت کند می‌تواند کنترل کامل کیف پول شما را در دست بگیرد.
+private_key_reminder_no_recovery_title = ما نمی‌توانیم به شما کمک کنیم آن را بازیابی کنید
+private_key_reminder_no_recovery_subtitle = اگر کلید خصوصی خود را گم کنید، دسترسی به کیف پول خود را از دست خواهید داد.
+private_key_do_not_share_title = کلید خصوصی خود را با کسی به اشتراک نگذارید!
+private_key_do_not_share_description = اگر کسی کلید خصوصی شما را داشته باشد، کنترل کامل این حساب را خواهد داشت!
+private_key_screenshot_detected_description = اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند کلید خصوصی شما را در معرض خطر قرار دهند.
 
 # Social
 
@@ -481,16 +494,16 @@ fee_rate_base = کارمزد پایه
 
 # Banner
 
-banner_account_activation_title = کارمزد فعال سازی حساب.
+banner_account_activation_title = کارمزد فعال سازی حساب
 banner_account_activation_description = شبکه %@ نیاز به کارمزد اولیه %@ ای دارد.
-banner_stake_title = شروع به استیک کردن %@.
+banner_stake_title = شروع به استیک کردن %@
 banner_stake_description = هنگامی که خواب هستید پاداش %@ کسب کنید.
 banner_activate_asset_description = برای استفاده از دارایی %@ ، ابتدا باید آن را در شبکه %@ با انجام الزامات خاص شبکه فعال کنید.
 banner_asset_status_title = دارایی مشکوک
 banner_asset_status_description = رمز ممکن است ناامن یا گمراه کننده باشد. فقط در صورت اعتماد کامل به آن ادامه دهید.
 banner_onboarding_title = کیف پول شما آماده است
 banner_onboarding_description = برای شروع، کریپتو بخرید یا دریافت کنید
-banner_perpetuals_title = معاملات دائمی در Hyperliquid
+banner_perpetuals_title = معامله Perpetuals در Hyperliquid
 banner_perpetuals_description = با Hyperliquid perpetuals سپرده گذاری کنید، تجارت کنید و کسب درآمد کنید
 
 # Filter
@@ -535,7 +548,7 @@ lock_six_hours = 6 ساعت
 lock_require_authentication = نیاز به احراز هویت
 lock_unlock = باز کردن قفل
 lock_footer = دسترسی به این برنامه را در دستگاه خود محافظت کنید
-lock_passcode = رمزعبور
+lock_passcode = رمز عبور
 lock_passcode_off_title = رمز عبور دستگاه خاموش است
 lock_passcode_off_description = Gem با رمز عبور دستگاه شما قفل شده است. برای باز کردن Gem، رمز عبور را در تنظیمات دستگاه روشن کنید. کیف پول‌های شما امن هستند.
 
@@ -553,7 +566,7 @@ sell_title = فروش %@
 
 # Info
 
-info_region_unavailable_description = این قابلیت در منطقه شما در دسترس نیست. دسترسی به قوانین محلی و الزامات ارائه‌دهندگان بستگی دارد.
+info_region_unavailable_description = این قابلیت در منطقه شما در دسترس نیست. در دسترس بودن آن به قوانین محلی و الزامات ارائه‌دهندگان بستگی دارد.
 
 info_network_fee_title = کارمزد شبکه
 info_watch_wallet_title = کیف پول مشاهده‌ای
@@ -565,7 +578,7 @@ info_transaction_error_description = تراکنش به دلیل خطایی ما�
 info_transaction_pending_description = تراکنش ارسال شده و در انتظار تأیید در شبکه است. زمان پردازش ممکن است متفاوت باشد. لطفاً برای به‌روزرسانی‌ها دوباره مراجعه کنید.
 info_estimated_confirmation_description = این تخمین بر اساس کارمزد تراکنش و فعالیت فعلی شبکه %@ است. زمان واقعی تأیید ممکن است تغییر کند و تضمین‌شده نیست.
 info_transaction_success_description = تراکنش تکمیل و در شبکه تأیید شده است. می‌توانید جزئیات را برای تأیید وضعیت آن بررسی کنید.
-info_lock_time_description = زمان قفل، که به عنوان دوره باز کردن یا انجماد نیز شناخته می‌شود، مدت زمانی است که در طی آن دارایی‌های شرط‌بندی شده پس از اینکه تصمیم به رها کردن آن‌ها دارید، غیرقابل دسترسی هستند.
+info_lock_time_description = زمان قفل، که دوره آزادسازی یا لغو فریز نیز نامیده می‌شود، مدت زمانی است که پس از تصمیم به لغو استیک، دارایی‌های استیک‌شده در دسترس نیستند.
 info_price_impact_description = تاثیر قیمت تغییر در قیمت توکن است که به دلیل اندازه معامله شما ایجاد می شود. تاثیر قیمت بالاتر به این معنی است که به دلیل نقدینگی کم یا حجم سفارش بزرگ، توکن های کمتری دریافت می کنید.
 info_slippage_description = لغزش به تفاوت بین قیمت مورد انتظار یک معامله و قیمت واقعی که در آن انجام می‌شود اشاره دارد.
 info_asset_status_unverified_description = توکن‌های تایید نشده به اندازه کافی توسط سرویس‌های شخص ثالث مورد اعتماد تایید نشده‌اند. آنها ممکن است به دلیل ایردراپ، انتقال یا وارد کردن دستی در کیف پول شما ظاهر شوند.
@@ -696,19 +709,19 @@ perpetual_margin_isolated = جدا شده
 
 # Perpetuals
 
-perpetuals_title = دائمی‌ها
+perpetuals_title = Perpetuals
 # Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
-perpetuals_trade = معامله دائمی‌ها
+perpetuals_trade = معامله Perpetuals
 perpetuals_markets = بازارها
 perpetuals_empty_state_no_markets_found = هیچ بازاری یافت نشد
 
 # Rewards
 
 rewards_title = پاداش‌ها
-rewards_share_text = عضویت Gem Wallet با لینک معرفی من و کسب جوایز: %@
+rewards_share_text = با لینک معرفی من به Gem Wallet بپیوندید و پاداش کسب کنید: %@
 rewards_my_referral_code = کد معرف من
 rewards_invite_friends_title = دعوت از دوستان
-rewards_invite_friends_description = کسب درآمد %@ امتیاز برای هر دوستی که عضو می‌شود.
+rewards_invite_friends_description = برای هر دوستی که عضو می‌شود %@ امتیاز کسب کنید.
 rewards_referral_code = کد ارجاع
 rewards_invited_by = دعوت شده توسط
 rewards_points = امتیازها
@@ -723,7 +736,7 @@ rewards_username = نام کاربری
 rewards_ways_spend_title = راه‌های خرج کردن
 rewards_ways_spend_asset_title = دریافت %@
 rewards_insufficient_points = امتیاز ناکافی
-rewards_confirm_redeem = دریافت %@ برای %@!
+rewards_confirm_redeem = دریافت %@ در ازای %@!
 rewards_pending_title = پاداش در انتظار
 rewards_pending_description = موجود در %@
 rewards_pending_description_ready = جایزه شما آماده است!

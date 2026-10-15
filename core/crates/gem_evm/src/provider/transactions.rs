@@ -53,15 +53,18 @@ impl<C: Client + Clone> EthereumProvider<C> {
             return Ok(None);
         };
         let timestamp = match timestamp {
-            Some(timestamp) => timestamp,
+            Some(timestamp) => Some(timestamp),
             None => self.get_block_timestamp(receipt.block_number).await?,
+        };
+        let Some(timestamp) = timestamp else {
+            return Ok(None);
         };
         Ok(EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &timestamp, self.provider.protocol_parser()).map(|transaction| (transaction, receipt)))
     }
 
     async fn known_block_timestamp(&self, block_number: Option<u64>) -> Result<Option<BigUint>, JsonRpcError> {
         match block_number {
-            Some(block_number) => Ok(Some(self.get_block_timestamp(block_number).await?)),
+            Some(block_number) => self.get_block_timestamp(block_number).await,
             None => Ok(None),
         }
     }
@@ -122,6 +125,24 @@ mod tests {
             .unwrap();
 
         assert_eq!(transaction.hash(), "0xd6878ac03656ac15c9bc24cc4daf3ff276de637ec2d9708c420186f6cba9dc06");
+    }
+
+    #[tokio::test]
+    async fn test_get_transaction_by_hash_block_not_available() {
+        let client = mock_jsonrpc_client(|method, _| match method {
+            method::ETH_GET_TRANSACTION_BY_HASH => Ok(load_json_rpc_result(include_str!("../../testdata/transfer_erc20.json"))),
+            method::ETH_GET_TRANSACTION_RECEIPT => Ok(load_json_rpc_result(include_str!("../../testdata/transfer_erc20_receipt.json"))),
+            method::ETH_GET_BLOCK_BY_NUMBER => Ok(Value::Null),
+            other => panic!("unexpected method {other}"),
+        });
+        let provider = EthereumProvider::new_rpc_only(EthereumClient::new(client, EVMChain::Base));
+
+        let transaction = provider
+            .get_transaction_by_hash(TransactionIdRequest::new(Chain::Base, "0xd6878ac03656ac15c9bc24cc4daf3ff276de637ec2d9708c420186f6cba9dc06".to_string(), None))
+            .await
+            .unwrap();
+
+        assert_eq!(transaction, None);
     }
 }
 

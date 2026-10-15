@@ -89,3 +89,9 @@ pub struct UserFill {
     #[serde(default)]
     pub liquidation: Option<Value>,
 }
+
+impl UserFill {
+    pub fn transaction_id(&self) -> String {
+        format!("{}:{}", self.hash, self.oid)
+    }
+}

@@ -35,6 +35,8 @@ class NoopWalletConnectClient @Inject constructor() : WalletConnectClient {
 
     override fun rejectSession(proposal: WalletConnectSessionProposal, rejection: GemWalletConnectRejection, onSuccess: () -> Unit, onError: (String) -> Unit) = onSuccess()
 
+    override fun updateSession(topic: String, namespaces: Map<String, WalletConnectSessionNamespace>, onSuccess: () -> Unit, onError: (String) -> Unit) = onError(UNAVAILABLE)
+
     override fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, onSuccess: () -> Unit, onError: (String) -> Unit) = onError(UNAVAILABLE)
 
     override fun rejectAuthentication(request: WalletConnectAuthenticationRequest, onSuccess: () -> Unit, onError: (String) -> Unit) = onSuccess()

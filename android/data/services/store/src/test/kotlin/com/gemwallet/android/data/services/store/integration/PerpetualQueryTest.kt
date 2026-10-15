@@ -1,11 +1,9 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
@@ -32,10 +30,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class PerpetualQueryTest {
-    private val database = Room.inMemoryDatabaseBuilder(
-        InstrumentationRegistry.getInstrumentation().targetContext,
-        GemDatabase::class.java,
-    ).build()
+    private val database = mockGemDatabase()
     private val query = PerpetualQuery(database.perpetualDao(), database.assetsDao())
     private val bitcoinAsset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin), name = "Bitcoin", symbol = "BTC", decimals = 8u)
     private val ethereumAsset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)

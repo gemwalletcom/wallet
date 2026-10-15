@@ -5,6 +5,7 @@ use async_trait::async_trait;
 #[cfg(feature = "rpc")]
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use num_bigint::BigInt;
+use primitives::swap::SwapQuoteDataType;
 use primitives::{AssetId, Chain, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransferDataExtra};
 
 use crate::{
@@ -13,7 +14,7 @@ use crate::{
     models::{Coin, OwnedCoins, SuiObject},
 };
 use crate::{
-    provider::preload_mapper::{map_transaction_data, map_transaction_rate_rates},
+    provider::preload_mapper::{map_transaction_data, map_transaction_fee_rates},
     rpc::{SuiClient, SuiProvider},
     tx_builder::{finish_transaction_json, is_transaction_json},
 };
@@ -35,7 +36,7 @@ impl ChainTransactionLoad for SuiProvider {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let input = self.finish_transaction_json_input(input).await?;
-        let (sui_coins, token_coins, objects) = self.get_coins_for_input_type(input.sender_address.as_str(), input.input_type.clone()).await?;
+        let (sui_coins, token_coins, objects) = self.get_coins_for_input_type(input.sender_address.as_str(), &input.input_type).await?;
 
         let estimate_bytes = map_transaction_data(input.clone(), sui_coins.clone(), token_coins.clone(), objects.clone(), ESTIMATION_GAS_BUDGET)?;
         let fee = self.estimate_fee(&estimate_bytes, &input.gas_price).await?;
@@ -53,14 +54,26 @@ impl ChainTransactionLoad for SuiProvider {
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
         let gas_price = self.get_gas_price().await?;
-        Ok(map_transaction_rate_rates(gas_price))
+        Ok(map_transaction_fee_rates(BigInt::from(gas_price)))
     }
 }
 
 fn estimated_gas_budget(input_type: &TransactionInputType, fee: &TransactionFee) -> Result<Option<u64>, Box<dyn Error + Send + Sync>> {
     match input_type {
-        TransactionInputType::Swap { .. } | TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => Ok(None),
-        _ => Ok(Some(fee.gas_limit()?)),
+        TransactionInputType::Swap { swap_data, .. } => match swap_data.data.data_type {
+            SwapQuoteDataType::Transfer => Ok(Some(fee.gas_limit()?)),
+            SwapQuoteDataType::Contract => Ok(None),
+        },
+        TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => Ok(None),
+        TransactionInputType::Transfer { .. }
+        | TransactionInputType::Withdrawal { .. }
+        | TransactionInputType::Deposit { .. }
+        | TransactionInputType::Stake { .. }
+        | TransactionInputType::TokenApprove { .. }
+        | TransactionInputType::TransferNft { .. }
+        | TransactionInputType::Account { .. }
+        | TransactionInputType::Perpetual { .. }
+        | TransactionInputType::Earn { .. } => Ok(Some(fee.gas_limit()?)),
     }
 }
 
@@ -127,15 +140,9 @@ impl SuiClient {
         })
     }
 
-    async fn get_coins_for_input_type(&self, address: &str, input_type: TransactionInputType) -> Result<(OwnedCoins<Coin>, Option<OwnedCoins<Coin>>, Vec<SuiObject>), Box<dyn Error + Send + Sync>> {
+    async fn get_coins_for_input_type(&self, address: &str, input_type: &TransactionInputType) -> Result<(OwnedCoins<Coin>, Option<OwnedCoins<Coin>>, Vec<SuiObject>), Box<dyn Error + Send + Sync>> {
         match input_type {
-            TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } => match asset.id.token_id {
-                None => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
-                Some(token_id) => {
-                    let (gas_coins, token_coins) = futures::try_join!(self.get_gas_coins(address), self.get_coins(address, &token_id))?;
-                    Ok((gas_coins, Some(token_coins), Vec::new()))
-                }
-            },
+            TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } => self.get_transfer_coins(address, asset.id.token_id.as_deref()).await,
             TransactionInputType::Stake { stake_type, .. } => match stake_type {
                 StakeType::Stake(_) => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
                 StakeType::Unstake(delegation) => {
@@ -144,11 +151,54 @@ impl SuiClient {
                 }
                 StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => Err("Unsupported stake type for Sui".into()),
             },
-            TransactionInputType::Swap { .. } => Ok((OwnedCoins::default(), None, Vec::new())),
+            TransactionInputType::Swap { from_asset, swap_data, .. } => match swap_data.data.data_type {
+                SwapQuoteDataType::Transfer => self.get_transfer_coins(address, from_asset.id.token_id.as_deref()).await,
+                SwapQuoteDataType::Contract => Ok((OwnedCoins::default(), None, Vec::new())),
+            },
             TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => Ok((OwnedCoins::default(), None, Vec::new())),
-            TransactionInputType::TransferNft { .. } | TransactionInputType::Account { .. } => Err("Unsupported transaction type for Sui".into()),
-            _ => Err("Unsupported transaction type for Sui".into()),
+            TransactionInputType::Deposit { .. }
+            | TransactionInputType::TokenApprove { .. }
+            | TransactionInputType::TransferNft { .. }
+            | TransactionInputType::Account { .. }
+            | TransactionInputType::Perpetual { .. }
+            | TransactionInputType::Earn { .. } => Err("Unsupported transaction type for Sui".into()),
         }
+    }
+
+    async fn get_transfer_coins(&self, address: &str, token_id: Option<&str>) -> Result<(OwnedCoins<Coin>, Option<OwnedCoins<Coin>>, Vec<SuiObject>), Box<dyn Error + Send + Sync>> {
+        match token_id {
+            None => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
+            Some(token_id) => {
+                let (gas_coins, token_coins) = futures::try_join!(self.get_gas_coins(address), self.get_coins(address, token_id))?;
+                Ok((gas_coins, Some(token_coins), Vec::new()))
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::{Asset, SwapProvider, swap::SwapData};
+
+    #[test]
+    fn test_swap_gas_budget_depends_on_transaction_type() {
+        let transfer = TransactionInputType::Swap {
+            from_asset: Asset::from_chain(Chain::Sui),
+            to_asset: Asset::from_chain(Chain::Ton),
+            swap_data: SwapData::mock_transfer(SwapProvider::SwapsXyz, "2000000000", "1", "deposit"),
+        };
+        let contract = TransactionInputType::Swap {
+            from_asset: Asset::from_chain(Chain::Sui),
+            to_asset: Asset::from_chain(Chain::Sui),
+            swap_data: SwapData::mock_with_provider_data(SwapProvider::CetusClmm, "contract transaction", None),
+        };
+        let fee = TransactionFee {
+            gas_limit: BigInt::from(1_000_000),
+            ..TransactionFee::mock()
+        };
+        assert_eq!(estimated_gas_budget(&transfer, &fee).unwrap(), Some(1_000_000));
+        assert_eq!(estimated_gas_budget(&contract, &fee).unwrap(), None);
     }
 }
 

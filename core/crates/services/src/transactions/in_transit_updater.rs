@@ -1,30 +1,52 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
+use config_keys::{ConfigKey, ConfigParamKey};
 use futures::{StreamExt, TryStreamExt, stream};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::swap::{SwapResult, SwapResultRequest, SwapStatus};
 use primitives::{Chain, JobConfiguration, Transaction, TransactionState, TransactionSwapMetadata};
-use storage::TransactionFilter;
+use storage::{DatabaseError, TransactionFilter};
 
 use super::repository::Repository;
 use streamer::{StreamProducerQueue, TransactionsPayload};
+use swapper::SwapperProvider;
 use swapper::cross_chain::{self, DepositAddressMap};
 use swapper::swapper::GemSwapper;
 
-use crate::transactions::{CheckSchedule, SwapVaultAddressClient, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics, swap_result_metadata, swap_state_updates};
+use crate::config::repository::Repository as ConfigurationRepository;
+use crate::transactions::{CheckSchedule, SwapVaultAddressClient, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics, swap_result_metadata, swap_state_updates, transaction_with_swap_state};
 
-#[derive(Clone, Copy)]
-pub struct InTransitConfig {
-    pub timeout: Duration,
-    pub query_limit: i64,
-    pub check_interval: JobConfiguration,
+struct InTransitConfig {
+    timeout: Duration,
+    query_limit: i64,
+    check_interval: JobConfiguration,
+    enabled_providers: BTreeSet<SwapperProvider>,
 }
 
 impl InTransitConfig {
+    async fn from_config(config: &dyn ConfigurationRepository) -> Result<Self, DatabaseError> {
+        let mut enabled_providers = BTreeSet::new();
+        for provider in SwapperProvider::all() {
+            if config.get_param_bool(&ConfigParamKey::TransactionInTransitProviderEnable(provider)).await? {
+                enabled_providers.insert(provider);
+            }
+        }
+        Ok(Self {
+            timeout: config.get_duration(ConfigKey::TransactionInTransitTimeout).await?,
+            query_limit: config.get_i64(ConfigKey::TransactionInTransitQueryLimit).await?,
+            check_interval: JobConfiguration {
+                initial_interval_ms: config.get_duration(ConfigKey::TransactionTimerInTransitUpdate).await?.as_millis() as u32,
+                max_interval_ms: config.get_duration(ConfigKey::TransactionInTransitMaxCheckInterval).await?.as_millis() as u32,
+                step_factor: config.get_f64(ConfigKey::TransactionInTransitCheckIntervalFactor).await? as f32,
+            },
+            enabled_providers,
+        })
+    }
+
     fn query_limit(&self) -> usize {
         self.query_limit.max(0) as usize
     }
@@ -36,7 +58,7 @@ impl InTransitConfig {
 
 pub struct InTransitUpdater {
     repository: Arc<dyn Repository>,
-    config: InTransitConfig,
+    config: Arc<dyn ConfigurationRepository>,
     swapper: Arc<GemSwapper>,
     stream_producer: Arc<dyn StreamProducerQueue>,
     vault_client: SwapVaultAddressClient,
@@ -47,7 +69,7 @@ pub struct InTransitUpdater {
 impl InTransitUpdater {
     pub(crate) fn new(
         repository: Arc<dyn Repository>,
-        config: InTransitConfig,
+        config: Arc<dyn ConfigurationRepository>,
         swapper: Arc<GemSwapper>,
         stream_producer: Arc<dyn StreamProducerQueue>,
         vault_client: SwapVaultAddressClient,
@@ -66,24 +88,20 @@ impl InTransitUpdater {
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let scan_limit = self.config.scan_limit();
-        let transactions = self.repository.get_transactions(vec![TransactionFilter::States(vec![TransactionState::InTransit])], scan_limit).await?;
+        let config = InTransitConfig::from_config(self.config.as_ref()).await?;
         let vault_addresses = self.vault_client.get_deposit_address_map().await?;
-        self.metrics.record_queue(TransactionQueue::InTransit, in_transit_counts(&transactions, &vault_addresses));
-
         let now = Utc::now();
-        let ids = transactions.iter().map(|transaction| transaction.id.clone()).collect::<Vec<_>>();
-        let due = self.schedule.due(&ids, now).await?;
-        let transactions_to_check = transactions.iter().filter(|transaction| due.contains(&transaction.id)).take(self.config.query_limit()).collect::<Vec<_>>();
-        let cutoff = now - self.config.timeout;
+        let (transactions_to_check, counts) = due_in_transit_transactions(self.repository.as_ref(), &self.schedule, &config, now, &vault_addresses).await?;
+        self.metrics.record_queue(TransactionQueue::InTransit, counts);
+        let cutoff = now - config.timeout;
 
-        stream::iter(transactions_to_check)
-            .then(|transaction| self.update_transaction(transaction, now, cutoff, &vault_addresses))
+        stream::iter(&transactions_to_check)
+            .then(|transaction| self.update_transaction(transaction, now, cutoff, &vault_addresses, &config))
             .try_fold(0, |total, updated| async move { Ok(total + usize::from(updated)) })
             .await
     }
 
-    async fn update_transaction(&self, transaction: &Transaction, now: DateTime<Utc>, cutoff: DateTime<Utc>, vault_addresses: &DepositAddressMap) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn update_transaction(&self, transaction: &Transaction, now: DateTime<Utc>, cutoff: DateTime<Utc>, vault_addresses: &DepositAddressMap, config: &InTransitConfig) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let chain = transaction.id.chain;
         let hash = transaction.id.hash.as_str();
         let elapsed_duration = (now - transaction.created_at).to_std().unwrap_or_default();
@@ -102,7 +120,7 @@ impl InTransitUpdater {
                         self.save_and_publish(chain, transaction, TransactionState::Failed, None).await?;
                         return Ok(true);
                     }
-                    self.schedule.schedule_next(&transaction.id, &self.config.check_interval, elapsed_duration, now).await?;
+                    self.schedule.schedule_next(&transaction.id, &config.check_interval, elapsed_duration, now).await?;
                     return Ok(false);
                 }
             },
@@ -114,7 +132,7 @@ impl InTransitUpdater {
         };
         let Some((state, metadata)) = final_swap_state(&result, transaction.created_at, cutoff) else {
             info_with_fields!("in_transit waiting", chain = chain.as_ref(), hash = hash, provider = provider_name);
-            self.schedule.schedule_next(&transaction.id, &self.config.check_interval, elapsed_duration, now).await?;
+            self.schedule.schedule_next(&transaction.id, &config.check_interval, elapsed_duration, now).await?;
             return Ok(false);
         };
 
@@ -131,15 +149,54 @@ impl InTransitUpdater {
     }
 
     async fn save_and_publish(&self, chain: Chain, transaction: &Transaction, state: TransactionState, metadata: Option<serde_json::Value>) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let updates = swap_state_updates(state, metadata.as_ref());
+        let transaction = transaction_with_swap_state(transaction.clone(), state, metadata.clone());
+        let updates = swap_state_updates(&transaction, metadata.as_ref());
         self.repository
             .update_transactions(vec![TransactionFilter::Chain(chain.as_ref().to_string()), TransactionFilter::Hash(transaction.id.hash.clone())], updates)
             .await?;
 
-        let transaction = transaction.clone().with_swap_state(state, metadata.clone());
         self.stream_producer.publish_transactions(TransactionsPayload::new_state_change_with_notify(chain, vec![transaction])).await?;
         Ok(())
     }
+}
+
+async fn due_in_transit_transactions(
+    repository: &dyn Repository,
+    schedule: &CheckSchedule,
+    config: &InTransitConfig,
+    now: DateTime<Utc>,
+    vault_addresses: &DepositAddressMap,
+) -> Result<(Vec<Transaction>, BTreeMap<TransactionQueueGroup, usize>), Box<dyn Error + Send + Sync>> {
+    let mut transactions_to_check = Vec::new();
+    let mut counts = BTreeMap::new();
+    let mut after = None;
+    while transactions_to_check.len() < config.query_limit() {
+        let mut filters = vec![TransactionFilter::States(vec![TransactionState::InTransit])];
+        if let Some(cursor) = after {
+            filters.push(cursor);
+        }
+        let transactions = repository.get_transactions(filters, config.scan_limit()).await?;
+        let Some(last) = transactions.last() else {
+            break;
+        };
+        after = Some(TransactionFilter::After(last.created_at.naive_utc(), last.id.clone()));
+        let is_last_page = transactions.len() < config.scan_limit() as usize;
+        for (group, count) in in_transit_counts(&transactions, vault_addresses) {
+            *counts.entry(group).or_default() += count;
+        }
+        let enabled = transactions
+            .into_iter()
+            .filter(|transaction| cross_chain::in_transit_swap_provider(transaction, vault_addresses).is_none_or(|provider| config.enabled_providers.contains(&provider)))
+            .collect::<Vec<_>>();
+        let ids = enabled.iter().map(|transaction| transaction.id.clone()).collect::<Vec<_>>();
+        let due = schedule.due(&ids, now).await?;
+        let remaining = config.query_limit() - transactions_to_check.len();
+        transactions_to_check.extend(enabled.into_iter().filter(|transaction| due.contains(&transaction.id)).take(remaining));
+        if is_last_page {
+            break;
+        }
+    }
+    Ok((transactions_to_check, counts))
 }
 
 fn final_swap_state(result: &SwapResult, created_at: DateTime<Utc>, cutoff: DateTime<Utc>) -> Option<(TransactionState, Option<TransactionSwapMetadata>)> {
@@ -164,8 +221,80 @@ fn in_transit_counts(transactions: &[Transaction], vault_addresses: &DepositAddr
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testkit::{MemoryCheckScheduleCacher, MemoryConfigRepository, MemoryTransactionsRepository};
+    use cacher::CheckScheduleCacher;
     use num_bigint::BigUint;
-    use primitives::{HOUR, MINUTE, SwapProvider};
+    use primitives::{HOUR, MINUTE, SwapProvider, TransactionId};
+
+    #[tokio::test]
+    async fn test_provider_checks_are_enabled_by_default() {
+        let config = MemoryConfigRepository::new();
+        let in_transit = InTransitConfig::from_config(&config).await.unwrap();
+
+        assert_eq!(in_transit.enabled_providers, SwapperProvider::all().into_iter().collect());
+    }
+
+    #[tokio::test]
+    async fn test_disabled_relay_does_not_block_other_providers_past_scan_limit() {
+        let config = MemoryConfigRepository::new()
+            .with_value(&ConfigParamKey::TransactionInTransitProviderEnable(SwapProvider::Relay).key(), "false")
+            .with_value(ConfigKey::TransactionInTransitQueryLimit.as_ref(), "2")
+            .with_value(ConfigKey::TransactionTimerInTransitUpdate.as_ref(), "1m")
+            .with_value(ConfigKey::TransactionInTransitMaxCheckInterval.as_ref(), "1m");
+        let config = InTransitConfig::from_config(&config).await.unwrap();
+        assert_eq!(config.enabled_providers, SwapperProvider::all().into_iter().filter(|provider| *provider != SwapProvider::Relay).collect());
+
+        let created_at = DateTime::<Utc>::UNIX_EPOCH;
+        let mut transactions = (0..6)
+            .map(|index| Transaction {
+                id: TransactionId::new(Chain::Ethereum, format!("{index:04}")),
+                to: "relay_vault".to_string(),
+                state: TransactionState::InTransit,
+                created_at,
+                ..Transaction::mock()
+            })
+            .collect::<Vec<_>>();
+        transactions.push(Transaction {
+            id: TransactionId::new(Chain::Ethereum, "0006".to_string()),
+            to: "other_address".to_string(),
+            metadata: Some(
+                serde_json::to_value(TransactionSwapMetadata::new(
+                    Chain::Ethereum.as_asset_id(),
+                    BigUint::from(1u32),
+                    Chain::Solana.as_asset_id(),
+                    BigUint::from(1u32),
+                    SwapProvider::Relay,
+                ))
+                .unwrap(),
+            ),
+            ..transactions[0].clone()
+        });
+        for (hash, to) in [("0007", "mayan_vault"), ("0008", "bridgers_vault"), ("0009", "unknown")] {
+            transactions.push(Transaction {
+                id: TransactionId::new(Chain::Ethereum, hash.to_string()),
+                to: to.to_string(),
+                ..transactions[0].clone()
+            });
+        }
+        let repository = MemoryTransactionsRepository::new(transactions, vec![]);
+        let cacher = Arc::new(MemoryCheckScheduleCacher::default());
+        let now = Utc::now();
+        cacher
+            .set_next_check("in_transit", TransactionId::new(Chain::Ethereum, "0007".to_string()).to_string(), (now + HOUR).timestamp() as f64)
+            .await
+            .unwrap();
+        let schedule = CheckSchedule::new(cacher.clone(), TransactionQueue::InTransit);
+        let vault_addresses = DepositAddressMap::from([
+            ("relay_vault".to_string(), SwapProvider::Relay),
+            ("mayan_vault".to_string(), SwapProvider::Mayan),
+            ("bridgers_vault".to_string(), SwapProvider::Bridgers),
+        ]);
+
+        let (selected, _) = due_in_transit_transactions(&repository, &schedule, &config, now, &vault_addresses).await.unwrap();
+
+        assert_eq!(selected.iter().map(|transaction| transaction.id.hash.as_str()).collect::<Vec<_>>(), vec!["0008", "0009"]);
+        assert_eq!(cacher.checked_ids(), vec!["ethereum_0007", "ethereum_0008", "ethereum_0009"]);
+    }
 
     #[test]
     fn test_in_transit_counts() {
@@ -193,6 +322,7 @@ mod tests {
                 max_interval_ms: 300_000,
                 step_factor: 2.0,
             },
+            enabled_providers: SwapperProvider::all().into_iter().collect(),
         };
 
         assert_eq!(config.query_limit(), 100);

@@ -112,8 +112,23 @@ impl Repository for MemoryTransactionsRepository {
         Ok(addresses.len())
     }
 
-    async fn get_transactions(&self, _filters: Vec<TransactionFilter>, _limit: i64) -> Result<Vec<Transaction>, DatabaseError> {
-        Ok(self.transactions.clone())
+    async fn get_transactions(&self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<Transaction>, DatabaseError> {
+        let mut transactions = self
+            .transactions
+            .iter()
+            .filter(|transaction| {
+                filters.iter().all(|filter| match filter {
+                    TransactionFilter::States(states) => states.contains(&transaction.state),
+                    TransactionFilter::Chain(chain) => transaction.id.chain.as_ref() == chain,
+                    TransactionFilter::Hash(hash) => &transaction.id.hash == hash,
+                    TransactionFilter::After(created_at, id) => (transaction.created_at.naive_utc(), transaction.id.chain.as_ref(), transaction.id.hash.as_str()) > (*created_at, id.chain.as_ref(), id.hash.as_str()),
+                })
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        transactions.sort_by(|left, right| (left.created_at, left.id.chain.as_ref(), &left.id.hash).cmp(&(right.created_at, right.id.chain.as_ref(), &right.id.hash)));
+        transactions.truncate(limit.max(0) as usize);
+        Ok(transactions)
     }
 
     async fn update_transactions(&self, _filters: Vec<TransactionFilter>, _updates: Vec<TransactionUpdate>) -> Result<usize, DatabaseError> {

@@ -24,7 +24,7 @@ common_show = Toon %@
 common_copied = Gekopieerd: %@
 common_copied_to_clipboard = Gekopieerd naar klembord
 common_recommended = Aanbevolen
-common_all = Allemaal
+common_all = Alle
 common_not_available = Niet beschikbaar
 common_phrase = Zin
 common_manage = Beheer
@@ -99,7 +99,7 @@ wallet_sell = Verkopen
 wallet_receive_collection = Ontvang collectie
 wallet_more = Meer
 wallet_import_contract_address_field = Contract of token-ID
-wallet_import_address_warning = U kunt het saldo en de transacties voor dit adres bekijken, maar u kunt geen geld verzenden of verkopen.
+wallet_import_address_warning = U kunt het saldo en de transacties voor dit adres bekijken, maar **u kunt geen geld verzenden of verkopen**.
 wallet_deposit = Storten
 wallet_withdraw = Opnemen
 wallet_available_balance = Beschikbaar: %@
@@ -243,7 +243,7 @@ errors_authentication_locked_out = Te veel mislukte pogingen. Probeer het later 
 errors_authentication_failed = Verificatie mislukt. Probeer het opnieuw.
 errors_connections_expired = Deze verbindingslink is verlopen. Haal een nieuwe QR-code op en probeer het opnieuw.
 errors_connections_not_found = Deze verbinding bestaat niet meer.
-errors_connections_relay_unavailable = WalletConnect is niet bereikbaar. Controleer je internetverbinding en probeer het opnieuw.
+errors_connections_relay_unavailable = WalletConnect is niet bereikbaar. Controleer uw internetverbinding en probeer het opnieuw.
 errors_swap_amount_too_small = Bedrag te klein
 errors_scan_transaction_malicious_description = Deze transactie kan niet worden voltooid: het adres van de bestemmingswallet is gekoppeld aan verdachte of schadelijke activiteiten.
 errors_scan_transaction_memo_required = %@ bestemmingswalletadres vereist een bestemmingstag / memo
@@ -432,6 +432,19 @@ secret_phrase_screenshot_detected_title = Schermafbeelding gedetecteerd
 secret_phrase_screenshot_detected_description = Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps, maar ze kunnen uw geheime zin in gevaar brengen als u ze op deze manier opslaat.
 secret_phrase_content_hidden_description = Inhoud verborgen tijdens schermopname
 
+# Private Key
+
+private_key_reminder_intro = Deze privésleutel is de enige back-up van uw portemonnee.
+private_key_reminder_keep_safe_title = Bewaar hem op een veilige plek
+private_key_reminder_keep_safe_subtitle = De privésleutel is de enige manier om toegang te krijgen tot uw portemonnee.
+private_key_reminder_do_not_share_title = Deel hem met niemand
+private_key_reminder_do_not_share_subtitle = Iedereen die uw privésleutel te pakken krijgt, kan de volledige controle over uw portemonnee overnemen.
+private_key_reminder_no_recovery_title = Wij kunnen u niet helpen hem te herstellen
+private_key_reminder_no_recovery_subtitle = Als u uw privésleutel verliest, verliest u de toegang tot uw portemonnee.
+private_key_do_not_share_title = Deel uw privésleutel niet!
+private_key_do_not_share_description = Als iemand uw privésleutel heeft, heeft diegene volledige controle over dit account!
+private_key_screenshot_detected_description = Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps en kunnen uw privésleutel in gevaar brengen als u ze op deze manier opslaat.
+
 # Social
 
 social_x = X (voorheen Twitter)
@@ -519,7 +532,7 @@ price_alerts_added_price_over = Melding toegevoegd voor prijs boven %@
 price_alerts_added_price_under = Melding toegevoegd voor prijs onder %@
 price_alerts_added_increases_by = Melding toegevoegd voor prijsstijging van %@
 price_alerts_added_decreases_by = Melding toegevoegd voor prijsdaling van %@
-price_alerts_state_empty_title = Uw meldingen verschijnen hier
+price_alerts_state_empty_title = Uw prijswaarschuwingen verschijnen hier
 price_alerts_state_empty_description = Schakel ze in door munten toe te voegen aan de track
 price_alerts_auto_footer = Waarschuwingen worden geactiveerd bij aanzienlijke prijsbewegingen.
 price_alerts_set_alert_title = Prijswaarschuwing instellen
@@ -537,7 +550,7 @@ lock_unlock = Ontgrendelen
 lock_footer = Beveilig de toegang tot deze app op uw apparaat
 lock_passcode = Toegangscode
 lock_passcode_off_title = Toegangscode van apparaat staat uit
-lock_passcode_off_description = Gem is vergrendeld met de toegangscode van je apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Je portemonnees zijn veilig.
+lock_passcode_off_description = Gem is vergrendeld met de toegangscode van uw apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Uw portemonnees zijn veilig.
 
 # Verify
 
@@ -553,7 +566,7 @@ sell_title = Verkoop %@
 
 # Info
 
-info_region_unavailable_description = Deze functie is niet beschikbaar in je regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders.
+info_region_unavailable_description = Deze functie is niet beschikbaar in uw regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders.
 
 info_network_fee_title = Netwerkkosten
 info_watch_wallet_title = Kijk-portemonnee
@@ -783,7 +796,7 @@ application_name = Gem
 # Rootcheck
 
 rootcheck_security_alert = Beveiligingswaarschuwing
-rootcheck_jailbreak_body = Uw apparaat lijkt gejailbreakt te zijn. Dit kan uw wallet en tegoeden in gevaar brengen.
+rootcheck_jailbreak_body = Uw apparaat lijkt gejailbreakt te zijn. Dit kan uw portemonnee en tegoeden in gevaar brengen.
 rootcheck_body = Het lijkt erop dat uw apparaat root-toegang heeft, wat de beveiligingsrisico's aanzienlijk kan vergroten. Als u deze app op een geroot apparaat gebruikt, kunnen uw bezittingen worden blootgesteld aan ongeoorloofde toegang en mogelijk verlies. Voor de veiligheid van uw geld raden wij u ten zeerste aan een niet-geroot apparaat te gebruiken.
 rootcheck_ignore = Negeer
 rootcheck_exit = Afsluiten

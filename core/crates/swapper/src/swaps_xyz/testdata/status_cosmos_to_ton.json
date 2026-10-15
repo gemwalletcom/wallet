@@ -1,0 +1,38 @@
+{
+  "status": "success",
+  "actionResponse": {
+    "amountIn": {
+      "amount": "29087679",
+      "chainId": 999000433,
+      "address": "0x0000000000000000000000000000000000000000",
+      "decimals": 6,
+      "isNative": true
+    },
+    "amountOut": {
+      "amount": "36654187220",
+      "chainId": 999000337,
+      "address": "0x0000000000000000000000000000000000000000",
+      "decimals": 9,
+      "isNative": true
+    },
+    "applicationFee": {
+      "amount": "145438",
+      "chainId": 999000433,
+      "address": "0x0000000000000000000000000000000000000000",
+      "decimals": 6,
+      "isNative": true
+    }
+  },
+  "dstTx": {
+    "paymentToken": {
+      "amount": "36580790000",
+      "chainId": 999000337,
+      "address": "0x0000000000000000000000000000000000000000",
+      "decimals": 9,
+      "isNative": true
+    }
+  },
+  "org": {
+    "appId": "0xcf511a8a"
+  }
+}

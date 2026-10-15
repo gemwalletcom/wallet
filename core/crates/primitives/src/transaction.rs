@@ -373,15 +373,6 @@ impl Transaction {
     pub fn with_data(self, data: Option<String>) -> Self {
         Self { data, ..self }
     }
-
-    pub fn with_swap_state(self, state: TransactionState, metadata: Option<serde_json::Value>) -> Self {
-        Self {
-            state,
-            transaction_type: TransactionType::Swap,
-            metadata: metadata.or(self.metadata),
-            ..self
-        }
-    }
 }
 
 #[cfg(test)]

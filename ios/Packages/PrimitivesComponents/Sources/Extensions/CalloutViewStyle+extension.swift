@@ -6,14 +6,14 @@ import Localization
 import Style
 
 extension CalloutViewStyle {
-    static func secretDataWarning() -> CalloutViewStyle {
+    static func secretDataWarning(title: String, description: String) -> CalloutViewStyle {
         CalloutViewStyle(
             title: TextValue(
-                text: Localized.SecretPhrase.DoNotShare.title,
+                text: title,
                 style: TextStyle(font: .system(.body, weight: .medium), color: Colors.red),
             ),
             subtitle: TextValue(
-                text: Localized.SecretPhrase.DoNotShare.description,
+                text: description,
                 style: TextStyle(font: .callout, color: Colors.red),
             ),
             backgroundColor: Colors.redLight,

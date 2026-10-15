@@ -399,7 +399,7 @@ stake_deactivating = Деактивація
 stake_awaiting_withdrawal = В очікуванні виведення коштів
 stake_active_in = Активний в
 stake_minimum_amount = Мінімальна сума
-stake_state_empty_title = Ваші стейкинги з'являться тут
+stake_state_empty_title = Ваші стейкінги з'являться тут
 stake_state_empty_description = Зробіть свій перший стейкінг %@
 stake_state_empty_validators_title = Валідаторів не знайдено
 stake_resource = Ресурс
@@ -426,11 +426,24 @@ sign_message_view_full_message = Переглянути повне повідо�
 
 secret_phrase_do_not_share_title = Не діліться своєю секретною фразою!
 secret_phrase_do_not_share_description = Якщо у когось є ваша секретна фраза, він отримає повний контроль над вашим гаманцем!
-secret_phrase_save_phrase_safely = Збережіть свою секретну фразу в надійному місці \nякі контролюєте тільки ви.
+secret_phrase_save_phrase_safely = Збережіть свою секретну фразу в надійному місці, \nяке контролюєте тільки ви.
 secret_phrase_confirm_quick_test_title = Пройдіть цей швидкий тест, щоб переконатися, що ви все зберегли правильно.
 secret_phrase_screenshot_detected_title = Виявлено знімок екрана
 secret_phrase_screenshot_detected_description = Знімки екрана можуть бути доступні іншим програмам, і якщо їх зберегти таким чином, ваша секретна фраза може бути під загрозою.
 secret_phrase_content_hidden_description = Вміст прихований під час запису екрана
+
+# Private Key
+
+private_key_reminder_intro = Цей приватний ключ — єдина резервна копія вашого гаманця.
+private_key_reminder_keep_safe_title = Зберігайте його в безпечному місці
+private_key_reminder_keep_safe_subtitle = Приватний ключ — це єдиний спосіб отримати доступ до вашого гаманця.
+private_key_reminder_do_not_share_title = Нікому його не передавайте
+private_key_reminder_do_not_share_subtitle = Кожен, хто дізнається ваш приватний ключ, може повністю контролювати ваш гаманець.
+private_key_reminder_no_recovery_title = Ми не можемо допомогти вам його відновити
+private_key_reminder_no_recovery_subtitle = Якщо ви втратите приватний ключ, ви втратите доступ до свого гаманця.
+private_key_do_not_share_title = Не діліться своїм приватним ключем!
+private_key_do_not_share_description = Якщо у когось є ваш приватний ключ, він отримає повний контроль над цим обліковим записом!
+private_key_screenshot_detected_description = Знімки екрана можуть бути доступні іншим програмам, і якщо їх зберегти таким чином, ваш приватний ключ може бути під загрозою.
 
 # Social
 
@@ -556,7 +569,7 @@ sell_title = Продати %@
 info_region_unavailable_description = Ця функція недоступна у вашому регіоні. Доступність залежить від місцевих правил і вимог провайдерів.
 
 info_network_fee_title = Мережева плата
-info_watch_wallet_title = Watch Wallet
+info_watch_wallet_title = Гаманець для спостереження
 info_watch_wallet_description = Гаманець, до якого у вас немає доступу, але ви можете спостерігати за його транзакціями та рухами.
 info_payment_verification_title = Перевірка платежу
 info_payment_verification_description = Продавцю потрібна додаткова інформація перед оплатою.
@@ -565,7 +578,7 @@ info_transaction_error_description = Транзакцію не вдалося з
 info_transaction_pending_description = Транзакцію надіслано та очікує підтвердження в мережі. Час обробки може змінюватися. Будь ласка, слідкуйте за оновленнями.
 info_estimated_confirmation_description = Ця оцінка базується на комісії транзакції та поточній активності мережі %@. Фактичний час підтвердження може змінюватися й не гарантується.
 info_transaction_success_description = Транзакцію завершено та підтверджено в мережі. Ви можете переглянути деталі, щоб перевірити її статус.
-info_lock_time_description = Час блокування, також відомий як період розблокування або розморожування, — це тривалість, протягом якої ставлені активи недоступні після того, як ви вирішили їх скасувати.
+info_lock_time_description = Час блокування, також відомий як період розблокування або розморожування, — це період, протягом якого активи в стейкінгу недоступні після того, як ви вирішили вивести їх зі стейкінгу.
 info_price_impact_description = Вплив ціни — це зміна ціни токена, спричинена розміром вашої торгівлі. Більший вплив на ціну означає, що ви отримуєте менше токенів через низьку ліквідність або великий розмір замовлення.
 info_slippage_description = Прослизання стосується різниці між очікуваною ціною угоди та фактичною ціною, за якою вона виконується.
 info_asset_status_unverified_description = Неперевірені токени не були достатньо перевірені надійними сторонніми сервісами. Вони можуть з'явитися у вашому гаманці через аїрдропи, перекази або ручний імпорт.
@@ -640,7 +653,7 @@ networks_state_empty_search_title = Мереж не знайдено
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Ви отримаєте секретну фразу — це єдиний спосіб отримати доступ до вашого гаманця.
-onboarding_security_create_wallet_do_not_share_title = Нікому не діліться
+onboarding_security_create_wallet_do_not_share_title = Ні з ким нею не діліться
 onboarding_security_create_wallet_do_not_share_subtitle = Кожен, хто дізнається вашу секретну фразу, може повністю контролювати ваш гаманець.
 onboarding_security_create_wallet_keep_safe_subtitle = Секретна фраза - це єдиний спосіб отримати доступ до вашого гаманця.
 onboarding_security_create_wallet_no_recovery_subtitle = Якщо ви втратите секретну фразу, ви втратите доступ до свого гаманця.
@@ -665,7 +678,7 @@ perpetual_position = Позиція
 perpetual_close_position = Закрити позицію
 perpetual_pnl = PnL
 perpetual_long = Лонг
-perpetual_short = Короткий
+perpetual_short = Шорт
 perpetual_entry_price = Вхідна ціна
 perpetual_modify = Змінити
 perpetual_reduce_position = Зменшити позицію
@@ -705,13 +718,13 @@ perpetuals_empty_state_no_markets_found = Ринків не знайдено
 # Rewards
 
 rewards_title = Нагороди
-rewards_share_text = Приєднатися Gem Wallet за моїм реферальним посиланням та отримуйте винагороди: %@
+rewards_share_text = Приєднуйтеся до Gem Wallet за моїм реферальним посиланням та отримуйте винагороди: %@
 rewards_my_referral_code = Мій реферальний код
 rewards_invite_friends_title = Запросити друзів
 rewards_invite_friends_description = Отримуйте %@ балів за кожного друга, який долучиться.
 rewards_referral_code = Реферальний код
 rewards_invited_by = Запрошено
-rewards_points = Очки
+rewards_points = Бали
 rewards_referrals = Реферали
 rewards_earn_points_title = Заробляйте бали
 rewards_get_rewards_title = Отримайте винагороди
@@ -723,9 +736,9 @@ rewards_username = Ім'я користувача
 rewards_ways_spend_title = Способи витрат
 rewards_ways_spend_asset_title = Отримати %@
 rewards_insufficient_points = Недостатньо балів
-rewards_confirm_redeem = Отримати %@ для %@!
+rewards_confirm_redeem = Отримати %@ за %@!
 rewards_pending_title = Бонус очікує на розгляд
-rewards_pending_description = Доступно в %@
+rewards_pending_description = Доступно через %@
 rewards_pending_description_ready = Ваш бонус готовий!
 rewards_nickname = Прізвисько
 rewards_unverified_title = Нагороди ще не активні.

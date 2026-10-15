@@ -11,7 +11,7 @@ use crate::models::{
 use crate::provider::state_mapper::map_transfer_fee;
 use crate::rpc::target::CosmosTarget;
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainSimulation, ChainTraits};
-use gem_client::{Client, ClientExt};
+use gem_client::{Client, ClientError, ClientExt};
 use gem_encoding::encode_base64;
 use num_bigint::BigInt;
 use primitives::chain_cosmos::CosmosChain;
@@ -40,8 +40,12 @@ impl<C: Client> CosmosClient<C> {
         Ok(self.client.get::<SmartQueryResponse<R>>(target).await?.data)
     }
 
-    pub async fn get_transaction(&self, hash: String) -> Result<TransactionResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(CosmosTarget::GetTransaction { hash }).await?)
+    pub async fn get_transaction(&self, hash: String) -> Result<Option<TransactionResponse>, Box<dyn Error + Send + Sync>> {
+        match self.client.get(CosmosTarget::GetTransaction { hash }).await {
+            Ok(transaction) => Ok(Some(transaction)),
+            Err(ClientError::Http { status: 404, .. }) => Ok(None),
+            Err(error) => Err(error.into()),
+        }
     }
 
     pub async fn get_block(&self, block: &str) -> Result<BlockResponse, Box<dyn Error + Send + Sync>> {

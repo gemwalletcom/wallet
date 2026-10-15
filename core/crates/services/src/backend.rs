@@ -47,7 +47,7 @@ use crate::rewards::{RewardsClient, RewardsRedemptionClient};
 use crate::security::{ScanClient, ScanMetrics, scan_providers};
 use crate::subscriptions::SubscriptionLookup;
 use crate::support::{ChatwootClient, ChatwootWebhookVerifier, SupportApiClient, SupportClient};
-use crate::swap::{NearIntentsProxyClient, SwapClient, SwapsXyzProxyClient};
+use crate::swap::{BridgersProxyClient, ChainflipProxyClient, NearIntentsProxyClient, RelayProxyClient, SwapClient, SwapsXyzProxyClient};
 use crate::transactions::{AddressDetailsClient, AddressNamesClient, TransactionsClient};
 use crate::webhooks::WebhooksClient;
 
@@ -393,6 +393,18 @@ impl Services {
 
     pub fn swaps_xyz(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> SwapsXyzProxyClient {
         SwapsXyzProxyClient::new(self.settings.swap.swapsxyz.url.clone(), deposit_addresses)
+    }
+
+    pub fn relay(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> RelayProxyClient {
+        RelayProxyClient::new(self.settings.swap.relay.url.clone(), deposit_addresses)
+    }
+
+    pub fn bridgers(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> BridgersProxyClient {
+        BridgersProxyClient::new(self.settings.swap.bridgers.url.clone(), deposit_addresses)
+    }
+
+    pub fn chainflip(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> ChainflipProxyClient {
+        ChainflipProxyClient::new(self.settings.swap.chainflip.url.clone(), deposit_addresses)
     }
 }
 

@@ -2,11 +2,8 @@ package com.gemwallet.android.data.services.store.integration
 
 import android.content.Context
 import androidx.core.content.edit
-import androidx.room.testing.MigrationTestHelper
-import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.di.Migration_90_91
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -25,12 +22,7 @@ class Migration_90_91Test {
     private val preferences = context.getSharedPreferences("gemstone_preferences", Context.MODE_PRIVATE)
 
     @get:Rule
-    val helper = MigrationTestHelper(
-        InstrumentationRegistry.getInstrumentation(),
-        GemDatabase::class.java,
-        emptyList(),
-        FrameworkSQLiteOpenHelperFactory(),
-    )
+    val helper = gemDatabaseMigrationTestHelper()
 
     @Before
     fun setUp() {

@@ -1,11 +1,10 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbBanner
 import com.gemwallet.android.data.services.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
@@ -40,10 +39,7 @@ class BannersQueryTest {
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
-        database = Room.inMemoryDatabaseBuilder(
-            InstrumentationRegistry.getInstrumentation().targetContext,
-            GemDatabase::class.java,
-        ).build()
+        database = mockGemDatabase()
         database.assetsDao().insert(asset.toRecord())
         WALLET_IDS.forEach { id -> database.walletsDao().insert(mockWallet(id = WalletId(id)).toRecord()) }
         database.bannersDao().addBanners(

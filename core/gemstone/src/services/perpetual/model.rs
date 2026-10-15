@@ -3,9 +3,8 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSection};
 use crate::models::state::GemListPhase;
-use crate::services::assets::icon::asset_icon;
 use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemAssetRowStyle, GemAssetSubtitleStyle, GemAssetTitleStyle, GemAssetTrailingStyle, GemPriceRow, GemRowText, GemValueHeader};
-use crate::services::assets::rules::asset_row_text;
+use crate::services::assets::rules::asset_row;
 use crate::services::chart::candlestick_header;
 use crate::services::chart::model::{GemChartDateStyle, GemChartHeader, GemChartSelection};
 use crate::services::chart::rules as chart_rules;
@@ -111,19 +110,7 @@ impl From<Asset> for GemPerpetualAssociatedAssetRow {
             subtitle: GemAssetSubtitleStyle::Network,
             trailing: GemAssetTrailingStyle::None,
         };
-        let text = asset_row_text(&asset, style);
-        Self {
-            row: GemAssetItemRow {
-                icon: asset_icon(&asset.id),
-                title: text.title,
-                title_extra: text.symbol,
-                subtitle: text.network.map(|network| GemRowText::neutral(GemLocalizedText::Text { text: network })),
-                subtitle_extra: None,
-                trailing: GemAssetItemTrailing::None,
-                masks_balance: false,
-            },
-            asset,
-        }
+        Self { row: asset_row(&asset, style), asset }
     }
 }
 

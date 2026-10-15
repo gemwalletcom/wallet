@@ -1,13 +1,12 @@
 package com.gemwallet.android.data.services.gemstone.integration
 
 import android.database.sqlite.SQLiteException
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.services.store.database.entities.DbPrice
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
@@ -41,10 +40,7 @@ class PriceStoreTest {
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
-        database = Room.inMemoryDatabaseBuilder(
-            InstrumentationRegistry.getInstrumentation().targetContext,
-            GemDatabase::class.java,
-        ).build()
+        database = mockGemDatabase()
         store = GemstonePriceStore(database.pricesDao(), database.assetsDao())
         database.pricesDao().setRates(listOf(initialRate))
         database.pricesDao().insert(price)

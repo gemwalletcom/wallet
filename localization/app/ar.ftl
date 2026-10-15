@@ -8,7 +8,7 @@ common_minimum_value = القيمة الدنيا هي %@
 common_secret_phrase = العبارة السرية
 common_copy = نسخ
 common_share = مشاركة
-common_continue = يكمل
+common_continue = متابعة
 common_continue_anyway = متابعة على أي حال
 common_sign_in_with = تسجيل الدخول باستخدام %@
 common_provider = مزود
@@ -24,7 +24,7 @@ common_show = إظهار %@
 common_copied = تم النسخ: %@
 common_copied_to_clipboard = تم النسخ إلى الحافظة
 common_recommended = مُستَحسَن
-common_all = الجميع
+common_all = الكل
 common_not_available = غير متاح
 common_phrase = عبارة
 common_manage = يدير
@@ -70,9 +70,9 @@ welcome_title = مرحبًا بكم في Gem Family
 
 wallet_create_new_wallet = إنشاء محفظة جديدة
 wallet_import_existing_wallet = استيراد محفظة موجودة
-wallet_send = يرسل
-wallet_receive = يستلم
-wallet_buy = يشتري
+wallet_send = إرسال
+wallet_receive = استلام
+wallet_buy = شراء
 wallet_swap = تبديل
 wallet_import_title = استيراد المحفظة
 wallet_new_title = محفظة جديدة
@@ -95,13 +95,13 @@ wallet_receive_no_memo_required = لا مذكرة المطلوبة
 wallet_receive_no_destination_tag_required = لا توجد علامة الوجهة المطلوبة
 wallet_title = محفظة
 wallet_add_token_title = إضافة رمز مميز
-wallet_sell = يبيع
+wallet_sell = بيع
 wallet_receive_collection = استلام المجموعة
-wallet_more = أكثر
+wallet_more = المزيد
 wallet_import_contract_address_field = عقد أو معرف توكن
 wallet_import_address_warning = يمكنك عرض الأرصدة والمعاملات لهذا العنوان، ولكن **لا يمكنك إرسال أو بيع الأموال**.
 wallet_deposit = إيداع
-wallet_withdraw = ينسحب
+wallet_withdraw = سحب
 wallet_available_balance = متاح: %@
 # Used in the insufficient network fee sheet for the buy option subtitle.
 wallet_pay_with_card_or_bank = ادفع بالبطاقة أو البنك
@@ -150,7 +150,7 @@ transfer_stake_title = التخزين
 transfer_claim_rewards_title = المطالبة بالمكافآت
 transfer_unstake_title = إلغاء التخزين
 transfer_redelegate_title = إعادة التفويض
-transfer_withdraw_title = ينسحب
+transfer_withdraw_title = سحب
 transfer_rewards_title = المكافآت
 transfer_minimum_amount = الحد الأدنى للمبلغ هو %@
 transfer_activate_asset_title = تفعيل الأصول
@@ -291,8 +291,8 @@ transaction_status_confirmed = ناجح
 transaction_status_pending = قيد الانتظار
 transaction_status_failed = فشل
 transaction_status_reverted = التراجع
-transaction_title_received = تلقى
-transaction_title_sent = مرسل
+transaction_title_received = تم الاستلام
+transaction_title_sent = تم الإرسال
 transaction_swap_again = التبديل مرة أخرى
 transaction_status_completed = مكتمل
 transaction_status_inprogress = في تَقَدم
@@ -339,19 +339,19 @@ charts_hour = 1H
 charts_week = 1W
 charts_month = 1 م
 charts_year = 1Y
-charts_all = الجميع
+charts_all = الكل
 charts_entry = دخول
-charts_price_open = يفتح
-charts_price_close = يغلق
-charts_price_high = عالي
-charts_price_low = قليل
-charts_price_change = يتغير
+charts_price_open = الافتتاح
+charts_price_close = الإغلاق
+charts_price_high = الأعلى
+charts_price_low = الأدنى
+charts_price_change = التغيير
 
 # Date
 
 date_today = اليوم
 date_yesterday = أمس
-date_day_time = %@, %@
+date_day_time = %@، %@
 
 # Wallet Connect
 
@@ -429,8 +429,21 @@ secret_phrase_do_not_share_description = إذا حصل شخص ما على الع
 secret_phrase_save_phrase_safely = احفظ عبارتك السرية في مكان آمن \nالتي تتحكم فيها أنت فقط.
 secret_phrase_confirm_quick_test_title = أكمل هذا الاختبار السريع للتأكد من أنك قمت بحفظ كل شيء بشكل صحيح.
 secret_phrase_screenshot_detected_title = تم اكتشاف لقطة شاشة
-secret_phrase_screenshot_detected_description = قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، ولكنها قد تعرض عبارة المرور الخاصة بك للخطر إذا تم حفظها بهذه الطريقة.
+secret_phrase_screenshot_detected_description = قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، وقد تعرّض عبارتك السرية للخطر إذا تم حفظها بهذه الطريقة.
 secret_phrase_content_hidden_description = المحتوى المخفي أثناء تسجيل الشاشة
+
+# Private Key
+
+private_key_reminder_intro = هذا المفتاح الخاص هو النسخة الاحتياطية الوحيدة لمحفظتك.
+private_key_reminder_keep_safe_title = خزّنه في مكان آمن
+private_key_reminder_keep_safe_subtitle = مفتاحك الخاص هو الطريقة الوحيدة للوصول إلى محفظتك.
+private_key_reminder_do_not_share_title = لا تشاركه مع أي شخص
+private_key_reminder_do_not_share_subtitle = يمكن لأي شخص يحصل على مفتاحك الخاص أن يتولى السيطرة الكاملة على محفظتك.
+private_key_reminder_no_recovery_title = لا يمكننا مساعدتك في استعادته
+private_key_reminder_no_recovery_subtitle = إذا فقدت مفتاحك الخاص، فإنك تفقد القدرة على الوصول إلى محفظتك.
+private_key_do_not_share_title = لا تشارك مفتاحك الخاص!
+private_key_do_not_share_description = إذا حصل شخص ما على مفتاحك الخاص، فسيكون لديه السيطرة الكاملة على هذا الحساب!
+private_key_screenshot_detected_description = قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، وقد تعرّض مفتاحك الخاص للخطر إذا تم حفظه بهذه الطريقة.
 
 # Social
 
@@ -536,7 +549,7 @@ lock_require_authentication = تتطلب المصادقة
 lock_unlock = فتح
 lock_footer = حماية الوصول إلى هذا التطبيق على جهازك
 lock_passcode = رمز المرور
-lock_passcode_off_title = رمز مرور الجهاز متوقف
+lock_passcode_off_title = رمز مرور الجهاز غير مفعّل
 lock_passcode_off_description = Gem مقفل برمز مرور جهازك. فعّل رمز المرور من إعدادات جهازك لفتح Gem. محافظك آمنة.
 
 # Verify
@@ -565,7 +578,7 @@ info_transaction_error_description = تعذّر إتمام المعاملة بس
 info_transaction_pending_description = تم إرسال المعاملة وهي بانتظار التأكيد على الشبكة. قد تختلف أوقات المعالجة. يُرجى مراجعة التحديثات.
 info_estimated_confirmation_description = يعتمد هذا التقدير على رسوم المعاملة ونشاط شبكة %@ الحالي. قد يتغير وقت التأكيد الفعلي وهو غير مضمون.
 info_transaction_success_description = تم إتمام المعاملة وتأكيدها على الشبكة. يمكنك مراجعة التفاصيل للتحقق من حالتها.
-info_lock_time_description = وقت القفل، المعروف أيضًا باسم فترة إلغاء التجميد أو إلغاء التجميد، هو المدة التي لا يمكن خلالها الوصول إلى الأصول المرهونة بعد أن تقرر إلغاء ملكيتها.
+info_lock_time_description = وقت القفل، المعروف أيضًا بفترة إلغاء الربط أو إلغاء التجميد، هو المدة التي لا يمكن خلالها الوصول إلى الأصول المخزّنة بعد أن تقرر إلغاء تخزينها.
 info_price_impact_description = تأثير السعر هو التغيير في سعر الرمز المميز الناتج عن حجم تداولك. يعني ارتفاع تأثير السعر أنك ستتلقى عددًا أقل من الرموز المميزة بسبب انخفاض السيولة أو حجم الطلب الكبير.
 info_slippage_description = يشير الانزلاق إلى الفرق بين السعر المتوقع للتداول والسعر الفعلي الذي يتم تنفيذه به.
 info_asset_status_unverified_description = لم يتم التحقق من الرموز غير المُوثَّقة بشكل كافٍ من قِبل خدمات خارجية موثوقة. قد تظهر في محفظتك نتيجةً لعمليات الإنزال الجوي، أو التحويلات، أو الاستيراد اليدوي.
@@ -583,8 +596,8 @@ info_perpetual_open_interest_title = الاهتمام المفتوح
 info_perpetual_open_interest_description = تمثل الفائدة المفتوحة القيمة الإجمالية لجميع العقود الدائمة القائمة التي لم يتم تسويتها. ويوفر نظرة ثاقبة لنشاط السوق والسيولة.
 info_no_quote_description = تعذر إرجاع عرض الأسعار لزوج الرمز المميز المحدد، ربما بسبب انخفاض المبلغ، أو نقص السيولة، أو القيود الفنية.
 info_stake_reserved_title = محجوز لرسوم الشبكة
-info_stake_reserved_description = يبقى مبلغ صغير في محفظتك لتغطية الرسوم الخاصة بالعمليات مثل إلغاء المراهنة أو المطالبة بالمكافآت.
-info_stake_apr_description = معدل النسبة السنوية (APR) هو معدل المكافأة السنوي لمراهنة العملة المشفرة الخاصة بك.
+info_stake_reserved_description = يبقى مبلغ صغير في محفظتك لتغطية رسوم عمليات مثل إلغاء التخزين أو المطالبة بالمكافآت.
+info_stake_apr_description = معدل النسبة السنوية (APR) هو معدل المكافأة السنوي لتخزين عملتك المشفرة.
 info_stake_frozen_required_title = جمّد TRX للتخزين
 info_stake_frozen_required_description = يتم التخزين على TRON عبر خطوتين. جمّد TRX أولاً، ثم قم بتخزينه لكسب المكافآت.
 info_perpetual_auto_close_description = أغلق مركزك تلقائيًا عند مستويات الأسعار المحددة. جني الأرباح يُثبّت الأرباح، ووقف الخسارة يحدّ من الخسائر.
@@ -659,7 +672,7 @@ onboarding_accept_terms_continue = الموافقة والمتابعة
 # Perpetual
 
 perpetual_positions = المراكز
-perpetual_size = مقاس
+perpetual_size = الحجم
 perpetual_margin = هامِش
 perpetual_position = المركز
 perpetual_close_position = إغلاق المركز
@@ -667,7 +680,7 @@ perpetual_pnl = PnL
 perpetual_long = طويل
 perpetual_short = قصير
 perpetual_entry_price = سعر الدخول
-perpetual_modify = يُعدِّل
+perpetual_modify = تعديل
 perpetual_reduce_position = تقليل المركز
 perpetual_increase_position = زيادة المركز
 perpetual_open_direction = افتح %@
@@ -687,7 +700,7 @@ perpetual_modify_position = تعديل المركز
 perpetual_auto_close_stop_loss = وقف الخسارة
 perpetual_value = قيمة
 perpetual_unrealized_pnl = الأرباح والخسائر غير المحققة
-perpetual_volume = مقدار
+perpetual_volume = حجم التداول
 perpetual_all_time_pnl = إجمالي الربح والخسارة على مر الزمن
 perpetual_margin_usage = استخدام الهامش
 perpetual_account_leverage = الرافعة المالية للحساب
@@ -705,10 +718,10 @@ perpetuals_empty_state_no_markets_found = لم يتم العثور على الأ
 # Rewards
 
 rewards_title = مكافآت
-rewards_share_text = ينضم Gem Wallet استخدم رابط الإحالة الخاص بي واحصل على مكافآت: %@
+rewards_share_text = انضم إلى Gem Wallet عبر رابط الإحالة الخاص بي واربح مكافآت: %@
 rewards_my_referral_code = رمز الإحالة الخاص بي
 rewards_invite_friends_title = ادعُ الأصدقاء
-rewards_invite_friends_description = يكسب %@ نقاط لكل صديق ينضم.
+rewards_invite_friends_description = اكسب %@ من النقاط عن كل صديق ينضم.
 rewards_referral_code = رمز الإحالة
 rewards_invited_by = بدعوة من
 rewards_points = نقاط
@@ -721,9 +734,9 @@ rewards_create_referral_code_title = إنشاء اسم المستخدم
 rewards_create_referral_code_info = سيكون هذا هو اسمك المستعار الشخصي للمحفظة الحالية.
 rewards_username = اسم المستخدم
 rewards_ways_spend_title = طرق الإنفاق
-rewards_ways_spend_asset_title = يحصل %@
+rewards_ways_spend_asset_title = احصل على %@
 rewards_insufficient_points = نقاط غير كافية
-rewards_confirm_redeem = يحصل %@ ل %@!
+rewards_confirm_redeem = احصل على %@ مقابل %@!
 rewards_pending_title = المكافأة معلقة
 rewards_pending_description = متوفر في %@
 rewards_pending_description_ready = مكافأتك جاهزة!

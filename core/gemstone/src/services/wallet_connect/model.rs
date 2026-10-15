@@ -72,33 +72,41 @@ pub enum GemSignerFailure {
     Reject,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemWalletConnectOutcome {
-    pub response: Option<GemWalletConnectResponse>,
-    pub failure: Option<GemWalletConnectFailure>,
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemWalletConnectOutcome {
+    Ignored,
+    Respond { response: GemWalletConnectResponse },
+    Fail { error: GemWalletConnectRpcError, failure: GemWalletConnectFailure },
+    AddSessionAccount { account: String },
 }
 
 impl GemWalletConnectOutcome {
-    pub fn expired() -> Self {
-        Self {
-            response: Some(GemWalletConnectResponse::Error {
-                error: crate::services::wallet_connect::rules::request_expired_error(),
-            }),
-            failure: Some(GemWalletConnectFailure::Expired),
+    pub fn respond_null() -> Self {
+        Self::Respond { response: GemWalletConnectResponse::Null }
+    }
+
+    pub fn respond_error(error: GemWalletConnectRpcError) -> Self {
+        Self::Respond {
+            response: GemWalletConnectResponse::Error { error },
         }
     }
 
-    pub fn rejected(failure: Option<GemWalletConnectFailure>) -> Self {
-        Self {
-            response: Some(GemWalletConnectResponse::Error {
-                error: crate::services::wallet_connect::rules::user_rejected_error(),
-            }),
+    pub fn rejected() -> Self {
+        Self::respond_error(crate::services::wallet_connect::rules::user_rejected_error())
+    }
+
+    pub fn failed(failure: GemWalletConnectFailure) -> Self {
+        Self::Fail {
+            error: crate::services::wallet_connect::rules::user_rejected_error(),
             failure,
         }
     }
 
-    pub fn ignored() -> Self {
-        Self { response: None, failure: None }
+    pub fn expired() -> Self {
+        Self::Fail {
+            error: crate::services::wallet_connect::rules::request_expired_error(),
+            failure: GemWalletConnectFailure::Expired,
+        }
     }
 }
 

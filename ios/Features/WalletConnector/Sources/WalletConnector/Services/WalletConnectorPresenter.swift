@@ -14,6 +14,14 @@ public final class WalletConnectorPresenter: Sendable {
     public init() {}
 
     @MainActor
+    public func present(_ type: WalletConnectorSheetType) {
+        if let presented = isPresentingSheet, presented.id != type.id {
+            presented.reject(ConnectionsError.userCancelled)
+        }
+        isPresentingSheet = type
+    }
+
+    @MainActor
     public func complete(type: WalletConnectorSheetType) {
         guard isPresentingSheet?.id == type.id else {
             return

@@ -45,6 +45,8 @@ sol! {
     }
 }
 
+pub(crate) const FORWARDER_SELECTORS: [[u8; 4]; 3] = [MayanForwarder::forwardERC20Call::SELECTOR, MayanForwarder::swapAndForwardERC20Call::SELECTOR, MayanForwarder::swapAndForwardEthCall::SELECTOR];
+
 #[derive(Debug, Clone, PartialEq)]
 pub(in crate::mayan::tx_builder) struct EvmTransaction {
     pub(in crate::mayan::tx_builder) to: String,

@@ -303,7 +303,7 @@
   <string name="charts_price_change">漲跌幅</string>
   <string name="date_today">今天</string>
   <string name="date_yesterday">昨天</string>
-  <string name="date_day_time">%1$s, %2$s</string>
+  <string name="date_day_time">%1$s %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">連線</string>
   <string name="wallet_connect_disconnect">中斷連線</string>
@@ -365,6 +365,16 @@
   <string name="secret_phrase_screenshot_detected_title">偵測到螢幕截圖</string>
   <string name="secret_phrase_screenshot_detected_description">螢幕截圖可能會被其他應用程式存取；以此方式儲存助記詞會帶來外洩風險。</string>
   <string name="secret_phrase_content_hidden_description">螢幕錄製過程中隱藏的內容</string>
+  <string name="private_key_reminder_intro">此私鑰是您錢包的唯一備份。</string>
+  <string name="private_key_reminder_keep_safe_title">妥善備份私鑰</string>
+  <string name="private_key_reminder_keep_safe_subtitle">請抄寫私鑰，並保存在只有您能取用的安全位置。</string>
+  <string name="private_key_reminder_do_not_share_title">切勿洩漏私鑰</string>
+  <string name="private_key_reminder_do_not_share_subtitle">任何人取得私鑰，都能控制錢包並轉走資產。</string>
+  <string name="private_key_reminder_no_recovery_title">我們無法找回私鑰</string>
+  <string name="private_key_reminder_no_recovery_subtitle">請保管好備份，以免裝置遺失或損壞後無法復原錢包。</string>
+  <string name="private_key_do_not_share_title">切勿洩漏私鑰！</string>
+  <string name="private_key_do_not_share_description">任何人只要擁有私鑰，就能完全控制這個帳戶！</string>
+  <string name="private_key_screenshot_detected_description">螢幕截圖可能會被其他應用程式存取；以此方式儲存私鑰會帶來外洩風險。</string>
   <string name="social_x">X（前Twitter）</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

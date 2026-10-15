@@ -90,7 +90,7 @@ wallet_default_name_chain = %@ Dompet #%d
 wallet_copy_address = Salin Alamat
 wallet_watch_tooltip_title = Dompet pantau sahaja. Anda tidak mengawal dana ini.
 wallet_watch_empty_state_title = Anda sedang memerhati dompet ini.
-wallet_stake = Pertaruhan
+wallet_stake = Staking
 wallet_receive_no_memo_required = Tiada memo diperlukan
 wallet_receive_no_destination_tag_required = Tiada teg destinasi diperlukan
 wallet_title = Dompet
@@ -146,9 +146,9 @@ transfer_send_title = Hantar
 transfer_insufficient_balance = Baki %@ tidak mencukupi.
 transfer_insufficient_network_fee_balance = Baki %@ tidak mencukupi untuk menampung yuran rangkaian.
 transfer_approve_title = Luluskan
-transfer_stake_title = Pertaruhan
+transfer_stake_title = Staking
 transfer_claim_rewards_title = Tuntut Ganjaran
-transfer_unstake_title = Nyahpertaruhan
+transfer_unstake_title = Henti Staking
 transfer_redelegate_title = Delegasi semula
 transfer_withdraw_title = Tarik Balik
 transfer_rewards_title = Ganjaran
@@ -399,8 +399,8 @@ stake_deactivating = Menyahaktifkan
 stake_awaiting_withdrawal = Menunggu Pengeluaran
 stake_active_in = Aktif Dalam
 stake_minimum_amount = Jumlah minimum
-stake_state_empty_title = Pertaruhan anda akan muncul di sini
-stake_state_empty_description = Pertaruhkan %@ pertama anda
+stake_state_empty_title = Staking anda akan muncul di sini
+stake_state_empty_description = Lakukan staking %@ pertama anda
 stake_state_empty_validators_title = Tiada pengesah ditemui
 stake_resource = Sumber
 stake_resource_energy = Tenaga
@@ -431,6 +431,19 @@ secret_phrase_confirm_quick_test_title = Lengkapkan ujian pantas ini untuk menge
 secret_phrase_screenshot_detected_title = Tangkapan Skrin Dikesan
 secret_phrase_screenshot_detected_description = Tangkapan skrin mungkin boleh diakses oleh apl lain, ia boleh meletakkan frasa rahsia anda pada risiko jika disimpan dengan cara ini.
 secret_phrase_content_hidden_description = Kandungan tersembunyi semasa rakaman skrin
+
+# Private Key
+
+private_key_reminder_intro = Kunci peribadi ini ialah satu-satunya sandaran dompet anda.
+private_key_reminder_keep_safe_title = Simpan Di Tempat yang Selamat
+private_key_reminder_keep_safe_subtitle = Kunci peribadi adalah satu-satunya cara untuk mengakses dompet anda.
+private_key_reminder_do_not_share_title = Jangan Kongsi Dengan Sesiapa
+private_key_reminder_do_not_share_subtitle = Sesiapa sahaja yang mendapat kunci peribadi anda boleh mengawal sepenuhnya dompet anda.
+private_key_reminder_no_recovery_title = Kami Tidak Dapat Membantu Anda Memulihkannya
+private_key_reminder_no_recovery_subtitle = Jika anda kehilangan kunci peribadi anda, anda kehilangan akses kepada dompet anda.
+private_key_do_not_share_title = Jangan kongsi Kunci Peribadi anda!
+private_key_do_not_share_description = Jika seseorang mempunyai kunci peribadi anda, mereka akan mempunyai kawalan penuh ke atas akaun ini!
+private_key_screenshot_detected_description = Tangkapan skrin mungkin boleh diakses oleh apl lain, ia boleh meletakkan kunci peribadi anda pada risiko jika disimpan dengan cara ini.
 
 # Social
 
@@ -483,8 +496,8 @@ fee_rate_base = Yuran Asas
 
 banner_account_activation_title = Yuran Pengaktifan Akaun
 banner_account_activation_description = Rangkaian %@ memerlukan bayaran sekali sebanyak %@.
-banner_stake_title = Mula mempertaruhkan %@
-banner_stake_description = Peroleh %@ ganjaran pada pertaruhan anda semasa anda tidur.
+banner_stake_title = Mula staking %@
+banner_stake_description = Peroleh %@ ganjaran daripada staking anda semasa anda tidur.
 banner_activate_asset_description = Untuk menggunakan aset %@, anda mesti mendayakannya pada rangkaian %@ terlebih dahulu dengan memenuhi keperluan khusus rangkaian.
 banner_asset_status_title = Aset Meragukan
 banner_asset_status_description = Token mungkin tidak selamat atau mengelirukan. Teruskan hanya jika anda mempercayainya sepenuhnya.
@@ -565,7 +578,7 @@ info_transaction_error_description = Urus niaga tidak dapat diselesaikan kerana 
 info_transaction_pending_description = Urus niaga telah diserahkan dan sedang menunggu pengesahan pada rangkaian. Masa pemprosesan mungkin berbeza-beza. Sila semak semula untuk kemas kini.
 info_estimated_confirmation_description = Anggaran ini berdasarkan yuran transaksi dan aktiviti rangkaian %@ semasa. Masa pengesahan sebenar mungkin berubah dan tidak dijamin.
 info_transaction_success_description = Urus niaga telah selesai dan disahkan pada rangkaian. Anda boleh menyemak butiran untuk mengesahkan statusnya.
-info_lock_time_description = Masa kunci, juga dikenali sebagai tempoh nyah ikatan atau nyahbeku, ialah tempoh di mana aset dipertaruhkan tidak boleh diakses selepas anda memutuskan untuk menyahtaruhnya.
+info_lock_time_description = Masa kunci, juga dikenali sebagai tempoh nyah ikatan atau nyahbeku, ialah tempoh di mana aset staking tidak boleh diakses selepas anda memutuskan untuk menghentikan staking.
 info_price_impact_description = Kesan harga ialah perubahan dalam harga token yang disebabkan oleh saiz dagangan anda. Kesan harga yang lebih tinggi bermakna anda menerima lebih sedikit token disebabkan kecairan yang rendah atau saiz pesanan yang besar.
 info_slippage_description = Slippage merujuk kepada perbezaan antara harga jangkaan perdagangan dan harga sebenar di mana ia dilaksanakan.
 info_asset_status_unverified_description = Token yang tidak disahkan belum disahkan dengan secukupnya oleh perkhidmatan pihak ketiga yang dipercayai. Ia mungkin muncul dalam dompet anda disebabkan oleh airdrop, pemindahan atau import manual.
@@ -583,10 +596,10 @@ info_perpetual_open_interest_title = Minat Terbuka
 info_perpetual_open_interest_description = Faedah terbuka mewakili jumlah nilai semua kontrak kekal tertunggak yang belum dijelaskan. Ia memberikan pandangan tentang aktiviti pasaran dan kecairan.
 info_no_quote_description = Tidak dapat mengembalikan sebut harga untuk pasangan token yang dipilih, mungkin disebabkan oleh jumlah yang rendah, kekurangan kecairan atau pengehadan teknikal.
 info_stake_reserved_title = Dikhaskan untuk Yuran Rangkaian
-info_stake_reserved_description = Sejumlah kecil kekal dalam dompet anda untuk menampung yuran untuk operasi seperti menanggalkan atau menuntut ganjaran.
-info_stake_apr_description = Kadar Peratusan Tahunan (APR) ialah kadar ganjaran tahunan untuk mempertaruhkan mata wang kripto anda.
-info_stake_frozen_required_title = Bekukan TRX untuk pertaruhan
-info_stake_frozen_required_description = Pertaruhan di TRON melibatkan dua langkah. Bekukan TRX dahulu, kemudian pertaruhkannya untuk memperoleh ganjaran.
+info_stake_reserved_description = Sejumlah kecil kekal dalam dompet anda untuk menampung yuran bagi operasi seperti menghentikan staking atau menuntut ganjaran.
+info_stake_apr_description = Kadar Peratusan Tahunan (APR) ialah kadar ganjaran tahunan untuk staking mata wang kripto anda.
+info_stake_frozen_required_title = Bekukan TRX untuk staking
+info_stake_frozen_required_description = Staking di TRON melibatkan dua langkah. Bekukan TRX dahulu, kemudian lakukan staking untuk memperoleh ganjaran.
 info_perpetual_auto_close_description = Tutup kedudukan anda secara automatik pada tahap harga yang ditetapkan. Ambil Untung mengunci keuntungan, Henti Kerugian menghadkan kerugian.
 info_fully_diluted_valuation_title = Penilaian Dicairkan Sepenuhnya
 info_fully_diluted_valuation_description = Nilai pasaran teori jika semua syiling berada dalam edaran. Dikira sebagai harga didarab dengan penawaran maksimum.
@@ -618,7 +631,7 @@ nft_report_reason_malicious = Berniat jahat
 nft_report_reason_inappropriate = Kandungan Tidak Sesuai
 nft_report_reason_copyright = Hak Cipta
 nft_report_reason_other = Lain-lain
-nft_report_report_button_title = Laporan
+nft_report_report_button_title = Laporkan
 
 # Permissions
 
@@ -696,9 +709,9 @@ perpetual_margin_isolated = Terpencil
 
 # Perpetuals
 
-perpetuals_title = Kekal
+perpetuals_title = Perpetuals
 # Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
-perpetuals_trade = Dagangkan Kekal
+perpetuals_trade = Dagang Perpetuals
 perpetuals_markets = Pasaran
 perpetuals_empty_state_no_markets_found = Tiada pasaran ditemui
 
@@ -761,8 +774,8 @@ contacts_add_to_existing_contact = Tambah ke Kenalan
 
 # Simulation
 
-simulation_header_unlimited_asset = Tidak terhad %@
-simulation_warning_unlimited_token_approval_description = Ini memberi pembeli akses untuk menggunakan token ini sehingga anda membatalkan kelulusan atau ia tamat tempoh.
+simulation_header_unlimited_asset = %@ tanpa had
+simulation_warning_unlimited_token_approval_description = Ini memberi akses kepada pembelanja untuk menggunakan token ini sehingga anda membatalkan kelulusan atau kelulusan itu tamat tempoh.
 simulation_warning_externally_owned_spender_description = Kelulusan ini membenarkan alamat dompet biasa (EOA) menggunakan aset anda. Sahkan hanya jika anda mempercayai alamat ini.
 simulation_warning_nft_collection_approval_title = Akses koleksi NFT penuh diminta
 simulation_warning_unlimited_token_approval_title = Kelulusan token tanpa had

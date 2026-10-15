@@ -1,11 +1,9 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.wallet.core.primitives.AssetId
@@ -24,10 +22,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class ValidatorsQueryTest {
-    private val database = Room.inMemoryDatabaseBuilder(
-        InstrumentationRegistry.getInstrumentation().targetContext,
-        GemDatabase::class.java,
-    ).build()
+    private val database = mockGemDatabase()
     private val query = ValidatorsQuery(database.stakeDao())
     private val cosmos = AssetId(Chain.Cosmos)
     private val osmosis = AssetId(Chain.Osmosis)

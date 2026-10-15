@@ -215,7 +215,7 @@ errors_invalid_amount = Kiasi kisicho sahihi
 errors_token_invalid_id = Kitambulisho Batili cha Tokeni
 errors_import_invalid_secret_phrase = Maneno ya Siri Batili
 errors_import_invalid_secret_phrase_word = Neno batili la Neno la Siri: %@
-errors_import_invalid_private_key = Ufunguo wa faragha si sahihi
+errors_import_invalid_private_key = Ufunguo wa kibinafsi si sahihi
 errors_keystore_access = Imeshindwa kufikia funguo za pochi hii kwenye kifaa hiki. Ikiwa una fungu lako la kurejesha, ondoa pochi hii kisha uiingize tena ili kurejesha ufikiaji.
 errors_wallet_account_missing = Pochi hii haina akaunti ya mtandao huu
 errors_invalid_url = URL batili
@@ -316,7 +316,7 @@ asset_symbol = Alama
 asset_decimals = Desimali
 asset_token_id = Kitambulisho cha Tokeni
 asset_contract = Mkataba
-asset_state_empty_title = Shughuli zako za malipo zitaonekana hapa
+asset_state_empty_title = Miamala yako itaonekana hapa
 asset_state_empty_description = Pokea, badilisha au nunua %@
 asset_verification_unverified = Haijathibitishwa
 asset_verification_suspicious = Inatiliwa shaka
@@ -400,7 +400,7 @@ stake_awaiting_withdrawal = Inasubiri Kuondolewa
 stake_active_in = Inayotumika Katika
 stake_minimum_amount = Kiasi cha chini
 stake_state_empty_title = Hisa zako zitaonekana hapa
-stake_state_empty_description = Shiriki %@ yako ya kwanza
+stake_state_empty_description = Weka %@ yako ya kwanza kwenye hisa
 stake_state_empty_validators_title = Hakuna vithibitishaji vilivyopatikana
 stake_resource = Rasilimali
 stake_resource_energy = Nishati
@@ -431,6 +431,19 @@ secret_phrase_confirm_quick_test_title = Kamilisha jaribio hili la haraka ili ku
 secret_phrase_screenshot_detected_title = Picha ya skrini imegunduliwa
 secret_phrase_screenshot_detected_description = Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka maneno yako ya siri hatarini ikiwa yamehifadhiwa kwa njia hii.
 secret_phrase_content_hidden_description = Maudhui yaliyofichwa wakati wa kurekodi skrini
+
+# Private Key
+
+private_key_reminder_intro = Ufunguo huu wa kibinafsi ndio nakala pekee ya pochi yako.
+private_key_reminder_keep_safe_title = Uhifadhi Mahali Salama
+private_key_reminder_keep_safe_subtitle = Ufunguo wa kibinafsi ndiyo njia pekee ya kufikia pochi yako.
+private_key_reminder_do_not_share_title = Usimshirikishe Mtu Yeyote
+private_key_reminder_do_not_share_subtitle = Mtu yeyote anayepata ufunguo wako wa kibinafsi anaweza kuchukua udhibiti kamili wa pochi yako.
+private_key_reminder_no_recovery_title = Hatuwezi Kukusaidia Kuurejesha
+private_key_reminder_no_recovery_subtitle = Ukipoteza ufunguo wako wa kibinafsi, utapoteza ufikiaji wa pochi yako.
+private_key_do_not_share_title = Usishiriki Ufunguo wako wa Kibinafsi!
+private_key_do_not_share_description = Ikiwa mtu ana ufunguo wako wa kibinafsi atakuwa na udhibiti kamili wa akaunti hii!
+private_key_screenshot_detected_description = Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka ufunguo wako wa kibinafsi hatarini ikiwa zimehifadhiwa kwa njia hii.
 
 # Social
 
@@ -467,7 +480,7 @@ library_select_from_photo_library = Chagua kutoka kwa Maktaba ya Picha
 
 # Fee Rates
 
-fee_rates_info = Kasi ya ununuzi imedhamiriwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao.
+fee_rates_info = Kasi ya muamala huamuliwa na ada ya mtandao inayolipwa kwa wachimbaji wa mtandao.
 fee_rates_fast = Haraka
 fee_rates_normal = Kawaida
 
@@ -483,7 +496,7 @@ fee_rate_base = Ada ya Msingi
 
 banner_account_activation_title = Ada ya Kuanzisha Akaunti
 banner_account_activation_description = Mtandao wa %@ unahitaji ada ya mara moja ya %@.
-banner_stake_title = Anza kugoma %@
+banner_stake_title = Anza kuweka hisa %@
 banner_stake_description = Pata zawadi %@ kwenye hisa yako unapolala.
 banner_activate_asset_description = Ili kutumia kipengee %@, lazima kwanza uiwashe kwenye mtandao wa %@ kwa kutimiza mahitaji mahususi ya mtandao.
 banner_asset_status_title = Mali Inayotiliwa Shaka
@@ -531,7 +544,7 @@ lock_one_minute = Dakika 1
 lock_five_minutes = Dakika 5
 lock_fifteen_minutes = Dakika 15
 lock_one_hour = Saa 1
-lock_six_hours = 6 masaa
+lock_six_hours = Saa 6
 lock_require_authentication = Inahitaji uthibitishaji
 lock_unlock = Fungua
 lock_footer = Linda ufikiaji wa programu hii kwenye kifaa chako
@@ -565,7 +578,7 @@ info_transaction_error_description = Muamala haukuweza kukamilika kwa sababu ya 
 info_transaction_pending_description = Muamala umewasilishwa na unasubiri uthibitisho kwenye mtandao. Nyakati za usindikaji zinaweza kutofautiana. Tafadhali angalia tena kwa sasisho.
 info_estimated_confirmation_description = Makadirio haya yanategemea ada ya muamala na shughuli za sasa za mtandao wa %@. Muda halisi wa uthibitisho unaweza kubadilika na haujahakikishwa.
 info_transaction_success_description = Muamala umekamilika na kuthibitishwa kwenye mtandao. Unaweza kukagua maelezo ili kuthibitisha hali yake.
-info_lock_time_description = Muda wa kufunga, unaojulikana pia kama kipindi cha kuunganisha au kufungia, ni muda ambao mali zilizowekwa kwenye hisa haziwezi kufikiwa baada ya kuamua kuziondoa.
+info_lock_time_description = Muda wa kufunga, unaojulikana pia kama kipindi cha unbonding au cha kuondoa kuganda, ni muda ambao mali zilizowekwa kwenye hisa haziwezi kufikiwa baada ya kuamua kuziondoa kwenye hisa.
 info_price_impact_description = Athari ya bei ni mabadiliko ya bei ya tokeni yanayosababishwa na ukubwa wa biashara yako. Athari ya bei ya juu inamaanisha unapokea tokeni chache kutokana na ukwasi mdogo au ukubwa mkubwa wa agizo.
 info_slippage_description = Slippage inarejelea tofauti kati ya bei inayotarajiwa ya biashara na bei halisi ambayo inatekelezwa.
 info_asset_status_unverified_description = Tokeni ambazo hazijathibitishwa hazijathibitishwa vya kutosha na huduma zinazoaminika za wahusika wengine. Huenda zikaonekana kwenye mkoba wako kwa sababu ya matone ya hewa, uhamisho, au uagizaji wa mikono.
@@ -583,10 +596,10 @@ info_perpetual_open_interest_title = Riba Wazi
 info_perpetual_open_interest_description = Riba ya wazi inawakilisha jumla ya thamani ya kandarasi zote za kudumu ambazo hazijatatuliwa. Inatoa maarifa juu ya shughuli za soko na ukwasi.
 info_no_quote_description = Haikuweza kurejesha nukuu kwa jozi ya tokeni iliyochaguliwa, labda kwa sababu ya kiasi kidogo, ukosefu wa ukwasi, au vikwazo vya kiufundi.
 info_stake_reserved_title = Imehifadhiwa kwa Ada ya Mtandao
-info_stake_reserved_description = Kiasi kidogo husalia kwenye mkoba wako ili kulipia ada za shughuli kama vile kutoweka au kudai zawadi.
+info_stake_reserved_description = Kiasi kidogo husalia kwenye mkoba wako ili kulipia ada za shughuli kama vile kuondoa hisa au kudai zawadi.
 info_stake_apr_description = Kiwango cha Asilimia cha Mwaka (APR) ni kiwango cha tuzo cha kila mwaka cha kuweka sarafu yako ya cryptocurrency.
-info_stake_frozen_required_title = Ganda TRX ili kuweka hisa
-info_stake_frozen_required_description = Kuweka hisa kwenye TRON huhusisha hatua mbili. Kwanza ganda TRX, kisha uziweke hisa ili kupata zawadi.
+info_stake_frozen_required_title = Gandisha TRX ili kuweka hisa
+info_stake_frozen_required_description = Kuweka hisa kwenye TRON huhusisha hatua mbili. Kwanza gandisha TRX, kisha uziweke hisa ili kupata zawadi.
 info_perpetual_auto_close_description = Funga nafasi yako kiotomatiki katika viwango vya bei vilivyowekwa. Take Profit hulinda faida, Stop Loss hupunguza hasara.
 info_fully_diluted_valuation_title = Thamani Iliyopunguzwa Kikamilifu
 info_fully_diluted_valuation_description = Thamani ya kinadharia ya soko ikiwa sarafu zote zilikuwa zikitumika. Imehesabiwa kama bei ikizidishwa na usambazaji wa juu zaidi.
@@ -658,7 +671,7 @@ onboarding_accept_terms_continue = Kubali na Uendelee
 
 # Perpetual
 
-perpetual_positions = Vyeo
+perpetual_positions = Nafasi
 perpetual_size = Ukubwa
 perpetual_margin = Margin
 perpetual_position = Nafasi
@@ -691,7 +704,7 @@ perpetual_volume = Kiasi
 perpetual_all_time_pnl = PnL ya Wakati Wote
 perpetual_margin_usage = Matumizi ya Margin
 perpetual_account_leverage = Uwiano wa Mtaji wa Akaunti
-perpetual_margin_cross = Msalaba
+perpetual_margin_cross = Cross
 perpetual_margin_isolated = Imetengwa
 
 # Perpetuals
@@ -761,7 +774,7 @@ contacts_add_to_existing_contact = Ongeza kwa anwani
 
 # Simulation
 
-simulation_header_unlimited_asset = Isiyo na kikomo %@
+simulation_header_unlimited_asset = %@ isiyo na kikomo
 simulation_warning_unlimited_token_approval_description = Hii inampa mtumiaji uwezo wa kutumia tokeni hii hadi utakapobatilisha idhini au itakapoisha muda wake.
 simulation_warning_externally_owned_spender_description = Idhini hii inaruhusu anwani ya kawaida ya pochi (EOA) kutumia mali zako. Thibitisha tu ikiwa unaiamini anwani hii.
 simulation_warning_nft_collection_approval_title = Ufikiaji kamili wa ukusanyaji wa NFT umeombwa

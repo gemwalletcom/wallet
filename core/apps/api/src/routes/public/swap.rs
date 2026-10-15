@@ -2,8 +2,9 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use primitives::FiatAssets;
-use services::swap::{NearIntentsProxyClient, SwapClient, SwapsXyzProxyClient};
+use services::swap::{BridgersProxyClient, ChainflipProxyClient, NearIntentsProxyClient, RelayProxyClient, SwapClient, SwapsXyzProxyClient};
 use swapper::RpcClient;
+use swapper::chainflip::broker::DepositChannelRequest;
 use swapper::okx::{OkxProviderProxy, QuoteParams, SwapParams, error_response};
 use swapper::swaps_xyz::ActionRequest;
 
@@ -17,6 +18,18 @@ pub async fn get_swap_assets(State(client): State<Arc<SwapClient>>) -> Result<Ap
 
 pub async fn post_near_intents_quote(State(client): State<Arc<NearIntentsProxyClient>>, Json(body): Json<serde_json::Value>) -> Result<JsonProxyResponse, ApiError> {
     Ok(client.quote(body).await?.into())
+}
+
+pub async fn post_relay_quote(State(client): State<Arc<RelayProxyClient>>, Json(body): Json<serde_json::Value>) -> Result<JsonProxyResponse, ApiError> {
+    Ok(client.quote(body).await?.into())
+}
+
+pub async fn post_bridgers_swap(State(client): State<Arc<BridgersProxyClient>>, Json(body): Json<serde_json::Value>) -> Result<JsonProxyResponse, ApiError> {
+    Ok(client.swap(body).await?.into())
+}
+
+pub async fn post_chainflip_deposit_channel(State(client): State<Arc<ChainflipProxyClient>>, Json(body): Json<DepositChannelRequest>) -> Result<JsonProxyResponse, ApiError> {
+    Ok(client.deposit_channel(&body).await?.into())
 }
 
 pub async fn post_swaps_xyz_action(State(client): State<Arc<SwapsXyzProxyClient>>, Json(body): Json<ActionRequest>) -> Result<JsonProxyResponse, ApiError> {

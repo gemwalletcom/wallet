@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::error::Error;
 use std::sync::Arc;
 
@@ -24,6 +24,13 @@ impl SwapVaultAddressClient {
 
     pub async fn get_send_address_map(&self) -> Result<AddressMap, Box<dyn Error + Send + Sync>> {
         self.get_address_map(SwapVaultAddressKind::Send).await
+    }
+
+    pub async fn add_deposit_ids(&self, deposit_ids: BTreeMap<SwapperProvider, Vec<String>>) -> Result<(), Box<dyn Error + Send + Sync>> {
+        for (provider, ids) in deposit_ids {
+            self.cacher.add_vault_addresses(provider, SwapVaultAddressKind::Deposit, &ids).await?;
+        }
+        Ok(())
     }
 
     async fn get_address_map(&self, kind: SwapVaultAddressKind) -> Result<AddressMap, Box<dyn Error + Send + Sync>> {

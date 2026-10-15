@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Primitives
 import Style
 import SwiftUI
 
@@ -15,7 +16,7 @@ struct SecretDataTypeView: View {
         case let .words(rows):
             SecretPhraseGridView(rows: rows)
         case let .privateKey(key):
-            Text(key)
+            Text(key.preventingHyphenation)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, .medium)
                 .frame(maxWidth: .scene.content.maxWidth)

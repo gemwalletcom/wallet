@@ -119,6 +119,7 @@ pub enum ConfigParamKey {
     TransactionsRequestLimit(Chain),
     TransactionsPendingErrorMaxAge(Chain),
     TransactionsFeeEstimatesCacheDuration(Chain),
+    TransactionInTransitProviderEnable(SwapProvider),
     SwapperVaultAddresses(SwapProvider),
     PriceProviderAssetsLimit(PriceProvider),
     PriceProviderAssetsDuration(PriceProvider),
@@ -139,6 +140,7 @@ impl ConfigParamKey {
         let transactions = Chain::all().into_iter().map(Self::TransactionsRequestLimit);
         let pending_transactions = Chain::all().into_iter().map(Self::TransactionsPendingErrorMaxAge);
         let fee_estimates = Chain::all().into_iter().map(Self::TransactionsFeeEstimatesCacheDuration);
+        let in_transit_providers = SwapProvider::all().into_iter().map(Self::TransactionInTransitProviderEnable);
         let swapper = SwapProvider::cross_chain_providers().into_iter().map(Self::SwapperVaultAddresses);
         let assets_limit = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsLimit);
         let assets = PriceProvider::all().into_iter().map(Self::PriceProviderAssetsDuration);
@@ -155,6 +157,7 @@ impl ConfigParamKey {
         transactions
             .chain(pending_transactions)
             .chain(fee_estimates)
+            .chain(in_transit_providers)
             .chain(swapper)
             .chain(assets_limit)
             .chain(assets)
@@ -176,6 +179,7 @@ impl ConfigParamKey {
             Self::TransactionsRequestLimit(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
             Self::TransactionsPendingErrorMaxAge(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
             Self::TransactionsFeeEstimatesCacheDuration(chain) => format!("{}.{}", self.as_ref(), chain.as_ref()),
+            Self::TransactionInTransitProviderEnable(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::SwapperVaultAddresses(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderAssetsLimit(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderAssetsDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
@@ -197,6 +201,7 @@ impl ConfigParamKey {
             Self::TransactionsRequestLimit(_) => "100".to_string(),
             Self::TransactionsPendingErrorMaxAge(_) => "3d".to_string(),
             Self::TransactionsFeeEstimatesCacheDuration(_) => "1m".to_string(),
+            Self::TransactionInTransitProviderEnable(_) => "true".to_string(),
             Self::SwapperVaultAddresses(_) => "5m".to_string(),
             Self::PriceProviderAssetsLimit(PriceProvider::TonApi) => "1000".to_string(),
             Self::PriceProviderAssetsLimit(_) => "5000".to_string(),
@@ -219,6 +224,16 @@ impl ConfigParamKey {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_in_transit_provider_enable_defaults() {
+        assert_eq!(ConfigParamKey::TransactionInTransitProviderEnable(SwapProvider::Relay).key(), "transactionInTransitProviderEnable.relay");
+        for provider in SwapProvider::all() {
+            let key = ConfigParamKey::TransactionInTransitProviderEnable(provider);
+            assert_eq!(key.default_value(), "true");
+            assert!(ConfigParamKey::all().iter().any(|param| param.key() == key.key()));
+        }
+    }
 
     #[test]
     fn test_price_provider_assets_limit() {

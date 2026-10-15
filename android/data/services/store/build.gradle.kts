@@ -35,6 +35,8 @@ dependencies {
     implementation(project(":gemcore"))
     testFixturesImplementation(project(":gemcore"))
     testFixturesImplementation(testFixtures(project(":gemcore")))
+    testFixturesImplementation(libs.room.runtime)
+    testFixturesImplementation(libs.androidx.junit)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

@@ -37,7 +37,7 @@ common_paste = Paste
 # Used in shared app UI for the delete label.
 common_delete = Delete
 # Delete confirmation. %@ is the item name shown to the user.
-common_delete_confirmation = Are sure you want to delete %@?
+common_delete_confirmation = Are you sure you want to delete %@?
 # Used in shared app UI for the hide label.
 common_hide = Hide
 # Used in shared app UI for the wallet label.
@@ -807,6 +807,29 @@ secret_phrase_screenshot_detected_description = Screenshots may be accessible to
 # Used in secret UI for the phrase content hidden description.
 secret_phrase_content_hidden_description = Content hidden during screen recording
 
+# Private Key
+
+# Used as the intro text of the security reminder shown before revealing the private key of a wallet imported from one.
+private_key_reminder_intro = This private key is your wallet's only backup.
+# Used as the title of the first private key reminder item; mirrors onboarding_security_create_wallet_keep_safe_title.
+private_key_reminder_keep_safe_title = Store It Somewhere Safe
+# Used as the description of the first private key reminder item.
+private_key_reminder_keep_safe_subtitle = Your private key is the only way to access your wallet.
+# Used as the title of the second private key reminder item; mirrors onboarding_security_create_wallet_do_not_share_title.
+private_key_reminder_do_not_share_title = Do Not Share It With Anyone
+# Used as the description of the second private key reminder item.
+private_key_reminder_do_not_share_subtitle = Anyone who gets your private key can take full control of your wallet.
+# Used as the title of the third private key reminder item; mirrors onboarding_security_create_wallet_no_recovery_title.
+private_key_reminder_no_recovery_title = We Can't Help You Recover It
+# Used as the description of the third private key reminder item.
+private_key_reminder_no_recovery_subtitle = If you lose your private key, you lose access to your wallet.
+# Used as the warning title on the private key reveal screen.
+private_key_do_not_share_title = Do not share your Private Key!
+# Used as the warning description on the private key reveal screen.
+private_key_do_not_share_description = If someone has your private key they will have full control of this account!
+# Used in the alert shown after a screenshot of a private key screen; mirrors secret_phrase_screenshot_detected_description.
+private_key_screenshot_detected_description = Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.
+
 # Social
 
 # Used in external social link list for the x label.
@@ -1025,7 +1048,7 @@ info_payment_verification_title = Payment Verification
 # Used in Info bottom sheets for the payment verification description.
 info_payment_verification_description = The merchant requires additional information before the payment.
 # Used in Info bottom sheets for the network fee description. Contains 2 string placeholders.
-info_network_fee_description = Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees varies based on network usage.
+info_network_fee_description = Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees vary based on network usage.
 # Used in Info bottom sheets for the transaction error description.
 info_transaction_error_description = The transaction could not be completed due to an error, such as insufficient funds, invalid input, or rejection by the network. Please review the details and try again.
 # Used in Info bottom sheets for the transaction pending description.
@@ -1170,7 +1193,7 @@ onboarding_security_create_wallet_do_not_share_title = Do Not Share It With Anyo
 # Used in onboarding and terms acceptance screens for the security create wallet do not share subtitle.
 onboarding_security_create_wallet_do_not_share_subtitle = Anyone who gets your secret phrase can take full control of your wallet.
 # Used in onboarding and terms acceptance screens for the security create wallet keep safe subtitle.
-onboarding_security_create_wallet_keep_safe_subtitle = The secret phrase is only way to access your wallet.
+onboarding_security_create_wallet_keep_safe_subtitle = The secret phrase is the only way to access your wallet.
 # Used in onboarding and terms acceptance screens for the security create wallet no recovery subtitle.
 onboarding_security_create_wallet_no_recovery_subtitle = If you lose your secret phrase, you lose access to your wallet.
 # Used in onboarding and terms acceptance screens for the security create wallet keep safe title.

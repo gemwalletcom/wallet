@@ -2,6 +2,7 @@ use std::fmt;
 
 use crate::models::list::GemAddressRow;
 use crate::services::localization::GemLocalizedText;
+use crate::services::onboarding::GemSecurityReminderItem;
 use primitives::{Chain, NameRecord, Wallet, WalletId, WalletListItem, WalletSource};
 
 use super::rules;
@@ -50,6 +51,14 @@ impl GemWalletImportKind {
 
     pub fn resolves_names(&self) -> bool {
         matches!(self, Self::Address)
+    }
+
+    pub fn secret_kind(&self) -> Option<GemWalletSecretKind> {
+        match self {
+            Self::Phrase => Some(GemWalletSecretKind::Phrase),
+            Self::PrivateKey => Some(GemWalletSecretKind::PrivateKey),
+            Self::Address => None,
+        }
     }
 }
 
@@ -131,6 +140,7 @@ pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemSecretWarning {
     DoNotShare,
+    DoNotSharePrivateKey,
     SaveSafely,
 }
 
@@ -144,6 +154,11 @@ pub struct GemSecretScreen {
 #[uniffi::export]
 pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -> GemSecretScreen {
     rules::secret_screen(kind, word_count, is_new)
+}
+
+#[uniffi::export]
+pub fn security_reminder_items(kind: GemWalletSecretKind) -> Vec<GemSecurityReminderItem> {
+    rules::security_reminder_items(kind)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

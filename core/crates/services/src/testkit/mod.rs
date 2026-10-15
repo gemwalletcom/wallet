@@ -1,5 +1,6 @@
 pub mod abuse_detection_config_mock;
 mod asset_repository;
+mod check_schedule_cacher;
 mod config_repository;
 mod fee_estimates_cacher;
 mod notifications_repository;
@@ -14,6 +15,7 @@ mod subscription_lookup;
 mod transactions_repository;
 
 pub(crate) use asset_repository::{ListAssets, MemoryAssetRepository};
+pub(crate) use check_schedule_cacher::MemoryCheckScheduleCacher;
 pub(crate) use config_repository::MemoryConfigRepository;
 pub(crate) use fee_estimates_cacher::MemoryFeeEstimatesCacher;
 pub(crate) use notifications_repository::MemoryNotificationsRepository;

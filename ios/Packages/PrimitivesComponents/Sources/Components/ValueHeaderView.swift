@@ -161,7 +161,7 @@ public struct ValueHeaderView: View {
             .overlay {
                 titleView
                     .numericTransition(for: model.title)
-                    .minimumScaleFactor(0.35)
+                    .minimumScaleFactor(16 / 42)
                     .font(.app.largeTitle)
                     .foregroundStyle(Colors.black)
                     .lineLimit(1)

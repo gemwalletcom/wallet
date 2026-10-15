@@ -106,10 +106,6 @@ final class ImportWalletSceneViewModel {
         importType.showsViewOnlyWarning() ? Localized.Wallet.importAddressWarning : nil
     }
 
-    var docsUrl: URL {
-        AppUrl.docs(.howToSecureSecretPhrase)
-    }
-
     var shouldProtectInput: Bool {
         importType.protectsInput()
     }

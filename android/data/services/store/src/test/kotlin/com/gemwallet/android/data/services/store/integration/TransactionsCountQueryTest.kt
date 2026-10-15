@@ -1,10 +1,8 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.TransactionsCountQuery
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockAsset
@@ -29,10 +27,7 @@ import uniffi.gemstone.pendingActivityFilters
 
 @RunWith(AndroidJUnit4::class)
 class TransactionsCountQueryTest {
-    private val database = Room.inMemoryDatabaseBuilder(
-        InstrumentationRegistry.getInstrumentation().targetContext,
-        GemDatabase::class.java,
-    ).build()
+    private val database = mockGemDatabase()
     private val query = TransactionsCountQuery(database.transactionsDao())
     private val pending = pendingActivityFilters().toPrimitives()
     private val wallet = mockWallet(id = WalletId("wallet-1"))

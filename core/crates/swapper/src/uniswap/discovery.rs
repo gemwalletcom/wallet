@@ -68,7 +68,7 @@ pub(super) async fn discover_v3_pools(client: &JsonRpcClient<RpcClient>, factory
             block: BlockParameter::Latest,
         }
     });
-    let responses = client.batch_request::<String, _>(requests.collect()).await?;
+    let responses = client.requests::<String, _>(requests.collect()).await?;
     Ok(pools
         .iter()
         .zip(responses)
@@ -89,7 +89,7 @@ pub(super) async fn discover_v4_pools(client: &JsonRpcClient<RpcClient>, state_v
             block: BlockParameter::Latest,
         }
     });
-    let responses = client.batch_request::<String, _>(requests.collect()).await?;
+    let responses = client.requests::<String, _>(requests.collect()).await?;
     Ok(decode_v4_discoveries(pools, responses))
 }
 

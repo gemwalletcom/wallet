@@ -7,7 +7,7 @@ import struct Gemstone.SimulationResult
 import GemstonePrimitives
 import Primitives
 
-public struct WCTransferData: Identifiable, Sendable {
+public struct WCTransferData: Sendable {
     public let transferData: GemTransferData
     public let wallet: Wallet
     public let simulation: SimulationResult
@@ -24,9 +24,5 @@ public struct WCTransferData: Identifiable, Sendable {
             wallet: request.wallet.toPrimitives(),
             simulation: request.simulation,
         )
-    }
-
-    public var id: String {
-        wallet.id.id
     }
 }

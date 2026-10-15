@@ -3,15 +3,35 @@ use chain_traits::ChainTransactionState;
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{TransactionStateRequest, TransactionUpdate};
+use primitives::{TransactionState, TransactionStateRequest, TransactionUpdate};
 
 use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::XrpClient};
 
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionState for XrpClient<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
-        let status = self.get_transaction_status(&request.id).await?;
-        Ok(map_transaction_status(&status))
+        Ok(match self.get_transaction(&request.id).await? {
+            Some(status) => map_transaction_status(&status),
+            None => TransactionUpdate::new_state(TransactionState::Pending),
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use serde_json::json;
+
+    #[tokio::test]
+    async fn test_get_transaction_status() {
+        let request = TransactionStateRequest::mock_with_id("944509E61C735BD1163DA03546A74A4656C4AC2FB4500DA5CC08085F8296FF50");
+
+        let client = XrpClient::new(mock_jsonrpc_client(|_, _| Ok(json!({"error": "txnNotFound", "error_code": 29, "error_message": "Transaction not found.", "status": "error"}))));
+        assert_eq!(ChainTransactionState::get_transaction_status(&client, request.clone()).await.unwrap(), TransactionUpdate::new_state(TransactionState::Pending));
+
+        let client = XrpClient::new(mock_jsonrpc_client(|_, _| Ok(json!({"error": "tooBusy", "error_code": 9, "status": "error"}))));
+        assert_eq!(ChainTransactionState::get_transaction_status(&client, request).await.unwrap_err().to_string(), "tooBusy (9)");
     }
 }
 
@@ -19,7 +39,6 @@ impl<C: Client + Clone> ChainTransactionState for XrpClient<C> {
 mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::create_xrp_test_client;
-    use primitives::TransactionState;
 
     #[tokio::test]
     async fn test_get_transaction_status() -> Result<(), Box<dyn Error + Send + Sync>> {

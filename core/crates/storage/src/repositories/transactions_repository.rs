@@ -18,6 +18,7 @@ pub enum TransactionFilter {
     States(Vec<PrimitiveTransactionState>),
     Chain(String),
     Hash(String),
+    After(NaiveDateTime, TransactionId),
 }
 
 impl QueryFilter<crate::schema::transactions::table> for TransactionFilter {
@@ -27,6 +28,11 @@ impl QueryFilter<crate::schema::transactions::table> for TransactionFilter {
             TransactionFilter::States(states) => Box::new(dsl::state.eq_any(transaction_states(states))),
             TransactionFilter::Chain(value) => Box::new(dsl::chain.eq(value)),
             TransactionFilter::Hash(value) => Box::new(dsl::hash.eq(value)),
+            TransactionFilter::After(created_at, id) => Box::new(
+                dsl::created_at.gt(created_at).or(dsl::created_at
+                    .eq(created_at)
+                    .and(dsl::chain.gt(id.chain.as_ref().to_string()).or(dsl::chain.eq(id.chain.as_ref().to_string()).and(dsl::hash.gt(id.hash))))),
+            ),
         }
     }
 }
@@ -97,6 +103,7 @@ fn upsert_transaction(connection: &mut PgConnection, transaction: &Transaction) 
     }
     diesel::update(target)
         .set((
+            transactions_dsl::asset_id.eq(&new_transaction.asset_id),
             transactions_dsl::from_address.eq(&new_transaction.from_address),
             transactions_dsl::to_address.eq(&new_transaction.to_address),
             transactions_dsl::value.eq(&new_transaction.value),
@@ -353,7 +360,11 @@ impl TransactionsRepository for DatabaseClient {
         use crate::schema::transactions::dsl;
         let query = dsl::transactions.filter(matching(filters)).into_boxed();
 
-        let rows: Vec<TransactionRow> = query.order(dsl::created_at.asc()).limit(limit).select(TransactionRow::as_select()).load(&mut self.connection)?;
+        let rows: Vec<TransactionRow> = query
+            .order((dsl::created_at.asc(), dsl::chain.asc(), dsl::hash.asc()))
+            .limit(limit)
+            .select(TransactionRow::as_select())
+            .load(&mut self.connection)?;
         Ok(rows.iter().map(|row| row.as_primitive(row.get_addresses())).collect::<Result<Vec<_>, _>>()?)
     }
 
@@ -388,12 +399,59 @@ impl TransactionsRepository for DatabaseClient {
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
+    use chrono::{DateTime, Duration, Utc};
     use diesel::prelude::*;
-    use primitives::{Asset, Chain, Transaction, TransactionDirection, TransactionId};
+    use num_bigint::BigUint;
+    use primitives::{Asset, Chain, Transaction, TransactionDirection, TransactionId, TransactionType};
 
+    use super::TransactionFilter;
     use crate::models::NewWalletAddressRow;
     use crate::schema::wallets_addresses;
     use crate::{AssetsRepository, ChainsRepository, Database, DatabaseClient, DatabaseError, TransactionsRepository};
+
+    #[tokio::test]
+    async fn test_transaction_pagination_keeps_timestamp_and_hash_ties() {
+        let database = Database::mock();
+        let created_at = DateTime::<Utc>::UNIX_EPOCH;
+        let hash = "0xintransitpagination";
+        let transactions = [
+            (Chain::Solana, hash, created_at),
+            (Chain::Ethereum, hash, created_at),
+            (Chain::Arbitrum, hash, created_at),
+            (Chain::Ethereum, "0xintransitpaginationnew", created_at + Duration::seconds(1)),
+        ]
+        .into_iter()
+        .map(|(chain, hash, created_at)| Transaction {
+            id: TransactionId::new(chain, hash.to_string()),
+            asset_id: chain.as_asset_id(),
+            fee_asset_id: chain.as_asset_id(),
+            created_at,
+            ..Transaction::mock()
+        })
+        .collect::<Vec<_>>();
+        let (first, second, third, newer) = database
+            .run(move |client| -> Result<_, DatabaseError> {
+                let chains = vec![Chain::Arbitrum, Chain::Ethereum, Chain::Solana];
+                client.add_chains(chains.clone())?;
+                client.add_assets(chains.into_iter().map(|chain| Asset::from_chain(chain).as_basic_primitive()).collect())?;
+                client.set_transactions(transactions)?;
+                let first = client.get_transactions_by_filter(vec![TransactionFilter::Hash(hash.to_string())], 2)?;
+                let last = first.last().unwrap();
+                let second = client.get_transactions_by_filter(vec![TransactionFilter::Hash(hash.to_string()), TransactionFilter::After(last.created_at.naive_utc(), last.id.clone())], 2)?;
+                let last = second.last().unwrap();
+                let third = client.get_transactions_by_filter(vec![TransactionFilter::Hash(hash.to_string()), TransactionFilter::After(last.created_at.naive_utc(), last.id.clone())], 2)?;
+                let newer = client.get_transactions_by_filter(vec![TransactionFilter::Hash("0xintransitpaginationnew".to_string()), TransactionFilter::After(last.created_at.naive_utc(), last.id.clone())], 2)?;
+                Ok((first, second, third, newer))
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(first.iter().map(|transaction| transaction.id.chain).collect::<Vec<_>>(), vec![Chain::Arbitrum, Chain::Ethereum]);
+        assert_eq!(second.iter().map(|transaction| transaction.id.chain).collect::<Vec<_>>(), vec![Chain::Solana]);
+        assert!(third.is_empty());
+        assert_eq!(newer.len(), 1);
+        assert_eq!(newer[0].id.chain, Chain::Ethereum);
+    }
 
     fn add_wallet_addresses(client: &mut DatabaseClient, addresses: &[&str]) -> Result<usize, DatabaseError> {
         let rows: Vec<NewWalletAddressRow> = addresses.iter().map(|address| NewWalletAddressRow { address: address.to_string() }).collect();
@@ -480,6 +538,39 @@ mod database_integration_tests {
         assert_eq!(from_before, 0);
         assert_eq!(to_before, 1);
         assert_eq!(from_after, 1);
+    }
+
+    #[tokio::test]
+    async fn test_upsert_transaction_replaces_asset_with_value() {
+        let database = Database::mock();
+        let token = Asset::mock_spl_token();
+        let call = Transaction {
+            id: TransactionId::new(Chain::Solana, "upsertassettest".to_string()),
+            asset_id: Chain::Solana.as_asset_id(),
+            fee_asset_id: Chain::Solana.as_asset_id(),
+            transaction_type: TransactionType::SmartContractCall,
+            value: BigUint::from(2_993_832u64),
+            ..Transaction::mock()
+        };
+        let swap = Transaction {
+            asset_id: token.id.clone(),
+            transaction_type: TransactionType::Swap,
+            value: BigUint::from(13_002_173_634u64),
+            ..call.clone()
+        };
+        let stored = database
+            .run(move |client| -> Result<_, DatabaseError> {
+                client.add_chains(vec![Chain::Solana])?;
+                client.add_assets(vec![Asset::from_chain(Chain::Solana).as_basic_primitive(), token.as_basic_primitive()])?;
+                client.set_transactions(vec![call])?;
+                client.set_transactions(vec![swap])?;
+                client.get_transactions_by_hash("upsertassettest")
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(stored[0].asset_id, Asset::mock_spl_token().id);
+        assert_eq!(stored[0].value, BigUint::from(13_002_173_634u64));
     }
 }
 

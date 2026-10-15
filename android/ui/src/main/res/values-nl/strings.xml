@@ -24,7 +24,7 @@
   <string name="common_copied">Gekopieerd: %1$s</string>
   <string name="common_copied_to_clipboard">Gekopieerd naar klembord</string>
   <string name="common_recommended">Aanbevolen</string>
-  <string name="common_all">Allemaal</string>
+  <string name="common_all">Alle</string>
   <string name="common_not_available">Niet beschikbaar</string>
   <string name="common_phrase">Zin</string>
   <string name="common_manage">Beheer</string>
@@ -93,7 +93,7 @@
   <string name="wallet_receive_collection">Ontvang collectie</string>
   <string name="wallet_more">Meer</string>
   <string name="wallet_import_contract_address_field">Contract of token-ID</string>
-  <string name="wallet_import_address_warning">U kunt het saldo en de transacties voor dit adres bekijken, maar u kunt geen geld verzenden of verkopen.</string>
+  <string name="wallet_import_address_warning">U kunt het saldo en de transacties voor dit adres bekijken, maar **u kunt geen geld verzenden of verkopen**.</string>
   <string name="wallet_deposit">Storten</string>
   <string name="wallet_withdraw">Opnemen</string>
   <string name="wallet_available_balance">Beschikbaar: %1$s</string>
@@ -213,7 +213,7 @@
   <string name="errors_authentication_failed">Verificatie mislukt. Probeer het opnieuw.</string>
   <string name="errors_connections_expired">Deze verbindingslink is verlopen. Haal een nieuwe QR-code op en probeer het opnieuw.</string>
   <string name="errors_connections_not_found">Deze verbinding bestaat niet meer.</string>
-  <string name="errors_connections_relay_unavailable">WalletConnect is niet bereikbaar. Controleer je internetverbinding en probeer het opnieuw.</string>
+  <string name="errors_connections_relay_unavailable">WalletConnect is niet bereikbaar. Controleer uw internetverbinding en probeer het opnieuw.</string>
   <string name="errors_swap_amount_too_small">Bedrag te klein</string>
   <string name="errors_scan_transaction_malicious_description">Deze transactie kan niet worden voltooid: het adres van de bestemmingswallet is gekoppeld aan verdachte of schadelijke activiteiten.</string>
   <string name="errors_scan_transaction_memo_required">%1$s bestemmingswalletadres vereist een bestemmingstag / memo</string>
@@ -365,6 +365,16 @@
   <string name="secret_phrase_screenshot_detected_title">Schermafbeelding gedetecteerd</string>
   <string name="secret_phrase_screenshot_detected_description">Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps, maar ze kunnen uw geheime zin in gevaar brengen als u ze op deze manier opslaat.</string>
   <string name="secret_phrase_content_hidden_description">Inhoud verborgen tijdens schermopname</string>
+  <string name="private_key_reminder_intro">Deze privésleutel is de enige back-up van uw portemonnee.</string>
+  <string name="private_key_reminder_keep_safe_title">Bewaar hem op een veilige plek</string>
+  <string name="private_key_reminder_keep_safe_subtitle">De privésleutel is de enige manier om toegang te krijgen tot uw portemonnee.</string>
+  <string name="private_key_reminder_do_not_share_title">Deel hem met niemand</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Iedereen die uw privésleutel te pakken krijgt, kan de volledige controle over uw portemonnee overnemen.</string>
+  <string name="private_key_reminder_no_recovery_title">Wij kunnen u niet helpen hem te herstellen</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Als u uw privésleutel verliest, verliest u de toegang tot uw portemonnee.</string>
+  <string name="private_key_do_not_share_title">Deel uw privésleutel niet!</string>
+  <string name="private_key_do_not_share_description">Als iemand uw privésleutel heeft, heeft diegene volledige controle over dit account!</string>
+  <string name="private_key_screenshot_detected_description">Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps en kunnen uw privésleutel in gevaar brengen als u ze op deze manier opslaat.</string>
   <string name="social_x">X (voorheen Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
@@ -429,7 +439,7 @@
   <string name="price_alerts_added_price_under">Melding toegevoegd voor prijs onder %1$s</string>
   <string name="price_alerts_added_increases_by">Melding toegevoegd voor prijsstijging van %1$s</string>
   <string name="price_alerts_added_decreases_by">Melding toegevoegd voor prijsdaling van %1$s</string>
-  <string name="price_alerts_state_empty_title">Uw meldingen verschijnen hier</string>
+  <string name="price_alerts_state_empty_title">Uw prijswaarschuwingen verschijnen hier</string>
   <string name="price_alerts_state_empty_description">Schakel ze in door munten toe te voegen aan de track</string>
   <string name="price_alerts_auto_footer">Waarschuwingen worden geactiveerd bij aanzienlijke prijsbewegingen.</string>
   <string name="price_alerts_set_alert_title">Prijswaarschuwing instellen</string>
@@ -444,11 +454,11 @@
   <string name="lock_footer">Beveilig de toegang tot deze app op uw apparaat</string>
   <string name="lock_passcode">Toegangscode</string>
   <string name="lock_passcode_off_title">Toegangscode van apparaat staat uit</string>
-  <string name="lock_passcode_off_description">Gem is vergrendeld met de toegangscode van je apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Je portemonnees zijn veilig.</string>
+  <string name="lock_passcode_off_description">Gem is vergrendeld met de toegangscode van uw apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Uw portemonnees zijn veilig.</string>
   <string name="verify_phrase_title">Bevestig</string>
   <string name="warnings_externally_controlled_account">Dit %1$s-account kan door iemand anders worden beheerd. Stuur er geen geld naartoe, tenzij u zeker weet dat u het zelf beheert, anders kunt u uw bezittingen permanent kwijtraken.</string>
   <string name="sell_title">Verkoop %1$s</string>
-  <string name="info_region_unavailable_description">Deze functie is niet beschikbaar in je regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders.</string>
+  <string name="info_region_unavailable_description">Deze functie is niet beschikbaar in uw regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders.</string>
   <string name="info_network_fee_title">Netwerkkosten</string>
   <string name="info_watch_wallet_title">Kijk-portemonnee</string>
   <string name="info_watch_wallet_description">Een portemonnee waar u geen toegang toe heeft, maar wel de transacties en bewegingen ervan kunt bekijken.</string>
@@ -613,7 +623,7 @@
   <string name="simulation_warning_unlimited_token_approval_title">Onbeperkte tokengoedkeuring</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Beveiligingswaarschuwing</string>
-  <string name="rootcheck_jailbreak_body">Uw apparaat lijkt gejailbreakt te zijn. Dit kan uw wallet en tegoeden in gevaar brengen.</string>
+  <string name="rootcheck_jailbreak_body">Uw apparaat lijkt gejailbreakt te zijn. Dit kan uw portemonnee en tegoeden in gevaar brengen.</string>
   <string name="rootcheck_body">Het lijkt erop dat uw apparaat root-toegang heeft, wat de beveiligingsrisico\'s aanzienlijk kan vergroten. Als u deze app op een geroot apparaat gebruikt, kunnen uw bezittingen worden blootgesteld aan ongeoorloofde toegang en mogelijk verlies. Voor de veiligheid van uw geld raden wij u ten zeerste aan een niet-geroot apparaat te gebruiken.</string>
   <string name="rootcheck_ignore">Negeer</string>
   <string name="rootcheck_exit">Afsluiten</string>

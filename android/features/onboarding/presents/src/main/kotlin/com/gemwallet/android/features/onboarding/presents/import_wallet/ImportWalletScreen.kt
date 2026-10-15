@@ -41,7 +41,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.onboarding.presents.import_wallet.components.ImportInput
 import com.gemwallet.android.features.onboarding.presents.import_wallet.components.ImportKindTab
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportInputUIModel
@@ -82,7 +81,6 @@ private val loadingDialogSize = 100.dp
 @Composable
 fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel: () -> Unit) {
     DisableScreenShooting()
-    DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
     val context = LocalContext.current
     val viewModel: ImportWalletViewModel = hiltViewModel()
@@ -93,6 +91,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
         onDispose {}
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    DetectScreenshot(uiState.importType.kind.secretKind())
     val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
     val inputState = remember { mutableStateOf(TextFieldValue()) }

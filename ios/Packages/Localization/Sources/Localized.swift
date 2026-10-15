@@ -237,9 +237,9 @@ public enum Localized {
     public static let copy = Localized.tr("Localizable", "common.copy", fallback: "Copy")
     /// Delete
     public static let delete = Localized.tr("Localizable", "common.delete", fallback: "Delete")
-    /// Are sure you want to delete %@?
+    /// Are you sure you want to delete %@?
     public static func deleteConfirmation(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "common.delete_confirmation", String(describing: p1), fallback: "Are sure you want to delete %@?")
+      return Localized.tr("Localizable", "common.delete_confirmation", String(describing: p1), fallback: "Are you sure you want to delete %@?")
     }
     /// Description
     public static let description = Localized.tr("Localizable", "common.description", fallback: "Description")
@@ -642,9 +642,9 @@ public enum Localized {
       public static let title = Localized.tr("Localizable", "info.minimum_amount.title", fallback: "Minimum Amount")
     }
     public enum NetworkFee {
-      /// Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees varies based on network usage.
+      /// Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees vary based on network usage.
       public static func description(_ p1: Any, _ p2: Any) -> String {
-        return Localized.tr("Localizable", "info.network_fee.description", String(describing: p1), String(describing: p2), fallback: "Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees varies based on network usage.")
+        return Localized.tr("Localizable", "info.network_fee.description", String(describing: p1), String(describing: p2), fallback: "Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees vary based on network usage.")
       }
       /// Network Fee
       public static let title = Localized.tr("Localizable", "info.network_fee.title", fallback: "Network Fee")
@@ -878,8 +878,8 @@ public enum Localized {
           public static let title = Localized.tr("Localizable", "onboarding.security.create_wallet.intro.title", fallback: "You will get a Secret Phrase — it's the only way to access your wallet.")
         }
         public enum KeepSafe {
-          /// The secret phrase is only way to access your wallet.
-          public static let subtitle = Localized.tr("Localizable", "onboarding.security.create_wallet.keep_safe.subtitle", fallback: "The secret phrase is only way to access your wallet.")
+          /// The secret phrase is the only way to access your wallet.
+          public static let subtitle = Localized.tr("Localizable", "onboarding.security.create_wallet.keep_safe.subtitle", fallback: "The secret phrase is the only way to access your wallet.")
           /// Store It Somewhere Safe
           public static let title = Localized.tr("Localizable", "onboarding.security.create_wallet.keep_safe.title", fallback: "Store It Somewhere Safe")
         }
@@ -1062,6 +1062,40 @@ public enum Localized {
         /// Your price alerts will appear here
         public static let title = Localized.tr("Localizable", "price_alerts.state.empty.title", fallback: "Your price alerts will appear here")
       }
+    }
+  }
+  public enum PrivateKey {
+    public enum DoNotShare {
+      /// If someone has your private key they will have full control of this account!
+      public static let description = Localized.tr("Localizable", "private_key.do_not_share.description", fallback: "If someone has your private key they will have full control of this account!")
+      /// Do not share your Private Key!
+      public static let title = Localized.tr("Localizable", "private_key.do_not_share.title", fallback: "Do not share your Private Key!")
+    }
+    public enum Reminder {
+      /// This private key is your wallet's only backup.
+      public static let intro = Localized.tr("Localizable", "private_key.reminder.intro", fallback: "This private key is your wallet's only backup.")
+      public enum DoNotShare {
+        /// Anyone who gets your private key can take full control of your wallet.
+        public static let subtitle = Localized.tr("Localizable", "private_key.reminder.do_not_share.subtitle", fallback: "Anyone who gets your private key can take full control of your wallet.")
+        /// Do Not Share It With Anyone
+        public static let title = Localized.tr("Localizable", "private_key.reminder.do_not_share.title", fallback: "Do Not Share It With Anyone")
+      }
+      public enum KeepSafe {
+        /// Your private key is the only way to access your wallet.
+        public static let subtitle = Localized.tr("Localizable", "private_key.reminder.keep_safe.subtitle", fallback: "Your private key is the only way to access your wallet.")
+        /// Store It Somewhere Safe
+        public static let title = Localized.tr("Localizable", "private_key.reminder.keep_safe.title", fallback: "Store It Somewhere Safe")
+      }
+      public enum NoRecovery {
+        /// If you lose your private key, you lose access to your wallet.
+        public static let subtitle = Localized.tr("Localizable", "private_key.reminder.no_recovery.subtitle", fallback: "If you lose your private key, you lose access to your wallet.")
+        /// We Can't Help You Recover It
+        public static let title = Localized.tr("Localizable", "private_key.reminder.no_recovery.title", fallback: "We Can't Help You Recover It")
+      }
+    }
+    public enum ScreenshotDetected {
+      /// Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.
+      public static let description = Localized.tr("Localizable", "private_key.screenshot_detected.description", fallback: "Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.")
     }
   }
   public enum Receive {

@@ -365,6 +365,16 @@
   <string name="secret_phrase_screenshot_detected_title">Tangkapan Layar Terdeteksi</string>
   <string name="secret_phrase_screenshot_detected_description">Tangkapan layar mungkin dapat diakses oleh aplikasi lain, namun hal itu dapat membahayakan frasa rahasia Anda jika disimpan dengan cara ini.</string>
   <string name="secret_phrase_content_hidden_description">Konten tersembunyi selama perekaman layar</string>
+  <string name="private_key_reminder_intro">Kunci privat ini adalah satu-satunya cadangan dompet Anda.</string>
+  <string name="private_key_reminder_keep_safe_title">Simpan di Tempat yang Aman</string>
+  <string name="private_key_reminder_keep_safe_subtitle">Kunci privat adalah satu-satunya cara untuk mengakses dompet Anda.</string>
+  <string name="private_key_reminder_do_not_share_title">Jangan Bagikan Dengan Siapa Pun</string>
+  <string name="private_key_reminder_do_not_share_subtitle">Siapa pun yang mendapatkan kunci privat Anda dapat mengambil alih dompet Anda sepenuhnya.</string>
+  <string name="private_key_reminder_no_recovery_title">Kami Tidak Dapat Membantu Anda Memulihkannya</string>
+  <string name="private_key_reminder_no_recovery_subtitle">Jika Anda kehilangan kunci privat, Anda kehilangan akses ke dompet Anda.</string>
+  <string name="private_key_do_not_share_title">Jangan bagikan Kunci Privat Anda!</string>
+  <string name="private_key_do_not_share_description">Jika seseorang memiliki kunci privat Anda, mereka akan memiliki kendali penuh atas akun ini!</string>
+  <string name="private_key_screenshot_detected_description">Tangkapan layar mungkin dapat diakses oleh aplikasi lain dan dapat membahayakan kunci privat Anda jika disimpan dengan cara ini.</string>
   <string name="social_x">X (sebelumnya Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
@@ -459,7 +469,7 @@
   <string name="info_transaction_pending_description">Transaksi telah dikirimkan dan sedang menunggu konfirmasi di jaringan. Waktu pemrosesan dapat bervariasi. Silakan periksa kembali untuk pembaruan.</string>
   <string name="info_estimated_confirmation_description">Perkiraan ini didasarkan pada biaya transaksi dan aktivitas jaringan %1$s saat ini. Waktu konfirmasi sebenarnya dapat berubah dan tidak dijamin.</string>
   <string name="info_transaction_success_description">Transaksi telah selesai dan dikonfirmasi di jaringan. Anda dapat meninjau detailnya untuk memverifikasi statusnya.</string>
-  <string name="info_lock_time_description">Waktu penguncian, juga dikenal sebagai periode unbonding atau unfreezing, adalah durasi di mana aset yang dipertaruhkan tidak dapat diakses setelah Anda memutuskan untuk melepaskannya.</string>
+  <string name="info_lock_time_description">Waktu penguncian, juga dikenal sebagai periode unbonding atau unfreezing, adalah durasi di mana aset staking tidak dapat diakses setelah Anda memutuskan untuk membatalkan staking.</string>
   <string name="info_price_impact_description">Dampak harga adalah perubahan harga token yang disebabkan oleh ukuran perdagangan Anda. Dampak harga yang lebih tinggi berarti Anda menerima lebih sedikit token karena likuiditas rendah atau ukuran pesanan besar.</string>
   <string name="info_slippage_description">Slippage merujuk pada perbedaan antara harga yang diharapkan dari suatu perdagangan dan harga aktual saat perdagangan itu dieksekusi.</string>
   <string name="info_asset_status_unverified_description">Token yang belum diverifikasi belum diverifikasi secara memadai oleh layanan pihak ketiga yang tepercaya. Token tersebut mungkin muncul di dompet Anda karena airdrop, transfer, atau impor manual.</string>
@@ -478,7 +488,7 @@
   <string name="info_no_quote_description">Tidak dapat mengembalikan kutipan untuk pasangan token yang dipilih, mungkin karena jumlahnya rendah, kurangnya likuiditas, atau keterbatasan teknis.</string>
   <string name="info_stake_reserved_title">Dicadangkan untuk Biaya Jaringan</string>
   <string name="info_stake_reserved_description">Sejumlah kecil dana disimpan di dompet Anda untuk menutupi biaya operasi seperti unstaking atau klaim hadiah.</string>
-  <string name="info_stake_apr_description">Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk mempertaruhkan mata uang kripto Anda.</string>
+  <string name="info_stake_apr_description">Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk staking mata uang kripto Anda.</string>
   <string name="info_stake_frozen_required_title">Bekukan TRX untuk staking</string>
   <string name="info_stake_frozen_required_description">Staking di TRON dilakukan dalam dua langkah. Bekukan TRX dulu, lalu staking untuk mendapatkan hadiah.</string>
   <string name="info_perpetual_auto_close_description">Tutup posisi Anda secara otomatis pada level harga yang ditentukan. Take Profit mengunci keuntungan, Stop Loss membatasi kerugian.</string>
@@ -506,7 +516,7 @@
   <string name="nft_report_reason_inappropriate">Konten yang Tidak Pantas</string>
   <string name="nft_report_reason_copyright">Hak cipta</string>
   <string name="nft_report_reason_other">Lainnya</string>
-  <string name="nft_report_report_button_title">Laporan</string>
+  <string name="nft_report_report_button_title">Laporkan</string>
   <string name="permissions_access_denied">Akses ditolak</string>
   <string name="permissions_image_photo_access_denied_description">Aplikasi ini tidak memiliki izin untuk mengakses pustaka foto Anda. Harap aktifkan akses di pengaturan perangkat Anda.</string>
   <string name="markets_daily_volume">Volume 24 jam</string>
@@ -565,7 +575,7 @@
   <string name="perpetuals_markets">Pasar</string>
   <string name="perpetuals_empty_state_no_markets_found">Tidak ada pasar yang ditemukan</string>
   <string name="rewards_title">Hadiah</string>
-  <string name="rewards_share_text">Bergabung Gem Wallet Gunakan tautan referensi saya dan dapatkan hadiah: %1$s</string>
+  <string name="rewards_share_text">Bergabunglah dengan Gem Wallet menggunakan tautan referensi saya dan dapatkan hadiah: %1$s</string>
   <string name="rewards_my_referral_code">Kode referensi saya</string>
   <string name="rewards_invite_friends_title">Undang Teman</string>
   <string name="rewards_invite_friends_description">Menghasilkan %1$s poin untuk setiap teman yang bergabung.</string>
@@ -579,7 +589,7 @@
   <string name="rewards_activate_referral_code_title">Tukarkan kode</string>
   <string name="rewards_create_referral_code_title">Buat Nama Pengguna</string>
   <string name="rewards_create_referral_code_info">Ini akan menjadi nama panggilan pribadi Anda untuk dompet saat ini.</string>
-  <string name="rewards_username">Nama belakang</string>
+  <string name="rewards_username">Nama pengguna</string>
   <string name="rewards_ways_spend_title">Cara untuk Berbelanja</string>
   <string name="rewards_ways_spend_asset_title">Mendapatkan %1$s</string>
   <string name="rewards_insufficient_points">Poin tidak mencukupi</string>
@@ -606,8 +616,8 @@
   <string name="contacts_state_empty_description">Simpan alamat yang sering Anda gunakan.</string>
   <string name="contacts_create_new_contact">Buat Kontak Baru</string>
   <string name="contacts_add_to_existing_contact">Tambahkan ke Kontak</string>
-  <string name="simulation_header_unlimited_asset">Tak terbatas %1$s</string>
-  <string name="simulation_warning_unlimited_token_approval_description">Ini memberi pihak yang mengeluarkan dana akses untuk menggunakan token ini hingga Anda mencabut persetujuan atau token tersebut kedaluwarsa.</string>
+  <string name="simulation_header_unlimited_asset">%1$s tanpa batas</string>
+  <string name="simulation_warning_unlimited_token_approval_description">Ini memberi pihak yang mengeluarkan dana akses untuk menggunakan token ini hingga Anda mencabut persetujuan atau persetujuan tersebut kedaluwarsa.</string>
   <string name="simulation_warning_externally_owned_spender_description">Persetujuan ini memungkinkan alamat dompet biasa (EOA) menggunakan aset Anda. Konfirmasikan hanya jika Anda mempercayai alamat ini.</string>
   <string name="simulation_warning_nft_collection_approval_title">Akses penuh ke koleksi NFT diminta.</string>
   <string name="simulation_warning_unlimited_token_approval_title">Persetujuan token tanpa batas</string>

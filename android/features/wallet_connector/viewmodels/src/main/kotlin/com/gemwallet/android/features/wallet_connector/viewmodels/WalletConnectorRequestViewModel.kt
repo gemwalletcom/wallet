@@ -11,6 +11,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequ
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.cases.AddWalletConnectSessionAccount
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.toJsonRpcResponse
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
@@ -31,7 +32,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemWalletConnectFailure
+import uniffi.gemstone.GemWalletConnectOutcome
+import uniffi.gemstone.GemWalletConnectResponse
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletConnectSessionRequest
 import javax.inject.Inject
@@ -40,6 +42,7 @@ import javax.inject.Inject
 class WalletConnectorRequestViewModel @Inject constructor(
     private val service: GemWalletConnectServiceInterface,
     private val respondWalletConnectRequest: RespondWalletConnectRequest,
+    private val addWalletConnectSessionAccount: AddWalletConnectSessionAccount,
     private val pendingRequests: WalletConnectPendingRequests,
     private val activeRequest: ActiveWalletConnectRequest,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -79,13 +82,19 @@ class WalletConnectorRequestViewModel @Inject constructor(
                     ),
                 )
             }
-            when (val failure = outcome.failure) {
-                null -> Unit
-                GemWalletConnectFailure.MaliciousOrigin, GemWalletConnectFailure.Expired, is GemWalletConnectFailure.Failed -> onError(failure.text(context))
-            }
-            when (val response = outcome.response) {
-                null -> activeRequest.finish(sessionRequest)
-                else -> respond(sessionRequest, response.toJsonRpcResponse(), onError)
+            when (outcome) {
+                GemWalletConnectOutcome.Ignored -> activeRequest.finish(sessionRequest)
+
+                is GemWalletConnectOutcome.Respond -> respond(sessionRequest, outcome.response.toJsonRpcResponse(), onError)
+
+                is GemWalletConnectOutcome.Fail -> {
+                    onError(outcome.failure.text(context))
+                    respond(sessionRequest, outcome.error.toJsonRpcResponse(), onError)
+                }
+
+                is GemWalletConnectOutcome.AddSessionAccount -> addWalletConnectSessionAccount.addSessionAccount(sessionRequest.topic, outcome.account) {
+                    respond(sessionRequest, GemWalletConnectResponse.Null.toJsonRpcResponse(), onError)
+                }
             }
         }
         requestJob = job

@@ -432,6 +432,19 @@ secret_phrase_screenshot_detected_title = Tangkapan Layar Terdeteksi
 secret_phrase_screenshot_detected_description = Tangkapan layar mungkin dapat diakses oleh aplikasi lain, namun hal itu dapat membahayakan frasa rahasia Anda jika disimpan dengan cara ini.
 secret_phrase_content_hidden_description = Konten tersembunyi selama perekaman layar
 
+# Private Key
+
+private_key_reminder_intro = Kunci privat ini adalah satu-satunya cadangan dompet Anda.
+private_key_reminder_keep_safe_title = Simpan di Tempat yang Aman
+private_key_reminder_keep_safe_subtitle = Kunci privat adalah satu-satunya cara untuk mengakses dompet Anda.
+private_key_reminder_do_not_share_title = Jangan Bagikan Dengan Siapa Pun
+private_key_reminder_do_not_share_subtitle = Siapa pun yang mendapatkan kunci privat Anda dapat mengambil alih dompet Anda sepenuhnya.
+private_key_reminder_no_recovery_title = Kami Tidak Dapat Membantu Anda Memulihkannya
+private_key_reminder_no_recovery_subtitle = Jika Anda kehilangan kunci privat, Anda kehilangan akses ke dompet Anda.
+private_key_do_not_share_title = Jangan bagikan Kunci Privat Anda!
+private_key_do_not_share_description = Jika seseorang memiliki kunci privat Anda, mereka akan memiliki kendali penuh atas akun ini!
+private_key_screenshot_detected_description = Tangkapan layar mungkin dapat diakses oleh aplikasi lain dan dapat membahayakan kunci privat Anda jika disimpan dengan cara ini.
+
 # Social
 
 social_x = X (sebelumnya Twitter)
@@ -565,7 +578,7 @@ info_transaction_error_description = Transaksi tidak dapat diselesaikan karena k
 info_transaction_pending_description = Transaksi telah dikirimkan dan sedang menunggu konfirmasi di jaringan. Waktu pemrosesan dapat bervariasi. Silakan periksa kembali untuk pembaruan.
 info_estimated_confirmation_description = Perkiraan ini didasarkan pada biaya transaksi dan aktivitas jaringan %@ saat ini. Waktu konfirmasi sebenarnya dapat berubah dan tidak dijamin.
 info_transaction_success_description = Transaksi telah selesai dan dikonfirmasi di jaringan. Anda dapat meninjau detailnya untuk memverifikasi statusnya.
-info_lock_time_description = Waktu penguncian, juga dikenal sebagai periode unbonding atau unfreezing, adalah durasi di mana aset yang dipertaruhkan tidak dapat diakses setelah Anda memutuskan untuk melepaskannya.
+info_lock_time_description = Waktu penguncian, juga dikenal sebagai periode unbonding atau unfreezing, adalah durasi di mana aset staking tidak dapat diakses setelah Anda memutuskan untuk membatalkan staking.
 info_price_impact_description = Dampak harga adalah perubahan harga token yang disebabkan oleh ukuran perdagangan Anda. Dampak harga yang lebih tinggi berarti Anda menerima lebih sedikit token karena likuiditas rendah atau ukuran pesanan besar.
 info_slippage_description = Slippage merujuk pada perbedaan antara harga yang diharapkan dari suatu perdagangan dan harga aktual saat perdagangan itu dieksekusi.
 info_asset_status_unverified_description = Token yang belum diverifikasi belum diverifikasi secara memadai oleh layanan pihak ketiga yang tepercaya. Token tersebut mungkin muncul di dompet Anda karena airdrop, transfer, atau impor manual.
@@ -584,7 +597,7 @@ info_perpetual_open_interest_description = Open interest mewakili nilai total se
 info_no_quote_description = Tidak dapat mengembalikan kutipan untuk pasangan token yang dipilih, mungkin karena jumlahnya rendah, kurangnya likuiditas, atau keterbatasan teknis.
 info_stake_reserved_title = Dicadangkan untuk Biaya Jaringan
 info_stake_reserved_description = Sejumlah kecil dana disimpan di dompet Anda untuk menutupi biaya operasi seperti unstaking atau klaim hadiah.
-info_stake_apr_description = Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk mempertaruhkan mata uang kripto Anda.
+info_stake_apr_description = Tingkat Persentase Tahunan (APR) adalah tingkat imbalan tahunan untuk staking mata uang kripto Anda.
 info_stake_frozen_required_title = Bekukan TRX untuk staking
 info_stake_frozen_required_description = Staking di TRON dilakukan dalam dua langkah. Bekukan TRX dulu, lalu staking untuk mendapatkan hadiah.
 info_perpetual_auto_close_description = Tutup posisi Anda secara otomatis pada level harga yang ditentukan. Take Profit mengunci keuntungan, Stop Loss membatasi kerugian.
@@ -618,7 +631,7 @@ nft_report_reason_malicious = Berbahaya
 nft_report_reason_inappropriate = Konten yang Tidak Pantas
 nft_report_reason_copyright = Hak cipta
 nft_report_reason_other = Lainnya
-nft_report_report_button_title = Laporan
+nft_report_report_button_title = Laporkan
 
 # Permissions
 
@@ -705,7 +718,7 @@ perpetuals_empty_state_no_markets_found = Tidak ada pasar yang ditemukan
 # Rewards
 
 rewards_title = Hadiah
-rewards_share_text = Bergabung Gem Wallet Gunakan tautan referensi saya dan dapatkan hadiah: %@
+rewards_share_text = Bergabunglah dengan Gem Wallet menggunakan tautan referensi saya dan dapatkan hadiah: %@
 rewards_my_referral_code = Kode referensi saya
 rewards_invite_friends_title = Undang Teman
 rewards_invite_friends_description = Menghasilkan %@ poin untuk setiap teman yang bergabung.
@@ -719,7 +732,7 @@ rewards_activate_referral_code_description = Punya kode referensi dari teman?
 rewards_activate_referral_code_title = Tukarkan kode
 rewards_create_referral_code_title = Buat Nama Pengguna
 rewards_create_referral_code_info = Ini akan menjadi nama panggilan pribadi Anda untuk dompet saat ini.
-rewards_username = Nama belakang
+rewards_username = Nama pengguna
 rewards_ways_spend_title = Cara untuk Berbelanja
 rewards_ways_spend_asset_title = Mendapatkan %@
 rewards_insufficient_points = Poin tidak mencukupi
@@ -761,8 +774,8 @@ contacts_add_to_existing_contact = Tambahkan ke Kontak
 
 # Simulation
 
-simulation_header_unlimited_asset = Tak terbatas %@
-simulation_warning_unlimited_token_approval_description = Ini memberi pihak yang mengeluarkan dana akses untuk menggunakan token ini hingga Anda mencabut persetujuan atau token tersebut kedaluwarsa.
+simulation_header_unlimited_asset = %@ tanpa batas
+simulation_warning_unlimited_token_approval_description = Ini memberi pihak yang mengeluarkan dana akses untuk menggunakan token ini hingga Anda mencabut persetujuan atau persetujuan tersebut kedaluwarsa.
 simulation_warning_externally_owned_spender_description = Persetujuan ini memungkinkan alamat dompet biasa (EOA) menggunakan aset Anda. Konfirmasikan hanya jika Anda mempercayai alamat ini.
 simulation_warning_nft_collection_approval_title = Akses penuh ke koleksi NFT diminta.
 simulation_warning_unlimited_token_approval_title = Persetujuan token tanpa batas

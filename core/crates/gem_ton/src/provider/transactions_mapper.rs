@@ -279,7 +279,7 @@ fn extract_memo(message: &OutMessage) -> Option<String> {
         }
     }
 
-    None
+    message.message_content.as_ref()?.text_comment().filter(|comment| !comment.is_empty()).map(str::to_string)
 }
 
 #[cfg(test)]
@@ -292,6 +292,19 @@ mod tests {
     use serde_json::{Map, Value, json};
 
     const NFT_NEW_OWNER: &str = "UQDSkZZueXRl0lUk4hagLa8KrJzZbmtTE_RPZwTDSIw32WNH";
+
+    #[test]
+    fn test_map_trace_transactions_text_comment() {
+        let traces: TraceResponse = serde_json::from_str(include_str!("../../testdata/relay_deposit_trace.json")).unwrap();
+        let transactions = map_trace_transactions(traces.traces);
+
+        assert_eq!(transactions.len(), 1);
+        let transaction = &transactions[0];
+        assert_eq!(transaction.hash(), "168c4f4703583ae555644483b2f0f683a8992efc35ee9b39e8afd9102648626e");
+        assert_eq!(transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(transaction.to, "UQCrdGsDTqA2t6xRR4N6V4J705F7w_VQbUdHnofsh-8lVN4p");
+        assert_eq!(transaction.memo.as_deref(), Some("0xeb4619e5298ef118f4d60b30c18d95921820b29c54fffcb5e30f225ddd4c4afc"));
+    }
 
     #[test]
     fn test_map_trace_transactions_dust_to_native_ton() {

@@ -101,7 +101,7 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
 
     public func requestOutcome(request: GemWalletConnectSessionRequest) async -> GemWalletConnectOutcome {
         processedRequests.append(request)
-        return GemWalletConnectOutcome(response: nil, failure: nil)
+        return .ignored
     }
 
     public func session(topic: String, accounts _: [String], expireAt: Int64, metadata: Gemstone.ApplicationMetadata) throws -> Gemstone.WalletConnectionSession {

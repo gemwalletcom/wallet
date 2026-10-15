@@ -5,7 +5,7 @@ use primitives::{
     AssetId, Chain,
     asset_constants::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_USDC_ASSET_ID, CELO_USDC_ASSET_ID, CELO_USDT_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, HYPEREVM_USDC_ASSET_ID,
-        LINEA_USDC_E_ASSET_ID, MANTLE_USDT0_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID,
+        LINEA_USDC_E_ASSET_ID, MANTLE_USDT0_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT0_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID,
         SOLANA_USDT_ASSET_ID, XLAYER_USDT_ASSET_ID,
     },
     contract_constants::EVM_NATIVE_TOKEN_ADDRESS,
@@ -95,7 +95,7 @@ static TOKENS: LazyLock<Vec<(AssetId, &'static str)>> = LazyLock::new(|| {
         (AVALANCHE_USDT_ASSET_ID.clone(), "USDT(C-Chain)"),
         (AssetId::from_chain(Chain::Optimism), "ETH(Optimism)"),
         (OPTIMISM_USDC_ASSET_ID.clone(), "USDC(Optimism)"),
-        (OPTIMISM_USDT_ASSET_ID.clone(), "USDT(Optimism)"),
+        (OPTIMISM_USDT0_ASSET_ID.clone(), "USDT(Optimism)"),
         (AssetId::from_chain(Chain::Base), "ETH(BASE)"),
         (BASE_USDC_ASSET_ID.clone(), "USDC(BASE)"),
         (AssetId::from_chain(Chain::OpBNB), "BNB(opBNB)"),
@@ -159,7 +159,7 @@ pub(super) fn vault_addresses() -> VaultAddresses {
     let routers: Vec<String> = NETWORKS.iter().filter_map(|network| network.router).map(str::to_string).collect::<BTreeSet<_>>().into_iter().collect();
     let payouts = NETWORKS.iter().filter_map(|network| network.payout).map(str::to_string);
     VaultAddresses {
-        deposit: routers.clone(),
+        deposit: vec![],
         send: routers.into_iter().chain(payouts).collect(),
     }
 }

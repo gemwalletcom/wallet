@@ -11,6 +11,7 @@ use crate::rpc::constants::{DECIMALS_SELECTOR, DEFAULT_OWNER_ADDRESS, GENESIS_BL
 use crate::rpc::target::TronTarget;
 use gem_client::{Client, ClientExt};
 use gem_evm::contracts::erc20::decode_token_metadata;
+use serde::de::DeserializeOwned;
 
 #[derive(Clone)]
 pub struct TronClient<C: Client> {
@@ -34,12 +35,16 @@ impl<C: Client> TronClient<C> {
         Ok(self.client.get(TronTarget::GetTransactionInfoByBlockNumber { number: block }).await?)
     }
 
-    pub async fn get_transaction(&self, id: String) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(TronTarget::GetTransactionById { id }).await?)
+    pub async fn get_transaction(&self, id: String) -> Result<Option<Transaction>, Box<dyn Error + Send + Sync>> {
+        self.get_unless_empty(TronTarget::GetTransactionById { id }).await
     }
 
     pub async fn get_transaction_receipt(&self, id: String) -> Result<Option<TransactionReceiptData>, Box<dyn Error + Send + Sync>> {
-        let response: serde_json::Value = self.client.get(TronTarget::GetTransactionInfoById { id }).await?;
+        self.get_unless_empty(TronTarget::GetTransactionInfoById { id }).await
+    }
+
+    async fn get_unless_empty<T: DeserializeOwned>(&self, target: TronTarget) -> Result<Option<T>, Box<dyn Error + Send + Sync>> {
+        let response: serde_json::Value = self.client.get(target).await?;
         if response.as_object().is_some_and(serde_json::Map::is_empty) {
             return Ok(None);
         }

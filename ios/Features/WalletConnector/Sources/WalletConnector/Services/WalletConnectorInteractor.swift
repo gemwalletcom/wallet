@@ -61,7 +61,7 @@ extension WalletConnectorInteractor: GemWalletConnectSigner {
 // MARK: - Private
 
 extension WalletConnectorInteractor {
-    private func presentSheet<T: Identifiable & Sendable>(
+    private func presentSheet<T: Sendable>(
         payload: T,
         sheetType: @Sendable @escaping (TransferDataCallback<T>) -> WalletConnectorSheetType,
     ) async throws -> String {
@@ -73,7 +73,7 @@ extension WalletConnectorInteractor {
         }
 
         await MainActor.run { [weak self] in
-            self?.presenter.isPresentingSheet = sheetType(callback)
+            self?.presenter.present(sheetType(callback))
         }
 
         for try await value in stream {

@@ -160,7 +160,7 @@ impl Swapper for UniswapV4 {
             .enumerate()
             .flat_map(|(route_idx, calls)| calls.into_iter().enumerate().map(move |(fee_tier_idx, call)| (QuotePosition { route_idx, fee_tier_idx }, call)))
             .unzip();
-        let results = create_client(self.rpc_provider.clone(), from_chain)?.batch_request(calls).await?;
+        let results = create_client(self.rpc_provider.clone(), from_chain)?.requests(calls).await?;
         let quote_result = get_best_quote(&results, &positions, super::quoter::decode_quoter_response)?;
 
         let fee_tier_idx = quote_result.fee_tier_idx;

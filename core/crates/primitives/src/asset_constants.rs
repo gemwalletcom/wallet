@@ -139,6 +139,7 @@ pub const OPTIMISM_USDT_TOKEN_ID: &str = "0x94b008aA00579c1307B0EF2c499aD98a8ce5
 pub static OPTIMISM_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Optimism, OPTIMISM_USDT_TOKEN_ID));
 
 pub const OPTIMISM_USDT0_TOKEN_ID: &str = "0x01bFF41798a0BcF287b996046Ca68b395DbC1071";
+pub static OPTIMISM_USDT0_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Optimism, OPTIMISM_USDT0_TOKEN_ID));
 
 pub const POLYGON_USDT_TOKEN_ID: &str = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
 pub static POLYGON_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Polygon, POLYGON_USDT_TOKEN_ID));

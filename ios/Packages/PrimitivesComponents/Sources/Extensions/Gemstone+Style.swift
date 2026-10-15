@@ -515,7 +515,8 @@ public extension GemWalletRow {
 public extension GemSecretWarning {
     var calloutViewStyle: CalloutViewStyle {
         switch self {
-        case .doNotShare: .secretDataWarning()
+        case .doNotShare: .secretDataWarning(title: Localized.SecretPhrase.DoNotShare.title, description: Localized.SecretPhrase.DoNotShare.description)
+        case .doNotSharePrivateKey: .secretDataWarning(title: Localized.PrivateKey.DoNotShare.title, description: Localized.PrivateKey.DoNotShare.description)
         case .saveSafely: .header(title: Localized.SecretPhrase.savePhraseSafely)
         }
     }

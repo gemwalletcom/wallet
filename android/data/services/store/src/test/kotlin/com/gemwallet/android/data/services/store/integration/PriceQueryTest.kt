@@ -1,14 +1,13 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.services.store.database.entities.DbAssetMarket
 import com.gemwallet.android.data.services.store.database.entities.DbPrice
 import com.gemwallet.android.data.services.store.database.entities.DbPriceAlert
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.PriceQuery
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -39,10 +38,7 @@ class PriceQueryTest {
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
-        database = Room.inMemoryDatabaseBuilder(
-            InstrumentationRegistry.getInstrumentation().targetContext,
-            GemDatabase::class.java,
-        ).build()
+        database = mockGemDatabase()
         query = PriceQuery(database.pricesDao())
         database.assetsDao().insert(
             listOf(

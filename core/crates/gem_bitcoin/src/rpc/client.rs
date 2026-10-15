@@ -6,7 +6,7 @@ use crate::models::fee::BitcoinFeeResult;
 use crate::models::transaction::{AddressDetails, BitcoinTransactionBroadcastResult, BitcoinUTXO, Transaction};
 use crate::rpc::target::BlockbookTarget;
 use chain_traits::{ChainAddressStatus, ChainPerpetual, ChainSimulation, ChainStaking, ChainToken, ChainTraits};
-use gem_client::{Client, ClientExt};
+use gem_client::{Client, ClientError, ClientExt};
 use primitives::{BitcoinChain, chain::Chain};
 
 #[derive(Debug)]
@@ -55,7 +55,13 @@ impl<C: Client> BitcoinClient<C> {
     }
 
     pub async fn broadcast_transaction(&self, data: String) -> Result<BitcoinTransactionBroadcastResult, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.post(BlockbookTarget::SendTransaction, &data).await?)
+        match self.client.post(BlockbookTarget::SendTransaction, &data).await {
+            Ok(result) => Ok(result),
+            Err(error) => match error.clone().decode_body::<BitcoinTransactionBroadcastResult>() {
+                ClientError::Http { body: Some(result), .. } if result.error.is_some() => Ok(result),
+                _ => Err(error.into()),
+            },
+        }
     }
 
     pub async fn get_utxos(&self, address: &str) -> Result<Vec<BitcoinUTXO>, Box<dyn Error + Send + Sync>> {
@@ -88,7 +94,7 @@ impl<C: Client> chain_traits::ChainProvider for BitcoinClient<C> {
 #[cfg(test)]
 mod tests {
     use gem_client::testkit::MockClient;
-    use gem_client::{CONTENT_TYPE, ClientError, ContentType};
+    use gem_client::{CONTENT_TYPE, ContentType};
 
     use super::*;
 
@@ -124,5 +130,19 @@ mod tests {
         let broadcast = client.broadcast_transaction("0100beef".to_string()).await.unwrap();
 
         assert_eq!(broadcast.result.as_deref(), Some("txid"));
+
+        let rejected = BitcoinClient::new(
+            MockClient::new().with_post(|_, _| {
+                Err(ClientError::Http {
+                    status: 400,
+                    body: br#"{"error":"-26: txn-mempool-conflict"}"#.to_vec(),
+                })
+            }),
+            BitcoinChain::Litecoin,
+        );
+        let unreadable = BitcoinClient::new(MockClient::new().with_post(|_, _| Err(ClientError::Http { status: 502, body: b"Bad Gateway".to_vec() })), BitcoinChain::Litecoin);
+
+        assert_eq!(rejected.broadcast_transaction("0100beef".to_string()).await.unwrap().error.unwrap().message(), "-26: txn-mempool-conflict");
+        assert_eq!(unreadable.broadcast_transaction("0100beef".to_string()).await.unwrap_err().to_string(), "HTTP error: status 502");
     }
 }

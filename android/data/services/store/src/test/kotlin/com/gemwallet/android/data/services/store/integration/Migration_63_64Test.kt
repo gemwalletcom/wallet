@@ -1,12 +1,8 @@
 package com.gemwallet.android.data.services.store.integration
 
 import android.content.Context
-import androidx.room.testing.MigrationTestHelper
-import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.di.Migration_63_64
 import com.gemwallet.android.testkit.PasswordStoreMock
 import org.junit.After
@@ -25,12 +21,7 @@ class Migration_63_64Test {
     private val TEST_DB = "migration-test"
 
     @get:Rule
-    val helper: MigrationTestHelper = MigrationTestHelper(
-        InstrumentationRegistry.getInstrumentation(),
-        GemDatabase::class.java,
-        emptyList(),
-        FrameworkSQLiteOpenHelperFactory(),
-    )
+    val helper = gemDatabaseMigrationTestHelper()
 
     private lateinit var passwordStore: PasswordStoreMock
     private lateinit var context: Context

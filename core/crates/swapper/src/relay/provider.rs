@@ -161,7 +161,9 @@ where
             RelayChain::Ton => self.get_ton_swap_result(&request.transaction_hash).await,
             RelayChain::Bitcoin | RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Solana => {
                 let response = self.client.get_request(&request.transaction_hash).await?;
-                let relay_request = response.requests.first().ok_or(SwapperError::InvalidRoute)?;
+                let Some(relay_request) = response.requests.first() else {
+                    return Ok(SwapResult::pending());
+                };
                 Ok(mapper::map_swap_result(relay_request))
             }
         }
@@ -170,7 +172,7 @@ where
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
         let response = self.client.get_chains().await?;
         Ok(VaultAddresses {
-            deposit: response.deposit_addresses(),
+            deposit: vec![],
             send: response.send_addresses(),
         })
     }
@@ -220,16 +222,50 @@ where
 mod tests {
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock, approval::DEFAULT_TRON_SWAP_ENERGY_LIMIT, relay::model::Step};
+    use gem_client::{ClientError, testkit::MockClient};
     use primitives::Chain;
     use primitives::{
         asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, TRON_USDT_TOKEN_ID},
-        swap::SwapQuoteDataType,
+        swap::{SwapQuoteDataType, SwapStatus},
     };
 
     const ROUTER_ADDRESS: &str = "0xCcC88a9d1B4ED6b0EABA998850414b24f1c315bE";
     const QUOTE_VALUE: &str = "40000000000000000000";
     const ZERO_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const SUFFICIENT_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000022b1c8c1227a00000";
+
+    #[tokio::test]
+    async fn test_swap_status_missing_request_is_pending() {
+        for (response, expected) in [
+            (r#"{"requests":[]}"#, Ok(SwapResult::pending())),
+            (r#"{"requests":[{"status":"pending","data":null}]}"#, Ok(SwapResult::pending())),
+            (
+                r#"{"requests":[{"status":"success","data":{"appId":null}}]}"#,
+                Ok(SwapResult {
+                    status: SwapStatus::Completed,
+                    ..SwapResult::pending()
+                }),
+            ),
+        ] {
+            let relay = Relay {
+                provider: ProviderType::new(SwapperProvider::Relay),
+                rpc_provider: Arc::new(ProviderMock::new(String::new())),
+                client: RelayClient::new(MockClient::new().with_get(move |path| {
+                    assert_eq!(path, "/requests/v3?term=hash");
+                    Ok(response.as_bytes().to_vec())
+                })),
+            };
+            assert_eq!(relay.get_swap_result(&SwapResultRequest::new(Chain::Arbitrum, "hash")).await, expected);
+        }
+
+        let client = MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: vec![] }));
+        let relay = Relay {
+            provider: ProviderType::new(SwapperProvider::Relay),
+            rpc_provider: Arc::new(ProviderMock::new(String::new())),
+            client: RelayClient::new(client),
+        };
+        assert_eq!(relay.get_swap_result(&SwapResultRequest::new(Chain::Arbitrum, "hash")).await, Err(SwapperError::compute_quote_error("HTTP error: status 503")));
+    }
 
     #[tokio::test]
     async fn test_bitcoin_quote_data_transfers_to_deposit_address() {

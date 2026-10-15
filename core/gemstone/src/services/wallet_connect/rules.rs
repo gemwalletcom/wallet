@@ -17,7 +17,7 @@ use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::transfer::{GemRecipient, GemTransferData};
-use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectRpcError, GemWalletConnectTransactionAction};
+use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectRpcError, GemWalletConnectTransactionAction};
 use crate::wallet_connect::WalletConnect;
 use gem_wallet_connect::{EvmTransactionKind, WalletConnectTransaction};
 use num_bigint::BigInt;
@@ -31,6 +31,7 @@ const UNSUPPORTED_ACCOUNTS_ERROR_CODE: i32 = 5103;
 const UNSUPPORTED_EVENTS_ERROR_CODE: i32 = 5102;
 const SESSION_REQUEST_EXPIRED_ERROR_CODE: i32 = 8000;
 const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
+const UNRECOGNIZED_CHAIN_ERROR_CODE: i32 = 4902;
 
 pub fn connection_groups(connections: Vec<WalletConnection>) -> Vec<(Wallet, Vec<WalletConnection>)> {
     let mut groups: Vec<(Wallet, Vec<WalletConnection>)> = Vec::new();
@@ -65,6 +66,37 @@ pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Ac
     connection.wallet.accounts.iter().find(|account| account.chain == chain).cloned().ok_or_else(|| GemServiceError::NotFound {
         msg: format!("wallet has no {chain} account"),
     })
+}
+
+pub fn add_chain_outcome(connection: &WalletConnection, chain_id: u64) -> GemWalletConnectOutcome {
+    match switchable_account(connection, chain_id) {
+        Some(_) => GemWalletConnectOutcome::respond_null(),
+        None => GemWalletConnectOutcome::respond_error(unrecognized_chain_error()),
+    }
+}
+
+pub fn switch_chain_outcome(connection: &WalletConnection, chain_id: u64) -> GemWalletConnectOutcome {
+    let Some(account) = switchable_account(connection, chain_id) else {
+        return GemWalletConnectOutcome::respond_error(unrecognized_chain_error());
+    };
+    if connection.session.chains.contains(&account.chain) {
+        return GemWalletConnectOutcome::respond_null();
+    }
+    match WalletConnectCAIP2::format_account(account.chain, &account.address) {
+        Some(account) => GemWalletConnectOutcome::AddSessionAccount { account },
+        None => GemWalletConnectOutcome::respond_error(unrecognized_chain_error()),
+    }
+}
+
+fn switchable_account(connection: &WalletConnection, chain_id: u64) -> Option<&Account> {
+    let chain = supported_chains().into_iter().find(|chain| chain.chain_type() == ChainType::Ethereum && chain.network_id_value() == Some(chain_id))?;
+    let account = connection.wallet.accounts.iter().find(|account| account.chain == chain)?;
+    let is_shared = connection
+        .wallet
+        .accounts
+        .iter()
+        .any(|shared| shared.chain.chain_type() == ChainType::Ethereum && connection.session.chains.contains(&shared.chain) && shared.address == account.address);
+    is_shared.then_some(account)
 }
 
 pub fn validate_session_chain(session: &WalletConnectionSession, chain: Chain) -> Result<(), GemServiceError> {
@@ -211,6 +243,13 @@ pub fn request_expired_error() -> GemWalletConnectRpcError {
 
 pub fn is_expired(expiry: Option<u64>, now: DateTime<Utc>) -> bool {
     expiry.is_some_and(|expiry| now.timestamp() >= expiry as i64)
+}
+
+pub fn unrecognized_chain_error() -> GemWalletConnectRpcError {
+    GemWalletConnectRpcError {
+        code: UNRECOGNIZED_CHAIN_ERROR_CODE,
+        message: "Unrecognized chain ID".to_string(),
+    }
 }
 
 pub fn method_not_found_error() -> GemWalletConnectRpcError {
@@ -453,6 +492,39 @@ mod tests {
         assert!(session_account(&connection, Chain::Solana).is_err());
         assert!(session_account(&connection, Chain::Bitcoin).is_err());
         assert!(validate_session_chain(&connection.session, Chain::Solana).is_ok());
+    }
+
+    #[test]
+    fn test_switch_chain_adds_a_supported_network_to_a_session_that_already_has_the_ethereum_address() {
+        let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Blast, Chain::Solana]);
+        let connection = |chains: &[Chain]| WalletConnection {
+            session: WalletConnectionSession::mock("topic", chains),
+            wallet: wallet.clone(),
+        };
+        let unrecognized = GemWalletConnectOutcome::respond_error(unrecognized_chain_error());
+
+        assert_eq!(
+            switch_chain_outcome(&connection(&[Chain::Ethereum]), 81457),
+            GemWalletConnectOutcome::AddSessionAccount { account: "eip155:81457:address".to_string() }
+        );
+        assert_eq!(switch_chain_outcome(&connection(&[Chain::Ethereum, Chain::Blast]), 81457), GemWalletConnectOutcome::respond_null(), "already in the session");
+        assert_eq!(switch_chain_outcome(&connection(&[Chain::Ethereum]), 3_735_928_559), unrecognized, "unknown network");
+        assert_eq!(switch_chain_outcome(&connection(&[Chain::Ethereum]), 56), unrecognized, "the wallet has no account there");
+        assert_eq!(switch_chain_outcome(&connection(&[Chain::Solana]), 81457), unrecognized, "the dapp never got the Ethereum address");
+        assert_eq!(
+            switch_chain_outcome(
+                &WalletConnection {
+                    session: WalletConnectionSession::mock("topic", &[Chain::Ethereum]),
+                    wallet: Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0xshared"), Account::mock(Chain::Blast, "0xother")]),
+                },
+                81457
+            ),
+            unrecognized,
+            "an address the dapp was never given is not added"
+        );
+
+        assert_eq!(add_chain_outcome(&connection(&[Chain::Ethereum]), 81457), GemWalletConnectOutcome::respond_null());
+        assert_eq!(add_chain_outcome(&connection(&[Chain::Ethereum]), 3_735_928_559), unrecognized);
     }
 
     #[test]

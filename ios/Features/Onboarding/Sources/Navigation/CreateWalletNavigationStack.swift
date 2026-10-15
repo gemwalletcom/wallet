@@ -54,6 +54,7 @@ public struct CreateWalletNavigationStack: View {
         SecurityReminderScene(
             model: SecurityReminderViewModel(
                 title: Localized.Wallet.New.title,
+                kind: .phrase,
                 onNext: { navigate(to: .createWallet) },
             ),
         )

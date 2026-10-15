@@ -1,13 +1,12 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.data.services.store.database.entities.DbPrice
 import com.gemwallet.android.data.services.store.database.entities.DbWallet
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.AssetFiatValuesQuery
 import com.wallet.core.primitives.AssetFiatValue
 import com.wallet.core.primitives.AssetType
@@ -32,10 +31,7 @@ class AssetFiatValuesQueryTest {
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
-        database = Room.inMemoryDatabaseBuilder(
-            InstrumentationRegistry.getInstrumentation().targetContext,
-            GemDatabase::class.java,
-        ).build()
+        database = mockGemDatabase()
         query = AssetFiatValuesQuery(database.assetsDao())
         listOf("wallet-1", "wallet-2").forEach { id ->
             database.walletsDao().insert(DbWallet(id = id, name = id, domainName = null, type = WalletType.Multicoin, position = 0, pinned = false, index = 0, source = WalletSource.Import))

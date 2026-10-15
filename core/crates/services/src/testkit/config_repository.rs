@@ -29,8 +29,12 @@ impl MemoryConfigRepository {
     }
 
     pub(crate) fn with_value(self, key: &str, value: &str) -> Self {
-        self.values.lock().unwrap().insert(key.to_string(), value.to_string());
+        self.set_value(key, value);
         self
+    }
+
+    pub(crate) fn set_value(&self, key: &str, value: &str) {
+        self.values.lock().unwrap().insert(key.to_string(), value.to_string());
     }
 
     pub(crate) fn without(self, key: &str) -> Self {

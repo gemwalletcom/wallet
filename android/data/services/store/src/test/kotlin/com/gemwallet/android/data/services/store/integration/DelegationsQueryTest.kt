@@ -1,12 +1,10 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
 import com.gemwallet.android.data.services.store.database.entities.DbWallet
 import com.gemwallet.android.data.services.store.database.entities.toRecord
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationBase
@@ -31,10 +29,7 @@ import java.math.BigInteger
 
 @RunWith(AndroidJUnit4::class)
 class DelegationsQueryTest {
-    private val database = Room.inMemoryDatabaseBuilder(
-        InstrumentationRegistry.getInstrumentation().targetContext,
-        GemDatabase::class.java,
-    ).build()
+    private val database = mockGemDatabase()
     private val query = DelegationsQuery(database.stakeDao())
     private val wallet1 = WalletId("wallet-1")
     private val wallet2 = WalletId("wallet-2")

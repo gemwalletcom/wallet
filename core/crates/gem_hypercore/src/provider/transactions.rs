@@ -125,8 +125,8 @@ mod tests {
         let client = signed_order_client(json!({"role": "agent", "data": {"user": "0xf5421efce6a6fede2ab38baa02e9e87bf16ef534"}}));
 
         for (id, hash) in [
-            ("signedOrder:0xd864a8c0ba6f7a3008ddf148e1194813ba3842d2:1790829872053:8", "0x8"),
-            ("signedOrder:0xd864a8c0ba6f7a3008ddf148e1194813ba3842d2:1790829872053", "0x7"),
+            ("signedOrder:0xd864a8c0ba6f7a3008ddf148e1194813ba3842d2:1790829872053:8", "0x8:8"),
+            ("signedOrder:0xd864a8c0ba6f7a3008ddf148e1194813ba3842d2:1790829872053", "0x7:7"),
         ] {
             let transaction = client.get_transaction_by_hash(TransactionIdRequest::new(Chain::HyperCore, id.to_string(), None)).await.unwrap().unwrap();
 
@@ -140,7 +140,7 @@ mod tests {
         let client = signed_order_client(json!({"role": "user"}));
         let request = TransactionIdRequest::new(Chain::HyperCore, "signedOrder:0xf5421efce6a6fede2ab38baa02e9e87bf16ef534:1790829872053:7".to_string(), None);
 
-        assert_eq!(client.get_transaction_by_hash(request).await.unwrap().unwrap().hash(), "0x7");
+        assert_eq!(client.get_transaction_by_hash(request).await.unwrap().unwrap().hash(), "0x7:7");
     }
 
     #[tokio::test]

@@ -116,6 +116,12 @@ swap:
     project: ""
   swapsxyz:
     url: "https://api-v2.swaps.xyz/api"
+  relay:
+    url: "https://api.relay.link"
+  bridgers:
+    url: "https://api.bridgers.xyz"
+  chainflip:
+    url: "https://chainflip-broker.io/rpc"
 
 prices:
   coingecko:

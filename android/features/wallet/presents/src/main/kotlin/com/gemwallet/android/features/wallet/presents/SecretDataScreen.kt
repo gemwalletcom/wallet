@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.wallet.presents
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,7 +49,7 @@ import uniffi.gemstone.secretScreen
 @Composable
 fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hiltViewModel()) {
     DisableScreenShooting()
-    DetectScreenshot(AppUrl.howToSecureSecretPhrase)
+    DetectScreenshot(viewModel.secretKind)
 
     val result by viewModel.secret.collectAsStateWithLifecycle()
 
@@ -74,7 +75,7 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
         title = title,
         padding = sceneContentPaddingValues(),
         actions = {
-            DocsInfoButton(AppUrl.howToSecureSecretPhrase)
+            DocsInfoButton(AppUrl.secretSecurity(viewModel.secretKind))
         },
         onClose = onCancel,
     ) {
@@ -99,21 +100,9 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
                 verticalArrangement = Arrangement.spacedBy(space8),
             ) {
                 when (screen.warning) {
-                    GemSecretWarning.DO_NOT_SHARE -> {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(id = R.string.secret_phrase_do_not_share_title),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.Center,
-                        )
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(id = R.string.secret_phrase_do_not_share_description),
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
+                    GemSecretWarning.DO_NOT_SHARE -> DoNotShareWarning(title = R.string.secret_phrase_do_not_share_title, description = R.string.secret_phrase_do_not_share_description)
+
+                    GemSecretWarning.DO_NOT_SHARE_PRIVATE_KEY -> DoNotShareWarning(title = R.string.private_key_do_not_share_title, description = R.string.private_key_do_not_share_description)
 
                     GemSecretWarning.SAVE_SAFELY -> Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -145,6 +134,23 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
             )
         }
     }
+}
+
+@Composable
+private fun DoNotShareWarning(@StringRes title: Int, @StringRes description: Int) {
+    Text(
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(id = title),
+        color = MaterialTheme.colorScheme.error,
+        style = MaterialTheme.typography.titleMedium,
+        textAlign = TextAlign.Center,
+    )
+    Text(
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(id = description),
+        color = MaterialTheme.colorScheme.error,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable

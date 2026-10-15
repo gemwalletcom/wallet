@@ -13,7 +13,7 @@ notification_token_approval_title = ✅ Одобрен токен {$token}
 notification_stake_title = 🔒 { notification_action_stake } {$value}
 notification_price_alert_up_title = 📈 {$symbol} Оповещение о цене
 notification_price_alert_up_description = Цена увеличилась на {$price_change} до {$price}
-notification_price_alert_down_title = 📉 {$symbol} Уведомление о ценах
+notification_price_alert_down_title = 📉 {$symbol} Оповещение о цене
 notification_price_alert_down_description = Цена снизилась на {$price_change} до {$price}
 notification_price_alert_all_time_high_title = 🔥 {$symbol} Абсолютный максимум
 notification_price_alert_all_time_high_description = {$symbol} достиг нового исторического максимума на уровне {$price}.
@@ -21,10 +21,16 @@ notification_nft_sent_title = 🖼️ Отправлено NFT: {$value}
 notification_nft_received_title = 🖼️ Получено NFT: {$value}
 notification_onboarding_buy_asset_title = 🚀 Купить {$name}
 notification_onboarding_buy_asset_description = Безопасно купите {$name} сегодня — просто, надежно и мгновенно.
+notification_fiat_purchase_title = 🚀 Куплено {$value}
+notification_fiat_sale_title = 💰 Продано {$value}
 support_new_message_title = Новое сообщение от службы поддержки
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 Вы заслужили {$value} баллов!
+notification_reward_title = 💎 Вы заработали { $value ->
+     [one] {$value} балл
+     [few] {$value} балла
+    *[other] {$value} баллов
+    }!
 notification_reward_create_username_description = Имя пользователя готово. Приглашайте друзей, чтобы получать награды.
 notification_reward_invite_description = Реферал зарегистрировался, используя ваш код.
 notification_rewards_joined_description = Вы зарегистрировались, используя реферальный код.
@@ -61,27 +67,36 @@ rewards_error_redemption_not_enough_points = Недостаточно балло
 rewards_error_redemption_option_not_available = Эта награда больше недоступна.
 rewards_error_redemption_no_username = Создайте имя пользователя, чтобы обменивать награды.
 notification_price_alert_target_title = 🎯 {$symbol} достиг {$price}
-notification_price_alert_target_description = Сейчас в {$price} ({$change}).
+notification_price_alert_target_description = Сейчас {$price} ({$change}).
 notification_stake_rewards_title = 🎁 Награды за стейкинг
 notification_stake_rewards_description = {$value} вознаграждения, доступные на {$chain}
-notification_rewards_enabled_title = 💎 Rewards Unlocked
-notification_rewards_enabled_description = You can now earn rewards by inviting friends.
-notification_rewards_redeem_points_title = 🎁 Reward Redeemed
-notification_rewards_redeem_points_description = You redeemed {$value} points.
-notification_perpetual_long_title = 📈 Long {$coin}
-notification_perpetual_open_description = Entered at {$price} 🚀
-notification_perpetual_short_title = 📉 Short {$coin}
-notification_perpetual_close_positive_description = You made {$pnl} 💰
-notification_perpetual_close_negative_description = You lost {$pnl} 😕
+notification_rewards_enabled_title = 💎 Награды доступны
+notification_rewards_enabled_description = Теперь вы можете получать награды, приглашая друзей.
+notification_rewards_redeem_points_title = 🎁 Награда получена
+notification_rewards_redeem_points_description = Вы обменяли { $value ->
+     [one] {$value} балл
+     [few] {$value} балла
+    *[other] {$value} баллов
+    }.
+notification_rewards_redeem_points_for_description = Вы обменяли { $points ->
+     [one] {$points} балл
+     [few] {$points} балла
+    *[other] {$points} баллов
+    } на {$value}.
+notification_perpetual_long_title = 📈 Лонг {$coin}
+notification_perpetual_open_description = Цена входа: {$price} 🚀
+notification_perpetual_short_title = 📉 Шорт {$coin}
+notification_perpetual_close_positive_description = Вы заработали {$pnl} 💰
+notification_perpetual_close_negative_description = Вы потеряли {$pnl} 😕
 notification_action_transfer = Перевод
 notification_action_swap = Обмен
-notification_action_token_approval = Одобрить
+notification_action_token_approval = Одобрение токена
 notification_action_stake = Стейк
 notification_action_unstake = Вывод стейка
 notification_action_redelegate = Переделегирование
-notification_action_claim_rewards = Получить награду
+notification_action_claim_rewards = Получение наград
 notification_action_withdraw = Вывести стейк
-notification_action_freeze = Заморозить
-notification_action_unfreeze = Разморозить
+notification_action_freeze = Заморозка
+notification_action_unfreeze = Разморозка
 notification_action_smart_contract = Смарт-контракт
 notification_transaction_failed_title = ❌ {$action}: Ошибка

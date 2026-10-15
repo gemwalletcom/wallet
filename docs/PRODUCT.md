@@ -123,6 +123,34 @@ Coin and token amounts. An amount is cut, never rounded up, so the wallet never 
 | 5 | `5x` | up to two places |
 | 2.5 | `2.5x` | |
 
+### Where each format is used
+
+- **A row is a glance.** List rows (the wallet's assets, asset lists, Activity, delegations) use the list-row formats: cut to fit, dust as `<0.0001`, large values shortened.
+- **A screen about one thing reads in full.** The asset screen, transaction details, delegation details and the amount being typed use the regular formats.
+- **What is signed is exact.** On Confirm, balance changes and approval amounts show every digit; the amount and the Network Fee use the regular formats.
+- **Totals count cents.** The wallet total and its gain or loss, Buy and Sell amounts, a perpetual position's margin and the medium and large price widgets always show two places.
+- **Market sizes shorten.** Market cap, valuation, volume and open interest read `$1.24M`.
+- **A change carries its sign, a level does not.** Price change, profit and loss and Price Impact show `+` or `-`; APR, Slippage and fees never do.
+- **Numbers that should add up share one precision.** When the usual precision would show two of them the same, both are cut to the places of the difference.
+- **One value, one format.** A price, a profit and loss or a volume reads the same on every screen; a different format for the same value is a bug.
+
+| Where | Shows | Format | Example |
+|---|---|---|---|
+| Wallet header | the total and its gain or loss | Money, totals | `$1,234.56` `+$5.00 (2.50%)` |
+| Asset, Activity and delegation rows | balance, price, value, amount | Amounts and Money, in list rows | `0.0345 BTC` `267.12K BTC` `<$0.0001` |
+| Asset screen | balance and its value, price and its change | Amounts, Money, change | `5.2 ATOM` `$1,234.50` `+2.50%` |
+| Asset market stats | market cap, valuation, volume | Money, large values | `$1.24M` |
+| Asset market stats | circulating, total and max supply | Amounts, in list rows | `267.12K BTC` |
+| Transaction details | amount, its value, Network Fee | Amounts, Money | `-0.1992 ATOM` `$1,234.50` `0.000021 ETH` |
+| Amount entry and Swap | available balance, the value of what is typed | Amounts, Money | `5.2 ATOM` `$1,234.50` |
+| Swap details | Rate; Price Impact; Slippage | rate; change; rate | `3,456.79 USDC` `-2.00%` `0.50%` |
+| Confirm | amount and its value, Network Fee | Amounts, Money | `0.1992 ATOM` `$0.0731` |
+| Confirm | balance changes, approval amount | Amounts, exact | `-1,234.567891 ETH` |
+| Balance or Network Fee required sheet | what is required, what is available, what is missing | Amounts, cut to the missing amount's places when they would read the same | `0.0664881778 ETH` `0.0664880466 ETH` `0.0000001312 ETH` |
+| Stake and Earn | APR | rate | `5.00%` |
+| Buy and Sell | the amount paid or received | Money, totals | `$100.00` |
+| Price widgets | small; medium and large | Money, large values; totals | `$97.1K`; `$1,234.56` |
+
 ## Asset logos
 
 Every list, header and sheet draws an asset's logo the same way. The logos that ship with the app show at once; any other logo is loaded.
@@ -215,6 +243,7 @@ A Secret Phrase or private key shows when a wallet is created and from "Show Sec
 |---|---|---|
 | The user copies the Secret Phrase or private key | it leaves the clipboard after one minute and is kept off other devices; whatever the user copies after it stays | only a secret is dangerous to leave behind |
 | The user copies an address or anything else | it stays until something replaces it | only a secret is dangerous to leave behind |
+| A screenshot of a secret is detected, or the screen's info link is opened | the warning and the help page name the secret on screen: the Secret Phrase or the private key; entering an address shows no warning | phrase wording on a key screen misled users (#1394) |
 
 | When | iOS | Android | Expected |
 |---|---|---|---|

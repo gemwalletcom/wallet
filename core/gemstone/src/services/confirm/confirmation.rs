@@ -279,27 +279,23 @@ mod tests {
 
     use primitives::{AddressName, AddressType, VerificationStatus};
 
-    use super::super::testkit::ConfirmTestkit;
+    use super::super::testkit::{ConfirmTestkit, TEST_TRON_RECIPIENT, mock_tron_transfer, mock_tron_wallet};
     use crate::services::confirm::{ConfirmState, GemConfirmDetails, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmSection, GemConfirmViewState};
     use crate::services::simulation::warning_rows;
     use crate::services::swap::model::swap_quote_details;
-    use crate::services::transfer::{GemRecipient, GemTransferData};
+    use crate::services::transfer::GemTransferData;
     use primitives::currency::Currency;
 
     #[test]
     fn test_request_wallet_balances_ignore_selected_wallet() {
         block_on(async {
-            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+            let wallet = mock_tron_wallet();
             let selected_wallet = Wallet {
                 id: WalletId::Multicoin("other-wallet".into()),
                 ..Wallet::mock()
             };
             let testkit = ConfirmTestkit::new(wallet.clone(), selected_wallet);
-            let transfer = GemTransferData {
-                recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
-                value: 0.into(),
-                ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
-            };
+            let transfer = mock_tron_transfer(0.into());
             let confirmation = testkit.service.confirmation(wallet.clone(), transfer, None);
 
             let state = confirmation.state().await.unwrap();
@@ -324,12 +320,9 @@ mod tests {
 
     #[test]
     fn test_view_state_reads_one_screen() {
-        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+        let wallet = mock_tron_wallet();
         let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
-        let transfer = GemTransferData {
-            recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
-            ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
-        };
+        let transfer = mock_tron_transfer(10.into());
         let confirmation = testkit.service.confirmation(wallet, transfer, None);
         let screen = confirmation.screen();
 
@@ -349,12 +342,9 @@ mod tests {
 
     #[test]
     fn test_view_state_reads_the_authentication_once_per_screen() {
-        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+        let wallet = mock_tron_wallet();
         let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
-        let transfer = GemTransferData {
-            recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
-            ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
-        };
+        let transfer = mock_tron_transfer(10.into());
         let confirmation = testkit.service.confirmation(wallet, transfer, None);
         let screen = confirmation.screen();
 
@@ -393,15 +383,11 @@ mod tests {
     #[test]
     fn test_view_state_names_the_recipient_from_the_last_stored_load() {
         block_on(async {
-            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+            let wallet = mock_tron_wallet();
             let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
-            let transfer = GemTransferData {
-                recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
-                value: 0.into(),
-                ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
-            };
+            let transfer = mock_tron_transfer(0.into());
             let confirmation = testkit.service.confirmation(wallet, transfer, None);
-            let name = AddressName::mock("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV", "Friend", AddressType::Address, VerificationStatus::Verified);
+            let name = AddressName::mock(TEST_TRON_RECIPIENT, "Friend", AddressType::Address, VerificationStatus::Verified);
             let named = GemConfirmLoad {
                 address_name: Some(name.clone()),
                 ..confirmation.state().await.unwrap()
@@ -423,12 +409,9 @@ mod tests {
 
     #[test]
     fn test_the_request_warnings_show_before_the_load() {
-        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+        let wallet = mock_tron_wallet();
         let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
-        let transfer = GemTransferData {
-            recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
-            ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
-        };
+        let transfer = mock_tron_transfer(10.into());
         let warnings = vec![SimulationWarning::validation_error("careful")];
         let simulation = SimulationResult {
             warnings: warnings.clone(),
@@ -456,17 +439,13 @@ mod tests {
     #[test]
     fn test_a_load_overtaken_by_a_newer_one_is_cancelled_and_not_stored() {
         block_on(async {
-            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+            let wallet = mock_tron_wallet();
             let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
-            let transfer = GemTransferData {
-                recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
-                value: 0.into(),
-                ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
-            };
+            let transfer = mock_tron_transfer(0.into());
             let confirmation = testkit.service.confirmation(wallet, transfer, None);
             let shown = confirmation.state().await.unwrap();
             let stale = GemConfirmLoad {
-                address_name: Some(AddressName::mock("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV", "stale", AddressType::Address, VerificationStatus::Unverified)),
+                address_name: Some(AddressName::mock(TEST_TRON_RECIPIENT, "stale", AddressType::Address, VerificationStatus::Unverified)),
                 ..shown
             };
 
@@ -486,13 +465,9 @@ mod tests {
     #[test]
     fn test_execute_refuses_a_confirmation_without_a_preload() {
         block_on(async {
-            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+            let wallet = mock_tron_wallet();
             let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
-            let transfer = GemTransferData {
-                recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
-                value: 0.into(),
-                ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
-            };
+            let transfer = mock_tron_transfer(0.into());
             let confirmation = testkit.service.confirmation(wallet, transfer, None);
 
             assert!(matches!(confirmation.submit().await, Err(GemConfirmError::Load { .. })));
@@ -504,18 +479,14 @@ mod tests {
     #[test]
     fn test_state_shows_the_request_simulation_without_waiting_for_its_assets_and_names() {
         block_on(async {
-            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC")]);
+            let wallet = mock_tron_wallet();
             let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
             let simulation = SimulationResult {
                 warnings: vec![SimulationWarning::validation_error("careful")],
                 balance_changes: vec![SimulationBalanceChange::mock(AssetId::from(Chain::Tron, Some("unknown-token".into())), BigInt::from(1), 6)],
                 ..SimulationResult::default()
             };
-            let transfer = GemTransferData {
-                recipient: GemRecipient::address("THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".into()),
-                value: 0.into(),
-                ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
-            };
+            let transfer = mock_tron_transfer(0.into());
             let confirmation = testkit.service.confirmation(wallet, transfer, Some(simulation.clone()));
 
             let state = confirmation.state().await.unwrap();

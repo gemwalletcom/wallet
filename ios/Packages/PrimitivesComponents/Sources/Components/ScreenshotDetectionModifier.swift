@@ -1,10 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemWalletSecretKind
+import GemstonePrimitives
 import Localization
 import SwiftUI
 
 struct ScreenshotDetectionModifier: ViewModifier {
-    let docsUrl: URL
+    let kind: GemWalletSecretKind
 
     @State private var showingAlert = false
 
@@ -18,17 +20,22 @@ struct ScreenshotDetectionModifier: ViewModifier {
                 isPresented: $showingAlert,
             ) {
                 Button(Localized.Common.learnMore) {
-                    UIApplication.shared.open(docsUrl)
+                    UIApplication.shared.open(kind.securityDocsUrl)
                 }
                 Button(Localized.Common.done, role: .cancel) {}
             } message: {
-                Text(Localized.SecretPhrase.ScreenshotDetected.description)
+                Text(kind.screenshotDetectedDescription)
             }
     }
 }
 
 public extension View {
-    func detectScreenshots(docsUrl: URL) -> some View {
-        modifier(ScreenshotDetectionModifier(docsUrl: docsUrl))
+    @ViewBuilder
+    func detectScreenshots(kind: GemWalletSecretKind?) -> some View {
+        if let kind {
+            modifier(ScreenshotDetectionModifier(kind: kind))
+        } else {
+            self
+        }
     }
 }

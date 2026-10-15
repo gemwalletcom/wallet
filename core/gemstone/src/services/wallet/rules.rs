@@ -11,6 +11,7 @@ use super::model::{
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::models::list::{GemAddressRow, GemListRowTitle};
 use crate::services::localization::GemLocalizedText;
+use crate::services::onboarding::GemSecurityReminderItem;
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
 const SECRET_PHRASE_COLUMNS: u32 = 2;
@@ -147,15 +148,20 @@ pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -
             true => GemLocalizedText::NewWallet,
             false => GemLocalizedText::SecretKind { kind },
         },
-        warning: match is_new {
-            true => GemSecretWarning::SaveSafely,
-            false => GemSecretWarning::DoNotShare,
+        warning: match (is_new, kind) {
+            (true, _) => GemSecretWarning::SaveSafely,
+            (false, GemWalletSecretKind::Phrase) => GemSecretWarning::DoNotShare,
+            (false, GemWalletSecretKind::PrivateKey) => GemSecretWarning::DoNotSharePrivateKey,
         },
         rows: match kind {
             GemWalletSecretKind::Phrase => secret_phrase_rows(word_count),
             GemWalletSecretKind::PrivateKey => Vec::new(),
         },
     }
+}
+
+pub fn security_reminder_items(kind: GemWalletSecretKind) -> Vec<GemSecurityReminderItem> {
+    vec![GemSecurityReminderItem::KeepSafe { kind }, GemSecurityReminderItem::DoNotShare { kind }, GemSecurityReminderItem::NoRecovery { kind }]
 }
 
 pub fn row(wallet: &WalletListItem) -> GemWalletRow {
@@ -395,6 +401,8 @@ mod tests {
             GemWalletImportKind::Address.resolves_names() && !GemWalletImportKind::Phrase.resolves_names() && !GemWalletImportKind::PrivateKey.resolves_names(),
             "only an address can be typed as a name"
         );
+        assert_eq!(GemWalletImportKind::PrivateKey.secret_kind(), Some(GemWalletSecretKind::PrivateKey), "a key import warns about the key, not a Secret Phrase");
+        assert_eq!(GemWalletImportKind::Address.secret_kind(), None, "an address is no secret");
     }
 
     #[test]
@@ -527,7 +535,19 @@ mod tests {
         assert_eq!(new.title, GemLocalizedText::NewWallet);
         assert_eq!(new.warning, GemSecretWarning::SaveSafely);
 
-        assert!(secret_screen(GemWalletSecretKind::PrivateKey, 0, false).rows.is_empty(), "a key has no word grid");
+        let key = secret_screen(GemWalletSecretKind::PrivateKey, 0, false);
+        assert!(key.rows.is_empty(), "a key has no word grid");
+        assert_eq!(key.warning, GemSecretWarning::DoNotSharePrivateKey, "a key screen never warns about a Secret Phrase (#1394)");
+    }
+
+    #[test]
+    fn test_the_security_reminder_names_the_secret_it_protects() {
+        let kind = GemWalletSecretKind::PrivateKey;
+        assert_eq!(
+            security_reminder_items(kind),
+            vec![GemSecurityReminderItem::KeepSafe { kind }, GemSecurityReminderItem::DoNotShare { kind }, GemSecurityReminderItem::NoRecovery { kind }],
+            "a key wallet never sees the Secret Phrase reminder (#1394)"
+        );
     }
 
     #[test]

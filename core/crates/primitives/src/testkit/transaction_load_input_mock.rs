@@ -1,4 +1,4 @@
-use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER};
+use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER, TEST_POLKADOT_SENDER};
 use crate::{
     ApplicationMetadata, Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
     UTXO, asset_constants::NEAR_USDT_ASSET_ID,
@@ -187,8 +187,8 @@ impl TransactionLoadInput {
     pub fn mock_polkadot() -> Self {
         TransactionLoadInput {
             input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Polkadot) },
-            sender_address: "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo".to_string(),
-            destination_address: "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo".to_string(),
+            sender_address: TEST_POLKADOT_SENDER.to_string(),
+            destination_address: TEST_POLKADOT_SENDER.to_string(),
             value: BigUint::from(10000u64),
             gas_price: GasPriceType::regular(10),
             memo: None,

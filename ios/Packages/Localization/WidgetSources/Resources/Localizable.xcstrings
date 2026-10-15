@@ -67,7 +67,7 @@
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Babu bayanan farashi samuwa"
+            "value": "Babu bayanan farashi da ake samu"
           }
         },
         "he": {
@@ -616,7 +616,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Precio máximo de las criptomonedas"
+            "value": "Precios de las principales criptomonedas"
           }
         },
         "fa": {
@@ -933,7 +933,7 @@
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "بٹ کوائن کی قیمت کو ٹریک کریں۔"
+            "value": "بٹ کوائن کی قیمت کو ٹریک کریں"
           }
         },
         "vi": {

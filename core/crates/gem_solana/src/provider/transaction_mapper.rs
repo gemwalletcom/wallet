@@ -399,7 +399,8 @@ mod tests {
             None,
             None,
             DateTime::from_timestamp(1789191680, 0).unwrap(),
-        );
+        )
+        .with_data(Some("0x0b9c60da27a3b413404b4c0000000000c6a8c2d31b9e05f9f719c821dff2de43bc811d4efabd39565a355977c7143370".to_string()));
 
         assert_eq!(transaction, expected);
     }

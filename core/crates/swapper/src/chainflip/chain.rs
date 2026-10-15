@@ -5,6 +5,7 @@ use strum::{AsRefStr, EnumString};
 pub enum ChainflipChain {
     Ethereum,
     Bitcoin,
+    Assethub,
     Solana,
     Arbitrum,
     Tron,
@@ -16,6 +17,7 @@ impl ChainflipChain {
         match chain {
             Chain::Ethereum => Some(Self::Ethereum),
             Chain::Bitcoin => Some(Self::Bitcoin),
+            Chain::Polkadot => Some(Self::Assethub),
             Chain::Solana => Some(Self::Solana),
             Chain::Arbitrum => Some(Self::Arbitrum),
             Chain::Tron => Some(Self::Tron),
@@ -28,6 +30,7 @@ impl ChainflipChain {
         match self {
             Self::Ethereum => Chain::Ethereum,
             Self::Bitcoin => Chain::Bitcoin,
+            Self::Assethub => Chain::Polkadot,
             Self::Solana => Chain::Solana,
             Self::Arbitrum => Chain::Arbitrum,
             Self::Tron => Chain::Tron,

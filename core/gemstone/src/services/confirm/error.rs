@@ -215,12 +215,29 @@ pub struct GemConfirmRequirement {
 impl GemConfirmRequirement {
     pub fn new(requirement: &GemBalanceRequirement, asset: &Asset) -> Self {
         let amount = |value: &GemBigInt| GemFormattedNumber::asset_amount(value, asset, GemValueStyle::Auto);
-        Self {
-            required: amount(&requirement.required),
-            available: amount(&requirement.available),
-            shortfall: amount(&requirement.shortfall),
+        let (required, shortfall) = (amount(&requirement.required), amount(&requirement.shortfall));
+        let places = GemValueStyle::Auto.fraction_places(shortfall.value);
+        match GemValueStyle::Auto.fraction_places(required.value) < places {
+            true => {
+                let exact = |value: &GemBigInt| GemFormattedNumber::asset_amount(&truncated(value, asset.decimals, places), asset, GemValueStyle::Full);
+                Self {
+                    required: exact(&requirement.required),
+                    available: exact(&requirement.available),
+                    shortfall,
+                }
+            }
+            false => Self {
+                required,
+                available: amount(&requirement.available),
+                shortfall,
+            },
         }
     }
+}
+
+fn truncated(value: &GemBigInt, decimals: u32, places: u32) -> GemBigInt {
+    let unit = GemBigInt::from(10).pow(decimals.saturating_sub(places));
+    value - value % unit
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -435,6 +452,30 @@ mod tests {
         assert_eq!(GemConfirmError::from(GemServiceError::Cancelled), GemConfirmError::Cancelled);
         assert_eq!(GemConfirmError::from(GemServiceError::Offline), GemConfirmError::Offline);
         assert_eq!(GemConfirmError::from(GemServiceError::Store { msg: "x".to_string() }), GemConfirmError::Load { msg: "x".to_string() });
+    }
+
+    #[test]
+    fn test_a_requirement_prints_the_required_and_available_amounts_apart() {
+        let asset = Asset::from_chain(Chain::Blast);
+        let wei = |value: u64| GemBigInt::from(value);
+        let formatted = |value: u64, style: GemValueStyle| GemFormattedNumber::asset_amount(&wei(value), &asset, style);
+
+        assert_eq!(
+            GemConfirmRequirement::new(&GemBalanceRequirement::new(wei(66_488_177_805_216_601), wei(66_488_046_605_216_601)), &asset),
+            GemConfirmRequirement {
+                required: formatted(66_488_177_800_000_000, GemValueStyle::Full),
+                available: formatted(66_488_046_600_000_000, GemValueStyle::Full),
+                shortfall: formatted(131_200_000_000, GemValueStyle::Auto),
+            },
+            "0.0664881778 and 0.0664880466 instead of 0.06648 twice: cut to the shortfall's places, so the three amounts add up"
+        );
+
+        let apart = GemConfirmRequirement::new(&GemBalanceRequirement::new(wei(3_000_000_000_000_000_000), wei(1_000_000_000_000_000_000)), &asset);
+        assert_eq!(apart.required, formatted(3_000_000_000_000_000_000, GemValueStyle::Auto), "amounts the usual precision already shows apart keep it");
+        assert_eq!(apart.available, formatted(1_000_000_000_000_000_000, GemValueStyle::Auto));
+
+        let one_wei = GemConfirmRequirement::new(&GemBalanceRequirement::new(wei(66_488_000_000_000_001), wei(66_488_000_000_000_000)), &asset);
+        assert_eq!(one_wei.required.exact.as_deref(), Some("0.066488000000000001"), "past what a double holds, the digits stay exact");
     }
 
     #[test]

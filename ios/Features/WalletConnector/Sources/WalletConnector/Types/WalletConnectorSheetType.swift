@@ -9,11 +9,11 @@ public enum WalletConnectorSheetType: Sendable, Identifiable {
     case signMessage(TransferDataCallback<GemWalletConnectMessageRequest>)
     case connectionProposal(TransferDataCallback<WCPairingProposal>)
 
-    public var id: Int {
+    public var id: AnyHashable {
         switch self {
-        case let .transferData(callback): callback.id.hashValue
-        case let .signMessage(callback): callback.id.hashValue
-        case let .connectionProposal(callback): callback.id.hashValue
+        case let .transferData(callback): ObjectIdentifier(callback)
+        case let .signMessage(callback): ObjectIdentifier(callback)
+        case let .connectionProposal(callback): callback.payload.pairingId
         }
     }
 

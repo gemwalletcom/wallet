@@ -7,7 +7,7 @@ use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
 use prices::{FiatRatesProvider, PriceAssetsProvider, PriceProvider};
-use primitives::{AccessTokenCacher, Chain, ChartTimeframe, JobConfiguration};
+use primitives::{AccessTokenCacher, Chain, ChartTimeframe};
 use search_index::SearchIndexClient;
 use settings::service_user_agent;
 use storage::{Database, PricesProvidersRepository};
@@ -27,7 +27,7 @@ use crate::rewards::{RewardsAbuseChecker, RewardsEligibilityChecker};
 use crate::search::{AssetListsIndexUpdater, AssetsIndexUpdater, NftsIndexUpdater, PerpetualsIndexUpdater, SearchSyncClient};
 use crate::subscriptions::SubscriptionLookup;
 use crate::system::{DeviceUpdater, InactiveDevicesObserver, TransactionCleanup, TransactionCleanupConfig, VersionUpdater};
-use crate::transactions::{CheckSchedule, InTransitConfig, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater};
+use crate::transactions::{CheckSchedule, InTransitUpdater, PendingTransactionsUpdater, PendingTransactionsUpdaterConfig, SwapVaultAddressClient, TransactionQueue, TransactionQueueMetrics, VaultAddressesUpdater};
 use crate::{ConfigCacher, Services, StaticAssetsClient};
 
 #[derive(Clone)]
@@ -467,21 +467,12 @@ impl Services {
         let repository = self.transactions_repository();
         let cacher = self.cacher().await?;
         let stream_producer: Arc<dyn StreamProducerQueue> = Arc::new(stream_producer);
-        let in_transit_config = InTransitConfig {
-            timeout: config.get_duration(ConfigKey::TransactionInTransitTimeout).await?,
-            query_limit: config.get_i64(ConfigKey::TransactionInTransitQueryLimit).await?,
-            check_interval: JobConfiguration {
-                initial_interval_ms: config.get_duration(ConfigKey::TransactionTimerInTransitUpdate).await?.as_millis() as u32,
-                max_interval_ms: config.get_duration(ConfigKey::TransactionInTransitMaxCheckInterval).await?.as_millis() as u32,
-                step_factor: config.get_f64(ConfigKey::TransactionInTransitCheckIntervalFactor).await? as f32,
-            },
-        };
         let pending_config = PendingTransactionsUpdaterConfig::from_config(&config).await?;
         let providers = Arc::new(self.chain_providers(&service_user_agent("daemon", Some("transactions"))));
         let swapper = self.swapper();
         let in_transit_updater = InTransitUpdater::new(
             repository.clone(),
-            in_transit_config,
+            config,
             swapper.clone(),
             stream_producer.clone(),
             SwapVaultAddressClient::new(Arc::new(cacher.clone())),

@@ -5,6 +5,7 @@ use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
+use async_trait::async_trait;
 use chrono::{DateTime, NaiveDateTime};
 use config_keys::{ConfigKey, ConfigParamKey, RateLimit, RateLimitKey, RateLimitWindow};
 use serde::de::DeserializeOwned;
@@ -67,7 +68,7 @@ impl ConfigCacher {
     }
 
     pub async fn get_i64(&self, key: ConfigKey) -> Result<i64, DatabaseError> {
-        Ok(self.get(key).await?.parse()?)
+        Repository::get_i64(self, key).await
     }
 
     pub async fn get_usize(&self, key: ConfigKey) -> Result<usize, DatabaseError> {
@@ -75,7 +76,7 @@ impl ConfigCacher {
     }
 
     pub async fn get_f64(&self, key: ConfigKey) -> Result<f64, DatabaseError> {
-        Ok(self.get(key).await?.parse()?)
+        Repository::get_f64(self, key).await
     }
 
     pub async fn get_bool(&self, key: ConfigKey) -> Result<bool, DatabaseError> {
@@ -83,7 +84,7 @@ impl ConfigCacher {
     }
 
     pub async fn get_duration(&self, key: ConfigKey) -> Result<Duration, DatabaseError> {
-        parse_duration(&self.get(key).await?)
+        Repository::get_duration(self, key).await
     }
 
     pub async fn get_param_duration(&self, param: &ConfigParamKey) -> Result<Duration, DatabaseError> {
@@ -102,7 +103,7 @@ impl ConfigCacher {
     }
 
     pub async fn get_param_bool(&self, param: &ConfigParamKey) -> Result<bool, DatabaseError> {
-        Ok(self.get_param_value(param).await?.parse()?)
+        Repository::get_param_bool(self, param).await
     }
 
     pub async fn get_param_usize(&self, param: &ConfigParamKey) -> Result<usize, DatabaseError> {
@@ -159,6 +160,21 @@ impl ConfigCacher {
     }
 }
 
+#[async_trait]
+impl Repository for ConfigCacher {
+    async fn get_config_value(&self, key: ConfigKey) -> Result<String, DatabaseError> {
+        self.get(key).await
+    }
+
+    async fn get_config_param_value(&self, param: ConfigParamKey) -> Result<String, DatabaseError> {
+        self.get_param_value(&param).await
+    }
+
+    async fn set_config_value(&self, key: ConfigKey, value: String) -> Result<usize, DatabaseError> {
+        self.set(key, &value).await
+    }
+}
+
 fn param_value_or_default(stored: Result<String, DatabaseError>, param: &ConfigParamKey) -> Result<String, DatabaseError> {
     match stored {
         Ok(value) => Ok(value),
@@ -170,6 +186,7 @@ fn param_value_or_default(stored: Result<String, DatabaseError>, param: &ConfigP
 #[cfg(test)]
 mod tests {
     use config_keys::{ConfigKey, ConfigParamKey, RateLimitKey, RateLimitWindow};
+    use primitives::SwapProvider;
     use storage::DatabaseError;
 
     use super::*;
@@ -224,5 +241,19 @@ mod tests {
         assert_eq!(config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await.unwrap(), 2);
         config.set(ConfigKey::ReferralVerifiedMultiplier, "4").await.unwrap();
         assert_eq!(config.get_i64(ConfigKey::ReferralVerifiedMultiplier).await.unwrap(), 4);
+    }
+
+    #[tokio::test]
+    async fn test_repository_provider_flag_refreshes_after_cache_expiry() {
+        let param = ConfigParamKey::TransactionInTransitProviderEnable(SwapProvider::Relay);
+        let repository = Arc::new(MemoryConfigRepository::new());
+        let config = ConfigCacher::new(repository.clone());
+        let reader: &dyn Repository = &config;
+
+        assert!(reader.get_param_bool(&param).await.unwrap());
+        repository.set_value(&param.key(), "false");
+        assert!(reader.get_param_bool(&param).await.unwrap());
+        config.cache.write().unwrap().get_mut(&param.key()).unwrap().expires_at = Instant::now();
+        assert!(!reader.get_param_bool(&param).await.unwrap());
     }
 }

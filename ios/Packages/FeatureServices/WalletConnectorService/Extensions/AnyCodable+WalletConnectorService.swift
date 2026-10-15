@@ -4,7 +4,7 @@ import ReownWalletKit
 
 extension AnyCodable {
     static func null() -> AnyCodable {
-        AnyCodable(any: Null())
+        AnyCodable(Null())
     }
 
     private struct Null: Codable {

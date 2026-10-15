@@ -10,9 +10,10 @@ use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use primitives::Chain;
 
 use crate::jsonrpc::XrpRpc;
-use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, ServerInfo, ServerInfoResult, TransactionBroadcast, TransactionStatus, ValidatedAccountInfoResult};
+use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, ServerInfo, ServerInfoResult, TransactionBroadcast, ValidatedAccountInfoResult};
 
 pub(crate) const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = 19;
+const TRANSACTION_NOT_FOUND_ERROR_CODE: i32 = 29;
 
 #[derive(Clone, Debug)]
 pub struct XrpClient<C: Client + Clone> {
@@ -86,15 +87,15 @@ impl<C: Client + Clone> XrpClient<C> {
         self.request(XrpRpc::SubmitTransaction { data: data.to_string() }).await
     }
 
-    pub async fn get_transaction_status(&self, transaction_id: &str) -> Result<TransactionStatus, Box<dyn Error + Send + Sync>> {
-        self.get_transaction(transaction_id).await
-    }
-
-    pub(crate) async fn get_transaction<T>(&self, transaction_id: &str) -> Result<T, Box<dyn Error + Send + Sync>>
+    pub(crate) async fn get_transaction<T>(&self, transaction_id: &str) -> Result<Option<T>, Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned + Send,
     {
-        self.request(XrpRpc::GetTransaction { hash: transaction_id.to_string() }).await
+        match self.request(XrpRpc::GetTransaction { hash: transaction_id.to_string() }).await {
+            Ok(transaction) => Ok(Some(transaction)),
+            Err(error) if has_error_code(&*error, TRANSACTION_NOT_FOUND_ERROR_CODE) => Ok(None),
+            Err(error) => Err(error),
+        }
     }
 
     pub async fn get_account_objects(&self, address: &str) -> Result<AccountObjects, Box<dyn Error + Send + Sync>> {
@@ -122,7 +123,11 @@ where
 }
 
 pub(crate) fn is_account_not_found(error: &(dyn Error + Send + Sync + 'static)) -> bool {
-    error.downcast_ref::<JsonRpcError>().is_some_and(|error| error.code == ACCOUNT_NOT_FOUND_ERROR_CODE)
+    has_error_code(error, ACCOUNT_NOT_FOUND_ERROR_CODE)
+}
+
+fn has_error_code(error: &(dyn Error + Send + Sync + 'static), code: i32) -> bool {
+    error.downcast_ref::<JsonRpcError>().is_some_and(|error| error.code == code)
 }
 
 fn map_error_result(result: &Value) -> Option<JsonRpcError> {

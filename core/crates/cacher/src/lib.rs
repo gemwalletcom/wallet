@@ -115,6 +115,35 @@ impl CacherClient {
         Ok(count)
     }
 
+    pub(crate) async fn add_to_expiring_set(&self, key: CacheKey<'_>, members: &[String], now: f64) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        if members.is_empty() {
+            return Ok(0);
+        }
+        let name = key.key();
+        let ttl = key.ttl();
+        let mut pipe = redis::pipe();
+        pipe.atomic();
+        for member in members {
+            pipe.cmd("ZADD").arg(&name).arg(now).arg(member).ignore();
+        }
+        pipe.cmd("ZREMRANGEBYSCORE").arg(&name).arg("-inf").arg(now - ttl as f64).ignore();
+        pipe.cmd("EXPIRE").arg(&name).arg(ttl).ignore();
+        pipe.cmd("ZCARD").arg(&name);
+        let (count,): (usize,) = pipe.query_async(&mut self.connection.clone()).await?;
+        Ok(count)
+    }
+
+    pub(crate) async fn expiring_set_members(&self, keys: &[CacheKey<'_>]) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
+        if keys.is_empty() {
+            return Ok(vec![]);
+        }
+        let mut pipe = redis::pipe();
+        for key in keys {
+            pipe.cmd("ZRANGE").arg(key.key()).arg(0).arg(-1);
+        }
+        Ok(pipe.query_async(&mut self.connection.clone()).await?)
+    }
+
     pub(crate) async fn remove_from_set(&self, key: CacheKey<'_>, members: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
         if members.is_empty() {
             return Ok(0);

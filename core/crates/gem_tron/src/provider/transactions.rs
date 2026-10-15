@@ -28,7 +28,10 @@ impl<C: Client> ChainTransaction for TronProvider<C> {
         let Some(receipt) = self.get_transaction_receipt(hash.clone()).await? else {
             return Ok(None);
         };
-        Ok(map_transaction(self.get_chain(), self.get_transaction(hash).await?, receipt))
+        let Some(transaction) = self.get_transaction(hash).await? else {
+            return Ok(None);
+        };
+        Ok(map_transaction(self.get_chain(), transaction, receipt))
     }
 }
 
@@ -55,6 +58,18 @@ mod tests {
         let transactions = result.transaction_requests().unwrap();
         assert_eq!(transactions.len(), 4);
         assert!(transactions.iter().any(|transaction| transaction.hash == INCOMING_TRANSACTION_ID));
+    }
+
+    #[tokio::test]
+    async fn test_get_transaction_by_hash() {
+        let client = TronProvider::mock(|path| match path.starts_with("/wallet/gettransactioninfobyid") {
+            true => Ok(include_str!("../../testdata/transaction_coin_transfer_receipt.json").as_bytes().to_vec()),
+            false => Ok(b"{}".to_vec()),
+        });
+
+        let transaction = client.get_transaction_by_hash(TransactionIdRequest::new(primitives::Chain::Tron, INCOMING_TRANSACTION_ID.to_string(), None)).await.unwrap();
+
+        assert_eq!(transaction, None);
     }
 }
 

@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::models::{Block, TransactionLookup, Transactions};
 use crate::rpc::target::AlgorandIndexerTarget;
-use gem_client::{Client, ClientExt};
+use gem_client::{Client, ClientError, ClientExt};
 
 #[derive(Clone, Debug)]
 pub struct AlgorandIndexer<C: Client> {
@@ -22,7 +22,11 @@ impl<C: Client> AlgorandIndexer<C> {
         Ok(self.client.get(AlgorandIndexerTarget::Block { number: block_number }).await?)
     }
 
-    pub async fn get_transaction(&self, txid: &str) -> Result<TransactionLookup, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(AlgorandIndexerTarget::Transaction { id: txid.to_string() }).await?)
+    pub async fn get_transaction(&self, txid: &str) -> Result<Option<TransactionLookup>, Box<dyn Error + Send + Sync>> {
+        match self.client.get(AlgorandIndexerTarget::Transaction { id: txid.to_string() }).await {
+            Ok(transaction) => Ok(Some(transaction)),
+            Err(ClientError::Http { status: 404, .. }) => Ok(None),
+            Err(error) => Err(error.into()),
+        }
     }
 }

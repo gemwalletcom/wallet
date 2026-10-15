@@ -19,9 +19,7 @@ impl<C: Client + Clone> ChainBlockTransactions for XrpClient<C> {
 #[async_trait]
 impl<C: Client + Clone> ChainTransaction for XrpClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
-        let hash = request.hash;
-        let transaction = self.get_transaction(&hash).await?;
-        Ok(map_direct_transaction(self.get_chain(), transaction))
+        Ok(self.get_transaction(&request.hash).await?.and_then(|transaction| map_direct_transaction(self.get_chain(), transaction)))
     }
 }
 

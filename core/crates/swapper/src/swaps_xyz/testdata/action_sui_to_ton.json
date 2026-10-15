@@ -1,0 +1,32 @@
+{
+  "vmId": "alt-vm",
+  "tx": {
+    "to": "0x82d03c6b623f1e15164c9329b1c49e066ff7814be70ff86f8e19125292661040",
+    "value": "3379105015",
+    "chainId": 999000938,
+    "toExtra": null,
+    "chainKey": "sui"
+  },
+  "amountIn": {
+    "amount": "3379105015",
+    "chainId": 999000938,
+    "address": "0x0000000000000000000000000000000000000000",
+    "decimals": 9,
+    "isNative": true
+  },
+  "amountOut": {
+    "amount": "2537874500",
+    "chainId": 999000337,
+    "address": "0x0000000000000000000000000000000000000000",
+    "decimals": 9,
+    "isNative": true
+  },
+  "applicationFee": {
+    "amount": "16895525",
+    "chainId": 999000938,
+    "address": "0x0000000000000000000000000000000000000000",
+    "decimals": 9,
+    "isNative": true
+  },
+  "estimatedTxTime": 74.33333333333333
+}

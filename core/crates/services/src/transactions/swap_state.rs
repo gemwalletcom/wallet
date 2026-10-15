@@ -18,19 +18,27 @@ pub fn transaction_with_swap_result(transaction: Transaction, result: SwapResult
     let Some(state) = result.status.transaction_state() else {
         return transaction;
     };
-    let metadata = swap_result_metadata(&transaction, result.metadata, result.status.charges_referral_fee()).or(transaction.metadata.clone());
+    let metadata = swap_result_metadata(&transaction, result.metadata, result.status.charges_referral_fee());
+    transaction_with_swap_state(transaction, state, metadata)
+}
+
+pub fn transaction_with_swap_state(transaction: Transaction, state: TransactionState, swap_metadata: Option<serde_json::Value>) -> Transaction {
+    let transaction_type = match state {
+        TransactionState::Confirmed if swap_metadata.is_none() => transaction.transaction_type.clone(),
+        TransactionState::Pending | TransactionState::Confirmed | TransactionState::InTransit | TransactionState::Failed | TransactionState::Reverted | TransactionState::Refunded => TransactionType::Swap,
+    };
     Transaction {
-        transaction_type: TransactionType::Swap,
+        transaction_type,
         state,
-        metadata,
+        metadata: swap_metadata.or(transaction.metadata.clone()),
         ..transaction
     }
 }
 
-pub fn swap_state_updates(state: TransactionState, metadata: Option<&serde_json::Value>) -> Vec<TransactionUpdate> {
-    [TransactionUpdate::State(state), TransactionUpdate::Kind(TransactionType::Swap)]
+pub fn swap_state_updates(transaction: &Transaction, swap_metadata: Option<&serde_json::Value>) -> Vec<TransactionUpdate> {
+    [TransactionUpdate::State(transaction.state), TransactionUpdate::Kind(transaction.transaction_type.clone())]
         .into_iter()
-        .chain(metadata.cloned().map(TransactionUpdate::Metadata))
+        .chain(swap_metadata.cloned().map(TransactionUpdate::Metadata))
         .collect()
 }
 
@@ -79,5 +87,27 @@ mod tests {
         );
         assert_eq!(refunded.state, TransactionState::Refunded);
         assert_eq!(refunded.swap_metadata().and_then(|metadata| metadata.referral_fee), None);
+
+        let completed_without_metadata = transaction_with_swap_result(
+            Transaction::mock(),
+            SwapResult {
+                status: SwapStatus::Completed,
+                metadata: None,
+                eta_in_seconds: None,
+            },
+        );
+        assert_eq!(completed_without_metadata.transaction_type, TransactionType::Transfer);
+        assert_eq!(completed_without_metadata.state, TransactionState::Confirmed);
+
+        let failed_without_metadata = transaction_with_swap_result(
+            Transaction::mock(),
+            SwapResult {
+                status: SwapStatus::Failed,
+                metadata: None,
+                eta_in_seconds: None,
+            },
+        );
+        assert_eq!(failed_without_metadata.transaction_type, TransactionType::Swap);
+        assert_eq!(failed_without_metadata.state, TransactionState::Failed);
     }
 }

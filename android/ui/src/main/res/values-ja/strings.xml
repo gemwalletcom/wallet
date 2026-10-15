@@ -303,7 +303,7 @@
   <string name="charts_price_change">変動</string>
   <string name="date_today">今日</string>
   <string name="date_yesterday">昨日</string>
-  <string name="date_day_time">%1$s, %2$s</string>
+  <string name="date_day_time">%1$s %2$s</string>
   <string name="wallet_connect_title">WalletConnect</string>
   <string name="wallet_connect_connection_title">接続</string>
   <string name="wallet_connect_disconnect">切断</string>
@@ -365,6 +365,16 @@
   <string name="secret_phrase_screenshot_detected_title">スクリーンショットが検出されました</string>
   <string name="secret_phrase_screenshot_detected_description">スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でリカバリーフレーズを保存すると、漏えいするおそれがあります。</string>
   <string name="secret_phrase_content_hidden_description">画面録画中はコンテンツが非表示になります</string>
+  <string name="private_key_reminder_intro">このプライベートキーが、ウォレットの唯一のバックアップです。</string>
+  <string name="private_key_reminder_keep_safe_title">安全な場所に保管する</string>
+  <string name="private_key_reminder_keep_safe_subtitle">プライベートキーは、ウォレットにアクセスする唯一の手段です。</string>
+  <string name="private_key_reminder_do_not_share_title">誰とも共有しないでください</string>
+  <string name="private_key_reminder_do_not_share_subtitle">プライベートキーを知った人は誰でも、このウォレットを完全に操作できます。</string>
+  <string name="private_key_reminder_no_recovery_title">紛失したプライベートキーは復元できません</string>
+  <string name="private_key_reminder_no_recovery_subtitle">プライベートキーを紛失すると、ウォレットにアクセスできなくなります。</string>
+  <string name="private_key_do_not_share_title">プライベートキーを共有しないでください。</string>
+  <string name="private_key_do_not_share_description">プライベートキーを知った人は、このアカウントを完全に操作できます。</string>
+  <string name="private_key_screenshot_detected_description">スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でプライベートキーを保存すると、漏えいするおそれがあります。</string>
   <string name="social_x">エックス（旧ツイッター）</string>
   <string name="social_discord">ディスコード</string>
   <string name="social_reddit">レディット</string>
@@ -448,7 +458,7 @@
   <string name="verify_phrase_title">確認する</string>
   <string name="warnings_externally_controlled_account">この%1$sアカウントは他の人が管理している可能性があります。自分が管理していると確信できない限り、資金を送らないでください。資産を永久に失う可能性があります。</string>
   <string name="sell_title">%1$sを売る</string>
-  <string name="info_region_unavailable_description">この機能はお住まいの地域では利用できません。 利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。</string>
+  <string name="info_region_unavailable_description">この機能はお住まいの地域では利用できません。利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。</string>
   <string name="info_network_fee_title">ネットワーク手数料</string>
   <string name="info_watch_wallet_title">ウォッチウォレット</string>
   <string name="info_watch_wallet_description">資産を操作する権限はありませんが、取引や資金の動きを確認できるウォレットです。</string>

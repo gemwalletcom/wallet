@@ -1,11 +1,10 @@
 package com.gemwallet.android.data.services.store.integration
 
-import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.GemDatabase
 import com.gemwallet.android.data.services.store.database.entities.DbContact
 import com.gemwallet.android.data.services.store.database.entities.DbContactAddress
+import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.ContactQuery
 import com.gemwallet.android.data.services.store.queries.ContactsQuery
 import com.wallet.core.primitives.Chain
@@ -25,10 +24,7 @@ class ContactsQueryTest {
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
-        database = Room.inMemoryDatabaseBuilder(
-            InstrumentationRegistry.getInstrumentation().targetContext,
-            GemDatabase::class.java,
-        ).build()
+        database = mockGemDatabase()
         val contacts = database.contactsDao()
         contacts.addContact(
             DbContact(id = "bob", name = "Bob", createdAt = 1, updatedAt = 1),
