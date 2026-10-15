@@ -27,7 +27,6 @@ internal class CandlestickPlot(
     val volumeBand = Rect(frame.left, frame.bottom - frame.height * VOLUME_BAND_FRACTION, frame.right, frame.bottom)
     val priceBottom = volumeBand.top - volumeBandGap
     val bodyWidth = max(1f, chart.bodyWidth.toFloat() * frame.width)
-    val markers = chart.markers.filter { x(it.date) in frame.left..frame.right }
 
     fun x(date: Long): Float = frame.left + (date - chart.start) / span * frame.width
 

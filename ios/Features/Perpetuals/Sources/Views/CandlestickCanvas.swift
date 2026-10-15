@@ -121,7 +121,7 @@ extension CandlestickCanvas {
     }
 
     private func drawMarkers(in context: inout GraphicsContext) {
-        for marker in plot.markers {
+        for marker in plot.chart.markers {
             let rect = plot.marker(marker)
             context.fill(Path(ellipseIn: rect.insetBy(dx: -Metrics.markerRingWidth, dy: -Metrics.markerRingWidth)), with: .color(Colors.white))
             context.fill(Path(ellipseIn: rect), with: .color(marker.direction.toPrimitives().color))

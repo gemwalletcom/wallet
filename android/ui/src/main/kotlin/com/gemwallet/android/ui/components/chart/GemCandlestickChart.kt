@@ -33,9 +33,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.components.perpetual.color
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.alpha60
@@ -118,6 +120,7 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
     val gridGuidelineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.13f)
     val volumeColor = MaterialTheme.colorScheme.onSurface.copy(alpha = CandlestickMetrics.VOLUME_ALPHA)
     val selectionAccentColor = MaterialTheme.colorScheme.primary
+    val markerColors = PerpetualDirection.entries.associateWith { it.toPrimitives().color() }
     val markerRingColor = MaterialTheme.colorScheme.surface
     val currentPriceLineColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f)
     val referenceColorByRole = referenceColors()
@@ -219,12 +222,8 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
                 badgeCornerRadiusPx = badgeCornerRadiusPx,
                 textMeasurer = textMeasurer,
             )
-            plot.markers.forEach { marker ->
-                val color = when (marker.direction) {
-                    PerpetualDirection.LONG -> upColor
-                    PerpetualDirection.SHORT -> downColor
-                }
-                drawMarker(plot.marker(marker), marker.direction, color, markerRingColor, markerRingWidthPx)
+            chart.markers.forEach { marker ->
+                drawMarker(plot.marker(marker), marker.direction, markerColors.getValue(marker.direction), markerRingColor, markerRingWidthPx)
             }
             drawCurrentPriceBadge(
                 price = layout.currentPrice.value,

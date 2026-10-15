@@ -75,24 +75,26 @@ pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, price_dec
         body_width: interval.num_milliseconds() as f64 * CANDLE_BODY_FRACTION / (end - start).num_milliseconds() as f64,
         x_ticks: x_ticks(visible, start..=end, interval, utc_offset),
         is_zoomed: zoom.is_zoomed(),
-        markers: candle_markers(visible, interval, transactions),
+        markers: candle_markers(visible, start..=end, interval, transactions),
     })
 }
 
-fn candle_markers(candles: &[ChartCandleStick], interval: TimeDelta, transactions: &[GemTransactionRow]) -> Vec<GemCandleMarker> {
-    candles
+fn candle_markers(candles: &[ChartCandleStick], window: RangeInclusive<DateTime<Utc>>, interval: TimeDelta, transactions: &[GemTransactionRow]) -> Vec<GemCandleMarker> {
+    let trades: BTreeMap<_, _> = transactions
         .iter()
         .enumerate()
-        .flat_map(|(index, candle)| {
-            let end = candles.get(index + 1).map_or(candle.date + interval, |next| next.date);
-            let trades: BTreeMap<_, _> = transactions
-                .iter()
-                .enumerate()
-                .filter(|(_, row)| row.state == TransactionState::Confirmed && (candle.date..end).contains(&row.created_at))
-                .filter_map(|(position, row)| Some(((row.created_at, position), trade_direction(&row.title)?)))
-                .collect();
-            let hidden = trades.len().saturating_sub(CANDLE_MARKER_LIMIT);
-            trades.into_values().skip(hidden).enumerate().map(move |(level, direction)| GemCandleMarker {
+        .filter(|(_, row)| row.state == TransactionState::Confirmed)
+        .filter_map(|(position, row)| Some(((row.created_at, position), trade_direction(&row.title)?)))
+        .collect();
+    let ends = candles.iter().skip(1).map(|next| next.date).chain(candles.last().map(|last| last.date + interval));
+    candles
+        .iter()
+        .zip(ends)
+        .filter(|(candle, _)| window.contains(&candle.date))
+        .flat_map(|(candle, end)| {
+            let directions: Vec<_> = trades.range((candle.date, 0)..(end, 0)).map(|(_, direction)| direction.clone()).collect();
+            let hidden = directions.len().saturating_sub(CANDLE_MARKER_LIMIT);
+            directions.into_iter().skip(hidden).enumerate().map(move |(level, direction)| GemCandleMarker {
                 date: candle.date,
                 price: candle.high,
                 direction,
@@ -222,11 +224,20 @@ mod tests {
         use crate::services::transactions::rules::row;
         use primitives::PerpetualDirection::{Long, Short};
         use primitives::TransactionType::{PerpetualClosePosition as Close, PerpetualModifyPosition as Modify, PerpetualOpenPosition as Open};
-        use primitives::{Transaction, TransactionListItem, TransactionType};
-        let trade = |kind: TransactionType, direction, seconds| Transaction::mock_perpetual(kind, direction, DateTime::from_timestamp(seconds, 0).unwrap());
-        let markers = |candles: &[ChartCandleStick], trades: &[Transaction]| {
+        use primitives::{Transaction, TransactionListItem, TransactionPerpetualMetadata, TransactionType};
+        let trade = |transaction_type: TransactionType, direction, seconds| Transaction {
+            transaction_type,
+            created_at: DateTime::from_timestamp(seconds, 0).unwrap(),
+            metadata: serde_json::to_value(TransactionPerpetualMetadata {
+                direction,
+                ..TransactionPerpetualMetadata::mock()
+            })
+            .ok(),
+            ..Transaction::mock()
+        };
+        let markers = |candles: &[ChartCandleStick], zoom: GemChartZoom, trades: &[Transaction]| {
             let rows: Vec<GemTransactionRow> = trades.iter().map(|trade| row(&TransactionListItem::mock_transaction(trade.clone()))).collect();
-            let chart = candle_chart(candles, ChartPeriod::Hour, 2, None, &rows, GemChartZoom::default(), TimeDelta::zero()).unwrap();
+            let chart = candle_chart(candles, ChartPeriod::Hour, 2, None, &rows, zoom, TimeDelta::zero()).unwrap();
             chart.markers.into_iter().map(|marker| (marker.date.timestamp(), marker.direction, marker.level, marker.price)).collect::<Vec<_>>()
         };
         let minutes = ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 40);
@@ -239,12 +250,29 @@ mod tests {
         };
 
         assert_eq!(
-            markers(&minutes, &[trade(Close, Long, 170), trade(Open, Short, 150), trade(Close, Short, 140), trade(Open, Long, 125), trade(Open, Short, 121)]),
+            markers(
+                &minutes,
+                GemChartZoom::default(),
+                &[trade(Close, Long, 170), trade(Open, Short, 150), trade(Close, Short, 140), trade(Open, Long, 125), trade(Open, Short, 121)]
+            ),
             vec![(120, Long, 0, 103.0), (120, Long, 1, 103.0), (120, Short, 2, 103.0), (120, Short, 3, 103.0)],
             "a candle stacks its latest four trades over its high, the oldest lowest, a close marked as the side it trades"
         );
-        assert_eq!(markers(&minutes, &[pending, trade(Modify, Long, 125), trade(Open, Long, 2400)]), vec![], "only filled trades on the drawn candles are marked");
-        assert_eq!(markers(&months, &[trade(Open, Long, 29 * 86_400)]), vec![(0, Long, 0, 101.0)], "a trade late in a long month stays on its candle");
+        assert_eq!(
+            markers(&minutes, GemChartZoom::default(), &[pending, trade(Modify, Long, 125), trade(Open, Long, 2400)]),
+            vec![],
+            "only filled trades on the drawn candles are marked"
+        );
+        assert_eq!(
+            markers(&months, GemChartZoom::default(), &[trade(Open, Long, 29 * 86_400)]),
+            vec![(0, Long, 0, 101.0)],
+            "a trade late in a long month stays on its candle"
+        );
+        assert_eq!(
+            markers(&minutes, GemChartZoom { scale: 2.0, offset: 0.25 }, &[trade(Open, Long, 545), trade(Open, Short, 610), trade(Open, Long, 1805)]),
+            vec![(600, Short, 0, 111.0)],
+            "a candle whose middle is off the plot carries no marker"
+        );
     }
 
     #[test]

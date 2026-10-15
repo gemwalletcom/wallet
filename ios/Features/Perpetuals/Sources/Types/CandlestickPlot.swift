@@ -67,10 +67,6 @@ struct CandlestickPlot {
         return CGRect(x: x(for: candle.date) - width / 2, y: high, width: width, height: max(width, y(for: candle.low) - high))
     }
 
-    var markers: [GemCandleMarker] {
-        chart.markers.filter { (frame.minX ... frame.maxX).contains(x(for: $0.date)) }
-    }
-
     func marker(_ marker: GemCandleMarker) -> CGRect {
         let bottom = y(for: marker.price) - Metrics.markerGap - CGFloat(marker.level) * Metrics.markerSize * Metrics.markerStepRatio
         let top = max(bottom - Metrics.markerSize, frame.minY)
