@@ -1,17 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAmountField
 import struct Gemstone.GemNumberFormat
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 
 struct FiatCurrencyInputConfig: CurrencyInputConfigurable {
     let secondaryText: String
-    let currencySymbol: String
+    let field: GemAmountField
     let numberFormat: GemNumberFormat
 
     var currencyPosition: CurrencyTextField.CurrencyPosition {
-        .leading
+        field.placement.position
+    }
+
+    var currencySymbol: String {
+        field.symbol.text
     }
 
     var placeholder: String {
@@ -19,7 +25,7 @@ struct FiatCurrencyInputConfig: CurrencyInputConfigurable {
     }
 
     var keyboardType: UIKeyboardType {
-        .numberPad
+        field.keyboard.keyboardType
     }
 
     func sanitize(_ text: String) -> String {

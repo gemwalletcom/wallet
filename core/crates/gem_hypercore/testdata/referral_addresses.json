@@ -1,0 +1,55 @@
+{
+  "referredBy": null,
+  "cumVlm": "0.0",
+  "referrerState": {
+    "stage": "ready",
+    "data": {
+      "code": "GEMWALLET",
+      "referralStates": [
+        {
+          "user": "0x0000000000000000000000000000000000000001",
+          "timeJoined": 1753127993370,
+          "cumVlm": "100.0",
+          "cumFeesRewardedToReferrer": "10.0",
+          "tokenToState": [
+            [
+              0,
+              {
+                "cumVlm": "100.0",
+                "cumFeesRewardedToReferrer": "10.0"
+              }
+            ],
+            [
+              235,
+              {
+                "cumVlm": "20.0",
+                "cumFeesRewardedToReferrer": "2.0"
+              }
+            ],
+            [
+              268,
+              {
+                "cumVlm": "30.0",
+                "cumFeesRewardedToReferrer": "3.0"
+              }
+            ],
+            [
+              360,
+              {
+                "cumVlm": "40.0",
+                "cumFeesRewardedToReferrer": "4.0"
+              }
+            ]
+          ]
+        },
+        {
+          "user": "0x0000000000000000000000000000000000000002",
+          "timeJoined": 1753127994370,
+          "cumVlm": "0.0",
+          "cumFeesRewardedToReferrer": "0.0",
+          "tokenToState": []
+        }
+      ]
+    }
+  }
+}

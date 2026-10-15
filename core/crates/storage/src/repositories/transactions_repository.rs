@@ -400,14 +400,11 @@ impl TransactionsRepository for DatabaseClient {
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
     use chrono::{DateTime, Duration, Utc};
-    use diesel::prelude::*;
     use num_bigint::BigUint;
     use primitives::{Asset, Chain, Transaction, TransactionDirection, TransactionId, TransactionType};
 
     use super::TransactionFilter;
-    use crate::models::NewWalletAddressRow;
-    use crate::schema::wallets_addresses;
-    use crate::{AssetsRepository, ChainsRepository, Database, DatabaseClient, DatabaseError, TransactionsRepository};
+    use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, TransactionsRepository, WalletsRepository};
 
     #[tokio::test]
     async fn test_transaction_pagination_keeps_timestamp_and_hash_ties() {
@@ -453,11 +450,6 @@ mod database_integration_tests {
         assert_eq!(newer[0].id.chain, Chain::Ethereum);
     }
 
-    fn add_wallet_addresses(client: &mut DatabaseClient, addresses: &[&str]) -> Result<usize, DatabaseError> {
-        let rows: Vec<NewWalletAddressRow> = addresses.iter().map(|address| NewWalletAddressRow { address: address.to_string() }).collect();
-        Ok(diesel::insert_into(wallets_addresses::table).values(&rows).execute(&mut client.connection)?)
-    }
-
     #[tokio::test]
     async fn test_get_transaction_by_id_direction_from_wallet_addresses() {
         let database = Database::mock();
@@ -498,7 +490,7 @@ mod database_integration_tests {
             .run(move |client| -> Result<_, DatabaseError> {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
-                add_wallet_addresses(client, &["0xfrom", "0xto"])?;
+                client.add_wallet_addresses(vec!["0xfrom".to_string(), "0xto".to_string()])?;
                 client.set_transactions(vec![transaction])?;
                 client.get_transactions_by_device_id("", vec!["0xfrom".to_string(), "0xto".to_string()], vec![Chain::Ethereum.to_string()], None, None, 10, 0)
             })
@@ -523,11 +515,11 @@ mod database_integration_tests {
             .run(move |client| -> Result<_, DatabaseError> {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
-                add_wallet_addresses(client, &["0xlinkto"])?;
+                client.add_wallet_addresses(vec!["0xlinkto".to_string()])?;
                 client.set_transactions(vec![transaction.clone()])?;
                 let from_before = client.get_transactions_count_by_addresses(vec!["0xlinkfrom".to_string()], chains.clone())?;
                 let to_before = client.get_transactions_count_by_addresses(vec!["0xlinkto".to_string()], chains.clone())?;
-                add_wallet_addresses(client, &["0xlinkfrom"])?;
+                client.add_wallet_addresses(vec!["0xlinkfrom".to_string()])?;
                 client.set_transactions(vec![transaction])?;
                 let from_after = client.get_transactions_count_by_addresses(vec!["0xlinkfrom".to_string()], chains)?;
                 Ok((from_before, to_before, from_after))

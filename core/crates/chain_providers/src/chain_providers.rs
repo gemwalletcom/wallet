@@ -3,6 +3,7 @@ use std::error::Error;
 use chain_traits::{ChainTraits, TransactionFeeEstimates, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use futures::{StreamExt, stream};
 use gem_tracing::warn_with_fields;
+use primitives::perpetual::PerpetualAddress;
 use primitives::{AddressStatus, Asset, AssetBalance, Chain, DelegationBase, PerpetualData, PerpetualPosition, StakeValidator, Transaction, TransactionStateRequest, TransactionUpdate};
 use settings::Settings;
 
@@ -126,8 +127,8 @@ impl ChainProviders {
         self.get_provider(chain)?.get_perpetuals_data().await
     }
 
-    pub async fn get_perpetual_referral_addresses(&self, chain: Chain) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        self.get_provider(chain)?.get_perpetual_referral_addresses().await
+    pub async fn get_perpetual_addresses(&self, chain: Chain) -> Result<Vec<PerpetualAddress>, Box<dyn Error + Send + Sync>> {
+        self.get_provider(chain)?.get_perpetual_addresses().await
     }
 
     pub async fn get_address_status(&self, chain: Chain, address: String) -> Result<Vec<AddressStatus>, Box<dyn Error + Send + Sync>> {

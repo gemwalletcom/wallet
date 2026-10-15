@@ -6,8 +6,8 @@ use gem_client::Client;
 use primitives::Transaction;
 
 use crate::{
-    models::{BlockTransaction, SingleTransaction},
-    provider::transaction_mapper::{map_block_transactions, map_transaction},
+    models::SingleTransaction,
+    provider::transaction_mapper::{map_block_transactions, map_single_transaction},
     rpc::{SolanaIndexer, SolanaProvider, constants::MISSING_BLOCKS_ERRORS},
 };
 
@@ -42,14 +42,6 @@ impl<C: Client + Clone> ChainTransaction for SolanaIndexer<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         Ok(self.get_transaction(&request.hash).await?.and_then(map_single_transaction))
     }
-}
-
-fn map_single_transaction(transaction: SingleTransaction) -> Option<Transaction> {
-    let block_transaction = BlockTransaction {
-        meta: transaction.meta,
-        transaction: transaction.transaction,
-    };
-    map_transaction(&block_transaction, transaction.block_time)
 }
 
 #[async_trait]

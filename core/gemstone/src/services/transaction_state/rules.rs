@@ -5,16 +5,16 @@ use super::model::{GemTransactionStateUpdate, TransactionPostProcessing};
 use crate::payment::payment_record_hash;
 use crate::services::collections::unique;
 
-pub fn destination_chain(transaction: &Transaction) -> Option<Chain> {
-    (transaction.state == TransactionState::InTransit).then(|| transaction.swap_metadata().map(|metadata| metadata.to_asset.chain)).flatten()
+pub fn destination_chain(transaction: &Transaction, state: TransactionState) -> Option<Chain> {
+    (state == TransactionState::InTransit).then(|| transaction.swap_metadata().map(|metadata| metadata.to_asset.chain)).flatten()
 }
 
-pub fn has_timed_out(transaction: &Transaction, now: DateTime<Utc>) -> bool {
-    if transaction.state.is_completed() {
+pub fn has_timed_out(transaction: &Transaction, state: TransactionState, now: DateTime<Utc>) -> bool {
+    if state.is_completed() {
         return false;
     }
     let chain = transaction.asset_id.chain;
-    let timeout_ms = swap_transaction_timeout(chain, destination_chain(transaction).unwrap_or(chain));
+    let timeout_ms = swap_transaction_timeout(chain, destination_chain(transaction, state).unwrap_or(chain));
     (now - transaction.created_at).num_milliseconds() > timeout_ms as i64
 }
 

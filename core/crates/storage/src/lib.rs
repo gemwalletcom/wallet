@@ -30,6 +30,7 @@ pub use self::repositories::{
     nft_repository::{NftCollectionFilter, NftRepository},
     notifications_repository::{NewNotification, NotificationsRepository},
     parser_state_repository::{ParserState, ParserStateRepository},
+    perpetuals_addresses_repository::PerpetualsAddressesRepository,
     perpetuals_repository::PerpetualsRepository,
     price_alerts_repository::{PriceAlertFilter, PriceAlertUpdate, PriceAlertsRepository},
     prices_providers_repository::PricesProvidersRepository,

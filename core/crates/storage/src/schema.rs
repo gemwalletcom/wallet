@@ -631,6 +631,21 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::PerpetualProvider;
+
+    perpetuals_addresses (provider, address_id) {
+        provider -> PerpetualProvider,
+        address_id -> Int4,
+        referred_at -> Timestamp,
+        cumulative_volume_usd -> Float8,
+        cumulative_referral_earned_usd -> Float8,
+        updated_at -> Timestamp,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     perpetuals_tags (perpetual_id, tag_id) {
         #[max_length = 128]
         perpetual_id -> Varchar,
@@ -1137,6 +1152,7 @@ diesel::joinable!(nft_reports -> nft_collections (collection_id));
 diesel::joinable!(notifications -> assets (asset_id));
 diesel::joinable!(notifications -> wallets (wallet_id));
 diesel::joinable!(parser_state -> chains (chain));
+diesel::joinable!(perpetuals_addresses -> wallets_addresses (address_id));
 diesel::joinable!(perpetuals_tags -> perpetuals (perpetual_id));
 diesel::joinable!(perpetuals_tags -> tags (tag_id));
 diesel::joinable!(price_alerts -> assets (asset_id));
@@ -1209,6 +1225,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     notifications,
     parser_state,
     perpetuals,
+    perpetuals_addresses,
     perpetuals_tags,
     price_alerts,
     prices,

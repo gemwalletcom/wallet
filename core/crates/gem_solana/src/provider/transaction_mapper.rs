@@ -4,7 +4,7 @@ use num_bigint::{BigUint, Sign};
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
     WSOL_TOKEN_ADDRESS,
-    models::{BlockTransaction, BlockTransactions, Instruction, TokenBalanceChange},
+    models::{BlockTransaction, BlockTransactions, Instruction, SingleTransaction, TokenBalanceChange},
 };
 use primitives::{
     AssetId, Chain, NFTAssetId, OptionStringExt, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, swap::SOLANA_REFERRAL_ADDRESS,
@@ -168,6 +168,14 @@ pub fn map_block_transactions(transactions: &BlockTransactions) -> Vec<primitive
     transactions.transactions.iter().filter_map(|transaction| map_transaction(transaction, transactions.block_time)).collect()
 }
 
+pub fn map_single_transaction(transaction: SingleTransaction) -> Option<primitives::Transaction> {
+    let block_transaction = BlockTransaction {
+        meta: transaction.meta,
+        transaction: transaction.transaction,
+    };
+    map_transaction(&block_transaction, transaction.block_time)
+}
+
 pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Option<primitives::Transaction> {
     if transaction.transaction.signatures.len() > 2 {
         return None;
@@ -326,12 +334,9 @@ mod tests {
 
     use super::*;
     use crate::provider::testkit::TEST_TRANSACTION_ID;
-    use crate::{
-        PYUSD_TOKEN_MINT, RELAY_DEPOSITORY_PROGRAM_ID, USDT_TOKEN_MINT,
-        models::{SingleTransaction, SolanaTransaction},
-    };
+    use crate::{PYUSD_TOKEN_MINT, RELAY_DEPOSITORY_PROGRAM_ID, USDT_TOKEN_MINT, models::SolanaTransaction};
     use gem_jsonrpc::types::JsonRpcErrorResponse;
-    use primitives::{JsonRpcResult, asset_constants::SOLANA_USDC_ASSET_ID};
+    use primitives::{JsonRpcResult, asset_constants::SOLANA_USDC_ASSET_ID, testkit::json::load_json_rpc_result};
 
     const SPL_NFT_MINT: &str = "4umMdShNxbdnoV2EZjUp6h5GYYneZFLH9otBEU2K3ZYP";
     const PNFT_MINT: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
@@ -340,7 +345,7 @@ mod tests {
 
     #[test]
     fn test_map_mayan_deposit_without_local_swap_output() {
-        let transaction = map_single_transaction(include_str!("../../testdata/mayan_deposit_jupiter_route.json"));
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/mayan_deposit_jupiter_route.json"))).unwrap();
 
         assert_eq!(transaction.hash(), "vXUaBxa3MtnodHE7by5sXpExWHoMdcp7qiMKk1UoM8CnYBGD84KpzbErWLVf7RfjAmsrhJxjJ3Df7hqJ4Qh4umb");
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
@@ -349,7 +354,7 @@ mod tests {
 
     #[test]
     fn test_map_orca_swap_referral_fee() {
-        let transaction = map_single_transaction(include_str!("../../testdata/swap_orca_referral_fee.json"));
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/swap_orca_referral_fee.json"))).unwrap();
         let metadata = transaction.swap_metadata().unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
@@ -365,7 +370,7 @@ mod tests {
 
     #[test]
     fn test_map_transfer_sol_with_memo_and_compute_budget() {
-        let transaction = map_single_transaction(include_str!("../../testdata/transfer_sol_with_memo_compute.json"));
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/transfer_sol_with_memo_compute.json"))).unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.from, "BUW2vSJMbNojvi9vh1oRg6Qd88GAYSqZifXzZ7JN8uKV");
@@ -373,18 +378,9 @@ mod tests {
         assert!(transaction.memo.as_deref().is_some_and(|memo| memo.starts_with('=')));
     }
 
-    fn map_single_transaction(payload: &str) -> primitives::Transaction {
-        let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(payload).unwrap();
-        let block_transaction = BlockTransaction {
-            meta: result.result.meta,
-            transaction: result.result.transaction,
-        };
-        map_transaction(&block_transaction, result.result.block_time).unwrap()
-    }
-
     #[test]
     fn test_transaction_relay_token_deposit_lookup_table() {
-        let transaction = map_single_transaction(include_str!("../../testdata/relay_deposit_token_lookup_table.json"));
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/relay_deposit_token_lookup_table.json"))).unwrap();
         let expected = Transaction::new(
             "4JYHmWNmuCXuTMfNFWVYLWsoJSfbaukdzYLDQ12Cxj6A8DsChLwRuUHWKe33JqNtKGM7wPHckz3EvGvvaLE8ormn".to_string(),
             SOLANA_USDC_ASSET_ID.clone(),
@@ -407,7 +403,7 @@ mod tests {
 
     #[test]
     fn test_transaction_nft_spl_token_transfer() {
-        let transaction = map_single_transaction(include_str!("../../testdata/nft_spl_token_transfer.json"));
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/nft_spl_token_transfer.json"))).unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
         assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
@@ -423,7 +419,7 @@ mod tests {
 
     #[test]
     fn test_transaction_nft_token_metadata_transfer() {
-        let transaction = map_single_transaction(include_str!("../../testdata/nft_token_program_transfer.json"));
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/nft_token_program_transfer.json"))).unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
         assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
@@ -439,7 +435,7 @@ mod tests {
 
     #[test]
     fn test_transaction_nft_mplcore_transfer() {
-        let transaction = map_single_transaction(include_str!("../../testdata/nft_mplcore_transfer.json"));
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/nft_mplcore_transfer.json"))).unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
         assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
@@ -624,7 +620,7 @@ mod tests {
 
     #[test]
     fn test_transaction_transfer_sol_compute_program_last() {
-        let transaction = map_single_transaction(include_str!("../../testdata/transfer_sol_compute_program_last.json"));
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/transfer_sol_compute_program_last.json"))).unwrap();
         let expected = Transaction::new(
             "55cdNy5LCuvW6SC3uZstkHwAt9Tpu3EMn1LujddzX93X6LNd2VaXsbvoUMkgdyuDJ8W6MGDrucVxMGqiipf596fv".to_string(),
             Chain::Solana.as_asset_id(),
@@ -655,14 +651,7 @@ mod tests {
 
     #[test]
     fn test_map_transaction_by_hash() {
-        let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(include_str!("../../testdata/usdc_transfer.json")).unwrap();
-
-        let block_transaction = BlockTransaction {
-            meta: result.result.meta,
-            transaction: result.result.transaction,
-        };
-
-        let transaction = map_transaction(&block_transaction, result.result.block_time).unwrap();
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/usdc_transfer.json"))).unwrap();
         let expected = Transaction::new(
             TEST_TRANSACTION_ID.to_string(),
             SOLANA_USDC_ASSET_ID.clone(),
@@ -684,7 +673,7 @@ mod tests {
 
     #[test]
     fn test_transaction_solana_pay_usdc_transfer() {
-        let transaction = map_single_transaction(include_str!("../../testdata/solana_pay_usdc_transfer.json"));
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/solana_pay_usdc_transfer.json"))).unwrap();
         let expected = Transaction::new(
             "4sk4xbQPfT4YAmKHFCAxfkFvkEfuJhjf4kWHsPCGFmJS5VDRRDP3LX6P2QAbAfJcwAtYoXTXKm1R6wtr6PC2taeU".to_string(),
             SOLANA_USDC_ASSET_ID.clone(),
@@ -706,14 +695,7 @@ mod tests {
 
     #[test]
     fn test_transaction_transfer_usdc_fee_payer() {
-        let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(include_str!("../../testdata/usdc_transfer_fee_payer.json")).unwrap();
-
-        let block_transaction = BlockTransaction {
-            meta: result.result.meta,
-            transaction: result.result.transaction,
-        };
-
-        let transaction = map_transaction(&block_transaction, result.result.block_time).unwrap();
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/usdc_transfer_fee_payer.json"))).unwrap();
         let expected = Transaction::new(
             "65MevEhHuXZzwQ8VftyQUmbgbs41bj2KMhf6zDM5hqsXN6jxsHYniHbi7MMWQ4kitcgfRdsuYe1s7zAqtzPYXZVG".to_string(),
             SOLANA_USDC_ASSET_ID.clone(),

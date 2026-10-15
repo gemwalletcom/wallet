@@ -6,6 +6,7 @@ impl StoreTransactionsConsumerConfig {
     pub fn mock() -> Self {
         Self {
             swap_outdated_timeout: HOUR * 2,
+            cross_chain_swap_outdated_timeout: DAY,
             outdated_block_count: 12,
             outdated_min_timeout: MINUTE * 15,
             max_asset_transfer_count: 10,

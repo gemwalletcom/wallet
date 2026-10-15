@@ -5,6 +5,7 @@ use axum::extract::State;
 use num_bigint::BigUint;
 use primitives::{AssetId, swap::SwapResult};
 use serde::Deserialize;
+use services::transactions::TransactionsClient;
 use swapper::{Options, QuoteRequest, SwapQuotes, SwapResultRequest, SwapperQuoteAsset, config::get_default_slippage, cross_chain::VaultAddresses, swapper::GemSwapper};
 
 use crate::auth::api_client::ChainRead;
@@ -21,8 +22,21 @@ pub struct QuoteQuery {
     destination_address: AddressParam,
 }
 
-pub async fn get_swap_result(_permission: ChainRead, Path((provider, hash)): Path<(SwapProviderParam, String)>, Query(query): Query<ChainQuery>, State(swapper): State<Arc<GemSwapper>>) -> Result<ApiResponse<SwapResult>, ApiError> {
-    Ok(swapper.get_swap_result(provider.0, &SwapResultRequest::new(query.chain.0, &hash)).await?.into())
+pub async fn get_swap_result(
+    _permission: ChainRead,
+    Path((provider, hash)): Path<(SwapProviderParam, String)>,
+    Query(query): Query<ChainQuery>,
+    State(swapper): State<Arc<GemSwapper>>,
+    State(transactions): State<Arc<TransactionsClient>>,
+) -> Result<ApiResponse<SwapResult>, ApiError> {
+    let chain = query.chain.0;
+    let request = transactions
+        .get_transactions_by_hash(&hash)
+        .await?
+        .iter()
+        .find(|transaction| transaction.id.chain == chain)
+        .map_or_else(|| SwapResultRequest::new(chain, &hash), SwapResultRequest::from);
+    Ok(swapper.get_swap_result(provider.0, &request).await?.into())
 }
 
 pub async fn get_vault_addresses(_permission: ChainRead, Path(provider): Path<SwapProviderParam>, State(swapper): State<Arc<GemSwapper>>) -> Result<ApiResponse<VaultAddresses>, ApiError> {

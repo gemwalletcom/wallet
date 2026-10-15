@@ -149,10 +149,9 @@ impl GemTransactionStateService {
 }
 
 async fn merge_update(store: &dyn GemTransactionStateStore, wallet_id: WalletId, transaction: Transaction, update: Result<TransactionUpdate, String>, now: DateTime<Utc>) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
-    let timed_out = rules::has_timed_out(&transaction, now);
     let update = match update {
         Ok(update) => update,
-        Err(_) if timed_out => TransactionUpdate::new_state(TransactionState::Failed),
+        Err(_) if rules::has_timed_out(&transaction, transaction.state, now) => TransactionUpdate::new_state(TransactionState::Failed),
         Err(msg) => return Err(GemServiceError::Gateway { msg }),
     };
     let transaction_id = match rules::new_hash(&update.changes) {
@@ -167,7 +166,7 @@ async fn merge_update(store: &dyn GemTransactionStateStore, wallet_id: WalletId,
         return Ok(None);
     };
     let next_state = match current_state.merged_with(update.state) {
-        state if timed_out && !state.is_completed() => TransactionState::Failed,
+        state if rules::has_timed_out(&transaction, state, now) => TransactionState::Failed,
         state => state,
     };
     let fields = rules::state_update(next_state, &update.changes, &transaction).map_err(GemServiceError::core)?;
@@ -397,6 +396,20 @@ mod tests {
     }
 
     #[test]
+    fn test_a_late_confirmed_deposit_moves_into_transit_instead_of_failing() {
+        let now = Utc::now();
+        let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
+        let polled = Transaction {
+            created_at: now - chrono::Duration::hours(2),
+            ..Transaction::mock_swap()
+        };
+
+        let result = merge_polled_update(&store, polled, Ok(TransactionUpdate::new_state(TransactionState::InTransit)), now).unwrap().unwrap();
+
+        assert_eq!(result.state, TransactionState::InTransit);
+    }
+
+    #[test]
     fn test_post_processing_by_state_transition() {
         let now = Utc::now();
         let swap = Transaction { created_at: now, ..Transaction::mock_swap() };
@@ -436,15 +449,16 @@ mod tests {
             ..Transaction::mock_swap()
         };
 
-        assert_eq!(rules::destination_chain(&in_transit), Some(Chain::Bitcoin));
-        assert!(!rules::has_timed_out(&in_transit, now));
-        assert!(rules::has_timed_out(&Transaction { created_at, ..Transaction::mock_swap() }, now));
+        assert_eq!(rules::destination_chain(&in_transit, in_transit.state), Some(Chain::Bitcoin));
+        assert!(!rules::has_timed_out(&in_transit, in_transit.state, now));
+        assert!(rules::has_timed_out(&Transaction { created_at, ..Transaction::mock_swap() }, TransactionState::Pending, now));
+        assert!(!rules::has_timed_out(&Transaction { created_at, ..Transaction::mock_swap() }, TransactionState::InTransit, now));
         assert!(!rules::has_timed_out(
             &Transaction {
-                state: TransactionState::Confirmed,
                 created_at: now - chrono::Duration::days(30),
                 ..Transaction::mock_swap()
             },
+            TransactionState::Confirmed,
             now
         ));
     }

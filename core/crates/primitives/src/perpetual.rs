@@ -1,7 +1,18 @@
-use crate::{Asset, AssetId, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider};
+use chrono::{DateTime, Utc};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
+
+use crate::{Asset, AssetId, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider};
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PerpetualAddress {
+    pub provider: PerpetualProvider,
+    pub address: String,
+    pub referred_at: DateTime<Utc>,
+    pub cumulative_volume_usd: f64,
+    pub cumulative_referral_earned_usd: f64,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
 #[model(swift = "Equatable, Sendable, Hashable")]

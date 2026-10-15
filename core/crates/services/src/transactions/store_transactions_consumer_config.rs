@@ -1,10 +1,9 @@
 use std::error::Error;
 use std::time::Duration;
 
-use chrono::NaiveDateTime;
 use config_keys::ConfigKey;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, Chain, Price, Transaction, TransactionState, TransactionType, transaction_metadata_types::TransactionAssetTransfersMetadata};
+use primitives::{Asset, Price, Transaction, TransactionState, TransactionType, transaction_metadata_types::TransactionAssetTransfersMetadata};
 use serde::Deserialize;
 use swapper::cross_chain::{self, SendAddressMap};
 
@@ -12,6 +11,7 @@ use crate::config::ConfigCacher;
 
 pub struct StoreTransactionsConsumerConfig {
     pub swap_outdated_timeout: Duration,
+    pub cross_chain_swap_outdated_timeout: Duration,
     pub outdated_block_count: u64,
     pub outdated_min_timeout: Duration,
     pub max_asset_transfer_count: usize,
@@ -23,8 +23,9 @@ pub struct StoreTransactionsConsumerConfig {
 
 impl StoreTransactionsConsumerConfig {
     pub async fn read(config: &ConfigCacher) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let (swap_outdated_timeout, outdated_block_count, outdated_min_timeout, max_asset_transfer_count, min_amount_usd, primary_price_max_age, batch_size, notifications_batch_size) = tokio::try_join!(
+        let (swap_outdated_timeout, cross_chain_swap_outdated_timeout, outdated_block_count, outdated_min_timeout, max_asset_transfer_count, min_amount_usd, primary_price_max_age, batch_size, notifications_batch_size) = tokio::try_join!(
             config.get_duration(ConfigKey::TransactionSwapOutdatedTimeout),
+            config.get_duration(ConfigKey::TransactionCrossChainSwapOutdatedTimeout),
             config.get_i64(ConfigKey::TransactionsOutdatedBlockCount),
             config.get_duration(ConfigKey::TransactionsOutdatedMinTimeout),
             config.get_usize(ConfigKey::TransactionsMaxAssetTransferCount),
@@ -35,6 +36,7 @@ impl StoreTransactionsConsumerConfig {
         )?;
         Ok(Self {
             swap_outdated_timeout,
+            cross_chain_swap_outdated_timeout,
             outdated_block_count: outdated_block_count as u64,
             outdated_min_timeout,
             max_asset_transfer_count,
@@ -45,16 +47,19 @@ impl StoreTransactionsConsumerConfig {
         })
     }
 
-    pub fn is_transaction_outdated(&self, transaction_created_at: NaiveDateTime, chain: Chain, transaction_type: TransactionType) -> bool {
-        let elapsed = (chrono::Utc::now().naive_utc() - transaction_created_at).to_std().unwrap_or_default();
-        elapsed > self.outdated_timeout(chain, transaction_type)
+    pub fn is_transaction_outdated(&self, transaction: &Transaction) -> bool {
+        let elapsed = (chrono::Utc::now() - transaction.created_at).to_std().unwrap_or_default();
+        elapsed > self.outdated_timeout(transaction)
     }
 
-    fn outdated_timeout(&self, chain: Chain, transaction_type: TransactionType) -> Duration {
-        if transaction_type == TransactionType::Swap {
-            return self.swap_outdated_timeout;
+    fn outdated_timeout(&self, transaction: &Transaction) -> Duration {
+        if transaction.transaction_type == TransactionType::Swap {
+            return match transaction.swap_metadata() {
+                Some(metadata) if metadata.from_asset.chain != metadata.to_asset.chain => self.cross_chain_swap_outdated_timeout,
+                _ => self.swap_outdated_timeout,
+            };
         }
-        let block_time_secs = chain.block_time() as u64 / 1000;
+        let block_time_secs = transaction.asset_id.chain.block_time() as u64 / 1000;
         Duration::from_secs(block_time_secs * self.outdated_block_count).max(self.outdated_min_timeout)
     }
 
@@ -63,7 +68,7 @@ impl StoreTransactionsConsumerConfig {
             && transaction.state != TransactionState::InTransit
             && (!transaction.state.is_failed() || transaction.is_sent(address.to_string()))
             && !cross_chain::is_from_vault_address(transaction, send_addresses)
-            && !self.is_transaction_outdated(transaction.created_at.naive_utc(), transaction.asset_id.chain, transaction.transaction_type.clone())
+            && !self.is_transaction_outdated(transaction)
     }
 
     pub fn is_transaction_insufficient_amount(&self, transaction: &Transaction, asset: &Asset, price: Option<Price>, min_amount: f64) -> bool {
@@ -89,38 +94,35 @@ impl StoreTransactionsConsumerConfig {
 mod tests {
     use super::*;
     use num_bigint::BigUint;
-    use primitives::{AssetId, Chain, TransactionType, transaction_metadata_types::TransactionAssetTransfer};
+    use primitives::{AssetId, Chain, TransactionSwapMetadata, TransactionType, transaction_metadata_types::TransactionAssetTransfer};
 
     #[test]
-    fn test_is_transaction_outdated_positive() {
+    fn test_is_transaction_outdated() {
         let config = StoreTransactionsConsumerConfig::mock();
-        let timeout = config.outdated_timeout(Chain::Bitcoin, TransactionType::Transfer);
-        let created_at = chrono::Utc::now() - chrono::Duration::from_std(timeout).unwrap() - chrono::Duration::seconds(1);
-        assert!(config.is_transaction_outdated(created_at.naive_utc(), Chain::Bitcoin, TransactionType::Transfer));
-    }
+        let transfer = Transaction::mock_utxo(vec![], vec![]);
+        let same_chain_swap = Transaction {
+            metadata: serde_json::to_value(TransactionSwapMetadata {
+                to_asset: AssetId::from_chain(Chain::Ethereum),
+                ..TransactionSwapMetadata::mock()
+            })
+            .ok(),
+            ..Transaction::mock_swap()
+        };
+        let cross_chain_swap = Transaction::mock_swap();
 
-    #[test]
-    fn test_is_transaction_outdated_negative() {
-        let config = StoreTransactionsConsumerConfig::mock();
-        let timeout = config.outdated_timeout(Chain::Bitcoin, TransactionType::Transfer);
-        let created_at = chrono::Utc::now() - chrono::Duration::from_std(timeout).unwrap() + chrono::Duration::seconds(1);
-        assert!(!config.is_transaction_outdated(created_at.naive_utc(), Chain::Bitcoin, TransactionType::Transfer));
-    }
+        for (transaction, timeout) in [
+            (transfer.clone(), config.outdated_timeout(&transfer)),
+            (same_chain_swap, config.swap_outdated_timeout),
+            (cross_chain_swap, config.cross_chain_swap_outdated_timeout),
+        ] {
+            let created_at = |offset_seconds: i64| chrono::Utc::now() - chrono::Duration::from_std(timeout).unwrap() + chrono::Duration::seconds(offset_seconds);
 
-    #[test]
-    fn test_is_swap_outdated_positive() {
-        let config = StoreTransactionsConsumerConfig::mock();
-        let timeout = config.outdated_timeout(Chain::Ethereum, TransactionType::Swap);
-        let created_at = chrono::Utc::now() - chrono::Duration::from_std(timeout).unwrap() - chrono::Duration::seconds(1);
-        assert!(config.is_transaction_outdated(created_at.naive_utc(), Chain::Ethereum, TransactionType::Swap));
-    }
-
-    #[test]
-    fn test_is_swap_outdated_negative() {
-        let config = StoreTransactionsConsumerConfig::mock();
-        let timeout = config.outdated_timeout(Chain::Ethereum, TransactionType::Swap);
-        let created_at = chrono::Utc::now() - chrono::Duration::from_std(timeout).unwrap() + chrono::Duration::seconds(1);
-        assert!(!config.is_transaction_outdated(created_at.naive_utc(), Chain::Ethereum, TransactionType::Swap));
+            assert!(config.is_transaction_outdated(&Transaction {
+                created_at: created_at(-1),
+                ..transaction.clone()
+            }));
+            assert!(!config.is_transaction_outdated(&Transaction { created_at: created_at(1), ..transaction }));
+        }
     }
 
     #[test]
