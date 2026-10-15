@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -31,8 +30,6 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.fields.AmountField
-import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
-import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.image.listItemImage
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -48,6 +45,8 @@ import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ui.style.amountSymbol
+import com.gemwallet.android.ui.style.keyboardType
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -116,11 +115,11 @@ fun FiatScene(
         Spacer16()
         AmountField(
             amount = fiatAmount,
-            symbol = AmountSymbolUIModel(symbol = "$", placement = AmountSymbolPlacement.Trailing),
+            symbol = viewState.amountField.amountSymbol(),
             equivalent = selectedProvider?.let { it.cryptoEstimateText(it.cryptoAmount.text()) } ?: " ",
             error = viewState.amountError?.string(LocalContext.current).orEmpty(),
             onValueChange = onAmount,
-            keyboardType = KeyboardType.Number,
+            keyboardType = viewState.amountField.keyboard.keyboardType(),
             maximumFractionDigits = 0u,
             textStyle = MaterialTheme.typography.displayMedium,
             onNext = { },
