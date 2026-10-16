@@ -26,7 +26,7 @@ public struct ButtonStylePalette: Hashable, Sendable {
 
 // MARK: - Static
 
-extension ButtonStylePalette {
+public extension ButtonStylePalette {
     static let primary = ButtonStylePalette(
         foreground: Colors.whiteSolid,
         foregroundPressed: Colors.whiteSolid,
