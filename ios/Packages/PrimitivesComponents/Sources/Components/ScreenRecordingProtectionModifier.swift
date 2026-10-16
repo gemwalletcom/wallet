@@ -16,6 +16,7 @@ struct ScreenRecordingProtectionModifier: ViewModifier {
         ZStack {
             content
                 .opacity(isHidden ? 0 : 1)
+                .accessibilityHidden(isHidden)
 
             if isHidden {
                 Text(Localized.SecretPhrase.ContentHidden.description)

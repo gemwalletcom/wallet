@@ -12,14 +12,16 @@ struct SecretDataTypeView: View {
     }
 
     var body: some View {
-        switch type {
-        case let .words(rows):
-            SecretPhraseGridView(rows: rows)
-        case let .privateKey(key):
-            Text(key.preventingHyphenation)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, .medium)
-                .frame(maxWidth: .scene.content.maxWidth)
+        CaptureProtectedView {
+            switch type {
+            case let .words(rows):
+                SecretPhraseGridView(rows: rows)
+            case let .privateKey(key):
+                Text(key.preventingHyphenation)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, .medium)
+                    .frame(maxWidth: .scene.content.maxWidth)
+            }
         }
     }
 }

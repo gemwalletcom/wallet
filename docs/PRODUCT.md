@@ -247,9 +247,9 @@ A Secret Phrase or private key shows when a wallet is created and from "Show Sec
 
 | When | iOS | Android | Expected |
 |---|---|---|---|
-| The user takes a screenshot of the Secret Phrase or private key screen | the screenshot is detected and the user is warned | the screenshot is blocked | Intentional |
+| The user takes a screenshot of the Secret Phrase or private key screen | the screenshot is taken without the words or key, and the user is warned | the screenshot is blocked | Intentional |
 
-- The Secret Phrase and private key screens hide their content during screen recording and whenever the app is not active.
+- The Secret Phrase and private key screens hide their content during screen recording and whenever the app is not active, also from VoiceOver. On iOS the words and key are drawn in a secure layer that the system leaves out of screenshots, recordings and mirroring (GEM-01-018). If that secure layer is unavailable, the screen shows Not Available instead of the secret and Copy still works.
 
 ## Feature availability
 
