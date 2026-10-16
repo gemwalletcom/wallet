@@ -19,35 +19,39 @@ struct VerifyPhraseScene: View {
                 .cleanListRow()
 
             Section {
-                SecretPhraseGridView(
-                    rows: model.rows,
-                    highlightIndex: model.wordsIndex,
-                )
+                CaptureProtectedView {
+                    SecretPhraseGridView(
+                        rows: model.rows,
+                        highlightIndex: model.wordsIndex,
+                    )
+                }
             }
             .cleanListRow()
 
             Section {
-                Grid(alignment: .center) {
-                    ForEach(model.groups, id: \.self) { section in
-                        GridRow(alignment: .center) {
-                            ForEach(section) { row in
-                                if model.isVerified(index: row) {
-                                    Button {} label: {
-                                        Text(row.word)
+                CaptureProtectedView {
+                    Grid(alignment: .center) {
+                        ForEach(model.groups, id: \.self) { section in
+                            GridRow(alignment: .center) {
+                                ForEach(section) { row in
+                                    if model.isVerified(index: row) {
+                                        Button {} label: {
+                                            Text(row.word)
+                                        }
+                                        .buttonStyle(.lightGray(paddingHorizontal: .small, paddingVertical: .tiny, glassEffect: .disabled))
+                                        .disabled(true)
+                                        .fixedSize()
+                                        .accessibilityIdentifier("word_option")
+                                    } else {
+                                        Button {
+                                            model.pickWord(index: row)
+                                        } label: {
+                                            Text(row.word)
+                                        }
+                                        .buttonStyle(.blueGrayPressed(paddingHorizontal: .small, paddingVertical: .tiny, glassEffect: .disabled))
+                                        .fixedSize()
+                                        .accessibilityIdentifier("word_option")
                                     }
-                                    .buttonStyle(.lightGray(paddingHorizontal: .small, paddingVertical: .tiny, glassEffect: .disabled))
-                                    .disabled(true)
-                                    .fixedSize()
-                                    .accessibilityIdentifier("word_option")
-                                } else {
-                                    Button {
-                                        model.pickWord(index: row)
-                                    } label: {
-                                        Text(row.word)
-                                    }
-                                    .buttonStyle(.blueGrayPressed(paddingHorizontal: .small, paddingVertical: .tiny, glassEffect: .disabled))
-                                    .fixedSize()
-                                    .accessibilityIdentifier("word_option")
                                 }
                             }
                         }
