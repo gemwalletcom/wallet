@@ -60,8 +60,11 @@ final class VerifyPhraseSceneViewModel {
         viewState.button.state
     }
 
-    func pickWord(index: WordIndex) {
-        session = session.onPick(choice: UInt32(index.index))
+    func pickWord(index: WordIndex) -> Bool {
+        let picked = session.onPick(choice: UInt32(index.index))
+        guard picked != session else { return false }
+        session = picked
+        return true
     }
 
     func isVerified(index: WordIndex) -> Bool {

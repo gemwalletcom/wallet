@@ -50,8 +50,7 @@ struct VerifyPhraseSceneViewModelTests {
     func pickingEveryWordInOrderEnablesTheButton() {
         let model = VerifyPhraseSceneViewModel(words: words, setup: session) { _ in }
 
-        model.groups.joined().forEach(model.pickWord)
-
+        #expect(model.groups.joined().allSatisfy(model.pickWord))
         #expect(model.buttonState == .normal)
         #expect(model.groups.joined().allSatisfy(model.isVerified))
         #expect(model.wordsIndex == nil)
@@ -61,8 +60,7 @@ struct VerifyPhraseSceneViewModelTests {
     func aWrongWordLeavesTheButtonDisabled() {
         let model = VerifyPhraseSceneViewModel(words: words, setup: session) { _ in }
 
-        model.pickWord(index: Array(model.groups.joined())[1])
-
+        #expect(model.pickWord(index: Array(model.groups.joined())[1]) == false)
         #expect(model.buttonState == .disabled)
         #expect(model.isVerified(index: Array(model.groups.joined())[1]) == false)
         #expect(model.wordsIndex == 0)
@@ -72,9 +70,18 @@ struct VerifyPhraseSceneViewModelTests {
     func verifiedRowsShowTheAppsOwnWordsUpToTheLastPick() {
         let model = VerifyPhraseSceneViewModel(words: words, setup: session) { _ in }
 
-        model.pickWord(index: Array(model.groups.joined())[0])
-
+        #expect(model.pickWord(index: Array(model.groups.joined())[0]))
         #expect(model.groups.joined().map(\.word) == words)
+        #expect(model.wordsIndex == 1)
+    }
+
+    @Test
+    func pickingAVerifiedWordAgainIsRejected() {
+        let model = VerifyPhraseSceneViewModel(words: words, setup: session) { _ in }
+        let first = Array(model.groups.joined())[0]
+
+        #expect(model.pickWord(index: first))
+        #expect(model.pickWord(index: first) == false)
         #expect(model.wordsIndex == 1)
     }
 }
