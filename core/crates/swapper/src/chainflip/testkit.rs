@@ -1,5 +1,7 @@
+use super::ChainflipRouteData;
 use super::broker::{AssetsResponse, ChainflipAsset, DepositChannelRequest, QuoteRequest, RefundParameters};
 use crate::fees::DEFAULT_CHAINFLIP_FEE_BPS;
+use crate::{Quote, Route};
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_POLKADOT_SENDER};
 
 impl AssetsResponse {
@@ -42,4 +44,17 @@ impl DepositChannelRequest {
             dca_parameters: None,
         }
     }
+}
+
+pub fn mock_routes(quote: &Quote, estimated_price: f64) -> Vec<Route> {
+    let route_data = ChainflipRouteData {
+        boost_fee: None,
+        estimated_price,
+        dca_parameters: None,
+    };
+    vec![Route {
+        input: quote.request.from_asset.asset_id(),
+        output: quote.request.to_asset.asset_id(),
+        route_data: serde_json::to_string(&route_data).unwrap(),
+    }]
 }

@@ -366,7 +366,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
+    use crate::{SwapperQuoteAsset, alien::mock::ProviderMock, chainflip::testkit::mock_routes};
     use gem_client::testkit::MockClient;
     use primitives::AssetId;
     use primitives::Chain;
@@ -416,19 +416,6 @@ mod tests {
         assert_eq!(quote.min_from_value, Some(BigUint::from(68000000u64)));
         assert_eq!(assets_requests.load(Ordering::Relaxed), 1);
         assert_eq!(quote_requests.load(Ordering::Relaxed), 1);
-    }
-
-    fn routes(quote: &Quote, estimated_price: f64) -> Vec<Route> {
-        let route_data = ChainflipRouteData {
-            boost_fee: None,
-            estimated_price,
-            dca_parameters: None,
-        };
-        vec![Route {
-            input: quote.request.from_asset.asset_id(),
-            output: quote.request.to_asset.asset_id(),
-            route_data: serde_json::to_string(&route_data).unwrap(),
-        }]
     }
 
     #[test]
@@ -485,7 +472,7 @@ mod tests {
         quote.request.destination_address = TEST_EVM_RECIPIENT.to_string();
         quote.request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum));
         quote.from_value = BigUint::from(40_000_000_000u64);
-        quote.data.routes = routes(&quote, 0.0004);
+        quote.data.routes = mock_routes(&quote, 0.0004);
 
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
         assert_eq!(data, SwapperQuoteData::new_transfer("1599j8DFFZutdkvmxe81QNCpjNWAmmLD5pHSYph6gPVbp6av".to_string(), BigUint::from(40_000_000_000u64), None));
@@ -596,7 +583,7 @@ mod tests {
         let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(broker, MockClient::new()), Arc::new(ProviderMock::new(String::new())));
         let mut quote = Quote::mock(Chain::Tron, None);
         quote.request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum));
-        quote.data.routes = routes(&quote, 1.0);
+        quote.data.routes = mock_routes(&quote, 1.0);
 
         assert_eq!(provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap_err(), SwapperError::InvalidRoute);
     }
