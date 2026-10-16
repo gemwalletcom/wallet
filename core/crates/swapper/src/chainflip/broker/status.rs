@@ -2,7 +2,7 @@ use num_bigint::BigUint;
 use num_traits::ToPrimitive;
 use primitives::swap::{CHAINFLIP_REFERRAL_ADDRESS, SwapStatus};
 use primitives::{AssetId, TransactionSwapMetadata, TransactionSwapReferralFee};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::IgnoredAny};
 use serde_serializers::deserialize_biguint_from_str;
 
 use super::AssetsResponse;
@@ -34,7 +34,7 @@ pub struct BrokerSwapStatus {
     fees: Vec<BrokerSwapFee>,
     deposit: Option<BrokerAmount>,
     swap: Option<BrokerSwapOutput>,
-    refund_egress: Option<serde_json::Value>,
+    refund_egress: Option<IgnoredAny>,
 }
 
 #[derive(Debug, Deserialize)]

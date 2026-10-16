@@ -1,123 +1,44 @@
 {
-  "id": 73410,
-  "platform": "chainflip",
   "status": {
     "state": "completed",
-    "swapId": "1919579",
     "sourceAsset": "dot.hub",
     "destinationAsset": "sol.sol",
-    "destinationAddress": "A21o4asMbFHYadqXdLusT9Bvx9xaC5YV9gcaidjqtdXC",
     "depositChannel": {
-      "id": "15253762-Assethub-49",
-      "createdAt": 1792036410001,
-      "createdAtDate": "2026-10-15T03:53:30.001+00:00",
       "brokerCommissionBps": 5,
-      "depositAddress": "14CPPi1QvzDQxC5mX29uj1Q55kUGX7P3SenYkkzjQqSir8Pq",
-      "sourceChainExpiryBlock": "21887126",
-      "estimatedExpiryTime": 1792166010001,
-      "estimatedExpiryDate": "2026-10-16T15:53:30.001+00:00",
-      "isExpired": false,
-      "openedThroughBackend": false,
       "affiliateBrokers": [
         {
           "account": "cFNDSNTJMRwL773EzoCLn3n2kFSvBHMhEoHDKaHdkDWUa6XVD",
           "commissionBps": 45
         }
-      ],
-      "fillOrKillParams": {
-        "retryDurationBlocks": 150,
-        "refundAddress": "14k6xN8BTcg4bcDCjMRCETrD7NLUfXJGKgEpKFnYVmBemCK8",
-        "minimumPrice": "0.0102685756257095261"
-      }
+      ]
     },
-    "fillOrKillParams": {
-      "retryDurationBlocks": 150,
-      "refundAddress": "14k6xN8BTcg4bcDCjMRCETrD7NLUfXJGKgEpKFnYVmBemCK8",
-      "minimumPrice": "0.0102685756257095261"
-    },
-    "brokers": [
-      {
-        "account": "cFJZVRaybb2PBwxTiAiRLiQfHY4KPB3RpJK22Q7Fhqk979aCH",
-        "commissionBps": 5
-      },
-      {
-        "account": "cFNDSNTJMRwL773EzoCLn3n2kFSvBHMhEoHDKaHdkDWUa6XVD",
-        "commissionBps": 45
-      }
-    ],
-    "estimatedDurationSeconds": 112.9,
     "fees": [
       {
         "type": "network",
         "asset": "usdc.eth",
-        "amountNative": "500000",
-        "amount": 0.5
+        "amountNative": "500000"
       },
       {
         "type": "broker",
         "asset": "usdc.eth",
-        "amountNative": "52863",
-        "amount": 0.052863
+        "amountNative": "52863"
       },
       {
         "type": "ingress",
         "asset": "dot.hub",
-        "amountNative": "197300000",
-        "amount": 0.01973
+        "amountNative": "197300000"
       },
       {
         "type": "egress",
         "asset": "sol.sol",
-        "amountNative": "14000",
-        "amount": 1.4e-05
+        "amountNative": "14000"
       }
     ],
     "deposit": {
-      "amountNative": "100000000000",
-      "amount": 10,
-      "transactionReference": "21843947-3",
-      "witnessedAt": 1792036476000,
-      "witnessedAtDate": "2026-10-15T03:54:36+00:00",
-      "witnessedBlockIndex": "15253773-1421"
+      "amountNative": "100000000000"
     },
     "swap": {
-      "originalInputAmountNative": "99802700000",
-      "originalInputAmount": 9.98027,
-      "remainingInputAmountNative": "0",
-      "remainingInputAmount": 0,
-      "swappedInputAmountNative": "99802700000",
-      "swappedInputAmount": 9.98027,
-      "swappedIntermediateAmountNative": "10519896",
-      "swappedIntermediateAmount": 10.519896,
-      "swappedOutputAmountNative": "102937756",
-      "swappedOutputAmount": 0.102937756,
-      "regular": {
-        "inputAmountNative": "99802700000",
-        "inputAmount": 9.98027,
-        "intermediateAmountNative": "10519896",
-        "intermediateAmount": 10.519896,
-        "outputAmountNative": "102937756",
-        "outputAmount": 0.102937756,
-        "scheduledAt": 1792036476000,
-        "scheduledAtDate": "2026-10-15T03:54:36+00:00",
-        "scheduledBlockIndex": "15253773-1420",
-        "executedAt": 1792036488000,
-        "executedAtDate": "2026-10-15T03:54:48+00:00",
-        "executedBlockIndex": "15253775-1682",
-        "retryCount": 0
-      }
-    },
-    "swapEgress": {
-      "amountNative": "102923756",
-      "amount": 0.102923756,
-      "scheduledAt": 1792036488000,
-      "scheduledAtDate": "2026-10-15T03:54:48+00:00",
-      "scheduledBlockIndex": "15253775-1683",
-      "transactionReference": "2UyZGnAhXvG3WUmiSCfAw19rRuccgydJpPR9nVwV5fBNsJ5AH1LwzkYLGABsiyt2EtTqxhjo2L11nKXTUWK2Lpnj",
-      "witnessedAt": 1792036626001,
-      "witnessedBlockIndex": "15253798-1668"
-    },
-    "lastStateChainUpdateAt": 1792036656290,
-    "lastStateChainUpdateAtDate": "2026-10-15T03:57:36.29+00:00"
+      "swappedOutputAmountNative": "102937756"
+    }
   }
 }
