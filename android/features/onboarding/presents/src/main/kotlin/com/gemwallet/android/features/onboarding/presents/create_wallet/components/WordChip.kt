@@ -15,6 +15,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
@@ -31,6 +33,7 @@ private enum class WordState {
 @Composable
 internal fun WordChip(word: String, isEnable: Boolean, onClick: (String) -> Boolean) {
     val shakeController = rememberShakeController()
+    val haptic = LocalHapticFeedback.current
     var wordState by remember { mutableStateOf(WordState.Idle) }
     val shape = RoundedCornerShape(space12)
     val bgColor: Color by animateColorAsState(
@@ -51,6 +54,7 @@ internal fun WordChip(word: String, isEnable: Boolean, onClick: (String) -> Bool
                     return@clickable
                 }
                 if (!onClick(word)) {
+                    haptic.performHapticFeedback(HapticFeedbackType.Reject)
                     shakeController.shake(
                         ShakeConfig(
                             iterations = 2,

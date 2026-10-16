@@ -18,6 +18,8 @@ flowchart LR
 |---|---|---|
 | The terms were already accepted on this install | they are not asked again; the security reminder still shows on every create | |
 | The user accepts the terms | the next screen opens once; whether the terms are asked is decided when create or import opens, not while it is open | accepting must not also replace the screen underneath |
+| The user taps a word that is not the next one on "Confirm" | the word shakes, turns red for a moment and the phone vibrates; nothing is filled in | a tap that did nothing read as slow or broken |
+| The Secret Phrase holds the same word twice | either of its two buttons fills either place, and each button is used once | the two words are the same, so neither tap is wrong |
 
 ## Import wallet
 
