@@ -351,16 +351,7 @@ mod tests {
 
         assert_eq!(request.reserve_native_attachment(&attachment).unwrap().value, BigUint::from(885_893_271u64));
         assert_eq!(small.reserve_native_attachment(&attachment).unwrap_err(), SwapperError::InputAmountError { min_amount: Some("330000000".to_string()) });
-        assert_eq!(
-            QuoteRequest {
-                options: Options::default(),
-                ..small
-            }
-            .reserve_native_attachment(&attachment)
-            .unwrap()
-            .value,
-            attachment
-        );
+        assert_eq!(QuoteRequest { options: Options::default(), ..small }.reserve_native_attachment(&attachment).unwrap().value, attachment);
         assert_eq!(QuoteRequest::mock(Chain::Ton, Some("token")).reserve_native_attachment(&attachment).unwrap().value, BigUint::from(1000000u64));
     }
 
