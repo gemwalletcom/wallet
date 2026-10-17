@@ -92,6 +92,8 @@
   <string name="wallet_sell">Sælg</string>
   <string name="wallet_receive_collection">Modtag samling</string>
   <string name="wallet_more">Mere</string>
+  <string name="wallet_backup">Sikkerhedskopi</string>
+  <string name="wallet_advanced">Avanceret</string>
   <string name="wallet_import_contract_address_field">Kontrakt eller token-ID</string>
   <string name="wallet_import_address_warning">Du kan se saldi og transaktioner for denne adresse, men **kan ikke sende eller sælge penge**.</string>
   <string name="wallet_deposit">Indbetal</string>
@@ -375,6 +377,17 @@
   <string name="private_key_do_not_share_title">Del ikke din private nøgle!</string>
   <string name="private_key_do_not_share_description">Hvis nogen har din private nøgle, vil de have fuld kontrol over denne konto!</string>
   <string name="private_key_screenshot_detected_description">Skærmbilleder kan være tilgængelige for andre apps, og de kan bringe din private nøgle i fare, hvis de gemmes på denne måde.</string>
+  <string name="private_key_export_reminder_intro">Din private nøgle giver fuld adgang til denne konto.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Opbevar den et sikkert sted</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Alle, der har den, kan bruge denne konto.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Del den ikke med nogen</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Ingen person, hjemmeside eller app bør bede om den.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Vi kan ikke hjælpe dig med at få dem tilbage</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Hvis nogen tager dine midler, kan de ikke returneres.</string>
+  <string name="private_key_select_account">Vælg din konto</string>
+  <string name="private_key_scope_evm">Denne nøgle styrer også dine konti på alle EVM-netværk.</string>
+  <string name="private_key_scope_cosmos">Denne nøgle styrer også dine konti på alle Cosmos-netværk.</string>
+  <string name="private_key_accounts_info">Din hemmelige sætning sikkerhedskopierer allerede disse konti. Eksportér kun en nøgle for at bruge én konto i en anden tegnebog.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

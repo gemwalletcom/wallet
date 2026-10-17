@@ -92,6 +92,8 @@
   <string name="wallet_sell">Uza</string>
   <string name="wallet_receive_collection">Pokea Mkusanyiko</string>
   <string name="wallet_more">Zaidi</string>
+  <string name="wallet_backup">Hifadhi Nakala</string>
+  <string name="wallet_advanced">Kina</string>
   <string name="wallet_import_contract_address_field">Mkataba au ID ya Token</string>
   <string name="wallet_import_address_warning">Unaweza kuangalia salio na miamala ya anwani hii, lakini **haiwezi kutuma au kuuza fedha**.</string>
   <string name="wallet_deposit">Amana</string>
@@ -375,6 +377,17 @@
   <string name="private_key_do_not_share_title">Usishiriki Ufunguo wako wa Kibinafsi!</string>
   <string name="private_key_do_not_share_description">Ikiwa mtu ana ufunguo wako wa kibinafsi atakuwa na udhibiti kamili wa akaunti hii!</string>
   <string name="private_key_screenshot_detected_description">Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka ufunguo wako wa kibinafsi hatarini ikiwa zimehifadhiwa kwa njia hii.</string>
+  <string name="private_key_export_reminder_intro">Ufunguo wako wa kibinafsi unatoa ufikiaji kamili wa akaunti hii.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Uhifadhi Mahali Salama</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Yeyote aliye nao anaweza kutumia akaunti hii.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Usimshirikishe Mtu Yeyote</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Hakuna mtu, tovuti, au programu inayopaswa kuuomba.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Hatuwezi Kukusaidia Kuzirejesha</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Mtu akichukua fedha zako, haziwezi kurejeshwa.</string>
+  <string name="private_key_select_account">Chagua akaunti yako</string>
+  <string name="private_key_scope_evm">Ufunguo huu pia unadhibiti akaunti zako kwenye mitandao yote ya EVM.</string>
+  <string name="private_key_scope_cosmos">Ufunguo huu pia unadhibiti akaunti zako kwenye mitandao yote ya Cosmos.</string>
+  <string name="private_key_accounts_info">Maneno yako ya siri tayari yanahifadhi akaunti hizi. Hamisha ufunguo tu ili kutumia akaunti moja kwenye pochi nyingine.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

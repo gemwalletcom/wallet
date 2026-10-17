@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.domains.wallet.PrivateKeyExportInput
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
@@ -31,9 +32,12 @@ import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
+import com.gemwallet.android.ui.navigation.routes.ExportPrivateKeyRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualDepositSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
+import com.gemwallet.android.ui.navigation.routes.PrivateKeyAccountsRoute
+import com.gemwallet.android.ui.navigation.routes.PrivateKeyWarningRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.RewardsRoute
@@ -296,6 +300,41 @@ class WalletNavigatorTest {
     }
 
     @Test
+    fun finishPrivateKeyWarning_replacesWarningWithTheChainKey() {
+        val walletId = WalletId("wallet-1")
+        val input = PrivateKeyExportInput(walletId, Chain.Ethereum)
+        val navigator = navigatorWith(WalletRootRoute, WalletDetailRoute(walletId), PrivateKeyWarningRoute(input))
+
+        navigator.finishPrivateKeyWarning(input)
+
+        assertEquals(listOf(WalletRootRoute, WalletDetailRoute(walletId), ExportPrivateKeyRoute(walletId, Chain.Ethereum)), navigator.backStack.toList())
+    }
+
+    @Test
+    fun finishPrivateKeyWarning_replacesWarningWithTheAccountListWithoutAChain() {
+        val walletId = WalletId("wallet-1")
+        val input = PrivateKeyExportInput(walletId, null)
+        val navigator = navigatorWith(WalletRootRoute, WalletDetailRoute(walletId), PrivateKeyWarningRoute(input))
+
+        navigator.finishPrivateKeyWarning(input)
+
+        assertEquals(listOf(WalletRootRoute, WalletDetailRoute(walletId), PrivateKeyAccountsRoute(walletId)), navigator.backStack.toList())
+    }
+
+    @Test
+    fun openExportPrivateKey_pushesOverTheAccountList() {
+        val walletId = WalletId("wallet-1")
+        val navigator = navigatorWith(WalletRootRoute, WalletDetailRoute(walletId), PrivateKeyAccountsRoute(walletId))
+
+        navigator.openExportPrivateKey(walletId, Chain.Solana)
+
+        assertEquals(
+            listOf(WalletRootRoute, WalletDetailRoute(walletId), PrivateKeyAccountsRoute(walletId), ExportPrivateKeyRoute(walletId, Chain.Solana)),
+            navigator.backStack.toList(),
+        )
+    }
+
+    @Test
     fun dropNonRestorableRoutes_keepsTheLiveRootWhenItDiffersFromTheStartDestination() {
         val assetId = mockAssetId(Chain.Solana)
 
@@ -336,6 +375,9 @@ class WalletNavigatorTest {
             AssetRoute(assetId),
             SecurityReminderRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
             ExportWalletRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
+            PrivateKeyWarningRoute(PrivateKeyExportInput(walletId, null)),
+            PrivateKeyAccountsRoute(walletId),
+            ExportPrivateKeyRoute(walletId, Chain.Ethereum),
             CreateWalletRoute,
             RecipientRoute(assetId),
             AmountRoute("amount"),

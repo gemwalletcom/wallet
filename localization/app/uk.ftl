@@ -98,6 +98,8 @@ wallet_add_token_title = Додати токен
 wallet_sell = Продати
 wallet_receive_collection = Отримати колекцію
 wallet_more = Більше
+wallet_backup = Резервна копія
+wallet_advanced = Додатково
 wallet_import_contract_address_field = Контракт або ID токена
 wallet_import_address_warning = Ви можете переглядати баланси та транзакції для цієї адреси, але **не можете надсилати або продавати кошти**.
 wallet_deposit = Депозит
@@ -444,6 +446,17 @@ private_key_reminder_no_recovery_subtitle = Якщо ви втратите пр�
 private_key_do_not_share_title = Не діліться своїм приватним ключем!
 private_key_do_not_share_description = Якщо у когось є ваш приватний ключ, він отримає повний контроль над цим обліковим записом!
 private_key_screenshot_detected_description = Знімки екрана можуть бути доступні іншим програмам, і якщо їх зберегти таким чином, ваш приватний ключ може бути під загрозою.
+private_key_export_reminder_intro = Приватний ключ дає повний доступ до цього облікового запису.
+private_key_export_reminder_keep_safe_title = Зберігайте його в безпечному місці
+private_key_export_reminder_keep_safe_subtitle = Будь-хто, у кого він є, може користуватися цим обліковим записом.
+private_key_export_reminder_do_not_share_title = Нікому його не передавайте
+private_key_export_reminder_do_not_share_subtitle = Жодна людина, сайт чи застосунок не повинні його запитувати.
+private_key_export_reminder_no_recovery_title = Ми не зможемо їх повернути
+private_key_export_reminder_no_recovery_subtitle = Якщо хтось забере ваші кошти, повернути їх буде неможливо.
+private_key_select_account = Виберіть обліковий запис
+private_key_scope_evm = Цей ключ також керує вашими обліковими записами в усіх мережах EVM.
+private_key_scope_cosmos = Цей ключ також керує вашими обліковими записами в усіх мережах Cosmos.
+private_key_accounts_info = Ваша секретна фраза вже є резервною копією цих облікових записів. Експортуйте ключ, лише щоб використати один обліковий запис в іншому гаманці.
 
 # Social
 

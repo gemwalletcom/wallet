@@ -1,11 +1,11 @@
 package com.gemwallet.android.features.wallet.presents
 
-import com.gemwallet.android.domains.wallet.WalletSecretInput
+import uniffi.gemstone.GemSecretExport
 
 internal sealed interface WalletDetailAction {
     data class SetName(val name: String) : WalletDetailAction
     data object SelectImage : WalletDetailAction
-    data class ShowPhrase(val input: WalletSecretInput) : WalletDetailAction
+    data class ShowSecret(val export: GemSecretExport) : WalletDetailAction
     data object Delete : WalletDetailAction
     data object Cancel : WalletDetailAction
 }

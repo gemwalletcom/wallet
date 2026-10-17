@@ -92,6 +92,8 @@
   <string name="wallet_sell">Verkaufen</string>
   <string name="wallet_receive_collection">Sammlung empfangen</string>
   <string name="wallet_more">Mehr</string>
+  <string name="wallet_backup">Sicherung</string>
+  <string name="wallet_advanced">Erweitert</string>
   <string name="wallet_import_contract_address_field">Vertrag oder Token-ID</string>
   <string name="wallet_import_address_warning">Sie können Guthaben und Transaktionen für diese Adresse anzeigen, aber **kein Geld senden oder verkaufen**.</string>
   <string name="wallet_deposit">Einzahlen</string>
@@ -375,6 +377,17 @@
   <string name="private_key_do_not_share_title">Geben Sie Ihren privaten Schlüssel nicht weiter!</string>
   <string name="private_key_do_not_share_description">Wenn jemand Ihren privaten Schlüssel hat, hat er die vollständige Kontrolle über dieses Konto!</string>
   <string name="private_key_screenshot_detected_description">Screenshots können von anderen Apps eingesehen werden und gefährden so Ihren privaten Schlüssel.</string>
+  <string name="private_key_export_reminder_intro">Ihr privater Schlüssel gewährt vollen Zugriff auf dieses Konto.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Bewahren Sie ihn an einem sicheren Ort auf</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Wer ihn hat, kann dieses Konto nutzen.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Geben Sie ihn an niemanden weiter</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Keine Person, Website oder App sollte danach fragen.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Wir können Ihnen nicht bei der Wiederherstellung helfen</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Wenn jemand Ihr Guthaben abzieht, kann es nicht zurückgeholt werden.</string>
+  <string name="private_key_select_account">Wählen Sie Ihr Konto</string>
+  <string name="private_key_scope_evm">Dieser Schlüssel steuert auch Ihre Konten in allen EVM-Netzwerken.</string>
+  <string name="private_key_scope_cosmos">Dieser Schlüssel steuert auch Ihre Konten in allen Cosmos-Netzwerken.</string>
+  <string name="private_key_accounts_info">Ihre geheime Phrase sichert diese Konten bereits. Exportieren Sie einen Schlüssel nur, um ein Konto in einer anderen Wallet zu nutzen.</string>
   <string name="social_x">X (ehemals Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

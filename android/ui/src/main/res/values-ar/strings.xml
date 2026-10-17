@@ -92,6 +92,8 @@
   <string name="wallet_sell">بيع</string>
   <string name="wallet_receive_collection">استلام المجموعة</string>
   <string name="wallet_more">المزيد</string>
+  <string name="wallet_backup">النسخ الاحتياطي</string>
+  <string name="wallet_advanced">متقدم</string>
   <string name="wallet_import_contract_address_field">عقد أو معرف توكن</string>
   <string name="wallet_import_address_warning">يمكنك عرض الأرصدة والمعاملات لهذا العنوان، ولكن **لا يمكنك إرسال أو بيع الأموال**.</string>
   <string name="wallet_deposit">إيداع</string>
@@ -375,6 +377,17 @@
   <string name="private_key_do_not_share_title">لا تشارك مفتاحك الخاص!</string>
   <string name="private_key_do_not_share_description">إذا حصل شخص ما على مفتاحك الخاص، فسيكون لديه السيطرة الكاملة على هذا الحساب!</string>
   <string name="private_key_screenshot_detected_description">قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، وقد تعرّض مفتاحك الخاص للخطر إذا تم حفظه بهذه الطريقة.</string>
+  <string name="private_key_export_reminder_intro">مفتاحك الخاص يمنح وصولًا كاملًا إلى هذا الحساب.</string>
+  <string name="private_key_export_reminder_keep_safe_title">خزّنه في مكان آمن</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">يمكن لأي شخص يملكه استخدام هذا الحساب.</string>
+  <string name="private_key_export_reminder_do_not_share_title">لا تشاركه مع أي شخص</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">لا ينبغي لأي شخص أو موقع أو تطبيق أن يطلبه منك.</string>
+  <string name="private_key_export_reminder_no_recovery_title">لا يمكننا مساعدتك في استعادتها</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">إذا أخذ أحدٌ أموالك، فلا يمكن إرجاعها.</string>
+  <string name="private_key_select_account">اختر حسابك</string>
+  <string name="private_key_scope_evm">يتحكم هذا المفتاح أيضًا في حساباتك على جميع شبكات EVM.</string>
+  <string name="private_key_scope_cosmos">يتحكم هذا المفتاح أيضًا في حساباتك على جميع شبكات Cosmos.</string>
+  <string name="private_key_accounts_info">عبارتك السرية تحتفظ بنسخة احتياطية من هذه الحسابات بالفعل. صدّر مفتاحًا فقط لاستخدام حساب واحد في محفظة أخرى.</string>
   <string name="social_x">X (تويتر سابقًا)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

@@ -10,6 +10,7 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.domains.wallet.PrivateKeyExportInput
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -54,6 +55,7 @@ import com.gemwallet.android.ui.navigation.routes.DeveloperPaymentsRoute
 import com.gemwallet.android.ui.navigation.routes.DeveloperRoute
 import com.gemwallet.android.ui.navigation.routes.EarnRoute
 import com.gemwallet.android.ui.navigation.routes.EditContactRoute
+import com.gemwallet.android.ui.navigation.routes.ExportPrivateKeyRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
 import com.gemwallet.android.ui.navigation.routes.FiatRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
@@ -69,6 +71,8 @@ import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.PortfolioRoute
 import com.gemwallet.android.ui.navigation.routes.PreferencesRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
+import com.gemwallet.android.ui.navigation.routes.PrivateKeyAccountsRoute
+import com.gemwallet.android.ui.navigation.routes.PrivateKeyWarningRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
@@ -239,6 +243,14 @@ class WalletNavigator(
     fun openWalletImage(walletId: WalletId) = push(WalletImageRoute(walletId))
     fun openWalletSecurityReminder(input: WalletSecretInput) = push(SecurityReminderRoute(input))
     fun finishWalletSecurityReminder(input: WalletSecretInput) = replaceTop(ExportWalletRoute(input))
+    fun openPrivateKeyWarning(input: PrivateKeyExportInput) = push(PrivateKeyWarningRoute(input))
+    fun finishPrivateKeyWarning(input: PrivateKeyExportInput) = replaceTop(
+        when (val chain = input.chain) {
+            null -> PrivateKeyAccountsRoute(input.walletId)
+            else -> ExportPrivateKeyRoute(input.walletId, chain)
+        },
+    )
+    fun openExportPrivateKey(walletId: WalletId, chain: Chain) = push(ExportPrivateKeyRoute(walletId, chain))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))

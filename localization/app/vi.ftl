@@ -98,6 +98,8 @@ wallet_add_token_title = Thêm mã thông báo
 wallet_sell = Bán
 wallet_receive_collection = Nhận bộ sưu tập
 wallet_more = Hơn
+wallet_backup = Sao lưu
+wallet_advanced = Nâng cao
 wallet_import_contract_address_field = Hợp đồng hoặc ID token
 wallet_import_address_warning = Bạn có thể xem số dư và giao dịch của địa chỉ này, nhưng **không thể gửi hoặc bán tiền**.
 wallet_deposit = Nạp tiền
@@ -444,6 +446,17 @@ private_key_reminder_no_recovery_subtitle = Nếu bạn làm mất khóa riêng,
 private_key_do_not_share_title = Đừng chia sẻ Khóa riêng của bạn!
 private_key_do_not_share_description = Nếu ai đó có khóa riêng của bạn, họ sẽ có toàn quyền kiểm soát tài khoản này!
 private_key_screenshot_detected_description = Ảnh chụp màn hình có thể được các ứng dụng khác truy cập và có thể khiến khóa riêng của bạn gặp rủi ro nếu được lưu theo cách này.
+private_key_export_reminder_intro = Khóa riêng cho phép truy cập toàn bộ tài khoản này.
+private_key_export_reminder_keep_safe_title = Lưu trữ nó ở nơi an toàn
+private_key_export_reminder_keep_safe_subtitle = Bất kỳ ai có nó đều có thể sử dụng tài khoản này.
+private_key_export_reminder_do_not_share_title = Không Chia Sẻ Với Bất Kỳ Ai
+private_key_export_reminder_do_not_share_subtitle = Không người, trang web hay ứng dụng nào nên yêu cầu nó.
+private_key_export_reminder_no_recovery_title = Chúng tôi không thể giúp bạn lấy lại
+private_key_export_reminder_no_recovery_subtitle = Nếu ai đó lấy tiền của bạn, số tiền đó không thể được trả lại.
+private_key_select_account = Chọn tài khoản của bạn
+private_key_scope_evm = Khóa này cũng kiểm soát các tài khoản của bạn trên tất cả mạng EVM.
+private_key_scope_cosmos = Khóa này cũng kiểm soát các tài khoản của bạn trên tất cả mạng Cosmos.
+private_key_accounts_info = Cụm từ bí mật của bạn đã sao lưu các tài khoản này. Chỉ xuất khóa để dùng một tài khoản trong ví khác.
 
 # Social
 

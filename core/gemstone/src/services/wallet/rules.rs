@@ -1,19 +1,22 @@
 use std::collections::BTreeMap;
 
+use gem_derivation::default_derivation_path;
 use gem_keystore::Mnemonic;
-use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, NameRecord, OptionStringExt, VerificationStatus, Wallet, WalletId, WalletListItem, WalletSource, WalletType};
+use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, ChainType, NameRecord, OptionStringExt, VerificationStatus, Wallet, WalletId, WalletListItem, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
 use super::model::{
-    GemSecretPhraseRow, GemSecretScreen, GemSecretWarning, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSection, GemWalletSectionKind,
-    GemWalletSubtitle,
+    GemPrivateKeyAccount, GemPrivateKeyScope, GemSecretExport, GemSecretPhraseRow, GemSecretRow, GemSecretScreen, GemSecretWarning, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder,
+    GemWalletRow, GemWalletSecretKind, GemWalletSection, GemWalletSectionKind, GemWalletSubtitle,
 };
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::models::list::{GemAddressRow, GemListRowTitle};
+use crate::services::chain::chain_row;
 use crate::services::localization::GemLocalizedText;
-use crate::services::onboarding::GemSecurityReminderItem;
+use crate::services::onboarding::{GemSecurityReminderItem, GemSecurityReminderKind};
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
+const PRIVATE_KEY_ACCOUNT_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Short;
 const SECRET_PHRASE_COLUMNS: u32 = 2;
 use crate::address::validate_address;
 use crate::keystore::GemKeystoreAccount;
@@ -127,11 +130,70 @@ pub fn secret_export(wallet: &Wallet) -> SecretExport {
     }
 }
 
-fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
-    match secret_export(wallet) {
-        SecretExport::Words => Some(GemWalletSecretKind::Phrase),
-        SecretExport::PrivateKey(_) => Some(GemWalletSecretKind::PrivateKey),
-        SecretExport::None => None,
+pub fn private_key_chains(wallet: &Wallet) -> Vec<Chain> {
+    match wallet.wallet_type {
+        WalletType::Multicoin | WalletType::Single => wallet.accounts.iter().map(|account| account.chain).filter(signer::supports_private_key_import).collect(),
+        WalletType::PrivateKey => wallet.accounts.iter().map(|account| account.chain).collect(),
+        WalletType::View => Vec::new(),
+    }
+}
+
+pub fn private_key_accounts(wallet: &Wallet) -> Vec<GemPrivateKeyAccount> {
+    let chains = private_key_chains(wallet);
+    Chain::all()
+        .into_iter()
+        .filter(|chain| chains.contains(chain))
+        .filter_map(|chain| wallet.account(chain))
+        .map(|account| GemPrivateKeyAccount {
+            row: chain_row(account.chain),
+            address: format_address(&account.address, Some(account.chain), PRIVATE_KEY_ACCOUNT_ADDRESS_STYLE),
+        })
+        .collect()
+}
+
+pub fn private_key_scope(wallet: &Wallet, chain: Chain) -> GemPrivateKeyScope {
+    let path = default_derivation_path(chain);
+    let family: Vec<Chain> = Chain::all().into_iter().filter(|other| default_derivation_path(*other) == path).collect();
+    let shared = wallet.accounts.iter().any(|account| account.chain != chain && family.contains(&account.chain));
+    match family.first().map(Chain::chain_type) {
+        Some(ChainType::Ethereum) if shared => GemPrivateKeyScope::EvmChains,
+        Some(ChainType::Cosmos) if shared => GemPrivateKeyScope::CosmosChains,
+        _ => GemPrivateKeyScope::OneChain,
+    }
+}
+
+fn secret_row(export: GemSecretExport) -> GemSecretRow {
+    let kind = match export {
+        GemSecretExport::Secret { kind } => kind,
+        GemSecretExport::PrivateKey { .. } | GemSecretExport::PrivateKeyAccounts => GemWalletSecretKind::PrivateKey,
+    };
+    GemSecretRow {
+        title: GemLocalizedText::ShowSecret { kind },
+        export,
+    }
+}
+
+fn private_key_export(wallet: &Wallet) -> Option<GemSecretExport> {
+    match private_key_chains(wallet).as_slice() {
+        [] => None,
+        [chain] => Some(GemSecretExport::PrivateKey { chain: *chain }),
+        _ => Some(GemSecretExport::PrivateKeyAccounts),
+    }
+}
+
+fn backup_export(wallet: &Wallet) -> Option<GemSecretExport> {
+    let kind = match secret_export(wallet) {
+        SecretExport::Words => GemWalletSecretKind::Phrase,
+        SecretExport::PrivateKey(_) => GemWalletSecretKind::PrivateKey,
+        SecretExport::None => return None,
+    };
+    Some(GemSecretExport::Secret { kind })
+}
+
+fn advanced_export(wallet: &Wallet) -> Option<GemSecretExport> {
+    match wallet.wallet_type {
+        WalletType::Multicoin | WalletType::Single => private_key_export(wallet),
+        WalletType::PrivateKey | WalletType::View => None,
     }
 }
 
@@ -160,7 +222,7 @@ pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -
     }
 }
 
-pub fn security_reminder_items(kind: GemWalletSecretKind) -> Vec<GemSecurityReminderItem> {
+pub fn security_reminder_items(kind: GemSecurityReminderKind) -> Vec<GemSecurityReminderItem> {
     vec![GemSecurityReminderItem::KeepSafe { kind }, GemSecurityReminderItem::DoNotShare { kind }, GemSecurityReminderItem::NoRecovery { kind }]
 }
 
@@ -207,8 +269,8 @@ pub fn sections(wallets: Vec<WalletListItem>, current_wallet_id: Option<&WalletI
 pub fn details(wallet: &Wallet, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemWalletDetails {
     GemWalletDetails {
         row: row(&WalletListItem::from(wallet)),
-        secret_kind: secret_kind(wallet),
-        show_secret: secret_kind(wallet).map(|kind| GemLocalizedText::ShowSecret { kind }),
+        backup: backup_export(wallet).map(secret_row),
+        advanced: advanced_export(wallet).map(secret_row),
         address: match wallet.accounts.as_slice() {
             [account] => Some(GemAddressRow::new(
                 GemLocalizedText::RowTitle { title: GemListRowTitle::Address },
@@ -504,14 +566,60 @@ mod tests {
     }
 
     #[test]
-    fn test_secret_kind_follows_the_wallet_type() {
-        let phrase = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum]);
+    fn test_backup_and_advanced_rows_follow_the_wallet_type() {
+        let link = |_: Chain, address: String| BlockExplorerLink::mock_with_address(&address);
+        let row = |export| Some(secret_row(export));
+        let multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum, Chain::Bitcoin, Chain::Solana]);
+        let single = Wallet::mock_with_id(WalletId::Single(Chain::Solana, "0x2".to_string()), &[Chain::Solana]);
+        let single_bitcoin = Wallet::mock_with_id(WalletId::Single(Chain::Bitcoin, "0x3".to_string()), &[Chain::Bitcoin]);
+        let private_key = Wallet::mock_with_id(WalletId::PrivateKey(Chain::Ethereum, "0x4".to_string()), &[Chain::Ethereum]);
+        let view = Wallet::mock_with_id(WalletId::View(Chain::Ethereum, "0x5".to_string()), &[Chain::Ethereum]);
+
+        let multicoin = details(&multicoin, link);
+        assert_eq!(multicoin.backup, row(GemSecretExport::Secret { kind: GemWalletSecretKind::Phrase }));
+        assert_eq!(multicoin.advanced, row(GemSecretExport::PrivateKeyAccounts));
+        assert_eq!(multicoin.advanced.unwrap().title, GemLocalizedText::ShowSecret { kind: GemWalletSecretKind::PrivateKey });
+
+        assert_eq!(details(&single, link).advanced, row(GemSecretExport::PrivateKey { chain: Chain::Solana }), "one account skips the picker");
+        assert_eq!(details(&single_bitcoin, link).advanced, None, "no exportable key, no Advanced section");
+
+        let private_key = details(&private_key, link);
+        assert_eq!(
+            private_key.backup,
+            row(GemSecretExport::Secret { kind: GemWalletSecretKind::PrivateKey }),
+            "a key wallet backs up through the private key reminder (#1394)"
+        );
+        assert_eq!(private_key.advanced, None);
+
+        let view = details(&view, link);
+        assert_eq!((view.backup, view.advanced), (None, None));
+    }
+
+    #[test]
+    fn test_private_key_accounts_keep_importable_chains_in_chain_order() {
+        let multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Solana, Chain::Bitcoin, Chain::Ethereum, Chain::Cardano, Chain::Base]);
         let private_key = Wallet::mock_with_id(WalletId::PrivateKey(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]);
         let view = Wallet::mock_with_id(WalletId::View(Chain::Ethereum, "0x3".to_string()), &[Chain::Ethereum]);
 
-        assert_eq!(secret_kind(&phrase), Some(GemWalletSecretKind::Phrase));
-        assert_eq!(secret_kind(&private_key), Some(GemWalletSecretKind::PrivateKey));
-        assert_eq!(secret_kind(&view), None);
+        let accounts = private_key_accounts(&multicoin);
+        assert_eq!(accounts.iter().map(|account| account.row.chain).collect::<Vec<_>>(), vec![Chain::Ethereum, Chain::Solana, Chain::Base]);
+        assert_eq!(accounts[1].address, format_address(&multicoin.account(Chain::Solana).unwrap().address, Some(Chain::Solana), PRIVATE_KEY_ACCOUNT_ADDRESS_STYLE));
+        assert_eq!(private_key_chains(&private_key), vec![Chain::Ethereum]);
+        assert!(private_key_chains(&view).is_empty());
+    }
+
+    #[test]
+    fn test_private_key_scope_names_the_family_only_when_the_wallet_holds_another_account_on_it() {
+        let multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum, Chain::SmartChain, Chain::Injective, Chain::Cosmos, Chain::Osmosis, Chain::Solana]);
+        assert_eq!(private_key_scope(&multicoin, Chain::Ethereum), GemPrivateKeyScope::EvmChains);
+        assert_eq!(private_key_scope(&multicoin, Chain::Injective), GemPrivateKeyScope::EvmChains);
+        assert_eq!(private_key_scope(&multicoin, Chain::Osmosis), GemPrivateKeyScope::CosmosChains);
+        assert_eq!(private_key_scope(&multicoin, Chain::Solana), GemPrivateKeyScope::OneChain);
+
+        let private_key = Wallet::mock_with_id(WalletId::PrivateKey(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]);
+        let single = Wallet::mock_with_id(WalletId::Single(Chain::SmartChain, "0x3".to_string()), &[Chain::SmartChain]);
+        assert_eq!(private_key_scope(&private_key, Chain::Ethereum), GemPrivateKeyScope::OneChain);
+        assert_eq!(private_key_scope(&single, Chain::SmartChain), GemPrivateKeyScope::OneChain);
     }
 
     #[test]
@@ -542,12 +650,13 @@ mod tests {
 
     #[test]
     fn test_the_security_reminder_names_the_secret_it_protects() {
-        let kind = GemWalletSecretKind::PrivateKey;
-        assert_eq!(
-            security_reminder_items(kind),
-            vec![GemSecurityReminderItem::KeepSafe { kind }, GemSecurityReminderItem::DoNotShare { kind }, GemSecurityReminderItem::NoRecovery { kind }],
-            "a key wallet never sees the Secret Phrase reminder (#1394)"
-        );
+        for kind in [GemSecurityReminderKind::Phrase, GemSecurityReminderKind::PrivateKey, GemSecurityReminderKind::AccountKey] {
+            assert_eq!(
+                security_reminder_items(kind),
+                vec![GemSecurityReminderItem::KeepSafe { kind }, GemSecurityReminderItem::DoNotShare { kind }, GemSecurityReminderItem::NoRecovery { kind }],
+                "each reminder names the secret it protects; a key wallet never sees the Secret Phrase reminder (#1394)"
+            );
+        }
     }
 
     #[test]
@@ -558,8 +667,6 @@ mod tests {
         let link = |_: Chain, address: String| BlockExplorerLink::mock_with_address(&address);
         let single_details = details(&single, link);
         assert_eq!(single_details.row.id, single.id);
-        assert_eq!(single_details.secret_kind, Some(GemWalletSecretKind::Phrase));
-        assert_eq!(single_details.show_secret, Some(GemLocalizedText::ShowSecret { kind: GemWalletSecretKind::Phrase }));
         assert_eq!(single_details.address.map(|row| (row.chain, row.address)), Some((Chain::Ethereum, "address".to_string())));
         assert_eq!(details(&multicoin, link).address, None);
     }

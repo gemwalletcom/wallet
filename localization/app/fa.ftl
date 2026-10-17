@@ -98,6 +98,8 @@ wallet_add_token_title = افزودن توکن
 wallet_sell = فروش
 wallet_receive_collection = دریافت مجموعه
 wallet_more = بیشتر
+wallet_backup = پشتیبان‌گیری
+wallet_advanced = پیشرفته
 wallet_import_contract_address_field = قرارداد یا شناسه توکن
 wallet_import_address_warning = شما می‌توانید موجودی و تراکنش‌های این آدرس را مشاهده کنید، اما **نمی‌توانید وجه ارسال یا بفروشید**.
 wallet_deposit = واریز
@@ -444,6 +446,17 @@ private_key_reminder_no_recovery_subtitle = اگر کلید خصوصی خود ر
 private_key_do_not_share_title = کلید خصوصی خود را با کسی به اشتراک نگذارید!
 private_key_do_not_share_description = اگر کسی کلید خصوصی شما را داشته باشد، کنترل کامل این حساب را خواهد داشت!
 private_key_screenshot_detected_description = اسکرین‌شات‌ها ممکن است برای برنامه‌های دیگر قابل دسترسی باشند، اگر به این روش ذخیره شوند، می‌توانند کلید خصوصی شما را در معرض خطر قرار دهند.
+private_key_export_reminder_intro = کلید خصوصی شما دسترسی کامل به این حساب را می‌دهد.
+private_key_export_reminder_keep_safe_title = آن را در جایی امن ذخیره کنید
+private_key_export_reminder_keep_safe_subtitle = هر کسی که آن را داشته باشد، می‌تواند از این حساب استفاده کند.
+private_key_export_reminder_do_not_share_title = آن را با کسی به اشتراک نگذارید
+private_key_export_reminder_do_not_share_subtitle = هیچ شخص، وب‌سایت یا برنامه‌ای نباید آن را از شما بخواهد.
+private_key_export_reminder_no_recovery_title = ما نمی‌توانیم به بازیابی آن‌ها کمک کنیم
+private_key_export_reminder_no_recovery_subtitle = اگر کسی دارایی‌های شما را ببرد، قابل بازگرداندن نیستند.
+private_key_select_account = حساب خود را انتخاب کنید
+private_key_scope_evm = این کلید حساب‌های شما در همه شبکه‌های EVM را نیز کنترل می‌کند.
+private_key_scope_cosmos = این کلید حساب‌های شما در همه شبکه‌های Cosmos را نیز کنترل می‌کند.
+private_key_accounts_info = عبارات خصوصی شما از قبل از این حساب‌ها پشتیبان دارد. فقط برای استفاده از یک حساب در کیف پول دیگر، کلید را خروجی بگیرید.
 
 # Social
 
