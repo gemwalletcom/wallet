@@ -5,6 +5,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+use num_bigint::BigUint;
+use num_traits::ToPrimitive;
 use primitives::{DAY, HOUR, MINUTE, WEEK};
 
 use crate::SwapperError;
@@ -80,6 +82,18 @@ where
             self.lost_at.put((from.clone(), to.clone(), probe), lost.then_some(amount_in));
         });
     }
+}
+
+pub(crate) fn quote_outcome(quote: Result<u128, &SwapperError>) -> Option<u128> {
+    match quote {
+        Ok(amount_out) => Some(amount_out),
+        Err(SwapperError::NoQuoteAvailable | SwapperError::InvalidRoute) => Some(0),
+        Err(_) => None,
+    }
+}
+
+pub(crate) fn amount_key(amount: &BigUint) -> u128 {
+    amount.to_u128().unwrap_or(u128::MAX)
 }
 
 impl<Key, Value> Default for Cache<Key, Value> {

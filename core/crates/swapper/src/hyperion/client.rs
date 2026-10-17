@@ -6,7 +6,7 @@ use crate::{
     ProviderType, RpcClient, RpcProvider, SwapperError, SwapperProvider,
     client_factory::create_aptos_client,
     fees::{ReferralFee, default_referral_fees},
-    route_cache::{DiscoveryCache, OutpricedCache},
+    route_cache::{DiscoveryCache, OutpricedCache, quote_outcome},
     route_path::RoutePath,
 };
 use futures::future::{join, join_all};
@@ -59,11 +59,7 @@ impl<C: Client> Hyperion<C> {
 
     async fn quote_paths(&self, paths: Vec<RoutePath<String>>, (from, to): (&String, &String), amount_in: u64) -> Result<(PoolRoute, u64), SwapperError> {
         let quotes = join_all(paths.into_iter().map(|path| async move { (path.clone(), self.quote_path(path, from, to, amount_in).await) })).await;
-        let outcomes = quotes.iter().filter_map(|(path, quote)| match quote {
-            Ok((_, amount_out)) => Some((path.clone(), u128::from(*amount_out))),
-            Err(SwapperError::NoQuoteAvailable) => Some((path.clone(), 0)),
-            Err(_) => None,
-        });
+        let outcomes = quotes.iter().filter_map(|(path, quote)| Some((path.clone(), quote_outcome(quote.as_ref().map(|(_, amount_out)| u128::from(*amount_out)))?)));
         self.outpriced_paths.record(from, to, u128::from(amount_in), outcomes);
         quotes.into_iter().filter_map(|(_, quote)| quote.ok()).max_by_key(|(_, amount_out)| *amount_out).ok_or(SwapperError::NoQuoteAvailable)
     }

@@ -5,6 +5,7 @@ use num_bigint::BigUint;
 use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
 use serde::Deserialize;
 use serde_json::Value;
+use std::sync::{Arc, Mutex};
 
 pub const TEST_WALLET: &str = "EQBI792u0Cq0CKwY2yGc-jpVhiFMVcV1Zd-X69_dEtW1tZGG";
 pub const TEST_USDT_WALLET: &str = "EQDTUKJxH6LRwJYvQ5DkDgYmBt033ECr_q9MhmDwkBxM-DUJ";
@@ -44,9 +45,14 @@ struct GetMethodRecord {
 }
 
 pub fn mock_ton_client(records: &str) -> TonClient<MockClient> {
+    mock_ton_client_with_calls(records, Arc::default())
+}
+
+pub fn mock_ton_client_with_calls(records: &str, calls: Arc<Mutex<Vec<String>>>) -> TonClient<MockClient> {
     let records: Vec<GetMethodRecord> = serde_json::from_str(records).unwrap();
     TonClient::new(MockClient::new().with_post(move |_, body| {
         let request: Value = serde_json::from_slice(body).unwrap();
+        calls.lock().unwrap().push(request["method"].as_str().unwrap_or_default().to_string());
         let record = records.iter().find(|record| record.request == request).unwrap_or_else(|| panic!("unrecorded TON get-method {request}"));
         Ok(serde_json::to_vec(&record.response).unwrap())
     }))

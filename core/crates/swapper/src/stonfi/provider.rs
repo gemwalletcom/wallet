@@ -9,7 +9,7 @@ use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     fees::{ReferralFee, default_referral_fees, subtract_bps},
     models::nonzero_swap_value,
-    route_cache::{DiscoveryCache, OutpricedCache},
+    route_cache::{DiscoveryCache, OutpricedCache, amount_key, quote_outcome},
     route_path::RoutePath,
 };
 use async_trait::async_trait;
@@ -17,7 +17,6 @@ use futures::future::join_all;
 use gem_client::Client;
 use gem_ton::{address::Address, models::TonConnectMessage, rpc::client::TonClient};
 use num_bigint::BigUint;
-use num_traits::ToPrimitive;
 use primitives::{AssetId, Chain, asset_constants::TON_USDT_ASSET_ID};
 use std::{cmp::Reverse, fmt::Debug, str::FromStr, sync::Arc};
 
@@ -119,7 +118,9 @@ where
             quoted if quoted.iter().all(|(_, quote)| quote.is_err()) && !skipped.is_empty() => self.quote_route_paths(&skipped, request, from_value, allow_discovery).await,
             quoted => quoted,
         };
-        let outcomes = quoted.iter().filter_map(|(path, quote)| Some((path_key(path), quote_outcome(quote.as_ref().map(|path| path.to_value.as_str()))?)));
+        let outcomes = quoted
+            .iter()
+            .filter_map(|(path, quote)| Some((path_key(path), quote_outcome(quote.as_ref().map(|path| path.to_value.parse().unwrap_or_default()))?)));
         self.outpriced_paths.record(&from_key, &to_key, amount_in, outcomes);
         quoted.into_iter().map(|(_, quote)| quote).collect()
     }
@@ -285,7 +286,7 @@ where
         let outcomes = addresses
             .into_iter()
             .zip(&quotes)
-            .filter_map(|(address, quote)| Some((address, quote_outcome(quote.as_ref().map(|(_, simulation)| simulation.ask_units.as_str()))?)));
+            .filter_map(|(address, quote)| Some((address, quote_outcome(quote.as_ref().map(|(_, simulation)| simulation.ask_units.parse().unwrap_or_default()))?)));
         self.outpriced_pools.record(&from_token.to_string(), &to_token.to_string(), amount_key(amount), outcomes);
         let ranked = quotes.into_iter().flatten().map(|quote| Ok((BigUint::from_str(&quote.1.ask_units)?, quote))).collect::<Result<Vec<_>, SwapperError>>()?;
         ranked.into_iter().min_by_key(|(amount, _)| Reverse(amount.clone())).map(|(_, quote)| quote).ok_or(SwapperError::NoQuoteAvailable)
@@ -444,18 +445,6 @@ where
         let message = TonConnectMessage::new(Address::parse(&tx.to)?.encode_bounceable(), &BigUint::from_str(&tx.value)?, Some(tx.data));
         TonConnectMessage::swap_quote_data(&[message]).map_err(SwapperError::compute_quote_error)
     }
-}
-
-fn quote_outcome(quote: Result<&str, &SwapperError>) -> Option<u128> {
-    match quote {
-        Ok(value) => BigUint::from_str(value).ok()?.to_u128(),
-        Err(SwapperError::NoQuoteAvailable | SwapperError::InvalidRoute) => Some(0),
-        Err(_) => None,
-    }
-}
-
-fn amount_key(amount: &BigUint) -> u128 {
-    amount.to_u128().unwrap_or(u128::MAX)
 }
 
 fn is_retryable_get_method_error(err: &SwapperError) -> bool {
@@ -785,13 +774,15 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{Options, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, stonfi::testkit::NOT_TOKEN_ID, testkit::mock_ton};
+    use crate::{
+        Options, SwapperQuoteAsset,
+        stonfi::testkit::NOT_TOKEN_ID,
+        testkit::{dynode_provider, mock_ton},
+    };
     use primitives::{AssetId, asset_constants::TON_USDT_ASSET_ID, testkit::signer_mock::TEST_TON_SENDER};
-    use std::collections::HashMap;
 
     fn dynode_stonfi() -> Stonfi<RpcClient> {
-        let rpc_provider = NativeProvider::new_with_endpoints(HashMap::from([(Chain::Ton, "https://gemnodes.com/ton".to_string())]));
-        Stonfi::new(Arc::new(rpc_provider)).unwrap()
+        Stonfi::new(dynode_provider(Chain::Ton)).unwrap()
     }
 
     #[tokio::test]

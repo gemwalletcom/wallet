@@ -8,35 +8,28 @@ use gem_ton::{
     address::Address,
     models::{RunGetMethodResult, StackArg},
     rpc::client::TonClient,
+    tvm::TvmError,
 };
 use num_bigint::BigUint;
+use primitives::WEEK;
 
 #[derive(Debug)]
 pub(super) struct DedustClient<C: Client> {
     ton_client: TonClient<C>,
-    pool_cache: Cache<(DedustAsset, DedustAsset), Address>,
+    addresses: Cache<(&'static str, Vec<DedustAsset>), Address>,
 }
 
 impl<C: Client> DedustClient<C> {
     pub fn new(ton_client: TonClient<C>) -> Self {
-        Self { ton_client, pool_cache: Cache::default() }
+        Self { ton_client, addresses: Cache::new(WEEK) }
     }
 
     pub async fn pool_address(&self, from: &DedustAsset, to: &DedustAsset) -> Result<Address, SwapperError> {
-        let key = (from.clone(), to.clone());
-        if let Some(pool) = self.pool_cache.get(&key) {
-            return Ok(pool);
-        }
-        let pool = self
-            .run_factory_method(GET_POOL_ADDRESS_METHOD, vec![StackArg::num(VOLATILE_POOL_TYPE), from.stack_arg()?, to.stack_arg()?])
-            .await?
-            .stack_address(0)?;
-        self.pool_cache.put(key, pool);
-        Ok(pool)
+        self.factory_address(GET_POOL_ADDRESS_METHOD, vec![StackArg::num(VOLATILE_POOL_TYPE)], vec![from.clone(), to.clone()]).await
     }
 
     pub async fn vault_address(&self, asset: &DedustAsset) -> Result<Address, SwapperError> {
-        Ok(self.run_factory_method(GET_VAULT_ADDRESS_METHOD, vec![asset.stack_arg()?]).await?.stack_address(0)?)
+        self.factory_address(GET_VAULT_ADDRESS_METHOD, vec![], vec![asset.clone()]).await
     }
 
     pub async fn estimate_swap_out(&self, pool: &Address, asset_in: &DedustAsset, amount: &BigUint) -> Result<BigUint, SwapperError> {
@@ -56,6 +49,17 @@ impl<C: Client> DedustClient<C> {
 
     pub async fn jetton_wallet(&self, owner: &str, jetton: &Address) -> Result<Address, SwapperError> {
         self.ton_client.get_jetton_wallet_address(owner, &jetton.encode_bounceable()).await.map_err(SwapperError::compute_quote_error)
+    }
+
+    async fn factory_address(&self, method: &'static str, params: Vec<StackArg>, assets: Vec<DedustAsset>) -> Result<Address, SwapperError> {
+        let key = (method, assets);
+        if let Some(address) = self.addresses.get(&key) {
+            return Ok(address);
+        }
+        let stack = params.into_iter().map(Ok).chain(key.1.iter().map(DedustAsset::stack_arg)).collect::<Result<Vec<_>, TvmError>>()?;
+        let address = self.run_factory_method(method, stack).await?.stack_address(0)?;
+        self.addresses.put(key, address);
+        Ok(address)
     }
 
     async fn run_factory_method(&self, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, SwapperError> {

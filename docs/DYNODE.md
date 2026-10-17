@@ -70,7 +70,7 @@ Swaps rely on Dynode only for lookups that never change once a pool exists, so a
 | Ethereum and EVM networks | `eth_call` `getSlot0` to the Uniswap v4 StateView; the wallet reads it only to learn whether a pool exists, never for its price | `1d` |
 | Sui | `SimulateTransaction` calling Cetus `factory::new_pool_key`, `factory::pool_simple_info` or `factory::pool_id` | `1d` |
 | Aptos | `/v1/view` of Hyperion `pool_v3::liquidity_pool_address_safe` or `pool_v3::liquidity_pool_info` | `1d` |
-| TON | `runGetMethod` `get_wallet_address` or `get_pool_address` | `30d` |
+| TON | `runGetMethod` `get_wallet_address`, `get_pool_address` or `get_vault_address` | `30d` |
 
 The production rules live in the infra repository's Dynode template.
 

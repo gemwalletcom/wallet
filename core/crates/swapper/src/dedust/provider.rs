@@ -9,6 +9,7 @@ use crate::{
     client_factory::create_ton_client,
     fees::{ReferralFee, default_referral_fees, subtract_bps},
     models::nonzero_swap_value,
+    route_cache::{OutpricedCache, amount_key, quote_outcome},
     route_path::RoutePath,
 };
 use async_trait::async_trait;
@@ -27,6 +28,7 @@ use std::{fmt::Debug, sync::Arc};
 pub struct Dedust<C: Client> {
     provider: ProviderType,
     client: DedustClient<C>,
+    outpriced_paths: OutpricedCache<RoutePath<DedustAsset>, DedustAsset>,
 }
 
 impl Dedust<RpcClient> {
@@ -40,6 +42,7 @@ impl<C: Client> Dedust<C> {
         Self {
             provider: ProviderType::new(SwapperProvider::Dedust),
             client: DedustClient::new(ton_client),
+            outpriced_paths: OutpricedCache::default(),
         }
     }
 
@@ -48,9 +51,17 @@ impl<C: Client> Dedust<C> {
     }
 
     async fn find_route(&self, from: &DedustAsset, to: &DedustAsset, value: &BigUint) -> Result<(Vec<Address>, BigUint), SwapperError> {
-        let quotes = join_all(route_paths(from, to)?.into_iter().map(|path| self.quote_path(path, from, to, value))).await;
-        let best = quotes.iter().filter_map(|quote| quote.as_ref().ok()).max_by_key(|(_, value_out)| value_out).cloned();
-        best.ok_or_else(|| quotes.into_iter().find_map(Result::err).unwrap_or(SwapperError::NoQuoteAvailable))
+        self.outpriced_paths
+            .quote_live_first((from, to), amount_key(value), route_paths(from, to)?, Clone::clone, |paths| self.quote_paths(paths, from, to, value))
+            .await
+    }
+
+    async fn quote_paths(&self, paths: Vec<RoutePath<DedustAsset>>, from: &DedustAsset, to: &DedustAsset, value: &BigUint) -> Result<(Vec<Address>, BigUint), SwapperError> {
+        let quotes = join_all(paths.into_iter().map(|path| async move { (path.clone(), self.quote_path(path, from, to, value).await) })).await;
+        let outcomes = quotes.iter().filter_map(|(path, quote)| Some((path.clone(), quote_outcome(quote.as_ref().map(|(_, value_out)| amount_key(value_out)))?)));
+        self.outpriced_paths.record(from, to, amount_key(value), outcomes);
+        let best = quotes.iter().filter_map(|(_, quote)| quote.as_ref().ok()).max_by_key(|(_, value_out)| value_out).cloned();
+        best.ok_or_else(|| quotes.into_iter().find_map(|(_, quote)| quote.err()).unwrap_or(SwapperError::NoQuoteAvailable))
     }
 
     async fn quote_path(&self, path: RoutePath<DedustAsset>, from: &DedustAsset, to: &DedustAsset, value: &BigUint) -> Result<(Vec<Address>, BigUint), SwapperError> {
@@ -122,13 +133,41 @@ where
     }
 }
 
+#[cfg(all(test, feature = "swap_integration_tests"))]
+mod swap_integration_tests {
+    use super::*;
+    use crate::{
+        dedust::testkit::{mock_request, not, ton, usdt},
+        testkit::dynode_provider,
+    };
+
+    #[tokio::test]
+    async fn test_dedust_quotes_and_quote_data() -> Result<(), SwapperError> {
+        let provider = Dedust::new(dynode_provider(Chain::Ton)).unwrap();
+        for (from, to, value) in [(ton(), usdt(), 1_000_000_000u64), (usdt(), ton(), 5_000_000), (usdt(), not(), 5_000_000)] {
+            let quote = provider.get_quote(&mock_request(from, to, value)).await?;
+            let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let messages: Vec<TonConnectMessage> = serde_json::from_str(&data.data)?;
+            println!("DeDust quote: to_value={} route={} messages={}", quote.to_value, quote.data.routes[0].route_data, messages.len());
+
+            assert!(quote.to_value > BigUint::ZERO);
+            assert_eq!(messages.len(), 2);
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
         Options,
-        dedust::testkit::{NATIVE_VAULT, TEST_USDT_WALLET, TON_NOT_POOL, TON_USDT_POOL, mock_request, mock_ton_client, not, ton, usdt},
+        dedust::{
+            constants::ESTIMATE_SWAP_OUT_METHOD,
+            testkit::{NATIVE_VAULT, TEST_USDT_WALLET, TON_NOT_POOL, TON_USDT_POOL, mock_request, mock_ton_client, mock_ton_client_with_calls, not, ton, usdt},
+        },
     };
+    use std::sync::Mutex;
 
     fn quote_messages(data: &SwapperQuoteData) -> Vec<TonConnectMessage> {
         serde_json::from_str(&data.data).unwrap()
@@ -163,6 +202,19 @@ mod tests {
 
         assert_eq!(quote.from_value, BigUint::from(1_000_000_000u64));
         assert_eq!(quote.to_value, BigUint::from(1_361_362u64));
+    }
+
+    #[tokio::test]
+    async fn test_repeat_quote_skips_outpriced_route() {
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let provider = Dedust::with_client(mock_ton_client_with_calls(include_str!("testdata/usdt_to_not_get_methods.json"), calls.clone()));
+        let request = mock_request(usdt(), not(), 5_000_000);
+        let estimates = |calls: &Mutex<Vec<String>>| calls.lock().unwrap().drain(..).filter(|method| method == ESTIMATE_SWAP_OUT_METHOD).count();
+
+        let quote = provider.get_quote(&request).await.unwrap();
+        assert_eq!(estimates(&calls), 3);
+        assert_eq!(provider.get_quote(&request).await.unwrap(), quote);
+        assert_eq!(estimates(&calls), 2);
     }
 
     #[tokio::test]
