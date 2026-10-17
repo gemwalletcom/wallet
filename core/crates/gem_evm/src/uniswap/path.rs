@@ -4,7 +4,7 @@ use std::fmt::Display;
 use super::FeeTier;
 use primitives::{EVMChain, asset_constants::*};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TokenPair {
     pub token_in: Address,
     pub token_out: Address,

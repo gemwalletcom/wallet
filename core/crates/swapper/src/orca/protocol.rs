@@ -144,14 +144,11 @@ mod tests {
         atomic::{AtomicUsize, Ordering},
     };
 
-    #[tokio::test]
-    async fn test_swap_requests() {
-        let requests = Arc::new(AtomicUsize::new(0));
-        let orca = SolanaDex::with_client(Orca, mock_rpc_client(mock_snapshot_rpc_accounts(), requests.clone()));
-        let request = QuoteRequest {
+    fn sol_to_usdc_request(value: u64) -> QuoteRequest {
+        QuoteRequest {
             wallet_address: TEST_SOLANA_SENDER.to_string(),
             destination_address: TEST_SOLANA_SENDER.to_string(),
-            value: BigUint::from(1_000_000_000u64),
+            value: BigUint::from(value),
             ..mock_quote(
                 SwapperQuoteAsset {
                     decimals: 9,
@@ -163,7 +160,14 @@ mod tests {
                     ..SwapperQuoteAsset::from(AssetId::from_token(Chain::Solana, USDC_TOKEN_MINT))
                 },
             )
-        };
+        }
+    }
+
+    #[tokio::test]
+    async fn test_swap_requests() {
+        let requests = Arc::new(AtomicUsize::new(0));
+        let orca = SolanaDex::with_client(Orca, mock_rpc_client(mock_snapshot_rpc_accounts(), requests.clone()));
+        let request = sol_to_usdc_request(1_000_000_000);
 
         let quote = orca.get_quote(&request).await.unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 2);
@@ -218,27 +222,27 @@ mod tests {
             })
             .collect();
         let orca = SolanaDex::with_client(Orca, mock_rpc_client(accounts, requests.clone()));
-        let request = QuoteRequest {
-            wallet_address: TEST_SOLANA_SENDER.to_string(),
-            destination_address: TEST_SOLANA_SENDER.to_string(),
-            value: BigUint::from(1_000_000_000u64),
-            ..mock_quote(
-                SwapperQuoteAsset {
-                    decimals: 9,
-                    ..SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana))
-                },
-                SwapperQuoteAsset {
-                    decimals: 6,
-                    asset_type: AssetType::SPL,
-                    ..SwapperQuoteAsset::from(AssetId::from_token(Chain::Solana, USDC_TOKEN_MINT))
-                },
-            )
-        };
+        let request = sol_to_usdc_request(1_000_000_000);
 
         assert_eq!(orca.get_quote(&request).await, Err(SwapperError::NoQuoteAvailable));
         assert_eq!(requests.load(Ordering::SeqCst), 1);
         assert_eq!(orca.get_quote(&request).await, Err(SwapperError::NoQuoteAvailable));
         assert_eq!(requests.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn test_failed_route_is_skipped_for_larger_values() {
+        let requests = Arc::new(AtomicUsize::new(0));
+        let orca = SolanaDex::with_client(Orca, mock_rpc_client(mock_snapshot_rpc_accounts(), requests.clone()));
+        let too_large = sol_to_usdc_request(1_000_000_000_000_000);
+
+        assert_eq!(orca.get_quote(&too_large).await, Err(SwapperError::NoQuoteAvailable));
+        assert_eq!(requests.load(Ordering::SeqCst), 2);
+        assert_eq!(orca.get_quote(&too_large).await, Err(SwapperError::NoQuoteAvailable));
+        assert_eq!(requests.load(Ordering::SeqCst), 2);
+
+        assert_eq!(orca.get_quote(&sol_to_usdc_request(1_000_000_000)).await.unwrap().to_value, BigUint::from(104_629_923u64));
+        assert_eq!(requests.load(Ordering::SeqCst), 3);
     }
 
     #[tokio::test]

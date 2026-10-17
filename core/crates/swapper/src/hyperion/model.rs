@@ -1,13 +1,14 @@
 use gem_aptos::{
-    APTOS_NATIVE_COIN, APTOS_NATIVE_METADATA_ADDRESS, AccountAddress, ENTRY_FUNCTION_PAYLOAD_TYPE, HYPERION_PARTNER_SWAP_FUNCTION, TransactionPayload,
+    APTOS_NATIVE_METADATA_ADDRESS, AccountAddress, ENTRY_FUNCTION_PAYLOAD_TYPE, HYPERION_PARTNER_SWAP_FUNCTION, TransactionPayload,
     models::{Event, HyperionThirdPartySwapData, Transaction, fungible_store_change},
 };
 use num_bigint::{BigInt, BigUint};
 use num_traits::ToPrimitive;
-use primitives::{AssetId, Chain, asset_constants::APTOS_USDC_TOKEN_ID, chain_aptos::is_fungible_asset_token_id};
+use primitives::{Address, AssetId, Chain, asset_constants::APTOS_USDC_TOKEN_ID, chain_aptos::is_fungible_asset_token_id};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+use super::constants::POOL_CREATOR;
 use crate::{
     Quote, SwapperError,
     fees::{DEFAULT_REFERRER, FeeSide, ReferralFee, subtract_bps},
@@ -44,29 +45,21 @@ pub(super) struct Pool {
 }
 
 impl Pool {
-    pub fn from_info(address: String, info: &[String], token_x: &str, token_y: &str) -> Option<Self> {
-        let token_a = info_token(info.get(1)?)?;
-        let token_b = info_token(info.get(3)?)?;
-        let is_pair = (token_a == token_x && token_b == token_y) || (token_a == token_y && token_b == token_x);
-        is_pair.then_some(Self { address, token_a })
+    pub fn new(token_x: &str, token_y: &str, fee_tier: u8) -> Result<Self, SwapperError> {
+        let parse = |token: &str| AccountAddress::from_hex(token).map_err(|_| SwapperError::NotSupportedAsset);
+        let (token_x, token_y) = (parse(token_x)?, parse(token_y)?);
+        let (token_a, token_b) = if token_x <= token_y { (token_x, token_y) } else { (token_y, token_x) };
+        let address = POOL_CREATOR.named_object(&[token_a.as_bytes(), token_b.as_bytes(), &[fee_tier]].concat());
+        Ok(Self {
+            address: address.to_string(),
+            token_a: token_a.to_string(),
+        })
     }
 
     pub fn quote(&self, from: &str, amount_out: u64, reserves: (u64, u64)) -> Option<PoolQuote> {
         let output_reserve = if self.token_a == from { reserves.1 } else { reserves.0 };
         (amount_out > 0 && amount_out < output_reserve).then(|| PoolQuote { pool: self.address.clone(), amount_out })
     }
-}
-
-fn info_token(id: &str) -> Option<String> {
-    let metadata = match id.split_once("::") {
-        Some((address, path)) => {
-            let (coin_address, coin_path) = APTOS_NATIVE_COIN.split_once("::")?;
-            let is_native_coin = AccountAddress::from_hex(address).ok()? == AccountAddress::from_hex(coin_address).ok()? && path == coin_path;
-            is_native_coin.then_some(APTOS_NATIVE_METADATA_ADDRESS)?
-        }
-        None => id,
-    };
-    Some(AccountAddress::from_hex(metadata).ok()?.to_string())
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -164,25 +157,21 @@ mod tests {
     }
 
     #[test]
-    fn test_pool_from_info() {
+    fn test_pool_new() {
         let apt = AccountAddress::from_hex("0xa").unwrap().to_string();
-        let info = [
-            "Aptos Coin".to_string(),
-            "0x0000000000000000000000000000000000000000000000000000000000000001::aptos_coin::AptosCoin".to_string(),
-            "Tether USD".to_string(),
-            APTOS_USDT_TOKEN_ID.to_string(),
-        ];
-        let pool = Pool {
-            address: "0x18269b".to_string(),
+        let apt_usdc = Pool {
+            address: "0x925660b8618394809f89f8002e2926600c775221f43bf1919782b297a79400d8".to_string(),
             token_a: apt.clone(),
         };
 
-        assert_eq!(Pool::from_info("0x18269b".to_string(), &info, APTOS_USDT_TOKEN_ID, &apt), Some(pool.clone()));
-        assert_eq!(Pool::from_info("0x18269b".to_string(), &info, &apt, APTOS_USDT_TOKEN_ID), Some(pool));
-        assert_eq!(Pool::from_info("0x18269b".to_string(), &info, APTOS_USDC_TOKEN_ID, &apt), None);
+        assert_eq!(Pool::new(&apt, APTOS_USDC_TOKEN_ID, 1), Ok(apt_usdc.clone()));
+        assert_eq!(Pool::new(APTOS_USDC_TOKEN_ID, &apt, 1), Ok(apt_usdc));
         assert_eq!(
-            Pool::from_info("0x18269b".to_string(), &[info[0].clone(), "0x1::coin::Other".to_string(), info[2].clone(), info[3].clone()], APTOS_USDT_TOKEN_ID, &apt),
-            None
+            Pool::new(APTOS_USDC_TOKEN_ID, APTOS_USDT_TOKEN_ID, 5),
+            Ok(Pool {
+                address: "0xe914b87896574534e95722004df09d012aa985ed451d72a9df4b1343eb9691c1".to_string(),
+                token_a: APTOS_USDT_TOKEN_ID.to_string(),
+            })
         );
     }
 

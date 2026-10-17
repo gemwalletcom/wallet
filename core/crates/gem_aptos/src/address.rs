@@ -6,11 +6,16 @@ use std::str::FromStr;
 
 const ADDRESS_LENGTH: usize = 32;
 const OBJECT_DERIVED_SCHEME: u8 = 0xFC;
+const OBJECT_FROM_SEED_SCHEME: u8 = 0xFE;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct AccountAddress([u8; ADDRESS_LENGTH]);
 
 impl AccountAddress {
+    pub const fn new(bytes: [u8; ADDRESS_LENGTH]) -> Self {
+        Self(bytes)
+    }
+
     pub fn from_hex(value: &str) -> Result<Self, SignerError> {
         <Self as FromStr>::from_str(value)
     }
@@ -33,6 +38,10 @@ impl AccountAddress {
 
     pub fn primary_store(&self, metadata: &AccountAddress) -> AccountAddress {
         Self(sha3_256(&[&self.0[..], &metadata.0[..], &[OBJECT_DERIVED_SCHEME]].concat()))
+    }
+
+    pub fn named_object(&self, seed: &[u8]) -> AccountAddress {
+        Self(sha3_256(&[&self.0[..], seed, &[OBJECT_FROM_SEED_SCHEME]].concat()))
     }
 }
 

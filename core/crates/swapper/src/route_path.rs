@@ -1,6 +1,6 @@
 use std::iter::once;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum RoutePath<T> {
     Direct,
     Intermediary(T),

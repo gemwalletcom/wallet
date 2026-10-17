@@ -1210,6 +1210,7 @@
 				EXCLUDED_SOURCE_FILE_NAMES = core;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Gem;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Gem Wallet needs access to your Camera to scan QR Codes.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Enabling Face ID helps Gem Wallet keep your assets secure.";
@@ -1267,6 +1268,7 @@
 				EXCLUDED_SOURCE_FILE_NAMES = core;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Gem;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Gem Wallet needs access to your Camera to scan QR Codes.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Enabling Face ID helps Gem Wallet keep your assets secure.";

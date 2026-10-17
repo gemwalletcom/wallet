@@ -90,38 +90,52 @@ flowchart LR
 | A pool exists: its address, tokens and fee tier, and the version Cetus needs to trade with it | `7 days` |
 | No pool exists at a fee tier | `1 day` |
 | A pool cannot trade: no liquidity at its price, or swaps paused or not open yet on Orca and Raydium, or locked on STON.fi | `1 hour`, then it is checked again |
+| A pool or route lost at an amount: it gave more than `3%` less than the best, or it failed | `1 hour`, skipped for that pair at that amount or more |
 | On Solana: the token mints, Gem's fee accounts and Raydium's fee configs | `1 day` |
 | Cetus's four main SUI/USDC pools | always; they ship with the app |
 
 | On Dynode | Kept for |
 |---|---|
 | Uniswap v3, PancakeSwap, Aerodrome, Oku and Wagmi pool lookups | `1 day` |
+| Uniswap v4 pool lookups | `1 day` |
 | Cetus pool lookups | `1 day` |
-| Hyperion pool addresses and pool details | `1 day` |
 | STON.fi pool and jetton wallet addresses | `30 days` |
 | Sui epoch and gas price | `10 minutes` |
 
 Anything not listed is read again for every quote.
 
-On Solana a quote reads every account it needs in one request. Orca and Raydium each look up their `8` most-used fee tiers, which hold about `92%` and `94%` of the liquidity in their 200 largest pools. With 8 tiers, a token-to-token pair needs at most `93` accounts, which fits Solana's `100`-account limit, so a quote never splits into a second request.
+Solana, Uniswap v4 and Hyperion pool addresses are computed on the device from the two tokens and the fee tier, so finding a pool only checks that it exists. On Solana a quote reads every account it needs in one request. Orca and Raydium each look up their `8` most-used fee tiers, which hold about `92%` and `94%` of the liquidity in their 200 largest pools. With 8 tiers, a token-to-token pair needs at most `93` accounts, which fits Solana's `100`-account limit, so a quote never splits into a second request.
+
+### Skipping pools that lose
+
+Every quote compares candidates and keeps the best. A candidate that gave more than `3%` less than the best, or that failed outright, is not asked again for the next `1 hour` when the same pair is quoted at that amount or more. A smaller amount asks it again, since a pool too shallow for a large trade can still be the best for a small one. Failing outright means the quote reverted, the pool ran out of liquidity for the amount, or the pool could not pay the output; a network error never counts. If every candidate still asked fails, the skipped ones are asked before the quote fails. When every candidate failed at that amount or less, there is no quote and nothing is asked (`test_outpriced_cache`, `test_get_best_quote_skips_outpriced_paths`, `test_failed_route_is_skipped_for_larger_values`, `test_find_route_skips_outpriced_pools`).
+
+| Provider | Candidates |
+|---|---|
+| Uniswap v3 and v4, PancakeSwap, Aerodrome, Oku, Wagmi | each path: one pool at a fee tier, or two pools through a base token |
+| Orca, Raydium | each route: one pool, or two pools through an intermediate token; a skipped pool's accounts are left out of the request |
+| STON.fi | each path, and each pool within a hop |
+| Hyperion | each path, and each pool within a hop |
+
+Cetus prices all its pools in one dry run, so it has nothing to skip. `3%` keeps close rivals: two fee tiers on a busy pair are often within `1%` and trade places as the amount changes, so both stay. In the measured pairs, every pool that lost was `6%` to `99%` worse than the best, or failed.
 
 ### Requests per quote
 
-Measured on 2026-10-17, one pair per provider and the same amount, on the build before and after this caching. Each count is HTTP requests; a single number did not change, and `before → after` shows what did. "A day later" is the same pair quoted again while the app is still open: before this caching, pool facts expired after `1 day` and discovery ran again. Everything the device keeps lives in memory, so after the app restarts the first quote pays the full cost again, and Dynode's lookups make that fast. Size is the repeat quote's response before compression. A swap build of `0` is built without a request; Cetus's was measured with an empty test wallet, so its dry run failed.
+Measured on 2026-10-17, one pair per provider and the same amount, on the build before and after this caching. Each count is HTTP requests; a single number did not change, and `before → after` shows what did. "A day later" is the same pair quoted again while the app is still open: before this caching, pool facts expired after `1 day` and discovery ran again; by then the losing pools are asked again too, so it costs what the repeat quote cost before skipping. Everything the device keeps lives in memory, so after the app restarts the first quote pays the full cost again, and Dynode's lookups make that fast. Size is the repeat quote's response before compression. A swap build of `0` is built without a request; Cetus's was measured with an empty test wallet, so its dry run failed.
 
 | Provider and pair | First quote | Repeat quote | A day later | Swap build | Size |
 |---|---|---|---|---|---|
-| Uniswap v3, ETH to USDC | 2 | 1 | 2 → 1 | 0 | 4 KB |
-| Uniswap v4, ETH to USDC | 2, with 16 → 8 calls | 1 | 2 → 1 | 0 | under 1 KB |
-| Orca, SOL to USDC | 2 | 1 | 2 → 1 | 1 | 318 → 237 KB |
-| Raydium, SOL to USDC | 2 | 1 | 2 → 1 | 1 | 335 → 244 KB |
-| Orca, JUP to USDC | 2 | 2 → 1 | 2 → 1 | 1 | 337 → 230 KB |
-| Raydium, JUP to USDC | 2 | 2 → 1 | 2 → 1 | 1 | 193 → 143 KB |
+| Uniswap v3, ETH to USDC | 2 | 1, with 8 → 7 calls | 2 → 1 | 0 | 4 KB |
+| Uniswap v4, ETH to USDC | 2, with 16 → 8 calls | 1, with 4 → 3 calls | 2 → 1 | 0 | under 1 KB |
+| Orca, SOL to USDC | 2 | 1 | 2 → 1 | 1 | 318 → 234 KB |
+| Raydium, SOL to USDC | 2 | 1 | 2 → 1 | 1 | 335 → 229 KB |
+| Orca, JUP to USDC | 2 | 2 → 1 | 2 → 1 | 1 | 337 → 213 KB |
+| Raydium, JUP to USDC | 2 | 2 → 1 | 2 → 1 | 1 | 193 → 127 KB |
 | Cetus, SUI to USDC | 7 | 1 | 7 → 1 | 6 | 3 KB |
-| STON.fi, TON to USDT | 10 | 4 | 10 → 4 | 0 | 2 KB |
-| Hyperion, APT to USDC | 19 | 7 | 19 → 7 | 3 | under 1 KB |
+| STON.fi, TON to USDT | 10 | 4 → 2 | 10 → 4 | 0 | 2 → 1 KB |
+| Hyperion, APT to USDC | 19 → 13 | 7 → 2 | 19 → 7 | 3 | under 1 KB |
 
-A repeat quote took about `110 ms` to `130 ms` on Ethereum, Solana and Sui, most of it the round trip to Dynode. STON.fi and Hyperion ask one pool per request, so their repeat quotes took about `230 ms` and `320 ms`.
+A repeat quote took about `110 ms` to `130 ms` on Ethereum and Sui, most of it the round trip to Dynode. Solana's carry 130 to 230 KB of pool accounts and took `170 ms` to `800 ms`. STON.fi and Hyperion ask one pool per request, so their repeat quotes took about `230 ms` and `270 ms`.
 
 ## Expected results
 
@@ -158,7 +172,7 @@ A repeat quote took about `110 ms` to `130 ms` on Ethereum, Solana and Sui, most
 ## Rules
 
 - Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
-- A quote is never cached: every eligible provider is asked again for the live amount, and every quote is priced on live chain state. Only the facts that never change are kept, as [On-chain quotes](#on-chain-quotes) lists.
+- A quote is never cached: every eligible provider is asked again for the live amount, and every quote is priced on live chain state. Only the facts that never change are kept, and for an hour which pools lost at an amount, as [On-chain quotes](#on-chain-quotes) lists.
 - Every eligible provider is awaited, so the slowest one decides how long a quote takes.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it loaded and showed.
 - The Slippage row reads Auto on both screens until the user picks a value.

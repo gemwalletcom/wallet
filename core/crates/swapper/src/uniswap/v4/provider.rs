@@ -3,7 +3,7 @@ use alloy_sol_types::SolValue;
 use async_trait::async_trait;
 use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigUint;
-use std::{collections::HashSet, fmt, iter, str::FromStr, sync::Arc, vec};
+use std::{collections::HashSet, fmt, str::FromStr, sync::Arc, vec};
 
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
@@ -14,18 +14,15 @@ use crate::{
         deadline::get_sig_deadline,
         discovery::{PoolDiscovery, candidate_pairs, discover_v4_pools},
         fee_token::is_quote_input_fee_token,
-        quote_result::{QuotePosition, get_best_quote},
+        quote_result::{OutpricedPaths, get_best_quote},
         routed_asset::{Funding, Protocol, RoutedAsset, base_pair, routed_pair},
         swap_route::{RouteData, build_swap_route, get_intermediaries},
     },
 };
-use gem_evm::{
-    jsonrpc::EthereumRpc,
-    uniswap::{
-        FeeTier,
-        command::{Permit2Permit, encode_commands},
-        deployment::v4::get_uniswap_deployment_by_chain,
-    },
+use gem_evm::uniswap::{
+    FeeTier,
+    command::{Permit2Permit, encode_commands},
+    deployment::v4::get_uniswap_deployment_by_chain,
 };
 use gem_hash::keccak::keccak256;
 use gem_jsonrpc::alien::create_client;
@@ -34,8 +31,8 @@ use primitives::{AssetId, Chain, EVMChain};
 use super::{
     DEFAULT_SWAP_GAS_LIMIT, TEMPO_SWAP_GAS_LIMIT,
     commands::build_commands,
-    path::{build_pool_key, build_pool_keys, build_quote_exact_params, get_intermediary_token},
-    quoter::{build_quote_exact_requests, build_quote_exact_single_request},
+    path::{build_pool_key, build_pool_keys, build_quote_exact_params},
+    quoter::{build_quote_exact_request, build_quote_exact_single_request},
 };
 
 const PROTOCOL: Protocol = Protocol::V4;
@@ -44,6 +41,7 @@ pub struct UniswapV4 {
     pub provider: ProviderType,
     rpc_provider: Arc<dyn RpcProvider>,
     pool_discovery: PoolDiscovery,
+    outpriced_paths: OutpricedPaths,
 }
 
 impl UniswapV4 {
@@ -52,6 +50,7 @@ impl UniswapV4 {
             provider: ProviderType::new(SwapperProvider::UniswapV4),
             rpc_provider,
             pool_discovery: PoolDiscovery::default(),
+            outpriced_paths: OutpricedPaths::default(),
         }
     }
 
@@ -148,45 +147,29 @@ impl Swapper for UniswapV4 {
         let quote_amount_in = if fee_token_is_input && fee_bps > 0 { subtract_bps(&from_value, fee_bps) } else { from_value };
 
         _ = self.preload_pool_candidates(from_chain, token_in, token_out).await;
-        let pool_keys = build_pool_keys(&token_in, &token_out, &fee_tiers);
-        let pool_keys = pool_keys.into_iter().filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs)).collect::<Vec<_>>();
-        let quote_exact_params = if !Self::is_base_pair(&token_in, &token_out, &evm_chain) {
-            let intermediaries = get_intermediaries(&token_in, &token_out, &base_pair);
-            build_quote_exact_params(quote_amount_in, &token_in, &token_out, &fee_tiers, &intermediaries)
-                .into_iter()
-                .map(|paths| paths.into_iter().filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs)).collect::<Vec<_>>())
-                .collect()
-        } else {
+        let direct_paths = build_pool_keys(&token_in, &token_out, &fee_tiers)
+            .into_iter()
+            .map(|(pairs, pool_key)| (pairs, build_quote_exact_single_request(&token_in, deployment.quoter, quote_amount_in, &pool_key)));
+        let intermediaries = if Self::is_base_pair(&token_in, &token_out, &evm_chain) {
             Vec::new()
+        } else {
+            get_intermediaries(&token_in, &token_out, &base_pair)
         };
-        let direct_calls = pool_keys.iter().map(|pool_key| build_quote_exact_single_request(&token_in, deployment.quoter, quote_amount_in, &pool_key.1)).collect();
-        let (positions, calls): (Vec<_>, Vec<EthereumRpc>) = iter::once(direct_calls)
-            .chain(build_quote_exact_requests(deployment.quoter, &quote_exact_params))
-            .enumerate()
-            .flat_map(|(route_idx, calls)| calls.into_iter().enumerate().map(move |(fee_tier_idx, call)| (QuotePosition { route_idx, fee_tier_idx }, call)))
-            .unzip();
-        let results = create_client(self.rpc_provider.clone(), from_chain)?.requests(calls).await?;
-        let quote_result = get_best_quote(&results, &positions, super::quoter::decode_quoter_response)?;
-
-        let fee_tier_idx = quote_result.fee_tier_idx;
-        let route_idx = quote_result.route_idx;
+        let multi_hop_paths = build_quote_exact_params(quote_amount_in, &token_in, &token_out, &fee_tiers, &intermediaries)
+            .into_iter()
+            .flatten()
+            .map(|(pairs, params)| (pairs, build_quote_exact_request(deployment.quoter, &params)));
+        let paths = direct_paths.chain(multi_hop_paths).filter(|(pairs, _)| self.pool_discovery.path_may_exist(from_chain, pairs)).collect();
+        let client = create_client(self.rpc_provider.clone(), from_chain)?;
+        let quote_result = get_best_quote(&client, &self.outpriced_paths, (from_chain, token_in), (from_chain, token_out), quote_amount_in, paths, super::quoter::decode_quoter_response).await?;
 
         let to_value = if fee_token_is_input { quote_result.amount_out } else { subtract_bps(&quote_result.amount_out, fee_bps) };
         let to_min_value = subtract_bps(&to_value, request.options.slippage.bps);
 
-        let fee_tier = if route_idx == 0 {
-            pool_keys.get(fee_tier_idx).and_then(|(pairs, _)| pairs.first()).map(|pair| pair.fee_tier as u32)
-        } else {
-            quote_exact_params
-                .get(route_idx - 1)
-                .and_then(|params| params.get(fee_tier_idx))
-                .and_then(|(pairs, _)| pairs.first())
-                .map(|pair| pair.fee_tier as u32)
-        }
-        .ok_or(SwapperError::InvalidRoute)?;
+        let fee_tier = quote_result.fee_tier().ok_or(SwapperError::InvalidRoute)?;
         let asset_id_in = AssetId::from(from_chain, Some(token_in.to_checksum(None)));
         let asset_id_out = AssetId::from(to_chain, Some(token_out.to_checksum(None)));
-        let asset_id_intermediary: Option<AssetId> = get_intermediary_token(&quote_exact_params, route_idx).map(|token| AssetId::from(to_chain, Some(token.to_checksum(None))));
+        let asset_id_intermediary = quote_result.intermediary().map(|token| AssetId::from(to_chain, Some(token.to_checksum(None))));
         let route_data = RouteData {
             fee_tier: fee_tier.to_string(),
             min_amount_out: to_min_value.to_string(),

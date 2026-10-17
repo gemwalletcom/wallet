@@ -3,10 +3,7 @@ use alloy_primitives::{Address, Bytes, U256, hex::decode as HexDecode};
 use alloy_sol_types::SolCall;
 use gem_evm::{
     jsonrpc::{BlockParameter, EthereumRpc, TransactionObject},
-    uniswap::{
-        contracts::v4::{IV4Quoter, PoolKey},
-        path::TokenPair,
-    },
+    uniswap::contracts::v4::{IV4Quoter, PoolKey},
 };
 use gem_jsonrpc::types::JsonRpcResponse;
 
@@ -24,10 +21,6 @@ pub fn build_quote_exact_single_request(token_in: &Address, v4_quoter: &str, amo
         transaction: TransactionObject::new_call(v4_quoter, call_data),
         block: BlockParameter::Latest,
     }
-}
-
-pub fn build_quote_exact_requests(v4_quoter: &str, quote_params: &[Vec<(Vec<TokenPair>, IV4Quoter::QuoteExactParams)>]) -> Vec<Vec<EthereumRpc>> {
-    quote_params.iter().map(|quote_array| quote_array.iter().map(|x| build_quote_exact_request(v4_quoter, &x.1)).collect::<Vec<_>>()).collect()
 }
 
 pub fn build_quote_exact_request(v4_quoter: &str, params: &IV4Quoter::QuoteExactParams) -> EthereumRpc {
@@ -97,10 +90,9 @@ mod tests {
         let amount_in = 10000000000000000_u128;
 
         let quote_params = build_quote_exact_params(amount_in, &token_in, &token_out, &fee_tiers, &base_pair.path_building_array());
-        let rpc_calls = build_quote_exact_requests(v4_quoter, &quote_params);
+        let rpc_calls = quote_params.iter().flatten().map(|(_, params)| build_quote_exact_request(v4_quoter, params)).collect::<Vec<_>>();
 
-        assert_eq!(rpc_calls.len(), 3);
-
-        rpc_calls.iter().for_each(|call_array| assert_eq!(call_array.len(), 3));
+        assert_eq!(quote_params.len(), 3);
+        assert_eq!(rpc_calls.len(), 9);
     }
 }
