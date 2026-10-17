@@ -354,7 +354,7 @@ mod tests {
         assert_eq!(
             QuoteRequest {
                 options: Options::default(),
-                ..small.clone()
+                ..small
             }
             .reserve_native_attachment(&attachment)
             .unwrap()
