@@ -1,5 +1,5 @@
 use super::permit2_data::Permit2Data;
-use crate::{SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS};
+use crate::{SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS, fees::reserved_transaction_fees};
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
 pub use primitives::swap::Permit2ApprovalData;
@@ -11,7 +11,7 @@ use primitives::{
 use serde::{Serialize, de::DeserializeOwned};
 use serde_serializers::serialize_display;
 use serde_serializers::{serialize_biguint, serialize_option_biguint};
-use std::fmt::Debug;
+use std::{fmt::Debug, str::FromStr};
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ProviderType {
@@ -50,6 +50,7 @@ impl ProviderType {
             | SwapperProvider::Orca
             | SwapperProvider::RaydiumClmm
             | SwapperProvider::Hyperion
+            | SwapperProvider::Dedust
             | SwapperProvider::Okx => SwapProviderMode::OnChain,
             SwapperProvider::Mayan | SwapperProvider::Mayachain | SwapperProvider::Squid | SwapperProvider::SwapsXyz | SwapperProvider::Bridgers => SwapProviderMode::CrossChain,
             SwapperProvider::Chainflip => SwapProviderMode::OmniChain(vec![Chain::Tron]),
@@ -77,6 +78,7 @@ impl ProviderType {
             | SwapperProvider::Orca
             | SwapperProvider::RaydiumClmm
             | SwapperProvider::Hyperion
+            | SwapperProvider::Dedust
             | SwapperProvider::Mayachain
             | SwapperProvider::Chainflip
             | SwapperProvider::Thorchain
@@ -104,6 +106,22 @@ pub struct QuoteRequest {
 impl QuoteRequest {
     pub fn value_u64(&self) -> Result<u64, SwapperError> {
         swap_value_u64(&self.value)
+    }
+
+    pub(crate) fn reserve_native_attachment(&self, attachment: &BigUint) -> Result<Self, SwapperError> {
+        if !self.options.use_max_amount || !self.from_asset.is_native() {
+            return Ok(self.clone());
+        }
+        if self.value <= *attachment {
+            let reserved_fee = reserved_transaction_fees(self.from_asset.chain()).and_then(|fee| BigUint::from_str(fee).ok()).unwrap_or_default();
+            return Err(SwapperError::InputAmountError {
+                min_amount: Some((attachment + reserved_fee).to_string()),
+            });
+        }
+        Ok(Self {
+            value: &self.value - attachment,
+            ..self.clone()
+        })
     }
 }
 
@@ -316,6 +334,34 @@ mod tests {
             .value_u64(),
             Err(SwapperError::ComputeQuoteError("swap amount is too large".into()))
         );
+    }
+
+    #[test]
+    fn test_reserve_native_attachment() {
+        let attachment = BigUint::from(310_000_000u64);
+        let request = QuoteRequest {
+            value: BigUint::from(1_195_893_271u64),
+            options: Options { use_max_amount: true, ..Options::default() },
+            ..QuoteRequest::mock(Chain::Ton, None)
+        };
+        let small = QuoteRequest {
+            value: attachment.clone(),
+            ..request.clone()
+        };
+
+        assert_eq!(request.reserve_native_attachment(&attachment).unwrap().value, BigUint::from(885_893_271u64));
+        assert_eq!(small.reserve_native_attachment(&attachment).unwrap_err(), SwapperError::InputAmountError { min_amount: Some("330000000".to_string()) });
+        assert_eq!(
+            QuoteRequest {
+                options: Options::default(),
+                ..small.clone()
+            }
+            .reserve_native_attachment(&attachment)
+            .unwrap()
+            .value,
+            attachment
+        );
+        assert_eq!(QuoteRequest::mock(Chain::Ton, Some("token")).reserve_native_attachment(&attachment).unwrap().value, BigUint::from(1000000u64));
     }
 
     #[test]

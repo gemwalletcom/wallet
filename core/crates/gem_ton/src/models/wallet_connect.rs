@@ -1,9 +1,8 @@
 use std::collections::HashMap;
-#[cfg(feature = "rpc")]
 use std::str::FromStr;
 
-#[cfg(feature = "rpc")]
 use num_bigint::BigUint;
+use primitives::swap::SwapQuoteData;
 #[cfg(feature = "rpc")]
 use primitives::{Chain, WalletConnectCAIP2};
 use serde::{Deserialize, Serialize};
@@ -19,8 +18,8 @@ pub(crate) struct TonConnectRequest {
     pub(crate) valid_until: Option<u64>,
 }
 
-#[derive(Serialize, Deserialize)]
-pub(crate) struct TonConnectMessage {
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TonConnectMessage {
     pub(crate) address: String,
     pub(crate) amount: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -29,6 +28,28 @@ pub(crate) struct TonConnectMessage {
     pub(crate) state_init: Option<String>,
     #[serde(rename = "extraCurrency", skip_serializing_if = "Option::is_none")]
     pub(crate) extra_currency: Option<HashMap<String, String>>,
+}
+
+impl TonConnectMessage {
+    pub fn new(address: String, amount: &BigUint, payload: Option<String>) -> Self {
+        Self {
+            address,
+            amount: amount.to_string(),
+            payload,
+            state_init: None,
+            extra_currency: None,
+        }
+    }
+
+    pub fn swap_quote_data(messages: &[Self]) -> Result<SwapQuoteData, String> {
+        let first = messages.first().ok_or("TON swap needs at least one message")?;
+        let value = messages
+            .iter()
+            .try_fold(BigUint::ZERO, |total, message| BigUint::from_str(&message.amount).map(|amount| total + amount))
+            .map_err(|error| error.to_string())?;
+        let data = serde_json::to_string(messages).map_err(|error| error.to_string())?;
+        Ok(SwapQuoteData::new_contract(first.address.clone(), value, data, None, None))
+    }
 }
 
 #[cfg(feature = "rpc")]

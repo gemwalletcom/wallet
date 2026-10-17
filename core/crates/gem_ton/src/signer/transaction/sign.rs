@@ -8,10 +8,12 @@ use super::{
 use crate::{
     address::Address,
     constants::NFT_TRANSFER_FORWARD_AMOUNT,
+    models::TonConnectMessage,
     signer::signer::TonSigner,
     tvm::{BagOfCells, CellBuilder},
 };
 
+const MAX_WALLET_MESSAGES: usize = 4;
 const STATE_INIT_EXPIRE_AT: u32 = u32::MAX;
 const EXTERNAL_EXPIRE_WINDOW_SECS: u64 = 600;
 
@@ -53,15 +55,12 @@ impl TonSigner {
 
     pub fn sign_swap(&self, input: &SignerInput, expire_at: Option<u32>) -> Result<Vec<String>, SignerError> {
         let swap_data = input.input_type.get_swap_data()?;
-        let request = TransferRequest::new_with_payload(
-            &swap_data.data.to,
-            &swap_data.data.value.to_string(),
-            input.memo.clone(),
-            Some(BagOfCells::parse_base64_root(&swap_data.data.data)?),
-            true,
-            None,
-        )?;
-        Ok(vec![self.sign_requests(vec![request], input.metadata.get_sequence()?, expire_at)?])
+        let messages: Vec<TonConnectMessage> = serde_json::from_str(&swap_data.data.data).map_err(|error| SignerError::invalid_input(format!("invalid TON swap messages: {error}")))?;
+        if messages.is_empty() || messages.len() > MAX_WALLET_MESSAGES {
+            return SignerError::invalid_input_err("TON swap needs between one and four messages");
+        }
+        let requests = messages.into_iter().map(TonConnectMessage::into_request).collect::<Result<Vec<_>, _>>()?;
+        Ok(vec![self.sign_requests(requests, input.metadata.get_sequence()?, expire_at)?])
     }
 
     pub(crate) fn sign_requests(&self, requests: Vec<TransferRequest>, sequence: u64, expire_at: Option<u32>) -> Result<String, SignerError> {
@@ -106,7 +105,9 @@ mod tests {
     use crate::{
         address::Address,
         constants::NFT_TRANSFER_ATTACHMENT,
+        models::TonConnectMessage,
         signer::{TonSigner, testkit::mock_cell},
+        tvm::BagOfCells,
     };
 
     const TEST_TON_PRIVATE_KEY: &str = "c7702dadcd00d470df27dee0ddd97fbcf9deba52b60f7dd2b296ff42bb1fcad6";
@@ -188,26 +189,49 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_sign_swap_uses_custom_payload_transfer() {
-        let signer = TonSigner::new(&hex::decode(TEST_TON_PRIVATE_KEY).unwrap()).unwrap();
-        let mut swap_data = SwapData::mock_with_provider(primitives::SwapProvider::StonfiV2);
-        swap_data.data.to = SENDER_TOKEN_ADDRESS.to_string();
-        swap_data.data.value = BigUint::from(241000000u64);
-        swap_data.data.data = mock_cell();
-        swap_data.data.gas_limit = None;
-        let input = SignerInput::mock_ton(
+    fn swap_input(messages: &[TonConnectMessage]) -> SignerInput {
+        let swap_data = SwapData {
+            data: TonConnectMessage::swap_quote_data(messages).unwrap(),
+            ..SwapData::mock_with_provider(primitives::SwapProvider::StonfiV2)
+        };
+        SignerInput::mock_ton(
             TransactionInputType::Swap {
                 from_asset: Asset::from_chain(Chain::Ton),
                 to_asset: Asset::from_chain(Chain::Ton),
                 swap_data,
             },
             TransactionLoadMetadata::mock_ton(1),
-        );
+        )
+    }
 
-        let signed = signer.sign_swap(&input, Some(1_000_000_000)).unwrap();
-        assert_eq!(signed.len(), 1);
-        assert!(signed[0].starts_with("te6cc"));
+    fn swap_message(amount: u64) -> TonConnectMessage {
+        TonConnectMessage::new(SENDER_TOKEN_ADDRESS.to_string(), &BigUint::from(amount), Some(mock_cell()))
+    }
+
+    #[test]
+    fn test_sign_swap_uses_custom_payload_transfer() {
+        let signer = TonSigner::new(&hex::decode(TEST_TON_PRIVATE_KEY).unwrap()).unwrap();
+
+        let signed = signer.sign_swap(&swap_input(&[swap_message(241000000)]), Some(1_000_000_000)).unwrap();
+        assert_eq!(
+            signed,
+            vec!["te6cckEBBAEAtAABRYgBkF1w67cBLG0e0D7j0y2ShzflCe2JrlAjS4pC8UHg85AMAQGcHQp8LxRiMxhkTkMWzybG81PKpbgn4g0nAUorAZT2vo69//gPgiZ4R7MkU7VZhit8MMLh0wo2sMB6FRXw+8iHASmpoxc7msoAAAAAAQADAgFoYgASwA6bnRklOr1y4MxDEh82TpZnlC7Kl8tiVkz/uVEgGiBy6vIAAAAAAAAAAAAAAAAAAQMACAAAAAAT4Cng".to_string()]
+        );
+    }
+
+    #[test]
+    fn test_sign_swap_signs_every_message() {
+        let signer = TonSigner::new(&hex::decode(TEST_TON_PRIVATE_KEY).unwrap()).unwrap();
+        let messages = (1..=5).map(swap_message).collect::<Vec<_>>();
+
+        let signed = signer.sign_swap(&swap_input(&messages[..2]), Some(1_000_000_000)).unwrap();
+        let body = BagOfCells::parse_base64_root(&signed[0]).unwrap().references[0].clone();
+
+        assert_eq!(body.references.len(), 2);
+        assert_eq!(
+            signer.sign_swap(&swap_input(&messages), Some(1_000_000_000)).unwrap_err().to_string(),
+            "Invalid input: TON swap needs between one and four messages"
+        );
     }
 
     #[test]

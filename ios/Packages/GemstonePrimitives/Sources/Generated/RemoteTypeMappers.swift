@@ -1106,6 +1106,7 @@ public extension Gemstone.SwapProvider {
         case .bridgers: .bridgers
         case .hyperion: .hyperion
         case .raydiumClmm: .raydiumClmm
+        case .dedust: .dedust
         }
     }
 }
@@ -1138,6 +1139,7 @@ public extension Primitives.SwapProvider {
         case .bridgers: .bridgers
         case .hyperion: .hyperion
         case .raydiumClmm: .raydiumClmm
+        case .dedust: .dedust
         }
     }
 }

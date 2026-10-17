@@ -4,15 +4,14 @@ use gem_client::Client;
 use gem_ton::{
     address::Address,
     constants::TON_PROXY_JETTON_ADDRESS,
-    models::{RunGetMethodResult, StackArg, StackEntry},
+    models::{RunGetMethodResult, StackArg},
     rpc::client::TonClient,
 };
 use num_bigint::BigUint;
-use num_traits::{Num, ToPrimitive};
+use num_traits::ToPrimitive;
 use primitives::Address as PrimitiveAddress;
-use std::{fmt::Debug, str::FromStr};
+use std::fmt::Debug;
 
-const GET_WALLET_ADDRESS_METHOD: &str = "get_wallet_address";
 const GET_POOL_ADDRESS_METHOD: &str = "get_pool_address";
 const GET_POOL_DATA_METHOD: &str = "get_pool_data";
 
@@ -49,7 +48,7 @@ where
         let result = self
             .run_validated_get_method(router.address, GET_POOL_ADDRESS_METHOD, vec![StackArg::slice(token0.to_boc_base64()?), StackArg::slice(token1.to_boc_base64()?)])
             .await?;
-        stack_cell_address(&result.stack, 0)
+        stack_cell_address(&result, 0)
     }
 
     pub(super) async fn get_pool_data(&self, pool_address: &str) -> Result<PoolData, SwapperError> {
@@ -73,9 +72,7 @@ where
         if let Some(wallet) = self.jetton_wallet_cache.get(&key) {
             return Ok(wallet);
         }
-        let owner_address = Address::parse(owner)?;
-        let result = self.run_validated_get_method(token, GET_WALLET_ADDRESS_METHOD, vec![StackArg::slice(owner_address.to_boc_base64()?)]).await?;
-        let wallet = stack_cell_address(&result.stack, 0)?;
+        let wallet = PrimitiveAddress::encode(&self.ton_client.get_jetton_wallet_address(owner, token).await.map_err(SwapperError::compute_quote_error)?);
         self.jetton_wallet_cache.put(key, wallet.clone());
         Ok(wallet)
     }
@@ -96,45 +93,31 @@ fn validate_run_get_method(method: &str, result: RunGetMethodResult) -> Result<R
 fn parse_pool_data(result: &RunGetMethodResult) -> Result<PoolData, SwapperError> {
     match result.stack.len() {
         12.. => Ok(PoolData {
-            is_locked: stack_num(&result.stack, 0)? != BigUint::from(0u8),
-            reserve0: stack_num(&result.stack, 3)?,
-            reserve1: stack_num(&result.stack, 4)?,
-            token0_wallet: stack_cell_address(&result.stack, 5)?,
-            token1_wallet: stack_cell_address(&result.stack, 6)?,
-            lp_fee: stack_num_u32(&result.stack, 7)?,
-            protocol_fee: stack_num_u32(&result.stack, 8)?,
+            is_locked: result.stack_num(0)? != BigUint::from(0u8),
+            reserve0: result.stack_num(3)?,
+            reserve1: result.stack_num(4)?,
+            token0_wallet: stack_cell_address(result, 5)?,
+            token1_wallet: stack_cell_address(result, 6)?,
+            lp_fee: stack_num_u32(result, 7)?,
+            protocol_fee: stack_num_u32(result, 8)?,
         }),
         10.. => Ok(PoolData {
             is_locked: false,
-            reserve0: stack_num(&result.stack, 0)?,
-            reserve1: stack_num(&result.stack, 1)?,
-            token0_wallet: stack_cell_address(&result.stack, 2)?,
-            token1_wallet: stack_cell_address(&result.stack, 3)?,
-            lp_fee: stack_num_u32(&result.stack, 4)?,
-            protocol_fee: stack_num_u32(&result.stack, 5)?,
+            reserve0: result.stack_num(0)?,
+            reserve1: result.stack_num(1)?,
+            token0_wallet: stack_cell_address(result, 2)?,
+            token1_wallet: stack_cell_address(result, 3)?,
+            lp_fee: stack_num_u32(result, 4)?,
+            protocol_fee: stack_num_u32(result, 5)?,
         }),
         _ => Err(SwapperError::ComputeQuoteError("STON.fi get_pool_data returned truncated stack".into())),
     }
 }
 
-fn stack_cell_address(stack: &[StackEntry], index: usize) -> Result<String, SwapperError> {
-    let bytes = stack.get(index).and_then(StackEntry::as_cell_bytes).ok_or_else(|| SwapperError::ComputeQuoteError("missing TON address stack cell".into()))?;
-    Ok(PrimitiveAddress::encode(&Address::from_boc_base64(bytes)?))
+fn stack_cell_address(result: &RunGetMethodResult, index: usize) -> Result<String, SwapperError> {
+    Ok(PrimitiveAddress::encode(&result.stack_address(index)?))
 }
 
-fn stack_num(stack: &[StackEntry], index: usize) -> Result<BigUint, SwapperError> {
-    let value = stack.get(index).and_then(StackEntry::as_num).ok_or_else(|| SwapperError::ComputeQuoteError("missing TON number stack entry".into()))?;
-    parse_ton_num(value)
-}
-
-fn stack_num_u32(stack: &[StackEntry], index: usize) -> Result<u32, SwapperError> {
-    stack_num(stack, index)?.to_u32().ok_or_else(|| SwapperError::ComputeQuoteError("TON stack number does not fit u32".into()))
-}
-
-fn parse_ton_num(value: &str) -> Result<BigUint, SwapperError> {
-    if let Some(value) = value.strip_prefix("0x") {
-        Ok(BigUint::from_str_radix(value, 16)?)
-    } else {
-        Ok(BigUint::from_str(value)?)
-    }
+fn stack_num_u32(result: &RunGetMethodResult, index: usize) -> Result<u32, SwapperError> {
+    result.stack_num(index)?.to_u32().ok_or_else(|| SwapperError::ComputeQuoteError("TON stack number does not fit u32".into()))
 }

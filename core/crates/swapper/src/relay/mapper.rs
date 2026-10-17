@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use gem_ton::{Address, models::TonConnectMessage};
 use gem_tron::address::TronAddress;
 use num_bigint::BigUint;
 use num_traits::Zero;
@@ -62,16 +63,12 @@ pub fn map_tron_quote_data(quote_response: &RelayQuoteResponse, approval: Option
 
 pub fn map_ton_quote_data(quote_response: &RelayQuoteResponse) -> Result<SwapperQuoteData, SwapperError> {
     let ton = quote_response.get_ton_step().ok_or(SwapperError::InvalidRoute)?;
-    let [message] = ton.messages.as_slice() else {
-        return Err(SwapperError::InvalidRoute);
-    };
-    Ok(SwapperQuoteData::new_contract(
-        message.to.clone(),
-        BigUint::from_str(&message.value).map_err(SwapperError::compute_quote_error)?,
-        message.body.clone(),
-        None,
-        None,
-    ))
+    let messages = ton
+        .messages
+        .iter()
+        .map(|message| Ok(TonConnectMessage::new(Address::parse(&message.to)?.encode_bounceable(), &BigUint::from_str(&message.value)?, Some(message.body.clone()))))
+        .collect::<Result<Vec<_>, SwapperError>>()?;
+    TonConnectMessage::swap_quote_data(&messages).map_err(|_| SwapperError::InvalidRoute)
 }
 
 fn map_referral_fee(app_fees: Option<&RelayRequestAppFees>) -> Option<TransactionSwapReferralFee> {
@@ -211,10 +208,14 @@ mod tests {
     fn test_map_ton_quote_data() {
         let quote_response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_ton_to_base_usdc.json")).unwrap();
         let result = map_ton_quote_data(&quote_response).unwrap();
+        let body = quote_response.get_ton_step().unwrap().messages[0].body.clone();
 
         assert_eq!(result.to, "EQCrdGsDTqA2t6xRR4N6V4J705F7w_VQbUdHnofsh-8lVIPs");
         assert_eq!(result.value, BigUint::from(5_000_000_000u64));
-        assert!(result.data.starts_with("te6cckEBAQEASAAAjAAAAAAweGVk"));
+        assert_eq!(
+            serde_json::from_str::<Vec<TonConnectMessage>>(&result.data).unwrap(),
+            vec![TonConnectMessage::new("EQCrdGsDTqA2t6xRR4N6V4J705F7w_VQbUdHnofsh-8lVIPs".to_string(), &BigUint::from(5_000_000_000u64), Some(body))]
+        );
         assert!(result.approval.is_none());
         assert!(result.gas_limit.is_none());
 

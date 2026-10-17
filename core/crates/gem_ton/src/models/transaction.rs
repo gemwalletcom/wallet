@@ -111,6 +111,7 @@ impl Trace {
 pub const TRACE_ACTION_JETTON_SWAP: &str = "jetton_swap";
 pub const TRACE_ACTION_JETTON_TRANSFER: &str = "jetton_transfer";
 pub const TRACE_ACTION_NFT_TRANSFER: &str = "nft_transfer";
+pub const TRACE_ACTION_TON_TRANSFER: &str = "ton_transfer";
 const TRACE_DEX_STONFI: &str = "stonfi";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -154,6 +155,13 @@ pub struct JettonTransferDetails {
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub amount: BigUint,
     pub comment: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct TonTransferDetails {
+    pub destination: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
 }
 
 #[derive(Debug, Clone, Deserialize)]

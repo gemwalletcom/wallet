@@ -1,10 +1,8 @@
-use super::{
-    message::build_jetton_transfer_body,
-    model::{NextSwapParams, SwapCellParams, SwapTransactionParams, TxParams},
-};
+use super::model::{NextSwapParams, SwapCellParams, SwapTransactionParams, TxParams};
 use crate::SwapperError;
 use gem_ton::{
     address::Address,
+    models::JettonTransfer,
     tvm::{BagOfCells, Cell, CellArc, CellBuilder},
 };
 use num_bigint::BigUint;
@@ -48,7 +46,7 @@ fn build_jetton_swap(params: SwapTransactionParams<'_>, swap_body: &CellArc) -> 
     let router = Address::parse(&params.simulation.router.address)?;
     let from_value = BigUint::from_str(params.from_value)?;
     let extra_forward_gas = next_swap_forward_gas(&params);
-    let body = build_jetton_transfer_body(&from_value, &router, Some(&params.wallet_address), &BigUint::from(V2_JETTON_SWAP_FORWARD_GAS + extra_forward_gas), Some(swap_body))?;
+    let body = JettonTransfer::new(from_value, router, Some(params.wallet_address), BigUint::from(V2_JETTON_SWAP_FORWARD_GAS + extra_forward_gas), Some(swap_body.clone())).to_cell()?;
     let sender_jetton_wallet = params.sender_jetton_wallet.ok_or_else(|| SwapperError::ComputeQuoteError("missing sender jetton wallet".into()))?;
 
     Ok(TxParams {

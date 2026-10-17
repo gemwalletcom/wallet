@@ -1,0 +1,230 @@
+[
+  {
+    "request": {
+      "address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67",
+      "method": "get_pool_address",
+      "stack": [
+        {
+          "type": "num",
+          "value": "0"
+        },
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAJAAAQxALETqZS1AkoWcZ9pE5Mo63WVlsOKJfWQKLFG/s3DYh3+iNJO1L"
+        },
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAJAAAQxAC+VYUPEYXaVebrvLjLMLXvBgoP0DSC7A+QyzWA6wz/8gGpN8r"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQ4AG3U+rypxTeeLKFfcJFmD/f8mUkfkA0OTdP/eHIos2GRAeb5Iw"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67",
+      "method": "get_pool_address",
+      "stack": [
+        {
+          "type": "num",
+          "value": "0"
+        },
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAJAAAQxALETqZS1AkoWcZ9pE5Mo63WVlsOKJfWQKLFG/s3DYh3+iNJO1L"
+        },
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAAwAAAQiFl+L/"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQ4AHy/+VG7+ebYbZP+jeYqxVVqNzIpCLWthNl7zJOrFKsRAS4Smq"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67",
+      "method": "get_pool_address",
+      "stack": [
+        {
+          "type": "num",
+          "value": "0"
+        },
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAAwAAAQiFl+L/"
+        },
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAJAAAQxAC+VYUPEYXaVebrvLjLMLXvBgoP0DSC7A+QyzWA6wz/8gGpN8r"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQ4ASkM50st+NpYYke//smmRjyaHC1/VYoNq9e2E+ZWdzjLC4vpHb"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "address": "EQA26n1eVOKbzxZQr7hIswf7_kykj8gGhybp_7w5FFmwyA21",
+      "method": "estimate_swap_out",
+      "stack": [
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAJAAAQxALETqZS1AkoWcZ9pE5Mo63WVlsOKJfWQKLFG/s3DYh3+iNJO1L"
+        },
+        {
+          "type": "num",
+          "value": "4975000"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQxAC+VYUPEYXaVebrvLjLMLXvBgoP0DSC7A+QyzWA6wz/8gGpN8r"
+        },
+        {
+          "type": "num",
+          "value": "0xa60377eb508"
+        },
+        {
+          "type": "num",
+          "value": "0x3095"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "address": "EQA-X_yo3fzzbDbJ_0bzFWKqtRuZFIRa1sJsveZJ1YpViO3r",
+      "method": "estimate_swap_out",
+      "stack": [
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAJAAAQxALETqZS1AkoWcZ9pE5Mo63WVlsOKJfWQKLFG/s3DYh3+iNJO1L"
+        },
+        {
+          "type": "num",
+          "value": "4975000"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAAwAAAQiFl+L/"
+        },
+        {
+          "type": "num",
+          "value": "0xd84b1f83"
+        },
+        {
+          "type": "num",
+          "value": "0x136f"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "address": "EQCUhnOllvxtLDEj3_9k0yMeTQ4Wv6rFBtXr2wnzKzucZeER",
+      "method": "estimate_swap_out",
+      "stack": [
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAAwAAAQiFl+L/"
+        },
+        {
+          "type": "num",
+          "value": "3628801923"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQxAC+VYUPEYXaVebrvLjLMLXvBgoP0DSC7A+QyzWA6wz/8gGpN8r"
+        },
+        {
+          "type": "num",
+          "value": "0xb5f933e89a3"
+        },
+        {
+          "type": "num",
+          "value": "0x8a6d84"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67",
+      "method": "get_vault_address",
+      "stack": [
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAJAAAQxALETqZS1AkoWcZ9pE5Mo63WVlsOKJfWQKLFG/s3DYh3+iNJO1L"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQ4ADFVHF3aouj7XAZ4DzcnEHsoOVseyos+XdOa6Oltcdq7AgtXUP"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+      "method": "get_wallet_address",
+      "stack": [
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAJAAAQ4AJHfu12gVWgRWDG2Qzn0dKsMQpiriurLvy/Xv7olq2trCGhpUy"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQ4AaahROI/RaOBLF6HIcgcDEwNum+4gVf9XpkMweEgOJnxDxDGwR"
+        }
+      ]
+    }
+  }
+]

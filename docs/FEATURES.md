@@ -266,6 +266,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [Raydium CLMM](../core/crates/swapper/src/raydium_clmm/protocol.rs) | 1/57 | Solana | Concentrated-liquidity pools on the 8 most-used fee tiers, including dynamic fees and limit orders, between SOL, SPL and Token-2022 tokens, direct or in two hops through SOL or USDC using the deepest pool of each leg, whichever pays more; a route that does not fit in one transaction falls back to the next best; quotes are net of token transfer fees; tokens with a transfer hook program are not routed | <sub>[code](../core/crates/swapper/src/raydium_clmm/protocol.rs) · [CLMM program](https://github.com/raydium-io/raydium-clmm)</sub> |
 | [Hyperion](../core/crates/swapper/src/hyperion/provider.rs) | 1/57 | Aptos | Concentrated-liquidity pools on all six fee tiers between APT and fungible-asset tokens, direct or in two hops through APT or USDC, whichever pays more; legacy coin types are not routed | <sub>[code](../core/crates/swapper/src/hyperion/provider.rs) · [contract integration](https://docs.hyperion.xyz/developer/via-contract)</sub> |
 | [STON.fi v2](../core/crates/swapper/src/stonfi/provider.rs) | 1/57 | TON | ➖ | <sub>[code](../core/crates/swapper/src/stonfi/provider.rs) · [DEX API](https://docs.ston.fi/developer-section/dex/api/reference)</sub> |
+| [DeDust](../core/crates/swapper/src/dedust/provider.rs) | 1/57 | TON | Volatile pools between TON and jettons, direct or in two hops through TON or USDT, whichever pays more; stable pools are not routed | <sub>[code](../core/crates/swapper/src/dedust/provider.rs) · [swaps](https://docs.dedust.io/docs/swaps) · [TL-B schemes](https://docs.dedust.io/reference/tlb-schemes)</sub> |
 | [Cetus CLMM](../core/crates/swapper/src/cetus_clmm/provider.rs) | 1/57 | Sui | Missing: Aptos | <sub>[code](../core/crates/swapper/src/cetus_clmm/provider.rs) · [Sui developer docs](https://cetus-1.gitbook.io/cetus-developer-docs) · [Cetus chain support](https://cetus-1.gitbook.io/cetus-docs/guides/faq)</sub> |
 
 <sub>Additional OKX gap evidence: [Sui guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-sui-quick-start) and [TON guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-ton-quick-start).</sub>
@@ -302,6 +303,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [Raydium CLMM](../core/crates/swapper/src/raydium_clmm/protocol.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [Hyperion](../core/crates/swapper/src/hyperion/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [STON.fi v2](../core/crates/swapper/src/stonfi/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [DeDust](../core/crates/swapper/src/dedust/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [Cetus CLMM](../core/crates/swapper/src/cetus_clmm/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [NEAR Intents](../core/crates/swapper/src/near_intents/provider.rs) | Omnichain | Flexible | Exact | ✅ | ✅ |
 | [Relay](../core/crates/swapper/src/relay/provider.rs) | Omnichain | Flexible from Bitcoin; fixed otherwise | Auto | ✅ | ✅ |

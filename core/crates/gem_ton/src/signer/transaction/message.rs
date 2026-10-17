@@ -3,7 +3,8 @@ use primitives::SignerError;
 
 use super::request::{JettonTransferRequest, NftTransferRequest, TransferPayload, TransferRequest};
 use crate::{
-    constants::{JETTON_TRANSFER_OPCODE, NFT_TRANSFER_OPCODE},
+    constants::NFT_TRANSFER_OPCODE,
+    models::JettonTransfer,
     tvm::{Cell, CellArc, CellBuilder},
 };
 
@@ -73,19 +74,16 @@ fn build_comment_payload(comment: &str) -> Result<CellArc, SignerError> {
 }
 
 fn build_jetton_payload(request: &JettonTransferRequest) -> Result<CellArc, SignerError> {
-    let mut builder = CellBuilder::new();
-    builder
-        .store_u32(32, JETTON_TRANSFER_OPCODE)?
-        .store_u64(64, request.query_id)?
-        .store_coins(&request.value)?
-        .store_address(&request.destination)?
-        .store_address(&request.response_address)?;
-
-    builder.store_maybe_reference(request.custom_payload.as_ref())?;
-    let forward_payload = request.comment.as_deref().map(build_comment_payload).transpose()?;
-    builder.store_coins(&request.forward_ton_amount)?.store_maybe_reference(forward_payload.as_ref())?;
-
-    Ok(builder.build()?.into_arc())
+    let transfer = JettonTransfer {
+        query_id: request.query_id,
+        amount: request.value.clone(),
+        destination: request.destination,
+        response_destination: Some(request.response_address),
+        custom_payload: request.custom_payload.clone(),
+        forward_ton_amount: request.forward_ton_amount.clone(),
+        forward_payload: request.comment.as_deref().map(build_comment_payload).transpose()?,
+    };
+    Ok(transfer.to_cell()?.into_arc())
 }
 
 fn build_nft_payload(request: &NftTransferRequest) -> Result<CellArc, SignerError> {

@@ -1,0 +1,79 @@
+{
+  "traces": [
+    {
+      "is_incomplete": false,
+      "actions": [
+        {
+          "success": true,
+          "type": "jetton_swap",
+          "details": {
+            "dex": "dedust",
+            "sender": "0:472B527BF529E8CE5115482EE92304AA188FD11CA5D4E14F0A22277CC16246B9",
+            "asset_in": null,
+            "asset_out": "0:B113A994B5024A16719F69139328EB759596C38A25F59028B146FECDC3621DFE",
+            "dex_incoming_transfer": {
+              "asset": null,
+              "source": "0:472B527BF529E8CE5115482EE92304AA188FD11CA5D4E14F0A22277CC16246B9",
+              "destination": "0:DAE153A74D894BBC32748198CD626E4F5DF4A69AD2FA56CE80FC2644B5708D20",
+              "source_jetton_wallet": null,
+              "destination_jetton_wallet": null,
+              "amount": "3473734802"
+            },
+            "dex_outgoing_transfer": {
+              "asset": "0:B113A994B5024A16719F69139328EB759596C38A25F59028B146FECDC3621DFE",
+              "source": "0:18AA8E2EED51747DAE033C079B93883D941CAD8F65459F2EE9CD7474B6B8ED5D",
+              "destination": "0:472B527BF529E8CE5115482EE92304AA188FD11CA5D4E14F0A22277CC16246B9",
+              "source_jetton_wallet": "0:88DAC67CCEADB9CAE6FAAC7118F05C0FA95DF36C2A92E686AC39D96310D0A387",
+              "destination_jetton_wallet": "0:6A2FFD16C1C69C2EFDCC9E0DCCE7788B4B74F7736FD778A339FA255821EB5B5B",
+              "amount": "4748974"
+            },
+            "peer_swaps": []
+          }
+        }
+      ],
+      "transactions_order": [
+        "3RoKx0ThnNYYE9GkOSzCDOdq495zXcituhrv5n2TudM="
+      ],
+      "transactions": {
+        "3RoKx0ThnNYYE9GkOSzCDOdq495zXcituhrv5n2TudM=": {
+          "hash": "3RoKx0ThnNYYE9GkOSzCDOdq495zXcituhrv5n2TudM=",
+          "now": 1792265360,
+          "total_fees": "648816",
+          "description": {
+            "aborted": false,
+            "compute_ph": {
+              "success": true,
+              "exit_code": 0
+            },
+            "action": {
+              "success": true
+            }
+          },
+          "out_msgs": [
+            {
+              "source": "0:472B527BF529E8CE5115482EE92304AA188FD11CA5D4E14F0A22277CC16246B9",
+              "destination": "0:DAE153A74D894BBC32748198CD626E4F5DF4A69AD2FA56CE80FC2644B5708D20",
+              "value": "3723734802",
+              "op_code": "0xea06185d",
+              "decoded_op_name": null,
+              "body": null,
+              "comment": null,
+              "decoded_body": null
+            },
+            {
+              "source": "0:472B527BF529E8CE5115482EE92304AA188FD11CA5D4E14F0A22277CC16246B9",
+              "destination": "0:D49106E94D5220B7BBFAEBE253151FB7F9E5D1173FF857AE85F947E7EAF3A0D0",
+              "value": "30663485",
+              "op_code": "0x4d238543",
+              "decoded_op_name": null,
+              "body": null,
+              "comment": null,
+              "decoded_body": null
+            }
+          ],
+          "in_msg": null
+        }
+      }
+    }
+  ]
+}

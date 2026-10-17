@@ -5,6 +5,8 @@ use primitives::{Asset, AssetId, AssetType, chain::Chain};
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainStaking, ChainTraits};
 use gem_client::{Client, ClientExt};
 
+#[cfg(feature = "tvm")]
+use crate::address::Address;
 use crate::models::{
     AddressInformation, BroadcastTransaction, Chainhead, DnsRecordsResponse, JettonMastersResponse, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest, RunGetMethodResult, SendBocRequest, StackArg,
     TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
@@ -15,6 +17,8 @@ use crate::rpc::target::TonCenterTarget;
 const TONCENTER_V3_BLOCK_LIMIT: usize = 100;
 const TONCENTER_SORT_DESC: &str = "desc";
 const TONCENTER_SORT_ASC: &str = "asc";
+#[cfg(feature = "tvm")]
+const GET_WALLET_ADDRESS_METHOD: &str = "get_wallet_address";
 
 #[derive(Debug)]
 pub struct TonClient<C: Client> {
@@ -61,6 +65,16 @@ impl<C: Client> TonClient<C> {
             stack,
         };
         Ok(self.client.post(TonCenterTarget::RunGetMethod, &request).await?)
+    }
+
+    #[cfg(feature = "tvm")]
+    pub async fn get_jetton_wallet_address(&self, owner: &str, jetton: &str) -> Result<Address, Box<dyn Error + Send + Sync>> {
+        let owner = Address::parse(owner)?;
+        let result = self.run_get_method(jetton, GET_WALLET_ADDRESS_METHOD, vec![StackArg::slice(owner.to_boc_base64()?)]).await?;
+        if result.exit_code != 0 {
+            return Err(format!("TON get-method {GET_WALLET_ADDRESS_METHOD} exit code {}", result.exit_code).into());
+        }
+        Ok(result.stack_address(0)?)
     }
 
     pub async fn get_traces_by_message(&self, hash: String) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {

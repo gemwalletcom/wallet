@@ -42,7 +42,7 @@ impl TonSigner {
 }
 
 impl TonConnectMessage {
-    fn into_request(self) -> Result<TransferRequest, SignerError> {
+    pub(super) fn into_request(self) -> Result<TransferRequest, SignerError> {
         if self.extra_currency.as_ref().is_some_and(|currencies| !currencies.is_empty()) {
             return SignerError::invalid_input_err("TON extra currencies are not supported");
         }

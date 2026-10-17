@@ -40,18 +40,6 @@ impl TransferRequest {
             state_init: None,
         })
     }
-
-    pub(crate) fn new_with_payload(destination: &str, amount: &str, comment: Option<String>, payload: Option<CellArc>, bounceable: bool, state_init: Option<CellArc>) -> Result<Self, SignerError> {
-        Ok(Self {
-            destination: Address::parse(destination)?,
-            value: BigUint::from_str(amount)?,
-            mode: DEFAULT_SEND_MODE,
-            bounceable,
-            comment,
-            payload: payload.map(TransferPayload::Custom),
-            state_init,
-        })
-    }
 }
 
 pub(crate) enum TransferPayload {

@@ -1,0 +1,85 @@
+[
+  {
+    "request": {
+      "address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67",
+      "method": "get_pool_address",
+      "stack": [
+        {
+          "type": "num",
+          "value": "0"
+        },
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAAwAAAQiFl+L/"
+        },
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAJAAAQxALETqZS1AkoWcZ9pE5Mo63WVlsOKJfWQKLFG/s3DYh3+iNJO1L"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQ4AHy/+VG7+ebYbZP+jeYqxVVqNzIpCLWthNl7zJOrFKsRAS4Smq"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "address": "EQA-X_yo3fzzbDbJ_0bzFWKqtRuZFIRa1sJsveZJ1YpViO3r",
+      "method": "estimate_swap_out",
+      "stack": [
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAAwAAAQiFl+L/"
+        },
+        {
+          "type": "num",
+          "value": "995000000"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQxALETqZS1AkoWcZ9pE5Mo63WVlsOKJfWQKLFG/s3DYh3+iNJO1L"
+        },
+        {
+          "type": "num",
+          "value": "0x14c5d2"
+        },
+        {
+          "type": "num",
+          "value": "0xf2eb8"
+        }
+      ]
+    }
+  },
+  {
+    "request": {
+      "address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67",
+      "method": "get_vault_address",
+      "stack": [
+        {
+          "type": "slice",
+          "value": "te6cckEBAQEAAwAAAQiFl+L/"
+        }
+      ]
+    },
+    "response": {
+      "exit_code": 0,
+      "stack": [
+        {
+          "type": "cell",
+          "value": "te6cckEBAQEAJAAAQ4AbXCp06bEpd4ZOkDMZrE3J676U01pfStnQH4TIlq4RpBBb+TkS"
+        }
+      ]
+    }
+  }
+]

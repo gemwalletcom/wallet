@@ -175,4 +175,8 @@ impl CellBuilder {
     pub fn build(self) -> Result<Cell, TvmError> {
         Cell::new(self.writer.bytes, self.writer.bit_len, self.references)
     }
+
+    pub fn end_cell(&mut self) -> Result<Cell, TvmError> {
+        std::mem::take(self).build()
+    }
 }

@@ -1,4 +1,9 @@
+#[cfg(feature = "tvm")]
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "tvm")]
+use crate::{address::Address, tvm::TvmError};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SendBocRequest {
@@ -33,6 +38,23 @@ impl StackArg {
 pub struct RunGetMethodResult {
     pub stack: Vec<StackEntry>,
     pub exit_code: i32,
+}
+
+#[cfg(feature = "tvm")]
+impl RunGetMethodResult {
+    pub fn stack_num(&self, index: usize) -> Result<BigUint, TvmError> {
+        let value = self.stack.get(index).and_then(StackEntry::as_num).ok_or_else(|| TvmError::new("missing TON number stack entry"))?;
+        match value.strip_prefix("0x") {
+            Some(hex) => BigUint::parse_bytes(hex.as_bytes(), 16),
+            None => BigUint::parse_bytes(value.as_bytes(), 10),
+        }
+        .ok_or_else(|| TvmError::new(format!("invalid TON stack number {value}")))
+    }
+
+    pub fn stack_address(&self, index: usize) -> Result<Address, TvmError> {
+        let bytes = self.stack.get(index).and_then(StackEntry::as_cell_bytes).ok_or_else(|| TvmError::new("missing TON address stack cell"))?;
+        Address::from_boc_base64(bytes)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

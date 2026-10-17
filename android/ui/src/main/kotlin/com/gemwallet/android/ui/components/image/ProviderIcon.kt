@@ -59,6 +59,8 @@ fun SwapProvider.iconResource(): Int = when (this) {
     SwapProvider.HYPERION -> R.drawable.swap_provider_hyperion
 
     SwapProvider.RAYDIUM_CLMM -> R.drawable.swap_provider_raydium
+
+    SwapProvider.DEDUST -> R.drawable.swap_provider_dedust
 }
 
 @DrawableRes

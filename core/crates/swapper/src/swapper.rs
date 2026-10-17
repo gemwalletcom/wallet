@@ -1,8 +1,8 @@
 use crate::ranking::rank_quotes;
 use crate::{
     AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
-    across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, fees::max_quote_value_with_fee_reserve, hyperion, hyperliquid, jupiter, mayan, near_intents, okx, orca, panora,
-    raydium_clmm, relay, solana_dex, squid, stonfi, swaps_xyz, thorchain, uniswap,
+    across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, dedust, fees::max_quote_value_with_fee_reserve, hyperion, hyperliquid, jupiter, mayan, near_intents, okx, orca,
+    panora, raydium_clmm, relay, solana_dex, squid, stonfi, swaps_xyz, thorchain, uniswap,
 };
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
@@ -79,6 +79,7 @@ impl GemSwapper {
             Some(uniswap::default::boxed_oku(rpc_provider.clone())),
             Some(uniswap::default::boxed_wagmi(rpc_provider.clone())),
             stonfi::Stonfi::new(rpc_provider.clone()).map(Self::boxed),
+            dedust::Dedust::new(rpc_provider.clone()).map(Self::boxed),
             Some(Box::new(mayan::Mayan::new(rpc_provider.clone()))),
             Some(Box::new(panora::Panora::default())),
             hyperion::Hyperion::new(rpc_provider.clone()).map(Self::boxed),

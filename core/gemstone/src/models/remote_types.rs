@@ -687,6 +687,7 @@ pub enum SwapProvider {
     Bridgers,
     Hyperion,
     RaydiumClmm,
+    Dedust,
 }
 
 #[uniffi::remote(Enum)]

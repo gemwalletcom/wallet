@@ -18,6 +18,7 @@ pub mod cetus_clmm;
 pub mod chainflip;
 pub mod client_factory;
 pub mod config;
+pub mod dedust;
 pub mod error;
 pub mod hyperion;
 pub mod hyperliquid;

@@ -750,6 +750,7 @@ fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.Swap
     uniffi.gemstone.SwapProvider.BRIDGERS -> com.wallet.core.primitives.SwapProvider.Bridgers
     uniffi.gemstone.SwapProvider.HYPERION -> com.wallet.core.primitives.SwapProvider.Hyperion
     uniffi.gemstone.SwapProvider.RAYDIUM_CLMM -> com.wallet.core.primitives.SwapProvider.RaydiumClmm
+    uniffi.gemstone.SwapProvider.DEDUST -> com.wallet.core.primitives.SwapProvider.Dedust
 }
 
 fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvider = when (this) {
@@ -778,6 +779,7 @@ fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvide
     com.wallet.core.primitives.SwapProvider.Bridgers -> uniffi.gemstone.SwapProvider.BRIDGERS
     com.wallet.core.primitives.SwapProvider.Hyperion -> uniffi.gemstone.SwapProvider.HYPERION
     com.wallet.core.primitives.SwapProvider.RaydiumClmm -> uniffi.gemstone.SwapProvider.RAYDIUM_CLMM
+    com.wallet.core.primitives.SwapProvider.Dedust -> uniffi.gemstone.SwapProvider.DEDUST
 }
 
 fun uniffi.gemstone.TpslType.toPrimitives(): com.wallet.core.primitives.TpslType = when (this) {

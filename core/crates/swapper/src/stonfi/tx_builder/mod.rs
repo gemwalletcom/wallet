@@ -1,4 +1,3 @@
-mod message;
 mod model;
 mod v1;
 mod v2;

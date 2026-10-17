@@ -1,7 +1,8 @@
 use crate::address::{Address, hex_to_base64_address};
 use crate::constants::{FAILED_OPERATION_OPCODES, STONFI_PTON_ADDRESSES};
 use crate::models::{
-    BroadcastTransaction, JettonSwapDetails, JettonTransferDetails, NftTransferDetails, OutMessage, TRACE_ACTION_JETTON_SWAP, TRACE_ACTION_JETTON_TRANSFER, TRACE_ACTION_NFT_TRANSFER, Trace, TraceAction, TransactionMessage,
+    BroadcastTransaction, JettonSwapDetails, JettonTransferDetails, NftTransferDetails, OutMessage, TRACE_ACTION_JETTON_SWAP, TRACE_ACTION_JETTON_TRANSFER, TRACE_ACTION_NFT_TRANSFER, TRACE_ACTION_TON_TRANSFER, TonTransferDetails, Trace,
+    TraceAction, TransactionMessage,
 };
 use chrono::DateTime;
 use gem_encoding::decode_base64;
@@ -183,17 +184,26 @@ fn map_referral_fee(actions: &[TraceAction], sender: &str) -> Option<Transaction
     if sender == TON_REFERRAL_ADDRESS {
         return None;
     }
-    actions
-        .iter()
-        .filter(|action| action.action_type.as_deref() == Some(TRACE_ACTION_JETTON_TRANSFER))
-        .filter_map(|action| serde_json::from_value::<JettonTransferDetails>(action.details.clone()?).ok())
-        .find(|details| parse_address(&details.receiver).as_deref() == Some(TON_REFERRAL_ADDRESS))
-        .and_then(|details| {
-            Some(TransactionSwapReferralFee {
-                asset_id: ton_asset_id(Some(&details.asset))?,
-                value: details.amount,
-            })
-        })
+    actions.iter().find_map(referral_fee_transfer)
+}
+
+fn referral_fee_transfer(action: &TraceAction) -> Option<TransactionSwapReferralFee> {
+    let details = action.details.clone()?;
+    let (receiver, asset_id, value) = match action.action_type.as_deref()? {
+        TRACE_ACTION_JETTON_TRANSFER => {
+            let transfer: JettonTransferDetails = serde_json::from_value(details).ok()?;
+            (transfer.receiver, ton_asset_id(Some(&transfer.asset))?, transfer.amount)
+        }
+        TRACE_ACTION_TON_TRANSFER => {
+            let transfer: TonTransferDetails = serde_json::from_value(details).ok()?;
+            (transfer.destination, AssetId::from_chain(Chain::Ton), transfer.value)
+        }
+        _ => return None,
+    };
+    match parse_address(&receiver).as_deref() {
+        Some(TON_REFERRAL_ADDRESS) => Some(TransactionSwapReferralFee { asset_id, value }),
+        _ => None,
+    }
 }
 
 fn ton_asset_id(raw_address: Option<&str>) -> Option<AssetId> {
@@ -365,6 +375,38 @@ mod tests {
                 BigUint::from(2436222u64),
                 Some("stonfi_v2".to_string())
             )
+        );
+    }
+
+    #[test]
+    fn test_map_trace_transactions_dedust_ton_referral_fee() {
+        let traces: TraceResponse = serde_json::from_str(include_str!("../../testdata/jetton_swap_dedust_trace.json")).unwrap();
+        let swap = traces.traces[0].clone();
+        let fee = TraceAction {
+            success: Some(true),
+            action_type: Some(TRACE_ACTION_TON_TRANSFER.to_string()),
+            details: Some(json!({"source": swap.root_transaction().unwrap().out_msgs[0].source, "destination": base64_to_hex_address(TON_REFERRAL_ADDRESS).unwrap(), "value": "17456959"})),
+        };
+        let usdt = AssetId::from_token(Chain::Ton, "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs");
+        let metadata = |transaction: &Transaction| serde_json::from_value::<TransactionSwapMetadata>(transaction.metadata.clone().unwrap()).unwrap();
+
+        let without_fee = map_trace_transactions(traces.traces);
+        let with_fee = map_trace_transactions(vec![Trace {
+            actions: [swap.actions.clone(), vec![fee]].concat(),
+            ..swap
+        }]);
+
+        assert_eq!(without_fee[0].transaction_type, TransactionType::Swap);
+        assert_eq!(
+            metadata(&without_fee[0]),
+            TransactionSwapMetadata::from_provider_id(Chain::Ton.as_asset_id(), BigUint::from(3473734802u64), usdt, BigUint::from(4748974u64), Some("dedust".to_string()))
+        );
+        assert_eq!(
+            metadata(&with_fee[0]).referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::Ton.as_asset_id(),
+                value: BigUint::from(17456959u64),
+            })
         );
     }
 
