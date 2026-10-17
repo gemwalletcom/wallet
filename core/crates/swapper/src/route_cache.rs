@@ -5,11 +5,12 @@ use std::{
     time::{Duration, Instant},
 };
 
-use primitives::{DAY, HOUR, WEEK};
+use primitives::{DAY, HOUR, MINUTE, WEEK};
 
 use crate::SwapperError;
 
 const OUTPRICED_BPS: u128 = 300;
+const OUTPRICED_TTL: Duration = Duration::from_secs(5 * MINUTE.as_secs());
 const BPS: u128 = 10_000;
 
 type PairKey<Key> = (Key, Key);
@@ -42,12 +43,12 @@ pub(crate) struct DiscoveryCache<Candidate, Probe, Key = String> {
 
 #[derive(Debug)]
 pub(crate) struct OutpricedCache<Probe, Key = String> {
-    losses: Cache<(Key, Key, Probe), u128>,
+    lost_at: Cache<(Key, Key, Probe), Option<u128>>,
 }
 
 impl<Probe, Key> Default for OutpricedCache<Probe, Key> {
     fn default() -> Self {
-        Self { losses: Cache::new(HOUR) }
+        Self { lost_at: Cache::new(OUTPRICED_TTL) }
     }
 }
 
@@ -57,7 +58,7 @@ where
     Key: Clone + Eq + Hash,
 {
     pub fn partition<T>(&self, from: &Key, to: &Key, amount_in: u128, items: Vec<T>, probe: impl Fn(&T) -> Probe) -> (Vec<T>, Vec<T>) {
-        items.into_iter().partition(|item| !self.is_outpriced(from, to, &probe(item), amount_in))
+        items.into_iter().partition(|item| self.lost_at.get(&(from.clone(), to.clone(), probe(item))) != Some(Some(amount_in)))
     }
 
     pub async fn quote_live_first<T, R, Fut>(&self, (from, to): (&Key, &Key), amount_in: u128, items: Vec<T>, probe: impl Fn(&T) -> Probe, quote: impl Fn(Vec<T>) -> Fut) -> Result<R, SwapperError>
@@ -65,9 +66,6 @@ where
         Fut: Future<Output = Result<R, SwapperError>>,
     {
         let (live, skipped) = self.partition(from, to, amount_in, items, probe);
-        if live.is_empty() {
-            return Err(SwapperError::NoQuoteAvailable);
-        }
         match quote(live).await {
             Err(SwapperError::NoQuoteAvailable) if !skipped.is_empty() => quote(skipped).await,
             result => result,
@@ -76,21 +74,11 @@ where
 
     pub fn record(&self, from: &Key, to: &Key, amount_in: u128, quotes: impl IntoIterator<Item = (Probe, u128)>) {
         let quotes = quotes.into_iter().collect::<Vec<_>>();
-        let Some(best) = quotes.iter().map(|(_, amount_out)| *amount_out).max() else {
-            return;
-        };
-        quotes
-            .into_iter()
-            .filter(|(_, amount_out)| *amount_out == 0 || amount_out.saturating_mul(BPS) < best.saturating_mul(BPS - OUTPRICED_BPS))
-            .for_each(|(probe, _)| {
-                let key = (from.clone(), to.clone(), probe);
-                let lost_at = self.losses.get(&key).map_or(amount_in, |lost_at| lost_at.min(amount_in));
-                self.losses.put(key, lost_at);
-            });
-    }
-
-    fn is_outpriced(&self, from: &Key, to: &Key, probe: &Probe, amount_in: u128) -> bool {
-        self.losses.get(&(from.clone(), to.clone(), probe.clone())).is_some_and(|lost_at| amount_in >= lost_at)
+        let best = quotes.iter().map(|(_, amount_out)| *amount_out).max().unwrap_or_default();
+        quotes.into_iter().for_each(|(probe, amount_out)| {
+            let lost = amount_out.saturating_mul(BPS) < best.saturating_mul(BPS - OUTPRICED_BPS);
+            self.lost_at.put((from.clone(), to.clone(), probe), lost.then_some(amount_in));
+        });
     }
 }
 
@@ -280,18 +268,19 @@ mod tests {
     fn test_outpriced_cache() {
         let cache = OutpricedCache::<&str, &str>::default();
         let pools = || vec!["deep", "close", "shallow"];
+        let partition = |from, to, amount_in| cache.partition(&from, &to, amount_in, pools(), |pool| *pool);
         cache.record(&"sol", &"usdc", 100, [("deep", 1_000), ("close", 975), ("shallow", 969)]);
 
-        assert_eq!(cache.partition(&"sol", &"usdc", 100, pools(), |pool| *pool), (vec!["deep", "close"], vec!["shallow"]));
-        assert_eq!(cache.partition(&"sol", &"usdc", 500, pools(), |pool| *pool), (vec!["deep", "close"], vec!["shallow"]));
-        assert_eq!(cache.partition(&"sol", &"usdc", 50, pools(), |pool| *pool), (pools(), vec![]));
-        assert_eq!(cache.partition(&"usdc", &"sol", 100, pools(), |pool| *pool), (pools(), vec![]));
+        assert_eq!(partition("sol", "usdc", 100), (vec!["deep", "close"], vec!["shallow"]));
+        assert_eq!(partition("sol", "usdc", 500), (pools(), vec![]));
+        assert_eq!(partition("sol", "usdc", 50), (pools(), vec![]));
+        assert_eq!(partition("usdc", "sol", 100), (pools(), vec![]));
 
-        cache.record(&"sol", &"usdc", 40, [("deep", 1_000), ("shallow", 500)]);
-        assert_eq!(cache.partition(&"sol", &"usdc", 50, pools(), |pool| *pool), (vec!["deep", "close"], vec!["shallow"]));
+        cache.record(&"sol", &"usdc", 100, [("deep", 1_000), ("shallow", 990)]);
+        assert_eq!(partition("sol", "usdc", 100), (pools(), vec![]));
 
-        cache.record(&"usdc", &"sol", 10, [("deep", 0), ("close", 0)]);
-        assert_eq!(cache.partition(&"usdc", &"sol", 10, pools(), |pool| *pool), (vec!["shallow"], vec!["deep", "close"]));
+        cache.record(&"sol", &"usdc", 10, [("deep", 0), ("close", 0), ("shallow", 0)]);
+        assert_eq!(partition("sol", "usdc", 10), (pools(), vec![]));
     }
 
     #[test]

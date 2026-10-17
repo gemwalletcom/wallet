@@ -303,19 +303,19 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_arc_usdc_to_creo_quote() -> Result<(), SwapperError> {
+    async fn test_arc_usdc_to_eurc_quote() -> Result<(), SwapperError> {
         let network_provider = Arc::new(NativeProvider::default());
         let swap_provider = uniswap::default::boxed_uniswap_v3(network_provider);
         let request = QuoteRequest {
             from_asset: AssetId::from(Chain::Arc, Some(ARC_USDC_TOKEN_ID.to_string())).into(),
-            to_asset: AssetId::from(Chain::Arc, Some("0x1c98d896328c35a751ce18323f47139a44188001".to_string())).into(),
+            to_asset: ARC_EURC_ASSET_ID.clone().into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             value: BigUint::from(1_000_000u64),
             options: Options { slippage: 100.into(), use_max_amount: false },
         };
         let quote = swap_provider.get_quote(&request).await?;
-        assert!(quote.to_value > BigUint::ZERO);
+        assert!(quote.to_value > BigUint::from(500_000u64) && quote.to_value < BigUint::from(1_000_000u64));
         Ok(())
     }
 

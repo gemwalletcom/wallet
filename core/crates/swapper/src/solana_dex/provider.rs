@@ -387,13 +387,17 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> Swapper for Sola
         let value = request.value_u64()?;
         let pair = (input.mint, output.mint);
         let paths = self.path_lookups(pair)?;
-        let (live, skipped) = self.live_paths(&paths, pair, value);
-        if live.is_empty() {
+        if paths.is_empty() {
             return Err(SwapperError::NoQuoteAvailable);
         }
-        let route = match self.quote_paths(request, &input, &output, live).await {
-            Err(SwapperError::NoQuoteAvailable) if skipped => self.quote_paths(request, &input, &output, paths).await,
-            route => route,
+        let (live, skipped) = self.live_paths(&paths, pair, value);
+        let route = if skipped && !live.is_empty() {
+            match self.quote_paths(request, &input, &output, live).await {
+                Err(SwapperError::NoQuoteAvailable) => self.quote_paths(request, &input, &output, paths).await,
+                route => route,
+            }
+        } else {
+            self.quote_paths(request, &input, &output, paths).await
         }?;
         Quote::from_route(request, &self.provider, BigUint::from(route.received_value()), &route, None)
     }

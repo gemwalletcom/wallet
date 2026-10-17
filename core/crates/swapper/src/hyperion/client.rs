@@ -58,47 +58,46 @@ impl<C: Client> Hyperion<C> {
     }
 
     async fn quote_paths(&self, paths: Vec<RoutePath<String>>, (from, to): (&String, &String), amount_in: u64) -> Result<(PoolRoute, u64), SwapperError> {
-        let quotes = join_all(paths.into_iter().map(|path| async move { Some((path.clone(), self.quote_path(path, from, to, amount_in).await?)) }))
-            .await
-            .into_iter()
-            .flatten()
-            .collect::<Vec<_>>();
-        self.outpriced_paths
-            .record(from, to, u128::from(amount_in), quotes.iter().map(|(path, (_, amount_out))| (path.clone(), u128::from(*amount_out))));
-        quotes.into_iter().map(|(_, quote)| quote).max_by_key(|(_, amount_out)| *amount_out).ok_or(SwapperError::NoQuoteAvailable)
+        let quotes = join_all(paths.into_iter().map(|path| async move { (path.clone(), self.quote_path(path, from, to, amount_in).await) })).await;
+        let outcomes = quotes.iter().filter_map(|(path, quote)| match quote {
+            Ok((_, amount_out)) => Some((path.clone(), u128::from(*amount_out))),
+            Err(SwapperError::NoQuoteAvailable) => Some((path.clone(), 0)),
+            Err(_) => None,
+        });
+        self.outpriced_paths.record(from, to, u128::from(amount_in), outcomes);
+        quotes.into_iter().filter_map(|(_, quote)| quote.ok()).max_by_key(|(_, amount_out)| *amount_out).ok_or(SwapperError::NoQuoteAvailable)
     }
 
     pub(super) async fn preload_pair(&self, from: &str, to: &str) {
         join_all(discovery_pairs(from, to).iter().map(|(pair_from, pair_to)| self.discover_pools(pair_from, pair_to))).await;
     }
 
-    async fn quote_path(&self, path: RoutePath<String>, from: &str, to: &str, amount_in: u64) -> Option<(PoolRoute, u64)> {
+    async fn quote_path(&self, path: RoutePath<String>, from: &str, to: &str, amount_in: u64) -> Result<(PoolRoute, u64), SwapperError> {
         match path {
             RoutePath::Direct => {
                 let hop = self.best_pool(&self.discover_pools(from, to).await, from, to, amount_in).await?;
-                Some((PoolRoute { pools: vec![hop.pool] }, hop.amount_out))
+                Ok((PoolRoute { pools: vec![hop.pool] }, hop.amount_out))
             }
             RoutePath::Intermediary(intermediate) => {
                 let (first_pools, second_pools) = join(self.discover_pools(from, &intermediate), self.discover_pools(&intermediate, to)).await;
                 if second_pools.is_empty() {
-                    return None;
+                    return Err(SwapperError::NoQuoteAvailable);
                 }
                 let first = self.best_pool(&first_pools, from, &intermediate, amount_in).await?;
                 let second = self.best_pool(&second_pools, &intermediate, to, first.amount_out).await?;
-                Some((PoolRoute { pools: vec![first.pool, second.pool] }, second.amount_out))
+                Ok((PoolRoute { pools: vec![first.pool, second.pool] }, second.amount_out))
             }
         }
     }
 
-    async fn best_pool(&self, pools: &[Pool], from: &str, to: &str, amount_in: u64) -> Option<PoolQuote> {
-        let quote = |pools: Vec<Pool>| async move { self.quote_pools(&pools, from, to, amount_in).await.ok_or(SwapperError::NoQuoteAvailable) };
+    async fn best_pool(&self, pools: &[Pool], from: &str, to: &str, amount_in: u64) -> Result<PoolQuote, SwapperError> {
+        let quote = |pools: Vec<Pool>| async move { self.quote_pools(&pools, from, to, amount_in).await };
         self.outpriced_pools
             .quote_live_first((&from.to_string(), &to.to_string()), u128::from(amount_in), pools.to_vec(), |pool| pool.address.clone(), quote)
             .await
-            .ok()
     }
 
-    async fn quote_pools(&self, pools: &[Pool], from: &str, to: &str, amount_in: u64) -> Option<PoolQuote> {
+    async fn quote_pools(&self, pools: &[Pool], from: &str, to: &str, amount_in: u64) -> Result<PoolQuote, SwapperError> {
         let amounts = join_all(pools.iter().map(|pool| self.get_amount_out(&pool.address, from, amount_in))).await;
         let quoted = pools
             .iter()
@@ -122,7 +121,11 @@ impl<C: Client> Hyperion<C> {
             (pool.address.clone(), amount_out)
         });
         self.outpriced_pools.record(&from.to_string(), &to.to_string(), u128::from(amount_in), outcomes);
-        quote
+        match quote {
+            Some(quote) => Ok(quote),
+            None if quoted.len() == pools.len() && unpayable.len() == ranked.len() => Err(SwapperError::NoQuoteAvailable),
+            None => Err(SwapperError::compute_quote_error("Hyperion pool quote failed")),
+        }
     }
 
     async fn first_payable(&self, ranked: &[(u64, &Pool)], from: &str) -> (Option<PoolQuote>, Vec<String>) {

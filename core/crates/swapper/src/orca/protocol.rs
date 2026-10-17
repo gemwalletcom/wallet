@@ -231,7 +231,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_failed_route_is_skipped_for_larger_values() {
+    async fn test_route_failing_alone_is_asked_again() {
         let requests = Arc::new(AtomicUsize::new(0));
         let orca = SolanaDex::with_client(Orca, mock_rpc_client(mock_snapshot_rpc_accounts(), requests.clone()));
         let too_large = sol_to_usdc_request(1_000_000_000_000_000);
@@ -239,10 +239,10 @@ mod tests {
         assert_eq!(orca.get_quote(&too_large).await, Err(SwapperError::NoQuoteAvailable));
         assert_eq!(requests.load(Ordering::SeqCst), 2);
         assert_eq!(orca.get_quote(&too_large).await, Err(SwapperError::NoQuoteAvailable));
-        assert_eq!(requests.load(Ordering::SeqCst), 2);
+        assert_eq!(requests.load(Ordering::SeqCst), 3);
 
         assert_eq!(orca.get_quote(&sol_to_usdc_request(1_000_000_000)).await.unwrap().to_value, BigUint::from(104_629_923u64));
-        assert_eq!(requests.load(Ordering::SeqCst), 3);
+        assert_eq!(requests.load(Ordering::SeqCst), 4);
     }
 
     #[tokio::test]

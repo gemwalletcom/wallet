@@ -90,7 +90,7 @@ flowchart LR
 | A pool exists: its address, tokens and fee tier, and the version Cetus needs to trade with it | `7 days` |
 | No pool exists at a fee tier | `1 day` |
 | A pool cannot trade: no liquidity at its price, or swaps paused or not open yet on Orca and Raydium, or locked on STON.fi | `1 hour`, then it is checked again |
-| A pool or route lost at an amount: it gave more than `3%` less than the best, or it failed | `1 hour`, skipped for that pair at that amount or more |
+| A pool or route that gave more than `3%` less than the best, or failed while another succeeded | `5 minutes`, skipped only when the same pair is quoted for the same amount |
 | On Solana: the token mints, Gem's fee accounts and Raydium's fee configs | `1 day` |
 | Cetus's four main SUI/USDC pools | always; they ship with the app |
 
@@ -108,7 +108,7 @@ Solana, Uniswap v4 and Hyperion pool addresses are computed on the device from t
 
 ### Skipping pools that lose
 
-Every quote compares candidates and keeps the best. A candidate that gave more than `3%` less than the best, or that failed outright, is not asked again for the next `1 hour` when the same pair is quoted at that amount or more. A smaller amount asks it again, since a pool too shallow for a large trade can still be the best for a small one. Failing outright means the quote reverted, the pool ran out of liquidity for the amount, or the pool could not pay the output; a network error never counts. If every candidate still asked fails, the skipped ones are asked before the quote fails. When every candidate failed at that amount or less, there is no quote and nothing is asked (`test_outpriced_cache`, `test_get_best_quote_skips_outpriced_paths`, `test_failed_route_is_skipped_for_larger_values`, `test_find_route_skips_outpriced_pools`).
+Every quote compares candidates and keeps the best. A candidate that gave more than `3%` less than the best, or that failed while another succeeded, is not asked again for the next `5 minutes` when the same pair is quoted for the same amount, as the 30-second refresh and the confirmation screen do. Any other amount asks every candidate again: a pool too shallow for a large trade can still be the best for a small one, and a deep pool that lost to a small pool's better price can win a larger trade. Failing means the quote reverted, the pool ran out of liquidity for the amount, or the pool could not pay the output; a network error never counts. When every candidate fails or gives nothing, as for a dust amount, none is marked. If every candidate still asked fails, the skipped ones are asked before the quote fails (`test_outpriced_cache`, `test_get_best_quote_skips_outpriced_paths`, `test_route_failing_alone_is_asked_again`, `test_find_route_skips_outpriced_pools`).
 
 | Provider | Candidates |
 |---|---|
@@ -117,11 +117,11 @@ Every quote compares candidates and keeps the best. A candidate that gave more t
 | STON.fi | each path, and each pool within a hop |
 | Hyperion | each path, and each pool within a hop |
 
-Cetus prices all its pools in one dry run, so it has nothing to skip. `3%` keeps close rivals: two fee tiers on a busy pair are often within `1%` and trade places as the amount changes, so both stay. In the measured pairs, every pool that lost was `6%` to `99%` worse than the best, or failed.
+Cetus prices all its pools in one dry run, so it has nothing to skip. `3%` keeps close rivals: two fee tiers on a busy pair are often within `1%` and trade places as prices move, so both stay. In the measured pairs, every pool that lost was `6%` to `99%` worse than the best, or failed.
 
 ### Requests per quote
 
-Measured on 2026-10-17, one pair per provider and the same amount, on the build before and after this caching. Each count is HTTP requests; a single number did not change, and `before → after` shows what did. "A day later" is the same pair quoted again while the app is still open: before this caching, pool facts expired after `1 day` and discovery ran again; by then the losing pools are asked again too, so it costs what the repeat quote cost before skipping. Everything the device keeps lives in memory, so after the app restarts the first quote pays the full cost again, and Dynode's lookups make that fast. Size is the repeat quote's response before compression. A swap build of `0` is built without a request; Cetus's was measured with an empty test wallet, so its dry run failed.
+Measured on 2026-10-17, one pair per provider and the same amount, on the build before and after this caching. Each count is HTTP requests; a single number did not change, and `before → after` shows what did. "A day later" is the same pair quoted again while the app is still open: before this caching, pool facts expired after `1 day` and discovery ran again; by then the losing pools are asked again too, so it costs what the repeat quote cost before skipping, as does a quote for a new amount. Everything the device keeps lives in memory, so after the app restarts the first quote pays the full cost again, and Dynode's lookups make that fast. Size is the repeat quote's response before compression. A swap build of `0` is built without a request; Cetus's was measured with an empty test wallet, so its dry run failed.
 
 | Provider and pair | First quote | Repeat quote | A day later | Swap build | Size |
 |---|---|---|---|---|---|
@@ -172,7 +172,7 @@ A repeat quote took about `110 ms` to `130 ms` on Ethereum and Sui, most of it t
 ## Rules
 
 - Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
-- A quote is never cached: every eligible provider is asked again for the live amount, and every quote is priced on live chain state. Only the facts that never change are kept, and for an hour which pools lost at an amount, as [On-chain quotes](#on-chain-quotes) lists.
+- A quote is never cached: every eligible provider is asked again for the live amount, and every quote is priced on live chain state. Only the facts that never change are kept, and for `5 minutes` which pools lost at that exact amount, as [On-chain quotes](#on-chain-quotes) lists.
 - Every eligible provider is awaited, so the slowest one decides how long a quote takes.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it loaded and showed.
 - The Slippage row reads Auto on both screens until the user picks a value.

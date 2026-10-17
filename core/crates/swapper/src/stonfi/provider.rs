@@ -119,7 +119,7 @@ where
             quoted if quoted.iter().all(|(_, quote)| quote.is_err()) && !skipped.is_empty() => self.quote_route_paths(&skipped, request, from_value, allow_discovery).await,
             quoted => quoted,
         };
-        let outcomes = quoted.iter().filter_map(|(path, quote)| Some((path_key(path), BigUint::from_str(&quote.as_ref().ok()?.to_value).ok()?.to_u128()?)));
+        let outcomes = quoted.iter().filter_map(|(path, quote)| Some((path_key(path), quote_outcome(quote.as_ref().map(|path| path.to_value.as_str()))?)));
         self.outpriced_paths.record(&from_key, &to_key, amount_in, outcomes);
         quoted.into_iter().map(|(_, quote)| quote).collect()
     }
@@ -282,11 +282,10 @@ where
         if let Some(error) = quotes.iter().filter_map(|quote| quote.as_ref().err()).find(|error| is_retryable_get_method_error(error)) {
             return Err(error.clone());
         }
-        let outcomes = addresses.into_iter().zip(&quotes).filter_map(|(address, quote)| match quote {
-            Ok((_, simulation)) => Some((address, BigUint::from_str(&simulation.ask_units).ok()?.to_u128()?)),
-            Err(SwapperError::NoQuoteAvailable | SwapperError::InvalidRoute) => Some((address, 0)),
-            Err(_) => None,
-        });
+        let outcomes = addresses
+            .into_iter()
+            .zip(&quotes)
+            .filter_map(|(address, quote)| Some((address, quote_outcome(quote.as_ref().map(|(_, simulation)| simulation.ask_units.as_str()))?)));
         self.outpriced_pools.record(&from_token.to_string(), &to_token.to_string(), amount_key(amount), outcomes);
         let ranked = quotes.into_iter().flatten().map(|quote| Ok((BigUint::from_str(&quote.1.ask_units)?, quote))).collect::<Result<Vec<_>, SwapperError>>()?;
         ranked.into_iter().min_by_key(|(amount, _)| Reverse(amount.clone())).map(|(_, quote)| quote).ok_or(SwapperError::NoQuoteAvailable)
@@ -444,6 +443,14 @@ where
 
         let message = TonConnectMessage::new(Address::parse(&tx.to)?.encode_bounceable(), &BigUint::from_str(&tx.value)?, Some(tx.data));
         TonConnectMessage::swap_quote_data(&[message]).map_err(SwapperError::compute_quote_error)
+    }
+}
+
+fn quote_outcome(quote: Result<&str, &SwapperError>) -> Option<u128> {
+    match quote {
+        Ok(value) => BigUint::from_str(value).ok()?.to_u128(),
+        Err(SwapperError::NoQuoteAvailable | SwapperError::InvalidRoute) => Some(0),
+        Err(_) => None,
     }
 }
 
@@ -782,10 +789,14 @@ mod swap_integration_tests {
     use primitives::{AssetId, asset_constants::TON_USDT_ASSET_ID, testkit::signer_mock::TEST_TON_SENDER};
     use std::collections::HashMap;
 
+    fn dynode_stonfi() -> Stonfi<RpcClient> {
+        let rpc_provider = NativeProvider::new_with_endpoints(HashMap::from([(Chain::Ton, "https://gemnodes.com/ton".to_string())]));
+        Stonfi::new(Arc::new(rpc_provider)).unwrap()
+    }
+
     #[tokio::test]
     async fn test_stonfi_quote_and_quote_data_ton_to_usdt() -> Result<(), SwapperError> {
-        let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = Stonfi::new(rpc_provider).unwrap();
+        let provider = dynode_stonfi();
         let request = mock_ton(TEST_TON_SENDER.to_string());
 
         let quote = provider.get_quote(&request).await?;
@@ -806,8 +817,7 @@ mod swap_integration_tests {
 
     #[tokio::test]
     async fn test_stonfi_quote_and_quote_data_hmstr_native() -> Result<(), SwapperError> {
-        let rpc_provider = NativeProvider::new_with_endpoints(HashMap::from([(Chain::Ton, "https://gemnodes.com/ton".to_string())]));
-        let provider = Stonfi::new(Arc::new(rpc_provider)).unwrap();
+        let provider = dynode_stonfi();
         let hmstr = SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, "EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo"));
         let ton = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ton));
         for (from_asset, to_asset, value) in [(hmstr.clone(), ton.clone(), 100_000_000_000u64), (ton, hmstr, 10_000_000u64)] {
@@ -835,8 +845,7 @@ mod swap_integration_tests {
 
     #[tokio::test]
     async fn test_stonfi_quote_and_quote_data_not_to_usdt() -> Result<(), SwapperError> {
-        let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = Stonfi::new(rpc_provider).unwrap();
+        let provider = dynode_stonfi();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, NOT_TOKEN_ID)),
             to_asset: SwapperQuoteAsset::from(TON_USDT_ASSET_ID.clone()),
