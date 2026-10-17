@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     SwapperProvider,
-    bridgers::asset::get_asset_id,
+    bridgers::asset::{get_asset_id, get_asset_value},
     fees::{DEFAULT_REFERRER, DEFAULT_SWAP_FEE_BPS, bps_of},
 };
 
@@ -46,18 +46,11 @@ pub struct Record {
 impl Record {
     pub fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
         let from_asset = get_asset_id(&self.from_chain, &self.from_token_address)?;
-        let from_value = BigUint::from_str(&self.from_amount).ok()?;
+        let from_value = get_asset_value(&from_asset, BigUint::from_str(&self.from_amount).ok()?)?;
+        let to_asset = get_asset_id(&self.to_chain, &self.to_token_address)?;
+        let to_value = get_asset_value(&to_asset, BigUint::from_str(&self.to_amount).ok()?)?;
         let referral_fee = self.referral_fee(&from_asset, &from_value);
-        Some(
-            TransactionSwapMetadata::new(
-                from_asset,
-                from_value,
-                get_asset_id(&self.to_chain, &self.to_token_address)?,
-                BigUint::from_str(&self.to_amount).ok()?,
-                SwapperProvider::Bridgers,
-            )
-            .with_referral_fee(referral_fee),
-        )
+        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Bridgers).with_referral_fee(referral_fee))
     }
 
     fn referral_fee(&self, from_asset: &AssetId, from_value: &BigUint) -> Option<TransactionSwapReferralFee> {

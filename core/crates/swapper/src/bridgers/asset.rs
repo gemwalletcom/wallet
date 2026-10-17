@@ -6,12 +6,17 @@ use primitives::{
     asset_constants::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_USDC_ASSET_ID, CELO_USDC_ASSET_ID, CELO_USDT_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, HYPEREVM_USDC_ASSET_ID,
         LINEA_USDC_E_ASSET_ID, MANTLE_USDT0_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT0_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID,
-        SOLANA_USDT_ASSET_ID, TON_USDT_ASSET_ID, XLAYER_USDT_ASSET_ID,
+        SOLANA_USDT_ASSET_ID, TON_USDT_ASSET_ID, XLAYER_USDT_ASSET_ID, XRP_RLUSD_ASSET_ID,
     },
     contract_constants::EVM_NATIVE_TOKEN_ADDRESS,
 };
 
-use crate::{SwapperChainAsset, SwapperError, cross_chain::VaultAddresses};
+use num_bigint::BigUint;
+
+use crate::{SwapperChainAsset, SwapperError, cross_chain::VaultAddresses, hyperliquid::provider::spot::math::scale_units};
+
+const RLUSD_DECIMALS: u32 = 18;
+const XRP_RLUSD_DECIMALS: u32 = 15;
 
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Network {
@@ -21,7 +26,7 @@ pub(super) struct Network {
     payout: Option<&'static str>,
 }
 
-pub(super) const NETWORKS: [Network; 21] = [
+pub(super) const NETWORKS: [Network; 22] = [
     Network::new(Chain::SmartChain, "BSC", "0xc1d13492285eb664951E201BF7C80c7c6318a1b5"),
     Network::new(Chain::Polygon, "POLYGON", "0xc1d13492285eb664951E201BF7C80c7c6318a1b5"),
     Network::new(Chain::Arbitrum, "ARBITRUM", "0xc1d13492285eb664951E201BF7C80c7c6318a1b5"),
@@ -38,6 +43,7 @@ pub(super) const NETWORKS: [Network; 21] = [
     Network::new(Chain::Hyperliquid, "HyperEVM", "0x89A70b162bE7dBc8b5e7579066fA58190C48d693"),
     Network::new(Chain::Stable, "Stable", "0x89A70b162bE7dBc8b5e7579066fA58190C48d693"),
     Network::new(Chain::Ton, "TON", "EQCqTuPS-cMN9SSRhaFrwJOGL7dKkFF8C0a05g2WzI9uRJ19"),
+    Network::new(Chain::Xrp, "XRP", "rM27yzkCw6WA3T4g1sPaeC1kpxHUhuxRWn"),
     Network::destination(Chain::Ethereum, "ETH"),
     Network::destination(Chain::Solana, "SOLANA"),
     Network::payout(Chain::Bitcoin, "BTC", "bc1q7t4vyehjsexdme84qhdgd4dawcn54djh0m78fz"),
@@ -116,6 +122,8 @@ static TOKENS: LazyLock<Vec<(AssetId, &'static str)>> = LazyLock::new(|| {
         (AssetId::from_chain(Chain::Stable), "USDT0(Stable)"),
         (AssetId::from_chain(Chain::Ton), "GRAM(TON)"),
         (TON_USDT_ASSET_ID.clone(), "USDT(TON)"),
+        (AssetId::from_chain(Chain::Xrp), "XRP"),
+        (XRP_RLUSD_ASSET_ID.clone(), "RLUSD"),
         (AssetId::from_chain(Chain::Ethereum), "ETH"),
         (ETHEREUM_USDC_ASSET_ID.clone(), "USDC"),
         (ETHEREUM_USDT_ASSET_ID.clone(), "USDT(ERC20)"),
@@ -148,6 +156,13 @@ pub(super) fn get_asset_id(code: &str, address: &str) -> Option<AssetId> {
         .map(|(id, _)| id)
         .find(|id| id.chain == chain && checksum_address(&token_address(id), chain) == address)
         .map(|id| AssetId::from(chain, id.token_id.as_ref().map(|_| address)))
+}
+
+pub(super) fn get_asset_value(asset_id: &AssetId, value: BigUint) -> Option<BigUint> {
+    if *asset_id == *XRP_RLUSD_ASSET_ID {
+        return scale_units(value, RLUSD_DECIMALS, XRP_RLUSD_DECIMALS).ok();
+    }
+    Some(value)
 }
 
 pub(super) fn supported_assets() -> Vec<SwapperChainAsset> {
@@ -193,5 +208,11 @@ mod tests {
         assert_eq!(get_asset_id("SOLANA", &token_address(&SOLANA_USDC_ASSET_ID)), Some(SOLANA_USDC_ASSET_ID.clone()));
         assert_eq!(get_asset_id("SOLANA", &token_address(&SOLANA_USDC_ASSET_ID).to_lowercase()), None);
         assert_eq!(get_asset_id("BSC", &token_address(&ARBITRUM_USDC_ASSET_ID)), None);
+    }
+
+    #[test]
+    fn test_get_asset_value() {
+        assert_eq!(get_asset_value(&XRP_RLUSD_ASSET_ID, BigUint::from(10u64.pow(18))), Some(BigUint::from(10u64.pow(15))));
+        assert_eq!(get_asset_value(&AssetId::from_chain(Chain::Xrp), BigUint::from(1_000_000u64)), Some(BigUint::from(1_000_000u64)));
     }
 }

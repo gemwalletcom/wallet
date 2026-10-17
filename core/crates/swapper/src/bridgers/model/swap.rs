@@ -23,6 +23,8 @@ pub struct DepositMemo {
     pub sender: String,
     pub destination: String,
     pub min_return_amount: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub from_amount: Option<String>,
 }
 
 impl DepositMemo {
@@ -33,6 +35,7 @@ impl DepositMemo {
             sender: swap.from_address.clone(),
             destination: swap.to_address.clone(),
             min_return_amount: swap.amount_out_min.to_string(),
+            from_amount: None,
         }
     }
 }

@@ -1,5 +1,6 @@
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
+use primitives::ChainType;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -22,6 +23,9 @@ pub struct QuoteRequest {
 
 impl QuoteRequest {
     pub fn new(request: &crate::QuoteRequest, from_token_amount: BigUint) -> Result<Self, SwapperError> {
+        if request.from_asset.chain().chain_type() == ChainType::Xrp && request.from_asset.asset_id().is_token() {
+            return Err(SwapperError::NotSupportedAsset);
+        }
         Ok(Self {
             source_flag: DEFAULT_REFERRER.to_string(),
             from_token_address: get_token_address(&request.from_asset.asset_id())?,

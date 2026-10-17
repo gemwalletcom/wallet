@@ -28,6 +28,8 @@ use crate::{
     cross_chain::VaultAddresses,
 };
 
+const XRP_CHANNEL: &str = "ik9r6b";
+
 #[derive(Debug)]
 pub struct Bridgers {
     provider: ProviderType,
@@ -98,6 +100,15 @@ fn get_min_from_value(quote: &QuoteTxData, request: &QuoteRequest) -> Result<Big
     Ok(min_value)
 }
 
+fn get_xrp_quote_data(network: Network, to_code: &str, swap: &SwapRequest) -> Result<SwapperQuoteData, SwapperError> {
+    let memo = DepositMemo {
+        from_amount: Some(swap.quote.from_token_amount.to_string()),
+        ..DepositMemo::new(swap, to_code, XRP_CHANNEL)
+    };
+    let memo = serde_json::to_string(&memo).map_err(SwapperError::compute_quote_error)?;
+    Ok(SwapperQuoteData::new_transfer(network.router()?.to_string(), swap.quote.from_token_amount.clone(), Some(memo)))
+}
+
 #[async_trait]
 impl Swapper for Bridgers {
     fn provider(&self) -> &ProviderType {
@@ -128,7 +139,7 @@ impl Swapper for Bridgers {
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
         let records = self.client.get_records(&RecordsRequest::new(request.from_address.clone().ok_or(SwapperError::InvalidRoute)?)).await?;
-        let record = records.list.iter().find(|record| record.hash == request.transaction_hash);
+        let record = records.list.iter().find(|record| record.hash.eq_ignore_ascii_case(&request.transaction_hash));
         Ok(SwapResult {
             status: record.map_or(SwapStatus::Pending, |record| record.status.swap_status()),
             metadata: record.and_then(Record::swap_metadata),
@@ -155,6 +166,7 @@ impl Swapper for Bridgers {
         match network.chain.chain_type() {
             ChainType::Ethereum => self.get_evm_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
             ChainType::Ton => self.get_ton_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
+            ChainType::Xrp => get_xrp_quote_data(network, to_code, &swap),
             _ => Err(SwapperError::NotSupportedChain),
         }
     }
@@ -165,7 +177,10 @@ mod swap_integration_tests {
     use super::*;
     use crate::{
         alien::reqwest_provider::NativeProvider,
-        bridgers::testkit::{mock_base_usdc_to_bsc_usdt_request, mock_base_usdc_to_ton_usdt_request, mock_opbnb_to_bsc_usdt_request, mock_stable_to_bsc_usdt_request, mock_ton_to_bsc_usdt_request, mock_ton_usdt_to_bsc_usdt_request},
+        bridgers::testkit::{
+            TEST_XRP_WALLET, mock_base_usdc_to_bsc_usdt_request, mock_base_usdc_to_ton_usdt_request, mock_opbnb_to_bsc_usdt_request, mock_rlusd_to_bsc_usdt_request, mock_stable_to_bsc_usdt_request, mock_ton_to_bsc_usdt_request,
+            mock_ton_usdt_to_bsc_usdt_request, mock_xrp_to_bsc_usdt_request,
+        },
     };
     use primitives::{
         Chain, TransactionSwapMetadata, TransactionSwapReferralFee,
@@ -183,6 +198,7 @@ mod swap_integration_tests {
             mock_stable_to_bsc_usdt_request(),
             mock_base_usdc_to_ton_usdt_request(),
             mock_ton_to_bsc_usdt_request(),
+            mock_xrp_to_bsc_usdt_request(),
         ] {
             let quote = provider.get_quote(&request).await?;
             let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
@@ -192,6 +208,8 @@ mod swap_integration_tests {
             assert!(quote.eta_in_seconds > Some(0));
             assert_eq!(data.to, network.router()?);
         }
+
+        assert_eq!(provider.get_quote(&mock_rlusd_to_bsc_usdt_request()).await.unwrap_err(), SwapperError::NotSupportedAsset);
 
         let quote = provider.get_quote(&mock_ton_usdt_to_bsc_usdt_request()).await?;
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
@@ -246,6 +264,30 @@ mod swap_integration_tests {
                 .with_referral_fee(Some(TransactionSwapReferralFee {
                     asset_id: TON_USDT_ASSET_ID.clone(),
                     value: BigUint::from(80_000u64),
+                }))
+            )
+        );
+
+        let request = SwapResultRequest {
+            from_address: Some(TEST_XRP_WALLET.to_string()),
+            ..SwapResultRequest::new(Chain::Xrp, "DA76328746E3CBB41AC4E98348893CD8988CE1C731548A9DDF5404794C9A066F")
+        };
+        let result = provider.get_swap_result(&request).await?;
+
+        assert_eq!(result.status, SwapStatus::Completed);
+        assert_eq!(
+            result.metadata,
+            Some(
+                TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::Xrp),
+                    BigUint::from(13_000_000u64),
+                    AssetId::from_chain(Chain::SmartChain),
+                    BigUint::from(22_876_000_000_000_000u64),
+                    SwapperProvider::Bridgers
+                )
+                .with_referral_fee(Some(TransactionSwapReferralFee {
+                    asset_id: AssetId::from_chain(Chain::Xrp),
+                    value: BigUint::from(65_000u64),
                 }))
             )
         );
