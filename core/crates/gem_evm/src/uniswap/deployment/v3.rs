@@ -254,7 +254,7 @@ pub fn get_pancakeswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Dep
             "0xFE6508f0015C778Bdcc1fB5465bA5ebE224C9912",
         )),
         Chain::ZkSync => Some(V3Deployment::v2(
-            "0x1Bb72E0C66EeAb9C0e0F81c405e6e553123a5d2D",
+            "0x1BB72E0CbbEA93c08f535fc7856E0338D7F7a8aB",
             "0x3d146FcE6c1006857750cBe8aF44f76a28041CCc",
             "0x686FD50007EaA636F01154d660b96110B6bFe351",
             "0xdAee41E335322C85ff2c5a6745c98e1351806e98",
