@@ -5,6 +5,7 @@ use gem_evm::{
     constants::TOKEN_TRANSFER_GAS_LIMIT,
     u256::{biguint_to_u256, u256_to_biguint},
 };
+use gem_ton::{address::Address as TonAddress, models::TonConnectMessage};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
@@ -15,12 +16,14 @@ use primitives::{
 use super::{
     asset::{Network, get_token_code, supported_assets, vault_addresses},
     client::BridgersClient,
-    model::{QuoteRequest as BridgersQuoteRequest, QuoteTxData, Record, RecordsRequest, RouteData, SwapRequest},
+    model::{DepositMemo, QuoteRequest as BridgersQuoteRequest, QuoteTxData, Record, RecordsRequest, RouteData, SwapRequest, SwapTransaction},
+    ton::{JETTON_TRANSFER_TON_AMOUNT, get_jetton_payload, get_native_payload, get_payload_channel, get_transaction_payload},
     transaction::get_transaction_value,
 };
 use crate::{
     FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
+    client_factory::create_ton_client,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
 };
@@ -44,10 +47,35 @@ impl Bridgers {
     async fn get_evm_quote_data(&self, network: Network, from_asset: &AssetId, to_code: &str, swap: &SwapRequest) -> Result<SwapperQuoteData, SwapperError> {
         let router = network.router()?;
         let (swap_data, approval) = futures::try_join!(self.client.get_swap(swap), self.get_approval(network, router, from_asset, swap))?;
-        let transaction = swap_data.tx_data;
+        let SwapTransaction::Evm(transaction) = swap_data.tx_data else {
+            return Err(SwapperError::InvalidRoute);
+        };
         let value = get_transaction_value(&transaction, router, from_asset, to_code, swap)?;
         let gas_limit = get_swap_gas_limit_with_approval(&approval, None, TOKEN_TRANSFER_GAS_LIMIT * 2);
         Ok(SwapperQuoteData::new_contract(router.to_string(), u256_to_biguint(&value), transaction.data, approval, gas_limit))
+    }
+
+    async fn get_ton_quote_data(&self, network: Network, from_asset: &AssetId, to_code: &str, swap: &SwapRequest) -> Result<SwapperQuoteData, SwapperError> {
+        let SwapTransaction::Ton(transaction) = self.client.get_swap(swap).await?.tx_data else {
+            return Err(SwapperError::InvalidRoute);
+        };
+        let sender = TonAddress::parse(&swap.from_address)?;
+        let router = TonAddress::parse(network.router()?)?;
+        let from_amount = swap.quote.from_token_amount.clone();
+        let memo = DepositMemo::new(swap, to_code, &get_payload_channel(&transaction, to_code, &swap.slippage)?);
+        let (to, value, payload) = match &from_asset.token_id {
+            None => (router, from_amount, get_native_payload(&sender, &memo)?),
+            Some(token_id) => (
+                create_ton_client(self.rpc_provider.clone())?
+                    .get_jetton_wallet_address(&swap.from_address, token_id)
+                    .await
+                    .map_err(SwapperError::compute_quote_error)?,
+                BigUint::from(JETTON_TRANSFER_TON_AMOUNT),
+                get_jetton_payload(&from_amount, &router, &sender, &memo)?,
+            ),
+        };
+        let payload = get_transaction_payload(&transaction, &to, &value, payload)?;
+        TonConnectMessage::swap_quote_data(&[TonConnectMessage::new(to.encode_bounceable(), &value, Some(payload))]).map_err(SwapperError::compute_quote_error)
     }
 
     async fn get_approval(&self, network: Network, router: &str, from_asset: &AssetId, swap: &SwapRequest) -> Result<Option<ApprovalData>, SwapperError> {
@@ -126,6 +154,7 @@ impl Swapper for Bridgers {
         };
         match network.chain.chain_type() {
             ChainType::Ethereum => self.get_evm_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
+            ChainType::Ton => self.get_ton_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
             _ => Err(SwapperError::NotSupportedChain),
         }
     }
@@ -136,16 +165,25 @@ mod swap_integration_tests {
     use super::*;
     use crate::{
         alien::reqwest_provider::NativeProvider,
-        bridgers::testkit::{mock_base_usdc_to_bsc_usdt_request, mock_opbnb_to_bsc_usdt_request, mock_stable_to_bsc_usdt_request},
+        bridgers::testkit::{mock_base_usdc_to_bsc_usdt_request, mock_base_usdc_to_ton_usdt_request, mock_opbnb_to_bsc_usdt_request, mock_stable_to_bsc_usdt_request, mock_ton_to_bsc_usdt_request, mock_ton_usdt_to_bsc_usdt_request},
     };
-    use primitives::{Chain, TransactionSwapMetadata, TransactionSwapReferralFee, asset_constants::ARBITRUM_USDC_ASSET_ID};
+    use primitives::{
+        Chain, TransactionSwapMetadata, TransactionSwapReferralFee,
+        asset_constants::{ARBITRUM_USDC_ASSET_ID, TON_USDT_ASSET_ID},
+    };
 
     #[tokio::test]
     async fn test_bridgers_quote_and_quote_data() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let rpc_provider = Arc::new(NativeProvider::default());
         let provider = Bridgers::new(rpc_provider);
 
-        for request in [mock_opbnb_to_bsc_usdt_request(), mock_base_usdc_to_bsc_usdt_request(), mock_stable_to_bsc_usdt_request()] {
+        for request in [
+            mock_opbnb_to_bsc_usdt_request(),
+            mock_base_usdc_to_bsc_usdt_request(),
+            mock_stable_to_bsc_usdt_request(),
+            mock_base_usdc_to_ton_usdt_request(),
+            mock_ton_to_bsc_usdt_request(),
+        ] {
             let quote = provider.get_quote(&request).await?;
             let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
             let network = Network::from_chain(request.from_asset.chain())?;
@@ -154,6 +192,12 @@ mod swap_integration_tests {
             assert!(quote.eta_in_seconds > Some(0));
             assert_eq!(data.to, network.router()?);
         }
+
+        let quote = provider.get_quote(&mock_ton_usdt_to_bsc_usdt_request()).await?;
+        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+
+        assert_eq!((data.to.as_str(), data.value), ("EQCcPR6bD3c161LJe1hVCFni-z9y7fCkFtpSYwrKncccG4nG", BigUint::from(60_000_000u64)));
+        assert_eq!(serde_json::from_str::<Vec<TonConnectMessage>>(&data.data)?.len(), 1);
 
         let request = SwapResultRequest {
             from_address: Some("0x1085c5f70f7f7591d97da281a64688385455c2bd".to_string()),
@@ -180,6 +224,30 @@ mod swap_integration_tests {
                 ),
                 eta_in_seconds: None,
             }
+        );
+
+        let request = SwapResultRequest {
+            from_address: Some("UQAC-9BRZ2wObbLVcQjoXtv_eOkm6R4ADSPOHpSdl19zI-t7".to_string()),
+            ..SwapResultRequest::new(Chain::Ton, "28a0a65db05a18b4c576117260dfebbe622729ca852f8f71ed72610966fa3ea6")
+        };
+        let result = provider.get_swap_result(&request).await?;
+
+        assert_eq!(result.status, SwapStatus::Completed);
+        assert_eq!(
+            result.metadata,
+            Some(
+                TransactionSwapMetadata::new(
+                    TON_USDT_ASSET_ID.clone(),
+                    BigUint::from(16_000_000u64),
+                    AssetId::from_chain(Chain::SmartChain),
+                    BigUint::from(21_898_000_000_000_000u64),
+                    SwapperProvider::Bridgers
+                )
+                .with_referral_fee(Some(TransactionSwapReferralFee {
+                    asset_id: TON_USDT_ASSET_ID.clone(),
+                    value: BigUint::from(80_000u64),
+                }))
+            )
         );
         Ok(())
     }

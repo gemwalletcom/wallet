@@ -133,7 +133,22 @@ mod tests {
             None,
             "a refunded swap earns no fee"
         );
-        assert_eq!(opbnb_to_ton.swap_metadata(), None);
+        assert_eq!(
+            opbnb_to_ton.swap_metadata(),
+            Some(
+                TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::OpBNB),
+                    BigUint::from(20_000_000_000_000_000u64),
+                    AssetId::from_chain(Chain::Ton),
+                    BigUint::from(9_887_073_000u64),
+                    SwapperProvider::Bridgers,
+                )
+                .with_referral_fee(Some(TransactionSwapReferralFee {
+                    asset_id: AssetId::from_chain(Chain::OpBNB),
+                    value: BigUint::from(100_000_000_000_000u64),
+                }))
+            )
+        );
         assert_eq!(
             records[2].swap_metadata(),
             Some(TransactionSwapMetadata::new(

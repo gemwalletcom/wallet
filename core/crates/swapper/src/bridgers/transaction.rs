@@ -20,16 +20,17 @@ pub(super) fn get_transaction_value(transaction: &EvmTransaction, router: &str, 
     let from_amount = biguint_to_u256(&swap.quote.from_token_amount).ok_or(SwapperError::InvalidRoute)?;
     let min_return_amount = biguint_to_u256(&swap.amount_out_min).ok_or(SwapperError::InvalidRoute)?;
     let call = get_swap_call(&data, value, from_asset, from_amount)?;
-    if call.destination != swap.to_address || call.min_return_amount != min_return_amount || !is_valid_to_token(&call.to_token, to_code, &swap.slippage) {
+    if call.destination != swap.to_address || call.min_return_amount != min_return_amount {
         return Err(SwapperError::InvalidRoute);
     }
+    get_to_token_channel(&call.to_token, to_code, &swap.slippage)?;
     Ok(value)
 }
 
-fn is_valid_to_token(to_token: &str, code: &str, slippage: &str) -> bool {
+pub(super) fn get_to_token_channel<'a>(to_token: &'a str, code: &str, slippage: &str) -> Result<&'a str, SwapperError> {
     match to_token.split('|').collect::<Vec<_>>().as_slice() {
-        [token, _channel, token_slippage, ..] => *token == code && *token_slippage == slippage,
-        _ => false,
+        [token, channel, token_slippage, ..] if *token == code && *token_slippage == slippage => Ok(channel),
+        _ => Err(SwapperError::InvalidRoute),
     }
 }
 
@@ -40,7 +41,7 @@ mod tests {
 
     use super::*;
     use crate::bridgers::{
-        model::{BridgersResponse, QuoteRequest, SwapData},
+        model::{BridgersResponse, QuoteRequest, SwapData, SwapTransaction},
         testkit::TEST_EVM_WALLET,
     };
 
@@ -48,8 +49,10 @@ mod tests {
     fn test_get_transaction_value() {
         let native: BridgersResponse = serde_json::from_str(include_str!("testdata/swap_opbnb_native.json")).unwrap();
         let token: BridgersResponse = serde_json::from_str(include_str!("testdata/swap_base_usdc_bsc_usdt.json")).unwrap();
-        let native_tx = serde_json::from_value::<SwapData>(native.data).unwrap().tx_data;
-        let token_tx = serde_json::from_value::<SwapData>(token.data).unwrap().tx_data;
+        let SwapTransaction::Evm(native_tx) = serde_json::from_value::<SwapData>(native.data).unwrap().tx_data else {
+            panic!()
+        };
+        let SwapTransaction::Evm(token_tx) = serde_json::from_value::<SwapData>(token.data).unwrap().tx_data else { panic!() };
         let bnb = AssetId::from_chain(Chain::OpBNB);
         let native_swap = SwapRequest {
             quote: QuoteRequest {
@@ -84,10 +87,10 @@ mod tests {
     }
 
     #[test]
-    fn test_is_valid_to_token() {
-        assert!(is_valid_to_token("USDT(BSC)|other|0.005|bridgers|0", "USDT(BSC)", "0.005"));
-        assert!(!is_valid_to_token("USDT(BSC)|ht6zut|0.01|bridgers|0", "USDT(BSC)", "0.005"));
-        assert!(!is_valid_to_token("BNB(BSC)|ht6zut|0.005|bridgers|0", "USDT(BSC)", "0.005"));
-        assert!(!is_valid_to_token("USDT(BSC)", "USDT(BSC)", "0.005"));
+    fn test_get_to_token_channel() {
+        assert_eq!(get_to_token_channel("USDT(BSC)|other|0.005|bridgers|0", "USDT(BSC)", "0.005"), Ok("other"));
+        assert_eq!(get_to_token_channel("USDT(BSC)|ht6zut|0.01|bridgers|0", "USDT(BSC)", "0.005"), Err(SwapperError::InvalidRoute));
+        assert_eq!(get_to_token_channel("BNB(BSC)|ht6zut|0.005|bridgers|0", "USDT(BSC)", "0.005"), Err(SwapperError::InvalidRoute));
+        assert_eq!(get_to_token_channel("USDT(BSC)", "USDT(BSC)", "0.005"), Err(SwapperError::InvalidRoute));
     }
 }

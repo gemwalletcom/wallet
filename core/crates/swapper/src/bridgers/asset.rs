@@ -6,7 +6,7 @@ use primitives::{
     asset_constants::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_USDC_ASSET_ID, CELO_USDC_ASSET_ID, CELO_USDT_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, HYPEREVM_USDC_ASSET_ID,
         LINEA_USDC_E_ASSET_ID, MANTLE_USDT0_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT0_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID,
-        SOLANA_USDT_ASSET_ID, XLAYER_USDT_ASSET_ID,
+        SOLANA_USDT_ASSET_ID, TON_USDT_ASSET_ID, XLAYER_USDT_ASSET_ID,
     },
     contract_constants::EVM_NATIVE_TOKEN_ADDRESS,
 };
@@ -21,7 +21,7 @@ pub(super) struct Network {
     payout: Option<&'static str>,
 }
 
-pub(super) const NETWORKS: [Network; 20] = [
+pub(super) const NETWORKS: [Network; 21] = [
     Network::new(Chain::SmartChain, "BSC", "0xc1d13492285eb664951E201BF7C80c7c6318a1b5"),
     Network::new(Chain::Polygon, "POLYGON", "0xc1d13492285eb664951E201BF7C80c7c6318a1b5"),
     Network::new(Chain::Arbitrum, "ARBITRUM", "0xc1d13492285eb664951E201BF7C80c7c6318a1b5"),
@@ -37,6 +37,7 @@ pub(super) const NETWORKS: [Network; 20] = [
     Network::new(Chain::Robinhood, "Robinhood", "0x89A70b162bE7dBc8b5e7579066fA58190C48d693"),
     Network::new(Chain::Hyperliquid, "HyperEVM", "0x89A70b162bE7dBc8b5e7579066fA58190C48d693"),
     Network::new(Chain::Stable, "Stable", "0x89A70b162bE7dBc8b5e7579066fA58190C48d693"),
+    Network::new(Chain::Ton, "TON", "EQCqTuPS-cMN9SSRhaFrwJOGL7dKkFF8C0a05g2WzI9uRJ19"),
     Network::destination(Chain::Ethereum, "ETH"),
     Network::destination(Chain::Solana, "SOLANA"),
     Network::payout(Chain::Bitcoin, "BTC", "bc1q7t4vyehjsexdme84qhdgd4dawcn54djh0m78fz"),
@@ -113,6 +114,8 @@ static TOKENS: LazyLock<Vec<(AssetId, &'static str)>> = LazyLock::new(|| {
         (AssetId::from_chain(Chain::Hyperliquid), "HYPE(HyperEVM)"),
         (HYPEREVM_USDC_ASSET_ID.clone(), "USDC(HyperEVM)"),
         (AssetId::from_chain(Chain::Stable), "USDT0(Stable)"),
+        (AssetId::from_chain(Chain::Ton), "GRAM(TON)"),
+        (TON_USDT_ASSET_ID.clone(), "USDT(TON)"),
         (AssetId::from_chain(Chain::Ethereum), "ETH"),
         (ETHEREUM_USDC_ASSET_ID.clone(), "USDC"),
         (ETHEREUM_USDT_ASSET_ID.clone(), "USDT(ERC20)"),
