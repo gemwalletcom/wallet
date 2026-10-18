@@ -54,7 +54,7 @@ impl ChainName {
             ChainTokenAssets::MayachainEthereum => vec![(*ETHEREUM_USDT).clone(), (*ETHEREUM_USDC).clone()],
             ChainTokenAssets::SmartChain => vec![(*SMARTCHAIN_USDT).clone(), (*SMARTCHAIN_USDC).clone()],
             ChainTokenAssets::Avalanche => vec![(*AVALANCHE_USDT).clone(), (*AVALANCHE_USDC).clone()],
-            ChainTokenAssets::Base => vec![(*BASE_USDC).clone(), (*BASE_CBBTC).clone()],
+            ChainTokenAssets::Base => vec![(*BASE_USDC).clone()],
             ChainTokenAssets::Tron => vec![(*TRON_USDT).clone()],
             ChainTokenAssets::Arbitrum => vec![(*ARBITRUM_USDC).clone(), (*ARBITRUM_USDT).clone()],
         }
