@@ -1,20 +1,51 @@
+use primitives::AssetId;
+
 use crate::BlockExplorer;
 use crate::explorers::metadata::{ACCOUNT_PATH, ASSET_PATH, Explorer, Metadata, TX_PATH};
 
 pub fn new() -> Box<dyn BlockExplorer> {
-    Explorer::boxed(Metadata {
-        name: "StellarExpert",
-        base_url: "https://stellar.expert/explorer/public",
-        tx_path: TX_PATH,
-        address_path: ACCOUNT_PATH,
-        token_path: Some(ASSET_PATH),
-        nft_path: None,
-        validator_path: None,
+    Box::new(StellarExpert {
+        explorer: Explorer::boxed(Metadata {
+            name: "StellarExpert",
+            base_url: "https://stellar.expert/explorer/public",
+            tx_path: TX_PATH,
+            address_path: ACCOUNT_PATH,
+            token_path: Some(ASSET_PATH),
+            nft_path: None,
+            validator_path: None,
+        }),
     })
+}
+
+struct StellarExpert {
+    explorer: Box<dyn BlockExplorer>,
+}
+
+impl BlockExplorer for StellarExpert {
+    fn name(&self) -> String {
+        self.explorer.name()
+    }
+
+    fn get_tx_url(&self, hash: &str) -> String {
+        self.explorer.get_tx_url(hash)
+    }
+
+    fn get_address_url(&self, address: &str) -> String {
+        self.explorer.get_address_url(address)
+    }
+
+    fn get_token_url(&self, token: &str) -> Option<String> {
+        match AssetId::decode_token_id(token).as_slice() {
+            [issuer, code] => self.explorer.get_token_url(&format!("{code}-{issuer}")),
+            _ => None,
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use primitives::asset_constants::STELLAR_USDC_TOKEN_ID;
+
     use super::*;
 
     #[test]
@@ -28,9 +59,11 @@ mod tests {
     #[test]
     fn test_stellar_expert_token_url() {
         let explorer = new();
-        let token = "USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN";
-        let url = explorer.get_token_url(token).unwrap();
-        assert_eq!(url, "https://stellar.expert/explorer/public/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN");
+
+        assert_eq!(
+            explorer.get_token_url(STELLAR_USDC_TOKEN_ID),
+            Some("https://stellar.expert/explorer/public/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string())
+        );
     }
 
     #[test]
