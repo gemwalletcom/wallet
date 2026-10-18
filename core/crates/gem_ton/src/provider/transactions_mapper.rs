@@ -89,21 +89,31 @@ fn build_transaction(message: &TransactionMessage, state: Option<TransactionStat
     let created_at = DateTime::from_timestamp(message.now, 0)?;
     let hash = base64_hash_to_hex(&message.hash)?;
 
-    Some(Transaction::new(
-        hash,
-        details.asset_id,
-        details.from,
-        details.to,
-        details.contract,
-        details.transaction_type,
-        state,
-        message.total_fees.clone(),
-        fee_asset_id,
-        details.value,
-        details.memo,
-        details.metadata,
-        created_at,
-    ))
+    Some(
+        Transaction::new(
+            hash,
+            details.asset_id,
+            details.from,
+            details.to,
+            details.contract,
+            details.transaction_type,
+            state,
+            message.total_fees.clone(),
+            fee_asset_id,
+            details.value,
+            details.memo,
+            details.metadata,
+            created_at,
+        )
+        .with_data(message_body_hash(message)),
+    )
+}
+
+fn message_body_hash(message: &TransactionMessage) -> Option<String> {
+    match message.out_msgs.as_slice() {
+        [out_message] => base64_hash_to_hex(out_message.message_content.as_ref()?.hash.as_deref()?),
+        _ => None,
+    }
 }
 
 fn find_action<'a>(actions: &'a [TraceAction], action_type: &str) -> Option<&'a TraceAction> {
@@ -614,6 +624,17 @@ mod tests {
         assert_eq!(transaction.fee, BigUint::from(472458u64));
         assert_eq!(transaction.fee_asset_id, AssetId::from_chain(Chain::Ton));
         assert_eq!(transaction.memo, None);
+    }
+
+    #[test]
+    fn test_map_trace_transactions_bridgers_jetton_deposit() {
+        let traces: TraceResponse = serde_json::from_str(include_str!("../../testdata/bridgers_jetton_deposit_trace.json")).unwrap();
+        let transactions = map_trace_transactions(traces.traces);
+
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].to, "UQCqTuPS-cMN9SSRhaFrwJOGL7dKkFF8C0a05g2WzI9uRMC4");
+        assert_eq!(transactions[0].value, BigUint::from(16_000_000u64));
+        assert_eq!(transactions[0].data.as_deref(), Some("e842f4b29b3b4862938f0000fa0d61a3f7654294416ed29a624d2c0e7a24350d"));
     }
 
     #[test]

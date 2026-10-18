@@ -201,6 +201,7 @@ pub struct OutMessage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MessageContent {
+    pub hash: Option<String>,
     pub decoded: Option<Box<RawValue>>,
 }
 
