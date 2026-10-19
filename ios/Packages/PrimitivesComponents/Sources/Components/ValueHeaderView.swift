@@ -174,6 +174,7 @@ public struct ValueHeaderView: View {
         switch titleActionType {
         case .privacyToggle:
             PrivacyToggleView(model.title, isEnabled: $isPrivacyEnabled)
+                .accessibilityIdentifier("balance")
         case let .action(action):
             Button(action: action) {
                 PrivacyText(model.title, isEnabled: $isPrivacyEnabled)

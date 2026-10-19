@@ -1,0 +1,14 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "balance"
+- extendedWaitUntil:
+    visible: "[*✱]{5}"
+    timeout: 10000
+- takeScreenshot: ${output.journey}_hidden_balance
+- tapOn:
+    id: "balance"
+- extendedWaitUntil:
+    notVisible: "[*✱]{5}"
+    timeout: 10000

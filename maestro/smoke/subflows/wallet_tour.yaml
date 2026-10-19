@@ -6,6 +6,8 @@ appId: ${APP_ID}
 - runFlow: price_target_alert.yaml
 - runFlow: manage_assets.yaml
 - runFlow: add_token.yaml
+- runFlow: pin_asset.yaml
+- runFlow: hide_balance.yaml
 - runFlow: buy.yaml
 - runFlow: sell.yaml
 - runFlow: send.yaml

@@ -1,0 +1,16 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- longPressOn:
+    id: "ethereum"
+- tapOn: "Pin"
+- extendedWaitUntil:
+    visible: "Pinned"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_pinned
+- longPressOn:
+    id: "ethereum"
+- tapOn: "Unpin"
+- extendedWaitUntil:
+    notVisible: "Pinned"
+    timeout: 15000
