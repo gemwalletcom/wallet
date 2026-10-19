@@ -80,15 +80,15 @@ class AssetsResultsViewModel @Inject constructor(
 
     private val perpetuals: Flow<List<PerpetualData>> = perpetualMarketQuery(searchKey).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) }
 
-    private val content: StateFlow<SearchContent<GemWalletSearchResultsView>?> = combine(getSession(), isSearching, pinned, unpinned, perpetuals) { session, searching, pinned, unpinned, perpetuals ->
+    private val content: StateFlow<SearchContent<GemWalletSearchResultsView>?> = combine(getSession(), isSearching, sections, perpetuals) { session, searching, sections, perpetuals ->
         session?.wallet?.let { wallet ->
-            val assets = pinned + unpinned
+            val assets = sections.pinned + sections.unpinned
             val input = GemWalletSearchResultsInput(
                 wallet = wallet.toGem(),
                 scope = scope.toGem(),
                 isLoading = searching,
                 assetIds = assets.map { it.asset.id.toIdentifier() },
-                pinnedAssetIds = pinned.map { it.asset.id.toIdentifier() },
+                pinnedAssetIds = sections.pinned.map { it.asset.id.toIdentifier() },
                 perpetuals = perpetuals.map { it.toGem() },
             )
             SearchContent(service.walletSearchResultsView(input), assets)

@@ -48,7 +48,7 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         []
     }
 
-    public func configSessionProperties(properties: [String: String], caip2Chains _: [String], accounts _: [Gemstone.Account]) -> [String: String] {
+    public func configSessionProperties(properties: [String: String], caip2Chains _: [String], accounts _: [Gemstone.Account]) async -> [String: String] {
         properties
     }
 

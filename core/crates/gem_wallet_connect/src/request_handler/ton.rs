@@ -20,7 +20,7 @@ impl TonRequestHandler {
     }
 
     pub fn parse_sign_message(_chain: Chain, params: Value, domain: &str) -> Result<WalletConnectAction, String> {
-        let payload = params.at(0)?.clone();
+        let payload = if params.is_array() { params.at(0)?.clone() } else { params };
         let from = payload.get_value("from")?.string()?.to_string();
         let host = extract_host(domain);
         let ton_data = TonSignMessageData::from_value(payload, host, from).map_err(|e| e.to_string())?;
@@ -65,6 +65,23 @@ mod tests {
         assert_eq!(parsed.domain, "react-app.walletconnect.com");
         assert_eq!(parsed.address, "UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg");
         assert_eq!(parsed.payload, TonSignDataPayload::Text { text: "Hello TON".to_string() });
+    }
+
+    #[test]
+    fn test_parse_sign_message_ton_connect_object_params() {
+        let params = serde_json::from_str(include_str!("../../testdata/ton_connect_sign_data.json")).unwrap();
+        let action = TonRequestHandler::parse_sign_message(Chain::Ton, params, "https://demo.ton-connect.io").unwrap();
+        let WalletConnectAction::SignMessage { data, .. } = action else { panic!("Expected SignMessage action") };
+
+        let parsed: TonSignMessageData = serde_json::from_str(&data).unwrap();
+        assert_eq!(parsed.domain, "demo.ton-connect.io");
+        assert_eq!(parsed.address, "0:335996ba9cce6625ebfdd7019ced50927c1a08b1846a289a55efc37c01d77df9");
+        assert_eq!(
+            parsed.payload,
+            TonSignDataPayload::Text {
+                text: "I confirm this test signature request.".to_string()
+            }
+        );
     }
 
     #[test]

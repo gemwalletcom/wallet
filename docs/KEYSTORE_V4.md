@@ -98,7 +98,7 @@ Public keys live in the mobile DB account rows (`Account.extended_public_key`), 
 
 Consumers read the field from the app DB — e.g. WalletConnect serializes the Sui account public key into `sessionProperties.sui_getAccounts`.
 
-Caveat: account rows created by the pre-v4 WalletCore import only carry Bitcoin-family xpubs (empty otherwise). v3 migration moves the secret file only and never rewrites DB account rows, and chain backfill only adds accounts for missing chains. Rows from old imports therefore keep an empty public key until the user re-imports the wallet — that re-import is the supported remedy when a flow needs the public key (e.g. Sui WalletConnect).
+Caveat: account rows created by the pre-v4 WalletCore import only carry Bitcoin-family xpubs (empty otherwise). v3 migration moves the secret file only and never rewrites DB account rows, and chain backfill only adds accounts for missing chains. Rows from old imports therefore keep an empty public key until the user re-imports the wallet — that re-import is the supported remedy when a flow needs the public key (e.g. Sui WalletConnect). TON WalletConnect is the exception: when the row has no key, Core reads it from the deployed wallet contract (`get_public_key`) and sends it only if it derives the account address.
 
 ## Recovery Phrase Generation
 

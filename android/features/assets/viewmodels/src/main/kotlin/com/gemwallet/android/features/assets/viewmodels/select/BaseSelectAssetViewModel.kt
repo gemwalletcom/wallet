@@ -152,7 +152,7 @@ open class BaseSelectAssetViewModel(
         .flowOn(ioDispatcher)
         .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
-    private data class AssetSections(val state: GemSelectAssetState, val popular: ImmutableList<AssetInfoDataAggregate>, val pinned: ImmutableList<AssetInfoDataAggregate>, val unpinned: ImmutableList<AssetInfoDataAggregate>)
+    protected data class AssetSections(val state: GemSelectAssetState, val popular: ImmutableList<AssetInfoDataAggregate>, val pinned: ImmutableList<AssetInfoDataAggregate>, val unpinned: ImmutableList<AssetInfoDataAggregate>)
 
     private fun assetSections(items: List<AssetInfoDataAggregate>, isSearching: Boolean): AssetSections {
         val view = flow.view(
@@ -172,7 +172,7 @@ open class BaseSelectAssetViewModel(
     private val assets = assetsContent
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>())
 
-    private val sections = combine(assets, isSearching, ::assetSections)
+    protected val sections = combine(assets, isSearching, ::assetSections)
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, assetSections(assets.value, isSearching.value))
 

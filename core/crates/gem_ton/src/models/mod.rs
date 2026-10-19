@@ -22,4 +22,4 @@ pub use nft::*;
 pub use rpc::*;
 pub use transaction::*;
 #[cfg(any(feature = "rpc", feature = "signer"))]
-pub use wallet_connect::TonConnectMessage;
+pub use wallet_connect::{TonConnectMessage, TonConnectTransfer, decode_wallet_connect_transfer};

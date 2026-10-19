@@ -43,13 +43,35 @@ impl TonConnectMessage {
 
     pub fn swap_quote_data(messages: &[Self]) -> Result<SwapQuoteData, String> {
         let first = messages.first().ok_or("TON swap needs at least one message")?;
-        let value = messages
-            .iter()
-            .try_fold(BigUint::ZERO, |total, message| BigUint::from_str(&message.amount).map(|amount| total + amount))
-            .map_err(|error| error.to_string())?;
+        let value = Self::total_amount(messages)?;
         let data = serde_json::to_string(messages).map_err(|error| error.to_string())?;
         Ok(SwapQuoteData::new_contract(first.address.clone(), value, data, None, None))
     }
+
+    fn total_amount(messages: &[Self]) -> Result<BigUint, String> {
+        messages
+            .iter()
+            .try_fold(BigUint::ZERO, |total, message| BigUint::from_str(&message.amount).map(|amount| total + amount))
+            .map_err(|error| error.to_string())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TonConnectTransfer {
+    pub to: String,
+    pub value: BigUint,
+}
+
+pub fn decode_wallet_connect_transfer(data: &str) -> Result<TonConnectTransfer, String> {
+    let request: TonConnectRequest = serde_json::from_str(data).map_err(|error| error.to_string())?;
+    let to = match request.messages.as_slice() {
+        [message] => message.address.clone(),
+        _ => String::new(),
+    };
+    Ok(TonConnectTransfer {
+        to,
+        value: TonConnectMessage::total_amount(&request.messages)?,
+    })
 }
 
 #[cfg(feature = "rpc")]
@@ -72,15 +94,17 @@ impl TonConnectRequest {
     }
 }
 
-#[cfg(all(test, feature = "rpc"))]
+#[cfg(test)]
 mod tests {
     use super::*;
 
+    #[cfg(feature = "rpc")]
     fn request() -> TonConnectRequest {
         serde_json::from_str(include_str!("../../testdata/wallet_connect_dedust_emulation_request.json")).unwrap()
     }
 
     #[test]
+    #[cfg(feature = "rpc")]
     fn test_validate_for_emulation() {
         assert!(request().validate_for_emulation().is_ok());
 
@@ -91,5 +115,19 @@ mod tests {
         let mut extra_currency = request();
         extra_currency.messages[0].extra_currency = Some(HashMap::from([("1".to_string(), "100".to_string())]));
         assert_eq!(extra_currency.validate_for_emulation().unwrap_err(), "TON extra currencies are not supported");
+    }
+
+    #[test]
+    fn test_decode_wallet_connect_transfer() {
+        let transfer = decode_wallet_connect_transfer(include_str!("../../testdata/ton_connect_send_transaction.json")).unwrap();
+        assert_eq!(transfer.to, "EQCKWpx7cNMpvmcN5ObM5lLUZHZRFKqYA4xmw9jOry0ZsF9M");
+        assert_eq!(transfer.value, BigUint::from(5_000_000u32));
+
+        let batch = decode_wallet_connect_transfer(r#"{"messages":[{"address":"a","amount":"1"},{"address":"b","amount":"2"}]}"#).unwrap();
+        assert_eq!(batch.to, "");
+        assert_eq!(batch.value, BigUint::from(3u32));
+
+        assert!(decode_wallet_connect_transfer(r#"{"messages":[{"address":"a","amount":"-1"}]}"#).is_err());
+        assert!(decode_wallet_connect_transfer(r#"{"valid_until":1}"#).is_err());
     }
 }

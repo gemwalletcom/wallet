@@ -81,7 +81,9 @@ class WalletSearchViewModel @Inject constructor(
     private val searchLists: Flow<List<AssetList>> = currentQuery
         .flatMapLatest { query -> walletSearchQuery.lists(query) }
 
-    private val rows: Flow<WalletSearchRows> = combine(pinned, unpinned, perpetuals, searchLists, collections, ::WalletSearchRows)
+    private val rows: Flow<WalletSearchRows> = combine(sections, perpetuals, searchLists, collections) { sections, perpetuals, lists, collections ->
+        WalletSearchRows(sections.pinned, sections.unpinned, perpetuals, lists, collections)
+    }
 
     private val content: StateFlow<SearchContent<GemWalletSearchView>?> = combine(getSession(), currentQuery, searching, recent, rows) { session, query, searching, recents, rows ->
         session?.wallet?.let { wallet ->
@@ -105,13 +107,7 @@ class WalletSearchViewModel @Inject constructor(
     override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).fetch.toInt()
 }
 
-private class WalletSearchRows(
-    val pinned: List<AssetInfoDataAggregate>,
-    unpinned: List<AssetInfoDataAggregate>,
-    val perpetuals: List<PerpetualData>,
-    val lists: List<AssetList>,
-    val collections: List<NFTData>,
-) {
+private class WalletSearchRows(val pinned: List<AssetInfoDataAggregate>, unpinned: List<AssetInfoDataAggregate>, val perpetuals: List<PerpetualData>, val lists: List<AssetList>, val collections: List<NFTData>) {
     val assets: List<AssetInfoDataAggregate> = pinned + unpinned
 
     fun input(wallet: Wallet, query: String, isLoading: Boolean, recents: Int) = GemWalletSearchInput(

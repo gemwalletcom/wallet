@@ -90,6 +90,7 @@ uniffi = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 gem_evm = { path = "../crates/gem_evm", features = ["testkit"] }
+gem_wallet_connect = { path = "../crates/gem_wallet_connect", features = ["testkit"] }
 primitives = { path = "../crates/primitives", features = ["testkit"] }
 swapper = { path = "../crates/swapper", features = ["testkit"] }
 tempfile = { workspace = true }

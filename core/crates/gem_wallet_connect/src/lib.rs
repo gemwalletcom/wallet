@@ -16,7 +16,7 @@ pub use actions::*;
 pub use decode::decode_sign_message;
 pub use request_handler::{EthereumRequestHandler, WalletConnectRequestHandler};
 pub use response_handler::WalletConnectResponseHandler;
-pub use session::config_session_properties;
+pub use session::{config_session_properties, requires_public_key};
 pub use sign_type::SignDigestType;
 pub use siws::validate_sign_message_account;
 pub use validator::{SignMessageValidation, validate_domain, validate_send_transaction, validate_sign_message};

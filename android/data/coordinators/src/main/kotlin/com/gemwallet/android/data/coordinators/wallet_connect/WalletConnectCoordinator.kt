@@ -132,7 +132,7 @@ class WalletConnectCoordinator(
         )
     }
 
-    override fun approveConnection(wallet: Wallet, proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
+    override suspend fun approveConnection(wallet: Wallet, proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         val approval = walletConnectService.sessionApproval(wallet = wallet.toGem())
         val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
             proposal = proposal,

@@ -7,6 +7,7 @@ use primitives::{Wallet, WalletConnection, WalletConnectionSession, WalletConnec
 use super::{GemConnectionStore, GemWalletConnectMessageRequest, GemWalletConnectService, GemWalletConnectSessionRequest, GemWalletConnectSigner, GemWalletConnectTransactionRequest};
 use crate::alien::AlienProvider;
 use crate::api::GemDeviceApiClient;
+use crate::gateway::GemGateway;
 use crate::keystore::GemKeystore;
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
@@ -139,7 +140,8 @@ impl GemWalletConnectService {
             store,
             signer,
             wallet_session,
-            Arc::new(GemAssetsService::mock(provider, Arc::new(MemoryAssetStore::default()))),
+            Arc::new(GemAssetsService::mock(provider.clone(), Arc::new(MemoryAssetStore::default()))),
+            Arc::new(GemGateway::new(provider, Arc::new(GemNodeService::mock()), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences))),
             sign_message,
             primitives::Platform::IOS,
         )

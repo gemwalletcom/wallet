@@ -59,6 +59,10 @@ impl GemGateway {
         self.with_provider(chain, |provider| async move { provider.get_balance_staking(address).await }).await
     }
 
+    pub async fn get_public_key(&self, chain: Chain, address: String) -> Result<Option<String>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_public_key(address).await }).await
+    }
+
     pub async fn get_balance_earn(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, GatewayError> {
         Ok(self.yielder.get_balance(chain, &address, &token_ids).await)
     }

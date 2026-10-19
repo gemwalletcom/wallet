@@ -61,7 +61,7 @@ class WalletConnectCoordinatorTest {
     }
     private val walletConnectService = mockk<GemWalletConnectServiceInterface>(relaxed = true) {
         every { sessionApproval(any()) } returns GemSessionApproval(chains = emptyList(), accounts = emptyList(), methods = emptyList(), events = emptyList())
-        every { configSessionProperties(any(), any(), any()) } returns emptyMap()
+        coEvery { configSessionProperties(any(), any(), any()) } returns emptyMap()
         every { session(any(), any(), any(), any()) } answers {
             mockWalletConnectionSession(id = firstArg(), sessionId = firstArg(), expireAt = arg<Long>(2) * 1000).toGem()
         }

@@ -2,7 +2,7 @@ use std::error::Error;
 
 use primitives::{Asset, AssetId, AssetType, chain::Chain};
 
-use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainStaking, ChainTraits};
+use chain_traits::{ChainAddressStatus, ChainPerpetual, ChainStaking, ChainTraits};
 use gem_client::{Client, ClientExt};
 
 #[cfg(feature = "tvm")]
@@ -142,7 +142,6 @@ impl<C: Client> TonClient<C> {
 }
 
 impl<C: Client> ChainTraits for TonClient<C> {}
-impl<C: Client> ChainAccount for TonClient<C> {}
 impl<C: Client> ChainPerpetual for TonClient<C> {}
 impl<C: Client> ChainAddressStatus for TonClient<C> {}
 impl<C: Client> ChainStaking for TonClient<C> {}
