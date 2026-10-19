@@ -1,0 +1,49 @@
+appId: ${APP_ID}
+---
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - runFlow: launch.yaml
+      - tapOn:
+          id: "settingsTab"
+      - tapOn:
+          id: "preferences"
+      - tapOn:
+          id: "language"
+      - tapOn: "Deutsch"
+      - tapOn: "Deutschland"
+      - back
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - launchApp:
+          arguments:
+            AppleLanguages: "(de)"
+      - extendedWaitUntil:
+          visible:
+            id: "mainTab"
+          timeout: 30000
+      - tapOn:
+          id: "settingsTab"
+- extendedWaitUntil:
+    visible: "Sicherheit"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_language
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: "preferences"
+      - tapOn:
+          id: "language"
+      - tapOn: "System default"
+      - back
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- extendedWaitUntil:
+    visible: "Security"
+    timeout: 15000

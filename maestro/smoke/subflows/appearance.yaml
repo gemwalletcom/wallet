@@ -1,0 +1,20 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "preferences"
+- tapOn:
+    id: "appearance"
+- tapOn: "Dark"
+- extendedWaitUntil:
+    visible: "Dark"
+    timeout: 10000
+- takeScreenshot: ${output.journey}_appearance_dark
+- tapOn:
+    id: "appearance"
+- tapOn: "System"
+- extendedWaitUntil:
+    visible: "System"
+    timeout: 10000
