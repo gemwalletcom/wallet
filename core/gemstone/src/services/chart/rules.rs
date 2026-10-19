@@ -8,9 +8,11 @@ use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHead
 use super::points::reduced_points;
 use super::zoom::GemChartZoom;
 use super::{GemChart, GemChartCurrent};
+use crate::address::validate_address;
+use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::social::social_links;
 use crate::formatted_number::GemFormattedNumber;
-use crate::models::copy::address_copy;
+use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionTitle, GemRowAction};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
@@ -126,7 +128,17 @@ fn market_section(market: &AssetMarket, currency: Currency) -> Vec<GemListRow> {
 
 fn contract_row(asset: &Asset, explorer: Option<BlockExplorerLink>) -> Option<GemListRow> {
     let token_id = asset.id.token_id.clone()?;
-    Some(GemListRow::identifier(GemListRowTitle::Contract, address_copy(asset.chain(), token_id), explorer))
+    let chain = asset.chain();
+    let copy = if validate_address(&token_id, chain) {
+        address_copy(chain, token_id)
+    } else {
+        GemCopy {
+            kind: GemCopyKind::Plain,
+            display: format_address(&token_id, Some(chain), GemAddressFormatStyle::Short),
+            value: token_id,
+        }
+    };
+    Some(GemListRow::identifier(GemListRowTitle::Contract, copy, explorer))
 }
 
 fn supply_section(market: &AssetMarket, symbol: &str) -> Vec<GemListRow> {
@@ -333,7 +345,11 @@ mod tests {
         }])
     }
     use crate::formatted_number::GemValueTone;
-    use primitives::{AssetId, ChartValuePercentage, LinkType, PriceAlertDirection, currency::Currency};
+    use primitives::{
+        AssetId, ChartValuePercentage, LinkType, PriceAlertDirection,
+        asset_constants::{STELLAR_USDC_ASSET_ID, STELLAR_USDC_TOKEN_ID},
+        currency::Currency,
+    };
 
     #[test]
     fn test_a_chart_date_reads_by_how_long_the_period_is() {
@@ -657,6 +673,23 @@ mod tests {
         let token = Asset::mock_ethereum_usdc();
 
         assert_eq!(chart_sections(&token, Currency::USD, None, None, Some(vec![]), vec![], None), vec![GemListSection::untitled(vec![contract(&token, None)])]);
+    }
+
+    #[test]
+    fn test_chart_sections_copy_a_contract_that_is_not_an_address_as_plain_text() {
+        let token = Asset {
+            id: STELLAR_USDC_ASSET_ID.clone(),
+            ..Asset::mock()
+        };
+        let copy = GemCopy {
+            display: "GA5ZS...:USDC".to_string(),
+            ..GemCopy::plain(STELLAR_USDC_TOKEN_ID.to_string())
+        };
+
+        assert_eq!(
+            chart_sections(&token, Currency::USD, None, None, Some(vec![]), vec![], None),
+            vec![GemListSection::untitled(vec![GemListRow::identifier(GemListRowTitle::Contract, copy, None)])]
+        );
     }
 
     #[test]
