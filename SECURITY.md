@@ -1,43 +1,28 @@
 # Security Policy
 
-Gem Wallet takes the security and privacy of our users' data very seriously. This document outlines our security policies and procedures for handling sensitive information.
+Gem Wallet is a self-custodial wallet: keys are generated, encrypted and used for signing on the user's device, and keeping them safe is our highest priority. This repository holds the iOS and Android apps, their shared Rust core (Gemstone) and the backend services.
 
-**Reporting Security Issues**
+## Reporting a vulnerability
 
-If you discover a vulnerability or have concerns about the security of Gem Wallet, please report it to us at [security@gemwallet.com](mailto:security@gemwallet.com). We take all reports seriously and will respond promptly to acknowledge receipt of your report. Please include as much detail as possible, including:
+Report privately, by either channel:
 
-* A description of the issue
-* Steps to reproduce the issue (if applicable)
-* Any relevant screenshots or logs
+- Email [security@gemwallet.com](mailto:security@gemwallet.com)
+- [GitHub private vulnerability reporting](https://github.com/gemwalletcom/wallet/security/advisories/new)
 
-**Security Measures**
+Do not open a public issue or pull request with exploitable details. We aim to respond within 48 hours.
 
-Gem Wallet has implemented various security measures to protect our users' data, including:
+Please include:
 
-* **Encryption**: All user data is encrypted using industry-standard algorithms and keys.
-* **Access Control**: Access to sensitive information is restricted to authorized personnel only.
-* **Vulnerability Scanning**: Our systems are regularly scanned for vulnerabilities by third-party security firms.
+- The affected app version, platform and chain
+- The flow involved (send, swap, WalletConnect, import, export, etc.)
+- A proof of concept against the latest public app or an in-scope service, and the impact it shows
+- A proposed fix, if you have one
 
-**Security Team**
+## Scope and rules
 
-Gem Wallet has a dedicated security team responsible for:
+Scope, out-of-scope issues, the requirements for AI-assisted findings and the disclosure rules are in our [Responsible Disclosure policy](https://gemwallet.com/security/bug-bounty/). Only the latest public iOS and Android releases are supported.
 
-* **Vulnerability Management**: Identifying, prioritizing, and remediating vulnerabilities in our systems and applications.
-* **Incident Response**: Responding to and resolving security incidents in a timely and effective manner.
-* **Compliance**: Ensuring that Gem Wallet's security practices comply with relevant regulations and industry standards.
+## Audits and practices
 
-**Security Contact Information**
-
-If you have any questions or concerns about the security of Gem Wallet, please contact us at [security@gemwallet.com](mailto:security@gemwallet.com).
-
-**Acknowledgments**
-
-Gem Wallet acknowledges the following:
-
-* **OWASP**: We follow the guidelines and best practices outlined in the Open Web Application Security Project (OWASP) Security Cheat Sheet.
-* **NIST**: We comply with the security guidelines and standards published by the National Institute of Standards and Technology (NIST).
-* **PCI-DSS**: We comply with the Payment Card Industry Data Security Standard (PCI-DSS) for handling credit card information.
-
-**Disclaimer**
-
-Gem Wallet is not responsible for any damages or losses resulting from the use of our services. By using Gem Wallet, you acknowledge that you have read and understood this security policy.
+- [Security overview](https://gemwallet.com/security/): key material, signing and secure storage
+- [CertiK Security Audit (April 2026)](https://static.gemwallet.com/audits/Gem-Wallet-CertiK-Security-Audit-April-2026.pdf)
