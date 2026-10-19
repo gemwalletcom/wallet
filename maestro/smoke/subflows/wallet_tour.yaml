@@ -10,6 +10,7 @@ appId: ${APP_ID}
 - runFlow: send.yaml
 - runFlow: send_to_contact.yaml
 - runFlow: swap.yaml
+- runFlow: swap_pair.yaml
 - runFlow: stake.yaml
 - runFlow: perpetuals.yaml
 - runFlow: rename_wallet.yaml

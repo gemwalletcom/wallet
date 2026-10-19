@@ -28,5 +28,6 @@ struct SwapChangeView: View {
                 .frame(size: .large)
                 .foregroundStyle(Colors.gray)
         }
+        .accessibilityIdentifier("swap_switch")
     }
 }
