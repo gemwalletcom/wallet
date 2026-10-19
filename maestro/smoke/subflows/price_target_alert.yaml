@@ -1,0 +1,33 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "bitcoin"
+- tapOn:
+    id: "price"
+- tapOn:
+    id: "priceAlerts"
+- tapOn:
+    id: "add_price_alert"
+- inputText: "1000000"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: "50%,40%"
+          end: "50%,70%"
+- tapOn:
+    id: "main_action"
+- extendedWaitUntil:
+    visible: ".*1,000,000.*"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_price_target_alert
+- swipe:
+    from:
+      text: ".*1,000,000.*"
+    direction: LEFT
+- tapOn: "Delete"
+- extendedWaitUntil:
+    notVisible: ".*1,000,000.*"
+    timeout: 10000
