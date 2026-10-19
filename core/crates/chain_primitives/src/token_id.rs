@@ -28,7 +28,6 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
         | Chain::Ink
         | Chain::Unichain
         | Chain::Hyperliquid
-        | Chain::HyperCore
         | Chain::Plasma
         | Chain::Monad
         | Chain::XLayer
@@ -36,7 +35,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
         | Chain::Stable
         | Chain::Tempo
         | Chain::Arc => Address::from_str(&token_id).ok().map(|address| address.to_checksum(None)),
-        Chain::Solana | Chain::Ton | Chain::Near => Some(token_id),
+        Chain::Solana | Chain::Ton | Chain::Near | Chain::HyperCore => Some(token_id),
         Chain::Tron => (token_id.len() == 34 && token_id.starts_with('T')).then_some(token_id),
         Chain::Xrp => {
             if let Some((_, address)) = token_id.split_once('.')
@@ -83,7 +82,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use primitives::asset_constants::{APTOS_USDC_TOKEN_ID, STELLAR_USDC_TOKEN_ID, SUI_WAL_TOKEN_ID, TRON_USDT_TOKEN_ID};
+    use primitives::asset_constants::{APTOS_USDC_TOKEN_ID, HYPERCORE_SPOT_USDC_TOKEN_ID, STELLAR_USDC_TOKEN_ID, SUI_WAL_TOKEN_ID, TRON_USDT_TOKEN_ID};
 
     use super::*;
 
@@ -96,6 +95,12 @@ mod tests {
 
         assert_eq!(formatted_valid_token_id.unwrap(), "0x1234567890AbcdEF1234567890aBcdef12345678");
         assert_eq!(format_token_id(chain, "0x123".to_string()), None);
+    }
+
+    #[test]
+    fn test_format_token_id_hypercore() {
+        assert_eq!(format_token_id(Chain::HyperCore, "perpetual::BTC".to_string()), Some("perpetual::BTC".to_string()));
+        assert_eq!(format_token_id(Chain::HyperCore, HYPERCORE_SPOT_USDC_TOKEN_ID.to_string()), Some(HYPERCORE_SPOT_USDC_TOKEN_ID.to_string()));
     }
 
     #[test]
