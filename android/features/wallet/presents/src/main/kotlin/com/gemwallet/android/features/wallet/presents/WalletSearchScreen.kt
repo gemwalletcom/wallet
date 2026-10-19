@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -222,7 +223,7 @@ private fun SearchListItem(row: GemSearchListRow, listPosition: ListPosition, on
     ListItem(
         model = ListItemModel(title = row.list.name, subtitle = row.subtitle, image = ListItemImage.Url(row.imageUrl, placeholder = row.list.name)),
         listPosition = listPosition,
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier.clickable(onClick = onClick).testTag(row.list.id),
         minHeight = ListItemDefaults.plainMinHeight,
         accessory = { DataBadgeChevron() },
     )

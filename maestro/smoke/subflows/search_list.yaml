@@ -1,0 +1,17 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "search"
+- inputText: "Stablecoins"
+- extendedWaitUntil:
+    visible:
+      id: "stablecoins"
+    timeout: 15000
+- tapOn:
+    id: "stablecoins"
+- extendedWaitUntil:
+    visible:
+      id: "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_search_list

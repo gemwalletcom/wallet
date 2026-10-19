@@ -146,6 +146,7 @@ public struct WalletSearchScene: View {
             NavigationLink(value: model.listDestination(for: row)) {
                 ListItemView(model: row.listItem)
             }
+            .accessibilityIdentifier(row.list.id)
         }
     }
 
