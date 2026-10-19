@@ -68,6 +68,7 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
                                 },
                                 backgroundColor = MaterialTheme.colorScheme.error,
                                 icon = AppIcons.Delete,
+                                contentDescription = stringResource(R.string.common_delete),
                             )
                         },
                         onExpanded = { revealed.value = item.contact.contact.id },

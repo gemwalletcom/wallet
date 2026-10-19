@@ -1,0 +1,35 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "preferences"
+- tapOn:
+    id: "contacts"
+- waitForAnimationToEnd
+- tapOn:
+    id: "contact_row"
+- extendedWaitUntil:
+    visible:
+      id: "save_contact"
+    timeout: 10000
+- assertVisible: "Satoshi"
+- takeScreenshot: ${output.journey}_contact
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "preferences"
+- tapOn:
+    id: "contacts"
+- waitForAnimationToEnd
+- swipe:
+    from:
+      id: "contact_row"
+    direction: LEFT
+- tapOn: "Delete"
+- extendedWaitUntil:
+    notVisible:
+      id: "contact_row"
+    timeout: 10000

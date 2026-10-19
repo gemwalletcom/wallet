@@ -102,6 +102,7 @@ fun ContactEditorScene(state: ContactEditorUIState, snackbar: SnackbarHostState?
                             },
                             backgroundColor = MaterialTheme.colorScheme.error,
                             icon = AppIcons.Delete,
+                            contentDescription = stringResource(R.string.common_delete),
                         )
                     },
                     onExpanded = { revealed.value = row.address.id },
