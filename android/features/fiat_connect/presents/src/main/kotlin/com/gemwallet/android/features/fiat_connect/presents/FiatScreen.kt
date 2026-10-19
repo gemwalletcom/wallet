@@ -33,6 +33,7 @@ import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.showSnackbar
+import com.gemwallet.android.ui.localization.actionRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -65,7 +66,7 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
-    val title = stringResource(type.titleRes(), "")
+    val title = stringResource(type.actionRes())
     val currentAssetInfo = asset ?: return LoadingScene(title = title, onCancel = { cancelAction() })
     val currentAsset = currentAssetInfo.asset
 
@@ -108,7 +109,7 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
 private fun FiatTitle(asset: Asset, type: FiatQuoteType, showsTypePicker: Boolean, onTypeClick: (FiatQuoteType) -> Unit) {
     if (showsTypePicker) {
         TabsBar(FiatQuoteType.entries, type, onTypeClick) { item ->
-            Text(stringResource(item.titleRes(), ""))
+            Text(stringResource(item.actionRes()))
         }
     } else {
         Text(
