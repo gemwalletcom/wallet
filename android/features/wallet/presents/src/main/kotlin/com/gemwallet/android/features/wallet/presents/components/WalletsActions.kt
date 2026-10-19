@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.gemwallet.android.ui.R
@@ -28,12 +29,14 @@ internal fun WalletsActions(onCreate: () -> Unit, onImport: () -> Unit) {
         WalletsAction(
             text = R.string.wallet_create_new_wallet,
             AppIcons.Add,
+            tag = "create",
             listPosition = ListPosition.First,
             onClick = onCreate,
         )
         WalletsAction(
             text = R.string.wallet_import_existing_wallet,
             AppIcons.ArrowDownward,
+            tag = "import",
             listPosition = ListPosition.Last,
             onClick = onImport,
         )
@@ -41,11 +44,12 @@ internal fun WalletsActions(onCreate: () -> Unit, onImport: () -> Unit) {
 }
 
 @Composable
-private fun WalletsAction(@StringRes text: Int, icon: ImageVector, listPosition: ListPosition, onClick: () -> Unit) {
+private fun WalletsAction(@StringRes text: Int, icon: ImageVector, tag: String, listPosition: ListPosition, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .listItem(listPosition)
             .clickable(onClick = onClick)
+            .testTag(tag)
             .fillMaxWidth()
             .defaultPadding(),
         verticalAlignment = Alignment.CenterVertically,

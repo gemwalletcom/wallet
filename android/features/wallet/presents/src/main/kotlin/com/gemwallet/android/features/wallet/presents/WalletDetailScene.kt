@@ -100,7 +100,8 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .defaultPadding(),
+                    .defaultPadding()
+                    .testTag("delete"),
                 colors = ButtonDefaults.buttonColors()
                     .copy(containerColor = MaterialTheme.colorScheme.error),
                 onClick = { showDeleteDialog = true },

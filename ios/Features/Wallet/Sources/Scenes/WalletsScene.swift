@@ -27,8 +27,10 @@ public struct WalletsScene: View {
                             Images.Wallets.create
                             Text(Localized.Wallet.createNewWallet)
                         }
+                        .accessibilityElement(children: .combine)
                     },
                 )
+                .accessibilityIdentifier("create")
                 Button(
                     action: model.onSelectImportWallet,
                     label: {
@@ -36,8 +38,10 @@ public struct WalletsScene: View {
                             Images.Wallets.import
                             Text(Localized.Wallet.importExistingWallet)
                         }
+                        .accessibilityElement(children: .combine)
                     },
                 )
+                .accessibilityIdentifier("import")
             }
 
             ForEach(model.sections, id: \.kind) { section in

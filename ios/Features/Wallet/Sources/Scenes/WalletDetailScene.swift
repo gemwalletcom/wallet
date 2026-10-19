@@ -65,6 +65,7 @@ public struct WalletDetailScene: View {
                             Text(Localized.Common.delete)
                                 .foregroundStyle(Colors.red)
                         }
+                        .accessibilityIdentifier("delete")
                         Spacer()
                     }
                 }

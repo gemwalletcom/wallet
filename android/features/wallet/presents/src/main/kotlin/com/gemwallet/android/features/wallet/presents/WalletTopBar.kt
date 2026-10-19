@@ -26,13 +26,14 @@ import uniffi.gemstone.GemWalletRow
 
 private const val ScanActionTag = "assetsScanAction"
 private const val SearchActionTag = "search"
+private const val WalletBarTag = "walletBar"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WalletTopBar(walletRow: GemWalletRow?, onShowWallets: () -> Unit, onSearch: () -> Unit, onScan: () -> Unit) {
     CenterAlignedTopAppBar(
         title = {
-            TextButton(onClick = onShowWallets) {
+            TextButton(onClick = onShowWallets, modifier = Modifier.testTag(WalletBarTag)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (walletRow != null) {
                         ListItemImageView(walletRow.listItemImage(), size = smallIconSize)

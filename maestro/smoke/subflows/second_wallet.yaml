@@ -1,0 +1,50 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "create"
+- runFlow: backup_phrase.yaml
+- runFlow: finish_onboarding.yaml
+- extendedWaitUntil:
+    visible:
+      text: ".*Wallet #2.*"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_second_wallet
+- tapOn:
+    id: "walletBar"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Maestro"
+- extendedWaitUntil:
+    notVisible:
+      text: ".*Wallet #2.*"
+    timeout: 15000
+- assertVisible:
+    text: ".*Maestro.*"
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "wallet_edit"
+    index: 1
+- waitForAnimationToEnd
+- tapOn:
+    id: "delete"
+- tapOn: "Delete"
+- runFlow: launch.yaml
+- assertVisible:
+    text: ".*Maestro.*"
+- tapOn:
+    id: "walletBar"
+- waitForAnimationToEnd
+- assertNotVisible:
+    text: ".*Wallet #2.*"
+- takeScreenshot: ${output.journey}_wallet_deleted
+- runFlow: launch.yaml
