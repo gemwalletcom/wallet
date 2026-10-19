@@ -4,6 +4,7 @@ import struct Gemstone.GemAssetItemRow
 import struct Gemstone.GemPerpetualMarketItem
 import GemstonePrimitives
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 
 public struct PerpetualSectionView: View {
@@ -29,6 +30,7 @@ public struct PerpetualSectionView: View {
                 onPin: onPin,
                 onSelect: onSelect,
             )
+            .assetIdentifier(data.asset.id)
         }
     }
 }

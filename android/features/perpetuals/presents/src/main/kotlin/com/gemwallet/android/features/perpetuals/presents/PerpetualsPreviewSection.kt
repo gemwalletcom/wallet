@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,7 +36,7 @@ fun PerpetualsPreviewSection(onOpenPerpetuals: () -> Unit, onOpenPerpetual: (Ass
                     subtitle = trade.balance.text().hiddenWhen(trade.hideBalance),
                 ),
                 listPosition = ListPosition.Single,
-                modifier = Modifier.clickable(onClick = onOpenPerpetuals),
+                modifier = Modifier.clickable(onClick = onOpenPerpetuals).testTag("trade_perpetuals"),
                 accessory = { DataBadgeChevron() },
             )
         } else {

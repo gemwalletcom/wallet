@@ -6,10 +6,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
@@ -78,7 +81,7 @@ fun PerpetualListItem(item: GemPerpetualMarketItem, modifier: Modifier = Modifie
 fun PerpetualListItem(item: GemPerpetualMarketItem, modifier: Modifier = Modifier, listPosition: ListPosition = ListPosition.Single) {
     AssetListItem(
         row = item.row,
-        modifier = modifier,
+        modifier = modifier.testTag(item.data.asset.toPrimitives().id.toIdentifier()),
         listPosition = listPosition,
         accessory = { DataBadgeChevron() },
     )

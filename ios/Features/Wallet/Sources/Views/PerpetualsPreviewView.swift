@@ -29,6 +29,7 @@ struct PerpetualsPreviewView: View {
                 NavigationLink(value: Scenes.Perpetuals()) {
                     tradePerpetualsItem(balance: balance.text())
                 }
+                .accessibilityIdentifier("trade_perpetuals")
             case .positions:
                 PerpetualPositionsList(
                     positions: viewModel.positions,
