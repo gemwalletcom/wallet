@@ -15,5 +15,7 @@ appId: ${APP_ID}
 - runFlow: stake.yaml
 - runFlow: perpetuals.yaml
 - runFlow: currency.yaml
+- runFlow: networks.yaml
+- runFlow: wallet_connect.yaml
 - runFlow: appearance.yaml
 - runFlow: language.yaml

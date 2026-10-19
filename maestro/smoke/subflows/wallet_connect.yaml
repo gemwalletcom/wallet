@@ -1,0 +1,11 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "walletConnect"
+- extendedWaitUntil:
+    visible: "No active connections"
+    timeout: 10000
+- takeScreenshot: ${output.journey}_wallet_connect

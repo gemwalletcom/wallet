@@ -30,6 +30,7 @@ public struct ChainListSettingsScene: View {
                     NavigationLink(value: Scenes.ChainSettings(chain: Chain(core: row.chain))) {
                         ChainView(model: row)
                     }
+                    .accessibilityIdentifier(row.chain)
                 }
             }
         }

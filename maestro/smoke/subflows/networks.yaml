@@ -1,0 +1,15 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "preferences"
+- tapOn:
+    id: "networks"
+- tapOn:
+    id: "bitcoin"
+- extendedWaitUntil:
+    visible: "Latest Block: [0-9,]+"
+    timeout: 30000
+- takeScreenshot: ${output.journey}_network
