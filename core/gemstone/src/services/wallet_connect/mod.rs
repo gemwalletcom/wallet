@@ -1,5 +1,6 @@
 pub mod error;
 pub mod model;
+mod public_key;
 mod rules;
 pub mod sign_message;
 pub mod signer;
@@ -16,6 +17,7 @@ use primitives::{Account, ApplicationMetadata, Chain, Platform, Wallet, WalletCo
 
 use crate::application;
 use crate::config::docs::DocsUrl;
+use crate::gateway::GemGateway;
 use crate::message::sign_type::SignMessage;
 use crate::models::state::GemListPhase;
 use crate::services::GemScanService;
@@ -49,6 +51,7 @@ pub struct GemWalletConnectService {
     signer: Arc<dyn GemWalletConnectSigner>,
     session: Arc<GemWalletSessionService>,
     assets: Arc<GemAssetsService>,
+    gateway: Arc<GemGateway>,
     seen_messages: Mutex<Vec<String>>,
     platform: Platform,
 }
@@ -70,6 +73,7 @@ impl GemWalletConnectService {
         signer: Arc<dyn GemWalletConnectSigner>,
         session: Arc<GemWalletSessionService>,
         assets: Arc<GemAssetsService>,
+        gateway: Arc<GemGateway>,
         sign_message: Arc<GemSignMessageService>,
         platform: Platform,
     ) -> Self {
@@ -82,6 +86,7 @@ impl GemWalletConnectService {
             signer,
             session,
             assets,
+            gateway,
             seen_messages: Mutex::new(Vec::new()),
             platform,
         }
@@ -111,7 +116,8 @@ impl GemWalletConnectService {
         Ok(())
     }
 
-    pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
+    pub async fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
+        let accounts = self.with_public_keys(accounts, &rules::parse_known_chains(&caip2_chains)).await;
         self.wallet_connect.config_session_properties(properties, caip2_chains, accounts)
     }
 

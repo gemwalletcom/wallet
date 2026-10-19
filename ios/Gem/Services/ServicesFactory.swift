@@ -237,7 +237,7 @@ struct ServicesFactory {
         )
         let walletConnectorPresenter = WalletConnectorPresenter()
         let walletConnectorInteractor = WalletConnectorInteractor(presenter: walletConnectorPresenter)
-        let walletConnectService = Gemstone.GemWalletConnectService(
+        let walletConnectService = gatewayService.walletConnectService(
             simulation: transactionSimulationService,
             scanner: scanService,
             store: GemstoneConnectionStore(store: stores.connectionsStore),
@@ -245,7 +245,6 @@ struct ServicesFactory {
             session: walletSessionService,
             assets: assetsService,
             signMessage: signMessageService,
-            platform: .ios,
         )
         let walletConnector = WalletConnectorService(
             walletSessionService: walletSessionService,

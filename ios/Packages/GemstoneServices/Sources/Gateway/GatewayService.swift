@@ -66,6 +66,28 @@ public actor GatewayService: Sendable {
         GemAssetsService(api: api, gateway: gateway, store: store, price: price, preferences: preferences)
     }
 
+    public nonisolated func walletConnectService(
+        simulation: GemSimulationService,
+        scanner: GemScanService,
+        store: any GemConnectionStore,
+        signer: any GemWalletConnectSigner,
+        session: GemWalletSessionService,
+        assets: GemAssetsService,
+        signMessage: GemSignMessageService,
+    ) -> GemWalletConnectService {
+        GemWalletConnectService(
+            simulation: simulation,
+            scanner: scanner,
+            store: store,
+            signer: signer,
+            session: session,
+            assets: assets,
+            gateway: gateway,
+            signMessage: signMessage,
+            platform: .ios,
+        )
+    }
+
     public nonisolated func perpetualService(
         price: GemPriceService,
         store: any GemPerpetualStore,

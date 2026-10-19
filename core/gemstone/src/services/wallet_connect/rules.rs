@@ -6,6 +6,7 @@ use crate::application::url_host;
 use crate::services::collections::{stale, unique};
 
 use chrono::{DateTime, Utc};
+use gem_ton::models::decode_wallet_connect_transfer;
 use gem_tron::decode_wallet_connect_approval;
 use primitives::ChainType;
 use primitives::WalletConnectionVerificationStatus;
@@ -353,7 +354,14 @@ pub fn transfer_data(chain: Chain, metadata: ApplicationMetadata, transaction: W
             };
             (extra, BigInt::ZERO)
         }
-        WalletConnectTransaction::Ton { data, output_type } => (encoded_extra(data, output_type, output_action, TransactionType::SmartContractCall), BigInt::ZERO),
+        WalletConnectTransaction::Ton { data, output_type } => {
+            let transfer = decode_wallet_connect_transfer(&data).map_err(|msg| GemServiceError::InvalidInput { msg })?;
+            let extra = TransferDataExtra {
+                to: transfer.to,
+                ..encoded_extra(data, output_type, output_action, TransactionType::SmartContractCall)
+            };
+            (extra, BigInt::from(transfer.value))
+        }
     };
     Ok(GemTransferData {
         recipient: GemRecipient {
@@ -684,6 +692,33 @@ mod tests {
                 }
             );
         }
+    }
+
+    #[test]
+    fn test_transfer_data_maps_ton_connect_outflow() {
+        let data = include_str!("../../../../crates/gem_ton/testdata/ton_connect_send_transaction.json");
+        let metadata = application_metadata("Demo DApp".into(), String::new(), "https://demo.ton-connect.io".into(), vec![]);
+        let transaction = WalletConnectTransaction::Ton {
+            data: data.to_string(),
+            output_type: TransferDataOutputType::EncodedTransaction,
+        };
+
+        let transfer = transfer_data(Chain::Ton, metadata.clone(), transaction, GemWalletConnectTransactionAction::Send).unwrap();
+
+        assert_eq!(transfer.value, BigInt::from(5_000_000));
+        assert_eq!(transfer.recipient.address, "EQCKWpx7cNMpvmcN5ObM5lLUZHZRFKqYA4xmw9jOry0ZsF9M");
+        let extra = transfer.input_type.get_generic_data().unwrap();
+        assert_eq!(extra.data.as_deref(), Some(data.as_bytes()));
+        assert_eq!(extra.output_action, TransferDataOutputAction::Send);
+
+        let invalid = WalletConnectTransaction::Ton {
+            data: r#"{"messages":[{"address":"a","amount":"lots"}]}"#.to_string(),
+            output_type: TransferDataOutputType::EncodedTransaction,
+        };
+        assert!(
+            transfer_data(Chain::Ton, metadata, invalid, GemWalletConnectTransactionAction::Send).is_err(),
+            "an amount the review cannot show is never sent to the signer"
+        );
     }
 
     #[test]

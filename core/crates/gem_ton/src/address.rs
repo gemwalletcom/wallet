@@ -169,6 +169,10 @@ impl Address {
     pub fn encode_non_bounceable(&self) -> String {
         self.encode_user_friendly(UserFriendlyAddressType::NonBounceable)
     }
+
+    pub fn encode_raw(&self) -> String {
+        format!("{}:{}", self.workchain(), hex::encode(self.hash_part()))
+    }
 }
 
 impl FromStr for Address {
@@ -224,7 +228,7 @@ pub fn hex_to_base64_address(hex_str: &str) -> Option<String> {
 }
 
 pub fn base64_to_hex_address(base64_str: &str) -> Option<String> {
-    Address::try_parse_base64(base64_str).map(|address| format!("{}:{}", address.workchain(), hex::encode(address.hash_part())))
+    Address::try_parse_base64(base64_str).map(|address| address.encode_raw())
 }
 
 #[cfg(test)]

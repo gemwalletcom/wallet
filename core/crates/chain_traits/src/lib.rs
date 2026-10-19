@@ -216,7 +216,11 @@ pub trait ChainState: Send + Sync {
 }
 
 #[async_trait]
-pub trait ChainAccount: Send + Sync {}
+pub trait ChainAccount: Send + Sync {
+    async fn get_public_key(&self, _address: String) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(None)
+    }
+}
 
 #[async_trait]
 pub trait ChainPerpetual: Send + Sync {

@@ -8,7 +8,7 @@ use gem_evm::message::eip191_hash_message;
 use gem_evm::siwe::SiweMessage;
 use gem_solana::{signer::SolanaChainSigner, siws::SiwsMessage};
 use gem_sui::signer as sui_signer;
-use gem_ton::address::base64_to_hex_address;
+use gem_ton::address::Address as TonAddress;
 use gem_ton::signer::{TonSignDataResponse, TonSignMessageData, TonSignResult, TonSigner};
 use primitives::hex::encode_with_0x;
 use primitives::unix_seconds;
@@ -195,7 +195,7 @@ impl MessageSigner {
     fn get_ton_result(&self, result: &TonSignResult) -> Result<String, GemstoneError> {
         let string = self.data_as_utf8()?;
         let data = TonSignMessageData::from_bytes(string.as_bytes())?;
-        let raw_address = base64_to_hex_address(&data.address).ok_or_else(|| GemstoneError::from("Invalid TON address"))?;
+        let raw_address = TonAddress::parse(&data.address).map_err(|_| GemstoneError::from("Invalid TON address"))?.encode_raw();
 
         let response = TonSignDataResponse {
             signature: BASE64.encode(&result.signature),
@@ -691,5 +691,21 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
 
         let re_hashed = TonSignMessageData::from_bytes(&data).unwrap().hash(signed_timestamp).unwrap();
         assert_eq!(previewed, re_hashed);
+    }
+
+    #[test]
+    fn test_ton_sign_accepts_a_raw_from_address() {
+        let address = TonSigner::new(&TEST_PRIVATE_KEY).unwrap().address().encode_raw();
+        let ton_data = TonSignMessageData::from_value(serde_json::json!({"type": "text", "text": "raw from"}), "demo.ton-connect.io".to_string(), address.clone()).unwrap();
+        let signer = MessageSigner::new(SignMessage {
+            chain: Chain::Ton,
+            sign_type: SignDigestType::TonPersonal,
+            data: ton_data.to_bytes(),
+        });
+
+        let response: serde_json::Value = serde_json::from_str(&signer.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap()).unwrap();
+
+        assert_eq!(response["address"], address);
+        assert_eq!(response["domain"], "demo.ton-connect.io");
     }
 }

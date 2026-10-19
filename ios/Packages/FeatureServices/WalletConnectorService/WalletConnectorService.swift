@@ -292,7 +292,7 @@ extension WalletConnectorService {
             accounts: approval.accounts.flatMap { $0.toPrimitives().blockchains(chainService: chainService) },
         )
         let caip2Chains = sessionNamespaces.values.flatMap { $0.chains ?? [] }.map(\.absoluteString)
-        let sessionProperties = service.configSessionProperties(
+        let sessionProperties = await service.configSessionProperties(
             properties: proposal.sessionProperties ?? [:],
             caip2Chains: caip2Chains,
             accounts: approval.accounts,

@@ -1,4 +1,4 @@
-use crate::models::{TokenInfo, TokenInfoExtra};
+use crate::models::{RunGetMethodResult, StackEntry, TokenInfo, TokenInfoExtra};
 
 impl TokenInfo {
     pub fn mock_with_marketplace(marketplace: Option<&str>) -> Self {
@@ -12,5 +12,11 @@ impl TokenInfo {
                 marketplace: marketplace.map(str::to_string),
             }),
         }
+    }
+}
+
+impl RunGetMethodResult {
+    pub fn mock(exit_code: i32, stack: Vec<StackEntry>) -> Self {
+        Self { stack, exit_code }
     }
 }
