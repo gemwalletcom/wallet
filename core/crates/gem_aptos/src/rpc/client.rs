@@ -10,8 +10,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use crate::models::{
-    Account, Block, DelegationPoolStake, GasFee, Ledger, Resource, SimulateTransactionQuery, SponsoredSimulationSignature, StakingConfig, Transaction, TransactionPayload, TransactionResponse, TransactionSimulation, ValidatorSet,
-    ViewRequest,
+    Account, Block, DelegationPoolStake, GasFee, Ledger, Resource, RewardRate, SimulateTransactionQuery, SponsoredSimulationSignature, Transaction, TransactionPayload, TransactionResponse, TransactionSimulation, ValidatorSet, ViewRequest,
 };
 use crate::provider::payload_builder::{
     build_stake_transaction_payload, build_swap_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload, build_unstake_transaction_payload, build_withdraw_transaction_payload,
@@ -161,8 +160,8 @@ impl<C: Client> AptosClient<C> {
         Ok(self.get_account_resource::<ValidatorSet>("0x1".to_string(), "0x1::stake::ValidatorSet").await?.data)
     }
 
-    pub async fn get_staking_config(&self) -> Result<StakingConfig, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_account_resource::<StakingConfig>("0x1".to_string(), "0x1::staking_config::StakingConfig").await?.data)
+    pub async fn get_reward_rate(&self) -> Result<RewardRate, Box<dyn Error + Send + Sync>> {
+        self.view(ViewRequest::reward_rate()).await
     }
 
     pub async fn get_delegation_pool_stake(&self, pool_address: &str, delegator_address: &str) -> Result<DelegationPoolStake, Box<dyn Error + Send + Sync>> {
@@ -291,5 +290,22 @@ mod tests {
         }));
         let stake = client.get_delegation_pool_stake("0xpool", "0xdelegator").await.unwrap();
         assert_eq!(stake, DelegationPoolStake::mock(1000, 200, 30));
+    }
+
+    #[tokio::test]
+    async fn test_get_reward_rate() {
+        let client = AptosClient::new(MockClient::new().with_post(|path, body| {
+            assert_eq!(path, "/v1/view");
+            assert_eq!(serde_json::from_slice::<Value>(body).unwrap(), json!({"function": "0x1::staking_config::reward_rate", "type_arguments": [], "arguments": []}));
+            Ok(br#"["999999","168461538461"]"#.to_vec())
+        }));
+        let reward_rate = client.get_reward_rate().await.unwrap();
+        assert_eq!(
+            reward_rate,
+            RewardRate {
+                numerator: 999999,
+                denominator: 168461538461
+            }
+        );
     }
 }

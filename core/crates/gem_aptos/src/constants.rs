@@ -24,6 +24,7 @@ pub const DELEGATION_POOL_WITHDRAW_FUNCTION: &str = "0x1::delegation_pool::withd
 pub const DELEGATION_POOL_GET_STAKE_FUNCTION: &str = "0x1::delegation_pool::get_stake";
 pub const DELEGATION_POOL_OPERATOR_COMMISSION_FUNCTION: &str = "0x1::delegation_pool::operator_commission_percentage";
 pub const STAKE_GET_LOCKUP_SECS_FUNCTION: &str = "0x1::stake::get_lockup_secs";
+pub const STAKING_CONFIG_REWARD_RATE_FUNCTION: &str = "0x1::staking_config::reward_rate";
 
 pub const HYPERION_CONTRACT: &str = "0x8b4a2c4bb53857c718a04c020b98f8c2e1f99a68b0f57389a8bf5434cd22e05c";
 pub const VM_STATUS_ABORTED: u64 = 4016;

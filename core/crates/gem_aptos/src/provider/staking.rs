@@ -16,8 +16,8 @@ use crate::{
 #[async_trait]
 impl<C: Client> ChainStaking for AptosClient<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
-        let staking_config = self.get_staking_config().await?;
-        Ok(Some(calculate_apy(&staking_config)))
+        let reward_rate = self.get_reward_rate().await?;
+        Ok(Some(calculate_apy(&reward_rate)))
     }
 
     async fn get_staking_validators(&self, apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {

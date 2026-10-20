@@ -24,12 +24,10 @@ pub struct DelegationPoolStake {
     pub pending_inactive: BigUint,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StakingConfig {
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RewardRate {
     #[serde(deserialize_with = "deserialize_u64_from_str")]
-    pub rewards_rate: u64,
+    pub numerator: u64,
     #[serde(deserialize_with = "deserialize_u64_from_str")]
-    pub rewards_rate_denominator: u64,
-    #[serde(deserialize_with = "deserialize_u64_from_str")]
-    pub recurring_lockup_duration_secs: u64,
+    pub denominator: u64,
 }

@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use primitives::{Chain, DelegationBase, DelegationState, DelegationValidator};
 
-use crate::models::{DelegationPoolStake, StakingConfig, ValidatorInfo, ValidatorSet};
+use crate::models::{DelegationPoolStake, RewardRate, ValidatorInfo, ValidatorSet};
 
 pub fn map_validators(validator_set: ValidatorSet, apy: f64, pool_address: &str, commission: f64) -> Vec<DelegationValidator> {
     validator_set.active_validators.iter().filter(|v| v.addr == pool_address).map(|v| map_validator(v, apy, commission, true)).collect()
@@ -51,12 +51,12 @@ pub fn map_delegations(stakes: Vec<(String, DelegationPoolStake)>, lockup_secs: 
         .collect()
 }
 
-pub fn calculate_apy(staking_config: &StakingConfig) -> f64 {
-    if staking_config.rewards_rate_denominator == 0 {
+pub fn calculate_apy(reward_rate: &RewardRate) -> f64 {
+    if reward_rate.denominator == 0 {
         return 0.0;
     }
 
-    let epoch_rewards_rate = staking_config.rewards_rate as f64 / staking_config.rewards_rate_denominator as f64;
+    let epoch_rewards_rate = reward_rate.numerator as f64 / reward_rate.denominator as f64;
     let epochs_per_year = 365.25 * 24.0 * 60.0 * 60.0 / 7200.0;
 
     epoch_rewards_rate * epochs_per_year * 100.0
@@ -70,24 +70,19 @@ mod tests {
 
     #[test]
     fn test_calculate_apy() {
-        let config = StakingConfig {
-            rewards_rate: 1600000000000,
-            rewards_rate_denominator: 100000000000000000,
-            recurring_lockup_duration_secs: 1209600,
+        let reward_rate = RewardRate {
+            numerator: 1600000000000,
+            denominator: 100000000000000000,
         };
 
-        assert!((calculate_apy(&config) - 7.0128).abs() < 0.01);
+        assert!((calculate_apy(&reward_rate) - 7.0128).abs() < 0.01);
     }
 
     #[test]
     fn test_calculate_apy_zero_denominator() {
-        let config = StakingConfig {
-            rewards_rate: 1600000000000000,
-            rewards_rate_denominator: 0,
-            recurring_lockup_duration_secs: 1209600,
-        };
+        let reward_rate = RewardRate { numerator: 1600000000000000, denominator: 0 };
 
-        assert_eq!(calculate_apy(&config), 0.0);
+        assert_eq!(calculate_apy(&reward_rate), 0.0);
     }
 
     #[test]
