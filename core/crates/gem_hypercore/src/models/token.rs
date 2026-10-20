@@ -1,4 +1,4 @@
-use primitives::{AssetId, Chain, HyperCoreToken};
+use primitives::{AssetId, Chain};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -19,10 +19,9 @@ impl SpotToken {
 }
 
 pub fn spot_token_id_for_asset_id(asset_id: &AssetId) -> Option<String> {
-    match HyperCoreToken::from_asset_id(asset_id)? {
-        HyperCoreToken::Spot { symbol, contract, .. } => Some(format!("{symbol}:{}", contract?)),
-        HyperCoreToken::Perpetual { .. } => None,
-    }
+    let (symbol, contract, _) = asset_id.token_components()?;
+    let contract = contract?;
+    (!symbol.is_empty()).then(|| format!("{symbol}:{contract}"))
 }
 
 pub fn is_spot_token_id(token_id: &str) -> bool {

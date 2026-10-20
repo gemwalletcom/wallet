@@ -3,7 +3,7 @@ use crate::models::{
     token::SpotToken,
 };
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, AssetBalance, AssetId, Balance, Chain, HyperCoreToken};
+use primitives::{Asset, AssetBalance, AssetId, Balance, Chain};
 use std::error::Error;
 
 pub fn map_balance_token(asset_id: AssetId, balance: &SpotBalance, available_after_maintenance: Option<&str>, decimals: u32) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
@@ -48,7 +48,7 @@ pub fn map_balance_tokens(spot_balances: &Balances, spot_tokens: &[SpotToken], t
 }
 
 fn token_matches(token: &SpotToken, asset_id: &AssetId) -> bool {
-    let Some(HyperCoreToken::Spot { symbol, contract, index }) = HyperCoreToken::from_asset_id(asset_id) else {
+    let Some((symbol, contract, index)) = asset_id.token_components() else {
         return false;
     };
     token.name == symbol && contract.is_none_or(|contract| contract == token.token_id) && index.is_none_or(|index| index == token.index)

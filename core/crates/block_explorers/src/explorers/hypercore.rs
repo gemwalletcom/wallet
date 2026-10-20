@@ -1,4 +1,4 @@
-use primitives::{AssetId, HyperCoreToken};
+use primitives::AssetId;
 
 use crate::BlockExplorer;
 use crate::explorers::metadata::{Explorer, Metadata};
@@ -50,10 +50,8 @@ impl BlockExplorer for HyperCoreExplorer {
     }
 
     fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
-        match HyperCoreToken::from_asset_id(asset_id)? {
-            HyperCoreToken::Spot { contract, .. } => self.explorer.token_url(&contract?),
-            HyperCoreToken::Perpetual { .. } => None,
-        }
+        let (_, token_id, _) = asset_id.token_components()?;
+        self.explorer.token_url(&token_id?)
     }
 
     fn get_nft_url(&self, contract: &str, token_id: &str) -> Option<String> {
@@ -63,7 +61,7 @@ impl BlockExplorer for HyperCoreExplorer {
 
 #[cfg(test)]
 mod tests {
-    use primitives::asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_HYPE_ASSET_ID};
+    use primitives::asset_constants::HYPERCORE_SPOT_HYPE_ASSET_ID;
 
     use super::*;
 
@@ -94,7 +92,6 @@ mod tests {
             explorer.get_token_url(&HYPERCORE_SPOT_HYPE_ASSET_ID),
             Some("https://app.hyperliquid.xyz/explorer/token/0x0d01dc56dcaaca66ad901c959b4011ec".to_string())
         );
-        assert_eq!(explorer.get_token_url(&HYPERCORE_PERPETUAL_USDC_ASSET_ID), None);
     }
 
     #[test]

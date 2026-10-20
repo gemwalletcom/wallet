@@ -232,8 +232,6 @@ pub mod validator;
 pub use self::validator::StakeValidator;
 pub mod solana_nft;
 pub use self::solana_nft::SolanaNftStandard;
-pub mod hypercore_token;
-pub use self::hypercore_token::HyperCoreToken;
 pub mod solana_token_program;
 pub use self::solana_token_program::SolanaTokenProgramId;
 pub mod solana_types;
