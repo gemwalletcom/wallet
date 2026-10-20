@@ -179,6 +179,24 @@ mod tests {
     }
 
     #[test]
+    fn test_xrp_memo_deposit_detected() {
+        let ledger = include_str!("../../gem_xrp/src/testdata/transaction_bridgers_swap.json");
+        let transaction = serde_json::from_str::<gem_jsonrpc::types::JsonRpcResult<gem_xrp::models::Transaction>>(ledger).unwrap().take().unwrap();
+        let memos = transaction.memos.clone().unwrap();
+        let response_memo = gem_xrp::models::TransactionMemo {
+            memo: gem_xrp::models::TransactionMemoData {
+                data: Some(memos[0].memo.data.as_ref().unwrap().to_lowercase()),
+            },
+        };
+        let deposit_addresses = DepositAddressMap::from([(gem_xrp::models::memos_hash(&[response_memo]).unwrap(), SwapperProvider::Bridgers)]);
+        let deposit = gem_xrp::provider::transactions_mapper::map_direct_transaction(Chain::Xrp, transaction).unwrap();
+        let without_memo = Transaction { data: None, ..deposit.clone() };
+
+        assert_eq!(swap_provider_with_vault_addresses(&deposit, &deposit_addresses), Some(SwapperProvider::Bridgers));
+        assert_eq!(swap_provider_with_vault_addresses(&without_memo, &deposit_addresses), None);
+    }
+
+    #[test]
     fn test_no_vault_address() {
         let empty = DepositAddressMap::new();
         assert!(!is_cross_chain_swap(&Transaction::mock(), &empty));

@@ -6882,6 +6882,7 @@ dependencies = [
  "gem_solana",
  "gem_ton",
  "gem_tracing",
+ "gem_xrp",
  "hex",
  "in_app_notifications",
  "job_runner",

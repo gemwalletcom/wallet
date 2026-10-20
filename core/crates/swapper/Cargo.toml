@@ -68,4 +68,5 @@ gem_evm = { path = "../gem_evm", features = ["testkit"] }
 gem_hypercore = { path = "../gem_hypercore", features = ["testkit", "signer"] }
 gem_sui = { path = "../gem_sui", features = ["reqwest"] }
 gem_aptos = { path = "../gem_aptos", features = ["testkit"] }
+gem_xrp = { path = "../gem_xrp", features = ["rpc"] }
 settings = { path = "../settings", features = ["testkit"] }

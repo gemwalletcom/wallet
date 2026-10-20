@@ -1,3 +1,4 @@
+use gem_hash::sha2::sha256;
 use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
 use serde::{Deserialize, Serialize, de};
@@ -201,6 +202,18 @@ pub struct TransactionMemoData {
 impl TransactionMemo {
     pub fn decoded_data(&self) -> Option<String> {
         primitives::hex::decode_hex_utf8(self.memo.data.as_ref()?)
+    }
+
+    pub fn data_hash(&self) -> Option<String> {
+        let data = hex::decode(self.memo.data.as_ref()?).ok()?;
+        Some(hex::encode(sha256(&data)))
+    }
+}
+
+pub fn memos_hash(memos: &[TransactionMemo]) -> Option<String> {
+    match memos {
+        [memo] => memo.data_hash(),
+        _ => None,
     }
 }
 
