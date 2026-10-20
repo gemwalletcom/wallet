@@ -70,11 +70,9 @@ pub struct TonTransaction {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
 pub struct XrpTransaction {
-    #[serde(rename = "Destination")]
     pub destination: String,
-    #[serde(rename = "Amount")]
     pub amount: Amount,
-    #[serde(rename = "Memos")]
     pub memos: Vec<TransactionMemo>,
 }

@@ -40,41 +40,18 @@ mod tests {
     use super::*;
     use crate::bridgers::{
         asset::get_token_address,
-        model::{BridgersResponse, QuoteRequest, SwapData, SwapTransaction},
-        testkit::{TEST_EVM_WALLET, TEST_XRP_WALLET},
+        testkit::{TEST_XRP_WALLET, mock_xrp_swap_request, mock_xrp_transaction},
     };
 
     const ROUTER: &str = "rM27yzkCw6WA3T4g1sPaeC1kpxHUhuxRWn";
 
-    fn transaction(json: &str) -> XrpTransaction {
-        let response: BridgersResponse = serde_json::from_str(json).unwrap();
-        let SwapTransaction::Xrp(transaction) = serde_json::from_value::<SwapData>(response.data).unwrap().tx_data else {
-            panic!()
-        };
-        transaction
-    }
-
-    fn swap(from_token_address: &str, from_token_amount: u64) -> SwapRequest {
-        SwapRequest {
-            quote: QuoteRequest {
-                from_token_address: from_token_address.to_string(),
-                from_token_amount: BigUint::from(from_token_amount),
-                ..Default::default()
-            },
-            from_address: TEST_XRP_WALLET.to_string(),
-            to_address: TEST_EVM_WALLET.to_string(),
-            amount_out_min: BigUint::from(1u32),
-            slippage: "0.01".to_string(),
-        }
-    }
-
     #[test]
     fn test_get_transaction_memo() {
-        let native = transaction(include_str!("testdata/swap_xrp_bsc_usdt.json"));
-        let token = transaction(include_str!("testdata/swap_rlusd_bsc_usdt.json"));
+        let native = mock_xrp_transaction(include_str!("testdata/swap_xrp_bsc_usdt.json"));
+        let token = mock_xrp_transaction(include_str!("testdata/swap_rlusd_bsc_usdt.json"));
         let xrp = AssetId::from_chain(Chain::Xrp);
-        let native_swap = swap(&get_token_address(&xrp).unwrap(), 2_000_000);
-        let token_swap = swap(&get_token_address(&XRP_RLUSD_ASSET_ID).unwrap(), 500_000_000_000_000_000);
+        let native_swap = mock_xrp_swap_request(&get_token_address(&xrp).unwrap(), 2_000_000);
+        let token_swap = mock_xrp_swap_request(&get_token_address(&XRP_RLUSD_ASSET_ID).unwrap(), 500_000_000_000_000_000);
         let native_value = BigUint::from(2_000_000u64);
         let token_value = BigUint::from(500_000_000_000_000u64);
 
