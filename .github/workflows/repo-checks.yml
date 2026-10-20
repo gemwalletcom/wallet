@@ -34,3 +34,6 @@ jobs:
 
       - name: Check boundary rules
         run: python3 ./scripts/check-boundaries.py
+
+      - name: Validate Gradle wrappers
+        uses: gradle/actions/wrapper-validation@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
