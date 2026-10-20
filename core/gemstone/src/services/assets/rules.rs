@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::{
-    Asset, AssetBasic, AssetData, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, BalanceMetadata, BannerEvent, BlockExplorerLink, Chain, ChainAsset, ConfigVersions, Currency, PerpetualAccountMode,
+    Asset, AssetBasic, AssetData, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, AssetSubtype, BalanceMetadata, BannerEvent, BlockExplorerLink, Chain, ChainAsset, ConfigVersions, Currency, PerpetualAccountMode,
     PerpetualProvider, PriceAlert, StakeChain, VerificationStatus, Wallet, WalletType,
 };
 
@@ -230,9 +230,9 @@ pub fn asset_text(asset: &Asset) -> GemAssetText {
             false => format!("{} ({})", asset.name, asset.symbol),
         },
         subtitle_symbol: (asset.name != asset.symbol).then(|| asset.symbol.clone()),
-        network_full_name: match asset.id.is_native() {
-            true => network_name.clone(),
-            false => format!("{} ({})", network_name, asset.asset_type.as_ref()),
+        network_full_name: match asset.id.token_subtype() {
+            AssetSubtype::NATIVE => network_name.clone(),
+            AssetSubtype::TOKEN => format!("{} ({})", network_name, asset.asset_type.as_ref()),
         },
         network_name,
     }
@@ -242,9 +242,9 @@ pub fn asset_row_text(asset: &Asset, style: GemAssetRowStyle) -> GemAssetRowText
     let chain_asset = ChainAsset::from_chain(asset.chain());
     let title = match style.title {
         GemAssetTitleStyle::Asset => asset.name.clone(),
-        GemAssetTitleStyle::CanonicalAsset => match asset.id.is_native() {
-            true => chain_asset.asset.name.clone(),
-            false => asset.name.clone(),
+        GemAssetTitleStyle::CanonicalAsset => match asset.id.token_subtype() {
+            AssetSubtype::NATIVE => chain_asset.asset.name.clone(),
+            AssetSubtype::TOKEN => asset.name.clone(),
         },
         GemAssetTitleStyle::Network => chain_asset.network_name.clone(),
     };
@@ -604,9 +604,9 @@ fn assets_preview_limit(query: &str) -> u32 {
 }
 
 pub fn asset_title(asset: &Asset) -> String {
-    match asset.id.is_native() {
-        true => Asset::from_chain(asset.chain()).name,
-        false => asset.name.clone(),
+    match asset.id.token_subtype() {
+        AssetSubtype::NATIVE => Asset::from_chain(asset.chain()).name,
+        AssetSubtype::TOKEN => asset.name.clone(),
     }
 }
 
