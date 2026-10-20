@@ -9,7 +9,7 @@ pub fn map_validators(validator_set: ValidatorSet, apy: f64, pool_address: &str,
 }
 
 pub fn map_validator(validator: &ValidatorInfo, apy: f64, commission: f64, is_active: bool) -> DelegationValidator {
-    DelegationValidator::stake(Chain::Aptos, validator.addr.clone(), String::new(), is_active, commission, apy)
+    DelegationValidator::stake(Chain::Aptos, validator.addr.clone(), String::new(), is_active, commission, apy - (apy * commission / 100.0))
 }
 
 fn map_delegation(asset_id: &primitives::AssetId, state: DelegationState, balance: BigUint, validator_id: &str, completion_date: Option<DateTime<Utc>>) -> DelegationBase {
@@ -65,8 +65,17 @@ pub fn calculate_apy(reward_rate: &RewardRate) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::KNOWN_VALIDATOR_POOL;
 
     const LOCKUP_SECS: u64 = 1700000000;
+
+    #[test]
+    fn test_map_validators() {
+        assert_eq!(
+            map_validators(ValidatorSet::mock(), 10.0, KNOWN_VALIDATOR_POOL, 10.0),
+            vec![DelegationValidator::stake(Chain::Aptos, KNOWN_VALIDATOR_POOL.to_string(), String::new(), true, 10.0, 9.0)]
+        );
+    }
 
     #[test]
     fn test_calculate_apy() {

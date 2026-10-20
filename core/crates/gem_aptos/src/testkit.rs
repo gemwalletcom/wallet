@@ -1,9 +1,9 @@
 use num_bigint::BigUint;
 use serde_json::Value;
 
-use crate::models::{Account, DelegationPoolStake, Event, Guid, RawTransaction, Transaction};
+use crate::models::{Account, DelegationPoolStake, Event, Guid, RawTransaction, Transaction, ValidatorInfo, ValidatorSet};
 use crate::signer::{EntryFunctionPayload, build_raw_transaction};
-use crate::{AccountAddress, FUNGIBLE_ASSET_WITHDRAW_EVENT};
+use crate::{AccountAddress, FUNGIBLE_ASSET_WITHDRAW_EVENT, KNOWN_VALIDATOR_POOL};
 
 impl Account {
     pub fn mock() -> Self {
@@ -25,6 +25,17 @@ impl RawTransaction {
         };
         let entry_function = payload.to_entry_function(Some(&["address", "u64"])).unwrap();
         build_raw_transaction(AccountAddress::from_hex(address).unwrap(), 1, entry_function, 1500, 100, 1700000000, 1)
+    }
+}
+
+impl ValidatorSet {
+    pub fn mock() -> Self {
+        Self {
+            active_validators: vec![ValidatorInfo {
+                addr: KNOWN_VALIDATOR_POOL.to_string(),
+                voting_power: BigUint::from(1u32),
+            }],
+        }
     }
 }
 
