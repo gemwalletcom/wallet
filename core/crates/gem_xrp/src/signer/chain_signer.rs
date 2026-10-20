@@ -26,7 +26,10 @@ impl ChainSigner for XrpChainSigner {
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap = input.input_type.get_swap_data()?;
-        let amount = XrpAmount::native(&swap.data.value.to_string())?;
+        let amount = match input.input_type.get_asset().id.is_token() {
+            true => token_amount(input, &swap.data.value.to_string())?,
+            false => XrpAmount::native(&swap.data.value.to_string())?,
+        };
         Ok(vec![sign_payment(input, private_key, amount, &swap.data.to, swap_memo(&swap.data))?])
     }
 
@@ -203,6 +206,37 @@ mod tests {
         assert_eq!(
             signed[0],
             "12000022000000002401ec5fd8201b01ec5fed61400000000000000a68400000000000000a732103d13e1152965a51a4a9fd9a8b4ea3dd82a4eba6b25fcad5f460a2342bb650333f74473045022100d18b758a360fc0a4d013b095014410b4fbf0e97a265c10d01d85e86ff35e009a02203c7e860711fd18ca486d211c07669638cbfa39b5f01ccc430e12fdecfa11399281144c55f5a78067206507580be7bb2686c8460adff983148132e4e20aecf29090ac428a9c43f230a829220df9ea7d09737761703a6d656d6fe1f1"
+        );
+    }
+
+    #[test]
+    fn test_sign_swap_token_signs_issued_payment() {
+        let private_key = hex::decode("574e99f7946cfa2a6ca9368ca72fd37e42583cddb9ecc746aa4cb194ef4b2480").unwrap();
+        let input = SignerInput {
+            fee: TransactionFee::new_from_fee(12.into(), AssetId::from_chain(Chain::Xrp)),
+            ..SignerInput::mock_with_input_type(
+                TransactionInputType::Swap {
+                    from_asset: Asset::mock_xrp_rlusd(),
+                    to_asset: Asset::from_chain(Chain::Xrp),
+                    swap_data: SwapData {
+                        data: SwapQuoteData::new_transfer("r4oPb529jpRA1tVTDARmBuZPYB2CJjKFac".to_string(), BigUint::from(1_000_000_000_000_000u64), None),
+                        ..SwapData::mock_with_provider(SwapProvider::Bridgers)
+                    },
+                },
+                "rDgEGKXWkHHr1HYq2ETnNAs9MdV4R8Gyt",
+                "",
+                "1000000000000000",
+                TransactionLoadMetadata::Xrp {
+                    sequence: 93_674_951,
+                    block_number: 187_349_950 - LEDGER_SEQUENCE_OFFSET,
+                    is_destination_address_exist: true,
+                },
+            )
+        };
+
+        assert_eq!(
+            XrpChainSigner.sign_swap(&input, &private_key).unwrap(),
+            vec!["12000022000000002405955dc7201b0b2abbbe61d4838d7ea4c68000524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e68400000000000000c7321039c77e9329017ced5f8673ebafcd29687a1fff181140c030062fa77865688fc5d744630440220552e90f417c2cabe39368bb45cf7495ba6ebe395f259a6509c9f3a7296e76a0d02201b37dae0c4c77fa70a451cd4a61c10575c8b052c282c082a32c229e7624a05e381140265c09d122fab2a261a80ee59f1f4cd8fba8cf88314ef20a3d93b00cc729eec11a3058d3d1feb4465e0".to_string()]
         );
     }
 

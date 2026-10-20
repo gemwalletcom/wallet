@@ -53,6 +53,19 @@ pub fn mock_xrp_to_bsc_usdt_request() -> QuoteRequest {
 }
 
 #[cfg(feature = "swap_integration_tests")]
+pub fn mock_bsc_usdt_to_rlusd_request() -> QuoteRequest {
+    QuoteRequest {
+        wallet_address: TEST_EVM_WALLET.to_string(),
+        destination_address: TEST_XRP_WALLET.to_string(),
+        value: BigUint::from(20_000_000_000_000_000_000u128),
+        ..mock_quote(
+            SwapperQuoteAsset::mock_with_asset_id(SMARTCHAIN_USDT_ASSET_ID.clone(), "USDT", 18),
+            SwapperQuoteAsset::mock_with_asset_id(XRP_RLUSD_ASSET_ID.clone(), "RLUSD", 15),
+        )
+    }
+}
+
+#[cfg(feature = "swap_integration_tests")]
 pub fn mock_rlusd_to_bsc_usdt_request() -> QuoteRequest {
     QuoteRequest {
         wallet_address: TEST_XRP_WALLET.to_string(),

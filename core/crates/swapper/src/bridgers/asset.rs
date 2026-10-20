@@ -15,9 +15,6 @@ use num_bigint::BigUint;
 
 use crate::{SwapperChainAsset, SwapperError, cross_chain::VaultAddresses, hyperliquid::provider::spot::math::scale_units};
 
-const RLUSD_DECIMALS: u32 = 18;
-const XRP_RLUSD_DECIMALS: u32 = 15;
-
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Network {
     pub chain: Chain,
@@ -86,6 +83,13 @@ impl Network {
         Some(Self::from_chain(chain)?).filter(|network| network.router.is_some()).ok_or(SwapperError::NotSupportedChain)
     }
 }
+
+struct TokenDecimals {
+    asset: u32,
+    bridgers: u32,
+}
+
+static TOKEN_DECIMALS: LazyLock<Vec<(AssetId, TokenDecimals)>> = LazyLock::new(|| vec![(XRP_RLUSD_ASSET_ID.clone(), TokenDecimals { asset: 15, bridgers: 18 })]);
 
 static TOKENS: LazyLock<Vec<(AssetId, &'static str)>> = LazyLock::new(|| {
     vec![
@@ -158,11 +162,22 @@ pub(super) fn get_asset_id(code: &str, address: &str) -> Option<AssetId> {
         .map(|id| AssetId::from(chain, id.token_id.as_ref().map(|_| address)))
 }
 
+fn token_decimals(asset_id: &AssetId) -> Option<&'static TokenDecimals> {
+    TOKEN_DECIMALS.iter().find(|(id, _)| id == asset_id).map(|(_, decimals)| decimals)
+}
+
 pub(super) fn get_asset_value(asset_id: &AssetId, value: BigUint) -> Option<BigUint> {
-    if *asset_id == *XRP_RLUSD_ASSET_ID {
-        return scale_units(value, RLUSD_DECIMALS, XRP_RLUSD_DECIMALS).ok();
+    match token_decimals(asset_id) {
+        Some(decimals) => scale_units(value, decimals.bridgers, decimals.asset).ok(),
+        None => Some(value),
     }
-    Some(value)
+}
+
+pub(super) fn get_bridgers_value(asset_id: &AssetId, value: BigUint) -> Result<BigUint, SwapperError> {
+    match token_decimals(asset_id) {
+        Some(decimals) => scale_units(value, decimals.asset, decimals.bridgers),
+        None => Ok(value),
+    }
 }
 
 pub(super) fn supported_assets() -> Vec<SwapperChainAsset> {
@@ -214,5 +229,7 @@ mod tests {
     fn test_get_asset_value() {
         assert_eq!(get_asset_value(&XRP_RLUSD_ASSET_ID, BigUint::from(10u64.pow(18))), Some(BigUint::from(10u64.pow(15))));
         assert_eq!(get_asset_value(&AssetId::from_chain(Chain::Xrp), BigUint::from(1_000_000u64)), Some(BigUint::from(1_000_000u64)));
+        assert_eq!(get_bridgers_value(&XRP_RLUSD_ASSET_ID, BigUint::from(10u64.pow(15))).unwrap(), BigUint::from(10u64.pow(18)));
+        assert_eq!(get_bridgers_value(&AssetId::from_chain(Chain::Xrp), BigUint::from(1_000_000u64)).unwrap(), BigUint::from(1_000_000u64));
     }
 }

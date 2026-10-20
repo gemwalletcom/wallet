@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use chain_traits::ChainBalances;
 use gem_evm::{
     constants::TOKEN_TRANSFER_GAS_LIMIT,
     u256::{biguint_to_u256, u256_to_biguint},
@@ -9,7 +10,7 @@ use gem_ton::{address::Address as TonAddress, models::TonConnectMessage};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, ChainType,
+    AssetId, Chain, ChainType,
     swap::{ApprovalData, SwapResult, SwapResultRequest, SwapStatus},
 };
 
@@ -23,7 +24,7 @@ use super::{
 use crate::{
     FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
-    client_factory::create_ton_client,
+    client_factory::{create_ton_client, create_xrp_client},
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
 };
@@ -80,6 +81,21 @@ impl Bridgers {
         TonConnectMessage::swap_quote_data(&[TonConnectMessage::new(to.encode_bounceable(), &value, Some(payload))]).map_err(SwapperError::compute_quote_error)
     }
 
+    async fn check_destination_trust_line(&self, request: &QuoteRequest) -> Result<(), SwapperError> {
+        let asset_id = request.to_asset.asset_id();
+        let Some(token_id) = asset_id.token_id.filter(|_| asset_id.chain == Chain::Xrp) else {
+            return Ok(());
+        };
+        let balances = create_xrp_client(self.rpc_provider.clone())?
+            .get_balance_tokens(request.destination_address.clone(), vec![token_id])
+            .await
+            .map_err(SwapperError::compute_quote_error)?;
+        match balances.first() {
+            Some(balance) if balance.is_active => Ok(()),
+            _ => Err(SwapperError::NotSupportedAsset),
+        }
+    }
+
     async fn get_approval(&self, network: Network, router: &str, from_asset: &AssetId, swap: &SwapRequest) -> Result<Option<ApprovalData>, SwapperError> {
         let Some(token_id) = &from_asset.token_id else {
             return Ok(None);
@@ -100,13 +116,13 @@ fn get_min_from_value(quote: &QuoteTxData, request: &QuoteRequest) -> Result<Big
     Ok(min_value)
 }
 
-fn get_xrp_quote_data(network: Network, to_code: &str, swap: &SwapRequest) -> Result<SwapperQuoteData, SwapperError> {
+fn get_xrp_quote_data(network: Network, to_code: &str, swap: &SwapRequest, value: BigUint) -> Result<SwapperQuoteData, SwapperError> {
     let memo = DepositMemo {
         from_amount: Some(swap.quote.from_token_amount.to_string()),
         ..DepositMemo::new(swap, to_code, XRP_CHANNEL)
     };
     let memo = serde_json::to_string(&memo).map_err(SwapperError::compute_quote_error)?;
-    Ok(SwapperQuoteData::new_transfer(network.router()?.to_string(), swap.quote.from_token_amount.clone(), Some(memo)))
+    Ok(SwapperQuoteData::new_transfer(network.router()?.to_string(), value, Some(memo)))
 }
 
 #[async_trait]
@@ -124,7 +140,9 @@ impl Swapper for Bridgers {
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let quote = self.client.get_quote(&BridgersQuoteRequest::new(request, request.value.clone())?).await?.tx_data;
+        let bridgers_request = BridgersQuoteRequest::new(request, request.value.clone())?;
+        let (quote, _) = futures::try_join!(self.client.get_quote(&bridgers_request), self.check_destination_trust_line(request))?;
+        let quote = quote.tx_data;
 
         let min_value = get_min_from_value(&quote, request)?;
         let to_value = quote.get_to_value(request.to_asset.decimals)?;
@@ -166,7 +184,7 @@ impl Swapper for Bridgers {
         match network.chain.chain_type() {
             ChainType::Ethereum => self.get_evm_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
             ChainType::Ton => self.get_ton_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
-            ChainType::Xrp => get_xrp_quote_data(network, to_code, &swap),
+            ChainType::Xrp => get_xrp_quote_data(network, to_code, &swap, quote.from_value.clone()),
             _ => Err(SwapperError::NotSupportedChain),
         }
     }
@@ -178,13 +196,13 @@ mod swap_integration_tests {
     use crate::{
         alien::reqwest_provider::NativeProvider,
         bridgers::testkit::{
-            TEST_XRP_WALLET, mock_base_usdc_to_bsc_usdt_request, mock_base_usdc_to_ton_usdt_request, mock_opbnb_to_bsc_usdt_request, mock_rlusd_to_bsc_usdt_request, mock_stable_to_bsc_usdt_request, mock_ton_to_bsc_usdt_request,
-            mock_ton_usdt_to_bsc_usdt_request, mock_xrp_to_bsc_usdt_request,
+            TEST_EVM_WALLET, TEST_XRP_WALLET, mock_base_usdc_to_bsc_usdt_request, mock_base_usdc_to_ton_usdt_request, mock_bsc_usdt_to_rlusd_request, mock_opbnb_to_bsc_usdt_request, mock_rlusd_to_bsc_usdt_request,
+            mock_stable_to_bsc_usdt_request, mock_ton_to_bsc_usdt_request, mock_ton_usdt_to_bsc_usdt_request, mock_xrp_to_bsc_usdt_request,
         },
     };
     use primitives::{
         Chain, TransactionSwapMetadata, TransactionSwapReferralFee,
-        asset_constants::{ARBITRUM_USDC_ASSET_ID, TON_USDT_ASSET_ID},
+        asset_constants::{ARBITRUM_USDC_ASSET_ID, TON_USDT_ASSET_ID, XRP_RLUSD_ASSET_ID, XRP_RLUSD_TOKEN_ID},
     };
 
     #[tokio::test]
@@ -209,7 +227,25 @@ mod swap_integration_tests {
             assert_eq!(data.to, network.router()?);
         }
 
-        assert_eq!(provider.get_quote(&mock_rlusd_to_bsc_usdt_request()).await.unwrap_err(), SwapperError::NotSupportedAsset);
+        let quote = provider.get_quote(&mock_rlusd_to_bsc_usdt_request()).await?;
+        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let memo: serde_json::Value = serde_json::from_str(data.memo.as_deref().unwrap()).unwrap();
+
+        assert_eq!((data.to.as_str(), data.value.clone()), ("rM27yzkCw6WA3T4g1sPaeC1kpxHUhuxRWn", BigUint::from(10_000_000_000_000_000u64)));
+        assert_eq!((memo["fromToken"].as_str(), memo["fromAmount"].as_str()), (Some(XRP_RLUSD_TOKEN_ID), Some("10000000000000000000")));
+
+        let to_rlusd = mock_bsc_usdt_to_rlusd_request();
+        provider.get_quote(&to_rlusd).await?;
+        assert_eq!(
+            provider
+                .get_quote(&QuoteRequest {
+                    destination_address: "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh".to_string(),
+                    ..to_rlusd
+                })
+                .await
+                .unwrap_err(),
+            SwapperError::NotSupportedAsset
+        );
 
         let quote = provider.get_quote(&mock_ton_usdt_to_bsc_usdt_request()).await?;
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
@@ -288,6 +324,38 @@ mod swap_integration_tests {
                 .with_referral_fee(Some(TransactionSwapReferralFee {
                     asset_id: AssetId::from_chain(Chain::Xrp),
                     value: BigUint::from(65_000u64),
+                }))
+            )
+        );
+
+        let request = SwapResultRequest {
+            from_address: Some(TEST_EVM_WALLET.to_string()),
+            ..SwapResultRequest::new(Chain::SmartChain, "0x13ffcaf02ca9c3cff66039839d41ae70df56b0be0a8d879eae25051c7a1ceba9")
+        };
+        let metadata = provider.get_swap_result(&request).await?.metadata.unwrap();
+
+        assert_eq!((metadata.to_asset, metadata.to_value), (XRP_RLUSD_ASSET_ID.clone(), BigUint::from(14_137_307_000_000_000u64)));
+
+        let request = SwapResultRequest {
+            from_address: Some(TEST_XRP_WALLET.to_string()),
+            ..SwapResultRequest::new(Chain::Xrp, "F11F4E9A9D3028B8858F4F212E3561CD235E9433CC17CB66224934E67D2BB287")
+        };
+        let result = provider.get_swap_result(&request).await?;
+
+        assert_eq!(result.status, SwapStatus::Completed);
+        assert_eq!(
+            result.metadata,
+            Some(
+                TransactionSwapMetadata::new(
+                    XRP_RLUSD_ASSET_ID.clone(),
+                    BigUint::from(18_000_000_000_000_000u64),
+                    AssetId::from_chain(Chain::SmartChain),
+                    BigUint::from(24_391_000_000_000_000u64),
+                    SwapperProvider::Bridgers
+                )
+                .with_referral_fee(Some(TransactionSwapReferralFee {
+                    asset_id: XRP_RLUSD_ASSET_ID.clone(),
+                    value: BigUint::from(90_000_000_000_000u64),
                 }))
             )
         );
