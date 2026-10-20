@@ -7,5 +7,6 @@ mod provider;
 mod testkit;
 mod ton;
 mod transaction;
+mod xrp;
 
 pub use provider::Bridgers;

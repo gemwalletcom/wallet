@@ -20,6 +20,7 @@ use super::{
     model::{DepositMemo, QuoteRequest as BridgersQuoteRequest, QuoteTxData, Record, RecordsRequest, RouteData, SwapRequest, SwapTransaction},
     ton::{JETTON_TRANSFER_TON_AMOUNT, get_jetton_payload, get_native_payload, get_payload_channel, get_transaction_payload},
     transaction::get_transaction_value,
+    xrp::get_transaction_memo,
 };
 use crate::{
     FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
@@ -28,8 +29,6 @@ use crate::{
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
 };
-
-const XRP_CHANNEL: &str = "ik9r6b";
 
 #[derive(Debug)]
 pub struct Bridgers {
@@ -81,6 +80,15 @@ impl Bridgers {
         TonConnectMessage::swap_quote_data(&[TonConnectMessage::new(to.encode_bounceable(), &value, Some(payload))]).map_err(SwapperError::compute_quote_error)
     }
 
+    async fn get_xrp_quote_data(&self, network: Network, from_asset: &AssetId, to_code: &str, swap: &SwapRequest, value: BigUint) -> Result<SwapperQuoteData, SwapperError> {
+        let SwapTransaction::Xrp(transaction) = self.client.get_swap(swap).await?.tx_data else {
+            return Err(SwapperError::InvalidRoute);
+        };
+        let router = network.router()?;
+        let memo = get_transaction_memo(&transaction, router, from_asset, &value, to_code, swap)?;
+        Ok(SwapperQuoteData::new_transfer(router.to_string(), value, Some(memo)))
+    }
+
     async fn check_destination_trust_line(&self, request: &QuoteRequest) -> Result<(), SwapperError> {
         let asset_id = request.to_asset.asset_id();
         let Some(token_id) = asset_id.token_id.filter(|_| asset_id.chain == Chain::Xrp) else {
@@ -114,15 +122,6 @@ fn get_min_from_value(quote: &QuoteTxData, request: &QuoteRequest) -> Result<Big
         return Err(SwapperError::NoQuoteAvailable);
     }
     Ok(min_value)
-}
-
-fn get_xrp_quote_data(network: Network, to_code: &str, swap: &SwapRequest, value: BigUint) -> Result<SwapperQuoteData, SwapperError> {
-    let memo = DepositMemo {
-        from_amount: Some(swap.quote.from_token_amount.to_string()),
-        ..DepositMemo::new(swap, to_code, XRP_CHANNEL)
-    };
-    let memo = serde_json::to_string(&memo).map_err(SwapperError::compute_quote_error)?;
-    Ok(SwapperQuoteData::new_transfer(network.router()?.to_string(), value, Some(memo)))
 }
 
 #[async_trait]
@@ -184,7 +183,7 @@ impl Swapper for Bridgers {
         match network.chain.chain_type() {
             ChainType::Ethereum => self.get_evm_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
             ChainType::Ton => self.get_ton_quote_data(network, &request.from_asset.asset_id(), to_code, &swap).await,
-            ChainType::Xrp => get_xrp_quote_data(network, to_code, &swap, quote.from_value.clone()),
+            ChainType::Xrp => self.get_xrp_quote_data(network, &request.from_asset.asset_id(), to_code, &swap, quote.from_value.clone()).await,
             _ => Err(SwapperError::NotSupportedChain),
         }
     }

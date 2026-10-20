@@ -9,8 +9,9 @@ use primitives::{
 };
 
 pub const TEST_EVM_WALLET: &str = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
-#[cfg(feature = "swap_integration_tests")]
 pub const TEST_XRP_WALLET: &str = "rJ9L1E8CTfz8XXADbV4LJe5nxWhnA4SBfW";
+#[cfg(feature = "swap_integration_tests")]
+const TEST_XRP_FUNDED_WALLET: &str = "rM27yzkCw6WA3T4g1sPaeC1kpxHUhuxRWn";
 pub const TEST_TON_WALLET: &str = "UQDxJKarPSp0bCta9DFgp81Mpt5hpGbuVcSxwfeza0Bin201";
 
 #[cfg(feature = "swap_integration_tests")]
@@ -42,7 +43,7 @@ pub fn mock_base_usdc_to_bsc_usdt_request() -> QuoteRequest {
 #[cfg(feature = "swap_integration_tests")]
 pub fn mock_xrp_to_bsc_usdt_request() -> QuoteRequest {
     QuoteRequest {
-        wallet_address: TEST_XRP_WALLET.to_string(),
+        wallet_address: TEST_XRP_FUNDED_WALLET.to_string(),
         destination_address: TEST_EVM_WALLET.to_string(),
         value: BigUint::from(10_000_000u64),
         ..mock_quote(
@@ -68,7 +69,7 @@ pub fn mock_bsc_usdt_to_rlusd_request() -> QuoteRequest {
 #[cfg(feature = "swap_integration_tests")]
 pub fn mock_rlusd_to_bsc_usdt_request() -> QuoteRequest {
     QuoteRequest {
-        wallet_address: TEST_XRP_WALLET.to_string(),
+        wallet_address: TEST_XRP_FUNDED_WALLET.to_string(),
         destination_address: TEST_EVM_WALLET.to_string(),
         value: BigUint::from(10_000_000_000_000_000u64),
         ..mock_quote(

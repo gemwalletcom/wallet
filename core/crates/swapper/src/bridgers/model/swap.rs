@@ -1,3 +1,4 @@
+use gem_xrp::models::{Amount, TransactionMemo};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +16,7 @@ pub struct SwapRequest {
     pub slippage: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DepositMemo {
     pub from_token: String,
@@ -51,6 +52,7 @@ pub struct SwapData {
 pub enum SwapTransaction {
     Evm(EvmTransaction),
     Ton(TonTransaction),
+    Xrp(XrpTransaction),
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -65,4 +67,14 @@ pub struct TonTransaction {
     pub address: String,
     pub amount: String,
     pub payload: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct XrpTransaction {
+    #[serde(rename = "Destination")]
+    pub destination: String,
+    #[serde(rename = "Amount")]
+    pub amount: Amount,
+    #[serde(rename = "Memos")]
+    pub memos: Vec<TransactionMemo>,
 }
