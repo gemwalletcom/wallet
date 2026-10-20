@@ -67,7 +67,7 @@ impl StoreTransactionsConsumerConfig {
         is_notify_devices
             && transaction.state != TransactionState::InTransit
             && (!transaction.state.is_failed() || transaction.is_sent(address.to_string()))
-            && !cross_chain::is_from_vault_address(transaction, send_addresses)
+            && !cross_chain::is_received_from_vault(transaction, address, send_addresses)
             && !self.is_transaction_outdated(transaction)
     }
 
@@ -94,7 +94,7 @@ impl StoreTransactionsConsumerConfig {
 mod tests {
     use super::*;
     use num_bigint::BigUint;
-    use primitives::{AssetId, Chain, TransactionSwapMetadata, TransactionType, transaction_metadata_types::TransactionAssetTransfer};
+    use primitives::{AssetId, Chain, SwapProvider, TransactionSwapMetadata, TransactionType, transaction_metadata_types::TransactionAssetTransfer};
 
     #[test]
     fn test_is_transaction_outdated() {
@@ -212,7 +212,16 @@ mod tests {
     fn test_should_notify_transaction_from_vault() {
         let config = StoreTransactionsConsumerConfig::mock();
         let transaction = Transaction::mock();
-        let vault_addresses = SendAddressMap::from([(transaction.from.clone(), primitives::SwapProvider::Thorchain)]);
-        assert!(!config.should_notify_transaction(&transaction, "0xfrom", true, &vault_addresses));
+        let vault_addresses = SendAddressMap::from([(transaction.from.clone(), SwapProvider::Thorchain)]);
+        assert!(!config.should_notify_transaction(&transaction, "0xto", true, &vault_addresses));
+
+        let payout = Transaction::mock_with_asset_transfers(vec![TransactionAssetTransfer {
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            from: "0xvault".to_string(),
+            to: "0xuser".to_string(),
+            value: BigUint::from(1u8),
+        }]);
+        let payout_addresses = SendAddressMap::from([("0xvault".to_string(), SwapProvider::Mayan)]);
+        assert!(!config.should_notify_transaction(&payout, "0xuser", true, &payout_addresses));
     }
 }
