@@ -1,4 +1,4 @@
-use primitives::AssetId;
+use primitives::{AssetId, HyperCoreToken};
 
 use crate::BlockExplorer;
 use crate::explorers::metadata::{Explorer, Metadata};
@@ -50,9 +50,9 @@ impl BlockExplorer for HyperCoreExplorer {
     }
 
     fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
-        match asset_id.token_components()? {
-            (_, Some(token_id), Some(_)) => self.explorer.token_url(&token_id),
-            _ => None,
+        match HyperCoreToken::from_asset_id(asset_id)? {
+            HyperCoreToken::Spot { contract, .. } => self.explorer.token_url(&contract?),
+            HyperCoreToken::Perpetual { .. } => None,
         }
     }
 
