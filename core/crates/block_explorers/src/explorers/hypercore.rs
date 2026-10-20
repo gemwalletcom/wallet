@@ -26,12 +26,12 @@ impl FlowScan {
 }
 
 struct HyperCoreExplorer {
-    explorer: Box<dyn BlockExplorer>,
+    explorer: Explorer,
 }
 
 impl HyperCoreExplorer {
     fn boxed(metadata: Metadata) -> Box<dyn BlockExplorer> {
-        Box::new(Self { explorer: Explorer::boxed(metadata) })
+        Box::new(Self { explorer: Explorer::new(metadata) })
     }
 }
 
@@ -49,9 +49,9 @@ impl BlockExplorer for HyperCoreExplorer {
         self.explorer.get_address_url(address)
     }
 
-    fn get_token_url(&self, token: &str) -> Option<String> {
-        match AssetId::decode_token_id(token).as_slice() {
-            [_, token_id, _] => self.explorer.get_token_url(token_id),
+    fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
+        match asset_id.token_components()? {
+            (_, Some(token_id), Some(_)) => self.explorer.token_url(&token_id),
             _ => None,
         }
     }
@@ -63,7 +63,7 @@ impl BlockExplorer for HyperCoreExplorer {
 
 #[cfg(test)]
 mod tests {
-    use primitives::asset_constants::{HYPERCORE_PERPETUAL_USDC_TOKEN_ID, HYPERCORE_SPOT_HYPE_TOKEN_ID};
+    use primitives::asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_HYPE_ASSET_ID};
 
     use super::*;
 
@@ -91,10 +91,10 @@ mod tests {
         let explorer = HyperliquidExplorer::boxed();
 
         assert_eq!(
-            explorer.get_token_url(HYPERCORE_SPOT_HYPE_TOKEN_ID),
+            explorer.get_token_url(&HYPERCORE_SPOT_HYPE_ASSET_ID),
             Some("https://app.hyperliquid.xyz/explorer/token/0x0d01dc56dcaaca66ad901c959b4011ec".to_string())
         );
-        assert_eq!(explorer.get_token_url(HYPERCORE_PERPETUAL_USDC_TOKEN_ID), None);
+        assert_eq!(explorer.get_token_url(&HYPERCORE_PERPETUAL_USDC_ASSET_ID), None);
     }
 
     #[test]

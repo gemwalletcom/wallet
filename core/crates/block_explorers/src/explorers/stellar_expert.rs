@@ -5,7 +5,7 @@ use crate::explorers::metadata::{ACCOUNT_PATH, ASSET_PATH, Explorer, Metadata, T
 
 pub fn new() -> Box<dyn BlockExplorer> {
     Box::new(StellarExpert {
-        explorer: Explorer::boxed(Metadata {
+        explorer: Explorer::new(Metadata {
             name: "StellarExpert",
             base_url: "https://stellar.expert/explorer/public",
             tx_path: TX_PATH,
@@ -18,7 +18,7 @@ pub fn new() -> Box<dyn BlockExplorer> {
 }
 
 struct StellarExpert {
-    explorer: Box<dyn BlockExplorer>,
+    explorer: Explorer,
 }
 
 impl BlockExplorer for StellarExpert {
@@ -34,17 +34,15 @@ impl BlockExplorer for StellarExpert {
         self.explorer.get_address_url(address)
     }
 
-    fn get_token_url(&self, token: &str) -> Option<String> {
-        match AssetId::decode_token_id(token).as_slice() {
-            [issuer, code] => self.explorer.get_token_url(&format!("{code}-{issuer}")),
-            _ => None,
-        }
+    fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
+        let (issuer, code) = asset_id.split_sub_token_parts()?;
+        self.explorer.token_url(&format!("{code}-{issuer}"))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use primitives::asset_constants::STELLAR_USDC_TOKEN_ID;
+    use primitives::asset_constants::STELLAR_USDC_ASSET_ID;
 
     use super::*;
 
@@ -61,7 +59,7 @@ mod tests {
         let explorer = new();
 
         assert_eq!(
-            explorer.get_token_url(STELLAR_USDC_TOKEN_ID),
+            explorer.get_token_url(&STELLAR_USDC_ASSET_ID),
             Some("https://stellar.expert/explorer/public/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string())
         );
     }

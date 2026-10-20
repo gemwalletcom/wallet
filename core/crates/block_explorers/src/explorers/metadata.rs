@@ -1,3 +1,5 @@
+use primitives::AssetId;
+
 use crate::BlockExplorer;
 
 pub const TX_PATH: &str = "/tx";
@@ -92,8 +94,16 @@ pub struct Explorer {
 }
 
 impl Explorer {
+    pub fn new(config: Metadata) -> Self {
+        Self { config }
+    }
+
     pub fn boxed(config: Metadata) -> Box<dyn BlockExplorer> {
-        Box::new(Self { config }) as Box<dyn BlockExplorer>
+        Box::new(Self::new(config)) as Box<dyn BlockExplorer>
+    }
+
+    pub fn token_url(&self, token: &str) -> Option<String> {
+        self.config.token_path.map(|path| format!("{}{}/{}", self.config.base_url, path, token))
     }
 }
 
@@ -110,8 +120,8 @@ impl BlockExplorer for Explorer {
         format!("{}{}/{}", self.config.base_url, self.config.address_path, address)
     }
 
-    fn get_token_url(&self, token: &str) -> Option<String> {
-        self.config.token_path.map(|path| format!("{}{}/{}", self.config.base_url, path, token))
+    fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
+        self.token_url(asset_id.token_id.as_deref()?)
     }
 
     fn get_nft_url(&self, contract: &str, token_id: &str) -> Option<String> {
@@ -131,6 +141,8 @@ impl Metadata {
 
 #[cfg(test)]
 mod tests {
+    use primitives::Chain;
+
     use super::*;
 
     #[test]
@@ -149,7 +161,7 @@ mod tests {
         assert_eq!(explorer.name(), "TestExplorer");
         assert_eq!(explorer.get_tx_url("abc123"), "https://test.com/tx/abc123");
         assert_eq!(explorer.get_address_url("addr123"), "https://test.com/address/addr123");
-        assert_eq!(explorer.get_token_url("token123"), Some("https://test.com/token/token123".to_string()));
+        assert_eq!(explorer.get_token_url(&AssetId::from_token(Chain::Ethereum, "token123")), Some("https://test.com/token/token123".to_string()));
         assert_eq!(explorer.get_nft_url("contract123", "token123"), Some("https://test.com/nft/contract123/token123".to_string()));
         assert_eq!(explorer.get_validator_url("val123"), Some("https://test.com/validator/val123".to_string()));
     }
@@ -167,7 +179,7 @@ mod tests {
         };
         let explorer = Explorer::boxed(config);
 
-        assert_eq!(explorer.get_token_url("token123"), None);
+        assert_eq!(explorer.get_token_url(&AssetId::from_token(Chain::Ethereum, "token123")), None);
         assert_eq!(explorer.get_nft_url("contract123", "token123"), None);
         assert_eq!(explorer.get_validator_url("val123"), None);
     }

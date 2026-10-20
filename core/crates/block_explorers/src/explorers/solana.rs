@@ -1,3 +1,5 @@
+use primitives::AssetId;
+
 use crate::BlockExplorer;
 use crate::explorers::metadata::{ACCOUNT_PATH, ADDRESS_PATH, TOKEN_PATH, TX_PATH};
 
@@ -11,6 +13,10 @@ struct SolanaExplorer {
 impl SolanaExplorer {
     fn boxed(name: &'static str, base_url: &'static str, address_path: &'static str, token_path: &'static str) -> Box<dyn BlockExplorer> {
         Box::new(Self { name, base_url, address_path, token_path })
+    }
+
+    fn token_url(&self, token: &str) -> String {
+        format!("{}{}/{}", self.base_url, self.token_path, token)
     }
 }
 
@@ -27,12 +33,12 @@ impl BlockExplorer for SolanaExplorer {
         format!("{}{}/{}", self.base_url, self.address_path, address)
     }
 
-    fn get_token_url(&self, token: &str) -> Option<String> {
-        Some(format!("{}{}/{}", self.base_url, self.token_path, token))
+    fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
+        asset_id.token_id.as_deref().map(|token| self.token_url(token))
     }
 
     fn get_nft_url(&self, _contract: &str, token_id: &str) -> Option<String> {
-        self.get_token_url(token_id)
+        Some(self.token_url(token_id))
     }
 }
 
@@ -46,6 +52,8 @@ pub fn new_solana_fm() -> Box<dyn BlockExplorer> {
 
 #[cfg(test)]
 mod tests {
+    use primitives::Chain;
+
     use super::*;
 
     #[test]
@@ -59,7 +67,7 @@ mod tests {
             "https://solscan.io/account/GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"
         );
         assert_eq!(
-            explorer.get_token_url("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"),
+            explorer.get_token_url(&AssetId::from_token(Chain::Solana, "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2")),
             Some("https://solscan.io/token/GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2".to_string())
         );
         assert_eq!(
@@ -79,7 +87,7 @@ mod tests {
             "https://solana.fm/address/GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"
         );
         assert_eq!(
-            explorer.get_token_url("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"),
+            explorer.get_token_url(&AssetId::from_token(Chain::Solana, "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2")),
             Some("https://solana.fm/address/GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2".to_string())
         );
         assert_eq!(

@@ -2,7 +2,7 @@ mod explorers;
 
 use std::str::FromStr;
 
-use primitives::{Chain, EVMChain, SwapProvider};
+use primitives::{AssetId, Chain, EVMChain, SwapProvider};
 
 use crate::explorers::{
     AcrossScan, AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, BridgersScan, CardanoScan, ChainflipScan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, MayanScan, Metadata,
@@ -31,7 +31,7 @@ pub trait BlockExplorer: Send + Sync {
     fn name(&self) -> String;
     fn get_tx_url(&self, hash: &str) -> String;
     fn get_address_url(&self, address: &str) -> String;
-    fn get_token_url(&self, _token: &str) -> Option<String> {
+    fn get_token_url(&self, _asset_id: &AssetId) -> Option<String> {
         None
     }
     fn get_nft_url(&self, _contract: &str, _token_id: &str) -> Option<String> {

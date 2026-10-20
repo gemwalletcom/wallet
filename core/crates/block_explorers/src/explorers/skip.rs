@@ -24,10 +24,6 @@ impl BlockExplorer for SkipExplorer {
         String::new()
     }
 
-    fn get_token_url(&self, _token_id: &str) -> Option<String> {
-        None
-    }
-
     fn get_validator_url(&self, _address: &str) -> Option<String> {
         None
     }

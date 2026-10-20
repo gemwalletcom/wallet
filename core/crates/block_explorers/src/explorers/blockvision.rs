@@ -23,8 +23,10 @@ impl BlockVision {
 
 #[cfg(test)]
 mod tests {
+    use primitives::asset_constants::{MONAD_USDC_ASSET_ID, MONAD_USDC_TOKEN_ID};
+    use primitives::{AssetId, Chain};
+
     use super::*;
-    use primitives::asset_constants::MONAD_USDC_TOKEN_ID;
 
     #[test]
     fn test_monad_urls() {
@@ -33,7 +35,7 @@ mod tests {
         assert_eq!(explorer.name(), "MonadVision");
         assert_eq!(explorer.get_address_url("0xabc"), "https://monadvision.com/address/0xabc");
         assert_eq!(explorer.get_tx_url("0x123"), "https://monadvision.com/tx/0x123");
-        assert_eq!(explorer.get_token_url(MONAD_USDC_TOKEN_ID), Some(format!("https://monadvision.com/token/{MONAD_USDC_TOKEN_ID}")));
+        assert_eq!(explorer.get_token_url(&MONAD_USDC_ASSET_ID), Some(format!("https://monadvision.com/token/{MONAD_USDC_TOKEN_ID}")));
         assert_eq!(
             explorer.get_validator_url("0xC11Ae71884A76744Fa7976e09AC5441F1233Ef6F"),
             Some("https://monadvision.com/validator/0xC11Ae71884A76744Fa7976e09AC5441F1233Ef6F".to_string())
@@ -53,7 +55,7 @@ mod tests {
             explorer.get_tx_url("ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos"),
             "https://suivision.xyz/txblock/ArS7DzeHUA54ccRG12SqEZwt7snQePcanZ77Mkm2KRos"
         );
-        assert_eq!(explorer.get_token_url("token123"), Some("https://suivision.xyz/coin/token123".to_string()));
+        assert_eq!(explorer.get_token_url(&AssetId::from_token(Chain::Sui, "token123")), Some("https://suivision.xyz/coin/token123".to_string()));
         assert_eq!(explorer.get_validator_url("val123"), Some("https://suivision.xyz/validators/val123".to_string()));
     }
 }
