@@ -70,7 +70,7 @@ impl Route {
         self.statuses.contains(&status)
     }
 
-    pub(super) fn status_cooldown(&self, retry_after: Option<Duration>, default: Duration) -> Option<Duration> {
+    pub(super) fn cooldown(&self, retry_after: Option<Duration>, default: Duration) -> Option<Duration> {
         retry_after.or((self.endpoints.len() > 1).then_some(default))
     }
 
@@ -154,7 +154,7 @@ mod tests {
     use crate::config::routes::EndpointConfig;
 
     #[test]
-    fn test_status_cooldown_needs_retry_after_or_another_endpoint() {
+    fn test_cooldown_needs_retry_after_or_another_endpoint() {
         let route = |endpoints: usize| {
             let config = RouteConfig {
                 endpoints: (0..endpoints).map(|_| EndpointConfig::mock()).collect(),
@@ -164,10 +164,10 @@ mod tests {
         };
         let (default, retry_after) = (Duration::from_secs(60), Duration::from_secs(5));
 
-        assert_eq!(route(1).status_cooldown(None, default), None);
-        assert_eq!(route(1).status_cooldown(Some(retry_after), default), Some(retry_after));
-        assert_eq!(route(2).status_cooldown(None, default), Some(default));
-        assert_eq!(route(2).status_cooldown(Some(retry_after), default), Some(retry_after));
+        assert_eq!(route(1).cooldown(None, default), None);
+        assert_eq!(route(1).cooldown(Some(retry_after), default), Some(retry_after));
+        assert_eq!(route(2).cooldown(None, default), Some(default));
+        assert_eq!(route(2).cooldown(Some(retry_after), default), Some(retry_after));
     }
 
     #[test]
