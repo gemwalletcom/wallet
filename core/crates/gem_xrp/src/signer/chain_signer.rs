@@ -1,6 +1,6 @@
 use num_traits::ToPrimitive;
 use number_formatter::BigNumberFormatter;
-use primitives::{ChainSigner, SignerError, SignerInput, swap::SwapQuoteData};
+use primitives::{AssetSubtype, ChainSigner, SignerError, SignerInput, swap::SwapQuoteData};
 
 use crate::address::XrpAddress;
 use crate::signer::amount::XrpAmount;
@@ -26,9 +26,9 @@ impl ChainSigner for XrpChainSigner {
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap = input.input_type.get_swap_data()?;
-        let amount = match input.input_type.get_asset().id.is_token() {
-            true => token_amount(input, &swap.data.value.to_string())?,
-            false => XrpAmount::native(&swap.data.value.to_string())?,
+        let amount = match input.input_type.get_asset().id.token_subtype() {
+            AssetSubtype::NATIVE => XrpAmount::native(&swap.data.value.to_string())?,
+            AssetSubtype::TOKEN => token_amount(input, &swap.data.value.to_string())?,
         };
         Ok(vec![sign_payment(input, private_key, amount, &swap.data.to, swap_memo(&swap.data))?])
     }
