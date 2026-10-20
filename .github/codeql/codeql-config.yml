@@ -1,0 +1,23 @@
+name: Gem Wallet CodeQL
+
+paths-ignore:
+  - "**/tests/**"
+  - "**/testdata/**"
+  - "**/testkit/**"
+  - "**/testkit.rs"
+  - "**/*_testkit.rs"
+  - "**/tests.rs"
+  - "core/bin/**"
+  - "core/fuzz/**"
+  - "scripts/**"
+  - "maestro/**"
+
+query-filters:
+  - exclude:
+      precision:
+        - low
+        - medium
+  - exclude:
+      problem.severity:
+        - warning
+        - recommendation
