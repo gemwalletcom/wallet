@@ -17,3 +17,18 @@ appId: ${APP_ID}
         - text: "€[0-9,]+\\.[0-9]+"
     timeout: 30000
 - takeScreenshot: ${output.journey}_home_eur
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "preferences"
+- tapOn:
+    id: "currency"
+- tapOn:
+    id: "USD"
+- runFlow: launch.yaml
+- extendedWaitUntil:
+    visible:
+      id: "bitcoin"
+      containsDescendants:
+        - text: "\\$[0-9,]+\\.[0-9]+"
+    timeout: 30000
