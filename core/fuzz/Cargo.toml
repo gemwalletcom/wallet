@@ -1,0 +1,64 @@
+[package]
+name = "core-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+
+[dependencies]
+libfuzzer-sys = "0.4"
+serde_json = "1.0.151"
+
+primitives = { path = "../crates/primitives" }
+payment = { path = "../crates/payment" }
+gem_encoding = { path = "../crates/gem_encoding", features = ["protobuf"] }
+gem_wallet_connect = { path = "../crates/gem_wallet_connect" }
+gem_algorand = { path = "../crates/gem_algorand", features = ["rpc", "signer"] }
+gem_aptos = { path = "../crates/gem_aptos", features = ["rpc"] }
+gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["rpc", "signer"] }
+gem_cardano = { path = "../crates/gem_cardano", features = ["rpc", "signer"] }
+gem_cosmos = { path = "../crates/gem_cosmos", features = ["rpc", "signer"] }
+gem_evm = { path = "../crates/gem_evm", features = ["rpc", "signer"] }
+gem_near = { path = "../crates/gem_near", features = ["rpc", "signer"] }
+gem_polkadot = { path = "../crates/gem_polkadot", features = ["rpc", "signer"] }
+gem_solana = { path = "../crates/gem_solana", features = ["rpc", "signer"] }
+gem_stellar = { path = "../crates/gem_stellar", features = ["rpc", "signer"] }
+gem_sui = { path = "../crates/gem_sui", features = ["rpc", "signer"] }
+gem_ton = { path = "../crates/gem_ton", features = ["rpc", "signer"] }
+gem_tron = { path = "../crates/gem_tron", features = ["rpc", "signer"] }
+gem_xrp = { path = "../crates/gem_xrp", features = ["rpc", "signer"] }
+
+[[bin]]
+name = "solana_transaction"
+path = "fuzz_targets/solana_transaction.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ton_boc"
+path = "fuzz_targets/ton_boc.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "protobuf"
+path = "fuzz_targets/protobuf.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "external_input"
+path = "fuzz_targets/external_input.rs"
+test = false
+doc = false
+bench = false
+
+[profile.release]
+debug = 1
