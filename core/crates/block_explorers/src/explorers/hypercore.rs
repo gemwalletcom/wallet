@@ -50,8 +50,7 @@ impl BlockExplorer for HyperCoreExplorer {
     }
 
     fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
-        let (_, token_id, _) = asset_id.token_components()?;
-        self.explorer.token_url(&token_id?)
+        self.explorer.get_token_url(asset_id)
     }
 
     fn get_nft_url(&self, contract: &str, token_id: &str) -> Option<String> {

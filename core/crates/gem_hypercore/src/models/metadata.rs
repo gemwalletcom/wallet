@@ -31,9 +31,16 @@ impl UniverseAsset {
     }
 }
 
+const PERPETUAL: &str = "perpetual";
+
 pub fn perpetual_asset_id(coin: &str) -> AssetId {
-    let token_id = AssetId::sub_token_id(&["perpetual".to_string(), coin.to_string()]);
+    let token_id = AssetId::sub_token_id(&[PERPETUAL.to_string(), coin.to_string()]);
     AssetId::from(Chain::HyperCore, Some(token_id))
+}
+
+pub fn perpetual_coin(asset_id: &AssetId) -> Option<String> {
+    let (kind, coin) = asset_id.split_sub_token_parts()?;
+    (asset_id.chain == Chain::HyperCore && kind == PERPETUAL).then_some(coin)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,6 +64,7 @@ impl HypercoreMetadataResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::asset_constants::HYPERCORE_SPOT_HYPE_ASSET_ID;
 
     #[test]
     fn test_asset_id() {
@@ -70,5 +78,12 @@ mod tests {
 
         assert_eq!(asset_id.chain, Chain::HyperCore);
         assert_eq!(asset_id.token_id, Some("perpetual::BTC".to_string()));
+    }
+
+    #[test]
+    fn test_perpetual_coin() {
+        assert_eq!(perpetual_coin(&perpetual_asset_id("BTC")).unwrap(), "BTC");
+        assert_eq!(perpetual_coin(&HYPERCORE_SPOT_HYPE_ASSET_ID), None);
+        assert_eq!(perpetual_coin(&AssetId::token(Chain::Ethereum, "perpetual::BTC")), None);
     }
 }

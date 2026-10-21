@@ -34,7 +34,7 @@ impl BlockExplorer for SolanaExplorer {
     }
 
     fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
-        asset_id.token_id.as_deref().map(|token| self.token_url(token))
+        asset_id.contract().map(|token| self.token_url(&token))
     }
 
     fn get_nft_url(&self, _contract: &str, token_id: &str) -> Option<String> {

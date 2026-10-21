@@ -1,8 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use primitives::{AssetId, PerpetualAccountMode, PerpetualMarketData, PerpetualPosition};
+use primitives::{PerpetualAccountMode, PerpetualMarketData, PerpetualPosition};
 
 use crate::models::{
+    metadata::perpetual_coin,
     order::OpenOrder,
     websocket::{ActiveAssetCtxData, HyperliquidSocketMessage, HyperliquidSubscription, PositionsDiff, RawSocketMessage},
 };
@@ -93,7 +94,7 @@ pub fn diff_open_orders_positions(orders: &[OpenOrder], existing_positions: Vec<
     let positions: Vec<PerpetualPosition> = existing_positions
         .into_iter()
         .filter_map(|pos| {
-            let coin = pos.asset_id.token_id.as_ref().and_then(|t| AssetId::decode_token_id(t).into_iter().nth(1))?;
+            let coin = perpetual_coin(&pos.asset_id)?;
             let (take_profit, stop_loss) = map_tp_sl_from_orders(orders, &coin);
 
             if pos.take_profit != take_profit || pos.stop_loss != stop_loss {

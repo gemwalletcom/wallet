@@ -31,7 +31,7 @@ impl BlockExplorer for OkxChainExplorer {
         format!("{}/{}/address/{}", OKX_BASE_URL, self.chain, address)
     }
     fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
-        asset_id.token_id.as_deref().map(|token| format!("{}/{}/token/{}", OKX_BASE_URL, self.chain, token))
+        asset_id.contract().map(|token| format!("{}/{}/token/{}", OKX_BASE_URL, self.chain, token))
     }
 }
 

@@ -121,7 +121,7 @@ impl BlockExplorer for Explorer {
     }
 
     fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
-        self.token_url(asset_id.token_id.as_deref()?)
+        self.token_url(&asset_id.contract()?)
     }
 
     fn get_nft_url(&self, contract: &str, token_id: &str) -> Option<String> {

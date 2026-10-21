@@ -3,7 +3,7 @@ use std::fmt;
 use num_bigint::BigUint;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-use crate::{Asset, AssetSubtype, EVMChain, EvmNativeCurrency, chain::Chain, known_assets};
+use crate::{Asset, AssetSubtype, ChainType, EVMChain, EvmNativeCurrency, chain::Chain, known_assets};
 
 pub const CHAIN_SEPARATOR: &str = "_";
 pub const TOKEN_ID_SEPARATOR: &str = "::";
@@ -118,6 +118,26 @@ impl AssetId {
         Some((first.to_string(), second.to_string()))
     }
 
+    pub fn contract(&self) -> Option<String> {
+        match self.chain.chain_type() {
+            ChainType::Stellar => self.split_sub_token_parts().map(|(issuer, code)| format!("{code}:{issuer}")),
+            ChainType::HyperCore => self.token_components().and_then(|(_, contract, _)| contract),
+            ChainType::Ethereum
+            | ChainType::Bitcoin
+            | ChainType::Solana
+            | ChainType::Cosmos
+            | ChainType::Ton
+            | ChainType::Tron
+            | ChainType::Aptos
+            | ChainType::Sui
+            | ChainType::Xrp
+            | ChainType::Near
+            | ChainType::Algorand
+            | ChainType::Polkadot
+            | ChainType::Cardano => self.token_id.clone(),
+        }
+    }
+
     pub fn is_native(&self) -> bool {
         self.token_id.is_none()
     }
@@ -183,7 +203,7 @@ impl AssetIdVecExt for Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID, STABLE_USDT0_ASSET_ID};
+    use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, STABLE_USDT0_ASSET_ID, STELLAR_USDC_ASSET_ID};
 
     #[test]
     fn test_new_asset_id_with_coin() {
@@ -248,6 +268,13 @@ mod tests {
         assert_eq!(asset_id.chain, Chain::HyperCore);
         assert_eq!(asset_id.token_id, Some("perpetual::ETH".to_string()));
         assert_eq!(asset_id.to_string(), "hypercore_perpetual::ETH");
+    }
+
+    #[test]
+    fn test_contract() {
+        assert_eq!(STELLAR_USDC_ASSET_ID.contract().unwrap(), "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN");
+        assert_eq!(HYPERCORE_SPOT_HYPE_ASSET_ID.contract().unwrap(), "0x0d01dc56dcaaca66ad901c959b4011ec");
+        assert_eq!(ETHEREUM_USDT_ASSET_ID.contract().unwrap(), ETHEREUM_USDT_TOKEN_ID);
     }
 
     #[test]

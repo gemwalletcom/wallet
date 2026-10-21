@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::models::{Asset, CurrencyLimits, WebhookData};
 use crate::{model::FiatProviderAsset, providers::mercuryo::models::FiatPaymentMethod};
-use primitives::{Chain, FiatProviderName, FiatTransactionStatus, FiatTransactionUpdate};
+use primitives::{AssetId, Chain, FiatProviderName, FiatTransactionStatus, FiatTransactionUpdate};
 use primitives::{PaymentType, currency::Currency, fiat_assets::FiatAssetLimits};
 use serde_json::Value;
 
@@ -125,7 +125,7 @@ fn map_status(status: &str) -> FiatTransactionStatus {
 fn map_token_id(asset: &Asset, chain: Option<Chain>) -> Option<String> {
     let contract = (!asset.contract.is_empty()).then_some(asset.contract.clone())?;
     if chain == Some(Chain::Stellar) {
-        return Some(format!("{}::{}", contract, asset.currency));
+        return Some(AssetId::sub_token_id(&[contract, asset.currency.clone()]));
     }
     Some(contract)
 }
