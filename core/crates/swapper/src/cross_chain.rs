@@ -2,11 +2,12 @@ use std::collections::HashMap;
 
 use alloy_sol_types::SolCall;
 use gem_evm::across::{contracts::V3SpokePoolInterface, deployment::AcrossDeployment};
+use num_bigint::BigUint;
 use primitives::{Chain, ChainType, Transaction, decode_hex};
 
 use crate::SwapperProvider;
 use crate::mayan::MAYAN_FORWARDER_SELECTORS;
-use crate::thorchain::memo::ThorchainMemo;
+use crate::thorchain::{contracts::RouterInterface, memo::ThorchainMemo};
 
 #[derive(Debug, serde::Serialize)]
 pub struct VaultAddresses {
@@ -18,6 +19,14 @@ pub type DepositAddressMap = HashMap<String, SwapperProvider>;
 pub type SendAddressMap = HashMap<String, SwapperProvider>;
 
 const CHAINFLIP_SWAP_SELECTORS: [&str; 2] = ["0xdd687345", "0x04fc7da0"];
+
+pub(crate) fn rescale_base_units(amount: BigUint, from_decimals: u32, to_decimals: u32) -> BigUint {
+    match to_decimals.cmp(&from_decimals) {
+        std::cmp::Ordering::Equal => amount,
+        std::cmp::Ordering::Greater => amount * BigUint::from(10_u32).pow(to_decimals - from_decimals),
+        std::cmp::Ordering::Less => amount / BigUint::from(10_u32).pow(from_decimals - to_decimals),
+    }
+}
 
 pub fn swap_provider_with_vault_addresses(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> Option<SwapperProvider> {
     deposit_address_provider(transaction, deposit_addresses).filter(|provider| is_valid_swap_transaction(provider, transaction))
@@ -50,12 +59,19 @@ fn deposit_order_id(transaction: &Transaction) -> Option<String> {
 
 fn is_valid_swap_transaction(provider: &SwapperProvider, transaction: &Transaction) -> bool {
     match provider {
-        SwapperProvider::Thorchain | SwapperProvider::Mayachain => transaction.memo.as_deref().is_some_and(ThorchainMemo::is_swap),
+        SwapperProvider::Thorchain | SwapperProvider::Mayachain => thorchain_memo(transaction).is_some_and(|memo| ThorchainMemo::is_swap(&memo)),
         SwapperProvider::Chainflip => is_valid_chainflip_swap(transaction),
         SwapperProvider::Across => is_across_deposit(transaction),
         SwapperProvider::Mayan => is_valid_mayan_swap(transaction),
         _ => true,
     }
+}
+
+fn thorchain_memo(transaction: &Transaction) -> Option<String> {
+    transaction.memo.clone().or_else(|| {
+        let data = decode_hex(transaction.data.as_deref()?).ok()?;
+        Some(RouterInterface::depositWithExpiryCall::abi_decode(&data).ok()?.memo)
+    })
 }
 
 fn is_across_deposit(transaction: &Transaction) -> bool {
@@ -107,7 +123,13 @@ pub fn is_received_from_vault(transaction: &Transaction, address: &str, send_add
 mod tests {
     use super::*;
     use alloy_primitives::{Address, Bytes, U256, hex};
-    use primitives::{AssetId, TransactionSwapMetadata, TransactionType, TransactionUtxoInput, contract_constants::SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID, transaction_metadata_types::TransactionAssetTransfer};
+    use gem_evm::rpc::{
+        mapper::EthereumMapper,
+        model::{Transaction as EvmTransaction, TransactionReceipt},
+    };
+    use primitives::{
+        AssetId, TransactionSwapMetadata, TransactionType, TransactionUtxoInput, contract_constants::SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID, testkit::json_rpc::load_json_rpc_result, transaction_metadata_types::TransactionAssetTransfer,
+    };
 
     #[test]
     fn test_vault_address_detected() {
@@ -176,6 +198,23 @@ mod tests {
 
         assert_eq!(swap_provider_with_vault_addresses(&deposit, &deposit_addresses), Some(SwapperProvider::Bridgers));
         assert_eq!(swap_provider_with_vault_addresses(&other_swap, &deposit_addresses), None);
+    }
+
+    #[test]
+    fn test_xrp_memo_deposit_detected() {
+        let transaction = load_json_rpc_result::<gem_xrp::models::Transaction>(include_str!("../../gem_xrp/src/testdata/transaction_bridgers_swap.json"));
+        let memos = transaction.memos.clone().unwrap();
+        let response_memo = gem_xrp::models::TransactionMemo {
+            memo: gem_xrp::models::TransactionMemoData {
+                data: Some(memos[0].memo.data.as_ref().unwrap().to_lowercase()),
+            },
+        };
+        let deposit_addresses = DepositAddressMap::from([(gem_xrp::models::memos_hash(&[response_memo]).unwrap(), SwapperProvider::Bridgers)]);
+        let deposit = gem_xrp::provider::transactions_mapper::map_direct_transaction(Chain::Xrp, transaction).unwrap();
+        let without_memo = Transaction { data: None, ..deposit.clone() };
+
+        assert_eq!(swap_provider_with_vault_addresses(&deposit, &deposit_addresses), Some(SwapperProvider::Bridgers));
+        assert_eq!(swap_provider_with_vault_addresses(&without_memo, &deposit_addresses), None);
     }
 
     #[test]
@@ -399,15 +438,18 @@ mod tests {
     }
 
     #[test]
-    fn test_thorchain_router_with_swap_memo() {
-        let vault = "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string();
-        let deposit_addresses = DepositAddressMap::from([(vault.clone(), SwapperProvider::Thorchain)]);
-        let transaction = Transaction {
-            to: vault,
-            memo: Some("=:BTC:bc1qaddress:0/1/0:affiliate:150".to_string()),
-            ..Transaction::mock()
+    fn test_thorchain_router_token_deposit() {
+        let transaction = load_json_rpc_result::<EvmTransaction>(include_str!("thorchain/testdata/router_deposit_usdt_tx.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("thorchain/testdata/router_deposit_usdt_tx_receipt.json"));
+        let deposit = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &receipt, &BigUint::from(1792508567u64)).unwrap();
+        let deposit_addresses = DepositAddressMap::from([("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string(), SwapperProvider::Thorchain)]);
+        let other_call = Transaction {
+            data: Some("0xdeadbeef00000000".to_string()),
+            ..deposit.clone()
         };
-        assert!(is_cross_chain_swap(&transaction, &deposit_addresses));
+
+        assert_eq!(swap_provider_with_vault_addresses(&deposit, &deposit_addresses), Some(SwapperProvider::Thorchain));
+        assert_eq!(swap_provider_with_vault_addresses(&other_call, &deposit_addresses), None);
     }
 
     #[test]

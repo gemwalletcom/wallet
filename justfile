@@ -88,5 +88,5 @@ check-boundaries:
 bump TARGET="patch":
     @bash ./scripts/bump.sh {{TARGET}}
 
-maestro-smoke PLATFORM DEVICE="":
-    @bash ./scripts/maestro-smoke.sh {{PLATFORM}} {{DEVICE}}
+maestro-smoke PLATFORM:
+    @bash ./scripts/maestro-smoke.sh {{PLATFORM}}

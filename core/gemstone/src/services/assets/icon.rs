@@ -1,5 +1,5 @@
 use primitives::known_assets::{PYUSD_ASSET_IDS, USD1_ASSET_IDS, USDC_ASSET_IDS, USDE_ASSET_IDS, USDG_ASSET_IDS, USDS_ASSET_IDS, USDT_ASSET_IDS};
-use primitives::{Asset, AssetId, Chain};
+use primitives::{Asset, AssetId, AssetSubtype, Chain};
 use strum::{EnumIter, IntoEnumIterator};
 
 use crate::config::chain::{badge_chain, icon_chain, is_ether_layer2};
@@ -56,9 +56,9 @@ pub fn asset_icon(asset_id: &AssetId) -> GemAssetIcon {
             url: GemImage::Asset { asset_id: icon_asset_id }.url(),
         }
     };
-    let badge = match asset_id.is_native() && local_token.is_none() {
-        true => badge_chain(asset_id.chain),
-        false => Some(icon_chain(asset_id.chain)),
+    let badge = match (asset_id.token_subtype(), &local_token) {
+        (AssetSubtype::NATIVE, None) => badge_chain(asset_id.chain),
+        (AssetSubtype::NATIVE, Some(_)) | (AssetSubtype::TOKEN, _) => Some(icon_chain(asset_id.chain)),
     };
     GemAssetIcon {
         image,

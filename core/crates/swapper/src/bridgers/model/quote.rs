@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     SwapperError,
-    bridgers::asset::{Network, get_token_address},
+    bridgers::asset::{Network, get_bridgers_value, get_token_address},
     fees::DEFAULT_REFERRER,
 };
 
@@ -26,7 +26,7 @@ impl QuoteRequest {
             source_flag: DEFAULT_REFERRER.to_string(),
             from_token_address: get_token_address(&request.from_asset.asset_id())?,
             to_token_address: get_token_address(&request.to_asset.asset_id())?,
-            from_token_amount,
+            from_token_amount: get_bridgers_value(&request.from_asset.asset_id(), from_token_amount)?,
             from_token_chain: Network::from_source_chain(request.from_asset.chain())?.code.to_string(),
             to_token_chain: Network::from_chain(request.to_asset.chain())?.code.to_string(),
         })

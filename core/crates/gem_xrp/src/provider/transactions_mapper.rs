@@ -1,4 +1,4 @@
-use crate::models::rpc::{AccountLedger, AccountLedgerTransaction, Amount, Ledger, Transaction as XrpTransaction, TransactionBroadcast, TransactionMemo};
+use crate::models::rpc::{AccountLedger, AccountLedgerTransaction, Amount, Ledger, Transaction as XrpTransaction, TransactionBroadcast, TransactionMemo, memos_hash};
 use crate::{RESULT_SUCCESS, TRANSACTION_TYPE_PAYMENT, XRP_EPOCH_OFFSET_SECONDS};
 use chrono::DateTime;
 use num_bigint::BigUint;
@@ -66,21 +66,24 @@ fn map_transaction_common(
         let asset_id = AssetId::from(chain, token_id);
         let created_at = DateTime::from_timestamp(timestamp, 0)?;
 
-        return Some(Transaction::new(
-            hash,
-            asset_id,
-            account.unwrap_or_default(),
-            destination.unwrap_or_default(),
-            None,
-            TransactionType::Transfer,
-            state,
-            fee.unwrap_or_default(),
-            chain.as_asset_id(),
-            value,
-            memo,
-            None,
-            created_at,
-        ));
+        return Some(
+            Transaction::new(
+                hash,
+                asset_id,
+                account.unwrap_or_default(),
+                destination.unwrap_or_default(),
+                None,
+                TransactionType::Transfer,
+                state,
+                fee.unwrap_or_default(),
+                chain.as_asset_id(),
+                value,
+                memo,
+                None,
+                created_at,
+            )
+            .with_data(memos.as_deref().and_then(memos_hash)),
+        );
     }
     None
 }
@@ -139,7 +142,7 @@ pub fn map_direct_transaction(chain: Chain, transaction: XrpTransaction) -> Opti
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::rpc::{LedgerData, TransactionBroadcast};
+    use crate::models::rpc::{LedgerData, TransactionBroadcast, TransactionMemoData};
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use gem_jsonrpc::types::JsonRpcResult;
 
@@ -203,6 +206,22 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.value, BigUint::from(30000000u64));
         assert_eq!(transaction.memo.as_deref(), Some("=:b:bc1q3yw4t9xlqq9982qhvp95lgs60xrjdkmjdta0jn:0/1/0:g1:50"));
+    }
+
+    #[test]
+    fn test_map_transaction_bridgers_swap() {
+        let transaction = serde_json::from_str::<JsonRpcResult<XrpTransaction>>(include_str!("../testdata/transaction_bridgers_swap.json")).unwrap().take().unwrap();
+        let memo_data = transaction.memos.as_ref().unwrap()[0].memo.data.clone().unwrap();
+        let lowercase = TransactionMemo {
+            memo: TransactionMemoData { data: Some(memo_data.to_lowercase()) },
+        };
+
+        let mapped = map_direct_transaction(Chain::Xrp, transaction).unwrap();
+
+        assert_eq!(mapped.to, "rM27yzkCw6WA3T4g1sPaeC1kpxHUhuxRWn");
+        assert_eq!(mapped.value, BigUint::from(10000000u64));
+        assert_eq!(mapped.data.as_deref(), Some("a03b33418f5e120e54a64a17efe5096a60bee999e4523792ecf65022667739f9"));
+        assert_eq!(memos_hash(&[lowercase]), mapped.data);
     }
 
     #[test]

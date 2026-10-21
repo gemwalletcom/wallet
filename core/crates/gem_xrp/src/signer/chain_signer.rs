@@ -1,6 +1,6 @@
 use num_traits::ToPrimitive;
 use number_formatter::BigNumberFormatter;
-use primitives::{ChainSigner, SignerError, SignerInput, swap::SwapQuoteData};
+use primitives::{AssetSubtype, ChainSigner, SignerError, SignerInput, swap::SwapQuoteData};
 
 use crate::address::XrpAddress;
 use crate::signer::amount::XrpAmount;
@@ -26,7 +26,10 @@ impl ChainSigner for XrpChainSigner {
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap = input.input_type.get_swap_data()?;
-        let amount = XrpAmount::native(&swap.data.value.to_string())?;
+        let amount = match input.input_type.get_asset().id.token_subtype() {
+            AssetSubtype::NATIVE => XrpAmount::native(&swap.data.value.to_string())?,
+            AssetSubtype::TOKEN => token_amount(input, &swap.data.value.to_string())?,
+        };
         Ok(vec![sign_payment(input, private_key, amount, &swap.data.to, swap_memo(&swap.data))?])
     }
 
@@ -97,6 +100,31 @@ mod tests {
     use super::*;
 
     // Source vector:
+    // https://github.com/trustwallet/wallet-core/blob/62ef27c56c6769b3aec3c5167d925dc085646a5c/tests/chains/XRP/TWAnySignerTests.cpp#L134-L152
+    const RLUSD_PRIVATE_KEY: &str = "574e99f7946cfa2a6ca9368ca72fd37e42583cddb9ecc746aa4cb194ef4b2480";
+    const RLUSD_SENDER: &str = "rDgEGKXWkHHr1HYq2ETnNAs9MdV4R8Gyt";
+    const RLUSD_DESTINATION: &str = "r4oPb529jpRA1tVTDARmBuZPYB2CJjKFac";
+    const RLUSD_VALUE: u64 = 1_000_000_000_000_000;
+    const RLUSD_SIGNED_PAYMENT: &str = "12000022000000002405955dc7201b0b2abbbe61d4838d7ea4c68000524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e68400000000000000c7321039c77e9329017ced5f8673ebafcd29687a1fff181140c030062fa77865688fc5d744630440220552e90f417c2cabe39368bb45cf7495ba6ebe395f259a6509c9f3a7296e76a0d02201b37dae0c4c77fa70a451cd4a61c10575c8b052c282c082a32c229e7624a05e381140265c09d122fab2a261a80ee59f1f4cd8fba8cf88314ef20a3d93b00cc729eec11a3058d3d1feb4465e0";
+
+    fn rlusd_payment_input(input_type: TransactionInputType, destination: &str) -> SignerInput {
+        SignerInput {
+            fee: TransactionFee::new_from_fee(12.into(), AssetId::from_chain(Chain::Xrp)),
+            ..SignerInput::mock_with_input_type(
+                input_type,
+                RLUSD_SENDER,
+                destination,
+                &RLUSD_VALUE.to_string(),
+                TransactionLoadMetadata::Xrp {
+                    sequence: 93_674_951,
+                    block_number: 187_349_950 - LEDGER_SEQUENCE_OFFSET,
+                    is_destination_address_exist: true,
+                },
+            )
+        }
+    }
+
+    // Source vector:
     // https://github.com/trustwallet/wallet-core/blob/62ef27c56c6769b3aec3c5167d925dc085646a5c/tests/chains/XRP/TWAnySignerTests.cpp#L17-L33
     #[test]
     fn test_sign_transfer_matches_wallet_core() {
@@ -122,30 +150,12 @@ mod tests {
         );
     }
 
-    // Source vector:
-    // https://github.com/trustwallet/wallet-core/blob/62ef27c56c6769b3aec3c5167d925dc085646a5c/tests/chains/XRP/TWAnySignerTests.cpp#L134-L152
     #[test]
     fn test_sign_token_transfer_matches_wallet_core_custom_currency() {
-        let private_key = hex::decode("574e99f7946cfa2a6ca9368ca72fd37e42583cddb9ecc746aa4cb194ef4b2480").unwrap();
-        let input = SignerInput {
-            fee: TransactionFee::new_from_fee(12.into(), AssetId::from_chain(Chain::Xrp)),
-            ..SignerInput::mock_with_input_type(
-                TransactionInputType::Transfer { asset: Asset::mock_xrp_rlusd() },
-                "rDgEGKXWkHHr1HYq2ETnNAs9MdV4R8Gyt",
-                "r4oPb529jpRA1tVTDARmBuZPYB2CJjKFac",
-                "1000000000000000",
-                TransactionLoadMetadata::Xrp {
-                    sequence: 93_674_951,
-                    block_number: 187_349_950 - LEDGER_SEQUENCE_OFFSET,
-                    is_destination_address_exist: true,
-                },
-            )
-        };
+        let private_key = hex::decode(RLUSD_PRIVATE_KEY).unwrap();
+        let input = rlusd_payment_input(TransactionInputType::Transfer { asset: Asset::mock_xrp_rlusd() }, RLUSD_DESTINATION);
 
-        assert_eq!(
-            XrpChainSigner.sign_token_transfer(&input, &private_key).unwrap(),
-            "12000022000000002405955dc7201b0b2abbbe61d4838d7ea4c68000524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e68400000000000000c7321039c77e9329017ced5f8673ebafcd29687a1fff181140c030062fa77865688fc5d744630440220552e90f417c2cabe39368bb45cf7495ba6ebe395f259a6509c9f3a7296e76a0d02201b37dae0c4c77fa70a451cd4a61c10575c8b052c282c082a32c229e7624a05e381140265c09d122fab2a261a80ee59f1f4cd8fba8cf88314ef20a3d93b00cc729eec11a3058d3d1feb4465e0"
-        );
+        assert_eq!(XrpChainSigner.sign_token_transfer(&input, &private_key).unwrap(), RLUSD_SIGNED_PAYMENT);
     }
 
     #[test]
@@ -207,8 +217,26 @@ mod tests {
     }
 
     #[test]
+    fn test_sign_swap_token_signs_issued_payment() {
+        let private_key = hex::decode(RLUSD_PRIVATE_KEY).unwrap();
+        let input = rlusd_payment_input(
+            TransactionInputType::Swap {
+                from_asset: Asset::mock_xrp_rlusd(),
+                to_asset: Asset::from_chain(Chain::Xrp),
+                swap_data: SwapData {
+                    data: SwapQuoteData::new_transfer(RLUSD_DESTINATION.to_string(), BigUint::from(RLUSD_VALUE), None),
+                    ..SwapData::mock_with_provider(SwapProvider::Bridgers)
+                },
+            },
+            "",
+        );
+
+        assert_eq!(XrpChainSigner.sign_swap(&input, &private_key).unwrap(), vec![RLUSD_SIGNED_PAYMENT.to_string()]);
+    }
+
+    #[test]
     fn test_account_action_signs_trust_set() {
-        let private_key = hex::decode("574e99f7946cfa2a6ca9368ca72fd37e42583cddb9ecc746aa4cb194ef4b2480").unwrap();
+        let private_key = hex::decode(RLUSD_PRIVATE_KEY).unwrap();
         let input = SignerInput {
             fee: TransactionFee::new_from_fee(500.into(), AssetId::from_chain(Chain::Xrp)),
             ..SignerInput::mock_with_input_type(
@@ -216,7 +244,7 @@ mod tests {
                     asset: Asset::mock_xrp_rlusd(),
                     account_type: AccountDataType::Activate,
                 },
-                "rDgEGKXWkHHr1HYq2ETnNAs9MdV4R8Gyt",
+                RLUSD_SENDER,
                 "",
                 "0",
                 TransactionLoadMetadata::Xrp {

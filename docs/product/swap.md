@@ -290,6 +290,8 @@ Anything not listed is asked again for every quote.
 
 Across quotes from the chain. The hub pool on Ethereum says whether the bridge is paused, how much it can pay out and what its LP fee is; the destination network gives its gas price. A quote sends these requests at the same time, so it takes one round trip.
 
+Only assets declared for Across get a quote (`test_is_supported_route`). USDC and USDT have 18 decimals on BNB Chain and 6 on Ethereum, so the quote converts the amount to Ethereum units for the hub pool and to destination units for the fees and the amount received (`test_across_quotes_charge_relayer_costs_in_the_output_token`).
+
 What arrives is the amount paid minus three fees, all taken in the token bridged:
 
 | Fee | Priced from |

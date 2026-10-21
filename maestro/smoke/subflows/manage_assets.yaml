@@ -4,6 +4,7 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       id: "manage"
+    centerElement: true
 - tapOn:
     id: "manage"
 - tapOn:
@@ -26,6 +27,7 @@ appId: ${APP_ID}
 - scrollUntilVisible:
     element:
       id: "manage"
+    centerElement: true
 - tapOn:
     id: "manage"
 - tapOn:

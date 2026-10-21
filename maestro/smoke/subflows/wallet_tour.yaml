@@ -13,6 +13,4 @@ appId: ${APP_ID}
 - runFlow: swap_pair.yaml
 - runFlow: stake.yaml
 - runFlow: perpetuals.yaml
-- runFlow: rename_wallet.yaml
-- runFlow: second_wallet.yaml
 - runFlow: currency.yaml

@@ -3,6 +3,8 @@ appId: ${APP_ID}
 - evalScript: ${output.journey = 'create'}
 - runFlow: subflows/create_wallet.yaml
 - runFlow: subflows/wallet_tour.yaml
+- runFlow: subflows/rename_wallet.yaml
+- runFlow: subflows/second_wallet.yaml
 - runFlow:
     file: subflows/receive_bitcoin.yaml
     env:

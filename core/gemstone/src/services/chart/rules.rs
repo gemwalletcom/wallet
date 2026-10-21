@@ -9,7 +9,6 @@ use super::points::reduced_points;
 use super::zoom::GemChartZoom;
 use super::{GemChart, GemChartCurrent};
 use crate::address::validate_address;
-use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::social::social_links;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
@@ -134,8 +133,7 @@ fn contract_row(asset: &Asset, explorer: Option<BlockExplorerLink>) -> Option<Ge
     } else {
         GemCopy {
             kind: GemCopyKind::Plain,
-            display: format_address(&token_id, Some(chain), GemAddressFormatStyle::Short),
-            value: token_id,
+            ..address_copy(chain, token_id)
         }
     };
     Some(GemListRow::identifier(GemListRowTitle::Contract, copy, explorer))

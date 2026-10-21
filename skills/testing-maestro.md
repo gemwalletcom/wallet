@@ -40,11 +40,10 @@ maestro --device <id> test -e APP_ID=com.gemwallet.android flow.yaml
 
 ## Smoke Suite
 
-`just maestro-smoke <ios|android> [device id]` runs every top-level flow in `maestro/smoke` with the dedicated test seed showing each step live, and writes screenshots and failure details to `build/maestro/<platform>`. Without a device id it boots the automation device (an available "Gem Maestro" simulator on any iOS runtime, created on the newest iPhone Pro and iOS if there is none, or the `Gem_Maestro` emulator, created if missing) and installs the current local build.
+`just maestro-smoke <ios|android>` runs every top-level flow in `maestro/smoke` with the dedicated test seed showing each step live, and writes screenshots and failure details to `build/maestro/<platform>`. It runs only on its automation device (an available "Gem Maestro" simulator on any iOS runtime, created on the newest iPhone Pro and iOS if there is none, or the `Gem_Maestro` emulator, created if missing), which it boots and installs the current local build on.
 
-- Run it only on a simulator or emulator kept for automation: every flow clears app data.
 - Run one platform at a time: the iOS and Android drivers both use local port 7001, and a concurrent run fails every flow at once.
-- There are two journeys, one per kind of user: `create_wallet` (a new wallet) and `import_wallet` (the test seed, which has a known address and transactions). Both start from a clean install, so one failure never cascades into the other, then run the same tour of screens in `subflows/`; add a new screen check there so both kinds of user get it.
+- There are two journeys, one per kind of user: `create_wallet` (a new wallet) and `import_wallet` (the test seed, which has a known address and transactions). Both start from a clean install, so one failure never cascades into the other, then run the same tour of screens in `subflows/`; add a new screen check there so both kinds of user get it. The tour never creates, renames or deletes a wallet, so it can run on a device that holds a real wallet; the journeys do that after it.
 - Each tour step starts with `launchApp` to return to the wallet home, and a step that changes state either restores it (the asset toggle) or checks it first (the price alert), so a step can be rerun on its own.
 - Primary buttons carry the `main_action` id on both apps (iOS `StateButton`, Android `MainActionButton`); a caller's own id overrides it.
 

@@ -5,7 +5,7 @@ edition = { workspace = true }
 
 [features]
 default = []
-signer = ["dep:bigdecimal", "dep:gem_hash", "dep:signer", "dep:num-traits"]
+signer = ["dep:bigdecimal", "dep:signer", "dep:num-traits"]
 rpc = ["dep:chrono", "dep:chain_traits", "dep:gem_client", "dep:futures", "gem_jsonrpc/client"]
 reqwest = ["gem_client/reqwest", "gem_jsonrpc/reqwest"]
 chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
@@ -20,7 +20,7 @@ number_formatter = { path = "../number_formatter" }
 num-bigint = { workspace = true }
 bigdecimal = { workspace = true, optional = true }
 bs58 = { workspace = true }
-gem_hash = { path = "../gem_hash", optional = true }
+gem_hash = { path = "../gem_hash" }
 signer = { path = "../signer", optional = true }
 num-traits = { workspace = true, optional = true }
 

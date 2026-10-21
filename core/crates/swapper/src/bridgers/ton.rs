@@ -114,6 +114,7 @@ mod tests {
             sender: TEST_TON_WALLET.to_string(),
             destination: TEST_EVM_WALLET.to_string(),
             min_return_amount: "33449512000000000000".to_string(),
+            from_amount: None,
         };
         let jetton_memo = DepositMemo {
             from_token: TON_USDT_TOKEN_ID.to_string(),

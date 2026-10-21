@@ -19,6 +19,7 @@ gem_evm = { path = "../gem_evm", features = ["rpc", "reqwest"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client", "reqwest"] }
 gem_ton = { path = "../gem_ton", features = ["tvm"] }
 gem_tracing = { path = "../gem_tracing" }
+gem_xrp = { path = "../gem_xrp" }
 hex = { workspace = true }
 in_app_notifications = { path = "../in_app_notifications" }
 job_runner = { path = "../job_runner" }
