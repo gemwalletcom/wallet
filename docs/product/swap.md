@@ -282,7 +282,7 @@ A cross-chain provider is asked for a new quote every time. Only these facts are
 | THORChain and Maya inbound addresses, which also say whether a network is halted | `5 minutes` on the device and `10 minutes` on Dynode, so a halt or a resume can show up to `15 minutes` late |
 | Chainflip's assets and their minimum amounts | `5 minutes` on the device |
 | Hyperliquid's spot token list | `1 hour` on the device |
-| Mayan's Sui package | `1 hour` on the device |
+| Mayan's Sui MCTP and Fast MCTP packages | `1 hour` on the device |
 
 Anything not listed is asked again for every quote.
 

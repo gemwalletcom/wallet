@@ -23,15 +23,24 @@ pub const SUI_WORMHOLE_PACKAGE_ID: &str = "0x5306f64e312b581766351c07af79c72fcb1
 pub const SUI_WORMHOLE_STATE: &str = "0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c";
 pub const SUI_LOGGER_PACKAGE_ID: &str = "0x05680e9030c147b413a489f7891273acc221d49bd061c433e5771bc170fc37ac";
 pub const SUI_CCTP_DENY_LIST: &str = "0x403";
-pub const SDK_VERSION: &str = "14_1_0";
+pub const SUI_FAST_MCTP_PACKAGE_ID: &str = "0x1d2e4a268caf2c9a6cca996f9dfb5590b02628e8da5d5c92de89b386a3770af1";
+pub const SUI_FAST_MCTP_STATE: &str = "0x8231922f490a56cec07921b9c8113577e7e54aef5cb93a156d71f83ced7095e5";
+pub const SUI_CCTP_V2_CORE_STATE: &str = "0x0c067f7d325e5b60e3179712e7783534ba1556cbb3d359d8161497e37689230c";
+pub const SUI_CCTP_V2_TOKEN_PACKAGE_ID: &str = "0xeb14978abfe93a37c5d5bf86a0623b923553a5f0e794daac7724f1e2fdbfb830";
+pub const SUI_CCTP_V2_TOKEN_STATE: &str = "0x06fb166941cd7bc095edc019d054a753ec3f1e4c25f28f2ecc4a6cfa0a9b1167";
+pub const SUI_CCTP_V2_HANDLER_PACKAGE_ID: &str = "0x185ed207c4d64fc594882ab927f9f3c6ff957aad03df8a731ba64378faeeb2bf";
+pub const SUI_CCTP_V2_HANDLER_STATE: &str = "0xa32de8a6dd0178fb05f662929d55cddb69a25c26bde4b83f89e36d17ead94c41";
+pub const SUI_USDC_TREASURY: &str = "0x57d6725e7a8b49a7b2a612f6bd66ab5f39fc95332ca48be421c3229d514a6de7";
+pub const SDK_VERSION: &str = "15_3_0";
 
 pub const MAYAN_MAX_SLIPPAGE_BPS: u32 = 500;
 
-pub const MAYAN_DEPOSIT_CONTRACTS: [(Chain, &str); 5] = [
+pub const MAYAN_DEPOSIT_CONTRACTS: [(Chain, &str); 6] = [
     (Chain::Ethereum, MAYAN_FORWARDER),
     (Chain::Ethereum, MAYAN_MCTP),
     (Chain::Ethereum, MAYAN_SWIFT_CONTRACT),
     (Chain::Solana, MAYAN_CPI_PROXY_PROGRAM_ID),
     (Chain::Sui, SUI_MCTP_PACKAGE_ID),
+    (Chain::Sui, SUI_FAST_MCTP_PACKAGE_ID),
 ];
 pub const MAYAN_SEND_CONTRACTS: [(Chain, &str); 2] = [(Chain::Ethereum, MAYAN_FAST_MCTP), (Chain::Ethereum, MAYAN_SWIFT_V2_DESTINATION)];

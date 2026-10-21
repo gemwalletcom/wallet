@@ -9,19 +9,23 @@ use self::{
 use super::{prefetch::PrefetchedSuiData, sui_error};
 use crate::mayan::{
     constants::{SUI_CCTP_CORE_STATE, SUI_CCTP_DENY_LIST, SUI_CCTP_TOKEN_PACKAGE_ID, SUI_CCTP_TOKEN_STATE, SUI_LOGGER_PACKAGE_ID, SUI_WORMHOLE_PACKAGE_ID, SUI_WORMHOLE_STATE},
-    model::{MayanMctpQuote, SuiClientSwap},
+    model::MayanMctpQuote,
     wormhole_chain::WormholeChain,
 };
 use crate::{
     Quote, SwapperError,
-    mayan::tx_builder::{amount::optional_bps_u8, swift::referrer_bytes},
+    mayan::tx_builder::{
+        amount::optional_bps_u8,
+        sui::{SuiClientSwapReplay, SuiInputCoin, build_sui_input_coin},
+        swift::referrer_bytes,
+    },
 };
 use gem_sui::{
     SUI_COIN_TYPE,
     address::SuiAddress,
     models::{OwnedCoins, TxOutput},
     sui_clock_object_input,
-    tx_builder::{TransactionJsonReplay, build_input_coin, finish_transaction, move_call},
+    tx_builder::{build_input_coin, finish_transaction, move_call},
 };
 use sui_transaction_builder::{Argument, TransactionBuilder};
 use sui_types::Address;
@@ -29,16 +33,8 @@ use sui_types::Address;
 #[cfg(test)]
 pub(super) use fees::bridge_amount;
 
-pub(super) fn build_mctp_transaction(
-    quote: &Quote,
-    route: &MayanMctpQuote,
-    prefetched: &PrefetchedSuiData,
-    destination_address: &str,
-    swap: Option<&SuiClientSwap>,
-    swap_replay: Option<&TransactionJsonReplay>,
-    gas_budget: u64,
-) -> Result<TxOutput, SwapperError> {
-    let (mut txb, input_coin, wh_fee_coin) = input_coin(route, prefetched, swap, swap_replay)?;
+pub(super) fn build_mctp_transaction(quote: &Quote, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, destination_address: &str, swap: Option<&SuiClientSwapReplay>, gas_budget: u64) -> Result<TxOutput, SwapperError> {
+    let SuiInputCoin { mut txb, coin: input_coin, wh_fee_coin } = build_sui_input_coin(swap, &prefetched.mctp_input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins)?;
 
     if route.has_auction == Some(true) {
         add_init_order_move_calls(&mut txb, route, quote, prefetched, input_coin, wh_fee_coin, destination_address)?;
@@ -52,19 +48,6 @@ pub(super) fn build_mctp_transaction(
     log_referrer(&mut txb, route)?;
 
     finish_transaction(txb, prefetched.transaction.with_gas_budget(gas_budget)).map_err(sui_error)
-}
-
-fn input_coin(route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, swap: Option<&SuiClientSwap>, swap_replay: Option<&TransactionJsonReplay>) -> Result<(TransactionBuilder, Argument, Option<Argument>), SwapperError> {
-    if let Some(swap) = swap {
-        let replayed = swap_replay.ok_or(SwapperError::InvalidRoute)?.replay().map_err(sui_error)?;
-        let input_coin = replayed.argument(&swap.out_coin).map_err(sui_error)?;
-        let wh_fee_coin = swap.wh_fee_coin.as_ref().map(|argument| replayed.argument(argument).map_err(sui_error)).transpose()?;
-        return Ok((replayed.txb, input_coin, wh_fee_coin));
-    }
-
-    let mut txb = TransactionBuilder::new();
-    let input_coin = build_input_coin(&mut txb, &prefetched.mctp_input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins).map_err(sui_error)?;
-    Ok((txb, input_coin, None))
 }
 
 fn deposit_for_burn_with_auth(txb: &mut TransactionBuilder, prefetched: &PrefetchedSuiData, mctp_input_contract: &str, auth_module: &str, deposit_ticket: Argument, treasury: &str) -> Result<Argument, SwapperError> {

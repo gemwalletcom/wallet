@@ -4,6 +4,7 @@ use crate::{
     mayan::{
         constants::{SUI_CCTP_CORE_STATE, SUI_CCTP_DENY_LIST, SUI_CCTP_TOKEN_STATE, SUI_MCTP_FEE_MANAGER_STATE, SUI_MCTP_STATE, SUI_WORMHOLE_STATE},
         model::MayanMctpQuote,
+        tx_builder::sui::{get_package_id, get_sui_objects},
     },
     route_cache::Cache,
 };
@@ -13,7 +14,6 @@ use gem_sui::{
     models::{Coin, OwnedCoins},
     tx_builder::{ResolvedObjectInput, TransactionBuilderInput},
 };
-use serde::Deserialize;
 use std::collections::HashMap;
 
 pub(super) struct PrefetchedSuiData {
@@ -43,14 +43,7 @@ impl PrefetchedSuiData {
                 client.get_coins(sender, &mctp_input_contract).await.map_err(sui_error)
             }
         };
-        let object_ids = sui_object_ids(has_auction, &from_token_verified_address, &mctp_verified_input_address, &mctp_input_treasury);
-        let resolved_objects = async {
-            let objects = ResolvedObjectInput::get_multiple(client, object_ids.clone()).await.map_err(sui_error)?;
-            if objects.len() != object_ids.len() {
-                return Err(SwapperError::transaction_error("Failed to prefetch all Mayan Sui objects"));
-            }
-            Ok(objects)
-        };
+        let objects = get_sui_objects(client, sui_object_ids(has_auction, &from_token_verified_address, &mctp_verified_input_address, &mctp_input_treasury));
         let mctp_package_id = get_package_id(client, SUI_MCTP_STATE, package_id_cache);
         let fee_manager_package_id = async {
             if has_auction {
@@ -59,8 +52,7 @@ impl PrefetchedSuiData {
                 Ok(None)
             }
         };
-        let (transaction, input_coins, resolved_objects, mctp_package_id, fee_manager_package_id) = try_join!(transaction, input_coins, resolved_objects, mctp_package_id, fee_manager_package_id)?;
-        let objects = object_ids.into_iter().zip(resolved_objects).collect();
+        let (transaction, input_coins, objects, mctp_package_id, fee_manager_package_id) = try_join!(transaction, input_coins, objects, mctp_package_id, fee_manager_package_id)?;
 
         Ok(Self {
             transaction,
@@ -90,77 +82,4 @@ fn sui_object_ids(has_auction: bool, from_token_verified_address: &str, mctp_ver
     .into_iter()
     .chain(has_auction.then(|| SUI_MCTP_FEE_MANAGER_STATE.to_string()))
     .collect()
-}
-
-async fn get_package_id(client: &SuiClient, state_object_id: &'static str, package_id_cache: &Cache<&'static str, String>) -> Result<String, SwapperError> {
-    if let Some(package_id) = package_id_cache.get(&state_object_id) {
-        return Ok(package_id);
-    }
-    let state: MayanStateObject = client.get_object_json(state_object_id.to_string()).await.map_err(sui_error)?;
-    let package_id = state.latest_package_id();
-    package_id_cache.put(state_object_id, package_id.clone());
-    Ok(package_id)
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum MayanStateObject {
-    Direct(MayanStateFields),
-    Fields { fields: MayanStateFields },
-    Content { content: MayanStateContent },
-    Data { data: MayanStateContent },
-}
-
-impl MayanStateObject {
-    fn latest_package_id(self) -> String {
-        match self {
-            Self::Direct(fields) => fields.latest_package_id,
-            Self::Fields { fields } => fields.latest_package_id,
-            Self::Content { content } => content.fields.latest_package_id,
-            Self::Data { data } => data.fields.latest_package_id,
-        }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-struct MayanStateContent {
-    fields: MayanStateFields,
-}
-
-#[derive(Debug, Deserialize)]
-struct MayanStateFields {
-    #[serde(alias = "latestPackageId")]
-    latest_package_id: String,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_mayan_state_object_latest_package_id() {
-        let state: MayanStateObject = serde_json::from_value(serde_json::json!({
-            "latest_package_id": "0x123"
-        }))
-        .unwrap();
-        assert_eq!(state.latest_package_id(), "0x123");
-
-        let state: MayanStateObject = serde_json::from_value(serde_json::json!({
-            "fields": {
-                "latest_package_id": "0xabc"
-            }
-        }))
-        .unwrap();
-        assert_eq!(state.latest_package_id(), "0xabc");
-
-        let state: MayanStateObject = serde_json::from_value(serde_json::json!({
-            "content": {
-                "fields": {
-                    "latestPackageId": "0xdef"
-                }
-            }
-        }))
-        .unwrap();
-        assert_eq!(state.latest_package_id(), "0xdef");
-    }
 }

@@ -155,7 +155,8 @@ where
             (ChainType::Solana, MayanQuote::Mctp(route)) => mctp::solana::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Solana, MayanQuote::FastMctp(route)) => fast_mctp::solana::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Sui, MayanQuote::Mctp(route)) => mctp::sui::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone(), &self.sui_package_id_cache).await,
-            (ChainType::Solana, MayanQuote::MonoChain(_)) | (ChainType::Sui, MayanQuote::Swift(_) | MayanQuote::FastMctp(_) | MayanQuote::MonoChain(_)) => Err(SwapperError::InvalidRoute),
+            (ChainType::Sui, MayanQuote::FastMctp(route)) => fast_mctp::sui::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone(), &self.sui_package_id_cache).await,
+            (ChainType::Solana, MayanQuote::MonoChain(_)) | (ChainType::Sui, MayanQuote::Swift(_) | MayanQuote::MonoChain(_)) => Err(SwapperError::InvalidRoute),
             (
                 ChainType::Bitcoin
                 | ChainType::Cosmos
@@ -206,7 +207,7 @@ where
         }
 
         match source_chain.chain_type() {
-            ChainType::Sui => routes.iter().find(|route| route.as_mctp().is_some()),
+            ChainType::Sui => routes.iter().find(|route| route.as_fast_mctp().is_some()).or_else(|| routes.iter().find(|route| route.as_mctp().is_some())),
             ChainType::Ethereum => routes
                 .iter()
                 .find(|route| route.as_swift().is_some_and(|swift| swift.swift_version == Some(SwiftVersion::V2)))
@@ -216,7 +217,7 @@ where
             ChainType::Solana => routes
                 .iter()
                 .find(|route| route.as_swift().is_some_and(|swift| swift.swift_version == Some(SwiftVersion::V2)))
-                .or_else(|| if destination_chain == Chain::Sui { None } else { routes.iter().find(|route| route.as_fast_mctp().is_some()) })
+                .or_else(|| routes.iter().find(|route| route.as_fast_mctp().is_some()))
                 .or_else(|| routes.iter().find(|route| route.as_mctp().is_some())),
             _ => routes
                 .iter()
@@ -336,13 +337,9 @@ mod tests {
 
         assert!(Mayan::<MockClient>::select_route(&routes, Chain::Ethereum, Chain::Base).unwrap().as_fast_mctp().is_some());
         assert!(Mayan::<MockClient>::select_route(&routes, Chain::Solana, Chain::Base).unwrap().as_fast_mctp().is_some());
-    }
-
-    #[test]
-    fn test_select_route_keeps_mctp_for_solana_to_sui_fast_mctp_gap() {
-        let routes = vec![MayanQuote::FastMctp(Box::new(MayanFastMctpQuote::mock())), MayanQuote::Mctp(Box::new(MayanMctpQuote::mock()))];
-
-        assert!(Mayan::<MockClient>::select_route(&routes, Chain::Solana, Chain::Sui).unwrap().as_mctp().is_some());
+        assert!(Mayan::<MockClient>::select_route(&routes, Chain::Solana, Chain::Sui).unwrap().as_fast_mctp().is_some());
+        assert!(Mayan::<MockClient>::select_route(&routes, Chain::Sui, Chain::Base).unwrap().as_fast_mctp().is_some());
+        assert!(Mayan::<MockClient>::select_route(&routes[..1], Chain::Sui, Chain::Base).unwrap().as_mctp().is_some());
     }
 
     #[test]
@@ -443,7 +440,7 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_mayan_provider_get_mctp_sui_quote_and_data() -> Result<(), SwapperError> {
+    async fn test_mayan_provider_get_fast_mctp_sui_quote_and_data() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default().set_debug(false));
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
@@ -455,14 +452,14 @@ mod swap_integration_tests {
             options: Options::new_with_slippage(200.into()),
         };
 
-        let quote = timed("mayan mctp sui quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan mctp sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote = timed("mayan fast mctp sui quote", provider.get_quote(&request)).await?;
+        let quote_data = timed("mayan fast mctp sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.provider, provider.provider().clone());
         assert_eq!(quote.data.routes.len(), 1);
-        let MayanQuote::Mctp(route) = quote.route_data()? else {
+        let MayanQuote::FastMctp(route) = quote.route_data()? else {
             return Err(SwapperError::InvalidRoute);
         };
         assert_eq!(route.from_chain, wormhole_chain::WormholeChain::Sui.name());
@@ -474,7 +471,7 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_mayan_provider_get_mctp_solana_to_sui_quote_and_data() -> Result<(), SwapperError> {
+    async fn test_mayan_provider_get_fast_mctp_solana_to_sui_quote_and_data() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default().set_debug(false));
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
@@ -486,12 +483,12 @@ mod swap_integration_tests {
             options: Options::new_with_slippage(200.into()),
         };
 
-        let quote = timed("mayan mctp solana to sui quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan mctp solana to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote = timed("mayan fast mctp solana to sui quote", provider.get_quote(&request)).await?;
+        let quote_data = timed("mayan fast mctp solana to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
-        let MayanQuote::Mctp(route) = quote.route_data()? else {
+        let MayanQuote::FastMctp(route) = quote.route_data()? else {
             return Err(SwapperError::InvalidRoute);
         };
         assert_eq!(route.from_chain, wormhole_chain::WormholeChain::Solana.name());
@@ -503,7 +500,7 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_mayan_provider_get_mctp_evm_to_sui_quote_and_data() -> Result<(), SwapperError> {
+    async fn test_mayan_provider_get_fast_mctp_evm_to_sui_quote_and_data() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default().set_debug(false));
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
@@ -515,17 +512,44 @@ mod swap_integration_tests {
             options: Options::new_with_slippage(200.into()),
         };
 
-        let quote = timed("mayan mctp evm to sui quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan mctp evm to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote = timed("mayan fast mctp evm to sui quote", provider.get_quote(&request)).await?;
+        let quote_data = timed("mayan fast mctp evm to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
-        let MayanQuote::Mctp(route) = quote.route_data()? else {
+        let MayanQuote::FastMctp(route) = quote.route_data()? else {
             return Err(SwapperError::InvalidRoute);
         };
         assert_eq!(route.from_chain, wormhole_chain::WormholeChain::Ethereum.name());
         assert_eq!(route.to_chain, wormhole_chain::WormholeChain::Sui.name());
         assert_eq!(quote_data.to, MAYAN_FORWARDER);
+        assert!(!quote_data.data.is_empty());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_mayan_provider_get_fast_mctp_sui_usdc_order_quote_and_data() -> Result<(), SwapperError> {
+        let rpc_provider = Arc::new(NativeProvider::default().set_debug(false));
+        let provider = Mayan::new(rpc_provider);
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(SUI_USDC_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Base)),
+            wallet_address: "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: BigUint::from(5000000u64),
+            options: Options::new_with_slippage(200.into()),
+        };
+
+        let quote = timed("mayan fast mctp sui usdc order quote", provider.get_quote(&request)).await?;
+        let quote_data = timed("mayan fast mctp sui usdc order quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+
+        let MayanQuote::FastMctp(route) = quote.route_data()? else {
+            return Err(SwapperError::InvalidRoute);
+        };
+        assert_eq!(route.from_chain, wormhole_chain::WormholeChain::Sui.name());
+        assert_eq!(route.has_auction, Some(true));
+        assert!(quote.to_value > BigUint::ZERO);
+        assert!(quote_data.to.is_empty());
         assert!(!quote_data.data.is_empty());
         Ok(())
     }

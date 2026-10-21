@@ -1,0 +1,36 @@
+{
+  "type": "FAST_MCTP",
+  "effectiveAmountIn64": "1000000000",
+  "expectedAmountOut": 0.000410056241819977,
+  "minAmountOut": 0.000401785093729443,
+  "gasDrop": 0,
+  "etaSeconds": 5,
+  "fromToken": {
+    "contract": "0x2::sui::SUI",
+    "wChainId": 21,
+    "decimals": 9,
+    "verifiedAddress": "0x9258181f5ceac8dbffb7030890243caed69a9599d2886d957a9cb7656af3bdb3",
+    "currencyId": "0xf256d3fb6a50eaa748d94335b34f2982fbc3b63ceec78cafaa29ebc9ebaf2bbc"
+  },
+  "toToken": {
+    "contract": "0x0000000000000000000000000000000000000000",
+    "wChainId": 30,
+    "decimals": 18
+  },
+  "fromChain": "sui",
+  "toChain": "base",
+  "slippageBps": 150,
+  "deadline64": "1792620423",
+  "referrerBps": 50,
+  "expectedAmountOutBaseUnits": "410056241819977",
+  "redeemRelayerFee": 0.014738,
+  "redeemRelayerFee64": "14738",
+  "refundRelayerFee64": "4233",
+  "minMiddleAmount": 1.038528265,
+  "hasAuction": true,
+  "fastMctpMayanContract": "0x1d2e4a268caf2c9a6cca996f9dfb5590b02628e8da5d5c92de89b386a3770af1",
+  "fastMctpInputContract": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+  "fastMctpInputCurrencyId": "0x75cfbbf8c962d542e99a1d15731e6069f60a00db895407785b15d14f606f2b4a",
+  "fastMctpMinFinality": 2000,
+  "circleMaxFee64": "0"
+}
