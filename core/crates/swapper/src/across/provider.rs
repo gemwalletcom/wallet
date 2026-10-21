@@ -5,7 +5,7 @@ use crate::{
     approval::{check_token_approval, get_swap_gas_limit_with_approval},
     chainlink::{self, ONE_DOLLAR},
     client_factory::{create_client_with_chain, create_eth_client},
-    cross_chain::VaultAddresses,
+    cross_chain::{VaultAddresses, rescale_base_units},
     eth_address,
     fees::{BRIDGE_FEE_BPS, ReferralFee, bps_of, referral_fees},
     models::*,
@@ -66,7 +66,9 @@ impl Across {
     }
 
     fn is_supported_route(from_asset: &AssetId, to_asset: &AssetId) -> bool {
-        if AcrossDeployment::fill_cost(&to_asset.chain).is_none() {
+        let supported_assets = AcrossDeployment::supported_assets();
+        let is_declared = |asset: &AssetId| supported_assets.get(&asset.chain).is_some_and(|assets| asset.is_native() || assets.contains(asset));
+        if !is_declared(from_asset) || !is_declared(to_asset) || AcrossDeployment::fill_cost(&to_asset.chain).is_none() {
             return false;
         }
 
@@ -269,21 +271,26 @@ impl Swapper for Across {
         let output_token = eth_address::parse(output.asset_id.chain, output.asset_id.token_id.as_deref().ok_or(SwapperError::NotSupportedAsset)?)?;
 
         let mappings = AcrossDeployment::asset_mappings();
-        let asset_mapping = mappings.iter().find(|x| x.set.contains(&input.asset_id)).ok_or(SwapperError::NotSupportedAsset)?;
+        let mapping = |asset: &AssetId| mappings.iter().find(|x| x.set.contains(asset)).ok_or(SwapperError::NotSupportedAsset);
+        let asset_mapping = mapping(&input.asset_id)?;
         let output_price = asset_mapping.price.ok_or(SwapperError::NotSupportedAsset)?;
         let asset_mainnet = asset_mapping.set.iter().find(|x| x.chain == Chain::Ethereum).ok_or(SwapperError::NotSupportedAsset)?;
         let mainnet_token = eth_address::parse_asset_id(asset_mainnet)?;
         let cost_config = &asset_mapping.capital_cost;
+        let output_decimals = mapping(&output.asset_id)?.capital_cost.decimals;
+        let rescale = |decimals| biguint_to_u256(&rescale_base_units(u256_to_biguint(&from_amount), cost_config.decimals, decimals)).ok_or(SwapperError::InputAmountError { min_amount: None });
+        let mainnet_amount = rescale(mapping(asset_mainnet)?.capital_cost.decimals)?;
+        let output_amount = rescale(output_decimals)?;
 
         let (hub_pool, gas_fee) = try_join!(
-            self.hub_pool_quote(&mainnet_token, from_amount, &input.asset_id, &output.asset_id),
-            self.gas_fee(to_chain, fill_cost, output_price, cost_config.decimals),
+            self.hub_pool_quote(&mainnet_token, mainnet_amount, &input.asset_id, &output.asset_id),
+            self.gas_fee(to_chain, fill_cost, output_price, output_decimals),
         )?;
 
-        let lp_fee = fees::multiply(from_amount, hub_pool.lp_fee_percent, cost_config.decimals);
+        let lp_fee = fees::multiply(output_amount, hub_pool.lp_fee_percent, output_decimals);
         let relayer_fee_percent = RelayerFeeCalculator::default().capital_fee_percent(&BigInt::from_str(&from_amount.to_string())?, cost_config);
-        let relayer_fee = fees::multiply(from_amount, relayer_fee_percent, cost_config.decimals);
-        let output_amount = from_amount
+        let relayer_fee = fees::multiply(output_amount, relayer_fee_percent, output_decimals);
+        let output_amount = output_amount
             .checked_sub(lp_fee + relayer_fee + gas_fee)
             .filter(|amount| !amount.is_zero())
             .ok_or(SwapperError::InputAmountError { min_amount: None })?;
@@ -461,6 +468,11 @@ mod tests {
         let arc = AssetId::from_chain(Chain::Arc);
         assert!(Across::is_supported_route(&arc, &usdc_eth));
         assert!(!Across::is_supported_route(&arc, &eth));
+
+        assert!(Across::is_supported_route(&usdc_eth, &SMARTCHAIN_USDC_ASSET_ID));
+        assert!(Across::is_supported_route(&SMARTCHAIN_USDT_ASSET_ID, &usdt_eth));
+        assert!(!Across::is_supported_route(&usdc_eth, &ARBITRUM_USDC_E_ASSET_ID));
+        assert!(!Across::is_supported_route(&ETHEREUM_WBTC_ASSET_ID, &ARBITRUM_WBTC_ASSET_ID));
     }
 
     #[tokio::test]
@@ -551,9 +563,14 @@ mod tests {
 
         #[tokio::test]
         async fn test_across_quotes_charge_relayer_costs_in_the_output_token() -> Result<(), SwapperError> {
-            let usdc = 50_000_000u64;
-            let ether = 20_000_000_000_000_000u64;
+            let usdc = 50_000_000u128;
+            let bsc_usdc = 50_000_000_000_000_000_000u128;
+            let ether = 20_000_000_000_000_000u128;
             let routes = [
+                (ETHEREUM_USDC_ASSET_ID.clone(), SMARTCHAIN_USDC_ASSET_ID.clone(), usdc),
+                (SMARTCHAIN_USDC_ASSET_ID.clone(), ETHEREUM_USDC_ASSET_ID.clone(), bsc_usdc),
+                (ETHEREUM_USDT_ASSET_ID.clone(), SMARTCHAIN_USDT_ASSET_ID.clone(), usdc),
+                (SMARTCHAIN_USDT_ASSET_ID.clone(), ETHEREUM_USDT_ASSET_ID.clone(), bsc_usdc),
                 (ETHEREUM_USDC_ASSET_ID.clone(), AVALANCHE_USDC_ASSET_ID.clone(), usdc),
                 (ETHEREUM_USDC_ASSET_ID.clone(), POLYGON_USDC_ASSET_ID.clone(), usdc),
                 (ARBITRUM_USDC_ASSET_ID.clone(), HYPEREVM_USDC_ASSET_ID.clone(), usdc),
@@ -570,8 +587,13 @@ mod tests {
             ];
             let chains = routes.iter().flat_map(|(from, to, _)| [from.chain, to.chain]).chain([Chain::Ethereum]);
             let across = Across::new(crate::testkit::dynode_provider(chains));
+            let decimals = |asset: &AssetId| {
+                let asset_id = AcrossAsset::from_asset(asset).unwrap().asset_id;
+                AcrossDeployment::asset_mappings().into_iter().find(|x| x.set.contains(&asset_id)).unwrap().capital_cost.decimals
+            };
 
             for (from_asset, to_asset, value) in routes {
+                let output_value = rescale_base_units(BigUint::from(value), decimals(&from_asset), decimals(&to_asset));
                 let request = QuoteRequest {
                     value: BigUint::from(value),
                     ..crate::testkit::mock_quote(from_asset.clone().into(), to_asset.clone().into())
@@ -581,8 +603,8 @@ mod tests {
                 let scale = AcrossAsset::from_asset(&to_asset).unwrap().scale;
                 println!("{from_asset} -> {to_asset}: output {} to_value {}", relay_data.outputAmount, quote.to_value);
 
-                assert!(quote.to_value * BigUint::from(1000u32) >= BigUint::from(value) * u256_to_biguint(&scale) * BigUint::from(990u32), "{from_asset} -> {to_asset}");
-                assert!(relay_data.outputAmount < U256::from(value), "{from_asset} -> {to_asset}");
+                assert!(quote.to_value * BigUint::from(1000u32) >= &output_value * u256_to_biguint(&scale) * BigUint::from(990u32), "{from_asset} -> {to_asset}");
+                assert!(u256_to_biguint(&relay_data.outputAmount) < output_value, "{from_asset} -> {to_asset}");
             }
 
             Ok(())

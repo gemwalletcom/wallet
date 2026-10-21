@@ -123,7 +123,7 @@ impl AcrossDeployment {
             (Chain::Ink, vec![INK_WETH_ASSET_ID.clone(), INK_USDT0_ASSET_ID.clone(), INK_USDC_ASSET_ID.clone()]),
             (Chain::Unichain, vec![UNICHAIN_WETH_ASSET_ID.clone(), UNICHAIN_USDC_ASSET_ID.clone(), UNICHAIN_USDT0_ASSET_ID.clone()]),
             (Chain::Monad, vec![MONAD_USDC_ASSET_ID.clone(), MONAD_USDT_ASSET_ID.clone()]),
-            (Chain::SmartChain, vec![SMARTCHAIN_ETH_ASSET_ID.clone()]),
+            (Chain::SmartChain, vec![SMARTCHAIN_ETH_ASSET_ID.clone(), SMARTCHAIN_USDC_ASSET_ID.clone(), SMARTCHAIN_USDT_ASSET_ID.clone()]),
             (Chain::Plasma, vec![PLASMA_USDT_ASSET_ID.clone()]),
             (Chain::Robinhood, vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()]),
             (Chain::Arc, vec![]),

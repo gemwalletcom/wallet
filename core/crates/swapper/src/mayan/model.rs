@@ -2,7 +2,7 @@ use super::{
     constants::{MAYAN_FORWARDER, MAYAN_PROGRAM_ID, SDK_VERSION},
     wormhole_chain,
 };
-use crate::{SwapperError, error::ProviderErrorResponse, fees::default_referral_address};
+use crate::{SwapperError, cross_chain::rescale_base_units, error::ProviderErrorResponse, fees::default_referral_address};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use serde::{Deserialize, Serialize};
@@ -119,14 +119,6 @@ impl MayanQuoteCommon {
             Value::Null | Value::Bool(_) | Value::Array(_) | Value::Object(_) => return Err(SwapperError::InvalidRoute),
         };
         BigNumberFormatter::value_from_amount_biguint(&amount, output_decimals).map_err(SwapperError::from)
-    }
-}
-
-fn rescale_base_units(amount: BigUint, from_decimals: u32, to_decimals: u32) -> BigUint {
-    match to_decimals.cmp(&from_decimals) {
-        std::cmp::Ordering::Equal => amount,
-        std::cmp::Ordering::Greater => amount * BigUint::from(10_u32).pow(to_decimals - from_decimals),
-        std::cmp::Ordering::Less => amount / BigUint::from(10_u32).pow(from_decimals - to_decimals),
     }
 }
 

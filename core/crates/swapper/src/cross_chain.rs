@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use alloy_sol_types::SolCall;
 use gem_evm::across::{contracts::V3SpokePoolInterface, deployment::AcrossDeployment};
+use num_bigint::BigUint;
 use primitives::{Chain, ChainType, Transaction, decode_hex};
 
 use crate::SwapperProvider;
@@ -18,6 +19,14 @@ pub type DepositAddressMap = HashMap<String, SwapperProvider>;
 pub type SendAddressMap = HashMap<String, SwapperProvider>;
 
 const CHAINFLIP_SWAP_SELECTORS: [&str; 2] = ["0xdd687345", "0x04fc7da0"];
+
+pub(crate) fn rescale_base_units(amount: BigUint, from_decimals: u32, to_decimals: u32) -> BigUint {
+    match to_decimals.cmp(&from_decimals) {
+        std::cmp::Ordering::Equal => amount,
+        std::cmp::Ordering::Greater => amount * BigUint::from(10_u32).pow(to_decimals - from_decimals),
+        std::cmp::Ordering::Less => amount / BigUint::from(10_u32).pow(from_decimals - to_decimals),
+    }
+}
 
 pub fn swap_provider_with_vault_addresses(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> Option<SwapperProvider> {
     deposit_address_provider(transaction, deposit_addresses).filter(|provider| is_valid_swap_transaction(provider, transaction))
