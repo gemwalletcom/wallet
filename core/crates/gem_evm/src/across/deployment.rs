@@ -131,6 +131,10 @@ impl AcrossDeployment {
         ])
     }
 
+    pub fn is_supported_asset(asset: &AssetId) -> bool {
+        Self::supported_assets().get(&asset.chain).is_some_and(|assets| asset.is_native() || assets.contains(asset))
+    }
+
     pub fn supported_asset_for_token(chain: Chain, token: Address) -> Option<AssetId> {
         let token_address = |asset: &AssetId| asset.token_id.as_deref().and_then(|token_id| token_id.parse::<Address>().ok());
         let native = chain.as_asset_id();

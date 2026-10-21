@@ -66,9 +66,7 @@ impl Across {
     }
 
     fn is_supported_route(from_asset: &AssetId, to_asset: &AssetId) -> bool {
-        let supported_assets = AcrossDeployment::supported_assets();
-        let is_declared = |asset: &AssetId| supported_assets.get(&asset.chain).is_some_and(|assets| asset.is_native() || assets.contains(asset));
-        if !is_declared(from_asset) || !is_declared(to_asset) || AcrossDeployment::fill_cost(&to_asset.chain).is_none() {
+        if !AcrossDeployment::is_supported_asset(from_asset) || !AcrossDeployment::is_supported_asset(to_asset) || AcrossDeployment::fill_cost(&to_asset.chain).is_none() {
             return false;
         }
 
