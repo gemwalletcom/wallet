@@ -201,6 +201,11 @@ impl PerpetualTestkit {
         }
     }
 
+    pub fn select_wallet(&self, wallet: &Wallet) {
+        *self.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
+        self.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+    }
+
     pub fn details_service(self) -> DetailsTestkit {
         let device_api = Arc::new(GemDeviceApiClient::new(self.provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
         let assets = Arc::new(GemAssetsService::mock(self.provider.clone(), self.asset_store.clone()));

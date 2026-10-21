@@ -56,7 +56,7 @@ impl TonConnectMessage {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug)]
 pub struct TonConnectTransfer {
     pub to: String,
     pub value: BigUint,

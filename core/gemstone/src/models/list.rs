@@ -5,7 +5,7 @@ use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::social::GemSocialLink;
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
-use crate::models::copy::{GemCopy, address_copy};
+use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
 use crate::models::custom_types::GemBigInt;
 use crate::services::assets::icon::GemAssetIcon;
 use crate::services::contact::model::GemAvatar;
@@ -566,7 +566,10 @@ impl GemListRow {
 
     pub fn identifier(title: GemListRowTitle, copy: GemCopy, explorer: Option<BlockExplorerLink>) -> Self {
         Self::Identifier {
-            address: (title == GemListRowTitle::Contract).then(|| copy.value.clone()),
+            address: match copy.kind {
+                GemCopyKind::Address { .. } => Some(copy.value.clone()),
+                GemCopyKind::Plain | GemCopyKind::SecretPhrase | GemCopyKind::PrivateKey => None,
+            },
             menu: [Some(GemRowMenuItem::Copy { copy: copy.clone() }), explorer.as_ref().map(GemRowMenuItem::view_on)].into_iter().flatten().collect(),
             title,
             copy,

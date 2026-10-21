@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use block_explorers::{get_block_explorer, swap_explorer};
-use primitives::Chain;
+use primitives::{AssetId, Chain};
 use swapper::SwapperProvider;
 
 use super::remote_types::GemExplorerInput;
@@ -40,8 +40,8 @@ impl Explorer {
         get_block_explorer(self.chain, explorer_name).get_address_url(address)
     }
 
-    pub fn get_token_url(&self, explorer_name: &str, address: &str) -> Option<String> {
-        get_block_explorer(self.chain, explorer_name).get_token_url(address)
+    pub fn get_token_url(&self, explorer_name: &str, asset_id: &AssetId) -> Option<String> {
+        get_block_explorer(self.chain, explorer_name).get_token_url(asset_id)
     }
 
     pub fn get_nft_url(&self, explorer_name: &str, contract_address: &str, token_id: &str) -> Option<String> {
@@ -58,7 +58,7 @@ mod tests {
     use super::*;
     use block_explorers::get_block_explorers;
     use gem_solana::USDT_TOKEN_MINT;
-    use primitives::asset_constants::TON_USDT_TOKEN_ID;
+    use primitives::asset_constants::{TON_USDT_ASSET_ID, TON_USDT_TOKEN_ID};
 
     #[test]
     fn test_bitcoin_explorers() {
@@ -106,7 +106,7 @@ mod tests {
         let explorer = Explorer { chain };
         let account_url = explorer.get_address_url(&explorers[0].name(), "0x1f9090aae28b8a3dceadf281b0f12828e676c326");
         let transaction_url = explorer.get_transaction_url(&explorers[0].name(), "0xfd96a9ee20a7440bf65a5b8ecf7f884289ed78e28f82d45343a70f459e7a42a0");
-        let token_url = explorer.get_token_url(&explorers[0].name(), "0xdac17f958d2ee523a2206206994597c13d831ec7");
+        let token_url = explorer.get_token_url(&explorers[0].name(), &AssetId::from_token(chain, "0xdac17f958d2ee523a2206206994597c13d831ec7"));
         let nft_url = explorer.get_nft_url(&explorers[0].name(), "0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee", "11871");
 
         assert_eq!(account_url, "https://etherscan.io/address/0x1f9090aae28b8a3dceadf281b0f12828e676c326");
@@ -127,7 +127,7 @@ mod tests {
 
         let explorer = Explorer { chain };
         let account_url = explorer.get_address_url(&explorers[0].name(), TON_USDT_TOKEN_ID);
-        let token_url = explorer.get_token_url(&explorers[0].name(), TON_USDT_TOKEN_ID).unwrap();
+        let token_url = explorer.get_token_url(&explorers[0].name(), &TON_USDT_ASSET_ID).unwrap();
 
         assert_eq!(account_url, format!("https://tonviewer.com/{TON_USDT_TOKEN_ID}"));
         assert_eq!(token_url, account_url);
@@ -160,7 +160,10 @@ mod tests {
             explorer.get_transaction_url(&explorers[0].name(), "58UdzFXAz6Vk58jEM6UsWmNb7kcJ1YvR2nQmkp8YQSW2gabmGra1u67SEjNZzTHCyuAn8NqzcQcn6qBLKx7uhVK7",),
             "https://solscan.io/tx/58UdzFXAz6Vk58jEM6UsWmNb7kcJ1YvR2nQmkp8YQSW2gabmGra1u67SEjNZzTHCyuAn8NqzcQcn6qBLKx7uhVK7"
         );
-        assert_eq!(explorer.get_token_url(&explorers[1].name(), USDT_TOKEN_MINT,).unwrap(), format!("https://solana.fm/address/{USDT_TOKEN_MINT}"));
+        assert_eq!(
+            explorer.get_token_url(&explorers[1].name(), &AssetId::from_token(chain, USDT_TOKEN_MINT)).unwrap(),
+            format!("https://solana.fm/address/{USDT_TOKEN_MINT}")
+        );
     }
 
     #[test]
@@ -174,7 +177,9 @@ mod tests {
         let explorer = Explorer { chain };
         let account_url = explorer.get_address_url(&explorers[0].name(), "cosmos1fxygpgus4nd5jmfl5j7fh5y8hyy53z8u95dzx7");
         let transaction_url = explorer.get_transaction_url(&explorers[0].name(), "CFB4B38D75DB9D9055A7D4A2A76C67B8A27C37124C4E5663BEE104589E726763");
-        let asset_url = explorer.get_token_url(&explorers[0].name(), "ibc/0025F8A87464A471E66B234C4F93AEC5B4DA3D42D7986451A059273426290DD5").unwrap();
+        let asset_url = explorer
+            .get_token_url(&explorers[0].name(), &AssetId::from_token(chain, "ibc/0025F8A87464A471E66B234C4F93AEC5B4DA3D42D7986451A059273426290DD5"))
+            .unwrap();
 
         assert_eq!(account_url, "https://www.mintscan.io/cosmos/address/cosmos1fxygpgus4nd5jmfl5j7fh5y8hyy53z8u95dzx7");
         assert_eq!(transaction_url, "https://www.mintscan.io/cosmos/tx/CFB4B38D75DB9D9055A7D4A2A76C67B8A27C37124C4E5663BEE104589E726763");

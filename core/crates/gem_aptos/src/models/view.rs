@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{DELEGATION_POOL_GET_STAKE_FUNCTION, DELEGATION_POOL_OPERATOR_COMMISSION_FUNCTION, STAKE_GET_LOCKUP_SECS_FUNCTION};
+use crate::{DELEGATION_POOL_GET_STAKE_FUNCTION, DELEGATION_POOL_OPERATOR_COMMISSION_FUNCTION, STAKE_GET_LOCKUP_SECS_FUNCTION, STAKING_CONFIG_REWARD_RATE_FUNCTION};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MoveOption<T> {
@@ -34,5 +34,9 @@ impl ViewRequest {
 
     pub fn stake_lockup_secs(pool: &str) -> Self {
         Self::new(STAKE_GET_LOCKUP_SECS_FUNCTION.to_string(), vec![Value::from(pool)])
+    }
+
+    pub fn reward_rate() -> Self {
+        Self::new(STAKING_CONFIG_REWARD_RATE_FUNCTION.to_string(), vec![])
     }
 }

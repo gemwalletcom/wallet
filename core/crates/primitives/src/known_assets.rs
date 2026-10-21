@@ -28,7 +28,6 @@ pub static ARBITRUM_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::
 pub static ARBITRUM_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Arbitrum, ARBITRUM_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::ERC20));
 
 pub static BASE_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Base, BASE_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
-pub static BASE_CBBTC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Base, BASE_CBBTC_TOKEN_ID, CBBTC_NAME, CBBTC_SYMBOL, 8, AssetType::ERC20));
 
 pub static POLYGON_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Polygon, POLYGON_USDC_TOKEN_ID, USDC_NAME, USDC_SYMBOL, 6, AssetType::ERC20));
 

@@ -31,7 +31,7 @@ Use when versioning, tagging, committing for review, rebasing, publishing, or tr
 
 ## Release Builds
 
-- Store builds check out the release tag, so confirm it exists remotely before starting a build. `release_on_tag.yml` creates the GitHub release with generated notes when the tag is pushed.
+- Store builds check out the release tag, so confirm it exists remotely before starting a build. `release_on_tag.yml` creates the GitHub release with generated notes when the tag is pushed, as a pre-release: internal builds stay pre-releases, and a production release becomes the latest release once its universal APK is attached, which is what the README's APK link and the APK update check read.
 - Android: `just android release` builds the Play AAB and `just android release-apk` the universal APK; channel variants come from `-Pchannel` (see `android/skills/release-and-verification.md`). The F-Droid build is reproduced from `android/reproducible/fdroid/`.
 - iOS: `just generate-stone` builds the Rust static libraries and UniFFI sources the archive links, then the `Gem` scheme is archived in the Release configuration from `ios/Gem.xcodeproj`.
 - When two releases with near-identical source differ in binary size or behavior, suspect the build machine's Rust toolchain and cargo cache state before source: archive both tags locally on one machine and compare.

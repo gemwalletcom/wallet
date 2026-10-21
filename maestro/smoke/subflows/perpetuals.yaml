@@ -1,0 +1,52 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- runFlow:
+    when:
+      notVisible:
+        id: "trade_perpetuals"
+    commands:
+      - tapOn:
+          id: "settingsTab"
+      - tapOn:
+          id: "preferences"
+      - tapOn:
+          id: "perpetuals"
+          point: "90%,50%"
+      - runFlow: launch.yaml
+- extendedWaitUntil:
+    visible:
+      id: "trade_perpetuals"
+    timeout: 30000
+- tapOn:
+    id: "trade_perpetuals"
+- extendedWaitUntil:
+    visible:
+      id: "hypercore_perpetual::BTC"
+    timeout: 30000
+- tapOn:
+    id: "hypercore_perpetual::BTC"
+- extendedWaitUntil:
+    visible:
+      id: "long_button"
+    timeout: 30000
+- tapOn:
+    id: "period_week"
+- assertVisible:
+    id: "short_button"
+- takeScreenshot: ${output.journey}_perpetual
+- tapOn:
+    id: "long_button"
+- runFlow: amount_over_balance.yaml
+- takeScreenshot: ${output.journey}_perpetual_long
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "preferences"
+- tapOn:
+    id: "perpetuals"
+    point: "90%,50%"
+- runFlow: launch.yaml
+- assertNotVisible:
+    id: "trade_perpetuals"

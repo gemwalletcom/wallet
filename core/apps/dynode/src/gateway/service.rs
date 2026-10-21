@@ -149,7 +149,7 @@ impl Gateway {
                     self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, response.status, started.elapsed());
                     self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, response.status);
                     if route.should_retry(response.status) {
-                        if let Some(duration) = route.status_cooldown(retry_after, self.cooldown) {
+                        if let Some(duration) = route.cooldown(retry_after, self.cooldown) {
                             self.start_cooldown(route, endpoint, &path, Failure { status: response.status, reason: "cooldown" }, duration).await;
                         }
                         let status = response.status;
@@ -168,17 +168,19 @@ impl Gateway {
                     self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, StatusCode::BAD_GATEWAY.as_u16());
                     self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, StatusCode::BAD_GATEWAY.as_u16(), started.elapsed());
                     access.upstream_failed(&endpoint.name, host, reason);
-                    self.start_cooldown(
-                        route,
-                        endpoint,
-                        &path,
-                        Failure {
-                            status: StatusCode::SERVICE_UNAVAILABLE.as_u16(),
-                            reason,
-                        },
-                        self.cooldown,
-                    )
-                    .await;
+                    if let Some(duration) = route.cooldown(None, self.cooldown) {
+                        self.start_cooldown(
+                            route,
+                            endpoint,
+                            &path,
+                            Failure {
+                                status: StatusCode::SERVICE_UNAVAILABLE.as_u16(),
+                                reason,
+                            },
+                            duration,
+                        )
+                        .await;
+                    }
                     pending_failover = Some((endpoint_index, StatusCode::BAD_GATEWAY.as_u16(), reason.to_string()));
                 }
             }

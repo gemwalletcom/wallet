@@ -472,8 +472,7 @@ mod tests {
         block_on(async {
             let testkit = PerpetualTestkit::with_unified_balance().await;
             let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
-            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
-            testkit.service.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            testkit.select_wallet(&wallet);
             testkit.store.rejects_positions.store(true, Ordering::SeqCst);
 
             assert!(testkit.service.sync_current_positions().await.is_err());
@@ -587,8 +586,7 @@ mod tests {
         block_on(async {
             let testkit = PerpetualTestkit::new();
             let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
-            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
-            testkit.service.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            testkit.select_wallet(&wallet);
 
             let failures = testkit.service.refresh(GemMarketsRefreshTrigger::UserRequested).await;
 
@@ -639,8 +637,7 @@ mod tests {
             for chains in [[Chain::Arbitrum, Chain::HyperCore], [Chain::Hyperliquid, Chain::HyperCore], [Chain::HyperCore, Chain::Arbitrum]] {
                 let testkit = PerpetualTestkit::with_unified_balance().await;
                 let wallet = Wallet::mock_with_accounts(Account::mock_chains(&chains, "0xc64c"));
-                *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
-                testkit.service.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+                testkit.select_wallet(&wallet);
                 testkit.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp())).unwrap();
 
                 assert_eq!(testkit.service.refresh(GemMarketsRefreshTrigger::Scheduled).await, vec![]);
@@ -658,8 +655,7 @@ mod tests {
         block_on(async {
             let testkit = PerpetualTestkit::with_standard_spot_balance().await;
             let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
-            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
-            testkit.service.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            testkit.select_wallet(&wallet);
             testkit.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp())).unwrap();
 
             assert_eq!(testkit.service.refresh(GemMarketsRefreshTrigger::Scheduled).await, vec![]);
@@ -675,8 +671,7 @@ mod tests {
         block_on(async {
             let testkit = PerpetualTestkit::with_unified_balance().await;
             let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
-            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
-            testkit.service.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            testkit.select_wallet(&wallet);
 
             testkit.service.connection(wallet).await.unwrap();
             testkit.service.sync_current_positions().await.unwrap();

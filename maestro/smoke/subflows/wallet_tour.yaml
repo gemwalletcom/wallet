@@ -3,13 +3,14 @@ appId: ${APP_ID}
 - runFlow: home_prices.yaml
 - runFlow: asset_chart.yaml
 - runFlow: price_alert.yaml
+- runFlow: price_target_alert.yaml
 - runFlow: manage_assets.yaml
 - runFlow: add_token.yaml
 - runFlow: buy.yaml
 - runFlow: send.yaml
 - runFlow: send_to_contact.yaml
 - runFlow: swap.yaml
+- runFlow: swap_pair.yaml
 - runFlow: stake.yaml
-- runFlow: rename_wallet.yaml
-- runFlow: second_wallet.yaml
+- runFlow: perpetuals.yaml
 - runFlow: currency.yaml

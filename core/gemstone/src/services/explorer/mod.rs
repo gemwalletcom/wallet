@@ -5,7 +5,7 @@ pub(crate) mod testkit;
 use std::sync::Arc;
 
 use block_explorers::get_block_explorers_by_chain;
-use primitives::{BlockExplorerLink, Chain};
+use primitives::{AssetId, BlockExplorerLink, Chain};
 
 use crate::block_explorer::{Explorer, GemExplorerInput};
 use crate::services::error::GemServiceError;
@@ -39,9 +39,9 @@ impl GemExplorerService {
         link(&name, Explorer { chain }.get_address_url(&name, &address))
     }
 
-    pub fn get_token_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
-        let name = self.get_explorer_name(chain);
-        Explorer { chain }.get_token_url(&name, &address).map(|url| link(&name, url))
+    pub fn get_token_url(&self, asset_id: &AssetId) -> Option<BlockExplorerLink> {
+        let name = self.get_explorer_name(asset_id.chain);
+        Explorer { chain: asset_id.chain }.get_token_url(&name, asset_id).map(|url| link(&name, url))
     }
 
     pub fn get_explorers(&self, chain: Chain) -> Vec<String> {

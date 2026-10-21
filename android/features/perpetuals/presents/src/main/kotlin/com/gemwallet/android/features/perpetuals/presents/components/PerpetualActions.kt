@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -31,7 +32,7 @@ internal fun PerpetualActions(buttons: List<GemPerpetualButtonRow>, onSelect: (G
             Button(
                 onClick = { onSelect(button.button) },
                 colors = ButtonDefaults.buttonColors().copy(containerColor = button.tone.buttonColor()),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).testTag("${button.button.name.lowercase()}_button"),
             ) {
                 Text(stringResource(button.button.stringRes()))
             }

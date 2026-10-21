@@ -109,4 +109,9 @@ impl DiscoveryTestkit {
     pub fn with_status(status: u16) -> Self {
         Self::with_response(TestAlienProvider::with_status(status))
     }
+
+    pub fn select_wallet(&self, wallet: &Wallet) {
+        *self.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
+        self.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+    }
 }

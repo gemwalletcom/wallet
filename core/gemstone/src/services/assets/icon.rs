@@ -1,5 +1,5 @@
 use primitives::known_assets::{PYUSD_ASSET_IDS, USD1_ASSET_IDS, USDC_ASSET_IDS, USDE_ASSET_IDS, USDG_ASSET_IDS, USDS_ASSET_IDS, USDT_ASSET_IDS};
-use primitives::{Asset, AssetId, AssetSubtype, Chain};
+use primitives::{Asset, AssetId, AssetSubtype, Chain, HyperCoreToken};
 use strum::{EnumIter, IntoEnumIterator};
 
 use crate::config::chain::{badge_chain, icon_chain, is_ether_layer2};
@@ -90,8 +90,10 @@ fn local_token_icon(asset_id: &AssetId) -> Option<GemLocalTokenIcon> {
 }
 
 fn perpetual_coin(asset_id: &AssetId) -> Option<String> {
-    let ids = AssetId::decode_token_id(asset_id.token_id.as_deref()?);
-    (asset_id.chain == Chain::HyperCore && ids.first().is_some_and(|kind| kind == "perpetual")).then(|| ids.get(1).cloned())?
+    match HyperCoreToken::from_asset_id(asset_id)? {
+        HyperCoreToken::Perpetual { symbol } => Some(symbol),
+        HyperCoreToken::Spot { .. } => None,
+    }
 }
 
 #[cfg(test)]

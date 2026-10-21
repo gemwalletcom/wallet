@@ -13,7 +13,7 @@ use gem_hypercore::{
 use num_bigint::BigUint;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
 use primitives::{
-    Chain, HOUR,
+    Chain, HOUR, HyperCoreToken,
     known_assets::{HYPERCORE_HYPE, HYPERCORE_SPOT_HYPE, HYPERCORE_SPOT_UBTC, HYPERCORE_SPOT_USDC},
 };
 
@@ -70,9 +70,11 @@ impl HyperCoreSpot {
 
     fn spot_token<'a>(&self, meta: &'a SpotMeta, asset: &'a SwapperQuoteAsset) -> Result<&'a SpotToken, SwapperError> {
         let asset_id = asset.asset_id();
-        let components = asset_id.token_components().or_else(|| if asset_id == HYPERCORE_HYPE.id { HYPERCORE_SPOT_HYPE.id.token_components() } else { None });
+        let token = HyperCoreToken::from_asset_id(&asset_id).or_else(|| if asset_id == HYPERCORE_HYPE.id { HyperCoreToken::from_asset_id(&HYPERCORE_SPOT_HYPE.id) } else { None });
 
-        let (symbol, contract, index) = components.ok_or(SwapperError::NotSupportedAsset)?;
+        let Some(HyperCoreToken::Spot { symbol, contract, index }) = token else {
+            return Err(SwapperError::NotSupportedAsset);
+        };
         let token = meta.tokens.iter().find(|token| token.name == symbol).ok_or(SwapperError::NotSupportedAsset)?;
 
         if let Some(contract) = contract

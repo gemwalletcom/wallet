@@ -1,4 +1,6 @@
 pub mod rules;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 
@@ -247,7 +249,7 @@ mod tests {
             let testkit = DiscoveryTestkit::with_provider(Arc::new(TestAlienProvider::with_status(500)), wallet.clone());
             let asset = Asset::from_chain(Chain::Ethereum);
             testkit.asset_store.save_assets(vec![default_asset_basic(asset.clone())]).await.unwrap();
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.preferences.clone(), testkit.session.clone());
+            let service = GemNavigationService::mock(&testkit);
             let transaction_id = Transaction::mock().id;
 
             let target = service
@@ -276,7 +278,7 @@ mod tests {
     #[test]
     fn test_only_a_perpetual_opens_the_perpetual_screen() {
         let testkit = DiscoveryTestkit::with_status(200);
-        let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.preferences.clone(), testkit.session.clone());
+        let service = GemNavigationService::mock(&testkit);
         let coin = Asset::from_chain(Chain::Ethereum);
         let perpetual = Asset {
             asset_type: AssetType::PERPETUAL,
@@ -299,10 +301,9 @@ mod tests {
         block_on(async {
             let testkit = DiscoveryTestkit::with_status(200);
             let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Arbitrum]);
-            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
-            testkit.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            testkit.select_wallet(&wallet);
             testkit.preferences.set_perpetual_enabled(true).unwrap();
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.preferences.clone(), testkit.session.clone());
+            let service = GemNavigationService::mock(&testkit);
 
             assert_eq!(service.open_code("gem://perpetuals".to_string()).await, GemCodeOutcome::Open { target: GemNavigationTarget::Perpetuals });
             assert!(matches!(service.open_code("wc:abc@2?relay-protocol=irn".to_string()).await, GemCodeOutcome::WalletConnect { .. }));
@@ -322,10 +323,9 @@ mod tests {
             let testkit = DiscoveryTestkit::with_status(200);
             let solana = Wallet::mock_with_type(WalletType::Single, &[Chain::Solana]);
             let multicoin = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Arbitrum]);
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.preferences.clone(), testkit.session.clone());
+            let service = GemNavigationService::mock(&testkit);
             let open = |wallet: Wallet| {
-                *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
-                testkit.session.set_current_wallet_id(Some(wallet.id)).unwrap();
+                testkit.select_wallet(&wallet);
                 service.open_deeplink(Deeplink::Perpetuals)
             };
 
@@ -334,11 +334,6 @@ mod tests {
             assert_eq!(open(solana).await.unwrap(), GemNavigationTarget::None, "a single chain wallet never shows Perpetuals");
             assert_eq!(open(multicoin).await.unwrap(), GemNavigationTarget::Perpetuals);
         });
-    }
-
-    fn select_wallet(testkit: &DiscoveryTestkit, wallet: Wallet) {
-        *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
-        testkit.session.set_current_wallet_id(Some(wallet.id)).unwrap();
     }
 
     async fn save_asset(testkit: &DiscoveryTestkit, asset: Asset, is_buyable: bool, is_swapable: bool) {
@@ -359,13 +354,13 @@ mod tests {
     fn test_links_open_only_the_actions_the_asset_screen_offers() {
         block_on(async {
             let testkit = DiscoveryTestkit::with_status(200);
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.preferences.clone(), testkit.session.clone());
+            let service = GemNavigationService::mock(&testkit);
             let ethereum = Asset::from_chain(Chain::Ethereum);
             let buy = || service.open_deeplink(Deeplink::Buy { asset_id: ethereum.id.clone(), amount: None });
             let sell = || service.open_deeplink(Deeplink::Sell { asset_id: ethereum.id.clone(), amount: None });
             let swap = || service.open_deeplink(Deeplink::Swap { asset_id: ethereum.id.clone() });
             let receive = || service.open_deeplink(Deeplink::Receive { asset_id: ethereum.id.clone() });
-            select_wallet(&testkit, Wallet::mock());
+            testkit.select_wallet(&Wallet::mock());
 
             save_asset(&testkit, ethereum.clone(), false, false).await;
             assert_eq!(buy().await.unwrap(), GemNavigationTarget::None, "the asset cannot be bought");
@@ -392,7 +387,7 @@ mod tests {
             assert_eq!(swap().await.unwrap(), GemNavigationTarget::Swap { from: ethereum.clone(), to: None });
             assert_eq!(receive().await.unwrap(), GemNavigationTarget::Receive { asset: ethereum.clone() });
 
-            select_wallet(&testkit, Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]));
+            testkit.select_wallet(&Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]));
             assert_eq!(buy().await.unwrap(), GemNavigationTarget::None, "a watch-only wallet shows a notice instead of buttons");
             assert_eq!(sell().await.unwrap(), GemNavigationTarget::None);
             assert_eq!(swap().await.unwrap(), GemNavigationTarget::None);
@@ -404,10 +399,10 @@ mod tests {
     fn test_a_swap_push_drops_a_receive_asset_that_cannot_be_swapped() {
         block_on(async {
             let testkit = DiscoveryTestkit::with_status(200);
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.preferences.clone(), testkit.session.clone());
+            let service = GemNavigationService::mock(&testkit);
             let ethereum = Asset::from_chain(Chain::Ethereum);
             let arbitrum = Asset::from_chain(Chain::Arbitrum);
-            select_wallet(&testkit, Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Arbitrum]));
+            testkit.select_wallet(&Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Arbitrum]));
             save_asset(&testkit, ethereum.clone(), false, true).await;
             save_asset(&testkit, arbitrum.clone(), false, false).await;
 
@@ -427,12 +422,12 @@ mod tests {
     fn test_a_perpetual_opens_only_where_the_wallet_shows_perpetuals() {
         block_on(async {
             let testkit = DiscoveryTestkit::with_status(200);
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.preferences.clone(), testkit.session.clone());
+            let service = GemNavigationService::mock(&testkit);
             let perpetual = Asset {
                 asset_type: AssetType::PERPETUAL,
                 ..Asset::from_chain(Chain::HyperCore)
             };
-            select_wallet(&testkit, Wallet::mock_with_chains(&[Chain::HyperCore]));
+            testkit.select_wallet(&Wallet::mock_with_chains(&[Chain::HyperCore]));
             save_asset(&testkit, perpetual.clone(), false, false).await;
             let open = || service.open_deeplink(Deeplink::Asset { asset_id: perpetual.id.clone() });
 
@@ -453,14 +448,14 @@ mod tests {
     fn test_a_perpetual_transaction_push_opens_only_where_the_wallet_shows_perpetuals() {
         block_on(async {
             let testkit = DiscoveryTestkit::with_status(200);
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.preferences.clone(), testkit.session.clone());
+            let service = GemNavigationService::mock(&testkit);
             let wallet = Wallet::mock_with_chains(&[Chain::HyperCore]);
             let perpetual = Asset {
                 asset_type: AssetType::PERPETUAL,
                 ..Asset::from_chain(Chain::HyperCore)
             };
             let transaction_id = Transaction::mock().id;
-            select_wallet(&testkit, wallet.clone());
+            testkit.select_wallet(&wallet);
             save_asset(&testkit, perpetual.clone(), false, false).await;
             let open = || {
                 service.open_notification(GemPushNotification::Transaction {
@@ -489,11 +484,10 @@ mod tests {
         block_on(async {
             let testkit = DiscoveryTestkit::with_status(200);
             let wallet = Wallet::mock();
-            *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
-            testkit.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
+            testkit.select_wallet(&wallet);
             let bitcoin = Asset::from_chain(Chain::Bitcoin);
             testkit.asset_store.save_assets(vec![default_asset_basic(bitcoin.clone())]).await.unwrap();
-            let service = GemNavigationService::new(testkit.assets.clone(), testkit.balance.clone(), testkit.preferences.clone(), testkit.session.clone());
+            let service = GemNavigationService::mock(&testkit);
 
             let result = service.open_deeplink(Deeplink::Receive { asset_id: bitcoin.id.clone() }).await;
 

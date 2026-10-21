@@ -132,7 +132,12 @@ impl StoreTransactionsConsumer {
         Self::transactions_for_storage(transactions, deposit_addresses, send_addresses, notification_type)
             .into_iter()
             .filter(|transaction| config.is_transaction_within_asset_transfer_limit(transaction))
-            .filter(|transaction| transaction.addresses().iter().any(|address| subscription_addresses.contains(address)))
+            .filter(|transaction| {
+                transaction
+                    .addresses()
+                    .iter()
+                    .any(|address| subscription_addresses.contains(address) && !cross_chain::is_received_from_vault(transaction, address, send_addresses))
+            })
             .collect()
     }
 
@@ -374,6 +379,7 @@ mod tests {
         asset_constants::SOLANA_USDC_ASSET_ID,
         contract_constants::{SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID, SOLANA_RELAY_DEPOSITORY_PROGRAM_ID},
         known_assets::HYPERCORE_PERPETUAL_USDC,
+        transaction_metadata_types::TransactionAssetTransfer,
     };
 
     #[test]
@@ -489,6 +495,32 @@ mod tests {
         assert_eq!(
             subscribed.iter().map(|(_, transaction)| transaction.asset_id.clone()).collect::<Vec<_>>(),
             vec![AssetId::from_chain(Chain::Ethereum), HYPERCORE_PERPETUAL_USDC.id.clone()]
+        );
+    }
+
+    #[test]
+    fn test_subscribed_transactions_for_storage_skip_swap_payouts() {
+        let config = StoreTransactionsConsumerConfig::mock();
+        let subscriptions = vec![DeviceSubscription {
+            address: "0xuser".to_string(),
+            ..DeviceSubscription::mock()
+        }];
+        let payout = Transaction::mock_with_asset_transfers(vec![TransactionAssetTransfer {
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            from: "0xvault".to_string(),
+            to: "0xuser".to_string(),
+            value: BigUint::from(1u32),
+        }]);
+        let send_addresses = SendAddressMap::from([("0xvault".to_string(), SwapProvider::Mayan)]);
+        let notification_type = TransactionNotificationType::NewTransaction;
+
+        assert_eq!(
+            StoreTransactionsConsumer::subscribed_transactions_for_storage(&config, vec![payout.clone()], &subscriptions, &DepositAddressMap::new(), &SendAddressMap::new(), &notification_type).len(),
+            1
+        );
+        assert_eq!(
+            StoreTransactionsConsumer::subscribed_transactions_for_storage(&config, vec![payout], &subscriptions, &DepositAddressMap::new(), &send_addresses, &notification_type).len(),
+            0
         );
     }
 

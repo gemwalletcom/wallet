@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.swap.SwapItemType
@@ -164,7 +165,8 @@ private fun SwitchButton(enabled: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .size(iconSize)
             .clip(MaterialTheme.shapes.medium)
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick)
+            .testTag("swap_switch"),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

@@ -106,7 +106,7 @@ pub fn get_nodes_for_chain(chain: Chain) -> Vec<Node> {
         Chain::Dash => vec![],
         Chain::Zcash => vec![],
         Chain::Optimism => vec![Node::new("https://mainnet.optimism.io", NodePriority::High)],
-        Chain::Aptos => vec![Node::new("https://fullnode.mainnet.aptoslabs.com", NodePriority::High), Node::new("https://aptos-fullnode.polkachu.com", NodePriority::High)],
+        Chain::Aptos => vec![Node::new("https://fullnode.mainnet.aptoslabs.com", NodePriority::High)],
         Chain::Base => vec![
             Node::new("https://mainnet.base.org", NodePriority::High),
             Node::new("https://base-rpc.polkachu.com", NodePriority::High),

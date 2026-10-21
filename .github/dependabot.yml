@@ -39,3 +39,12 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-patch"
+
+  - package-ecosystem: "docker"
+    directories:
+      - "/core"
+      - "/.oss-scanner"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7

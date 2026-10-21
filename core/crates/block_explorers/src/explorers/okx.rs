@@ -1,3 +1,5 @@
+use primitives::AssetId;
+
 use crate::BlockExplorer;
 
 const OKX_BASE_URL: &str = "https://www.okx.com/web3/explorer";
@@ -28,8 +30,8 @@ impl BlockExplorer for OkxChainExplorer {
     fn get_address_url(&self, address: &str) -> String {
         format!("{}/{}/address/{}", OKX_BASE_URL, self.chain, address)
     }
-    fn get_token_url(&self, token: &str) -> Option<String> {
-        Some(format!("{}/{}/token/{}", OKX_BASE_URL, self.chain, token))
+    fn get_token_url(&self, asset_id: &AssetId) -> Option<String> {
+        asset_id.token_id.as_deref().map(|token| format!("{}/{}/token/{}", OKX_BASE_URL, self.chain, token))
     }
 }
 

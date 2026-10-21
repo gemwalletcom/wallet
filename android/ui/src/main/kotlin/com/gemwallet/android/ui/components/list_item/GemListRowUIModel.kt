@@ -262,7 +262,7 @@ private fun GemListRowIcon.image(): ListItemImage? = when (this) {
     GemListRowIcon.APPEARANCE -> ListItemImage.Drawable(R.drawable.settings_appearance)
     GemListRowIcon.NETWORKS -> ListItemImage.Drawable(R.drawable.settings_networks)
     GemListRowIcon.CONTACTS -> ListItemImage.Drawable(R.drawable.settings_contacts)
-    GemListRowIcon.PERPETUALS -> ListItemImage.Drawable(R.drawable.settings_pricealert)
+    GemListRowIcon.PERPETUALS -> ListItemImage.Drawable(R.drawable.settings_perpetuals)
     GemListRowIcon.PIN -> ListItemImage.Symbol(ListItemSymbol.Pin)
     GemListRowIcon.UNPIN -> ListItemImage.Symbol(ListItemSymbol.Unpin)
     GemListRowIcon.ADD_TO_WALLET -> ListItemImage.Symbol(ListItemSymbol.AddCircle)

@@ -1,4 +1,4 @@
-use std::{error::Error, fmt, sync::Arc};
+use std::{cmp::Reverse, collections::BTreeSet, error::Error, fmt, sync::Arc};
 
 use alchemy::rpc::Client as AlchemyClient;
 use ankr::Client as AnkrClient;
@@ -27,6 +27,16 @@ pub(crate) struct TransactionReference {
 impl TransactionReference {
     pub(crate) fn new(hash: String, block_number: Option<u64>) -> Self {
         Self { hash, block_number }
+    }
+
+    pub(crate) fn unique_newest_first(references: impl IntoIterator<Item = (u64, String)>) -> Vec<Self> {
+        references
+            .into_iter()
+            .map(|(block_number, hash)| (Reverse(block_number), hash))
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .map(|(Reverse(block_number), hash)| Self::new(hash, Some(block_number)))
+            .collect()
     }
 }
 

@@ -73,7 +73,7 @@ internal fun PriceAlertsScene(
     Scene(
         title = stringResource(R.string.settings_price_alerts_title),
         actions = @Composable {
-            IconButton(onClick = { onAction(PriceAlertsAction.Add) }) {
+            IconButton(onClick = { onAction(PriceAlertsAction.Add) }, modifier = Modifier.testTag("add_price_alert")) {
                 Icon(imageVector = AppIcons.Add, contentDescription = "")
             }
         },
@@ -160,6 +160,7 @@ private fun LazyListScope.assets(revealable: MutableState<String?>, sections: Li
                     onClick = { onExclude(item.id) },
                     backgroundColor = MaterialTheme.colorScheme.error,
                     icon = AppIcons.Delete,
+                    contentDescription = stringResource(R.string.common_delete),
                 )
             },
             onExpanded = { revealable.value = item.id },

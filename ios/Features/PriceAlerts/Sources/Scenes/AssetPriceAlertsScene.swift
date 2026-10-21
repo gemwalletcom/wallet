@@ -62,6 +62,7 @@ public struct AssetPriceAlertsScene: View {
                 Button(action: model.onSelectSetPriceAlert) {
                     Image(systemName: SystemImage.plus)
                 }
+                .accessibilityIdentifier("add_price_alert")
             }
         }
         .sheet(isPresented: $model.isPresentingSetPriceAlert) {

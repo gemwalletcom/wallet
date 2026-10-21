@@ -108,6 +108,7 @@ public struct PerpetualScene: View {
                     Button(row.button.title) { model.onSelectButton(row.button) }
                         .frame(maxWidth: .infinity)
                         .buttonStyle(row.tone.buttonStyle)
+                        .accessibilityIdentifier("\(row.button)_button")
                 }
             }
         }

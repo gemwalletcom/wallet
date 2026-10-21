@@ -51,7 +51,10 @@ impl GemAmountType {
         };
         let is_max = value.as_ref() == Some(&input.max_value);
         GemAmountEntry {
-            equivalent: equivalent(value.as_ref(), asset, price, input_type, currency),
+            equivalent: match self {
+                Self::Perpetual { .. } => equivalent(value.as_ref(), asset, Some(1.0), input_type, Currency::USD),
+                Self::Transfer | Self::Deposit | Self::Withdraw | Self::Stake { .. } | Self::Earn { .. } => equivalent(value.as_ref(), asset, price, input_type, currency),
+            },
             is_max,
             reserved_fee: input.reserved_fee.as_ref().filter(|_| is_max).map(|fee| GemLocalizedText::ReservedFees {
                 fee: GemFormattedNumber::asset_amount(fee, asset, GemValueStyle::Auto),
@@ -1114,6 +1117,23 @@ mod tests {
         let below_max = stake.entry(&cosmos, &input, Some(10.0), GemAmountInputType::Asset, "1".to_string(), Currency::USD);
         assert!(!below_max.is_max);
         assert_eq!(below_max.reserved_fee, None);
+    }
+
+    #[test]
+    fn test_perpetual_entry_is_in_dollars() {
+        let usdc = Asset::mock_hypercore_usdc();
+        let perpetual = GemAmountType::Perpetual {
+            position: GemAmountPerpetualPosition::Open,
+            direction: PerpetualDirection::Long,
+            price: 4.0,
+            leverage: 1,
+            size_decimals: 0,
+        };
+        let input = perpetual.input(&usdc, &GemAssetBalance::mock_with_available(100_000_000));
+
+        let entry = perpetual.entry(&usdc, &input, Some(0.89), GemAmountInputType::Asset, "10".to_string(), Currency::EUR);
+
+        assert_eq!(entry.equivalent, GemFormattedNumber::currency(10.0, Currency::USD, GemCurrencyStyle::Currency));
     }
 
     #[test]

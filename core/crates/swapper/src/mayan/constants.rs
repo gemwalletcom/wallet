@@ -3,7 +3,7 @@ use primitives::{Chain, contract_constants::MAYAN_SWIFT_CONTRACT};
 
 pub const MAYAN_FORWARDER: &str = "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2";
 pub const MAYAN_MCTP: &str = "0x875d6d37EC55c8cF220B9E5080717549d8Aa8EcA";
-pub const MAYAN_FULFILL_HELPER: &str = "0xBC0663ef502F0Ee9676626ED5B418037252eFeb2";
+pub const MAYAN_FAST_MCTP: &str = "0xC1062b7C5Dc8E4b1Df9F200fe360cDc0eD6e7741";
 pub const MAYAN_SWIFT_V2_DESTINATION: &str = "0xD78D199f8C402e7B5Cc2abE278dF0412400a3BAe";
 pub const MAYAN_PROGRAM_ID: &str = "FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf";
 pub const MAYAN_MCTP_PROGRAM_ID: &str = "dkpZqrxHFrhziEMQ931GLtfy11nFkCsfMftH9u6QwBU";
@@ -34,4 +34,4 @@ pub const MAYAN_DEPOSIT_CONTRACTS: [(Chain, &str); 5] = [
     (Chain::Solana, MAYAN_CPI_PROXY_PROGRAM_ID),
     (Chain::Sui, SUI_MCTP_PACKAGE_ID),
 ];
-pub const MAYAN_SEND_CONTRACTS: [(Chain, &str); 2] = [(Chain::Ethereum, MAYAN_FULFILL_HELPER), (Chain::Ethereum, MAYAN_SWIFT_V2_DESTINATION)];
+pub const MAYAN_SEND_CONTRACTS: [(Chain, &str); 2] = [(Chain::Ethereum, MAYAN_FAST_MCTP), (Chain::Ethereum, MAYAN_SWIFT_V2_DESTINATION)];

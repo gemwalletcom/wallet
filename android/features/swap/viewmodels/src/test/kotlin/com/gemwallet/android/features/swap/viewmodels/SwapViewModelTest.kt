@@ -392,7 +392,7 @@ class SwapViewModelTest {
 
         requestQuote(viewModel, "0.5")
         requestQuote(viewModel, "")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
+        quoteAnswers.trySend(Result.success(listOf(swapperQuote())))
         advanceUntilIdle()
 
         assertNull(viewModel.viewState.value.details)
@@ -403,10 +403,7 @@ class SwapViewModelTest {
     fun `the same amount in another notation requests no new quotes`() = runTest(testDispatcher) {
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
-        viewModel.setRefreshEnabled(true)
-        requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
-        runCurrent()
+        answerQuote(viewModel)
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("1.0")
         Snapshot.sendApplyNotifications()
@@ -452,10 +449,7 @@ class SwapViewModelTest {
     fun `a quote is refreshed only after the refresh interval`() = runTest(testDispatcher) {
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
-        viewModel.setRefreshEnabled(true)
-        requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
-        runCurrent()
+        answerQuote(viewModel)
 
         advanceTimeBy(GemConstants.swapQuoteRefreshInterval.inWholeMilliseconds - 1)
         runCurrent()
@@ -492,10 +486,7 @@ class SwapViewModelTest {
     fun `automatic refresh stops in background and resumes in foreground`() = runTest(testDispatcher) {
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
-        viewModel.setRefreshEnabled(true)
-        requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
-        runCurrent()
+        answerQuote(viewModel)
 
         viewModel.setRefreshEnabled(false)
         advanceUntilIdle()
@@ -559,7 +550,7 @@ class SwapViewModelTest {
         viewModel.swap(onConfirm = { confirmed += it }, onError = {})
         awaitCondition { viewModel.viewState.value.isTransferLoading }
 
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2600000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
+        quoteAnswers.trySend(Result.success(listOf(swapperQuote(toValue = BigInteger("2600000")))))
         advanceUntilIdle()
 
         assertTrue(viewModel.viewState.value.isTransferLoading)
@@ -702,10 +693,7 @@ class SwapViewModelTest {
 
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
-        viewModel.setRefreshEnabled(true)
-        requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
-        runCurrent()
+        answerQuote(viewModel)
 
         viewModel.swap(onConfirm = {}, onError = {})
         awaitCondition { viewModel.viewState.value.isTransferLoading }
@@ -725,10 +713,7 @@ class SwapViewModelTest {
     fun `an automatic quote refresh shows quote loading without the old amount`() = runTest(testDispatcher) {
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
-        viewModel.setRefreshEnabled(true)
-        requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
-        runCurrent()
+        answerQuote(viewModel)
         assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
         assertFalse(viewModel.viewState.value.quotesState is GemSwapQuotesState.Failed)
 
@@ -856,6 +841,19 @@ class SwapViewModelTest {
         assertEquals("0.000000001", viewModel.payValue.text.toString())
     }
 
+    private fun answerQuote(viewModel: SwapViewModel) {
+        viewModel.setRefreshEnabled(true)
+        requestQuote(viewModel, "1")
+        quoteAnswers.trySend(Result.success(listOf(swapperQuote())))
+        testDispatcher.scheduler.runCurrent()
+    }
+
+    private fun swapperQuote(toValue: BigInteger = BigInteger("2500000")) = mockSwapperQuote(
+        fromValue = BigInteger("1000000000"),
+        toValue = toValue,
+        request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u)),
+    )
+
     private fun failQuote(viewModel: SwapViewModel, error: Throwable) {
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "1")
@@ -901,10 +899,7 @@ class SwapViewModelTest {
     }
 
     private fun seedReadyQuote(viewModel: SwapViewModel) {
-        viewModel.setRefreshEnabled(true)
-        requestQuote(viewModel, "1")
-        quoteAnswers.trySend(Result.success(listOf(mockSwapperQuote(fromValue = BigInteger("1000000000"), toValue = BigInteger("2500000"), request = mockSwapperQuoteRequest(toAsset = mockSwapperQuoteAsset(decimals = 6u))))))
-        testDispatcher.scheduler.runCurrent()
+        answerQuote(viewModel)
         viewModel.setRefreshEnabled(false)
         awaitCondition { viewModel.viewState.value.buttonState.buttonState() == ButtonState.Enabled && viewModel.viewState.value.quotesState !is GemSwapQuotesState.Failed }
     }

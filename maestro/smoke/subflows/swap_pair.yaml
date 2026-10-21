@@ -1,0 +1,33 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "ethereum"
+- waitForAnimationToEnd
+- tapOn:
+    id: "swap_button"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      text: "ETH"
+      above: "You Receive"
+    timeout: 15000
+- tapOn:
+    id: "swap_switch"
+- extendedWaitUntil:
+    visible:
+      text: "ETH"
+      below: "You Receive"
+    timeout: 10000
+- tapOn:
+    text: "ETH"
+    below: "You Receive"
+- waitForAnimationToEnd
+- tapOn:
+    id: "solana"
+- extendedWaitUntil:
+    visible:
+      text: "SOL"
+      below: "You Receive"
+    timeout: 10000
+- takeScreenshot: ${output.journey}_swap_pair

@@ -77,7 +77,7 @@ impl GemChartService {
             (Some(market), Some(rate)) => Some(price_rules::market_in_currency(market.clone(), rate)),
             _ => None,
         };
-        let contract_explorer = input.asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(input.asset.id.chain, token_id));
+        let contract_explorer = self.explorer.get_token_url(&input.asset.id);
         GemChartView {
             period: session.period,
             phase: session.phase(input.asset_price()),

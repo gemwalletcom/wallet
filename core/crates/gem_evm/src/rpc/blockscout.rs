@@ -1,5 +1,3 @@
-use std::cmp::Reverse;
-use std::collections::BTreeSet;
 use std::error::Error;
 
 use blockscout::Client as BlockscoutClient;
@@ -12,15 +10,12 @@ impl<C: Transport> EVMIndexerClient for BlockscoutClient<C> {
     async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
         let transactions = self.get_transactions(address, limit).await?;
         let token_transfers = self.get_token_transfers(address, limit).await?;
-        Ok(transactions
-            .into_iter()
-            .map(|transaction| (transaction.block_number, transaction.hash))
-            .chain(token_transfers.into_iter().map(|transfer| (transfer.block_number, transfer.transaction_hash)))
-            .map(|(block_number, hash)| (Reverse(block_number), hash))
-            .collect::<BTreeSet<_>>()
-            .into_iter()
-            .map(|(Reverse(block_number), hash)| TransactionReference::new(hash, Some(block_number)))
-            .collect())
+        Ok(TransactionReference::unique_newest_first(
+            transactions
+                .into_iter()
+                .map(|transaction| (transaction.block_number, transaction.hash))
+                .chain(token_transfers.into_iter().map(|transfer| (transfer.block_number, transfer.transaction_hash))),
+        ))
     }
 
     async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {

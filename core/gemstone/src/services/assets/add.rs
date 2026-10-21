@@ -187,7 +187,7 @@ impl GemAddAssetService {
     }
 
     pub fn sections(&self, session: GemAddAssetSession) -> Vec<GemListSection> {
-        let explorer = session.asset.as_ref().and_then(|asset| self.explorer.get_token_url(asset.id.chain, asset.id.token_id.clone()?));
+        let explorer = session.asset.as_ref().and_then(|asset| self.explorer.get_token_url(&asset.id));
         session.sections(explorer)
     }
 

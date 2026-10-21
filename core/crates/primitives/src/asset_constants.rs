@@ -116,7 +116,6 @@ pub const ZKSYNC_USDC_E_TOKEN_ID: &str = "0x3355df6D4c9C3035724Fd0e3914dE96A5a83
 pub static ZKSYNC_USDC_E_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::ZkSync, ZKSYNC_USDC_E_TOKEN_ID));
 
 pub const SEIEVM_USDC_TOKEN_ID: &str = "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392";
-pub static SEIEVM_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::SeiEvm, SEIEVM_USDC_TOKEN_ID));
 
 pub const ALGORAND_USDC_TOKEN_ID: &str = "31566704";
 pub const PLASMA_USDC_TOKEN_ID: &str = "0x2d661C89D812261039AF9764eceaAee884f5F67F";
@@ -186,7 +185,6 @@ pub const HYPEREVM_USDT_TOKEN_ID: &str = "0xB8CE59FC3717ada4C02eaDF9682A9e934F62
 pub static HYPEREVM_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Hyperliquid, HYPEREVM_USDT_TOKEN_ID));
 
 pub const SEIEVM_USDT_TOKEN_ID: &str = "0x9151434b16b9763660705744891fA906F660EcC5";
-pub static SEIEVM_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::SeiEvm, SEIEVM_USDT_TOKEN_ID));
 
 pub const UNICHAIN_USDT0_TOKEN_ID: &str = "0x9151434b16b9763660705744891fA906F660EcC5";
 pub static UNICHAIN_USDT0_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Unichain, UNICHAIN_USDT0_TOKEN_ID));

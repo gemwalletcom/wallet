@@ -2,8 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-PLATFORM="${1:?usage: maestro-smoke.sh ios|android [device id]}"
-DEVICE="${2:-}"
+PLATFORM="${1:?usage: maestro-smoke.sh ios|android}"
 OUTPUT_DIR="${MAESTRO_OUTPUT:-$ROOT_DIR/build/maestro/$PLATFORM}"
 SIMULATOR="Gem Maestro"
 AVD="Gem_Maestro"
@@ -60,18 +59,15 @@ LOCK="/tmp/gem-maestro-smoke.lock"
 mkdir "$LOCK" 2>/dev/null || { echo "another maestro-smoke run is in progress (remove $LOCK if it is stale)" >&2; exit 1; }
 trap 'rmdir "$LOCK"' EXIT
 
-if [ -z "$DEVICE" ]; then
-    [ -e "$BUILD" ] || { echo "no build at $BUILD, run: just $PLATFORM build" >&2; exit 1; }
-    DEVICE="$("${PLATFORM}_device")"
-    AUTOMATION_DEVICE=1
-fi
+[ -e "$BUILD" ] || { echo "no build at $BUILD, run: just $PLATFORM build" >&2; exit 1; }
+DEVICE="$("${PLATFORM}_device")"
 
 mkdir -p "$OUTPUT_DIR"
 failed=""
 for flow in "$ROOT_DIR"/maestro/smoke/*.yaml; do
     name="$(basename "$flow" .yaml)"
     echo "==> $name"
-    if [ "$PLATFORM" = ios ] && [ -n "${AUTOMATION_DEVICE:-}" ]; then
+    if [ "$PLATFORM" = ios ]; then
         xcrun simctl keychain "$DEVICE" reset
         [ ! -f "$PROXYMAN_CA" ] || xcrun simctl keychain "$DEVICE" add-root-cert "$PROXYMAN_CA"
     fi

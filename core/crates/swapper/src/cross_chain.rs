@@ -99,11 +99,15 @@ pub fn is_from_vault_address(transaction: &Transaction, send_addresses: &SendAdd
     send_addresses.contains_key(&transaction.from) || transaction.input_addresses().iter().any(|address| send_addresses.contains_key(address))
 }
 
+pub fn is_received_from_vault(transaction: &Transaction, address: &str, send_addresses: &SendAddressMap) -> bool {
+    !transaction.is_sent(address.to_string()) && is_from_vault_address(&transaction.finalize(vec![address.to_string()]), send_addresses)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use alloy_primitives::{Address, Bytes, U256, hex};
-    use primitives::{AssetId, TransactionSwapMetadata, TransactionType, TransactionUtxoInput, contract_constants::SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID};
+    use primitives::{AssetId, TransactionSwapMetadata, TransactionType, TransactionUtxoInput, contract_constants::SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID, transaction_metadata_types::TransactionAssetTransfer};
 
     #[test]
     fn test_vault_address_detected() {
@@ -438,6 +442,30 @@ mod tests {
         let send_addresses = SendAddressMap::from([(vault.clone(), SwapperProvider::NearIntents)]);
         let transaction = Transaction::mock_utxo(vec![TransactionUtxoInput::new(vault, 50000u32.into())], vec![TransactionUtxoInput::new("recipient".into(), 40000u32.into())]);
         assert!(is_from_vault_address(&transaction, &send_addresses));
+    }
+
+    #[test]
+    fn test_is_received_from_vault() {
+        let send_addresses = SendAddressMap::from([("0xvault".to_string(), SwapperProvider::Mayan)]);
+        let payout = Transaction::mock_with_asset_transfers(vec![TransactionAssetTransfer {
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            from: "0xvault".to_string(),
+            to: "0xuser".to_string(),
+            value: 1u32.into(),
+        }]);
+        let own_swap = Transaction {
+            from: "0xuser".to_string(),
+            ..payout.clone()
+        };
+        let vault_transfer = Transaction {
+            from: "0xvault".to_string(),
+            ..Transaction::mock()
+        };
+
+        assert!(is_received_from_vault(&payout, "0xuser", &send_addresses));
+        assert!(is_received_from_vault(&vault_transfer, "0xto", &send_addresses));
+        assert!(!is_received_from_vault(&own_swap, "0xuser", &send_addresses));
+        assert!(!is_received_from_vault(&payout, "0xother", &send_addresses));
     }
 
     #[test]
