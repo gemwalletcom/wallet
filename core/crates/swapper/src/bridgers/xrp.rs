@@ -1,4 +1,4 @@
-use gem_xrp::models::Amount;
+use gem_xrp::{TRANSACTION_TYPE_PAYMENT, models::Amount};
 use num_bigint::BigUint;
 use primitives::AssetId;
 
@@ -14,7 +14,7 @@ pub(super) fn get_transaction_memo(transaction: &XrpTransaction, router: &str, f
         (Amount::Amount(amount), Some(token_id)) => amount.issuer.as_ref() == Some(token_id) && &amount.value == value,
         _ => false,
     };
-    if transaction.destination != router || !is_amount {
+    if transaction.transaction_type != TRANSACTION_TYPE_PAYMENT || transaction.destination != router || transaction.destination_tag.is_some() || !is_amount {
         return Err(SwapperError::InvalidRoute);
     }
     let [memo] = transaction.memos.as_slice() else {
@@ -23,18 +23,20 @@ pub(super) fn get_transaction_memo(transaction: &XrpTransaction, router: &str, f
     let data = hex::decode(memo.memo.data.as_deref().ok_or(SwapperError::InvalidRoute)?).map_err(|_| SwapperError::InvalidRoute)?;
     let memo: DepositMemo = serde_json::from_slice(&data).map_err(|_| SwapperError::InvalidRoute)?;
     let channel = get_to_token_channel(&memo.to_token, to_code, &swap.slippage)?;
-    let expected = DepositMemo {
+    let expected = serde_json::to_string(&DepositMemo {
         from_amount: Some(swap.quote.from_token_amount.to_string()),
         ..DepositMemo::new(swap, to_code, channel)
-    };
-    if memo != expected {
+    })
+    .map_err(SwapperError::compute_quote_error)?;
+    if expected.as_bytes() != data {
         return Err(SwapperError::InvalidRoute);
     }
-    serde_json::to_string(&memo).map_err(SwapperError::compute_quote_error)
+    Ok(expected)
 }
 
 #[cfg(test)]
 mod tests {
+    use gem_xrp::models::{TransactionMemo, TransactionMemoData};
     use primitives::{Chain, asset_constants::XRP_RLUSD_ASSET_ID};
 
     use super::*;
@@ -81,5 +83,24 @@ mod tests {
             .unwrap_err(),
             SwapperError::InvalidRoute
         );
+
+        let escrow = XrpTransaction {
+            transaction_type: "EscrowCreate".to_string(),
+            ..native.clone()
+        };
+        let tagged = XrpTransaction { destination_tag: Some(1), ..native.clone() };
+        assert_eq!(get_transaction_memo(&escrow, ROUTER, &xrp, &native_value, "USDT(BSC)", &native_swap).unwrap_err(), SwapperError::InvalidRoute);
+        assert_eq!(get_transaction_memo(&tagged, ROUTER, &xrp, &native_value, "USDT(BSC)", &native_swap).unwrap_err(), SwapperError::InvalidRoute);
+
+        let memo = native.memos[0].decoded_data().unwrap();
+        for changed in [memo.replace('}', ",\"refundAddress\":\"rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh\"}"), memo.replace(',', ", ")] {
+            let transaction = XrpTransaction {
+                memos: vec![TransactionMemo {
+                    memo: TransactionMemoData { data: Some(hex::encode(changed)) },
+                }],
+                ..native.clone()
+            };
+            assert_eq!(get_transaction_memo(&transaction, ROUTER, &xrp, &native_value, "USDT(BSC)", &native_swap).unwrap_err(), SwapperError::InvalidRoute);
+        }
     }
 }

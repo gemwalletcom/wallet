@@ -16,7 +16,7 @@ pub struct SwapRequest {
     pub slippage: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DepositMemo {
     pub from_token: String,
@@ -72,7 +72,9 @@ pub struct TonTransaction {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct XrpTransaction {
+    pub transaction_type: String,
     pub destination: String,
+    pub destination_tag: Option<u32>,
     pub amount: Amount,
     pub memos: Vec<TransactionMemo>,
 }
