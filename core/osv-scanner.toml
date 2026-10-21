@@ -1,0 +1,11 @@
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0388"
+reason = "derivative is unmaintained. It is only an optional dependency of ruint behind its ark-ff 0.3/0.4 features, which nothing enables, so it is listed in Cargo.lock but never compiled."
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2024-0436"
+reason = "paste is unmaintained. It is a compile-time macro used by alloy-primitives and syn-solidity, which still depend on it in their latest release, and it leaves nothing in the built code."
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2026-0374"
+reason = "basic-toml is unmaintained. It reads TOML at compile time in askama (via uniffi_bindgen) and i18n-config (via i18n-embed-fl), both of which still depend on it in their latest release, and it only parses our own config files."
