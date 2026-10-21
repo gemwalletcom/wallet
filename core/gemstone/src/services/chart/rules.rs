@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::ops::{Range, RangeInclusive};
 
 use chrono::{DateTime, TimeDelta, Utc};
-use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
+use primitives::{Asset, AssetId, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, Chain, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
 
 use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHeader, GemChartValueType};
 use super::points::reduced_points;
@@ -126,17 +126,25 @@ fn market_section(market: &AssetMarket, currency: Currency) -> Vec<GemListRow> {
 }
 
 fn contract_row(asset: &Asset, explorer: Option<BlockExplorerLink>) -> Option<GemListRow> {
-    let token_id = asset.id.token_id.clone()?;
+    let contract = contract_id(&asset.id)?;
     let chain = asset.chain();
-    let copy = if validate_address(&token_id, chain) {
-        address_copy(chain, token_id)
+    let copy = if validate_address(&contract, chain) {
+        address_copy(chain, contract)
     } else {
         GemCopy {
             kind: GemCopyKind::Plain,
-            ..address_copy(chain, token_id)
+            ..address_copy(chain, contract)
         }
     };
     Some(GemListRow::identifier(GemListRowTitle::Contract, copy, explorer))
+}
+
+fn contract_id(asset_id: &AssetId) -> Option<String> {
+    match asset_id.chain {
+        Chain::Stellar => asset_id.split_sub_token_parts().map(|(issuer, code)| format!("{code}:{issuer}")),
+        Chain::HyperCore => asset_id.token_components().and_then(|(_, token_id, _)| token_id),
+        _ => asset_id.token_id.clone(),
+    }
 }
 
 fn supply_section(market: &AssetMarket, symbol: &str) -> Vec<GemListRow> {
@@ -345,7 +353,7 @@ mod tests {
     use crate::formatted_number::GemValueTone;
     use primitives::{
         AssetId, ChartValuePercentage, LinkType, PriceAlertDirection,
-        asset_constants::{STELLAR_USDC_ASSET_ID, STELLAR_USDC_TOKEN_ID},
+        asset_constants::{HYPERCORE_SPOT_HYPE_ASSET_ID, STELLAR_USDC_ASSET_ID},
         currency::Currency,
     };
 
@@ -680,14 +688,20 @@ mod tests {
             ..Asset::mock()
         };
         let copy = GemCopy {
-            display: "GA5ZS...:USDC".to_string(),
-            ..GemCopy::plain(STELLAR_USDC_TOKEN_ID.to_string())
+            display: "USDC:...4KZVN".to_string(),
+            ..GemCopy::plain("USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string())
         };
 
         assert_eq!(
             chart_sections(&token, Currency::USD, None, None, Some(vec![]), vec![], None),
             vec![GemListSection::untitled(vec![GemListRow::identifier(GemListRowTitle::Contract, copy, None)])]
         );
+    }
+
+    #[test]
+    fn test_contract_id() {
+        assert_eq!(contract_id(&STELLAR_USDC_ASSET_ID).unwrap(), "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN");
+        assert_eq!(contract_id(&HYPERCORE_SPOT_HYPE_ASSET_ID).unwrap(), "0x0d01dc56dcaaca66ad901c959b4011ec");
     }
 
     #[test]
