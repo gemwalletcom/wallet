@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use super::TvmError;
 use crc::Crc;
 use gem_encoding::{decode_base64, encode_base64};
@@ -33,6 +35,9 @@ impl BagOfCells {
         let header = BocHeader::parse(&mut reader)?;
 
         let root_indexes = (0..header.roots_count).map(|_| reader.read_var_uint(header.ref_bytes)).collect::<Result<Vec<_>, _>>()?;
+        if root_indexes.iter().collect::<HashSet<_>>().len() != root_indexes.len() {
+            return Err(invalid("duplicate BoC root"));
+        }
 
         if header.has_idx {
             reader.skip(header.cells_count * header.off_bytes)?;
@@ -139,4 +144,16 @@ fn bytes_needed(value: usize) -> usize {
     let value = value.max(1);
     let bits = usize::BITS as usize - value.leading_zeros() as usize;
     bits.div_ceil(8)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_rejects_duplicate_roots() {
+        let bytes = hex::decode("b5ee9c7201010402003a030303020003030303030303030303030303f00303030048d301d00103d371b0915be0400000000000000004b0995b0127cf16c98001fb0097109aac").unwrap();
+
+        assert_eq!(BagOfCells::parse(&bytes).unwrap_err().to_string(), "duplicate BoC root");
+    }
 }
