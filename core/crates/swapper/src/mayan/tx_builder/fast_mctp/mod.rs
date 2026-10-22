@@ -4,12 +4,11 @@ pub(in crate::mayan) mod sui;
 
 use crate::{
     SwapperError,
-    fees::default_referral_address,
     mayan::{
         cctp_domain::CCTP_TOKEN_DECIMALS,
         model::MayanFastMctpQuote,
         tx_builder::{address::native_address_to_bytes32, amount::fractional_amount, swift::token_address_to_bytes32},
-        wormhole_chain::{self, WormholeChain, id_for_name as wormhole_chain_id},
+        wormhole_chain::{WormholeChain, id_for_name as wormhole_chain_id},
     },
 };
 use gem_evm::EVM_ZERO_ADDRESS;
@@ -18,14 +17,8 @@ use gem_solana::SYSTEM_PROGRAM_ID;
 const FAST_MCTP_PAYLOAD_TYPE_DEFAULT: u8 = 1;
 const FAST_MCTP_PAYLOAD_TYPE_ORDER: u8 = 3;
 
-fn destination_referrer_address(route: &MayanFastMctpQuote) -> Result<Option<String>, SwapperError> {
-    let chain = wormhole_chain::chain_for_name(&route.to_chain)?;
-    let address = default_referral_address(chain);
-    Ok((!address.is_empty()).then_some(address))
-}
-
 fn referrer_bytes(route: &MayanFastMctpQuote) -> Result<[u8; 32], SwapperError> {
-    let Some(address) = destination_referrer_address(route)? else {
+    let Some(address) = route.destination_referrer_address()? else {
         return native_address_to_bytes32(SYSTEM_PROGRAM_ID, wormhole_chain_id(WormholeChain::Solana.name())?);
     };
     native_address_to_bytes32(&address, wormhole_chain_id(&route.to_chain)?)
@@ -51,10 +44,6 @@ fn circle_max_fee64(route: &MayanFastMctpQuote) -> Result<&str, SwapperError> {
     route.circle_max_fee64.as_deref().ok_or(SwapperError::InvalidRoute)
 }
 
-fn refund_relayer_fee64(route: &MayanFastMctpQuote) -> Result<u64, SwapperError> {
-    route.refund_relayer_fee64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>().map_err(SwapperError::from)
-}
-
 fn token_out(route: &MayanFastMctpQuote) -> Result<[u8; 32], SwapperError> {
     if route.to_token.contract == EVM_ZERO_ADDRESS {
         return native_address_to_bytes32(SYSTEM_PROGRAM_ID, wormhole_chain_id(WormholeChain::Solana.name())?);
@@ -68,7 +57,7 @@ fn token_out(route: &MayanFastMctpQuote) -> Result<[u8; 32], SwapperError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::mayan::tx_builder::address::native_address_to_bytes32;
+    use crate::{fees::default_referral_address, mayan::tx_builder::address::native_address_to_bytes32};
     use primitives::{Chain, hex};
 
     #[test]

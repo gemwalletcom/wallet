@@ -32,6 +32,10 @@ pub(super) fn optional_bps_u8(value: Option<u32>) -> Result<u8, SwapperError> {
     value.try_into().map_err(|_| SwapperError::InvalidRoute)
 }
 
+pub(super) fn required_u64(value: Option<&str>) -> Result<u64, SwapperError> {
+    Ok(value.ok_or(SwapperError::InvalidRoute)?.parse::<u64>()?)
+}
+
 pub(super) fn fractional_amount_value(amount: &Value, decimals: u32) -> Result<String, SwapperError> {
     let amount = value_to_query(amount)?;
     BigNumberFormatter::value_from_amount_truncated(&amount, decimals).map_err(|_| SwapperError::InvalidRoute)

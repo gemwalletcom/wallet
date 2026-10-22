@@ -26,8 +26,5 @@ pub(super) fn hypercore_deposit_dex(contract: &str) -> Result<u32, SwapperError>
         return Err(SwapperError::NotSupportedAsset);
     }
     let bytes = evm_address_bytes(contract)?;
-    if bytes[..16].iter().any(|value| *value != 0) {
-        return Err(SwapperError::InvalidRoute);
-    }
-    Ok(u32::from_be_bytes(bytes[16..20].try_into().map_err(|_| SwapperError::InvalidRoute)?))
+    Ok(u32::from_be_bytes([bytes[16], bytes[17], bytes[18], bytes[19]]))
 }

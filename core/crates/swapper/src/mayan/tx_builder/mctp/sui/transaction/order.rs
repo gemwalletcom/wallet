@@ -1,8 +1,4 @@
-use super::{
-    add_publish_wormhole_message, deposit_for_burn_with_auth,
-    fees::{bridge_fee, redeem_fee},
-    sui_error,
-};
+use super::{add_publish_wormhole_message, deposit_for_burn_with_auth, fees::bridge_fee, sui_error};
 use crate::{
     Quote, SwapperError,
     mayan::{
@@ -12,6 +8,7 @@ use crate::{
         tx_builder::{
             address::native_address_to_bytes32,
             amount::{gas_drop_amount, min_amount_out, optional_bps_u8},
+            mctp::redeem_relayer_fee,
             sui::{bridge_amount, sui_package_address},
             swift::{referrer_bytes, swift_to_token},
         },
@@ -55,8 +52,8 @@ pub(super) fn add_init_order_move_calls(
         txb.pure(&Address::new(swift_to_token(route)?)),
         txb.pure(&amount_out_min),
         txb.pure(&gas_drop),
-        txb.pure(&redeem_fee(route)?),
-        txb.pure(&route.deadline64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>()?),
+        txb.pure(&redeem_relayer_fee(route)?),
+        txb.pure(&route.deadline()?),
         txb.pure(&Address::new(referrer)),
         txb.pure(&optional_bps_u8(route.referrer_bps)?),
     ];
@@ -83,7 +80,7 @@ pub(super) fn add_init_order_move_calls(
     let initialize_result = initialize_result.to_nested(2);
     let burn_request = initialize_result[0];
     let deposit_ticket = initialize_result[1];
-    let cctp_message = deposit_for_burn_with_auth(txb, prefetched, mctp_input_contract, "init_order", deposit_ticket, &prefetched.mctp_input_treasury)?.to_nested(2)[1];
+    let cctp_message = deposit_for_burn_with_auth(txb, prefetched, "init_order", deposit_ticket)?.to_nested(2)[1];
     let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
     let wormhole_message = move_call(txb, mctp_package, "init_order", "publish_init_order", &[], vec![mctp_state, burn_request, cctp_message]).map_err(sui_error)?;
     add_publish_wormhole_message(txb, prefetched, wormhole_message, bridge_fee(route)?, wh_fee_coin)?;

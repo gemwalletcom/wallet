@@ -1,7 +1,4 @@
-use super::{
-    FAST_MCTP_PAYLOAD_TYPE_DEFAULT, FAST_MCTP_PAYLOAD_TYPE_ORDER, circle_max_fee64, destination_referrer_address, fast_mctp_contract, fast_mctp_input_contract, fast_mctp_min_finality, redeem_relayer_fee, referrer_bytes,
-    refund_relayer_fee64, token_out,
-};
+use super::{FAST_MCTP_PAYLOAD_TYPE_DEFAULT, FAST_MCTP_PAYLOAD_TYPE_ORDER, circle_max_fee64, fast_mctp_contract, fast_mctp_input_contract, fast_mctp_min_finality, redeem_relayer_fee, referrer_bytes, token_out};
 use crate::{
     Quote, RpcProvider, SwapperError, SwapperQuoteData,
     mayan::{
@@ -10,7 +7,7 @@ use crate::{
         model::{GetSwapEvmParams, GetSwapEvmResponse, MayanFastMctpQuote, QuoteType},
         tx_builder::{
             address::native_address_to_bytes32,
-            amount::{fractional_amount, gas_drop_amount, min_amount_out, optional_bps_u8},
+            amount::{fractional_amount, gas_drop_amount, min_amount_out, optional_bps_u8, required_u64},
             evm::{self as evm_builder, EvmForwarderProtocolCall, EvmSwapForwardData, EvmTransaction},
             route::quote_destination_address,
         },
@@ -84,8 +81,8 @@ fn fast_mctp_create_order_call(quote: &Quote, route: &MayanFastMctpQuote) -> Res
             amountOutMin: min_amount_out(&route.min_amount_out, route.to_token.decimals, &route.to_chain, &QuoteType::FastMctp)?,
             gasDrop: gas_drop_amount(&route.gas_drop, &route.to_chain, &QuoteType::FastMctp, false)?,
             redeemFee: redeem_relayer_fee(route)?,
-            refundFee: refund_relayer_fee64(route)?,
-            deadline: route.deadline64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>()?,
+            refundFee: required_u64(route.refund_relayer_fee64.as_deref())?,
+            deadline: route.deadline()?,
             referrerAddr: FixedBytes::from(referrer_bytes(route)?),
             referrerBps: optional_bps_u8(route.referrer_bps)?,
         },
@@ -150,9 +147,7 @@ where
 {
     let fast_mctp_input_contract = fast_mctp_input_contract(route)?;
     let min_middle_amount = fractional_amount::<U256>(route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?, CCTP_TOKEN_DECIMALS)?;
-    let swap: GetSwapEvmResponse = client
-        .get_swap_evm(GetSwapEvmParams::new(route, route.effective_amount_in64.clone(), fast_mctp_input_contract.to_string(), destination_referrer_address(route)?))
-        .await?;
+    let swap: GetSwapEvmResponse = client.get_swap_evm(GetSwapEvmParams::new(route, fast_mctp_input_contract.to_string(), route.destination_referrer_address()?)).await?;
     let swap = EvmSwapForwardData::new(&swap.swap_router_address, &swap.swap_router_calldata, fast_mctp_input_contract, min_middle_amount)?;
 
     if route.from_token.contract.eq_ignore_ascii_case(EVM_ZERO_ADDRESS) {

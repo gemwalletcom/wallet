@@ -1,6 +1,6 @@
 use gem_evm::EVM_ZERO_ADDRESS;
 use gem_hash::keccak::keccak256;
-use gem_solana::{AccountMeta, Instruction, Pubkey, SYSTEM_PROGRAM_ID, SolanaAddress, anchor::global_discriminator};
+use gem_solana::{AccountMeta, Instruction, Pubkey, SolanaAddress, anchor::global_discriminator, instructions::program_ids};
 
 use crate::{
     SwapperError,
@@ -9,7 +9,7 @@ use crate::{
         model::MayanSwiftQuote,
         tx_builder::{
             address::native_address_to_bytes32,
-            amount::{fractional_amount, optional_bps_u8},
+            amount::{fractional_amount, optional_bps_u8, required_u64},
             solana::solana_error,
             swift::{SwiftOrderFields, swift_custom_payload_hash, swift_input_contract as route_swift_input_contract, swift_payload_type, token_address_to_bytes32},
         },
@@ -44,7 +44,7 @@ pub(super) fn create_init_instruction(
     data.extend_from_slice(&global_discriminator("init_order"));
     data.extend_from_slice(&amount_in_min.to_le_bytes());
     data.push(u8::from(swift_input_contract == EVM_ZERO_ADDRESS));
-    data.extend_from_slice(&route.submit_relayer_fee64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>()?.to_le_bytes());
+    data.extend_from_slice(&required_u64(route.submit_relayer_fee64.as_deref())?.to_le_bytes());
     data.extend_from_slice(&native_address_to_bytes32(destination_address, fields.destination_chain_id)?);
     data.extend_from_slice(&fields.destination_chain_id.to_le_bytes());
     data.extend_from_slice(&fields.token_out);
@@ -61,7 +61,7 @@ pub(super) fn create_init_instruction(
 
     let swift_program = SolanaAddress::parse(MAYAN_SWIFT_V2_PROGRAM_ID).map_err(solana_error)?.into();
     let fee_manager = SolanaAddress::parse(MAYAN_FEE_MANAGER_PROGRAM_ID).map_err(solana_error)?.into();
-    let system_program = SolanaAddress::parse(SYSTEM_PROGRAM_ID).map_err(solana_error)?.into();
+    let system_program = program_ids::system_program();
 
     Ok(Instruction {
         program_id: swift_program,

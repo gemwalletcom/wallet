@@ -99,8 +99,8 @@ pub(in crate::mayan::tx_builder) async fn get_package_id(client: &SuiClient, sta
     if let Some(package_id) = package_id_cache.get(&state_object_id) {
         return Ok(package_id);
     }
-    let state: MayanStateObject = client.get_object_json(state_object_id.to_string()).await.map_err(sui_error)?;
-    let package_id = state.latest_package_id();
+    let state: MayanState = client.get_object_json(state_object_id.to_string()).await.map_err(sui_error)?;
+    let package_id = state.latest_package_id;
     package_id_cache.put(state_object_id, package_id.clone());
     Ok(package_id)
 }
@@ -125,33 +125,7 @@ pub(in crate::mayan::tx_builder) fn sui_error(err: impl Display) -> SwapperError
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum MayanStateObject {
-    Direct(MayanStateFields),
-    Fields { fields: MayanStateFields },
-    Content { content: MayanStateContent },
-    Data { data: MayanStateContent },
-}
-
-impl MayanStateObject {
-    fn latest_package_id(self) -> String {
-        match self {
-            Self::Direct(fields) => fields.latest_package_id,
-            Self::Fields { fields } => fields.latest_package_id,
-            Self::Content { content } => content.fields.latest_package_id,
-            Self::Data { data } => data.fields.latest_package_id,
-        }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-struct MayanStateContent {
-    fields: MayanStateFields,
-}
-
-#[derive(Debug, Deserialize)]
-struct MayanStateFields {
-    #[serde(alias = "latestPackageId")]
+struct MayanState {
     latest_package_id: String,
 }
 
@@ -174,32 +148,5 @@ mod tests {
         let route = MayanFastMctpQuote::mock_sui();
         let input_contract = route.fast_mctp_input_contract.clone().unwrap();
         assert_eq!(bridge_amount(&route, route.min_middle_amount.as_ref(), &input_contract).unwrap(), 1_038_528);
-    }
-
-    #[test]
-    fn test_mayan_state_object_latest_package_id() {
-        let state: MayanStateObject = serde_json::from_value(serde_json::json!({
-            "latest_package_id": "0x123"
-        }))
-        .unwrap();
-        assert_eq!(state.latest_package_id(), "0x123");
-
-        let state: MayanStateObject = serde_json::from_value(serde_json::json!({
-            "fields": {
-                "latest_package_id": "0xabc"
-            }
-        }))
-        .unwrap();
-        assert_eq!(state.latest_package_id(), "0xabc");
-
-        let state: MayanStateObject = serde_json::from_value(serde_json::json!({
-            "content": {
-                "fields": {
-                    "latestPackageId": "0xdef"
-                }
-            }
-        }))
-        .unwrap();
-        assert_eq!(state.latest_package_id(), "0xdef");
     }
 }

@@ -3,7 +3,7 @@ pub(in crate::mayan) mod solana;
 
 use super::{
     address::native_address_to_bytes32,
-    amount::{gas_drop_amount, min_amount_out, optional_bps_u8},
+    amount::{gas_drop_amount, min_amount_out, optional_bps_u8, required_u64},
     route::{is_hypercore_deposit, swift_destination_chain, swift_destination_chain_id},
 };
 use crate::{
@@ -52,7 +52,7 @@ impl SwiftOrderFields {
             gas_drop: gas_drop_amount(&route.gas_drop, &route.to_chain, &QuoteType::Swift, is_hypercore_deposit(route))?,
             cancel_fee: required_u64(route.cancel_relayer_fee64.as_deref())?,
             refund_fee: required_u64(route.refund_relayer_fee64.as_deref())?,
-            deadline: required_u64(route.deadline64.as_deref())?,
+            deadline: route.deadline()?,
             referrer_bps: optional_bps_u8(route.referrer_bps)?,
             auction_mode: route.swift_auction_mode.ok_or(SwapperError::InvalidRoute)?,
         })
@@ -131,8 +131,4 @@ fn left_pad_16(bytes: &[u8]) -> Result<[u8; 16], SwapperError> {
     let mut padded = [0u8; 16];
     padded[16 - bytes.len()..].copy_from_slice(bytes);
     Ok(padded)
-}
-
-fn required_u64(value: Option<&str>) -> Result<u64, SwapperError> {
-    value.ok_or(SwapperError::InvalidRoute)?.parse::<u64>().map_err(SwapperError::from)
 }

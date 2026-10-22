@@ -10,7 +10,7 @@ use crate::{
 };
 use futures::try_join;
 use gem_sui::{
-    SuiClient,
+    ESTIMATION_GAS_BUDGET, SuiClient,
     models::{Coin, OwnedCoins},
     tx_builder::{ResolvedObjectInput, TransactionBuilderInput},
 };
@@ -29,13 +29,13 @@ pub(super) struct PrefetchedSuiData {
 }
 
 impl PrefetchedSuiData {
-    pub(super) async fn prefetch(client: &SuiClient, sender: &str, route: &MayanMctpQuote, gas_budget: u64, package_id_cache: &Cache<&'static str, String>) -> Result<Self, SwapperError> {
+    pub(super) async fn prefetch(client: &SuiClient, sender: &str, route: &MayanMctpQuote, package_id_cache: &Cache<&'static str, String>) -> Result<Self, SwapperError> {
         let mctp_input_contract = route.mctp_input_contract.clone().ok_or(SwapperError::InvalidRoute)?;
         let from_token_verified_address = route.from_token.verified_address.clone().ok_or(SwapperError::InvalidRoute)?;
         let mctp_verified_input_address = route.mctp_verified_input_address.clone().ok_or(SwapperError::InvalidRoute)?;
         let mctp_input_treasury = route.mctp_input_treasury.clone().ok_or(SwapperError::InvalidRoute)?;
         let has_auction = route.has_auction == Some(true);
-        let transaction = async { TransactionBuilderInput::prefetch(client, sender, gas_budget).await.map_err(sui_error) };
+        let transaction = async { TransactionBuilderInput::prefetch(client, sender, ESTIMATION_GAS_BUDGET).await.map_err(sui_error) };
         let input_coins = get_sui_input_coins(client, sender, route, &mctp_input_contract);
         let objects = get_sui_objects(client, sui_object_ids(has_auction, &from_token_verified_address, &mctp_verified_input_address, &mctp_input_treasury));
         let mctp_package_id = get_package_id(client, SUI_MCTP_STATE, package_id_cache);

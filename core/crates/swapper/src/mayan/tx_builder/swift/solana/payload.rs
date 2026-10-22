@@ -1,4 +1,4 @@
-use gem_solana::{AccountMeta, Instruction, Pubkey, SYSTEM_PROGRAM_ID, SolanaAddress, anchor::global_discriminator};
+use gem_solana::{AccountMeta, Instruction, Pubkey, SolanaAddress, anchor::global_discriminator, instructions::program_ids};
 
 use crate::{SwapperError, mayan::constants::MAYAN_PAYLOAD_WRITER_PROGRAM_ID, mayan::tx_builder::solana::solana_error};
 
@@ -9,7 +9,7 @@ pub(super) fn create_payload_writer_create_instruction(payer: &Pubkey, payload_a
     data.extend_from_slice(&(payload.len() as u32).to_le_bytes());
     data.extend_from_slice(payload);
     let payload_writer = SolanaAddress::parse(MAYAN_PAYLOAD_WRITER_PROGRAM_ID).map_err(solana_error)?.into();
-    let system_program = SolanaAddress::parse(SYSTEM_PROGRAM_ID).map_err(solana_error)?.into();
+    let system_program = program_ids::system_program();
     Ok(Instruction {
         program_id: payload_writer,
         accounts: vec![AccountMeta::new_signer_writable(*payer), AccountMeta::new_writable(*payload_account), AccountMeta::new_readonly(system_program)],

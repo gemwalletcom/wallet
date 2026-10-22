@@ -10,7 +10,7 @@ use gem_sui::{
 use sui_transaction_builder::{Argument, TransactionBuilder};
 use sui_types::Address;
 
-use super::{FAST_MCTP_PAYLOAD_TYPE_DEFAULT, circle_max_fee64, destination_referrer_address, fast_mctp_input_contract, fast_mctp_min_finality, redeem_relayer_fee, referrer_bytes, refund_relayer_fee64, token_out};
+use super::{FAST_MCTP_PAYLOAD_TYPE_DEFAULT, circle_max_fee64, fast_mctp_input_contract, fast_mctp_min_finality, redeem_relayer_fee, referrer_bytes, token_out};
 use crate::{
     Quote, RpcProvider, SwapperError, SwapperQuoteData,
     client_factory::create_sui_client,
@@ -21,7 +21,7 @@ use crate::{
         model::{GetSwapSuiParams, MayanFastMctpQuote, QuoteType},
         tx_builder::{
             address::native_address_to_bytes32,
-            amount::{gas_drop_amount, min_amount_out, optional_bps_u8},
+            amount::{gas_drop_amount, min_amount_out, optional_bps_u8, required_u64},
             route::quote_destination_address,
             sui::{SuiClientSwapReplay, SuiInputCoin, bridge_amount, build_sui_input_coin, build_sui_quote_data, get_package_id, get_sui_input_coins, get_sui_objects, requires_client_swap, sui_error, sui_package_address},
         },
@@ -96,7 +96,7 @@ where
         return Ok(None);
     }
 
-    let params = GetSwapSuiParams::new(route, quote.request.wallet_address.clone(), fast_mctp_input_contract(route)?.to_string(), false, destination_referrer_address(route)?);
+    let params = GetSwapSuiParams::new(route, quote.request.wallet_address.clone(), fast_mctp_input_contract(route)?.to_string(), false, route.destination_referrer_address()?);
     SuiClientSwapReplay::fetch(client, sui_client, params).await.map(Some)
 }
 
@@ -120,7 +120,7 @@ fn add_bridge_move_calls(txb: &mut TransactionBuilder, quote: &Quote, route: &Ma
     let arguments = vec![
         txb.pure(&FAST_MCTP_PAYLOAD_TYPE_DEFAULT),
         input_coin,
-        txb.pure(&amount_in_min(route)?),
+        txb.pure(&bridge_amount(route, route.min_middle_amount.as_ref(), fast_mctp_input_contract(route)?)?),
         txb.pure(&destination_address(quote, route)?),
         txb.pure(&domain_for_wormhole_chain(&route.to_chain)?.id()),
         txb.pure(&gas_drop_amount(&route.gas_drop, &route.to_chain, &QuoteType::FastMctp, false)?),
@@ -138,15 +138,15 @@ fn add_bridge_move_calls(txb: &mut TransactionBuilder, quote: &Quote, route: &Ma
 fn add_create_order_move_calls(txb: &mut TransactionBuilder, quote: &Quote, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, package: Address, input_coin: Argument) -> Result<Argument, SwapperError> {
     let arguments = vec![
         input_coin,
-        txb.pure(&amount_in_min(route)?),
+        txb.pure(&bridge_amount(route, route.min_middle_amount.as_ref(), fast_mctp_input_contract(route)?)?),
         txb.pure(&destination_address(quote, route)?),
         txb.pure(&domain_for_wormhole_chain(&route.to_chain)?.id()),
         txb.pure(&Address::new(token_out(route)?)),
         txb.pure(&min_amount_out(&route.min_amount_out, route.to_token.decimals, &route.to_chain, &QuoteType::FastMctp)?),
         txb.pure(&gas_drop_amount(&route.gas_drop, &route.to_chain, &QuoteType::FastMctp, false)?),
         txb.pure(&redeem_relayer_fee(route)?),
-        txb.pure(&refund_relayer_fee64(route)?),
-        txb.pure(&route.deadline64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>()?),
+        txb.pure(&required_u64(route.refund_relayer_fee64.as_deref())?),
+        txb.pure(&route.deadline()?),
         txb.pure(&Address::new(referrer_bytes(route)?)),
         txb.pure(&optional_bps_u8(route.referrer_bps)?),
         txb.pure(&circle_max_fee64(route)?.parse::<u64>()?),
@@ -206,10 +206,6 @@ fn log_initialize_fast_mctp(txb: &mut TransactionBuilder, route: &MayanFastMctpQ
     let payload = txb.pure(&Vec::<u8>::new());
     move_call(txb, package, BRIDGE_MODULE, "log_initialize_fast_mctp", &[&route.from_token.contract], vec![amount, from_currency, payload]).map_err(sui_error)?;
     Ok(())
-}
-
-fn amount_in_min(route: &MayanFastMctpQuote) -> Result<u64, SwapperError> {
-    bridge_amount(route, route.min_middle_amount.as_ref(), fast_mctp_input_contract(route)?)
 }
 
 fn destination_address(quote: &Quote, route: &MayanFastMctpQuote) -> Result<Address, SwapperError> {

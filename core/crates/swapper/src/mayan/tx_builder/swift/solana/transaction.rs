@@ -166,7 +166,6 @@ where
             min_middle_amount,
             context.swift_input_contract.clone(),
             quote.request.wallet_address.clone(),
-            route.effective_amount_in64.clone(),
             "SWIFT",
             context.referrer_address.clone(),
             context.state.to_string(),

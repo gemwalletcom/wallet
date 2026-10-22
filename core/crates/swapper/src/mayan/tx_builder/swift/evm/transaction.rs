@@ -77,9 +77,7 @@ where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     let min_middle_amount = fractional_amount::<U256>(route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?, route.swift_input_decimals.ok_or(SwapperError::InvalidRoute)?)?;
-    let swap: GetSwapEvmResponse = client
-        .get_swap_evm(GetSwapEvmParams::new(route, route.effective_amount_in64.clone(), context.swift_input_contract.clone(), route.source_referrer_address()))
-        .await?;
+    let swap: GetSwapEvmResponse = client.get_swap_evm(GetSwapEvmParams::new(route, context.swift_input_contract.clone(), route.source_referrer_address())).await?;
     let swap = EvmSwapForwardData::new(&swap.swap_router_address, &swap.swap_router_calldata, &context.swift_input_contract, min_middle_amount)?;
 
     if route.from_token.contract.eq_ignore_ascii_case(EVM_ZERO_ADDRESS) {

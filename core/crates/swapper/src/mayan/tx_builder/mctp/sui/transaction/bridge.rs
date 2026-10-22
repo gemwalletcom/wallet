@@ -1,7 +1,4 @@
-use super::{
-    add_publish_wormhole_message, deposit_for_burn_with_auth,
-    fees::{bridge_fee, redeem_fee},
-};
+use super::{add_publish_wormhole_message, deposit_for_burn_with_auth, fees::bridge_fee};
 use crate::{
     SwapperError,
     mayan::{
@@ -11,6 +8,7 @@ use crate::{
         tx_builder::{
             address::native_address_to_bytes32,
             amount::gas_drop_amount,
+            mctp::redeem_relayer_fee,
             sui::{bridge_amount, sui_package_address},
         },
         wormhole_chain::id_for_name as wormhole_chain_id,
@@ -43,7 +41,7 @@ impl BridgeParams {
             destination: Address::new(native_address_to_bytes32(destination_address, destination_chain_id)?),
             domain: domain_for_wormhole_chain(&route.to_chain)?.id(),
             gas_drop: gas_drop_amount(&route.gas_drop, &route.to_chain, &QuoteType::Mctp, false)?,
-            redeem_fee: redeem_fee(route)?,
+            redeem_fee: redeem_relayer_fee(route)?,
         })
     }
 }
@@ -108,6 +106,6 @@ fn complete_bridge(txb: &mut TransactionBuilder, prefetched: &PrefetchedSuiData,
     let bridge_result = bridge_result.to_nested(2);
     let burn_request = bridge_result[0];
     let deposit_ticket = bridge_result[1];
-    let cctp_message = deposit_for_burn_with_auth(txb, prefetched, mctp_input_contract, module, deposit_ticket, &prefetched.mctp_input_treasury)?.to_nested(2)[1];
+    let cctp_message = deposit_for_burn_with_auth(txb, prefetched, module, deposit_ticket)?.to_nested(2)[1];
     Ok((burn_request, cctp_message))
 }

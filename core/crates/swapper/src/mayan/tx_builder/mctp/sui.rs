@@ -9,12 +9,11 @@ use crate::mayan::{
         route::quote_destination_address,
         sui::{SuiClientSwapReplay, build_sui_quote_data, requires_client_swap, sui_error},
     },
-    wormhole_chain::{self, WormholeChain},
+    wormhole_chain::WormholeChain,
 };
-use crate::{Quote, RpcProvider, SwapperError, SwapperQuoteData, client_factory::create_sui_client, fees::default_referral_address, route_cache::Cache};
+use crate::{Quote, RpcProvider, SwapperError, SwapperQuoteData, client_factory::create_sui_client, route_cache::Cache};
 use futures::try_join;
-use gem_sui::{ESTIMATION_GAS_BUDGET, SuiClient};
-use primitives::OptionStringExt;
+use gem_sui::SuiClient;
 use std::{fmt::Debug, sync::Arc};
 
 pub async fn build_quote_data<C>(client: &MayanClient<C>, quote: &Quote, route: &MayanMctpQuote, rpc_provider: Arc<dyn RpcProvider>, package_id_cache: &Cache<&'static str, String>) -> Result<SwapperQuoteData, SwapperError>
@@ -25,15 +24,14 @@ where
     let sui_client = create_sui_client(rpc_provider)?;
     let destination_address = quote_destination_address(quote);
     let mctp_input_contract = route.mctp_input_contract.as_deref().ok_or(SwapperError::InvalidRoute)?;
-    let referrer_address = wormhole_chain::chain_for_name(&route.to_chain).ok().map(default_referral_address).non_empty();
-    let prefetched = PrefetchedSuiData::prefetch(&sui_client, sender, route, ESTIMATION_GAS_BUDGET, package_id_cache);
-    let swap = get_swap_transaction(client, &sui_client, quote, route, mctp_input_contract, referrer_address);
+    let prefetched = PrefetchedSuiData::prefetch(&sui_client, sender, route, package_id_cache);
+    let swap = get_swap_transaction(client, &sui_client, quote, route, mctp_input_contract);
     let (prefetched, swap) = try_join!(prefetched, swap)?;
 
     build_sui_quote_data(&sui_client, |gas_budget| build_mctp_transaction(quote, route, &prefetched, destination_address, swap.as_ref(), gas_budget)).await
 }
 
-async fn get_swap_transaction<C>(client: &MayanClient<C>, sui_client: &SuiClient, quote: &Quote, route: &MayanMctpQuote, mctp_input_contract: &str, referrer_address: Option<String>) -> Result<Option<SuiClientSwapReplay>, SwapperError>
+async fn get_swap_transaction<C>(client: &MayanClient<C>, sui_client: &SuiClient, quote: &Quote, route: &MayanMctpQuote, mctp_input_contract: &str) -> Result<Option<SuiClientSwapReplay>, SwapperError>
 where
     C: gem_client::Client + Clone + Send + Sync + Debug + 'static,
 {
@@ -42,6 +40,6 @@ where
     }
 
     let with_wh_fee = route.has_auction == Some(true) || route.cheaper_chain.as_deref() != Some(WormholeChain::Sui.name());
-    let params = GetSwapSuiParams::new(route, quote.request.wallet_address.clone(), mctp_input_contract.to_string(), with_wh_fee, referrer_address);
+    let params = GetSwapSuiParams::new(route, quote.request.wallet_address.clone(), mctp_input_contract.to_string(), with_wh_fee, route.destination_referrer_address()?);
     SuiClientSwapReplay::fetch(client, sui_client, params).await.map(Some)
 }

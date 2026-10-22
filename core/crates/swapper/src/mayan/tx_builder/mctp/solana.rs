@@ -4,7 +4,7 @@ use gem_client::Client;
 use gem_solana::{AccountMeta, Instruction, Pubkey, SolanaAddress, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, find_program_address, instructions::program_ids};
 use rand::Rng;
 
-use super::{destination_referrer_address, redeem_relayer_fee};
+use super::redeem_relayer_fee;
 use crate::{
     Quote, RpcProvider, SwapperError, SwapperQuoteData,
     mayan::{
@@ -14,7 +14,7 @@ use crate::{
         model::{GetSwapSolanaParams, MayanMctpQuote, QuoteType, SolanaClientSwap},
         tx_builder::{
             address::native_address_to_bytes32,
-            amount::{fractional_amount, gas_drop_amount, min_amount_out, optional_bps_u8, value_to_query},
+            amount::{fractional_amount, gas_drop_amount, min_amount_out, optional_bps_u8, required_u64, value_to_query},
             route::quote_destination_address,
             solana::{SolanaLedgerDeposit, append_client_swap_instructions, append_ledger_deposit_instructions, solana_error, wrap_instruction_in_cpi_proxy},
         },
@@ -92,7 +92,7 @@ impl MctpBuildContext {
         let ledger_account = get_associated_token_address_with_program_id(&ledger, &mctp_input_mint, &program_ids::token_program()).map_err(solana_error)?;
         let destination_address = quote_destination_address(quote).to_string();
         let token_out = mctp_token_out(route)?.to_string();
-        let referrer_address = destination_referrer_address(route)?;
+        let referrer_address = route.destination_referrer_address()?;
         let bridge_mode = BridgeMode::for_route(route);
 
         Ok(Self {
@@ -151,7 +151,7 @@ fn add_direct_mctp_instructions(route: &MayanMctpQuote, context: &MctpBuildConte
         },
     )?;
 
-    add_ledger_instruction(route, context, amount, solana_relayer_fee(route)?, instructions)
+    add_ledger_instruction(route, context, amount, instructions)
 }
 
 async fn add_swap_instructions<C>(client: &MayanClient<C>, quote: &Quote, route: &MayanMctpQuote, context: &MctpBuildContext, instructions: &mut Vec<Instruction>) -> Result<Vec<String>, SwapperError>
@@ -166,7 +166,6 @@ where
             value_to_query(min_middle_amount)?,
             context.mctp_input_contract.clone(),
             quote.request.wallet_address.clone(),
-            route.effective_amount_in64.clone(),
             deposit_mode,
             context.referrer_address.clone(),
             context.ledger.to_string(),
@@ -175,24 +174,24 @@ where
 
     let lookup_table_addresses = append_client_swap_instructions(instructions, swap, &context.user, &context.relayer, &route.from_token.contract, &route.effective_amount_in64)?;
 
-    add_ledger_instruction(route, context, fractional_amount(min_middle_amount, CCTP_TOKEN_DECIMALS)?, solana_relayer_fee(route)?, instructions)?;
+    add_ledger_instruction(route, context, fractional_amount(min_middle_amount, CCTP_TOKEN_DECIMALS)?, instructions)?;
 
     Ok(lookup_table_addresses)
 }
 
-fn add_ledger_instruction(route: &MayanMctpQuote, context: &MctpBuildContext, amount_in_min64: u64, fee_solana: u64, instructions: &mut Vec<Instruction>) -> Result<(), SwapperError> {
+fn add_ledger_instruction(route: &MayanMctpQuote, context: &MctpBuildContext, amount_in_min64: u64, instructions: &mut Vec<Instruction>) -> Result<(), SwapperError> {
     if route.has_auction == Some(true) {
-        instructions.push(wrap_instruction_in_cpi_proxy(create_mctp_swap_ledger_instruction(route, context, amount_in_min64, fee_solana)?)?);
+        instructions.push(wrap_instruction_in_cpi_proxy(create_mctp_swap_ledger_instruction(route, context, amount_in_min64)?)?);
     } else {
-        instructions.push(wrap_instruction_in_cpi_proxy(create_mctp_bridge_ledger_instruction(route, context, amount_in_min64, fee_solana)?)?);
+        instructions.push(wrap_instruction_in_cpi_proxy(create_mctp_bridge_ledger_instruction(route, context, amount_in_min64)?)?);
     }
     Ok(())
 }
 
-fn create_mctp_bridge_ledger_instruction(route: &MayanMctpQuote, context: &MctpBuildContext, amount_in_min64: u64, fee_solana: u64) -> Result<Instruction, SwapperError> {
+fn create_mctp_bridge_ledger_instruction(route: &MayanMctpQuote, context: &MctpBuildContext, amount_in_min64: u64) -> Result<Instruction, SwapperError> {
     let destination_chain_id = wormhole_chain_id(&route.to_chain)?;
     let mctp_program = SolanaAddress::parse(MAYAN_MCTP_PROGRAM_ID).map_err(solana_error)?.into();
-    let data = bridge_ledger_data(route, context, amount_in_min64, fee_solana, destination_chain_id)?;
+    let data = bridge_ledger_data(route, context, amount_in_min64, destination_chain_id)?;
     Ok(Instruction {
         program_id: mctp_program,
         accounts: vec![
@@ -209,15 +208,15 @@ fn create_mctp_bridge_ledger_instruction(route: &MayanMctpQuote, context: &MctpB
     })
 }
 
-fn create_mctp_swap_ledger_instruction(route: &MayanMctpQuote, context: &MctpBuildContext, amount_in_min64: u64, fee_solana: u64) -> Result<Instruction, SwapperError> {
+fn create_mctp_swap_ledger_instruction(route: &MayanMctpQuote, context: &MctpBuildContext, amount_in_min64: u64) -> Result<Instruction, SwapperError> {
     let destination_chain_id = wormhole_chain_id(&route.to_chain)?;
     let mctp_program = SolanaAddress::parse(MAYAN_MCTP_PROGRAM_ID).map_err(solana_error)?.into();
-    let mut data = bridge_ledger_data(route, context, amount_in_min64, fee_solana, destination_chain_id)?;
+    let mut data = bridge_ledger_data(route, context, amount_in_min64, destination_chain_id)?;
     data[..8].copy_from_slice(&global_discriminator("init_order_ledger_gasless"));
     data[8 + 32 + 8 + 8 + 8 + 8 + 2 + 32] = MCTP_MODE_SWAP;
     data.extend_from_slice(&native_address_to_bytes32(&context.token_out, destination_chain_id)?);
     data.extend_from_slice(&min_amount_out(&route.min_amount_out, route.to_token.decimals, &route.to_chain, &QuoteType::Mctp)?.to_le_bytes());
-    data.extend_from_slice(&route.deadline64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>()?.to_le_bytes());
+    data.extend_from_slice(&route.deadline()?.to_le_bytes());
     data.extend_from_slice(mctp_referrer_pubkey(route)?.as_bytes());
     data.push(optional_bps_u8(route.referrer_bps)?);
 
@@ -235,14 +234,14 @@ fn create_mctp_swap_ledger_instruction(route: &MayanMctpQuote, context: &MctpBui
     })
 }
 
-fn bridge_ledger_data(route: &MayanMctpQuote, context: &MctpBuildContext, amount_in_min64: u64, fee_solana: u64, destination_chain_id: u16) -> Result<Vec<u8>, SwapperError> {
-    let mut data = Vec::with_capacity(107);
+fn bridge_ledger_data(route: &MayanMctpQuote, context: &MctpBuildContext, amount_in_min64: u64, destination_chain_id: u16) -> Result<Vec<u8>, SwapperError> {
+    let mut data = Vec::new();
     data.extend_from_slice(&global_discriminator("init_bridge_ledger_gasless"));
     data.extend_from_slice(&native_address_to_bytes32(&context.destination_address, destination_chain_id)?);
     data.extend_from_slice(&amount_in_min64.to_le_bytes());
     data.extend_from_slice(&gas_drop_amount(&route.gas_drop, &route.to_chain, &QuoteType::Mctp, false)?.to_le_bytes());
     data.extend_from_slice(&redeem_relayer_fee(route)?.to_le_bytes());
-    data.extend_from_slice(&fee_solana.to_le_bytes());
+    data.extend_from_slice(&required_u64(route.solana_relayer_fee64.as_deref())?.to_le_bytes());
     data.extend_from_slice(&destination_chain_id.to_le_bytes());
     data.extend_from_slice(context.random_key.as_bytes());
     data.push(context.bridge_mode.ledger_mode());
@@ -257,15 +256,11 @@ fn mctp_token_out(route: &MayanMctpQuote) -> Result<&str, SwapperError> {
 }
 
 fn mctp_referrer_pubkey(route: &MayanMctpQuote) -> Result<Pubkey, SwapperError> {
-    let Some(address) = destination_referrer_address(route)? else {
+    let Some(address) = route.destination_referrer_address()? else {
         return Ok(program_ids::system_program());
     };
     let chain_id = wormhole_chain_id(&route.to_chain)?;
     Ok(Pubkey::new(native_address_to_bytes32(&address, chain_id)?))
-}
-
-fn solana_relayer_fee(route: &MayanMctpQuote) -> Result<u64, SwapperError> {
-    route.solana_relayer_fee64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>().map_err(SwapperError::from)
 }
 
 fn random_pubkey() -> Pubkey {
@@ -286,7 +281,7 @@ mod tests {
         quote.request.destination_address = "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string();
         let route = MayanMctpQuote::mock_solana_to_sui();
         let context = MctpBuildContext::new(&quote, &route).unwrap();
-        let instruction = create_mctp_bridge_ledger_instruction(&route, &context, 1_000_000, 179_182).unwrap();
+        let instruction = create_mctp_bridge_ledger_instruction(&route, &context, 1_000_000).unwrap();
 
         assert_eq!(instruction.program_id.to_string(), MAYAN_MCTP_PROGRAM_ID);
         assert_eq!(instruction.accounts.len(), 8);
@@ -305,7 +300,7 @@ mod tests {
         let mut route = MayanMctpQuote::mock_solana_to_sui();
         route.has_auction = Some(true);
         let context = MctpBuildContext::new(&quote, &route).unwrap();
-        let instruction = create_mctp_swap_ledger_instruction(&route, &context, 1_000_000, 179_182).unwrap();
+        let instruction = create_mctp_swap_ledger_instruction(&route, &context, 1_000_000).unwrap();
 
         assert_eq!(instruction.program_id.to_string(), MAYAN_MCTP_PROGRAM_ID);
         assert_eq!(instruction.accounts.len(), 6);

@@ -1,4 +1,4 @@
-use super::{destination_referrer_address, redeem_relayer_fee};
+use super::redeem_relayer_fee;
 use crate::{
     Quote, RpcProvider, SwapperError, SwapperQuoteData,
     mayan::{
@@ -74,7 +74,7 @@ fn mctp_create_order_call(quote: &Quote, route: &MayanMctpQuote) -> Result<EvmFo
             destChain: destination_chain_id,
             tokenOut: FixedBytes::from(swift_to_token(route)?),
             minAmountOut: min_amount_out(&route.min_amount_out, route.to_token.decimals, &route.to_chain, &QuoteType::Mctp)?,
-            deadline: route.deadline64.as_deref().ok_or(SwapperError::InvalidRoute)?.parse::<u64>()?,
+            deadline: route.deadline()?,
             redeemFee: redeem_relayer_fee(route)?,
             referrerAddr: FixedBytes::from(referrer),
             referrerBps: optional_bps_u8(route.referrer_bps)?,
@@ -155,9 +155,7 @@ where
 {
     let mctp_input_contract = mctp_input_contract(route)?;
     let min_middle_amount = fractional_amount::<U256>(route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?, CCTP_TOKEN_DECIMALS)?;
-    let swap: GetSwapEvmResponse = client
-        .get_swap_evm(GetSwapEvmParams::new(route, route.effective_amount_in64.clone(), mctp_input_contract.to_string(), destination_referrer_address(route)?))
-        .await?;
+    let swap: GetSwapEvmResponse = client.get_swap_evm(GetSwapEvmParams::new(route, mctp_input_contract.to_string(), route.destination_referrer_address()?)).await?;
     let swap = EvmSwapForwardData::new(&swap.swap_router_address, &swap.swap_router_calldata, mctp_input_contract, min_middle_amount)?;
 
     if route.from_token.contract.eq_ignore_ascii_case(EVM_ZERO_ADDRESS) {

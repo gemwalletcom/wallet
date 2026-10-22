@@ -66,7 +66,7 @@ pub(in crate::mayan::tx_builder) fn append_client_swap_instructions(
     Ok(swap.address_lookup_table_addresses)
 }
 
-pub(in crate::mayan::tx_builder) fn setup_instructions(instructions: Vec<SolanaInstruction>, payer: &Pubkey) -> Result<Vec<Instruction>, SwapperError> {
+fn setup_instructions(instructions: Vec<SolanaInstruction>, payer: &Pubkey) -> Result<Vec<Instruction>, SwapperError> {
     instructions
         .into_iter()
         .map(|instruction| {
@@ -77,14 +77,14 @@ pub(in crate::mayan::tx_builder) fn setup_instructions(instructions: Vec<SolanaI
         .collect()
 }
 
-pub(in crate::mayan::tx_builder) fn setup_wraps_native_sol(instructions: &[SolanaInstruction], owner: &Pubkey) -> Result<bool, SwapperError> {
+fn setup_wraps_native_sol(instructions: &[SolanaInstruction], owner: &Pubkey) -> Result<bool, SwapperError> {
     let wrapped_account = wrapped_sol::wrapped_sol_account(owner).map_err(solana_error)?;
     Ok(instructions.iter().any(|instruction| {
         instruction.program_id == SYSTEM_PROGRAM_ID && instruction.accounts.get(1).is_some_and(|account| account.pubkey == wrapped_account.to_string()) && decode_base64(&instruction.data).is_ok_and(|data| data.starts_with(&[2, 0, 0, 0]))
     }))
 }
 
-pub(in crate::mayan::tx_builder) fn wrap_native_sol_instructions(owner: &Pubkey, amount: u64) -> Result<Vec<Instruction>, SwapperError> {
+fn wrap_native_sol_instructions(owner: &Pubkey, amount: u64) -> Result<Vec<Instruction>, SwapperError> {
     wrapped_sol::wrap_instructions(owner, amount).map_err(solana_error)?.into_iter().map(wrap_instruction_in_cpi_proxy).collect()
 }
 
