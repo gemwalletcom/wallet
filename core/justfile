@@ -74,6 +74,7 @@ audit:
     cargo audit
 
 fuzz SECONDS="600":
+    @command -v cargo-fuzz >/dev/null || cargo install cargo-fuzz --locked --version 0.13.2
     fuzz/run.sh {{SECONDS}}
 
 unused:

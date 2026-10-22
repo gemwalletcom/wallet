@@ -13,52 +13,55 @@ cargo-fuzz = true
 libfuzzer-sys = "0.4"
 serde_json = "1.0.151"
 
+gemstone = { path = "../gemstone" }
 primitives = { path = "../crates/primitives" }
 payment = { path = "../crates/payment" }
+signer = { path = "../crates/signer" }
 gem_encoding = { path = "../crates/gem_encoding", features = ["protobuf"] }
+gem_keystore = { path = "../crates/gem_keystore", features = ["v3"] }
+gem_solana = { path = "../crates/gem_solana" }
+gem_ton = { path = "../crates/gem_ton", features = ["tvm"] }
 gem_wallet_connect = { path = "../crates/gem_wallet_connect" }
-gem_algorand = { path = "../crates/gem_algorand", features = ["rpc", "signer"] }
-gem_aptos = { path = "../crates/gem_aptos", features = ["rpc"] }
-gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["rpc", "signer"] }
-gem_cardano = { path = "../crates/gem_cardano", features = ["rpc", "signer"] }
-gem_cosmos = { path = "../crates/gem_cosmos", features = ["rpc", "signer"] }
-gem_evm = { path = "../crates/gem_evm", features = ["rpc", "signer"] }
-gem_near = { path = "../crates/gem_near", features = ["rpc", "signer"] }
-gem_polkadot = { path = "../crates/gem_polkadot", features = ["rpc", "signer"] }
-gem_solana = { path = "../crates/gem_solana", features = ["rpc", "signer"] }
-gem_stellar = { path = "../crates/gem_stellar", features = ["rpc", "signer"] }
-gem_sui = { path = "../crates/gem_sui", features = ["rpc", "signer"] }
-gem_ton = { path = "../crates/gem_ton", features = ["rpc", "signer"] }
-gem_tron = { path = "../crates/gem_tron", features = ["rpc", "signer"] }
-gem_xrp = { path = "../crates/gem_xrp", features = ["rpc", "signer"] }
 
 [[bin]]
-name = "solana_transaction"
-path = "fuzz_targets/solana_transaction.rs"
-test = false
-doc = false
-bench = false
+name = "address"
+path = "fuzz_targets/address.rs"
 
 [[bin]]
-name = "ton_boc"
-path = "fuzz_targets/ton_boc.rs"
-test = false
-doc = false
-bench = false
+name = "keystore_file"
+path = "fuzz_targets/keystore_file.rs"
+
+[[bin]]
+name = "payment_url"
+path = "fuzz_targets/payment_url.rs"
+
+[[bin]]
+name = "private_key"
+path = "fuzz_targets/private_key.rs"
 
 [[bin]]
 name = "protobuf"
 path = "fuzz_targets/protobuf.rs"
-test = false
-doc = false
-bench = false
 
 [[bin]]
-name = "external_input"
-path = "fuzz_targets/external_input.rs"
-test = false
-doc = false
-bench = false
+name = "sign_message"
+path = "fuzz_targets/sign_message.rs"
+
+[[bin]]
+name = "solana_transaction"
+path = "fuzz_targets/solana_transaction.rs"
+
+[[bin]]
+name = "ton_boc"
+path = "fuzz_targets/ton_boc.rs"
+
+[[bin]]
+name = "wallet_connect_request"
+path = "fuzz_targets/wallet_connect_request.rs"
+
+[[bin]]
+name = "wallet_connect_transaction"
+path = "fuzz_targets/wallet_connect_transaction.rs"
 
 [profile.release]
 debug = 1

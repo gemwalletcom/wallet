@@ -25,6 +25,7 @@ just test "" <FILTER>           # Run matching workspace unit tests
 just build-integration-tests   # Compile all integration suites without running them
 just test-integration           # Run integration tests only
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
+just fuzz [SECONDS]             # Fuzz every target in fuzz/ in parallel (default 600s); crash inputs land in fuzz/artifacts/<target>/
 ```
 
 `just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `generate`, run `cargo test --locked -p generate --bins --all-features` instead.
