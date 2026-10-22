@@ -127,15 +127,15 @@ pub struct EVMIndexer<C: Client + Clone> {
 impl<C: Client + Clone> EVMIndexer<C> {
     pub fn for_chain(alchemy_client: C, ankr_client: C, blockscout_client: C, blockscout_key: String, etherscan: EtherscanClients<C>, chain: EVMChain) -> Option<Self> {
         let provider_kinds = match chain {
-            EVMChain::Ethereum => vec![ProviderKind::Etherscan, ProviderKind::Blockscout, ProviderKind::Ankr("eth")],
-            EVMChain::Polygon => vec![ProviderKind::Etherscan, ProviderKind::Blockscout, ProviderKind::Ankr("polygon")],
+            EVMChain::Ethereum => vec![ProviderKind::Etherscan, ProviderKind::Ankr("eth"), ProviderKind::Blockscout],
+            EVMChain::Polygon => vec![ProviderKind::Etherscan, ProviderKind::Ankr("polygon"), ProviderKind::Blockscout],
             EVMChain::AvalancheC => vec![ProviderKind::Ankr("avalanche")],
             EVMChain::SmartChain => vec![ProviderKind::Ankr("bsc")],
-            EVMChain::Arbitrum => vec![ProviderKind::Etherscan, ProviderKind::Blockscout, ProviderKind::Ankr("arbitrum")],
-            EVMChain::Optimism => vec![ProviderKind::Blockscout, ProviderKind::Ankr("optimism")],
-            EVMChain::Base => vec![ProviderKind::Blockscout, ProviderKind::Ankr("base")],
+            EVMChain::Arbitrum => vec![ProviderKind::Etherscan, ProviderKind::Ankr("arbitrum"), ProviderKind::Blockscout],
+            EVMChain::Optimism => vec![ProviderKind::Ankr("optimism"), ProviderKind::Blockscout],
+            EVMChain::Base => vec![ProviderKind::Ankr("base"), ProviderKind::Blockscout],
             EVMChain::Fantom => vec![ProviderKind::Ankr("fantom")],
-            EVMChain::Gnosis => vec![ProviderKind::Blockscout, ProviderKind::Ankr("gnosis")],
+            EVMChain::Gnosis => vec![ProviderKind::Ankr("gnosis"), ProviderKind::Blockscout],
             EVMChain::Linea => vec![ProviderKind::Ankr("linea")],
             EVMChain::XLayer => vec![ProviderKind::Ankr("xlayer")],
             EVMChain::Celo | EVMChain::World | EVMChain::Unichain => vec![ProviderKind::Etherscan, ProviderKind::Blockscout, ProviderKind::Alchemy],
@@ -216,7 +216,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_blockscout_falls_back_to_ankr() {
+    async fn test_etherscan_falls_back_to_ankr() {
         let ankr_client = MockClient::new().with_post(|_, body| {
             let request: Value = from_slice(body).unwrap();
             let result: Value = match request["method"].as_str().unwrap() {
