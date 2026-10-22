@@ -80,6 +80,7 @@ pub enum SolanaRpc {
     GetProgramAccounts(String, Vec<SolanaProgramAccountsFilter>),
     GetProgramAccountsSlice(String, Vec<SolanaProgramAccountsFilter>, SolanaDataSlice),
     GetRecentPrioritizationFees(Vec<String>),
+    GetSignaturesForAddress { address: String, limit: usize },
     GetSlot(SolanaRpcConfig),
     GetSupply,
     GetTokenAccountsByOwner(String, SolanaTokenAccountsFilter),
@@ -102,6 +103,7 @@ impl ToJsonRpcRequest for SolanaRpc {
             Self::GetMultipleAccounts(_) | Self::GetMultipleAccountsSlice(_, _) => method::GET_MULTIPLE_ACCOUNTS,
             Self::GetProgramAccounts(_, _) | Self::GetProgramAccountsSlice(_, _, _) => method::GET_PROGRAM_ACCOUNTS,
             Self::GetRecentPrioritizationFees(_) => method::GET_RECENT_PRIORITIZATION_FEES,
+            Self::GetSignaturesForAddress { .. } => method::GET_SIGNATURES_FOR_ADDRESS,
             Self::GetSlot(_) => method::GET_SLOT,
             Self::GetSupply => method::GET_SUPPLY,
             Self::GetTokenAccountsByOwner(_, _) => method::GET_TOKEN_ACCOUNTS_BY_OWNER,
@@ -157,6 +159,7 @@ impl ToJsonRpcRequest for SolanaRpc {
                     json!([addresses])
                 }
             }
+            Self::GetSignaturesForAddress { address, limit } => json!([address, confirmed_config(json!({ "limit": limit }))]),
             Self::GetSupply => json!([confirmed_config(json!({
                 "excludeNonCirculatingAccountsList": true,
             }))]),
@@ -238,6 +241,15 @@ mod tests {
             SolanaRpc::GetTransaction("signature".into()),
             method::GET_TRANSACTION,
             json!(["signature", {"commitment": "confirmed", "encoding": "json", "maxSupportedTransactionVersion": 1}]),
+        );
+    }
+
+    #[test]
+    fn builds_signatures_for_address_request() {
+        assert_request(
+            SolanaRpc::GetSignaturesForAddress { address: "address".into(), limit: 2 },
+            method::GET_SIGNATURES_FOR_ADDRESS,
+            json!(["address", {"commitment": "confirmed", "limit": 2}]),
         );
     }
 

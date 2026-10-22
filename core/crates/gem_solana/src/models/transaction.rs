@@ -5,6 +5,11 @@ use std::collections::{HashMap, HashSet};
 
 use crate::models::token::{BigInt, TokenBalance, TokenBalanceChange};
 
+#[derive(Debug, Deserialize)]
+pub struct TransactionSignature {
+    pub signature: String,
+}
+
 #[derive(Deserialize)]
 pub struct SolanaTransaction {
     pub meta: SolanaTransactionMeta,

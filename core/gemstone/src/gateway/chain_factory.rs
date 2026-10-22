@@ -76,7 +76,7 @@ impl ChainClientFactory {
             ChainType::Polkadot => Ok(Arc::new(PolkadotProvider::new_rpc_only(PolkadotClient::new(alien_client)))),
             ChainType::Solana => {
                 let client = JsonRpcClient::new(alien_client);
-                Ok(Arc::new(SolanaProvider::new_rpc_only(SolanaClient::new(client))))
+                Ok(Arc::new(SolanaProvider::new(SolanaClient::new(client))))
             }
             ChainType::Ethereum => {
                 let evm_chain = EVMChain::from_chain(chain).unwrap();

@@ -7,8 +7,8 @@ use primitives::Transaction;
 
 use crate::{
     models::SingleTransaction,
-    provider::transaction_mapper::{map_block_transactions, map_single_transaction},
-    rpc::{SolanaIndexer, SolanaProvider, constants::MISSING_BLOCKS_ERRORS},
+    provider::transaction_mapper::{map_block_transactions, map_single_transaction, map_transaction_requests},
+    rpc::{SolanaProvider, constants::MISSING_BLOCKS_ERRORS},
 };
 
 #[async_trait]
@@ -35,13 +35,10 @@ impl<C: Client + Clone> ChainTransaction for SolanaProvider<C> {
 }
 
 #[async_trait]
-impl<C: Client + Clone> ChainTransactions for SolanaIndexer<C> {
+impl<C: Client + Clone> ChainTransactions for SolanaProvider<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let transaction_ids = self.get_transaction_ids_by_address(&address, limit).await?;
-        Ok(TransactionsResult::TransactionRequests(
-            transaction_ids.into_iter().map(|transaction_id| TransactionIdRequest::new(primitives::Chain::Solana, transaction_id, None)).collect(),
-        ))
+        Ok(map_transaction_requests(self.get_signatures_for_address(&address, limit).await?))
     }
 }
 

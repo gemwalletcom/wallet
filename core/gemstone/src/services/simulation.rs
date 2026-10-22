@@ -154,7 +154,7 @@ impl GemSimulationService {
         let url = self.nodes.node_url(chain);
         let new_client = || new_alien_client(url.clone(), self.provider.clone());
         match chain {
-            Chain::Solana => Ok(Box::new(SolanaProvider::new_rpc_only(SolanaClient::new(JsonRpcClient::new(new_client()))))),
+            Chain::Solana => Ok(Box::new(SolanaProvider::new(SolanaClient::new(JsonRpcClient::new(new_client()))))),
             Chain::Sui => {
                 let transport = AlienGrpcTransport::new(Arc::new(AlienProviderWrapper::new(self.provider.clone())));
                 Ok(Box::new(SuiProvider::new_rpc_only(SuiClient::new_with_transport(url, Arc::new(transport)))))

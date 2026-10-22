@@ -21,7 +21,7 @@ use gem_jsonrpc::grpc::ReqwestGrpcTransport;
 use gem_monad::MonadStakingClient;
 use gem_near::rpc::{NearClient, NearIndexer, NearProvider};
 use gem_polkadot::rpc::{PolkadotClient, PolkadotIndexer, PolkadotProvider};
-use gem_solana::rpc::{SolanaClient, SolanaIndexer, SolanaProvider};
+use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::{SuiClient, SuiIndexer, SuiProvider};
 use gem_tempo::TempoProvider;
@@ -139,15 +139,7 @@ impl ProviderFactory {
                         .with_default_headers(HashMap::from([("x-api-key".to_string(), config.indexers.subscan.key)])),
                 )),
             )),
-            ChainType::Solana => Box::new(SolanaProvider::new(
-                SolanaClient::new(JsonRpcClient::new(gem_client.clone())),
-                Box::new(SolanaIndexer::new(JsonRpcClient::new(gem_client.with_base_url(alchemy_url(
-                    chain,
-                    &config.indexers.alchemy.url,
-                    AlchemyApi::JsonRpc,
-                    &config.indexers.alchemy.key,
-                ))))),
-            )),
+            ChainType::Solana => Box::new(SolanaProvider::new(SolanaClient::new(JsonRpcClient::new(gem_client)))),
             ChainType::Ton => Box::new(TonClient::new(gem_client)),
             ChainType::Tron => {
                 let trongrid = TronGridClient::new(config.indexers.trongrid.configure_client(gem_client.clone()), config.indexers.trongrid.key);

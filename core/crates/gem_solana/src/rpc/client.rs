@@ -3,8 +3,12 @@ use crate::{
     jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter},
     metaplex::{decode_metadata, metadata::Metadata},
     models::{
-        AccountData, EpochInfo, InflationRate, ResultTokenInfo, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts, balances::SolanaBalance, blockhash::SolanaBlockhashResult, prioritization_fee::SolanaPrioritizationFee,
-        simulation::SimulateTransactionResult, transaction::BlockTransactions,
+        AccountData, EpochInfo, InflationRate, ResultTokenInfo, SupplyResult, TokenAccountInfo, ValueResult, VoteAccounts,
+        balances::SolanaBalance,
+        blockhash::SolanaBlockhashResult,
+        prioritization_fee::SolanaPrioritizationFee,
+        simulation::SimulateTransactionResult,
+        transaction::{BlockTransactions, TransactionSignature},
     },
 };
 #[cfg(feature = "rpc")]
@@ -50,6 +54,10 @@ impl<C: Client + Clone> SolanaClient<C> {
 
     pub async fn get_transaction<T: DeserializeOwned + Send>(&self, signature: &str) -> Result<Option<T>, JsonRpcError> {
         self.client.request(SolanaRpc::GetTransaction(signature.to_string())).await
+    }
+
+    pub async fn get_signatures_for_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionSignature>, JsonRpcError> {
+        self.client.request(SolanaRpc::GetSignaturesForAddress { address: address.to_string(), limit }).await
     }
 
     pub async fn get_genesis_hash(&self) -> Result<String, JsonRpcError> {

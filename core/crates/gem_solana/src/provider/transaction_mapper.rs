@@ -4,13 +4,14 @@ use num_bigint::{BigUint, Sign};
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, METEORA_DAMM_V2_PROGRAM_ID, METEORA_DLMM_PROGRAM_ID, OKX_DEX_V2_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, PUMP_AMM_PROGRAM_ID,
     RAYDIUM_AMM_PROGRAM_ID, RAYDIUM_CLMM_PROGRAM_ID, RAYDIUM_CPMM_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022, WSOL_TOKEN_ADDRESS,
-    models::{BlockTransaction, BlockTransactions, Instruction, SingleTransaction, TokenBalanceChange},
+    models::{BlockTransaction, BlockTransactions, Instruction, SingleTransaction, TokenBalanceChange, TransactionSignature},
 };
 use primitives::{
     AssetId, Chain, NFTAssetId, OptionStringExt, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, swap::SOLANA_REFERRAL_ADDRESS,
 };
 
 use super::parsers::ProtocolParsers;
+use chain_traits::{TransactionIdRequest, TransactionsResult};
 
 const CHAIN: Chain = Chain::Solana;
 const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[
@@ -172,6 +173,10 @@ fn map_referral_fee(transaction: &BlockTransaction, owner: &str) -> Option<Trans
         },
         value: change.amount.magnitude().clone(),
     })
+}
+
+pub fn map_transaction_requests(signatures: Vec<TransactionSignature>) -> TransactionsResult {
+    TransactionsResult::TransactionRequests(signatures.into_iter().map(|signature| TransactionIdRequest::new(CHAIN, signature.signature, None)).collect())
 }
 
 pub fn map_block_transactions(transactions: &BlockTransactions) -> Vec<primitives::Transaction> {
