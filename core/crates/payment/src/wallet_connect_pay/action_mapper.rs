@@ -65,7 +65,7 @@ fn map_approval(quote: &Quote, action: &WalletRpcAction, spender: &str) -> Resul
     if !transaction.to.eq_ignore_ascii_case(quote.token()) {
         return Err(PaymentError::invalid_request(format!("Payment asks to approve {} on a quote of {}", transaction.to, quote.asset_id)));
     }
-    match decode_transaction_kind(quote.token(), transaction.data.as_deref()).map_err(PaymentError::invalid_request)? {
+    match decode_transaction_kind(quote.token(), transaction.data.as_deref(), transaction.value.as_deref()).map_err(PaymentError::invalid_request)? {
         EvmTransactionKind::TokenApproval(approval) if approval.spender.eq_ignore_ascii_case(spender) => Ok(approval),
         EvmTransactionKind::TokenApproval(approval) => Err(PaymentError::invalid_request(format!("Payment approves {} for a permit verified by {spender}", approval.spender))),
         EvmTransactionKind::Transfer | EvmTransactionKind::ContractCall => Err(PaymentError::invalid_request("Payment approval is not a token approval")),

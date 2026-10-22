@@ -304,6 +304,17 @@ mod tests {
     }
 
     #[test]
+    fn test_decode_ethereum_approval_with_value_is_contract_call() {
+        let with_value = include_str!("../../testdata/ethereum_approval.json").replace(r#""value": "0x0""#, r#""value": "0x2386f26fc10000""#);
+        let decoded = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, with_value).unwrap();
+
+        match decoded {
+            WalletConnectTransaction::Ethereum { kind, .. } => assert_eq!(kind, EvmTransactionKind::ContractCall),
+            _ => panic!("Expected Ethereum transaction"),
+        }
+    }
+
+    #[test]
     fn test_parse_request_eth_sign_typed_data_v3_chain_mismatch() {
         let eip712_json = mock_eip712_json(56);
         let params = serde_json::to_string(&serde_json::json!(["0x123", eip712_json])).unwrap();

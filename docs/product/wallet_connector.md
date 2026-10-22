@@ -34,6 +34,7 @@ flowchart LR
 | A permit to sign names a flagged spender | a critical warning on the review | |
 | A one-click sign-in names a different site than the app asking | it is refused and the app is told so | the signature would log the user in to that other site |
 | A transaction approves a token: an approval, an allowance increase or a Permit2 approval | the review shows a token approval with the token, spender and amount; a flagged spender or token stops Confirm | the spender is who can move the token afterwards |
+| A transaction approves a token and also sends coins | the review shows the contract call: the coins it sends, the predicted balance changes, and the called contract checked by the transaction scan | the review shows everything that leaves the wallet (`test_decode_approval_with_native_value`) |
 | An approval or permit names a spender that is a wallet rather than a contract, including a wallet running delegated EIP-7702 code | a warning on the review | approving a wallet is how drainers take tokens, and a delegated wallet is still moved by whoever holds its key (`erc20_approve_with_delegated_account_spender_adds_warning`) |
 | A dapp asks to switch to a network Gem supports where the wallet has an account | the network joins the connection and the dapp switches, with no review | the address is the same on every Ethereum-style network, so nothing new is shared |
 | A dapp asks to switch to a network Gem does not support | the dapp is told the network is unknown; nothing shows | |

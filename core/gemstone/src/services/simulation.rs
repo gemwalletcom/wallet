@@ -6,6 +6,7 @@ use chain_traits::ChainSimulation;
 use chrono::{DateTime, Utc};
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
+use gem_evm::transaction::has_native_value;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_sui::rpc::{SuiClient, SuiProvider};
@@ -91,7 +92,7 @@ impl GemSimulationService {
         let calldata = simulation::decode_ethereum_calldata(&transaction);
         let provider = self.ethereum_provider(chain)?;
 
-        if ::simulation::evm::is_approval(chain, &calldata, &transaction.to) {
+        if ::simulation::evm::is_approval(chain, &calldata, &transaction.to) && !has_native_value(transaction.value.as_deref()) {
             return Ok(SimulationClient::new(&provider).simulate_evm_calldata(chain, &calldata, &transaction.to).await?);
         }
 
