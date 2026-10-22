@@ -315,7 +315,7 @@ pub fn transfer_data(chain: Chain, metadata: ApplicationMetadata, transaction: W
     };
     let (extra, value) = match transaction {
         WalletConnectTransaction::Ethereum { data, kind } => {
-            let value = data.value.as_deref().map(hex_value).transpose()?.unwrap_or(BigInt::ZERO);
+            let value = data.value.map(BigInt::from).unwrap_or(BigInt::ZERO);
             let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?;
             let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
                 (Some(max_fee), Some(priority_fee)) => Some(GasPriceType::Eip1559 {
@@ -425,6 +425,7 @@ mod tests {
 
     use super::*;
     use gem_wallet_connect::WCEthereumTransactionData;
+    use num_bigint::BigUint;
     use primitives::Account;
 
     use crate::testkit::mock_wc_ethereum_transaction_data;
@@ -729,7 +730,7 @@ mod tests {
                 chain_id: Some(1),
                 from: "0xfrom".to_string(),
                 to: "0xto".to_string(),
-                value: Some("0x10".to_string()),
+                value: Some(BigUint::from(16u32)),
                 gas: Some("0x5208".to_string()),
                 gas_limit: None,
                 gas_price: None,

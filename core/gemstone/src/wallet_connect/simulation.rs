@@ -1,4 +1,6 @@
-use gem_wallet_connect::{SignDigestType, SignMessageValidation, WCEthereumTransactionData, WalletConnectRequestHandler, WalletConnectTransaction, WalletConnectTransactionType, validate_send_transaction, validate_sign_message};
+use gem_wallet_connect::{
+    EvmTransactionKind, SignDigestType, SignMessageValidation, WCEthereumTransactionData, WalletConnectRequestHandler, WalletConnectTransaction, WalletConnectTransactionType, validate_send_transaction, validate_sign_message,
+};
 use primitives::{Chain, SimulationWarning, hex};
 
 pub(crate) fn parse_eip712_message(data: &str) -> Option<gem_evm::eip712::EIP712Message> {
@@ -15,10 +17,10 @@ pub(crate) fn send_transaction_validation_warnings(transaction_type: &WalletConn
     validate_send_transaction(transaction_type, data).err().into_iter().map(SimulationWarning::validation_error).collect()
 }
 
-pub(crate) fn decode_ethereum_transaction(data: &str) -> Result<WCEthereumTransactionData, String> {
+pub(crate) fn decode_ethereum_transaction(data: &str) -> Result<(WCEthereumTransactionData, EvmTransactionKind), String> {
     let transaction = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, data.to_string())?;
     match transaction {
-        WalletConnectTransaction::Ethereum { data, .. } => Ok(data),
+        WalletConnectTransaction::Ethereum { data, kind } => Ok((data, kind)),
         _ => Err("Invalid Ethereum transaction".to_string()),
     }
 }
@@ -49,7 +51,7 @@ mod tests {
         })
         .to_string();
 
-        let transaction = decode_ethereum_transaction(&data).unwrap();
+        let (transaction, _) = decode_ethereum_transaction(&data).unwrap();
 
         assert_eq!(decode_ethereum_calldata(&transaction), vec![0xa9, 0x05, 0x9c, 0xbb]);
     }
@@ -63,7 +65,7 @@ mod tests {
         })
         .to_string();
 
-        let transaction = decode_ethereum_transaction(&data).unwrap();
+        let (transaction, _) = decode_ethereum_transaction(&data).unwrap();
 
         assert!(decode_ethereum_calldata(&transaction).is_empty());
     }

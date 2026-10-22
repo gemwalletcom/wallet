@@ -1,5 +1,6 @@
 use crate::sign_type::SignDigestType;
 pub use gem_evm::transaction::EvmTransactionKind;
+use num_bigint::BigUint;
 use primitives::{Chain, TransactionType, TransferDataOutputType, WCEthereumTransaction};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -56,7 +57,7 @@ pub struct WCEthereumTransactionData {
     pub chain_id: Option<u64>,
     pub from: String,
     pub to: String,
-    pub value: Option<String>,
+    pub value: Option<BigUint>,
     pub gas: Option<String>,
     pub gas_limit: Option<String>,
     pub gas_price: Option<String>,

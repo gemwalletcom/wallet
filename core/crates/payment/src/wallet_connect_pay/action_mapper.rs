@@ -1,10 +1,8 @@
 use gem_evm::transaction::{EvmTransactionKind, decode_transaction_kind};
 use gem_wallet_connect::EthereumRequestHandler;
-use num_bigint::BigUint;
 use primitives::swap::ApprovalData;
 use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectionMethods};
 use serde_json::Value;
-use serde_serializers::biguint_from_hex_str;
 
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::model::{PaymentAction, PaymentSend, Quote, TypedDataTransfer, WalletRpcAction};
@@ -27,7 +25,7 @@ pub(super) fn map_actions(quote: &Quote, actions: &[WalletRpcAction]) -> Result<
 
 fn map_send(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSend, PaymentError> {
     let transaction = get_transaction(quote, action)?;
-    let value = get_value(&transaction)?;
+    let value = transaction.value.unwrap_or_default();
     if value != quote.value {
         return Err(PaymentError::invalid_request(format!("Payment asks to send {value} for a quote of {}", quote.value)));
     }
@@ -59,13 +57,10 @@ fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<TypedDataTransfer
 
 fn map_approval(quote: &Quote, action: &WalletRpcAction, spender: &str) -> Result<ApprovalData, PaymentError> {
     let transaction = get_transaction(quote, action)?;
-    if get_value(&transaction)? != BigUint::ZERO {
-        return Err(PaymentError::invalid_request("Payment approval sends value"));
-    }
     if !transaction.to.eq_ignore_ascii_case(quote.token()) {
         return Err(PaymentError::invalid_request(format!("Payment asks to approve {} on a quote of {}", transaction.to, quote.asset_id)));
     }
-    match decode_transaction_kind(quote.token(), transaction.data.as_deref()).map_err(PaymentError::invalid_request)? {
+    match decode_transaction_kind(quote.token(), transaction.data.as_deref(), transaction.value.as_ref()).map_err(PaymentError::invalid_request)? {
         EvmTransactionKind::TokenApproval(approval) if approval.spender.eq_ignore_ascii_case(spender) => Ok(approval),
         EvmTransactionKind::TokenApproval(approval) => Err(PaymentError::invalid_request(format!("Payment approves {} for a permit verified by {spender}", approval.spender))),
         EvmTransactionKind::Transfer | EvmTransactionKind::ContractCall => Err(PaymentError::invalid_request("Payment approval is not a token approval")),
@@ -89,10 +84,6 @@ fn get_chain(quote: &Quote, action: &WalletRpcAction) -> Result<Chain, PaymentEr
     Ok(chain)
 }
 
-fn get_value(transaction: &WCEthereumTransaction) -> Result<BigUint, PaymentError> {
-    biguint_from_hex_str(transaction.value.as_deref().unwrap_or_default()).map_err(|error| PaymentError::invalid_request(format!("Invalid payment value: {error}")))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,6 +93,7 @@ mod tests {
     };
     use gem_evm::address::ethereum_address_checksum;
     use gem_evm::encode::encode_erc20_approve_max_value;
+    use num_bigint::BigUint;
     use primitives::AssetId;
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID};
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
@@ -210,6 +202,7 @@ mod tests {
             map_send(&coin, &with_transaction(send, "from", Value::from(TEST_ACCOUNT_WITHOUT_ALLOWANCE))),
             Err(PaymentError::invalid_request("Payment asks to sign from another account"))
         );
+        assert_eq!(map_send(&coin, &with_transaction(send, "value", Value::from("0xzz"))), Err(PaymentError::invalid_request("Invalid hex string: 0xzz")));
     }
 
     #[test]
@@ -242,7 +235,7 @@ mod tests {
 
         assert_eq!(
             map_approval(&unapproved, &with_transaction(approve, "value", Value::from("0x1")), UNISWAP_PERMIT2_CONTRACT),
-            Err(PaymentError::invalid_request("Payment approval sends value"))
+            Err(PaymentError::invalid_request("Payment approval is not a token approval"))
         );
         assert_eq!(
             map_approval(&unapproved, &with_transaction(approve, "to", Value::from(TEST_ROUTER)), UNISWAP_PERMIT2_CONTRACT),

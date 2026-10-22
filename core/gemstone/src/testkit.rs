@@ -8,7 +8,7 @@ use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 use async_trait::async_trait;
 use gem_client::{CONTENT_TYPE, ContentType};
 use gem_wallet_connect::WCEthereumTransactionData;
-use num_bigint::BigInt;
+use num_bigint::{BigInt, BigUint};
 use payment::PaymentTransaction;
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
 use primitives::{AssetId, Chain, ChainAddress, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
@@ -116,7 +116,7 @@ pub fn mock_wc_ethereum_transaction_data() -> WCEthereumTransactionData {
         chain_id: None,
         from: TEST_EVM_SENDER.to_string(),
         to: TEST_EVM_RECIPIENT.to_string(),
-        value: Some("0x2386f26fc10000".to_string()),
+        value: Some(BigUint::from(10_000_000_000_000_000u64)),
         gas: None,
         gas_limit: None,
         gas_price: None,

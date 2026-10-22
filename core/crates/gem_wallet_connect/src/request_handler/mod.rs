@@ -266,9 +266,15 @@ mod tests {
 
     #[test]
     fn test_decode_ethereum_transaction_kind_from_payload() {
-        let cases = [(r#""0x""#, EvmTransactionKind::Transfer), (r#"null"#, EvmTransactionKind::Transfer), (r#""0xdeadbeef""#, EvmTransactionKind::ContractCall)];
-        for (data, expected) in cases {
-            let decoded = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, format!(r#"{{"from":"0xsender","to":"0xrouter","data":{data},"value":"0x0"}}"#)).unwrap();
+        let approve = r#""0x095ea7b300000000000000000000000022223333444455556666777788889999aaaabbbb0000000000000000000000000000000000000000000000000000000000000064""#;
+        let cases = [
+            (r#""0x""#, r#""0x0""#, EvmTransactionKind::Transfer),
+            (r#"null"#, r#""0x2386f26fc10000""#, EvmTransactionKind::Transfer),
+            (r#""0xdeadbeef""#, r#""0x0""#, EvmTransactionKind::ContractCall),
+            (approve, r#""0x2386f26fc10000""#, EvmTransactionKind::ContractCall),
+        ];
+        for (data, value, expected) in cases {
+            let decoded = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, format!(r#"{{"from":"0xsender","to":"0xrouter","data":{data},"value":{value}}}"#)).unwrap();
 
             match decoded {
                 WalletConnectTransaction::Ethereum { kind, .. } => assert_eq!(kind, expected),

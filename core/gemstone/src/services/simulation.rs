@@ -11,7 +11,7 @@ use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
-use gem_wallet_connect::{SignDigestType, WCEthereumTransactionData, WalletConnectTransactionType};
+use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WCEthereumTransactionData, WalletConnectTransactionType};
 use primitives::{
     AddressName, AssetId, BlockExplorerLink, Chain, ChainAddress, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
     SimulationWarningType,
@@ -87,23 +87,24 @@ impl GemSimulationService {
     }
 
     async fn simulate_ethereum_transaction(&self, chain: Chain, data: &str) -> Result<SimulationResult, GemstoneError> {
-        let transaction = simulation::decode_ethereum_transaction(data)?;
+        let (transaction, kind) = simulation::decode_ethereum_transaction(data)?;
         let calldata = simulation::decode_ethereum_calldata(&transaction);
         let provider = self.ethereum_provider(chain)?;
 
-        if ::simulation::evm::is_approval(chain, &calldata, &transaction.to) {
-            return Ok(SimulationClient::new(&provider).simulate_evm_calldata(chain, &calldata, &transaction.to).await?);
-        }
+        match kind {
+            EvmTransactionKind::TokenApproval(_) => Ok(SimulationClient::new(&provider).simulate_evm_calldata(chain, &calldata, &transaction.to).await?),
+            EvmTransactionKind::Transfer | EvmTransactionKind::ContractCall => {
+                let (calldata_result, balance_result) = self.simulate_calldata_and_balance_changes(chain, &calldata, &provider, &transaction).await;
+                let calldata_result = calldata_result?;
+                let balance_result = balance_result.unwrap_or_default();
 
-        let (calldata_result, balance_result) = self.simulate_calldata_and_balance_changes(chain, &calldata, &provider, &transaction).await;
-        let calldata_result = calldata_result?;
-        let balance_result = balance_result.unwrap_or_default();
-
-        Ok(SimulationResult {
-            balance_changes: balance_result.balance_changes,
-            ..calldata_result
+                Ok(SimulationResult {
+                    balance_changes: balance_result.balance_changes,
+                    ..calldata_result
+                }
+                .prepend_warnings(balance_result.warnings))
+            }
         }
-        .prepend_warnings(balance_result.warnings))
     }
 
     async fn simulate_calldata_and_balance_changes(
@@ -174,7 +175,7 @@ fn map_transaction_object(transaction: &WCEthereumTransactionData) -> Transactio
         gas_price: None,
         max_fee_per_gas: None,
         max_priority_fee_per_gas: None,
-        value: transaction.value.clone(),
+        value: transaction.value.as_ref().map(|value| format!("{value:#x}")),
         data: transaction.data.clone().unwrap_or_default(),
     }
 }
