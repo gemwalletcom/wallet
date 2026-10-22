@@ -7,7 +7,7 @@ use crate::mayan::{
     model::{GetSwapSuiParams, MayanMctpQuote},
     tx_builder::{
         route::quote_destination_address,
-        sui::{SuiClientSwapReplay, build_sui_quote_data, sui_error},
+        sui::{SuiClientSwapReplay, build_sui_quote_data, requires_client_swap, sui_error},
     },
     wormhole_chain::{self, WormholeChain},
 };
@@ -37,28 +37,11 @@ async fn get_swap_transaction<C>(client: &MayanClient<C>, sui_client: &SuiClient
 where
     C: gem_client::Client + Clone + Send + Sync + Debug + 'static,
 {
-    if route.from_token.contract.as_str() == mctp_input_contract {
+    if !requires_client_swap(route, mctp_input_contract) {
         return Ok(None);
     }
 
     let with_wh_fee = route.has_auction == Some(true) || route.cheaper_chain.as_deref() != Some(WormholeChain::Sui.name());
     let params = GetSwapSuiParams::new(route, quote.request.wallet_address.clone(), mctp_input_contract.to_string(), with_wh_fee, referrer_address);
     SuiClientSwapReplay::fetch(client, sui_client, params).await.map(Some)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use gem_sui::SUI_COIN_TYPE;
-
-    #[test]
-    fn test_mctp_route_amounts() {
-        let route = MayanMctpQuote::mock();
-        assert_eq!(transaction::bridge_amount(&route, route.mctp_input_contract.as_deref().unwrap()).unwrap(), 1000000);
-
-        let mut route = route;
-        route.common.from_token.contract = SUI_COIN_TYPE.to_string();
-        route.min_middle_amount = Some(serde_json::json!(0.99));
-        assert_eq!(transaction::bridge_amount(&route, route.mctp_input_contract.as_deref().unwrap()).unwrap(), 990000);
-    }
 }

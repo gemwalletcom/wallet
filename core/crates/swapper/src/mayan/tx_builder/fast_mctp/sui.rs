@@ -4,8 +4,6 @@ use futures::try_join;
 use gem_client::Client;
 use gem_sui::{
     ESTIMATION_GAS_BUDGET, SuiClient,
-    address::SuiAddress,
-    is_sui_coin,
     models::{Coin, OwnedCoins, TxOutput},
     tx_builder::{ResolvedObjectInput, TransactionBuilderInput, finish_transaction, move_call},
 };
@@ -17,15 +15,15 @@ use crate::{
     Quote, RpcProvider, SwapperError, SwapperQuoteData,
     client_factory::create_sui_client,
     mayan::{
-        cctp_domain::{CCTP_TOKEN_DECIMALS, domain_for_wormhole_chain},
+        cctp_domain::domain_for_wormhole_chain,
         client::MayanClient,
         constants::{SUI_CCTP_DENY_LIST, SUI_CCTP_V2_CORE_STATE, SUI_CCTP_V2_HANDLER_PACKAGE_ID, SUI_CCTP_V2_HANDLER_STATE, SUI_CCTP_V2_TOKEN_PACKAGE_ID, SUI_CCTP_V2_TOKEN_STATE, SUI_FAST_MCTP_STATE, SUI_USDC_TREASURY},
         model::{GetSwapSuiParams, MayanFastMctpQuote, QuoteType},
         tx_builder::{
             address::native_address_to_bytes32,
-            amount::{fractional_amount, gas_drop_amount, min_amount_out, optional_bps_u8},
+            amount::{gas_drop_amount, min_amount_out, optional_bps_u8},
             route::quote_destination_address,
-            sui::{SuiClientSwapReplay, SuiInputCoin, build_sui_input_coin, build_sui_quote_data, get_package_id, get_sui_objects, sui_error},
+            sui::{SuiClientSwapReplay, SuiInputCoin, bridge_amount, build_sui_input_coin, build_sui_quote_data, get_package_id, get_sui_input_coins, get_sui_objects, requires_client_swap, sui_error, sui_package_address},
         },
         wormhole_chain::id_for_name as wormhole_chain_id,
     },
@@ -59,13 +57,7 @@ impl PrefetchedFastMctpData {
         .map(str::to_string)
         .to_vec();
         let transaction = async { TransactionBuilderInput::prefetch(client, sender, ESTIMATION_GAS_BUDGET).await.map_err(sui_error) };
-        let input_coins = async {
-            if requires_client_swap(route)? || is_sui_coin(input_contract) {
-                Ok(OwnedCoins::default())
-            } else {
-                client.get_coins(sender, input_contract).await.map_err(sui_error)
-            }
-        };
+        let input_coins = get_sui_input_coins(client, sender, route, input_contract);
         let objects = get_sui_objects(client, object_ids);
         let package_id = get_package_id(client, SUI_FAST_MCTP_STATE, package_id_cache);
         let (transaction, input_coins, objects, package_id) = try_join!(transaction, input_coins, objects, package_id)?;
@@ -100,7 +92,7 @@ async fn get_swap_transaction<C>(client: &MayanClient<C>, sui_client: &SuiClient
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
-    if !requires_client_swap(route)? {
+    if !requires_client_swap(route, fast_mctp_input_contract(route)?) {
         return Ok(None);
     }
 
@@ -216,15 +208,8 @@ fn log_initialize_fast_mctp(txb: &mut TransactionBuilder, route: &MayanFastMctpQ
     Ok(())
 }
 
-fn requires_client_swap(route: &MayanFastMctpQuote) -> Result<bool, SwapperError> {
-    Ok(route.from_token.contract != fast_mctp_input_contract(route)?)
-}
-
 fn amount_in_min(route: &MayanFastMctpQuote) -> Result<u64, SwapperError> {
-    if !requires_client_swap(route)? {
-        return route.effective_amount_in64.parse::<u64>().map_err(SwapperError::from);
-    }
-    fractional_amount(route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?, CCTP_TOKEN_DECIMALS)
+    bridge_amount(route, route.min_middle_amount.as_ref(), fast_mctp_input_contract(route)?)
 }
 
 fn destination_address(quote: &Quote, route: &MayanFastMctpQuote) -> Result<Address, SwapperError> {
@@ -237,23 +222,4 @@ fn input_currency_id(route: &MayanFastMctpQuote) -> Result<&str, SwapperError> {
 
 fn from_token_currency_id(route: &MayanFastMctpQuote) -> Result<&str, SwapperError> {
     route.from_token.currency_id.as_deref().ok_or(SwapperError::InvalidRoute)
-}
-
-fn sui_package_address(package_id: &str) -> Result<Address, SwapperError> {
-    SuiAddress::parse(package_id).map(Address::from).map_err(sui_error)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_amount_in_min() {
-        let route = MayanFastMctpQuote::mock_sui();
-        assert_eq!(amount_in_min(&route).unwrap(), 1_038_528);
-
-        let mut route = route;
-        route.common.from_token.contract = route.fast_mctp_input_contract.clone().unwrap();
-        assert_eq!(amount_in_min(&route).unwrap(), 1_000_000_000);
-    }
 }

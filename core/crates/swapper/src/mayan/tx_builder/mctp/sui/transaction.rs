@@ -16,22 +16,18 @@ use crate::{
     Quote, SwapperError,
     mayan::tx_builder::{
         amount::optional_bps_u8,
-        sui::{SuiClientSwapReplay, SuiInputCoin, build_sui_input_coin},
+        sui::{SuiClientSwapReplay, SuiInputCoin, build_sui_input_coin, sui_package_address},
         swift::referrer_bytes,
     },
 };
 use gem_sui::{
     SUI_COIN_TYPE,
-    address::SuiAddress,
     models::{OwnedCoins, TxOutput},
     sui_clock_object_input,
     tx_builder::{build_input_coin, finish_transaction, move_call},
 };
 use sui_transaction_builder::{Argument, TransactionBuilder};
 use sui_types::Address;
-
-#[cfg(test)]
-pub(super) use fees::bridge_amount;
 
 pub(super) fn build_mctp_transaction(quote: &Quote, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, destination_address: &str, swap: Option<&SuiClientSwapReplay>, gas_budget: u64) -> Result<TxOutput, SwapperError> {
     let SuiInputCoin { mut txb, coin: input_coin, wh_fee_coin } = build_sui_input_coin(swap, &prefetched.mctp_input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins)?;
@@ -56,7 +52,7 @@ fn deposit_for_burn_with_auth(txb: &mut TransactionBuilder, prefetched: &Prefetc
     let deny_list = txb.object(prefetched.objects[SUI_CCTP_DENY_LIST].input(false));
     let treasury = txb.object(prefetched.objects[treasury].input(true));
     let auth_type = format!("{}::{auth_module}::CircleAuth", prefetched.mctp_package_id);
-    let package = SuiAddress::parse(SUI_CCTP_TOKEN_PACKAGE_ID).map_err(sui_error)?.into();
+    let package = sui_package_address(SUI_CCTP_TOKEN_PACKAGE_ID)?;
     move_call(
         txb,
         package,
@@ -75,7 +71,7 @@ fn add_publish_wormhole_message(txb: &mut TransactionBuilder, prefetched: &Prefe
     };
     let clock = txb.object(sui_clock_object_input());
     let wormhole_state = txb.object(prefetched.objects[SUI_WORMHOLE_STATE].input(true));
-    let package = SuiAddress::parse(SUI_WORMHOLE_PACKAGE_ID).map_err(sui_error)?.into();
+    let package = sui_package_address(SUI_WORMHOLE_PACKAGE_ID)?;
     move_call(txb, package, "publish_message", "publish_message", &[], vec![wormhole_state, fee_coin, wormhole_message, clock]).map_err(sui_error)?;
     Ok(())
 }
@@ -85,7 +81,7 @@ fn log_initialize_mctp(txb: &mut TransactionBuilder, route: &MayanMctpQuote, pre
     let verified_input = txb.object(prefetched.objects[&prefetched.from_token_verified_address].input(false));
     let amount = txb.pure(&amount);
     let payload = txb.pure(&Vec::<u8>::new());
-    let package = SuiAddress::parse(&prefetched.mctp_package_id).map_err(sui_error)?.into();
+    let package = sui_package_address(&prefetched.mctp_package_id)?;
     move_call(txb, package, "init_order", "log_initialize_mctp", &[&route.from_token.contract], vec![amount, verified_input, payload]).map_err(sui_error)?;
     Ok(())
 }
@@ -94,7 +90,7 @@ fn log_referrer(txb: &mut TransactionBuilder, route: &MayanMctpQuote) -> Result<
     let referrer = referrer_bytes(&route.to_chain)?;
     let referrer = txb.pure(&Address::new(referrer));
     let referrer_bps = txb.pure(&optional_bps_u8(route.referrer_bps)?);
-    let package = SuiAddress::parse(SUI_LOGGER_PACKAGE_ID).map_err(sui_error)?.into();
+    let package = sui_package_address(SUI_LOGGER_PACKAGE_ID)?;
     move_call(txb, package, "referrer_logger", "log_referrer", &[], vec![referrer, referrer_bps]).map_err(sui_error)?;
     Ok(())
 }
